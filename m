@@ -1,110 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: +
- x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
- added to -mm tree
-Date: Mon, 29 Jul 2013 16:54:52 -0700
-Message-ID: <51f700cc.md+uZ7BCDh1vxLRK%akpm@linux-foundation.org>
+Subject: [merged] maintainers-gpio-vt8500-remove-file-pattern.patch
+ removed from -mm tree
+Date: Tue, 30 Jul 2013 12:20:16 -0700
+Message-ID: <51f811f0.rEw3GE9AZilsUSmK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32965 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46609 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153Ab3G2Xyx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jul 2013 19:54:53 -0400
+	with ESMTP id S1750957Ab3G3TUR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jul 2013 15:20:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, stable@vger.kernel.org, riel@redhat.com, oleg@redhat.com, molecula2788@gmail.com, mingo@kernel.org, sinaelgl@gmail.com
+To: mm-commits@vger.kernel.org, linux@prisktech.co.nz, linus.walleij@linaro.org, joe@perches.com
 
-Subject: + x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch added to -mm tree
-To: sinaelgl@gmail.com,mingo@kernel.org,molecula2788@gmail.com,oleg@redhat.com,riel@redhat.com,stable@vger.kernel.org,walken@google.com
+Subject: [merged] maintainers-gpio-vt8500-remove-file-pattern.patch removed from -mm tree
+To: joe@perches.com,linus.walleij@linaro.org,linux@prisktech.co.nz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 29 Jul 2013 16:54:52 -0700
+Date: Tue, 30 Jul 2013 12:20:16 -0700
 
 
 The patch titled
-     Subject: x86 get_unmapped_area(): use proper mmap base for bottom-up direction
-has been added to the -mm tree.  Its filename is
-     x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
+     Subject: MAINTAINERS: gpio: vt8500: remove file pattern
+has been removed from the -mm tree.  Its filename was
+     maintainers-gpio-vt8500-remove-file-pattern.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Radu Caragea <sinaelgl@gmail.com>
-Subject: x86 get_unmapped_area(): use proper mmap base for bottom-up direction
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: gpio: vt8500: remove file pattern
 
-When the stack is set to unlimited, the bottomup direction is used for
-mmap-ings but the mmap_base is not used and thus effectively renders ASLR
-for mmap-ings along with PIE useless.  This was caused by f99024729e689
-("mm: use vm_unmapped_area() on x86_64 architecture").
+Commit dc1010860b ("gpio: vt8500: Remove arch-vt8500 gpio driver") removed
+the file, remove the pattern.
 
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Adrian Sendroiu <molecula2788@gmail.com>  
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Tony Prisk <linux@prisktech.co.nz>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/sys_x86_64.c |    2 +-
- arch/x86/mm/mmap.c           |    2 +-
- include/linux/sched.h        |    1 +
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/kernel/sys_x86_64.c~x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction arch/x86/kernel/sys_x86_64.c
---- a/arch/x86/kernel/sys_x86_64.c~x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction
-+++ a/arch/x86/kernel/sys_x86_64.c
-@@ -101,7 +101,7 @@ static void find_start_end(unsigned long
- 				*begin = new_begin;
- 		}
- 	} else {
--		*begin = TASK_UNMAPPED_BASE;
-+		*begin = mmap_legacy_base();
- 		*end = TASK_SIZE;
- 	}
- }
-diff -puN arch/x86/mm/mmap.c~x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction arch/x86/mm/mmap.c
---- a/arch/x86/mm/mmap.c~x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction
-+++ a/arch/x86/mm/mmap.c
-@@ -98,7 +98,7 @@ static unsigned long mmap_base(void)
-  * Bottom-up (legacy) layout on X86_32 did not support randomization, X86_64
-  * does, but not when emulating X86_32
-  */
--static unsigned long mmap_legacy_base(void)
-+unsigned long mmap_legacy_base(void)
- {
- 	if (mmap_is_ia32())
- 		return TASK_UNMAPPED_BASE;
-diff -puN include/linux/sched.h~x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction include/linux/sched.h
---- a/include/linux/sched.h~x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction
-+++ a/include/linux/sched.h
-@@ -306,6 +306,7 @@ struct nsproxy;
- struct user_namespace;
- 
- #ifdef CONFIG_MMU
-+extern unsigned long mmap_legacy_base(void);
- extern void arch_pick_mmap_layout(struct mm_struct *mm);
- extern unsigned long
- arch_get_unmapped_area(struct file *, unsigned long, unsigned long,
+diff -puN MAINTAINERS~maintainers-gpio-vt8500-remove-file-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-gpio-vt8500-remove-file-pattern
++++ a/MAINTAINERS
+@@ -1292,7 +1292,6 @@ L:	linux-arm-kernel@lists.infradead.org
+ S:	Maintained
+ F:	arch/arm/mach-vt8500/
+ F:	drivers/clocksource/vt8500_timer.c
+-F:	drivers/gpio/gpio-vt8500.c
+ F:	drivers/i2c/busses/i2c-wmt.c
+ F:	drivers/mmc/host/wmt-sdmmc.c
+ F:	drivers/pwm/pwm-vt8500.c
 _
 
-Patches currently in -mm which might be from sinaelgl@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
+maintainers-dynamic-debug-jasons-not-there.patch
+printk-move-to-separate-directory-for-easier-modification.patch
+printk-move-to-separate-directory-for-easier-modification-fix.patch
+printk-add-console_cmdlineh.patch
+printk-move-braille-console-support-into-separate-braille-files.patch
+printk-use-pointer-for-console_cmdline-indexing.patch
+printk-rename-struct-log-to-struct-printk_log.patch
+linux-next.patch
+maintainers-exynos-remove-board-files.patch
+maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+maintainers-omap-powerdomain-update-patterns.patch
+maintainers-arm-s3c2410-update-patterns.patch
+maintainers-arm-spear-consolidate-sections.patch
+maintainers-arm-plat-nomadik-update-patterns.patch
+maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
+maintainers-ghes_edac-update-pattern.patch
+maintainers-update-siano-drivers.patch
+maintainers-si4713-fix-file-pattern.patch
+maintainers-update-it913x-patterns.patch
+maintainers-update-sirf-patterns.patch
+maintainers-update-ssbi-patterns.patch
+maintainers-update-file-pattern-for-arc-uart.patch
+maintainers-update-usb-ehci-platform-pattern.patch
+maintainers-usb-phy-update-patterns.patch
+maintainers-update-gre-demux-patterns.patch
+checkpatch-add-a-few-more-fix-corrections.patch
+checkpatch-check-camelcase-by-word-not-by-lval.patch
+checkpatch-enforce-sane-perl-version.patch
+firmware-dmi_scan-drop-obsolete-comment.patch
+firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
+firmware-dmi_scan-constify-strings.patch
+firmware-dmi_scan-drop-oom-messages.patch
+pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
+pktcdvd-convert-printk-to-pr_level.patch
+pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
+pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
+pktcdvd-convert-pr_notice-to-pkt_notice.patch
+pktcdvd-convert-pr_info-to-pkt_info.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
 
