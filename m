@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch added to -mm tree
-Date: Tue, 30 Jul 2013 15:33:59 -0700
-Message-ID: <51f83f57.7S3LOdyGI7zXvNd6%akpm@linux-foundation.org>
+Subject: + memcg-track-all-children-over-limit-in-the-root.patch added to
+ -mm tree
+Date: Tue, 30 Jul 2013 15:34:01 -0700
+Message-ID: <51f83f59.8Xt/QpcAuDMGlYVL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48096 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756977Ab3G3WeA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jul 2013 18:34:00 -0400
+	with ESMTP id S1756977Ab3G3WeC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jul 2013 18:34:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yinghan@google.com, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, glommer@openvz.org, bsingharora@gmail.com, mhocko@suse.cz
 
-Subject: + memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch added to -mm tree
+Subject: + memcg-track-all-children-over-limit-in-the-root.patch added to -mm tree
 To: mhocko@suse.cz,bsingharora@gmail.com,glommer@openvz.org,gthelen@google.com,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,walken@google.com,yinghan@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 30 Jul 2013 15:33:59 -0700
+Date: Tue, 30 Jul 2013 15:34:01 -0700
 
 
 The patch titled
-     Subject: memcg, vmscan: do not attempt soft limit reclaim if it would not scan anything
+     Subject: memcg: track all children over limit in the root
 has been added to the -mm tree.  Its filename is
-     memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+     memcg-track-all-children-over-limit-in-the-root.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-track-all-children-over-limit-in-the-root.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-track-all-children-over-limit-in-the-root.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,17 +45,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg, vmscan: do not attempt soft limit reclaim if it would not scan anything
+Subject: memcg: track all children over limit in the root
 
-mem_cgroup_should_soft_reclaim controls whether soft reclaim pass is done
-and it always says yes currently.  Memcg iterators are clever to skip
-nodes that are not soft reclaimable quite efficiently but
-mem_cgroup_should_soft_reclaim can be more clever and do not start the
-soft reclaim pass at all if it knows that nothing would be scanned anyway.
+Children in soft limit excess are currently tracked up the hierarchy in
+memcg->children_in_excess.  Nevertheless there still might exist tons of
+groups that are not in hierarchy relation to the root cgroup (e.g.  all
+first level groups if root_mem_cgroup->use_hierarchy == false).
 
-In order to do that, simply reuse mem_cgroup_soft_reclaim_eligible for the
-target group of the reclaim and allow the pass only if the whole subtree
-wouldn't be skipped.
+As the whole tree walk has to be done when the iteration starts at
+root_mem_cgroup the iterator should be able to skip the walk if there is
+no child above the limit without iterating them.  This can be done easily
+if the root tracks all children rather than only hierarchical children. 
+This is done by this patch which updates root_mem_cgroup
+children_in_excess if root_mem_cgroup->use_hierarchy == false so the root
+knows about all children in excess.
+
+Please note that this is not an issue for inner memcgs which have
+use_hierarchy == false because then only the single group is visited so no
+special optimization is necessary.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Cc: Balbir Singh <bsingharora@gmail.com>
@@ -71,40 +78,38 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++++-
- mm/vmscan.c     |    4 +++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything
+diff -puN mm/memcontrol.c~memcg-track-all-children-over-limit-in-the-root mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-track-all-children-over-limit-in-the-root
 +++ a/mm/memcontrol.c
-@@ -1909,7 +1909,11 @@ enum mem_cgroup_filter_t
- mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg,
- 		struct mem_cgroup *root)
- {
--	struct mem_cgroup *parent = memcg;
-+	struct mem_cgroup *parent;
-+
-+	if (!memcg)
-+		memcg = root_mem_cgroup;
-+	parent = memcg;
- 
- 	if (res_counter_soft_limit_excess(&memcg->res))
- 		return VISIT;
-diff -puN mm/vmscan.c~memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything mm/vmscan.c
---- a/mm/vmscan.c~memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything
-+++ a/mm/vmscan.c
-@@ -142,7 +142,9 @@ static bool global_reclaim(struct scan_c
- 
- static bool mem_cgroup_should_soft_reclaim(struct scan_control *sc)
- {
--	return !mem_cgroup_disabled();
-+	struct mem_cgroup *root = sc->target_mem_cgroup;
-+	return !mem_cgroup_disabled() &&
-+		mem_cgroup_soft_reclaim_eligible(root, root) != SKIP_TREE;
+@@ -865,9 +865,15 @@ static void mem_cgroup_update_soft_limit
+ 	/*
+ 	 * Necessary to update all ancestors when hierarchy is used
+ 	 * because their event counter is not touched.
++	 * We track children even outside the hierarchy for the root
++	 * cgroup because tree walk starting at root should visit
++	 * all cgroups and we want to prevent from pointless tree
++	 * walk if no children is below the limit.
+ 	 */
+ 	while (delta && (parent = parent_mem_cgroup(parent)))
+ 		atomic_add(delta, &parent->children_in_excess);
++	if (memcg != root_mem_cgroup && !root_mem_cgroup->use_hierarchy)
++		atomic_add(delta, &root_mem_cgroup->children_in_excess);
+ 	spin_unlock(&memcg->soft_lock);
  }
- #else
- static bool global_reclaim(struct scan_control *sc)
+ 
+@@ -6071,6 +6077,9 @@ static void mem_cgroup_css_offline(struc
+ 	if (memcg->soft_contributed) {
+ 		while ((memcg = parent_mem_cgroup(memcg)))
+ 			atomic_dec(&memcg->children_in_excess);
++
++		if (memcg != root_mem_cgroup && !root_mem_cgroup->use_hierarchy)
++			atomic_dec(&root_mem_cgroup->children_in_excess);
+ 	}
+ 	mem_cgroup_destroy_all_caches(memcg);
+ 	vmpressure_cleanup(&memcg->vmpressure);
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
