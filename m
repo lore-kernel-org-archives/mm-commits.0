@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + fs-binfmts-whitespace-fixes-with-scripts-cleanfile.patch added
- to -mm tree
-Date: Tue, 30 Jul 2013 14:06:39 -0700
-Message-ID: <51f82adf.Uh77z+AHLldmXFIc%akpm@linux-foundation.org>
+Subject: +
+ memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+ added to -mm tree
+Date: Tue, 30 Jul 2013 15:33:52 -0700
+Message-ID: <51f83f50.iXGKksDOFaJb1GBs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756391Ab3G3VGk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jul 2013 17:06:40 -0400
+	with ESMTP id S1751051Ab3G3Wdx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jul 2013 18:33:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zach@zachsthings.com, viro@zeniv.linux.org.uk, zml@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, yinghan@google.com, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, glommer@openvz.org, glommer@gmail.com, bsingharora@gmail.com, mhocko@suse.cz
 
-Subject: + fs-binfmts-whitespace-fixes-with-scripts-cleanfile.patch added to -mm tree
-To: zml@linux.vnet.ibm.com,viro@zeniv.linux.org.uk,zach@zachsthings.com
+Subject: + memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch added to -mm tree
+To: mhocko@suse.cz,bsingharora@gmail.com,glommer@gmail.com,glommer@openvz.org,gthelen@google.com,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,walken@google.com,yinghan@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 30 Jul 2013 14:06:39 -0700
+Date: Tue, 30 Jul 2013 15:33:52 -0700
 
 
 The patch titled
-     Subject: fs/binfmts: whitespace fixes with scripts/cleanfile
+     Subject: memcg, vmscan: integrate soft reclaim tighter with zone shrinking code
 has been added to the -mm tree.  Its filename is
-     fs-binfmts-whitespace-fixes-with-scripts-cleanfile.patch
+     memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-binfmts-whitespace-fixes-with-scripts-cleanfile.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmts-whitespace-fixes-with-scripts-cleanfile.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,538 +45,645 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zach Levis <zml@linux.vnet.ibm.com>
-Subject: fs/binfmts: whitespace fixes with scripts/cleanfile
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg, vmscan: integrate soft reclaim tighter with zone shrinking code
 
-Obligatory first-patchset whitespace commit
+This patchset is sitting out of tree for quite some time without any
+objections.  I would be really happy if it made it into 3.12.  I do not
+want to push it too hard but I think this work is basically ready and
+waiting more doesn't help.
 
-Signed-off-by: Zach Levis <zach@zachsthings.com>
-Signed-off-by: Zach Levis <zml@linux.vnet.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+The basic idea is quite simple.  Pull soft reclaim into shrink_zone in the
+first step and get rid of the previous soft reclaim infrastructure. 
+shrink_zone is done in two passes now.  First it tries to do the soft
+limit reclaim and it falls back to reclaim-all mode if no group is over
+the limit or no pages have been scanned.  The second pass happens at the
+same priority so the only time we waste is the memcg tree walk which has
+been updated in the third step to have only negligible overhead.
+
+As a bonus we will get rid of a _lot_ of code by this and soft reclaim
+will not stand out like before when it wasn't integrated into the zone
+shrinking code and it reclaimed at priority 0 (the testing results show
+that some workloads suffers from such an aggressive reclaim).  The clean
+up is in a separate patch because I felt it would be easier to review that
+way.
+
+The second step is soft limit reclaim integration into targeted reclaim. 
+It should be rather straight forward.  Soft limit has been used only for
+the global reclaim so far but it makes sense for any kind of pressure
+coming from up-the-hierarchy, including targeted reclaim.
+
+The third step (patches 4-8) addresses the tree walk overhead by enhancing
+memcg iterators to enable skipping whole subtrees and tracking number of
+over soft limit children at each level of the hierarchy.  This information
+is updated same way the old soft limit tree was updated (from
+memcg_check_events) so we shouldn't see an additional overhead.  In fact
+mem_cgroup_update_soft_limit is much simpler than tree manipulation done
+previously.
+
+__shrink_zone uses mem_cgroup_soft_reclaim_eligible as a predicate for
+mem_cgroup_iter so the decision whether a particular group should be
+visited is done at the iterator level which allows us to decide to skip
+the whole subtree as well (if there is no child in excess).  This reduces
+the tree walk overhead considerably.
+
+* TEST 1
+========
+
+My primary test case was a parallel kernel build with 2 groups (make is
+running with -j8 with a distribution .config in a separate cgroup without
+any hard limit) on a 32 CPU machine booted with 1GB memory and both builds
+run taskset to Node 0 cpus.
+
+I was mostly interested in 2 setups.  Default - no soft limit set and -
+and 0 soft limit set to both groups.  The first one should tell us whether
+the rework regresses the default behavior while the second one should show
+us improvements in an extreme case where both workloads are always over
+the soft limit.
+
+/usr/bin/time -v has been used to collect the statistics and each
+configuration had 3 runs after fresh boot without any other load on the
+system.
+
+base is mmotm-2013-07-18-16-40
+rework all 8 patches applied on top of base
+
+* No-limit
+User
+no-limit/base: min: 651.92 max: 672.65 avg: 664.33 std: 8.01 runs: 6
+no-limit/rework: min: 657.34 [100.8%] max: 668.39 [99.4%] avg: 663.13 [99.8%] std: 3.61 runs: 6
+System
+no-limit/base: min: 69.33 max: 71.39 avg: 70.32 std: 0.79 runs: 6
+no-limit/rework: min: 69.12 [99.7%] max: 71.05 [99.5%] avg: 70.04 [99.6%] std: 0.59 runs: 6
+Elapsed
+no-limit/base: min: 398.27 max: 422.36 avg: 408.85 std: 7.74 runs: 6
+no-limit/rework: min: 386.36 [97.0%] max: 438.40 [103.8%] avg: 416.34 [101.8%] std: 18.85 runs: 6
+
+The results are within noise. Elapsed time has a bigger variance but the
+average looks good.
+
+* 0-limit
+User
+0-limit/base: min: 573.76 max: 605.63 avg: 585.73 std: 12.21 runs: 6
+0-limit/rework: min: 645.77 [112.6%] max: 666.25 [110.0%] avg: 656.97 [112.2%] std: 7.77 runs: 6
+System
+0-limit/base: min: 69.57 max: 71.13 avg: 70.29 std: 0.54 runs: 6
+0-limit/rework: min: 68.68 [98.7%] max: 71.40 [100.4%] avg: 69.91 [99.5%] std: 0.87 runs: 6
+Elapsed
+0-limit/base: min: 1306.14 max: 1550.17 avg: 1430.35 std: 90.86 runs: 6
+0-limit/rework: min: 404.06 [30.9%] max: 465.94 [30.1%] avg: 434.81 [30.4%] std: 22.68 runs: 6
+
+The improvement is really huge here (even bigger than with my previous
+testing and I suspect that this highly depends on the storage).  Page
+fault statistics tell us at least part of the story:
+
+Minor
+0-limit/base: min: 37180461.00 max: 37319986.00 avg: 37247470.00 std: 54772.71 runs: 6
+0-limit/rework: min: 36751685.00 [98.8%] max: 36805379.00 [98.6%] avg: 36774506.33 [98.7%] std: 17109.03 runs: 6
+Major
+0-limit/base: min: 170604.00 max: 221141.00 avg: 196081.83 std: 18217.01 runs: 6
+0-limit/rework: min: 2864.00 [1.7%] max: 10029.00 [4.5%] avg: 5627.33 [2.9%] std: 2252.71 runs: 6
+
+Same as with my previous testing Minor faults are more or less within
+noise but Major fault count is way bellow the base kernel.
+
+While this looks as a nice win it is fair to say that 0-limit
+configuration is quite artificial. So I was playing with 0-no-limit
+loads as well.
+
+* TEST 2
+========
+
+The following results are from 2 groups configuration on a 16GB machine
+(single NUMA node).
+
+- A running stream IO (dd if=/dev/zero of=local.file bs=1024) with
+  2*TotalMem with 0 soft limit.
+- B running a mem_eater which consumes TotalMem-1G without any limit. The
+  mem_eater consumes the memory in 100 chunks with 1s nap after each
+  mmap+poppulate so that both loads have chance to fight for the memory.
+
+The expected result is that B shouldn't be reclaimed and A shouldn't see
+a big dropdown in elapsed time.
+
+User
+base: min: 2.68 max: 2.89 avg: 2.76 std: 0.09 runs: 3
+rework: min: 3.27 [122.0%] max: 3.74 [129.4%] avg: 3.44 [124.6%] std: 0.21 runs: 3
+System
+base: min: 86.26 max: 88.29 avg: 87.28 std: 0.83 runs: 3
+rework: min: 81.05 [94.0%] max: 84.96 [96.2%] avg: 83.14 [95.3%] std: 1.61 runs: 3
+Elapsed
+base: min: 317.28 max: 332.39 avg: 325.84 std: 6.33 runs: 3
+rework: min: 281.53 [88.7%] max: 298.16 [89.7%] avg: 290.99 [89.3%] std: 6.98 runs: 3
+
+System time improved slightly as well as Elapsed. My previous testing
+has shown worse numbers but this again seem to depend on the storage
+speed.
+
+My theory is that the writeback doesn't catch up and prio-0 soft reclaim
+falls into wait on writeback page too often in the base kernel. The
+patched kernel doesn't do that because the soft reclaim is done from the
+kswapd/direct reclaim context. This can be seen on the following graph
+nicely. The A's group usage_in_bytes regurarly drops really low very often.
+
+All 3 runs
+http://labs.suse.cz/mhocko/soft_limit_rework/stream_io-vs-mem_eater/stream.png
+resp. a detail of the single run
+http://labs.suse.cz/mhocko/soft_limit_rework/stream_io-vs-mem_eater/stream-one-run.png
+
+mem_eater seems to be doing better as well. It gets to the full
+allocation size faster as can be seen on the following graph:
+http://labs.suse.cz/mhocko/soft_limit_rework/stream_io-vs-mem_eater/mem_eater-one-run.png
+
+/proc/meminfo collected during the test also shows that rework kernel
+hasn't swapped that much (well almost not at all):
+base: max: 123900 K avg: 56388.29 K
+rework: max: 300 K avg: 128.68 K
+
+kswapd and direct reclaim statistics are of no use unfortunatelly because
+soft reclaim is not accounted properly as the counters are hidden by
+global_reclaim() checks in the base kernel.
+
+* TEST 3
+========
+
+Another test was the same configuration as TEST2 except the stream IO was
+replaced by a single kbuild (16 parallel jobs bound to Node0 cpus same as
+in TEST1) and mem_eater allocated TotalMem-200M so kbuild had only 200MB
+left.
+
+Kbuild did better with the rework kernel here as well:
+User
+base: min: 860.28 max: 872.86 avg: 868.03 std: 5.54 runs: 3
+rework: min: 880.81 [102.4%] max: 887.45 [101.7%] avg: 883.56 [101.8%] std: 2.83 runs: 3
+System
+base: min: 84.35 max: 85.06 avg: 84.79 std: 0.31 runs: 3
+rework: min: 85.62 [101.5%] max: 86.09 [101.2%] avg: 85.79 [101.2%] std: 0.21 runs: 3
+Elapsed
+base: min: 135.36 max: 243.30 avg: 182.47 std: 45.12 runs: 3
+rework: min: 110.46 [81.6%] max: 116.20 [47.8%] avg: 114.15 [62.6%] std: 2.61 runs: 3
+Minor
+base: min: 36635476.00 max: 36673365.00 avg: 36654812.00 std: 15478.03 runs: 3
+rework: min: 36639301.00 [100.0%] max: 36695541.00 [100.1%] avg: 36665511.00 [100.0%] std: 23118.23 runs: 3
+Major
+base: min: 14708.00 max: 53328.00 avg: 31379.00 std: 16202.24 runs: 3
+rework: min: 302.00 [2.1%] max: 414.00 [0.8%] avg: 366.33 [1.2%] std: 47.22 runs: 3
+
+Again we can see a significant improvement in Elapsed (it also seems to
+be more stable), there is a huge dropdown for the Major page faults and
+much more swapping:
+base: max: 583736 K avg: 112547.43 K
+rework: max: 4012 K avg: 124.36 K
+
+Graphs from all three runs show the variability of the kbuild quite
+nicely.  It even seems that it took longer after every run with the base
+kernel which would be quite surprising as the source tree for the build is
+removed and caches are dropped after each run so the build operates on a
+freshly extracted sources everytime. 
+http://labs.suse.cz/mhocko/soft_limit_rework/stream_io-vs-mem_eater/kbuild-mem_eater.png
+
+My other testing shows that this is just a matter of timing and other runs
+behave differently the std for Elapsed time is similar ~50.  Example of
+other three runs:
+http://labs.suse.cz/mhocko/soft_limit_rework/stream_io-vs-mem_eater/kbuild-mem_eater2.png
+
+So to wrap this up.  The series is still doing good and improves the soft
+limit.
+
+The testing results for bunch of cgroups with both stream IO and kbuild
+loads can be found in "memcg: track children in soft limit excess to
+improve soft limit".
+
+
+
+This patch:
+
+Memcg soft reclaim has been traditionally triggered from the global
+reclaim paths before calling shrink_zone.  mem_cgroup_soft_limit_reclaim
+then picked up a group which exceeds the soft limit the most and reclaimed
+it with 0 priority to reclaim at least SWAP_CLUSTER_MAX pages.
+
+The infrastructure requires per-node-zone trees which hold over-limit
+groups and keep them up-to-date (via memcg_check_events) which is not cost
+free.  Although this overhead hasn't turned out to be a bottle neck the
+implementation is suboptimal because mem_cgroup_update_tree has no idea
+which zones consumed memory over the limit so we could easily end up
+having a group on a node-zone tree having only few pages from that
+node-zone.
+
+This patch doesn't try to fix node-zone trees management because it seems
+that integrating soft reclaim into zone shrinking sounds much easier and
+more appropriate for several reasons.  First of all 0 priority reclaim was
+a crude hack which might lead to big stalls if the group's LRUs are big
+and hard to reclaim (e.g.  a lot of dirty/writeback pages).  Soft reclaim
+should be applicable also to the targeted reclaim which is awkward right
+now without additional hacks.  Last but not least the whole infrastructure
+eats quite some code.
+
+After this patch shrink_zone is done in 2 passes.  First it tries to do
+the soft reclaim if appropriate (only for global reclaim for now to keep
+compatible with the original state) and fall back to ignoring soft limit
+if no group is eligible to soft reclaim or nothing has been scanned during
+the first pass.  Only groups which are over their soft limit or any of
+their parents up the hierarchy is over the limit are considered eligible
+during the first pass.
+
+Soft limit tree which is not necessary anymore will be removed in the
+follow up patch to make this patch smaller and easier to review.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Glauber Costa <glommer@openvz.org>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Glauber Costa <glommer@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_aout.c      |    8 ++++----
- fs/binfmt_elf.c       |   38 +++++++++++++++++++-------------------
- fs/binfmt_elf_fdpic.c |    8 ++++----
- fs/binfmt_em86.c      |    4 ++--
- fs/binfmt_flat.c      |   26 +++++++++++++-------------
- fs/binfmt_misc.c      |   24 ++++++++++++------------
- fs/binfmt_script.c    |    8 ++++----
- fs/binfmt_som.c       |    2 +-
- fs/exec.c             |   12 ++++++------
- 9 files changed, 65 insertions(+), 65 deletions(-)
+ include/linux/memcontrol.h |   10 --
+ mm/memcontrol.c            |  161 ++++-------------------------------
+ mm/vmscan.c                |   62 +++++++------
+ 3 files changed, 59 insertions(+), 174 deletions(-)
 
-diff -puN fs/binfmt_aout.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile
-+++ a/fs/binfmt_aout.c
-@@ -62,7 +62,7 @@ static int aout_core_dump(struct coredum
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
- 	has_dumped = 1;
--       	strncpy(dump.u_comm, current->comm, sizeof(dump.u_comm));
-+	strncpy(dump.u_comm, current->comm, sizeof(dump.u_comm));
- 	dump.u_ar0 = offsetof(struct user, regs);
- 	dump.signal = cprm->siginfo->si_signo;
- 	aout_dump_thread(cprm->regs, &dump);
-@@ -300,7 +300,7 @@ static int load_aout_binary(struct linux
+diff -puN include/linux/memcontrol.h~memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code
++++ a/include/linux/memcontrol.h
+@@ -180,9 +180,7 @@ static inline void mem_cgroup_dec_page_s
+ 	mem_cgroup_update_page_stat(page, idx, -1);
+ }
  
- 		if ((fd_offset & ~PAGE_MASK) != 0 && printk_ratelimit())
- 		{
--			printk(KERN_WARNING 
-+			printk(KERN_WARNING
- 			       "fd_offset is not page aligned. Please convert program: %s\n",
- 			       bprm->file->f_path.dentry->d_name.name);
- 		}
-@@ -389,12 +389,12 @@ static int load_aout_library(struct file
- 	if ((N_TXTOFF(ex) & ~PAGE_MASK) != 0) {
- 		if (printk_ratelimit())
- 		{
--			printk(KERN_WARNING 
-+			printk(KERN_WARNING
- 			       "N_TXTOFF is not page aligned. Please convert library: %s\n",
- 			       file->f_path.dentry->d_name.name);
- 		}
- 		vm_brk(start_addr, ex.a_text + ex.a_data + ex.a_bss);
--		
+-unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
+-						gfp_t gfp_mask,
+-						unsigned long *total_scanned);
++bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg);
+ 
+ void __mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
+ static inline void mem_cgroup_count_vm_event(struct mm_struct *mm,
+@@ -359,11 +357,9 @@ static inline void mem_cgroup_dec_page_s
+ }
+ 
+ static inline
+-unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
+-					    gfp_t gfp_mask,
+-					    unsigned long *total_scanned)
++bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg)
+ {
+-	return 0;
++	return false;
+ }
+ 
+ static inline void mem_cgroup_split_huge_fixup(struct page *head)
+diff -puN mm/memcontrol.c~memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code
++++ a/mm/memcontrol.c
+@@ -2023,57 +2023,28 @@ static bool mem_cgroup_reclaimable(struc
+ }
+ #endif
+ 
+-static int mem_cgroup_soft_reclaim(struct mem_cgroup *root_memcg,
+-				   struct zone *zone,
+-				   gfp_t gfp_mask,
+-				   unsigned long *total_scanned)
++/*
++ * A group is eligible for the soft limit reclaim if it is
++ * 	a) is over its soft limit
++ * 	b) any parent up the hierarchy is over its soft limit
++ */
++bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg)
+ {
+-	struct mem_cgroup *victim = NULL;
+-	int total = 0;
+-	int loop = 0;
+-	unsigned long excess;
+-	unsigned long nr_scanned;
+-	struct mem_cgroup_reclaim_cookie reclaim = {
+-		.zone = zone,
+-		.priority = 0,
+-	};
+-
+-	excess = res_counter_soft_limit_excess(&root_memcg->res) >> PAGE_SHIFT;
+-
+-	while (1) {
+-		victim = mem_cgroup_iter(root_memcg, victim, &reclaim);
+-		if (!victim) {
+-			loop++;
+-			if (loop >= 2) {
+-				/*
+-				 * If we have not been able to reclaim
+-				 * anything, it might because there are
+-				 * no reclaimable pages under this hierarchy
+-				 */
+-				if (!total)
+-					break;
+-				/*
+-				 * We want to do more targeted reclaim.
+-				 * excess >> 2 is not to excessive so as to
+-				 * reclaim too much, nor too less that we keep
+-				 * coming back to reclaim from this cgroup
+-				 */
+-				if (total >= (excess >> 2) ||
+-					(loop > MEM_CGROUP_MAX_RECLAIM_LOOPS))
+-					break;
+-			}
+-			continue;
+-		}
+-		if (!mem_cgroup_reclaimable(victim, false))
+-			continue;
+-		total += mem_cgroup_shrink_node_zone(victim, gfp_mask, false,
+-						     zone, &nr_scanned);
+-		*total_scanned += nr_scanned;
+-		if (!res_counter_soft_limit_excess(&root_memcg->res))
+-			break;
++	struct mem_cgroup *parent = memcg;
 +
- 		read_code(file, start_addr, N_TXTOFF(ex),
- 			  ex.a_text + ex.a_data);
- 		retval = 0;
-diff -puN fs/binfmt_elf.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile
-+++ a/fs/binfmt_elf.c
-@@ -218,7 +218,7 @@ create_elf_tables(struct linux_binprm *b
- 	} while (0)
- 
- #ifdef ARCH_DLINFO
--	/* 
++	if (res_counter_soft_limit_excess(&memcg->res))
++		return true;
++
 +	/*
- 	 * ARCH_DLINFO must come first so PPC can do its special alignment of
- 	 * AUXV.
- 	 * update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT() in
-@@ -239,7 +239,7 @@ create_elf_tables(struct linux_binprm *b
- 	NEW_AUX_ENT(AT_EUID, from_kuid_munged(cred->user_ns, cred->euid));
- 	NEW_AUX_ENT(AT_GID, from_kgid_munged(cred->user_ns, cred->gid));
- 	NEW_AUX_ENT(AT_EGID, from_kgid_munged(cred->user_ns, cred->egid));
-- 	NEW_AUX_ENT(AT_SECURE, security_bprm_secureexec(bprm));
-+	NEW_AUX_ENT(AT_SECURE, security_bprm_secureexec(bprm));
- 	NEW_AUX_ENT(AT_RANDOM, (elf_addr_t)(unsigned long)u_rand_bytes);
- #ifdef ELF_HWCAP2
- 	NEW_AUX_ENT(AT_HWCAP2, ELF_HWCAP2);
-@@ -433,7 +433,7 @@ static unsigned long load_elf_interp(str
- 	error = -EIO;
- 	if (retval != size) {
- 		if (retval < 0)
--			error = retval;	
-+			error = retval;
- 		goto out_close;
++	 * If any parent up the hierarchy is over its soft limit then we
++	 * have to obey and reclaim from this group as well.
++	 */
++	while((parent = parent_mem_cgroup(parent))) {
++		if (res_counter_soft_limit_excess(&parent->res))
++			return true;
  	}
- 
-@@ -452,7 +452,7 @@ static unsigned long load_elf_interp(str
- 			unsigned long k, map_addr;
- 
- 			if (eppnt->p_flags & PF_R)
--		    		elf_prot = PROT_READ;
-+				elf_prot = PROT_READ;
- 			if (eppnt->p_flags & PF_W)
- 				elf_prot |= PROT_WRITE;
- 			if (eppnt->p_flags & PF_X)
-@@ -570,7 +570,7 @@ static unsigned long randomize_stack_top
- static int load_elf_binary(struct linux_binprm *bprm)
- {
- 	struct file *interpreter = NULL; /* to shut gcc up */
-- 	unsigned long load_addr = 0, load_bias = 0;
-+	unsigned long load_addr = 0, load_bias = 0;
- 	int load_addr_set = 0;
- 	char * elf_interpreter = NULL;
- 	unsigned long error;
-@@ -595,7 +595,7 @@ static int load_elf_binary(struct linux_
- 		retval = -ENOMEM;
- 		goto out_ret;
- 	}
--	
+-	mem_cgroup_iter_break(root_memcg, victim);
+-	return total;
 +
- 	/* Get the exec-header */
- 	loc->elf_ex = *((struct elfhdr *)bprm->buf);
- 
-@@ -615,7 +615,7 @@ static int load_elf_binary(struct linux_
- 	if (loc->elf_ex.e_phentsize != sizeof(struct elf_phdr))
- 		goto out;
- 	if (loc->elf_ex.e_phnum < 1 ||
--	 	loc->elf_ex.e_phnum > 65536U / sizeof(struct elf_phdr))
-+		loc->elf_ex.e_phnum > 65536U / sizeof(struct elf_phdr))
- 		goto out;
- 	size = loc->elf_ex.e_phnum * sizeof(struct elf_phdr);
- 	retval = -ENOMEM;
-@@ -647,7 +647,7 @@ static int load_elf_binary(struct linux_
- 			 * is an a.out format binary
- 			 */
- 			retval = -ENOEXEC;
--			if (elf_ppnt->p_filesz > PATH_MAX || 
-+			if (elf_ppnt->p_filesz > PATH_MAX ||
- 			    elf_ppnt->p_filesz < 2)
- 				goto out_free_ph;
- 
-@@ -745,7 +745,7 @@ static int load_elf_binary(struct linux_
- 		send_sig(SIGKILL, current, 0);
- 		goto out_free_dentry;
- 	}
--	
-+
- 	current->mm->start_stack = bprm->p;
- 
- 	/* Now we do a little grungy work by mmapping the ELF image into
-@@ -760,7 +760,7 @@ static int load_elf_binary(struct linux_
- 
- 		if (unlikely (elf_brk > elf_bss)) {
- 			unsigned long nbyte;
--	            
-+
- 			/* There was a PT_LOAD segment with p_memsz > p_filesz
- 			   before this one. Map anonymous pages, if needed,
- 			   and clear the area.  */
-@@ -1292,7 +1292,7 @@ static void fill_elf_note_phdr(struct el
- 	return;
++	return false;
  }
  
--static void fill_note(struct memelfnote *note, const char *name, int type, 
-+static void fill_note(struct memelfnote *note, const char *name, int type,
- 		unsigned int sz, void *data)
- {
- 	note->name = name;
-@@ -1344,7 +1344,7 @@ static int fill_psinfo(struct elf_prpsin
- {
- 	const struct cred *cred;
- 	unsigned int i, len;
--	
-+
- 	/* first copy the parameters from user space */
- 	memset(psinfo, 0, sizeof(struct elf_prpsinfo));
- 
-@@ -1378,7 +1378,7 @@ static int fill_psinfo(struct elf_prpsin
- 	SET_GID(psinfo->pr_gid, from_kgid_munged(cred->user_ns, cred->gid));
- 	rcu_read_unlock();
- 	strncpy(psinfo->pr_fname, p->comm, sizeof(psinfo->pr_fname));
--	
-+
- 	return 0;
+ /*
+@@ -4743,98 +4714,6 @@ static int mem_cgroup_resize_memsw_limit
+ 	return ret;
  }
  
-@@ -1779,8 +1779,8 @@ static int elf_dump_thread_status(long s
- 	t->num_notes = 0;
- 
- 	fill_prstatus(&t->prstatus, p, signr);
--	elf_core_copy_task_regs(p, &t->prstatus.pr_reg);	
--	
-+	elf_core_copy_task_regs(p, &t->prstatus.pr_reg);
-+
- 	fill_note(&t->notes[0], "CORE", NT_PRSTATUS, sizeof(t->prstatus),
- 		  &(t->prstatus));
- 	t->num_notes++;
-@@ -1801,7 +1801,7 @@ static int elf_dump_thread_status(long s
- 		t->num_notes++;
- 		sz += notesize(&t->notes[2]);
- 	}
--#endif	
-+#endif
- 	return sz;
+-unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
+-					    gfp_t gfp_mask,
+-					    unsigned long *total_scanned)
+-{
+-	unsigned long nr_reclaimed = 0;
+-	struct mem_cgroup_per_zone *mz, *next_mz = NULL;
+-	unsigned long reclaimed;
+-	int loop = 0;
+-	struct mem_cgroup_tree_per_zone *mctz;
+-	unsigned long long excess;
+-	unsigned long nr_scanned;
+-
+-	if (order > 0)
+-		return 0;
+-
+-	mctz = soft_limit_tree_node_zone(zone_to_nid(zone), zone_idx(zone));
+-	/*
+-	 * This loop can run a while, specially if mem_cgroup's continuously
+-	 * keep exceeding their soft limit and putting the system under
+-	 * pressure
+-	 */
+-	do {
+-		if (next_mz)
+-			mz = next_mz;
+-		else
+-			mz = mem_cgroup_largest_soft_limit_node(mctz);
+-		if (!mz)
+-			break;
+-
+-		nr_scanned = 0;
+-		reclaimed = mem_cgroup_soft_reclaim(mz->memcg, zone,
+-						    gfp_mask, &nr_scanned);
+-		nr_reclaimed += reclaimed;
+-		*total_scanned += nr_scanned;
+-		spin_lock(&mctz->lock);
+-
+-		/*
+-		 * If we failed to reclaim anything from this memory cgroup
+-		 * it is time to move on to the next cgroup
+-		 */
+-		next_mz = NULL;
+-		if (!reclaimed) {
+-			do {
+-				/*
+-				 * Loop until we find yet another one.
+-				 *
+-				 * By the time we get the soft_limit lock
+-				 * again, someone might have aded the
+-				 * group back on the RB tree. Iterate to
+-				 * make sure we get a different mem.
+-				 * mem_cgroup_largest_soft_limit_node returns
+-				 * NULL if no other cgroup is present on
+-				 * the tree
+-				 */
+-				next_mz =
+-				__mem_cgroup_largest_soft_limit_node(mctz);
+-				if (next_mz == mz)
+-					css_put(&next_mz->memcg->css);
+-				else /* next_mz == NULL or other memcg */
+-					break;
+-			} while (1);
+-		}
+-		__mem_cgroup_remove_exceeded(mz->memcg, mz, mctz);
+-		excess = res_counter_soft_limit_excess(&mz->memcg->res);
+-		/*
+-		 * One school of thought says that we should not add
+-		 * back the node to the tree if reclaim returns 0.
+-		 * But our reclaim could return 0, simply because due
+-		 * to priority we are exposing a smaller subset of
+-		 * memory to reclaim from. Consider this as a longer
+-		 * term TODO.
+-		 */
+-		/* If excess == 0, no tree ops */
+-		__mem_cgroup_insert_exceeded(mz->memcg, mz, mctz, excess);
+-		spin_unlock(&mctz->lock);
+-		css_put(&mz->memcg->css);
+-		loop++;
+-		/*
+-		 * Could not reclaim anything and there are no more
+-		 * mem cgroups to try or we seem to be looping without
+-		 * reclaiming anything.
+-		 */
+-		if (!nr_reclaimed &&
+-			(next_mz == NULL ||
+-			loop > MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS))
+-			break;
+-	} while (!nr_reclaimed);
+-	if (next_mz)
+-		css_put(&next_mz->memcg->css);
+-	return nr_reclaimed;
+-}
+-
+ /**
+  * mem_cgroup_force_empty_list - clears LRU of a group
+  * @memcg: group to clear
+diff -puN mm/vmscan.c~memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code mm/vmscan.c
+--- a/mm/vmscan.c~memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code
++++ a/mm/vmscan.c
+@@ -139,11 +139,21 @@ static bool global_reclaim(struct scan_c
+ {
+ 	return !sc->target_mem_cgroup;
  }
- 
-@@ -2053,7 +2053,7 @@ static int elf_core_dump(struct coredump
- 
- 	/*
- 	 * We no longer stop all VM operations.
--	 * 
-+	 *
- 	 * This is because those proceses that could possibly change map_count
- 	 * or the mmap / vma pages are now blocked in do_exit on current
- 	 * finishing this core dump.
-@@ -2062,7 +2062,7 @@ static int elf_core_dump(struct coredump
- 	 * the map_count or the pages allocated. So no possibility of crashing
- 	 * exists while dumping the mm->vm_next areas to the core file.
- 	 */
--  
 +
- 	/* alloc memory for large data structures: too large to be on stack */
- 	elf = kmalloc(sizeof(*elf), GFP_KERNEL);
- 	if (!elf)
-@@ -2168,7 +2168,7 @@ static int elf_core_dump(struct coredump
- 	if (!elf_core_write_extra_phdrs(cprm->file, offset, &size, cprm->limit))
- 		goto end_coredump;
- 
-- 	/* write out the notes section */
-+	/* write out the notes section */
- 	if (!write_note_info(&info, cprm->file, &foffset))
- 		goto end_coredump;
- 
-diff -puN fs/binfmt_elf_fdpic.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1595,8 +1595,8 @@ static int elf_fdpic_core_dump(struct co
- 	struct memelfnote *notes = NULL;
- 	struct elf_prstatus *prstatus = NULL;	/* NT_PRSTATUS */
- 	struct elf_prpsinfo *psinfo = NULL;	/* NT_PRPSINFO */
-- 	LIST_HEAD(thread_list);
-- 	struct list_head *t;
-+	LIST_HEAD(thread_list);
-+	struct list_head *t;
- 	elf_fpregset_t *fpu = NULL;
- #ifdef ELF_CORE_COPY_XFPREGS
- 	elf_fpxregset_t *xfpu = NULL;
-@@ -1705,7 +1705,7 @@ static int elf_fdpic_core_dump(struct co
- 	fill_note(&notes[numnote++], "CORE", NT_AUXV,
- 		  i * sizeof(elf_addr_t), auxv);
- 
--  	/* Try to dump the FPU. */
-+	/* Try to dump the FPU. */
- 	if ((prstatus->pr_fpvalid =
- 	     elf_core_copy_task_fpregs(current, cprm->regs, fpu)))
- 		fill_note(notes + numnote++,
-@@ -1795,7 +1795,7 @@ static int elf_fdpic_core_dump(struct co
- 	if (!elf_core_write_extra_phdrs(cprm->file, offset, &size, cprm->limit))
- 		goto end_coredump;
- 
-- 	/* write out the notes section */
-+	/* write out the notes section */
- 	for (i = 0; i < numnote; i++)
- 		if (!writenote(notes + i, cprm->file, &foffset))
- 			goto end_coredump;
-diff -puN fs/binfmt_em86.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile fs/binfmt_em86.c
---- a/fs/binfmt_em86.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile
-+++ a/fs/binfmt_em86.c
-@@ -63,11 +63,11 @@ static int load_em86(struct linux_binprm
- 	 */
- 	remove_arg_zero(bprm);
- 	retval = copy_strings_kernel(1, &bprm->filename, bprm);
--	if (retval < 0) return retval; 
-+	if (retval < 0) return retval;
- 	bprm->argc++;
- 	if (i_arg) {
- 		retval = copy_strings_kernel(1, &i_arg, bprm);
--		if (retval < 0) return retval; 
-+		if (retval < 0) return retval;
- 		bprm->argc++;
- 	}
- 	retval = copy_strings_kernel(1, &i_name, bprm);
-diff -puN fs/binfmt_flat.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile
-+++ a/fs/binfmt_flat.c
-@@ -388,7 +388,7 @@ void old_reloc(unsigned long rl)
- #endif
- 	flat_v2_reloc_t	r;
- 	unsigned long *ptr;
--	
-+
- 	r.value = rl;
- #if defined(CONFIG_COLDFIRE)
- 	ptr = (unsigned long *) (current->mm->start_code + r.reloc.offset);
-@@ -401,7 +401,7 @@ void old_reloc(unsigned long rl)
- 		"(address %p, currently %x) into segment %s\n",
- 		r.reloc.offset, ptr, (int)*ptr, segment[r.reloc.type]);
- #endif
--	
-+
- 	switch (r.reloc.type) {
- 	case OLD_FLAT_RELOC_TYPE_TEXT:
- 		*ptr += current->mm->start_code;
-@@ -420,7 +420,7 @@ void old_reloc(unsigned long rl)
- #ifdef DEBUG
- 	printk("Relocation became %x\n", (int)*ptr);
- #endif
--}		
++static bool mem_cgroup_should_soft_reclaim(struct scan_control *sc)
++{
++	return !mem_cgroup_disabled() && global_reclaim(sc);
 +}
- 
- /****************************************************************************/
- 
-@@ -479,7 +479,7 @@ static int load_flat_file(struct linux_b
- 		ret = -ENOEXEC;
- 		goto err;
- 	}
--	
-+
- 	/* Don't allow old format executables to use shared libraries */
- 	if (rev == OLD_FLAT_VERSION && id != 0) {
- 		printk("BINFMT_FLAT: shared libraries are not available before rev 0x%x\n",
-@@ -581,7 +581,7 @@ static int load_flat_file(struct linux_b
- 		fpos = ntohl(hdr->data_start);
- #ifdef CONFIG_BINFMT_ZFLAT
- 		if (flags & FLAT_FLAG_GZDATA) {
--			result = decompress_exec(bprm, fpos, (char *) datapos, 
-+			result = decompress_exec(bprm, fpos, (char *) datapos,
- 						 full_data, 0);
- 		} else
- #endif
-@@ -704,7 +704,7 @@ static int load_flat_file(struct linux_b
- 	libinfo->lib_list[id].loaded = 1;
- 	libinfo->lib_list[id].entry = (0x00ffffff & ntohl(hdr->entry)) + textpos;
- 	libinfo->lib_list[id].build_date = ntohl(hdr->build_date);
--	
-+
- 	/*
- 	 * We just load the allocations into some temporary memory to
- 	 * help simplify all this mumbo jumbo
-@@ -784,11 +784,11 @@ static int load_flat_file(struct linux_b
- 		for (i=0; i < relocs; i++)
- 			old_reloc(ntohl(reloc[i]));
- 	}
--	
-+
- 	flush_icache_range(start_code, end_code);
- 
- 	/* zero the BSS,  BRK and stack areas */
--	memset((void*)(datapos + data_len), 0, bss_len + 
-+	memset((void*)(datapos + data_len), 0, bss_len +
- 			(memp + memp_size - stack_len -		/* end brk */
- 			libinfo->lib_list[id].start_brk) +	/* start brk */
- 			stack_len);
-@@ -882,11 +882,11 @@ static int load_flat_binary(struct linux
- 	stack_len += (bprm->argc + 1) * sizeof(char *); /* the argv array */
- 	stack_len += (bprm->envc + 1) * sizeof(char *); /* the envp array */
- 	stack_len += FLAT_STACK_ALIGN - 1;  /* reserve for upcoming alignment */
--	
-+
- 	res = load_flat_file(bprm, &libinfo, 0, &stack_len);
- 	if (IS_ERR_VALUE(res))
- 		return res;
--	
-+
- 	/* Update data segment pointers for all libraries */
- 	for (i=0; i<MAX_SHARED_LIBS; i++)
- 		if (libinfo.lib_list[i].loaded)
-@@ -908,7 +908,7 @@ static int load_flat_binary(struct linux
- 			((char *) page_address(bprm->page[i/PAGE_SIZE]))[i % PAGE_SIZE];
- 
- 	sp = (unsigned long *) create_flat_tables(p, bprm);
--	
-+
- 	/* Fake some return addresses to ensure the call chain will
- 	 * initialise library in order for us.  We are required to call
- 	 * lib 1 first, then 2, ... and finally the main program (id 0).
-@@ -924,7 +924,7 @@ static int load_flat_binary(struct linux
- 		}
- 	}
- #endif
--	
-+
- 	/* Stash our initial stack pointer into the mm structure */
- 	current->mm->start_stack = (unsigned long )sp;
- 
-@@ -933,7 +933,7 @@ static int load_flat_binary(struct linux
- #endif
- 	DBG_FLT("start_thread(regs=0x%x, entry=0x%x, start_stack=0x%x)\n",
- 		(int)regs, (int)start_addr, (int)current->mm->start_stack);
--	
-+
- 	start_thread(regs, start_addr, current->mm->start_stack);
- 
- 	return 0;
-diff -puN fs/binfmt_misc.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile
-+++ a/fs/binfmt_misc.c
-@@ -62,7 +62,7 @@ static struct file_system_type bm_fs_typ
- static struct vfsmount *bm_mnt;
- static int entry_count;
- 
--/* 
-+/*
-  * Check if we support the binfmt
-  * if we do, return the node, else NULL
-  * locking is done in load_misc_binary
-@@ -138,12 +138,12 @@ static int load_misc_binary(struct linux
- 		/* if the binary should be opened on behalf of the
- 		 * interpreter than keep it open and assign descriptor
- 		 * to it */
-- 		fd_binary = get_unused_fd();
-- 		if (fd_binary < 0) {
-- 			retval = fd_binary;
-- 			goto _ret;
-- 		}
-- 		fd_install(fd_binary, bprm->file);
-+		fd_binary = get_unused_fd();
-+		if (fd_binary < 0) {
-+			retval = fd_binary;
-+			goto _ret;
-+		}
-+		fd_install(fd_binary, bprm->file);
- 
- 		/* if the binary is not readable than enforce mm->dumpable=0
- 		   regardless of the interpreter's permissions */
-@@ -156,11 +156,11 @@ static int load_misc_binary(struct linux
- 		bprm->interp_flags |= BINPRM_FLAGS_EXECFD;
- 		bprm->interp_data = fd_binary;
- 
-- 	} else {
-- 		allow_write_access(bprm->file);
-- 		fput(bprm->file);
-- 		bprm->file = NULL;
-- 	}
-+	} else {
-+		allow_write_access(bprm->file);
-+		fput(bprm->file);
-+		bprm->file = NULL;
-+	}
- 	/* make argv[1] be the path to the binary */
- 	retval = copy_strings_kernel (1, &bprm->interp, bprm);
- 	if (retval < 0)
-diff -puN fs/binfmt_script.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile fs/binfmt_script.c
---- a/fs/binfmt_script.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile
-+++ a/fs/binfmt_script.c
-@@ -45,7 +45,7 @@ static int load_script(struct linux_binp
- 			break;
- 	}
- 	for (cp = bprm->buf+2; (*cp == ' ') || (*cp == '\t'); cp++);
--	if (*cp == '\0') 
-+	if (*cp == '\0')
- 		return -ENOEXEC; /* No interpreter name found */
- 	i_name = cp;
- 	i_arg = NULL;
-@@ -70,15 +70,15 @@ static int load_script(struct linux_binp
- 	if (retval)
- 		return retval;
- 	retval = copy_strings_kernel(1, &bprm->interp, bprm);
--	if (retval < 0) return retval; 
-+	if (retval < 0) return retval;
- 	bprm->argc++;
- 	if (i_arg) {
- 		retval = copy_strings_kernel(1, &i_arg, bprm);
--		if (retval < 0) return retval; 
-+		if (retval < 0) return retval;
- 		bprm->argc++;
- 	}
- 	retval = copy_strings_kernel(1, &i_name, bprm);
--	if (retval) return retval; 
-+	if (retval) return retval;
- 	bprm->argc++;
- 	retval = bprm_change_interp(interp, bprm);
- 	if (retval < 0)
-diff -puN fs/binfmt_som.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile fs/binfmt_som.c
---- a/fs/binfmt_som.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile
-+++ a/fs/binfmt_som.c
-@@ -2,7 +2,7 @@
-  * linux/fs/binfmt_som.c
-  *
-  * These are the functions used to load SOM format executables as used
-- * by HP-UX.  
-+ * by HP-UX.
-  *
-  * Copyright 1999 Matthew Wilcox <willy@bofh.ai>
-  * based on binfmt_elf which is
-diff -puN fs/exec.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile fs/exec.c
---- a/fs/exec.c~fs-binfmts-whitespace-fixes-with-scripts-cleanfile
-+++ a/fs/exec.c
-@@ -19,7 +19,7 @@
-  * current->executable is only used by the procfs.  This allows a dispatch
-  * table to check for several different types  of binary formats.  We keep
-  * trying until we recognize the file or we run out of supported binary
-- * formats. 
-+ * formats.
-  */
- 
- #include <linux/slab.h>
-@@ -155,7 +155,7 @@ SYSCALL_DEFINE1(uselib, const char __use
- exit:
- 	fput(file);
- out:
--  	return error;
-+	return error;
- }
- 
- #ifdef CONFIG_MMU
-@@ -1141,7 +1141,7 @@ void setup_new_exec(struct linux_binprm
- 	   group */
- 
- 	current->self_exec_id++;
--			
-+
- 	flush_signal_handlers(current, 0);
- 	do_close_on_exec(current->files);
- }
-@@ -1267,8 +1267,8 @@ static int check_unsafe_exec(struct linu
- 	return res;
- }
- 
--/* 
-- * Fill the binprm structure from the inode. 
-+/*
-+ * Fill the binprm structure from the inode.
-  * Check permissions, then read the first 128 (BINPRM_BUF_SIZE) bytes
-  *
-  * This may be called multiple times for binary chains (scripts for example).
-@@ -1371,7 +1371,7 @@ EXPORT_SYMBOL(remove_arg_zero);
- int search_binary_handler(struct linux_binprm *bprm)
+ #else
+ static bool global_reclaim(struct scan_control *sc)
  {
- 	unsigned int depth = bprm->recursion_depth;
--	int try,retval;
-+	int try, retval;
- 	struct linux_binfmt *fmt;
- 	pid_t old_pid, old_vpid;
+ 	return true;
+ }
++
++static bool mem_cgroup_should_soft_reclaim(struct scan_control *sc)
++{
++	return false;
++}
+ #endif
  
+ static unsigned long get_lru_size(struct lruvec *lruvec, enum lru_list lru)
+@@ -2111,7 +2121,8 @@ static inline bool should_continue_recla
+ 	}
+ }
+ 
+-static void shrink_zone(struct zone *zone, struct scan_control *sc)
++static void
++__shrink_zone(struct zone *zone, struct scan_control *sc, bool soft_reclaim)
+ {
+ 	unsigned long nr_reclaimed, nr_scanned;
+ 
+@@ -2130,6 +2141,12 @@ static void shrink_zone(struct zone *zon
+ 		do {
+ 			struct lruvec *lruvec;
+ 
++			if (soft_reclaim &&
++			    !mem_cgroup_soft_reclaim_eligible(memcg)) {
++				memcg = mem_cgroup_iter(root, memcg, &reclaim);
++				continue;
++			}
++
+ 			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
+ 
+ 			shrink_lruvec(lruvec, sc);
+@@ -2160,6 +2177,24 @@ static void shrink_zone(struct zone *zon
+ 					 sc->nr_scanned - nr_scanned, sc));
+ }
+ 
++
++static void shrink_zone(struct zone *zone, struct scan_control *sc)
++{
++	bool do_soft_reclaim = mem_cgroup_should_soft_reclaim(sc);
++	unsigned long nr_scanned = sc->nr_scanned;
++
++	__shrink_zone(zone, sc, do_soft_reclaim);
++
++	/*
++	 * No group is over the soft limit or those that are do not have
++	 * pages in the zone we are reclaiming so we have to reclaim everybody
++	 */
++	if (do_soft_reclaim && (sc->nr_scanned == nr_scanned)) {
++		__shrink_zone(zone, sc, false);
++		return;
++	}
++}
++
+ /* Returns true if compaction should go ahead for a high-order request */
+ static inline bool compaction_ready(struct zone *zone, struct scan_control *sc)
+ {
+@@ -2221,8 +2256,6 @@ static bool shrink_zones(struct zonelist
+ {
+ 	struct zoneref *z;
+ 	struct zone *zone;
+-	unsigned long nr_soft_reclaimed;
+-	unsigned long nr_soft_scanned;
+ 	bool aborted_reclaim = false;
+ 
+ 	/*
+@@ -2262,18 +2295,6 @@ static bool shrink_zones(struct zonelist
+ 					continue;
+ 				}
+ 			}
+-			/*
+-			 * This steals pages from memory cgroups over softlimit
+-			 * and returns the number of reclaimed pages and
+-			 * scanned pages. This works for global memory pressure
+-			 * and balancing, not for a memcg's limit.
+-			 */
+-			nr_soft_scanned = 0;
+-			nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
+-						sc->order, sc->gfp_mask,
+-						&nr_soft_scanned);
+-			sc->nr_reclaimed += nr_soft_reclaimed;
+-			sc->nr_scanned += nr_soft_scanned;
+ 			/* need some check for avoid more shrink_zone() */
+ 		}
+ 
+@@ -2870,8 +2891,6 @@ static unsigned long balance_pgdat(pg_da
+ {
+ 	int i;
+ 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
+-	unsigned long nr_soft_reclaimed;
+-	unsigned long nr_soft_scanned;
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+ 		.priority = DEF_PRIORITY,
+@@ -2986,15 +3005,6 @@ static unsigned long balance_pgdat(pg_da
+ 
+ 			sc.nr_scanned = 0;
+ 
+-			nr_soft_scanned = 0;
+-			/*
+-			 * Call soft limit reclaim before calling shrink_zone.
+-			 */
+-			nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
+-							order, sc.gfp_mask,
+-							&nr_soft_scanned);
+-			sc.nr_reclaimed += nr_soft_reclaimed;
+-
+ 			/*
+ 			 * There should be no need to raise the scanning
+ 			 * priority if enough pages are already being scanned
 _
 
-Patches currently in -mm which might be from zml@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-fs-binfmts-add-a-name-field-to-the-binfmt-struct.patch
-fs-binfmts-better-handling-of-binfmt-loops.patch
-fs-binfmts-whitespace-fixes-with-scripts-cleanfile.patch
+vmpressure-change-vmpressure-sr_lock-to-spinlock.patch
+vmpressure-do-not-check-for-pending-work-to-prevent-from-new-work.patch
+vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined.patch
+vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+watchdog-update-watchdog-attributes-atomically.patch
+watchdog-update-watchdog_tresh-properly.patch
+mm-fix-potential-null-pointer-dereference.patch
+mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
+mm-hugetlb-trivial-commenting-fix.patch
+mm-hugetlb-clean-up-alloc_huge_page.patch
+mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
+mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
+mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
+mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
+mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+memcg-remove-redundant-code-in-mem_cgroup_force_empty_write.patch
+memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+memcg-get-rid-of-soft-limit-tree-infrastructure.patch
+vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
+memcg-enhance-memcg-iterator-to-support-predicates.patch
+memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
+memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+memcg-track-all-children-over-limit-in-the-root.patch
+memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
+memcg-trivial-cleanups.patch
+linux-next.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
+list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
+list_lru-remove-special-case-function-list_lru_dispose_all.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch
+list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
+staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
+staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
+staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
+staging-lustre-libcfs-cleanup-linux-memh.patch
 
