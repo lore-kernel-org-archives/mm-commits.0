@@ -1,84 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-clean-up-dead-code-in-ocfs2_acl_from_xattr.patch added to -mm tree
-Date: Tue, 30 Jul 2013 16:52:48 -0700
-Message-ID: <51f851d0.1+Ej4mtYQKzqdMgW%akpm@linux-foundation.org>
+Subject: [merged]
+ documentation-development-process-update-mm-and-next-urls.patch removed
+ from -mm tree
+Date: Wed, 31 Jul 2013 11:30:56 -0700
+Message-ID: <51f957e0.0nwF3qYuvXdFEtiC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49629 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59943 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758142Ab3G3Xwt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Jul 2013 19:52:49 -0400
+	with ESMTP id S1751894Ab3GaSa5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jul 2013 14:30:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, enselic@gmail.com
 
-Subject: + ocfs2-clean-up-dead-code-in-ocfs2_acl_from_xattr.patch added to -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: [merged] documentation-development-process-update-mm-and-next-urls.patch removed from -mm tree
+To: enselic@gmail.com,sfr@canb.auug.org.au,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 30 Jul 2013 16:52:48 -0700
+Date: Wed, 31 Jul 2013 11:30:56 -0700
 
 
 The patch titled
-     Subject: ocfs2: clean up dead code in ocfs2_acl_from_xattr()
-has been added to the -mm tree.  Its filename is
-     ocfs2-clean-up-dead-code-in-ocfs2_acl_from_xattr.patch
+     Subject: Documentation/development-process/: update -mm and -next URLs
+has been removed from the -mm tree.  Its filename was
+     documentation-development-process-update-mm-and-next-urls.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-dead-code-in-ocfs2_acl_from_xattr.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-dead-code-in-ocfs2_acl_from_xattr.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: clean up dead code in ocfs2_acl_from_xattr()
+From: Martin Nordholts <enselic@gmail.com>
+Subject: Documentation/development-process/: update -mm and -next URLs
 
-In ocfs2_acl_from_xattr(), if size is less than sizeof(struct
-posix_acl_entry), it returns ERR_PTR(-EINVAL) directly.  Then assign (size
-/ sizeof(struct posix_acl_entry)) to count which will be at least 1, that
-means the following branch (count < 0) and (count == 0) will never be
-true.
+Both old URLs are broken, so update them.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Martin Nordholts <enselic@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/acl.c |    4 ----
- 1 file changed, 4 deletions(-)
+ Documentation/development-process/2.Process |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/acl.c~ocfs2-clean-up-dead-code-in-ocfs2_acl_from_xattr fs/ocfs2/acl.c
---- a/fs/ocfs2/acl.c~ocfs2-clean-up-dead-code-in-ocfs2_acl_from_xattr
-+++ a/fs/ocfs2/acl.c
-@@ -51,10 +51,6 @@ static struct posix_acl *ocfs2_acl_from_
- 		return ERR_PTR(-EINVAL);
+diff -puN Documentation/development-process/2.Process~documentation-development-process-update-mm-and-next-urls Documentation/development-process/2.Process
+--- a/Documentation/development-process/2.Process~documentation-development-process-update-mm-and-next-urls
++++ a/Documentation/development-process/2.Process
+@@ -276,7 +276,7 @@ mainline get there via -mm.
+ The current -mm patch is available in the "mmotm" (-mm of the moment)
+ directory at:
  
- 	count = size / sizeof(struct posix_acl_entry);
--	if (count < 0)
--		return ERR_PTR(-EINVAL);
--	if (count == 0)
--		return NULL;
+-	http://userweb.kernel.org/~akpm/mmotm/
++	http://www.ozlabs.org/~akpm/mmotm/
  
- 	acl = posix_acl_alloc(count, GFP_NOFS);
- 	if (!acl)
+ Use of the MMOTM tree is likely to be a frustrating experience, though;
+ there is a definite chance that it will not even compile.
+@@ -287,7 +287,7 @@ the mainline is expected to look like af
+ Linux-next trees are announced on the linux-kernel and linux-next mailing
+ lists when they are assembled; they can be downloaded from:
+ 
+-	http://www.kernel.org/pub/linux/kernel/people/sfr/linux-next/
++	http://www.kernel.org/pub/linux/kernel/next/
+ 
+ Some information about linux-next has been gathered at:
+ 
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from enselic@gmail.com are
 
-fs-ocfs2-cluster-tcpc-fix-possible-null-pointer-dereferences.patch
-ocfs2-clean-up-dead-code-in-ocfs2_acl_from_xattr.patch
+linux-next.patch
 
