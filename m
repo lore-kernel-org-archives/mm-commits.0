@@ -1,106 +1,112 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- printk-move-to-separate-directory-for-easier-modification-fix.patch removed from -mm tree
-Date: Wed, 31 Jul 2013 13:48:16 -0700
-Message-ID: <51f97810.88Kaj4BNRzxK3SgS%akpm@linux-foundation.org>
+ vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 31 Jul 2013 13:48:37 -0700
+Message-ID: <51f97825.ss2My6IqezvazkIZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33297 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33300 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760655Ab3GaUsR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jul 2013 16:48:17 -0400
+	with ESMTP id S1760620Ab3GaUsi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jul 2013 16:48:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, joe@perches.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, akpm@linux-foundation.org
 
-Subject: [folded-merged] printk-move-to-separate-directory-for-easier-modification-fix.patch removed from -mm tree
-To: joe@perches.com,fengguang.wu@intel.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 31 Jul 2013 13:48:16 -0700
+Date: Wed, 31 Jul 2013 13:48:37 -0700
 
 
 The patch titled
-     Subject: docproc: Move printk file location
+     Subject: vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     printk-move-to-separate-directory-for-easier-modification-fix.patch
+     vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into printk-move-to-separate-directory-for-easier-modification.patch
+This patch was dropped because it was folded into vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined.patch
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: docproc: Move printk file location
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes
 
-> docproc: kernel/printk.c: No such file or directory
+ERROR: "foo * bar" should be "foo *bar"
+#41: FILE: include/linux/vmpressure.h:33:
++extern void vmpressure_cleanup(struct vmpressure * vmpr);
 
-So rename the file.
+total: 1 errors, 0 warnings, 33 lines checked
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+./patches/vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/device-drivers.tmpl |    2 +-
+ include/linux/vmpressure.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/device-drivers.tmpl~printk-move-to-separate-directory-for-easier-modification-fix Documentation/DocBook/device-drivers.tmpl
---- a/Documentation/DocBook/device-drivers.tmpl~printk-move-to-separate-directory-for-easier-modification-fix
-+++ a/Documentation/DocBook/device-drivers.tmpl
-@@ -84,7 +84,7 @@ X!Iinclude/linux/kobject.h
+diff -puN include/linux/vmpressure.h~vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes include/linux/vmpressure.h
+--- a/include/linux/vmpressure.h~vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes
++++ a/include/linux/vmpressure.h
+@@ -30,7 +30,7 @@ extern void vmpressure(gfp_t gfp, struct
+ extern void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio);
  
-      <sect1><title>Kernel utility functions</title>
- !Iinclude/linux/kernel.h
--!Ekernel/printk.c
-+!Ekernel/printk/printk.c
- !Ekernel/panic.c
- !Ekernel/sys.c
- !Ekernel/rcupdate.c
+ extern void vmpressure_init(struct vmpressure *vmpr);
+-extern void vmpressure_cleanup(struct vmpressure * vmpr);
++extern void vmpressure_cleanup(struct vmpressure *vmpr);
+ extern struct vmpressure *memcg_to_vmpressure(struct mem_cgroup *memcg);
+ extern struct cgroup_subsys_state *vmpressure_to_css(struct vmpressure *vmpr);
+ extern struct vmpressure *css_to_vmpressure(struct cgroup_subsys_state *css);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-maintainers-dynamic-debug-jasons-not-there.patch
-printk-move-to-separate-directory-for-easier-modification.patch
-printk-add-console_cmdlineh.patch
-printk-move-braille-console-support-into-separate-braille-files.patch
-printk-use-pointer-for-console_cmdline-indexing.patch
-printk-rename-struct-log-to-struct-printk_log.patch
-maintainers-exynos-remove-board-files.patch
-maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
-maintainers-omap-powerdomain-update-patterns.patch
-maintainers-arm-s3c2410-update-patterns.patch
-maintainers-arm-spear-consolidate-sections.patch
-maintainers-arm-plat-nomadik-update-patterns.patch
-maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
-maintainers-ghes_edac-update-pattern.patch
-maintainers-update-siano-drivers.patch
-maintainers-si4713-fix-file-pattern.patch
-maintainers-update-it913x-patterns.patch
-maintainers-update-sirf-patterns.patch
-maintainers-update-ssbi-patterns.patch
-maintainers-update-file-pattern-for-arc-uart.patch
-maintainers-update-usb-ehci-platform-pattern.patch
-maintainers-usb-phy-update-patterns.patch
-maintainers-update-gre-demux-patterns.patch
-checkpatch-add-a-few-more-fix-corrections.patch
-checkpatch-check-camelcase-by-word-not-by-lval.patch
-checkpatch-enforce-sane-perl-version.patch
-checkpatch-check-for-duplicate-signatures.patch
-checkpatch-warn-when-using-extern-with-function-prototypes-in-h-files.patch
-checkpatch-fix-networking-kernel-doc-block-comment-defect.patch
-firmware-dmi_scan-drop-obsolete-comment.patch
-firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
-firmware-dmi_scan-constify-strings.patch
-firmware-dmi_scan-drop-oom-messages.patch
-pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
-pktcdvd-convert-printk-to-pr_level.patch
-pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
-pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
-pktcdvd-convert-pr_notice-to-pkt_notice.patch
-pktcdvd-convert-pr_info-to-pkt_info.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
+ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page.patch
+arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
+vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+swap-make-swap-discard-async-checkpatch-fixes.patch
+swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
+mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
+memcg-trivial-cleanups.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
 linux-next.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
