@@ -1,122 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [failures] microblaze-fix-clone-syscall.patch removed from -mm
- tree
-Date: Wed, 31 Jul 2013 13:10:38 -0700
-Message-ID: <51f96f3e.UXyu4aJ08NYzZHbG%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch removed from -mm tree
+Date: Wed, 31 Jul 2013 13:47:51 -0700
+Message-ID: <51f977f7.J43/psOp2dqOAcBy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32855 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33293 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760620Ab3GaUKi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jul 2013 16:10:38 -0400
+	with ESMTP id S1760672Ab3GaUrx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Jul 2013 16:47:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, stable@vger.kernel.org, dalias@aerifal.cx, michal.simek@xilinx.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, guz.fnst@cn.fujitsu.com, akpm@linux-foundation.org
 
-Subject: [failures] microblaze-fix-clone-syscall.patch removed from -mm tree
-To: michal.simek@xilinx.com,dalias@aerifal.cx,stable@vger.kernel.org,viro@ZenIV.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [folded-merged] ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,guz.fnst@cn.fujitsu.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 31 Jul 2013 13:10:38 -0700
+Date: Wed, 31 Jul 2013 13:47:51 -0700
 
 
 The patch titled
-     Subject: microblaze: fix clone syscall
+     Subject: ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix
 has been removed from the -mm tree.  Its filename was
-     microblaze-fix-clone-syscall.patch
+     ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it was folded into ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page.patch
 
 ------------------------------------------------------
-From: Michal Simek <michal.simek@xilinx.com>
-Subject: microblaze: fix clone syscall
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix
 
-Microblaze was assign to CLONE_BACKWARDS type where parent tid was passed
-via 3rd argument.  Microblaze glibc is using 4th argument for it.
+fix layout, per Joel
 
-Create new CLONE_BACKWARDS3 type where stack_size is passed via 3rd
-argument, parent thread id pointer via 4th, child thread id pointer via
-5th and tls value as 6th argument
-
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Rich Felker <dalias@aerifal.cx>
+Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig             |    6 ++++++
- arch/microblaze/Kconfig  |    2 +-
- include/linux/syscalls.h |    5 +++++
- kernel/fork.c            |    6 ++++++
- 4 files changed, 18 insertions(+), 1 deletion(-)
+ fs/ocfs2/refcounttree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/Kconfig~microblaze-fix-clone-syscall arch/Kconfig
---- a/arch/Kconfig~microblaze-fix-clone-syscall
-+++ a/arch/Kconfig
-@@ -407,6 +407,12 @@ config CLONE_BACKWARDS2
- 	help
- 	  Architecture has the first two arguments of clone(2) swapped.
- 
-+config CLONE_BACKWARDS3
-+	bool
-+	help
-+	  Architecture has tls passed as the 3rd argument of clone(2),
-+	  not the 5th one.
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page-fix
++++ a/fs/ocfs2/refcounttree.c
+@@ -2970,6 +2970,7 @@ int ocfs2_duplicate_clusters_by_page(han
+ 			mlog_errno(ret);
+ 			break;
+ 		}
 +
- config ODD_RT_SIGACTION
- 	bool
- 	help
-diff -puN arch/microblaze/Kconfig~microblaze-fix-clone-syscall arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~microblaze-fix-clone-syscall
-+++ a/arch/microblaze/Kconfig
-@@ -28,7 +28,7 @@ config MICROBLAZE
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_IDLE_POLL_SETUP
- 	select MODULES_USE_ELF_RELA
--	select CLONE_BACKWARDS
-+	select CLONE_BACKWARDS3
- 
- config SWAP
- 	def_bool n
-diff -puN include/linux/syscalls.h~microblaze-fix-clone-syscall include/linux/syscalls.h
---- a/include/linux/syscalls.h~microblaze-fix-clone-syscall
-+++ a/include/linux/syscalls.h
-@@ -802,9 +802,14 @@ asmlinkage long sys_vfork(void);
- asmlinkage long sys_clone(unsigned long, unsigned long, int __user *, int,
- 	       int __user *);
- #else
-+#if CONFIG_CLONE_BACKWARDS3
-+asmlinkage long sys_clone(unsigned long, unsigned long, int, int __user *,
-+			  int __user *, int);
-+#else
- asmlinkage long sys_clone(unsigned long, unsigned long, int __user *,
- 	       int __user *, int);
- #endif
-+#endif
- 
- asmlinkage long sys_execve(const char __user *filename,
- 		const char __user *const __user *argv,
-diff -puN kernel/fork.c~microblaze-fix-clone-syscall kernel/fork.c
---- a/kernel/fork.c~microblaze-fix-clone-syscall
-+++ a/kernel/fork.c
-@@ -1679,6 +1679,12 @@ SYSCALL_DEFINE5(clone, unsigned long, ne
- 		 int __user *, parent_tidptr,
- 		 int __user *, child_tidptr,
- 		 int, tls_val)
-+#elif defined(CONFIG_CLONE_BACKWARDS3)
-+SYSCALL_DEFINE6(clone, unsigned long, clone_flags, unsigned long, newsp,
-+		int, stack_size,
-+		int __user *, parent_tidptr,
-+		int __user *, child_tidptr,
-+		int, tls_val)
- #else
- SYSCALL_DEFINE5(clone, unsigned long, clone_flags, unsigned long, newsp,
- 		 int __user *, parent_tidptr,
+ 		/*
+ 		 * In case PAGE_CACHE_SIZE <= CLUSTER_SIZE, This page
+ 		 * can't be dirtied before we CoW it out.
 _
 
-Patches currently in -mm which might be from michal.simek@xilinx.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page.patch
+arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
+vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined-checkpatch-fixes.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+swap-make-swap-discard-async-checkpatch-fixes.patch
+swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
+mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
+memcg-trivial-cleanups.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
 linux-next.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
