@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + exec-proc_exec_connector-should-be-called-only-once.patch added to -mm tree
-Date: Mon, 05 Aug 2013 13:45:10 -0700
-Message-ID: <52000ed6.aJCNIEkB4Zk0CCuE%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-add-types-option-to-report-only-specific-message-types.patch
+ added to -mm tree
+Date: Mon, 05 Aug 2013 13:53:03 -0700
+Message-ID: <520010af.jMATYCHMr1tE8/dU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42526 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42564 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295Ab3HEUpL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:11 -0400
+	with ESMTP id S1753892Ab3HEUxD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:53:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zml@linux.vnet.ibm.com, zbr@ioremap.net, viro@ZenIV.linux.org.uk, keescook@chromium.org, oleg@redhat.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + exec-proc_exec_connector-should-be-called-only-once.patch added to -mm tree
-To: oleg@redhat.com,keescook@chromium.org,viro@ZenIV.linux.org.uk,zbr@ioremap.net,zml@linux.vnet.ibm.com
+Subject: + checkpatch-add-types-option-to-report-only-specific-message-types.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 13:45:10 -0700
+Date: Mon, 05 Aug 2013 13:53:03 -0700
 
 
 The patch titled
-     Subject: exec: proc_exec_connector() should be called only once
+     Subject: checkpatch: add --types option to report only specific message types
 has been added to the -mm tree.  Its filename is
-     exec-proc_exec_connector-should-be-called-only-once.patch
+     checkpatch-add-types-option-to-report-only-specific-message-types.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-proc_exec_connector-should-be-called-only-once.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-types-option-to-report-only-specific-message-types.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-proc_exec_connector-should-be-called-only-once.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-types-option-to-report-only-specific-message-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,69 +45,165 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: exec: proc_exec_connector() should be called only once
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add --types option to report only specific message types
 
-A separate one-liner with the minor fix.
+Add a --types convenience option to show only specific message types. 
+Combined with the --fix option, this can produce specific suggested
+formatting patches to files.
 
-PROC_EVENT_EXEC reports the "exec" event, but this message is sent at
-least twice if search_binary_handler() is called by ->load_binary()
-recursively, say, load_script().
-
-Move it to exec_binprm(), this is "depth == 0" code too.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Zach Levis <zml@linux.vnet.ibm.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   56 +++++++++++++++++++++++++++-------------
+ 1 file changed, 38 insertions(+), 18 deletions(-)
 
-diff -puN fs/exec.c~exec-proc_exec_connector-should-be-called-only-once fs/exec.c
---- a/fs/exec.c~exec-proc_exec_connector-should-be-called-only-once
-+++ a/fs/exec.c
-@@ -1404,7 +1404,6 @@ int search_binary_handler(struct linux_b
- 				if (bprm->file)
- 					fput(bprm->file);
- 				bprm->file = NULL;
--				proc_exec_connector(current);
- 				return retval;
- 			}
- 			read_lock(&binfmt_lock);
-@@ -1455,6 +1454,7 @@ static int exec_binprm(struct linux_binp
- 		trace_sched_process_exec(current, old_pid, bprm);
- 		ptrace_event(PTRACE_EVENT_EXEC, old_vpid);
- 		current->did_exec = 1;
-+		proc_exec_connector(current);
+diff -puN scripts/checkpatch.pl~checkpatch-add-types-option-to-report-only-specific-message-types scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-types-option-to-report-only-specific-message-types
++++ a/scripts/checkpatch.pl
+@@ -31,8 +31,10 @@ my $show_types = 0;
+ my $fix = 0;
+ my $root;
+ my %debug;
+-my %ignore_type = ();
+ my %camelcase = ();
++my %use_type = ();
++my @use = ();
++my %ignore_type = ();
+ my @ignore = ();
+ my $help = 0;
+ my $configuration_file = ".checkpatch.conf";
+@@ -56,6 +58,7 @@ Options:
+   --terse                    one line per report
+   -f, --file                 treat FILE as regular source file
+   --subjective, --strict     enable more subjective tests
++  --types TYPE(,TYPE2...)    show only these comma separated message types
+   --ignore TYPE(,TYPE2...)   ignore various comma separated message types
+   --max-line-length=n        set the maximum line length, if exceeded, warn
+   --show-types               show the message "types" in the output
+@@ -120,6 +123,7 @@ GetOptions(
+ 	'subjective!'	=> \$check,
+ 	'strict!'	=> \$check,
+ 	'ignore=s'	=> \@ignore,
++	'types=s'	=> \@use,
+ 	'show-types!'	=> \$show_types,
+ 	'max-line-length=i' => \$max_line_length,
+ 	'root=s'	=> \$root,
+@@ -150,19 +154,38 @@ if ($#ARGV < 0) {
+ 	exit(1);
+ }
+ 
+-@ignore = split(/,/, join(',',@ignore));
+-foreach my $word (@ignore) {
+-	$word =~ s/\s*\n?$//g;
+-	$word =~ s/^\s*//g;
+-	$word =~ s/\s+/ /g;
+-	$word =~ tr/[a-z]/[A-Z]/;
++sub hash_save_array_words {
++	my ($hashRef, $arrayRef) = @_;
++
++	my @array = split(/,/, join(',', @$arrayRef));
++	foreach my $word (@array) {
++		$word =~ s/\s*\n?$//g;
++		$word =~ s/^\s*//g;
++		$word =~ s/\s+/ /g;
++		$word =~ tr/[a-z]/[A-Z]/;
++
++		next if ($word =~ m/^\s*#/);
++		next if ($word =~ m/^\s*$/);
++
++		$hashRef->{$word}++;
++	}
++}
+ 
+-	next if ($word =~ m/^\s*#/);
+-	next if ($word =~ m/^\s*$/);
++sub hash_show_words {
++	my ($hashRef, $prefix) = @_;
+ 
+-	$ignore_type{$word}++;
++	if ($quiet == 0 && keys $hashRef) {
++		print "NOTE: $prefix message types:";
++		foreach my $word (sort keys $hashRef) {
++			print " $word";
++		}
++		print "\n\n";
++	}
+ }
+ 
++hash_save_array_words(\%ignore_type, \@ignore);
++hash_save_array_words(\%use_type, \@use);
++
+ my $dbg_values = 0;
+ my $dbg_possible = 0;
+ my $dbg_type = 0;
+@@ -1367,7 +1390,9 @@ sub possible {
+ my $prefix = '';
+ 
+ sub show_type {
+-       return !defined $ignore_type{$_[0]};
++	return defined $use_type{$_[0]} if (scalar keys %use_type > 0);
++
++	return !defined $ignore_type{$_[0]};
+ }
+ 
+ sub report {
+@@ -4190,13 +4215,8 @@ sub process {
+ 		}
  	}
  
- 	return ret;
+-	if ($quiet == 0 && keys %ignore_type) {
+-	    print "NOTE: Ignored message types:";
+-	    foreach my $ignore (sort keys %ignore_type) {
+-		print " $ignore";
+-	    }
+-	    print "\n\n";
+-	}
++	hash_show_words(\%use_type, "Used");
++	hash_show_words(\%ignore_type, "Ignored");
+ 
+ 	if ($clean == 0 && $fix && "@rawlines" ne "@fixed") {
+ 		my $newfile = $filename . ".EXPERIMENTAL-checkpatch-fixes";
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
-mm-shift-vm_grows-check-from-mmap_region-to-do_mmap_pgoff-v2.patch
-mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
-mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
-kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-signals-eventpoll-set-saved_sigmask-at-the-start.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-exec-introduce-exec_binprm-for-depth-==-0-code.patch
-exec-kill-int-depth-in-search_binary_handler.patch
-exec-proc_exec_connector-should-be-called-only-once.patch
-exec-move-allow_write_access-fput-to-exec_binprm.patch
-exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
-exec-cleanup-the-config_modules-logic.patch
-exec-dont-retry-if-request_module-fails.patch
-exec-cleanup-the-error-handling-in-search_binary_handler.patch
+maintainers-exynos-remove-board-files.patch
+maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+maintainers-omap-powerdomain-update-patterns.patch
+maintainers-arm-s3c2410-update-patterns.patch
+maintainers-arm-spear-consolidate-sections.patch
+maintainers-arm-plat-nomadik-update-patterns.patch
+maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
+maintainers-ghes_edac-update-pattern.patch
+maintainers-update-siano-drivers.patch
+maintainers-si4713-fix-file-pattern.patch
+maintainers-update-it913x-patterns.patch
+maintainers-update-sirf-patterns.patch
+maintainers-update-ssbi-patterns.patch
+maintainers-update-file-pattern-for-arc-uart.patch
+maintainers-update-usb-ehci-platform-pattern.patch
+maintainers-usb-phy-update-patterns.patch
+maintainers-update-gre-demux-patterns.patch
+checkpatch-add-a-few-more-fix-corrections.patch
+checkpatch-check-camelcase-by-word-not-by-lval.patch
+checkpatch-enforce-sane-perl-version.patch
+checkpatch-check-for-duplicate-signatures.patch
+checkpatch-warn-when-using-extern-with-function-prototypes-in-h-files.patch
+checkpatch-fix-networking-kernel-doc-block-comment-defect.patch
+checkpatch-add-types-option-to-report-only-specific-message-types.patch
+firmware-dmi_scan-drop-obsolete-comment.patch
+firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
+firmware-dmi_scan-constify-strings.patch
+firmware-dmi_scan-drop-oom-messages.patch
+pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
+pktcdvd-convert-printk-to-pr_level.patch
+pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
+pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
+pktcdvd-convert-pr_notice-to-pkt_notice.patch
+pktcdvd-convert-pr_info-to-pkt_info.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
 linux-next.patch
 
