@@ -1,134 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: + revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
- added to -mm tree
-Date: Fri, 02 Aug 2013 16:09:20 -0700
-Message-ID: <51fc3c20.RjsA+xyDacJ/QEOP%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch removed from -mm
+ tree
+Date: Mon, 05 Aug 2013 12:05:37 -0700
+Message-ID: <51fff781.mkWWMBTZUdswOWq7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41972 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754407Ab3HBXJV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Aug 2013 19:09:21 -0400
+	with ESMTP id S1753673Ab3HETFs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 15:05:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peter@hurleysoftware.com, greg@kroah.com, eparis@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, steven.t.hampson@intel.com, stable@vger.kernel.org, riel@redhat.com, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, oleg@redhat.com
 
-Subject: + revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch added to -mm tree
-To: akpm@linux-foundation.org,eparis@redhat.com,greg@kroah.com,peter@hurleysoftware.com
+Subject: [merged] mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch removed from -mm tree
+To: oleg@redhat.com,andi@firstfloor.org,kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de,riel@redhat.com,stable@vger.kernel.org,steven.t.hampson@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 02 Aug 2013 16:09:20 -0700
+Date: Mon, 05 Aug 2013 12:05:37 -0700
 
 
 The patch titled
-     Subject: revert "SELinux: do not handle seclabel as a special flag"
-has been added to the -mm tree.  Its filename is
-     revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
+     Subject: mm: mempolicy: fix mbind_range() && vma_adjust() interaction
+has been removed from the -mm tree.  Its filename was
+     mm-mempolicy-fix-mbind_range-vma_adjust-interaction.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "SELinux: do not handle seclabel as a special flag"
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm: mempolicy: fix mbind_range() && vma_adjust() interaction
 
-It breaks my FC6 test box.  /dev/pts is not mounted.  dmesg says
+vma_adjust() does vma_set_policy(vma, vma_policy(next)) and this
+is doubly wrong:
 
-SELinux: mount invalid.  Same superblock, different security settings for (dev devpts, type devpts)
+1. This leaks vma->vm_policy if it is not NULL and not equal to
+   next->vm_policy.
 
-Cc: Peter Hurley <peter@hurleysoftware.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Eric Paris <eparis@redhat.com>
+   This can happen if vma_merge() expands "area", not prev (case 8).
+
+2. This sets the wrong policy if vma_merge() joins prev and area,
+   area is the vma the caller needs to update and it still has the
+   old policy.
+
+Revert 1444f92c "mm: merging memory blocks resets mempolicy" which
+introduced these problems.
+
+Change mbind_range() to recheck mpol_equal() after vma_merge() to
+fix the problem 1444f92c tried to address.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Steven T Hampson <steven.t.hampson@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c            |    3 +++
- security/selinux/include/security.h |    2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |    6 +++++-
+ mm/mmap.c      |    2 +-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN security/selinux/hooks.c~revert-selinux-do-not-handle-seclabel-as-a-special-flag security/selinux/hooks.c
---- a/security/selinux/hooks.c~revert-selinux-do-not-handle-seclabel-as-a-special-flag
-+++ a/security/selinux/hooks.c
-@@ -502,6 +502,9 @@ static int selinux_get_mnt_opts(const st
- 			opts->num_mnt_opts++;
- 		tmp >>= 1;
- 	}
-+	/* Check if the Label support flag is set */
-+	if (sbsec->flags & SBLABEL_MNT)
-+		opts->num_mnt_opts++;
- 
- 	opts->mnt_opts = kcalloc(opts->num_mnt_opts, sizeof(char *), GFP_ATOMIC);
- 	if (!opts->mnt_opts) {
-diff -puN security/selinux/include/security.h~revert-selinux-do-not-handle-seclabel-as-a-special-flag security/selinux/include/security.h
---- a/security/selinux/include/security.h~revert-selinux-do-not-handle-seclabel-as-a-special-flag
-+++ a/security/selinux/include/security.h
-@@ -43,7 +43,7 @@
- #endif
- 
- /* Mask for just the mount related flags */
--#define SE_MNTMASK	0x1f
-+#define SE_MNTMASK	0x0f
- /* Super block security struct flags for mount options */
- /* BE CAREFUL, these need to be the low order bits for selinux_get_mnt_opts */
- #define CONTEXT_MNT	0x01
+diff -puN mm/mempolicy.c~mm-mempolicy-fix-mbind_range-vma_adjust-interaction mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-fix-mbind_range-vma_adjust-interaction
++++ a/mm/mempolicy.c
+@@ -732,7 +732,10 @@ static int mbind_range(struct mm_struct
+ 		if (prev) {
+ 			vma = prev;
+ 			next = vma->vm_next;
+-			continue;
++			if (mpol_equal(vma_policy(vma), new_pol))
++				continue;
++			/* vma_merge() joined vma && vma->next, case 8 */
++			goto replace;
+ 		}
+ 		if (vma->vm_start != vmstart) {
+ 			err = split_vma(vma->vm_mm, vma, vmstart, 1);
+@@ -744,6 +747,7 @@ static int mbind_range(struct mm_struct
+ 			if (err)
+ 				goto out;
+ 		}
++ replace:
+ 		err = vma_replace_policy(vma, new_pol);
+ 		if (err)
+ 			goto out;
+diff -puN mm/mmap.c~mm-mempolicy-fix-mbind_range-vma_adjust-interaction mm/mmap.c
+--- a/mm/mmap.c~mm-mempolicy-fix-mbind_range-vma_adjust-interaction
++++ a/mm/mmap.c
+@@ -865,7 +865,7 @@ again:			remove_next = 1 + (end > next->
+ 		if (next->anon_vma)
+ 			anon_vma_merge(vma, next);
+ 		mm->map_count--;
+-		vma_set_policy(vma, vma_policy(next));
++		mpol_put(vma_policy(next));
+ 		kmem_cache_free(vm_area_cachep, next);
+ 		/*
+ 		 * In mprotect's case 6 (see comments on vma_merge),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page.patch
-arch-x86-platform-ce4100-ce4100c-include-rebooth.patch
-vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-swap-make-swap-discard-async-checkpatch-fixes.patch
-swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
-mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
-memcg-trivial-cleanups.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
+x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
+mm-shift-vm_grows-check-from-mmap_region-to-do_mmap_pgoff-v2.patch
+mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
+mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
+kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+signals-eventpoll-set-saved_sigmask-at-the-start.patch
 move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
 linux-next.patch
-revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
