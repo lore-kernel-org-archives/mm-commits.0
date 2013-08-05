@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + exec-move-allow_write_access-fput-to-exec_binprm.patch added to -mm tree
-Date: Mon, 05 Aug 2013 13:45:11 -0700
-Message-ID: <52000ed7.ckTOGRDYgEGS+9/L%akpm@linux-foundation.org>
+Subject: + exec-dont-retry-if-request_module-fails.patch added to -mm tree
+Date: Mon, 05 Aug 2013 13:45:14 -0700
+Message-ID: <52000eda.871OnNu4napsas2R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42531 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42545 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755313Ab3HEUpM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:12 -0400
+	with ESMTP id S1752295Ab3HEUpP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zml@linux.vnet.ibm.com, zbr@ioremap.net, viro@ZenIV.linux.org.uk, keescook@chromium.org, oleg@redhat.com
 
-Subject: + exec-move-allow_write_access-fput-to-exec_binprm.patch added to -mm tree
+Subject: + exec-dont-retry-if-request_module-fails.patch added to -mm tree
 To: oleg@redhat.com,keescook@chromium.org,viro@ZenIV.linux.org.uk,zbr@ioremap.net,zml@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 13:45:11 -0700
+Date: Mon, 05 Aug 2013 13:45:14 -0700
 
 
 The patch titled
-     Subject: exec: move allow_write_access/fput to exec_binprm()
+     Subject: exec: don't retry if request_module() fails
 has been added to the -mm tree.  Its filename is
-     exec-move-allow_write_access-fput-to-exec_binprm.patch
+     exec-dont-retry-if-request_module-fails.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-move-allow_write_access-fput-to-exec_binprm.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-dont-retry-if-request_module-fails.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-move-allow_write_access-fput-to-exec_binprm.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-dont-retry-if-request_module-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,15 +44,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exec: move allow_write_access/fput to exec_binprm()
+Subject: exec: don't retry if request_module() fails
 
-When search_binary_handler() succeeds it does allow_write_access() and
-fput(), then it clears bprm->file to ensure the caller will not do the
-same.
+A separate one-liner for better documentation.
 
-We can simply move this code to exec_binprm() which is called only once. 
-In fact we could move this to free_bprm() and remove the same code in
-do_execve_common's error path.
+It doesn't make sense to retry if request_module() fails to exec
+/sbin/modprobe, add the additional "request_module() < 0" check.
+
+However, this logic still doesn't look exactly right:
+
+1. It would be better to check "request_module() != 0", the user
+   space modprobe process should report the correct exit code.
+   But I didn't dare to add the user-visible change.
+
+2. The whole ENOEXEC logic looks suboptimal. Suppose that we try
+   to exec a "#!path-to-unsupported-binary" script. In this case
+   request_module() + "retry" will be done twice: first by the
+   "depth == 1" code, and then again by the "depth == 0" caller
+   which doesn't make sense.
+
+3. And note that in the case above bprm->buf was already changed
+   by load_script()->prepare_binprm(), so this looks even more
+   ugly.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
@@ -62,36 +75,22 @@ Cc: Zach Levis <zml@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/exec.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/exec.c~exec-move-allow_write_access-fput-to-exec_binprm fs/exec.c
---- a/fs/exec.c~exec-move-allow_write_access-fput-to-exec_binprm
+diff -puN fs/exec.c~exec-dont-retry-if-request_module-fails fs/exec.c
+--- a/fs/exec.c~exec-dont-retry-if-request_module-fails
 +++ a/fs/exec.c
-@@ -1400,10 +1400,6 @@ int search_binary_handler(struct linux_b
- 			bprm->recursion_depth--;
- 			if (retval >= 0) {
- 				put_binfmt(fmt);
--				allow_write_access(bprm->file);
--				if (bprm->file)
--					fput(bprm->file);
--				bprm->file = NULL;
- 				return retval;
- 			}
- 			read_lock(&binfmt_lock);
-@@ -1455,6 +1451,12 @@ static int exec_binprm(struct linux_binp
- 		ptrace_event(PTRACE_EVENT_EXEC, old_vpid);
- 		current->did_exec = 1;
- 		proc_exec_connector(current);
-+
-+		if (bprm->file) {
-+			allow_write_access(bprm->file);
-+			fput(bprm->file);
-+			bprm->file = NULL; /* to catch use-after-free */
-+		}
+@@ -1418,7 +1418,8 @@ int search_binary_handler(struct linux_b
+ 		if (printable(bprm->buf[0]) && printable(bprm->buf[1]) &&
+ 		    printable(bprm->buf[2]) && printable(bprm->buf[3]))
+ 			return retval;
+-		request_module("binfmt-%04x", *(ushort *)(bprm->buf + 2));
++		if (request_module("binfmt-%04x", *(ushort *)(bprm->buf + 2)) < 0)
++			return retval;
+ 		need_retry = false;
+ 		goto retry;
  	}
- 
- 	return ret;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
