@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + exec-kill-int-depth-in-search_binary_handler.patch added to -mm tree
-Date: Mon, 05 Aug 2013 13:45:09 -0700
-Message-ID: <52000ed5.rHCuNhrv8tDnvgXi%akpm@linux-foundation.org>
+Subject: + exec-cleanup-the-config_modules-logic.patch added to -mm tree
+Date: Mon, 05 Aug 2013 13:45:13 -0700
+Message-ID: <52000ed9.Bfs+AnVhDSIQlUf+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42540 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753905Ab3HEUpK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:10 -0400
+	with ESMTP id S1753905Ab3HEUpO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zml@linux.vnet.ibm.com, zbr@ioremap.net, viro@ZenIV.linux.org.uk, keescook@chromium.org, oleg@redhat.com
 
-Subject: + exec-kill-int-depth-in-search_binary_handler.patch added to -mm tree
+Subject: + exec-cleanup-the-config_modules-logic.patch added to -mm tree
 To: oleg@redhat.com,keescook@chromium.org,viro@ZenIV.linux.org.uk,zbr@ioremap.net,zml@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 13:45:09 -0700
+Date: Mon, 05 Aug 2013 13:45:13 -0700
 
 
 The patch titled
-     Subject: exec: kill "int depth" in search_binary_handler()
+     Subject: exec: cleanup the CONFIG_MODULES logic
 has been added to the -mm tree.  Its filename is
-     exec-kill-int-depth-in-search_binary_handler.patch
+     exec-cleanup-the-config_modules-logic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-kill-int-depth-in-search_binary_handler.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-cleanup-the-config_modules-logic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-kill-int-depth-in-search_binary_handler.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-cleanup-the-config_modules-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,14 +44,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exec: kill "int depth" in search_binary_handler()
+Subject: exec: cleanup the CONFIG_MODULES logic
 
-Nobody except search_binary_handler() should touch ->recursion_depth, "int
-depth" buys nothing but complicates the code, kill it.
+search_binary_handler() uses "for (try=0; try<2; try++)" to avoid "goto"
+but the code looks too complicated and horrible imho.  We still need to
+check "try == 0" before request_module() and add the additional "break"
+for !CONFIG_MODULES case.
 
-Probably we should also kill "fn" and the !NULL check, ->load_binary
-should be always defined.  And it can not go away after read_unlock() or
-this code is buggy anyway.
+Kill this loop and use a simple "bool need_retry" + "goto retry".  The
+code looks much simpler and we do not even need ifdef's, gcc can optimize
+out the "if (need_retry)" block if !IS_ENABLED().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
@@ -61,52 +63,105 @@ Cc: Zach Levis <zml@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c               |    9 ++++-----
- include/linux/binfmts.h |    2 +-
- 2 files changed, 5 insertions(+), 6 deletions(-)
+ fs/exec.c |   68 +++++++++++++++++++++++-----------------------------
+ 1 file changed, 31 insertions(+), 37 deletions(-)
 
-diff -puN fs/exec.c~exec-kill-int-depth-in-search_binary_handler fs/exec.c
---- a/fs/exec.c~exec-kill-int-depth-in-search_binary_handler
+diff -puN fs/exec.c~exec-cleanup-the-config_modules-logic fs/exec.c
+--- a/fs/exec.c~exec-cleanup-the-config_modules-logic
 +++ a/fs/exec.c
-@@ -1370,12 +1370,11 @@ EXPORT_SYMBOL(remove_arg_zero);
+@@ -1367,13 +1367,15 @@ out:
+ }
+ EXPORT_SYMBOL(remove_arg_zero);
+ 
++#define printable(c) (((c)=='\t') || ((c)=='\n') || (0x20<=(c) && (c)<=0x7e))
+ /*
+  * cycle the list of binary formats handler, until one recognizes the image
   */
  int search_binary_handler(struct linux_binprm *bprm)
  {
--	unsigned int depth = bprm->recursion_depth;
--	int try,retval;
-+	int try, retval;
+-	int try, retval;
++	bool need_retry = IS_ENABLED(CONFIG_MODULES);
  	struct linux_binfmt *fmt;
++	int retval;
  
  	/* This allows 4 levels of binfmt rewrites before failing hard. */
--	if (depth > 5)
-+	if (bprm->recursion_depth > 5)
- 		return -ELOOP;
+ 	if (bprm->recursion_depth > 5)
+@@ -1388,47 +1390,39 @@ int search_binary_handler(struct linux_b
+ 		return retval;
  
- 	retval = security_bprm_check(bprm);
-@@ -1396,9 +1395,9 @@ int search_binary_handler(struct linux_b
- 			if (!try_module_get(fmt->module))
- 				continue;
- 			read_unlock(&binfmt_lock);
--			bprm->recursion_depth = depth + 1;
-+			bprm->recursion_depth++;
- 			retval = fn(bprm);
--			bprm->recursion_depth = depth;
-+			bprm->recursion_depth--;
- 			if (retval >= 0) {
- 				put_binfmt(fmt);
- 				allow_write_access(bprm->file);
-diff -puN include/linux/binfmts.h~exec-kill-int-depth-in-search_binary_handler include/linux/binfmts.h
---- a/include/linux/binfmts.h~exec-kill-int-depth-in-search_binary_handler
-+++ a/include/linux/binfmts.h
-@@ -31,7 +31,7 @@ struct linux_binprm {
- #ifdef __alpha__
- 	unsigned int taso:1;
- #endif
--	unsigned int recursion_depth;
-+	unsigned int recursion_depth; /* only for search_binary_handler() */
- 	struct file * file;
- 	struct cred *cred;	/* new credentials */
- 	int unsafe;		/* how unsafe this exec is (mask of LSM_UNSAFE_*) */
+ 	retval = -ENOENT;
+-	for (try=0; try<2; try++) {
+-		read_lock(&binfmt_lock);
+-		list_for_each_entry(fmt, &formats, lh) {
+-			if (!try_module_get(fmt->module))
+-				continue;
+-			read_unlock(&binfmt_lock);
+-			bprm->recursion_depth++;
+-			retval = fmt->load_binary(bprm);
+-			bprm->recursion_depth--;
+-			if (retval >= 0) {
+-				put_binfmt(fmt);
+-				return retval;
+-			}
+-			read_lock(&binfmt_lock);
++ retry:
++	read_lock(&binfmt_lock);
++	list_for_each_entry(fmt, &formats, lh) {
++		if (!try_module_get(fmt->module))
++			continue;
++		read_unlock(&binfmt_lock);
++		bprm->recursion_depth++;
++		retval = fmt->load_binary(bprm);
++		bprm->recursion_depth--;
++		if (retval >= 0) {
+ 			put_binfmt(fmt);
+-			if (retval != -ENOEXEC || bprm->mm == NULL)
+-				break;
+-			if (!bprm->file) {
+-				read_unlock(&binfmt_lock);
+-				return retval;
+-			}
++			return retval;
+ 		}
+-		read_unlock(&binfmt_lock);
+-#ifdef CONFIG_MODULES
+-		if (retval != -ENOEXEC || bprm->mm == NULL) {
++		read_lock(&binfmt_lock);
++		put_binfmt(fmt);
++		if (retval != -ENOEXEC || bprm->mm == NULL)
+ 			break;
+-		} else {
+-#define printable(c) (((c)=='\t') || ((c)=='\n') || (0x20<=(c) && (c)<=0x7e))
+-			if (printable(bprm->buf[0]) &&
+-			    printable(bprm->buf[1]) &&
+-			    printable(bprm->buf[2]) &&
+-			    printable(bprm->buf[3]))
+-				break; /* -ENOEXEC */
+-			if (try)
+-				break; /* -ENOEXEC */
+-			request_module("binfmt-%04x", *(unsigned short *)(&bprm->buf[2]));
++		if (!bprm->file) {
++			read_unlock(&binfmt_lock);
++			return retval;
+ 		}
+-#else
+-		break;
+-#endif
+ 	}
++	read_unlock(&binfmt_lock);
++
++	if (need_retry && retval == -ENOEXEC && bprm->mm) {
++		if (printable(bprm->buf[0]) && printable(bprm->buf[1]) &&
++		    printable(bprm->buf[2]) && printable(bprm->buf[3]))
++			return retval;
++		request_module("binfmt-%04x", *(ushort *)(bprm->buf + 2));
++		need_retry = false;
++		goto retry;
++	}
++
+ 	return retval;
+ }
+ EXPORT_SYMBOL(search_binary_handler);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
