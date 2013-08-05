@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + exec-cleanup-the-config_modules-logic.patch added to -mm tree
-Date: Mon, 05 Aug 2013 13:45:13 -0700
-Message-ID: <52000ed9.Bfs+AnVhDSIQlUf+%akpm@linux-foundation.org>
+Subject: + exec-move-allow_write_access-fput-to-exec_binprm.patch added to -mm tree
+Date: Mon, 05 Aug 2013 13:45:11 -0700
+Message-ID: <52000ed7.ckTOGRDYgEGS+9/L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42540 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42531 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753905Ab3HEUpO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:14 -0400
+	with ESMTP id S1755313Ab3HEUpM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zml@linux.vnet.ibm.com, zbr@ioremap.net, viro@ZenIV.linux.org.uk, keescook@chromium.org, oleg@redhat.com
 
-Subject: + exec-cleanup-the-config_modules-logic.patch added to -mm tree
+Subject: + exec-move-allow_write_access-fput-to-exec_binprm.patch added to -mm tree
 To: oleg@redhat.com,keescook@chromium.org,viro@ZenIV.linux.org.uk,zbr@ioremap.net,zml@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 13:45:13 -0700
+Date: Mon, 05 Aug 2013 13:45:11 -0700
 
 
 The patch titled
-     Subject: exec: cleanup the CONFIG_MODULES logic
+     Subject: exec: move allow_write_access/fput to exec_binprm()
 has been added to the -mm tree.  Its filename is
-     exec-cleanup-the-config_modules-logic.patch
+     exec-move-allow_write_access-fput-to-exec_binprm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-cleanup-the-config_modules-logic.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-move-allow_write_access-fput-to-exec_binprm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-cleanup-the-config_modules-logic.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-move-allow_write_access-fput-to-exec_binprm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,16 +44,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exec: cleanup the CONFIG_MODULES logic
+Subject: exec: move allow_write_access/fput to exec_binprm()
 
-search_binary_handler() uses "for (try=0; try<2; try++)" to avoid "goto"
-but the code looks too complicated and horrible imho.  We still need to
-check "try == 0" before request_module() and add the additional "break"
-for !CONFIG_MODULES case.
+When search_binary_handler() succeeds it does allow_write_access() and
+fput(), then it clears bprm->file to ensure the caller will not do the
+same.
 
-Kill this loop and use a simple "bool need_retry" + "goto retry".  The
-code looks much simpler and we do not even need ifdef's, gcc can optimize
-out the "if (need_retry)" block if !IS_ENABLED().
+We can simply move this code to exec_binprm() which is called only once. 
+In fact we could move this to free_bprm() and remove the same code in
+do_execve_common's error path.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
@@ -63,105 +62,36 @@ Cc: Zach Levis <zml@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   68 +++++++++++++++++++++++-----------------------------
- 1 file changed, 31 insertions(+), 37 deletions(-)
+ fs/exec.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/exec.c~exec-cleanup-the-config_modules-logic fs/exec.c
---- a/fs/exec.c~exec-cleanup-the-config_modules-logic
+diff -puN fs/exec.c~exec-move-allow_write_access-fput-to-exec_binprm fs/exec.c
+--- a/fs/exec.c~exec-move-allow_write_access-fput-to-exec_binprm
 +++ a/fs/exec.c
-@@ -1367,13 +1367,15 @@ out:
- }
- EXPORT_SYMBOL(remove_arg_zero);
- 
-+#define printable(c) (((c)=='\t') || ((c)=='\n') || (0x20<=(c) && (c)<=0x7e))
- /*
-  * cycle the list of binary formats handler, until one recognizes the image
-  */
- int search_binary_handler(struct linux_binprm *bprm)
- {
--	int try, retval;
-+	bool need_retry = IS_ENABLED(CONFIG_MODULES);
- 	struct linux_binfmt *fmt;
-+	int retval;
- 
- 	/* This allows 4 levels of binfmt rewrites before failing hard. */
- 	if (bprm->recursion_depth > 5)
-@@ -1388,47 +1390,39 @@ int search_binary_handler(struct linux_b
- 		return retval;
- 
- 	retval = -ENOENT;
--	for (try=0; try<2; try++) {
--		read_lock(&binfmt_lock);
--		list_for_each_entry(fmt, &formats, lh) {
--			if (!try_module_get(fmt->module))
--				continue;
--			read_unlock(&binfmt_lock);
--			bprm->recursion_depth++;
--			retval = fmt->load_binary(bprm);
--			bprm->recursion_depth--;
--			if (retval >= 0) {
--				put_binfmt(fmt);
--				return retval;
--			}
--			read_lock(&binfmt_lock);
-+ retry:
-+	read_lock(&binfmt_lock);
-+	list_for_each_entry(fmt, &formats, lh) {
-+		if (!try_module_get(fmt->module))
-+			continue;
-+		read_unlock(&binfmt_lock);
-+		bprm->recursion_depth++;
-+		retval = fmt->load_binary(bprm);
-+		bprm->recursion_depth--;
-+		if (retval >= 0) {
- 			put_binfmt(fmt);
--			if (retval != -ENOEXEC || bprm->mm == NULL)
--				break;
--			if (!bprm->file) {
--				read_unlock(&binfmt_lock);
--				return retval;
--			}
-+			return retval;
- 		}
--		read_unlock(&binfmt_lock);
--#ifdef CONFIG_MODULES
--		if (retval != -ENOEXEC || bprm->mm == NULL) {
-+		read_lock(&binfmt_lock);
-+		put_binfmt(fmt);
-+		if (retval != -ENOEXEC || bprm->mm == NULL)
- 			break;
--		} else {
--#define printable(c) (((c)=='\t') || ((c)=='\n') || (0x20<=(c) && (c)<=0x7e))
--			if (printable(bprm->buf[0]) &&
--			    printable(bprm->buf[1]) &&
--			    printable(bprm->buf[2]) &&
--			    printable(bprm->buf[3]))
--				break; /* -ENOEXEC */
--			if (try)
--				break; /* -ENOEXEC */
--			request_module("binfmt-%04x", *(unsigned short *)(&bprm->buf[2]));
-+		if (!bprm->file) {
-+			read_unlock(&binfmt_lock);
-+			return retval;
- 		}
--#else
--		break;
--#endif
+@@ -1400,10 +1400,6 @@ int search_binary_handler(struct linux_b
+ 			bprm->recursion_depth--;
+ 			if (retval >= 0) {
+ 				put_binfmt(fmt);
+-				allow_write_access(bprm->file);
+-				if (bprm->file)
+-					fput(bprm->file);
+-				bprm->file = NULL;
+ 				return retval;
+ 			}
+ 			read_lock(&binfmt_lock);
+@@ -1455,6 +1451,12 @@ static int exec_binprm(struct linux_binp
+ 		ptrace_event(PTRACE_EVENT_EXEC, old_vpid);
+ 		current->did_exec = 1;
+ 		proc_exec_connector(current);
++
++		if (bprm->file) {
++			allow_write_access(bprm->file);
++			fput(bprm->file);
++			bprm->file = NULL; /* to catch use-after-free */
++		}
  	}
-+	read_unlock(&binfmt_lock);
-+
-+	if (need_retry && retval == -ENOEXEC && bprm->mm) {
-+		if (printable(bprm->buf[0]) && printable(bprm->buf[1]) &&
-+		    printable(bprm->buf[2]) && printable(bprm->buf[3]))
-+			return retval;
-+		request_module("binfmt-%04x", *(ushort *)(bprm->buf + 2));
-+		need_retry = false;
-+		goto retry;
-+	}
-+
- 	return retval;
- }
- EXPORT_SYMBOL(search_binary_handler);
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
