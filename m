@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + exec-dont-retry-if-request_module-fails.patch added to -mm tree
-Date: Mon, 05 Aug 2013 13:45:14 -0700
-Message-ID: <52000eda.871OnNu4napsas2R%akpm@linux-foundation.org>
+Subject: +
+ exec-kill-load_binary-=-null-check-in-search_binary_handler.patch added to
+ -mm tree
+Date: Mon, 05 Aug 2013 13:45:12 -0700
+Message-ID: <52000ed8.U+rOtqLskt1Cl4oP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42545 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295Ab3HEUpP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:15 -0400
+	with ESMTP id S1752295Ab3HEUpN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zml@linux.vnet.ibm.com, zbr@ioremap.net, viro@ZenIV.linux.org.uk, keescook@chromium.org, oleg@redhat.com
 
-Subject: + exec-dont-retry-if-request_module-fails.patch added to -mm tree
+Subject: + exec-kill-load_binary-=-null-check-in-search_binary_handler.patch added to -mm tree
 To: oleg@redhat.com,keescook@chromium.org,viro@ZenIV.linux.org.uk,zbr@ioremap.net,zml@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 13:45:14 -0700
+Date: Mon, 05 Aug 2013 13:45:12 -0700
 
 
 The patch titled
-     Subject: exec: don't retry if request_module() fails
+     Subject: exec: kill ->load_binary != NULL check in search_binary_handler()
 has been added to the -mm tree.  Its filename is
-     exec-dont-retry-if-request_module-fails.patch
+     exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-dont-retry-if-request_module-fails.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-dont-retry-if-request_module-fails.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,28 +46,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exec: don't retry if request_module() fails
+Subject: exec: kill ->load_binary != NULL check in search_binary_handler()
 
-A separate one-liner for better documentation.
+search_binary_handler() checks ->load_binary != NULL for no reason, this
+method should be always defined.  Turn this check into WARN_ON() and move
+it into __register_binfmt().
 
-It doesn't make sense to retry if request_module() fails to exec
-/sbin/modprobe, add the additional "request_module() < 0" check.
-
-However, this logic still doesn't look exactly right:
-
-1. It would be better to check "request_module() != 0", the user
-   space modprobe process should report the correct exit code.
-   But I didn't dare to add the user-visible change.
-
-2. The whole ENOEXEC logic looks suboptimal. Suppose that we try
-   to exec a "#!path-to-unsupported-binary" script. In this case
-   request_module() + "retry" will be done twice: first by the
-   "depth == 1" code, and then again by the "depth == 0" caller
-   which doesn't make sense.
-
-3. And note that in the case above bprm->buf was already changed
-   by load_script()->prepare_binprm(), so this looks even more
-   ugly.
+Also, kill the function pointer.  The current code looks confusing, as if
+->load_binary can go away after read_unlock(&binfmt_lock).  But we rely on
+module_get(fmt->module), this fmt can't be changed or unregistered,
+otherwise this code is buggy anyway.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
@@ -75,22 +65,37 @@ Cc: Zach Levis <zml@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/exec.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/exec.c~exec-dont-retry-if-request_module-fails fs/exec.c
---- a/fs/exec.c~exec-dont-retry-if-request_module-fails
+diff -puN fs/exec.c~exec-kill-load_binary-=-null-check-in-search_binary_handler fs/exec.c
+--- a/fs/exec.c~exec-kill-load_binary-=-null-check-in-search_binary_handler
 +++ a/fs/exec.c
-@@ -1418,7 +1418,8 @@ int search_binary_handler(struct linux_b
- 		if (printable(bprm->buf[0]) && printable(bprm->buf[1]) &&
- 		    printable(bprm->buf[2]) && printable(bprm->buf[3]))
- 			return retval;
--		request_module("binfmt-%04x", *(ushort *)(bprm->buf + 2));
-+		if (request_module("binfmt-%04x", *(ushort *)(bprm->buf + 2)) < 0)
-+			return retval;
- 		need_retry = false;
- 		goto retry;
- 	}
+@@ -74,6 +74,8 @@ static DEFINE_RWLOCK(binfmt_lock);
+ void __register_binfmt(struct linux_binfmt * fmt, int insert)
+ {
+ 	BUG_ON(!fmt);
++	if (WARN_ON(!fmt->load_binary))
++		return;
+ 	write_lock(&binfmt_lock);
+ 	insert ? list_add(&fmt->lh, &formats) :
+ 		 list_add_tail(&fmt->lh, &formats);
+@@ -1389,14 +1391,11 @@ int search_binary_handler(struct linux_b
+ 	for (try=0; try<2; try++) {
+ 		read_lock(&binfmt_lock);
+ 		list_for_each_entry(fmt, &formats, lh) {
+-			int (*fn)(struct linux_binprm *) = fmt->load_binary;
+-			if (!fn)
+-				continue;
+ 			if (!try_module_get(fmt->module))
+ 				continue;
+ 			read_unlock(&binfmt_lock);
+ 			bprm->recursion_depth++;
+-			retval = fn(bprm);
++			retval = fmt->load_binary(bprm);
+ 			bprm->recursion_depth--;
+ 			if (retval >= 0) {
+ 				put_binfmt(fmt);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
