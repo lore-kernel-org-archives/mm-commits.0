@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- exec-kill-load_binary-=-null-check-in-search_binary_handler.patch added to
- -mm tree
-Date: Mon, 05 Aug 2013 13:45:12 -0700
-Message-ID: <52000ed8.U+rOtqLskt1Cl4oP%akpm@linux-foundation.org>
+Subject: + exec-proc_exec_connector-should-be-called-only-once.patch added to -mm tree
+Date: Mon, 05 Aug 2013 13:45:10 -0700
+Message-ID: <52000ed6.aJCNIEkB4Zk0CCuE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42526 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295Ab3HEUpN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:13 -0400
+	with ESMTP id S1752295Ab3HEUpL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zml@linux.vnet.ibm.com, zbr@ioremap.net, viro@ZenIV.linux.org.uk, keescook@chromium.org, oleg@redhat.com
 
-Subject: + exec-kill-load_binary-=-null-check-in-search_binary_handler.patch added to -mm tree
+Subject: + exec-proc_exec_connector-should-be-called-only-once.patch added to -mm tree
 To: oleg@redhat.com,keescook@chromium.org,viro@ZenIV.linux.org.uk,zbr@ioremap.net,zml@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 13:45:12 -0700
+Date: Mon, 05 Aug 2013 13:45:10 -0700
 
 
 The patch titled
-     Subject: exec: kill ->load_binary != NULL check in search_binary_handler()
+     Subject: exec: proc_exec_connector() should be called only once
 has been added to the -mm tree.  Its filename is
-     exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
+     exec-proc_exec_connector-should-be-called-only-once.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-proc_exec_connector-should-be-called-only-once.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-proc_exec_connector-should-be-called-only-once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,16 +44,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exec: kill ->load_binary != NULL check in search_binary_handler()
+Subject: exec: proc_exec_connector() should be called only once
 
-search_binary_handler() checks ->load_binary != NULL for no reason, this
-method should be always defined.  Turn this check into WARN_ON() and move
-it into __register_binfmt().
+A separate one-liner with the minor fix.
 
-Also, kill the function pointer.  The current code looks confusing, as if
-->load_binary can go away after read_unlock(&binfmt_lock).  But we rely on
-module_get(fmt->module), this fmt can't be changed or unregistered,
-otherwise this code is buggy anyway.
+PROC_EVENT_EXEC reports the "exec" event, but this message is sent at
+least twice if search_binary_handler() is called by ->load_binary()
+recursively, say, load_script().
+
+Move it to exec_binprm(), this is "depth == 0" code too.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
@@ -65,37 +62,28 @@ Cc: Zach Levis <zml@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/exec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~exec-kill-load_binary-=-null-check-in-search_binary_handler fs/exec.c
---- a/fs/exec.c~exec-kill-load_binary-=-null-check-in-search_binary_handler
+diff -puN fs/exec.c~exec-proc_exec_connector-should-be-called-only-once fs/exec.c
+--- a/fs/exec.c~exec-proc_exec_connector-should-be-called-only-once
 +++ a/fs/exec.c
-@@ -74,6 +74,8 @@ static DEFINE_RWLOCK(binfmt_lock);
- void __register_binfmt(struct linux_binfmt * fmt, int insert)
- {
- 	BUG_ON(!fmt);
-+	if (WARN_ON(!fmt->load_binary))
-+		return;
- 	write_lock(&binfmt_lock);
- 	insert ? list_add(&fmt->lh, &formats) :
- 		 list_add_tail(&fmt->lh, &formats);
-@@ -1389,14 +1391,11 @@ int search_binary_handler(struct linux_b
- 	for (try=0; try<2; try++) {
- 		read_lock(&binfmt_lock);
- 		list_for_each_entry(fmt, &formats, lh) {
--			int (*fn)(struct linux_binprm *) = fmt->load_binary;
--			if (!fn)
--				continue;
- 			if (!try_module_get(fmt->module))
- 				continue;
- 			read_unlock(&binfmt_lock);
- 			bprm->recursion_depth++;
--			retval = fn(bprm);
-+			retval = fmt->load_binary(bprm);
- 			bprm->recursion_depth--;
- 			if (retval >= 0) {
- 				put_binfmt(fmt);
+@@ -1404,7 +1404,6 @@ int search_binary_handler(struct linux_b
+ 				if (bprm->file)
+ 					fput(bprm->file);
+ 				bprm->file = NULL;
+-				proc_exec_connector(current);
+ 				return retval;
+ 			}
+ 			read_lock(&binfmt_lock);
+@@ -1455,6 +1454,7 @@ static int exec_binprm(struct linux_binp
+ 		trace_sched_process_exec(current, old_pid, bprm);
+ 		ptrace_event(PTRACE_EVENT_EXEC, old_vpid);
+ 		current->did_exec = 1;
++		proc_exec_connector(current);
+ 	}
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
