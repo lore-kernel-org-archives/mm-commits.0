@@ -1,101 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-swapc-clear-pageactive-before-adding-pages-onto-unevictable-list.patch
- removed from -mm tree
-Date: Mon, 05 Aug 2013 12:05:51 -0700
-Message-ID: <51fff78f.I1foPS4KZzFYLcwN%akpm@linux-foundation.org>
+ ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page.patch removed from -mm tree
+Date: Mon, 05 Aug 2013 12:05:39 -0700
+Message-ID: <51fff783.67jgVMPLakfKtDY+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42011 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754198Ab3HETF5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 15:05:57 -0400
+	with ESMTP id S1754447Ab3HETGA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 15:06:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, guz.fnst@cn.fujitsu.com
 
-Subject: [merged] mm-swapc-clear-pageactive-before-adding-pages-onto-unevictable-list.patch removed from -mm tree
-To: n-horiguchi@ah.jp.nec.com,kirill.shutemov@linux.intel.com,kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page.patch removed from -mm tree
+To: guz.fnst@cn.fujitsu.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 12:05:51 -0700
+Date: Mon, 05 Aug 2013 12:05:39 -0700
 
 
 The patch titled
-     Subject: mm/swap.c: clear PageActive before adding pages onto unevictable list
+     Subject: ocfs2/refcounttree: add the missing NULL check of the return value of find_or_create_page()
 has been removed from the -mm tree.  Its filename was
-     mm-swapc-clear-pageactive-before-adding-pages-onto-unevictable-list.patch
+     ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/swap.c: clear PageActive before adding pages onto unevictable list
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: ocfs2/refcounttree: add the missing NULL check of the return value of find_or_create_page()
 
-As a result of v3.10-3600-g13f7f78 ("mm: pagevec: defer deciding which LRU
-to add a page to until pagevec drain time"), pages on unevictable lists
-can have both of PageActive and PageUnevictable set.  This is not only
-confusing, but also corrupts page migration and shrink_[in]active_list.
+Add the missing NULL check of the return value of find_or_create_page() in
+function ocfs2_duplicate_clusters_by_page().
 
-This patch fixes the problem by adding ClearPageActive before adding pages
-into unevictable list.  It also cleans up VM_BUG_ONs.
-
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+[akpm@linux-foundation.org: fix layout, per Joel]
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ fs/ocfs2/refcounttree.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/swap.c~mm-swapc-clear-pageactive-before-adding-pages-onto-unevictable-list mm/swap.c
---- a/mm/swap.c~mm-swapc-clear-pageactive-before-adding-pages-onto-unevictable-list
-+++ a/mm/swap.c
-@@ -512,12 +512,7 @@ EXPORT_SYMBOL(__lru_cache_add);
-  */
- void lru_cache_add(struct page *page)
- {
--	if (PageActive(page)) {
--		VM_BUG_ON(PageUnevictable(page));
--	} else if (PageUnevictable(page)) {
--		VM_BUG_ON(PageActive(page));
--	}
--
-+	VM_BUG_ON(PageActive(page) && PageUnevictable(page));
- 	VM_BUG_ON(PageLRU(page));
- 	__lru_cache_add(page);
- }
-@@ -539,6 +534,7 @@ void add_page_to_unevictable_list(struct
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-refcounttree-add-the-missing-null-check-of-the-return-value-of-find_or_create_page
++++ a/fs/ocfs2/refcounttree.c
+@@ -2965,6 +2965,11 @@ int ocfs2_duplicate_clusters_by_page(han
+ 			to = map_end & (PAGE_CACHE_SIZE - 1);
  
- 	spin_lock_irq(&zone->lru_lock);
- 	lruvec = mem_cgroup_page_lruvec(page, zone);
-+	ClearPageActive(page);
- 	SetPageUnevictable(page);
- 	SetPageLRU(page);
- 	add_page_to_lru_list(page, lruvec, LRU_UNEVICTABLE);
-@@ -833,7 +829,6 @@ static void __pagevec_lru_add_fn(struct
- 	int active = PageActive(page);
- 	enum lru_list lru = page_lru(page);
+ 		page = find_or_create_page(mapping, page_index, GFP_NOFS);
++		if (!page) {
++			ret = -ENOMEM;
++			mlog_errno(ret);
++			break;
++		}
  
--	VM_BUG_ON(PageUnevictable(page));
- 	VM_BUG_ON(PageLRU(page));
- 
- 	SetPageLRU(page);
+ 		/*
+ 		 * In case PAGE_CACHE_SIZE <= CLUSTER_SIZE, This page
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
 
-mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
-mm-hugetlb-trivial-commenting-fix.patch
-mm-hugetlb-clean-up-alloc_huge_page.patch
-mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
-mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
-mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
-mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
-mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+linux-next.patch
 
