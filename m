@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom.patch
+Subject: + block-support-embedded-device-command-line-partition.patch
  added to -mm tree
-Date: Mon, 05 Aug 2013 15:06:02 -0700
-Message-ID: <520021ca.Jnm3uNhnHIQy9HeE%akpm@linux-foundation.org>
+Date: Mon, 05 Aug 2013 15:22:15 -0700
+Message-ID: <52002597.toQ6EFo/IK0Diaac%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43261 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43322 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755148Ab3HEWGD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 18:06:03 -0400
+	with ESMTP id S1755626Ab3HEWWQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 18:22:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, azurit@pobox.sk, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, mag@sysgo.de, kzak@redhat.com, dwmw2@infradead.org, axboe@kernel.dk, albert.wanglin@huawei.com, caizhiyong@huawei.com
 
-Subject: + mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom.patch added to -mm tree
-To: hannes@cmpxchg.org,azurit@pobox.sk,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,rientjes@google.com
+Subject: + block-support-embedded-device-command-line-partition.patch added to -mm tree
+To: caizhiyong@huawei.com,albert.wanglin@huawei.com,axboe@kernel.dk,dwmw2@infradead.org,kzak@redhat.com,mag@sysgo.de
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 15:06:02 -0700
+Date: Mon, 05 Aug 2013 15:22:15 -0700
 
 
 The patch titled
-     Subject: mm: memcg: do not trap chargers with full callstack on OOM
+     Subject: block: support embedded device command line partition
 has been added to the -mm tree.  Its filename is
-     mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom.patch
+     block-support-embedded-device-command-line-partition.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-support-embedded-device-command-line-partition.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-support-embedded-device-command-line-partition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,467 +44,462 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: do not trap chargers with full callstack on OOM
+From: Cai Zhiyong <caizhiyong@huawei.com>
+Subject: block: support embedded device command line partition
 
-The memcg OOM handling is incredibly fragile and can deadlock.  When a
-task fails to charge memory, it invokes the OOM killer and loops right
-there in the charge code until it succeeds.  Comparably, any other task
-that enters the charge path at this point will go to a waitqueue right
-then and there and sleep until the OOM situation is resolved.  The problem
-is that these tasks may hold filesystem locks and the mmap_sem; locks that
-the selected OOM victim may need to exit.
+Read block device partition table from command line.  The partition used
+for fixed block device (eMMC) embedded device.  It is no MBR, save storage
+space.  Bootloader can be easily accessed by absolute address of data on
+the block device.  Users can easily change the partition.
 
-For example, in one reported case, the task invoking the OOM killer was
-about to charge a page cache page during a write(), which holds the
-i_mutex.  The OOM killer selected a task that was just entering truncate()
-and trying to acquire the i_mutex:
+This code reference MTD partition, source "drivers/mtd/cmdlinepart.c"
+About the partition verbose reference
+"Documentation/block/cmdline-partition.txt"
 
-OOM invoking task:
-[<ffffffff8110a9c1>] mem_cgroup_handle_oom+0x241/0x3b0
-[<ffffffff8110b5ab>] T.1146+0x5ab/0x5c0
-[<ffffffff8110c22e>] mem_cgroup_cache_charge+0xbe/0xe0
-[<ffffffff810ca28c>] add_to_page_cache_locked+0x4c/0x140
-[<ffffffff810ca3a2>] add_to_page_cache_lru+0x22/0x50
-[<ffffffff810ca45b>] grab_cache_page_write_begin+0x8b/0xe0
-[<ffffffff81193a18>] ext3_write_begin+0x88/0x270
-[<ffffffff810c8fc6>] generic_file_buffered_write+0x116/0x290
-[<ffffffff810cb3cc>] __generic_file_aio_write+0x27c/0x480
-[<ffffffff810cb646>] generic_file_aio_write+0x76/0xf0           # takes ->i_mutex
-[<ffffffff8111156a>] do_sync_write+0xea/0x130
-[<ffffffff81112183>] vfs_write+0xf3/0x1f0
-[<ffffffff81112381>] sys_write+0x51/0x90
-[<ffffffff815b5926>] system_call_fastpath+0x18/0x1d
-[<ffffffffffffffff>] 0xffffffffffffffff
-
-OOM kill victim:
-[<ffffffff811109b8>] do_truncate+0x58/0xa0              # takes i_mutex
-[<ffffffff81121c90>] do_last+0x250/0xa30
-[<ffffffff81122547>] path_openat+0xd7/0x440
-[<ffffffff811229c9>] do_filp_open+0x49/0xa0
-[<ffffffff8110f7d6>] do_sys_open+0x106/0x240
-[<ffffffff8110f950>] sys_open+0x20/0x30
-[<ffffffff815b5926>] system_call_fastpath+0x18/0x1d
-[<ffffffffffffffff>] 0xffffffffffffffff
-
-The OOM handling task will retry the charge indefinitely while the OOM
-killed task is not releasing any resources.
-
-A similar scenario can happen when the kernel OOM killer for a memcg is
-disabled and a userspace task is in charge of resolving OOM situations. 
-In this case, ALL tasks that enter the OOM path will be made to sleep on
-the OOM waitqueue and wait for userspace to free resources or increase the
-group's limit.  But a userspace OOM handler is prone to deadlock itself on
-the locks held by the waiting tasks.  For example one of the sleeping
-tasks may be stuck in a brk() call with the mmap_sem held for writing but
-the userspace handler, in order to pick an optimal victim, may need to
-read files from /proc/<pid>, which tries to acquire the same mmap_sem for
-reading and deadlocks.
-
-This patch changes the way tasks behave after detecting a memcg OOM and
-makes sure nobody loops or sleeps with locks held:
-
-1. When OOMing in a user fault, invoke the OOM killer and restart the
-   fault instead of looping on the charge attempt.  This way, the OOM
-   victim can not get stuck on locks the looping task may hold.
-
-2. When OOMing in a user fault but somebody else is handling it
-   (either the kernel OOM killer or a userspace handler), don't go to
-   sleep in the charge context.  Instead, remember the OOMing memcg in
-   the task struct and then fully unwind the page fault stack with
-   -ENOMEM.  pagefault_out_of_memory() will then call back into the
-   memcg code to check if the -ENOMEM came from the memcg, and then
-   either put the task to sleep on the memcg's OOM waitqueue or just
-   restart the fault.  The OOM victim can no longer get stuck on any
-   lock a sleeping task may hold.
-
-Debugged by Michal Hocko.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: azurIt <azurit@pobox.sk>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Cai Zhiyong <caizhiyong@huawei.com>
+Cc: Karel Zak <kzak@redhat.com>
+Cc: "Wanglin (Albert)" <albert.wanglin@huawei.com>
+Cc: Marius Groeger <mag@sysgo.de>");
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   21 ++++
- include/linux/sched.h      |    4 
- mm/memcontrol.c            |  154 ++++++++++++++++++++++++-----------
- mm/memory.c                |    3 
- mm/oom_kill.c              |    7 +
- 5 files changed, 140 insertions(+), 49 deletions(-)
+ Documentation/block/cmdline-partition.txt |   40 ++
+ block/partitions/Kconfig                  |    6 
+ block/partitions/Makefile                 |    1 
+ block/partitions/check.c                  |    4 
+ block/partitions/cmdline.c                |  326 ++++++++++++++++++++
+ block/partitions/cmdline.h                |    2 
+ 6 files changed, 379 insertions(+)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom
-+++ a/include/linux/memcontrol.h
-@@ -157,6 +157,10 @@ extern void mem_cgroup_replace_page_cach
-  *
-  * Toggle whether a failed memcg charge should invoke the OOM killer
-  * or just return -ENOMEM.  Returns the previous toggle state.
-+ *
-+ * NOTE: Any path that enables the OOM killer before charging must
-+ *       call mem_cgroup_oom_synchronize() afterward to finalize the
-+ *       OOM handling and clean up.
-  */
- static inline bool mem_cgroup_toggle_oom(bool new)
- {
-@@ -182,6 +186,13 @@ static inline void mem_cgroup_disable_oo
- 	WARN_ON(old == false);
- }
+diff -puN /dev/null Documentation/block/cmdline-partition.txt
+--- /dev/null
++++ a/Documentation/block/cmdline-partition.txt
+@@ -0,0 +1,40 @@
++Embedded device command line partition
++=====================================================================
++
++Read block device partition table from command line.
++The partition used for fixed block device (eMMC) embedded device.
++It is no MBR, save storage space. Bootloader can be easily accessed
++by absolute address of data on the block device.
++Users can easily change the partition.
++
++The format for the command line is just like mtdparts:
++
++blkdevparts=<blkdev-def>[;<blkdev-def>]
++  <blkdev-def> := <blkdev-id>:<partdef>[,<partdef>]
++    <partdef> := <size>[@<offset>](part-name)
++
++<blkdev-id>
++    block device disk name, embedded device used fixed block device,
++    it's disk name also fixed. such as: mmcblk0, mmcblk1, mmcblk0boot0.
++
++<size>
++    partition size, in bytes, such as: 512, 1m, 1G.
++
++<offset>
++    partition start address, in bytes.
++
++(part-name)
++    partition name, kernel send uevent with "PARTNAME". application can create
++    a link to block device partition with the name "PARTNAME".
++    user space application can access partition by partition name.
++
++Example:
++    eMMC disk name is "mmcblk0" and "mmcblk0boot0"
++
++  bootargs:
++    'blkdevparts=mmcblk0:1G(data0),1G(data1),-;mmcblk0boot0:1m(boot),-(kernel)'
++
++  dmesg:
++    mmcblk0: p1(data0) p2(data1) p3()
++    mmcblk0boot0: p1(boot) p2(kernel)
++
+diff -puN block/partitions/Kconfig~block-support-embedded-device-command-line-partition block/partitions/Kconfig
+--- a/block/partitions/Kconfig~block-support-embedded-device-command-line-partition
++++ a/block/partitions/Kconfig
+@@ -260,3 +260,9 @@ config SYSV68_PARTITION
+ 	  partition table format used by Motorola Delta machines (using
+ 	  sysv68).
+ 	  Otherwise, say N.
++
++config CMDLINE_PARTITION
++	bool "Command line partition support" if PARTITION_ADVANCED
++	help
++	  Say Y here if you would read the partitions table from bootargs.
++	  The format for the command line is just like mtdparts.
+diff -puN block/partitions/Makefile~block-support-embedded-device-command-line-partition block/partitions/Makefile
+--- a/block/partitions/Makefile~block-support-embedded-device-command-line-partition
++++ a/block/partitions/Makefile
+@@ -19,3 +19,4 @@ obj-$(CONFIG_IBM_PARTITION) += ibm.o
+ obj-$(CONFIG_EFI_PARTITION) += efi.o
+ obj-$(CONFIG_KARMA_PARTITION) += karma.o
+ obj-$(CONFIG_SYSV68_PARTITION) += sysv68.o
++obj-$(CONFIG_CMDLINE_PARTITION) += cmdline.o
+diff -puN block/partitions/check.c~block-support-embedded-device-command-line-partition block/partitions/check.c
+--- a/block/partitions/check.c~block-support-embedded-device-command-line-partition
++++ a/block/partitions/check.c
+@@ -34,6 +34,7 @@
+ #include "efi.h"
+ #include "karma.h"
+ #include "sysv68.h"
++#include "cmdline.h"
  
-+static inline bool task_in_memcg_oom(struct task_struct *p)
-+{
-+	return p->memcg_oom.in_memcg_oom;
-+}
-+
-+bool mem_cgroup_oom_synchronize(void);
-+
- #ifdef CONFIG_MEMCG_SWAP
- extern int do_swap_account;
+ int warn_no_part = 1; /*This is ugly: should make genhd removable media aware*/
+ 
+@@ -65,6 +66,9 @@ static int (*check_part[])(struct parsed
+ 	adfspart_check_ADFS,
  #endif
-@@ -426,6 +437,16 @@ static inline void mem_cgroup_disable_oo
- {
- }
  
-+static inline bool task_in_memcg_oom(struct task_struct *p)
-+{
-+	return false;
-+}
-+
-+static inline bool mem_cgroup_oom_synchronize(void)
-+{
-+	return false;
-+}
-+
- static inline void mem_cgroup_inc_page_stat(struct page *page,
- 					    enum mem_cgroup_page_stat_item idx)
- {
-diff -puN include/linux/sched.h~mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom include/linux/sched.h
---- a/include/linux/sched.h~mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom
-+++ a/include/linux/sched.h
-@@ -1401,6 +1401,10 @@ struct task_struct {
- 	unsigned int memcg_kmem_skip_account;
- 	struct memcg_oom_info {
- 		unsigned int may_oom:1;
-+		unsigned int in_memcg_oom:1;
-+		unsigned int oom_locked:1;
-+		int wakeups;
-+		struct mem_cgroup *wait_on_memcg;
- 	} memcg_oom;
++#ifdef CONFIG_CMDLINE_PARTITION
++	cmdline_partition,
++#endif
+ #ifdef CONFIG_EFI_PARTITION
+ 	efi_partition,		/* this must come before msdos */
  #endif
- #ifdef CONFIG_UPROBES
-diff -puN mm/memcontrol.c~mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom
-+++ a/mm/memcontrol.c
-@@ -255,6 +255,7 @@ struct mem_cgroup {
- 
- 	bool		oom_lock;
- 	atomic_t	under_oom;
-+	atomic_t	oom_wakeups;
- 
- 	int	swappiness;
- 	/* OOM-Killer disable */
-@@ -2044,6 +2045,7 @@ static int memcg_oom_wake_function(wait_
- 
- static void memcg_wakeup_oom(struct mem_cgroup *memcg)
- {
-+	atomic_inc(&memcg->oom_wakeups);
- 	/* for filtering, pass "memcg" as argument. */
- 	__wake_up(&memcg_oom_waitq, TASK_NORMAL, 0, memcg);
- }
-@@ -2055,19 +2057,17 @@ static void memcg_oom_recover(struct mem
- }
- 
- /*
-- * try to call OOM killer. returns false if we should exit memory-reclaim loop.
-+ * try to call OOM killer
-  */
--static bool mem_cgroup_handle_oom(struct mem_cgroup *memcg, gfp_t mask,
--				  int order)
-+static void mem_cgroup_oom(struct mem_cgroup *memcg, gfp_t mask, int order)
- {
--	struct oom_wait_info owait;
- 	bool locked;
-+	int wakeups;
- 
--	owait.memcg = memcg;
--	owait.wait.flags = 0;
--	owait.wait.func = memcg_oom_wake_function;
--	owait.wait.private = current;
--	INIT_LIST_HEAD(&owait.wait.task_list);
-+	if (!current->memcg_oom.may_oom)
-+		return;
-+
-+	current->memcg_oom.in_memcg_oom = 1;
- 
- 	/*
- 	 * As with any blocking lock, a contender needs to start
-@@ -2075,12 +2075,8 @@ static bool mem_cgroup_handle_oom(struct
- 	 * otherwise it can miss the wakeup from the unlock and sleep
- 	 * indefinitely.  This is just open-coded because our locking
- 	 * is so particular to memcg hierarchies.
--	 *
--	 * Even if signal_pending(), we can't quit charge() loop without
--	 * accounting. So, UNINTERRUPTIBLE is appropriate. But SIGKILL
--	 * under OOM is always welcomed, use TASK_KILLABLE here.
- 	 */
--	prepare_to_wait(&memcg_oom_waitq, &owait.wait, TASK_KILLABLE);
-+	wakeups = atomic_read(&memcg->oom_wakeups);
- 	mem_cgroup_mark_under_oom(memcg);
- 
- 	locked = mem_cgroup_oom_trylock(memcg);
-@@ -2090,15 +2086,95 @@ static bool mem_cgroup_handle_oom(struct
- 
- 	if (locked && !memcg->oom_kill_disable) {
- 		mem_cgroup_unmark_under_oom(memcg);
--		finish_wait(&memcg_oom_waitq, &owait.wait);
- 		mem_cgroup_out_of_memory(memcg, mask, order);
-+		mem_cgroup_oom_unlock(memcg);
-+		/*
-+		 * There is no guarantee that an OOM-lock contender
-+		 * sees the wakeups triggered by the OOM kill
-+		 * uncharges.  Wake any sleepers explicitely.
-+		 */
-+		memcg_oom_recover(memcg);
- 	} else {
--		schedule();
--		mem_cgroup_unmark_under_oom(memcg);
--		finish_wait(&memcg_oom_waitq, &owait.wait);
-+		/*
-+		 * A system call can just return -ENOMEM, but if this
-+		 * is a page fault and somebody else is handling the
-+		 * OOM already, we need to sleep on the OOM waitqueue
-+		 * for this memcg until the situation is resolved.
-+		 * Which can take some time because it might be
-+		 * handled by a userspace task.
-+		 *
-+		 * However, this is the charge context, which means
-+		 * that we may sit on a large call stack and hold
-+		 * various filesystem locks, the mmap_sem etc. and we
-+		 * don't want the OOM handler to deadlock on them
-+		 * while we sit here and wait.  Store the current OOM
-+		 * context in the task_struct, then return -ENOMEM.
-+		 * At the end of the page fault handler, with the
-+		 * stack unwound, pagefault_out_of_memory() will check
-+		 * back with us by calling
-+		 * mem_cgroup_oom_synchronize(), possibly putting the
-+		 * task to sleep.
-+		 */
-+		current->memcg_oom.oom_locked = locked;
-+		current->memcg_oom.wakeups = wakeups;
-+		css_get(&memcg->css);
-+		current->memcg_oom.wait_on_memcg = memcg;
- 	}
-+}
- 
--	if (locked) {
-+/**
-+ * mem_cgroup_oom_synchronize - complete memcg OOM handling
+diff -puN /dev/null block/partitions/cmdline.c
+--- /dev/null
++++ a/block/partitions/cmdline.c
+@@ -0,0 +1,326 @@
++/*
++ * Copyright (C) 2013 HUAWEI
++ * Author: Cai Zhiyong <caizhiyong@huawei.com>
 + *
-+ * This has to be called at the end of a page fault if the the memcg
-+ * OOM handler was enabled and the fault is returning %VM_FAULT_OOM.
++ * Read block device partition table from command line.
++ * The partition used for fixed block device (eMMC) embedded device.
++ * It is no MBR, save storage space. Bootloader can be easily accessed
++ * by absolute address of data on the block device.
++ * Users can easily change the partition.
 + *
-+ * Memcg supports userspace OOM handling, so failed allocations must
-+ * sleep on a waitqueue until the userspace task resolves the
-+ * situation.  Sleeping directly in the charge context with all kinds
-+ * of locks held is not a good idea, instead we remember an OOM state
-+ * in the task and mem_cgroup_oom_synchronize() has to be called at
-+ * the end of the page fault to put the task to sleep and clean up the
-+ * OOM state.
++ * This code reference MTD partition, source "drivers/mtd/cmdlinepart.c"
++ * The format for the command line is just like mtdparts.
 + *
-+ * Returns %true if an ongoing memcg OOM situation was detected and
-+ * finalized, %false otherwise.
++ * Verbose config please reference "Documentation/block/cmdline-partition.txt"
++ *
 + */
-+bool mem_cgroup_oom_synchronize(void)
++
++#include <linux/buffer_head.h>
++#include <linux/module.h>
++#include <linux/ctype.h>
++
++#include "check.h"
++#include "cmdline.h"
++
++struct cmdline_subpart {
++	char name[BDEVNAME_SIZE]; /* partition name, such as 'rootfs' */
++	sector_t from;
++	sector_t size;
++	struct cmdline_subpart *next_subpart;
++};
++
++struct cmdline_parts {
++	char name[BDEVNAME_SIZE]; /* block device, such as 'mmcblk0' */
++	struct cmdline_subpart *subpart;
++	struct cmdline_parts *next_parts;
++};
++
++static char *cmdline_string;
++static struct cmdline_parts *cmdline_parts;
++
++static int parse_subpart(struct cmdline_subpart **subpart, char *cmdline)
 +{
-+	struct oom_wait_info owait;
-+	struct mem_cgroup *memcg;
++	int ret = 0;
++	struct cmdline_subpart *new_subpart;
 +
-+	/* OOM is global, do not handle */
-+	if (!current->memcg_oom.in_memcg_oom)
-+		return false;
++	*subpart = NULL;
 +
-+	/*
-+	 * We invoked the OOM killer but there is a chance that a kill
-+	 * did not free up any charges.  Everybody else might already
-+	 * be sleeping, so restart the fault and keep the rampage
-+	 * going until some charges are released.
-+	 */
-+	memcg = current->memcg_oom.wait_on_memcg;
-+	if (!memcg)
-+		goto out;
++	new_subpart = kzalloc(sizeof(struct cmdline_subpart), GFP_KERNEL);
++	if (!new_subpart)
++		return -ENOMEM;
 +
-+	if (test_thread_flag(TIF_MEMDIE) || fatal_signal_pending(current))
-+		goto out_memcg;
++	if (*cmdline == '-') {
++		new_subpart->size = (sector_t)(~0ULL);
++		cmdline++;
++	} else {
++		new_subpart->size = (sector_t)memparse(cmdline, &cmdline);
++		if (new_subpart->size < (sector_t)PAGE_SIZE) {
++			pr_warn("cmdline partition size is invalid.");
++			ret = -EINVAL;
++			goto fail;
++		}
++	}
 +
-+	owait.memcg = memcg;
-+	owait.wait.flags = 0;
-+	owait.wait.func = memcg_oom_wake_function;
-+	owait.wait.private = current;
-+	INIT_LIST_HEAD(&owait.wait.task_list);
++	if (*cmdline == '@') {
++		cmdline++;
++		new_subpart->from = (sector_t)memparse(cmdline, &cmdline);
++	} else {
++		new_subpart->from = (sector_t)(~0ULL);
++	}
 +
-+	prepare_to_wait(&memcg_oom_waitq, &owait.wait, TASK_KILLABLE);
-+	/* Only sleep if we didn't miss any wakeups since OOM */
-+	if (atomic_read(&memcg->oom_wakeups) == current->memcg_oom.wakeups)
-+		schedule();
-+	finish_wait(&memcg_oom_waitq, &owait.wait);
-+out_memcg:
-+	mem_cgroup_unmark_under_oom(memcg);
-+	if (current->memcg_oom.oom_locked) {
- 		mem_cgroup_oom_unlock(memcg);
- 		/*
- 		 * There is no guarantee that an OOM-lock contender
-@@ -2107,11 +2183,10 @@ static bool mem_cgroup_handle_oom(struct
- 		 */
- 		memcg_oom_recover(memcg);
- 	}
--
--	if (test_thread_flag(TIF_MEMDIE) || fatal_signal_pending(current))
--		return false;
--	/* Give chance to dying process */
--	schedule_timeout_uninterruptible(1);
-+	css_put(&memcg->css);
-+	current->memcg_oom.wait_on_memcg = NULL;
-+out:
-+	current->memcg_oom.in_memcg_oom = 0;
- 	return true;
- }
- 
-@@ -2424,12 +2499,11 @@ enum {
- 	CHARGE_RETRY,		/* need to retry but retry is not bad */
- 	CHARGE_NOMEM,		/* we can't do more. return -ENOMEM */
- 	CHARGE_WOULDBLOCK,	/* GFP_WAIT wasn't set and no enough res. */
--	CHARGE_OOM_DIE,		/* the current is killed because of OOM */
- };
- 
- static int mem_cgroup_do_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
- 				unsigned int nr_pages, unsigned int min_pages,
--				bool oom_check)
-+				bool invoke_oom)
- {
- 	unsigned long csize = nr_pages * PAGE_SIZE;
- 	struct mem_cgroup *mem_over_limit;
-@@ -2486,14 +2560,10 @@ static int mem_cgroup_do_charge(struct m
- 	if (mem_cgroup_wait_acct_move(mem_over_limit))
- 		return CHARGE_RETRY;
- 
--	/* If we don't need to call oom-killer at el, return immediately */
--	if (!oom_check || !current->memcg_oom.may_oom)
--		return CHARGE_NOMEM;
--	/* check OOM */
--	if (!mem_cgroup_handle_oom(mem_over_limit, gfp_mask, get_order(csize)))
--		return CHARGE_OOM_DIE;
-+	if (invoke_oom)
-+		mem_cgroup_oom(mem_over_limit, gfp_mask, get_order(csize));
- 
--	return CHARGE_RETRY;
-+	return CHARGE_NOMEM;
- }
- 
- /*
-@@ -2596,7 +2666,7 @@ again:
- 	}
- 
- 	do {
--		bool oom_check;
-+		bool invoke_oom = oom && !nr_oom_retries;
- 
- 		/* If killed, bypass charge */
- 		if (fatal_signal_pending(current)) {
-@@ -2604,14 +2674,8 @@ again:
- 			goto bypass;
- 		}
- 
--		oom_check = false;
--		if (oom && !nr_oom_retries) {
--			oom_check = true;
--			nr_oom_retries = MEM_CGROUP_RECLAIM_RETRIES;
--		}
--
--		ret = mem_cgroup_do_charge(memcg, gfp_mask, batch, nr_pages,
--		    oom_check);
-+		ret = mem_cgroup_do_charge(memcg, gfp_mask, batch,
-+					   nr_pages, invoke_oom);
- 		switch (ret) {
- 		case CHARGE_OK:
- 			break;
-@@ -2624,16 +2688,12 @@ again:
- 			css_put(&memcg->css);
- 			goto nomem;
- 		case CHARGE_NOMEM: /* OOM routine works */
--			if (!oom) {
-+			if (!oom || invoke_oom) {
- 				css_put(&memcg->css);
- 				goto nomem;
- 			}
--			/* If oom, we never return -ENOMEM */
- 			nr_oom_retries--;
- 			break;
--		case CHARGE_OOM_DIE: /* Killed by OOM Killer */
--			css_put(&memcg->css);
--			goto bypass;
- 		}
- 	} while (ret != CHARGE_OK);
- 
-diff -puN mm/memory.c~mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom mm/memory.c
---- a/mm/memory.c~mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom
-+++ a/mm/memory.c
-@@ -3868,6 +3868,9 @@ int handle_mm_fault(struct mm_struct *mm
- 	if (flags & FAULT_FLAG_USER)
- 		mem_cgroup_disable_oom();
- 
-+	if (WARN_ON(task_in_memcg_oom(current) && !(ret & VM_FAULT_OOM)))
-+		mem_cgroup_oom_synchronize();
++	if (*cmdline == '(') {
++		int length;
++		char *next = strchr(++cmdline, ')');
 +
- 	return ret;
- }
- 
-diff -puN mm/oom_kill.c~mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom mm/oom_kill.c
---- a/mm/oom_kill.c~mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom
-+++ a/mm/oom_kill.c
-@@ -678,9 +678,12 @@ out:
-  */
- void pagefault_out_of_memory(void)
- {
--	struct zonelist *zonelist = node_zonelist(first_online_node,
--						  GFP_KERNEL);
-+	struct zonelist *zonelist;
- 
-+	if (mem_cgroup_oom_synchronize())
-+		return;
++		if (!next) {
++			pr_warn("cmdline partition format is invalid.");
++			ret = -EINVAL;
++			goto fail;
++		}
 +
-+	zonelist = node_zonelist(first_online_node, GFP_KERNEL);
- 	if (try_set_zonelist_oom(zonelist, GFP_KERNEL)) {
- 		out_of_memory(NULL, 0, 0, NULL, false);
- 		clear_zonelist_oom(zonelist, GFP_KERNEL);
++		length = min_t(int, next - cmdline,
++			       sizeof(new_subpart->name) - 1);
++		strncpy(new_subpart->name, cmdline, length);
++		new_subpart->name[length] = '\0';
++
++		cmdline = ++next;
++	} else
++		new_subpart->name[0] = '\0';
++
++	*subpart = new_subpart;
++	return 0;
++fail:
++	kfree(new_subpart);
++	return ret;
++}
++
++static void free_subpart(struct cmdline_parts *parts)
++{
++	struct cmdline_subpart *subpart;
++
++	while (parts->subpart) {
++		subpart = parts->subpart;
++		parts->subpart = subpart->next_subpart;
++		kfree(subpart);
++	}
++}
++
++static void free_parts(struct cmdline_parts **parts)
++{
++	struct cmdline_parts *next_parts;
++
++	while (*parts) {
++		next_parts = (*parts)->next_parts;
++		free_subpart(*parts);
++		kfree(*parts);
++		*parts = next_parts;
++	}
++}
++
++static int parse_parts(struct cmdline_parts **parts, const char *cmdline)
++{
++	int ret = -EINVAL;
++	char *next;
++	int length;
++	struct cmdline_subpart **next_subpart;
++	struct cmdline_parts *newparts;
++	char buf[BDEVNAME_SIZE + 32 + 4];
++
++	*parts = NULL;
++
++	newparts = kzalloc(sizeof(struct cmdline_parts), GFP_KERNEL);
++	if (!newparts)
++		return -ENOMEM;
++
++	next = strchr(cmdline, ':');
++	if (!next) {
++		pr_warn("cmdline partition has not block device.");
++		goto fail;
++	}
++
++	length = min_t(int, next - cmdline, sizeof(newparts->name) - 1);
++	strncpy(newparts->name, cmdline, length);
++	newparts->name[length] = '\0';
++
++	next_subpart = &newparts->subpart;
++
++	while (next && *(++next)) {
++		cmdline = next;
++		next = strchr(cmdline, ',');
++
++		length = (!next) ? (sizeof(buf) - 1) :
++			min_t(int, next - cmdline, sizeof(buf) - 1);
++
++		strncpy(buf, cmdline, length);
++		buf[length] = '\0';
++
++		ret = parse_subpart(next_subpart, buf);
++		if (ret)
++			goto fail;
++
++		next_subpart = &(*next_subpart)->next_subpart;
++	}
++
++	if (!newparts->subpart) {
++		pr_warn("cmdline partition has not valid partition.");
++		goto fail;
++	}
++
++	*parts = newparts;
++
++	return 0;
++fail:
++	free_subpart(newparts);
++	kfree(newparts);
++	return ret;
++}
++
++static int parse_cmdline(struct cmdline_parts **parts, const char *cmdline)
++{
++	int ret;
++	char *buf;
++	char *pbuf;
++	char *next;
++	struct cmdline_parts **next_parts;
++
++	*parts = NULL;
++
++	next = pbuf = buf = kstrdup(cmdline, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
++	next_parts = parts;
++
++	while (next && *pbuf) {
++		next = strchr(pbuf, ';');
++		if (next)
++			*next = '\0';
++
++		ret = parse_parts(next_parts, pbuf);
++		if (ret)
++			goto fail;
++
++		if (next)
++			pbuf = ++next;
++
++		next_parts = &(*next_parts)->next_parts;
++	}
++
++	if (!*parts) {
++		pr_warn("cmdline partition has not valid partition.");
++		ret = -EINVAL;
++		goto fail;
++	}
++
++	ret = 0;
++done:
++	kfree(buf);
++	return ret;
++
++fail:
++	free_parts(parts);
++	goto done;
++}
++
++/*
++ * Purpose: allocate cmdline partitions.
++ * Returns:
++ * -1 if unable to read the partition table
++ *  0 if this isn't our partition table
++ *  1 if successful
++ */
++static int parse_partitions(struct parsed_partitions *state,
++			    struct cmdline_parts *parts)
++{
++	int slot;
++	sector_t from = 0;
++	sector_t disk_size;
++	char buf[BDEVNAME_SIZE];
++	struct cmdline_subpart *subpart;
++
++	bdevname(state->bdev, buf);
++
++	while (parts && strncmp(buf, parts->name, BDEVNAME_SIZE))
++		parts = parts->next_parts;
++
++	if (!parts)
++		return 0;
++
++	disk_size = get_capacity(state->bdev->bd_disk) << 9;
++
++	for (slot = 1, subpart = parts->subpart;
++	     subpart && slot < state->limit;
++	     subpart = subpart->next_subpart, slot++) {
++		int label_min;
++		struct partition_meta_info *info;
++		char tmp[sizeof(info->volname) + 4];
++
++		if (subpart->from == (sector_t)(~0ULL))
++			subpart->from = from;
++		else
++			from = subpart->from;
++
++		if (from >= disk_size)
++			break;
++
++		if (subpart->size > (disk_size - from))
++			subpart->size = disk_size - from;
++
++		from += subpart->size;
++
++		put_partition(state, slot, subpart->from >> 9,
++			      subpart->size >> 9);
++
++		info = &state->parts[slot].info;
++
++		label_min = min_t(int, sizeof(info->volname) - 1,
++				  sizeof(subpart->name));
++		strncpy(info->volname, subpart->name, label_min);
++		info->volname[label_min] = '\0';
++
++		snprintf(tmp, sizeof(tmp), "(%s)", info->volname);
++		strlcat(state->pp_buf, tmp, PAGE_SIZE);
++
++		state->parts[slot].has_info = true;
++	}
++
++	strlcat(state->pp_buf, "\n", PAGE_SIZE);
++
++	return 1;
++}
++
++static int __init cmdline_parts_setup(char *s)
++{
++	cmdline_string = s;
++	return 1;
++}
++__setup("blkdevparts=", cmdline_parts_setup);
++
++/*
++ * Purpose: allocate cmdline partitions.
++ * Returns:
++ * -1 if unable to read the partition table
++ *  0 if this isn't our partition table
++ *  1 if successful
++ */
++int cmdline_partition(struct parsed_partitions *state)
++{
++	if (cmdline_string) {
++		if (cmdline_parts)
++			free_parts(&cmdline_parts);
++
++		if (parse_cmdline(&cmdline_parts, cmdline_string))
++			goto fail;
++
++		cmdline_string = NULL;
++	}
++
++	if (!cmdline_parts)
++		return 0;
++
++	return parse_partitions(state, cmdline_parts);
++
++fail:
++	cmdline_string = NULL;
++	return -1;
++}
+diff -puN /dev/null block/partitions/cmdline.h
+--- /dev/null
++++ a/block/partitions/cmdline.h
+@@ -0,0 +1,2 @@
++
++int cmdline_partition(struct parsed_partitions *state);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from caizhiyong@huawei.com are
 
-memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
-mm-kill-one-if-loop-in-__free_pages_bootmem.patch
-mm-vmscan-fix-numa-reclaim-balance-problem-in-kswapd.patch
-mm-page_alloc-rearrange-watermark-checking-in-get_page_from_freelist.patch
-mm-page_alloc-fair-zone-allocator-policy.patch
-mm-revert-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch
-memcg-remove-redundant-code-in-mem_cgroup_force_empty_write.patch
-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-memcg-enhance-memcg-iterator-to-support-predicates.patch
-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-memcg-track-all-children-over-limit-in-the-root.patch
-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-arch-mm-remove-obsolete-init-oom-protection.patch
-arch-mm-do-not-invoke-oom-killer-on-kernel-fault-oom.patch
-arch-mm-pass-userspace-fault-flag-to-generic-fault-handler.patch
-x86-finish-user-fault-error-path-with-fatal-signal.patch
-mm-memcg-enable-memcg-oom-killer-only-for-user-faults.patch
-mm-memcg-rework-and-document-oom-waiting-and-wakeup.patch
-mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+block-support-embedded-device-command-line-partition.patch
+block-support-embedded-device-command-line-partition-fix.patch
+linux-next.patch
 
