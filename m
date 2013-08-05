@@ -1,103 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- vmpressure-do-not-check-for-pending-work-to-prevent-from-new-work.patch
- removed from -mm tree
-Date: Mon, 05 Aug 2013 12:06:06 -0700
-Message-ID: <51fff79e.NcykUI31ox7Psu9k%akpm@linux-foundation.org>
+Subject: +
+ memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
+ added to -mm tree
+Date: Mon, 05 Aug 2013 13:05:42 -0700
+Message-ID: <52000596.PaFYoOeTZYatCvLY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42065 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42373 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754585Ab3HETGM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 15:06:12 -0400
+	with ESMTP id S1754305Ab3HEUFn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:05:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, anton.vorontsov@linaro.org, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, khlebnikov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@openvz.org, bsingharora@gmail.com, avagin@openvz.org
 
-Subject: [merged] vmpressure-do-not-check-for-pending-work-to-prevent-from-new-work.patch removed from -mm tree
-To: mhocko@suse.cz,anton.vorontsov@linaro.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,lizefan@huawei.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: + memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch added to -mm tree
+To: avagin@openvz.org,bsingharora@gmail.com,glommer@openvz.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,khlebnikov@openvz.org,mhocko@suse.cz,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 12:06:06 -0700
+Date: Mon, 05 Aug 2013 13:05:42 -0700
 
 
 The patch titled
-     Subject: vmpressure: do not check for pending work to prevent from new work
-has been removed from the -mm tree.  Its filename was
-     vmpressure-do-not-check-for-pending-work-to-prevent-from-new-work.patch
+     Subject: memcg: don't initialize kmem-cache destroying work for root caches
+has been added to the -mm tree.  Its filename is
+     memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: vmpressure: do not check for pending work to prevent from new work
+From: Andrey Vagin <avagin@openvz.org>
+Subject: memcg: don't initialize kmem-cache destroying work for root caches
 
-because it is racy and it doesn't give us much anyway as schedule_work
-handles this case already.
+struct memcg_cache_params has a union.  Different parts of this union are
+used for root and non-root caches.  A part with destroying work is used
+only for non-root caches.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Tejun Heo <tj@kernel.org>
-Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
+I fixed the same problem in another place v3.9-rc1-16204-gf101a94, but
+didn't notice this one.
+
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Cc: Glauber Costa <glommer@openvz.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: <stable@vger.kernel.org>    [3.9.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmpressure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmpressure.c~vmpressure-do-not-check-for-pending-work-to-prevent-from-new-work mm/vmpressure.c
---- a/mm/vmpressure.c~vmpressure-do-not-check-for-pending-work-to-prevent-from-new-work
-+++ a/mm/vmpressure.c
-@@ -246,7 +246,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
- 	scanned = vmpr->scanned;
- 	spin_unlock(&vmpr->sr_lock);
+diff -puN mm/memcontrol.c~memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches
++++ a/mm/memcontrol.c
+@@ -3195,11 +3195,11 @@ int memcg_register_cache(struct mem_cgro
+ 	if (!s->memcg_params)
+ 		return -ENOMEM;
  
--	if (scanned < vmpressure_win || work_pending(&vmpr->work))
-+	if (scanned < vmpressure_win)
- 		return;
- 	schedule_work(&vmpr->work);
- }
+-	INIT_WORK(&s->memcg_params->destroy,
+-			kmem_cache_destroy_work_func);
+ 	if (memcg) {
+ 		s->memcg_params->memcg = memcg;
+ 		s->memcg_params->root_cache = root_cache;
++		INIT_WORK(&s->memcg_params->destroy,
++				kmem_cache_destroy_work_func);
+ 	} else
+ 		s->memcg_params->is_root_cache = true;
+ 
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from avagin@openvz.org are
 
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-watchdog-update-watchdog-attributes-atomically.patch
-watchdog-update-watchdog_tresh-properly.patch
-mm-fix-potential-null-pointer-dereference.patch
-mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
-mm-hugetlb-trivial-commenting-fix.patch
-mm-hugetlb-clean-up-alloc_huge_page.patch
-mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
-mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
-mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
-mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
-mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
-memcg-remove-redundant-code-in-mem_cgroup_force_empty_write.patch
-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-memcg-enhance-memcg-iterator-to-support-predicates.patch
-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-memcg-track-all-children-over-limit-in-the-root.patch
-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-memcg-trivial-cleanups.patch
+memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+procfs-remove-extra-call-of-dir_emit_dots.patch
 linux-next.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
-list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
-list_lru-remove-special-case-function-list_lru_dispose_all.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch
-list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
-staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
-staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
-staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
-staging-lustre-libcfs-cleanup-linux-memh.patch
 
