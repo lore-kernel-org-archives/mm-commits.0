@@ -1,186 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-use-pointer-for-console_cmdline-indexing.patch
+Subject: [merged] vmpressure-change-vmpressure-sr_lock-to-spinlock.patch
  removed from -mm tree
-Date: Mon, 05 Aug 2013 12:06:02 -0700
-Message-ID: <51fff79a.VaEKooGKMYyLNHBG%akpm@linux-foundation.org>
+Date: Mon, 05 Aug 2013 12:06:04 -0700
+Message-ID: <51fff79c.bTJwcqnv6w9V1oN0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42033 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42019 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754506Ab3HETGD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 15:06:03 -0400
+	with ESMTP id S1754445Ab3HETGF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 15:06:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, samuel.thibault@ens-lyon.org, ming.lei@canonical.com, joe@perches.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, anton.vorontsov@linaro.org, mhocko@suse.cz
 
-Subject: [merged] printk-use-pointer-for-console_cmdline-indexing.patch removed from -mm tree
-To: joe@perches.com,ming.lei@canonical.com,samuel.thibault@ens-lyon.org,mm-commits@vger.kernel.org
+Subject: [merged] vmpressure-change-vmpressure-sr_lock-to-spinlock.patch removed from -mm tree
+To: mhocko@suse.cz,anton.vorontsov@linaro.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,lizefan@huawei.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 12:06:02 -0700
+Date: Mon, 05 Aug 2013 12:06:04 -0700
 
 
 The patch titled
-     Subject: printk: use pointer for console_cmdline indexing
+     Subject: vmpressure: change vmpressure::sr_lock to spinlock
 has been removed from the -mm tree.  Its filename was
-     printk-use-pointer-for-console_cmdline-indexing.patch
+     vmpressure-change-vmpressure-sr_lock-to-spinlock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk: use pointer for console_cmdline indexing
+From: Michal Hocko <mhocko@suse.cz>
+Subject: vmpressure: change vmpressure::sr_lock to spinlock
 
-Make the code a bit more compact by always using a pointer for the active
-console_cmdline.
+There is nothing that can sleep inside critical sections protected by
+this lock and those sections are really small so there doesn't make much
+sense to use mutex for them. Change the log to a spinlock
 
-Move overly indented code to correct indent level.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Ming Lei <ming.lei@canonical.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Tejun Heo <tj@kernel.org>
+Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Li Zefan <lizefan@huawei.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   49 ++++++++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 23 deletions(-)
+ include/linux/vmpressure.h |    2 +-
+ mm/vmpressure.c            |   10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-use-pointer-for-console_cmdline-indexing kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-use-pointer-for-console_cmdline-indexing
-+++ a/kernel/printk/printk.c
-@@ -1756,18 +1756,19 @@ static int __add_preferred_console(char
- 	 *	See if this tty is not yet registered, and
- 	 *	if we have a slot free.
- 	 */
--	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
--		if (strcmp(console_cmdline[i].name, name) == 0 &&
--			  console_cmdline[i].index == idx) {
--				if (!brl_options)
--					selected_console = i;
--				return 0;
-+	for (i = 0, c = console_cmdline;
-+	     i < MAX_CMDLINECONSOLES && c->name[0];
-+	     i++, c++) {
-+		if (strcmp(c->name, name) == 0 && c->index == idx) {
-+			if (!brl_options)
-+				selected_console = i;
-+			return 0;
- 		}
-+	}
- 	if (i == MAX_CMDLINECONSOLES)
- 		return -E2BIG;
- 	if (!brl_options)
- 		selected_console = i;
--	c = &console_cmdline[i];
- 	strlcpy(c->name, name, sizeof(c->name));
- 	c->options = options;
- 	braille_set_options(c, brl_options);
-@@ -1840,15 +1841,15 @@ int update_console_cmdline(char *name, i
- 	struct console_cmdline *c;
- 	int i;
+diff -puN include/linux/vmpressure.h~vmpressure-change-vmpressure-sr_lock-to-spinlock include/linux/vmpressure.h
+--- a/include/linux/vmpressure.h~vmpressure-change-vmpressure-sr_lock-to-spinlock
++++ a/include/linux/vmpressure.h
+@@ -12,7 +12,7 @@ struct vmpressure {
+ 	unsigned long scanned;
+ 	unsigned long reclaimed;
+ 	/* The lock is used to keep the scanned/reclaimed above in sync. */
+-	struct mutex sr_lock;
++	struct spinlock sr_lock;
  
--	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
--		if (strcmp(console_cmdline[i].name, name) == 0 &&
--			  console_cmdline[i].index == idx) {
--				c = &console_cmdline[i];
--				strlcpy(c->name, name_new, sizeof(c->name));
--				c->name[sizeof(c->name) - 1] = 0;
--				c->options = options;
--				c->index = idx_new;
--				return i;
-+	for (i = 0, c = console_cmdline;
-+	     i < MAX_CMDLINECONSOLES && c->name[0];
-+	     i++, c++)
-+		if (strcmp(c->name, name) == 0 && c->index == idx) {
-+			strlcpy(c->name, name_new, sizeof(c->name));
-+			c->name[sizeof(c->name) - 1] = 0;
-+			c->options = options;
-+			c->index = idx_new;
-+			return i;
- 		}
- 	/* not found */
- 	return -1;
-@@ -2223,6 +2224,7 @@ void register_console(struct console *ne
- 	int i;
- 	unsigned long flags;
- 	struct console *bcon = NULL;
-+	struct console_cmdline *c;
+ 	/* The list of vmpressure_event structs. */
+ 	struct list_head events;
+diff -puN mm/vmpressure.c~vmpressure-change-vmpressure-sr_lock-to-spinlock mm/vmpressure.c
+--- a/mm/vmpressure.c~vmpressure-change-vmpressure-sr_lock-to-spinlock
++++ a/mm/vmpressure.c
+@@ -180,12 +180,12 @@ static void vmpressure_work_fn(struct wo
+ 	if (!vmpr->scanned)
+ 		return;
  
- 	/*
- 	 * before we register a new CON_BOOT console, make sure we don't
-@@ -2270,24 +2272,25 @@ void register_console(struct console *ne
- 	 *	See if this console matches one we selected on
- 	 *	the command line.
- 	 */
--	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0];
--			i++) {
--		if (strcmp(console_cmdline[i].name, newcon->name) != 0)
-+	for (i = 0, c = console_cmdline;
-+	     i < MAX_CMDLINECONSOLES && c->name[0];
-+	     i++, c++) {
-+		if (strcmp(c->name, newcon->name) != 0)
- 			continue;
- 		if (newcon->index >= 0 &&
--		    newcon->index != console_cmdline[i].index)
-+		    newcon->index != c->index)
- 			continue;
- 		if (newcon->index < 0)
--			newcon->index = console_cmdline[i].index;
-+			newcon->index = c->index;
+-	mutex_lock(&vmpr->sr_lock);
++	spin_lock(&vmpr->sr_lock);
+ 	scanned = vmpr->scanned;
+ 	reclaimed = vmpr->reclaimed;
+ 	vmpr->scanned = 0;
+ 	vmpr->reclaimed = 0;
+-	mutex_unlock(&vmpr->sr_lock);
++	spin_unlock(&vmpr->sr_lock);
  
--		if (_braille_register_console(newcon, &console_cmdline[i]))
-+		if (_braille_register_console(newcon, c))
- 			return;
+ 	do {
+ 		if (vmpressure_event(vmpr, scanned, reclaimed))
+@@ -240,11 +240,11 @@ void vmpressure(gfp_t gfp, struct mem_cg
+ 	if (!scanned)
+ 		return;
  
- 		if (newcon->setup &&
- 		    newcon->setup(newcon, console_cmdline[i].options) != 0)
- 			break;
- 		newcon->flags |= CON_ENABLED;
--		newcon->index = console_cmdline[i].index;
-+		newcon->index = c->index;
- 		if (i == selected_console) {
- 			newcon->flags |= CON_CONSDEV;
- 			preferred_console = selected_console;
+-	mutex_lock(&vmpr->sr_lock);
++	spin_lock(&vmpr->sr_lock);
+ 	vmpr->scanned += scanned;
+ 	vmpr->reclaimed += reclaimed;
+ 	scanned = vmpr->scanned;
+-	mutex_unlock(&vmpr->sr_lock);
++	spin_unlock(&vmpr->sr_lock);
+ 
+ 	if (scanned < vmpressure_win || work_pending(&vmpr->work))
+ 		return;
+@@ -367,7 +367,7 @@ void vmpressure_unregister_event(struct
+  */
+ void vmpressure_init(struct vmpressure *vmpr)
+ {
+-	mutex_init(&vmpr->sr_lock);
++	spin_lock_init(&vmpr->sr_lock);
+ 	mutex_init(&vmpr->events_lock);
+ 	INIT_LIST_HEAD(&vmpr->events);
+ 	INIT_WORK(&vmpr->work, vmpressure_work_fn);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-maintainers-exynos-remove-board-files.patch
-maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
-maintainers-omap-powerdomain-update-patterns.patch
-maintainers-arm-s3c2410-update-patterns.patch
-maintainers-arm-spear-consolidate-sections.patch
-maintainers-arm-plat-nomadik-update-patterns.patch
-maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
-maintainers-ghes_edac-update-pattern.patch
-maintainers-update-siano-drivers.patch
-maintainers-si4713-fix-file-pattern.patch
-maintainers-update-it913x-patterns.patch
-maintainers-update-sirf-patterns.patch
-maintainers-update-ssbi-patterns.patch
-maintainers-update-file-pattern-for-arc-uart.patch
-maintainers-update-usb-ehci-platform-pattern.patch
-maintainers-usb-phy-update-patterns.patch
-maintainers-update-gre-demux-patterns.patch
-checkpatch-add-a-few-more-fix-corrections.patch
-checkpatch-check-camelcase-by-word-not-by-lval.patch
-checkpatch-enforce-sane-perl-version.patch
-checkpatch-check-for-duplicate-signatures.patch
-checkpatch-warn-when-using-extern-with-function-prototypes-in-h-files.patch
-checkpatch-fix-networking-kernel-doc-block-comment-defect.patch
-firmware-dmi_scan-drop-obsolete-comment.patch
-firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
-firmware-dmi_scan-constify-strings.patch
-firmware-dmi_scan-drop-oom-messages.patch
-pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
-pktcdvd-convert-printk-to-pr_level.patch
-pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
-pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
-pktcdvd-convert-pr_notice-to-pkt_notice.patch
-pktcdvd-convert-pr_info-to-pkt_info.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+watchdog-update-watchdog-attributes-atomically.patch
+watchdog-update-watchdog_tresh-properly.patch
+mm-fix-potential-null-pointer-dereference.patch
+mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
+mm-hugetlb-trivial-commenting-fix.patch
+mm-hugetlb-clean-up-alloc_huge_page.patch
+mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
+mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
+mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
+mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
+mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+memcg-remove-redundant-code-in-mem_cgroup_force_empty_write.patch
+memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+memcg-get-rid-of-soft-limit-tree-infrastructure.patch
+vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
+memcg-enhance-memcg-iterator-to-support-predicates.patch
+memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
+memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+memcg-track-all-children-over-limit-in-the-root.patch
+memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
+memcg-trivial-cleanups.patch
 linux-next.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
+list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
+list_lru-remove-special-case-function-list_lru_dispose_all.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch
+list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
+staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
+staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
+staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
+staging-lustre-libcfs-cleanup-linux-memh.patch
 
