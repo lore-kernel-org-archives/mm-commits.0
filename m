@@ -1,120 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-update-watchdog_tresh-properly-fix.patch added to -mm
- tree
-Date: Mon, 05 Aug 2013 13:24:00 -0700
-Message-ID: <520009e0.4gJ8Z9RhAmYYNR07%akpm@linux-foundation.org>
+Subject: [to-be-updated] fs-binfmts-better-handling-of-binfmt-loops.patch
+ removed from -mm tree
+Date: Mon, 05 Aug 2013 13:33:38 -0700
+Message-ID: <52000c22.9hLtqz+Y/i+8oOLD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42492 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754939Ab3HEUYB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:24:01 -0400
+	with ESMTP id S1754785Ab3HEUdj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:33:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, festevam@gmail.com, fengguang.wu@intel.com, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, zach@zachsthings.com, viro@zeniv.linux.org.uk, zml@linux.vnet.ibm.com
 
-Subject: + watchdog-update-watchdog_tresh-properly-fix.patch added to -mm tree
-To: mhocko@suse.cz,fengguang.wu@intel.com,festevam@gmail.com
+Subject: [to-be-updated] fs-binfmts-better-handling-of-binfmt-loops.patch removed from -mm tree
+To: zml@linux.vnet.ibm.com,viro@zeniv.linux.org.uk,zach@zachsthings.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 13:24:00 -0700
+Date: Mon, 05 Aug 2013 13:33:38 -0700
 
 
 The patch titled
-     Subject: include/linux/smp.h: define __smp_call_function_single for !CONFIG_SMP
-has been added to the -mm tree.  Its filename is
-     watchdog-update-watchdog_tresh-properly-fix.patch
+     Subject: fs/binfmts: better handling of binfmt loops
+has been removed from the -mm tree.  Its filename was
+     fs-binfmts-better-handling-of-binfmt-loops.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-update-watchdog_tresh-properly-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-update-watchdog_tresh-properly-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: include/linux/smp.h: define __smp_call_function_single for !CONFIG_SMP
+From: Zach Levis <zml@linux.vnet.ibm.com>
+Subject: fs/binfmts: better handling of binfmt loops
 
-This function was not needed until (watchdog: update watchdog_tresh
-properly) which cannot use on_each_cpu unfortunately as
-watchdog_nmi_enable relies on perf_event_alloc which is might sleep.
+With these changes, when a binfmt loop is encountered, the ELOOP will
+propagate back to the 0 depth.  At this point the argv and argc values
+will be reset to what they were originally and an attempt is made to
+continue with the following binfmt handlers.
 
-Export it as an alias to on_each_cpu for !CONFIG_SMP.
+Caveats:
+- binfmt_misc is skipped as a whole. To allow for a more generic
+  solution that works for any binfmt without a lot of duplicated code
+  and added complexity, the error detection code is applied on the
+  binfmt level.
+- This is a fallback solution. It attempts to restore the state to allow
+  executing most binaries without side effects, but it may not work for
+  everything and should not be depended on for regular usage.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Reported-by: Fabio Estevam <festevam@gmail.com>
+My (rough, but functional) test scripts for this issue are available at:
+    https://gist.github.com/zml2008/6075418
+
+Signed-off-by: Zach Levis <zach@zachsthings.com>
+Signed-off-by: Zach Levis <zml@linux.vnet.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/exec.c               |   30 +++++++++++++++++++++++++++++-
+ include/linux/binfmts.h |    5 ++++-
+ 2 files changed, 33 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/smp.h~watchdog-update-watchdog_tresh-properly-fix include/linux/smp.h
---- a/include/linux/smp.h~watchdog-update-watchdog_tresh-properly-fix
-+++ a/include/linux/smp.h
-@@ -151,6 +151,12 @@ static inline int on_each_cpu(smp_call_f
- 	return 0;
- }
- 
-+static inline void __smp_call_function_single(int cpuid,
-+		struct call_single_data *data, int wait)
-+{
-+	on_each_cpu(data->func, data->info, wait);
-+}
+diff -puN fs/exec.c~fs-binfmts-better-handling-of-binfmt-loops fs/exec.c
+--- a/fs/exec.c~fs-binfmts-better-handling-of-binfmt-loops
++++ a/fs/exec.c
+@@ -1403,13 +1403,40 @@ int search_binary_handler(struct linux_b
+ 			if (!try_module_get(fmt->module))
+ 				continue;
+ 			read_unlock(&binfmt_lock);
++			bprm->previous_binfmts[1] = bprm->previous_binfmts[0];
++			bprm->previous_binfmts[0] = fmt;
 +
- /*
-  * Note we still need to test the mask even for UP
-  * because we actually can get an empty mask from
+ 			bprm->recursion_depth = depth + 1;
+ 			retval = fn(bprm);
+ 			bprm->recursion_depth = depth;
++			if (retval == -ELOOP && depth == 0) { /* cur, previous */
++				pr_err("Too much recursion with binfmts (0:%s, -1:%s) in file %s, skipping (base %s).\n",
++						bprm->previous_binfmts[0]->name,
++						bprm->previous_binfmts[1]->name,
++						bprm->filename,
++						fmt->name);
++
++				/* Put argv back in its place */
++				while (bprm->argc > 0) {
++					retval = remove_arg_zero(bprm);
++					if (retval)
++						return retval;
++				}
++
++				copy_strings(bprm->argc_orig, *((struct user_arg_ptr *) bprm->argv_orig), bprm);
++				bprm->argc = bprm->argc_orig;
++				retval = -ENOEXEC;
++				continue;
++			}
++
+ 			if (retval >= 0) {
+ 				if (depth == 0) {
+ 					trace_sched_process_exec(current, old_pid, bprm);
+ 					ptrace_event(PTRACE_EVENT_EXEC, old_vpid);
++					/* Successful execution, now null out the cached argv
++					 * (we don't want to access it later)
++					 * */
++					bprm->argv_orig = NULL;
+ 				}
+ 				put_binfmt(fmt);
+ 				allow_write_access(bprm->file);
+@@ -1516,7 +1543,7 @@ static int do_execve_common(const char *
+ 	if (retval)
+ 		goto out_file;
+ 
+-	bprm->argc = count(argv, MAX_ARG_STRINGS);
++	bprm->argc_orig = bprm->argc = count(argv, MAX_ARG_STRINGS);
+ 	if ((retval = bprm->argc) < 0)
+ 		goto out;
+ 
+@@ -1540,6 +1567,7 @@ static int do_execve_common(const char *
+ 	retval = copy_strings(bprm->argc, argv, bprm);
+ 	if (retval < 0)
+ 		goto out;
++	bprm->argv_orig = &argv;
+ 
+ 	retval = search_binary_handler(bprm);
+ 	if (retval < 0)
+diff -puN include/linux/binfmts.h~fs-binfmts-better-handling-of-binfmt-loops include/linux/binfmts.h
+--- a/include/linux/binfmts.h~fs-binfmts-better-handling-of-binfmt-loops
++++ a/include/linux/binfmts.h
+@@ -32,11 +32,14 @@ struct linux_binprm {
+ 	unsigned int taso:1;
+ #endif
+ 	unsigned int recursion_depth;
++	/* current binfmt at 0 and previous binfmt at 1 */
++	struct linux_binfmt *previous_binfmts[2];
+ 	struct file * file;
+ 	struct cred *cred;	/* new credentials */
+ 	int unsafe;		/* how unsafe this exec is (mask of LSM_UNSAFE_*) */
+ 	unsigned int per_clear;	/* bits to clear in current->personality */
+-	int argc, envc;
++	int argc, argc_orig, envc;
++	void *argv_orig;
+ 	const char * filename;	/* Name of binary as seen by procps */
+ 	const char * interp;	/* Name of the binary really executed. Most
+ 				   of the time same as filename, but could be
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from zml@linux.vnet.ibm.com are
 
-memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-watchdog-update-watchdog-attributes-atomically.patch
-watchdog-update-watchdog_tresh-properly.patch
-watchdog-update-watchdog_tresh-properly-fix.patch
-mm-fix-potential-null-pointer-dereference.patch
-mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
-mm-hugetlb-trivial-commenting-fix.patch
-mm-hugetlb-clean-up-alloc_huge_page.patch
-mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
-mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
-mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
-mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
-mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
-memcg-remove-redundant-code-in-mem_cgroup_force_empty_write.patch
-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-memcg-enhance-memcg-iterator-to-support-predicates.patch
-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-memcg-track-all-children-over-limit-in-the-root.patch
-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-memcg-trivial-cleanups.patch
-linux-next.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
-list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
-list_lru-remove-special-case-function-list_lru_dispose_all.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch
-list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
-staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
-staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
-staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
-staging-lustre-libcfs-cleanup-linux-memh.patch
+fs-binfmts-better-handling-of-binfmt-loops-fix.patch
+fs-binfmts-whitespace-fixes-with-scripts-cleanfile.patch
 
