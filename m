@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + exec-cleanup-the-error-handling-in-search_binary_handler.patch
- added to -mm tree
-Date: Mon, 05 Aug 2013 13:45:15 -0700
-Message-ID: <52000edb.lTlxhBljrsf1sibA%akpm@linux-foundation.org>
+Subject: + exec-introduce-exec_binprm-for-depth-==-0-code.patch added to
+ -mm tree
+Date: Mon, 05 Aug 2013 13:45:08 -0700
+Message-ID: <52000ed4.Pnz62SCfFA/jEFa0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42514 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755400Ab3HEUpQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:16 -0400
+	with ESMTP id S1752295Ab3HEUpJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 16:45:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zml@linux.vnet.ibm.com, zbr@ioremap.net, viro@ZenIV.linux.org.uk, keescook@chromium.org, oleg@redhat.com
 
-Subject: + exec-cleanup-the-error-handling-in-search_binary_handler.patch added to -mm tree
+Subject: + exec-introduce-exec_binprm-for-depth-==-0-code.patch added to -mm tree
 To: oleg@redhat.com,keescook@chromium.org,viro@ZenIV.linux.org.uk,zbr@ioremap.net,zml@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 13:45:15 -0700
+Date: Mon, 05 Aug 2013 13:45:08 -0700
 
 
 The patch titled
-     Subject: exec: cleanup the error handling in search_binary_handler()
+     Subject: exec: introduce exec_binprm() for "depth == 0" code
 has been added to the -mm tree.  Its filename is
-     exec-cleanup-the-error-handling-in-search_binary_handler.patch
+     exec-introduce-exec_binprm-for-depth-==-0-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-cleanup-the-error-handling-in-search_binary_handler.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-introduce-exec_binprm-for-depth-==-0-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-cleanup-the-error-handling-in-search_binary_handler.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-introduce-exec_binprm-for-depth-==-0-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,26 +45,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exec: cleanup the error handling in search_binary_handler()
+Subject: exec: introduce exec_binprm() for "depth == 0" code
 
-The error hanling and ret-from-loop look confusing and inconsistent.
+task_pid_nr_ns() and trace/ptrace code in the middle of the recursive
+search_binary_handler() looks confusing and imho annoying.  We only need
+this code if "depth == 0", lets add a simple helper which calls
+search_binary_handler() and does trace_sched_process_exec() +
+ptrace_event().
 
-- "retval >= 0" simply returns
+The patch also moves the setting of task->did_exec, we need to do this
+only once.
 
-- "!bprm->file" returns too but with read_unlock() because
-   binfmt_lock was already re-acquired
-
-- "retval != -ENOEXEC || bprm->mm == NULL" does "break" and
-  relies on the same check after the main loop
-
-Consolidate these checks into a single if/return statement.
-
-need_retry still checks "retval == -ENOEXEC", but this and -ENOENT before
-the main loop are not needed.  This is only for pathological and
-impossible list_empty(&formats) case.
-
-It is not clear why do we check "bprm->mm == NULL", probably this
-should be removed.
+Note: we can kill either task->did_exec or PF_FORKNOEXEC.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
@@ -74,38 +66,90 @@ Cc: Zach Levis <zml@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ fs/exec.c |   36 ++++++++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 14 deletions(-)
 
-diff -puN fs/exec.c~exec-cleanup-the-error-handling-in-search_binary_handler fs/exec.c
---- a/fs/exec.c~exec-cleanup-the-error-handling-in-search_binary_handler
+diff -puN fs/exec.c~exec-introduce-exec_binprm-for-depth-==-0-code fs/exec.c
+--- a/fs/exec.c~exec-introduce-exec_binprm-for-depth-==-0-code
 +++ a/fs/exec.c
-@@ -1399,22 +1399,17 @@ int search_binary_handler(struct linux_b
- 		bprm->recursion_depth++;
- 		retval = fmt->load_binary(bprm);
- 		bprm->recursion_depth--;
--		if (retval >= 0) {
-+		if (retval >= 0 || retval != -ENOEXEC ||
-+		    bprm->mm == NULL || bprm->file == NULL) {
- 			put_binfmt(fmt);
- 			return retval;
- 		}
- 		read_lock(&binfmt_lock);
- 		put_binfmt(fmt);
--		if (retval != -ENOEXEC || bprm->mm == NULL)
--			break;
--		if (!bprm->file) {
--			read_unlock(&binfmt_lock);
--			return retval;
--		}
- 	}
- 	read_unlock(&binfmt_lock);
+@@ -1373,7 +1373,6 @@ int search_binary_handler(struct linux_b
+ 	unsigned int depth = bprm->recursion_depth;
+ 	int try,retval;
+ 	struct linux_binfmt *fmt;
+-	pid_t old_pid, old_vpid;
  
--	if (need_retry && retval == -ENOEXEC && bprm->mm) {
-+	if (need_retry && retval == -ENOEXEC) {
- 		if (printable(bprm->buf[0]) && printable(bprm->buf[1]) &&
- 		    printable(bprm->buf[2]) && printable(bprm->buf[3]))
- 			return retval;
+ 	/* This allows 4 levels of binfmt rewrites before failing hard. */
+ 	if (depth > 5)
+@@ -1387,12 +1386,6 @@ int search_binary_handler(struct linux_b
+ 	if (retval)
+ 		return retval;
+ 
+-	/* Need to fetch pid before load_binary changes it */
+-	old_pid = current->pid;
+-	rcu_read_lock();
+-	old_vpid = task_pid_nr_ns(current, task_active_pid_ns(current->parent));
+-	rcu_read_unlock();
+-
+ 	retval = -ENOENT;
+ 	for (try=0; try<2; try++) {
+ 		read_lock(&binfmt_lock);
+@@ -1407,16 +1400,11 @@ int search_binary_handler(struct linux_b
+ 			retval = fn(bprm);
+ 			bprm->recursion_depth = depth;
+ 			if (retval >= 0) {
+-				if (depth == 0) {
+-					trace_sched_process_exec(current, old_pid, bprm);
+-					ptrace_event(PTRACE_EVENT_EXEC, old_vpid);
+-				}
+ 				put_binfmt(fmt);
+ 				allow_write_access(bprm->file);
+ 				if (bprm->file)
+ 					fput(bprm->file);
+ 				bprm->file = NULL;
+-				current->did_exec = 1;
+ 				proc_exec_connector(current);
+ 				return retval;
+ 			}
+@@ -1450,9 +1438,29 @@ int search_binary_handler(struct linux_b
+ 	}
+ 	return retval;
+ }
+-
+ EXPORT_SYMBOL(search_binary_handler);
+ 
++static int exec_binprm(struct linux_binprm *bprm)
++{
++	pid_t old_pid, old_vpid;
++	int ret;
++
++	/* Need to fetch pid before load_binary changes it */
++	old_pid = current->pid;
++	rcu_read_lock();
++	old_vpid = task_pid_nr_ns(current, task_active_pid_ns(current->parent));
++	rcu_read_unlock();
++
++	ret = search_binary_handler(bprm);
++	if (ret >= 0) {
++		trace_sched_process_exec(current, old_pid, bprm);
++		ptrace_event(PTRACE_EVENT_EXEC, old_vpid);
++		current->did_exec = 1;
++	}
++
++	return ret;
++}
++
+ /*
+  * sys_execve() executes a new program.
+  */
+@@ -1541,7 +1549,7 @@ static int do_execve_common(const char *
+ 	if (retval < 0)
+ 		goto out;
+ 
+-	retval = search_binary_handler(bprm);
++	retval = exec_binprm(bprm);
+ 	if (retval < 0)
+ 		goto out;
+ 
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
