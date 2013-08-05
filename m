@@ -1,190 +1,150 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- thp-mm-avoid-pageunevictable-on-active-inactive-lru-lists.patch removed
- from -mm tree
-Date: Mon, 05 Aug 2013 12:05:53 -0700
-Message-ID: <51fff791.BNY+j5vTrISfCgB8%akpm@linux-foundation.org>
+ vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined.patch removed from -mm tree
+Date: Mon, 05 Aug 2013 12:06:08 -0700
+Message-ID: <51fff7a0.fx8VnNY1SAam8ah9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42053 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754533Ab3HETGE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 15:06:04 -0400
+	with ESMTP id S1754445Ab3HETGJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 15:06:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, anton.vorontsov@linaro.org, mhocko@suse.cz
 
-Subject: [merged] thp-mm-avoid-pageunevictable-on-active-inactive-lru-lists.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,dave.hansen@linux.intel.com,kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
+Subject: [merged] vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined.patch removed from -mm tree
+To: mhocko@suse.cz,anton.vorontsov@linaro.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,lizefan@huawei.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 12:05:53 -0700
+Date: Mon, 05 Aug 2013 12:06:08 -0700
 
 
 The patch titled
-     Subject: thp, mm: avoid PageUnevictable on active/inactive lru lists
+     Subject: vmpressure: make sure there are no events queued after memcg is offlined
 has been removed from the -mm tree.  Its filename was
-     thp-mm-avoid-pageunevictable-on-active-inactive-lru-lists.patch
+     vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp, mm: avoid PageUnevictable on active/inactive lru lists
+From: Michal Hocko <mhocko@suse.cz>
+Subject: vmpressure: make sure there are no events queued after memcg is offlined
 
-active/inactive lru lists can contain unevicable pages (i.e.  ramfs pages
-that have been placed on the LRU lists when first allocated), but these
-pages must not have PageUnevictable set - otherwise shrink_[in]active_list
-goes crazy:
+vmpressure is called synchronously from reclaim where the target_memcg is
+guaranteed to be alive but the eventfd is signaled from the work queue
+context.  This means that memcg (along with vmpressure structure which is
+embedded into it) might go away while the work item is pending which would
+result in use-after-release bug.
 
-kernel BUG at /home/space/kas/git/public/linux-next/mm/vmscan.c:1122!
+We have two possible ways how to fix this.  Either vmpressure pins memcg
+before it schedules vmpr->work and unpin it in vmpressure_work_fn or
+explicitely flush the work item from the css_offline context (as suggested
+by Tejun).
 
-1090 static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
-1091                 struct lruvec *lruvec, struct list_head *dst,
-1092                 unsigned long *nr_scanned, struct scan_control *sc,
-1093                 isolate_mode_t mode, enum lru_list lru)
-1094 {
-...
-1108                 switch (__isolate_lru_page(page, mode)) {
-1109                 case 0:
-...
-1116                 case -EBUSY:
-...
-1121                 default:
-1122                         BUG();
-1123                 }
-1124         }
-...
-1130 }
+This patch implements the later one and it introduces vmpressure_cleanup
+which flushes the vmpressure work queue item item.  It hooks into
+mem_cgroup_css_offline after the memcg itself is cleaned up.
 
-__isolate_lru_page() returns EINVAL for PageUnevictable(page).
-
-For lru_add_page_tail(), it means we should not set PageUnevictable() for
-tail pages unless we're sure that it will go to LRU_UNEVICTABLE.  Let's
-just copy PG_active and PG_unevictable from head page in
-__split_huge_page_refcount(), it will simplify lru_add_page_tail().
-
-This will fix one more bug in lru_add_page_tail(): if
-page_evictable(page_tail) is false and PageLRU(page) is true, page_tail
-will go to the same lru as page, but nobody cares to sync page_tail
-active/inactive state with page.  So we can end up with inactive page on
-active lru.  The patch will fix it as well since we copy PG_active from
-head page.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mgorman@suse.de>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Tejun Heo <tj@kernel.org>
+Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Li Zefan <lizefan@huawei.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 +++-
- mm/swap.c        |   20 ++------------------
- 2 files changed, 5 insertions(+), 19 deletions(-)
+ include/linux/vmpressure.h |    1 +
+ mm/memcontrol.c            |    1 +
+ mm/vmpressure.c            |   16 ++++++++++++++++
+ 3 files changed, 18 insertions(+)
 
-diff -puN mm/huge_memory.c~thp-mm-avoid-pageunevictable-on-active-inactive-lru-lists mm/huge_memory.c
---- a/mm/huge_memory.c~thp-mm-avoid-pageunevictable-on-active-inactive-lru-lists
-+++ a/mm/huge_memory.c
-@@ -1620,7 +1620,9 @@ static void __split_huge_page_refcount(s
- 				     ((1L << PG_referenced) |
- 				      (1L << PG_swapbacked) |
- 				      (1L << PG_mlocked) |
--				      (1L << PG_uptodate)));
-+				      (1L << PG_uptodate) |
-+				      (1L << PG_active) |
-+				      (1L << PG_unevictable)));
- 		page_tail->flags |= (1L << PG_dirty);
+diff -puN include/linux/vmpressure.h~vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined include/linux/vmpressure.h
+--- a/include/linux/vmpressure.h~vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined
++++ a/include/linux/vmpressure.h
+@@ -30,6 +30,7 @@ extern void vmpressure(gfp_t gfp, struct
+ extern void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio);
  
- 		/* clear PageTail before overwriting first_page */
-diff -puN mm/swap.c~thp-mm-avoid-pageunevictable-on-active-inactive-lru-lists mm/swap.c
---- a/mm/swap.c~thp-mm-avoid-pageunevictable-on-active-inactive-lru-lists
-+++ a/mm/swap.c
-@@ -770,8 +770,6 @@ EXPORT_SYMBOL(__pagevec_release);
- void lru_add_page_tail(struct page *page, struct page *page_tail,
- 		       struct lruvec *lruvec, struct list_head *list)
- {
--	int uninitialized_var(active);
--	enum lru_list lru;
- 	const int file = 0;
- 
- 	VM_BUG_ON(!PageHead(page));
-@@ -783,20 +781,6 @@ void lru_add_page_tail(struct page *page
- 	if (!list)
- 		SetPageLRU(page_tail);
- 
--	if (page_evictable(page_tail)) {
--		if (PageActive(page)) {
--			SetPageActive(page_tail);
--			active = 1;
--			lru = LRU_ACTIVE_ANON;
--		} else {
--			active = 0;
--			lru = LRU_INACTIVE_ANON;
--		}
--	} else {
--		SetPageUnevictable(page_tail);
--		lru = LRU_UNEVICTABLE;
--	}
--
- 	if (likely(PageLRU(page)))
- 		list_add_tail(&page_tail->lru, &page->lru);
- 	else if (list) {
-@@ -812,13 +796,13 @@ void lru_add_page_tail(struct page *page
- 		 * Use the standard add function to put page_tail on the list,
- 		 * but then correct its position so they all end up in order.
- 		 */
--		add_page_to_lru_list(page_tail, lruvec, lru);
-+		add_page_to_lru_list(page_tail, lruvec, page_lru(page_tail));
- 		list_head = page_tail->lru.prev;
- 		list_move_tail(&page_tail->lru, list_head);
- 	}
- 
- 	if (!PageUnevictable(page))
--		update_page_reclaim_stat(lruvec, file, active);
-+		update_page_reclaim_stat(lruvec, file, PageActive(page_tail));
+ extern void vmpressure_init(struct vmpressure *vmpr);
++extern void vmpressure_cleanup(struct vmpressure *vmpr);
+ extern struct vmpressure *memcg_to_vmpressure(struct mem_cgroup *memcg);
+ extern struct cgroup_subsys_state *vmpressure_to_css(struct vmpressure *vmpr);
+ extern struct vmpressure *css_to_vmpressure(struct cgroup_subsys_state *css);
+diff -puN mm/memcontrol.c~vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined mm/memcontrol.c
+--- a/mm/memcontrol.c~vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined
++++ a/mm/memcontrol.c
+@@ -6335,6 +6335,7 @@ static void mem_cgroup_css_offline(struc
+ 	mem_cgroup_invalidate_reclaim_iterators(memcg);
+ 	mem_cgroup_reparent_charges(memcg);
+ 	mem_cgroup_destroy_all_caches(memcg);
++	vmpressure_cleanup(&memcg->vmpressure);
  }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
+ static void mem_cgroup_css_free(struct cgroup *cont)
+diff -puN mm/vmpressure.c~vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined mm/vmpressure.c
+--- a/mm/vmpressure.c~vmpressure-make-sure-there-are-no-events-queued-after-memcg-is-offlined
++++ a/mm/vmpressure.c
+@@ -372,3 +372,19 @@ void vmpressure_init(struct vmpressure *
+ 	INIT_LIST_HEAD(&vmpr->events);
+ 	INIT_WORK(&vmpr->work, vmpressure_work_fn);
+ }
++
++/**
++ * vmpressure_cleanup() - shuts down vmpressure control structure
++ * @vmpr:	Structure to be cleaned up
++ *
++ * This function should be called before the structure in which it is
++ * embedded is cleaned up.
++ */
++void vmpressure_cleanup(struct vmpressure *vmpr)
++{
++	/*
++	 * Make sure there is no pending work before eventfd infrastructure
++	 * goes away.
++	 */
++	flush_work(&vmpr->work);
++}
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-drop-actor-argument-of-do_shmem_file_read.patch
-thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
-mm-cleanup-add_to_page_cache_locked.patch
-thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
-thp-do_huge_pmd_anonymous_page-cleanup.patch
-thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+watchdog-update-watchdog-attributes-atomically.patch
+watchdog-update-watchdog_tresh-properly.patch
 mm-fix-potential-null-pointer-dereference.patch
-thp-mm-locking-tail-page-is-a-bug.patch
+mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
+mm-hugetlb-trivial-commenting-fix.patch
+mm-hugetlb-clean-up-alloc_huge_page.patch
+mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
+mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
+mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
+mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
+mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+memcg-remove-redundant-code-in-mem_cgroup_force_empty_write.patch
+memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+memcg-get-rid-of-soft-limit-tree-infrastructure.patch
+vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
+memcg-enhance-memcg-iterator-to-support-predicates.patch
+memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
+memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+memcg-track-all-children-over-limit-in-the-root.patch
+memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
+memcg-trivial-cleanups.patch
 linux-next.patch
-fs-bump-inode-and-dentry-counters-to-long.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
-dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
-dentry-move-to-per-sb-lru-locks.patch
-dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
-mm-new-shrinker-api.patch
-shrinker-convert-superblock-shrinkers-to-new-api.patch
-list-add-a-new-lru-list-type.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code.patch
-dcache-convert-to-use-new-lru-list-infrastructure.patch
-list_lru-per-node-list-infrastructure.patch
-list_lru-per-node-api.patch
-shrinker-add-node-awareness.patch
-vmscan-per-node-deferred-work.patch
-fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
-xfs-convert-buftarg-lru-to-generic-code.patch
-xfs-rework-buffer-dispose-list-tracking.patch
-xfs-convert-dquot-cache-lru-to-list_lru.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api.patch
-drivers-convert-shrinkers-to-new-count-scan-api.patch
-i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
-shrinker-kill-old-shrink-api.patch
-list_lru-dynamically-adjust-node-arrays.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
+list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
+list_lru-remove-special-case-function-list_lru_dispose_all.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch
+list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
+staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
+staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
+staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
+staging-lustre-libcfs-cleanup-linux-memh.patch
 
