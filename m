@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-enable-memcg-oom-killer-only-for-user-faults.patch
- added to -mm tree
-Date: Mon, 05 Aug 2013 15:05:58 -0700
-Message-ID: <520021c6.oTOyv0rC2YoYJt61%akpm@linux-foundation.org>
+Subject: + x86-finish-user-fault-error-path-with-fatal-signal.patch added
+ to -mm tree
+Date: Mon, 05 Aug 2013 15:05:56 -0700
+Message-ID: <520021c4.3w3GBjylifNqtuI9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43249 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43243 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755148Ab3HEWF7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 18:05:59 -0400
+	with ESMTP id S1755365Ab3HEWF5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 18:05:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, azurit@pobox.sk, hannes@cmpxchg.org
 
-Subject: + mm-memcg-enable-memcg-oom-killer-only-for-user-faults.patch added to -mm tree
+Subject: + x86-finish-user-fault-error-path-with-fatal-signal.patch added to -mm tree
 To: hannes@cmpxchg.org,azurit@pobox.sk,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 15:05:58 -0700
+Date: Mon, 05 Aug 2013 15:05:56 -0700
 
 
 The patch titled
-     Subject: mm: memcg: enable memcg OOM killer only for user faults
+     Subject: x86: finish user fault error path with fatal signal
 has been added to the -mm tree.  Its filename is
-     mm-memcg-enable-memcg-oom-killer-only-for-user-faults.patch
+     x86-finish-user-fault-error-path-with-fatal-signal.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-enable-memcg-oom-killer-only-for-user-faults.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-finish-user-fault-error-path-with-fatal-signal.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-enable-memcg-oom-killer-only-for-user-faults.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-finish-user-fault-error-path-with-fatal-signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,218 +45,104 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: enable memcg OOM killer only for user faults
+Subject: x86: finish user fault error path with fatal signal
 
-System calls and kernel faults (uaccess, gup) can handle an out of memory
-situation gracefully and just return -ENOMEM.
+The x86 fault handler bails in the middle of error handling when the task
+has a fatal signal pending.  For a subsequent patch this is a problem in
+OOM situations because it relies on pagefault_out_of_memory() being called
+even when the task has been killed, to perform proper per-task OOM state
+unwinding.
 
-Enable the memcg OOM killer only for user faults, where it's really the
-only option available.
+Shortcutting the fault like this is a rather minor optimization that saves
+a few instructions in rare cases.  Just remove it for user-triggered
+faults.
+
+Use the opportunity to split the fault retry handling from actual fault
+errors and add locking documentation that reads suprisingly similar to
+ARM's.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: azurIt <azurit@pobox.sk>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   44 +++++++++++++++++++++++++++++++++++
- include/linux/sched.h      |    3 ++
- mm/filemap.c               |   11 +++++++-
- mm/memcontrol.c            |    2 -
- mm/memory.c                |   40 +++++++++++++++++++++++--------
- 5 files changed, 88 insertions(+), 12 deletions(-)
+ arch/x86/mm/fault.c |   35 +++++++++++++++++------------------
+ 1 file changed, 17 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-enable-memcg-oom-killer-only-for-user-faults include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-enable-memcg-oom-killer-only-for-user-faults
-+++ a/include/linux/memcontrol.h
-@@ -151,6 +151,37 @@ extern void mem_cgroup_print_oom_info(st
- extern void mem_cgroup_replace_page_cache(struct page *oldpage,
- 					struct page *newpage);
- 
-+/**
-+ * mem_cgroup_toggle_oom - toggle the memcg OOM killer for the current task
-+ * @new: true to enable, false to disable
-+ *
-+ * Toggle whether a failed memcg charge should invoke the OOM killer
-+ * or just return -ENOMEM.  Returns the previous toggle state.
-+ */
-+static inline bool mem_cgroup_toggle_oom(bool new)
-+{
-+	bool old;
-+
-+	old = current->memcg_oom.may_oom;
-+	current->memcg_oom.may_oom = new;
-+
-+	return old;
-+}
-+
-+static inline void mem_cgroup_enable_oom(void)
-+{
-+	bool old = mem_cgroup_toggle_oom(true);
-+
-+	WARN_ON(old == true);
-+}
-+
-+static inline void mem_cgroup_disable_oom(void)
-+{
-+	bool old = mem_cgroup_toggle_oom(false);
-+
-+	WARN_ON(old == false);
-+}
-+
- #ifdef CONFIG_MEMCG_SWAP
- extern int do_swap_account;
- #endif
-@@ -382,6 +413,19 @@ static inline void mem_cgroup_end_update
- {
+diff -puN arch/x86/mm/fault.c~x86-finish-user-fault-error-path-with-fatal-signal arch/x86/mm/fault.c
+--- a/arch/x86/mm/fault.c~x86-finish-user-fault-error-path-with-fatal-signal
++++ a/arch/x86/mm/fault.c
+@@ -842,23 +842,15 @@ do_sigbus(struct pt_regs *regs, unsigned
+ 	force_sig_info_fault(SIGBUS, code, address, tsk, fault);
  }
  
-+static inline bool mem_cgroup_toggle_oom(bool new)
-+{
-+	return false;
-+}
-+
-+static inline void mem_cgroup_enable_oom(void)
-+{
-+}
-+
-+static inline void mem_cgroup_disable_oom(void)
-+{
-+}
-+
- static inline void mem_cgroup_inc_page_stat(struct page *page,
- 					    enum mem_cgroup_page_stat_item idx)
+-static noinline int
++static noinline void
+ mm_fault_error(struct pt_regs *regs, unsigned long error_code,
+ 	       unsigned long address, unsigned int fault)
  {
-diff -puN include/linux/sched.h~mm-memcg-enable-memcg-oom-killer-only-for-user-faults include/linux/sched.h
---- a/include/linux/sched.h~mm-memcg-enable-memcg-oom-killer-only-for-user-faults
-+++ a/include/linux/sched.h
-@@ -1399,6 +1399,9 @@ struct task_struct {
- 		unsigned long memsw_nr_pages; /* uncharged mem+swap usage */
- 	} memcg_batch;
- 	unsigned int memcg_kmem_skip_account;
-+	struct memcg_oom_info {
-+		unsigned int may_oom:1;
-+	} memcg_oom;
- #endif
- #ifdef CONFIG_UPROBES
- 	struct uprobe_task *utask;
-diff -puN mm/filemap.c~mm-memcg-enable-memcg-oom-killer-only-for-user-faults mm/filemap.c
---- a/mm/filemap.c~mm-memcg-enable-memcg-oom-killer-only-for-user-faults
-+++ a/mm/filemap.c
-@@ -1616,6 +1616,7 @@ int filemap_fault(struct vm_area_struct
- 	struct inode *inode = mapping->host;
- 	pgoff_t offset = vmf->pgoff;
- 	struct page *page;
-+	bool memcg_oom;
- 	pgoff_t size;
- 	int ret = 0;
+-	/*
+-	 * Pagefault was interrupted by SIGKILL. We have no reason to
+-	 * continue pagefault.
+-	 */
+-	if (fatal_signal_pending(current)) {
+-		if (!(fault & VM_FAULT_RETRY))
+-			up_read(&current->mm->mmap_sem);
+-		if (!(error_code & PF_USER))
+-			no_context(regs, error_code, address, 0, 0);
+-		return 1;
++	if (fatal_signal_pending(current) && !(error_code & PF_USER)) {
++		up_read(&current->mm->mmap_sem);
++		no_context(regs, error_code, address, 0, 0);
++		return;
+ 	}
+-	if (!(fault & VM_FAULT_ERROR))
+-		return 0;
  
-@@ -1624,7 +1625,11 @@ int filemap_fault(struct vm_area_struct
- 		return VM_FAULT_SIGBUS;
+ 	if (fault & VM_FAULT_OOM) {
+ 		/* Kernel mode? Handle exceptions or die: */
+@@ -866,7 +858,7 @@ mm_fault_error(struct pt_regs *regs, uns
+ 			up_read(&current->mm->mmap_sem);
+ 			no_context(regs, error_code, address,
+ 				   SIGSEGV, SEGV_MAPERR);
+-			return 1;
++			return;
+ 		}
+ 
+ 		up_read(&current->mm->mmap_sem);
+@@ -884,7 +876,6 @@ mm_fault_error(struct pt_regs *regs, uns
+ 		else
+ 			BUG();
+ 	}
+-	return 1;
+ }
+ 
+ static int spurious_fault_check(unsigned long error_code, pte_t *pte)
+@@ -1189,9 +1180,17 @@ good_area:
+ 	 */
+ 	fault = handle_mm_fault(mm, vma, address, flags);
+ 
+-	if (unlikely(fault & (VM_FAULT_RETRY|VM_FAULT_ERROR))) {
+-		if (mm_fault_error(regs, error_code, address, fault))
+-			return;
++	/*
++	 * If we need to retry but a fatal signal is pending, handle the
++	 * signal first. We do not need to release the mmap_sem because it
++	 * would already be released in __lock_page_or_retry in mm/filemap.c.
++	 */
++	if (unlikely((fault & VM_FAULT_RETRY) && fatal_signal_pending(current)))
++		return;
++
++	if (unlikely(fault & VM_FAULT_ERROR)) {
++		mm_fault_error(regs, error_code, address, fault);
++		return;
+ 	}
  
  	/*
--	 * Do we have something in the page cache already?
-+	 * Do we have something in the page cache already?  Either
-+	 * way, try readahead, but disable the memcg OOM killer for it
-+	 * as readahead is optional and no errors are propagated up
-+	 * the fault stack.  The OOM killer is enabled while trying to
-+	 * instantiate the faulting page individually below.
- 	 */
- 	page = find_get_page(mapping, offset);
- 	if (likely(page) && !(vmf->flags & FAULT_FLAG_TRIED)) {
-@@ -1632,10 +1637,14 @@ int filemap_fault(struct vm_area_struct
- 		 * We found the page, so try async readahead before
- 		 * waiting for the lock.
- 		 */
-+		memcg_oom = mem_cgroup_toggle_oom(false);
- 		do_async_mmap_readahead(vma, ra, file, page, offset);
-+		mem_cgroup_toggle_oom(memcg_oom);
- 	} else if (!page) {
- 		/* No page in the page cache at all */
-+		memcg_oom = mem_cgroup_toggle_oom(false);
- 		do_sync_mmap_readahead(vma, ra, file, offset);
-+		mem_cgroup_toggle_oom(memcg_oom);
- 		count_vm_event(PGMAJFAULT);
- 		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
- 		ret = VM_FAULT_MAJOR;
-diff -puN mm/memcontrol.c~mm-memcg-enable-memcg-oom-killer-only-for-user-faults mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-enable-memcg-oom-killer-only-for-user-faults
-+++ a/mm/memcontrol.c
-@@ -2478,7 +2478,7 @@ static int mem_cgroup_do_charge(struct m
- 		return CHARGE_RETRY;
- 
- 	/* If we don't need to call oom-killer at el, return immediately */
--	if (!oom_check)
-+	if (!oom_check || !current->memcg_oom.may_oom)
- 		return CHARGE_NOMEM;
- 	/* check OOM */
- 	if (!mem_cgroup_handle_oom(mem_over_limit, gfp_mask, get_order(csize)))
-diff -puN mm/memory.c~mm-memcg-enable-memcg-oom-killer-only-for-user-faults mm/memory.c
---- a/mm/memory.c~mm-memcg-enable-memcg-oom-killer-only-for-user-faults
-+++ a/mm/memory.c
-@@ -3752,22 +3752,14 @@ unlock:
- /*
-  * By the time we get here, we already hold the mm semaphore
-  */
--int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
--		unsigned long address, unsigned int flags)
-+static int __handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
-+			     unsigned long address, unsigned int flags)
- {
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
- 
--	__set_current_state(TASK_RUNNING);
--
--	count_vm_event(PGFAULT);
--	mem_cgroup_count_vm_event(mm, PGFAULT);
--
--	/* do counter updates before entering really critical section. */
--	check_sync_rss_stat(current);
--
- 	if (unlikely(is_vm_hugetlb_page(vma)))
- 		return hugetlb_fault(mm, vma, address, flags);
- 
-@@ -3851,6 +3843,34 @@ retry:
- 	return handle_pte_fault(mm, vma, address, pte, pmd, flags);
- }
- 
-+int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
-+		    unsigned long address, unsigned int flags)
-+{
-+	int ret;
-+
-+	__set_current_state(TASK_RUNNING);
-+
-+	count_vm_event(PGFAULT);
-+	mem_cgroup_count_vm_event(mm, PGFAULT);
-+
-+	/* do counter updates before entering really critical section. */
-+	check_sync_rss_stat(current);
-+
-+	/*
-+	 * Enable the memcg OOM handling for faults triggered in user
-+	 * space.  Kernel faults are handled more gracefully.
-+	 */
-+	if (flags & FAULT_FLAG_USER)
-+		mem_cgroup_enable_oom();
-+
-+	ret = __handle_mm_fault(mm, vma, address, flags);
-+
-+	if (flags & FAULT_FLAG_USER)
-+		mem_cgroup_disable_oom();
-+
-+	return ret;
-+}
-+
- #ifndef __PAGETABLE_PUD_FOLDED
- /*
-  * Allocate page upper directory.
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
