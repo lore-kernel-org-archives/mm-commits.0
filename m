@@ -1,34 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- ipcshm-shorten-critical-region-in-shmctl_down-fix.patch removed from -mm
- tree
-Date: Mon, 05 Aug 2013 14:57:06 -0700
-Message-ID: <52001fb2.0lSw2lzmXPoehdF1%akpm@linux-foundation.org>
+Subject: + ipcshm-shorten-critical-region-for-shmat-fix.patch added to -mm tree
+Date: Mon, 05 Aug 2013 14:57:45 -0700
+Message-ID: <52001fd9.G9MyJn5iCrFx0HMU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43127 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754717Ab3HEV5H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 17:57:07 -0400
+	with ESMTP id S1754717Ab3HEV5p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 17:57:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, sasha.levin@oracle.com
 
-Subject: [to-be-updated] ipcshm-shorten-critical-region-in-shmctl_down-fix.patch removed from -mm tree
-To: sasha.levin@oracle.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com,mm-commits@vger.kernel.org
+Subject: + ipcshm-shorten-critical-region-for-shmat-fix.patch added to -mm tree
+To: sasha.levin@oracle.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 14:57:06 -0700
+Date: Mon, 05 Aug 2013 14:57:45 -0700
 
 
 The patch titled
      Subject: ipc,shm: dont leave do_shmat with rcu lock held
-has been removed from the -mm tree.  Its filename was
-     ipcshm-shorten-critical-region-in-shmctl_down-fix.patch
+has been added to the -mm tree.  Its filename is
+     ipcshm-shorten-critical-region-for-shmat-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-shorten-critical-region-for-shmat-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-shorten-critical-region-for-shmat-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Sasha Levin <sasha.levin@oracle.com>
@@ -48,11 +60,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  ipc/shm.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/shm.c~ipcshm-shorten-critical-region-in-shmctl_down-fix ipc/shm.c
---- a/ipc/shm.c~ipcshm-shorten-critical-region-in-shmctl_down-fix
+diff -puN ipc/shm.c~ipcshm-shorten-critical-region-for-shmat-fix ipc/shm.c
+--- a/ipc/shm.c~ipcshm-shorten-critical-region-for-shmat-fix
 +++ a/ipc/shm.c
-@@ -1062,7 +1062,7 @@ long do_shmat(int shmid, char __user *sh
- 	shp = shm_lock_check(ns, shmid);
+@@ -1093,7 +1093,7 @@ long do_shmat(int shmid, char __user *sh
+ 	shp = shm_obtain_object_check(ns, shmid);
  	if (IS_ERR(shp)) {
  		err = PTR_ERR(shp);
 -		goto out;
@@ -65,5 +77,6 @@ _
 Patches currently in -mm which might be from sasha.levin@oracle.com are
 
 watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
+ipcshm-shorten-critical-region-for-shmat-fix.patch
 linux-next.patch
 
