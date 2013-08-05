@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + vmcore-introduce-remap_oldmem_pfn_range-fix.patch added to -mm
- tree
-Date: Mon, 05 Aug 2013 14:08:36 -0700
-Message-ID: <52001454.Ucn4GoAKBtccuAcE%akpm@linux-foundation.org>
+Subject: + thp-mm-locking-tail-page-is-a-bug-fix.patch added to -mm tree
+Date: Mon, 05 Aug 2013 14:19:34 -0700
+Message-ID: <520016e6.Jkh+Pjnlu0BDdC6n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42791 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42825 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754247Ab3HEVIh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 17:08:37 -0400
+	with ESMTP id S1753964Ab3HEVTf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Aug 2013 17:19:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, willeke@de.ibm.com, vgoyal@redhat.com, fengguang.wu@intel.com, d.hatayama@jp.fujitsu.com, holzheu@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
 
-Subject: + vmcore-introduce-remap_oldmem_pfn_range-fix.patch added to -mm tree
-To: holzheu@linux.vnet.ibm.com,d.hatayama@jp.fujitsu.com,fengguang.wu@intel.com,vgoyal@redhat.com,willeke@de.ibm.com
+Subject: + thp-mm-locking-tail-page-is-a-bug-fix.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 05 Aug 2013 14:08:36 -0700
+Date: Mon, 05 Aug 2013 14:19:34 -0700
 
 
 The patch titled
-     Subject: vmcore: fix address space sparse warnings
+     Subject: thp-mm-locking-tail-page-is-a-bug-fix
 has been added to the -mm tree.  Its filename is
-     vmcore-introduce-remap_oldmem_pfn_range-fix.patch
+     thp-mm-locking-tail-page-is-a-bug-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmcore-introduce-remap_oldmem_pfn_range-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-mm-locking-tail-page-is-a-bug-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmcore-introduce-remap_oldmem_pfn_range-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-mm-locking-tail-page-is-a-bug-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,61 +43,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Subject: vmcore: fix address space sparse warnings
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp-mm-locking-tail-page-is-a-bug-fix
 
-Fix the following sparse warnings:
 
- fs/proc/vmcore.c:173:34: sparse: incorrect type in argument 1
-                                  (different address spaces)
- fs/proc/vmcore.c:173:34:    expected void [noderef] <asn:1>*dst
- fs/proc/vmcore.c:173:34:    got void *target
- fs/proc/vmcore.c:256:30: sparse: incorrect type in argument 1
-                                  (different address spaces)
- fs/proc/vmcore.c:256:30:    expected char *[assigned] buffer
- fs/proc/vmcore.c:256:30:    got char [noderef] <asn:1>*buffer
 
-Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Jan Willeke <willeke@de.ibm.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/pagemap.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/proc/vmcore.c~vmcore-introduce-remap_oldmem_pfn_range-fix fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-introduce-remap_oldmem_pfn_range-fix
-+++ a/fs/proc/vmcore.c
-@@ -170,7 +170,7 @@ int __weak remap_oldmem_pfn_range(struct
- static int copy_to(void *target, void *src, size_t size, int userbuf)
+diff -puN include/linux/pagemap.h~thp-mm-locking-tail-page-is-a-bug-fix include/linux/pagemap.h
+--- a/include/linux/pagemap.h~thp-mm-locking-tail-page-is-a-bug-fix
++++ a/include/linux/pagemap.h
+@@ -339,6 +339,7 @@ static inline void __clear_page_locked(s
+ 
+ static inline int trylock_page(struct page *page)
  {
- 	if (userbuf) {
--		if (copy_to_user(target, src, size))
-+		if (copy_to_user((char __user *) target, src, size))
- 			return -EFAULT;
- 	} else {
- 		memcpy(target, src, size);
-@@ -253,7 +253,7 @@ static ssize_t __read_vmcore(char *buffe
- static ssize_t read_vmcore(struct file *file, char __user *buffer,
- 			   size_t buflen, loff_t *fpos)
- {
--	return __read_vmcore(buffer, buflen, fpos, 1);
-+	return __read_vmcore((__force char *) buffer, buflen, fpos, 1);
++	VM_BUG_ON(PageTail(page));
+ 	return (likely(!test_and_set_bit_lock(PG_locked, &page->flags)));
  }
  
- /*
 _
 
-Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-vmcore-introduce-elf-header-in-new-memory-feature.patch
-s390-vmcore-use-elf-header-in-new-memory-feature.patch
-vmcore-introduce-remap_oldmem_pfn_range.patch
-vmcore-introduce-remap_oldmem_pfn_range-fix.patch
-s390-vmcore-implement-remap_oldmem_pfn_range-for-s390.patch
-vmcore-enable-proc-vmcore-mmap-for-s390.patch
-s390-vmcore-use-vmcore-for-zfcpdump.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_shmem_file_read.patch
+thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
+mm-cleanup-add_to_page_cache_locked.patch
+thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
+thp-do_huge_pmd_anonymous_page-cleanup.patch
+thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
+mm-fix-potential-null-pointer-dereference.patch
+thp-mm-locking-tail-page-is-a-bug.patch
+thp-mm-locking-tail-page-is-a-bug-fix.patch
+linux-next.patch
+fs-bump-inode-and-dentry-counters-to-long.patch
+super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
+dentry-move-to-per-sb-lru-locks.patch
+dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+mm-new-shrinker-api.patch
+shrinker-convert-superblock-shrinkers-to-new-api.patch
+list-add-a-new-lru-list-type.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code.patch
+dcache-convert-to-use-new-lru-list-infrastructure.patch
+list_lru-per-node-list-infrastructure.patch
+list_lru-per-node-api.patch
+shrinker-add-node-awareness.patch
+vmscan-per-node-deferred-work.patch
+fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
+xfs-convert-buftarg-lru-to-generic-code.patch
+xfs-rework-buffer-dispose-list-tracking.patch
+xfs-convert-dquot-cache-lru-to-list_lru.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api.patch
+drivers-convert-shrinkers-to-new-count-scan-api.patch
+i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+shrinker-kill-old-shrink-api.patch
+list_lru-dynamically-adjust-node-arrays.patch
 
