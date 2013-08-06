@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-append-to-directory-patterns.patch added to -mm
+Subject: + pktcdvd-fix-defective-misuses-of-pkt_level.patch added to -mm
  tree
-Date: Tue, 06 Aug 2013 13:00:35 -0700
-Message-ID: <520155e3.TFcCKsDA8NNo/iME%akpm@linux-foundation.org>
+Date: Tue, 06 Aug 2013 13:20:59 -0700
+Message-ID: <52015aab.ntFhX3p7oGNUWwvL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55748 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55806 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756004Ab3HFUAg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 16:00:36 -0400
+	with ESMTP id S1756204Ab3HFUVA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 16:21:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com, joe@perches.com
 
-Subject: + maintainers-append-to-directory-patterns.patch added to -mm tree
-To: joe@perches.com
+Subject: + pktcdvd-fix-defective-misuses-of-pkt_level.patch added to -mm tree
+To: joe@perches.com,dan.carpenter@oracle.com
 From: akpm@linux-foundation.org
-Date: Tue, 06 Aug 2013 13:00:35 -0700
+Date: Tue, 06 Aug 2013 13:20:59 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: append "/" to directory patterns
+     Subject: pktcdvd: Fix defective misuses of pkt_<level>
 has been added to the -mm tree.  Its filename is
-     maintainers-append-to-directory-patterns.patch
+     pktcdvd-fix-defective-misuses-of-pkt_level.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-append-to-directory-patterns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pktcdvd-fix-defective-misuses-of-pkt_level.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-append-to-directory-patterns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pktcdvd-fix-defective-misuses-of-pkt_level.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,199 +45,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: append "/" to directory patterns
+Subject: pktcdvd: Fix defective misuses of pkt_<level>
 
-It's clearer to have patterns marked as directories.
-
-Change the directory patterns without terminating slashes.
+Fix thinkos where pkt_<level> needs a valid pktcdvd_device * and the
+pointer is known to be NULL.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com> (go smatch!)
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   46 +++++++++++++++++++++++-----------------------
- 1 file changed, 23 insertions(+), 23 deletions(-)
+ drivers/block/pktcdvd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-append-to-directory-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-append-to-directory-patterns
-+++ a/MAINTAINERS
-@@ -1003,7 +1003,7 @@ F:	arch/arm/mach-orion5x/ts78xx-*
- ARM/MICREL KS8695 ARCHITECTURE
- M:	Greg Ungerer <gerg@uclinux.org>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--F:	arch/arm/mach-ks8695
-+F:	arch/arm/mach-ks8695/
- S:	Odd Fixes
+diff -puN drivers/block/pktcdvd.c~pktcdvd-fix-defective-misuses-of-pkt_level drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-fix-defective-misuses-of-pkt_level
++++ a/drivers/block/pktcdvd.c
+@@ -2360,8 +2360,8 @@ static void pkt_make_request(struct requ
  
- ARM/MIOA701 MACHINE SUPPORT
-@@ -2006,10 +2006,10 @@ W:	http://ceph.com/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sage/ceph-client.git
- S:	Supported
- F:	Documentation/filesystems/ceph.txt
--F:	fs/ceph
--F:	net/ceph
--F:	include/linux/ceph
--F:	include/linux/crush
-+F:	fs/ceph/
-+F:	net/ceph/
-+F:	include/linux/ceph/
-+F:	include/linux/crush/
+ 	pd = q->queuedata;
+ 	if (!pd) {
+-		pkt_err(pd, "%s incorrect request queue\n",
+-			bdevname(bio->bi_bdev, b));
++		pr_err("%s incorrect request queue\n",
++		       bdevname(bio->bi_bdev, b));
+ 		goto end_io;
+ 	}
  
- CERTIFIED WIRELESS USB (WUSB) SUBSYSTEM:
- L:	linux-usb@vger.kernel.org
-@@ -2289,7 +2289,7 @@ CPU POWER MONITORING SUBSYSTEM
- M:	Dominik Brodowski <linux@dominikbrodowski.net>
- M:	Thomas Renninger <trenn@suse.de>
- S:	Maintained
--F:	tools/power/cpupower
-+F:	tools/power/cpupower/
- 
- CPUSETS
- M:	Li Zefan <lizefan@huawei.com>
-@@ -2727,7 +2727,7 @@ L:	intel-gfx@lists.freedesktop.org
- L:	dri-devel@lists.freedesktop.org
- T:	git git://people.freedesktop.org/~danvet/drm-intel
- S:	Supported
--F:	drivers/gpu/drm/i915
-+F:	drivers/gpu/drm/i915/
- F:	include/drm/i915*
- F:	include/uapi/drm/i915*
- 
-@@ -2739,7 +2739,7 @@ M:	Kyungmin Park <kyungmin.park@samsung.
- L:	dri-devel@lists.freedesktop.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/daeinki/drm-exynos.git
- S:	Supported
--F:	drivers/gpu/drm/exynos
-+F:	drivers/gpu/drm/exynos/
- F:	include/drm/exynos*
- F:	include/uapi/drm/exynos*
- 
-@@ -3598,8 +3598,8 @@ M:	Arnd Bergmann <arnd@arndb.de>
- L:	linux-arch@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic.git
- S:	Maintained
--F:	include/asm-generic
--F:	include/uapi/asm-generic
-+F:	include/asm-generic/
-+F:	include/uapi/asm-generic/
- 
- GENERIC UIO DRIVER FOR PCI DEVICES
- M:	"Michael S. Tsirkin" <mst@redhat.com>
-@@ -3720,7 +3720,7 @@ L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- W:	http://linuxtv.org
- S:	Odd Fixes
--F:	drivers/media/usb/hdpvr
-+F:	drivers/media/usb/hdpvr/
- 
- HWPOISON MEMORY FAILURE HANDLING
- M:	Andi Kleen <andi@firstfloor.org>
-@@ -4521,7 +4521,7 @@ S:	Supported
- W:	http://www.openfabrics.org
- W:	www.open-iscsi.org
- Q:	http://patchwork.kernel.org/project/linux-rdma/list/
--F:	drivers/infiniband/ulp/iser
-+F:	drivers/infiniband/ulp/iser/
- 
- ISDN SUBSYSTEM
- M:	Karsten Keil <isdn@linux-pingi.de>
-@@ -6079,7 +6079,7 @@ W:	http://openrisc.net
- L:	linux@lists.openrisc.net (moderated for non-subscribers)
- S:	Maintained
- T:	git git://openrisc.net/~jonas/linux
--F:	arch/openrisc
-+F:	arch/openrisc/
- 
- OPENVSWITCH
- M:	Jesse Gross <jesse@nicira.com>
-@@ -6363,7 +6363,7 @@ M:	Jamie Iles <jamie@jamieiles.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- T:	git git://github.com/jamieiles/linux-2.6-ji.git
- S:	Supported
--F:	arch/arm/mach-picoxcell
-+F:	arch/arm/mach-picoxcell/
- F:	drivers/*/picoxcell*
- F:	drivers/*/*/picoxcell*
- 
-@@ -6636,7 +6636,7 @@ F:	drivers/spi/spi-pxa2xx*
- F:	drivers/usb/gadget/pxa2*
- F:	include/sound/pxa2xx-lib.h
- F:	sound/arm/pxa*
--F:	sound/soc/pxa
-+F:	sound/soc/pxa/
- 
- MMP SUPPORT
- M:	Eric Miao <eric.y.miao@gmail.com>
-@@ -7081,7 +7081,7 @@ SAMSUNG AUDIO (ASoC) DRIVERS
- M:	Sangbeom Kim <sbkim73@samsung.com>
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
- S:	Supported
--F:	sound/soc/samsung
-+F:	sound/soc/samsung/
- 
- SAMSUNG FRAMEBUFFER DRIVER
- M:	Jingoo Han <jg1.han@samsung.com>
-@@ -7127,7 +7127,7 @@ SERIAL DRIVERS
- M:	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
- L:	linux-serial@vger.kernel.org
- S:	Maintained
--F:	drivers/tty/serial
-+F:	drivers/tty/serial/
- 
- SYNOPSYS DESIGNWARE DMAC DRIVER
- M:	Viresh Kumar <viresh.linux@gmail.com>
-@@ -7156,13 +7156,13 @@ F:	include/uapi/linux/timex.h
- F:	kernel/time/clocksource.c
- F:	kernel/time/time*.c
- F:	kernel/time/ntp.c
--F:	drivers/clocksource
-+F:	drivers/clocksource/
- 
- TLG2300 VIDEO4LINUX-2 DRIVER
- M:	Huang Shijie <shijie8@gmail.com>
- M:	Hans Verkuil <hverkuil@xs4all.nl>
- S:	Odd Fixes
--F:	drivers/media/usb/tlg2300
-+F:	drivers/media/usb/tlg2300/
- 
- SC1200 WDT DRIVER
- M:	Zwane Mwaikambo <zwane@arm.linux.org.uk>
-@@ -7433,7 +7433,7 @@ S:	Odd fixes
- F:	drivers/media/common/siano/
- F:	drivers/media/usb/siano/
- F:	drivers/media/usb/siano/
--F:	drivers/media/mmc/siano
-+F:	drivers/media/mmc/siano/
- 
- SH_VEU V4L2 MEM2MEM DRIVER
- M:	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-@@ -7482,7 +7482,7 @@ L:	davinci-linux-open-source@linux.davin
- T:	git git://gitorious.org/linux-davinci/linux-davinci.git
- Q:	http://patchwork.kernel.org/project/linux-davinci/list/
- S:	Supported
--F:	arch/arm/mach-davinci
-+F:	arch/arm/mach-davinci/
- F:	drivers/i2c/busses/i2c-davinci.c
- 
- TI DAVINCI SERIES MEDIA DRIVER
-@@ -7559,7 +7559,7 @@ SMIA AND SMIA++ IMAGE SENSOR DRIVER
- M:	Sakari Ailus <sakari.ailus@iki.fi>
- L:	linux-media@vger.kernel.org
- S:	Maintained
--F:	drivers/media/i2c/smiapp
-+F:	drivers/media/i2c/smiapp/
- F:	include/media/smiapp.h
- F:	drivers/media/i2c/smiapp-pll.c
- F:	drivers/media/i2c/smiapp-pll.h
-@@ -9194,7 +9194,7 @@ M:	Matthew Garrett <matthew.garrett@nebu
- L:	platform-driver-x86@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mjg59/platform-drivers-x86.git
- S:	Maintained
--F:	drivers/platform/x86
-+F:	drivers/platform/x86/
- 
- X86 MCE INFRASTRUCTURE
- M:	Tony Luck <tony.luck@intel.com>
+@@ -2841,7 +2841,7 @@ static int pkt_remove_dev(dev_t pkt_dev)
+ 			break;
+ 	}
+ 	if (idx == MAX_WRITERS) {
+-		pkt_dbg(1, pd, "dev not setup\n");
++		pr_debug("dev not setup\n");
+ 		ret = -ENXIO;
+ 		goto out;
+ 	}
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -279,5 +122,6 @@ pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
 pktcdvd-convert-pr_notice-to-pkt_notice.patch
 pktcdvd-convert-pr_info-to-pkt_info.patch
 pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
+pktcdvd-fix-defective-misuses-of-pkt_level.patch
 linux-next.patch
 
