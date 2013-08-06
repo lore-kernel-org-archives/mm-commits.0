@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
- added to -mm tree
-Date: Tue, 06 Aug 2013 13:36:43 -0700
-Message-ID: <52015e5b.KadLpyr/QwMdwE3n%akpm@linux-foundation.org>
+ kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch added
+ to -mm tree
+Date: Tue, 06 Aug 2013 13:39:02 -0700
+Message-ID: <52015ee6.bjrjLMjGm90OT1Qj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55922 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55929 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752716Ab3HFUgo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 16:36:44 -0400
+	with ESMTP id S1752858Ab3HFUjD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 16:39:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, geert@linux-m68k.org, ak@linux.intel.com
+To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, dhowells@redhat.com, ak@linux.intel.com
 
-Subject: + syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch added to -mm tree
-To: ak@linux.intel.com,geert@linux-m68k.org,viro@ZenIV.linux.org.uk
+Subject: + kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch added to -mm tree
+To: ak@linux.intel.com,dhowells@redhat.com,rusty@rustcorp.com.au
 From: akpm@linux-foundation.org
-Date: Tue, 06 Aug 2013 13:36:43 -0700
+Date: Tue, 06 Aug 2013 13:39:02 -0700
 
 
 The patch titled
-     Subject: syscalls.h: use gcc alias instead of assembler aliases for syscalls
+     Subject: kernel/modsign_pubkey.c: fix init const for module signing code
 has been added to the -mm tree.  Its filename is
-     syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+     kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,63 +46,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: syscalls.h: use gcc alias instead of assembler aliases for syscalls
+Subject: kernel/modsign_pubkey.c: fix init const for module signing code
 
-Use standard gcc __attribute__((alias(foo))) to define the syscall aliases
-instead of custom assembler macros.
-
-This is far cleaner, and also fixes my LTO kernel build.
+const has to use __initconst, not __initdata
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compat.h   |    4 ++--
- include/linux/syscalls.h |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/modsign_pubkey.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/compat.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls include/linux/compat.h
---- a/include/linux/compat.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls
-+++ a/include/linux/compat.h
-@@ -41,13 +41,13 @@
- 	COMPAT_SYSCALL_DEFINEx(6, _##name, __VA_ARGS__)
+diff -puN kernel/modsign_pubkey.c~kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code kernel/modsign_pubkey.c
+--- a/kernel/modsign_pubkey.c~kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code
++++ a/kernel/modsign_pubkey.c
+@@ -18,14 +18,14 @@
  
- #define COMPAT_SYSCALL_DEFINEx(x, name, ...)				\
--	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__));\
-+	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))\
-+		__attribute__((alias(__stringify(compat_SyS##name))));  \
- 	static inline long C_SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__));\
- 	asmlinkage long compat_SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__))\
- 	{								\
- 		return C_SYSC##name(__MAP(x,__SC_DELOUSE,__VA_ARGS__));	\
- 	}								\
--	SYSCALL_ALIAS(compat_sys##name, compat_SyS##name);		\
- 	static inline long C_SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__))
+ struct key *modsign_keyring;
  
- #ifndef compat_user_stack_pointer
-diff -puN include/linux/syscalls.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls include/linux/syscalls.h
---- a/include/linux/syscalls.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls
-+++ a/include/linux/syscalls.h
-@@ -184,7 +184,8 @@ extern struct trace_event_functions exit
+-extern __initdata const u8 modsign_certificate_list[];
+-extern __initdata const u8 modsign_certificate_list_end[];
++extern __initconst const u8 modsign_certificate_list[];
++extern __initconst const u8 modsign_certificate_list_end[];
  
- #define __PROTECT(...) asmlinkage_protect(__VA_ARGS__)
- #define __SYSCALL_DEFINEx(x, name, ...)					\
--	asmlinkage long sys##name(__MAP(x,__SC_DECL,__VA_ARGS__));	\
-+	asmlinkage long sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))	\
-+		__attribute__((alias(__stringify(SyS##name))));		\
- 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__));	\
- 	asmlinkage long SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__))	\
- 	{								\
-@@ -193,7 +194,6 @@ extern struct trace_event_functions exit
- 		__PROTECT(x, ret,__MAP(x,__SC_ARGS,__VA_ARGS__));	\
- 		return ret;						\
- 	}								\
--	SYSCALL_ALIAS(sys##name, SyS##name);				\
- 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__))
+ /*
+  * We need to make sure ccache doesn't cache the .o file as it doesn't notice
+  * if modsign.pub changes.
+  */
+-static __initdata const char annoy_ccache[] = __TIME__ "foo";
++static __initconst const char annoy_ccache[] = __TIME__ "foo";
  
- asmlinkage long sys_time(time_t __user *tloc);
+ /*
+  * Load the compiled-in keys
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
@@ -113,5 +90,6 @@ thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
 thp-do_huge_pmd_anonymous_page-cleanup.patch
 thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
 syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
 linux-next.patch
 
