@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-pgtable-related-functions-to-right-place.patch added to -mm tree
-Date: Tue, 06 Aug 2013 15:13:40 -0700
-Message-ID: <52017514.k+TRGhze/bAx8ujt%akpm@linux-foundation.org>
+Subject: + swap-clean-up-ifdef-in-page_mapping.patch added to -mm tree
+Date: Tue, 06 Aug 2013 15:13:41 -0700
+Message-ID: <52017515.j91vzlzpi/cYpAXN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56578 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56584 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756569Ab3HFWNl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 18:13:41 -0400
+	with ESMTP id S1756632Ab3HFWNm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 18:13:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, minchan@kernel.org, mgorman@suse.de, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com
 
-Subject: + mm-move-pgtable-related-functions-to-right-place.patch added to -mm tree
+Subject: + swap-clean-up-ifdef-in-page_mapping.patch added to -mm tree
 To: iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,mgorman@suse.de,minchan@kernel.org,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 06 Aug 2013 15:13:40 -0700
+Date: Tue, 06 Aug 2013 15:13:41 -0700
 
 
 The patch titled
-     Subject: mm: move pgtable related functions to right place
+     Subject: swap: clean-up #ifdef in page_mapping()
 has been added to the -mm tree.  Its filename is
-     mm-move-pgtable-related-functions-to-right-place.patch
+     swap-clean-up-ifdef-in-page_mapping.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-pgtable-related-functions-to-right-place.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap-clean-up-ifdef-in-page_mapping.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-pgtable-related-functions-to-right-place.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap-clean-up-ifdef-in-page_mapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,91 +44,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm: move pgtable related functions to right place
+Subject: swap: clean-up #ifdef in page_mapping()
 
-pgtable related functions are mostly in pgtable-generic.c.
-So move remaining functions from memory.c to pgtable-generic.c.
+PageSwapCache() is always false when !CONFIG_SWAP, so compiler
+properly discard related code. Therefore, we don't need #ifdef explicitly.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c          |   24 ------------------------
- mm/pgtable-generic.c |   24 ++++++++++++++++++++++++
- 2 files changed, 24 insertions(+), 24 deletions(-)
+ include/linux/swap.h |    1 +
+ mm/util.c            |    5 +----
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory.c~mm-move-pgtable-related-functions-to-right-place mm/memory.c
---- a/mm/memory.c~mm-move-pgtable-related-functions-to-right-place
-+++ a/mm/memory.c
-@@ -374,30 +374,6 @@ void tlb_remove_table(struct mmu_gather
- #endif /* CONFIG_HAVE_RCU_TABLE_FREE */
+diff -puN include/linux/swap.h~swap-clean-up-ifdef-in-page_mapping include/linux/swap.h
+--- a/include/linux/swap.h~swap-clean-up-ifdef-in-page_mapping
++++ a/include/linux/swap.h
+@@ -447,6 +447,7 @@ mem_cgroup_uncharge_swapcache(struct pag
  
- /*
-- * If a p?d_bad entry is found while walking page tables, report
-- * the error, before resetting entry to p?d_none.  Usually (but
-- * very seldom) called out from the p?d_none_or_clear_bad macros.
-- */
--
--void pgd_clear_bad(pgd_t *pgd)
--{
--	pgd_ERROR(*pgd);
--	pgd_clear(pgd);
--}
--
--void pud_clear_bad(pud_t *pud)
--{
--	pud_ERROR(*pud);
--	pud_clear(pud);
--}
--
--void pmd_clear_bad(pmd_t *pmd)
--{
--	pmd_ERROR(*pmd);
--	pmd_clear(pmd);
--}
--
--/*
-  * Note: this doesn't free the actual pages themselves. That
-  * has been handled earlier when unmapping all the memory regions.
-  */
-diff -puN mm/pgtable-generic.c~mm-move-pgtable-related-functions-to-right-place mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~mm-move-pgtable-related-functions-to-right-place
-+++ a/mm/pgtable-generic.c
-@@ -10,6 +10,30 @@
- #include <asm/tlb.h>
- #include <asm-generic/pgtable.h>
+ #else /* CONFIG_SWAP */
  
-+/*
-+ * If a p?d_bad entry is found while walking page tables, report
-+ * the error, before resetting entry to p?d_none.  Usually (but
-+ * very seldom) called out from the p?d_none_or_clear_bad macros.
-+ */
-+
-+void pgd_clear_bad(pgd_t *pgd)
-+{
-+	pgd_ERROR(*pgd);
-+	pgd_clear(pgd);
-+}
-+
-+void pud_clear_bad(pud_t *pud)
-+{
-+	pud_ERROR(*pud);
-+	pud_clear(pud);
-+}
-+
-+void pmd_clear_bad(pmd_t *pmd)
-+{
-+	pmd_ERROR(*pmd);
-+	pmd_clear(pmd);
-+}
-+
- #ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- /*
-  * Only sets the access flags (dirty, accessed), as well as write 
++#define swap_address_space(entry)		(NULL)
+ #define get_nr_swap_pages()			0L
+ #define total_swap_pages			0L
+ #define total_swapcache_pages()			0UL
+diff -puN mm/util.c~swap-clean-up-ifdef-in-page_mapping mm/util.c
+--- a/mm/util.c~swap-clean-up-ifdef-in-page_mapping
++++ a/mm/util.c
+@@ -388,15 +388,12 @@ struct address_space *page_mapping(struc
+ 	struct address_space *mapping = page->mapping;
+ 
+ 	VM_BUG_ON(PageSlab(page));
+-#ifdef CONFIG_SWAP
+ 	if (unlikely(PageSwapCache(page))) {
+ 		swp_entry_t entry;
+ 
+ 		entry.val = page_private(page);
+ 		mapping = swap_address_space(entry);
+-	} else
+-#endif
+-	if ((unsigned long)mapping & PAGE_MAPPING_ANON)
++	} else if ((unsigned long)mapping & PAGE_MAPPING_ANON)
+ 		mapping = NULL;
+ 	return mapping;
+ }
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
