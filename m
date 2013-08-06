@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch added
- to -mm tree
-Date: Tue, 06 Aug 2013 13:39:02 -0700
-Message-ID: <52015ee6.bjrjLMjGm90OT1Qj%akpm@linux-foundation.org>
+Subject: + lto-watchdog-hpwdtc-make-assembler-label-global.patch added to
+ -mm tree
+Date: Tue, 06 Aug 2013 13:46:50 -0700
+Message-ID: <520160ba.xWn5xXa/qTpQ0C4V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55929 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55947 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752858Ab3HFUjD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 16:39:03 -0400
+	with ESMTP id S1754880Ab3HFUqv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 16:46:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, dhowells@redhat.com, ak@linux.intel.com
+To: mm-commits@vger.kernel.org, wim@iguana.be, ak@linux.intel.com
 
-Subject: + kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch added to -mm tree
-To: ak@linux.intel.com,dhowells@redhat.com,rusty@rustcorp.com.au
+Subject: + lto-watchdog-hpwdtc-make-assembler-label-global.patch added to -mm tree
+To: ak@linux.intel.com,wim@iguana.be
 From: akpm@linux-foundation.org
-Date: Tue, 06 Aug 2013 13:39:02 -0700
+Date: Tue, 06 Aug 2013 13:46:50 -0700
 
 
 The patch titled
-     Subject: kernel/modsign_pubkey.c: fix init const for module signing code
+     Subject: lto, watchdog/hpwdt.c: make assembler label global
 has been added to the -mm tree.  Its filename is
-     kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
+     lto-watchdog-hpwdtc-make-assembler-label-global.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lto-watchdog-hpwdtc-make-assembler-label-global.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lto-watchdog-hpwdtc-make-assembler-label-global.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,40 +45,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: kernel/modsign_pubkey.c: fix init const for module signing code
+Subject: lto, watchdog/hpwdt.c: make assembler label global
 
-const has to use __initconst, not __initdata
+We cannot assume that the inline assembler code always ends up in the same
+file as the original C file.  So make any assembler labels that are called
+with "extern" by C global
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/modsign_pubkey.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/watchdog/hpwdt.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/modsign_pubkey.c~kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code kernel/modsign_pubkey.c
---- a/kernel/modsign_pubkey.c~kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code
-+++ a/kernel/modsign_pubkey.c
-@@ -18,14 +18,14 @@
+diff -puN drivers/watchdog/hpwdt.c~lto-watchdog-hpwdtc-make-assembler-label-global drivers/watchdog/hpwdt.c
+--- a/drivers/watchdog/hpwdt.c~lto-watchdog-hpwdtc-make-assembler-label-global
++++ a/drivers/watchdog/hpwdt.c
+@@ -162,7 +162,8 @@ extern asmlinkage void asminline_call(st
+ #define HPWDT_ARCH	32
  
- struct key *modsign_keyring;
+ asm(".text                          \n\t"
+-    ".align 4                       \n"
++    ".align 4                       \n\t"
++    ".globl asminline_call	    \n"
+     "asminline_call:                \n\t"
+     "pushl       %ebp               \n\t"
+     "movl        %esp, %ebp         \n\t"
+@@ -352,7 +353,8 @@ static int detect_cru_service(void)
+ #define HPWDT_ARCH	64
  
--extern __initdata const u8 modsign_certificate_list[];
--extern __initdata const u8 modsign_certificate_list_end[];
-+extern __initconst const u8 modsign_certificate_list[];
-+extern __initconst const u8 modsign_certificate_list_end[];
- 
- /*
-  * We need to make sure ccache doesn't cache the .o file as it doesn't notice
-  * if modsign.pub changes.
-  */
--static __initdata const char annoy_ccache[] = __TIME__ "foo";
-+static __initconst const char annoy_ccache[] = __TIME__ "foo";
- 
- /*
-  * Load the compiled-in keys
+ asm(".text                      \n\t"
+-    ".align 4                   \n"
++    ".align 4                   \n\t"
++    ".globl asminline_call	\n"
+     "asminline_call:            \n\t"
+     "pushq      %rbp            \n\t"
+     "movq       %rsp, %rbp      \n\t"
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
@@ -91,5 +93,6 @@ thp-do_huge_pmd_anonymous_page-cleanup.patch
 thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
 syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
 kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
+lto-watchdog-hpwdtc-make-assembler-label-global.patch
 linux-next.patch
 
