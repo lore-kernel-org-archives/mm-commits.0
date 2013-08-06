@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + pktcdvd-fix-defective-misuses-of-pkt_level.patch added to -mm
- tree
-Date: Tue, 06 Aug 2013 13:20:59 -0700
-Message-ID: <52015aab.ntFhX3p7oGNUWwvL%akpm@linux-foundation.org>
+Subject: +
+ syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+ added to -mm tree
+Date: Tue, 06 Aug 2013 13:36:43 -0700
+Message-ID: <52015e5b.KadLpyr/QwMdwE3n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55806 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55922 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756204Ab3HFUVA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 16:21:00 -0400
+	with ESMTP id S1752716Ab3HFUgo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 16:36:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com, joe@perches.com
+To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, geert@linux-m68k.org, ak@linux.intel.com
 
-Subject: + pktcdvd-fix-defective-misuses-of-pkt_level.patch added to -mm tree
-To: joe@perches.com,dan.carpenter@oracle.com
+Subject: + syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch added to -mm tree
+To: ak@linux.intel.com,geert@linux-m68k.org,viro@ZenIV.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 06 Aug 2013 13:20:59 -0700
+Date: Tue, 06 Aug 2013 13:36:43 -0700
 
 
 The patch titled
-     Subject: pktcdvd: Fix defective misuses of pkt_<level>
+     Subject: syscalls.h: use gcc alias instead of assembler aliases for syscalls
 has been added to the -mm tree.  Its filename is
-     pktcdvd-fix-defective-misuses-of-pkt_level.patch
+     syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pktcdvd-fix-defective-misuses-of-pkt_level.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pktcdvd-fix-defective-misuses-of-pkt_level.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,84 +45,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: pktcdvd: Fix defective misuses of pkt_<level>
+From: Andi Kleen <ak@linux.intel.com>
+Subject: syscalls.h: use gcc alias instead of assembler aliases for syscalls
 
-Fix thinkos where pkt_<level> needs a valid pktcdvd_device * and the
-pointer is known to be NULL.
+Use standard gcc __attribute__((alias(foo))) to define the syscall aliases
+instead of custom assembler macros.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com> (go smatch!)
+This is far cleaner, and also fixes my LTO kernel build.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/compat.h   |    4 ++--
+ include/linux/syscalls.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~pktcdvd-fix-defective-misuses-of-pkt_level drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~pktcdvd-fix-defective-misuses-of-pkt_level
-+++ a/drivers/block/pktcdvd.c
-@@ -2360,8 +2360,8 @@ static void pkt_make_request(struct requ
+diff -puN include/linux/compat.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls include/linux/compat.h
+--- a/include/linux/compat.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls
++++ a/include/linux/compat.h
+@@ -41,13 +41,13 @@
+ 	COMPAT_SYSCALL_DEFINEx(6, _##name, __VA_ARGS__)
  
- 	pd = q->queuedata;
- 	if (!pd) {
--		pkt_err(pd, "%s incorrect request queue\n",
--			bdevname(bio->bi_bdev, b));
-+		pr_err("%s incorrect request queue\n",
-+		       bdevname(bio->bi_bdev, b));
- 		goto end_io;
- 	}
+ #define COMPAT_SYSCALL_DEFINEx(x, name, ...)				\
+-	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__));\
++	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))\
++		__attribute__((alias(__stringify(compat_SyS##name))));  \
+ 	static inline long C_SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__));\
+ 	asmlinkage long compat_SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__))\
+ 	{								\
+ 		return C_SYSC##name(__MAP(x,__SC_DELOUSE,__VA_ARGS__));	\
+ 	}								\
+-	SYSCALL_ALIAS(compat_sys##name, compat_SyS##name);		\
+ 	static inline long C_SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__))
  
-@@ -2841,7 +2841,7 @@ static int pkt_remove_dev(dev_t pkt_dev)
- 			break;
- 	}
- 	if (idx == MAX_WRITERS) {
--		pkt_dbg(1, pd, "dev not setup\n");
-+		pr_debug("dev not setup\n");
- 		ret = -ENXIO;
- 		goto out;
- 	}
+ #ifndef compat_user_stack_pointer
+diff -puN include/linux/syscalls.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls include/linux/syscalls.h
+--- a/include/linux/syscalls.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls
++++ a/include/linux/syscalls.h
+@@ -184,7 +184,8 @@ extern struct trace_event_functions exit
+ 
+ #define __PROTECT(...) asmlinkage_protect(__VA_ARGS__)
+ #define __SYSCALL_DEFINEx(x, name, ...)					\
+-	asmlinkage long sys##name(__MAP(x,__SC_DECL,__VA_ARGS__));	\
++	asmlinkage long sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))	\
++		__attribute__((alias(__stringify(SyS##name))));		\
+ 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__));	\
+ 	asmlinkage long SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__))	\
+ 	{								\
+@@ -193,7 +194,6 @@ extern struct trace_event_functions exit
+ 		__PROTECT(x, ret,__MAP(x,__SC_ARGS,__VA_ARGS__));	\
+ 		return ret;						\
+ 	}								\
+-	SYSCALL_ALIAS(sys##name, SyS##name);				\
+ 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__))
+ 
+ asmlinkage long sys_time(time_t __user *tloc);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
-maintainers-exynos-remove-board-files.patch
-maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
-maintainers-omap-powerdomain-update-patterns.patch
-maintainers-arm-s3c2410-update-patterns.patch
-maintainers-arm-spear-consolidate-sections.patch
-maintainers-arm-plat-nomadik-update-patterns.patch
-maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
-maintainers-ghes_edac-update-pattern.patch
-maintainers-update-siano-drivers.patch
-maintainers-si4713-fix-file-pattern.patch
-maintainers-update-it913x-patterns.patch
-maintainers-update-sirf-patterns.patch
-maintainers-update-ssbi-patterns.patch
-maintainers-update-file-pattern-for-arc-uart.patch
-maintainers-update-usb-ehci-platform-pattern.patch
-maintainers-usb-phy-update-patterns.patch
-maintainers-update-gre-demux-patterns.patch
-maintainers-append-to-directory-patterns.patch
-checkpatch-add-a-few-more-fix-corrections.patch
-checkpatch-check-camelcase-by-word-not-by-lval.patch
-checkpatch-enforce-sane-perl-version.patch
-checkpatch-check-for-duplicate-signatures.patch
-checkpatch-warn-when-using-extern-with-function-prototypes-in-h-files.patch
-checkpatch-fix-networking-kernel-doc-block-comment-defect.patch
-checkpatch-add-types-option-to-report-only-specific-message-types.patch
-firmware-dmi_scan-drop-obsolete-comment.patch
-firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
-firmware-dmi_scan-constify-strings.patch
-firmware-dmi_scan-drop-oom-messages.patch
-pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
-pktcdvd-convert-printk-to-pr_level.patch
-pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
-pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
-pktcdvd-convert-pr_notice-to-pkt_notice.patch
-pktcdvd-convert-pr_info-to-pkt_info.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
-pktcdvd-fix-defective-misuses-of-pkt_level.patch
+thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
+mm-cleanup-add_to_page_cache_locked.patch
+thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
+thp-do_huge_pmd_anonymous_page-cleanup.patch
+thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
+syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
 linux-next.patch
 
