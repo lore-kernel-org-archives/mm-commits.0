@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + swap-clean-up-ifdef-in-page_mapping.patch added to -mm tree
-Date: Tue, 06 Aug 2013 15:13:41 -0700
-Message-ID: <52017515.j91vzlzpi/cYpAXN%akpm@linux-foundation.org>
+Subject: +
+ userns-unshare_usernscred-should-not-populate-cred-on-failure.patch added
+ to -mm tree
+Date: Tue, 06 Aug 2013 15:44:45 -0700
+Message-ID: <52017c5d.1Yw4kyJuM43iJWQ2%akpm__40144.4040042863$1375829094$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756632Ab3HFWNm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 18:13:42 -0400
+	with ESMTP id S1756728Ab3HFWoq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 18:44:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, minchan@kernel.org, mgorman@suse.de, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, pmatouse@redhat.com, luto@amacapital.net, ebiederm@xmission.com, dhowells@redhat.com, oleg@redhat.com
 
-Subject: + swap-clean-up-ifdef-in-page_mapping.patch added to -mm tree
-To: iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,mgorman@suse.de,minchan@kernel.org,riel@redhat.com
+Subject: + userns-unshare_usernscred-should-not-populate-cred-on-failure.patch added to -mm tree
+To: oleg@redhat.com,dhowells@redhat.com,ebiederm@xmission.com,luto@amacapital.net,pmatouse@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 06 Aug 2013 15:13:41 -0700
+Date: Tue, 06 Aug 2013 15:44:45 -0700
 
 
 The patch titled
-     Subject: swap: clean-up #ifdef in page_mapping()
+     Subject: userns: unshare_userns(&cred) should not populate cred on failure
 has been added to the -mm tree.  Its filename is
-     swap-clean-up-ifdef-in-page_mapping.patch
+     userns-unshare_usernscred-should-not-populate-cred-on-failure.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swap-clean-up-ifdef-in-page_mapping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userns-unshare_usernscred-should-not-populate-cred-on-failure.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swap-clean-up-ifdef-in-page_mapping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userns-unshare_usernscred-should-not-populate-cred-on-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,70 +45,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: swap: clean-up #ifdef in page_mapping()
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: userns: unshare_userns(&cred) should not populate cred on failure
 
-PageSwapCache() is always false when !CONFIG_SWAP, so compiler
-properly discard related code. Therefore, we don't need #ifdef explicitly.
+unshare_userns(new_cred) does *new_cred = prepare_creds() before
+create_user_ns() which can fail.  However, the caller expects that it
+doesn't need to take care of new_cred if unshare_userns() fails.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+We could change the single caller, sys_unshare(), but I think it would be
+more clean to avoid the side effects on failure, so with this patch
+unshare_userns() does put_cred() itself and initializes *new_cred only if
+create_user_ns() succeeeds.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Petr Matousek <pmatouse@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Reviewed-by: Andy Lutomirski <luto@amacapital.net>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 +
- mm/util.c            |    5 +----
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ kernel/user_namespace.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/swap.h~swap-clean-up-ifdef-in-page_mapping include/linux/swap.h
---- a/include/linux/swap.h~swap-clean-up-ifdef-in-page_mapping
-+++ a/include/linux/swap.h
-@@ -447,6 +447,7 @@ mem_cgroup_uncharge_swapcache(struct pag
+diff -puN kernel/user_namespace.c~userns-unshare_usernscred-should-not-populate-cred-on-failure kernel/user_namespace.c
+--- a/kernel/user_namespace.c~userns-unshare_usernscred-should-not-populate-cred-on-failure
++++ a/kernel/user_namespace.c
+@@ -105,16 +105,21 @@ int create_user_ns(struct cred *new)
+ int unshare_userns(unsigned long unshare_flags, struct cred **new_cred)
+ {
+ 	struct cred *cred;
++	int err = -ENOMEM;
  
- #else /* CONFIG_SWAP */
+ 	if (!(unshare_flags & CLONE_NEWUSER))
+ 		return 0;
  
-+#define swap_address_space(entry)		(NULL)
- #define get_nr_swap_pages()			0L
- #define total_swap_pages			0L
- #define total_swapcache_pages()			0UL
-diff -puN mm/util.c~swap-clean-up-ifdef-in-page_mapping mm/util.c
---- a/mm/util.c~swap-clean-up-ifdef-in-page_mapping
-+++ a/mm/util.c
-@@ -388,15 +388,12 @@ struct address_space *page_mapping(struc
- 	struct address_space *mapping = page->mapping;
+ 	cred = prepare_creds();
+-	if (!cred)
+-		return -ENOMEM;
++	if (cred) {
++		err = create_user_ns(cred);
++		if (err)
++			put_cred(cred);
++		else
++			*new_cred = cred;
++	}
  
- 	VM_BUG_ON(PageSlab(page));
--#ifdef CONFIG_SWAP
- 	if (unlikely(PageSwapCache(page))) {
- 		swp_entry_t entry;
- 
- 		entry.val = page_private(page);
- 		mapping = swap_address_space(entry);
--	} else
--#endif
--	if ((unsigned long)mapping & PAGE_MAPPING_ANON)
-+	} else if ((unsigned long)mapping & PAGE_MAPPING_ANON)
- 		mapping = NULL;
- 	return mapping;
+-	*new_cred = cred;
+-	return create_user_ns(cred);
++	return err;
  }
+ 
+ void free_user_ns(struct user_namespace *ns)
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
-mm-hugetlb-trivial-commenting-fix.patch
-mm-hugetlb-clean-up-alloc_huge_page.patch
-mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
-mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
-mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
-mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
-mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
-mm-page_alloc-add-unlikely-macro-to-help-compiler-optimization.patch
-mm-move-pgtable-related-functions-to-right-place.patch
-swap-clean-up-ifdef-in-page_mapping.patch
+userns-unshare_usernscred-should-not-populate-cred-on-failure.patch
+x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
+mm-shift-vm_grows-check-from-mmap_region-to-do_mmap_pgoff-v2.patch
+mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
+mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
+kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+signals-eventpoll-set-saved_sigmask-at-the-start.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+exec-introduce-exec_binprm-for-depth-==-0-code.patch
+exec-kill-int-depth-in-search_binary_handler.patch
+exec-proc_exec_connector-should-be-called-only-once.patch
+exec-move-allow_write_access-fput-to-exec_binprm.patch
+exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
+exec-cleanup-the-config_modules-logic.patch
+exec-dont-retry-if-request_module-fails.patch
+exec-cleanup-the-error-handling-in-search_binary_handler.patch
+linux-next.patch
 
