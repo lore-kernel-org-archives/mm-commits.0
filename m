@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-adjust-ref-of-head-for-compound-page-tails.patch added to
+Subject: + mm-vmalloc-use-well-defined-find_last_bit-func.patch added to
  -mm tree
-Date: Wed, 07 Aug 2013 14:00:36 -0700
-Message-ID: <5202b574.KT1T7jTnmhk1mvvd%akpm@linux-foundation.org>
+Date: Wed, 07 Aug 2013 14:05:29 -0700
+Message-ID: <5202b699.WtX2QXkd2BKuPJpN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39993 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932387Ab3HGVAh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Aug 2013 17:00:37 -0400
+	with ESMTP id S933100Ab3HGVFa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Aug 2013 17:05:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ecashin@coraid.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.con, liwanp@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com
 
-Subject: + aoe-adjust-ref-of-head-for-compound-page-tails.patch added to -mm tree
-To: ecashin@coraid.com
+Subject: + mm-vmalloc-use-well-defined-find_last_bit-func.patch added to -mm tree
+To: iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,liwanp@linux.vnet.ibm.com,zhangyanfei@cn.fujitsu.con
 From: akpm@linux-foundation.org
-Date: Wed, 07 Aug 2013 14:00:36 -0700
+Date: Wed, 07 Aug 2013 14:05:29 -0700
 
 
 The patch titled
-     Subject: aoe: adjust ref of head for compound page tails
+     Subject: mm, vmalloc: use well-defined find_last_bit() func
 has been added to the -mm tree.  Its filename is
-     aoe-adjust-ref-of-head-for-compound-page-tails.patch
+     mm-vmalloc-use-well-defined-find_last_bit-func.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/aoe-adjust-ref-of-head-for-compound-page-tails.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-use-well-defined-find_last_bit-func.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/aoe-adjust-ref-of-head-for-compound-page-tails.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-use-well-defined-find_last_bit-func.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,83 +44,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: adjust ref of head for compound page tails
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm, vmalloc: use well-defined find_last_bit() func
 
-As discussed previously, the fact that some users of the block layer
-provide bios that point to pages with a zero _count means that it is not
-OK for the network layer to do a put_page on the skb frags during an
-skb_linearize, so the aoe driver gets a reference to pages in bios and
-puts the reference before ending the bio.  And because it cannot use
-get_page on a page with a zero _count, it manipulates the value directly.
+Our intention in here is to find last_bit within the region to flush. 
+There is well-defined function, find_last_bit() for this purpose and its
+performance may be slightly better than current implementation.  So change
+it.
 
-It is not OK to increment the _count of a compound page tail, though,
-since the VM layer will VM_BUG_ON a non-zero _count.  Block users that do
-direct I/O can result in the aoe driver seeing compound page tails in
-bios.  In that case, the same logic works as long as the head of the
-compound page is used instead of the tails.  This patch handles compound
-pages and does not BUG.
-
-It relies on the block layer user leaving the relationship between the
-page tail and its head alone for the duration between the submission of
-the bio and its completion, whether successful or not.
-
-Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.con>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ mm/vmalloc.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~aoe-adjust-ref-of-head-for-compound-page-tails drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-adjust-ref-of-head-for-compound-page-tails
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -906,16 +906,10 @@ bio_pageinc(struct bio *bio)
- 	int i;
+diff -puN mm/vmalloc.c~mm-vmalloc-use-well-defined-find_last_bit-func mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-use-well-defined-find_last_bit-func
++++ a/mm/vmalloc.c
+@@ -1016,15 +1016,16 @@ void vm_unmap_aliases(void)
  
- 	bio_for_each_segment(bv, bio, i) {
--		page = bv->bv_page;
- 		/* Non-zero page count for non-head members of
--		 * compound pages is no longer allowed by the kernel,
--		 * but this has never been seen here.
-+		 * compound pages is no longer allowed by the kernel.
- 		 */
--		if (unlikely(PageCompound(page)))
--			if (compound_trans_head(page) != page) {
--				pr_crit("page tail used for block I/O\n");
--				BUG();
--			}
-+		page = compound_trans_head(bv->bv_page);
- 		atomic_inc(&page->_count);
- 	}
- }
-@@ -924,10 +918,13 @@ static void
- bio_pagedec(struct bio *bio)
- {
- 	struct bio_vec *bv;
-+	struct page *page;
- 	int i;
+ 		rcu_read_lock();
+ 		list_for_each_entry_rcu(vb, &vbq->free, free_list) {
+-			int i;
++			int i, j;
  
--	bio_for_each_segment(bv, bio, i)
--		atomic_dec(&bv->bv_page->_count);
-+	bio_for_each_segment(bv, bio, i) {
-+		page = compound_trans_head(bv->bv_page);
-+		atomic_dec(&page->_count);
-+	}
- }
+ 			spin_lock(&vb->lock);
+ 			i = find_first_bit(vb->dirty_map, VMAP_BBMAP_BITS);
+-			while (i < VMAP_BBMAP_BITS) {
++			if (i < VMAP_BBMAP_BITS) {
+ 				unsigned long s, e;
+-				int j;
+-				j = find_next_zero_bit(vb->dirty_map,
+-					VMAP_BBMAP_BITS, i);
++
++				j = find_last_bit(vb->dirty_map,
++							VMAP_BBMAP_BITS);
++				j = j + 1; /* need exclusive index */
  
- static void
+ 				s = vb->va->va_start + (i << PAGE_SHIFT);
+ 				e = vb->va->va_start + (j << PAGE_SHIFT);
+@@ -1034,10 +1035,6 @@ void vm_unmap_aliases(void)
+ 					start = s;
+ 				if (e > end)
+ 					end = e;
+-
+-				i = j;
+-				i = find_next_bit(vb->dirty_map,
+-							VMAP_BBMAP_BITS, i);
+ 			}
+ 			spin_unlock(&vb->lock);
+ 		}
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-aoe-create-and-destroy-debugfs-directory-for-aoe.patch
-aoe-add-aoe-target-files-to-debugfs.patch
-aoe-provide-file-operations-for-debugfs-files.patch
-aoe-fill-in-per-aoe-target-information-for-debugfs-file.patch
-aoe-update-copyright-date.patch
-aoe-update-internal-version-number-to-85.patch
-aoe-remove-custom-implementation-of-kbasename.patch
-aoe-use-min-to-simplify-the-code.patch
-aoe-adjust-ref-of-head-for-compound-page-tails.patch
+mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
+mm-hugetlb-trivial-commenting-fix.patch
+mm-hugetlb-clean-up-alloc_huge_page.patch
+mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
+mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
+mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
+mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
+mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
+mm-page_alloc-add-unlikely-macro-to-help-compiler-optimization.patch
+mm-move-pgtable-related-functions-to-right-place.patch
+swap-clean-up-ifdef-in-page_mapping.patch
+mm-vmalloc-remove-useless-variable-in-vmap_block.patch
+mm-vmalloc-use-well-defined-find_last_bit-func.patch
 
