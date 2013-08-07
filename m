@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-use-well-defined-find_last_bit-func.patch added to
- -mm tree
-Date: Wed, 07 Aug 2013 14:05:29 -0700
-Message-ID: <5202b699.WtX2QXkd2BKuPJpN%akpm@linux-foundation.org>
+Subject: + mm-vmalloc-remove-useless-variable-in-vmap_block.patch added to -mm tree
+Date: Wed, 07 Aug 2013 14:05:28 -0700
+Message-ID: <5202b698.rirANKTNRZ/yHc1T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39993 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39988 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933100Ab3HGVFa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Aug 2013 17:05:30 -0400
+	with ESMTP id S933100Ab3HGVF3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Aug 2013 17:05:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.con, liwanp@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com
 
-Subject: + mm-vmalloc-use-well-defined-find_last_bit-func.patch added to -mm tree
+Subject: + mm-vmalloc-remove-useless-variable-in-vmap_block.patch added to -mm tree
 To: iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,liwanp@linux.vnet.ibm.com,zhangyanfei@cn.fujitsu.con
 From: akpm@linux-foundation.org
-Date: Wed, 07 Aug 2013 14:05:29 -0700
+Date: Wed, 07 Aug 2013 14:05:28 -0700
 
 
 The patch titled
-     Subject: mm, vmalloc: use well-defined find_last_bit() func
+     Subject: mm, vmalloc: remove useless variable in vmap_block
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-use-well-defined-find_last_bit-func.patch
+     mm-vmalloc-remove-useless-variable-in-vmap_block.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-use-well-defined-find_last_bit-func.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-remove-useless-variable-in-vmap_block.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-use-well-defined-find_last_bit-func.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-remove-useless-variable-in-vmap_block.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,12 +44,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, vmalloc: use well-defined find_last_bit() func
+Subject: mm, vmalloc: remove useless variable in vmap_block
 
-Our intention in here is to find last_bit within the region to flush. 
-There is well-defined function, find_last_bit() for this purpose and its
-performance may be slightly better than current implementation.  So change
-it.
+vbq in vmap_block isn't used. So remove it.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
@@ -59,45 +55,28 @@ Acked-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.con>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/vmalloc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-use-well-defined-find_last_bit-func mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-use-well-defined-find_last_bit-func
+diff -puN mm/vmalloc.c~mm-vmalloc-remove-useless-variable-in-vmap_block mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-remove-useless-variable-in-vmap_block
 +++ a/mm/vmalloc.c
-@@ -1016,15 +1016,16 @@ void vm_unmap_aliases(void)
+@@ -752,7 +752,6 @@ struct vmap_block_queue {
+ struct vmap_block {
+ 	spinlock_t lock;
+ 	struct vmap_area *va;
+-	struct vmap_block_queue *vbq;
+ 	unsigned long free, dirty;
+ 	DECLARE_BITMAP(dirty_map, VMAP_BBMAP_BITS);
+ 	struct list_head free_list;
+@@ -830,7 +829,6 @@ static struct vmap_block *new_vmap_block
+ 	radix_tree_preload_end();
  
- 		rcu_read_lock();
- 		list_for_each_entry_rcu(vb, &vbq->free, free_list) {
--			int i;
-+			int i, j;
- 
- 			spin_lock(&vb->lock);
- 			i = find_first_bit(vb->dirty_map, VMAP_BBMAP_BITS);
--			while (i < VMAP_BBMAP_BITS) {
-+			if (i < VMAP_BBMAP_BITS) {
- 				unsigned long s, e;
--				int j;
--				j = find_next_zero_bit(vb->dirty_map,
--					VMAP_BBMAP_BITS, i);
-+
-+				j = find_last_bit(vb->dirty_map,
-+							VMAP_BBMAP_BITS);
-+				j = j + 1; /* need exclusive index */
- 
- 				s = vb->va->va_start + (i << PAGE_SHIFT);
- 				e = vb->va->va_start + (j << PAGE_SHIFT);
-@@ -1034,10 +1035,6 @@ void vm_unmap_aliases(void)
- 					start = s;
- 				if (e > end)
- 					end = e;
--
--				i = j;
--				i = find_next_bit(vb->dirty_map,
--							VMAP_BBMAP_BITS, i);
- 			}
- 			spin_unlock(&vb->lock);
- 		}
+ 	vbq = &get_cpu_var(vmap_block_queue);
+-	vb->vbq = vbq;
+ 	spin_lock(&vbq->lock);
+ 	list_add_rcu(&vb->free_list, &vbq->free);
+ 	spin_unlock(&vbq->lock);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
