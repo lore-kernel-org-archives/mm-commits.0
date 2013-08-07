@@ -1,126 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: +
- userns-unshare_usernscred-should-not-populate-cred-on-failure.patch added
- to -mm tree
-Date: Tue, 06 Aug 2013 15:44:45 -0700
-Message-ID: <52017c5d.1Yw4kyJuM43iJWQ2%akpm__40144.4040042863$1375829094$gmane$org@linux-foundation.org>
+Subject: [merged] printk-fix-return-of-braille_register_console.patch
+ removed from -mm tree
+Date: Wed, 07 Aug 2013 13:07:57 -0700
+Message-ID: <5202a91d.j3EvqIJumsw3EUe+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56717 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39650 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756728Ab3HFWoq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Aug 2013 18:44:46 -0400
+	with ESMTP id S932518Ab3HGUH6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Aug 2013 16:07:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, pmatouse@redhat.com, luto@amacapital.net, ebiederm@xmission.com, dhowells@redhat.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, joe@perches.com, rostedt@goodmis.org
 
-Subject: + userns-unshare_usernscred-should-not-populate-cred-on-failure.patch added to -mm tree
-To: oleg@redhat.com,dhowells@redhat.com,ebiederm@xmission.com,luto@amacapital.net,pmatouse@redhat.com,stable@vger.kernel.org
+Subject: [merged] printk-fix-return-of-braille_register_console.patch removed from -mm tree
+To: rostedt@goodmis.org,joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 06 Aug 2013 15:44:45 -0700
+Date: Wed, 07 Aug 2013 13:07:57 -0700
 
 
 The patch titled
-     Subject: userns: unshare_userns(&cred) should not populate cred on failure
-has been added to the -mm tree.  Its filename is
-     userns-unshare_usernscred-should-not-populate-cred-on-failure.patch
+     Subject: printk: fix return of braille_register_console()
+has been removed from the -mm tree.  Its filename was
+     printk-fix-return-of-braille_register_console.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userns-unshare_usernscred-should-not-populate-cred-on-failure.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userns-unshare_usernscred-should-not-populate-cred-on-failure.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: userns: unshare_userns(&cred) should not populate cred on failure
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: printk: fix return of braille_register_console()
 
-unshare_userns(new_cred) does *new_cred = prepare_creds() before
-create_user_ns() which can fail.  However, the caller expects that it
-doesn't need to take care of new_cred if unshare_userns() fails.
+Some of my configs I test with have CONFIG_A11Y_BRAILLE_CONSOLE set.  When
+I started testing against v3.11-rc4 my console went bonkers.  Using ktest
+to bisect the issue, it came down to bbeddf52a ("printk: move braille
+console support into separate braille.[ch] files").
 
-We could change the single caller, sys_unshare(), but I think it would be
-more clean to avoid the side effects on failure, so with this patch
-unshare_userns() does put_cred() itself and initializes *new_cred only if
-create_user_ns() succeeeds.
+Looking into the patch I found the problem.  It's with the return of
+braille_register_console().  As anything other than NULL is considered a
+failure.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Petr Matousek <pmatouse@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Reviewed-by: Andy Lutomirski <luto@amacapital.net>
-Cc: David Howells <dhowells@redhat.com>
-Cc: <stable@vger.kernel.org>
+But for those of us that have CONFIG_A11Y_BRAILLE_CONSOLE set but do not
+define a "brl" or "brl=" on the command line, we still may want a console
+that those with sight can still use.
+
+Return NULL (success) if "brl" or "brl=" is not on the console line.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user_namespace.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ kernel/printk/braille.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/user_namespace.c~userns-unshare_usernscred-should-not-populate-cred-on-failure kernel/user_namespace.c
---- a/kernel/user_namespace.c~userns-unshare_usernscred-should-not-populate-cred-on-failure
-+++ a/kernel/user_namespace.c
-@@ -105,16 +105,21 @@ int create_user_ns(struct cred *new)
- int unshare_userns(unsigned long unshare_flags, struct cred **new_cred)
- {
- 	struct cred *cred;
-+	int err = -ENOMEM;
+diff -puN kernel/printk/braille.c~printk-fix-return-of-braille_register_console kernel/printk/braille.c
+--- a/kernel/printk/braille.c~printk-fix-return-of-braille_register_console
++++ a/kernel/printk/braille.c
+@@ -19,7 +19,8 @@ char *_braille_console_setup(char **str,
+ 			pr_err("need port name after brl=\n");
+ 		else
+ 			*((*str)++) = 0;
+-	}
++	} else
++		return NULL;
  
- 	if (!(unshare_flags & CLONE_NEWUSER))
- 		return 0;
- 
- 	cred = prepare_creds();
--	if (!cred)
--		return -ENOMEM;
-+	if (cred) {
-+		err = create_user_ns(cred);
-+		if (err)
-+			put_cred(cred);
-+		else
-+			*new_cred = cred;
-+	}
- 
--	*new_cred = cred;
--	return create_user_ns(cred);
-+	return err;
+ 	return *str;
  }
- 
- void free_user_ns(struct user_namespace *ns)
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-userns-unshare_usernscred-should-not-populate-cred-on-failure.patch
-x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
-mm-shift-vm_grows-check-from-mmap_region-to-do_mmap_pgoff-v2.patch
-mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
-mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
-kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-signals-eventpoll-set-saved_sigmask-at-the-start.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-exec-introduce-exec_binprm-for-depth-==-0-code.patch
-exec-kill-int-depth-in-search_binary_handler.patch
-exec-proc_exec_connector-should-be-called-only-once.patch
-exec-move-allow_write_access-fput-to-exec_binprm.patch
-exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
-exec-cleanup-the-config_modules-logic.patch
-exec-dont-retry-if-request_module-fails.patch
-exec-cleanup-the-error-handling-in-search_binary_handler.patch
+origin.patch
 linux-next.patch
 
