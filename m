@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch added to
- -mm tree
-Date: Thu, 08 Aug 2013 15:01:49 -0700
-Message-ID: <5204154d.V0TrqvtCFt63pVVt%akpm@linux-foundation.org>
+Subject: + hung_task-print-more-info-when-reporting-the-problem.patch
+ added to -mm tree
+Date: Thu, 08 Aug 2013 15:05:15 -0700
+Message-ID: <5204161b.uzcfBHoIORGq3XXj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53219 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752940Ab3HHWBu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Aug 2013 18:01:50 -0400
+	with ESMTP id S966717Ab3HHWFQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Aug 2013 18:05:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, balbi@ti.com, ldewangan@nvidia.com
+To: mm-commits@vger.kernel.org, oleg@redhat.com
 
-Subject: + drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch added to -mm tree
-To: ldewangan@nvidia.com,balbi@ti.com
+Subject: + hung_task-print-more-info-when-reporting-the-problem.patch added to -mm tree
+To: oleg@redhat.com
 From: akpm@linux-foundation.org
-Date: Thu, 08 Aug 2013 15:01:49 -0700
+Date: Thu, 08 Aug 2013 15:05:15 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-palmas.c: support for backup battery charging
+     Subject: hung_task: print more info when reporting the problem
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch
+     hung_task-print-more-info-when-reporting-the-problem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hung_task-print-more-info-when-reporting-the-problem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hung_task-print-more-info-when-reporting-the-problem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,117 +44,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: drivers/rtc/rtc-palmas.c: support for backup battery charging
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: hung_task: print more info when reporting the problem
 
-Palmas series device like TPS65913, TPS80036 supports the backup battery
-for powering the RTC when no other energy source is available.
+printk(KERN_ERR) from check_hung_task() likely means the bug, but unlike
+BUG_ON/WARN_ON it doesn't show the kernel version, this complicates the
+bug-reports investigation.
 
-The backup battery is optional, connected to the VBACKUP pin, and can be
-nonrechargeable or rechargeable.  The rechargeable battery can be charged
-from the system supply using the backup battery charger.
+Add the additional pr_err() to print tainted/release/version like
+dump_stack_print_info() does, the output becomes:
 
-Add support for enabling charging of this backup battery.  Also add the DT
-binding document and the new properties to have this support.
+        INFO: task perl:504 blocked for more than 2 seconds.
+	      Not tainted 3.11.0-rc1-10367-g136bb46-dirty #1763
+        "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+        ...
 
-Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
+While at it, turn the old printk's into pr_err().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/rtc/rtc-palmas.txt |   29 ++++++++
- drivers/rtc/rtc-palmas.c                             |   35 ++++++++++
- 2 files changed, 64 insertions(+)
+ kernel/hung_task.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN /dev/null Documentation/devicetree/bindings/rtc/rtc-palmas.txt
---- /dev/null
-+++ a/Documentation/devicetree/bindings/rtc/rtc-palmas.txt
-@@ -0,0 +1,29 @@
-+Palmas RTC controller bindings
-+
-+Required properties:
-+- compatible:
-+  - "ti,palmas-rtc" for palma series of the RTC controller
-+- interrupt-parent: Parent interrupt device, must be handle of palmas node.
-+- interrupts: Interrupt number of RTC submodule on device.
-+
-+Optional properties:
-+- ti,back-battery-charge-enable: The palmas series device like TPS65913 or
-+	TPS80036 supports the battery backup for powering the RTC when main
-+	battery is removed or in very low power state. This flag will enable
-+	the backup battery charging.
-+- ti,back-battery-charge-low-current: Configure lower charging current. Device
-+	supports the charging current as < 100mA or >100mA. Low current will
-+	set as <100mA.
-+
-+Example:
-+	palmas: tps65913@58 {
-+		...
-+		palmas_rtc: rtc {
-+			compatible = "ti,palmas-rtc";
-+			interrupt-parent = <&palmas>;
-+			interrupts = <8 0>;
-+			ti,back-battery-charge-enable;
-+			ti,back-battery-charge-low-current;
-+		};
-+		...
-+	};
-diff -puN drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging drivers/rtc/rtc-palmas.c
---- a/drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging
-+++ a/drivers/rtc/rtc-palmas.c
-@@ -238,6 +238,15 @@ static int palmas_rtc_probe(struct platf
- 	struct palmas *palmas = dev_get_drvdata(pdev->dev.parent);
- 	struct palmas_rtc *palmas_rtc = NULL;
- 	int ret;
-+	bool enable_bb_charging = false;
-+	bool low_bb_charging;
-+
-+	if (pdev->dev.of_node) {
-+		enable_bb_charging = of_property_read_bool(pdev->dev.of_node,
-+					"ti,back-battery-charge-enable");
-+		low_bb_charging = of_property_read_bool(pdev->dev.of_node,
-+					"ti,back-battery-charge-low-current");
-+	}
+diff -puN kernel/hung_task.c~hung_task-print-more-info-when-reporting-the-problem kernel/hung_task.c
+--- a/kernel/hung_task.c~hung_task-print-more-info-when-reporting-the-problem
++++ a/kernel/hung_task.c
+@@ -15,6 +15,7 @@
+ #include <linux/lockdep.h>
+ #include <linux/export.h>
+ #include <linux/sysctl.h>
++#include <linux/utsname.h>
  
- 	palmas_rtc = devm_kzalloc(&pdev->dev, sizeof(struct palmas_rtc),
- 			GFP_KERNEL);
-@@ -254,6 +263,32 @@ static int palmas_rtc_probe(struct platf
- 	palmas_rtc->dev = &pdev->dev;
- 	platform_set_drvdata(pdev, palmas_rtc);
+ /*
+  * The number of tasks checked:
+@@ -99,10 +100,14 @@ static void check_hung_task(struct task_
+ 	 * Ok, the task did not get scheduled for more than 2 minutes,
+ 	 * complain:
+ 	 */
+-	printk(KERN_ERR "INFO: task %s:%d blocked for more than "
+-			"%ld seconds.\n", t->comm, t->pid, timeout);
+-	printk(KERN_ERR "\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
+-			" disables this message.\n");
++	pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
++		t->comm, t->pid, timeout);
++	pr_err("      %s %s %.*s\n",
++		print_tainted(), init_utsname()->release,
++		(int)strcspn(init_utsname()->version, " "),
++		init_utsname()->version);
++	pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
++		" disables this message.\n");
+ 	sched_show_task(t);
+ 	debug_show_held_locks(t);
  
-+	if (enable_bb_charging) {
-+		unsigned reg = 0;
-+
-+		if (low_bb_charging)
-+			reg |= PALMAS_BACKUP_BATTERY_CTRL_BBS_BBC_LOW_ICHRG;
-+
-+		ret = palmas_update_bits(palmas, PALMAS_PMU_CONTROL_BASE,
-+			PALMAS_BACKUP_BATTERY_CTRL,
-+			PALMAS_BACKUP_BATTERY_CTRL_BBS_BBC_LOW_ICHRG, reg);
-+		if (ret < 0) {
-+			dev_err(&pdev->dev,
-+				"BACKUP_BATTERY_CTRL update failed, %d\n", ret);
-+			return ret;
-+		}
-+
-+		ret = palmas_update_bits(palmas, PALMAS_PMU_CONTROL_BASE,
-+			PALMAS_BACKUP_BATTERY_CTRL,
-+			PALMAS_BACKUP_BATTERY_CTRL_BB_CHG_EN,
-+			PALMAS_BACKUP_BATTERY_CTRL_BB_CHG_EN);
-+		if (ret < 0) {
-+			dev_err(&pdev->dev,
-+				"BACKUP_BATTERY_CTRL update failed, %d\n", ret);
-+			return ret;
-+		}
-+	}
-+
- 	/* Start RTC */
- 	ret = palmas_update_bits(palmas, PALMAS_RTC_BASE, PALMAS_RTC_CTRL_REG,
- 			PALMAS_RTC_CTRL_REG_STOP_RTC,
 _
 
-Patches currently in -mm which might be from ldewangan@nvidia.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch
+origin.patch
+x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
+mm-shift-vm_grows-check-from-mmap_region-to-do_mmap_pgoff-v2.patch
+mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
+mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
+kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
+hung_task-print-more-info-when-reporting-the-problem.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+signals-eventpoll-set-saved_sigmask-at-the-start.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+exec-introduce-exec_binprm-for-depth-==-0-code.patch
+exec-kill-int-depth-in-search_binary_handler.patch
+exec-proc_exec_connector-should-be-called-only-once.patch
+exec-move-allow_write_access-fput-to-exec_binprm.patch
+exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
+exec-cleanup-the-config_modules-logic.patch
+exec-dont-retry-if-request_module-fails.patch
+exec-cleanup-the-error-handling-in-search_binary_handler.patch
 linux-next.patch
 
