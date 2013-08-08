@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-ignore-define-trace_foo-macros.patch added to -mm
- tree
-Date: Thu, 08 Aug 2013 12:45:45 -0700
-Message-ID: <5203f569.sMhwrWhhqdX2WnWH%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-add-the-missing-return-value-check-of-ocfs2_xattr_get_clusters.patch
+ added to -mm tree
+Date: Thu, 08 Aug 2013 12:51:20 -0700
+Message-ID: <5203f6b8.QONlB/H5NNYfQlqq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50766 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50780 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965984Ab3HHTpq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Aug 2013 15:45:46 -0400
+	with ESMTP id S965572Ab3HHTvV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Aug 2013 15:51:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sarah.a.sharp@linux.intel.com, lizefan@huawei.com, apw@canonical.com, joe@perches.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, joseph.qi@huawei.com
 
-Subject: + checkpatch-ignore-define-trace_foo-macros.patch added to -mm tree
-To: joe@perches.com,apw@canonical.com,lizefan@huawei.com,sarah.a.sharp@linux.intel.com
+Subject: + ocfs2-add-the-missing-return-value-check-of-ocfs2_xattr_get_clusters.patch added to -mm tree
+To: joseph.qi@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Thu, 08 Aug 2013 12:45:45 -0700
+Date: Thu, 08 Aug 2013 12:51:20 -0700
 
 
 The patch titled
-     From: Joe Perches <joe@perches.com>
+     Subject: ocfs2: add the missing return value check of ocfs2_xattr_get_clusters
 has been added to the -mm tree.  Its filename is
-     checkpatch-ignore-define-trace_foo-macros.patch
+     ocfs2-add-the-missing-return-value-check-of-ocfs2_xattr_get_clusters.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-ignore-define-trace_foo-macros.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-the-missing-return-value-check-of-ocfs2_xattr_get_clusters.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-ignore-define-trace_foo-macros.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-the-missing-return-value-check-of-ocfs2_xattr_get_clusters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,83 +45,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Ignore #define TRACE_<foo> macros
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: add the missing return value check of ocfs2_xattr_get_clusters
 
-The tracing subsystem uses slightly odd #defines
-to set path/directory locations for include files.
+In ocfs2_xattr_value_attach_refcount(), if error occurs when calling
+ocfs2_xattr_get_clusters(), it will go with unexpected behavior since
+local variables p_cluster, num_clusters and ext_flags are declared without
+initialization.
 
-These #defines can cause false positives for the
-complex macro tests so add exclusions for these
-specific #defines (TRACE_SYSTEM, TRACE_INCLUDE_FILE,
-TRACE_INCLUDE_PATH).
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Acked-by: Jie Liu <jeff.liu@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/xattr.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-ignore-define-trace_foo-macros scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-ignore-define-trace_foo-macros
-+++ a/scripts/checkpatch.pl
-@@ -3451,7 +3451,8 @@ sub process {
- 			    $dstat !~ /^for\s*$Constant$/ &&				# for (...)
- 			    $dstat !~ /^for\s*$Constant\s+(?:$Ident|-?$Constant)$/ &&	# for (...) bar()
- 			    $dstat !~ /^do\s*{/ &&					# do {...
--			    $dstat !~ /^\({/)						# ({...
-+			    $dstat !~ /^\({/ &&						# ({...
-+			    $ctx !~ /^.\s*#\s*define\s+TRACE_(?:SYSTEM|INCLUDE_FILE|INCLUDE_PATH)\b/)
- 			{
- 				$ctx =~ s/\n*$//;
- 				my $herectx = $here . "\n";
+diff -puN fs/ocfs2/xattr.c~ocfs2-add-the-missing-return-value-check-of-ocfs2_xattr_get_clusters fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-add-the-missing-return-value-check-of-ocfs2_xattr_get_clusters
++++ a/fs/ocfs2/xattr.c
+@@ -5881,6 +5881,10 @@ static int ocfs2_xattr_value_attach_refc
+ 	while (cpos < clusters) {
+ 		ret = ocfs2_xattr_get_clusters(inode, cpos, &p_cluster,
+ 					       &num_clusters, el, &ext_flags);
++		if (ret) {
++			mlog_errno(ret);
++			break;
++		}
+ 
+ 		cpos += num_clusters;
+ 		if ((ext_flags & OCFS2_EXT_REFCOUNTED))
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-origin.patch
-maintainers-exynos-remove-board-files.patch
-maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
-maintainers-omap-powerdomain-update-patterns.patch
-maintainers-arm-s3c2410-update-patterns.patch
-maintainers-arm-spear-consolidate-sections.patch
-maintainers-arm-plat-nomadik-update-patterns.patch
-maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
-maintainers-ghes_edac-update-pattern.patch
-maintainers-update-siano-drivers.patch
-maintainers-si4713-fix-file-pattern.patch
-maintainers-update-it913x-patterns.patch
-maintainers-update-sirf-patterns.patch
-maintainers-update-ssbi-patterns.patch
-maintainers-update-file-pattern-for-arc-uart.patch
-maintainers-update-usb-ehci-platform-pattern.patch
-maintainers-usb-phy-update-patterns.patch
-maintainers-update-gre-demux-patterns.patch
-maintainers-append-to-directory-patterns.patch
-checkpatch-add-a-few-more-fix-corrections.patch
-checkpatch-check-camelcase-by-word-not-by-lval.patch
-checkpatch-enforce-sane-perl-version.patch
-checkpatch-check-for-duplicate-signatures.patch
-checkpatch-warn-when-using-extern-with-function-prototypes-in-h-files.patch
-checkpatch-fix-networking-kernel-doc-block-comment-defect.patch
-checkpatch-add-types-option-to-report-only-specific-message-types.patch
-checkpatch-ignore-define-trace_foo-macros.patch
-firmware-dmi_scan-drop-obsolete-comment.patch
-firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
-firmware-dmi_scan-constify-strings.patch
-firmware-dmi_scan-drop-oom-messages.patch
-pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
-pktcdvd-convert-printk-to-pr_level.patch
-pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
-pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
-pktcdvd-convert-pr_notice-to-pkt_notice.patch
-pktcdvd-convert-pr_info-to-pkt_info.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
-pktcdvd-fix-defective-misuses-of-pkt_level.patch
-linux-next.patch
+fs-ocfs2-cluster-tcpc-fix-possible-null-pointer-dereferences.patch
+ocfs2-clean-up-dead-code-in-ocfs2_acl_from_xattr.patch
+ocfs2-add-missing-return-value-check-of-ocfs2_get_clusters.patch
+ocfs2-add-the-missing-return-value-check-of-ocfs2_xattr_get_clusters.patch
 
