@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit.patch added to -mm tree
-Date: Thu, 08 Aug 2013 13:37:16 -0700
-Message-ID: <5204017c.TI/rdryetSUhqkA3%akpm@linux-foundation.org>
+Subject: + mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch
+ added to -mm tree
+Date: Thu, 08 Aug 2013 13:41:45 -0700
+Message-ID: <52040289.hapNBcC9AZOqjvoQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52627 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52636 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966335Ab3HHUhR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Aug 2013 16:37:17 -0400
+	with ESMTP id S966345Ab3HHUlq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Aug 2013 16:41:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wsa@the-dreams.de, LW@KARO-electronics.de
+To: mm-commits@vger.kernel.org, toshi.kani@hp.com, dave.hansen@linux.intel.com, qiuxishi@huawei.com
 
-Subject: + drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit.patch added to -mm tree
-To: LW@KARO-electronics.de,wsa@the-dreams.de
+Subject: + mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch added to -mm tree
+To: qiuxishi@huawei.com,dave.hansen@linux.intel.com,toshi.kani@hp.com
 From: akpm@linux-foundation.org
-Date: Thu, 08 Aug 2013 13:37:16 -0700
+Date: Thu, 08 Aug 2013 13:41:45 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-stmp3xxx.c: provide timeout for potentially endless loop polling a HW bit
+     Subject: mm/hotplug: remove unnecessary BUG_ON in __offline_pages()
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit.patch
+     mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,98 +44,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lothar Waﬂmann <LW@KARO-electronics.de>
-Subject: drivers/rtc/rtc-stmp3xxx.c: provide timeout for potentially endless loop polling a HW bit
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mm/hotplug: remove unnecessary BUG_ON in __offline_pages()
 
-It's always a bad idea to poll on HW bits without a timeout.
+I think we can remove "BUG_ON(start_pfn >= end_pfn)" in __offline_pages(),
+because in memory_block_action() "nr_pages = PAGES_PER_SECTION * sections_per_block"
+is always greater than 0.
 
-The i.MX28 RTC can be easily brought into a state in which the RTC is not
-running (until after a power-on-reset) and thus the status bits which are
-polled in the driver won't ever change.
+memory_block_action()
+	offline_pages()
+		__offline_pages()
+			BUG_ON(start_pfn >= end_pfn)
 
-This patch prevents the kernel from getting stuck in this case.
+In v2.6.32, If info->length==0, this way may hit this BUG_ON().
+acpi_memory_disable_device()
+	remove_memory(info->start_addr, info->length)
+			offline_pages()
 
-Signed-off-by: Lothar Waﬂmann <LW@KARO-electronics.de>
-Acked-by: Wolfram Sang <wsa@the-dreams.de>
+A later Fujitsu patch renamed this function and the BUG_ON() is
+unnecessary.
+
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-stmp3xxx.c |   35 +++++++++++++++++++++++++----------
- 1 file changed, 25 insertions(+), 10 deletions(-)
+ mm/memory_hotplug.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-stmp3xxx.c~drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit drivers/rtc/rtc-stmp3xxx.c
---- a/drivers/rtc/rtc-stmp3xxx.c~drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit
-+++ a/drivers/rtc/rtc-stmp3xxx.c
-@@ -23,6 +23,7 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
-+#include <linux/delay.h>
- #include <linux/rtc.h>
- #include <linux/slab.h>
- #include <linux/of_device.h>
-@@ -119,24 +120,39 @@ static void stmp3xxx_wdt_register(struct
- }
- #endif /* CONFIG_STMP3XXX_RTC_WATCHDOG */
+diff -puN mm/memory_hotplug.c~mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages
++++ a/mm/memory_hotplug.c
+@@ -1472,7 +1472,6 @@ static int __ref __offline_pages(unsigne
+ 	struct zone *zone;
+ 	struct memory_notify arg;
  
--static void stmp3xxx_wait_time(struct stmp3xxx_rtc_data *rtc_data)
-+static int stmp3xxx_wait_time(struct stmp3xxx_rtc_data *rtc_data)
- {
-+	int timeout = 5000; /* 3ms according to i.MX28 Ref Manual */
- 	/*
--	 * The datasheet doesn't say which way round the
--	 * NEW_REGS/STALE_REGS bitfields go. In fact it's 0x1=P0,
--	 * 0x2=P1, .., 0x20=P5, 0x40=ALARM, 0x80=SECONDS
-+	 * The i.MX28 Applications Processor Reference Manual, Rev. 1, 2010
-+	 * states:
-+	 * | The order in which registers are updated is
-+	 * | Persistent 0, 1, 2, 3, 4, 5, Alarm, Seconds.
-+	 * | (This list is in bitfield order, from LSB to MSB, as they would
-+	 * | appear in the STALE_REGS and NEW_REGS bitfields of the HW_RTC_STAT
-+	 * | register. For example, the Seconds register corresponds to
-+	 * | STALE_REGS or NEW_REGS containing 0x80.)
- 	 */
--	while (readl(rtc_data->io + STMP3XXX_RTC_STAT) &
--			(0x80 << STMP3XXX_RTC_STAT_STALE_SHIFT))
--		cpu_relax();
-+	do {
-+		if (!(readl(rtc_data->io + STMP3XXX_RTC_STAT) &
-+				(0x80 << STMP3XXX_RTC_STAT_STALE_SHIFT)))
-+			return 0;
-+		udelay(1);
-+	} while (--timeout > 0);
-+	return (readl(rtc_data->io + STMP3XXX_RTC_STAT) &
-+		(0x80 << STMP3XXX_RTC_STAT_STALE_SHIFT)) ? -ETIME : 0;
- }
- 
- /* Time read/write */
- static int stmp3xxx_rtc_gettime(struct device *dev, struct rtc_time *rtc_tm)
- {
-+	int ret;
- 	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
- 
--	stmp3xxx_wait_time(rtc_data);
-+	ret = stmp3xxx_wait_time(rtc_data);
-+	if (ret)
-+		return ret;
-+
- 	rtc_time_to_tm(readl(rtc_data->io + STMP3XXX_RTC_SECONDS), rtc_tm);
- 	return 0;
- }
-@@ -146,8 +162,7 @@ static int stmp3xxx_rtc_set_mmss(struct
- 	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
- 
- 	writel(t, rtc_data->io + STMP3XXX_RTC_SECONDS);
--	stmp3xxx_wait_time(rtc_data);
--	return 0;
-+	return stmp3xxx_wait_time(rtc_data);
- }
- 
- /* interrupt(s) handler */
+-	BUG_ON(start_pfn >= end_pfn);
+ 	/* at least, alignment against pageblock is necessary */
+ 	if (!IS_ALIGNED(start_pfn, pageblock_nr_pages))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from LW@KARO-electronics.de are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit.patch
-linux-next.patch
+mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch
+kexec-remove-unnecessary-return.patch
 
