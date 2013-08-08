@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-free-path-in-ocfs2_remove_inode_range.patch added to -mm
+Subject: + mm-zbud-fix-some-trivial-typos-in-comments.patch added to -mm
  tree
-Date: Thu, 08 Aug 2013 15:22:57 -0700
-Message-ID: <52041a41.PQAkptyuldhRfBKY%akpm@linux-foundation.org>
+Date: Thu, 08 Aug 2013 15:26:45 -0700
+Message-ID: <52041b25.VgVtPfFUxDL1fGUm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53348 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53366 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965419Ab3HHWW5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Aug 2013 18:22:57 -0400
+	with ESMTP id S965419Ab3HHW0p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Aug 2013 18:26:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
+To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, wujianguo@huawei.com
 
-Subject: + ocfs2-free-path-in-ocfs2_remove_inode_range.patch added to -mm tree
-To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + mm-zbud-fix-some-trivial-typos-in-comments.patch added to -mm tree
+To: wujianguo@huawei.com,sjenning@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Thu, 08 Aug 2013 15:22:57 -0700
+Date: Thu, 08 Aug 2013 15:26:45 -0700
 
 
 The patch titled
-     Subject: ocfs2: free path in ocfs2_remove_inode_range()
+     Subject: mm/zbud: fix some trivial typos in comments
 has been added to the -mm tree.  Its filename is
-     ocfs2-free-path-in-ocfs2_remove_inode_range.patch
+     mm-zbud-fix-some-trivial-typos-in-comments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-free-path-in-ocfs2_remove_inode_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zbud-fix-some-trivial-typos-in-comments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-free-path-in-ocfs2_remove_inode_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zbud-fix-some-trivial-typos-in-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,45 +44,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Younger Liu <younger.liu@huawei.com>
-Subject: ocfs2: free path in ocfs2_remove_inode_range()
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/zbud: fix some trivial typos in comments
 
-In ocfs2_remove_inode_range(), there is a memory leak.  The variable path
-has allocated memory with ocfs2_new_path_from_et(), but it is not free.
-
-Signed-off-by: Younger Liu <younger.liu@huawei.com>
-Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/zbud.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-free-path-in-ocfs2_remove_inode_range fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-free-path-in-ocfs2_remove_inode_range
-+++ a/fs/ocfs2/file.c
-@@ -1815,6 +1815,7 @@ static int ocfs2_remove_inode_range(stru
- 	ocfs2_truncate_cluster_pages(inode, byte_start, byte_len);
- 
- out:
-+	ocfs2_free_path(path);
- 	ocfs2_schedule_truncate_log_flush(osb, 1);
- 	ocfs2_run_deallocs(osb, &dealloc);
- 
+diff -puN mm/zbud.c~mm-zbud-fix-some-trivial-typos-in-comments mm/zbud.c
+--- a/mm/zbud.c~mm-zbud-fix-some-trivial-typos-in-comments
++++ a/mm/zbud.c
+@@ -16,7 +16,7 @@
+  *
+  * zbud works by storing compressed pages, or "zpages", together in pairs in a
+  * single memory page called a "zbud page".  The first buddy is "left
+- * justifed" at the beginning of the zbud page, and the last buddy is "right
++ * justified" at the beginning of the zbud page, and the last buddy is "right
+  * justified" at the end of the zbud page.  The benefit is that if either
+  * buddy is freed, the freed buddy space, coalesced with whatever slack space
+  * that existed between the buddies, results in the largest possible free region
+@@ -243,7 +243,7 @@ void zbud_destroy_pool(struct zbud_pool
+  * gfp should not set __GFP_HIGHMEM as highmem pages cannot be used
+  * as zbud pool pages.
+  *
+- * Return: 0 if success and handle is set, otherwise -EINVAL is the size or
++ * Return: 0 if success and handle is set, otherwise -EINVAL if the size or
+  * gfp arguments are invalid or -ENOMEM if the pool was unable to allocate
+  * a new page.
+  */
 _
 
-Patches currently in -mm which might be from younger.liu@huawei.com are
+Patches currently in -mm which might be from wujianguo@huawei.com are
 
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size-v2.patch
-ocfs2-update-inode-size-after-zeronig-the-hole.patch
-ocfs2-lighten-up-allocate-transaction.patch
-ocfs2-ac_bits_wanted-should-be-local_alloc_bits-when-returns-enospc.patch
-ocfs2-fix-a-memory-leak-in-__ocfs2_move_extents.patch
-ocfs2-free-meta_ac-and-data_ac-when-ocfs2_start_trans-fails-in-ocfs2_xattr_set.patch
-ocfs2-free-path-in-ocfs2_remove_inode_range.patch
-linux-next.patch
+mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
+mm-zbud-fix-some-trivial-typos-in-comments.patch
 
