@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 08 Aug 2013 12:21:58 -0700
-Message-ID: <5203efd6.EG2f18+jOL9cnkQ/%akpm@linux-foundation.org>
+Subject: + truncate-drop-oldsize-truncate_pagecache-parameter.patch added
+ to -mm tree
+Date: Thu, 08 Aug 2013 12:36:09 -0700
+Message-ID: <5203f329.XDKLofc6hAGrP5Oo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50635 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50676 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966189Ab3HHTV7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Aug 2013 15:21:59 -0400
+	with ESMTP id S1752563Ab3HHTgK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Aug 2013 15:36:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, hirofumi@mail.parknet.co.jp, kirill.shutemov@linux.intel.com
 
-Subject: + linux-next-git-rejects.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: + truncate-drop-oldsize-truncate_pagecache-parameter.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,hirofumi@mail.parknet.co.jp
 From: akpm@linux-foundation.org
-Date: Thu, 08 Aug 2013 12:21:58 -0700
+Date: Thu, 08 Aug 2013 12:36:09 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: truncate: drop 'oldsize' truncate_pagecache() parameter
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     truncate-drop-oldsize-truncate_pagecache-parameter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/truncate-drop-oldsize-truncate_pagecache-parameter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/truncate-drop-oldsize-truncate_pagecache-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,74 +44,495 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: truncate: drop 'oldsize' truncate_pagecache() parameter
 
+truncate_pagecache() doesn't care about old size since cedabed49b ("vfs:
+Fix vmtruncate() regression").  Let's drop it.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-shmobile/board-armadillo800eva.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/adfs/inode.c             |    2 +-
+ fs/affs/file.c              |    2 +-
+ fs/bfs/file.c               |    2 +-
+ fs/btrfs/free-space-cache.c |    4 +---
+ fs/btrfs/inode.c            |    2 +-
+ fs/cifs/inode.c             |    5 +----
+ fs/exofs/inode.c            |    2 +-
+ fs/ext2/inode.c             |    2 +-
+ fs/ext4/inode.c             |    4 +---
+ fs/fat/inode.c              |    2 +-
+ fs/fuse/dir.c               |    2 +-
+ fs/fuse/inode.c             |    2 +-
+ fs/gfs2/bmap.c              |    4 ++--
+ fs/hfs/inode.c              |    2 +-
+ fs/hfsplus/inode.c          |    2 +-
+ fs/hpfs/file.c              |    2 +-
+ fs/jfs/inode.c              |    2 +-
+ fs/minix/inode.c            |    2 +-
+ fs/nfs/inode.c              |    4 +---
+ fs/nilfs2/inode.c           |    2 +-
+ fs/ntfs/file.c              |    2 +-
+ fs/omfs/file.c              |    2 +-
+ fs/sysv/itree.c             |    2 +-
+ fs/udf/inode.c              |    2 +-
+ fs/ufs/inode.c              |    2 +-
+ fs/xfs/xfs_aops.c           |    4 ++--
+ include/linux/mm.h          |    2 +-
+ mm/truncate.c               |    9 ++-------
+ 28 files changed, 31 insertions(+), 45 deletions(-)
 
-diff -puN arch/arm/mach-shmobile/board-armadillo800eva.c~linux-next-git-rejects arch/arm/mach-shmobile/board-armadillo800eva.c
---- a/arch/arm/mach-shmobile/board-armadillo800eva.c~linux-next-git-rejects
-+++ a/arch/arm/mach-shmobile/board-armadillo800eva.c
-@@ -1204,10 +1204,6 @@ static void __init eva_init(void)
+diff -puN fs/adfs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/adfs/inode.c
+--- a/fs/adfs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/adfs/inode.c
+@@ -50,7 +50,7 @@ static void adfs_write_failed(struct add
+ 	struct inode *inode = mapping->host;
  
- 	/* LCDC0 */
- 	gpio_request_one(61, GPIOF_OUT_INIT_HIGH, NULL); /* LCDDON */
--<<<<<<< HEAD
--	gpio_request_one(202, GPIOF_OUT_INIT_LOW, NULL); /* LCD0_LED_CONT */
--=======
-->>>>>>> linux-next/akpm-base
+ 	if (to > inode->i_size)
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ }
  
- 	/* GETHER */
- 	gpio_request_one(18, GPIOF_OUT_INIT_HIGH, NULL); /* PHY_RST */
+ static int adfs_write_begin(struct file *file, struct address_space *mapping,
+diff -puN fs/affs/file.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/affs/file.c
+--- a/fs/affs/file.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/affs/file.c
+@@ -406,7 +406,7 @@ static void affs_write_failed(struct add
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		affs_truncate(inode);
+ 	}
+ }
+diff -puN fs/bfs/file.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/bfs/file.c
+--- a/fs/bfs/file.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/bfs/file.c
+@@ -166,7 +166,7 @@ static void bfs_write_failed(struct addr
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size)
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ }
+ 
+ static int bfs_write_begin(struct file *file, struct address_space *mapping,
+diff -puN fs/btrfs/free-space-cache.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/btrfs/free-space-cache.c
+--- a/fs/btrfs/free-space-cache.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/btrfs/free-space-cache.c
+@@ -221,12 +221,10 @@ int btrfs_truncate_free_space_cache(stru
+ 				    struct btrfs_path *path,
+ 				    struct inode *inode)
+ {
+-	loff_t oldsize;
+ 	int ret = 0;
+ 
+-	oldsize = i_size_read(inode);
+ 	btrfs_i_size_write(inode, 0);
+-	truncate_pagecache(inode, oldsize, 0);
++	truncate_pagecache(inode, 0);
+ 
+ 	/*
+ 	 * We don't need an orphan item because truncating the free space cache
+diff -puN fs/btrfs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/btrfs/inode.c
+--- a/fs/btrfs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/btrfs/inode.c
+@@ -4404,7 +4404,7 @@ static int btrfs_setsize(struct inode *i
+ 		inode->i_ctime = inode->i_mtime = current_fs_time(inode->i_sb);
+ 
+ 	if (newsize > oldsize) {
+-		truncate_pagecache(inode, oldsize, newsize);
++		truncate_pagecache(inode, newsize);
+ 		ret = btrfs_cont_expand(inode, oldsize, newsize);
+ 		if (ret)
+ 			return ret;
+diff -puN fs/cifs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/cifs/inode.c
+--- a/fs/cifs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/cifs/inode.c
+@@ -1852,14 +1852,11 @@ static int cifs_truncate_page(struct add
+ 
+ static void cifs_setsize(struct inode *inode, loff_t offset)
+ {
+-	loff_t oldsize;
+-
+ 	spin_lock(&inode->i_lock);
+-	oldsize = inode->i_size;
+ 	i_size_write(inode, offset);
+ 	spin_unlock(&inode->i_lock);
+ 
+-	truncate_pagecache(inode, oldsize, offset);
++	truncate_pagecache(inode, offset);
+ }
+ 
+ static int
+diff -puN fs/exofs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/exofs/inode.c
+--- a/fs/exofs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/exofs/inode.c
+@@ -861,7 +861,7 @@ static int exofs_writepage(struct page *
+ static void _write_failed(struct inode *inode, loff_t to)
+ {
+ 	if (to > inode->i_size)
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ }
+ 
+ int exofs_write_begin(struct file *file, struct address_space *mapping,
+diff -puN fs/ext2/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/ext2/inode.c
+--- a/fs/ext2/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/ext2/inode.c
+@@ -58,7 +58,7 @@ static void ext2_write_failed(struct add
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		ext2_truncate_blocks(inode, inode->i_size);
+ 	}
+ }
+diff -puN fs/ext4/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/ext4/inode.c
+--- a/fs/ext4/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/ext4/inode.c
+@@ -4574,8 +4574,6 @@ int ext4_setattr(struct dentry *dentry,
+ 
+ 	if (attr->ia_valid & ATTR_SIZE) {
+ 		if (attr->ia_size != inode->i_size) {
+-			loff_t oldsize = inode->i_size;
+-
+ 			i_size_write(inode, attr->ia_size);
+ 			/*
+ 			 * Blocks are going to be removed from the inode. Wait
+@@ -4594,7 +4592,7 @@ int ext4_setattr(struct dentry *dentry,
+ 			 * Truncate pagecache after we've waited for commit
+ 			 * in data=journal mode to make pages freeable.
+ 			 */
+-			truncate_pagecache(inode, oldsize, inode->i_size);
++			truncate_pagecache(inode, inode->i_size);
+ 		}
+ 		ext4_truncate(inode);
+ 	}
+diff -puN fs/fat/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/fat/inode.c
+--- a/fs/fat/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/fat/inode.c
+@@ -147,7 +147,7 @@ static void fat_write_failed(struct addr
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		fat_truncate_blocks(inode, inode->i_size);
+ 	}
+ }
+diff -puN fs/fuse/dir.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/fuse/dir.c
+--- a/fs/fuse/dir.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/fuse/dir.c
+@@ -1676,7 +1676,7 @@ int fuse_do_setattr(struct inode *inode,
+ 	 * FUSE_NOWRITE, otherwise fuse_launder_page() would deadlock.
+ 	 */
+ 	if (S_ISREG(inode->i_mode) && oldsize != outarg.attr.size) {
+-		truncate_pagecache(inode, oldsize, outarg.attr.size);
++		truncate_pagecache(inode, outarg.attr.size);
+ 		invalidate_inode_pages2(inode->i_mapping);
+ 	}
+ 
+diff -puN fs/fuse/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/fuse/inode.c
+--- a/fs/fuse/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/fuse/inode.c
+@@ -217,7 +217,7 @@ void fuse_change_attributes(struct inode
+ 		bool inval = false;
+ 
+ 		if (oldsize != attr->size) {
+-			truncate_pagecache(inode, oldsize, attr->size);
++			truncate_pagecache(inode, attr->size);
+ 			inval = true;
+ 		} else if (fc->auto_inval_data) {
+ 			struct timespec new_mtime = {
+diff -puN fs/gfs2/bmap.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/gfs2/bmap.c
+--- a/fs/gfs2/bmap.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/gfs2/bmap.c
+@@ -1016,7 +1016,7 @@ static int gfs2_journaled_truncate(struc
+ 		chunk = oldsize - newsize;
+ 		if (chunk > max_chunk)
+ 			chunk = max_chunk;
+-		truncate_pagecache(inode, oldsize, oldsize - chunk);
++		truncate_pagecache(inode, oldsize - chunk);
+ 		oldsize -= chunk;
+ 		gfs2_trans_end(sdp);
+ 		error = gfs2_trans_begin(sdp, RES_DINODE, GFS2_JTRUNC_REVOKES);
+@@ -1067,7 +1067,7 @@ static int trunc_start(struct inode *ino
+ 	if (journaled)
+ 		error = gfs2_journaled_truncate(inode, oldsize, newsize);
+ 	else
+-		truncate_pagecache(inode, oldsize, newsize);
++		truncate_pagecache(inode, newsize);
+ 
+ 	if (error) {
+ 		brelse(dibh);
+diff -puN fs/hfs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/hfs/inode.c
+--- a/fs/hfs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/hfs/inode.c
+@@ -41,7 +41,7 @@ static void hfs_write_failed(struct addr
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		hfs_file_truncate(inode);
+ 	}
+ }
+diff -puN fs/hfsplus/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/hfsplus/inode.c
+--- a/fs/hfsplus/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/hfsplus/inode.c
+@@ -35,7 +35,7 @@ static void hfsplus_write_failed(struct
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		hfsplus_file_truncate(inode);
+ 	}
+ }
+diff -puN fs/hpfs/file.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/hpfs/file.c
+--- a/fs/hpfs/file.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/hpfs/file.c
+@@ -138,7 +138,7 @@ static void hpfs_write_failed(struct add
+ 	hpfs_lock(inode->i_sb);
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		hpfs_truncate(inode);
+ 	}
+ 
+diff -puN fs/jfs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/jfs/inode.c
+--- a/fs/jfs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/jfs/inode.c
+@@ -306,7 +306,7 @@ static void jfs_write_failed(struct addr
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		jfs_truncate(inode);
+ 	}
+ }
+diff -puN fs/minix/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/minix/inode.c
+--- a/fs/minix/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/minix/inode.c
+@@ -400,7 +400,7 @@ static void minix_write_failed(struct ad
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		minix_truncate(inode);
+ 	}
+ }
+diff -puN fs/nfs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/nfs/inode.c
+--- a/fs/nfs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/nfs/inode.c
+@@ -538,7 +538,6 @@ EXPORT_SYMBOL_GPL(nfs_setattr);
+  */
+ static int nfs_vmtruncate(struct inode * inode, loff_t offset)
+ {
+-	loff_t oldsize;
+ 	int err;
+ 
+ 	err = inode_newsize_ok(inode, offset);
+@@ -546,11 +545,10 @@ static int nfs_vmtruncate(struct inode *
+ 		goto out;
+ 
+ 	spin_lock(&inode->i_lock);
+-	oldsize = inode->i_size;
+ 	i_size_write(inode, offset);
+ 	spin_unlock(&inode->i_lock);
+ 
+-	truncate_pagecache(inode, oldsize, offset);
++	truncate_pagecache(inode, offset);
+ out:
+ 	return err;
+ }
+diff -puN fs/nilfs2/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/nilfs2/inode.c
+@@ -254,7 +254,7 @@ void nilfs_write_failed(struct address_s
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		nilfs_truncate(inode);
+ 	}
+ }
+diff -puN fs/ntfs/file.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/ntfs/file.c
+--- a/fs/ntfs/file.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/ntfs/file.c
+@@ -1768,7 +1768,7 @@ static void ntfs_write_failed(struct add
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		ntfs_truncate_vfs(inode);
+ 	}
+ }
+diff -puN fs/omfs/file.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/omfs/file.c
+--- a/fs/omfs/file.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/omfs/file.c
+@@ -311,7 +311,7 @@ static void omfs_write_failed(struct add
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		omfs_truncate(inode);
+ 	}
+ }
+diff -puN fs/sysv/itree.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/sysv/itree.c
+--- a/fs/sysv/itree.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/sysv/itree.c
+@@ -469,7 +469,7 @@ static void sysv_write_failed(struct add
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size) {
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ 		sysv_truncate(inode);
+ 	}
+ }
+diff -puN fs/udf/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/udf/inode.c
+--- a/fs/udf/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/udf/inode.c
+@@ -172,7 +172,7 @@ static void udf_write_failed(struct addr
+ 	loff_t isize = inode->i_size;
+ 
+ 	if (to > isize) {
+-		truncate_pagecache(inode, to, isize);
++		truncate_pagecache(inode, isize);
+ 		if (iinfo->i_alloc_type != ICBTAG_FLAG_AD_IN_ICB) {
+ 			down_write(&iinfo->i_data_sem);
+ 			udf_clear_extent_cache(inode);
+diff -puN fs/ufs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/ufs/inode.c
+--- a/fs/ufs/inode.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/ufs/inode.c
+@@ -531,7 +531,7 @@ static void ufs_write_failed(struct addr
+ 	struct inode *inode = mapping->host;
+ 
+ 	if (to > inode->i_size)
+-		truncate_pagecache(inode, to, inode->i_size);
++		truncate_pagecache(inode, inode->i_size);
+ }
+ 
+ static int ufs_write_begin(struct file *file, struct address_space *mapping,
+diff -puN fs/xfs/xfs_aops.c~truncate-drop-oldsize-truncate_pagecache-parameter fs/xfs/xfs_aops.c
+--- a/fs/xfs/xfs_aops.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/fs/xfs/xfs_aops.c
+@@ -1587,7 +1587,7 @@ xfs_vm_write_begin(
+ 		unlock_page(page);
+ 
+ 		if (pos + len > i_size_read(inode))
+-			truncate_pagecache(inode, pos + len, i_size_read(inode));
++			truncate_pagecache(inode, i_size_read(inode));
+ 
+ 		page_cache_release(page);
+ 		page = NULL;
+@@ -1623,7 +1623,7 @@ xfs_vm_write_end(
+ 		loff_t		to = pos + len;
+ 
+ 		if (to > isize) {
+-			truncate_pagecache(inode, to, isize);
++			truncate_pagecache(inode, isize);
+ 			xfs_vm_kill_delalloc_range(inode, isize, to);
+ 		}
+ 	}
+diff -puN include/linux/mm.h~truncate-drop-oldsize-truncate_pagecache-parameter include/linux/mm.h
+--- a/include/linux/mm.h~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/include/linux/mm.h
+@@ -994,7 +994,7 @@ static inline void unmap_shared_mapping_
+ 	unmap_mapping_range(mapping, holebegin, holelen, 0);
+ }
+ 
+-extern void truncate_pagecache(struct inode *inode, loff_t old, loff_t new);
++extern void truncate_pagecache(struct inode *inode, loff_t new);
+ extern void truncate_setsize(struct inode *inode, loff_t newsize);
+ void truncate_pagecache_range(struct inode *inode, loff_t offset, loff_t end);
+ int truncate_inode_page(struct address_space *mapping, struct page *page);
+diff -puN mm/truncate.c~truncate-drop-oldsize-truncate_pagecache-parameter mm/truncate.c
+--- a/mm/truncate.c~truncate-drop-oldsize-truncate_pagecache-parameter
++++ a/mm/truncate.c
+@@ -567,7 +567,6 @@ EXPORT_SYMBOL_GPL(invalidate_inode_pages
+ /**
+  * truncate_pagecache - unmap and remove pagecache that has been truncated
+  * @inode: inode
+- * @oldsize: old file size
+  * @newsize: new file size
+  *
+  * inode's new i_size must already be written before truncate_pagecache
+@@ -580,7 +579,7 @@ EXPORT_SYMBOL_GPL(invalidate_inode_pages
+  * situations such as writepage being called for a page that has already
+  * had its underlying blocks deallocated.
+  */
+-void truncate_pagecache(struct inode *inode, loff_t oldsize, loff_t newsize)
++void truncate_pagecache(struct inode *inode, loff_t newsize)
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	loff_t holebegin = round_up(newsize, PAGE_SIZE);
+@@ -614,12 +613,8 @@ EXPORT_SYMBOL(truncate_pagecache);
+  */
+ void truncate_setsize(struct inode *inode, loff_t newsize)
+ {
+-	loff_t oldsize;
+-
+-	oldsize = inode->i_size;
+ 	i_size_write(inode, newsize);
+-
+-	truncate_pagecache(inode, oldsize, newsize);
++	truncate_pagecache(inode, newsize);
+ }
+ EXPORT_SYMBOL(truncate_setsize);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-origin.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_shmem_file_read.patch
+thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
+mm-cleanup-add_to_page_cache_locked.patch
+thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
+thp-do_huge_pmd_anonymous_page-cleanup.patch
+thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
+mm-fix-potential-null-pointer-dereference.patch
+truncate-drop-oldsize-truncate_pagecache-parameter.patch
+thp-mm-locking-tail-page-is-a-bug.patch
+thp-mm-locking-tail-page-is-a-bug-fix.patch
 linux-next.patch
-linux-next-git-rejects.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-block-support-embedded-device-command-line-partition-fix.patch
-mm.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-swap-make-swap-discard-async-checkpatch-fixes.patch
-swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
-mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
-memcg-trivial-cleanups.patch
-mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
-vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
-revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+fs-bump-inode-and-dentry-counters-to-long.patch
+super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
+dentry-move-to-per-sb-lru-locks.patch
+dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+mm-new-shrinker-api.patch
+shrinker-convert-superblock-shrinkers-to-new-api.patch
+list-add-a-new-lru-list-type.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code.patch
+dcache-convert-to-use-new-lru-list-infrastructure.patch
+list_lru-per-node-list-infrastructure.patch
+list_lru-per-node-api.patch
+shrinker-add-node-awareness.patch
+vmscan-per-node-deferred-work.patch
+fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
+xfs-convert-buftarg-lru-to-generic-code.patch
+xfs-rework-buffer-dispose-list-tracking.patch
+xfs-convert-dquot-cache-lru-to-list_lru.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api.patch
+drivers-convert-shrinkers-to-new-count-scan-api.patch
+i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+shrinker-kill-old-shrink-api.patch
+list_lru-dynamically-adjust-node-arrays.patch
 
