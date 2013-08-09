@@ -1,112 +1,259 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- hung_task-print-more-info-when-reporting-the-problem.patch removed from -mm tree
-Date: Fri, 09 Aug 2013 12:45:11 -0700
-Message-ID: <520546c7.qfGjfA4NGEiJTXD0%akpm@linux-foundation.org>
+Subject: [merged] xattr-constify-name-member-of-struct-xattr.patch removed from -mm tree
+Date: Fri, 09 Aug 2013 12:45:09 -0700
+Message-ID: <520546c5.j3SzjzIcxAqIE5qe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36879 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36875 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030913Ab3HITpL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Aug 2013 15:45:11 -0400
+	with ESMTP id S1030915Ab3HITpK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Aug 2013 15:45:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, oleg@redhat.com
+To: mm-commits@vger.kernel.org, serge.hallyn@ubuntu.com, paul@paul-moore.com, penguin-kernel@I-love.SAKURA.ne.jp
 
-Subject: [merged] hung_task-print-more-info-when-reporting-the-problem.patch removed from -mm tree
-To: oleg@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] xattr-constify-name-member-of-struct-xattr.patch removed from -mm tree
+To: penguin-kernel@I-love.SAKURA.ne.jp,paul@paul-moore.com,serge.hallyn@ubuntu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 09 Aug 2013 12:45:11 -0700
+Date: Fri, 09 Aug 2013 12:45:09 -0700
 
 
 The patch titled
-     Subject: hung_task: print more info when reporting the problem
+     Subject: xattr: constify ->name member of "struct xattr"
 has been removed from the -mm tree.  Its filename was
-     hung_task-print-more-info-when-reporting-the-problem.patch
+     xattr-constify-name-member-of-struct-xattr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: hung_task: print more info when reporting the problem
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: xattr: constify ->name member of "struct xattr"
 
-printk(KERN_ERR) from check_hung_task() likely means the bug, but unlike
-BUG_ON/WARN_ON it doesn't show the kernel version, this complicates the
-bug-reports investigation.
+Since everybody sets kstrdup()ed constant string to "struct xattr"->name
+but nobody modifies "struct xattr"->name , we can omit kstrdup() and its
+failure checking by constifying ->name member of "struct xattr".
 
-Add the additional pr_err() to print tainted/release/version like
-dump_stack_print_info() does, the output becomes:
-
-        INFO: task perl:504 blocked for more than 2 seconds.
-	      Not tainted 3.11.0-rc1-10367-g136bb46-dirty #1763
-        "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-        ...
-
-While at it, turn the old printk's into pr_err().
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Serge E. Hallyn <serge.hallyn@ubuntu.com>
+Reviewed-by: Paul Moore <paul@paul-moore.com>
+Tested-by: Paul Moore <paul@paul-moore.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ fs/ocfs2/xattr.h                    |    2 +-
+ include/linux/security.h            |    8 ++++----
+ include/linux/xattr.h               |    2 +-
+ include/uapi/linux/reiserfs_xattr.h |    2 +-
+ security/capability.c               |    2 +-
+ security/integrity/evm/evm_main.c   |    2 +-
+ security/security.c                 |    8 +++-----
+ security/selinux/hooks.c            |   17 ++++++-----------
+ security/smack/smack_lsm.c          |    9 +++------
+ 9 files changed, 21 insertions(+), 31 deletions(-)
 
-diff -puN kernel/hung_task.c~hung_task-print-more-info-when-reporting-the-problem kernel/hung_task.c
---- a/kernel/hung_task.c~hung_task-print-more-info-when-reporting-the-problem
-+++ a/kernel/hung_task.c
-@@ -15,6 +15,7 @@
- #include <linux/lockdep.h>
- #include <linux/export.h>
- #include <linux/sysctl.h>
-+#include <linux/utsname.h>
+diff -puN fs/ocfs2/xattr.h~xattr-constify-name-member-of-struct-xattr fs/ocfs2/xattr.h
+--- a/fs/ocfs2/xattr.h~xattr-constify-name-member-of-struct-xattr
++++ a/fs/ocfs2/xattr.h
+@@ -32,7 +32,7 @@ enum ocfs2_xattr_type {
  
- /*
-  * The number of tasks checked:
-@@ -99,10 +100,14 @@ static void check_hung_task(struct task_
- 	 * Ok, the task did not get scheduled for more than 2 minutes,
- 	 * complain:
- 	 */
--	printk(KERN_ERR "INFO: task %s:%d blocked for more than "
--			"%ld seconds.\n", t->comm, t->pid, timeout);
--	printk(KERN_ERR "\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
--			" disables this message.\n");
-+	pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
-+		t->comm, t->pid, timeout);
-+	pr_err("      %s %s %.*s\n",
-+		print_tainted(), init_utsname()->release,
-+		(int)strcspn(init_utsname()->version, " "),
-+		init_utsname()->version);
-+	pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
-+		" disables this message.\n");
- 	sched_show_task(t);
- 	debug_show_held_locks(t);
+ struct ocfs2_security_xattr_info {
+ 	int enable;
+-	char *name;
++	const char *name;
+ 	void *value;
+ 	size_t value_len;
+ };
+diff -puN include/linux/security.h~xattr-constify-name-member-of-struct-xattr include/linux/security.h
+--- a/include/linux/security.h~xattr-constify-name-member-of-struct-xattr
++++ a/include/linux/security.h
+@@ -1492,7 +1492,7 @@ struct security_operations {
+ 	int (*inode_alloc_security) (struct inode *inode);
+ 	void (*inode_free_security) (struct inode *inode);
+ 	int (*inode_init_security) (struct inode *inode, struct inode *dir,
+-				    const struct qstr *qstr, char **name,
++				    const struct qstr *qstr, const char **name,
+ 				    void **value, size_t *len);
+ 	int (*inode_create) (struct inode *dir,
+ 			     struct dentry *dentry, umode_t mode);
+@@ -1770,7 +1770,7 @@ int security_inode_init_security(struct
+ 				 const struct qstr *qstr,
+ 				 initxattrs initxattrs, void *fs_data);
+ int security_old_inode_init_security(struct inode *inode, struct inode *dir,
+-				     const struct qstr *qstr, char **name,
++				     const struct qstr *qstr, const char **name,
+ 				     void **value, size_t *len);
+ int security_inode_create(struct inode *dir, struct dentry *dentry, umode_t mode);
+ int security_inode_link(struct dentry *old_dentry, struct inode *dir,
+@@ -2094,8 +2094,8 @@ static inline int security_inode_init_se
+ static inline int security_old_inode_init_security(struct inode *inode,
+ 						   struct inode *dir,
+ 						   const struct qstr *qstr,
+-						   char **name, void **value,
+-						   size_t *len)
++						   const char **name,
++						   void **value, size_t *len)
+ {
+ 	return -EOPNOTSUPP;
+ }
+diff -puN include/linux/xattr.h~xattr-constify-name-member-of-struct-xattr include/linux/xattr.h
+--- a/include/linux/xattr.h~xattr-constify-name-member-of-struct-xattr
++++ a/include/linux/xattr.h
+@@ -31,7 +31,7 @@ struct xattr_handler {
+ };
  
+ struct xattr {
+-	char *name;
++	const char *name;
+ 	void *value;
+ 	size_t value_len;
+ };
+diff -puN include/uapi/linux/reiserfs_xattr.h~xattr-constify-name-member-of-struct-xattr include/uapi/linux/reiserfs_xattr.h
+--- a/include/uapi/linux/reiserfs_xattr.h~xattr-constify-name-member-of-struct-xattr
++++ a/include/uapi/linux/reiserfs_xattr.h
+@@ -16,7 +16,7 @@ struct reiserfs_xattr_header {
+ };
+ 
+ struct reiserfs_security_handle {
+-	char *name;
++	const char *name;
+ 	void *value;
+ 	size_t length;
+ };
+diff -puN security/capability.c~xattr-constify-name-member-of-struct-xattr security/capability.c
+--- a/security/capability.c~xattr-constify-name-member-of-struct-xattr
++++ a/security/capability.c
+@@ -129,7 +129,7 @@ static void cap_inode_free_security(stru
+ }
+ 
+ static int cap_inode_init_security(struct inode *inode, struct inode *dir,
+-				   const struct qstr *qstr, char **name,
++				   const struct qstr *qstr, const char **name,
+ 				   void **value, size_t *len)
+ {
+ 	return -EOPNOTSUPP;
+diff -puN security/integrity/evm/evm_main.c~xattr-constify-name-member-of-struct-xattr security/integrity/evm/evm_main.c
+--- a/security/integrity/evm/evm_main.c~xattr-constify-name-member-of-struct-xattr
++++ a/security/integrity/evm/evm_main.c
+@@ -418,7 +418,7 @@ int evm_inode_init_security(struct inode
+ 
+ 	evm_xattr->value = xattr_data;
+ 	evm_xattr->value_len = sizeof(*xattr_data);
+-	evm_xattr->name = kstrdup(XATTR_EVM_SUFFIX, GFP_NOFS);
++	evm_xattr->name = XATTR_EVM_SUFFIX;
+ 	return 0;
+ out:
+ 	kfree(xattr_data);
+diff -puN security/security.c~xattr-constify-name-member-of-struct-xattr security/security.c
+--- a/security/security.c~xattr-constify-name-member-of-struct-xattr
++++ a/security/security.c
+@@ -348,10 +348,10 @@ int security_inode_init_security(struct
+ 	if (unlikely(IS_PRIVATE(inode)))
+ 		return 0;
+ 
+-	memset(new_xattrs, 0, sizeof new_xattrs);
+ 	if (!initxattrs)
+ 		return security_ops->inode_init_security(inode, dir, qstr,
+ 							 NULL, NULL, NULL);
++	memset(new_xattrs, 0, sizeof(new_xattrs));
+ 	lsm_xattr = new_xattrs;
+ 	ret = security_ops->inode_init_security(inode, dir, qstr,
+ 						&lsm_xattr->name,
+@@ -366,16 +366,14 @@ int security_inode_init_security(struct
+ 		goto out;
+ 	ret = initxattrs(inode, new_xattrs, fs_data);
+ out:
+-	for (xattr = new_xattrs; xattr->name != NULL; xattr++) {
+-		kfree(xattr->name);
++	for (xattr = new_xattrs; xattr->value != NULL; xattr++)
+ 		kfree(xattr->value);
+-	}
+ 	return (ret == -EOPNOTSUPP) ? 0 : ret;
+ }
+ EXPORT_SYMBOL(security_inode_init_security);
+ 
+ int security_old_inode_init_security(struct inode *inode, struct inode *dir,
+-				     const struct qstr *qstr, char **name,
++				     const struct qstr *qstr, const char **name,
+ 				     void **value, size_t *len)
+ {
+ 	if (unlikely(IS_PRIVATE(inode)))
+diff -puN security/selinux/hooks.c~xattr-constify-name-member-of-struct-xattr security/selinux/hooks.c
+--- a/security/selinux/hooks.c~xattr-constify-name-member-of-struct-xattr
++++ a/security/selinux/hooks.c
+@@ -2587,7 +2587,8 @@ static int selinux_dentry_init_security(
+ }
+ 
+ static int selinux_inode_init_security(struct inode *inode, struct inode *dir,
+-				       const struct qstr *qstr, char **name,
++				       const struct qstr *qstr,
++				       const char **name,
+ 				       void **value, size_t *len)
+ {
+ 	const struct task_security_struct *tsec = current_security();
+@@ -2595,7 +2596,7 @@ static int selinux_inode_init_security(s
+ 	struct superblock_security_struct *sbsec;
+ 	u32 sid, newsid, clen;
+ 	int rc;
+-	char *namep = NULL, *context;
++	char *context;
+ 
+ 	dsec = dir->i_security;
+ 	sbsec = dir->i_sb->s_security;
+@@ -2631,19 +2632,13 @@ static int selinux_inode_init_security(s
+ 	if (!ss_initialized || !(sbsec->flags & SE_SBLABELSUPP))
+ 		return -EOPNOTSUPP;
+ 
+-	if (name) {
+-		namep = kstrdup(XATTR_SELINUX_SUFFIX, GFP_NOFS);
+-		if (!namep)
+-			return -ENOMEM;
+-		*name = namep;
+-	}
++	if (name)
++		*name = XATTR_SELINUX_SUFFIX;
+ 
+ 	if (value && len) {
+ 		rc = security_sid_to_context_force(newsid, &context, &clen);
+-		if (rc) {
+-			kfree(namep);
++		if (rc)
+ 			return rc;
+-		}
+ 		*value = context;
+ 		*len = clen;
+ 	}
+diff -puN security/smack/smack_lsm.c~xattr-constify-name-member-of-struct-xattr security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~xattr-constify-name-member-of-struct-xattr
++++ a/security/smack/smack_lsm.c
+@@ -582,7 +582,7 @@ static void smack_inode_free_security(st
+  * Returns 0 if it all works out, -ENOMEM if there's no memory
+  */
+ static int smack_inode_init_security(struct inode *inode, struct inode *dir,
+-				     const struct qstr *qstr, char **name,
++				     const struct qstr *qstr, const char **name,
+ 				     void **value, size_t *len)
+ {
+ 	struct inode_smack *issp = inode->i_security;
+@@ -591,11 +591,8 @@ static int smack_inode_init_security(str
+ 	char *dsp = smk_of_inode(dir);
+ 	int may;
+ 
+-	if (name) {
+-		*name = kstrdup(XATTR_SMACK_SUFFIX, GFP_NOFS);
+-		if (*name == NULL)
+-			return -ENOMEM;
+-	}
++	if (name)
++		*name = XATTR_SMACK_SUFFIX;
+ 
+ 	if (value) {
+ 		rcu_read_lock();
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-origin.patch
-x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
-mm-shift-vm_grows-check-from-mmap_region-to-do_mmap_pgoff-v2.patch
-mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
-mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
-kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-signals-eventpoll-set-saved_sigmask-at-the-start.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-exec-introduce-exec_binprm-for-depth-==-0-code.patch
-exec-kill-int-depth-in-search_binary_handler.patch
-exec-proc_exec_connector-should-be-called-only-once.patch
-exec-move-allow_write_access-fput-to-exec_binprm.patch
-exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
-exec-cleanup-the-config_modules-logic.patch
-exec-dont-retry-if-request_module-fails.patch
-exec-cleanup-the-error-handling-in-search_binary_handler.patch
 linux-next.patch
 
