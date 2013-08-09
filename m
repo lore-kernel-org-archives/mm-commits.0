@@ -1,259 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xattr-constify-name-member-of-struct-xattr.patch removed from -mm tree
-Date: Fri, 09 Aug 2013 12:45:09 -0700
-Message-ID: <520546c5.j3SzjzIcxAqIE5qe%akpm@linux-foundation.org>
+Subject: +
+ syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+ added to -mm tree
+Date: Fri, 09 Aug 2013 12:51:59 -0700
+Message-ID: <5205485f.Qjd2pzfJr21copqa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36875 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36893 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030915Ab3HITpK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Aug 2013 15:45:10 -0400
+	with ESMTP id S1030968Ab3HITwA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Aug 2013 15:52:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, serge.hallyn@ubuntu.com, paul@paul-moore.com, penguin-kernel@I-love.SAKURA.ne.jp
+To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, geert@linux-m68k.org, ak@linux.intel.com
 
-Subject: [merged] xattr-constify-name-member-of-struct-xattr.patch removed from -mm tree
-To: penguin-kernel@I-love.SAKURA.ne.jp,paul@paul-moore.com,serge.hallyn@ubuntu.com,mm-commits@vger.kernel.org
+Subject: + syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch added to -mm tree
+To: ak@linux.intel.com,geert@linux-m68k.org,viro@ZenIV.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Fri, 09 Aug 2013 12:45:09 -0700
+Date: Fri, 09 Aug 2013 12:51:59 -0700
 
 
 The patch titled
-     Subject: xattr: constify ->name member of "struct xattr"
-has been removed from the -mm tree.  Its filename was
-     xattr-constify-name-member-of-struct-xattr.patch
+     Subject: syscalls.h: use gcc alias instead of assembler aliases for syscalls
+has been added to the -mm tree.  Its filename is
+     syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: xattr: constify ->name member of "struct xattr"
+From: Andi Kleen <ak@linux.intel.com>
+Subject: syscalls.h: use gcc alias instead of assembler aliases for syscalls
 
-Since everybody sets kstrdup()ed constant string to "struct xattr"->name
-but nobody modifies "struct xattr"->name , we can omit kstrdup() and its
-failure checking by constifying ->name member of "struct xattr".
+Use standard gcc __attribute__((alias(foo))) to define the syscall aliases
+instead of custom assembler macros.
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Serge E. Hallyn <serge.hallyn@ubuntu.com>
-Reviewed-by: Paul Moore <paul@paul-moore.com>
-Tested-by: Paul Moore <paul@paul-moore.com>
+This is far cleaner, and also fixes my LTO kernel build.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.h                    |    2 +-
- include/linux/security.h            |    8 ++++----
- include/linux/xattr.h               |    2 +-
- include/uapi/linux/reiserfs_xattr.h |    2 +-
- security/capability.c               |    2 +-
- security/integrity/evm/evm_main.c   |    2 +-
- security/security.c                 |    8 +++-----
- security/selinux/hooks.c            |   17 ++++++-----------
- security/smack/smack_lsm.c          |    9 +++------
- 9 files changed, 21 insertions(+), 31 deletions(-)
+ include/linux/compat.h   |    4 ++--
+ include/linux/syscalls.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/xattr.h~xattr-constify-name-member-of-struct-xattr fs/ocfs2/xattr.h
---- a/fs/ocfs2/xattr.h~xattr-constify-name-member-of-struct-xattr
-+++ a/fs/ocfs2/xattr.h
-@@ -32,7 +32,7 @@ enum ocfs2_xattr_type {
+diff -puN include/linux/compat.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls include/linux/compat.h
+--- a/include/linux/compat.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls
++++ a/include/linux/compat.h
+@@ -41,13 +41,13 @@
+ 	COMPAT_SYSCALL_DEFINEx(6, _##name, __VA_ARGS__)
  
- struct ocfs2_security_xattr_info {
- 	int enable;
--	char *name;
-+	const char *name;
- 	void *value;
- 	size_t value_len;
- };
-diff -puN include/linux/security.h~xattr-constify-name-member-of-struct-xattr include/linux/security.h
---- a/include/linux/security.h~xattr-constify-name-member-of-struct-xattr
-+++ a/include/linux/security.h
-@@ -1492,7 +1492,7 @@ struct security_operations {
- 	int (*inode_alloc_security) (struct inode *inode);
- 	void (*inode_free_security) (struct inode *inode);
- 	int (*inode_init_security) (struct inode *inode, struct inode *dir,
--				    const struct qstr *qstr, char **name,
-+				    const struct qstr *qstr, const char **name,
- 				    void **value, size_t *len);
- 	int (*inode_create) (struct inode *dir,
- 			     struct dentry *dentry, umode_t mode);
-@@ -1770,7 +1770,7 @@ int security_inode_init_security(struct
- 				 const struct qstr *qstr,
- 				 initxattrs initxattrs, void *fs_data);
- int security_old_inode_init_security(struct inode *inode, struct inode *dir,
--				     const struct qstr *qstr, char **name,
-+				     const struct qstr *qstr, const char **name,
- 				     void **value, size_t *len);
- int security_inode_create(struct inode *dir, struct dentry *dentry, umode_t mode);
- int security_inode_link(struct dentry *old_dentry, struct inode *dir,
-@@ -2094,8 +2094,8 @@ static inline int security_inode_init_se
- static inline int security_old_inode_init_security(struct inode *inode,
- 						   struct inode *dir,
- 						   const struct qstr *qstr,
--						   char **name, void **value,
--						   size_t *len)
-+						   const char **name,
-+						   void **value, size_t *len)
- {
- 	return -EOPNOTSUPP;
- }
-diff -puN include/linux/xattr.h~xattr-constify-name-member-of-struct-xattr include/linux/xattr.h
---- a/include/linux/xattr.h~xattr-constify-name-member-of-struct-xattr
-+++ a/include/linux/xattr.h
-@@ -31,7 +31,7 @@ struct xattr_handler {
- };
+ #define COMPAT_SYSCALL_DEFINEx(x, name, ...)				\
+-	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__));\
++	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))\
++		__attribute__((alias(__stringify(compat_SyS##name))));  \
+ 	static inline long C_SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__));\
+ 	asmlinkage long compat_SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__))\
+ 	{								\
+ 		return C_SYSC##name(__MAP(x,__SC_DELOUSE,__VA_ARGS__));	\
+ 	}								\
+-	SYSCALL_ALIAS(compat_sys##name, compat_SyS##name);		\
+ 	static inline long C_SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__))
  
- struct xattr {
--	char *name;
-+	const char *name;
- 	void *value;
- 	size_t value_len;
- };
-diff -puN include/uapi/linux/reiserfs_xattr.h~xattr-constify-name-member-of-struct-xattr include/uapi/linux/reiserfs_xattr.h
---- a/include/uapi/linux/reiserfs_xattr.h~xattr-constify-name-member-of-struct-xattr
-+++ a/include/uapi/linux/reiserfs_xattr.h
-@@ -16,7 +16,7 @@ struct reiserfs_xattr_header {
- };
+ #ifndef compat_user_stack_pointer
+diff -puN include/linux/syscalls.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls include/linux/syscalls.h
+--- a/include/linux/syscalls.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls
++++ a/include/linux/syscalls.h
+@@ -184,7 +184,8 @@ extern struct trace_event_functions exit
  
- struct reiserfs_security_handle {
--	char *name;
-+	const char *name;
- 	void *value;
- 	size_t length;
- };
-diff -puN security/capability.c~xattr-constify-name-member-of-struct-xattr security/capability.c
---- a/security/capability.c~xattr-constify-name-member-of-struct-xattr
-+++ a/security/capability.c
-@@ -129,7 +129,7 @@ static void cap_inode_free_security(stru
- }
+ #define __PROTECT(...) asmlinkage_protect(__VA_ARGS__)
+ #define __SYSCALL_DEFINEx(x, name, ...)					\
+-	asmlinkage long sys##name(__MAP(x,__SC_DECL,__VA_ARGS__));	\
++	asmlinkage long sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))	\
++		__attribute__((alias(__stringify(SyS##name))));		\
+ 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__));	\
+ 	asmlinkage long SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__))	\
+ 	{								\
+@@ -193,7 +194,6 @@ extern struct trace_event_functions exit
+ 		__PROTECT(x, ret,__MAP(x,__SC_ARGS,__VA_ARGS__));	\
+ 		return ret;						\
+ 	}								\
+-	SYSCALL_ALIAS(sys##name, SyS##name);				\
+ 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__))
  
- static int cap_inode_init_security(struct inode *inode, struct inode *dir,
--				   const struct qstr *qstr, char **name,
-+				   const struct qstr *qstr, const char **name,
- 				   void **value, size_t *len)
- {
- 	return -EOPNOTSUPP;
-diff -puN security/integrity/evm/evm_main.c~xattr-constify-name-member-of-struct-xattr security/integrity/evm/evm_main.c
---- a/security/integrity/evm/evm_main.c~xattr-constify-name-member-of-struct-xattr
-+++ a/security/integrity/evm/evm_main.c
-@@ -418,7 +418,7 @@ int evm_inode_init_security(struct inode
- 
- 	evm_xattr->value = xattr_data;
- 	evm_xattr->value_len = sizeof(*xattr_data);
--	evm_xattr->name = kstrdup(XATTR_EVM_SUFFIX, GFP_NOFS);
-+	evm_xattr->name = XATTR_EVM_SUFFIX;
- 	return 0;
- out:
- 	kfree(xattr_data);
-diff -puN security/security.c~xattr-constify-name-member-of-struct-xattr security/security.c
---- a/security/security.c~xattr-constify-name-member-of-struct-xattr
-+++ a/security/security.c
-@@ -348,10 +348,10 @@ int security_inode_init_security(struct
- 	if (unlikely(IS_PRIVATE(inode)))
- 		return 0;
- 
--	memset(new_xattrs, 0, sizeof new_xattrs);
- 	if (!initxattrs)
- 		return security_ops->inode_init_security(inode, dir, qstr,
- 							 NULL, NULL, NULL);
-+	memset(new_xattrs, 0, sizeof(new_xattrs));
- 	lsm_xattr = new_xattrs;
- 	ret = security_ops->inode_init_security(inode, dir, qstr,
- 						&lsm_xattr->name,
-@@ -366,16 +366,14 @@ int security_inode_init_security(struct
- 		goto out;
- 	ret = initxattrs(inode, new_xattrs, fs_data);
- out:
--	for (xattr = new_xattrs; xattr->name != NULL; xattr++) {
--		kfree(xattr->name);
-+	for (xattr = new_xattrs; xattr->value != NULL; xattr++)
- 		kfree(xattr->value);
--	}
- 	return (ret == -EOPNOTSUPP) ? 0 : ret;
- }
- EXPORT_SYMBOL(security_inode_init_security);
- 
- int security_old_inode_init_security(struct inode *inode, struct inode *dir,
--				     const struct qstr *qstr, char **name,
-+				     const struct qstr *qstr, const char **name,
- 				     void **value, size_t *len)
- {
- 	if (unlikely(IS_PRIVATE(inode)))
-diff -puN security/selinux/hooks.c~xattr-constify-name-member-of-struct-xattr security/selinux/hooks.c
---- a/security/selinux/hooks.c~xattr-constify-name-member-of-struct-xattr
-+++ a/security/selinux/hooks.c
-@@ -2587,7 +2587,8 @@ static int selinux_dentry_init_security(
- }
- 
- static int selinux_inode_init_security(struct inode *inode, struct inode *dir,
--				       const struct qstr *qstr, char **name,
-+				       const struct qstr *qstr,
-+				       const char **name,
- 				       void **value, size_t *len)
- {
- 	const struct task_security_struct *tsec = current_security();
-@@ -2595,7 +2596,7 @@ static int selinux_inode_init_security(s
- 	struct superblock_security_struct *sbsec;
- 	u32 sid, newsid, clen;
- 	int rc;
--	char *namep = NULL, *context;
-+	char *context;
- 
- 	dsec = dir->i_security;
- 	sbsec = dir->i_sb->s_security;
-@@ -2631,19 +2632,13 @@ static int selinux_inode_init_security(s
- 	if (!ss_initialized || !(sbsec->flags & SE_SBLABELSUPP))
- 		return -EOPNOTSUPP;
- 
--	if (name) {
--		namep = kstrdup(XATTR_SELINUX_SUFFIX, GFP_NOFS);
--		if (!namep)
--			return -ENOMEM;
--		*name = namep;
--	}
-+	if (name)
-+		*name = XATTR_SELINUX_SUFFIX;
- 
- 	if (value && len) {
- 		rc = security_sid_to_context_force(newsid, &context, &clen);
--		if (rc) {
--			kfree(namep);
-+		if (rc)
- 			return rc;
--		}
- 		*value = context;
- 		*len = clen;
- 	}
-diff -puN security/smack/smack_lsm.c~xattr-constify-name-member-of-struct-xattr security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~xattr-constify-name-member-of-struct-xattr
-+++ a/security/smack/smack_lsm.c
-@@ -582,7 +582,7 @@ static void smack_inode_free_security(st
-  * Returns 0 if it all works out, -ENOMEM if there's no memory
-  */
- static int smack_inode_init_security(struct inode *inode, struct inode *dir,
--				     const struct qstr *qstr, char **name,
-+				     const struct qstr *qstr, const char **name,
- 				     void **value, size_t *len)
- {
- 	struct inode_smack *issp = inode->i_security;
-@@ -591,11 +591,8 @@ static int smack_inode_init_security(str
- 	char *dsp = smk_of_inode(dir);
- 	int may;
- 
--	if (name) {
--		*name = kstrdup(XATTR_SMACK_SUFFIX, GFP_NOFS);
--		if (*name == NULL)
--			return -ENOMEM;
--	}
-+	if (name)
-+		*name = XATTR_SMACK_SUFFIX;
- 
- 	if (value) {
- 		rcu_read_lock();
+ asmlinkage long sys_time(time_t __user *tloc);
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
+thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
+mm-cleanup-add_to_page_cache_locked.patch
+thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
+thp-do_huge_pmd_anonymous_page-cleanup.patch
+thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
+kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
+lto-watchdog-hpwdtc-make-assembler-label-global.patch
+syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
 linux-next.patch
 
