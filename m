@@ -1,101 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Fri, 09 Aug 2013 12:33:53 -0700
-Message-ID: <52054421.s3yFa/qXXWTYq3Ie%akpm@linux-foundation.org>
+Subject: [merged]
+ hung_task-print-more-info-when-reporting-the-problem.patch removed from -mm tree
+Date: Fri, 09 Aug 2013 12:45:11 -0700
+Message-ID: <520546c7.qfGjfA4NGEiJTXD0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36791 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36879 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758374Ab3HITdy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Aug 2013 15:33:54 -0400
+	with ESMTP id S1030913Ab3HITpL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Aug 2013 15:45:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, oleg@redhat.com
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [merged] hung_task-print-more-info-when-reporting-the-problem.patch removed from -mm tree
+To: oleg@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 09 Aug 2013 12:33:53 -0700
+Date: Fri, 09 Aug 2013 12:45:11 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: hung_task: print more info when reporting the problem
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     hung_task-print-more-info-when-reporting-the-problem.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: hung_task: print more info when reporting the problem
 
+printk(KERN_ERR) from check_hung_task() likely means the bug, but unlike
+BUG_ON/WARN_ON it doesn't show the kernel version, this complicates the
+bug-reports investigation.
+
+Add the additional pr_err() to print tainted/release/version like
+dump_stack_print_info() does, the output becomes:
+
+        INFO: task perl:504 blocked for more than 2 seconds.
+	      Not tainted 3.11.0-rc1-10367-g136bb46-dirty #1763
+        "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+        ...
+
+While at it, turn the old printk's into pr_err().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-shmobile/board-armadillo800eva.c |    4 ----
- 1 file changed, 4 deletions(-)
+ kernel/hung_task.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/mach-shmobile/board-armadillo800eva.c~linux-next-git-rejects arch/arm/mach-shmobile/board-armadillo800eva.c
---- a/arch/arm/mach-shmobile/board-armadillo800eva.c~linux-next-git-rejects
-+++ a/arch/arm/mach-shmobile/board-armadillo800eva.c
-@@ -1204,10 +1204,6 @@ static void __init eva_init(void)
+diff -puN kernel/hung_task.c~hung_task-print-more-info-when-reporting-the-problem kernel/hung_task.c
+--- a/kernel/hung_task.c~hung_task-print-more-info-when-reporting-the-problem
++++ a/kernel/hung_task.c
+@@ -15,6 +15,7 @@
+ #include <linux/lockdep.h>
+ #include <linux/export.h>
+ #include <linux/sysctl.h>
++#include <linux/utsname.h>
  
- 	/* LCDC0 */
- 	gpio_request_one(61, GPIOF_OUT_INIT_HIGH, NULL); /* LCDDON */
--<<<<<<< HEAD
--	gpio_request_one(202, GPIOF_OUT_INIT_LOW, NULL); /* LCD0_LED_CONT */
--=======
-->>>>>>> linux-next/akpm-base
+ /*
+  * The number of tasks checked:
+@@ -99,10 +100,14 @@ static void check_hung_task(struct task_
+ 	 * Ok, the task did not get scheduled for more than 2 minutes,
+ 	 * complain:
+ 	 */
+-	printk(KERN_ERR "INFO: task %s:%d blocked for more than "
+-			"%ld seconds.\n", t->comm, t->pid, timeout);
+-	printk(KERN_ERR "\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
+-			" disables this message.\n");
++	pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
++		t->comm, t->pid, timeout);
++	pr_err("      %s %s %.*s\n",
++		print_tainted(), init_utsname()->release,
++		(int)strcspn(init_utsname()->version, " "),
++		init_utsname()->version);
++	pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
++		" disables this message.\n");
+ 	sched_show_task(t);
+ 	debug_show_held_locks(t);
  
- 	/* GETHER */
- 	gpio_request_one(18, GPIOF_OUT_INIT_HIGH, NULL); /* PHY_RST */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-linux-next.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-block-support-embedded-device-command-line-partition-fix.patch
-mm.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-swap-make-swap-discard-async-checkpatch-fixes.patch
-swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
-mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
-memcg-trivial-cleanups.patch
-mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
-vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
+x86-get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
+mm-shift-vm_grows-check-from-mmap_region-to-do_mmap_pgoff-v2.patch
+mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
+mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
+kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+signals-eventpoll-set-saved_sigmask-at-the-start.patch
 move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
-revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+exec-introduce-exec_binprm-for-depth-==-0-code.patch
+exec-kill-int-depth-in-search_binary_handler.patch
+exec-proc_exec_connector-should-be-called-only-once.patch
+exec-move-allow_write_access-fput-to-exec_binprm.patch
+exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
+exec-cleanup-the-config_modules-logic.patch
+exec-dont-retry-if-request_module-fails.patch
+exec-cleanup-the-error-handling-in-search_binary_handler.patch
+linux-next.patch
 
