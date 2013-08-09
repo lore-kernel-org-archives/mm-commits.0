@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
- added to -mm tree
-Date: Fri, 09 Aug 2013 15:33:31 -0700
-Message-ID: <52056e3b.hquNpRnQl6JWLOVx%akpm@linux-foundation.org>
+Subject: + checkpatch-better-fix-of-spacing-errors.patch added to -mm tree
+Date: Fri, 09 Aug 2013 16:05:54 -0700
+Message-ID: <520575d2.Xu5nJ3LMzPTnZQtZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37647 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37905 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031371Ab3HIWdc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Aug 2013 18:33:32 -0400
+	with ESMTP id S1031435Ab3HIXFz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Aug 2013 19:05:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kees@outflux.net, glommer@openvz.org, dchinner@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, phil.carmody@partner.samsung.com, apw@canonical.com, joe@perches.com
 
-Subject: + fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch added to -mm tree
-To: akpm@linux-foundation.org,dchinner@redhat.com,glommer@openvz.org,kees@outflux.net
+Subject: + checkpatch-better-fix-of-spacing-errors.patch added to -mm tree
+To: joe@perches.com,apw@canonical.com,phil.carmody@partner.samsung.com
 From: akpm@linux-foundation.org
-Date: Fri, 09 Aug 2013 15:33:31 -0700
+Date: Fri, 09 Aug 2013 16:05:54 -0700
 
 
 The patch titled
-     Subject: fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2
+     Subject: checkpatch: better --fix of SPACING errors.
 has been added to the -mm tree.  Its filename is
-     fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
+     checkpatch-better-fix-of-spacing-errors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-better-fix-of-spacing-errors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-better-fix-of-spacing-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,120 +43,240 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: better --fix of SPACING errors.
 
-fix shadowed local, spell "skipped" correctly
+Previous attempt at fixing SPACING errors could make a hash of several
+defects.
 
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Glauber Costa <glommer@openvz.org>
-Cc: Kees Cook <kees@outflux.net>
+This patch should make --fix be a lot better at correcting these defects.
+
+Trim left and right sides of these defects appropriately instead of a
+somewhat random attempt at it.
+
+Trim left spaces from any following bit of the modified line when only a
+single space is required around an operator.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Phil Carmody <phil.carmody@partner.samsung.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/extents_status.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ scripts/checkpatch.pl |   64 ++++++++++++++++++++++++++--------------
+ 1 file changed, 42 insertions(+), 22 deletions(-)
 
-diff -puN fs/ext4/extents_status.c~fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2 fs/ext4/extents_status.c
---- a/fs/ext4/extents_status.c~fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2
-+++ a/fs/ext4/extents_status.c
-@@ -946,15 +946,15 @@ static int __ext4_es_shrink(struct ext4_
- {
- 	struct ext4_inode_info *ei;
- 	struct list_head *cur, *tmp;
--	LIST_HEAD(skiped);
--	int ret, nr_shrunk = 0;
-+	LIST_HEAD(skipped);
-+	int nr_shrunk = 0;
- 	int retried = 0, skip_precached = 1, nr_skipped = 0;
+diff -puN scripts/checkpatch.pl~checkpatch-better-fix-of-spacing-errors scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-better-fix-of-spacing-errors
++++ a/scripts/checkpatch.pl
+@@ -1472,7 +1472,23 @@ sub check_absolute_file {
+ sub trim {
+ 	my ($string) = @_;
  
- 	spin_lock(&sbi->s_es_lru_lock);
+-	$string =~ s/(^\s+|\s+$)//g;
++	$string =~ s/^\s+|\s+$//g;
++
++	return $string;
++}
++
++sub ltrim {
++	my ($string) = @_;
++
++	$string =~ s/^\s+//;
++
++	return $string;
++}
++
++sub rtrim {
++	my ($string) = @_;
++
++	$string =~ s/\s+$//;
  
- retry:
- 	list_for_each_safe(cur, tmp, &sbi->s_es_lru) {
--		int ret;
-+		int shrunk;
+ 	return $string;
+ }
+@@ -2821,6 +2837,7 @@ sub process {
+ 			$off = 0;
  
- 		/*
- 		 * If we have already reclaimed all extents from extent
-@@ -974,7 +974,7 @@ retry:
- 		    (skip_precached && ext4_test_inode_state(&ei->vfs_inode,
- 						EXT4_STATE_EXT_PRECACHED))) {
- 			nr_skipped++;
--			list_move_tail(cur, &skiped);
-+			list_move_tail(cur, &skipped);
- 			continue;
- 		}
+ 			my $blank = copy_spacing($opline);
++			my $last_after = -1;
  
-@@ -982,19 +982,19 @@ retry:
- 			continue;
+ 			for (my $n = 0; $n < $#elements; $n += 2) {
  
- 		write_lock(&ei->i_es_lock);
--		ret = __es_try_to_reclaim_extents(ei, nr_to_scan);
-+		shrunk = __es_try_to_reclaim_extents(ei, nr_to_scan);
- 		if (ei->i_es_lru_nr == 0)
- 			list_del_init(&ei->i_es_lru);
- 		write_unlock(&ei->i_es_lock);
+@@ -2886,7 +2903,7 @@ sub process {
+ 					    $cc !~ /^\\/ && $cc !~ /^;/) {
+ 						if (ERROR("SPACING",
+ 							  "space required after that '$op' $at\n" . $hereptr)) {
+-							$good = trim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]) . " ";
++							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]) . " ";
+ 							$line_fixed = 1;
+ 						}
+ 					}
+@@ -2901,11 +2918,11 @@ sub process {
+ 					if ($ctx =~ /Wx.|.xW/) {
+ 						if (ERROR("SPACING",
+ 							  "spaces prohibited around that '$op' $at\n" . $hereptr)) {
+-							$good = trim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
+-							$line_fixed = 1;
++							$good = rtrim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
+ 							if (defined $fix_elements[$n + 2]) {
+ 								$fix_elements[$n + 2] =~ s/^\s+//;
+ 							}
++							$line_fixed = 1;
+ 						}
+ 					}
  
--		nr_shrunk += ret;
--		nr_to_scan -= ret;
-+		nr_shrunk += shrunk;
-+		nr_to_scan -= shrunk;
- 		if (nr_to_scan == 0)
- 			break;
- 	}
+@@ -2914,8 +2931,9 @@ sub process {
+ 					if ($ctx !~ /.x[WEC]/ && $cc !~ /^}/) {
+ 						if (ERROR("SPACING",
+ 							  "space required after that '$op' $at\n" . $hereptr)) {
+-							$good = trim($fix_elements[$n]) . trim($fix_elements[$n + 1]) . " ";
++							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]) . " ";
+ 							$line_fixed = 1;
++							$last_after = $n;
+ 						}
+ 					}
  
- 	/* Move the newer inodes into the tail of the LRU list. */
--	list_splice_tail(&skiped, &sbi->s_es_lru);
-+	list_splice_tail(&skipped, &sbi->s_es_lru);
+@@ -2932,8 +2950,10 @@ sub process {
+ 					if ($ctx !~ /[WEBC]x./ && $ca !~ /(?:\)|!|~|\*|-|\&|\||\+\+|\-\-|\{)$/) {
+ 						if (ERROR("SPACING",
+ 							  "space required before that '$op' $at\n" . $hereptr)) {
+-							$good = trim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]);
+-							$line_fixed = 1;
++							if ($n != $last_after + 2) {
++								$good = $fix_elements[$n] . " " . ltrim($fix_elements[$n + 1]);
++								$line_fixed = 1;
++							}
+ 						}
+ 					}
+ 					if ($op eq '*' && $cc =~/\s*$Modifier\b/) {
+@@ -2942,12 +2962,11 @@ sub process {
+ 					} elsif ($ctx =~ /.xW/) {
+ 						if (ERROR("SPACING",
+ 							  "space prohibited after that '$op' $at\n" . $hereptr)) {
+-							$fixed_line =~ s/\s+$//;
+-							$good = trim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
+-							$line_fixed = 1;
++							$good = $fix_elements[$n] . rtrim($fix_elements[$n + 1]);
+ 							if (defined $fix_elements[$n + 2]) {
+ 								$fix_elements[$n + 2] =~ s/^\s+//;
+ 							}
++							$line_fixed = 1;
+ 						}
+ 					}
  
- 	/*
- 	 * If we skipped any inodes, and we weren't able to make any
+@@ -2956,8 +2975,7 @@ sub process {
+ 					if ($ctx !~ /[WEOBC]x[^W]/ && $ctx !~ /[^W]x[WOBEC]/) {
+ 						if (ERROR("SPACING",
+ 							  "space required one side of that '$op' $at\n" . $hereptr)) {
+-							$fixed_line =~ s/\s+$//;
+-							$good = trim($fix_elements[$n]) . trim($fix_elements[$n + 1]) . " ";
++							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]) . " ";
+ 							$line_fixed = 1;
+ 						}
+ 					}
+@@ -2965,20 +2983,18 @@ sub process {
+ 					    ($ctx =~ /Wx./ && $cc =~ /^;/)) {
+ 						if (ERROR("SPACING",
+ 							  "space prohibited before that '$op' $at\n" . $hereptr)) {
+-							$fixed_line =~ s/\s+$//;
+-							$good = trim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
++							$good = rtrim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
+ 							$line_fixed = 1;
+ 						}
+ 					}
+ 					if ($ctx =~ /ExW/) {
+ 						if (ERROR("SPACING",
+ 							  "space prohibited after that '$op' $at\n" . $hereptr)) {
+-							$fixed_line =~ s/\s+$//;
+-							$good = trim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
+-							$line_fixed = 1;
++							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]);
+ 							if (defined $fix_elements[$n + 2]) {
+ 								$fix_elements[$n + 2] =~ s/^\s+//;
+ 							}
++							$line_fixed = 1;
+ 						}
+ 					}
+ 
+@@ -2992,8 +3008,10 @@ sub process {
+ 					if ($ctx =~ /Wx[^WCE]|[^WCE]xW/) {
+ 						if (ERROR("SPACING",
+ 							  "need consistent spacing around '$op' $at\n" . $hereptr)) {
+-							$fixed_line =~ s/\s+$//;
+-							$good = trim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]) . " ";
++							$good = rtrim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]) . " ";
++							if (defined $fix_elements[$n + 2]) {
++								$fix_elements[$n + 2] =~ s/^\s+//;
++							}
+ 							$line_fixed = 1;
+ 						}
+ 					}
+@@ -3004,7 +3022,7 @@ sub process {
+ 					if ($ctx =~ /Wx./) {
+ 						if (ERROR("SPACING",
+ 							  "space prohibited before that '$op' $at\n" . $hereptr)) {
+-							$good = trim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
++							$good = rtrim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
+ 							$line_fixed = 1;
+ 						}
+ 					}
+@@ -3031,8 +3049,10 @@ sub process {
+ 					if ($ok == 0) {
+ 						if (ERROR("SPACING",
+ 							  "spaces required around that '$op' $at\n" . $hereptr)) {
+-							$good = trim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]) . " ";
+-							$good = $fix_elements[$n] . " " . trim($fix_elements[$n + 1]) . " ";
++							$good = rtrim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]) . " ";
++							if (defined $fix_elements[$n + 2]) {
++								$fix_elements[$n + 2] =~ s/^\s+//;
++							}
+ 							$line_fixed = 1;
+ 						}
+ 					}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-block-support-embedded-device-command-line-partition-fix.patch
-mm.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-swap-make-swap-discard-async-checkpatch-fixes.patch
-swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
-mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
-memcg-trivial-cleanups.patch
-mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
-vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+maintainers-exynos-remove-board-files.patch
+maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+maintainers-omap-powerdomain-update-patterns.patch
+maintainers-arm-s3c2410-update-patterns.patch
+maintainers-arm-spear-consolidate-sections.patch
+maintainers-arm-plat-nomadik-update-patterns.patch
+maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
+maintainers-ghes_edac-update-pattern.patch
+maintainers-update-siano-drivers.patch
+maintainers-si4713-fix-file-pattern.patch
+maintainers-update-it913x-patterns.patch
+maintainers-update-sirf-patterns.patch
+maintainers-update-ssbi-patterns.patch
+maintainers-update-file-pattern-for-arc-uart.patch
+maintainers-update-usb-ehci-platform-pattern.patch
+maintainers-usb-phy-update-patterns.patch
+maintainers-update-gre-demux-patterns.patch
+maintainers-append-to-directory-patterns.patch
+checkpatch-add-a-few-more-fix-corrections.patch
+checkpatch-check-camelcase-by-word-not-by-lval.patch
+checkpatch-enforce-sane-perl-version.patch
+checkpatch-check-for-duplicate-signatures.patch
+checkpatch-warn-when-using-extern-with-function-prototypes-in-h-files.patch
+checkpatch-fix-networking-kernel-doc-block-comment-defect.patch
+checkpatch-add-types-option-to-report-only-specific-message-types.patch
+checkpatch-ignore-define-trace_foo-macros.patch
+checkpatch-better-fix-of-spacing-errors.patch
+firmware-dmi_scan-drop-obsolete-comment.patch
+firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
+firmware-dmi_scan-constify-strings.patch
+firmware-dmi_scan-drop-oom-messages.patch
+pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
+pktcdvd-convert-printk-to-pr_level.patch
+pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
+pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
+pktcdvd-convert-pr_notice-to-pkt_notice.patch
+pktcdvd-convert-pr_info-to-pkt_info.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
+pktcdvd-fix-defective-misuses-of-pkt_level.patch
 linux-next.patch
-revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
