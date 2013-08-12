@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-fix-buffer-overflow-in-add_page_map.patch added to -mm
- tree
-Date: Mon, 12 Aug 2013 16:05:45 -0700
-Message-ID: <52096a49.AzwTzCQLKgs7/bAw%akpm@linux-foundation.org>
+Subject: + pagemap-fix-buffer-overflow-in-add_page_map-fix.patch added to
+ -mm tree
+Date: Mon, 12 Aug 2013 16:05:46 -0700
+Message-ID: <52096a4a.ionLELx6DZdxpp1B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57851 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57853 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752976Ab3HLXFq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Aug 2013 19:05:46 -0400
+	with ESMTP id S1755530Ab3HLXFr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Aug 2013 19:05:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, younghua.zheng@gmail.com
+To: mm-commits@vger.kernel.org, younghua.zheng@gmail.com, akpm@linux-foundation.org
 
-Subject: + pagemap-fix-buffer-overflow-in-add_page_map.patch added to -mm tree
-To: younghua.zheng@gmail.com
+Subject: + pagemap-fix-buffer-overflow-in-add_page_map-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,younghua.zheng@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 12 Aug 2013 16:05:45 -0700
+Date: Mon, 12 Aug 2013 16:05:46 -0700
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: fix buffer overflow in add_page_map()
+     Subject: pagemap-fix-buffer-overflow-in-add_page_map-fix
 has been added to the -mm tree.  Its filename is
-     pagemap-fix-buffer-overflow-in-add_page_map.patch
+     pagemap-fix-buffer-overflow-in-add_page_map-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pagemap-fix-buffer-overflow-in-add_page_map.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pagemap-fix-buffer-overflow-in-add_page_map-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pagemap-fix-buffer-overflow-in-add_page_map.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pagemap-fix-buffer-overflow-in-add_page_map-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,53 +44,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: yonghua zheng <younghua.zheng@gmail.com>
-Subject: fs/proc/task_mmu.c: fix buffer overflow in add_page_map()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pagemap-fix-buffer-overflow-in-add_page_map-fix
 
-Recently we met quite a lot of random kernel panic issues after enabling
-CONFIG_PROC_PAGE_MONITOR.  After debuggind we found this has something to
-do with following bug in pagemap:
+document pagemapread.pos and .len units, fix PM_ENTRY_BYTES definition
 
-In struct pagemapread:
-
-struct pagemapread {
-    int pos, len;
-    pagemap_entry_t *buffer;
-    bool v2;
-};
-
-pos is number of PM_ENTRY_BYTES in buffer, but len is the size of buffer,
-it is a mistake to compare pos and len in add_page_map() for checking
-buffer is full or not, and this can lead to buffer overflow and random
-kernel panic issue.
-
-Correct len to be total number of PM_ENTRY_BYTES in buffer.
-
-Signed-off-by: Yonghua Zheng <younghua.zheng@gmail.com>
+Cc: Yonghua Zheng <younghua.zheng@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/proc/task_mmu.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-fix-buffer-overflow-in-add_page_map fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-fix-buffer-overflow-in-add_page_map
+diff -puN fs/proc/task_mmu.c~pagemap-fix-buffer-overflow-in-add_page_map-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-fix-buffer-overflow-in-add_page_map-fix
 +++ a/fs/proc/task_mmu.c
-@@ -1127,8 +1127,8 @@ static ssize_t pagemap_read(struct file
- 		goto out_task;
+@@ -868,7 +868,7 @@ typedef struct {
+ } pagemap_entry_t;
  
- 	pm.v2 = soft_dirty_cleared;
--	pm.len = PM_ENTRY_BYTES * (PAGEMAP_WALK_SIZE >> PAGE_SHIFT);
--	pm.buffer = kmalloc(pm.len, GFP_TEMPORARY);
-+	pm.len = (PAGEMAP_WALK_SIZE >> PAGE_SHIFT);
-+	pm.buffer = kmalloc(pm.len * PM_ENTRY_BYTES, GFP_TEMPORARY);
- 	ret = -ENOMEM;
- 	if (!pm.buffer)
- 		goto out_task;
+ struct pagemapread {
+-	int pos, len;
++	int pos, len;		/* units: PM_ENTRY_BYTES, not bytes */
+ 	pagemap_entry_t *buffer;
+ 	bool v2;
+ };
+@@ -876,7 +876,7 @@ struct pagemapread {
+ #define PAGEMAP_WALK_SIZE	(PMD_SIZE)
+ #define PAGEMAP_WALK_MASK	(PMD_MASK)
+ 
+-#define PM_ENTRY_BYTES      sizeof(u64)
++#define PM_ENTRY_BYTES      sizeof(pagemap_entry_t)
+ #define PM_STATUS_BITS      3
+ #define PM_STATUS_OFFSET    (64 - PM_STATUS_BITS)
+ #define PM_STATUS_MASK      (((1LL << PM_STATUS_BITS) - 1) << PM_STATUS_OFFSET)
 _
 
-Patches currently in -mm which might be from younghua.zheng@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pagemap-fix-buffer-overflow-in-add_page_map.patch
+linux-next.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
 pagemap-fix-buffer-overflow-in-add_page_map-fix.patch
+block-support-embedded-device-command-line-partition-fix.patch
+mm.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+swap-make-swap-discard-async-checkpatch-fixes.patch
+swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
+mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
+memcg-trivial-cleanups.patch
+mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
+vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
+genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
