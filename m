@@ -1,137 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch removed from -mm tree
-Date: Mon, 12 Aug 2013 15:16:47 -0700
-Message-ID: <52095ecf.fR6AAW8ASq3vUPpU%akpm@linux-foundation.org>
+Subject: + drivers-block-brdc-make-rd_size-static.patch added to -mm tree
+Date: Mon, 12 Aug 2013 15:54:52 -0700
+Message-ID: <520967bc.IvqERGwvR+9j7Cxp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57359 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57709 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755773Ab3HLWQs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Aug 2013 18:16:48 -0400
+	with ESMTP id S1755749Ab3HLWy6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Aug 2013 18:54:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mingo@elte.hu, fengguang.wu@intel.com, eag0628@gmail.com, a.p.zijlstra@chello.nl, chuansheng.liu@intel.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: [obsolete] smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch removed from -mm tree
-To: chuansheng.liu@intel.com,a.p.zijlstra@chello.nl,eag0628@gmail.com,fengguang.wu@intel.com,mingo@elte.hu,mm-commits@vger.kernel.org
+Subject: + drivers-block-brdc-make-rd_size-static.patch added to -mm tree
+To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Mon, 12 Aug 2013 15:16:47 -0700
+Date: Mon, 12 Aug 2013 15:54:52 -0700
 
 
 The patch titled
-     Subject: smp: give WARN()ing when calling smp_call_function_many()/single() in serving irq
-has been removed from the -mm tree.  Its filename was
-     smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch
+     Subject: drivers/block/brd.c: make 'rd_size' static
+has been added to the -mm tree.  Its filename is
+     drivers-block-brdc-make-rd_size-static.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-block-brdc-make-rd_size-static.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-block-brdc-make-rd_size-static.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Chuansheng Liu <chuansheng.liu@intel.com>
-Subject: smp: give WARN()ing when calling smp_call_function_many()/single() in serving irq
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/block/brd.c: make 'rd_size' static
 
-Currently the functions smp_call_function_many()/single() will give a
-WARN()ing only in the case of irqs_disabled(), but that check is not
-enough to guarantee execution of the SMP cross-calls.
+'rd_size' is used only in this file.  Fix the following sparse warning:
 
-In many other cases such as softirq handling/interrupt handling, the two
-APIs still can not be called, just as the smp_call_function_many()
-comments say:
+drivers/block/brd.c:432:5: warning: symbol 'rd_size' was not declared. Should it be static?
 
-  * You must not call this function with disabled interrupts or from a
-  * hardware interrupt handler or from a bottom half handler. Preemption
-  * must be disabled when calling this function.
-
-There is a real case for softirq DEADLOCK case:
-
-CPUA                            CPUB
-                                spin_lock(&spinlock)
-                                Any irq coming, call the irq handler
-                                irq_exit()
-spin_lock_irq(&spinlock)
-<== Blocking here due to
-CPUB hold it
-                                  __do_softirq()
-                                    run_timer_softirq()
-                                      timer_cb()
-                                        call smp_call_function_many()
-                                          send IPI interrupt to CPUA
-                                            wait_csd()
-
-Then both CPUA and CPUB will be deadlocked here.
-
-So we should give a warning in the nmi, hardirq or softirq context as well.
-
-Moreover, adding one new macro in_serving_irq() which indicates we are
-processing nmi, hardirq or sofirq.
-
-Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Tested-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Lai Jiangshan <eag0628@gmail.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hardirq.h |    5 +++++
- kernel/smp.c            |   11 +++++++----
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/block/brd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hardirq.h~smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq include/linux/hardirq.h
---- a/include/linux/hardirq.h~smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq
-+++ a/include/linux/hardirq.h
-@@ -94,6 +94,11 @@
+diff -puN drivers/block/brd.c~drivers-block-brdc-make-rd_size-static drivers/block/brd.c
+--- a/drivers/block/brd.c~drivers-block-brdc-make-rd_size-static
++++ a/drivers/block/brd.c
+@@ -429,7 +429,7 @@ static const struct block_device_operati
+  * And now the modules code and kernel interface.
   */
- #define in_nmi()	(preempt_count() & NMI_MASK)
- 
-+/*
-+ * Are we in nmi,irq context, or softirq context?
-+ */
-+#define in_serving_irq() (in_nmi() || in_irq() || in_serving_softirq())
-+
- #if defined(CONFIG_PREEMPT_COUNT)
- # define PREEMPT_CHECK_OFFSET 1
- #else
-diff -puN kernel/smp.c~smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq kernel/smp.c
---- a/kernel/smp.c~smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq
-+++ a/kernel/smp.c
-@@ -12,6 +12,7 @@
- #include <linux/gfp.h>
- #include <linux/smp.h>
- #include <linux/cpu.h>
-+#include <linux/hardirq.h>
- 
- #include "smpboot.h"
- 
-@@ -243,8 +244,9 @@ int smp_call_function_single(int cpu, sm
- 	 * send smp call function interrupt to this cpu and as such deadlocks
- 	 * can't happen.
- 	 */
--	WARN_ON_ONCE(cpu_online(this_cpu) && irqs_disabled()
--		     && !oops_in_progress);
-+	WARN_ON_ONCE(cpu_online(this_cpu)
-+		&& (irqs_disabled() || in_serving_irq())
-+		&& !oops_in_progress);
- 
- 	if (cpu == this_cpu) {
- 		local_irq_save(flags);
-@@ -379,8 +381,9 @@ void smp_call_function_many(const struct
- 	 * send smp call function interrupt to this cpu and as such deadlocks
- 	 * can't happen.
- 	 */
--	WARN_ON_ONCE(cpu_online(this_cpu) && irqs_disabled()
--		     && !oops_in_progress && !early_boot_irqs_disabled);
-+	WARN_ON_ONCE(cpu_online(this_cpu)
-+		&& (irqs_disabled() || in_serving_irq())
-+		&& !oops_in_progress && !early_boot_irqs_disabled);
- 
- 	/* Try to fastpath.  So, what's a CPU they want? Ignoring this one. */
- 	cpu = cpumask_first_and(mask, cpu_online_mask);
+ static int rd_nr;
+-int rd_size = CONFIG_BLK_DEV_RAM_SIZE;
++static int rd_size = CONFIG_BLK_DEV_RAM_SIZE;
+ static int max_part;
+ static int part_shift;
+ module_param(rd_nr, int, S_IRUGO);
 _
 
-Patches currently in -mm which might be from chuansheng.liu@intel.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
+linux-next.patch
+block-replace-strict_strtoul-with-kstrtoul.patch
+block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch
+drivers-block-mg_diskc-make-mg_times_out-static.patch
+drivers-block-brdc-make-rd_size-static.patch
+mm-replace-strict_strtoul-with-kstrtoul.patch
+drivers-firmware-google-gsmic-replace-strict_strtoul-with-kstrtoul.patch
+kernel-replace-strict_strto-with-kstrto.patch
+documentation-replace-strict_strtoul-with-kstrtoul.patch
+w1-replace-strict_strtol-with-kstrtol.patch
 
