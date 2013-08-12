@@ -1,111 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-smpc-quit-unconditionally-enabling-irqs-in-on_each_cpu_mask.patch
- added to -mm tree
-Date: Mon, 12 Aug 2013 15:16:38 -0700
-Message-ID: <52095ec6.8W89tOkKk4yXD6o7%akpm@linux-foundation.org>
+Subject: [obsolete]
+ smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch removed from -mm tree
+Date: Mon, 12 Aug 2013 15:16:47 -0700
+Message-ID: <52095ecf.fR6AAW8ASq3vUPpU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57355 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57359 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755772Ab3HLWQj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Aug 2013 18:16:39 -0400
+	with ESMTP id S1755773Ab3HLWQs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Aug 2013 18:16:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gilad@benyossef.com, cmetcalf@tilera.com, cl@linux.com, a.p.zijlstra@chello.nl, david.daney@cavium.com
+To: mm-commits@vger.kernel.org, mingo@elte.hu, fengguang.wu@intel.com, eag0628@gmail.com, a.p.zijlstra@chello.nl, chuansheng.liu@intel.com
 
-Subject: + kernel-smpc-quit-unconditionally-enabling-irqs-in-on_each_cpu_mask.patch added to -mm tree
-To: david.daney@cavium.com,a.p.zijlstra@chello.nl,cl@linux.com,cmetcalf@tilera.com,gilad@benyossef.com
+Subject: [obsolete] smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch removed from -mm tree
+To: chuansheng.liu@intel.com,a.p.zijlstra@chello.nl,eag0628@gmail.com,fengguang.wu@intel.com,mingo@elte.hu,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 12 Aug 2013 15:16:38 -0700
+Date: Mon, 12 Aug 2013 15:16:47 -0700
 
 
 The patch titled
-     Subject: kernel/smp.c: quit unconditionally enabling irqs in on_each_cpu_mask().
-has been added to the -mm tree.  Its filename is
-     kernel-smpc-quit-unconditionally-enabling-irqs-in-on_each_cpu_mask.patch
+     Subject: smp: give WARN()ing when calling smp_call_function_many()/single() in serving irq
+has been removed from the -mm tree.  Its filename was
+     smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-smpc-quit-unconditionally-enabling-irqs-in-on_each_cpu_mask.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-smpc-quit-unconditionally-enabling-irqs-in-on_each_cpu_mask.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: David Daney <david.daney@cavium.com>
-Subject: kernel/smp.c: quit unconditionally enabling irqs in on_each_cpu_mask().
+From: Chuansheng Liu <chuansheng.liu@intel.com>
+Subject: smp: give WARN()ing when calling smp_call_function_many()/single() in serving irq
 
-As in f21afc25f9ed ("smp.h: Use local_irq_{save,restore}() in !SMP version
-of on_each_cpu()"), we don't want to enable irqs if they are not already
-enabled.
+Currently the functions smp_call_function_many()/single() will give a
+WARN()ing only in the case of irqs_disabled(), but that check is not
+enough to guarantee execution of the SMP cross-calls.
 
-I don't know of any bugs currently caused by this unconditional
-local_irq_enable(), but I want to use this function in MIPS/OCTEON early
-boot (when we have early_boot_irqs_disabled).  This also makes this
-function have similar semantics to on_each_cpu() which is good in itself.
+In many other cases such as softirq handling/interrupt handling, the two
+APIs still can not be called, just as the smp_call_function_many()
+comments say:
 
-Signed-off-by: David Daney <david.daney@cavium.com>
-Cc: Gilad Ben-Yossef <gilad@benyossef.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
+  * You must not call this function with disabled interrupts or from a
+  * hardware interrupt handler or from a bottom half handler. Preemption
+  * must be disabled when calling this function.
+
+There is a real case for softirq DEADLOCK case:
+
+CPUA                            CPUB
+                                spin_lock(&spinlock)
+                                Any irq coming, call the irq handler
+                                irq_exit()
+spin_lock_irq(&spinlock)
+<== Blocking here due to
+CPUB hold it
+                                  __do_softirq()
+                                    run_timer_softirq()
+                                      timer_cb()
+                                        call smp_call_function_many()
+                                          send IPI interrupt to CPUA
+                                            wait_csd()
+
+Then both CPUA and CPUB will be deadlocked here.
+
+So we should give a warning in the nmi, hardirq or softirq context as well.
+
+Moreover, adding one new macro in_serving_irq() which indicates we are
+processing nmi, hardirq or sofirq.
+
+Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Tested-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Lai Jiangshan <eag0628@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ include/linux/hardirq.h |    5 +++++
+ kernel/smp.c            |   11 +++++++----
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN kernel/smp.c~kernel-smpc-quit-unconditionally-enabling-irqs-in-on_each_cpu_mask kernel/smp.c
---- a/kernel/smp.c~kernel-smpc-quit-unconditionally-enabling-irqs-in-on_each_cpu_mask
-+++ a/kernel/smp.c
-@@ -575,8 +575,10 @@ EXPORT_SYMBOL(on_each_cpu);
-  *
-  * If @wait is true, then returns once @func has returned.
-  *
-- * You must not call this function with disabled interrupts or
-- * from a hardware interrupt handler or from a bottom half handler.
-+ * You must not call this function with disabled interrupts or from a
-+ * hardware interrupt handler or from a bottom half handler.  The
-+ * exception is that it may be used during early boot while
-+ * early_boot_irqs_disabled is set.
+diff -puN include/linux/hardirq.h~smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq include/linux/hardirq.h
+--- a/include/linux/hardirq.h~smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq
++++ a/include/linux/hardirq.h
+@@ -94,6 +94,11 @@
   */
- void on_each_cpu_mask(const struct cpumask *mask, smp_call_func_t func,
- 			void *info, bool wait)
-@@ -585,9 +587,10 @@ void on_each_cpu_mask(const struct cpuma
+ #define in_nmi()	(preempt_count() & NMI_MASK)
  
- 	smp_call_function_many(mask, func, info, wait);
- 	if (cpumask_test_cpu(cpu, mask)) {
--		local_irq_disable();
-+		unsigned long flags;
-+		local_irq_save(flags);
- 		func(info);
--		local_irq_enable();
-+		local_irq_restore(flags);
- 	}
- 	put_cpu();
- }
++/*
++ * Are we in nmi,irq context, or softirq context?
++ */
++#define in_serving_irq() (in_nmi() || in_irq() || in_serving_softirq())
++
+ #if defined(CONFIG_PREEMPT_COUNT)
+ # define PREEMPT_CHECK_OFFSET 1
+ #else
+diff -puN kernel/smp.c~smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq kernel/smp.c
+--- a/kernel/smp.c~smp-give-warning-when-calling-smp_call_function_many-single-in-serving-irq
++++ a/kernel/smp.c
+@@ -12,6 +12,7 @@
+ #include <linux/gfp.h>
+ #include <linux/smp.h>
+ #include <linux/cpu.h>
++#include <linux/hardirq.h>
+ 
+ #include "smpboot.h"
+ 
+@@ -243,8 +244,9 @@ int smp_call_function_single(int cpu, sm
+ 	 * send smp call function interrupt to this cpu and as such deadlocks
+ 	 * can't happen.
+ 	 */
+-	WARN_ON_ONCE(cpu_online(this_cpu) && irqs_disabled()
+-		     && !oops_in_progress);
++	WARN_ON_ONCE(cpu_online(this_cpu)
++		&& (irqs_disabled() || in_serving_irq())
++		&& !oops_in_progress);
+ 
+ 	if (cpu == this_cpu) {
+ 		local_irq_save(flags);
+@@ -379,8 +381,9 @@ void smp_call_function_many(const struct
+ 	 * send smp call function interrupt to this cpu and as such deadlocks
+ 	 * can't happen.
+ 	 */
+-	WARN_ON_ONCE(cpu_online(this_cpu) && irqs_disabled()
+-		     && !oops_in_progress && !early_boot_irqs_disabled);
++	WARN_ON_ONCE(cpu_online(this_cpu)
++		&& (irqs_disabled() || in_serving_irq())
++		&& !oops_in_progress && !early_boot_irqs_disabled);
+ 
+ 	/* Try to fastpath.  So, what's a CPU they want? Ignoring this one. */
+ 	cpu = cpumask_first_and(mask, cpu_online_mask);
 _
 
-Patches currently in -mm which might be from david.daney@cavium.com are
+Patches currently in -mm which might be from chuansheng.liu@intel.com are
 
-linux-next.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-smp-quit-unconditionally-enabling-irq-in-on_each_cpu_mask-and-on_each_cpu_cond.patch
-upc-use-local_irq_saverestore-in-smp_call_function_single.patch
-smph-move-smp-version-of-on_each_cpu-out-of-line.patch
-extable-skip-sorting-if-the-table-is-empty.patch
-kernel-smpc-quit-unconditionally-enabling-irqs-in-on_each_cpu_mask.patch
 
