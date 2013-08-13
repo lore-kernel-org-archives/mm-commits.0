@@ -1,123 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-comedi-drivers-das16c-needs-slabh.patch added
- to -mm tree
-Date: Tue, 13 Aug 2013 13:48:59 -0700
-Message-ID: <520a9bbb.TxBi1a10TRAtEFDC%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ocfs2-fix-null-pointer-dereference-in-ocfs2_dir_foreach_blk_id-fix.patch
+ removed from -mm tree
+Date: Tue, 13 Aug 2013 15:57:50 -0700
+Message-ID: <520ab9ee.SO46EqpMeprQGdhV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40675 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42234 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759026Ab3HMUs7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Aug 2013 16:48:59 -0400
+	with ESMTP id S1754687Ab3HMW5v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Aug 2013 18:57:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, greg@kroah.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, wb@munzinger.de, viro@zeniv.linux.org.uk, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, dan.carpenter@oracle.com
 
-Subject: + drivers-staging-comedi-drivers-das16c-needs-slabh.patch added to -mm tree
-To: akpm@linux-foundation.org,greg@kroah.com
+Subject: [folded-merged] ocfs2-fix-null-pointer-dereference-in-ocfs2_dir_foreach_blk_id-fix.patch removed from -mm tree
+To: dan.carpenter@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,viro@zeniv.linux.org.uk,wb@munzinger.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 13 Aug 2013 13:48:59 -0700
+Date: Tue, 13 Aug 2013 15:57:50 -0700
 
 
 The patch titled
-     Subject: drivers/staging/comedi/drivers/das16.c: needs slab.h
-has been added to the -mm tree.  Its filename is
-     drivers-staging-comedi-drivers-das16c-needs-slabh.patch
+     Subject: ocfs2: ocfs2: fix recent memory corruption bug
+has been removed from the -mm tree.  Its filename was
+     ocfs2-fix-null-pointer-dereference-in-ocfs2_dir_foreach_blk_id-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-staging-comedi-drivers-das16c-needs-slabh.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-staging-comedi-drivers-das16c-needs-slabh.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into ocfs2-fix-null-pointer-dereference-in-ocfs2_dir_foreach_blk_id.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/staging/comedi/drivers/das16.c: needs slab.h
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: ocfs2: ocfs2: fix recent memory corruption bug
 
-alpha allmodconfig:
+The pointer math in 6fdf3af1d2 "ocfs2: fix null pointer dereference in
+ocfs2_dir_foreach_blk_id()" isn't correct so it will zero out the wrong
+memory.  In fact, the memset isn't needed because the initializer will set
+all these values to zero.
 
-drivers/staging/comedi/drivers/das16.c: In function 'das16_detach':             drivers/staging/comedi/drivers/das16.c:1234: error: implicit declaration of function 'kfree'                                                                    
+This patch also removes the "ctx.pos = 0" initialization because that
+will be zeroed automatically as well.
 
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Jie Liu <jeff.liu@oracle.com>
+Cc: David Weber <wb@munzinger.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/comedi/drivers/das16.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/dir.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/staging/comedi/drivers/das16.c~drivers-staging-comedi-drivers-das16c-needs-slabh drivers/staging/comedi/drivers/das16.c
---- a/drivers/staging/comedi/drivers/das16.c~drivers-staging-comedi-drivers-das16c-needs-slabh
-+++ a/drivers/staging/comedi/drivers/das16.c
-@@ -81,6 +81,7 @@
-  */
+diff -puN fs/ocfs2/dir.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_dir_foreach_blk_id-fix fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_dir_foreach_blk_id-fix
++++ a/fs/ocfs2/dir.c
+@@ -2154,12 +2154,8 @@ int ocfs2_empty_dir(struct inode *inode)
+ 	int ret;
+ 	struct ocfs2_empty_dir_priv priv = {
+ 		.ctx.actor = ocfs2_empty_dir_filldir,
+-		.ctx.pos = 0,
+ 	};
  
- #include <linux/module.h>
-+#include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/pci.h>
- #include <linux/interrupt.h>
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-pagemap-fix-buffer-overflow-in-add_page_map-fix.patch
-block-support-embedded-device-command-line-partition-fix.patch
-mm.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-swap-make-swap-discard-async-checkpatch-fixes.patch
-swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
-mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
-mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
-vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
-genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
-mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
-linux-next.patch
-revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
-memcg-trivial-cleanups.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-drivers-staging-comedi-drivers-das16c-needs-slabh.patch
-
+-	memset(&priv + sizeof(struct dir_context), 0,
+-	       sizeof(priv) - sizeof(struct dir_context));
