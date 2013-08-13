@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch added
+Subject: + drivers-staging-comedi-drivers-das16c-needs-slabh.patch added
  to -mm tree
-Date: Tue, 13 Aug 2013 13:15:38 -0700
-Message-ID: <520a93ea.CutYQddzksbXfybV%akpm@linux-foundation.org>
+Date: Tue, 13 Aug 2013 13:48:59 -0700
+Message-ID: <520a9bbb.TxBi1a10TRAtEFDC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40392 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40675 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759139Ab3HMUPj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Aug 2013 16:15:39 -0400
+	with ESMTP id S1759026Ab3HMUs7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Aug 2013 16:48:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, qiuxishi@huawei.com, cody@linux.vnet.ibm.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, greg@kroah.com, akpm@linux-foundation.org
 
-Subject: + mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,cody@linux.vnet.ibm.com,qiuxishi@huawei.com
+Subject: + drivers-staging-comedi-drivers-das16c-needs-slabh.patch added to -mm tree
+To: akpm@linux-foundation.org,greg@kroah.com
 From: akpm@linux-foundation.org
-Date: Tue, 13 Aug 2013 13:15:38 -0700
+Date: Tue, 13 Aug 2013 13:48:59 -0700
 
 
 The patch titled
-     Subject: mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
+     Subject: drivers/staging/comedi/drivers/das16.c: needs slab.h
 has been added to the -mm tree.  Its filename is
-     mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+     drivers-staging-comedi-drivers-das16c-needs-slabh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-staging-comedi-drivers-das16c-needs-slabh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-staging-comedi-drivers-das16c-needs-slabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,33 +45,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
+Subject: drivers/staging/comedi/drivers/das16.c: needs slab.h
 
-fix build
+alpha allmodconfig:
 
-Cc: Cody P Schafer <cody@linux.vnet.ibm.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+drivers/staging/comedi/drivers/das16.c: In function 'das16_detach':             drivers/staging/comedi/drivers/das16.c:1234: error: implicit declaration of function 'kfree'                                                                    
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/staging/comedi/drivers/das16.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memory_hotplug.c~mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
-+++ a/mm/memory_hotplug.c
-@@ -514,8 +514,9 @@ static int find_biggest_section_pfn(int
- static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
- 			     unsigned long end_pfn)
- {
--	unsigned long zone_start_pfn =  zone->zone_start_pfn;
--	unsigned long zone_end_pfn = zone_end_pfn(zone);
-+	unsigned long zone_start_pfn = zone->zone_start_pfn;
-+	unsigned long z = zone_end_pfn(zone); /* zone_end_pfn namespace clash */
-+	unsigned long zone_end_pfn = z;
- 	unsigned long pfn;
- 	struct mem_section *ms;
- 	int nid = zone_to_nid(zone);
+diff -puN drivers/staging/comedi/drivers/das16.c~drivers-staging-comedi-drivers-das16c-needs-slabh drivers/staging/comedi/drivers/das16.c
+--- a/drivers/staging/comedi/drivers/das16.c~drivers-staging-comedi-drivers-das16c-needs-slabh
++++ a/drivers/staging/comedi/drivers/das16.c
+@@ -81,6 +81,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/pci.h>
+ #include <linux/interrupt.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,4 +119,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+drivers-staging-comedi-drivers-das16c-needs-slabh.patch
 
