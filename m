@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-fix-buffer-overflow-in-add_page_map-fix.patch added to
- -mm tree
-Date: Mon, 12 Aug 2013 16:05:46 -0700
-Message-ID: <52096a4a.ionLELx6DZdxpp1B%akpm@linux-foundation.org>
+Subject: +
+ mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch added
+ to -mm tree
+Date: Tue, 13 Aug 2013 13:15:38 -0700
+Message-ID: <520a93ea.CutYQddzksbXfybV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57853 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40392 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755530Ab3HLXFr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Aug 2013 19:05:47 -0400
+	with ESMTP id S1759139Ab3HMUPj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Aug 2013 16:15:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, younghua.zheng@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, qiuxishi@huawei.com, cody@linux.vnet.ibm.com, akpm@linux-foundation.org
 
-Subject: + pagemap-fix-buffer-overflow-in-add_page_map-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,younghua.zheng@gmail.com
+Subject: + mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,cody@linux.vnet.ibm.com,qiuxishi@huawei.com
 From: akpm@linux-foundation.org
-Date: Mon, 12 Aug 2013 16:05:46 -0700
+Date: Tue, 13 Aug 2013 13:15:38 -0700
 
 
 The patch titled
-     Subject: pagemap-fix-buffer-overflow-in-add_page_map-fix
+     Subject: mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
 has been added to the -mm tree.  Its filename is
-     pagemap-fix-buffer-overflow-in-add_page_map-fix.patch
+     mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pagemap-fix-buffer-overflow-in-add_page_map-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pagemap-fix-buffer-overflow-in-add_page_map-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,43 +46,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pagemap-fix-buffer-overflow-in-add_page_map-fix
+Subject: mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
 
-document pagemapread.pos and .len units, fix PM_ENTRY_BYTES definition
+fix build
 
-Cc: Yonghua Zheng <younghua.zheng@gmail.com>
+Cc: Cody P Schafer <cody@linux.vnet.ibm.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-fix-buffer-overflow-in-add_page_map-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-fix-buffer-overflow-in-add_page_map-fix
-+++ a/fs/proc/task_mmu.c
-@@ -868,7 +868,7 @@ typedef struct {
- } pagemap_entry_t;
- 
- struct pagemapread {
--	int pos, len;
-+	int pos, len;		/* units: PM_ENTRY_BYTES, not bytes */
- 	pagemap_entry_t *buffer;
- 	bool v2;
- };
-@@ -876,7 +876,7 @@ struct pagemapread {
- #define PAGEMAP_WALK_SIZE	(PMD_SIZE)
- #define PAGEMAP_WALK_MASK	(PMD_MASK)
- 
--#define PM_ENTRY_BYTES      sizeof(u64)
-+#define PM_ENTRY_BYTES      sizeof(pagemap_entry_t)
- #define PM_STATUS_BITS      3
- #define PM_STATUS_OFFSET    (64 - PM_STATUS_BITS)
- #define PM_STATUS_MASK      (((1LL << PM_STATUS_BITS) - 1) << PM_STATUS_OFFSET)
+diff -puN mm/memory_hotplug.c~mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
++++ a/mm/memory_hotplug.c
+@@ -514,8 +514,9 @@ static int find_biggest_section_pfn(int
+ static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+ 			     unsigned long end_pfn)
+ {
+-	unsigned long zone_start_pfn =  zone->zone_start_pfn;
+-	unsigned long zone_end_pfn = zone_end_pfn(zone);
++	unsigned long zone_start_pfn = zone->zone_start_pfn;
++	unsigned long z = zone_end_pfn(zone); /* zone_end_pfn namespace clash */
++	unsigned long zone_end_pfn = z;
+ 	unsigned long pfn;
+ 	struct mem_section *ms;
+ 	int nid = zone_to_nid(zone);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-linux-next.patch
+origin.patch
 revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
@@ -95,10 +91,10 @@ swap-make-swap-discard-async-checkpatch-fixes.patch
 swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
 mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
 mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
-memcg-trivial-cleanups.patch
 mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
 vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
 genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
+mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
 lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 fat-additions-to-support-fat_fallocate-fix.patch
@@ -107,7 +103,9 @@ initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
 initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
 ipc-drop-ipcctl_pre_down-fix.patch
 ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+linux-next.patch
 revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
+memcg-trivial-cleanups.patch
 shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
 xfs-convert-buftarg-lru-to-generic-code-fix.patch
 xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
