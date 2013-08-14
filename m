@@ -1,106 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aoe-adjust-ref-of-head-for-compound-page-tails.patch
- removed from -mm tree
-Date: Wed, 14 Aug 2013 12:35:34 -0700
-Message-ID: <520bdc06.UaWRzCQdIpsmdy04%akpm@linux-foundation.org>
+Subject: [merged] microblaze-fix-clone-syscall.patch removed from -mm tree
+Date: Wed, 14 Aug 2013 12:35:33 -0700
+Message-ID: <520bdc05.sfbK5PDgFKzqDIA9%akpm__12606.8845311694$1376508948$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54207 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54184 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933114Ab3HNTff (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 15:35:35 -0400
+	with ESMTP id S933137Ab3HNTfe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 15:35:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ecashin@coraid.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, michal.simek@xilinx.com
 
-Subject: [merged] aoe-adjust-ref-of-head-for-compound-page-tails.patch removed from -mm tree
-To: ecashin@coraid.com,mm-commits@vger.kernel.org
+Subject: [merged] microblaze-fix-clone-syscall.patch removed from -mm tree
+To: michal.simek@xilinx.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 12:35:34 -0700
+Date: Wed, 14 Aug 2013 12:35:33 -0700
 
 
 The patch titled
-     Subject: aoe: adjust ref of head for compound page tails
+     Subject: microblaze: fix clone syscall
 has been removed from the -mm tree.  Its filename was
-     aoe-adjust-ref-of-head-for-compound-page-tails.patch
+     microblaze-fix-clone-syscall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: adjust ref of head for compound page tails
+From: Michal Simek <michal.simek@xilinx.com>
+Subject: microblaze: fix clone syscall
 
-Fix a BUG which can trigger when direct-IO is used with AOE.
+Fix inadvertent breakage in the clone syscall ABI for Microblaze that was
+introduced in f3268edb ("microblaze: switch to generic fork/vfork/clone").
 
-As discussed previously, the fact that some users of the block layer
-provide bios that point to pages with a zero _count means that it is not
-OK for the network layer to do a put_page on the skb frags during an
-skb_linearize, so the aoe driver gets a reference to pages in bios and
-puts the reference before ending the bio.  And because it cannot use
-get_page on a page with a zero _count, it manipulates the value directly.
+The Microblaze syscall ABI for clone takes the parent tid address in the
+4th argument; the third argument slot is used for the stack size.  The
+incorrectly-used CLONE_BACKWARDS type assigned parent tid to the 3rd slot.
 
-It is not OK to increment the _count of a compound page tail, though,
-since the VM layer will VM_BUG_ON a non-zero _count.  Block users that do
-direct I/O can result in the aoe driver seeing compound page tails in
-bios.  In that case, the same logic works as long as the head of the
-compound page is used instead of the tails.  This patch handles compound
-pages and does not BUG.
+This commit restores the original ABI so that existing userspace libc
+code will work correctly.
 
-It relies on the block layer user leaving the relationship between the
-page tail and its head alone for the duration between the submission of
-the bio and its completion, whether successful or not.
+All kernel versions from v3.8-rc1 were affected.
 
-Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ arch/Kconfig             |    6 ++++++
+ arch/microblaze/Kconfig  |    2 +-
+ include/linux/syscalls.h |    5 +++++
+ kernel/fork.c            |    6 ++++++
+ 4 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~aoe-adjust-ref-of-head-for-compound-page-tails drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-adjust-ref-of-head-for-compound-page-tails
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -906,16 +906,10 @@ bio_pageinc(struct bio *bio)
- 	int i;
+diff -puN arch/Kconfig~microblaze-fix-clone-syscall arch/Kconfig
+--- a/arch/Kconfig~microblaze-fix-clone-syscall
++++ a/arch/Kconfig
+@@ -407,6 +407,12 @@ config CLONE_BACKWARDS2
+ 	help
+ 	  Architecture has the first two arguments of clone(2) swapped.
  
- 	bio_for_each_segment(bv, bio, i) {
--		page = bv->bv_page;
- 		/* Non-zero page count for non-head members of
--		 * compound pages is no longer allowed by the kernel,
--		 * but this has never been seen here.
-+		 * compound pages is no longer allowed by the kernel.
- 		 */
--		if (unlikely(PageCompound(page)))
--			if (compound_trans_head(page) != page) {
--				pr_crit("page tail used for block I/O\n");
--				BUG();
--			}
-+		page = compound_trans_head(bv->bv_page);
- 		atomic_inc(&page->_count);
- 	}
- }
-@@ -924,10 +918,13 @@ static void
- bio_pagedec(struct bio *bio)
- {
- 	struct bio_vec *bv;
-+	struct page *page;
- 	int i;
++config CLONE_BACKWARDS3
++	bool
++	help
++	  Architecture has tls passed as the 3rd argument of clone(2),
++	  not the 5th one.
++
+ config ODD_RT_SIGACTION
+ 	bool
+ 	help
+diff -puN arch/microblaze/Kconfig~microblaze-fix-clone-syscall arch/microblaze/Kconfig
+--- a/arch/microblaze/Kconfig~microblaze-fix-clone-syscall
++++ a/arch/microblaze/Kconfig
+@@ -28,7 +28,7 @@ config MICROBLAZE
+ 	select GENERIC_CLOCKEVENTS
+ 	select GENERIC_IDLE_POLL_SETUP
+ 	select MODULES_USE_ELF_RELA
+-	select CLONE_BACKWARDS
++	select CLONE_BACKWARDS3
  
--	bio_for_each_segment(bv, bio, i)
--		atomic_dec(&bv->bv_page->_count);
-+	bio_for_each_segment(bv, bio, i) {
-+		page = compound_trans_head(bv->bv_page);
-+		atomic_dec(&page->_count);
-+	}
- }
+ config SWAP
+ 	def_bool n
+diff -puN include/linux/syscalls.h~microblaze-fix-clone-syscall include/linux/syscalls.h
+--- a/include/linux/syscalls.h~microblaze-fix-clone-syscall
++++ a/include/linux/syscalls.h
+@@ -802,9 +802,14 @@ asmlinkage long sys_vfork(void);
+ asmlinkage long sys_clone(unsigned long, unsigned long, int __user *, int,
+ 	       int __user *);
+ #else
++#ifdef CONFIG_CLONE_BACKWARDS3
++asmlinkage long sys_clone(unsigned long, unsigned long, int, int __user *,
++			  int __user *, int);
++#else
+ asmlinkage long sys_clone(unsigned long, unsigned long, int __user *,
+ 	       int __user *, int);
+ #endif
++#endif
  
- static void
+ asmlinkage long sys_execve(const char __user *filename,
+ 		const char __user *const __user *argv,
+diff -puN kernel/fork.c~microblaze-fix-clone-syscall kernel/fork.c
+--- a/kernel/fork.c~microblaze-fix-clone-syscall
++++ a/kernel/fork.c
+@@ -1679,6 +1679,12 @@ SYSCALL_DEFINE5(clone, unsigned long, ne
+ 		 int __user *, parent_tidptr,
+ 		 int __user *, child_tidptr,
+ 		 int, tls_val)
++#elif defined(CONFIG_CLONE_BACKWARDS3)
++SYSCALL_DEFINE6(clone, unsigned long, clone_flags, unsigned long, newsp,
++		int, stack_size,
++		int __user *, parent_tidptr,
++		int __user *, child_tidptr,
++		int, tls_val)
+ #else
+ SYSCALL_DEFINE5(clone, unsigned long, clone_flags, unsigned long, newsp,
+ 		 int __user *, parent_tidptr,
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from michal.simek@xilinx.com are
 
 origin.patch
 
