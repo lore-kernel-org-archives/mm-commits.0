@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-lru_add_drain_all-selective.patch added to -mm tree
-Date: Wed, 14 Aug 2013 14:13:03 -0700
-Message-ID: <520bf2df.Shg8egd+B63vHo5U%akpm@linux-foundation.org>
+Subject: + cciss-set-max-scatter-gather-entries-to-32-on-p600.patch added
+ to -mm tree
+Date: Wed, 14 Aug 2013 14:14:22 -0700
+Message-ID: <520bf32e.+GkPrxcf+HqscOoY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55287 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55294 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760012Ab3HNVNE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 17:13:04 -0400
+	with ESMTP id S932914Ab3HNVOX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 17:14:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, cmetcalf@tilera.com
+To: mm-commits@vger.kernel.org, thenzl@redhat.com, steve.cameron@hp.com, bubrown@redhat.com, axboe@kernel.dk, mike.miller@hp.com
 
-Subject: + mm-make-lru_add_drain_all-selective.patch added to -mm tree
-To: cmetcalf@tilera.com,tj@kernel.org
+Subject: + cciss-set-max-scatter-gather-entries-to-32-on-p600.patch added to -mm tree
+To: mike.miller@hp.com,axboe@kernel.dk,bubrown@redhat.com,steve.cameron@hp.com,thenzl@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 14:13:03 -0700
+Date: Wed, 14 Aug 2013 14:14:22 -0700
 
 
 The patch titled
-     Subject: mm: make lru_add_drain_all() selective
+     Subject: cciss: set max scatter gather entries to 32 on P600
 has been added to the -mm tree.  Its filename is
-     mm-make-lru_add_drain_all-selective.patch
+     cciss-set-max-scatter-gather-entries-to-32-on-p600.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-lru_add_drain_all-selective.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cciss-set-max-scatter-gather-entries-to-32-on-p600.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-lru_add_drain_all-selective.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cciss-set-max-scatter-gather-entries-to-32-on-p600.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,115 +44,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Metcalf <cmetcalf@tilera.com>
-Subject: mm: make lru_add_drain_all() selective
+From: Mike Miller <mike.miller@hp.com>
+Subject: cciss: set max scatter gather entries to 32 on P600
 
-make lru_add_drain_all() only selectively interrupt the cpus that have
-per-cpu free pages that can be drained.
+At one time we used to set the maximum number of scatter gather elements
+on all Smart Array controllers to 32.  At some point in time the firmware
+began to write the "appropriate" value for each controller into the config
+table.  The cciss driver would then read that and set h->maxsgentries.
 
-This is important in nohz mode where calling mlockall(), for example,
-otherwise will interrupt every core unnecessarily.
+        h->maxsgentries = readl(&(h->cfgtable->MaxSGElements);
 
-This is important on workloads where nohz cores are handling 10 Gb traffic
-in userspace.  Those CPUs do not enter the kernel and place pages into LRU
-pagevecs and they really, really don't want to be interrupted, or they
-drop packets on the floor.
+On the P600 that value is 544.  Under some workloads a significant
+performance reduction may result.  This patch forces the P600 to use only
+32 scatter gather elements.  Other controllers are not affected.
 
-Signed-off-by: Chris Metcalf <cmetcalf@tilera.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Signed-off-by: Dwight (Bud) Brown <bubrown@redhat.com>
+Signed-off-by: Tomas Henzl <thenzl@redhat.com>
+Acked-by: Stephen M. Cameron <steve.cameron@hp.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 -
- mm/swap.c            |   44 ++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 40 insertions(+), 6 deletions(-)
+ drivers/block/cciss.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/linux/swap.h~mm-make-lru_add_drain_all-selective include/linux/swap.h
---- a/include/linux/swap.h~mm-make-lru_add_drain_all-selective
-+++ a/include/linux/swap.h
-@@ -280,7 +280,7 @@ extern void activate_page(struct page *)
- extern void mark_page_accessed(struct page *);
- extern void lru_add_drain(void);
- extern void lru_add_drain_cpu(int cpu);
--extern int lru_add_drain_all(void);
-+extern void lru_add_drain_all(void);
- extern void rotate_reclaimable_page(struct page *page);
- extern void deactivate_page(struct page *page);
- extern void swap_setup(void);
-diff -puN mm/swap.c~mm-make-lru_add_drain_all-selective mm/swap.c
---- a/mm/swap.c~mm-make-lru_add_drain_all-selective
-+++ a/mm/swap.c
-@@ -405,6 +405,11 @@ static void activate_page_drain(int cpu)
- 		pagevec_lru_move_fn(pvec, __activate_page, NULL);
- }
- 
-+static bool need_activate_page_drain(int cpu)
-+{
-+	return pagevec_count(&per_cpu(activate_page_pvecs, cpu)) != 0;
-+}
-+
- void activate_page(struct page *page)
- {
- 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
-@@ -422,6 +427,11 @@ static inline void activate_page_drain(i
- {
- }
- 
-+static bool need_activate_page_drain(int cpu)
-+{
-+	return false;
-+}
-+
- void activate_page(struct page *page)
- {
- 	struct zone *zone = page_zone(page);
-@@ -674,12 +684,36 @@ static void lru_add_drain_per_cpu(struct
- 	lru_add_drain();
- }
- 
--/*
-- * Returns 0 for success
-- */
--int lru_add_drain_all(void)
-+static DEFINE_PER_CPU(struct work_struct, lru_add_drain_work);
-+
-+void lru_add_drain_all(void)
- {
--	return schedule_on_each_cpu(lru_add_drain_per_cpu);
-+	static DEFINE_MUTEX(lock);
-+	static struct cpumask has_work;
-+	int cpu;
-+
-+	mutex_lock(&lock);
-+	get_online_cpus();
-+	cpumask_clear(&has_work);
-+
-+	for_each_online_cpu(cpu) {
-+		struct work_struct *work = &per_cpu(lru_add_drain_work, cpu);
-+
-+		if (pagevec_count(&per_cpu(lru_add_pvec, cpu)) ||
-+		    pagevec_count(&per_cpu(lru_rotate_pvecs, cpu)) ||
-+		    pagevec_count(&per_cpu(lru_deactivate_pvecs, cpu)) ||
-+		    need_activate_page_drain(cpu)) {
-+			INIT_WORK(work, lru_add_drain_per_cpu);
-+			schedule_work_on(cpu, work);
-+			cpumask_set_cpu(cpu, &has_work);
-+		}
-+	}
-+
-+	for_each_cpu(cpu, &has_work)
-+		flush_work(&per_cpu(lru_add_drain_work, cpu));
-+
-+	put_online_cpus();
-+	mutex_unlock(&lock);
- }
- 
- /*
+diff -puN drivers/block/cciss.c~cciss-set-max-scatter-gather-entries-to-32-on-p600 drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-set-max-scatter-gather-entries-to-32-on-p600
++++ a/drivers/block/cciss.c
+@@ -4258,6 +4258,13 @@ static void cciss_find_board_params(ctlr
+ 	h->nr_cmds = h->max_commands - 4 - cciss_tape_cmds;
+ 	h->maxsgentries = readl(&(h->cfgtable->MaxSGElements));
+ 	/*
++	 * The P600 may exhibit poor performnace under some workloads
++	 * if we use the value in the configuration table. Limit this
++	 * controller to MAXSGENTRIES (32) instead.
++	 */
++	if (h->board_id == 0x3225103C)
++		h->maxsgentries = MAXSGENTRIES;
++	/*
+ 	 * Limit in-command s/g elements to 32 save dma'able memory.
+ 	 * Howvever spec says if 0, use 31
+ 	 */
 _
 
-Patches currently in -mm which might be from cmetcalf@tilera.com are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
-kernel-smpc-quit-unconditionally-enabling-irqs-in-on_each_cpu_mask.patch
-linux-next.patch
-mm-make-lru_add_drain_all-selective.patch
+cciss-set-max-scatter-gather-entries-to-32-on-p600.patch
 
