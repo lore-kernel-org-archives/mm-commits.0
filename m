@@ -1,101 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pagemap-fix-buffer-overflow-in-add_page_map.patch
- removed from -mm tree
-Date: Wed, 14 Aug 2013 12:35:50 -0700
-Message-ID: <520bdc16.aa9yGO8AaPu4+MGo%akpm__28405.5359931246$1376508967$gmane$org@linux-foundation.org>
+Subject: [merged]
+ ocfs2-revert-commit-40bd62e-to-avoid-regression-in-extended-allocation.patch removed from -mm tree
+Date: Wed, 14 Aug 2013 12:35:40 -0700
+Message-ID: <520bdc0c.pLOp0kNCJf0I7kxO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933120Ab3HNTfu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 15:35:50 -0400
+	with ESMTP id S933137Ab3HNTfl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 15:35:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, younghua.zheng@gmail.com
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com
 
-Subject: [merged] pagemap-fix-buffer-overflow-in-add_page_map.patch removed from -mm tree
-To: younghua.zheng@gmail.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-revert-commit-40bd62e-to-avoid-regression-in-extended-allocation.patch removed from -mm tree
+To: jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 12:35:50 -0700
+Date: Wed, 14 Aug 2013 12:35:40 -0700
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: fix buffer overflow in add_page_map()
+     Subject: ocfs2: Revert 40bd62e to avoid regression in extended allocation
 has been removed from the -mm tree.  Its filename was
-     pagemap-fix-buffer-overflow-in-add_page_map.patch
+     ocfs2-revert-commit-40bd62e-to-avoid-regression-in-extended-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: yonghua zheng <younghua.zheng@gmail.com>
-Subject: fs/proc/task_mmu.c: fix buffer overflow in add_page_map()
+From: Jie Liu <jeff.liu@oracle.com>
+Subject: ocfs2: Revert 40bd62e to avoid regression in extended allocation
 
-Recently we met quite a lot of random kernel panic issues after enabling
-CONFIG_PROC_PAGE_MONITOR.  After debuggind we found this has something to
-do with following bug in pagemap:
+Revert 40bd62eb7fb844 ("fs/ocfs2/journal.h: add bits_wanted while
+calculating credits in ocfs2_calc_extend_credits").
 
-In struct pagemapread:
+Unfortunately this change broke fallocate even if there is insufficient
+disk space for the preallocation, which is a serious problem.
 
-struct pagemapread {
-    int pos, len;
-    pagemap_entry_t *buffer;
-    bool v2;
-};
+# df -h
+/dev/sda8        22G  1.2G   21G   6% /ocfs2
+# fallocate -o 0 -l 200M /ocfs2/testfile
+fallocate: /ocfs2/test: fallocate failed: No space left on device
 
-pos is number of PM_ENTRY_BYTES in buffer, but len is the size of buffer,
-it is a mistake to compare pos and len in add_page_map() for checking
-buffer is full or not, and this can lead to buffer overflow and random
-kernel panic issue.
+CPU: 3 PID: 3656 Comm: fallocate Tainted: G        W  O 3.11.0-rc3 #2
+Call Trace:
+[<ffffffff81a5fea7>] dump_stack+0x77/0x9e
+[<ffffffff81093504>] warn_slowpath_common+0xc4/0x110
+[<ffffffff8109357a>] warn_slowpath_null+0x2a/0x40
+[<ffffffffa00ad9dc>] start_this_handle+0x6c/0x640 [jbd2]
+[<ffffffff81150f9d>] ? __module_address+0x1ad/0x270
+[<ffffffff81155cee>] ? is_module_address+0x1e/0x40
+[<ffffffff81135875>] ? static_obj+0x65/0xb0
+[<ffffffff8113f6f7>] ? lockdep_init_map+0x147/0x280
+[<ffffffffa00ae398>] jbd2__journal_start+0x138/0x300 [jbd2]
+[<ffffffffa00ae583>] jbd2_journal_start+0x23/0x30 [jbd2]
+[<ffffffffa0997726>] ocfs2_start_trans+0x166/0x300 [ocfs2]
+[<ffffffff81022426>] ? show_stack+0x66/0x70
+[<ffffffffa0985c4f>] __ocfs2_extend_allocation+0x38f/0xdb0 [ocfs2]
+[<ffffffffa097e414>] ? ocfs2_get_clusters_nocache.isra.11+0x234/0x5b0
+[<ffffffffa098fb53>] ? ocfs2_read_inode_block_full+0x43/0x80 [ocfs2]
+[<ffffffffa0997d00>] ? ocfs2_extend_trans+0x2c0/0x2c0 [ocfs2]
+[<ffffffffa098710e>] ? __ocfs2_change_file_space+0x57e/0xa60 [ocfs2]
+[<ffffffffa0986a39>] ocfs2_allocate_unwritten_extents+0x3c9/0x520
+[<ffffffff81a6e828>] ? down_write+0x108/0x120
+[<ffffffffa0987170>] __ocfs2_change_file_space+0x5e0/0xa60 [ocfs2]
+[<ffffffff812bd1ad>] ? do_fallocate+0x1ad/0x220
+[<ffffffffa09876a1>] ocfs2_fallocate+0xb1/0xe0 [ocfs2]
+[<ffffffff812bd1cb>] do_fallocate+0x1cb/0x220
+[<ffffffff812bd28f>] SyS_fallocate+0x6f/0xb0
+[<ffffffff81a83419>] system_call_fastpath+0x16/0x1b
+---[ end trace 474a79e9fc2db862 ]---
+[ 1683.855972] JBD2: fallocate wants too many credits (51216 > 4381)
 
-Correct len to be total number of PM_ENTRY_BYTES in buffer.
-
-[akpm@linux-foundation.org: document pagemapread.pos and .len units, fix PM_ENTRY_BYTES definition]
-Signed-off-by: Yonghua Zheng <younghua.zheng@gmail.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Jie Liu <jeff.liu@oracle.com>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/ocfs2/journal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-fix-buffer-overflow-in-add_page_map fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-fix-buffer-overflow-in-add_page_map
-+++ a/fs/proc/task_mmu.c
-@@ -868,7 +868,7 @@ typedef struct {
- } pagemap_entry_t;
+diff -puN fs/ocfs2/journal.h~ocfs2-revert-commit-40bd62e-to-avoid-regression-in-extended-allocation fs/ocfs2/journal.h
+--- a/fs/ocfs2/journal.h~ocfs2-revert-commit-40bd62e-to-avoid-regression-in-extended-allocation
++++ a/fs/ocfs2/journal.h
+@@ -537,7 +537,7 @@ static inline int ocfs2_calc_extend_cred
+ 	extent_blocks = 1 + 1 + le16_to_cpu(root_el->l_tree_depth);
  
- struct pagemapread {
--	int pos, len;
-+	int pos, len;		/* units: PM_ENTRY_BYTES, not bytes */
- 	pagemap_entry_t *buffer;
- 	bool v2;
- };
-@@ -876,7 +876,7 @@ struct pagemapread {
- #define PAGEMAP_WALK_SIZE	(PMD_SIZE)
- #define PAGEMAP_WALK_MASK	(PMD_MASK)
+ 	return bitmap_blocks + sysfile_bitmap_blocks + extent_blocks +
+-	       ocfs2_quota_trans_credits(sb) + bits_wanted;
++	       ocfs2_quota_trans_credits(sb);
+ }
  
--#define PM_ENTRY_BYTES      sizeof(u64)
-+#define PM_ENTRY_BYTES      sizeof(pagemap_entry_t)
- #define PM_STATUS_BITS      3
- #define PM_STATUS_OFFSET    (64 - PM_STATUS_BITS)
- #define PM_STATUS_MASK      (((1LL << PM_STATUS_BITS) - 1) << PM_STATUS_OFFSET)
-@@ -1127,8 +1127,8 @@ static ssize_t pagemap_read(struct file
- 		goto out_task;
- 
- 	pm.v2 = soft_dirty_cleared;
--	pm.len = PM_ENTRY_BYTES * (PAGEMAP_WALK_SIZE >> PAGE_SHIFT);
--	pm.buffer = kmalloc(pm.len, GFP_TEMPORARY);
-+	pm.len = (PAGEMAP_WALK_SIZE >> PAGE_SHIFT);
-+	pm.buffer = kmalloc(pm.len * PM_ENTRY_BYTES, GFP_TEMPORARY);
- 	ret = -ENOMEM;
- 	if (!pm.buffer)
- 		goto out_task;
+ static inline int ocfs2_calc_symlink_credits(struct super_block *sb)
 _
 
-Patches currently in -mm which might be from younghua.zheng@gmail.com are
+Patches currently in -mm which might be from jeff.liu@oracle.com are
 
 origin.patch
 
