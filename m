@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch added to
- -mm tree
-Date: Wed, 14 Aug 2013 16:21:14 -0700
-Message-ID: <520c10ea.t2HJTm6J0x6JxGRP%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-remove-useless-check-about-mapping-type.patch added
+ to -mm tree
+Date: Wed, 14 Aug 2013 16:21:13 -0700
+Message-ID: <520c10e9.FtofdKHLly7RrIm+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56425 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933280Ab3HNXVP (ORCPT
+	with ESMTP id S932363Ab3HNXVP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 19:21:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, liwanp@linux.vnet.ibm.com, dhillf@gmail.com, davidlohr@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
 
-Subject: + mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch added to -mm tree
+Subject: + mm-hugetlb-remove-useless-check-about-mapping-type.patch added to -mm tree
 To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr@hp.com,dhillf@gmail.com,liwanp@linux.vnet.ibm.com,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 16:21:14 -0700
+Date: Wed, 14 Aug 2013 16:21:13 -0700
 
 
 The patch titled
-     Subject: mm, hugetlb: grab a page_table_lock after page_cache_release
+     Subject: mm, hugetlb: remove useless check about mapping type
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
+     mm-hugetlb-remove-useless-check-about-mapping-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-remove-useless-check-about-mapping-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-remove-useless-check-about-mapping-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,14 +45,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, hugetlb: grab a page_table_lock after page_cache_release
+Subject: mm, hugetlb: remove useless check about mapping type
 
-We don't need to grab a page_table_lock when we try to release a page. 
-So, defer to grab a page_table_lock.
+is_vma_resv_set(vma, HPAGE_RESV_OWNER) implys that this mapping is for
+private.  So we don't need to check whether this mapping is for shared or
+not.
+
+This patch is just for clean-up.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
 Cc: David Gibson <david@gibson.dropbear.id.au>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
@@ -61,25 +63,21 @@ Cc: Hillf Danton <dhillf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-grab-a-page_table_lock-after-page_cache_release mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-grab-a-page_table_lock-after-page_cache_release
+diff -puN mm/hugetlb.c~mm-hugetlb-remove-useless-check-about-mapping-type mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-remove-useless-check-about-mapping-type
 +++ a/mm/hugetlb.c
-@@ -2647,10 +2647,11 @@ retry_avoidcopy:
- 	}
- 	spin_unlock(&mm->page_table_lock);
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
--	/* Caller expects lock to be held */
--	spin_lock(&mm->page_table_lock);
- 	page_cache_release(new_page);
- 	page_cache_release(old_page);
-+
-+	/* Caller expects lock to be held */
-+	spin_lock(&mm->page_table_lock);
- 	return 0;
- }
+@@ -2564,8 +2564,7 @@ retry_avoidcopy:
+ 	 * at the time of fork() could consume its reserves on COW instead
+ 	 * of the full address range.
+ 	 */
+-	if (!(vma->vm_flags & VM_MAYSHARE) &&
+-			is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
++	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
+ 			old_page != pagecache_page)
+ 		outside_reserve = 1;
  
 _
 
