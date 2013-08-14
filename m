@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch added to
- -mm tree
-Date: Wed, 14 Aug 2013 14:42:22 -0700
-Message-ID: <520bf9be.tk/oxtxWyZWBmvzU%akpm@linux-foundation.org>
+Subject: + mm-hotplug-verify-hotplug-memory-range.patch added to -mm tree
+Date: Wed, 14 Aug 2013 15:09:20 -0700
+Message-ID: <520c0010.h3em9DnzIXyec/Th%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55716 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55852 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933276Ab3HNVmX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 17:42:23 -0400
+	with ESMTP id S933115Ab3HNWJV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 18:09:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, julia.lawall@lip6.fr, joe@perches.com
+To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, toshi.kani@hp.com
 
-Subject: + checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch added to -mm tree
-To: joe@perches.com,julia.lawall@lip6.fr
+Subject: + mm-hotplug-verify-hotplug-memory-range.patch added to -mm tree
+To: toshi.kani@hp.com,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,tangchen@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 14:42:22 -0700
+Date: Wed, 14 Aug 2013 15:09:20 -0700
 
 
 The patch titled
-     Subject: checkpatch: fix perl version 5.12 and earlier incompatibility
+     Subject: mm/hotplug: verify hotplug memory range
 has been added to the -mm tree.  Its filename is
-     checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch
+     mm-hotplug-verify-hotplug-memory-range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hotplug-verify-hotplug-memory-range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hotplug-verify-hotplug-memory-range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,82 +43,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: fix perl version 5.12 and earlier incompatibility
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: mm/hotplug: verify hotplug memory range
 
-commit 203489a33 ("checkpatch: add --types option to report only specific
-message types") uses a perl syntax introduced in perl version 5.14.
+add_memory() and remove_memory() can only handle a memory range aligned
+with section.  There are problems when an unaligned range is added and
+then deleted as follows:
 
-Use the backward compatible perl syntax instead.
+ - add_memory() with an unaligned range succeeds, but __add_pages()
+   called from add_memory() adds a whole section of pages even though
+   a given memory range is less than the section size.
+ - remove_memory() to the added unaligned range hits BUG_ON() in
+   __remove_pages().
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Julia Lawall <julia.lawall@lip6.fr>
+This patch changes add_memory() and remove_memory() to check if a given
+memory range is aligned with section at the beginning.  As the result,
+add_memory() fails with -EINVAL when a given range is unaligned, and does
+not add such memory range.  This prevents remove_memory() to be called
+with an unaligned range as well.  Note that remove_memory() has to use
+BUG_ON() since this function cannot fail.
+
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-perl-version-512-and-earlier-incompatibility scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-perl-version-512-and-earlier-incompatibility
-+++ a/scripts/checkpatch.pl
-@@ -174,9 +174,9 @@ sub hash_save_array_words {
- sub hash_show_words {
- 	my ($hashRef, $prefix) = @_;
+diff -puN mm/memory_hotplug.c~mm-hotplug-verify-hotplug-memory-range mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-hotplug-verify-hotplug-memory-range
++++ a/mm/memory_hotplug.c
+@@ -1070,6 +1070,22 @@ out:
+ 	return ret;
+ }
  
--	if ($quiet == 0 && keys $hashRef) {
-+	if ($quiet == 0 && keys %$hashRef) {
- 		print "NOTE: $prefix message types:";
--		foreach my $word (sort keys $hashRef) {
-+		foreach my $word (sort keys %$hashRef) {
- 			print " $word";
- 		}
- 		print "\n\n";
++static int check_hotplug_memory_range(u64 start, u64 size)
++{
++	u64 start_pfn = start >> PAGE_SHIFT;
++	u64 nr_pages = size >> PAGE_SHIFT;
++
++	/* Memory range must be aligned with section */
++	if ((start_pfn & ~PAGE_SECTION_MASK) ||
++	    (nr_pages % PAGES_PER_SECTION) || (!nr_pages)) {
++		pr_err("Section-unaligned hotplug range: start 0x%llx, size 0x%llx\n",
++				start, size);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+ int __ref add_memory(int nid, u64 start, u64 size)
+ {
+@@ -1079,6 +1095,10 @@ int __ref add_memory(int nid, u64 start,
+ 	struct resource *res;
+ 	int ret;
+ 
++	ret = check_hotplug_memory_range(start, size);
++	if (ret)
++		return ret;
++
+ 	lock_memory_hotplug();
+ 
+ 	res = register_memory_resource(start, size);
+@@ -1786,6 +1806,8 @@ void __ref remove_memory(int nid, u64 st
+ {
+ 	int ret;
+ 
++	BUG_ON(check_hotplug_memory_range(start, size));
++
+ 	lock_memory_hotplug();
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from toshi.kani@hp.com are
 
-maintainers-exynos-remove-board-files.patch
-maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
-maintainers-omap-powerdomain-update-patterns.patch
-maintainers-arm-s3c2410-update-patterns.patch
-maintainers-arm-spear-consolidate-sections.patch
-maintainers-arm-plat-nomadik-update-patterns.patch
-maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
-maintainers-ghes_edac-update-pattern.patch
-maintainers-update-siano-drivers.patch
-maintainers-si4713-fix-file-pattern.patch
-maintainers-update-it913x-patterns.patch
-maintainers-update-sirf-patterns.patch
-maintainers-update-ssbi-patterns.patch
-maintainers-update-file-pattern-for-arc-uart.patch
-maintainers-update-usb-ehci-platform-pattern.patch
-maintainers-usb-phy-update-patterns.patch
-maintainers-update-gre-demux-patterns.patch
-maintainers-append-to-directory-patterns.patch
-checkpatch-add-a-few-more-fix-corrections.patch
-checkpatch-check-camelcase-by-word-not-by-lval.patch
-checkpatch-enforce-sane-perl-version.patch
-checkpatch-check-for-duplicate-signatures.patch
-checkpatch-warn-when-using-extern-with-function-prototypes-in-h-files.patch
-checkpatch-fix-networking-kernel-doc-block-comment-defect.patch
-checkpatch-add-types-option-to-report-only-specific-message-types.patch
-checkpatch-ignore-define-trace_foo-macros.patch
-checkpatch-better-fix-of-spacing-errors.patch
-checkpatch-reduce-runtime-cpu-time-used.patch
-checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch
-firmware-dmi_scan-drop-obsolete-comment.patch
-firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
-firmware-dmi_scan-constify-strings.patch
-firmware-dmi_scan-drop-oom-messages.patch
-pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
-pktcdvd-convert-printk-to-pr_level.patch
-pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
-pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
-pktcdvd-convert-pr_notice-to-pkt_notice.patch
-pktcdvd-convert-pr_info-to-pkt_info.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
-pktcdvd-fix-defective-misuses-of-pkt_level.patch
+mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch
+mm-hotplug-verify-hotplug-memory-range.patch
 linux-next.patch
 
