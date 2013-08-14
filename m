@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- cleanup-add-forward-declarations-for-inplace-syscall-wrappers.patch added
- to -mm tree
-Date: Wed, 14 Aug 2013 14:17:26 -0700
-Message-ID: <520bf3e6.4iEHcKpn+YtYl8C/%akpm@linux-foundation.org>
+ checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch added to
+ -mm tree
+Date: Wed, 14 Aug 2013 14:42:22 -0700
+Message-ID: <520bf9be.tk/oxtxWyZWBmvzU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55397 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55716 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932914Ab3HNVR0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 17:17:26 -0400
+	with ESMTP id S933276Ab3HNVmX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 17:42:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, slyfox@gentoo.org
+To: mm-commits@vger.kernel.org, julia.lawall@lip6.fr, joe@perches.com
 
-Subject: + cleanup-add-forward-declarations-for-inplace-syscall-wrappers.patch added to -mm tree
-To: slyfox@gentoo.org,viro@zeniv.linux.org.uk
+Subject: + checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch added to -mm tree
+To: joe@perches.com,julia.lawall@lip6.fr
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 14:17:26 -0700
+Date: Wed, 14 Aug 2013 14:42:22 -0700
 
 
 The patch titled
-     Subject: syscalls.h: add forward declarations for inplace syscall wrappers
+     Subject: checkpatch: fix perl version 5.12 and earlier incompatibility
 has been added to the -mm tree.  Its filename is
-     cleanup-add-forward-declarations-for-inplace-syscall-wrappers.patch
+     checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cleanup-add-forward-declarations-for-inplace-syscall-wrappers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cleanup-add-forward-declarations-for-inplace-syscall-wrappers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,53 +45,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: syscalls.h: add forward declarations for inplace syscall wrappers
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: fix perl version 5.12 and earlier incompatibility
 
-Unclutter -Wmissing-prototypes warning types (enabled at make W=1)
+commit 203489a33 ("checkpatch: add --types option to report only specific
+message types") uses a perl syntax introduced in perl version 5.14.
 
-    linux/include/linux/syscalls.h:190:18: warning: no previous prototype for 'SyS_semctl' [-Wmissing-prototypes]
-      asmlinkage long SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__)) \
-                      ^
-    linux/include/linux/syscalls.h:183:2: note: in expansion of macro '__SYSCALL_DEFINEx'
-      __SYSCALL_DEFINEx(x, sname, __VA_ARGS__)
-      ^
-by adding forward declarations right before definitions.
+Use the backward compatible perl syntax instead.
 
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Julia Lawall <julia.lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compat.h   |    1 +
- include/linux/syscalls.h |    1 +
- 2 files changed, 2 insertions(+)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/compat.h~cleanup-add-forward-declarations-for-inplace-syscall-wrappers include/linux/compat.h
---- a/include/linux/compat.h~cleanup-add-forward-declarations-for-inplace-syscall-wrappers
-+++ a/include/linux/compat.h
-@@ -44,6 +44,7 @@
- 	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))\
- 		__attribute__((alias(__stringify(compat_SyS##name))));  \
- 	static inline long C_SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__));\
-+	asmlinkage long compat_SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__));\
- 	asmlinkage long compat_SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__))\
- 	{								\
- 		return C_SYSC##name(__MAP(x,__SC_DELOUSE,__VA_ARGS__));	\
-diff -puN include/linux/syscalls.h~cleanup-add-forward-declarations-for-inplace-syscall-wrappers include/linux/syscalls.h
---- a/include/linux/syscalls.h~cleanup-add-forward-declarations-for-inplace-syscall-wrappers
-+++ a/include/linux/syscalls.h
-@@ -187,6 +187,7 @@ extern struct trace_event_functions exit
- 	asmlinkage long sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))	\
- 		__attribute__((alias(__stringify(SyS##name))));		\
- 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__));	\
-+	asmlinkage long SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__));	\
- 	asmlinkage long SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__))	\
- 	{								\
- 		long ret = SYSC##name(__MAP(x,__SC_CAST,__VA_ARGS__));	\
+diff -puN scripts/checkpatch.pl~checkpatch-fix-perl-version-512-and-earlier-incompatibility scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-perl-version-512-and-earlier-incompatibility
++++ a/scripts/checkpatch.pl
+@@ -174,9 +174,9 @@ sub hash_save_array_words {
+ sub hash_show_words {
+ 	my ($hashRef, $prefix) = @_;
+ 
+-	if ($quiet == 0 && keys $hashRef) {
++	if ($quiet == 0 && keys %$hashRef) {
+ 		print "NOTE: $prefix message types:";
+-		foreach my $word (sort keys $hashRef) {
++		foreach my $word (sort keys %$hashRef) {
+ 			print " $word";
+ 		}
+ 		print "\n\n";
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-cleanup-add-forward-declarations-for-inplace-syscall-wrappers.patch
+maintainers-exynos-remove-board-files.patch
+maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+maintainers-omap-powerdomain-update-patterns.patch
+maintainers-arm-s3c2410-update-patterns.patch
+maintainers-arm-spear-consolidate-sections.patch
+maintainers-arm-plat-nomadik-update-patterns.patch
+maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
+maintainers-ghes_edac-update-pattern.patch
+maintainers-update-siano-drivers.patch
+maintainers-si4713-fix-file-pattern.patch
+maintainers-update-it913x-patterns.patch
+maintainers-update-sirf-patterns.patch
+maintainers-update-ssbi-patterns.patch
+maintainers-update-file-pattern-for-arc-uart.patch
+maintainers-update-usb-ehci-platform-pattern.patch
+maintainers-usb-phy-update-patterns.patch
+maintainers-update-gre-demux-patterns.patch
+maintainers-append-to-directory-patterns.patch
+checkpatch-add-a-few-more-fix-corrections.patch
+checkpatch-check-camelcase-by-word-not-by-lval.patch
+checkpatch-enforce-sane-perl-version.patch
+checkpatch-check-for-duplicate-signatures.patch
+checkpatch-warn-when-using-extern-with-function-prototypes-in-h-files.patch
+checkpatch-fix-networking-kernel-doc-block-comment-defect.patch
+checkpatch-add-types-option-to-report-only-specific-message-types.patch
+checkpatch-ignore-define-trace_foo-macros.patch
+checkpatch-better-fix-of-spacing-errors.patch
+checkpatch-reduce-runtime-cpu-time-used.patch
+checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch
+firmware-dmi_scan-drop-obsolete-comment.patch
+firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
+firmware-dmi_scan-constify-strings.patch
+firmware-dmi_scan-drop-oom-messages.patch
+pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
+pktcdvd-convert-printk-to-pr_level.patch
+pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
+pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
+pktcdvd-convert-pr_notice-to-pkt_notice.patch
+pktcdvd-convert-pr_info-to-pkt_info.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
+pktcdvd-fix-defective-misuses-of-pkt_level.patch
+linux-next.patch
 
