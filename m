@@ -1,125 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] microblaze-fix-clone-syscall.patch removed from -mm tree
-Date: Wed, 14 Aug 2013 12:35:33 -0700
-Message-ID: <520bdc05.sfbK5PDgFKzqDIA9%akpm__12606.8845311694$1376508948$gmane$org@linux-foundation.org>
+Subject: [merged]
+ memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
+ removed from -mm tree
+Date: Wed, 14 Aug 2013 12:35:29 -0700
+Message-ID: <520bdc01.t1oCO35uKLZulK6L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54149 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933137Ab3HNTfe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 15:35:34 -0400
+	with ESMTP id S933022Ab3HNTfa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 15:35:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, michal.simek@xilinx.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, khlebnikov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@openvz.org, bsingharora@gmail.com, avagin@openvz.org
 
-Subject: [merged] microblaze-fix-clone-syscall.patch removed from -mm tree
-To: michal.simek@xilinx.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch removed from -mm tree
+To: avagin@openvz.org,bsingharora@gmail.com,glommer@openvz.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,khlebnikov@openvz.org,mhocko@suse.cz,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 12:35:33 -0700
+Date: Wed, 14 Aug 2013 12:35:29 -0700
 
 
 The patch titled
-     Subject: microblaze: fix clone syscall
+     Subject: memcg: don't initialize kmem-cache destroying work for root caches
 has been removed from the -mm tree.  Its filename was
-     microblaze-fix-clone-syscall.patch
+     memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Simek <michal.simek@xilinx.com>
-Subject: microblaze: fix clone syscall
+From: Andrey Vagin <avagin@openvz.org>
+Subject: memcg: don't initialize kmem-cache destroying work for root caches
 
-Fix inadvertent breakage in the clone syscall ABI for Microblaze that was
-introduced in f3268edb ("microblaze: switch to generic fork/vfork/clone").
+struct memcg_cache_params has a union.  Different parts of this union are
+used for root and non-root caches.  A part with destroying work is used
+only for non-root caches.
 
-The Microblaze syscall ABI for clone takes the parent tid address in the
-4th argument; the third argument slot is used for the stack size.  The
-incorrectly-used CLONE_BACKWARDS type assigned parent tid to the 3rd slot.
+I fixed the same problem in another place v3.9-rc1-16204-gf101a94, but
+didn't notice this one.
 
-This commit restores the original ABI so that existing userspace libc
-code will work correctly.
+This patch fixes the kernel panic:
 
-All kernel versions from v3.8-rc1 were affected.
+[   46.848187] BUG: unable to handle kernel paging request at 000000fffffffeb8
+[   46.849026] IP: [<ffffffff811a484c>] kmem_cache_destroy_memcg_children+0x6c/0xc0
+[   46.849092] PGD 0
+[   46.849092] Oops: 0000 [#1] SMP
+...
 
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Cc: Glauber Costa <glommer@openvz.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: <stable@vger.kernel.org>    [3.9.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig             |    6 ++++++
- arch/microblaze/Kconfig  |    2 +-
- include/linux/syscalls.h |    5 +++++
- kernel/fork.c            |    6 ++++++
- 4 files changed, 18 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/Kconfig~microblaze-fix-clone-syscall arch/Kconfig
---- a/arch/Kconfig~microblaze-fix-clone-syscall
-+++ a/arch/Kconfig
-@@ -407,6 +407,12 @@ config CLONE_BACKWARDS2
- 	help
- 	  Architecture has the first two arguments of clone(2) swapped.
+diff -puN mm/memcontrol.c~memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-dont-initialize-kmem-cache-destroying-work-for-root-caches
++++ a/mm/memcontrol.c
+@@ -3195,11 +3195,11 @@ int memcg_register_cache(struct mem_cgro
+ 	if (!s->memcg_params)
+ 		return -ENOMEM;
  
-+config CLONE_BACKWARDS3
-+	bool
-+	help
-+	  Architecture has tls passed as the 3rd argument of clone(2),
-+	  not the 5th one.
-+
- config ODD_RT_SIGACTION
- 	bool
- 	help
-diff -puN arch/microblaze/Kconfig~microblaze-fix-clone-syscall arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~microblaze-fix-clone-syscall
-+++ a/arch/microblaze/Kconfig
-@@ -28,7 +28,7 @@ config MICROBLAZE
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_IDLE_POLL_SETUP
- 	select MODULES_USE_ELF_RELA
--	select CLONE_BACKWARDS
-+	select CLONE_BACKWARDS3
+-	INIT_WORK(&s->memcg_params->destroy,
+-			kmem_cache_destroy_work_func);
+ 	if (memcg) {
+ 		s->memcg_params->memcg = memcg;
+ 		s->memcg_params->root_cache = root_cache;
++		INIT_WORK(&s->memcg_params->destroy,
++				kmem_cache_destroy_work_func);
+ 	} else
+ 		s->memcg_params->is_root_cache = true;
  
- config SWAP
- 	def_bool n
-diff -puN include/linux/syscalls.h~microblaze-fix-clone-syscall include/linux/syscalls.h
---- a/include/linux/syscalls.h~microblaze-fix-clone-syscall
-+++ a/include/linux/syscalls.h
-@@ -802,9 +802,14 @@ asmlinkage long sys_vfork(void);
- asmlinkage long sys_clone(unsigned long, unsigned long, int __user *, int,
- 	       int __user *);
- #else
-+#ifdef CONFIG_CLONE_BACKWARDS3
-+asmlinkage long sys_clone(unsigned long, unsigned long, int, int __user *,
-+			  int __user *, int);
-+#else
- asmlinkage long sys_clone(unsigned long, unsigned long, int __user *,
- 	       int __user *, int);
- #endif
-+#endif
- 
- asmlinkage long sys_execve(const char __user *filename,
- 		const char __user *const __user *argv,
-diff -puN kernel/fork.c~microblaze-fix-clone-syscall kernel/fork.c
---- a/kernel/fork.c~microblaze-fix-clone-syscall
-+++ a/kernel/fork.c
-@@ -1679,6 +1679,12 @@ SYSCALL_DEFINE5(clone, unsigned long, ne
- 		 int __user *, parent_tidptr,
- 		 int __user *, child_tidptr,
- 		 int, tls_val)
-+#elif defined(CONFIG_CLONE_BACKWARDS3)
-+SYSCALL_DEFINE6(clone, unsigned long, clone_flags, unsigned long, newsp,
-+		int, stack_size,
-+		int __user *, parent_tidptr,
-+		int __user *, child_tidptr,
-+		int, tls_val)
- #else
- SYSCALL_DEFINE5(clone, unsigned long, clone_flags, unsigned long, newsp,
- 		 int __user *, parent_tidptr,
 _
 
-Patches currently in -mm which might be from michal.simek@xilinx.com are
+Patches currently in -mm which might be from avagin@openvz.org are
 
 origin.patch
 
