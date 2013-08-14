@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + migrate-add-hugepage-migration-code-to-migrate_pages.patch
+Subject: + mm-migrate-add-hugepage-migration-code-to-move_pages.patch
  added to -mm tree
-Date: Wed, 14 Aug 2013 16:41:45 -0700
-Message-ID: <520c15b9.DCKNH+05d+77hqQg%akpm@linux-foundation.org>
+Date: Wed, 14 Aug 2013 16:41:48 -0700
+Message-ID: <520c15bc.4af0i82QGrFUsFGB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56630 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755381Ab3HNXlq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 19:41:46 -0400
+	with ESMTP id S1755381Ab3HNXlt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 19:41:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, hughd@google.com, dhillf@gmail.com, aneesh.kumar@linux.vnet.ibm.com, ak@linux.intel.com, n-horiguchi@ah.jp.nec.com
 
-Subject: + migrate-add-hugepage-migration-code-to-migrate_pages.patch added to -mm tree
+Subject: + mm-migrate-add-hugepage-migration-code-to-move_pages.patch added to -mm tree
 To: n-horiguchi@ah.jp.nec.com,ak@linux.intel.com,aneesh.kumar@linux.vnet.ibm.com,dhillf@gmail.com,hughd@google.com,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 16:41:45 -0700
+Date: Wed, 14 Aug 2013 16:41:48 -0700
 
 
 The patch titled
-     Subject: migrate: add hugepage migration code to migrate_pages()
+     Subject: mm: migrate: add hugepage migration code to move_pages()
 has been added to the -mm tree.  Its filename is
-     migrate-add-hugepage-migration-code-to-migrate_pages.patch
+     mm-migrate-add-hugepage-migration-code-to-move_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/migrate-add-hugepage-migration-code-to-migrate_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-add-hugepage-migration-code-to-move_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/migrate-add-hugepage-migration-code-to-migrate_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-add-hugepage-migration-code-to-move_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,25 +45,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: migrate: add hugepage migration code to migrate_pages()
+Subject: mm: migrate: add hugepage migration code to move_pages()
 
-Extend check_range() to handle vma with VM_HUGETLB set.  We will be able
-to migrate hugepage with migrate_pages(2) after applying the enablement
-patch which comes later in this series.
+Extend move_pages() to handle vma with VM_HUGETLB set.  We will be able to
+migrate hugepage with move_pages(2) after applying the enablement patch
+which comes later in this series.
 
-Note that for larger hugepages (covered by pud entries, 1GB for x86_64 for
-example), we simply skip it now.
+We avoid getting refcount on tail pages of hugepage, because unlike thp,
+hugepage is not split and we need not care about races with splitting.
 
-Note that using pmd_huge/pud_huge assumes that hugepages are pointed to by
-pmd/pud.  This is not true in some architectures implementing hugepage
-with other mechanisms like ia64, but it's OK because pmd_huge/pud_huge
-simply return 0 in such arch and page walker simply ignores such
-hugepages.
+And migration of larger (1GB for x86_64) hugepage are not enabled.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Acked-by: Andi Kleen <ak@linux.intel.com>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Acked-by: Hillf Danton <dhillf@gmail.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -73,96 +69,82 @@ Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   42 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 37 insertions(+), 5 deletions(-)
+ mm/memory.c  |   17 +++++++++++++++--
+ mm/migrate.c |   13 +++++++++++--
+ 2 files changed, 26 insertions(+), 4 deletions(-)
 
-diff -puN mm/mempolicy.c~migrate-add-hugepage-migration-code-to-migrate_pages mm/mempolicy.c
---- a/mm/mempolicy.c~migrate-add-hugepage-migration-code-to-migrate_pages
-+++ a/mm/mempolicy.c
-@@ -515,6 +515,30 @@ static int check_pte_range(struct vm_are
- 	return addr != end;
- }
- 
-+static void check_hugetlb_pmd_range(struct vm_area_struct *vma, pmd_t *pmd,
-+		const nodemask_t *nodes, unsigned long flags,
-+				    void *private)
-+{
-+#ifdef CONFIG_HUGETLB_PAGE
-+	int nid;
-+	struct page *page;
-+
-+	spin_lock(&vma->vm_mm->page_table_lock);
-+	page = pte_page(huge_ptep_get((pte_t *)pmd));
-+	nid = page_to_nid(page);
-+	if (node_isset(nid, *nodes) == !!(flags & MPOL_MF_INVERT))
-+		goto unlock;
-+	/* With MPOL_MF_MOVE, we migrate only unshared hugepage. */
-+	if (flags & (MPOL_MF_MOVE_ALL) ||
-+	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1))
-+		isolate_huge_page(page, private);
-+unlock:
-+	spin_unlock(&vma->vm_mm->page_table_lock);
-+#else
-+	BUG();
-+#endif
-+}
-+
- static inline int check_pmd_range(struct vm_area_struct *vma, pud_t *pud,
- 		unsigned long addr, unsigned long end,
- 		const nodemask_t *nodes, unsigned long flags,
-@@ -526,6 +550,11 @@ static inline int check_pmd_range(struct
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
-+		if (pmd_huge(*pmd) && is_vm_hugetlb_page(vma)) {
-+			check_hugetlb_pmd_range(vma, pmd, nodes,
-+						flags, private);
-+			continue;
+diff -puN mm/memory.c~mm-migrate-add-hugepage-migration-code-to-move_pages mm/memory.c
+--- a/mm/memory.c~mm-migrate-add-hugepage-migration-code-to-move_pages
++++ a/mm/memory.c
+@@ -1475,7 +1475,8 @@ struct page *follow_page_mask(struct vm_
+ 	if (pud_none(*pud))
+ 		goto no_page_table;
+ 	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
+-		BUG_ON(flags & FOLL_GET);
++		if (flags & FOLL_GET)
++			goto out;
+ 		page = follow_huge_pud(mm, address, pud, flags & FOLL_WRITE);
+ 		goto out;
+ 	}
+@@ -1486,8 +1487,20 @@ struct page *follow_page_mask(struct vm_
+ 	if (pmd_none(*pmd))
+ 		goto no_page_table;
+ 	if (pmd_huge(*pmd) && vma->vm_flags & VM_HUGETLB) {
+-		BUG_ON(flags & FOLL_GET);
+ 		page = follow_huge_pmd(mm, address, pmd, flags & FOLL_WRITE);
++		if (flags & FOLL_GET) {
++			/*
++			 * Refcount on tail pages are not well-defined and
++			 * shouldn't be taken. The caller should handle a NULL
++			 * return when trying to follow tail pages.
++			 */
++			if (PageHead(page))
++				get_page(page);
++			else {
++				page = NULL;
++				goto out;
++			}
 +		}
- 		split_huge_page_pmd(vma, addr, pmd);
- 		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
- 			continue;
-@@ -547,6 +576,8 @@ static inline int check_pud_range(struct
- 	pud = pud_offset(pgd, addr);
- 	do {
- 		next = pud_addr_end(addr, end);
-+		if (pud_huge(*pud) && is_vm_hugetlb_page(vma))
-+			continue;
- 		if (pud_none_or_clear_bad(pud))
- 			continue;
- 		if (check_pmd_range(vma, pud, addr, next, nodes,
-@@ -638,9 +669,6 @@ check_range(struct mm_struct *mm, unsign
- 				return ERR_PTR(-EFAULT);
- 		}
+ 		goto out;
+ 	}
+ 	if ((flags & FOLL_NUMA) && pmd_numa(*pmd))
+diff -puN mm/migrate.c~mm-migrate-add-hugepage-migration-code-to-move_pages mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-add-hugepage-migration-code-to-move_pages
++++ a/mm/migrate.c
+@@ -1092,7 +1092,11 @@ static struct page *new_page_node(struct
  
--		if (is_vm_hugetlb_page(vma))
--			goto next;
--
- 		if (flags & MPOL_MF_LAZY) {
- 			change_prot_numa(vma, start, endvma);
- 			goto next;
-@@ -993,7 +1021,11 @@ static void migrate_page_add(struct page
+ 	*result = &pm->status;
  
- static struct page *new_node_page(struct page *page, unsigned long node, int **x)
- {
--	return alloc_pages_exact_node(node, GFP_HIGHUSER_MOVABLE, 0);
-+	if (PageHuge(page))
-+		return alloc_huge_page_node(page_hstate(compound_head(page)),
-+					node);
+-	return alloc_pages_exact_node(pm->node,
++	if (PageHuge(p))
++		return alloc_huge_page_node(page_hstate(compound_head(p)),
++					pm->node);
 +	else
-+		return alloc_pages_exact_node(node, GFP_HIGHUSER_MOVABLE, 0);
++		return alloc_pages_exact_node(pm->node,
+ 				GFP_HIGHUSER_MOVABLE | GFP_THISNODE, 0);
  }
  
- /*
-@@ -1023,7 +1055,7 @@ static int migrate_to_node(struct mm_str
- 		err = migrate_pages(&pagelist, new_node_page, dest,
- 					MIGRATE_SYNC, MR_SYSCALL);
+@@ -1152,6 +1156,11 @@ static int do_move_page_to_node_array(st
+ 				!migrate_all)
+ 			goto put_and_set;
+ 
++		if (PageHuge(page)) {
++			isolate_huge_page(page, &pagelist);
++			goto put_and_set;
++		}
++
+ 		err = isolate_lru_page(page);
+ 		if (!err) {
+ 			list_add_tail(&page->lru, &pagelist);
+@@ -1174,7 +1183,7 @@ set_status:
+ 		err = migrate_pages(&pagelist, new_page_node,
+ 				(unsigned long)pm, MIGRATE_SYNC, MR_SYSCALL);
  		if (err)
 -			putback_lru_pages(&pagelist);
 +			putback_movable_pages(&pagelist);
  	}
  
- 	return err;
+ 	up_read(&mm->mmap_sem);
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
