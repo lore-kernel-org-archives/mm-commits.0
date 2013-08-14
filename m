@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection.patch added to -mm tree
-Date: Wed, 14 Aug 2013 16:01:07 -0700
-Message-ID: <520c0c33.+f/ve7DyvbvjjxuY%akpm@linux-foundation.org>
+ drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch added to -mm tree
+Date: Wed, 14 Aug 2013 16:06:26 -0700
+Message-ID: <520c0d72.J3vJAdIUt+Ko9i2p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56283 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56297 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933408Ab3HNXBI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 19:01:08 -0400
+	with ESMTP id S933229Ab3HNXG1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 19:06:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp, dan.carpenter@oracle.com, slava@dubeyko.com
+To: mm-commits@vger.kernel.org, galak@codeaurora.org, balbi@ti.com, ldewangan@nvidia.com
 
-Subject: + nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection.patch added to -mm tree
-To: slava@dubeyko.com,dan.carpenter@oracle.com,konishi.ryusuke@lab.ntt.co.jp
+Subject: + drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch added to -mm tree
+To: ldewangan@nvidia.com,balbi@ti.com,galak@codeaurora.org
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 16:01:07 -0700
+Date: Wed, 14 Aug 2013 16:06:26 -0700
 
 
 The patch titled
-     Subject: nilfs2: fix issue with counting number of bio requests for BIO_EOPNOTSUPP error detection
+     Subject: drivers/rtc/rtc-palmas.c: rename charging dt property name
 has been added to the -mm tree.  Its filename is
-     nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection.patch
+     drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,59 +44,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: nilfs2: fix issue with counting number of bio requests for BIO_EOPNOTSUPP error detection
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Subject: drivers/rtc/rtc-palmas.c: rename charging dt property name
 
-Fix the issue with improper counting number of flying bio requests for
-BIO_EOPNOTSUPP error detection case.
+Rename the charging property names to be more meaningful:
 
-The sb_nbio must be incremented exactly the same number of times as
-complete() function was called (or will be called) because
-nilfs_segbuf_wait() will call wail_for_completion() for the number of
-times set to sb_nbio:
+Rename property "ti,back-battery-charge-enable" to
+"ti,backup-battery-chargeable" to tells OS that attahced battery is
+chargeable and OS can do charging.
 
-do {
-    wait_for_completion(&segbuf->sb_bio_event);
-} while (--segbuf->sb_nbio > 0);
+Rename property "ti,back-battery-charge-low-current" to
+"ti,backup-battery-charge-high-current" for safe configuration as maximum
+charging current of battery depends on battery type and overcurrent
+charging can damage the battery.  So enable the high current charging only
+if this property is available.
 
-Two functions complete() and wait_for_completion() must be called the same
-number of times for the same sb_bio_event.  Otherwise,
-wait_for_completion() will hang or leak.
-
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Acked-by: Kumar Gala <galak@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segbuf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/devicetree/bindings/rtc/rtc-palmas.txt |   22 +++++-----
+ drivers/rtc/rtc-palmas.c                             |   14 +++---
+ 2 files changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN fs/nilfs2/segbuf.c~nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection fs/nilfs2/segbuf.c
---- a/fs/nilfs2/segbuf.c~nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection
-+++ a/fs/nilfs2/segbuf.c
-@@ -376,12 +376,12 @@ static int nilfs_segbuf_submit_bio(struc
- 	bio->bi_private = segbuf;
- 	bio_get(bio);
- 	submit_bio(mode, bio);
-+	segbuf->sb_nbio++;
- 	if (bio_flagged(bio, BIO_EOPNOTSUPP)) {
- 		bio_put(bio);
- 		err = -EOPNOTSUPP;
- 		goto failed;
- 	}
--	segbuf->sb_nbio++;
- 	bio_put(bio);
+diff -puN Documentation/devicetree/bindings/rtc/rtc-palmas.txt~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix Documentation/devicetree/bindings/rtc/rtc-palmas.txt
+--- a/Documentation/devicetree/bindings/rtc/rtc-palmas.txt~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix
++++ a/Documentation/devicetree/bindings/rtc/rtc-palmas.txt
+@@ -7,13 +7,17 @@ Required properties:
+ - interrupts: Interrupt number of RTC submodule on device.
  
- 	wi->bio = NULL;
+ Optional properties:
+-- ti,back-battery-charge-enable: The palmas series device like TPS65913 or
+-	TPS80036 supports the battery backup for powering the RTC when main
+-	battery is removed or in very low power state. This flag will enable
+-	the backup battery charging.
+-- ti,back-battery-charge-low-current: Configure lower charging current. Device
+-	supports the charging current as < 100mA or >100mA. Low current will
+-	set as <100mA.
++
++- ti,backup-battery-chargeable: The Palmas series device like TPS65913 or
++	TPS80036 supports the backup battery for powering the RTC when main
++	battery is removed or in very low power state. The backup battery
++	can be chargeable or non-chargeable. This flag will tells whether
++	battery is chargeable or not. If charging battery then driver can
++	enable the charging.
++- ti,backup-battery-charge-high-current: Enable high current charging in
++	backup battery. Device supports the < 100mA and > 100mA charging.
++	The high current will be > 100mA. Absence of this property will
++	charge battery to lower current i.e. < 100mA.
+ 
+ Example:
+ 	palmas: tps65913@58 {
+@@ -22,8 +26,8 @@ Example:
+ 			compatible = "ti,palmas-rtc";
+ 			interrupt-parent = <&palmas>;
+ 			interrupts = <8 0>;
+-			ti,back-battery-charge-enable;
+-			ti,back-battery-charge-low-current;
++			ti,backup-battery-chargeable;
++			ti,backup-battery-charge-high-current;
+ 		};
+ 		...
+ 	};
+diff -puN drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix drivers/rtc/rtc-palmas.c
+--- a/drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix
++++ a/drivers/rtc/rtc-palmas.c
+@@ -239,13 +239,13 @@ static int palmas_rtc_probe(struct platf
+ 	struct palmas_rtc *palmas_rtc = NULL;
+ 	int ret;
+ 	bool enable_bb_charging = false;
+-	bool low_bb_charging;
++	bool high_bb_charging;
+ 
+ 	if (pdev->dev.of_node) {
+ 		enable_bb_charging = of_property_read_bool(pdev->dev.of_node,
+-					"ti,back-battery-charge-enable");
+-		low_bb_charging = of_property_read_bool(pdev->dev.of_node,
+-					"ti,back-battery-charge-low-current");
++					"ti,backup-battery-chargeable");
++		high_bb_charging = of_property_read_bool(pdev->dev.of_node,
++					"ti,backup-battery-charge-high-current");
+ 	}
+ 
+ 	palmas_rtc = devm_kzalloc(&pdev->dev, sizeof(struct palmas_rtc),
+@@ -264,10 +264,10 @@ static int palmas_rtc_probe(struct platf
+ 	platform_set_drvdata(pdev, palmas_rtc);
+ 
+ 	if (enable_bb_charging) {
+-		unsigned reg = 0;
++		unsigned reg = PALMAS_BACKUP_BATTERY_CTRL_BBS_BBC_LOW_ICHRG;
+ 
+-		if (low_bb_charging)
+-			reg |= PALMAS_BACKUP_BATTERY_CTRL_BBS_BBC_LOW_ICHRG;
++		if (high_bb_charging)
++			reg = 0;
+ 
+ 		ret = palmas_update_bits(palmas, PALMAS_PMU_CONTROL_BASE,
+ 			PALMAS_BACKUP_BATTERY_CTRL,
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from ldewangan@nvidia.com are
 
-nilfs2-remove-double-bio_put-in-nilfs_end_bio_write-for-bio_eopnotsupp-error.patch
-nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection.patch
-hfsplus-add-necessary-declarations-for-posix-acls-support.patch
-hfsplus-implement-posix-acls-support.patch
-hfsplus-integrate-posix-acls-support-into-driver.patch
+drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch
+drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch
+linux-next.patch
 
