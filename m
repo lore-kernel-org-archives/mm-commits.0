@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
- added to -mm tree
-Date: Wed, 14 Aug 2013 16:21:10 -0700
-Message-ID: <520c10e6.CMsJS4CxOZr/1zLY%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-fix-subpool-accounting-handling.patch added to -mm
+ tree
+Date: Wed, 14 Aug 2013 16:21:12 -0700
+Message-ID: <520c10e8.1kKQVx1mpwqXywyM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56419 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932363Ab3HNXVL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 19:21:11 -0400
+	with ESMTP id S932363Ab3HNXVN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 19:21:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, liwanp@linux.vnet.ibm.com, dhillf@gmail.com, davidlohr@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
 
-Subject: + mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch added to -mm tree
+Subject: + mm-hugetlb-fix-subpool-accounting-handling.patch added to -mm tree
 To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr@hp.com,dhillf@gmail.com,liwanp@linux.vnet.ibm.com,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 16:21:10 -0700
+Date: Wed, 14 Aug 2013 16:21:12 -0700
 
 
 The patch titled
-     Subject: mm, hugetlb: protect reserved pages when soft offlining a hugepage
+     Subject: mm, hugetlb: fix subpool accounting handling
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
+     mm-hugetlb-fix-subpool-accounting-handling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-subpool-accounting-handling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-subpool-accounting-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,42 +45,56 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, hugetlb: protect reserved pages when soft offlining a hugepage
+Subject: mm, hugetlb: fix subpool accounting handling
 
-Don't use the reserve pool when soft offlining a hugepage.  Check we have
-free pages outside the reserve pool before we dequeue the huge page. 
-Otherwise, we can steal other's reserve page.
+If we alloc hugepage with avoid_reserve, we don't dequeue reserved one. 
+So, we should check subpool counter when avoid_reserve.  This patch
+implement it.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
 Cc: David Gibson <david@gibson.dropbear.id.au>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-subpool-accounting-handling mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-subpool-accounting-handling
 +++ a/mm/hugetlb.c
-@@ -955,10 +955,11 @@ static struct page *alloc_buddy_huge_pag
-  */
- struct page *alloc_huge_page_node(struct hstate *h, int nid)
- {
--	struct page *page;
-+	struct page *page = NULL;
+@@ -1164,13 +1164,14 @@ static struct page *alloc_huge_page(stru
+ 	chg = vma_needs_reservation(h, vma, addr);
+ 	if (chg < 0)
+ 		return ERR_PTR(-ENOMEM);
+-	if (chg)
+-		if (hugepage_subpool_get_pages(spool, chg))
++	if (chg || avoid_reserve)
++		if (hugepage_subpool_get_pages(spool, 1))
+ 			return ERR_PTR(-ENOSPC);
  
+ 	ret = hugetlb_cgroup_charge_cgroup(idx, pages_per_huge_page(h), &h_cg);
+ 	if (ret) {
+-		hugepage_subpool_put_pages(spool, chg);
++		if (chg || avoid_reserve)
++			hugepage_subpool_put_pages(spool, 1);
+ 		return ERR_PTR(-ENOSPC);
+ 	}
  	spin_lock(&hugetlb_lock);
--	page = dequeue_huge_page_node(h, nid);
-+	if (h->free_huge_pages - h->resv_huge_pages > 0)
-+		page = dequeue_huge_page_node(h, nid);
- 	spin_unlock(&hugetlb_lock);
- 
- 	if (!page)
+@@ -1182,7 +1183,8 @@ static struct page *alloc_huge_page(stru
+ 			hugetlb_cgroup_uncharge_cgroup(idx,
+ 						       pages_per_huge_page(h),
+ 						       h_cg);
+-			hugepage_subpool_put_pages(spool, chg);
++			if (chg || avoid_reserve)
++				hugepage_subpool_put_pages(spool, 1);
+ 			return ERR_PTR(-ENOSPC);
+ 		}
+ 		spin_lock(&hugetlb_lock);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
