@@ -1,126 +1,299 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit.patch removed from -mm tree
-Date: Wed, 14 Aug 2013 12:35:38 -0700
-Message-ID: <520bdc0a.wd6LfMwdArW/mky/%akpm@linux-foundation.org>
+ ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page.patch removed from -mm tree
+Date: Wed, 14 Aug 2013 12:35:42 -0700
+Message-ID: <520bdc0e.3EwlkUWBAo3gq8Xm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54223 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54230 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933158Ab3HNTfi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 15:35:38 -0400
+	with ESMTP id S933120Ab3HNTfn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 15:35:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wsa@the-dreams.de, LW@KARO-electronics.de
+To: mm-commits@vger.kernel.org, wb@munzinger.de, tm@tao.ma, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, tiger.yang@oracle.com
 
-Subject: [merged] drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit.patch removed from -mm tree
-To: LW@KARO-electronics.de,wsa@the-dreams.de,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page.patch removed from -mm tree
+To: tiger.yang@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,tm@tao.ma,wb@munzinger.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 12:35:38 -0700
+Date: Wed, 14 Aug 2013 12:35:42 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-stmp3xxx.c: provide timeout for potentially endless loop polling a HW bit
+     Subject: ocfs2: fix NULL pointer dereference in ocfs2_duplicate_clusters_by_page
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit.patch
+     ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lothar Waﬂmann <LW@KARO-electronics.de>
-Subject: drivers/rtc/rtc-stmp3xxx.c: provide timeout for potentially endless loop polling a HW bit
+From: Tiger Yang <tiger.yang@oracle.com>
+Subject: ocfs2: fix NULL pointer dereference in ocfs2_duplicate_clusters_by_page
 
-It's always a bad idea to poll on HW bits without a timeout.
+Since ocfs2_cow_file_pos will invoke ocfs2_refcount_icow with a NULL as
+the struct file pointer, it finally result in a null pointer dereference
+in ocfs2_duplicate_clusters_by_page.
 
-The i.MX28 RTC can be easily brought into a state in which the RTC is not
-running (until after a power-on-reset) and thus the status bits which are
-polled in the driver won't ever change.
+This patch replace file pointer with inode pointer in
+cow_duplicate_clusters to fix this issue.
 
-This patch prevents the kernel from getting stuck in this case.
-
-Signed-off-by: Lothar Waﬂmann <LW@KARO-electronics.de>
-Acked-by: Wolfram Sang <wsa@the-dreams.de>
+[jeff.liu@oracle.com: rebased patch against linux-next tree]
+Signed-off-by: Tiger Yang <tiger.yang@oracle.com>
+Signed-off-by: Jie Liu <jeff.liu@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Acked-by: Tao Ma <tm@tao.ma>
+Tested-by: David Weber <wb@munzinger.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-stmp3xxx.c |   35 +++++++++++++++++++++++++----------
- 1 file changed, 25 insertions(+), 10 deletions(-)
+ fs/ocfs2/aops.c         |    2 -
+ fs/ocfs2/file.c         |    6 ++--
+ fs/ocfs2/move_extents.c |    2 -
+ fs/ocfs2/refcounttree.c |   53 +++++---------------------------------
+ fs/ocfs2/refcounttree.h |    6 ++--
+ 5 files changed, 16 insertions(+), 53 deletions(-)
 
-diff -puN drivers/rtc/rtc-stmp3xxx.c~drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit drivers/rtc/rtc-stmp3xxx.c
---- a/drivers/rtc/rtc-stmp3xxx.c~drivers-rtc-rtc-stmp3xxxc-provide-timeout-for-potentially-endless-loop-polling-a-hw-bit
-+++ a/drivers/rtc/rtc-stmp3xxx.c
-@@ -23,6 +23,7 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
-+#include <linux/delay.h>
- #include <linux/rtc.h>
- #include <linux/slab.h>
- #include <linux/of_device.h>
-@@ -119,24 +120,39 @@ static void stmp3xxx_wdt_register(struct
- }
- #endif /* CONFIG_STMP3XXX_RTC_WATCHDOG */
+diff -puN fs/ocfs2/aops.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page
++++ a/fs/ocfs2/aops.c
+@@ -1757,7 +1757,7 @@ try_again:
+ 		goto out;
+ 	} else if (ret == 1) {
+ 		clusters_need = wc->w_clen;
+-		ret = ocfs2_refcount_cow(inode, filp, di_bh,
++		ret = ocfs2_refcount_cow(inode, di_bh,
+ 					 wc->w_cpos, wc->w_clen, UINT_MAX);
+ 		if (ret) {
+ 			mlog_errno(ret);
+diff -puN fs/ocfs2/file.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page
++++ a/fs/ocfs2/file.c
+@@ -370,7 +370,7 @@ static int ocfs2_cow_file_pos(struct ino
+ 	if (!(ext_flags & OCFS2_EXT_REFCOUNTED))
+ 		goto out;
  
--static void stmp3xxx_wait_time(struct stmp3xxx_rtc_data *rtc_data)
-+static int stmp3xxx_wait_time(struct stmp3xxx_rtc_data *rtc_data)
+-	return ocfs2_refcount_cow(inode, NULL, fe_bh, cpos, 1, cpos+1);
++	return ocfs2_refcount_cow(inode, fe_bh, cpos, 1, cpos+1);
+ 
+ out:
+ 	return status;
+@@ -899,7 +899,7 @@ static int ocfs2_zero_extend_get_range(s
+ 		zero_clusters = last_cpos - zero_cpos;
+ 
+ 	if (needs_cow) {
+-		rc = ocfs2_refcount_cow(inode, NULL, di_bh, zero_cpos,
++		rc = ocfs2_refcount_cow(inode, di_bh, zero_cpos,
+ 					zero_clusters, UINT_MAX);
+ 		if (rc) {
+ 			mlog_errno(rc);
+@@ -2078,7 +2078,7 @@ static int ocfs2_prepare_inode_for_refco
+ 
+ 	*meta_level = 1;
+ 
+-	ret = ocfs2_refcount_cow(inode, file, di_bh, cpos, clusters, UINT_MAX);
++	ret = ocfs2_refcount_cow(inode, di_bh, cpos, clusters, UINT_MAX);
+ 	if (ret)
+ 		mlog_errno(ret);
+ out:
+diff -puN fs/ocfs2/move_extents.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page fs/ocfs2/move_extents.c
+--- a/fs/ocfs2/move_extents.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page
++++ a/fs/ocfs2/move_extents.c
+@@ -69,7 +69,7 @@ static int __ocfs2_move_extent(handle_t
+ 	u64 ino = ocfs2_metadata_cache_owner(context->et.et_ci);
+ 	u64 old_blkno = ocfs2_clusters_to_blocks(inode->i_sb, p_cpos);
+ 
+-	ret = ocfs2_duplicate_clusters_by_page(handle, context->file, cpos,
++	ret = ocfs2_duplicate_clusters_by_page(handle, inode, cpos,
+ 					       p_cpos, new_p_cpos, len);
+ 	if (ret) {
+ 		mlog_errno(ret);
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page
++++ a/fs/ocfs2/refcounttree.c
+@@ -49,7 +49,6 @@
+ 
+ struct ocfs2_cow_context {
+ 	struct inode *inode;
+-	struct file *file;
+ 	u32 cow_start;
+ 	u32 cow_len;
+ 	struct ocfs2_extent_tree data_et;
+@@ -66,7 +65,7 @@ struct ocfs2_cow_context {
+ 			    u32 *num_clusters,
+ 			    unsigned int *extent_flags);
+ 	int (*cow_duplicate_clusters)(handle_t *handle,
+-				      struct file *file,
++				      struct inode *inode,
+ 				      u32 cpos, u32 old_cluster,
+ 				      u32 new_cluster, u32 new_len);
+ };
+@@ -2922,14 +2921,12 @@ static int ocfs2_clear_cow_buffer(handle
+ }
+ 
+ int ocfs2_duplicate_clusters_by_page(handle_t *handle,
+-				     struct file *file,
++				     struct inode *inode,
+ 				     u32 cpos, u32 old_cluster,
+ 				     u32 new_cluster, u32 new_len)
  {
-+	int timeout = 5000; /* 3ms according to i.MX28 Ref Manual */
- 	/*
--	 * The datasheet doesn't say which way round the
--	 * NEW_REGS/STALE_REGS bitfields go. In fact it's 0x1=P0,
--	 * 0x2=P1, .., 0x20=P5, 0x40=ALARM, 0x80=SECONDS
-+	 * The i.MX28 Applications Processor Reference Manual, Rev. 1, 2010
-+	 * states:
-+	 * | The order in which registers are updated is
-+	 * | Persistent 0, 1, 2, 3, 4, 5, Alarm, Seconds.
-+	 * | (This list is in bitfield order, from LSB to MSB, as they would
-+	 * | appear in the STALE_REGS and NEW_REGS bitfields of the HW_RTC_STAT
-+	 * | register. For example, the Seconds register corresponds to
-+	 * | STALE_REGS or NEW_REGS containing 0x80.)
- 	 */
--	while (readl(rtc_data->io + STMP3XXX_RTC_STAT) &
--			(0x80 << STMP3XXX_RTC_STAT_STALE_SHIFT))
--		cpu_relax();
-+	do {
-+		if (!(readl(rtc_data->io + STMP3XXX_RTC_STAT) &
-+				(0x80 << STMP3XXX_RTC_STAT_STALE_SHIFT)))
-+			return 0;
-+		udelay(1);
-+	} while (--timeout > 0);
-+	return (readl(rtc_data->io + STMP3XXX_RTC_STAT) &
-+		(0x80 << STMP3XXX_RTC_STAT_STALE_SHIFT)) ? -ETIME : 0;
+ 	int ret = 0, partial;
+-	struct inode *inode = file_inode(file);
+-	struct ocfs2_caching_info *ci = INODE_CACHE(inode);
+-	struct super_block *sb = ocfs2_metadata_cache_get_super(ci);
++	struct super_block *sb = inode->i_sb;
+ 	u64 new_block = ocfs2_clusters_to_blocks(sb, new_cluster);
+ 	struct page *page;
+ 	pgoff_t page_index;
+@@ -2978,13 +2975,6 @@ int ocfs2_duplicate_clusters_by_page(han
+ 		if (PAGE_CACHE_SIZE <= OCFS2_SB(sb)->s_clustersize)
+ 			BUG_ON(PageDirty(page));
+ 
+-		if (PageReadahead(page)) {
+-			page_cache_async_readahead(mapping,
+-						   &file->f_ra, file,
+-						   page, page_index,
+-						   readahead_pages);
+-		}
+-
+ 		if (!PageUptodate(page)) {
+ 			ret = block_read_full_page(page, ocfs2_get_block);
+ 			if (ret) {
+@@ -3004,7 +2994,8 @@ int ocfs2_duplicate_clusters_by_page(han
+ 			}
+ 		}
+ 
+-		ocfs2_map_and_dirty_page(inode, handle, from, to,
++		ocfs2_map_and_dirty_page(inode,
++					 handle, from, to,
+ 					 page, 0, &new_block);
+ 		mark_page_accessed(page);
+ unlock:
+@@ -3020,12 +3011,11 @@ unlock:
  }
  
- /* Time read/write */
- static int stmp3xxx_rtc_gettime(struct device *dev, struct rtc_time *rtc_tm)
+ int ocfs2_duplicate_clusters_by_jbd(handle_t *handle,
+-				    struct file *file,
++				    struct inode *inode,
+ 				    u32 cpos, u32 old_cluster,
+ 				    u32 new_cluster, u32 new_len)
  {
-+	int ret;
- 	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
+ 	int ret = 0;
+-	struct inode *inode = file_inode(file);
+ 	struct super_block *sb = inode->i_sb;
+ 	struct ocfs2_caching_info *ci = INODE_CACHE(inode);
+ 	int i, blocks = ocfs2_clusters_to_blocks(sb, new_len);
+@@ -3150,7 +3140,7 @@ static int ocfs2_replace_clusters(handle
  
--	stmp3xxx_wait_time(rtc_data);
-+	ret = stmp3xxx_wait_time(rtc_data);
-+	if (ret)
-+		return ret;
-+
- 	rtc_time_to_tm(readl(rtc_data->io + STMP3XXX_RTC_SECONDS), rtc_tm);
- 	return 0;
- }
-@@ -146,8 +162,7 @@ static int stmp3xxx_rtc_set_mmss(struct
- 	struct stmp3xxx_rtc_data *rtc_data = dev_get_drvdata(dev);
- 
- 	writel(t, rtc_data->io + STMP3XXX_RTC_SECONDS);
--	stmp3xxx_wait_time(rtc_data);
--	return 0;
-+	return stmp3xxx_wait_time(rtc_data);
+ 	/*If the old clusters is unwritten, no need to duplicate. */
+ 	if (!(ext_flags & OCFS2_EXT_UNWRITTEN)) {
+-		ret = context->cow_duplicate_clusters(handle, context->file,
++		ret = context->cow_duplicate_clusters(handle, context->inode,
+ 						      cpos, old, new, len);
+ 		if (ret) {
+ 			mlog_errno(ret);
+@@ -3428,35 +3418,12 @@ static int ocfs2_replace_cow(struct ocfs
+ 	return ret;
  }
  
- /* interrupt(s) handler */
+-static void ocfs2_readahead_for_cow(struct inode *inode,
+-				    struct file *file,
+-				    u32 start, u32 len)
+-{
+-	struct address_space *mapping;
+-	pgoff_t index;
+-	unsigned long num_pages;
+-	int cs_bits = OCFS2_SB(inode->i_sb)->s_clustersize_bits;
+-
+-	if (!file)
+-		return;
+-
+-	mapping = file->f_mapping;
+-	num_pages = (len << cs_bits) >> PAGE_CACHE_SHIFT;
+-	if (!num_pages)
+-		num_pages = 1;
+-
+-	index = ((loff_t)start << cs_bits) >> PAGE_CACHE_SHIFT;
+-	page_cache_sync_readahead(mapping, &file->f_ra, file,
+-				  index, num_pages);
+-}
+-
+ /*
+  * Starting at cpos, try to CoW write_len clusters.  Don't CoW
+  * past max_cpos.  This will stop when it runs into a hole or an
+  * unrefcounted extent.
+  */
+ static int ocfs2_refcount_cow_hunk(struct inode *inode,
+-				   struct file *file,
+ 				   struct buffer_head *di_bh,
+ 				   u32 cpos, u32 write_len, u32 max_cpos)
+ {
+@@ -3485,8 +3452,6 @@ static int ocfs2_refcount_cow_hunk(struc
+ 
+ 	BUG_ON(cow_len == 0);
+ 
+-	ocfs2_readahead_for_cow(inode, file, cow_start, cow_len);
+-
+ 	context = kzalloc(sizeof(struct ocfs2_cow_context), GFP_NOFS);
+ 	if (!context) {
+ 		ret = -ENOMEM;
+@@ -3508,7 +3473,6 @@ static int ocfs2_refcount_cow_hunk(struc
+ 	context->ref_root_bh = ref_root_bh;
+ 	context->cow_duplicate_clusters = ocfs2_duplicate_clusters_by_page;
+ 	context->get_clusters = ocfs2_di_get_clusters;
+-	context->file = file;
+ 
+ 	ocfs2_init_dinode_extent_tree(&context->data_et,
+ 				      INODE_CACHE(inode), di_bh);
+@@ -3537,7 +3501,6 @@ out:
+  * clusters between cpos and cpos+write_len are safe to modify.
+  */
+ int ocfs2_refcount_cow(struct inode *inode,
+-		       struct file *file,
+ 		       struct buffer_head *di_bh,
+ 		       u32 cpos, u32 write_len, u32 max_cpos)
+ {
+@@ -3557,7 +3520,7 @@ int ocfs2_refcount_cow(struct inode *ino
+ 			num_clusters = write_len;
+ 
+ 		if (ext_flags & OCFS2_EXT_REFCOUNTED) {
+-			ret = ocfs2_refcount_cow_hunk(inode, file, di_bh, cpos,
++			ret = ocfs2_refcount_cow_hunk(inode, di_bh, cpos,
+ 						      num_clusters, max_cpos);
+ 			if (ret) {
+ 				mlog_errno(ret);
+diff -puN fs/ocfs2/refcounttree.h~ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page fs/ocfs2/refcounttree.h
+--- a/fs/ocfs2/refcounttree.h~ocfs2-fix-null-pointer-dereference-in-ocfs2_duplicate_clusters_by_page
++++ a/fs/ocfs2/refcounttree.h
+@@ -53,7 +53,7 @@ int ocfs2_prepare_refcount_change_for_de
+ 					  int *credits,
+ 					  int *ref_blocks);
+ int ocfs2_refcount_cow(struct inode *inode,
+-		       struct file *filep, struct buffer_head *di_bh,
++		       struct buffer_head *di_bh,
+ 		       u32 cpos, u32 write_len, u32 max_cpos);
+ 
+ typedef int (ocfs2_post_refcount_func)(struct inode *inode,
+@@ -85,11 +85,11 @@ int ocfs2_refcount_cow_xattr(struct inod
+ 			     u32 cpos, u32 write_len,
+ 			     struct ocfs2_post_refcount *post);
+ int ocfs2_duplicate_clusters_by_page(handle_t *handle,
+-				     struct file *file,
++				     struct inode *inode,
+ 				     u32 cpos, u32 old_cluster,
+ 				     u32 new_cluster, u32 new_len);
+ int ocfs2_duplicate_clusters_by_jbd(handle_t *handle,
+-				    struct file *file,
++				    struct inode *inode,
+ 				    u32 cpos, u32 old_cluster,
+ 				    u32 new_cluster, u32 new_len);
+ int ocfs2_cow_sync_writeback(struct super_block *sb,
 _
 
-Patches currently in -mm which might be from LW@KARO-electronics.de are
+Patches currently in -mm which might be from tiger.yang@oracle.com are
 
 origin.patch
 
