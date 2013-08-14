@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-platform-olpc-olpc-ecc-initialise-earlier.patch added
- to -mm tree
-Date: Wed, 14 Aug 2013 15:15:58 -0700
-Message-ID: <520c019e.lvm7gGdfl+ufIRM4%akpm@linux-foundation.org>
+Subject: + __ptrace_may_access-should-not-deny-sub-threads.patch added to
+ -mm tree
+Date: Wed, 14 Aug 2013 15:29:19 -0700
+Message-ID: <520c04bf.CgIaymuX+ndm7OD9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55884 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933153Ab3HNWP6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 18:15:58 -0400
+	with ESMTP id S1760033Ab3HNW3U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 18:29:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dilinger@queued.net, dsd@laptop.org
+To: mm-commits@vger.kernel.org, woodard@redhat.com, oleg@redhat.com, mgrondona@llnl.gov
 
-Subject: + drivers-platform-olpc-olpc-ecc-initialise-earlier.patch added to -mm tree
-To: dsd@laptop.org,dilinger@queued.net
+Subject: + __ptrace_may_access-should-not-deny-sub-threads.patch added to -mm tree
+To: mgrondona@llnl.gov,oleg@redhat.com,woodard@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 15:15:58 -0700
+Date: Wed, 14 Aug 2013 15:29:19 -0700
 
 
 The patch titled
-     Subject: drivers/platform/olpc/olpc-ec.c: initialise earlier
+     Subject: __ptrace_may_access() should not deny sub-threads
 has been added to the -mm tree.  Its filename is
-     drivers-platform-olpc-olpc-ecc-initialise-earlier.patch
+     __ptrace_may_access-should-not-deny-sub-threads.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-platform-olpc-olpc-ecc-initialise-earlier.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/__ptrace_may_access-should-not-deny-sub-threads.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-platform-olpc-olpc-ecc-initialise-earlier.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/__ptrace_may_access-should-not-deny-sub-threads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,43 +44,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Drake <dsd@laptop.org>
-Subject: drivers/platform/olpc/olpc-ec.c: initialise earlier
+From: Mark Grondona <mgrondona@llnl.gov>
+Subject: __ptrace_may_access() should not deny sub-threads
 
-Being a low-level component, various drivers (e.g.  olpc-battery) assume
-that it is ok to communicate with the OLPC Embedded Controller during
-probe.  Therefore the OLPC EC driver must be initialised before other
-drivers try to use it.  This was the case until it was recently moved out
-of arch/x86 and restructured.
+__ptrace_may_access() checks get_dumpable/ptrace_has_cap/etc if task !=
+current, this can can lead to surprising results.
 
-Use arch_initcall so that olpc-ec is readied earlier, matching the
-previous behaviour.  Fixes various drivers such as olpc-battery and
-olpc-xo1-sci.
+For example, a sub-thread can't readlink("/proc/self/exe") if the
+executable is not readable.  setup_new_exec()->would_dump() notices that
+inode_permission(MAY_READ) fails and then it does
+set_dumpable(suid_dumpable).  After that get_dumpable() fails.
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
-Cc: Andres Salomon <dilinger@queued.net>
+(It is not clear why proc_pid_readlink() checks get_dumpable(), perhaps we
+could add PTRACE_MODE_NODUMPABLE)
+
+Change __ptrace_may_access() to use same_thread_group() instead of "task
+== current".  Any security check is pointless when the tasks share the
+same ->mm.
+
+Signed-off-by: Mark Grondona <mgrondona@llnl.gov>
+Signed-off-by: Ben Woodard <woodard@redhat.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/olpc/olpc-ec.c |    2 +-
+ kernel/ptrace.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/olpc/olpc-ec.c~drivers-platform-olpc-olpc-ecc-initialise-earlier drivers/platform/olpc/olpc-ec.c
---- a/drivers/platform/olpc/olpc-ec.c~drivers-platform-olpc-olpc-ecc-initialise-earlier
-+++ a/drivers/platform/olpc/olpc-ec.c
-@@ -330,7 +330,7 @@ static int __init olpc_ec_init_module(vo
- 	return platform_driver_register(&olpc_ec_plat_driver);
- }
- 
--module_init(olpc_ec_init_module);
-+arch_initcall(olpc_ec_init_module);
- 
- MODULE_AUTHOR("Andres Salomon <dilinger@queued.net>");
- MODULE_LICENSE("GPL");
+diff -puN kernel/ptrace.c~__ptrace_may_access-should-not-deny-sub-threads kernel/ptrace.c
+--- a/kernel/ptrace.c~__ptrace_may_access-should-not-deny-sub-threads
++++ a/kernel/ptrace.c
+@@ -236,7 +236,7 @@ static int __ptrace_may_access(struct ta
+ 	 */
+ 	int dumpable = 0;
+ 	/* Don't let security modules deny introspection */
+-	if (task == current)
++	if (same_thread_group(task, current))
+ 		return 0;
+ 	rcu_read_lock();
+ 	tcred = __task_cred(task);
 _
 
-Patches currently in -mm which might be from dsd@laptop.org are
+Patches currently in -mm which might be from mgrondona@llnl.gov are
 
-drivers-platform-olpc-olpc-ecc-initialise-earlier.patch
-linux-next.patch
+__ptrace_may_access-should-not-deny-sub-threads.patch
 
