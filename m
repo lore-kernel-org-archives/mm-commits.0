@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hotplug-verify-hotplug-memory-range.patch added to -mm tree
-Date: Wed, 14 Aug 2013 15:09:20 -0700
-Message-ID: <520c0010.h3em9DnzIXyec/Th%akpm@linux-foundation.org>
+Subject: + drivers-platform-olpc-olpc-ecc-initialise-earlier.patch added
+ to -mm tree
+Date: Wed, 14 Aug 2013 15:15:58 -0700
+Message-ID: <520c019e.lvm7gGdfl+ufIRM4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55852 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55866 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933115Ab3HNWJV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 18:09:21 -0400
+	with ESMTP id S933153Ab3HNWP6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 18:15:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, toshi.kani@hp.com
+To: mm-commits@vger.kernel.org, dilinger@queued.net, dsd@laptop.org
 
-Subject: + mm-hotplug-verify-hotplug-memory-range.patch added to -mm tree
-To: toshi.kani@hp.com,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,tangchen@cn.fujitsu.com
+Subject: + drivers-platform-olpc-olpc-ecc-initialise-earlier.patch added to -mm tree
+To: dsd@laptop.org,dilinger@queued.net
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 15:09:20 -0700
+Date: Wed, 14 Aug 2013 15:15:58 -0700
 
 
 The patch titled
-     Subject: mm/hotplug: verify hotplug memory range
+     Subject: drivers/platform/olpc/olpc-ec.c: initialise earlier
 has been added to the -mm tree.  Its filename is
-     mm-hotplug-verify-hotplug-memory-range.patch
+     drivers-platform-olpc-olpc-ecc-initialise-earlier.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hotplug-verify-hotplug-memory-range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-platform-olpc-olpc-ecc-initialise-earlier.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hotplug-verify-hotplug-memory-range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-platform-olpc-olpc-ecc-initialise-earlier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,87 +44,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm/hotplug: verify hotplug memory range
+From: Daniel Drake <dsd@laptop.org>
+Subject: drivers/platform/olpc/olpc-ec.c: initialise earlier
 
-add_memory() and remove_memory() can only handle a memory range aligned
-with section.  There are problems when an unaligned range is added and
-then deleted as follows:
+Being a low-level component, various drivers (e.g.  olpc-battery) assume
+that it is ok to communicate with the OLPC Embedded Controller during
+probe.  Therefore the OLPC EC driver must be initialised before other
+drivers try to use it.  This was the case until it was recently moved out
+of arch/x86 and restructured.
 
- - add_memory() with an unaligned range succeeds, but __add_pages()
-   called from add_memory() adds a whole section of pages even though
-   a given memory range is less than the section size.
- - remove_memory() to the added unaligned range hits BUG_ON() in
-   __remove_pages().
+Use arch_initcall so that olpc-ec is readied earlier, matching the
+previous behaviour.  Fixes various drivers such as olpc-battery and
+olpc-xo1-sci.
 
-This patch changes add_memory() and remove_memory() to check if a given
-memory range is aligned with section at the beginning.  As the result,
-add_memory() fails with -EINVAL when a given range is unaligned, and does
-not add such memory range.  This prevents remove_memory() to be called
-with an unaligned range as well.  Note that remove_memory() has to use
-BUG_ON() since this function cannot fail.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+Cc: Andres Salomon <dilinger@queued.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/platform/olpc/olpc-ec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-hotplug-verify-hotplug-memory-range mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-hotplug-verify-hotplug-memory-range
-+++ a/mm/memory_hotplug.c
-@@ -1070,6 +1070,22 @@ out:
- 	return ret;
+diff -puN drivers/platform/olpc/olpc-ec.c~drivers-platform-olpc-olpc-ecc-initialise-earlier drivers/platform/olpc/olpc-ec.c
+--- a/drivers/platform/olpc/olpc-ec.c~drivers-platform-olpc-olpc-ecc-initialise-earlier
++++ a/drivers/platform/olpc/olpc-ec.c
+@@ -330,7 +330,7 @@ static int __init olpc_ec_init_module(vo
+ 	return platform_driver_register(&olpc_ec_plat_driver);
  }
  
-+static int check_hotplug_memory_range(u64 start, u64 size)
-+{
-+	u64 start_pfn = start >> PAGE_SHIFT;
-+	u64 nr_pages = size >> PAGE_SHIFT;
-+
-+	/* Memory range must be aligned with section */
-+	if ((start_pfn & ~PAGE_SECTION_MASK) ||
-+	    (nr_pages % PAGES_PER_SECTION) || (!nr_pages)) {
-+		pr_err("Section-unaligned hotplug range: start 0x%llx, size 0x%llx\n",
-+				start, size);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
- int __ref add_memory(int nid, u64 start, u64 size)
- {
-@@ -1079,6 +1095,10 @@ int __ref add_memory(int nid, u64 start,
- 	struct resource *res;
- 	int ret;
+-module_init(olpc_ec_init_module);
++arch_initcall(olpc_ec_init_module);
  
-+	ret = check_hotplug_memory_range(start, size);
-+	if (ret)
-+		return ret;
-+
- 	lock_memory_hotplug();
- 
- 	res = register_memory_resource(start, size);
-@@ -1786,6 +1806,8 @@ void __ref remove_memory(int nid, u64 st
- {
- 	int ret;
- 
-+	BUG_ON(check_hotplug_memory_range(start, size));
-+
- 	lock_memory_hotplug();
- 
- 	/*
+ MODULE_AUTHOR("Andres Salomon <dilinger@queued.net>");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from dsd@laptop.org are
 
-mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch
-mm-hotplug-verify-hotplug-memory-range.patch
+drivers-platform-olpc-olpc-ecc-initialise-earlier.patch
 linux-next.patch
 
