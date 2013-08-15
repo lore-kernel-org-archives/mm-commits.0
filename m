@@ -1,77 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hotplug-verify-hotplug-memory-range-fix.patch added to -mm
- tree
-Date: Wed, 14 Aug 2013 16:44:13 -0700
-Message-ID: <520c164d.tnvOr7ZPVnvzCeLv%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ block-support-embedded-device-command-line-partition-fix.patch removed from -mm tree
+Date: Wed, 14 Aug 2013 17:27:33 -0700
+Message-ID: <520c2075.FFgKDmvc6y0E17OL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56684 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57146 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758255Ab3HNXoO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 19:44:14 -0400
+	with ESMTP id S1754319Ab3HOAaC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Aug 2013 20:30:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, toshi.kani@hp.com, tangchen@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mag@sysgo.de, kzak@redhat.com, dwmw2@infradead.org, caizhiyong@huawei.com, axboe@kernel.dk, albert.wanglin@huawei.com, akpm@linux-foundation.org
 
-Subject: + mm-hotplug-verify-hotplug-memory-range-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,tangchen@cn.fujitsu.com,toshi.kani@hp.com
+Subject: [folded-merged] block-support-embedded-device-command-line-partition-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,albert.wanglin@huawei.com,axboe@kernel.dk,caizhiyong@huawei.com,dwmw2@infradead.org,kzak@redhat.com,mag@sysgo.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 14 Aug 2013 16:44:13 -0700
+Date: Wed, 14 Aug 2013 17:27:30 -0700
 
 
 The patch titled
-     Subject: mm-hotplug-verify-hotplug-memory-range-fix
-has been added to the -mm tree.  Its filename is
-     mm-hotplug-verify-hotplug-memory-range-fix.patch
+     Subject: block-support-embedded-device-command-line-partition-fix
+has been removed from the -mm tree.  Its filename was
+     block-support-embedded-device-command-line-partition-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hotplug-verify-hotplug-memory-range-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hotplug-verify-hotplug-memory-range-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into block-support-embedded-device-command-line-partition.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hotplug-verify-hotplug-memory-range-fix
+Subject: block-support-embedded-device-command-line-partition-fix
 
-avoid printk warnings
+fix printk text
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: "Wanglin (Albert)" <albert.wanglin@huawei.com>
+Cc: Cai Zhiyong <caizhiyong@huawei.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Karel Zak <kzak@redhat.com>
+Cc: Marius Groeger <mag@sysgo.de>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ block/partitions/cmdline.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-hotplug-verify-hotplug-memory-range-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-hotplug-verify-hotplug-memory-range-fix
-+++ a/mm/memory_hotplug.c
-@@ -1079,7 +1079,8 @@ static int check_hotplug_memory_range(u6
- 	if ((start_pfn & ~PAGE_SECTION_MASK) ||
- 	    (nr_pages % PAGES_PER_SECTION) || (!nr_pages)) {
- 		pr_err("Section-unaligned hotplug range: start 0x%llx, size 0x%llx\n",
--				start, size);
-+				(unsigned long long)start,
-+				(unsigned long long)size);
- 		return -EINVAL;
+diff -puN block/partitions/cmdline.c~block-support-embedded-device-command-line-partition-fix block/partitions/cmdline.c
+--- a/block/partitions/cmdline.c~block-support-embedded-device-command-line-partition-fix
++++ a/block/partitions/cmdline.c
+@@ -134,7 +134,7 @@ static int parse_parts(struct cmdline_pa
+ 
+ 	next = strchr(cmdline, ':');
+ 	if (!next) {
+-		pr_warn("cmdline partition has not block device.");
++		pr_warn("cmdline partition has no block device.");
+ 		goto fail;
  	}
  
+@@ -162,7 +162,7 @@ static int parse_parts(struct cmdline_pa
+ 	}
+ 
+ 	if (!newparts->subpart) {
+-		pr_warn("cmdline partition has not valid partition.");
++		pr_warn("cmdline partition has no valid partition.");
+ 		goto fail;
+ 	}
+ 
+@@ -207,7 +207,7 @@ static int parse_cmdline(struct cmdline_
+ 	}
+ 
+ 	if (!*parts) {
+-		pr_warn("cmdline partition has not valid partition.");
++		pr_warn("cmdline partition has no valid partition.");
+ 		ret = -EINVAL;
+ 		goto fail;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +85,7 @@ origin.patch
 revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
-block-support-embedded-device-command-line-partition-fix.patch
+block-support-embedded-device-command-line-partition.patch
 mm.patch
 swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
 mm-swapfilec-convert-to-pr_foo.patch
