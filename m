@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-get-rid-of-swapaccount-leftovers.patch added to -mm tree
-Date: Thu, 15 Aug 2013 15:02:36 -0700
-Message-ID: <520d4ffc.YlUw+ETodlz2SkI7%akpm@linux-foundation.org>
+Subject: + efs-iget_locked-doesnt-return-an-err_ptr.patch added to -mm
+ tree
+Date: Thu, 15 Aug 2013 15:04:11 -0700
+Message-ID: <520d505b./Tvx4yo8kTXqBAwL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43287 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43293 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901Ab3HOWCh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 18:02:37 -0400
+	with ESMTP id S1750901Ab3HOWEM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 18:04:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gergely@risko.hu, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, serge.hallyn@canonical.com, ebiederm@xmission.com, dan.carpenter@oracle.com
 
-Subject: + memcg-get-rid-of-swapaccount-leftovers.patch added to -mm tree
-To: mhocko@suse.cz,gergely@risko.hu
+Subject: + efs-iget_locked-doesnt-return-an-err_ptr.patch added to -mm tree
+To: dan.carpenter@oracle.com,ebiederm@xmission.com,serge.hallyn@canonical.com
 From: akpm@linux-foundation.org
-Date: Thu, 15 Aug 2013 15:02:36 -0700
+Date: Thu, 15 Aug 2013 15:04:11 -0700
 
 
 The patch titled
-     Subject: memcg: get rid of swapaccount leftovers
+     Subject: efs: iget_locked() doesn't return an ERR_PTR()
 has been added to the -mm tree.  Its filename is
-     memcg-get-rid-of-swapaccount-leftovers.patch
+     efs-iget_locked-doesnt-return-an-err_ptr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-get-rid-of-swapaccount-leftovers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/efs-iget_locked-doesnt-return-an-err_ptr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-get-rid-of-swapaccount-leftovers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/efs-iget_locked-doesnt-return-an-err_ptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,124 +44,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: get rid of swapaccount leftovers
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: efs: iget_locked() doesn't return an ERR_PTR()
 
-swapaccount kernel parameter without any values has been removed by
-a2c8990a ("memsw: remove noswapaccount kernel parameter") but it seems
-that we didn't get rid of all the left overs.
+The iget_locked() function returns NULL on error and never an ERR_PTR.
 
-Make sure that menuconfig help text and kernel-parameters.txt are clear
-about value for the paramter and remove the stalled comment which is not
-very much useful on its own.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Gergely Risko <gergely@risko.hu>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +-
- init/Kconfig                        |    2 +-
- mm/memcontrol.c                     |    1 -
- 3 files changed, 2 insertions(+), 3 deletions(-)
+ fs/efs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~memcg-get-rid-of-swapaccount-leftovers Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~memcg-get-rid-of-swapaccount-leftovers
-+++ a/Documentation/kernel-parameters.txt
-@@ -2953,7 +2953,7 @@ bytes respectively. Such letter suffixes
- 			improve throughput, but will also increase the
- 			amount of memory reserved for use by the client.
+diff -puN fs/efs/inode.c~efs-iget_locked-doesnt-return-an-err_ptr fs/efs/inode.c
+--- a/fs/efs/inode.c~efs-iget_locked-doesnt-return-an-err_ptr
++++ a/fs/efs/inode.c
+@@ -57,7 +57,7 @@ struct inode *efs_iget(struct super_bloc
+ 	struct inode *inode;
  
--	swapaccount[=0|1]
-+	swapaccount=[0|1]
- 			[KNL] Enable accounting of swap in memory resource
- 			controller if no parameter or 1 is given or disable
- 			it if 0 is given (See Documentation/cgroups/memory.txt)
-diff -puN init/Kconfig~memcg-get-rid-of-swapaccount-leftovers init/Kconfig
---- a/init/Kconfig~memcg-get-rid-of-swapaccount-leftovers
-+++ a/init/Kconfig
-@@ -955,7 +955,7 @@ config MEMCG_SWAP_ENABLED
- 	  Memory Resource Controller Swap Extension comes with its price in
- 	  a bigger memory consumption. General purpose distribution kernels
- 	  which want to enable the feature but keep it disabled by default
--	  and let the user enable it by swapaccount boot command line
-+	  and let the user enable it by swapaccount=1 boot command line
- 	  parameter should have this option unselected.
- 	  For those who want to have the feature enabled by default should
- 	  select this option (if, for some reason, they need to disable it
-diff -puN mm/memcontrol.c~memcg-get-rid-of-swapaccount-leftovers mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-get-rid-of-swapaccount-leftovers
-+++ a/mm/memcontrol.c
-@@ -6969,7 +6969,6 @@ struct cgroup_subsys mem_cgroup_subsys =
- #ifdef CONFIG_MEMCG_SWAP
- static int __init enable_swap_account(char *s)
- {
--	/* consider enabled if no parameter or 1 is given */
- 	if (!strcmp(s, "1"))
- 		really_do_swap_account = 1;
- 	else if (!strcmp(s, "0"))
+ 	inode = iget_locked(super, ino);
+-	if (IS_ERR(inode))
++	if (!inode)
+ 		return ERR_PTR(-ENOMEM);
+ 	if (!(inode->i_state & I_NEW))
+ 		return inode;
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
-memcg-get-rid-of-swapaccount-leftovers.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-watchdog-update-watchdog-attributes-atomically.patch
-watchdog-update-watchdog_tresh-properly.patch
-watchdog-update-watchdog_tresh-properly-fix.patch
-mm-fix-potential-null-pointer-dereference.patch
-mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
-mm-hugetlb-trivial-commenting-fix.patch
-mm-hugetlb-clean-up-alloc_huge_page.patch
-mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
-mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
-mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
-mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
-mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
-mm-migrate-make-core-migration-code-aware-of-hugepage.patch
-mm-soft-offline-use-migrate_pages-instead-of-migrate_huge_page.patch
-migrate-add-hugepage-migration-code-to-migrate_pages.patch
-mm-migrate-add-hugepage-migration-code-to-move_pages.patch
-mm-mbind-add-hugepage-migration-code-to-mbind.patch
-mm-migrate-remove-vm_hugetlb-from-vma-flag-check-in-vma_migratable.patch
-mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage.patch
-mm-migrate-check-movability-of-hugepage-in-unmap_and_move_huge_page.patch
-mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
-mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2.patch
-mm-mempolicy-rename-check_range-to-queue_pages_range.patch
-kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2.patch
+nilfs2-remove-double-bio_put-in-nilfs_end_bio_write-for-bio_eopnotsupp-error.patch
+nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection.patch
+ocfs2-use-list_for_each_entry-instead-of-list_for_each.patch
+ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+efs-iget_locked-doesnt-return-an-err_ptr.patch
+pktcdvd-convert-printk-to-pr_level.patch
+pktcdvd-fix-defective-misuses-of-pkt_level.patch
 linux-next.patch
-memcg-remove-redundant-code-in-mem_cgroup_force_empty_write.patch
-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-memcg-enhance-memcg-iterator-to-support-predicates.patch
-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-memcg-track-all-children-over-limit-in-the-root.patch
-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-memcg-trivial-cleanups.patch
-arch-mm-remove-obsolete-init-oom-protection.patch
-arch-mm-do-not-invoke-oom-killer-on-kernel-fault-oom.patch
-arch-mm-pass-userspace-fault-flag-to-generic-fault-handler.patch
-x86-finish-user-fault-error-path-with-fatal-signal.patch
-mm-memcg-enable-memcg-oom-killer-only-for-user-faults.patch
-mm-memcg-rework-and-document-oom-waiting-and-wakeup.patch
-mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom.patch
-memcg-correct-resource_max-to-ullong_max.patch
-memcg-rename-resource_max-to-res_counter_max.patch
-memcg-avoid-overflow-caused-by-page_align.patch
-memcg-reduce-function-dereference.patch
-inode-convert-inode-lru-list-to-generic-lru-list-code-inode-move-inode-to-a-different-list-inside-lock.patch
-list_lru-per-node-list-infrastructure-fix-broken-lru_retry-behaviour.patch
-list_lru-remove-special-case-function-list_lru_dispose_all.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch
-list_lru-dynamically-adjust-node-arrays-super-fix-for-destroy-lrus.patch
-staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
-staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
-staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
-staging-lustre-libcfs-cleanup-linux-memh.patch
-mm-kconfig-add-mmu-dependency-for-migration.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix.patch
 
