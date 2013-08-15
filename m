@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-fix-aio-performance-regression-for-database-caused-by-thp.patch added to -mm tree
-Date: Thu, 15 Aug 2013 14:16:24 -0700
-Message-ID: <520d4528.1e5A82ZAwLeHkwVU%akpm@linux-foundation.org>
+ mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
+ added to -mm tree
+Date: Thu, 15 Aug 2013 14:16:26 -0700
+Message-ID: <520d452a.UOQxy2+ZhYA7y/oc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42679 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42681 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752017Ab3HOVQZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 17:16:25 -0400
+	with ESMTP id S1752017Ab3HOVQ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 17:16:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, pshelar@nicira.com, minchan@kernel.org, mel@csn.ul.ie, hannes@cmpxchg.org, cl@linux.com, andi@firstfloor.org, aarcange@redhat.com, khalid.aziz@oracle.com
+To: mm-commits@vger.kernel.org, khalid.aziz@oracle.com, akpm@linux-foundation.org
 
-Subject: + mm-fix-aio-performance-regression-for-database-caused-by-thp.patch added to -mm tree
-To: khalid.aziz@oracle.com,aarcange@redhat.com,andi@firstfloor.org,cl@linux.com,hannes@cmpxchg.org,mel@csn.ul.ie,minchan@kernel.org,pshelar@nicira.com,riel@redhat.com,stable@vger.kernel.org
+Subject: + mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,khalid.aziz@oracle.com
 From: akpm@linux-foundation.org
-Date: Thu, 15 Aug 2013 14:16:24 -0700
+Date: Thu, 15 Aug 2013 14:16:26 -0700
 
 
 The patch titled
-     Subject: mm: Fix aio performance regression for database caused by THP
+     Subject: mm-fix-aio-performance-regression-for-database-caused-by-thp-fix
 has been added to the -mm tree.  Its filename is
-     mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
+     mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,180 +45,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Subject: mm: Fix aio performance regression for database caused by THP
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-fix-aio-performance-regression-for-database-caused-by-thp-fix
 
-I am working with a tool that simulates oracle database I/O workload. 
-This tool (orion to be specific -
-<http://docs.oracle.com/cd/E11882_01/server.112/e16638/iodesign.htm#autoId24>)
-allocates hugetlbfs pages using shmget() with SHM_HUGETLB flag.  It then
-does aio into these pages from flash disks using various common block
-sizes used by database.  I am looking at performance with two of the most
-common block sizes - 1M and 64K.  aio performance with these two block
-sizes plunged after Transparent HugePages was introduced in the kernel. 
-Here are performance numbers:
+tweak comments
 
-		pre-THP		2.6.39		3.11-rc5
-1M read		8384 MB/s	5629 MB/s	6501 MB/s
-64K read	7867 MB/s	4576 MB/s	4251 MB/s
-
-I have narrowed the performance impact down to the overheads introduced by
-THP in __get_page_tail() and put_compound_page() routines.  perf top shows
->40% of cycles being spent in these two routines.  Every time direct I/O
-to hugetlbfs pages starts, kernel calls get_page() to grab a reference to
-the pages and calls put_page() when I/O completes to put the reference
-away.  THP introduced significant amount of locking overhead to get_page()
-and put_page() when dealing with compound pages because hugepages can be
-split underneath get_page() and put_page().  It added this overhead
-irrespective of whether it is dealing with hugetlbfs pages or transparent
-hugepages.  This resulted in 20%-45% drop in aio performance when using
-hugetlbfs pages.
-
-Since hugetlbfs pages can not be split, there is no reason to go through
-all the locking overhead for these pages from what I can see.  I added
-code to __get_page_tail() and put_compound_page() to bypass all the
-locking code when working with hugetlbfs pages.  This improved performance
-significantly.  Performance numbers with this patch:
-
-		pre-THP		3.11-rc5	3.11-rc5 + Patch
-1M read		8384 MB/s	6501 MB/s	8371 MB/s
-64K read	7867 MB/s	4251 MB/s	6510 MB/s
-
-Performance with 64K read is still lower than what it was before THP, but
-still a 53% improvement.  It does mean there is more work to be done but I
-will take a 53% improvement for now.
-
-Please take a look at the following patch and let me know if it looks
-reasonable.
-
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Pravin B Shelar <pshelar@nicira.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: <stable@vger.kernel.org>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   77 +++++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 52 insertions(+), 25 deletions(-)
+ mm/swap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/swap.c~mm-fix-aio-performance-regression-for-database-caused-by-thp mm/swap.c
---- a/mm/swap.c~mm-fix-aio-performance-regression-for-database-caused-by-thp
+diff -puN mm/swap.c~mm-fix-aio-performance-regression-for-database-caused-by-thp-fix mm/swap.c
+--- a/mm/swap.c~mm-fix-aio-performance-regression-for-database-caused-by-thp-fix
 +++ a/mm/swap.c
-@@ -31,6 +31,7 @@
- #include <linux/memcontrol.h>
- #include <linux/gfp.h>
- #include <linux/uio.h>
-+#include <linux/hugetlb.h>
- 
- #include "internal.h"
- 
-@@ -81,6 +82,19 @@ static void __put_compound_page(struct p
- 
+@@ -83,9 +83,9 @@ static void __put_compound_page(struct p
  static void put_compound_page(struct page *page)
  {
-+	/*
-+	 * hugetlbfs pages can not be split from under us. If this
-+	 * is a hugetlbfs page, check refcount on head page and release
-+	 * the page if refcount is zero.
-+	 */
-+	if (PageHuge(page)) {
-+		page = compound_head(page);
-+		if (put_page_testzero(page))
-+			__put_compound_page(page);
-+
-+		return;
-+	}
-+
- 	if (unlikely(PageTail(page))) {
- 		/* __split_huge_page_refcount can run under us */
- 		struct page *page_head = compound_trans_head(page);
-@@ -184,38 +198,51 @@ bool __get_page_tail(struct page *page)
- 	 * proper PT lock that already serializes against
- 	 * split_huge_page().
+ 	/*
+-	 * hugetlbfs pages can not be split from under us. If this
+-	 * is a hugetlbfs page, check refcount on head page and release
+-	 * the page if refcount is zero.
++	 * hugetlbfs pages cannot be split from under us.  If this is a
++	 * hugetlbfs page, check refcount on head page and release the page if
++	 * the refcount becomes zero.
  	 */
--	unsigned long flags;
- 	bool got = false;
--	struct page *page_head = compound_trans_head(page);
-+	struct page *page_head;
+ 	if (PageHuge(page)) {
+ 		page = compound_head(page);
+@@ -202,8 +202,8 @@ bool __get_page_tail(struct page *page)
+ 	struct page *page_head;
  
--	if (likely(page != page_head && get_page_unless_zero(page_head))) {
-+	/*
-+	 * If this is a hugetlbfs page, it can not be split under
-+	 * us. Simply increment refcount for head page
-+	 */
-+	if (PageHuge(page)) {
-+		page_head = compound_head(page);
-+		atomic_inc(&page_head->_count);
-+		got = true;
-+	} else {
-+		unsigned long flags;
-+
-+		page_head = compound_trans_head(page);
-+		if (likely(page != page_head &&
-+					get_page_unless_zero(page_head))) {
-+
-+			/* Ref to put_compound_page() comment. */
-+			if (PageSlab(page_head)) {
-+				if (likely(PageTail(page))) {
-+					__get_page_tail_foll(page, false);
-+					return true;
-+				} else {
-+					put_page(page_head);
-+					return false;
-+				}
-+			}
- 
--		/* Ref to put_compound_page() comment. */
--		if (PageSlab(page_head)) {
-+			/*
-+			 * page_head wasn't a dangling pointer but it
-+			 * may not be a head page anymore by the time
-+			 * we obtain the lock. That is ok as long as it
-+			 * can't be freed from under us.
-+			 */
-+			flags = compound_lock_irqsave(page_head);
-+			/* here __split_huge_page_refcount won't run anymore */
- 			if (likely(PageTail(page))) {
- 				__get_page_tail_foll(page, false);
--				return true;
--			} else {
--				put_page(page_head);
--				return false;
-+				got = true;
- 			}
-+			compound_unlock_irqrestore(page_head, flags);
-+			if (unlikely(!got))
-+				put_page(page_head);
- 		}
--
--		/*
--		 * page_head wasn't a dangling pointer but it
--		 * may not be a head page anymore by the time
--		 * we obtain the lock. That is ok as long as it
--		 * can't be freed from under us.
--		 */
--		flags = compound_lock_irqsave(page_head);
--		/* here __split_huge_page_refcount won't run anymore */
--		if (likely(PageTail(page))) {
--			__get_page_tail_foll(page, false);
--			got = true;
--		}
--		compound_unlock_irqrestore(page_head, flags);
--		if (unlikely(!got))
--			put_page(page_head);
- 	}
- 	return got;
- }
+ 	/*
+-	 * If this is a hugetlbfs page, it can not be split under
+-	 * us. Simply increment refcount for head page
++	 * If this is a hugetlbfs page it cannot be split under us.  Simply
++	 * increment refcount for the head page.
+ 	 */
+ 	if (PageHuge(page)) {
+ 		page_head = compound_head(page);
 _
 
-Patches currently in -mm which might be from khalid.aziz@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
+origin.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+block-support-embedded-device-command-line-partition.patch
+mm.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+swap-make-swap-discard-async-checkpatch-fixes.patch
+swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
+mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
+mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
+vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
+genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
+mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+mm-hotplug-verify-hotplug-memory-range-fix.patch
 mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+linux-next.patch
+revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
+memcg-trivial-cleanups.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
