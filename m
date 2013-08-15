@@ -1,443 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- selftests-add-test-of-pmu-instruction-counting-on-powerpc.patch removed
- from -mm tree
-Date: Thu, 15 Aug 2013 13:20:42 -0700
-Message-ID: <520d381a.VPeqpXqZ2DZ7VH/Q%akpm@linux-foundation.org>
+Subject: [merged] drivers-staging-comedi-drivers-das16c-needs-slabh.patch
+ removed from -mm tree
+Date: Thu, 15 Aug 2013 13:20:44 -0700
+Message-ID: <520d381c.PBaECeyV12GrM/YX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42193 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42195 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759719Ab3HOUUn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 16:20:43 -0400
+	with ESMTP id S1759719Ab3HOUUp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 16:20:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mikey@neuling.org, jk@ozlabs.org, benh@kernel.crashing.org, anton@samba.org, michael@ellerman.id.au
+To: mm-commits@vger.kernel.org, hsweeten@visionengravers.com, greg@kroah.com, abbotti@mev.co.uk, akpm@linux-foundation.org
 
-Subject: [merged] selftests-add-test-of-pmu-instruction-counting-on-powerpc.patch removed from -mm tree
-To: michael@ellerman.id.au,anton@samba.org,benh@kernel.crashing.org,jk@ozlabs.org,mikey@neuling.org,mm-commits@vger.kernel.org
+Subject: [merged] drivers-staging-comedi-drivers-das16c-needs-slabh.patch removed from -mm tree
+To: akpm@linux-foundation.org,abbotti@mev.co.uk,greg@kroah.com,hsweeten@visionengravers.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 15 Aug 2013 13:20:42 -0700
+Date: Thu, 15 Aug 2013 13:20:44 -0700
 
 
 The patch titled
-     Subject: selftests: add test of PMU instruction counting on powerpc
+     Subject: drivers/staging/comedi/drivers/das16.c: needs slab.h
 has been removed from the -mm tree.  Its filename was
-     selftests-add-test-of-pmu-instruction-counting-on-powerpc.patch
+     drivers-staging-comedi-drivers-das16c-needs-slabh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michael Ellerman <michael@ellerman.id.au>
-Subject: selftests: add test of PMU instruction counting on powerpc
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/staging/comedi/drivers/das16.c: needs slab.h
 
-Add a test of instruction counting using the PMU on powerpc.
+alpha allmodconfig:
 
-Although the bulk of the code is architecture agnostic, the code needs to
-run a precisely sized loop which is implemented in assembler.
+drivers/staging/comedi/drivers/das16.c: In function 'das16_detach':
+drivers/staging/comedi/drivers/das16.c:1234: error: implicit declaration of function 'kfree'                                                                    
 
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Jeremy Kerr <jk@ozlabs.org>
-Cc: Michael Neuling <mikey@neuling.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ian Abbott <abbotti@mev.co.uk>
+Cc: H Hartley Sweeten <hsweeten@visionengravers.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/powerpc/Makefile                 |    2 
- tools/testing/selftests/powerpc/pmu/Makefile             |   23 +
- tools/testing/selftests/powerpc/pmu/count_instructions.c |  135 ++++++++++
- tools/testing/selftests/powerpc/pmu/event.c              |  105 +++++++
- tools/testing/selftests/powerpc/pmu/event.h              |   39 ++
- tools/testing/selftests/powerpc/pmu/loop.S               |   46 +++
- 6 files changed, 349 insertions(+), 1 deletion(-)
+ drivers/staging/comedi/drivers/das16.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN tools/testing/selftests/powerpc/Makefile~selftests-add-test-of-pmu-instruction-counting-on-powerpc tools/testing/selftests/powerpc/Makefile
---- a/tools/testing/selftests/powerpc/Makefile~selftests-add-test-of-pmu-instruction-counting-on-powerpc
-+++ a/tools/testing/selftests/powerpc/Makefile
-@@ -13,7 +13,7 @@ CFLAGS := -Wall -O2 -flto -Wall -Werror
+diff -puN drivers/staging/comedi/drivers/das16.c~drivers-staging-comedi-drivers-das16c-needs-slabh drivers/staging/comedi/drivers/das16.c
+--- a/drivers/staging/comedi/drivers/das16.c~drivers-staging-comedi-drivers-das16c-needs-slabh
++++ a/drivers/staging/comedi/drivers/das16.c
+@@ -81,6 +81,7 @@
+  */
  
- export CC CFLAGS
- 
--TARGETS =
-+TARGETS = pmu
- 
- endif
- 
-diff -puN /dev/null tools/testing/selftests/powerpc/pmu/Makefile
---- /dev/null
-+++ a/tools/testing/selftests/powerpc/pmu/Makefile
-@@ -0,0 +1,23 @@
-+noarg:
-+	$(MAKE) -C ../
-+
-+PROGS := count_instructions
-+EXTRA_SOURCES := ../harness.c event.c
-+
-+all: $(PROGS)
-+
-+$(PROGS): $(EXTRA_SOURCES)
-+
-+# loop.S can only be built 64-bit
-+count_instructions: loop.S count_instructions.c $(EXTRA_SOURCES)
-+	$(CC) $(CFLAGS) -m64 -o $@ $^
-+
-+run_tests: all
-+	@-for PROG in $(PROGS); do \
-+		./$$PROG; \
-+	done;
-+
-+clean:
-+	rm -f $(PROGS) loop.o
-+
-+.PHONY: all run_tests clean
-diff -puN /dev/null tools/testing/selftests/powerpc/pmu/count_instructions.c
---- /dev/null
-+++ a/tools/testing/selftests/powerpc/pmu/count_instructions.c
-@@ -0,0 +1,135 @@
-+/*
-+ * Copyright 2013, Michael Ellerman, IBM Corp.
-+ * Licensed under GPLv2.
-+ */
-+
-+#define _GNU_SOURCE
-+
-+#include <stdio.h>
-+#include <stdbool.h>
-+#include <string.h>
-+#include <sys/prctl.h>
-+
-+#include "event.h"
-+#include "utils.h"
-+
-+extern void thirty_two_instruction_loop(u64 loops);
-+
-+static void setup_event(struct event *e, u64 config, char *name)
-+{
-+	event_init_opts(e, config, PERF_TYPE_HARDWARE, name);
-+
-+	e->attr.disabled = 1;
-+	e->attr.exclude_kernel = 1;
-+	e->attr.exclude_hv = 1;
-+	e->attr.exclude_idle = 1;
-+}
-+
-+static int do_count_loop(struct event *events, u64 instructions,
-+			 u64 overhead, bool report)
-+{
-+	s64 difference, expected;
-+	double percentage;
-+
-+	prctl(PR_TASK_PERF_EVENTS_ENABLE);
-+
-+	/* Run for 1M instructions */
-+	thirty_two_instruction_loop(instructions >> 5);
-+
-+	prctl(PR_TASK_PERF_EVENTS_DISABLE);
-+
-+	event_read(&events[0]);
-+	event_read(&events[1]);
-+
-+	expected = instructions + overhead;
-+	difference = events[0].result.value - expected;
-+	percentage = (double)difference / events[0].result.value * 100;
-+
-+	if (report) {
-+		event_report(&events[0]);
-+		event_report(&events[1]);
-+
-+		printf("Looped for %llu instructions, overhead %llu\n", instructions, overhead);
-+		printf("Expected %llu\n", expected);
-+		printf("Actual   %llu\n", events[0].result.value);
-+		printf("Delta    %lld, %f%%\n", difference, percentage);
-+	}
-+
-+	event_reset(&events[0]);
-+	event_reset(&events[1]);
-+
-+	if (difference < 0)
-+		difference = -difference;
-+
-+	/* Tolerate a difference below 0.0001 % */
-+	difference *= 10000 * 100;
-+	if (difference / events[0].result.value)
-+		return -1;
-+
-+	return 0;
-+}
-+
-+/* Count how many instructions it takes to do a null loop */
-+static u64 determine_overhead(struct event *events)
-+{
-+	u64 current, overhead;
-+	int i;
-+
-+	do_count_loop(events, 0, 0, false);
-+	overhead = events[0].result.value;
-+
-+	for (i = 0; i < 100; i++) {
-+		do_count_loop(events, 0, 0, false);
-+		current = events[0].result.value;
-+		if (current < overhead) {
-+			printf("Replacing overhead %llu with %llu\n", overhead, current);
-+			overhead = current;
-+		}
-+	}
-+
-+	return overhead;
-+}
-+
-+static int count_instructions(void)
-+{
-+	struct event events[2];
-+	u64 overhead;
-+
-+	setup_event(&events[0], PERF_COUNT_HW_INSTRUCTIONS, "instructions");
-+	setup_event(&events[1], PERF_COUNT_HW_CPU_CYCLES, "cycles");
-+
-+	if (event_open(&events[0])) {
-+		perror("perf_event_open");
-+		return -1;
-+	}
-+
-+	if (event_open_with_group(&events[1], events[0].fd)) {
-+		perror("perf_event_open");
-+		return -1;
-+	}
-+
-+	overhead = determine_overhead(events);
-+	printf("Overhead of null loop: %llu instructions\n", overhead);
-+
-+	/* Run for 1M instructions */
-+	FAIL_IF(do_count_loop(events, 0x100000, overhead, true));
-+
-+	/* Run for 10M instructions */
-+	FAIL_IF(do_count_loop(events, 0xa00000, overhead, true));
-+
-+	/* Run for 100M instructions */
-+	FAIL_IF(do_count_loop(events, 0x6400000, overhead, true));
-+
-+	/* Run for 1G instructions */
-+	FAIL_IF(do_count_loop(events, 0x40000000, overhead, true));
-+
-+	event_close(&events[0]);
-+	event_close(&events[1]);
-+
-+	return 0;
-+}
-+
-+int main(void)
-+{
-+	return test_harness(count_instructions, "count_instructions");
-+}
-diff -puN /dev/null tools/testing/selftests/powerpc/pmu/event.c
---- /dev/null
-+++ a/tools/testing/selftests/powerpc/pmu/event.c
-@@ -0,0 +1,105 @@
-+/*
-+ * Copyright 2013, Michael Ellerman, IBM Corp.
-+ * Licensed under GPLv2.
-+ */
-+
-+#define _GNU_SOURCE
-+#include <unistd.h>
-+#include <sys/syscall.h>
-+#include <string.h>
-+#include <stdio.h>
-+#include <sys/ioctl.h>
-+
-+#include "event.h"
-+
-+
-+int perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
-+		int group_fd, unsigned long flags)
-+{
-+	return syscall(__NR_perf_event_open, attr, pid, cpu,
-+			   group_fd, flags);
-+}
-+
-+void event_init_opts(struct event *e, u64 config, int type, char *name)
-+{
-+	memset(e, 0, sizeof(*e));
-+
-+	e->name = name;
-+
-+	e->attr.type = type;
-+	e->attr.config = config;
-+	e->attr.size = sizeof(e->attr);
-+	/* This has to match the structure layout in the header */
-+	e->attr.read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | \
-+				  PERF_FORMAT_TOTAL_TIME_RUNNING;
-+}
-+
-+void event_init_named(struct event *e, u64 config, char *name)
-+{
-+	event_init_opts(e, config, PERF_TYPE_RAW, name);
-+}
-+
-+#define PERF_CURRENT_PID	0
-+#define PERF_NO_CPU		-1
-+#define PERF_NO_GROUP		-1
-+
-+int event_open_with_options(struct event *e, pid_t pid, int cpu, int group_fd)
-+{
-+	e->fd = perf_event_open(&e->attr, pid, cpu, group_fd, 0);
-+	if (e->fd == -1) {
-+		perror("perf_event_open");
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+int event_open_with_group(struct event *e, int group_fd)
-+{
-+	return event_open_with_options(e, PERF_CURRENT_PID, PERF_NO_CPU, group_fd);
-+}
-+
-+int event_open(struct event *e)
-+{
-+	return event_open_with_options(e, PERF_CURRENT_PID, PERF_NO_CPU, PERF_NO_GROUP);
-+}
-+
-+void event_close(struct event *e)
-+{
-+	close(e->fd);
-+}
-+
-+int event_reset(struct event *e)
-+{
-+	return ioctl(e->fd, PERF_EVENT_IOC_RESET);
-+}
-+
-+int event_read(struct event *e)
-+{
-+	int rc;
-+
-+	rc = read(e->fd, &e->result, sizeof(e->result));
-+	if (rc != sizeof(e->result)) {
-+		fprintf(stderr, "read error on event %p!\n", e);
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+void event_report_justified(struct event *e, int name_width, int result_width)
-+{
-+	printf("%*s: result %*llu ", name_width, e->name, result_width,
-+	       e->result.value);
-+
-+	if (e->result.running == e->result.enabled)
-+		printf("running/enabled %llu\n", e->result.running);
-+	else
-+		printf("running %llu enabled %llu\n", e->result.running,
-+			e->result.enabled);
-+}
-+
-+void event_report(struct event *e)
-+{
-+	event_report_justified(e, 0, 0);
-+}
-diff -puN /dev/null tools/testing/selftests/powerpc/pmu/event.h
---- /dev/null
-+++ a/tools/testing/selftests/powerpc/pmu/event.h
-@@ -0,0 +1,39 @@
-+/*
-+ * Copyright 2013, Michael Ellerman, IBM Corp.
-+ * Licensed under GPLv2.
-+ */
-+
-+#ifndef _SELFTESTS_POWERPC_PMU_EVENT_H
-+#define _SELFTESTS_POWERPC_PMU_EVENT_H
-+
-+#include <unistd.h>
-+#include <linux/perf_event.h>
-+
-+#include "utils.h"
-+
-+
-+struct event {
-+	struct perf_event_attr attr;
-+	char *name;
-+	int fd;
-+	/* This must match the read_format we use */
-+	struct {
-+		u64 value;
-+		u64 running;
-+		u64 enabled;
-+	} result;
-+};
-+
-+void event_init(struct event *e, u64 config);
-+void event_init_named(struct event *e, u64 config, char *name);
-+void event_init_opts(struct event *e, u64 config, int type, char *name);
-+int event_open_with_options(struct event *e, pid_t pid, int cpu, int group_fd);
-+int event_open_with_group(struct event *e, int group_fd);
-+int event_open(struct event *e);
-+void event_close(struct event *e);
-+int event_reset(struct event *e);
-+int event_read(struct event *e);
-+void event_report_justified(struct event *e, int name_width, int result_width);
-+void event_report(struct event *e);
-+
-+#endif /* _SELFTESTS_POWERPC_PMU_EVENT_H */
-diff -puN /dev/null tools/testing/selftests/powerpc/pmu/loop.S
---- /dev/null
-+++ a/tools/testing/selftests/powerpc/pmu/loop.S
-@@ -0,0 +1,46 @@
-+/*
-+ * Copyright 2013, Michael Ellerman, IBM Corp.
-+ * Licensed under GPLv2.
-+ */
-+
-+	.text
-+
-+	.global thirty_two_instruction_loop
-+	.type .thirty_two_instruction_loop,@function
-+	.section ".opd","aw",@progbits
-+thirty_two_instruction_loop:
-+	.quad .thirty_two_instruction_loop, .TOC.@tocbase, 0
-+	.previous
-+.thirty_two_instruction_loop:
-+	cmpwi	%r3,0
-+	beqlr
-+	addi	%r4,%r3,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1
-+	addi	%r4,%r4,1	# 28 addi's
-+	subi	%r3,%r3,1
-+	b	.thirty_two_instruction_loop
+ #include <linux/module.h>
++#include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/pci.h>
+ #include <linux/interrupt.h>
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+block-support-embedded-device-command-line-partition.patch
+mm.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+swap-make-swap-discard-async-checkpatch-fixes.patch
+swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
+mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
+mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
+vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
+genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
+mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+mm-hotplug-verify-hotplug-memory-range-fix.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
 linux-next.patch
+revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
+memcg-trivial-cleanups.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
