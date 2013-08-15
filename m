@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + efs-iget_locked-doesnt-return-an-err_ptr.patch added to -mm
+Subject: + bfs-iget_locked-doesnt-return-an-err_ptr.patch added to -mm
  tree
-Date: Thu, 15 Aug 2013 15:04:11 -0700
-Message-ID: <520d505b./Tvx4yo8kTXqBAwL%akpm@linux-foundation.org>
+Date: Thu, 15 Aug 2013 15:04:53 -0700
+Message-ID: <520d5085.GS2bxmDXgNsHiLaK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43293 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43298 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901Ab3HOWEM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 18:04:12 -0400
+	with ESMTP id S1750901Ab3HOWEy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 18:04:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, serge.hallyn@canonical.com, ebiederm@xmission.com, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, tigran@aivazian.fsnet.co.uk, dan.carpenter@oracle.com
 
-Subject: + efs-iget_locked-doesnt-return-an-err_ptr.patch added to -mm tree
-To: dan.carpenter@oracle.com,ebiederm@xmission.com,serge.hallyn@canonical.com
+Subject: + bfs-iget_locked-doesnt-return-an-err_ptr.patch added to -mm tree
+To: dan.carpenter@oracle.com,tigran@aivazian.fsnet.co.uk
 From: akpm@linux-foundation.org
-Date: Thu, 15 Aug 2013 15:04:11 -0700
+Date: Thu, 15 Aug 2013 15:04:53 -0700
 
 
 The patch titled
-     Subject: efs: iget_locked() doesn't return an ERR_PTR()
+     Subject: bfs: iget_locked() doesn't return an ERR_PTR
 has been added to the -mm tree.  Its filename is
-     efs-iget_locked-doesnt-return-an-err_ptr.patch
+     bfs-iget_locked-doesnt-return-an-err_ptr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/efs-iget_locked-doesnt-return-an-err_ptr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bfs-iget_locked-doesnt-return-an-err_ptr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/efs-iget_locked-doesnt-return-an-err_ptr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bfs-iget_locked-doesnt-return-an-err_ptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,26 +45,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: efs: iget_locked() doesn't return an ERR_PTR()
+Subject: bfs: iget_locked() doesn't return an ERR_PTR
 
-The iget_locked() function returns NULL on error and never an ERR_PTR.
+iget_locked() returns a NULL on error, it doesn't return an ERR_PTR.
 
 Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Tigran A. Aivazian" <tigran@aivazian.fsnet.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/inode.c |    2 +-
+ fs/bfs/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/efs/inode.c~efs-iget_locked-doesnt-return-an-err_ptr fs/efs/inode.c
---- a/fs/efs/inode.c~efs-iget_locked-doesnt-return-an-err_ptr
-+++ a/fs/efs/inode.c
-@@ -57,7 +57,7 @@ struct inode *efs_iget(struct super_bloc
- 	struct inode *inode;
+diff -puN fs/bfs/inode.c~bfs-iget_locked-doesnt-return-an-err_ptr fs/bfs/inode.c
+--- a/fs/bfs/inode.c~bfs-iget_locked-doesnt-return-an-err_ptr
++++ a/fs/bfs/inode.c
+@@ -40,7 +40,7 @@ struct inode *bfs_iget(struct super_bloc
+ 	int block, off;
  
- 	inode = iget_locked(super, ino);
+ 	inode = iget_locked(sb, ino);
 -	if (IS_ERR(inode))
 +	if (!inode)
  		return ERR_PTR(-ENOMEM);
@@ -80,6 +79,7 @@ nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-d
 ocfs2-use-list_for_each_entry-instead-of-list_for_each.patch
 ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix.patch
 efs-iget_locked-doesnt-return-an-err_ptr.patch
+bfs-iget_locked-doesnt-return-an-err_ptr.patch
 pktcdvd-convert-printk-to-pr_level.patch
 pktcdvd-fix-defective-misuses-of-pkt_level.patch
 linux-next.patch
