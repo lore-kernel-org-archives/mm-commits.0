@@ -1,106 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-sirf-patterns.patch removed from -mm
- tree
-Date: Thu, 15 Aug 2013 13:20:36 -0700
-Message-ID: <520d3814.oXNzslAFAZM4Jvqu%akpm@linux-foundation.org>
+Subject: [merged] selftests-add-infrastructure-for-powerpc-selftests.patch removed from -mm tree
+Date: Thu, 15 Aug 2013 13:20:38 -0700
+Message-ID: <520d3816.9Omty00xoY3drUIe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42174 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42178 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759719Ab3HOUUh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 16:20:37 -0400
+	with ESMTP id S1759719Ab3HOUUj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 16:20:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linus.walleij@linaro.org, 21cnbao@gmail.com, joe@perches.com
+To: mm-commits@vger.kernel.org, mikey@neuling.org, jk@ozlabs.org, benh@kernel.crashing.org, anton@samba.org, michael@ellerman.id.au
 
-Subject: [merged] maintainers-update-sirf-patterns.patch removed from -mm tree
-To: joe@perches.com,21cnbao@gmail.com,linus.walleij@linaro.org,mm-commits@vger.kernel.org
+Subject: [merged] selftests-add-infrastructure-for-powerpc-selftests.patch removed from -mm tree
+To: michael@ellerman.id.au,anton@samba.org,benh@kernel.crashing.org,jk@ozlabs.org,mikey@neuling.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 15 Aug 2013 13:20:36 -0700
+Date: Thu, 15 Aug 2013 13:20:38 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: update sirf patterns
+     Subject: selftests: add infrastructure for powerpc selftests
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-sirf-patterns.patch
+     selftests-add-infrastructure-for-powerpc-selftests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update sirf patterns
+From: Michael Ellerman <michael@ellerman.id.au>
+Subject: selftests: add infrastructure for powerpc selftests
 
-Commit 3370dc916c ("pinctrl:sirf:re-arch and add support for new
-SiRFatlas6 SoC") moved the files, update the patterns.
+Add a powerpc subdirectory to tools/testing/selftests, for tests that are
+powerpc specific.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
+On other architectures nothing is built.  The makefile supports cross
+compilation if the user sets ARCH and CROSS_COMPILE.
+
+Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Jeremy Kerr <jk@ozlabs.org>
+Cc: Michael Neuling <mikey@neuling.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/Makefile         |    1 
+ tools/testing/selftests/powerpc/Makefile |   39 +++++++++++++++++++++
+ 2 files changed, 40 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-update-sirf-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-sirf-patterns
-+++ a/MAINTAINERS
-@@ -813,7 +813,7 @@ F:	arch/arm/mach-prima2/
- F:	drivers/dma/sirf-dma.c
- F:	drivers/i2c/busses/i2c-sirf.c
- F:	drivers/mmc/host/sdhci-sirf.c
--F:	drivers/pinctrl/pinctrl-sirf.c
-+F:	drivers/pinctrl/sirf/
- F:	drivers/spi/spi-sirf.c
+diff -puN tools/testing/selftests/Makefile~selftests-add-infrastructure-for-powerpc-selftests tools/testing/selftests/Makefile
+--- a/tools/testing/selftests/Makefile~selftests-add-infrastructure-for-powerpc-selftests
++++ a/tools/testing/selftests/Makefile
+@@ -8,6 +8,7 @@ TARGETS += net
+ TARGETS += ptrace
+ TARGETS += timers
+ TARGETS += vm
++TARGETS += powerpc
  
- ARM/EBSA110 MACHINE SUPPORT
+ all:
+ 	for TARGET in $(TARGETS); do \
+diff -puN /dev/null tools/testing/selftests/powerpc/Makefile
+--- /dev/null
++++ a/tools/testing/selftests/powerpc/Makefile
+@@ -0,0 +1,39 @@
++# Makefile for powerpc selftests
++
++# ARCH can be overridden by the user for cross compiling
++ARCH ?= $(shell uname -m)
++ARCH := $(shell echo $(ARCH) | sed -e s/ppc.*/powerpc/)
++
++ifeq ($(ARCH),powerpc)
++
++GIT_VERSION = $(shell git describe --always --long --dirty || echo "unknown")
++
++CC := $(CROSS_COMPILE)$(CC)
++CFLAGS := -Wall -O2 -flto -Wall -Werror -DGIT_VERSION='"$(GIT_VERSION)"' -I$(CURDIR) $(CFLAGS)
++
++export CC CFLAGS
++
++TARGETS =
++
++endif
++
++all:
++	@for TARGET in $(TARGETS); do \
++		$(MAKE) -C $$TARGET all; \
++	done;
++
++run_tests: all
++	@for TARGET in $(TARGETS); do \
++		$(MAKE) -C $$TARGET run_tests; \
++	done;
++
++clean:
++	@for TARGET in $(TARGETS); do \
++		$(MAKE) -C $$TARGET clean; \
++	done;
++	rm -f tags
++
++tags:
++	find . -name '*.c' -o -name '*.h' | xargs ctags
++
++.PHONY: all run_tests clean tags
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from michael@ellerman.id.au are
 
-maintainers-exynos-remove-board-files.patch
-maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
-maintainers-omap-powerdomain-update-patterns.patch
-maintainers-arm-s3c2410-update-patterns.patch
-maintainers-arm-spear-consolidate-sections.patch
-maintainers-arm-plat-nomadik-update-patterns.patch
-maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
-maintainers-ghes_edac-update-pattern.patch
-maintainers-update-siano-drivers.patch
-maintainers-si4713-fix-file-pattern.patch
-maintainers-update-it913x-patterns.patch
-maintainers-update-ssbi-patterns.patch
-maintainers-update-file-pattern-for-arc-uart.patch
-maintainers-update-usb-ehci-platform-pattern.patch
-maintainers-usb-phy-update-patterns.patch
-maintainers-update-gre-demux-patterns.patch
-maintainers-append-to-directory-patterns.patch
-checkpatch-add-a-few-more-fix-corrections.patch
-checkpatch-check-camelcase-by-word-not-by-lval.patch
-checkpatch-enforce-sane-perl-version.patch
-checkpatch-check-for-duplicate-signatures.patch
-checkpatch-warn-when-using-extern-with-function-prototypes-in-h-files.patch
-checkpatch-fix-networking-kernel-doc-block-comment-defect.patch
-checkpatch-add-types-option-to-report-only-specific-message-types.patch
-checkpatch-ignore-define-trace_foo-macros.patch
-checkpatch-better-fix-of-spacing-errors.patch
-checkpatch-reduce-runtime-cpu-time-used.patch
-checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch
-firmware-dmi_scan-drop-obsolete-comment.patch
-firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
-firmware-dmi_scan-constify-strings.patch
-firmware-dmi_scan-drop-oom-messages.patch
-pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
-pktcdvd-convert-printk-to-pr_level.patch
-pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
-pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
-pktcdvd-convert-pr_notice-to-pkt_notice.patch
-pktcdvd-convert-pr_info-to-pkt_info.patch
-pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
-pktcdvd-fix-defective-misuses-of-pkt_level.patch
 linux-next.patch
 
