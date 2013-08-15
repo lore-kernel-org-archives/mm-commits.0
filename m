@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-numa-binary-search-node-id.patch added to -mm tree
-Date: Thu, 15 Aug 2013 13:43:56 -0700
-Message-ID: <520d3d8c.Y1trAMuDTOz+p7jx%akpm@linux-foundation.org>
+Subject: +
+ kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2.patch
+ added to -mm tree
+Date: Thu, 15 Aug 2013 13:45:11 -0700
+Message-ID: <520d3dd7.E31qK+yEeXT+nz5R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42333 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42338 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751566Ab3HOUn5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 16:43:57 -0400
+	with ESMTP id S1751067Ab3HOUpM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Aug 2013 16:45:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, rja@sgi.com, yinghai@kernel.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@openvz.org, bsingharora@gmail.com, avagin@openvz.org
 
-Subject: + memblock-numa-binary-search-node-id.patch added to -mm tree
-To: yinghai@kernel.org,rja@sgi.com,tj@kernel.org
+Subject: + kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2.patch added to -mm tree
+To: avagin@openvz.org,bsingharora@gmail.com,glommer@openvz.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Thu, 15 Aug 2013 13:43:56 -0700
+Date: Thu, 15 Aug 2013 13:45:11 -0700
 
 
 The patch titled
-     Subject: memblock, numa: binary search node id
+     Subject: kmemcg: don't allocate extra memory for root memcg_cache_params
 has been added to the -mm tree.  Its filename is
-     memblock-numa-binary-search-node-id.patch
+     kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memblock-numa-binary-search-node-id.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-numa-binary-search-node-id.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,109 +45,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: memblock, numa: binary search node id
+From: Andrey Vagin <avagin@openvz.org>
+Subject: kmemcg: don't allocate extra memory for root memcg_cache_params
 
-Current early_pfn_to_nid() on arch that support memblock go over
-memblock.memory one by one, so will take too many try near the end.
+The memcg_cache_params structure contains the common part and the union,
+which represents two different types of data: one for root cashes and
+another for child caches.
 
-We can use existing memblock_search to find the node id for given pfn,
-that could save some time on bigger system that have many entries
-memblock.memory array.
+The size of child data is fixed.  The size of the memcg_caches array is
+calculated in runtime.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Russ Anderson <rja@sgi.com>
+Currently the size of memcg_cache_params for root caches is calculated
+incorrectly, because it includes the size of parameters for child caches.
+
+ssize_t size = memcg_caches_array_size(num_groups);
+size *= sizeof(void *);
+
+size += sizeof(struct memcg_cache_params);
+
+v2: Fix a typo in calculations
+
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Cc: Glauber Costa <glommer@openvz.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    2 ++
- mm/memblock.c            |   18 ++++++++++++++++++
- mm/page_alloc.c          |   19 +++++++++----------
- 3 files changed, 29 insertions(+), 10 deletions(-)
+ mm/memcontrol.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/memblock.h~memblock-numa-binary-search-node-id include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-numa-binary-search-node-id
-+++ a/include/linux/memblock.h
-@@ -60,6 +60,8 @@ int memblock_reserve(phys_addr_t base, p
- void memblock_trim_memory(phys_addr_t align);
+diff -puN mm/memcontrol.c~kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2 mm/memcontrol.c
+--- a/mm/memcontrol.c~kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2
++++ a/mm/memcontrol.c
+@@ -3140,7 +3140,7 @@ int memcg_update_cache_size(struct kmem_
+ 		ssize_t size = memcg_caches_array_size(num_groups);
  
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
-+int memblock_search_pfn_nid(unsigned long pfn, unsigned long *start_pfn,
-+			    unsigned long  *end_pfn);
- void __next_mem_pfn_range(int *idx, int nid, unsigned long *out_start_pfn,
- 			  unsigned long *out_end_pfn, int *out_nid);
+ 		size *= sizeof(void *);
+-		size += sizeof(struct memcg_cache_params);
++		size += offsetof(struct memcg_cache_params, memcg_caches);
  
-diff -puN mm/memblock.c~memblock-numa-binary-search-node-id mm/memblock.c
---- a/mm/memblock.c~memblock-numa-binary-search-node-id
-+++ a/mm/memblock.c
-@@ -914,6 +914,24 @@ int __init_memblock memblock_is_memory(p
- 	return memblock_search(&memblock.memory, addr) != -1;
- }
- 
-+#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
-+int __init_memblock memblock_search_pfn_nid(unsigned long pfn,
-+			 unsigned long *start_pfn, unsigned long *end_pfn)
-+{
-+	struct memblock_type *type = &memblock.memory;
-+	int mid = memblock_search(type, (phys_addr_t)pfn << PAGE_SHIFT);
-+
-+	if (mid == -1)
-+		return -1;
-+
-+	*start_pfn = type->regions[mid].base >> PAGE_SHIFT;
-+	*end_pfn = (type->regions[mid].base + type->regions[mid].size)
-+			>> PAGE_SHIFT;
-+
-+	return type->regions[mid].nid;
-+}
-+#endif
-+
- /**
-  * memblock_is_region_memory - check if a region is a subset of memory
-  * @base: base of region to check
-diff -puN mm/page_alloc.c~memblock-numa-binary-search-node-id mm/page_alloc.c
---- a/mm/page_alloc.c~memblock-numa-binary-search-node-id
-+++ a/mm/page_alloc.c
-@@ -4307,7 +4307,7 @@ int __meminit init_currently_empty_zone(
- int __meminit __early_pfn_to_nid(unsigned long pfn)
+ 		s->memcg_params = kzalloc(size, GFP_KERNEL);
+ 		if (!s->memcg_params) {
+@@ -3183,13 +3183,16 @@ int memcg_update_cache_size(struct kmem_
+ int memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s,
+ 			 struct kmem_cache *root_cache)
  {
- 	unsigned long start_pfn, end_pfn;
--	int i, nid;
-+	int nid;
- 	/*
- 	 * NOTE: The following SMP-unsafe globals are only used early in boot
- 	 * when the kernel is running single-threaded.
-@@ -4318,15 +4318,14 @@ int __meminit __early_pfn_to_nid(unsigne
- 	if (last_start_pfn <= pfn && pfn < last_end_pfn)
- 		return last_nid;
+-	size_t size = sizeof(struct memcg_cache_params);
++	size_t size;
  
--	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
--		if (start_pfn <= pfn && pfn < end_pfn) {
--			last_start_pfn = start_pfn;
--			last_end_pfn = end_pfn;
--			last_nid = nid;
--			return nid;
--		}
--	/* This is a memory hole */
--	return -1;
-+	nid = memblock_search_pfn_nid(pfn, &start_pfn, &end_pfn);
-+	if (nid != -1) {
-+		last_start_pfn = start_pfn;
-+		last_end_pfn = end_pfn;
-+		last_nid = nid;
-+	}
-+
-+	return nid;
- }
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+ 	if (!memcg_kmem_enabled())
+ 		return 0;
  
+-	if (!memcg)
++	if (!memcg) {
++		size = offsetof(struct memcg_cache_params, memcg_caches);
+ 		size += memcg_limited_groups_array_size * sizeof(void *);
++	} else
++		size = sizeof(struct memcg_cache_params);
+ 
+ 	s->memcg_params = kzalloc(size, GFP_KERNEL);
+ 	if (!s->memcg_params)
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from avagin@openvz.org are
 
-mm-kill-one-if-loop-in-__free_pages_bootmem.patch
-memblock-numa-binary-search-node-id.patch
-firmware-dmi_scan-drop-obsolete-comment.patch
-linux-next.patch
+origin.patch
+kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+procfs-remove-extra-call-of-dir_emit_dots.patch
 
