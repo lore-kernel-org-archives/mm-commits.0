@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-nuc900-use-null-instead-of-0.patch added to -mm tree
-Date: Mon, 19 Aug 2013 16:24:32 -0700
-Message-ID: <5212a930.KdGoE8guIoRVztUG%akpm@linux-foundation.org>
+Subject: + genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
+ added to -mm tree
+Date: Mon, 19 Aug 2013 16:45:02 -0700
+Message-ID: <5212adfe.GUvwgpcrBm2LRujL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55539 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55761 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751204Ab3HSXYd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 19:24:33 -0400
+	with ESMTP id S1751165Ab3HSXpD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 19:45:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, geert@linux-m68k.org
 
-Subject: + rtc-rtc-nuc900-use-null-instead-of-0.patch added to -mm tree
-To: jg1.han@samsung.com
+Subject: + genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch added to -mm tree
+To: geert@linux-m68k.org,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Mon, 19 Aug 2013 16:24:32 -0700
+Date: Mon, 19 Aug 2013 16:45:02 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-nuc900.c: use NULL instead of 0
+     Subject: genirq: correct fuzzy and fragile IRQ_RETVAL() definition
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-nuc900-use-null-instead-of-0.patch
+     genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-nuc900-use-null-instead-of-0.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-nuc900-use-null-instead-of-0.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,45 +44,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-nuc900.c: use NULL instead of 0
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: genirq: correct fuzzy and fragile IRQ_RETVAL() definition
 
-check_rtc_access_enable() returns pointer, thus NULL should be used
-instead of 0 in order to fix the following sparse warning:
+commit bedd30d986a0 ("genirq: make irqreturn_t an enum") blindly replaced
+"0" by "IRQ_NONE" in the "IRQ_RETVAL(x)" macro definition.
 
-drivers/rtc/rtc-nuc900.c:102:16: warning: Using plain integer as NULL pointer
+However, as "x" is a condition, "0" meant "boolean false", not an
+irqreturn_t value.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+All of this worked, and kept working after the addition of IRQ_WAKE_THREAD,
+as
+  - both "boolean false" and "IRQ_NONE" are "0" (for the comparison),
+  - "boolean true" and "boolean false" nicely map to the correct values of
+    "IRQ_HANDLED" and "IRQ_NONE" (for the return value).
+
+Correct the macro definition for clarity and future-proofness.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-nuc900.c |    2 +-
+ include/linux/irqreturn.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-use-null-instead-of-0 drivers/rtc/rtc-nuc900.c
---- a/drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-use-null-instead-of-0
-+++ a/drivers/rtc/rtc-nuc900.c
-@@ -99,7 +99,7 @@ static int *check_rtc_access_enable(stru
- 	if (!timeout)
- 		return ERR_PTR(-EPERM);
+diff -puN include/linux/irqreturn.h~genirq-correct-fuzzy-and-fragile-irq_retval-definition include/linux/irqreturn.h
+--- a/include/linux/irqreturn.h~genirq-correct-fuzzy-and-fragile-irq_retval-definition
++++ a/include/linux/irqreturn.h
+@@ -14,6 +14,6 @@ enum irqreturn {
+ };
  
--	return 0;
-+	return NULL;
- }
+ typedef enum irqreturn irqreturn_t;
+-#define IRQ_RETVAL(x)	((x) != IRQ_NONE)
++#define IRQ_RETVAL(x)	((x) ? IRQ_HANDLED : IRQ_NONE)
  
- static int nuc900_rtc_bcd2bin(unsigned int timereg,
+ #endif
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-block-replace-strict_strtoul-with-kstrtoul.patch
-block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch
-drivers-block-mg_diskc-make-mg_times_out-static.patch
-mm-replace-strict_strtoul-with-kstrtoul.patch
-drivers-firmware-google-gsmic-replace-strict_strtoul-with-kstrtoul.patch
-kernel-replace-strict_strto-with-kstrto.patch
-rtc-rtc-nuc900-use-null-instead-of-0.patch
-documentation-replace-strict_strtoul-with-kstrtoul.patch
-w1-replace-strict_strtol-with-kstrtol.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
+syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
+lz4-fix-compression-decompression-signedness-mismatch.patch
 linux-next.patch
 
