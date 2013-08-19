@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + task_work-minor-cleanups.patch added to -mm tree
-Date: Mon, 19 Aug 2013 14:34:55 -0700
-Message-ID: <52128f7f.IhQSOt17enCgqK3/%akpm@linux-foundation.org>
+Subject: + task_work-documentation.patch added to -mm tree
+Date: Mon, 19 Aug 2013 14:34:56 -0700
+Message-ID: <52128f80.ANi7G8nRfmJjyG7y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54451 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066Ab3HSVfB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 17:35:01 -0400
+	with ESMTP id S1751066Ab3HSVfH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 17:35:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, oleg@redhat.com
 
-Subject: + task_work-minor-cleanups.patch added to -mm tree
+Subject: + task_work-documentation.patch added to -mm tree
 To: oleg@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 19 Aug 2013 14:34:55 -0700
+Date: Mon, 19 Aug 2013 14:34:56 -0700
 
 
 The patch titled
-     Subject: task_work: minor cleanups
+     Subject: task_work: documentation
 has been added to the -mm tree.  Its filename is
-     task_work-minor-cleanups.patch
+     task_work-documentation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/task_work-minor-cleanups.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/task_work-documentation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/task_work-minor-cleanups.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/task_work-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,40 +44,77 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: task_work: minor cleanups
+Subject: task_work: documentation
 
-Trivial.  Remove the unnecessary "work = NULL" initialization and turn
-read_barrier_depends() into smp_read_barrier_depends() in
-task_work_cancel().
+No functional changes, just comments.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/task_work.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/task_work.c |   36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff -puN kernel/task_work.c~task_work-minor-cleanups kernel/task_work.c
---- a/kernel/task_work.c~task_work-minor-cleanups
+diff -puN kernel/task_work.c~task_work-documentation kernel/task_work.c
+--- a/kernel/task_work.c~task_work-documentation
 +++ a/kernel/task_work.c
-@@ -25,7 +25,7 @@ struct callback_head *
+@@ -4,6 +4,23 @@
+ 
+ static struct callback_head work_exited; /* all we need is ->next == NULL */
+ 
++/**
++ * task_work_add - ask the @task to execute @work->func()
++ * @task: the task which should run the callback
++ * @work: the callback to run
++ * @notify: send the notification if true
++ *
++ * Queue @work for task_work_run() below and notify the @task if @notify.
++ * Fails if the @task is exiting/exited and thus it can't process this @work.
++ * Otherwise @work->func() will be called when the @task returns from kernel
++ * mode or exits.
++ *
++ * This is like the signal handler which runs in kernel mode, but it doesn't
++ * try to wake up the @task.
++ *
++ * RETURNS:
++ * 0 if succeeds or -ESRCH.
++ */
+ int
+ task_work_add(struct task_struct *task, struct callback_head *work, bool notify)
+ {
+@@ -21,6 +38,17 @@ task_work_add(struct task_struct *task,
+ 	return 0;
+ }
+ 
++/**
++ * task_work_cancel - cancel a pending work added by task_work_add()
++ * @task: the task which should execute the work
++ * @func: identifies the work to remove
++ *
++ * Find the last queued pending work with ->func == @func and remove
++ * it from queue.
++ *
++ * RETURNS:
++ * The found work or NULL if not found.
++ */
+ struct callback_head *
  task_work_cancel(struct task_struct *task, task_work_func_t func)
  {
- 	struct callback_head **pprev = &task->task_works;
--	struct callback_head *work = NULL;
-+	struct callback_head *work;
- 	unsigned long flags;
- 	/*
- 	 * If cmpxchg() fails we continue without updating pprev.
-@@ -35,7 +35,7 @@ task_work_cancel(struct task_struct *tas
- 	 */
- 	raw_spin_lock_irqsave(&task->pi_lock, flags);
- 	while ((work = ACCESS_ONCE(*pprev))) {
--		read_barrier_depends();
-+		smp_read_barrier_depends();
- 		if (work->func != func)
- 			pprev = &work->next;
- 		else if (cmpxchg(pprev, work, work->next) == work)
+@@ -46,6 +74,14 @@ task_work_cancel(struct task_struct *tas
+ 	return work;
+ }
+ 
++/**
++ * task_work_run - execute the works added by task_work_add()
++ *
++ * Flush the pending works. Should be used by the core kernel code.
++ * Called before the task returns to the user-mode or stops, or when
++ * it exits. In the latter case task_work_add() can no longer add the
++ * new work after task_work_run() returns.
++ */
+ void task_work_run(void)
+ {
+ 	struct task_struct *task = current;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
