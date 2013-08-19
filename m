@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + task_work-documentation.patch added to -mm tree
-Date: Mon, 19 Aug 2013 14:34:56 -0700
-Message-ID: <52128f80.ANi7G8nRfmJjyG7y%akpm@linux-foundation.org>
+Subject: +
+ mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
+ added to -mm tree
+Date: Mon, 19 Aug 2013 15:49:02 -0700
+Message-ID: <5212a0de.zvLrzTHP5BlutVDy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55126 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066Ab3HSVfH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 17:35:07 -0400
+	with ESMTP id S1751148Ab3HSWtD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 18:49:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, oleg@redhat.com
+To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, joern@logfs.org, hughd@google.com, hannes@cmpxchg.org, vbabka@suse.cz
 
-Subject: + task_work-documentation.patch added to -mm tree
-To: oleg@redhat.com
+Subject: + mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch added to -mm tree
+To: vbabka@suse.cz,hannes@cmpxchg.org,hughd@google.com,joern@logfs.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,walken@google.com
 From: akpm@linux-foundation.org
-Date: Mon, 19 Aug 2013 14:34:56 -0700
+Date: Mon, 19 Aug 2013 15:49:02 -0700
 
 
 The patch titled
-     Subject: task_work: documentation
+     Subject: mm: putback_lru_page: remove unnecessary call to page_lru_base_type()
 has been added to the -mm tree.  Its filename is
-     task_work-documentation.patch
+     mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/task_work-documentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/task_work-documentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,102 +45,179 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: task_work: documentation
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: putback_lru_page: remove unnecessary call to page_lru_base_type()
 
-No functional changes, just comments.
+The goal of this patch series is to improve performance of munlock() of
+large mlocked memory areas on systems without THP.  This is motivated by
+reported very long times of crash recovery of processes with such areas,
+where munlock() can take several seconds.  See
+http://lwn.net/Articles/548108/
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+The work was driven by a simple benchmark (to be included in mmtests) that
+mmaps() e.g.  56GB with MAP_LOCKED | MAP_POPULATE and measures the time of
+munlock().  Profiling was performed by attaching operf --pid to the
+process and sending a signal to trigger the munlock() part and then notify
+bach the monitoring wrapper to stop operf, so that only munlock() appears
+in the profile.
+
+The profiles have shown that CPU time is spent mostly by atomic operations
+and repeated locking per single pages. This series aims to reduce both, starting
+from simpler to more complex changes.
+
+Patch 1 performs a simple cleanup in putback_lru_page() so that page lru base
+	type is not determined without being actually needed.
+
+Patch 2 removes an unnecessary call to lru_add_drain() which drains the per-cpu
+	pagevec after each munlocked page is put there.
+
+Patch 3 changes munlock_vma_range() to use an on-stack pagevec for isolating
+	multiple non-THP pages under a single lru_lock instead of locking and
+	processing each page separately.
+
+Patch 4 changes the NR_MLOCK accounting to be called only once per the pvec
+	introduced by previous patch.
+
+Patch 5 uses the introduced pagevec to batch also the work of putback_lru_page
+	when possible, bypassing the per-cpu pvec and associated overhead.
+
+Patch 6 removes a redundant get_page/put_page pair which saves costly atomic
+	operations.
+
+Patch 7 avoids calling follow_page_mask() on each individual page, and obtains
+	multiple page references under a single page table lock where possible.
+
+Measurements were made using 3.11-rc3 as a baseline.  The first set of
+measurements shows the possibly ideal conditions where batching should
+help the most.  All memory is allocated from a single NUMA node and THP is
+disabled.
+
+timedmunlock
+                            3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3
+                                   0                     1                     2                     3                     4                     5                     6                     7
+Elapsed min           3.38 (  0.00%)        3.39 ( -0.13%)        3.00 ( 11.33%)        2.70 ( 20.20%)        2.67 ( 21.11%)        2.37 ( 29.88%)        2.20 ( 34.91%)        1.91 ( 43.59%)
+Elapsed mean          3.39 (  0.00%)        3.40 ( -0.23%)        3.01 ( 11.33%)        2.70 ( 20.26%)        2.67 ( 21.21%)        2.38 ( 29.88%)        2.21 ( 34.93%)        1.92 ( 43.46%)
+Elapsed stddev        0.01 (  0.00%)        0.01 (-43.09%)        0.01 ( 15.42%)        0.01 ( 23.42%)        0.00 ( 89.78%)        0.01 ( -7.15%)        0.00 ( 76.69%)        0.02 (-91.77%)
+Elapsed max           3.41 (  0.00%)        3.43 ( -0.52%)        3.03 ( 11.29%)        2.72 ( 20.16%)        2.67 ( 21.63%)        2.40 ( 29.50%)        2.21 ( 35.21%)        1.96 ( 42.39%)
+Elapsed range         0.03 (  0.00%)        0.04 (-51.16%)        0.02 (  6.27%)        0.02 ( 14.67%)        0.00 ( 88.90%)        0.03 (-19.18%)        0.01 ( 73.70%)        0.06 (-113.35%
+
+The second set of measurements simulates the worst possible conditions for
+batching by using numactl --interleave, so that there is in fact only one
+page per pagevec.  Even in this case the series seems to improve
+performance thanks to reduced atomic operations and removal of
+lru_add_drain().
+
+timedmunlock
+                            3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3
+                                   0                     1                     2                     3                     4                     5                     6                     7
+Elapsed min           4.00 (  0.00%)        4.04 ( -0.93%)        3.87 (  3.37%)        3.72 (  6.94%)        3.81 (  4.72%)        3.69 (  7.82%)        3.64 (  8.92%)        3.41 ( 14.81%)
+Elapsed mean          4.17 (  0.00%)        4.15 (  0.51%)        4.03 (  3.49%)        3.89 (  6.84%)        3.86 (  7.48%)        3.89 (  6.69%)        3.70 ( 11.27%)        3.48 ( 16.59%)
+Elapsed stddev        0.16 (  0.00%)        0.08 ( 50.76%)        0.10 ( 41.58%)        0.16 (  4.59%)        0.05 ( 72.38%)        0.19 (-12.91%)        0.05 ( 68.09%)        0.06 ( 66.03%)
+Elapsed max           4.34 (  0.00%)        4.32 (  0.56%)        4.19 (  3.62%)        4.12 (  5.15%)        3.91 (  9.88%)        4.12 (  5.25%)        3.80 ( 12.58%)        3.56 ( 18.08%)
+Elapsed range         0.34 (  0.00%)        0.28 ( 17.91%)        0.32 (  6.45%)        0.40 (-15.73%)        0.10 ( 70.06%)        0.43 (-24.84%)        0.15 ( 55.32%)        0.15 ( 56.16%)
+
+For completeness, a third set of measurements shows the situation where
+THP is enabled and allocations are again done on a single NUMA node.  Here
+munlock() is already very fast thanks to huge pages, and this series does
+not compromise that performance.  It seems that the removal of call to
+lru_add_drain() still helps a bit.
+
+timedmunlock
+                            3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3
+                                   0                     1                     2                     3                     4                     5                     6                     7
+Elapsed min           0.01 (  0.00%)        0.01 ( -0.11%)        0.01 (  6.59%)        0.01 (  5.41%)        0.01 (  5.45%)        0.01 (  5.03%)        0.01 (  6.08%)        0.01 (  5.20%)
+Elapsed mean          0.01 (  0.00%)        0.01 ( -0.27%)        0.01 (  6.39%)        0.01 (  5.30%)        0.01 (  5.32%)        0.01 (  5.03%)        0.01 (  5.97%)        0.01 (  5.22%)
+Elapsed stddev        0.00 (  0.00%)        0.00 ( -9.59%)        0.00 ( 10.77%)        0.00 (  3.24%)        0.00 ( 24.42%)        0.00 ( 31.86%)        0.00 ( -7.46%)        0.00 (  6.11%)
+Elapsed max           0.01 (  0.00%)        0.01 ( -0.01%)        0.01 (  6.83%)        0.01 (  5.42%)        0.01 (  5.79%)        0.01 (  5.53%)        0.01 (  6.08%)        0.01 (  5.26%)
+Elapsed range         0.00 (  0.00%)        0.00 (  7.30%)        0.00 ( 24.38%)        0.00 (  6.10%)        0.00 ( 30.79%)        0.00 ( 42.52%)        0.00 (  6.11%)        0.00 ( 10.07%)
+
+
+
+This patch (of 7):
+
+In putback_lru_page() since commit c53954a092 (""mm: remove lru parameter
+from __lru_cache_add and lru_cache_add_lru") it is no longer needed to
+determine lru list via page_lru_base_type().
+
+This patch replaces it with simple flag is_unevictable which says that the
+page was put on the inevictable list.  This is the only information that
+matters in subsequent tests.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Jörn Engel <joern@logfs.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/task_work.c |   36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ mm/vmscan.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/task_work.c~task_work-documentation kernel/task_work.c
---- a/kernel/task_work.c~task_work-documentation
-+++ a/kernel/task_work.c
-@@ -4,6 +4,23 @@
- 
- static struct callback_head work_exited; /* all we need is ->next == NULL */
- 
-+/**
-+ * task_work_add - ask the @task to execute @work->func()
-+ * @task: the task which should run the callback
-+ * @work: the callback to run
-+ * @notify: send the notification if true
-+ *
-+ * Queue @work for task_work_run() below and notify the @task if @notify.
-+ * Fails if the @task is exiting/exited and thus it can't process this @work.
-+ * Otherwise @work->func() will be called when the @task returns from kernel
-+ * mode or exits.
-+ *
-+ * This is like the signal handler which runs in kernel mode, but it doesn't
-+ * try to wake up the @task.
-+ *
-+ * RETURNS:
-+ * 0 if succeeds or -ESRCH.
-+ */
- int
- task_work_add(struct task_struct *task, struct callback_head *work, bool notify)
+diff -puN mm/vmscan.c~mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type mm/vmscan.c
+--- a/mm/vmscan.c~mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type
++++ a/mm/vmscan.c
+@@ -545,7 +545,7 @@ int remove_mapping(struct address_space
+  */
+ void putback_lru_page(struct page *page)
  {
-@@ -21,6 +38,17 @@ task_work_add(struct task_struct *task,
- 	return 0;
- }
+-	int lru;
++	bool is_unevictable;
+ 	int was_unevictable = PageUnevictable(page);
  
-+/**
-+ * task_work_cancel - cancel a pending work added by task_work_add()
-+ * @task: the task which should execute the work
-+ * @func: identifies the work to remove
-+ *
-+ * Find the last queued pending work with ->func == @func and remove
-+ * it from queue.
-+ *
-+ * RETURNS:
-+ * The found work or NULL if not found.
-+ */
- struct callback_head *
- task_work_cancel(struct task_struct *task, task_work_func_t func)
- {
-@@ -46,6 +74,14 @@ task_work_cancel(struct task_struct *tas
- 	return work;
- }
+ 	VM_BUG_ON(PageLRU(page));
+@@ -560,14 +560,14 @@ redo:
+ 		 * unevictable page on [in]active list.
+ 		 * We know how to handle that.
+ 		 */
+-		lru = page_lru_base_type(page);
++		is_unevictable = false;
+ 		lru_cache_add(page);
+ 	} else {
+ 		/*
+ 		 * Put unevictable pages directly on zone's unevictable
+ 		 * list.
+ 		 */
+-		lru = LRU_UNEVICTABLE;
++		is_unevictable = true;
+ 		add_page_to_unevictable_list(page);
+ 		/*
+ 		 * When racing with an mlock or AS_UNEVICTABLE clearing
+@@ -587,7 +587,7 @@ redo:
+ 	 * page is on unevictable list, it never be freed. To avoid that,
+ 	 * check after we added it to the list, again.
+ 	 */
+-	if (lru == LRU_UNEVICTABLE && page_evictable(page)) {
++	if (is_unevictable && page_evictable(page)) {
+ 		if (!isolate_lru_page(page)) {
+ 			put_page(page);
+ 			goto redo;
+@@ -598,9 +598,9 @@ redo:
+ 		 */
+ 	}
  
-+/**
-+ * task_work_run - execute the works added by task_work_add()
-+ *
-+ * Flush the pending works. Should be used by the core kernel code.
-+ * Called before the task returns to the user-mode or stops, or when
-+ * it exits. In the latter case task_work_add() can no longer add the
-+ * new work after task_work_run() returns.
-+ */
- void task_work_run(void)
- {
- 	struct task_struct *task = current;
+-	if (was_unevictable && lru != LRU_UNEVICTABLE)
++	if (was_unevictable && !is_unevictable)
+ 		count_vm_event(UNEVICTABLE_PGRESCUED);
+-	else if (!was_unevictable && lru == LRU_UNEVICTABLE)
++	else if (!was_unevictable && is_unevictable)
+ 		count_vm_event(UNEVICTABLE_PGCULLED);
+ 
+ 	put_page(page);		/* drop ref from isolate */
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
-mm-shift-vm_grows-check-from-mmap_region-to-do_mmap_pgoff-v2.patch
-mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
-mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
-kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
-task_work-minor-cleanups.patch
-task_work-documentation.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-__ptrace_may_access-should-not-deny-sub-threads.patch
-signals-eventpoll-set-saved_sigmask-at-the-start.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-exec-introduce-exec_binprm-for-depth-==-0-code.patch
-exec-kill-int-depth-in-search_binary_handler.patch
-exec-proc_exec_connector-should-be-called-only-once.patch
-exec-move-allow_write_access-fput-to-exec_binprm.patch
-exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
-exec-cleanup-the-config_modules-logic.patch
-exec-dont-retry-if-request_module-fails.patch
-exec-cleanup-the-error-handling-in-search_binary_handler.patch
-linux-next.patch
+mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
+mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
+mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec.patch
+mm-munlock-batch-nr_mlock-zone-state-updates.patch
+mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
+mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
+mm-munlock-remove-redundant-get_page-put_page-pair-on-the-fast-path.patch
+mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask.patch
 
