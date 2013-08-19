@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fix-mistake-in-the-description-of-committed_as.patch added to
- -mm tree
-Date: Mon, 19 Aug 2013 16:06:21 -0700
-Message-ID: <5212a4ed.kig8vdl6IYjk03dO%akpm@linux-foundation.org>
+Subject: + rtc-rtc-nuc900-use-null-instead-of-0.patch added to -mm tree
+Date: Mon, 19 Aug 2013 16:24:32 -0700
+Message-ID: <5212a930.KdGoE8guIoRVztUG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55308 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55539 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332Ab3HSXGV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 19:06:21 -0400
+	with ESMTP id S1751204Ab3HSXYd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 19:24:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mvaliyav@redhat.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + fix-mistake-in-the-description-of-committed_as.patch added to -mm tree
-To: mvaliyav@redhat.com
+Subject: + rtc-rtc-nuc900-use-null-instead-of-0.patch added to -mm tree
+To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Mon, 19 Aug 2013 16:06:21 -0700
+Date: Mon, 19 Aug 2013 16:24:32 -0700
 
 
 The patch titled
-     Subject: Documentation/filesystems/proc.txt: fix mistake in the description of Committed_AS
+     Subject: drivers/rtc/rtc-nuc900.c: use NULL instead of 0
 has been added to the -mm tree.  Its filename is
-     fix-mistake-in-the-description-of-committed_as.patch
+     rtc-rtc-nuc900-use-null-instead-of-0.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-mistake-in-the-description-of-committed_as.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-nuc900-use-null-instead-of-0.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-mistake-in-the-description-of-committed_as.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-nuc900-use-null-instead-of-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,50 +43,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minto Joseph <mvaliyav@redhat.com>
-Subject: Documentation/filesystems/proc.txt: fix mistake in the description of Committed_AS
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/rtc/rtc-nuc900.c: use NULL instead of 0
 
-Fix mistake in the description of Committed_AS in kernel documentation.
+check_rtc_access_enable() returns pointer, thus NULL should be used
+instead of 0 in order to fix the following sparse warning:
 
-Signed-off-by: Minto Joseph <mvaliyav@redhat.com>
+drivers/rtc/rtc-nuc900.c:102:16: warning: Using plain integer as NULL pointer
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-nuc900.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~fix-mistake-in-the-description-of-committed_as Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~fix-mistake-in-the-description-of-committed_as
-+++ a/Documentation/filesystems/proc.txt
-@@ -854,16 +854,15 @@ Committed_AS: The amount of memory prese
-               The committed memory is a sum of all of the memory which
-               has been allocated by processes, even if it has not been
-               "used" by them as of yet. A process which malloc()'s 1G
--              of memory, but only touches 300M of it will only show up
--              as using 300M of memory even if it has the address space
--              allocated for the entire 1G. This 1G is memory which has
--              been "committed" to by the VM and can be used at any time
--              by the allocating application. With strict overcommit
--              enabled on the system (mode 2 in 'vm.overcommit_memory'),
--              allocations which would exceed the CommitLimit (detailed
--              above) will not be permitted. This is useful if one needs
--              to guarantee that processes will not fail due to lack of
--              memory once that memory has been successfully allocated.
-+              of memory, but only touches 300M of it will show up as
-+	      using 1G. This 1G is memory which has been "committed" to
-+              by the VM and can be used at any time by the allocating
-+              application. With strict overcommit enabled on the system
-+              (mode 2 in 'vm.overcommit_memory'),allocations which would
-+              exceed the CommitLimit (detailed above) will not be permitted.
-+              This is useful if one needs to guarantee that processes will
-+              not fail due to lack of memory once that memory has been
-+              successfully allocated.
- VmallocTotal: total size of vmalloc memory area
-  VmallocUsed: amount of vmalloc area which is used
- VmallocChunk: largest contiguous block of vmalloc area which is free
+diff -puN drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-use-null-instead-of-0 drivers/rtc/rtc-nuc900.c
+--- a/drivers/rtc/rtc-nuc900.c~rtc-rtc-nuc900-use-null-instead-of-0
++++ a/drivers/rtc/rtc-nuc900.c
+@@ -99,7 +99,7 @@ static int *check_rtc_access_enable(stru
+ 	if (!timeout)
+ 		return ERR_PTR(-EPERM);
+ 
+-	return 0;
++	return NULL;
+ }
+ 
+ static int nuc900_rtc_bcd2bin(unsigned int timereg,
 _
 
-Patches currently in -mm which might be from mvaliyav@redhat.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-fix-mistake-in-the-description-of-committed_as.patch
+block-replace-strict_strtoul-with-kstrtoul.patch
+block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch
+drivers-block-mg_diskc-make-mg_times_out-static.patch
+mm-replace-strict_strtoul-with-kstrtoul.patch
+drivers-firmware-google-gsmic-replace-strict_strtoul-with-kstrtoul.patch
+kernel-replace-strict_strto-with-kstrto.patch
+rtc-rtc-nuc900-use-null-instead-of-0.patch
+documentation-replace-strict_strtoul-with-kstrtoul.patch
+w1-replace-strict_strtol-with-kstrtol.patch
+linux-next.patch
 
