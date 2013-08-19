@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
+Subject: +
+ mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
  added to -mm tree
-Date: Mon, 19 Aug 2013 16:45:02 -0700
-Message-ID: <5212adfe.GUvwgpcrBm2LRujL%akpm@linux-foundation.org>
+Date: Mon, 19 Aug 2013 16:50:05 -0700
+Message-ID: <5212af2d.sxttPZBs+zrTEL66%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55761 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55777 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165Ab3HSXpD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 19:45:03 -0400
+	with ESMTP id S1751204Ab3HSXuF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 19:50:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, n-horiguchi@ah.jp.nec.com
 
-Subject: + genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch added to -mm tree
-To: geert@linux-m68k.org,tglx@linutronix.de
+Subject: + mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch added to -mm tree
+To: n-horiguchi@ah.jp.nec.com,fengguang.wu@intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 19 Aug 2013 16:45:02 -0700
+Date: Mon, 19 Aug 2013 16:50:05 -0700
 
 
 The patch titled
-     Subject: genirq: correct fuzzy and fragile IRQ_RETVAL() definition
+     Subject: [PATCH] fix return type of htlb_alloc_mask
 has been added to the -mm tree.  Its filename is
-     genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
+     mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,50 +45,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: genirq: correct fuzzy and fragile IRQ_RETVAL() definition
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: [PATCH] fix return type of htlb_alloc_mask
 
-commit bedd30d986a0 ("genirq: make irqreturn_t an enum") blindly replaced
-"0" by "IRQ_NONE" in the "IRQ_RETVAL(x)" macro definition.
+This is to fix the incorrect return type of htlb_alloc_mask().
 
-However, as "x" is a condition, "0" meant "boolean false", not an
-irqreturn_t value.
-
-All of this worked, and kept working after the addition of IRQ_WAKE_THREAD,
-as
-  - both "boolean false" and "IRQ_NONE" are "0" (for the comparison),
-  - "boolean true" and "boolean false" nicely map to the correct values of
-    "IRQ_HANDLED" and "IRQ_NONE" (for the return value).
-
-Correct the macro definition for clarity and future-proofness.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irqreturn.h |    2 +-
+ mm/hugetlb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/irqreturn.h~genirq-correct-fuzzy-and-fragile-irq_retval-definition include/linux/irqreturn.h
---- a/include/linux/irqreturn.h~genirq-correct-fuzzy-and-fragile-irq_retval-definition
-+++ a/include/linux/irqreturn.h
-@@ -14,6 +14,6 @@ enum irqreturn {
- };
+diff -puN mm/hugetlb.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix
++++ a/mm/hugetlb.c
+@@ -539,7 +539,7 @@ static struct page *dequeue_huge_page_no
+ }
  
- typedef enum irqreturn irqreturn_t;
--#define IRQ_RETVAL(x)	((x) != IRQ_NONE)
-+#define IRQ_RETVAL(x)	((x) ? IRQ_HANDLED : IRQ_NONE)
- 
- #endif
+ /* Movability of hugepages depends on migration support. */
+-static inline int htlb_alloc_mask(struct hstate *h)
++static inline gfp_t htlb_alloc_mask(struct hstate *h)
+ {
+ 	if (hugepages_treat_as_movable || hugepage_migration_support(h))
+ 		return GFP_HIGHUSER_MOVABLE;
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
-syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
-scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
-lz4-fix-compression-decompression-signedness-mismatch.patch
-linux-next.patch
+mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
+mm-hugetlb-trivial-commenting-fix.patch
+mm-hugetlb-clean-up-alloc_huge_page.patch
+mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
+mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
+mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
+mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
+mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
+mm-hugetlb-change-variable-name-reservations-to-resv.patch
+mm-hugetlb-fix-subpool-accounting-handling.patch
+mm-hugetlb-remove-useless-check-about-mapping-type.patch
+mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
+mm-hugetlb-return-a-reserved-page-to-a-reserved-pool-if-failed.patch
+mm-migrate-make-core-migration-code-aware-of-hugepage.patch
+mm-soft-offline-use-migrate_pages-instead-of-migrate_huge_page.patch
+migrate-add-hugepage-migration-code-to-migrate_pages.patch
+mm-migrate-add-hugepage-migration-code-to-move_pages.patch
+mm-mbind-add-hugepage-migration-code-to-mbind.patch
+mm-migrate-remove-vm_hugetlb-from-vma-flag-check-in-vma_migratable.patch
+mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage.patch
+mm-migrate-check-movability-of-hugepage-in-unmap_and_move_huge_page.patch
+mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
+mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2.patch
+mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
+mm-mempolicy-rename-check_range-to-queue_pages_range.patch
 
