@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
- added to -mm tree
-Date: Mon, 19 Aug 2013 15:49:02 -0700
-Message-ID: <5212a0de.zvLrzTHP5BlutVDy%akpm@linux-foundation.org>
+Subject: + mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch added to -mm tree
+Date: Mon, 19 Aug 2013 15:49:04 -0700
+Message-ID: <5212a0e0.66ayxretnYOr7bHS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55133 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab3HSWtD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 18:49:03 -0400
+	with ESMTP id S1751148Ab3HSWtF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 18:49:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, joern@logfs.org, hughd@google.com, hannes@cmpxchg.org, vbabka@suse.cz
 
-Subject: + mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch added to -mm tree
+Subject: + mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch added to -mm tree
 To: vbabka@suse.cz,hannes@cmpxchg.org,hughd@google.com,joern@logfs.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,walken@google.com
 From: akpm@linux-foundation.org
-Date: Mon, 19 Aug 2013 15:49:02 -0700
+Date: Mon, 19 Aug 2013 15:49:04 -0700
 
 
 The patch titled
-     Subject: mm: putback_lru_page: remove unnecessary call to page_lru_base_type()
+     Subject: mm: munlock: remove unnecessary call to lru_add_drain()
 has been added to the -mm tree.  Its filename is
-     mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
+     mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,102 +44,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: putback_lru_page: remove unnecessary call to page_lru_base_type()
+Subject: mm: munlock: remove unnecessary call to lru_add_drain()
 
-The goal of this patch series is to improve performance of munlock() of
-large mlocked memory areas on systems without THP.  This is motivated by
-reported very long times of crash recovery of processes with such areas,
-where munlock() can take several seconds.  See
-http://lwn.net/Articles/548108/
+In munlock_vma_range(), lru_add_drain() is currently called in a loop
+before each munlock_vma_page() call.
 
-The work was driven by a simple benchmark (to be included in mmtests) that
-mmaps() e.g.  56GB with MAP_LOCKED | MAP_POPULATE and measures the time of
-munlock().  Profiling was performed by attaching operf --pid to the
-process and sending a signal to trigger the munlock() part and then notify
-bach the monitoring wrapper to stop operf, so that only munlock() appears
-in the profile.
+This is suboptimal for performance when munlocking many pages.  The
+benefits of per-cpu pagevec for batching the LRU putback are removed since
+the pagevec only holds at most one page from the previous loop's
+iteration.
 
-The profiles have shown that CPU time is spent mostly by atomic operations
-and repeated locking per single pages. This series aims to reduce both, starting
-from simpler to more complex changes.
+The lru_add_drain() call also does not serve any purposes for correctness
+- it does not even drain pagavecs of all cpu's.  The munlock code already
+expects and handles situations where a page cannot be isolated from the
+LRU (e.g.  because it is on some per-cpu pagevec).
 
-Patch 1 performs a simple cleanup in putback_lru_page() so that page lru base
-	type is not determined without being actually needed.
+The history of the (not commented) call also suggest that it appears there
+as an oversight rather than intentionally.  Before commit ff6a6da6 ("mm:
+accelerate munlock() treatment of THP pages") the call happened only once
+upon entering the function.  The commit has moved the call into the while
+loope.  So while the other changes in the commit improved munlock
+performance for THP pages, it introduced the abovementioned suboptimal
+per-cpu pagevec usage.
 
-Patch 2 removes an unnecessary call to lru_add_drain() which drains the per-cpu
-	pagevec after each munlocked page is put there.
+Further in history, before commit 408e82b7 ("mm: munlock use
+follow_page"), munlock_vma_pages_range() was just a wrapper around
+__mlock_vma_pages_range which performed both mlock and munlock depending
+on a flag.  However, before ba470de4 ("mmap: handle mlocked pages during
+map, remap, unmap") the function handled only mlock, not munlock.  The
+lru_add_drain call thus comes from the implementation in commit b291f000
+("mlock: mlocked pages are unevictable" and was intended only for
+mlocking, not munlocking.  The original intention of draining the LRU
+pagevec at mlock time was to ensure the pages were on the LRU before the
+lock operation so that they could be placed on the unevictable list
+immediately.  There is very little motivation to do the same in the
+munlock path this, particularly for every single page.
 
-Patch 3 changes munlock_vma_range() to use an on-stack pagevec for isolating
-	multiple non-THP pages under a single lru_lock instead of locking and
-	processing each page separately.
-
-Patch 4 changes the NR_MLOCK accounting to be called only once per the pvec
-	introduced by previous patch.
-
-Patch 5 uses the introduced pagevec to batch also the work of putback_lru_page
-	when possible, bypassing the per-cpu pvec and associated overhead.
-
-Patch 6 removes a redundant get_page/put_page pair which saves costly atomic
-	operations.
-
-Patch 7 avoids calling follow_page_mask() on each individual page, and obtains
-	multiple page references under a single page table lock where possible.
-
-Measurements were made using 3.11-rc3 as a baseline.  The first set of
-measurements shows the possibly ideal conditions where batching should
-help the most.  All memory is allocated from a single NUMA node and THP is
-disabled.
-
-timedmunlock
-                            3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3
-                                   0                     1                     2                     3                     4                     5                     6                     7
-Elapsed min           3.38 (  0.00%)        3.39 ( -0.13%)        3.00 ( 11.33%)        2.70 ( 20.20%)        2.67 ( 21.11%)        2.37 ( 29.88%)        2.20 ( 34.91%)        1.91 ( 43.59%)
-Elapsed mean          3.39 (  0.00%)        3.40 ( -0.23%)        3.01 ( 11.33%)        2.70 ( 20.26%)        2.67 ( 21.21%)        2.38 ( 29.88%)        2.21 ( 34.93%)        1.92 ( 43.46%)
-Elapsed stddev        0.01 (  0.00%)        0.01 (-43.09%)        0.01 ( 15.42%)        0.01 ( 23.42%)        0.00 ( 89.78%)        0.01 ( -7.15%)        0.00 ( 76.69%)        0.02 (-91.77%)
-Elapsed max           3.41 (  0.00%)        3.43 ( -0.52%)        3.03 ( 11.29%)        2.72 ( 20.16%)        2.67 ( 21.63%)        2.40 ( 29.50%)        2.21 ( 35.21%)        1.96 ( 42.39%)
-Elapsed range         0.03 (  0.00%)        0.04 (-51.16%)        0.02 (  6.27%)        0.02 ( 14.67%)        0.00 ( 88.90%)        0.03 (-19.18%)        0.01 ( 73.70%)        0.06 (-113.35%
-
-The second set of measurements simulates the worst possible conditions for
-batching by using numactl --interleave, so that there is in fact only one
-page per pagevec.  Even in this case the series seems to improve
-performance thanks to reduced atomic operations and removal of
-lru_add_drain().
-
-timedmunlock
-                            3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3
-                                   0                     1                     2                     3                     4                     5                     6                     7
-Elapsed min           4.00 (  0.00%)        4.04 ( -0.93%)        3.87 (  3.37%)        3.72 (  6.94%)        3.81 (  4.72%)        3.69 (  7.82%)        3.64 (  8.92%)        3.41 ( 14.81%)
-Elapsed mean          4.17 (  0.00%)        4.15 (  0.51%)        4.03 (  3.49%)        3.89 (  6.84%)        3.86 (  7.48%)        3.89 (  6.69%)        3.70 ( 11.27%)        3.48 ( 16.59%)
-Elapsed stddev        0.16 (  0.00%)        0.08 ( 50.76%)        0.10 ( 41.58%)        0.16 (  4.59%)        0.05 ( 72.38%)        0.19 (-12.91%)        0.05 ( 68.09%)        0.06 ( 66.03%)
-Elapsed max           4.34 (  0.00%)        4.32 (  0.56%)        4.19 (  3.62%)        4.12 (  5.15%)        3.91 (  9.88%)        4.12 (  5.25%)        3.80 ( 12.58%)        3.56 ( 18.08%)
-Elapsed range         0.34 (  0.00%)        0.28 ( 17.91%)        0.32 (  6.45%)        0.40 (-15.73%)        0.10 ( 70.06%)        0.43 (-24.84%)        0.15 ( 55.32%)        0.15 ( 56.16%)
-
-For completeness, a third set of measurements shows the situation where
-THP is enabled and allocations are again done on a single NUMA node.  Here
-munlock() is already very fast thanks to huge pages, and this series does
-not compromise that performance.  It seems that the removal of call to
-lru_add_drain() still helps a bit.
-
-timedmunlock
-                            3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3
-                                   0                     1                     2                     3                     4                     5                     6                     7
-Elapsed min           0.01 (  0.00%)        0.01 ( -0.11%)        0.01 (  6.59%)        0.01 (  5.41%)        0.01 (  5.45%)        0.01 (  5.03%)        0.01 (  6.08%)        0.01 (  5.20%)
-Elapsed mean          0.01 (  0.00%)        0.01 ( -0.27%)        0.01 (  6.39%)        0.01 (  5.30%)        0.01 (  5.32%)        0.01 (  5.03%)        0.01 (  5.97%)        0.01 (  5.22%)
-Elapsed stddev        0.00 (  0.00%)        0.00 ( -9.59%)        0.00 ( 10.77%)        0.00 (  3.24%)        0.00 ( 24.42%)        0.00 ( 31.86%)        0.00 ( -7.46%)        0.00 (  6.11%)
-Elapsed max           0.01 (  0.00%)        0.01 ( -0.01%)        0.01 (  6.83%)        0.01 (  5.42%)        0.01 (  5.79%)        0.01 (  5.53%)        0.01 (  6.08%)        0.01 (  5.26%)
-Elapsed range         0.00 (  0.00%)        0.00 (  7.30%)        0.00 ( 24.38%)        0.00 (  6.10%)        0.00 ( 30.79%)        0.00 ( 42.52%)        0.00 (  6.11%)        0.00 ( 10.07%)
-
-
-
-This patch (of 7):
-
-In putback_lru_page() since commit c53954a092 (""mm: remove lru parameter
-from __lru_cache_add and lru_cache_add_lru") it is no longer needed to
-determine lru list via page_lru_base_type().
-
-This patch replaces it with simple flag is_unevictable which says that the
-page was put on the inevictable list.  This is the only information that
-matters in subsequent tests.
+This patch therefore removes the call completely.  After removing the
+call, a 10% speedup was measured for munlock() of a 56GB large memory area
+with THP disabled.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Jörn Engel <joern@logfs.org>
@@ -155,59 +96,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/mlock.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type mm/vmscan.c
---- a/mm/vmscan.c~mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type
-+++ a/mm/vmscan.c
-@@ -545,7 +545,7 @@ int remove_mapping(struct address_space
-  */
- void putback_lru_page(struct page *page)
- {
--	int lru;
-+	bool is_unevictable;
- 	int was_unevictable = PageUnevictable(page);
- 
- 	VM_BUG_ON(PageLRU(page));
-@@ -560,14 +560,14 @@ redo:
- 		 * unevictable page on [in]active list.
- 		 * We know how to handle that.
- 		 */
--		lru = page_lru_base_type(page);
-+		is_unevictable = false;
- 		lru_cache_add(page);
- 	} else {
- 		/*
- 		 * Put unevictable pages directly on zone's unevictable
- 		 * list.
- 		 */
--		lru = LRU_UNEVICTABLE;
-+		is_unevictable = true;
- 		add_page_to_unevictable_list(page);
- 		/*
- 		 * When racing with an mlock or AS_UNEVICTABLE clearing
-@@ -587,7 +587,7 @@ redo:
- 	 * page is on unevictable list, it never be freed. To avoid that,
- 	 * check after we added it to the list, again.
- 	 */
--	if (lru == LRU_UNEVICTABLE && page_evictable(page)) {
-+	if (is_unevictable && page_evictable(page)) {
- 		if (!isolate_lru_page(page)) {
- 			put_page(page);
- 			goto redo;
-@@ -598,9 +598,9 @@ redo:
- 		 */
- 	}
- 
--	if (was_unevictable && lru != LRU_UNEVICTABLE)
-+	if (was_unevictable && !is_unevictable)
- 		count_vm_event(UNEVICTABLE_PGRESCUED);
--	else if (!was_unevictable && lru == LRU_UNEVICTABLE)
-+	else if (!was_unevictable && is_unevictable)
- 		count_vm_event(UNEVICTABLE_PGCULLED);
- 
- 	put_page(page);		/* drop ref from isolate */
+diff -puN mm/mlock.c~mm-munlock-remove-unnecessary-call-to-lru_add_drain mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-remove-unnecessary-call-to-lru_add_drain
++++ a/mm/mlock.c
+@@ -247,7 +247,6 @@ void munlock_vma_pages_range(struct vm_a
+ 					&page_mask);
+ 		if (page && !IS_ERR(page)) {
+ 			lock_page(page);
+-			lru_add_drain();
+ 			/*
+ 			 * Any THP page found by follow_page_mask() may have
+ 			 * gotten split before reaching munlock_vma_page(),
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
