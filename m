@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch added to -mm tree
-Date: Mon, 19 Aug 2013 15:49:04 -0700
-Message-ID: <5212a0e0.66ayxretnYOr7bHS%akpm@linux-foundation.org>
+Subject: + mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch added to -mm tree
+Date: Mon, 19 Aug 2013 15:49:09 -0700
+Message-ID: <5212a0e5.i9rnwyv4XG74IFw6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55133 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55158 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab3HSWtF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 18:49:05 -0400
+	with ESMTP id S1751425Ab3HSWtK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 18:49:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, joern@logfs.org, hughd@google.com, hannes@cmpxchg.org, vbabka@suse.cz
 
-Subject: + mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch added to -mm tree
+Subject: + mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch added to -mm tree
 To: vbabka@suse.cz,hannes@cmpxchg.org,hughd@google.com,joern@logfs.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,walken@google.com
 From: akpm@linux-foundation.org
-Date: Mon, 19 Aug 2013 15:49:04 -0700
+Date: Mon, 19 Aug 2013 15:49:09 -0700
 
 
 The patch titled
-     Subject: mm: munlock: remove unnecessary call to lru_add_drain()
+     Subject: mm: munlock: bypass per-cpu pvec for putback_lru_page
 has been added to the -mm tree.  Its filename is
-     mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
+     mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,45 +44,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: munlock: remove unnecessary call to lru_add_drain()
+Subject: mm: munlock: bypass per-cpu pvec for putback_lru_page
 
-In munlock_vma_range(), lru_add_drain() is currently called in a loop
-before each munlock_vma_page() call.
+After introducing batching by pagevecs into munlock_vma_range(), we can
+further improve performance by bypassing the copying into per-cpu pagevec
+and the get_page/put_page pair associated with that.  Instead we perform
+LRU putback directly from our pagevec.  However, this is possible only for
+single-mapped pages that are evictable after munlock.  Unevictable pages
+require rechecking after putting on the unevictable list, so for those we
+fallback to putback_lru_page(), hich handles that.
 
-This is suboptimal for performance when munlocking many pages.  The
-benefits of per-cpu pagevec for batching the LRU putback are removed since
-the pagevec only holds at most one page from the previous loop's
-iteration.
-
-The lru_add_drain() call also does not serve any purposes for correctness
-- it does not even drain pagavecs of all cpu's.  The munlock code already
-expects and handles situations where a page cannot be isolated from the
-LRU (e.g.  because it is on some per-cpu pagevec).
-
-The history of the (not commented) call also suggest that it appears there
-as an oversight rather than intentionally.  Before commit ff6a6da6 ("mm:
-accelerate munlock() treatment of THP pages") the call happened only once
-upon entering the function.  The commit has moved the call into the while
-loope.  So while the other changes in the commit improved munlock
-performance for THP pages, it introduced the abovementioned suboptimal
-per-cpu pagevec usage.
-
-Further in history, before commit 408e82b7 ("mm: munlock use
-follow_page"), munlock_vma_pages_range() was just a wrapper around
-__mlock_vma_pages_range which performed both mlock and munlock depending
-on a flag.  However, before ba470de4 ("mmap: handle mlocked pages during
-map, remap, unmap") the function handled only mlock, not munlock.  The
-lru_add_drain call thus comes from the implementation in commit b291f000
-("mlock: mlocked pages are unevictable" and was intended only for
-mlocking, not munlocking.  The original intention of draining the LRU
-pagevec at mlock time was to ensure the pages were on the LRU before the
-lock operation so that they could be placed on the unevictable list
-immediately.  There is very little motivation to do the same in the
-munlock path this, particularly for every single page.
-
-This patch therefore removes the call completely.  After removing the
-call, a 10% speedup was measured for munlock() of a 56GB large memory area
-with THP disabled.
+After this patch, a 13% speedup was measured for munlocking a 56GB large
+memory area with THP disabled.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Jörn Engel <joern@logfs.org>
@@ -96,20 +69,110 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/mlock.c |   70 ++++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 66 insertions(+), 4 deletions(-)
 
-diff -puN mm/mlock.c~mm-munlock-remove-unnecessary-call-to-lru_add_drain mm/mlock.c
---- a/mm/mlock.c~mm-munlock-remove-unnecessary-call-to-lru_add_drain
+diff -puN mm/mlock.c~mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page
 +++ a/mm/mlock.c
-@@ -247,7 +247,6 @@ void munlock_vma_pages_range(struct vm_a
- 					&page_mask);
- 		if (page && !IS_ERR(page)) {
+@@ -227,6 +227,49 @@ static int __mlock_posix_error_return(lo
+ }
+ 
+ /*
++ * Prepare page for fast batched LRU putback via putback_lru_evictable_pagevec()
++ *
++ * The fast path is available only for evictable pages with single mapping.
++ * Then we can bypass the per-cpu pvec and get better performance.
++ * when mapcount > 1 we need try_to_munlock() which can fail.
++ * when !page_evictable(), we need the full redo logic of putback_lru_page to
++ * avoid leaving evictable page in unevictable list.
++ *
++ * In case of success, @page is added to @pvec and @pgrescued is incremented
++ * in case that the page was previously unevictable. @page is also unlocked.
++ */
++static bool __putback_lru_fast_prepare(struct page *page, struct pagevec *pvec,
++		int *pgrescued)
++{
++	VM_BUG_ON(PageLRU(page));
++	VM_BUG_ON(!PageLocked(page));
++
++	if (page_mapcount(page) <= 1 && page_evictable(page)) {
++		pagevec_add(pvec, page);
++		if (TestClearPageUnevictable(page))
++			(*pgrescued)++;
++		unlock_page(page);
++		return true;
++	}
++
++	return false;
++}
++
++/*
++ * Putback multiple evictable pages to the LRU
++ *
++ * Batched putback of evictable pages that bypasses the per-cpu pvec. Some of
++ * the pages might have meanwhile become unevictable but that is OK.
++ */
++static void __putback_lru_fast(struct pagevec *pvec, int pgrescued)
++{
++	count_vm_events(UNEVICTABLE_PGMUNLOCKED, pagevec_count(pvec));
++	/* This includes put_page so we don't call it explicitly */
++	__pagevec_lru_add(pvec);
++	count_vm_events(UNEVICTABLE_PGRESCUED, pgrescued);
++}
++
++/*
+  * Munlock a batch of pages from the same zone
+  *
+  * The work is split to two main phases. First phase clears the Mlocked flag
+@@ -239,6 +282,8 @@ static void __munlock_pagevec(struct pag
+ 	int i;
+ 	int nr = pagevec_count(pvec);
+ 	int delta_munlocked = -nr;
++	struct pagevec pvec_putback;
++	int pgrescued = 0;
+ 
+ 	/* Phase 1: page isolation */
+ 	spin_lock_irq(&zone->lru_lock);
+@@ -276,17 +321,34 @@ skip_munlock:
+ 	__mod_zone_page_state(zone, NR_MLOCK, delta_munlocked);
+ 	spin_unlock_irq(&zone->lru_lock);
+ 
+-	/* Phase 2: page munlock and putback */
++	/* Phase 2: page munlock */
++	pagevec_init(&pvec_putback, 0);
+ 	for (i = 0; i < nr; i++) {
+ 		struct page *page = pvec->pages[i];
+ 
+ 		if (page) {
  			lock_page(page);
--			lru_add_drain();
- 			/*
- 			 * Any THP page found by follow_page_mask() may have
- 			 * gotten split before reaching munlock_vma_page(),
+-			__munlock_isolated_page(page);
+-			unlock_page(page);
+-			put_page(page); /* pin from follow_page_mask() */
++			if (!__putback_lru_fast_prepare(page, &pvec_putback,
++					&pgrescued)) {
++				/* Slow path */
++				__munlock_isolated_page(page);
++				unlock_page(page);
++			}
+ 		}
+ 	}
++
++	/* Phase 3: page putback for pages that qualified for the fast path */
++	if (pagevec_count(&pvec_putback))
++		__putback_lru_fast(&pvec_putback, pgrescued);
++
++	/* Phase 4: put_page to return pin from follow_page_mask() */
++	for (i = 0; i < nr; i++) {
++		struct page *page = pvec->pages[i];
++
++		if (page)
++			put_page(page);
++	}
++
+ 	pagevec_reinit(pvec);
+ }
+ 
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
