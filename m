@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched.patch
- added to -mm tree
-Date: Tue, 20 Aug 2013 13:12:33 -0700
-Message-ID: <5213cdb1.KsWX5wD8DIFtxYJW%akpm@linux-foundation.org>
+Subject: + sched-mark-should_resched-__always_inline.patch added to -mm
+ tree
+Date: Tue, 20 Aug 2013 13:12:32 -0700
+Message-ID: <5213cdb0.BbXjT44ZSMb7Rm+e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37047 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751287Ab3HTUMe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 16:12:34 -0400
+	with ESMTP id S1751266Ab3HTUMd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 16:12:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, a.p.zijlstra@chello.nl, ak@linux.intel.com
 
-Subject: + sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched.patch added to -mm tree
+Subject: + sched-mark-should_resched-__always_inline.patch added to -mm tree
 To: ak@linux.intel.com,a.p.zijlstra@chello.nl,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Tue, 20 Aug 2013 13:12:33 -0700
+Date: Tue, 20 Aug 2013 13:12:32 -0700
 
 
 The patch titled
-     Subject: sched: inline the need_resched test into the caller for _cond_resched
+     Subject: sched: mark should_resched() __always_inline
 has been added to the -mm tree.  Its filename is
-     sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched.patch
+     sched-mark-should_resched-__always_inline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sched-mark-should_resched-__always_inline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sched-mark-should_resched-__always_inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,12 +45,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sched: inline the need_resched test into the caller for _cond_resched
+Subject: sched: mark should_resched() __always_inline
 
-_cond_resched does at least two explicit calls just to decide to do
-nothing: _cond_resched and should_resched().  Inline a need_resched() into
-the caller to avoid these calls in the common case of no reschedule being
-needed.
+At least gcc 4.6 and some earlier ones does not inline this function. 
+Since it's small and on relatively hot paths force inline it.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -61,21 +58,21 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
+ kernel/sched/core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched include/linux/sched.h
---- a/include/linux/sched.h~sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched
-+++ a/include/linux/sched.h
-@@ -2442,7 +2442,7 @@ extern int __cond_resched_softirq(void);
+diff -puN kernel/sched/core.c~sched-mark-should_resched-__always_inline kernel/sched/core.c
+--- a/kernel/sched/core.c~sched-mark-should_resched-__always_inline
++++ a/kernel/sched/core.c
+@@ -3812,7 +3812,7 @@ SYSCALL_DEFINE0(sched_yield)
+ 	return 0;
+ }
  
- #ifdef CONFIG_PREEMPT_VOLUNTARY
- extern int _cond_resched(void);
--# define might_resched() _cond_resched()
-+# define might_resched() (need_resched() ? _cond_resched() : 0)
- #else
- # define might_resched() do { } while (0)
- #endif
+-static inline int should_resched(void)
++static __always_inline int should_resched(void)
+ {
+ 	return need_resched() && !(preempt_count() & PREEMPT_ACTIVE);
+ }
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
