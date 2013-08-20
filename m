@@ -1,68 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- generic-ipi-fix-misleading-smp_call_function_any-description.patch removed
- from -mm tree
-Date: Tue, 20 Aug 2013 12:51:00 -0700
-Message-ID: <5213c8a4.RbBOH1qwOqSc76GS%akpm@linux-foundation.org>
+Subject: + epoll-add-a-reschedule-point-in-ep_free.patch added to -mm tree
+Date: Tue, 20 Aug 2013 12:58:30 -0700
+Message-ID: <5213ca66.yhnLdDsjNiJIHjNE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36856 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36883 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142Ab3HTTvB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 15:51:01 -0400
+	with ESMTP id S1751130Ab3HTT6b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 15:58:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sheng@linux.intel.com, rusty@rustcorp.com.au, jens.axboe@oracle.com, a.p.zijlstra@chello.nl, xiexiuqi@huawei.com
+To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tytso@mit.edu, edumazet@google.com
 
-Subject: [merged] generic-ipi-fix-misleading-smp_call_function_any-description.patch removed from -mm tree
-To: xiexiuqi@huawei.com,a.p.zijlstra@chello.nl,jens.axboe@oracle.com,rusty@rustcorp.com.au,sheng@linux.intel.com,mm-commits@vger.kernel.org
+Subject: + epoll-add-a-reschedule-point-in-ep_free.patch added to -mm tree
+To: edumazet@google.com,tytso@mit.edu,viro@ZenIV.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 20 Aug 2013 12:51:00 -0700
+Date: Tue, 20 Aug 2013 12:58:30 -0700
 
 
 The patch titled
-     Subject: generic-ipi: fix misleading smp_call_function_any() description
-has been removed from the -mm tree.  Its filename was
-     generic-ipi-fix-misleading-smp_call_function_any-description.patch
+     Subject: epoll: add a reschedule point in ep_free()
+has been added to the -mm tree.  Its filename is
+     epoll-add-a-reschedule-point-in-ep_free.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/epoll-add-a-reschedule-point-in-ep_free.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/epoll-add-a-reschedule-point-in-ep_free.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: generic-ipi: fix misleading smp_call_function_any() description
+From: Eric Dumazet <edumazet@google.com>
+Subject: epoll: add a reschedule point in ep_free()
 
-After 8969a5ede0f9e1 ("generic-ipi: remove kmalloc()"), wait = 0 can be
-guaranteed.
+ep_free() might iterate on a huge set of epitems and hold cpu too long. 
+Add two cond_resched() in order to yield cpu to other tasks.  This is safe
+as we only hold mutexes in this function.
 
-Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: Sheng Yang <sheng@linux.intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/eventpoll.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/smp.c~generic-ipi-fix-misleading-smp_call_function_any-description kernel/smp.c
---- a/kernel/smp.c~generic-ipi-fix-misleading-smp_call_function_any-description
-+++ a/kernel/smp.c
-@@ -281,8 +281,6 @@ EXPORT_SYMBOL(smp_call_function_single);
-  * @wait: If true, wait until function has completed.
-  *
-  * Returns 0 on success, else a negative status code (if no cpus were online).
-- * Note that @wait will be implicitly turned on in case of allocation failures,
-- * since we fall back to on-stack allocation.
-  *
-  * Selection preference:
-  *	1) current cpu if in @mask
+diff -puN fs/eventpoll.c~epoll-add-a-reschedule-point-in-ep_free fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-add-a-reschedule-point-in-ep_free
++++ a/fs/eventpoll.c
+@@ -740,6 +740,7 @@ static void ep_free(struct eventpoll *ep
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+ 
+ 		ep_unregister_pollwait(ep, epi);
++		cond_resched();
+ 	}
+ 
+ 	/*
+@@ -754,6 +755,7 @@ static void ep_free(struct eventpoll *ep
+ 	while ((rbp = rb_first(&ep->rbr)) != NULL) {
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+ 		ep_remove(ep, epi);
++		cond_resched();
+ 	}
+ 	mutex_unlock(&ep->mtx);
+ 
 _
 
-Patches currently in -mm which might be from xiexiuqi@huawei.com are
+Patches currently in -mm which might be from edumazet@google.com are
 
+epoll-add-a-reschedule-point-in-ep_free.patch
 linux-next.patch
 
