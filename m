@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- x86-add-1-2-4-8-byte-optimization-to-64bit-__copy_fromto_user_inatomic.patch added to -mm tree
-Date: Tue, 20 Aug 2013 13:12:25 -0700
-Message-ID: <5213cda9.dL1Rei2oPFMvAGez%akpm@linux-foundation.org>
+Subject: + move-might_sleep-and-friends-from-kernelh-to-schedh.patch added to -mm tree
+Date: Tue, 20 Aug 2013 13:12:31 -0700
+Message-ID: <5213cdaf.sw7QuHnRu+RzPUap%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751112Ab3HTUM0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 16:12:26 -0400
+	with ESMTP id S1751266Ab3HTUMc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 16:12:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, a.p.zijlstra@chello.nl, ak@linux.intel.com
 
-Subject: + x86-add-1-2-4-8-byte-optimization-to-64bit-__copy_fromto_user_inatomic.patch added to -mm tree
+Subject: + move-might_sleep-and-friends-from-kernelh-to-schedh.patch added to -mm tree
 To: ak@linux.intel.com,a.p.zijlstra@chello.nl,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Tue, 20 Aug 2013 13:12:25 -0700
+Date: Tue, 20 Aug 2013 13:12:31 -0700
 
 
 The patch titled
-     Subject: x86: add 1/2/4/8 byte optimization to 64bit __copy_{from,to}_user_inatomic
+     Subject: include/: move might_sleep and friends from kernel.h to sched.h
 has been added to the -mm tree.  Its filename is
-     x86-add-1-2-4-8-byte-optimization-to-64bit-__copy_fromto_user_inatomic.patch
+     move-might_sleep-and-friends-from-kernelh-to-schedh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-1-2-4-8-byte-optimization-to-64bit-__copy_fromto_user_inatomic.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/move-might_sleep-and-friends-from-kernelh-to-schedh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-1-2-4-8-byte-optimization-to-64bit-__copy_fromto_user_inatomic.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/move-might_sleep-and-friends-from-kernelh-to-schedh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,22 +44,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: x86: add 1/2/4/8 byte optimization to 64bit __copy_{from,to}_user_inatomic
+Subject: include/: move might_sleep and friends from kernel.h to sched.h
 
-The 64bit __copy_{from,to}_user_inatomic always called
-copy_from_user_generic, but skipped the special optimizations for 1/2/4/8
-byte accesses.
+These are really related to scheduling, so they should be in sched.h Users
+usually will need to schedule anyways.
 
-This especially hurts the futex call, which accesses the 4 byte futex user
-value with a complicated fast string operation in a function call, instead
-of a single movl.
-
-Use __copy_{from,to}_user for _inatomic instead to get the same
-optimizations.  The only problem was the might_fault() in those functions.
- So move that to new wrapper and call __copy_{f,t}_user_nocheck() from
-*_inatomic directly.
-
-32bit already did this correctly by duplicating the code.
+The advantage of having them there is that we can access some of the
+scheduler inlines to make their fast path more efficient.  This will come
+in a followon patch.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -70,75 +61,116 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uaccess_64.h |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ include/linux/kernel.h |   35 -----------------------------------
+ include/linux/sched.h  |   37 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+), 35 deletions(-)
 
-diff -puN arch/x86/include/asm/uaccess_64.h~x86-add-1-2-4-8-byte-optimization-to-64bit-__copy_fromto_user_inatomic arch/x86/include/asm/uaccess_64.h
---- a/arch/x86/include/asm/uaccess_64.h~x86-add-1-2-4-8-byte-optimization-to-64bit-__copy_fromto_user_inatomic
-+++ a/arch/x86/include/asm/uaccess_64.h
-@@ -77,11 +77,10 @@ int copy_to_user(void __user *dst, const
- }
+diff -puN include/linux/kernel.h~move-might_sleep-and-friends-from-kernelh-to-schedh include/linux/kernel.h
+--- a/include/linux/kernel.h~move-might_sleep-and-friends-from-kernelh-to-schedh
++++ a/include/linux/kernel.h
+@@ -141,35 +141,6 @@ struct completion;
+ struct pt_regs;
+ struct user;
  
- static __always_inline __must_check
--int __copy_from_user(void *dst, const void __user *src, unsigned size)
-+int __copy_from_user_nocheck(void *dst, const void __user *src, unsigned size)
- {
- 	int ret = 0;
+-#ifdef CONFIG_PREEMPT_VOLUNTARY
+-extern int _cond_resched(void);
+-# define might_resched() _cond_resched()
+-#else
+-# define might_resched() do { } while (0)
+-#endif
+-
+-#ifdef CONFIG_DEBUG_ATOMIC_SLEEP
+-  void __might_sleep(const char *file, int line, int preempt_offset);
+-/**
+- * might_sleep - annotation for functions that can sleep
+- *
+- * this macro will print a stack trace if it is executed in an atomic
+- * context (spinlock, irq-handler, ...).
+- *
+- * This is a useful debugging help to be able to catch problems early and not
+- * be bitten later when the calling function happens to sleep when it is not
+- * supposed to.
+- */
+-# define might_sleep() \
+-	do { __might_sleep(__FILE__, __LINE__, 0); might_resched(); } while (0)
+-#else
+-  static inline void __might_sleep(const char *file, int line,
+-				   int preempt_offset) { }
+-# define might_sleep() do { might_resched(); } while (0)
+-#endif
+-
+-#define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
+-
+ /*
+  * abs() handles unsigned and signed longs, ints, shorts and chars.  For all
+  * input types abs() returns a signed long.
+@@ -193,12 +164,6 @@ extern int _cond_resched(void);
+ 		(__x < 0) ? -__x : __x;		\
+ 	})
  
--	might_fault();
- 	if (!__builtin_constant_p(size))
- 		return copy_user_generic(dst, (__force void *)src, size);
- 	switch (size) {
-@@ -121,11 +120,17 @@ int __copy_from_user(void *dst, const vo
- }
+-#if defined(CONFIG_PROVE_LOCKING) || defined(CONFIG_DEBUG_ATOMIC_SLEEP)
+-void might_fault(void);
+-#else
+-static inline void might_fault(void) { }
+-#endif
+-
+ extern struct atomic_notifier_head panic_notifier_list;
+ extern long (*panic_blink)(int state);
+ __printf(1, 2)
+diff -puN include/linux/sched.h~move-might_sleep-and-friends-from-kernelh-to-schedh include/linux/sched.h
+--- a/include/linux/sched.h~move-might_sleep-and-friends-from-kernelh-to-schedh
++++ a/include/linux/sched.h
+@@ -2440,6 +2440,35 @@ extern int __cond_resched_softirq(void);
+ 	__cond_resched_softirq();					\
+ })
  
- static __always_inline __must_check
--int __copy_to_user(void __user *dst, const void *src, unsigned size)
-+int __copy_from_user(void *dst, const void __user *src, unsigned size)
-+{
-+	might_fault();
-+	return __copy_from_user_nocheck(dst, src, size);
-+}
++#ifdef CONFIG_PREEMPT_VOLUNTARY
++extern int _cond_resched(void);
++# define might_resched() _cond_resched()
++#else
++# define might_resched() do { } while (0)
++#endif
 +
-+static __always_inline __must_check
-+int __copy_to_user_nocheck(void __user *dst, const void *src, unsigned size)
- {
- 	int ret = 0;
- 
--	might_fault();
- 	if (!__builtin_constant_p(size))
- 		return copy_user_generic((__force void *)dst, src, size);
- 	switch (size) {
-@@ -165,6 +170,13 @@ int __copy_to_user(void __user *dst, con
- }
- 
- static __always_inline __must_check
-+int __copy_to_user(void __user *dst, const void *src, unsigned size)
-+{
-+	might_fault();
-+	return __copy_to_user_nocheck(dst, src, size);
-+}
++#ifdef CONFIG_DEBUG_ATOMIC_SLEEP
++ void __might_sleep(const char *file, int line, int preempt_offset);
++/**
++ * might_sleep - annotation for functions that can sleep
++ *
++ * this macro will print a stack trace if it is executed in an atomic
++ * context (spinlock, irq-handler, ...).
++ *
++ * This is a useful debugging help to be able to catch problems early and not
++ * be bitten later when the calling function happens to sleep when it is not
++ * supposed to.
++ */
++# define might_sleep() \
++	do { __might_sleep(__FILE__, __LINE__, 0); might_resched(); } while (0)
++#else
++  static inline void __might_sleep(const char *file, int line,
++				   int preempt_offset) { }
++# define might_sleep() do { might_resched(); } while (0)
++#endif
 +
-+static __always_inline __must_check
- int __copy_in_user(void __user *dst, const void __user *src, unsigned size)
++#define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
++
+ static inline void cond_resched_rcu(void)
  {
- 	int ret = 0;
-@@ -220,13 +232,13 @@ int __copy_in_user(void __user *dst, con
- static __must_check __always_inline int
- __copy_from_user_inatomic(void *dst, const void __user *src, unsigned size)
- {
--	return copy_user_generic(dst, (__force const void *)src, size);
-+	return __copy_from_user_nocheck(dst, (__force const void *)src, size);
+ #if defined(CONFIG_DEBUG_ATOMIC_SLEEP) || !defined(CONFIG_PREEMPT_RCU)
+@@ -2449,6 +2478,14 @@ static inline void cond_resched_rcu(void
+ #endif
  }
  
- static __must_check __always_inline int
- __copy_to_user_inatomic(void __user *dst, const void *src, unsigned size)
- {
--	return copy_user_generic((__force void *)dst, src, size);
-+	return __copy_to_user_nocheck((__force void *)dst, src, size);
- }
- 
- extern long __copy_user_nocache(void *dst, const void __user *src,
++#ifdef CONFIG_PROVE_LOCKING
++void might_fault(void);
++#else
++static inline void might_fault(void)
++{
++}
++#endif
++
+ /*
+  * Does a critical section need to be broken due to another
+  * task waiting?: (technically does not depend on CONFIG_PREEMPT,
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
