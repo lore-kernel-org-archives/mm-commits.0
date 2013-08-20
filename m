@@ -1,104 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
- added to -mm tree
-Date: Mon, 19 Aug 2013 16:50:05 -0700
-Message-ID: <5212af2d.sxttPZBs+zrTEL66%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 20 Aug 2013 12:42:13 -0700
+Message-ID: <5213c695.2meWOydBk3Q15mOt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55777 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36828 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751204Ab3HSXuF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Aug 2013 19:50:05 -0400
+	with ESMTP id S1751192Ab3HTTmO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 15:42:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch added to -mm tree
-To: n-horiguchi@ah.jp.nec.com,fengguang.wu@intel.com
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 19 Aug 2013 16:50:05 -0700
+Date: Tue, 20 Aug 2013 12:42:13 -0700
 
 
 The patch titled
-     Subject: [PATCH] fix return type of htlb_alloc_mask
-has been added to the -mm tree.  Its filename is
-     mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: [PATCH] fix return type of htlb_alloc_mask
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-This is to fix the incorrect return type of htlb_alloc_mask().
-
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/i915/i915_gem_dmabuf.c |    4 ----
+ kernel/time/tick-sched.c               |    8 --------
+ 2 files changed, 12 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix
-+++ a/mm/hugetlb.c
-@@ -539,7 +539,7 @@ static struct page *dequeue_huge_page_no
- }
- 
- /* Movability of hugepages depends on migration support. */
--static inline int htlb_alloc_mask(struct hstate *h)
-+static inline gfp_t htlb_alloc_mask(struct hstate *h)
+diff -puN drivers/gpu/drm/i915/i915_gem_dmabuf.c~linux-next-git-rejects drivers/gpu/drm/i915/i915_gem_dmabuf.c
+--- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+@@ -90,11 +90,7 @@ static void i915_gem_unmap_dma_buf(struc
+ 				   struct sg_table *sg,
+ 				   enum dma_data_direction dir)
  {
- 	if (hugepages_treat_as_movable || hugepage_migration_support(h))
- 		return GFP_HIGHUSER_MOVABLE;
+-<<<<<<< HEAD
+-	struct drm_i915_gem_object *obj = attachment->dmabuf->priv;
+-=======
+ 	struct drm_i915_gem_object *obj = dma_buf_to_obj(attachment->dmabuf);
+->>>>>>> linux-next/akpm-base
+ 
+ 	mutex_lock(&obj->base.dev->struct_mutex);
+ 
+diff -puN kernel/time/tick-sched.c~linux-next-git-rejects kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~linux-next-git-rejects
++++ a/kernel/time/tick-sched.c
+@@ -183,11 +183,7 @@ static bool can_stop_full_tick(void)
+ 		 * Don't allow the user to think they can get
+ 		 * full NO_HZ with this machine.
+ 		 */
+-<<<<<<< HEAD
+-		WARN_ONCE(have_nohz_full_mask,
+-=======
+ 		WARN_ONCE(tick_nohz_full_running,
+->>>>>>> linux-next/akpm-base
+ 			  "NO_HZ FULL will not work with unstable sched clock");
+ 		return false;
+ 	}
+@@ -341,13 +337,9 @@ static int tick_nohz_init_all(void)
+ 
+ void __init tick_nohz_init(void)
+ {
+-<<<<<<< HEAD
+-	if (!have_nohz_full_mask) {
+-=======
+ 	int cpu;
+ 
+ 	if (!tick_nohz_full_running) {
+->>>>>>> linux-next/akpm-base
+ 		if (tick_nohz_init_all() < 0)
+ 			return;
+ 	}
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
-mm-hugetlb-trivial-commenting-fix.patch
-mm-hugetlb-clean-up-alloc_huge_page.patch
-mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
-mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
-mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
-mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
-mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
-mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
-mm-hugetlb-change-variable-name-reservations-to-resv.patch
-mm-hugetlb-fix-subpool-accounting-handling.patch
-mm-hugetlb-remove-useless-check-about-mapping-type.patch
-mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
-mm-hugetlb-return-a-reserved-page-to-a-reserved-pool-if-failed.patch
-mm-migrate-make-core-migration-code-aware-of-hugepage.patch
-mm-soft-offline-use-migrate_pages-instead-of-migrate_huge_page.patch
-migrate-add-hugepage-migration-code-to-migrate_pages.patch
-mm-migrate-add-hugepage-migration-code-to-move_pages.patch
-mm-mbind-add-hugepage-migration-code-to-mbind.patch
-mm-migrate-remove-vm_hugetlb-from-vma-flag-check-in-vma_migratable.patch
-mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage.patch
-mm-migrate-check-movability-of-hugepage-in-unmap_and_move_huge_page.patch
-mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
-mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2.patch
-mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
-mm-mempolicy-rename-check_range-to-queue_pages_range.patch
+origin.patch
+linux-next.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+block-support-embedded-device-command-line-partition.patch
+mm.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+swap-make-swap-discard-async-checkpatch-fixes.patch
+swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
+mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
+mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
+vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
+genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
+mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+mm-hotplug-verify-hotplug-memory-range-fix.patch
+mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
+mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
+memcg-trivial-cleanups.patch
+shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
+xfs-convert-buftarg-lru-to-generic-code-fix.patch
+xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
