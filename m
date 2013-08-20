@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-sparse-introduce-alloc_usemap_and_memmap.patch added to -mm
- tree
-Date: Tue, 20 Aug 2013 16:08:21 -0700
-Message-ID: <5213f6e5.gVx0d887IfvazHGI%akpm@linux-foundation.org>
+Subject: +
+ mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch added to -mm tree
+Date: Tue, 20 Aug 2013 16:08:26 -0700
+Message-ID: <5213f6ea.gqsrkZu5V4+NMkgd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38681 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38705 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544Ab3HTXIW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 19:08:22 -0400
+	with ESMTP id S1751558Ab3HTXI1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 19:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, tj@kernel.org, rientjes@google.com, riel@redhat.com, kosaki.motohiro@jp.fujitsu.com, jkosina@suse.cz, isimatu.yasuaki@jp.fujitsu.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, fengguang.wu@intel.com, dave.hansen@linux.intel.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, rientjes@google.com, riel@redhat.com, kosaki.motohiro@jp.fujitsu.com, jkosina@suse.cz, isimatu.yasuaki@jp.fujitsu.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, fengguang.wu@intel.com, dave.hansen@linux.intel.com, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-sparse-introduce-alloc_usemap_and_memmap.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,dave.hansen@linux.intel.com,fengguang.wu@intel.com,hannes@cmpxchg.org,iamjoonsoo.kim@lge.com,isimatu.yasuaki@jp.fujitsu.com,jkosina@suse.cz,kosaki.motohiro@jp.fujitsu.com,riel@redhat.com,rientjes@google.com,tj@kernel.org,yinghai@kernel.org
+Subject: + mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,dave.hansen@linux.intel.com,fengguang.wu@intel.com,hannes@cmpxchg.org,iamjoonsoo.kim@lge.com,isimatu.yasuaki@jp.fujitsu.com,jkosina@suse.cz,kosaki.motohiro@jp.fujitsu.com,riel@redhat.com,rientjes@google.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 20 Aug 2013 16:08:21 -0700
+Date: Tue, 20 Aug 2013 16:08:26 -0700
 
 
 The patch titled
-     Subject: mm/sparse: introduce alloc_usemap_and_memmap
+     Subject: mm/vmalloc: use wrapper function get_vm_area_size to caculate size of vm area
 has been added to the -mm tree.  Its filename is
-     mm-sparse-introduce-alloc_usemap_and_memmap.patch
+     mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-introduce-alloc_usemap_and_memmap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-introduce-alloc_usemap_and_memmap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,13 +45,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/sparse: introduce alloc_usemap_and_memmap
+Subject: mm/vmalloc: use wrapper function get_vm_area_size to caculate size of vm area
 
-After commit 9bdac91424075 ("sparsemem: Put mem map for one node
-together."), vmemmap for one node will be allocated together, its logic is
-similar as memory allocation for pageblock flags.  This patch introduces
-alloc_usemap_and_memmap to extract the same logic of memory alloction for
-pageblock flags and vmemmap.
+Use wrapper function get_vm_area_size to calculate size of vm area.
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -65,191 +61,69 @@ Cc: David Rientjes <rientjes@google.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Jiri Kosina <jkosina@suse.cz>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |  140 +++++++++++++++++++++++---------------------------
- 1 file changed, 66 insertions(+), 74 deletions(-)
+ mm/vmalloc.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/sparse.c~mm-sparse-introduce-alloc_usemap_and_memmap mm/sparse.c
---- a/mm/sparse.c~mm-sparse-introduce-alloc_usemap_and_memmap
-+++ a/mm/sparse.c
-@@ -439,6 +439,14 @@ static void __init sparse_early_mem_maps
- 					 map_count, nodeid);
- }
- #else
-+
-+static void __init sparse_early_mem_maps_alloc_node(struct page **map_map,
-+				unsigned long pnum_begin,
-+				unsigned long pnum_end,
-+				unsigned long map_count, int nodeid)
-+{
-+}
-+
- static struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
+diff -puN mm/vmalloc.c~mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area
++++ a/mm/vmalloc.c
+@@ -1258,7 +1258,7 @@ void unmap_kernel_range(unsigned long ad
+ int map_vm_area(struct vm_struct *area, pgprot_t prot, struct page ***pages)
  {
- 	struct page *map;
-@@ -460,6 +468,62 @@ void __attribute__((weak)) __meminit vme
- {
- }
+ 	unsigned long addr = (unsigned long)area->addr;
+-	unsigned long end = addr + area->size - PAGE_SIZE;
++	unsigned long end = addr + get_vm_area_size(area);
+ 	int err;
  
-+/**
-+ *  alloc_usemap_and_memmap - memory alloction for pageblock flags and vmemmap
-+ *  @map: usemap_map for pageblock flags or mmap_map for vmemmap
-+ *  @use_map: true if memory allocated for pageblock flags, otherwise false
-+ */
-+static void alloc_usemap_and_memmap(unsigned long **map, bool use_map)
-+{
-+	unsigned long pnum;
-+	unsigned long map_count;
-+	int nodeid_begin = 0;
-+	unsigned long pnum_begin = 0;
-+
-+	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
-+		struct mem_section *ms;
-+
-+		if (!present_section_nr(pnum))
-+			continue;
-+		ms = __nr_to_section(pnum);
-+		nodeid_begin = sparse_early_nid(ms);
-+		pnum_begin = pnum;
-+		break;
-+	}
-+	map_count = 1;
-+	for (pnum = pnum_begin + 1; pnum < NR_MEM_SECTIONS; pnum++) {
-+		struct mem_section *ms;
-+		int nodeid;
-+
-+		if (!present_section_nr(pnum))
-+			continue;
-+		ms = __nr_to_section(pnum);
-+		nodeid = sparse_early_nid(ms);
-+		if (nodeid == nodeid_begin) {
-+			map_count++;
-+			continue;
-+		}
-+		/* ok, we need to take cake of from pnum_begin to pnum - 1*/
-+		if (use_map)
-+			sparse_early_usemaps_alloc_node(map, pnum_begin, pnum,
-+						 map_count, nodeid_begin);
-+		else
-+			sparse_early_mem_maps_alloc_node((struct page **)map,
-+				pnum_begin, pnum, map_count, nodeid_begin);
-+		/* new start, update count etc*/
-+		nodeid_begin = nodeid;
-+		pnum_begin = pnum;
-+		map_count = 1;
-+	}
-+	/* ok, last chunk */
-+	if (use_map)
-+		sparse_early_usemaps_alloc_node(map, pnum_begin,
-+				NR_MEM_SECTIONS, map_count, nodeid_begin);
-+	else
-+		sparse_early_mem_maps_alloc_node((struct page **)map,
-+			pnum_begin, NR_MEM_SECTIONS, map_count, nodeid_begin);
-+}
-+
- /*
-  * Allocate the accumulated non-linear sections, allocate a mem_map
-  * for each and record the physical to section mapping.
-@@ -471,11 +535,7 @@ void __init sparse_init(void)
- 	unsigned long *usemap;
- 	unsigned long **usemap_map;
- 	int size;
--	int nodeid_begin = 0;
--	unsigned long pnum_begin = 0;
--	unsigned long usemap_count;
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
--	unsigned long map_count;
- 	int size2;
- 	struct page **map_map;
- #endif
-@@ -501,82 +561,14 @@ void __init sparse_init(void)
- 	usemap_map = alloc_bootmem(size);
- 	if (!usemap_map)
- 		panic("can not allocate usemap_map\n");
--
--	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
--		struct mem_section *ms;
--
--		if (!present_section_nr(pnum))
--			continue;
--		ms = __nr_to_section(pnum);
--		nodeid_begin = sparse_early_nid(ms);
--		pnum_begin = pnum;
--		break;
--	}
--	usemap_count = 1;
--	for (pnum = pnum_begin + 1; pnum < NR_MEM_SECTIONS; pnum++) {
--		struct mem_section *ms;
--		int nodeid;
--
--		if (!present_section_nr(pnum))
--			continue;
--		ms = __nr_to_section(pnum);
--		nodeid = sparse_early_nid(ms);
--		if (nodeid == nodeid_begin) {
--			usemap_count++;
--			continue;
--		}
--		/* ok, we need to take cake of from pnum_begin to pnum - 1*/
--		sparse_early_usemaps_alloc_node(usemap_map, pnum_begin, pnum,
--						 usemap_count, nodeid_begin);
--		/* new start, update count etc*/
--		nodeid_begin = nodeid;
--		pnum_begin = pnum;
--		usemap_count = 1;
--	}
--	/* ok, last chunk */
--	sparse_early_usemaps_alloc_node(usemap_map, pnum_begin, NR_MEM_SECTIONS,
--					 usemap_count, nodeid_begin);
-+	alloc_usemap_and_memmap(usemap_map, true);
+ 	err = vmap_page_range(addr, end, prot, *pages);
+@@ -1553,7 +1553,7 @@ static void *__vmalloc_area_node(struct
+ 	unsigned int nr_pages, array_size, i;
+ 	gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
  
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
- 	size2 = sizeof(struct page *) * NR_MEM_SECTIONS;
- 	map_map = alloc_bootmem(size2);
- 	if (!map_map)
- 		panic("can not allocate map_map\n");
--
--	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
--		struct mem_section *ms;
--
--		if (!present_section_nr(pnum))
--			continue;
--		ms = __nr_to_section(pnum);
--		nodeid_begin = sparse_early_nid(ms);
--		pnum_begin = pnum;
--		break;
--	}
--	map_count = 1;
--	for (pnum = pnum_begin + 1; pnum < NR_MEM_SECTIONS; pnum++) {
--		struct mem_section *ms;
--		int nodeid;
--
--		if (!present_section_nr(pnum))
--			continue;
--		ms = __nr_to_section(pnum);
--		nodeid = sparse_early_nid(ms);
--		if (nodeid == nodeid_begin) {
--			map_count++;
--			continue;
--		}
--		/* ok, we need to take cake of from pnum_begin to pnum - 1*/
--		sparse_early_mem_maps_alloc_node(map_map, pnum_begin, pnum,
--						 map_count, nodeid_begin);
--		/* new start, update count etc*/
--		nodeid_begin = nodeid;
--		pnum_begin = pnum;
--		map_count = 1;
--	}
--	/* ok, last chunk */
--	sparse_early_mem_maps_alloc_node(map_map, pnum_begin, NR_MEM_SECTIONS,
--					 map_count, nodeid_begin);
-+	alloc_usemap_and_memmap((unsigned long **)map_map, false);
- #endif
+-	nr_pages = (area->size - PAGE_SIZE) >> PAGE_SHIFT;
++	nr_pages = get_vm_area_size(area) >> PAGE_SHIFT;
+ 	array_size = (nr_pages * sizeof(struct page *));
  
- 	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
+ 	area->nr_pages = nr_pages;
+@@ -1985,7 +1985,7 @@ long vread(char *buf, char *addr, unsign
+ 
+ 		vm = va->vm;
+ 		vaddr = (char *) vm->addr;
+-		if (addr >= vaddr + vm->size - PAGE_SIZE)
++		if (addr >= vaddr + get_vm_area_size(vm))
+ 			continue;
+ 		while (addr < vaddr) {
+ 			if (count == 0)
+@@ -1995,7 +1995,7 @@ long vread(char *buf, char *addr, unsign
+ 			addr++;
+ 			count--;
+ 		}
+-		n = vaddr + vm->size - PAGE_SIZE - addr;
++		n = vaddr + get_vm_area_size(vm) - addr;
+ 		if (n > count)
+ 			n = count;
+ 		if (!(vm->flags & VM_IOREMAP))
+@@ -2067,7 +2067,7 @@ long vwrite(char *buf, char *addr, unsig
+ 
+ 		vm = va->vm;
+ 		vaddr = (char *) vm->addr;
+-		if (addr >= vaddr + vm->size - PAGE_SIZE)
++		if (addr >= vaddr + get_vm_area_size(vm))
+ 			continue;
+ 		while (addr < vaddr) {
+ 			if (count == 0)
+@@ -2076,7 +2076,7 @@ long vwrite(char *buf, char *addr, unsig
+ 			addr++;
+ 			count--;
+ 		}
+-		n = vaddr + vm->size - PAGE_SIZE - addr;
++		n = vaddr + get_vm_area_size(vm) - addr;
+ 		if (n > count)
+ 			n = count;
+ 		if (!(vm->flags & VM_IOREMAP)) {
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
