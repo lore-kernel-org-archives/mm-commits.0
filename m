@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch added to -mm tree
-Date: Tue, 20 Aug 2013 16:08:26 -0700
-Message-ID: <5213f6ea.gqsrkZu5V4+NMkgd%akpm@linux-foundation.org>
+Subject: + mm-writeback-make-writeback_inodes_wb-static.patch added to -mm tree
+Date: Tue, 20 Aug 2013 16:08:24 -0700
+Message-ID: <5213f6e8.EBz1Kwwwp6sddyAq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38705 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38692 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751558Ab3HTXI1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 19:08:27 -0400
+	with ESMTP id S1751544Ab3HTXIZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 19:08:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tj@kernel.org, rientjes@google.com, riel@redhat.com, kosaki.motohiro@jp.fujitsu.com, jkosina@suse.cz, isimatu.yasuaki@jp.fujitsu.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, fengguang.wu@intel.com, dave.hansen@linux.intel.com, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch added to -mm tree
+Subject: + mm-writeback-make-writeback_inodes_wb-static.patch added to -mm tree
 To: liwanp@linux.vnet.ibm.com,dave.hansen@linux.intel.com,fengguang.wu@intel.com,hannes@cmpxchg.org,iamjoonsoo.kim@lge.com,isimatu.yasuaki@jp.fujitsu.com,jkosina@suse.cz,kosaki.motohiro@jp.fujitsu.com,riel@redhat.com,rientjes@google.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 20 Aug 2013 16:08:26 -0700
+Date: Tue, 20 Aug 2013 16:08:24 -0700
 
 
 The patch titled
-     Subject: mm/vmalloc: use wrapper function get_vm_area_size to caculate size of vm area
+     Subject: mm/writeback: make writeback_inodes_wb static
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
+     mm-writeback-make-writeback_inodes_wb-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-writeback-make-writeback_inodes_wb-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-writeback-make-writeback_inodes_wb-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,9 +44,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/vmalloc: use wrapper function get_vm_area_size to caculate size of vm area
+Subject: mm/writeback: make writeback_inodes_wb static
 
-Use wrapper function get_vm_area_size to calculate size of vm area.
+It's not used globally and could be static.
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -64,66 +63,34 @@ Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/fs-writeback.c         |    2 +-
+ include/linux/writeback.h |    2 --
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area
-+++ a/mm/vmalloc.c
-@@ -1258,7 +1258,7 @@ void unmap_kernel_range(unsigned long ad
- int map_vm_area(struct vm_struct *area, pgprot_t prot, struct page ***pages)
+diff -puN fs/fs-writeback.c~mm-writeback-make-writeback_inodes_wb-static fs/fs-writeback.c
+--- a/fs/fs-writeback.c~mm-writeback-make-writeback_inodes_wb-static
++++ a/fs/fs-writeback.c
+@@ -723,7 +723,7 @@ static long __writeback_inodes_wb(struct
+ 	return wrote;
+ }
+ 
+-long writeback_inodes_wb(struct bdi_writeback *wb, long nr_pages,
++static long writeback_inodes_wb(struct bdi_writeback *wb, long nr_pages,
+ 				enum wb_reason reason)
  {
- 	unsigned long addr = (unsigned long)area->addr;
--	unsigned long end = addr + area->size - PAGE_SIZE;
-+	unsigned long end = addr + get_vm_area_size(area);
- 	int err;
+ 	struct wb_writeback_work work = {
+diff -puN include/linux/writeback.h~mm-writeback-make-writeback_inodes_wb-static include/linux/writeback.h
+--- a/include/linux/writeback.h~mm-writeback-make-writeback_inodes_wb-static
++++ a/include/linux/writeback.h
+@@ -98,8 +98,6 @@ int try_to_writeback_inodes_sb(struct su
+ int try_to_writeback_inodes_sb_nr(struct super_block *, unsigned long nr,
+ 				  enum wb_reason reason);
+ void sync_inodes_sb(struct super_block *);
+-long writeback_inodes_wb(struct bdi_writeback *wb, long nr_pages,
+-				enum wb_reason reason);
+ void wakeup_flusher_threads(long nr_pages, enum wb_reason reason);
+ void inode_wait_for_writeback(struct inode *inode);
  
- 	err = vmap_page_range(addr, end, prot, *pages);
-@@ -1553,7 +1553,7 @@ static void *__vmalloc_area_node(struct
- 	unsigned int nr_pages, array_size, i;
- 	gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
- 
--	nr_pages = (area->size - PAGE_SIZE) >> PAGE_SHIFT;
-+	nr_pages = get_vm_area_size(area) >> PAGE_SHIFT;
- 	array_size = (nr_pages * sizeof(struct page *));
- 
- 	area->nr_pages = nr_pages;
-@@ -1985,7 +1985,7 @@ long vread(char *buf, char *addr, unsign
- 
- 		vm = va->vm;
- 		vaddr = (char *) vm->addr;
--		if (addr >= vaddr + vm->size - PAGE_SIZE)
-+		if (addr >= vaddr + get_vm_area_size(vm))
- 			continue;
- 		while (addr < vaddr) {
- 			if (count == 0)
-@@ -1995,7 +1995,7 @@ long vread(char *buf, char *addr, unsign
- 			addr++;
- 			count--;
- 		}
--		n = vaddr + vm->size - PAGE_SIZE - addr;
-+		n = vaddr + get_vm_area_size(vm) - addr;
- 		if (n > count)
- 			n = count;
- 		if (!(vm->flags & VM_IOREMAP))
-@@ -2067,7 +2067,7 @@ long vwrite(char *buf, char *addr, unsig
- 
- 		vm = va->vm;
- 		vaddr = (char *) vm->addr;
--		if (addr >= vaddr + vm->size - PAGE_SIZE)
-+		if (addr >= vaddr + get_vm_area_size(vm))
- 			continue;
- 		while (addr < vaddr) {
- 			if (count == 0)
-@@ -2076,7 +2076,7 @@ long vwrite(char *buf, char *addr, unsig
- 			addr++;
- 			count--;
- 		}
--		n = vaddr + vm->size - PAGE_SIZE - addr;
-+		n = vaddr + get_vm_area_size(vm) - addr;
- 		if (n > count)
- 			n = count;
- 		if (!(vm->flags & VM_IOREMAP)) {
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
