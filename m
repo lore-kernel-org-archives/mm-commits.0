@@ -1,100 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] mm-drop-actor-argument-of-do_shmem_file_read.patch
- removed from -mm tree
-Date: Wed, 21 Aug 2013 13:05:09 -0700
-Message-ID: <52151d75.EDCv1wpAke13UfTN%akpm@linux-foundation.org>
+Subject: +
+ drivers-block-swimc-remove-unnecessary-platform_set_drvdata.patch added to
+ -mm tree
+Date: Wed, 21 Aug 2013 13:18:45 -0700
+Message-ID: <521520a5.Cq5PKaNNIH4hrLTB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34960 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35237 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752261Ab3HUUFL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Aug 2013 16:05:11 -0400
+	with ESMTP id S1752289Ab3HUUSq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Aug 2013 16:18:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, liwanp@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, hughd@google.com, dave.hansen@linux.intel.com, willy@linux.intel.com
+To: mm-commits@vger.kernel.org, khali@linux-fr.org, axboe@kernel.dk, jg1.han@samsung.com
 
-Subject: [wrecked] mm-drop-actor-argument-of-do_shmem_file_read.patch removed from -mm tree
-To: willy@linux.intel.com,dave.hansen@linux.intel.com,hughd@google.com,kirill.shutemov@linux.intel.com,liwanp@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: + drivers-block-swimc-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
+To: jg1.han@samsung.com,axboe@kernel.dk,khali@linux-fr.org
 From: akpm@linux-foundation.org
-Date: Wed, 21 Aug 2013 13:05:09 -0700
+Date: Wed, 21 Aug 2013 13:18:45 -0700
 
 
 The patch titled
-     Subject: mm: drop actor argument of do_shmem_file_read()
-has been removed from the -mm tree.  Its filename was
-     mm-drop-actor-argument-of-do_shmem_file_read.patch
+     Subject: drivers/block/swim.c: remove unnecessary platform_set_drvdata()
+has been added to the -mm tree.  Its filename is
+     drivers-block-swimc-remove-unnecessary-platform_set_drvdata.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-block-swimc-remove-unnecessary-platform_set_drvdata.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-block-swimc-remove-unnecessary-platform_set_drvdata.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: mm: drop actor argument of do_shmem_file_read()
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/block/swim.c: remove unnecessary platform_set_drvdata()
 
-There's only one caller of do_shmem_file_read() and the only actor is
-file_read_actor(). No reason to have a callback parameter.
+The driver core clears the driver data to NULL after device_release or on
+probe failure.  Thus, it is not needed to manually clear the device driver
+data to NULL.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/block/swim.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/shmem.c~mm-drop-actor-argument-of-do_shmem_file_read mm/shmem.c
---- a/mm/shmem.c~mm-drop-actor-argument-of-do_shmem_file_read
-+++ a/mm/shmem.c
-@@ -1464,7 +1464,7 @@ shmem_write_end(struct file *file, struc
- 	return copied;
- }
+diff -puN drivers/block/swim.c~drivers-block-swimc-remove-unnecessary-platform_set_drvdata drivers/block/swim.c
+--- a/drivers/block/swim.c~drivers-block-swimc-remove-unnecessary-platform_set_drvdata
++++ a/drivers/block/swim.c
+@@ -924,7 +924,6 @@ static int swim_probe(struct platform_de
+ 	return 0;
  
--static void do_shmem_file_read(struct file *filp, loff_t *ppos, read_descriptor_t *desc, read_actor_t actor)
-+static void do_shmem_file_read(struct file *filp, loff_t *ppos, read_descriptor_t *desc)
- {
- 	struct inode *inode = file_inode(filp);
- 	struct address_space *mapping = inode->i_mapping;
-@@ -1546,13 +1546,14 @@ static void do_shmem_file_read(struct fi
- 		 * Ok, we have the page, and it's up-to-date, so
- 		 * now we can copy it to user space...
- 		 *
--		 * The actor routine returns how many bytes were actually used..
-+		 * The file_read_actor routine returns how many bytes were actually
-+		 * used..
- 		 * NOTE! This may not be the same as how much of a user buffer
- 		 * we filled up (we may be padding etc), so we can only update
--		 * "pos" here (the actor routine has to update the user buffer
-+		 * "pos" here (file_read_actor has to update the user buffer
- 		 * pointers and the remaining count).
- 		 */
--		ret = actor(desc, page, offset, nr);
-+		ret = file_read_actor(desc, page, offset, nr);
- 		offset += ret;
- 		index += offset >> PAGE_CACHE_SHIFT;
- 		offset &= ~PAGE_CACHE_MASK;
-@@ -1590,7 +1591,7 @@ static ssize_t shmem_file_aio_read(struc
- 		if (desc.count == 0)
- 			continue;
- 		desc.error = 0;
--		do_shmem_file_read(filp, ppos, &desc, file_read_actor);
-+		do_shmem_file_read(filp, ppos, &desc);
- 		retval += desc.written;
- 		if (desc.error) {
- 			retval = retval ?: desc.error;
+ out_kfree:
+-	platform_set_drvdata(dev, NULL);
+ 	kfree(swd);
+ out_iounmap:
+ 	iounmap(swim_base);
+@@ -962,7 +961,6 @@ static int swim_remove(struct platform_d
+ 	if (res)
+ 		release_mem_region(res->start, resource_size(res));
+ 
+-	platform_set_drvdata(dev, NULL);
+ 	kfree(swd);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from willy@linux.intel.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-mm-drop-actor-argument-of-do_generic_file_read.patch
-thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
-mm-cleanup-add_to_page_cache_locked.patch
-thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
-thp-do_huge_pmd_anonymous_page-cleanup.patch
-thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
+block-replace-strict_strtoul-with-kstrtoul.patch
+block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch
+drivers-block-mg_diskc-make-mg_times_out-static.patch
+drivers-block-swimc-remove-unnecessary-platform_set_drvdata.patch
+mm-replace-strict_strtoul-with-kstrtoul.patch
+drivers-firmware-google-gsmic-replace-strict_strtoul-with-kstrtoul.patch
+rtc-rtc-nuc900-use-null-instead-of-0.patch
+w1-replace-strict_strtol-with-kstrtol.patch
+linux-next.patch
+kernel-replace-strict_strto-with-kstrto.patch
 
