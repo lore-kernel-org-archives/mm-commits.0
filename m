@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- s390-kprobes-add-support-for-pc-relative-long-displacement-instructions.patch added to -mm tree
-Date: Wed, 21 Aug 2013 13:28:20 -0700
-Message-ID: <521522e4.eBYmyCG5tj6d4HKU%akpm@linux-foundation.org>
+Subject: + kprobes-provide-new-dmainsn-cache.patch added to -mm tree
+Date: Wed, 21 Aug 2013 13:28:19 -0700
+Message-ID: <521522e3.nw5ykOvvbHhO4k0s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35373 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35368 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751624Ab3HUU2V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Aug 2013 16:28:21 -0400
+	with ESMTP id S1751624Ab3HUU2U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Aug 2013 16:28:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, schwidefsky@de.ibm.com, mingo@kernel.org, masami.hiramatsu.pt@hitachi.com, ananth@in.ibm.com, heiko.carstens@de.ibm.com
 
-Subject: + s390-kprobes-add-support-for-pc-relative-long-displacement-instructions.patch added to -mm tree
+Subject: + kprobes-provide-new-dmainsn-cache.patch added to -mm tree
 To: heiko.carstens@de.ibm.com,ananth@in.ibm.com,masami.hiramatsu.pt@hitachi.com,mingo@kernel.org,schwidefsky@de.ibm.com
 From: akpm@linux-foundation.org
-Date: Wed, 21 Aug 2013 13:28:20 -0700
+Date: Wed, 21 Aug 2013 13:28:19 -0700
 
 
 The patch titled
-     Subject: s390/kprobes: add support for pc-relative long displacement instructions
+     Subject: kprobes: provide new dmainsn cache
 has been added to the -mm tree.  Its filename is
-     s390-kprobes-add-support-for-pc-relative-long-displacement-instructions.patch
+     kprobes-provide-new-dmainsn-cache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-kprobes-add-support-for-pc-relative-long-displacement-instructions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kprobes-provide-new-dmainsn-cache.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-kprobes-add-support-for-pc-relative-long-displacement-instructions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kprobes-provide-new-dmainsn-cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,20 +44,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: s390/kprobes: add support for pc-relative long displacement instructions
+Subject: kprobes: provide new dmainsn cache
 
-With the general-instruction extension facility (z10) a couple of
-instructions with a pc-relative long displacement were introduced.  The
-kprobes support for these instructions however was never implemented.
+The current kpropes insn caches allocate memory areas for insn slots with
+module_alloc().  The assumption is that the kernel image and module area
+are both within the same +/- 2GB memory area.
 
-In result, if anybody ever put a probe on any of these instructions the
-result would have been random behaviour after the instruction got executed
-within the insn slot.
+This however is not true for s390 where the kernel image resides within
+the first 2GB (DMA memory area), but the module area is far away in the
+vmalloc area, usually somewhere close below the 4TB area.
 
-So lets add the missing handling for these instructions.  Since all of the
-new instructions have 32 bit signed displacement the easiest solution is
-to allocate an insn slot that is within the same 2GB area like the
-original instruction and patch the displacement field.
+For new pc relative instructions s390 needs insn slots that are within +/-
+2GB of each area.  That way we can patch displacements of pc-relative
+instructions within the insn slots just like x86 and powerpc.
+
+The module area works already with the normal insn slot allocator, however
+there is currently no way to get insn slots that are within the first 2GB
+on s390 (aka DMA area).
+
+Therefore this patch introduces the dmainsn slot cache.  Slots can be
+allocated and freed with get_dmainsn_slot() and free_dmainsn_slot().
 
 Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
@@ -68,183 +73,129 @@ Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/Kconfig               |    1 
- arch/s390/include/asm/kprobes.h |    4 
- arch/s390/kernel/kprobes.c      |  124 ++++++++++++++++++++++++++++--
- 3 files changed, 121 insertions(+), 8 deletions(-)
+ arch/Kconfig            |    7 +++++++
+ include/linux/kprobes.h |    5 +++++
+ kernel/kprobes.c        |   28 ++++++++++++++++++++++++++--
+ 3 files changed, 38 insertions(+), 2 deletions(-)
 
-diff -puN arch/s390/Kconfig~s390-kprobes-add-support-for-pc-relative-long-displacement-instructions arch/s390/Kconfig
---- a/arch/s390/Kconfig~s390-kprobes-add-support-for-pc-relative-long-displacement-instructions
-+++ a/arch/s390/Kconfig
-@@ -96,6 +96,7 @@ config S390
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select BUILDTIME_EXTABLE_SORT
- 	select CLONE_BACKWARDS2
-+	select DMAPROBES if KPROBES
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_CPU_DEVICES if !SMP
- 	select GENERIC_SMP_IDLE_THREAD
-diff -puN arch/s390/include/asm/kprobes.h~s390-kprobes-add-support-for-pc-relative-long-displacement-instructions arch/s390/include/asm/kprobes.h
---- a/arch/s390/include/asm/kprobes.h~s390-kprobes-add-support-for-pc-relative-long-displacement-instructions
-+++ a/arch/s390/include/asm/kprobes.h
-@@ -31,6 +31,8 @@
- #include <linux/ptrace.h>
- #include <linux/percpu.h>
+diff -puN arch/Kconfig~kprobes-provide-new-dmainsn-cache arch/Kconfig
+--- a/arch/Kconfig~kprobes-provide-new-dmainsn-cache
++++ a/arch/Kconfig
+@@ -76,6 +76,13 @@ config OPTPROBES
+ 	depends on KPROBES && HAVE_OPTPROBES
+ 	depends on !PREEMPT
  
-+#define __ARCH_WANT_KPROBES_INSN_SLOT
++config DMAPROBES
++	bool
++	help
++	  Architectures may want to put kprobes instruction slots into
++	  the dma memory region. E.g. s390 has the kernel image in the
++	  dma memory region but the module area far away.
 +
- struct pt_regs;
- struct kprobe;
+ config KPROBES_ON_FTRACE
+ 	def_bool y
+ 	depends on KPROBES && HAVE_KPROBES_ON_FTRACE
+diff -puN include/linux/kprobes.h~kprobes-provide-new-dmainsn-cache include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-provide-new-dmainsn-cache
++++ a/include/linux/kprobes.h
+@@ -320,6 +320,11 @@ extern int proc_kprobes_optimization_han
+ #endif
  
-@@ -57,7 +59,7 @@ typedef u16 kprobe_opcode_t;
- /* Architecture specific copy of original instruction */
- struct arch_specific_insn {
- 	/* copy of original instruction */
--	kprobe_opcode_t insn[MAX_INSN_SIZE];
-+	kprobe_opcode_t *insn;
+ #endif /* CONFIG_OPTPROBES */
++
++#ifdef CONFIG_DMAPROBES
++DEFINE_INSN_CACHE_OPS(dmainsn);
++#endif
++
+ #ifdef CONFIG_KPROBES_ON_FTRACE
+ extern void kprobe_ftrace_handler(unsigned long ip, unsigned long parent_ip,
+ 				  struct ftrace_ops *ops, struct pt_regs *regs);
+diff -puN kernel/kprobes.c~kprobes-provide-new-dmainsn-cache kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-provide-new-dmainsn-cache
++++ a/kernel/kprobes.c
+@@ -114,6 +114,7 @@ struct kprobe_insn_page {
+ 	kprobe_opcode_t *insns;		/* Page of instruction slots */
+ 	int nused;
+ 	int ngarbage;
++	bool dma_alloc;
+ 	char slot_used[];
  };
  
- struct prev_kprobe {
-diff -puN arch/s390/kernel/kprobes.c~s390-kprobes-add-support-for-pc-relative-long-displacement-instructions arch/s390/kernel/kprobes.c
---- a/arch/s390/kernel/kprobes.c~s390-kprobes-add-support-for-pc-relative-long-displacement-instructions
-+++ a/arch/s390/kernel/kprobes.c
-@@ -100,9 +100,8 @@ static int __kprobes get_fixup_type(kpro
- 			fixup |= FIXUP_RETURN_REGISTER;
- 		break;
- 	case 0xc0:
--		if ((insn[0] & 0x0f) == 0x00 ||	/* larl  */
--		    (insn[0] & 0x0f) == 0x05)	/* brasl */
--		fixup |= FIXUP_RETURN_REGISTER;
-+		if ((insn[0] & 0x0f) == 0x05)	/* brasl */
-+			fixup |= FIXUP_RETURN_REGISTER;
- 		break;
- 	case 0xeb:
- 		if ((insn[2] & 0xff) == 0x44 ||	/* bxhg  */
-@@ -117,18 +116,128 @@ static int __kprobes get_fixup_type(kpro
- 	return fixup;
- }
+@@ -126,6 +127,7 @@ struct kprobe_insn_cache {
+ 	struct list_head pages;	/* list of kprobe_insn_page */
+ 	size_t insn_size;	/* size of instruction slot */
+ 	int nr_garbage;
++	bool dma_alloc;
+ };
  
-+static int __kprobes is_insn_relative_long(kprobe_opcode_t *insn)
-+{
-+	/* Check if we have a RIL-b or RIL-c format instruction which
-+	 * we need to modify in order to avoid instruction emulation. */
-+	switch (insn[0] >> 8) {
-+	case 0xc0:
-+		if ((insn[0] & 0x0f) == 0x00) /* larl */
-+			return true;
-+		break;
-+	case 0xc4:
-+		switch (insn[0] & 0x0f) {
-+		case 0x02: /* llhrl  */
-+		case 0x04: /* lghrl  */
-+		case 0x05: /* lhrl   */
-+		case 0x06: /* llghrl */
-+		case 0x07: /* sthrl  */
-+		case 0x08: /* lgrl   */
-+		case 0x0b: /* stgrl  */
-+		case 0x0c: /* lgfrl  */
-+		case 0x0d: /* lrl    */
-+		case 0x0e: /* llgfrl */
-+		case 0x0f: /* strl   */
-+			return true;
-+		}
-+		break;
-+	case 0xc6:
-+		switch (insn[0] & 0x0f) {
-+		case 0x00: /* exrl   */
-+		case 0x02: /* pfdrl  */
-+		case 0x04: /* cghrl  */
-+		case 0x05: /* chrl   */
-+		case 0x06: /* clghrl */
-+		case 0x07: /* clhrl  */
-+		case 0x08: /* cgrl   */
-+		case 0x0a: /* clgrl  */
-+		case 0x0c: /* cgfrl  */
-+		case 0x0d: /* crl    */
-+		case 0x0e: /* clgfrl */
-+		case 0x0f: /* clrl   */
-+			return true;
-+		}
-+		break;
-+	}
-+	return false;
-+}
-+
-+static void __kprobes copy_instruction(struct kprobe *p)
-+{
-+	s64 disp, new_disp;
-+	u64 addr, new_addr;
-+
-+	memcpy(p->ainsn.insn, p->addr, ((p->opcode >> 14) + 3) & -2);
-+	if (!is_insn_relative_long(p->ainsn.insn))
-+		return;
-+	/*
-+	 * For pc-relative instructions in RIL-b or RIL-c format patch the
-+	 * RI2 displacement field. We have already made sure that the insn
-+	 * slot for the patched instruction is within the same 2GB area
-+	 * as the original instruction (either kernel image or module area).
-+	 * Therefore the new displacement will always fit.
-+	 */
-+	disp = *(s32 *)&p->ainsn.insn[1];
-+	addr = (u64)(unsigned long)p->addr;
-+	new_addr = (u64)(unsigned long)p->ainsn.insn;
-+	new_disp = ((addr + (disp * 2)) - new_addr) / 2;
-+	*(s32 *)&p->ainsn.insn[1] = new_disp;
-+}
-+
-+static inline int is_kernel_addr(void *addr)
-+{
-+	return addr < (void *)_end;
-+}
-+
-+static inline int is_module_addr(void *addr)
-+{
-+#ifdef CONFIG_64BIT
-+	BUILD_BUG_ON(MODULES_LEN > (1UL << 31));
-+	if (addr < (void *)MODULES_VADDR)
-+		return 0;
-+	if (addr > (void *)MODULES_END)
-+		return 0;
-+#endif
-+	return 1;
-+}
-+
-+static int __kprobes s390_get_insn_slot(struct kprobe *p)
-+{
-+	/*
-+	 * Get an insn slot that is within the same 2GB area like the original
-+	 * instruction. That way instructions with a 32bit signed displacement
-+	 * field can be patched and executed within the insn slot.
-+	 */
-+	p->ainsn.insn = NULL;
-+	if (is_kernel_addr(p->addr))
-+		p->ainsn.insn = get_dmainsn_slot();
-+	if (is_module_addr(p->addr))
-+		p->ainsn.insn = get_insn_slot();
-+	return p->ainsn.insn ? 0 : -ENOMEM;
-+}
-+
-+static void __kprobes s390_free_insn_slot(struct kprobe *p)
-+{
-+	if (!p->ainsn.insn)
-+		return;
-+	if (is_kernel_addr(p->addr))
-+		free_dmainsn_slot(p->ainsn.insn, 0);
+ static int slots_per_page(struct kprobe_insn_cache *c)
+@@ -144,6 +146,7 @@ struct kprobe_insn_cache kprobe_insn_slo
+ 	.pages = LIST_HEAD_INIT(kprobe_insn_slots.pages),
+ 	.insn_size = MAX_INSN_SIZE,
+ 	.nr_garbage = 0,
++	.dma_alloc = false,
+ };
+ static int __kprobes collect_garbage_slots(struct kprobe_insn_cache *c);
+ 
+@@ -189,7 +192,10 @@ kprobe_opcode_t __kprobes *__get_insn_sl
+ 	 * kernel image and loaded module images reside. This is required
+ 	 * so x86_64 can correctly handle the %rip-relative fixups.
+ 	 */
+-	kip->insns = module_alloc(PAGE_SIZE);
++	if (c->dma_alloc)
++		kip->insns = (void *)__get_free_page(GFP_KERNEL | GFP_DMA);
 +	else
-+		free_insn_slot(p->ainsn.insn, 0);
-+	p->ainsn.insn = NULL;
-+}
-+
- int __kprobes arch_prepare_kprobe(struct kprobe *p)
- {
- 	if ((unsigned long) p->addr & 0x01)
- 		return -EINVAL;
--
- 	/* Make sure the probe isn't going on a difficult instruction */
- 	if (is_prohibited_opcode(p->addr))
- 		return -EINVAL;
--
-+	if (s390_get_insn_slot(p))
-+		return -ENOMEM;
- 	p->opcode = *p->addr;
--	memcpy(p->ainsn.insn, p->addr, ((p->opcode >> 14) + 3) & -2);
++		kip->insns = module_alloc(PAGE_SIZE);
+ 	if (!kip->insns) {
+ 		kfree(kip);
+ 		goto out;
+@@ -199,6 +205,7 @@ kprobe_opcode_t __kprobes *__get_insn_sl
+ 	kip->slot_used[0] = SLOT_USED;
+ 	kip->nused = 1;
+ 	kip->ngarbage = 0;
++	kip->dma_alloc = c->dma_alloc;
+ 	list_add(&kip->list, &c->pages);
+ 	slot = kip->insns;
+ out:
+@@ -220,7 +227,10 @@ static int __kprobes collect_one_slot(st
+ 		 */
+ 		if (!list_is_singular(&kip->list)) {
+ 			list_del(&kip->list);
+-			module_free(NULL, kip->insns);
++			if (kip->dma_alloc)
++				free_page((unsigned long)kip->insns);
++			else
++				module_free(NULL, kip->insns);
+ 			kfree(kip);
+ 		}
+ 		return 1;
+@@ -284,6 +294,20 @@ struct kprobe_insn_cache kprobe_optinsn_
+ 	.pages = LIST_HEAD_INIT(kprobe_optinsn_slots.pages),
+ 	/* .insn_size is initialized later */
+ 	.nr_garbage = 0,
++	.dma_alloc = false,
++};
++#endif
++#ifdef CONFIG_DMAPROBES
++/*
++ * Special buffer for architectures which require insn slots
++ * to be in the GFP_DMA memory range.
++ */
++struct kprobe_insn_cache kprobe_dmainsn_slots = {
++	.mutex = __MUTEX_INITIALIZER(kprobe_dmainsn_slots.mutex),
++	.pages = LIST_HEAD_INIT(kprobe_dmainsn_slots.pages),
++	.insn_size = MAX_INSN_SIZE,
++	.nr_garbage = 0,
++	.dma_alloc = true,
+ };
+ #endif
+ #endif
+_
+
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+
+kprobes-unify-insn-caches.patch
+kprobes-provide-new-dmainsn-cache.patch
+s390-kprobes-add-support-for-pc-relative-long-displacement-instructions.patch
+linux-next.patch
+
