@@ -1,92 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-backing-devc-check-user-buffer-length-before-copying-data-to-the-related-user-buffer.patch added to -mm tree
-Date: Tue, 20 Aug 2013 16:29:13 -0700
-Message-ID: <5213fbc9.PGSEbMSEyrZS353I%akpm@linux-foundation.org>
+Subject: [wrecked] mm-drop-actor-argument-of-do_shmem_file_read.patch
+ removed from -mm tree
+Date: Wed, 21 Aug 2013 13:05:09 -0700
+Message-ID: <52151d75.EDCv1wpAke13UfTN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38779 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34960 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492Ab3HTX3O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Aug 2013 19:29:14 -0400
+	with ESMTP id S1752261Ab3HUUFL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Aug 2013 16:05:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, jmoyer@redhat.com, jack@suse.cz, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, liwanp@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, hughd@google.com, dave.hansen@linux.intel.com, willy@linux.intel.com
 
-Subject: + mm-backing-devc-check-user-buffer-length-before-copying-data-to-the-related-user-buffer.patch added to -mm tree
-To: gang.chen@asianux.com,jack@suse.cz,jmoyer@redhat.com,tj@kernel.org
+Subject: [wrecked] mm-drop-actor-argument-of-do_shmem_file_read.patch removed from -mm tree
+To: willy@linux.intel.com,dave.hansen@linux.intel.com,hughd@google.com,kirill.shutemov@linux.intel.com,liwanp@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 20 Aug 2013 16:29:13 -0700
+Date: Wed, 21 Aug 2013 13:05:09 -0700
 
 
 The patch titled
-     Subject: mm/backing-dev.c: check user buffer length before copying data to the related user buffer
-has been added to the -mm tree.  Its filename is
-     mm-backing-devc-check-user-buffer-length-before-copying-data-to-the-related-user-buffer.patch
+     Subject: mm: drop actor argument of do_shmem_file_read()
+has been removed from the -mm tree.  Its filename was
+     mm-drop-actor-argument-of-do_shmem_file_read.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-backing-devc-check-user-buffer-length-before-copying-data-to-the-related-user-buffer.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-backing-devc-check-user-buffer-length-before-copying-data-to-the-related-user-buffer.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: mm/backing-dev.c: check user buffer length before copying data to the related user buffer
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: mm: drop actor argument of do_shmem_file_read()
 
-'*lenp' may be less than "sizeof(kbuf)" so we must check this before the
-next copy_to_user().
+There's only one caller of do_shmem_file_read() and the only actor is
+file_read_actor(). No reason to have a callback parameter.
 
-pdflush_proc_obsolete() is called by sysctl which 'procname' is
-"nr_pdflush_threads", if the user passes buffer length less than
-"sizeof(kbuf)", it will cause issue.
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/backing-dev.c~mm-backing-devc-check-user-buffer-length-before-copying-data-to-the-related-user-buffer mm/backing-dev.c
---- a/mm/backing-dev.c~mm-backing-devc-check-user-buffer-length-before-copying-data-to-the-related-user-buffer
-+++ a/mm/backing-dev.c
-@@ -649,7 +649,7 @@ int pdflush_proc_obsolete(struct ctl_tab
- {
- 	char kbuf[] = "0\n";
+diff -puN mm/shmem.c~mm-drop-actor-argument-of-do_shmem_file_read mm/shmem.c
+--- a/mm/shmem.c~mm-drop-actor-argument-of-do_shmem_file_read
++++ a/mm/shmem.c
+@@ -1464,7 +1464,7 @@ shmem_write_end(struct file *file, struc
+ 	return copied;
+ }
  
--	if (*ppos) {
-+	if (*ppos || *lenp < sizeof(kbuf)) {
- 		*lenp = 0;
- 		return 0;
- 	}
+-static void do_shmem_file_read(struct file *filp, loff_t *ppos, read_descriptor_t *desc, read_actor_t actor)
++static void do_shmem_file_read(struct file *filp, loff_t *ppos, read_descriptor_t *desc)
+ {
+ 	struct inode *inode = file_inode(filp);
+ 	struct address_space *mapping = inode->i_mapping;
+@@ -1546,13 +1546,14 @@ static void do_shmem_file_read(struct fi
+ 		 * Ok, we have the page, and it's up-to-date, so
+ 		 * now we can copy it to user space...
+ 		 *
+-		 * The actor routine returns how many bytes were actually used..
++		 * The file_read_actor routine returns how many bytes were actually
++		 * used..
+ 		 * NOTE! This may not be the same as how much of a user buffer
+ 		 * we filled up (we may be padding etc), so we can only update
+-		 * "pos" here (the actor routine has to update the user buffer
++		 * "pos" here (file_read_actor has to update the user buffer
+ 		 * pointers and the remaining count).
+ 		 */
+-		ret = actor(desc, page, offset, nr);
++		ret = file_read_actor(desc, page, offset, nr);
+ 		offset += ret;
+ 		index += offset >> PAGE_CACHE_SHIFT;
+ 		offset &= ~PAGE_CACHE_MASK;
+@@ -1590,7 +1591,7 @@ static ssize_t shmem_file_aio_read(struc
+ 		if (desc.count == 0)
+ 			continue;
+ 		desc.error = 0;
+-		do_shmem_file_read(filp, ppos, &desc, file_read_actor);
++		do_shmem_file_read(filp, ppos, &desc);
+ 		retval += desc.written;
+ 		if (desc.error) {
+ 			retval = retval ?: desc.error;
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from willy@linux.intel.com are
 
-sh64-kernel-use-usp-instead-of-fn.patch
-sh64-kernel-remove-useless-variable-regs.patch
-include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch
-mm-page_allocc-use-__paginginit-instead-of-__init.patch
-mm-mremapc-call-pud_free-after-fail-calling-pmd_alloc.patch
-mm-backing-devc-check-user-buffer-length-before-copying-data-to-the-related-user-buffer.patch
-kernel-smpc-free-related-resources-when-failure-occurs-in-hotplug_cfd.patch
-linux-next.patch
-mm-kconfig-add-mmu-dependency-for-migration.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
+mm-cleanup-add_to_page_cache_locked.patch
+thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
+thp-do_huge_pmd_anonymous_page-cleanup.patch
+thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
 
