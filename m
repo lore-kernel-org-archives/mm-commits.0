@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte.patch added to -mm tree
-Date: Thu, 22 Aug 2013 13:11:09 -0700
-Message-ID: <5216705d.eYM6tz1BktcI1tAf%akpm@linux-foundation.org>
+Subject: + mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails.patch
+ added to -mm tree
+Date: Thu, 22 Aug 2013 14:01:43 -0700
+Message-ID: <52167c37.Qb3KaU+sNpt7gAb0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45373 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45892 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374Ab3HVULK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Aug 2013 16:11:10 -0400
+	with ESMTP id S1752489Ab3HVVBo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Aug 2013 17:01:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, jbeulich@suse.com, gorcunov@openvz.org, gorcunov@gmail.com
+To: mm-commits@vger.kernel.org, mgorman@suse.de, kirill.shutemov@linux.intel.com, aarcange@redhat.com, rientjes@google.com
 
-Subject: + mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte.patch added to -mm tree
-To: gorcunov@gmail.com,gorcunov@openvz.org,jbeulich@suse.com,xemul@parallels.com
+Subject: + mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails.patch added to -mm tree
+To: rientjes@google.com,aarcange@redhat.com,kirill.shutemov@linux.intel.com,mgorman@suse.de
 From: akpm@linux-foundation.org
-Date: Thu, 22 Aug 2013 13:11:09 -0700
+Date: Thu, 22 Aug 2013 14:01:43 -0700
 
 
 The patch titled
-     Subject: mm: make sure _PAGE_SWP_SOFT_DIRTY bit is not set on present pte
+     Subject: mm, thp: count thp_fault_fallback anytime thp fault fails
 has been added to the -mm tree.  Its filename is
-     mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte.patch
+     mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,103 +44,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: mm: make sure _PAGE_SWP_SOFT_DIRTY bit is not set on present pte
+From: David Rientjes <rientjes@google.com>
+Subject: mm, thp: count thp_fault_fallback anytime thp fault fails
 
-_PAGE_SOFT_DIRTY bit should never be set on present pte so add VM_BUG_ON
-to catch any potential future abuse.
+Currently, thp_fault_fallback in vmstat only gets incremented if a
+hugepage allocation fails.  If current's memcg hits its limit or the page
+fault handler returns an error, it is incorrectly accounted as a
+successful thp_fault_alloc.
 
-Also add a comment on _PAGE_SWP_SOFT_DIRTY definition explaining scope of
-its usage.
+Count thp_fault_fallback anytime the page fault handler falls back to
+using regular pages and only count thp_fault_alloc when a hugepage has
+actually been faulted.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Pavel Emelyanov <xemul@parallels.com>
-Acked-by: Jan Beulich <jbeulich@suse.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h       |   34 +++++++++++++------------
- arch/x86/include/asm/pgtable_types.h |    3 ++
- 2 files changed, 22 insertions(+), 15 deletions(-)
+ mm/huge_memory.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable.h~mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -314,21 +314,6 @@ static inline pmd_t pmd_mksoft_dirty(pmd
- 	return pmd_set_flags(pmd, _PAGE_SOFT_DIRTY);
+diff -puN mm/huge_memory.c~mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails
++++ a/mm/huge_memory.c
+@@ -820,17 +820,19 @@ int do_huge_pmd_anonymous_page(struct mm
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+ 	}
+-	count_vm_event(THP_FAULT_ALLOC);
+ 	if (unlikely(mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))) {
+ 		put_page(page);
++		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+ 	}
+ 	if (unlikely(__do_huge_pmd_anonymous_page(mm, vma, haddr, pmd, page))) {
+ 		mem_cgroup_uncharge_page(page);
+ 		put_page(page);
++		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+ 	}
+ 
++	count_vm_event(THP_FAULT_ALLOC);
+ 	return 0;
  }
  
--static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
--{
--	return pte_set_flags(pte, _PAGE_SWP_SOFT_DIRTY);
--}
--
--static inline int pte_swp_soft_dirty(pte_t pte)
--{
--	return pte_flags(pte) & _PAGE_SWP_SOFT_DIRTY;
--}
--
--static inline pte_t pte_swp_clear_soft_dirty(pte_t pte)
--{
--	return pte_clear_flags(pte, _PAGE_SWP_SOFT_DIRTY);
--}
--
- static inline pte_t pte_file_clear_soft_dirty(pte_t pte)
- {
- 	return pte_clear_flags(pte, _PAGE_SOFT_DIRTY);
-@@ -445,6 +430,7 @@ pte_t *populate_extra_pte(unsigned long
+@@ -1143,7 +1145,6 @@ alloc:
+ 		new_page = NULL;
  
- #ifndef __ASSEMBLY__
- #include <linux/mm_types.h>
-+#include <linux/mmdebug.h>
- #include <linux/log2.h>
+ 	if (unlikely(!new_page)) {
+-		count_vm_event(THP_FAULT_FALLBACK);
+ 		if (is_huge_zero_pmd(orig_pmd)) {
+ 			ret = do_huge_pmd_wp_zero_page_fallback(mm, vma,
+ 					address, pmd, orig_pmd, haddr);
+@@ -1154,9 +1155,9 @@ alloc:
+ 				split_huge_page(page);
+ 			put_page(page);
+ 		}
++		count_vm_event(THP_FAULT_FALLBACK);
+ 		goto out;
+ 	}
+-	count_vm_event(THP_FAULT_ALLOC);
  
- static inline int pte_none(pte_t pte)
-@@ -863,6 +849,24 @@ static inline void update_mmu_cache_pmd(
- {
- }
+ 	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))) {
+ 		put_page(new_page);
+@@ -1164,10 +1165,13 @@ alloc:
+ 			split_huge_page(page);
+ 			put_page(page);
+ 		}
++		count_vm_event(THP_FAULT_FALLBACK);
+ 		ret |= VM_FAULT_OOM;
+ 		goto out;
+ 	}
  
-+static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
-+{
-+	VM_BUG_ON(pte_present(pte));
-+	return pte_set_flags(pte, _PAGE_SWP_SOFT_DIRTY);
-+}
++	count_vm_event(THP_FAULT_ALLOC);
 +
-+static inline int pte_swp_soft_dirty(pte_t pte)
-+{
-+	VM_BUG_ON(pte_present(pte));
-+	return pte_flags(pte) & _PAGE_SWP_SOFT_DIRTY;
-+}
-+
-+static inline pte_t pte_swp_clear_soft_dirty(pte_t pte)
-+{
-+	VM_BUG_ON(pte_present(pte));
-+	return pte_clear_flags(pte, _PAGE_SWP_SOFT_DIRTY);
-+}
-+
- #include <asm-generic/pgtable.h>
- #endif	/* __ASSEMBLY__ */
- 
-diff -puN arch/x86/include/asm/pgtable_types.h~mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte arch/x86/include/asm/pgtable_types.h
---- a/arch/x86/include/asm/pgtable_types.h~mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -75,6 +75,9 @@
-  * with swap entry format. On x86 bits 6 and 7 are *not* involved
-  * into swap entry computation, but bit 6 is used for nonlinear
-  * file mapping, so we borrow bit 7 for soft dirty tracking.
-+ *
-+ * Please note that this bit must be treated as swap dirty page
-+ * mark if and only if the PTE has present bit clear!
-  */
- #ifdef CONFIG_MEM_SOFT_DIRTY
- #define _PAGE_SWP_SOFT_DIRTY	_PAGE_PSE
+ 	if (is_huge_zero_pmd(orig_pmd))
+ 		clear_huge_page(new_page, haddr, HPAGE_PMD_NR);
+ 	else
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
-mm-track-vma-changes-with-vm_softdirty-bit.patch
-mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
-mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte.patch
-fs-proc-task_mmuc-check-the-return-value-of-mpol_to_str.patch
+mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
+mm-madvisec-fix-coding-style-errors.patch
+mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
+mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
+mm-page_alloc-fix-comment-get_page_from_freelist.patch
+mm-sparse-introduce-alloc_usemap_and_memmap.patch
+mm-writeback-make-writeback_inodes_wb-static.patch
+mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
+linux-next.patch
+arch-mm-remove-obsolete-init-oom-protection.patch
+arch-mm-do-not-invoke-oom-killer-on-kernel-fault-oom.patch
+arch-mm-pass-userspace-fault-flag-to-generic-fault-handler.patch
+x86-finish-user-fault-error-path-with-fatal-signal.patch
+mm-memcg-enable-memcg-oom-killer-only-for-user-faults.patch
+mm-memcg-rework-and-document-oom-waiting-and-wakeup.patch
+mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom.patch
+mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails.patch
+fs-bump-inode-and-dentry-counters-to-long.patch
+super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+dcache-convert-dentry_statnr_unused-to-per-cpu-counters.patch
+dentry-move-to-per-sb-lru-locks.patch
+dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+mm-new-shrinker-api.patch
+shrinker-convert-superblock-shrinkers-to-new-api.patch
+list-add-a-new-lru-list-type.patch
+inode-convert-inode-lru-list-to-generic-lru-list-code.patch
+dcache-convert-to-use-new-lru-list-infrastructure.patch
+list_lru-per-node-list-infrastructure.patch
+list_lru-per-node-api.patch
+shrinker-add-node-awareness.patch
+vmscan-per-node-deferred-work.patch
+fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
+xfs-convert-buftarg-lru-to-generic-code.patch
+xfs-rework-buffer-dispose-list-tracking.patch
+xfs-convert-dquot-cache-lru-to-list_lru.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api.patch
+drivers-convert-shrinkers-to-new-count-scan-api.patch
+i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+shrinker-kill-old-shrink-api.patch
+list_lru-dynamically-adjust-node-arrays.patch
 
