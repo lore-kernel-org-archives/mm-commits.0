@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-w1-masters-mxc_w1c-remove-unnecessary-platform_set_drvdata.patch
- added to -mm tree
-Date: Thu, 22 Aug 2013 14:23:24 -0700
-Message-ID: <5216814c.Vg8aOlgIAtuk7sEl%akpm@linux-foundation.org>
+ mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix.patch added
+ to -mm tree
+Date: Thu, 22 Aug 2013 14:46:17 -0700
+Message-ID: <521686a9.7g5EAEJ9Ll9F1oZI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46036 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46214 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754182Ab3HVVXZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Aug 2013 17:23:25 -0400
+	with ESMTP id S1754339Ab3HVVqS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Aug 2013 17:46:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zbr@ioremap.net, greg@kroah.com, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, weiyj.lk@gmail.com, n-horiguchi@ah.jp.nec.com, yongjun_wei@trendmicro.com.cn
 
-Subject: + drivers-w1-masters-mxc_w1c-remove-unnecessary-platform_set_drvdata.patch added to -mm tree
-To: jg1.han@samsung.com,greg@kroah.com,zbr@ioremap.net
+Subject: + mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix.patch added to -mm tree
+To: yongjun_wei@trendmicro.com.cn,n-horiguchi@ah.jp.nec.com,weiyj.lk@gmail.com
 From: akpm@linux-foundation.org
-Date: Thu, 22 Aug 2013 14:23:24 -0700
+Date: Thu, 22 Aug 2013 14:46:17 -0700
 
 
 The patch titled
-     Subject: drivers/w1/masters/mxc_w1.c: remove unnecessary platform_set_drvdata()
+     From: Wei Yongjun <weiyj.lk@gmail.com>
 has been added to the -mm tree.  Its filename is
-     drivers-w1-masters-mxc_w1c-remove-unnecessary-platform_set_drvdata.patch
+     mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-w1-masters-mxc_w1c-remove-unnecessary-platform_set_drvdata.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-w1-masters-mxc_w1c-remove-unnecessary-platform_set_drvdata.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,27 +45,33 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/w1/masters/mxc_w1.c: remove unnecessary platform_set_drvdata()
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-The driver core clears the driver data to NULL after device_release or on
-probe failure.  Thus, it is not needed to manually clear the device driver
-data to NULL.
+Remove duplicated include.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/mxc_w1.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/page_alloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/w1/masters/mxc_w1.c~drivers-w1-masters-mxc_w1c-remove-unnecessary-platform_set_drvdata drivers/w1/masters/mxc_w1.c
---- a/drivers/w1/masters/mxc_w1.c~drivers-w1-masters-mxc_w1c-remove-unnecessary-platform_set_drvdata
-+++ a/drivers/w1/masters/mxc_w1.c
-@@ -152,8 +152,6 @@ static int mxc_w1_remove(struct platform
+diff -puN mm/page_alloc.c~mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix
++++ a/mm/page_alloc.c
+@@ -60,7 +60,6 @@
+ #include <linux/page-debug-flags.h>
+ #include <linux/hugetlb.h>
+ #include <linux/sched/rt.h>
+-#include <linux/hugetlb.h>
  
- 	clk_disable_unprepare(mdev->clk);
- 
--	platform_set_drvdata(pdev, NULL);
+ #include <asm/sections.h>
+ #include <asm/tlbflush.h>
+_
+
+Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+
+mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix.patch
+linux-next.patch
+
