@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-document-cgroup-dirty-writeback-memory-statistics.patch
- added to -mm tree
-Date: Thu, 22 Aug 2013 15:43:35 -0700
-Message-ID: <52169417.wMqe99Gpg4/Xb6jm%akpm@linux-foundation.org>
+Subject: +
+ mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix.patch added to -mm tree
+Date: Thu, 22 Aug 2013 15:50:33 -0700
+Message-ID: <521695b9.T+fErZHU/jE34OEL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47276 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47422 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754437Ab3HVWng (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Aug 2013 18:43:36 -0400
+	with ESMTP id S1753648Ab3HVWud (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Aug 2013 18:50:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, gthelen@google.com, fengguang.wu@intel.com, handai.szj@taobao.com
+To: mm-commits@vger.kernel.org, vbabka@suse.cz
 
-Subject: + memcg-document-cgroup-dirty-writeback-memory-statistics.patch added to -mm tree
-To: handai.szj@taobao.com,fengguang.wu@intel.com,gthelen@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
+Subject: + mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix.patch added to -mm tree
+To: vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Thu, 22 Aug 2013 15:43:35 -0700
+Date: Thu, 22 Aug 2013 15:50:33 -0700
 
 
 The patch titled
-     Subject: memcg: document cgroup dirty/writeback memory statistics
+     Subject:  mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix
 has been added to the -mm tree.  Its filename is
-     memcg-document-cgroup-dirty-writeback-memory-statistics.patch
+     mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-document-cgroup-dirty-writeback-memory-statistics.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-document-cgroup-dirty-writeback-memory-statistics.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,43 +44,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sha Zhengju <handai.szj@taobao.com>
-Subject: memcg: document cgroup dirty/writeback memory statistics
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject:  mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix
 
-Signed-off-by: Sha Zhengju <handai.szj@taobao.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Clarify in __munlock_pagevec() comment that pagegec is modified and
+reinited.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/mlock.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-document-cgroup-dirty-writeback-memory-statistics Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-document-cgroup-dirty-writeback-memory-statistics
-+++ a/Documentation/cgroups/memory.txt
-@@ -490,6 +490,8 @@ pgpgin		- # of charging events to the me
- pgpgout		- # of uncharging events to the memory cgroup. The uncharging
- 		event happens each time a page is unaccounted from the cgroup.
- swap		- # of bytes of swap usage
-+writeback	- # of bytes of file/anon cache that are queued for syncing to
-+		disk.
- inactive_anon	- # of bytes of anonymous and swap cache memory on inactive
- 		LRU list.
- active_anon	- # of bytes of anonymous and swap cache memory on active
+diff -puN mm/mlock.c~mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix
++++ a/mm/mlock.c
+@@ -233,6 +233,9 @@ static int __mlock_posix_error_return(lo
+  * and attempts to isolate the pages, all under a single zone lru lock.
+  * The second phase finishes the munlock only for pages where isolation
+  * succeeded.
++ *
++ * Note that pvec is modified during the process. Before returning
++ * pagevec_reinit() is called on it.
+  */
+ static void __munlock_pagevec(struct pagevec *pvec, struct zone *zone)
+ {
 _
 
-Patches currently in -mm which might be from handai.szj@taobao.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-memcg-correct-resource_max-to-ullong_max.patch
-memcg-rename-resource_max-to-res_counter_max.patch
-memcg-avoid-overflow-caused-by-page_align.patch
-memcg-reduce-function-dereference.patch
-memcg-remove-memcg_nr_file_mapped.patch
-memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat.patch
-memcg-add-per-cgroup-writeback-pages-accounting.patch
-memcg-document-cgroup-dirty-writeback-memory-statistics.patch
+mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
+mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
+mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec.patch
+mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix.patch
+mm-munlock-batch-nr_mlock-zone-state-updates.patch
+mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
+mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
+mm-munlock-remove-redundant-get_page-put_page-pair-on-the-fast-path.patch
+mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask.patch
 
