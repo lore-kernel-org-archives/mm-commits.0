@@ -1,88 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection.patch removed from -mm tree
-Date: Fri, 23 Aug 2013 12:06:17 -0700
-Message-ID: <5217b2a9.U3PmL9tw+wsZZtbq%akpm@linux-foundation.org>
+Subject: [merged] lib-lz4-correct-the-lz4-license.patch removed from -mm
+ tree
+Date: Fri, 23 Aug 2013 12:06:21 -0700
+Message-ID: <5217b2ad.G0gEp0t6nyl5JKxE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59591 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59597 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755539Ab3HWTGS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 15:06:18 -0400
+	with ESMTP id S1756109Ab3HWTGW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 15:06:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp, dan.carpenter@oracle.com, slava@dubeyko.com
+To: mm-commits@vger.kernel.org, ryao@gentoo.org, kyungsik.lee@lge.com, chanho.min@lge.com, rlaager@wiktel.com
 
-Subject: [merged] nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection.patch removed from -mm tree
-To: slava@dubeyko.com,dan.carpenter@oracle.com,konishi.ryusuke@lab.ntt.co.jp,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] lib-lz4-correct-the-lz4-license.patch removed from -mm tree
+To: rlaager@wiktel.com,chanho.min@lge.com,kyungsik.lee@lge.com,ryao@gentoo.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 23 Aug 2013 12:06:17 -0700
+Date: Fri, 23 Aug 2013 12:06:21 -0700
 
 
 The patch titled
-     Subject: nilfs2: fix issue with counting number of bio requests for BIO_EOPNOTSUPP error detection
+     Subject: lib/lz4: correct the LZ4 license
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection.patch
+     lib-lz4-correct-the-lz4-license.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: nilfs2: fix issue with counting number of bio requests for BIO_EOPNOTSUPP error detection
+From: Richard Laager <rlaager@wiktel.com>
+Subject: lib/lz4: correct the LZ4 license
 
-Fix the issue with improper counting number of flying bio requests for
-BIO_EOPNOTSUPP error detection case.
+The LZ4 code is listed as using the "BSD 2-Clause License".
 
-The sb_nbio must be incremented exactly the same number of times as
-complete() function was called (or will be called) because
-nilfs_segbuf_wait() will call wail_for_completion() for the number of
-times set to sb_nbio:
-
-do {
-    wait_for_completion(&segbuf->sb_bio_event);
-} while (--segbuf->sb_nbio > 0);
-
-Two functions complete() and wait_for_completion() must be called the same
-number of times for the same sb_bio_event.  Otherwise,
-wait_for_completion() will hang or leak.
-
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Richard Laager <rlaager@wiktel.com>
+Acked-by: Kyungsik Lee <kyungsik.lee@lge.com>
+Cc: Chanho Min <chanho.min@lge.com>
+Cc: Richard Yao <ryao@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segbuf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/lz4/lz4_compress.c   |    4 ++--
+ lib/lz4/lz4_decompress.c |    6 +++---
+ lib/lz4/lz4hc_compress.c |    4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/nilfs2/segbuf.c~nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection fs/nilfs2/segbuf.c
---- a/fs/nilfs2/segbuf.c~nilfs2-fix-issue-with-counting-number-of-bio-requests-for-bio_eopnotsupp-error-detection
-+++ a/fs/nilfs2/segbuf.c
-@@ -376,12 +376,12 @@ static int nilfs_segbuf_submit_bio(struc
- 	bio->bi_private = segbuf;
- 	bio_get(bio);
- 	submit_bio(mode, bio);
-+	segbuf->sb_nbio++;
- 	if (bio_flagged(bio, BIO_EOPNOTSUPP)) {
- 		bio_put(bio);
- 		err = -EOPNOTSUPP;
- 		goto failed;
- 	}
--	segbuf->sb_nbio++;
- 	bio_put(bio);
+diff -puN lib/lz4/lz4_compress.c~lib-lz4-correct-the-lz4-license lib/lz4/lz4_compress.c
+--- a/lib/lz4/lz4_compress.c~lib-lz4-correct-the-lz4-license
++++ a/lib/lz4/lz4_compress.c
+@@ -437,7 +437,7 @@ int lz4_compress(const unsigned char *sr
+ exit:
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(lz4_compress);
++EXPORT_SYMBOL(lz4_compress);
  
- 	wi->bio = NULL;
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_DESCRIPTION("LZ4 compressor");
+diff -puN lib/lz4/lz4_decompress.c~lib-lz4-correct-the-lz4-license lib/lz4/lz4_decompress.c
+--- a/lib/lz4/lz4_decompress.c~lib-lz4-correct-the-lz4-license
++++ a/lib/lz4/lz4_decompress.c
+@@ -299,7 +299,7 @@ exit_0:
+ 	return ret;
+ }
+ #ifndef STATIC
+-EXPORT_SYMBOL_GPL(lz4_decompress);
++EXPORT_SYMBOL(lz4_decompress);
+ #endif
+ 
+ int lz4_decompress_unknownoutputsize(const char *src, size_t src_len,
+@@ -319,8 +319,8 @@ exit_0:
+ 	return ret;
+ }
+ #ifndef STATIC
+-EXPORT_SYMBOL_GPL(lz4_decompress_unknownoutputsize);
++EXPORT_SYMBOL(lz4_decompress_unknownoutputsize);
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_DESCRIPTION("LZ4 Decompressor");
+ #endif
+diff -puN lib/lz4/lz4hc_compress.c~lib-lz4-correct-the-lz4-license lib/lz4/lz4hc_compress.c
+--- a/lib/lz4/lz4hc_compress.c~lib-lz4-correct-the-lz4-license
++++ a/lib/lz4/lz4hc_compress.c
+@@ -533,7 +533,7 @@ int lz4hc_compress(const unsigned char *
+ exit:
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(lz4hc_compress);
++EXPORT_SYMBOL(lz4hc_compress);
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_DESCRIPTION("LZ4HC compressor");
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from rlaager@wiktel.com are
 
 origin.patch
-hfsplus-add-necessary-declarations-for-posix-acls-support.patch
-hfsplus-implement-posix-acls-support.patch
-hfsplus-integrate-posix-acls-support-into-driver.patch
 
