@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + block-support-embedded-device-command-line-partition-fix.patch
- added to -mm tree
-Date: Fri, 23 Aug 2013 15:36:18 -0700
-Message-ID: <5217e3e2.55MUb93CtoCA6b/g%akpm@linux-foundation.org>
+Subject: + documentation-hwspinlocktxt-fix-typo.patch added to -mm tree
+Date: Fri, 23 Aug 2013 15:37:30 -0700
+Message-ID: <5217e42a.fNEq4mSAqkwih6ZA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60883 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60888 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754122Ab3HWWgT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 18:36:19 -0400
+	with ESMTP id S1753353Ab3HWWha (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 18:37:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, caizhiyong@huawei.com, yongjun_wei@trendmicro.com.cn
+To: mm-commits@vger.kernel.org, qiuxishi@huawei.com
 
-Subject: + block-support-embedded-device-command-line-partition-fix.patch added to -mm tree
-To: yongjun_wei@trendmicro.com.cn,caizhiyong@huawei.com
+Subject: + documentation-hwspinlocktxt-fix-typo.patch added to -mm tree
+To: qiuxishi@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 23 Aug 2013 15:36:18 -0700
+Date: Fri, 23 Aug 2013 15:37:30 -0700
 
 
 The patch titled
-     Subject: block: fix error return code in parse_parts()
+     Subject: Documentation/hwspinlock.txt: fix typo
 has been added to the -mm tree.  Its filename is
-     block-support-embedded-device-command-line-partition-fix.patch
+     documentation-hwspinlocktxt-fix-typo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/block-support-embedded-device-command-line-partition-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-hwspinlocktxt-fix-typo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/block-support-embedded-device-command-line-partition-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-hwspinlocktxt-fix-typo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,38 +43,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: block: fix error return code in parse_parts()
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: Documentation/hwspinlock.txt: fix typo
 
-Fix to return -EINVAL in the parts parse error handling case instead of
-0(may overwrite to 0 by parse_subpart()), as done elsewhere in this
-function.
-
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Cai Zhiyong <caizhiyong@huawei.com>
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cmdline-parser.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/hwspinlock.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN block/cmdline-parser.c~block-support-embedded-device-command-line-partition-fix block/cmdline-parser.c
---- a/block/cmdline-parser.c~block-support-embedded-device-command-line-partition-fix
-+++ a/block/cmdline-parser.c
-@@ -135,6 +135,7 @@ static int parse_parts(struct cmdline_pa
+diff -puN Documentation/hwspinlock.txt~documentation-hwspinlocktxt-fix-typo Documentation/hwspinlock.txt
+--- a/Documentation/hwspinlock.txt~documentation-hwspinlocktxt-fix-typo
++++ a/Documentation/hwspinlock.txt
+@@ -241,7 +241,7 @@ int hwspinlock_example2(void)
+      locks).
+      Should be called from a process context (this function might sleep).
+      Returns the address of hwspinlock on success, or NULL on error (e.g.
+-     if the hwspinlock is sill in use).
++     if the hwspinlock is still in use).
  
- 	if (!newparts->subpart) {
- 		pr_warn("cmdline partition has no valid partition.");
-+		ret = -EINVAL;
- 		goto fail;
- 	}
+ 5. Important structs
  
 _
 
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-origin.patch
-block-support-embedded-device-command-line-partition-fix.patch
-mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix.patch
-linux-next.patch
+mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch
+mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages.patch
+mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+mm-use-zone_is_empty-instead-of-ifzone-spanned_pages.patch
+mm-use-zone_is_initialized-instead-of-ifzone-wait_table.patch
+documentation-memory-hotplugtxt-fix-typo.patch
+documentation-hwspinlocktxt-fix-typo.patch
+kexec-remove-unnecessary-return.patch
 
