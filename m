@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch added to -mm tree
-Date: Fri, 23 Aug 2013 16:09:26 -0700
-Message-ID: <5217eba6.QHltsW7vqov5SMsz%akpm@linux-foundation.org>
+Subject: + pidns-fix-vfork-after-unshareclone_newpid.patch added to -mm
+ tree
+Date: Fri, 23 Aug 2013 16:20:20 -0700
+Message-ID: <5217ee34.pteHrz1bKis0j40D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32815 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32924 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753517Ab3HWXJ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 19:09:27 -0400
+	with ESMTP id S1756475Ab3HWXUV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 19:20:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, slyfox@gentoo.org, mmarek@suse.cz, geert@linux-m68k.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, walters@redhat.com, stable@vger.kernel.org, luto@amacapital.net, ebiederm@xmission.com, oleg@redhat.com
 
-Subject: + makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,geert@linux-m68k.org,mmarek@suse.cz,slyfox@gentoo.org
+Subject: + pidns-fix-vfork-after-unshareclone_newpid.patch added to -mm tree
+To: oleg@redhat.com,ebiederm@xmission.com,luto@amacapital.net,stable@vger.kernel.org,walters@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 23 Aug 2013 16:09:26 -0700
+Date: Fri, 23 Aug 2013 16:20:20 -0700
 
 
 The patch titled
-     Subject: makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix
+     Subject: pidns: fix vfork() after unshare(CLONE_NEWPID)
 has been added to the -mm tree.  Its filename is
-     makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch
+     pidns-fix-vfork-after-unshareclone_newpid.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pidns-fix-vfork-after-unshareclone_newpid.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pidns-fix-vfork-after-unshareclone_newpid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,90 +44,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: pidns: fix vfork() after unshare(CLONE_NEWPID)
 
-fix typos in comments
+8382fcac ("pidns: Outlaw thread creation after unshare(CLONE_NEWPID)")
+nacks CLONE_VM if the forking process unshared pid_ns, this obviously
+breaks vfork:
 
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Sergei Trofimovich <slyfox@gentoo.org>
+	int main(void)
+	{
+		assert(unshare(CLONE_NEWUSER | CLONE_NEWPID) == 0);
+		assert(vfork() >= 0);
+		_exit(0);
+		return 0;
+	}
+
+fails without this patch.
+
+Change this check to use CLONE_SIGHAND instead.  This also forbids
+CLONE_THREAD automatically, and this is what the comment implies.
+
+We could probably even drop CLONE_SIGHAND and use CLONE_THREAD, but it
+would be safer to not do this.  The current check denies CLONE_SIGHAND
+implicitely and there is no reason to change this.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Colin Walters <walters@redhat.com>
+Acked-by: Andy Lutomirski <luto@amacapital.net>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/fork.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN Makefile~makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix Makefile
---- a/Makefile~makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix
-+++ a/Makefile
-@@ -659,10 +659,10 @@ KBUILD_CFLAGS	+= $(call cc-option,-fno-s
- # conserve stack if available
- KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
+diff -puN kernel/fork.c~pidns-fix-vfork-after-unshareclone_newpid kernel/fork.c
+--- a/kernel/fork.c~pidns-fix-vfork-after-unshareclone_newpid
++++ a/kernel/fork.c
+@@ -1173,10 +1173,11 @@ static struct task_struct *copy_process(
+ 		return ERR_PTR(-EINVAL);
  
--# disallog errors like 'EXPORT_GPL(foo);' with missing header
-+# disallow errors like 'EXPORT_GPL(foo);' with missing header
- KBUILD_CFLAGS   += $(call cc-option,-Werror=implicit-int)
+ 	/*
+-	 * If the new process will be in a different pid namespace
+-	 * don't allow the creation of threads.
++	 * If the new process will be in a different pid namespace don't
++	 * allow it to share a thread group or signal handlers with the
++	 * forking task.
+ 	 */
+-	if ((clone_flags & (CLONE_VM|CLONE_NEWPID)) &&
++	if ((clone_flags & (CLONE_SIGHAND | CLONE_NEWPID)) &&
+ 	    (task_active_pid_ns(current) != current->nsproxy->pid_ns))
+ 		return ERR_PTR(-EINVAL);
  
--# require functions to have argumens in prototypes, not empty 'int foo()'
-+# require functions to have arguments in prototypes, not empty 'int foo()'
- KBUILD_CFLAGS   += $(call cc-option,-Werror=strict-prototypes)
- 
- # use the deterministic mode of AR if available
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch
-block-support-embedded-device-command-line-partition.patch
-mm.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-swap-make-swap-discard-async-checkpatch-fixes.patch
-swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
-mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
-mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
-vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
-genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
-mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
-mm-hotplug-verify-hotplug-memory-range-fix.patch
-mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
-mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
-mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
-mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
+pidns-fix-vfork-after-unshareclone_newpid.patch
+pidns-kill-the-unnecessary-clone_newpid-in-copy_process.patch
+fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks.patch
+include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
+mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
+mm-shift-vm_grows-check-from-mmap_region-to-do_mmap_pgoff-v2.patch
+mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
+mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
+kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
+task_work-minor-cleanups.patch
+task_work-documentation.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+__ptrace_may_access-should-not-deny-sub-threads.patch
+signals-eventpoll-set-saved_sigmask-at-the-start.patch
 move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+exec-introduce-exec_binprm-for-depth-==-0-code.patch
+exec-kill-int-depth-in-search_binary_handler.patch
+exec-proc_exec_connector-should-be-called-only-once.patch
+exec-move-allow_write_access-fput-to-exec_binprm.patch
+exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
+exec-cleanup-the-config_modules-logic.patch
+exec-dont-retry-if-request_module-fails.patch
+exec-cleanup-the-error-handling-in-search_binary_handler.patch
 linux-next.patch
-linux-next-git-rejects.patch
-revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
-memcg-trivial-cleanups.patch
-shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
-xfs-convert-buftarg-lru-to-generic-code-fix.patch
-xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
-shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
-shrinker-kill-old-shrink-api-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
