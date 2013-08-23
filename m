@@ -1,39 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch removed from -mm tree
-Date: Fri, 23 Aug 2013 16:07:39 -0700
-Message-ID: <5217eb3b.2PDMHjjnEUqH3dsS%akpm@linux-foundation.org>
+Subject: +
+ makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch added to -mm tree
+Date: Fri, 23 Aug 2013 16:08:49 -0700
+Message-ID: <5217eb81.mhxXpVeO68Xe2XWz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32805 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32810 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753610Ab3HWXHk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 19:07:40 -0400
+	with ESMTP id S1753517Ab3HWXIu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 19:08:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mmarek@suse.cz, slyfox@gentoo.org
+To: mm-commits@vger.kernel.org, mmarek@suse.cz, geert@linux-m68k.org, slyfox@gentoo.org
 
-Subject: [to-be-updated] makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch removed from -mm tree
-To: slyfox@gentoo.org,mmarek@suse.cz,mm-commits@vger.kernel.org
+Subject: + makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch added to -mm tree
+To: slyfox@gentoo.org,geert@linux-m68k.org,mmarek@suse.cz
 From: akpm@linux-foundation.org
-Date: Fri, 23 Aug 2013 16:07:39 -0700
+Date: Fri, 23 Aug 2013 16:08:49 -0700
 
 
 The patch titled
-     Subject: Makefile: enable -Werror=implicit-int and -Werror=strict-prototypes by default
-has been removed from the -mm tree.  Its filename was
+     Subject: ./Makefile: enable -Werror=implicit-int and -Werror=strict-prototypes by default
+has been added to the -mm tree.  Its filename is
      makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: Makefile: enable -Werror=implicit-int and -Werror=strict-prototypes by default
+Subject: ./Makefile: enable -Werror=implicit-int and -Werror=strict-prototypes by default
 
-A common error type found in forward-ported/backported patches is missing
+The common error found in forward-ported/backported patches is missing
 headers.  One recent example (files and function names are mangled):
 
     void foo(){}
@@ -49,34 +63,37 @@ gave only warning
     EXPORT_SYMBOL(foo);
     foo.c:12345679:5: warning: type defaults to 'int' in declaration of 'EXORT_SYMBOL' [-Werror=implicit-int]
 
-Now it's a fata error. Tested on x86_64 allyesconfig.
+Now it's a fatal error. Tested on x86_64 allyesconfig.
 
 Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
 Cc: Michal Marek <mmarek@suse.cz>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    5 +++++
- 1 file changed, 5 insertions(+)
+ Makefile |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff -puN Makefile~makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default Makefile
 --- a/Makefile~makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default
 +++ a/Makefile
-@@ -374,6 +374,11 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstric
- 		   -Werror-implicit-function-declaration \
- 		   -Wno-format-security \
- 		   -fno-delete-null-pointer-checks
+@@ -659,6 +659,12 @@ KBUILD_CFLAGS	+= $(call cc-option,-fno-s
+ # conserve stack if available
+ KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
+ 
++# disallog errors like 'EXPORT_GPL(foo);' with missing header
++KBUILD_CFLAGS   += $(call cc-option,-Werror=implicit-int)
 +
-+# not universally available, but nice to have ones
-+KBUILD_CFLAGS   +=  $(call cc-option,-Werror=implicit-int) \
-+		    $(call cc-option,-Werror=strict-prototypes)
++# require functions to have argumens in prototypes, not empty 'int foo()'
++KBUILD_CFLAGS   += $(call cc-option,-Werror=strict-prototypes)
 +
- KBUILD_AFLAGS_KERNEL :=
- KBUILD_CFLAGS_KERNEL :=
- KBUILD_AFLAGS   := -D__ASSEMBLY__
+ # use the deterministic mode of AR if available
+ KBUILD_ARFLAGS := $(call ar-option,D)
+ 
 _
 
 Patches currently in -mm which might be from slyfox@gentoo.org are
 
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
 cleanup-add-forward-declarations-for-inplace-syscall-wrappers.patch
 
