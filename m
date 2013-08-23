@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-fix-vfork-after-unshareclone_newpid.patch added to -mm
- tree
-Date: Fri, 23 Aug 2013 16:20:20 -0700
-Message-ID: <5217ee34.pteHrz1bKis0j40D%akpm@linux-foundation.org>
+Subject: +
+ fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks.patch added to
+ -mm tree
+Date: Fri, 23 Aug 2013 16:20:22 -0700
+Message-ID: <5217ee36.aVQb/DumssTj7Pk3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32932 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756475Ab3HWXUV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 19:20:21 -0400
+	with ESMTP id S1756542Ab3HWXUX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 19:20:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walters@redhat.com, stable@vger.kernel.org, luto@amacapital.net, ebiederm@xmission.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, walters@redhat.com, luto@amacapital.net, ebiederm@xmission.com, oleg@redhat.com
 
-Subject: + pidns-fix-vfork-after-unshareclone_newpid.patch added to -mm tree
-To: oleg@redhat.com,ebiederm@xmission.com,luto@amacapital.net,stable@vger.kernel.org,walters@redhat.com
+Subject: + fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks.patch added to -mm tree
+To: oleg@redhat.com,ebiederm@xmission.com,luto@amacapital.net,walters@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 23 Aug 2013 16:20:20 -0700
+Date: Fri, 23 Aug 2013 16:20:22 -0700
 
 
 The patch titled
-     Subject: pidns: fix vfork() after unshare(CLONE_NEWPID)
+     Subject: fork: unify and tighten up CLONE_NEWUSER/CLONE_NEWPID checks
 has been added to the -mm tree.  Its filename is
-     pidns-fix-vfork-after-unshareclone_newpid.patch
+     fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pidns-fix-vfork-after-unshareclone_newpid.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pidns-fix-vfork-after-unshareclone_newpid.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,58 +46,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: pidns: fix vfork() after unshare(CLONE_NEWPID)
+Subject: fork: unify and tighten up CLONE_NEWUSER/CLONE_NEWPID checks
 
-8382fcac ("pidns: Outlaw thread creation after unshare(CLONE_NEWPID)")
-nacks CLONE_VM if the forking process unshared pid_ns, this obviously
-breaks vfork:
+do_fork() denies CLONE_THREAD | CLONE_PARENT if NEWUSER | NEWPID.
 
-	int main(void)
-	{
-		assert(unshare(CLONE_NEWUSER | CLONE_NEWPID) == 0);
-		assert(vfork() >= 0);
-		_exit(0);
-		return 0;
-	}
+Then later copy_process() denies CLONE_SIGHAND if the new process will be
+in a different pid namespace (task_active_pid_ns() doesn't match
+current->nsproxy->pid_ns).
 
-fails without this patch.
+This looks confusing and inconsistent.  CLONE_NEWPID is very similar to
+the case when ->pid_ns was already unshared, we want the same restrictions
+so copy_process() should also nack CLONE_PARENT.
 
-Change this check to use CLONE_SIGHAND instead.  This also forbids
-CLONE_THREAD automatically, and this is what the comment implies.
+And it would be better to deny CLONE_NEWUSER && CLONE_SIGHAND as well just
+for consistency.
 
-We could probably even drop CLONE_SIGHAND and use CLONE_THREAD, but it
-would be safer to not do this.  The current check denies CLONE_SIGHAND
-implicitely and there is no reason to change this.
+Kill the "CLONE_NEWUSER | CLONE_NEWPID" check in do_fork() and change
+copy_process() to do the same check along with ->pid_ns check we already
+have.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Colin Walters <walters@redhat.com>
 Acked-by: Andy Lutomirski <luto@amacapital.net>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: <stable@vger.kernel.org>
+Cc: Colin Walters <walters@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ kernel/fork.c |   23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-diff -puN kernel/fork.c~pidns-fix-vfork-after-unshareclone_newpid kernel/fork.c
---- a/kernel/fork.c~pidns-fix-vfork-after-unshareclone_newpid
+diff -puN kernel/fork.c~fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks kernel/fork.c
+--- a/kernel/fork.c~fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks
 +++ a/kernel/fork.c
-@@ -1173,10 +1173,11 @@ static struct task_struct *copy_process(
+@@ -1173,13 +1173,15 @@ static struct task_struct *copy_process(
  		return ERR_PTR(-EINVAL);
  
  	/*
--	 * If the new process will be in a different pid namespace
--	 * don't allow the creation of threads.
-+	 * If the new process will be in a different pid namespace don't
-+	 * allow it to share a thread group or signal handlers with the
-+	 * forking task.
+-	 * If the new process will be in a different pid namespace don't
+-	 * allow it to share a thread group or signal handlers with the
+-	 * forking task.
++	 * If the new process will be in a different pid or user namespace
++	 * do not allow it to share a thread group or signal handlers or
++	 * parent with the forking task.
  	 */
--	if ((clone_flags & (CLONE_VM|CLONE_NEWPID)) &&
-+	if ((clone_flags & (CLONE_SIGHAND | CLONE_NEWPID)) &&
- 	    (task_active_pid_ns(current) != current->nsproxy->pid_ns))
- 		return ERR_PTR(-EINVAL);
+-	if ((clone_flags & CLONE_SIGHAND) &&
+-	    (task_active_pid_ns(current) != current->nsproxy->pid_ns))
+-		return ERR_PTR(-EINVAL);
++	if (clone_flags & (CLONE_SIGHAND | CLONE_PARENT)) {
++		if ((clone_flags & (CLONE_NEWUSER | CLONE_NEWPID)) ||
++		    (task_active_pid_ns(current) != current->nsproxy->pid_ns))
++			return ERR_PTR(-EINVAL);
++	}
  
+ 	retval = security_task_create(clone_flags);
+ 	if (retval)
+@@ -1576,15 +1578,6 @@ long do_fork(unsigned long clone_flags,
+ 	long nr;
+ 
+ 	/*
+-	 * Do some preliminary argument and permissions checking before we
+-	 * actually start allocating stuff
+-	 */
+-	if (clone_flags & (CLONE_NEWUSER | CLONE_NEWPID)) {
+-		if (clone_flags & (CLONE_THREAD|CLONE_PARENT))
+-			return -EINVAL;
+-	}
+-
+-	/*
+ 	 * Determine whether and which event to report to ptracer.  When
+ 	 * called from kernel_thread or CLONE_UNTRACED is explicitly
+ 	 * requested, no event is reported; otherwise, report if the event
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
