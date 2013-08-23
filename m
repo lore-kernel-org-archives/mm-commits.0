@@ -1,72 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- nilfs2-remove-double-bio_put-in-nilfs_end_bio_write-for-bio_eopnotsupp-error.patch removed from -mm tree
-Date: Fri, 23 Aug 2013 12:06:15 -0700
-Message-ID: <5217b2a7.HuYz0TEz2JBGICTX%akpm@linux-foundation.org>
+Subject: [merged] drivers-platform-olpc-olpc-ecc-initialise-earlier.patch
+ removed from -mm tree
+Date: Fri, 23 Aug 2013 12:06:13 -0700
+Message-ID: <5217b2a5.0eV654359OB0z7kD%akpm__15409.1462064118$1377284787$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59583 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755710Ab3HWTGQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 15:06:16 -0400
+	with ESMTP id S1755539Ab3HWTGP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Aug 2013 15:06:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp, dan.carpenter@oracle.com, slava@dubeyko.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, stable@vger.kernel.org, pgf@laptop.org, dilinger@queued.net, dsd@laptop.org
 
-Subject: [merged] nilfs2-remove-double-bio_put-in-nilfs_end_bio_write-for-bio_eopnotsupp-error.patch removed from -mm tree
-To: slava@dubeyko.com,dan.carpenter@oracle.com,konishi.ryusuke@lab.ntt.co.jp,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] drivers-platform-olpc-olpc-ecc-initialise-earlier.patch removed from -mm tree
+To: dsd@laptop.org,dilinger@queued.net,pgf@laptop.org,stable@vger.kernel.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 23 Aug 2013 12:06:15 -0700
+Date: Fri, 23 Aug 2013 12:06:13 -0700
 
 
 The patch titled
-     Subject: nilfs2: remove double bio_put() in nilfs_end_bio_write() for BIO_EOPNOTSUPP error
+     Subject: drivers/platform/olpc/olpc-ec.c: initialise earlier
 has been removed from the -mm tree.  Its filename was
-     nilfs2-remove-double-bio_put-in-nilfs_end_bio_write-for-bio_eopnotsupp-error.patch
+     drivers-platform-olpc-olpc-ecc-initialise-earlier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: nilfs2: remove double bio_put() in nilfs_end_bio_write() for BIO_EOPNOTSUPP error
+From: Daniel Drake <dsd@laptop.org>
+Subject: drivers/platform/olpc/olpc-ec.c: initialise earlier
 
-Remove double call of bio_put() in nilfs_end_bio_write() for the case of
-BIO_EOPNOTSUPP error detection.  The issue was found by Dan Carpenter and
-he suggests first version of the fix too.
+Being a low-level component, various drivers (e.g.  olpc-battery) assume
+that it is ok to communicate with the OLPC Embedded Controller during
+probe.  Therefore the OLPC EC driver must be initialised before other
+drivers try to use it.  This was the case until it was recently moved out
+of arch/x86 and restructured around commits ac2504151f5af27b ("Platform:
+OLPC: turn EC driver into a platform_driver") and 85f90cf6ca569 ("x86:
+OLPC: switch over to using new EC driver on x86").
 
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Use arch_initcall so that olpc-ec is readied earlier, matching the
+previous behaviour.
+
+Fixes a regression introduced in Linux-3.6 where various drivers such as
+olpc-battery and olpc-xo1-sci failed to load due to an inability to
+communicate with the EC.  The user-visible effect was a lack of battery
+monitoring, missing ebook/lid switch input devices, etc.
+
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+Cc: Andres Salomon <dilinger@queued.net>
+Cc: Paul Fox <pgf@laptop.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segbuf.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/platform/olpc/olpc-ec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/segbuf.c~nilfs2-remove-double-bio_put-in-nilfs_end_bio_write-for-bio_eopnotsupp-error fs/nilfs2/segbuf.c
---- a/fs/nilfs2/segbuf.c~nilfs2-remove-double-bio_put-in-nilfs_end_bio_write-for-bio_eopnotsupp-error
-+++ a/fs/nilfs2/segbuf.c
-@@ -345,8 +345,7 @@ static void nilfs_end_bio_write(struct b
+diff -puN drivers/platform/olpc/olpc-ec.c~drivers-platform-olpc-olpc-ecc-initialise-earlier drivers/platform/olpc/olpc-ec.c
+--- a/drivers/platform/olpc/olpc-ec.c~drivers-platform-olpc-olpc-ecc-initialise-earlier
++++ a/drivers/platform/olpc/olpc-ec.c
+@@ -330,7 +330,7 @@ static int __init olpc_ec_init_module(vo
+ 	return platform_driver_register(&olpc_ec_plat_driver);
+ }
  
- 	if (err == -EOPNOTSUPP) {
- 		set_bit(BIO_EOPNOTSUPP, &bio->bi_flags);
--		bio_put(bio);
--		/* to be detected by submit_seg_bio() */
-+		/* to be detected by nilfs_segbuf_submit_bio() */
- 	}
+-module_init(olpc_ec_init_module);
++arch_initcall(olpc_ec_init_module);
  
- 	if (!uptodate)
+ MODULE_AUTHOR("Andres Salomon <dilinger@queued.net>");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from dsd@laptop.org are
 
 origin.patch
-hfsplus-add-necessary-declarations-for-posix-acls-support.patch
-hfsplus-implement-posix-acls-support.patch
-hfsplus-integrate-posix-acls-support-into-driver.patch
 
