@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
- added to -mm tree
-Date: Mon, 26 Aug 2013 14:42:40 -0700
-Message-ID: <521bcbd0.JEym0xlNuZ6DwKnK%akpm@linux-foundation.org>
+Subject: +
+ mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch added to -mm tree
+Date: Mon, 26 Aug 2013 14:42:41 -0700
+Message-ID: <521bcbd1.F5QtcokF1oIEnXy8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57970 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab3HZVml (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 17:42:41 -0400
+	with ESMTP id S1752233Ab3HZVmm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 17:42:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tony.luck@intel.com, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch added to -mm tree
+Subject: + mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch added to -mm tree
 To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com,tony.luck@intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 26 Aug 2013 14:42:40 -0700
+Date: Mon, 26 Aug 2013 14:42:41 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: replace atomic_long_sub() with atomic_long_dec()
+     Subject: mm/hwpoison: don't set migration type twice to avoid holding heavily contend zone->lock
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
+     mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,33 +45,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: replace atomic_long_sub() with atomic_long_dec()
+Subject: mm/hwpoison: don't set migration type twice to avoid holding heavily contend zone->lock
 
-Replace atomic_long_sub() with atomic_long_dec() since the page is normal
-page instead of hugetlbfs page or thp.
+Set pageblock migration type will hold zone->lock which is heavy contended
+in system to avoid race.  However, soft offline page will set pageblock
+migration type twice during get page if the page is in used, not hugetlbfs
+page and not on lru list.  There is unnecessary to set the pageblock
+migration type and hold heavy contended zone->lock again if the first
+round get page have already set the pageblock to right migration type.
+
+The trick here is migration type is MIGRATE_ISOLATE.  There are other two
+parts can change MIGRATE_ISOLATE except hwpoison.  One is memory hoplug,
+however, we hold lock_memory_hotplug() which avoid race.  The second is
+CMA which umovable page allocation requst can't fallback to.  So it's safe
+here.
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec
+diff -puN mm/memory-failure.c~mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock
 +++ a/mm/memory-failure.c
-@@ -1363,7 +1363,7 @@ int unpoison_memory(unsigned long pfn)
- 			return 0;
- 		}
- 		if (TestClearPageHWPoison(p))
--			atomic_long_sub(nr_pages, &num_poisoned_pages);
-+			atomic_long_dec(&num_poisoned_pages);
- 		pr_info("MCE: Software-unpoisoned free page %#lx\n", pfn);
- 		return 0;
- 	}
+@@ -1426,7 +1426,8 @@ static int __get_any_page(struct page *p
+ 	 * was free. This flag should be kept set until the source page
+ 	 * is freed and PG_hwpoison on it is set.
+ 	 */
+-	set_migratetype_isolate(p, true);
++	if (get_pageblock_migratetype(p) != MIGRATE_ISOLATE)
++		set_migratetype_isolate(p, true);
+ 	/*
+ 	 * When the target page is a free hugepage, just remove it
+ 	 * from free hugepage list.
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
