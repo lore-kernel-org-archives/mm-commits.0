@@ -1,70 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bfs-iget_locked-doesnt-return-an-err_ptr.patch removed
+Subject: [merged] procfs-remove-extra-call-of-dir_emit_dots.patch removed
  from -mm tree
-Date: Mon, 26 Aug 2013 13:08:10 -0700
-Message-ID: <521bb5aa.Xmcq7aJ0dMqoucN5%akpm@linux-foundation.org>
+Date: Mon, 26 Aug 2013 13:08:08 -0700
+Message-ID: <521bb5a8.LRx/ioHYVO2HiZKi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57355 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57350 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740Ab3HZUIK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 16:08:10 -0400
+	with ESMTP id S1751740Ab3HZUIJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 16:08:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tigran@aivazian.fsnet.co.uk, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, xemul@parallels.com, viro@zeniv.linux.org.uk, gorcunov@openvz.org, avagin@openvz.org
 
-Subject: [merged] bfs-iget_locked-doesnt-return-an-err_ptr.patch removed from -mm tree
-To: dan.carpenter@oracle.com,tigran@aivazian.fsnet.co.uk,mm-commits@vger.kernel.org
+Subject: [merged] procfs-remove-extra-call-of-dir_emit_dots.patch removed from -mm tree
+To: avagin@openvz.org,gorcunov@openvz.org,viro@zeniv.linux.org.uk,xemul@parallels.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 26 Aug 2013 13:08:10 -0700
+Date: Mon, 26 Aug 2013 13:08:08 -0700
 
 
 The patch titled
-     Subject: bfs: iget_locked() doesn't return an ERR_PTR
+     Subject: procfs: remove extra call of dir_emit_dots
 has been removed from the -mm tree.  Its filename was
-     bfs-iget_locked-doesnt-return-an-err_ptr.patch
+     procfs-remove-extra-call-of-dir_emit_dots.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: bfs: iget_locked() doesn't return an ERR_PTR
+From: Andrey Vagin <avagin@openvz.org>
+Subject: procfs: remove extra call of dir_emit_dots
 
-iget_locked() returns a NULL on error, it doesn't return an ERR_PTR.
+dir_emit_dots() is called twice. Looks like a typo.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "Tigran A. Aivazian" <tigran@aivazian.fsnet.co.uk>
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/fd.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/bfs/inode.c~bfs-iget_locked-doesnt-return-an-err_ptr fs/bfs/inode.c
---- a/fs/bfs/inode.c~bfs-iget_locked-doesnt-return-an-err_ptr
-+++ a/fs/bfs/inode.c
-@@ -40,7 +40,7 @@ struct inode *bfs_iget(struct super_bloc
- 	int block, off;
+diff -puN fs/proc/fd.c~procfs-remove-extra-call-of-dir_emit_dots fs/proc/fd.c
+--- a/fs/proc/fd.c~procfs-remove-extra-call-of-dir_emit_dots
++++ a/fs/proc/fd.c
+@@ -230,8 +230,6 @@ static int proc_readfd_common(struct fil
  
- 	inode = iget_locked(sb, ino);
--	if (IS_ERR(inode))
-+	if (!inode)
- 		return ERR_PTR(-ENOMEM);
- 	if (!(inode->i_state & I_NEW))
- 		return inode;
+ 	if (!dir_emit_dots(file, ctx))
+ 		goto out;
+-	if (!dir_emit_dots(file, ctx))
+-		goto out;
+ 	files = get_files_struct(p);
+ 	if (!files)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from avagin@openvz.org are
 
 linux-next.patch
-ocfs2-use-list_for_each_entry-instead-of-list_for_each.patch
-ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-mbind-add-bug_onvma-in-new_vma_page.patch
-affs-use-loff_t-in-affs_truncate.patch
-pktcdvd-convert-printk-to-pr_level.patch
-pktcdvd-fix-defective-misuses-of-pkt_level.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix.patch
+kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 
