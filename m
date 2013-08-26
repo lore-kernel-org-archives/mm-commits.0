@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hwpoison-fix-race-against-poison-thp.patch added to -mm tree
-Date: Mon, 26 Aug 2013 14:42:39 -0700
-Message-ID: <521bcbcf.TvifmYp2u2iEtaq+%akpm@linux-foundation.org>
+Subject: + mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
+ added to -mm tree
+Date: Mon, 26 Aug 2013 14:42:40 -0700
+Message-ID: <521bcbd0.JEym0xlNuZ6DwKnK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57961 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57966 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab3HZVmk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 17:42:40 -0400
+	with ESMTP id S1751711Ab3HZVml (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 17:42:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tony.luck@intel.com, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-hwpoison-fix-race-against-poison-thp.patch added to -mm tree
+Subject: + mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch added to -mm tree
 To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com,tony.luck@intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 26 Aug 2013 14:42:39 -0700
+Date: Mon, 26 Aug 2013 14:42:40 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: fix race against poison thp
+     Subject: mm/hwpoison: replace atomic_long_sub() with atomic_long_dec()
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-race-against-poison-thp.patch
+     mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-race-against-poison-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-race-against-poison-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,69 +45,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: fix race against poison thp
+Subject: mm/hwpoison: replace atomic_long_sub() with atomic_long_dec()
 
-There is a race between hwpoison page and unpoison page, memory_failure
-set the page hwpoison and increase num_poisoned_pages without hold page
-lock, and one page count will be accounted against thp for
-num_poisoned_pages.  However, unpoison can occur before memory_failure
-hold page lock and split transparent hugepage, unpoison will decrease
-num_poisoned_pages by 1 << compound_order since memory_failure has not yet
-split transparent hugepage with page lock held.  That means we account one
-page for hwpoison and 1 << compound_order for unpoison.  This patch fix it
-by inserting a PageTransHuge check before doing TestClearPageHWPoison,
-unpoison failed without clearing PageHWPoison and decreasing
-num_poisoned_pages.
-
-            A                                                 	B
-    	memory_failue
-        TestSetPageHWPoison(p);
-        if (PageHuge(p))
-            nr_pages = 1 << compound_order(hpage);
-        else
-            nr_pages = 1;
-        atomic_long_add(nr_pages, &num_poisoned_pages);
-                                                            unpoison_memory
-	                                                        nr_pages = 1<< compound_trans_order(page);
-                                                            if(TestClearPageHWPoison(p))
-                                                            atomic_long_sub(nr_pages, &num_poisoned_pages);
-        lock page
-        if (!PageHWPoison(p))
-        	unlock page and return
-        hwpoison_user_mappings
-        if (PageTransHuge(hpage))
-        	split_huge_page(hpage);
+Replace atomic_long_sub() with atomic_long_dec() since the page is normal
+page instead of hugetlbfs page or thp.
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-fix-race-against-poison-thp mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-fix-race-against-poison-thp
+diff -puN mm/memory-failure.c~mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec
 +++ a/mm/memory-failure.c
-@@ -1339,6 +1339,16 @@ int unpoison_memory(unsigned long pfn)
+@@ -1363,7 +1363,7 @@ int unpoison_memory(unsigned long pfn)
+ 			return 0;
+ 		}
+ 		if (TestClearPageHWPoison(p))
+-			atomic_long_sub(nr_pages, &num_poisoned_pages);
++			atomic_long_dec(&num_poisoned_pages);
+ 		pr_info("MCE: Software-unpoisoned free page %#lx\n", pfn);
  		return 0;
  	}
- 
-+	/*
-+	 * unpoison_memory() can encounter thp only when the thp is being
-+	 * worked by memory_failure() and the page lock is not held yet.
-+	 * In such case, we yield to memory_failure() and make unpoison fail.
-+	 */
-+	if (PageTransHuge(page)) {
-+		pr_info("MCE: Memory failure is now running on %#lx\n", pfn);
-+			return 0;
-+	}
-+
- 	nr_pages = 1 << compound_order(page);
- 
- 	if (!get_page_unless_zero(page)) {
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
