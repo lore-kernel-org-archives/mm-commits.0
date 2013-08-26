@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hwpoison-add-to-madvise_hwpoison.patch added to -mm tree
-Date: Mon, 26 Aug 2013 14:42:43 -0700
-Message-ID: <521bcbd3.ToV2ItBIom6VJxDm%akpm@linux-foundation.org>
+Subject: +
+ drivers-base-memoryc-fix-show_mem_removable-to-handle-missing-sections.patch added to -mm tree
+Date: Mon, 26 Aug 2013 14:50:13 -0700
+Message-ID: <521bcd95.ci9CSR1rdUPCUsp3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57975 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58117 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752282Ab3HZVmo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 17:42:44 -0400
+	with ESMTP id S1752474Ab3HZVuO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 17:50:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, rafael.j.wysocki@intel.com, isimatu.yasuaki@jp.fujitsu.com, gregkh@linuxfoundation.org, rja@sgi.com
 
-Subject: + mm-hwpoison-add-to-madvise_hwpoison.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com,tony.luck@intel.com
+Subject: + drivers-base-memoryc-fix-show_mem_removable-to-handle-missing-sections.patch added to -mm tree
+To: rja@sgi.com,gregkh@linuxfoundation.org,isimatu.yasuaki@jp.fujitsu.com,rafael.j.wysocki@intel.com,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 26 Aug 2013 14:42:43 -0700
+Date: Mon, 26 Aug 2013 14:50:13 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: add '#' to madvise_hwpoison
+     Subject: drivers/base/memory.c: fix show_mem_removable() to handle missing sections
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-add-to-madvise_hwpoison.patch
+     drivers-base-memoryc-fix-show_mem_removable-to-handle-missing-sections.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-add-to-madvise_hwpoison.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-memoryc-fix-show_mem_removable-to-handle-missing-sections.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-add-to-madvise_hwpoison.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-memoryc-fix-show_mem_removable-to-handle-missing-sections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,100 +44,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: add '#' to madvise_hwpoison
+From: Russ Anderson <rja@sgi.com>
+Subject: drivers/base/memory.c: fix show_mem_removable() to handle missing sections
 
-Add '#' to madvise_hwpoison.
+"cat /sys/devices/system/memory/memory*/removable" crashed the system.
 
-Before patch:
+The problem is that show_mem_removable() is passing a
+bad pfn to is_mem_section_removable(), which causes
+if (!node_online(page_to_nid(page))) to blow up.
+Why is it passing in a bad pfn?
 
-[   95.892866] Injecting memory failure for page 19d0 at b7786000
-[   95.893151] MCE 0x19d0: non LRU page recovery: Ignored
+show_mem_removable() will loop sections_per_block times.
+sections_per_block is 16, but mem->section_count is 8,
+indicating holes in this memory block.  Checking that
+the memory section is present before checking to see
+if the memory section is removable fixes the problem.
 
-After patch:
+harp5-sys:~ # cat /sys/devices/system/memory/memory*/removable
+0
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+[  372.111178] BUG: unable to handle kernel paging request at ffffea00c3200000
+[  372.119230] IP: [<ffffffff81117ed1>] is_pageblock_removable_nolock+0x1/0x90
+[  372.127022] PGD 83ffd4067 PUD 37bdfce067 PMD 0
+[  372.132109] Oops: 0000 [#1] SMP
+[  372.135730] Modules linked in: autofs4 binfmt_misc rdma_ucm rdma_cm iw_cm ib_addr ib_srp scsi_transport_srp scsi_tgt ib_ipoib ib_cm ib_uverbs ib_umad iw_cxgb3 cxgb3 mdio mlx4_en mlx4_ib ib_sa mlx4_core ib_mthca ib_mad ib_core fuse nls_iso8859_1 nls_cp437 vfat fat joydev loop hid_generic usbhid hid hwperf(O) numatools(O) dm_mod iTCO_wdt ipv6 iTCO_vendor_support igb i2c_i801 ioatdma i2c_algo_bit ehci_pci pcspkr lpc_ich i2c_core ehci_hcd ptp sg mfd_core dca rtc_cmos pps_core mperf button xhci_hcd sd_mod crc_t10dif usbcore usb_common scsi_dh_emc scsi_dh_hp_sw scsi_dh_alua scsi_dh_rdac scsi_dh gru(O) xvma(O) xfs crc32c libcrc32c thermal sata_nv processor piix mptsas mptscsih scsi_transport_sas mptbase megaraid_sas fan thermal_sys hwmon ext3 jbd ata_piix ahci libahci libata scsi_mod
+[  372.213536] CPU: 4 PID: 5991 Comm: cat Tainted: G           O 3.11.0-rc5-rja-uv+ #10
+[  372.222173] Hardware name: SGI UV2000/ROMLEY, BIOS SGI UV 2000/3000 series BIOS 01/15/2013
+[  372.231391] task: ffff88081f034580 ti: ffff880820022000 task.ti: ffff880820022000
+[  372.239737] RIP: 0010:[<ffffffff81117ed1>]  [<ffffffff81117ed1>] is_pageblock_removable_nolock+0x1/0x90
+[  372.250229] RSP: 0018:ffff880820023df8  EFLAGS: 00010287
+[  372.256151] RAX: 0000000000040000 RBX: ffffea00c3200000 RCX: 0000000000000004
+[  372.264111] RDX: ffffea00c30b0000 RSI: 00000000001c0000 RDI: ffffea00c3200000
+[  372.272071] RBP: ffff880820023e38 R08: 0000000000000000 R09: 0000000000000001
+[  372.280030] R10: 0000000000000000 R11: 0000000000000001 R12: ffffea00c33c0000
+[  372.287987] R13: 0000160000000000 R14: 6db6db6db6db6db7 R15: 0000000000000001
+[  372.295945] FS:  00007ffff7fb2700(0000) GS:ffff88083fc80000(0000) knlGS:0000000000000000
+[  372.304970] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  372.311378] CR2: ffffea00c3200000 CR3: 000000081b954000 CR4: 00000000000407e0
+[  372.319335] Stack:
+[  372.321575]  ffff880820023e38 ffffffff81161e94 ffffffff81d9e940 0000000000000009
+[  372.329872]  0000000000000000 ffff8817bb97b800 ffff88081e928000 ffff8817bb97b870
+[  372.338167]  ffff880820023e68 ffffffff813730d1 fffffffffffffffb ffffffff81a97600
+[  372.346463] Call Trace:
+[  372.349201]  [<ffffffff81161e94>] ? is_mem_section_removable+0x84/0x110
+[  372.356579]  [<ffffffff813730d1>] show_mem_removable+0x41/0x70
+[  372.363094]  [<ffffffff8135be8a>] dev_attr_show+0x2a/0x60
+[  372.369122]  [<ffffffff811e1817>] sysfs_read_file+0xf7/0x1c0
+[  372.375441]  [<ffffffff8116e7e8>] vfs_read+0xc8/0x130
+[  372.381076]  [<ffffffff8116ee5d>] SyS_read+0x5d/0xa0
+[  372.386624]  [<ffffffff814bfa12>] system_call_fastpath+0x16/0x1b
+[  372.393313] Code: 01 00 00 00 e9 3c ff ff ff 90 0f b6 4a 30 44 89 d8 d3 e0 89 c1 83 e9 01 48 63 c9 49 01 c8 eb 92 66 2e 0f 1f 84 00 00 00 00 00 55 <48> 8b 0f 49 89 f8 48 89 e5 48 89 ca 48 c1 ea 36 0f a3 15 d8 2f
+[  372.415032] RIP  [<ffffffff81117ed1>] is_pageblock_removable_nolock+0x1/0x90
+[  372.422905]  RSP <ffff880820023df8>
+[  372.426792] CR2: ffffea00c3200000
 
-[   95.892866] Injecting memory failure for page 0x19d0 at 0xb7786000
-[   95.893151] MCE 0x19d0: non LRU page recovery: Ignored
-
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Russ Anderson <rja@sgi.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/memory.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/madvise.c~mm-hwpoison-add-to-madvise_hwpoison mm/madvise.c
---- a/mm/madvise.c~mm-hwpoison-add-to-madvise_hwpoison
-+++ a/mm/madvise.c
-@@ -353,14 +353,14 @@ static int madvise_hwpoison(int bhv, uns
- 		if (ret != 1)
- 			return ret;
- 		if (bhv == MADV_SOFT_OFFLINE) {
--			printk(KERN_INFO "Soft offlining page %lx at %lx\n",
-+			pr_info("Soft offlining page %#lx at %#lx\n",
- 				page_to_pfn(p), start);
- 			ret = soft_offline_page(p, MF_COUNT_INCREASED);
- 			if (ret)
- 				break;
- 			continue;
- 		}
--		printk(KERN_INFO "Injecting memory failure for page %lx at %lx\n",
-+		pr_info("Injecting memory failure for page %#lx at %#lx\n",
- 		       page_to_pfn(p), start);
- 		/* Ignore return value for now */
- 		memory_failure(page_to_pfn(p), 0, MF_COUNT_INCREASED);
+diff -puN drivers/base/memory.c~drivers-base-memoryc-fix-show_mem_removable-to-handle-missing-sections drivers/base/memory.c
+--- a/drivers/base/memory.c~drivers-base-memoryc-fix-show_mem_removable-to-handle-missing-sections
++++ a/drivers/base/memory.c
+@@ -141,6 +141,8 @@ static ssize_t show_mem_removable(struct
+ 		container_of(dev, struct memory_block, dev);
+ 
+ 	for (i = 0; i < sections_per_block; i++) {
++		if (!present_section_nr(mem->start_section_nr + i))
++			continue;
+ 		pfn = section_nr_to_pfn(mem->start_section_nr + i);
+ 		ret &= is_mem_section_removable(pfn, PAGES_PER_SECTION);
+ 	}
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from rja@sgi.com are
 
-mm-zswapc-get-swapper-address_space-by-using-macro.patch
-mm-fix-potential-null-pointer-dereference.patch
-mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
-mm-hugetlb-trivial-commenting-fix.patch
-mm-hugetlb-clean-up-alloc_huge_page.patch
-mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
-mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
-mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
-mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
-mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
-mm-vmalloc-remove-useless-variable-in-vmap_block.patch
-mm-vmalloc-use-well-defined-find_last_bit-func.patch
-mm-hotplug-verify-hotplug-memory-range.patch
-mm-hotplug-verify-hotplug-memory-range-fix.patch
-mm-hotplug-remove-stop_machine-from-try_offline_node.patch
-mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
-mm-hugetlb-change-variable-name-reservations-to-resv.patch
-mm-hugetlb-fix-subpool-accounting-handling.patch
-mm-hugetlb-remove-useless-check-about-mapping-type.patch
-mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
-mm-hugetlb-return-a-reserved-page-to-a-reserved-pool-if-failed.patch
-mm-migrate-make-core-migration-code-aware-of-hugepage.patch
-mm-soft-offline-use-migrate_pages-instead-of-migrate_huge_page.patch
-migrate-add-hugepage-migration-code-to-migrate_pages.patch
-mm-migrate-add-hugepage-migration-code-to-move_pages.patch
-mm-mbind-add-hugepage-migration-code-to-mbind.patch
-mm-migrate-remove-vm_hugetlb-from-vma-flag-check-in-vma_migratable.patch
-mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage.patch
-mm-migrate-check-movability-of-hugepage-in-unmap_and_move_huge_page.patch
-mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
-mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2.patch
-mm-mempolicy-rename-check_range-to-queue_pages_range.patch
-mm-sparse-introduce-alloc_usemap_and_memmap.patch
-mm-writeback-make-writeback_inodes_wb-static.patch
-mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
-hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page.patch
-mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
-mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch
-mm-hwpoison-fix-race-against-poison-thp.patch
-mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
-mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch
-mm-hwpoison-drop-forward-reference-declarations-__soft_offline_page.patch
-mm-hwpoison-add-to-madvise_hwpoison.patch
-mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page.patch
-linux-next.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
+drivers-base-memoryc-fix-show_mem_removable-to-handle-missing-sections.patch
+memblock-numa-binary-search-node-id.patch
 
