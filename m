@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch added to -mm tree
-Date: Mon, 26 Aug 2013 14:42:37 -0700
-Message-ID: <521bcbcd.QxcuyQqttoHVjxuO%akpm@linux-foundation.org>
+ mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch added
+ to -mm tree
+Date: Mon, 26 Aug 2013 14:42:38 -0700
+Message-ID: <521bcbce.tMypJJP+s6gmA8cX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57949 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57956 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab3HZVmi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 17:42:38 -0400
+	with ESMTP id S1751711Ab3HZVmj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 17:42:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tony.luck@intel.com, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch added to -mm tree
+Subject: + mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch added to -mm tree
 To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com,tony.luck@intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 26 Aug 2013 14:42:37 -0700
+Date: Mon, 26 Aug 2013 14:42:38 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: fix loss of PG_dirty for errors on mlocked pages
+     Subject: mm/hwpoison: don't need to hold compound lock for hugetlbfs page
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
+     mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,68 +46,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: fix loss of PG_dirty for errors on mlocked pages
+Subject: mm/hwpoison: don't need to hold compound lock for hugetlbfs page
 
-memory_failure() store the page flag of the error page before doing unmap,
-and (only) if the first check with page flags at the time decided the
-error page is unknown, it do the second check with the stored page flag
-since memory_failure() does unmapping of the error pages before doing
-page_action().  This unmapping changes the page state, especially
-page_remove_rmap() (called from try_to_unmap_one()) clears PG_mlocked, so
-page_action() can't catch mlocked pages after that.
-
-However, memory_failure() can't handle memory errors on dirty mlocked
-pages correctly.  try_to_unmap_one will move the dirty bit from pte to the
-physical page, the second check lose it since it check the stored page
-flag.  This patch fix it by restore PG_dirty flag to stored page flag if
-the page is dirty.
-
-Testcase:
-
-#define _GNU_SOURCE
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <errno.h>
-
-#define PAGES_TO_TEST 2
-#define PAGE_SIZE	4096
-
-int main(void)
-{
-	char *mem;
-	int i;
-
-	mem = mmap(NULL, PAGES_TO_TEST * PAGE_SIZE,
-			PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_LOCKED, 0, 0);
-
-	for (i = 0; i < PAGES_TO_TEST; i++)
-		mem[i * PAGE_SIZE] = 'a';
-
-	if (madvise(mem, PAGES_TO_TEST * PAGE_SIZE, MADV_HWPOISON) == -1)
-		return -1;
-
-	return 0;
-}
-
-Before patch:
-
-[  912.839247] Injecting memory failure for page 7dfb8 at 7f6b4e37b000
-[  912.839257] MCE 0x7dfb8: clean mlocked LRU page recovery: Recovered
-[  912.845550] MCE 0x7dfb8: clean mlocked LRU page still referenced by 1 users
-[  912.852586] Injecting memory failure for page 7e6aa at 7f6b4e37c000
-[  912.852594] MCE 0x7e6aa: clean mlocked LRU page recovery: Recovered
-[  912.858936] MCE 0x7e6aa: clean mlocked LRU page still referenced by 1 users
-
-After patch:
-
-[  163.590225] Injecting memory failure for page 91bc2f at 7f9f5b0e5000
-[  163.590264] MCE 0x91bc2f: dirty mlocked LRU page recovery: Recovered
-[  163.596680] MCE 0x91bc2f: dirty mlocked LRU page still referenced by 1 users
-[  163.603831] Injecting memory failure for page 91cdd3 at 7f9f5b0e6000
-[  163.603852] MCE 0x91cdd3: dirty mlocked LRU page recovery: Recovered
-[  163.610305] MCE 0x91cdd3: dirty mlocked LRU page still referenced by 1 users
+compound lock is introduced by commit e9da73d67("thp: compound_lock."), it
+is used to serialize put_page against __split_huge_page_refcount().  In
+addition, transparent hugepages will be splitted in hwpoison handler and
+just one subpage will be poisoned.  There is unnecessary to hold compound
+lock for hugetlbfs page.  This patch replace compound_trans_order by
+compond_order in the place where the page is hugetlbfs page.
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -115,22 +62,91 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/mm.h  |   14 --------------
+ mm/memory-failure.c |   12 ++++++------
+ 2 files changed, 6 insertions(+), 20 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages
+diff -puN include/linux/mm.h~mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page include/linux/mm.h
+--- a/include/linux/mm.h~mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page
++++ a/include/linux/mm.h
+@@ -495,20 +495,6 @@ static inline int compound_order(struct
+ 	return (unsigned long)page[1].lru.prev;
+ }
+ 
+-static inline int compound_trans_order(struct page *page)
+-{
+-	int order;
+-	unsigned long flags;
+-
+-	if (!PageHead(page))
+-		return 0;
+-
+-	flags = compound_lock_irqsave(page);
+-	order = compound_order(page);
+-	compound_unlock_irqrestore(page, flags);
+-	return order;
+-}
+-
+ static inline void set_compound_order(struct page *page, unsigned long order)
+ {
+ 	page[1].lru.prev = (void *)order;
+diff -puN mm/memory-failure.c~mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page
 +++ a/mm/memory-failure.c
-@@ -1204,6 +1204,9 @@ int memory_failure(unsigned long pfn, in
- 	for (ps = error_states;; ps++)
- 		if ((p->flags & ps->mask) == ps->res)
- 			break;
-+
-+	page_flags |= (p->flags & (1UL << PG_dirty));
-+
- 	if (!ps->mask)
- 		for (ps = error_states;; ps++)
- 			if ((page_flags & ps->mask) == ps->res)
+@@ -206,7 +206,7 @@ static int kill_proc(struct task_struct
+ #ifdef __ARCH_SI_TRAPNO
+ 	si.si_trapno = trapno;
+ #endif
+-	si.si_addr_lsb = compound_trans_order(compound_head(page)) + PAGE_SHIFT;
++	si.si_addr_lsb = compound_order(compound_head(page)) + PAGE_SHIFT;
+ 
+ 	if ((flags & MF_ACTION_REQUIRED) && t == current) {
+ 		si.si_code = BUS_MCEERR_AR;
+@@ -983,7 +983,7 @@ static int hwpoison_user_mappings(struct
+ static void set_page_hwpoison_huge_page(struct page *hpage)
+ {
+ 	int i;
+-	int nr_pages = 1 << compound_trans_order(hpage);
++	int nr_pages = 1 << compound_order(hpage);
+ 	for (i = 0; i < nr_pages; i++)
+ 		SetPageHWPoison(hpage + i);
+ }
+@@ -991,7 +991,7 @@ static void set_page_hwpoison_huge_page(
+ static void clear_page_hwpoison_huge_page(struct page *hpage)
+ {
+ 	int i;
+-	int nr_pages = 1 << compound_trans_order(hpage);
++	int nr_pages = 1 << compound_order(hpage);
+ 	for (i = 0; i < nr_pages; i++)
+ 		ClearPageHWPoison(hpage + i);
+ }
+@@ -1339,7 +1339,7 @@ int unpoison_memory(unsigned long pfn)
+ 		return 0;
+ 	}
+ 
+-	nr_pages = 1 << compound_trans_order(page);
++	nr_pages = 1 << compound_order(page);
+ 
+ 	if (!get_page_unless_zero(page)) {
+ 		/*
+@@ -1503,7 +1503,7 @@ static int soft_offline_huge_page(struct
+ 	} else {
+ 		set_page_hwpoison_huge_page(hpage);
+ 		dequeue_hwpoisoned_huge_page(hpage);
+-		atomic_long_add(1 << compound_trans_order(hpage),
++		atomic_long_add(1 << compound_order(hpage),
+ 				&num_poisoned_pages);
+ 	}
+ 	return ret;
+@@ -1563,7 +1563,7 @@ int soft_offline_page(struct page *page,
+ 		if (PageHuge(page)) {
+ 			set_page_hwpoison_huge_page(hpage);
+ 			dequeue_hwpoisoned_huge_page(hpage);
+-			atomic_long_add(1 << compound_trans_order(hpage),
++			atomic_long_add(1 << compound_order(hpage),
+ 					&num_poisoned_pages);
+ 		} else {
+ 			SetPageHWPoison(page);
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
