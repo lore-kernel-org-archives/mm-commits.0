@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + anon_inodefs-forbid-open-via-proc.patch added to -mm tree
-Date: Mon, 26 Aug 2013 13:48:44 -0700
-Message-ID: <521bbf2c.tIgwVOQnf/Z1JVSP%akpm@linux-foundation.org>
+Subject: + aoe-suppress-compiler-warnings.patch added to -mm tree
+Date: Mon, 26 Aug 2013 13:49:51 -0700
+Message-ID: <521bbf6f.0dGE4NSKb0mwsqJ+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57723 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57725 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751968Ab3HZUsp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 16:48:45 -0400
+	with ESMTP id S1751741Ab3HZUtw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Aug 2013 16:49:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, luto@amacapital.net, oleg@redhat.com
+To: mm-commits@vger.kernel.org, ecashin@coraid.com, andriy.shevchenko@linux.intel.com
 
-Subject: + anon_inodefs-forbid-open-via-proc.patch added to -mm tree
-To: oleg@redhat.com,luto@amacapital.net
+Subject: + aoe-suppress-compiler-warnings.patch added to -mm tree
+To: andriy.shevchenko@linux.intel.com,ecashin@coraid.com
 From: akpm@linux-foundation.org
-Date: Mon, 26 Aug 2013 13:48:44 -0700
+Date: Mon, 26 Aug 2013 13:49:51 -0700
 
 
 The patch titled
-     Subject: anon_inodefs: forbid open via /proc
+     Subject: aoe: suppress compiler warnings
 has been added to the -mm tree.  Its filename is
-     anon_inodefs-forbid-open-via-proc.patch
+     aoe-suppress-compiler-warnings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/anon_inodefs-forbid-open-via-proc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/aoe-suppress-compiler-warnings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/anon_inodefs-forbid-open-via-proc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/aoe-suppress-compiler-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,73 +43,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: anon_inodefs: forbid open via /proc
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: aoe: suppress compiler warnings
 
-open("/proc/pid/$anon-fd") should fail, we can't create the new file with
-correct f_op/etc correctly.  Currently this creates the bogus file with
-the empty anon_inode_fops, this is harmless but still wrong and
-misleading.
+This patch fixes following compiler warnings:
 
-Add anon_inode_fops->anon_open() which simply returns ENXIO like
-sock_no_open() does in this case.
+drivers/block/aoe/aoecmd.c: In function `aoecmd_ata_rw':
+drivers/block/aoe/aoecmd.c:383:17: warning: variable `t' set but not used [-Wunused-but-set-variable]
+  struct aoetgt *t;
+                 ^
+drivers/block/aoe/aoecmd.c: In function `resend':
+drivers/block/aoe/aoecmd.c:488:21: warning: variable `ah' set but not used [-Wunused-but-set-variable]
+  struct aoe_atahdr *ah;
+                     ^
+drivers/block/aoe/aoedev.c: In function 'user_req':
+drivers/block/aoe/aoedev.c:252:174: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+  lim = min(sizeof(d->gd->disk_name) - (p - d->gd->disk_name), slen);
+                                                               ^
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/anon_inodes.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/block/aoe/aoecmd.c |    4 ----
+ drivers/block/aoe/aoedev.c |    3 ++-
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN fs/anon_inodes.c~anon_inodefs-forbid-open-via-proc fs/anon_inodes.c
---- a/fs/anon_inodes.c~anon_inodefs-forbid-open-via-proc
-+++ a/fs/anon_inodes.c
-@@ -24,7 +24,15 @@
+diff -puN drivers/block/aoe/aoecmd.c~aoe-suppress-compiler-warnings drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-suppress-compiler-warnings
++++ a/drivers/block/aoe/aoecmd.c
+@@ -380,7 +380,6 @@ aoecmd_ata_rw(struct aoedev *d)
+ {
+ 	struct frame *f;
+ 	struct buf *buf;
+-	struct aoetgt *t;
+ 	struct sk_buff *skb;
+ 	struct sk_buff_head queue;
+ 	ulong bcnt, fbcnt;
+@@ -391,7 +390,6 @@ aoecmd_ata_rw(struct aoedev *d)
+ 	f = newframe(d);
+ 	if (f == NULL)
+ 		return 0;
+-	t = *d->tgt;
+ 	bcnt = d->maxbcnt;
+ 	if (bcnt == 0)
+ 		bcnt = DEFAULTBCNT;
+@@ -485,7 +483,6 @@ resend(struct aoedev *d, struct frame *f
+ 	struct sk_buff *skb;
+ 	struct sk_buff_head queue;
+ 	struct aoe_hdr *h;
+-	struct aoe_atahdr *ah;
+ 	struct aoetgt *t;
+ 	char buf[128];
+ 	u32 n;
+@@ -500,7 +497,6 @@ resend(struct aoedev *d, struct frame *f
+ 		return;
+ 	}
+ 	h = (struct aoe_hdr *) skb_mac_header(skb);
+-	ah = (struct aoe_atahdr *) (h+1);
  
- static struct vfsmount *anon_inode_mnt __read_mostly;
- static struct inode *anon_inode_inode;
--static const struct file_operations anon_inode_fops;
-+
-+static int anon_open(struct inode *inode, struct file *file)
-+{
-+	return -ENXIO;
-+}
-+
-+static const struct file_operations anon_inode_fops = {
-+	.open = anon_open,
-+};
+ 	if (!(f->flags & FFL_PROBE)) {
+ 		snprintf(buf, sizeof(buf),
+diff -puN drivers/block/aoe/aoedev.c~aoe-suppress-compiler-warnings drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-suppress-compiler-warnings
++++ a/drivers/block/aoe/aoedev.c
+@@ -249,7 +249,8 @@ user_req(char *s, size_t slen, struct ao
+ 	if (!d->gd)
+ 		return 0;
+ 	p = kbasename(d->gd->disk_name);
+-	lim = min(sizeof(d->gd->disk_name) - (p - d->gd->disk_name), slen);
++	lim = min_t(size_t, sizeof(d->gd->disk_name) - (p - d->gd->disk_name),
++		slen);
  
- /*
-  * anon_inodefs_dname() is called from d_path().
+ 	return !strncmp(s, p, lim);
+ }
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-pidns-fix-vfork-after-unshareclone_newpid.patch
-pidns-kill-the-unnecessary-clone_newpid-in-copy_process.patch
-fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-anon_inodefs-forbid-open-via-proc.patch
-mm-mempolicy-turn-vma_set_policy-into-vma_dup_policy.patch
-mm-shift-vm_grows-check-from-mmap_region-to-do_mmap_pgoff-v2.patch
-mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
-mm-mmap_region-kill-correct_wcount-inode-use-allow_write_access.patch
-kernel-wide-fix-missing-validations-on-__get-__put-__copy_to-__copy_from_user.patch
-task_work-minor-cleanups.patch
-task_work-documentation.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-__ptrace_may_access-should-not-deny-sub-threads.patch
-signals-eventpoll-set-saved_sigmask-at-the-start.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-exec-introduce-exec_binprm-for-depth-==-0-code.patch
-exec-kill-int-depth-in-search_binary_handler.patch
-exec-proc_exec_connector-should-be-called-only-once.patch
-exec-move-allow_write_access-fput-to-exec_binprm.patch
-exec-kill-load_binary-=-null-check-in-search_binary_handler.patch
-exec-cleanup-the-config_modules-logic.patch
-exec-dont-retry-if-request_module-fails.patch
-exec-cleanup-the-error-handling-in-search_binary_handler.patch
+aoe-remove-custom-implementation-of-kbasename.patch
+aoe-use-min-to-simplify-the-code.patch
+aoe-suppress-compiler-warnings.patch
 linux-next.patch
 
