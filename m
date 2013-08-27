@@ -1,168 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix.patch removed
- from -mm tree
-Date: Tue, 27 Aug 2013 14:03:26 -0700
-Message-ID: <521d141e.j5XBP0V7SH/Q+bYf%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page.patch removed from -mm tree
+Date: Tue, 27 Aug 2013 14:11:46 -0700
+Message-ID: <521d1612.wYeukXd5BLUB7ck2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41138 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752954Ab3H0VD2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Aug 2013 17:03:28 -0400
+	with ESMTP id S1753881Ab3H0VLr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Aug 2013 17:11:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yp.fangdong@gmail.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, tony.luck@intel.com, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
 
-Subject: [folded-merged] ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix.patch removed from -mm tree
-To: dan.carpenter@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,yp.fangdong@gmail.com,mm-commits@vger.kernel.org
+Subject: [to-be-updated] mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page.patch removed from -mm tree
+To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com,tony.luck@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 27 Aug 2013 14:03:26 -0700
+Date: Tue, 27 Aug 2013 14:11:46 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix up some NULL dereference bugs
+     Subject: mm/hwpoison: fix memory failure still holding reference count after unpoisoning empty zero page
 has been removed from the -mm tree.  Its filename was
-     ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+     mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page.patch
 
-This patch was dropped because it was folded into ocfs2-use-list_for_each_entry-instead-of-list_for_each.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ocfs2: fix up some NULL dereference bugs
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/hwpoison: fix memory failure still holding reference count after unpoisoning empty zero page
 
-The recent -mm patch 4bce37c3e3 "ocfs2: use list_for_each_entry()
-instead of list_for_each()" introduced some NULL dereference bugs and
-also a use after free bug in dlm_clean_master_list().
+madvise hwpoison inject will poison the read-only empty zero page if there
+is no write access before poison.  Empty zero page reference count will be
+increased for hwpoison, subsequent poison zero page will return directly
+since page has already been set PG_hwpoison, however, page reference count
+is still increased by get_user_pages_fast.  The unpoison process will
+unpoison the empty zero page and decrease the reference count successfully
+for the fist time, however, subsequent unpoison empty zero page will
+return directly since page has already been unpoisoned and without
+decrease the page reference count of empty zero page.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Dong Fang <yp.fangdong@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Jeff Liu <jeff.liu@oracle.com>
+This patch fixes it by decreasing page reference count for empty zero page
+which has already been unpoisoned and page count > 1.
+
+Testcase:
+
+#define _GNU_SOURCE
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <errno.h>
+
+#define PAGES_TO_TEST 3
+#define PAGE_SIZE	4096
+
+int main(void)
+{
+	char *mem;
+	int i;
+
+	mem = mmap(NULL, PAGES_TO_TEST * PAGE_SIZE,
+			PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+
+	if (madvise(mem, PAGES_TO_TEST * PAGE_SIZE, MADV_HWPOISON) == -1)
+		return -1;
+
+	munmap(mem, PAGES_TO_TEST * PAGE_SIZE);
+
+	return 0;
+}
+
+Add printk to dump page reference count:
+
+[   93.075959] Injecting memory failure for page 0x19d0 at 0xb77d8000
+[   93.076207] MCE 0x19d0: non LRU page recovery: Ignored
+[   93.076209] pfn 0x19d0, page count = 1 after memory failure
+[   93.076220] Injecting memory failure for page 0x19d0 at 0xb77d9000
+[   93.076221] MCE 0x19d0: already hardware poisoned
+[   93.076222] pfn 0x19d0, page count = 2 after memory failure
+[   93.076224] Injecting memory failure for page 0x19d0 at 0xb77da000
+[   93.076224] MCE 0x19d0: already hardware poisoned
+[   93.076225] pfn 0x19d0, page count = 3 after memory failure
+
+Before patch:
+
+[  139.197474] MCE: Software-unpoisoned page 0x19d0
+[  139.197479] pfn 0x19d0, page count = 2 after unpoison memory
+[  150.478130] MCE: Page was already unpoisoned 0x19d0
+[  150.478135] pfn 0x19d0, page count = 2 after unpoison memory
+[  151.548288] MCE: Page was already unpoisoned 0x19d0
+[  151.548292] pfn 0x19d0, page count = 2 after unpoison memory
+
+After patch:
+
+[  116.022122] MCE: Software-unpoisoned page 0x19d0
+[  116.022127] pfn 0x19d0, page count = 2 after unpoison memory
+[  117.256163] MCE: Page was already unpoisoned 0x19d0
+[  117.256167] pfn 0x19d0, page count = 1 after unpoison memory
+[  117.917772] MCE: Page was already unpoisoned 0x19d0
+[  117.917777] pfn 0x19d0, page count = 1 after unpoison memory
+
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmconvert.c |    9 +++++----
- fs/ocfs2/dlm/dlmdomain.c  |   15 +++++++--------
- fs/ocfs2/dlm/dlmmaster.c  |    3 ++-
- 3 files changed, 14 insertions(+), 13 deletions(-)
+ mm/memory-failure.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ocfs2/dlm/dlmconvert.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix fs/ocfs2/dlm/dlmconvert.c
---- a/fs/ocfs2/dlm/dlmconvert.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix
-+++ a/fs/ocfs2/dlm/dlmconvert.c
-@@ -422,6 +422,7 @@ int dlm_convert_lock_handler(struct o2ne
- 	struct dlm_convert_lock *cnv = (struct dlm_convert_lock *)msg->buf;
- 	struct dlm_lock_resource *res = NULL;
- 	struct dlm_lock *lock = NULL;
-+	struct dlm_lock *tmp_lock;
- 	struct dlm_lockstatus *lksb;
- 	enum dlm_status status = DLM_NORMAL;
- 	u32 flags;
-@@ -467,13 +468,13 @@ int dlm_convert_lock_handler(struct o2ne
- 		dlm_error(status);
- 		goto leave;
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page
++++ a/mm/memory-failure.c
+@@ -1335,6 +1335,8 @@ int unpoison_memory(unsigned long pfn)
+ 	page = compound_head(p);
+ 
+ 	if (!PageHWPoison(p)) {
++		if (pfn == my_zero_pfn(0) && page_count(p) > 1)
++			put_page(p);
+ 		pr_info("MCE: Page was already unpoisoned %#lx\n", pfn);
+ 		return 0;
  	}
--	list_for_each_entry(lock, &res->granted, list) {
--		if (lock->ml.cookie == cnv->cookie &&
--		    lock->ml.node == cnv->node_idx) {
-+	list_for_each_entry(tmp_lock, &res->granted, list) {
-+		if (tmp_lock->ml.cookie == cnv->cookie &&
-+		    tmp_lock->ml.node == cnv->node_idx) {
-+			lock = tmp_lock;
- 			dlm_lock_get(lock);
- 			break;
- 		}
--		lock = NULL;
- 	}
- 	spin_unlock(&res->spinlock);
- 	if (!lock) {
-diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix fs/ocfs2/dlm/dlmdomain.c
---- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -260,7 +260,7 @@ struct dlm_lock_resource * dlm_lookup_lo
- 
- static struct dlm_ctxt * __dlm_lookup_domain_full(const char *domain, int len)
- {
--	struct dlm_ctxt *tmp = NULL;
-+	struct dlm_ctxt *tmp;
- 
- 	assert_spin_locked(&dlm_domain_lock);
- 
-@@ -269,11 +269,10 @@ static struct dlm_ctxt * __dlm_lookup_do
- 	list_for_each_entry(tmp, &dlm_domains, list) {
- 		if (strlen(tmp->name) == len &&
- 		    memcmp(tmp->name, domain, len)==0)
--			break;
--		tmp = NULL;
-+			return tmp;
- 	}
- 
--	return tmp;
-+	return NULL;
- }
- 
- /* For null terminated domain strings ONLY */
-@@ -362,22 +361,22 @@ static void __dlm_get(struct dlm_ctxt *d
-  * you shouldn't trust your pointer. */
- struct dlm_ctxt *dlm_grab(struct dlm_ctxt *dlm)
- {
--	struct dlm_ctxt *target = NULL;
-+	struct dlm_ctxt *target;
-+	struct dlm_ctxt *ret = NULL;
- 
- 	spin_lock(&dlm_domain_lock);
- 
- 	list_for_each_entry(target, &dlm_domains, list) {
- 		if (target == dlm) {
- 			__dlm_get(target);
-+			ret = target;
- 			break;
- 		}
--
--		target = NULL;
- 	}
- 
- 	spin_unlock(&dlm_domain_lock);
- 
--	return target;
-+	return ret;
- }
- 
- int dlm_domain_fully_joined(struct dlm_ctxt *dlm)
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each-fix
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -3180,6 +3180,7 @@ void dlm_clean_master_list(struct dlm_ct
- 	struct dlm_master_list_entry *mle;
- 	struct dlm_lock_resource *res;
- 	struct hlist_head *bucket;
-+	struct hlist_node *tmp;
- 	unsigned int i;
- 
- 	mlog(0, "dlm=%s, dead node=%u\n", dlm->name, dead_node);
-@@ -3190,7 +3191,7 @@ top:
- 	spin_lock(&dlm->master_lock);
- 	for (i = 0; i < DLM_HASH_BUCKETS; i++) {
- 		bucket = dlm_master_hash(dlm, i);
--		hlist_for_each_entry(mle, bucket, master_hash_node) {
-+		hlist_for_each_entry_safe(mle, tmp, bucket, master_hash_node) {
- 			BUG_ON(mle->type != DLM_MLE_BLOCK &&
- 			       mle->type != DLM_MLE_MASTER &&
- 			       mle->type != DLM_MLE_MIGRATION);
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
-ocfs2-use-list_for_each_entry-instead-of-list_for_each.patch
-mbind-add-bug_onvma-in-new_vma_page.patch
-affs-use-loff_t-in-affs_truncate.patch
-pktcdvd-convert-printk-to-pr_level.patch
-pktcdvd-fix-defective-misuses-of-pkt_level.patch
+mm-zswapc-get-swapper-address_space-by-using-macro.patch
+mm-fix-potential-null-pointer-dereference.patch
+mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
+mm-hugetlb-trivial-commenting-fix.patch
+mm-hugetlb-clean-up-alloc_huge_page.patch
+mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
+mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
+mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
+mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
+mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+mm-vmalloc-remove-useless-variable-in-vmap_block.patch
+mm-vmalloc-use-well-defined-find_last_bit-func.patch
+mm-hotplug-verify-hotplug-memory-range.patch
+mm-hotplug-verify-hotplug-memory-range-fix.patch
+mm-hotplug-remove-stop_machine-from-try_offline_node.patch
+mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
+mm-hugetlb-change-variable-name-reservations-to-resv.patch
+mm-hugetlb-fix-subpool-accounting-handling.patch
+mm-hugetlb-remove-useless-check-about-mapping-type.patch
+mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
+mm-hugetlb-return-a-reserved-page-to-a-reserved-pool-if-failed.patch
+mm-migrate-make-core-migration-code-aware-of-hugepage.patch
+mm-soft-offline-use-migrate_pages-instead-of-migrate_huge_page.patch
+migrate-add-hugepage-migration-code-to-migrate_pages.patch
+mm-migrate-add-hugepage-migration-code-to-move_pages.patch
+mm-mbind-add-hugepage-migration-code-to-mbind.patch
+mm-migrate-remove-vm_hugetlb-from-vma-flag-check-in-vma_migratable.patch
+mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage.patch
+mm-migrate-check-movability-of-hugepage-in-unmap_and_move_huge_page.patch
+mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
+mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2.patch
+mm-mempolicy-rename-check_range-to-queue_pages_range.patch
+mm-sparse-introduce-alloc_usemap_and_memmap.patch
+mm-writeback-make-writeback_inodes_wb-static.patch
+mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
+hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page.patch
+mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
+mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch
+mm-hwpoison-fix-race-against-poison-thp.patch
+mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
+mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch
+mm-hwpoison-drop-forward-reference-declarations-__soft_offline_page.patch
+mm-hwpoison-add-to-madvise_hwpoison.patch
 linux-next.patch
-fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
