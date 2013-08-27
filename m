@@ -1,37 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page.patch removed from -mm tree
-Date: Tue, 27 Aug 2013 14:11:46 -0700
-Message-ID: <521d1612.wYeukXd5BLUB7ck2%akpm@linux-foundation.org>
+Subject: +
+ mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page.patch added to -mm tree
+Date: Tue, 27 Aug 2013 14:13:05 -0700
+Message-ID: <521d1661.QkDMYNVIuKUvrJV7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41138 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41144 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753881Ab3H0VLr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Aug 2013 17:11:47 -0400
+	with ESMTP id S1752323Ab3H0VNG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Aug 2013 17:13:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
 
-Subject: [to-be-updated] mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page.patch removed from -mm tree
-To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com,tony.luck@intel.com,mm-commits@vger.kernel.org
+Subject: + mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Tue, 27 Aug 2013 14:11:46 -0700
+Date: Tue, 27 Aug 2013 14:13:05 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: fix memory failure still holding reference count after unpoisoning empty zero page
-has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page.patch
+     Subject: mm/hwpoison.c: fix held reference count after unpoisoning empty zero page
+has been added to the -mm tree.  Its filename is
+     mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: fix memory failure still holding reference count after unpoisoning empty zero page
+Subject: mm/hwpoison.c: fix held reference count after unpoisoning empty zero page
 
 madvise hwpoison inject will poison the read-only empty zero page if there
 is no write access before poison.  Empty zero page reference count will be
@@ -43,8 +57,9 @@ for the fist time, however, subsequent unpoison empty zero page will
 return directly since page has already been unpoisoned and without
 decrease the page reference count of empty zero page.
 
-This patch fixes it by decreasing page reference count for empty zero page
-which has already been unpoisoned and page count > 1.
+This patch fixes it by make madvise_hwpoison() put a page and return
+immediately (without calling memory_failure() or soft_offline_page()) when
+the page is already hwpoisoned.
 
 Testcase:
 
@@ -88,46 +103,29 @@ Add printk to dump page reference count:
 [   93.076224] MCE 0x19d0: already hardware poisoned
 [   93.076225] pfn 0x19d0, page count = 3 after memory failure
 
-Before patch:
-
-[  139.197474] MCE: Software-unpoisoned page 0x19d0
-[  139.197479] pfn 0x19d0, page count = 2 after unpoison memory
-[  150.478130] MCE: Page was already unpoisoned 0x19d0
-[  150.478135] pfn 0x19d0, page count = 2 after unpoison memory
-[  151.548288] MCE: Page was already unpoisoned 0x19d0
-[  151.548292] pfn 0x19d0, page count = 2 after unpoison memory
-
-After patch:
-
-[  116.022122] MCE: Software-unpoisoned page 0x19d0
-[  116.022127] pfn 0x19d0, page count = 2 after unpoison memory
-[  117.256163] MCE: Page was already unpoisoned 0x19d0
-[  117.256167] pfn 0x19d0, page count = 1 after unpoison memory
-[  117.917772] MCE: Page was already unpoisoned 0x19d0
-[  117.917777] pfn 0x19d0, page count = 1 after unpoison memory
-
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/madvise.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-fix-memory-failure-still-holding-reference-count-after-unpoisoning-empty-zero-page
-+++ a/mm/memory-failure.c
-@@ -1335,6 +1335,8 @@ int unpoison_memory(unsigned long pfn)
- 	page = compound_head(p);
- 
- 	if (!PageHWPoison(p)) {
-+		if (pfn == my_zero_pfn(0) && page_count(p) > 1)
+diff -puN mm/madvise.c~mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page mm/madvise.c
+--- a/mm/madvise.c~mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page
++++ a/mm/madvise.c
+@@ -352,6 +352,10 @@ static int madvise_hwpoison(int bhv, uns
+ 		int ret = get_user_pages_fast(start, 1, 0, &p);
+ 		if (ret != 1)
+ 			return ret;
++		if (PageHWPoison(p)) {
 +			put_page(p);
- 		pr_info("MCE: Page was already unpoisoned %#lx\n", pfn);
- 		return 0;
- 	}
++			continue;
++		}
+ 		if (bhv == MADV_SOFT_OFFLINE) {
+ 			pr_info("Soft offlining page %#lx at %#lx\n",
+ 				page_to_pfn(p), start);
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
@@ -176,6 +174,7 @@ mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
 mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch
 mm-hwpoison-drop-forward-reference-declarations-__soft_offline_page.patch
 mm-hwpoison-add-to-madvise_hwpoison.patch
+mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page.patch
 linux-next.patch
 mm-drop-actor-argument-of-do_generic_file_read.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
