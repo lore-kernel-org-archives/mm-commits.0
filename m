@@ -1,198 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 27 Aug 2013 12:32:14 -0700
-Message-ID: <521cfebe.nA/EL7DSxzBH695F%akpm@linux-foundation.org>
+Subject: + mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch added
+ to -mm tree
+Date: Tue, 27 Aug 2013 12:43:14 -0700
+Message-ID: <521d0152.zP8/Kagk4vaSraKp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40401 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40439 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752103Ab3H0TcP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Aug 2013 15:32:15 -0400
+	with ESMTP id S1752864Ab3H0TnP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Aug 2013 15:43:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zhangwm@marvell.com, yinghan@google.com, riel@redhat.com, npiggin@gmail.com, minchan@kernel.org, mhocko@suse.cz, mel@csn.ul.ie, lliubbo@gmail.com, linux@arm.linux.org.uk, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, cldu@marvell.com, cl@linux.com, aaditya.kumar.30@gmail.com, akpm@linux-foundation.org
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: + mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch added to -mm tree
+To: akpm@linux-foundation.org,aaditya.kumar.30@gmail.com,cl@linux.com,cldu@marvell.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,linux@arm.linux.org.uk,lliubbo@gmail.com,mel@csn.ul.ie,mhocko@suse.cz,minchan@kernel.org,npiggin@gmail.com,riel@redhat.com,yinghan@google.com,zhangwm@marvell.com
 From: akpm@linux-foundation.org
-Date: Tue, 27 Aug 2013 12:32:14 -0700
+Date: Tue, 27 Aug 2013 12:43:14 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2
+has been added to the -mm tree.  Its filename is
+     mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2
 
+Cc: Aaditya Kumar <aaditya.kumar.30@gmail.com>
+Cc: Bob Liu <lliubbo@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lisa Du <cldu@marvell.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Neil Zhang <zhangwm@marvell.com>
+Cc: Nick Piggin <npiggin@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/tegra20-seaboard.dts        |    6 --
- arch/arm/boot/dts/tegra20-trimslice.dts       |    6 --
- arch/arm64/kernel/perf_event.c                |    4 -
- drivers/net/wireless/iwlwifi/mvm/time-event.c |    4 -
- drivers/net/wireless/iwlwifi/pcie/trans.c     |    7 ---
- include/linux/inetdevice.h                    |   36 ----------------
- 6 files changed, 1 insertion(+), 62 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/boot/dts/tegra20-seaboard.dts~linux-next-git-rejects arch/arm/boot/dts/tegra20-seaboard.dts
---- a/arch/arm/boot/dts/tegra20-seaboard.dts~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/tegra20-seaboard.dts
-@@ -828,13 +828,7 @@
- 			regulator-min-microvolt = <5000000>;
- 			regulator-max-microvolt = <5000000>;
- 			enable-active-high;
--<<<<<<< HEAD
--			gpio = <&gpio 24 0>; /* PD0 */
--			regulator-always-on;
--			regulator-boot-on;
--=======
- 			gpio = <&gpio TEGRA_GPIO(D, 0) 0>;
-->>>>>>> linux-next/akpm-base
- 		};
- 	};
+diff -puN mm/migrate.c~mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2 mm/migrate.c
+--- a/mm/migrate.c~mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2
++++ a/mm/migrate.c
+@@ -1471,7 +1471,7 @@ static bool migrate_balanced_pgdat(struc
+ 		if (!populated_zone(zone))
+ 			continue;
  
-diff -puN arch/arm/boot/dts/tegra20-trimslice.dts~linux-next-git-rejects arch/arm/boot/dts/tegra20-trimslice.dts
---- a/arch/arm/boot/dts/tegra20-trimslice.dts~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/tegra20-trimslice.dts
-@@ -420,11 +420,6 @@
- 			regulator-min-microvolt = <5000000>;
- 			regulator-max-microvolt = <5000000>;
- 			enable-active-high;
--<<<<<<< HEAD
--			gpio = <&gpio 170 0>; /* PV2 */
--			regulator-always-on;
--			regulator-boot-on;
--=======
- 			gpio = <&gpio TEGRA_GPIO(V, 2) 0>;
- 		};
+-		if (zone->all_unreclaimable)
++		if (!zone_reclaimable(zone))
+ 			continue;
  
-@@ -444,7 +439,6 @@
- 			regulator-min-microvolt = <1050000>;
- 			regulator-max-microvolt = <1050000>;
- 			regulator-always-on;
-->>>>>>> linux-next/akpm-base
- 		};
- 	};
- 
-diff -puN arch/arm64/kernel/perf_event.c~linux-next-git-rejects arch/arm64/kernel/perf_event.c
---- a/arch/arm64/kernel/perf_event.c~linux-next-git-rejects
-+++ a/arch/arm64/kernel/perf_event.c
-@@ -325,14 +325,10 @@ validate_event(struct pmu_hw_events *hw_
- 	if (is_software_event(event))
- 		return 1;
- 
--<<<<<<< HEAD
--	if (event->pmu != leader_pmu || event->state <= PERF_EVENT_STATE_OFF)
--=======
- 	if (event->pmu != leader_pmu || event->state < PERF_EVENT_STATE_OFF)
- 		return 1;
- 
- 	if (event->state == PERF_EVENT_STATE_OFF && !event->attr.enable_on_exec)
-->>>>>>> linux-next/akpm-base
- 		return 1;
- 
- 	return armpmu->get_event_idx(hw_events, &fake_event) >= 0;
-diff -puN drivers/net/wireless/iwlwifi/mvm/time-event.c~linux-next-git-rejects drivers/net/wireless/iwlwifi/mvm/time-event.c
---- a/drivers/net/wireless/iwlwifi/mvm/time-event.c~linux-next-git-rejects
-+++ a/drivers/net/wireless/iwlwifi/mvm/time-event.c
-@@ -199,11 +199,7 @@ static void iwl_mvm_te_handle_notif(stru
- 		 * and know the dtim period.
- 		 */
- 		iwl_mvm_te_check_disconnect(mvm, te_data->vif,
--<<<<<<< HEAD
--			"No assocation and the time event is over already...");
--=======
- 			"No association and the time event is over already...");
-->>>>>>> linux-next/akpm-base
- 		iwl_mvm_te_clear_data(mvm, te_data);
- 	} else if (le32_to_cpu(notif->action) & TE_V2_NOTIF_HOST_EVENT_START) {
- 		te_data->running = true;
-diff -puN drivers/net/wireless/iwlwifi/pcie/trans.c~linux-next-git-rejects drivers/net/wireless/iwlwifi/pcie/trans.c
---- a/drivers/net/wireless/iwlwifi/pcie/trans.c~linux-next-git-rejects
-+++ a/drivers/net/wireless/iwlwifi/pcie/trans.c
-@@ -1,4 +1,4 @@
--/******************************************************************************
-+q/******************************************************************************
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -1401,13 +1401,8 @@ struct iwl_trans *iwl_trans_pcie_alloc(s
- 	spin_lock_init(&trans_pcie->reg_lock);
- 	init_waitqueue_head(&trans_pcie->ucode_write_waitq);
- 
--<<<<<<< HEAD
--	if (pci_enable_device(pdev)) {
--		err = -ENODEV;
--=======
- 	err = pci_enable_device(pdev);
- 	if (err)
-->>>>>>> linux-next/akpm-base
- 		goto out_no_pci;
- 
- 	if (!cfg->base_params->pcie_l1_allowed) {
-diff -puN include/linux/inetdevice.h~linux-next-git-rejects include/linux/inetdevice.h
---- a/include/linux/inetdevice.h~linux-next-git-rejects
-+++ a/include/linux/inetdevice.h
-@@ -12,44 +12,8 @@
- #include <linux/sysctl.h>
- #include <linux/rtnetlink.h>
- 
--<<<<<<< HEAD
--=======
--enum
--{
--	IPV4_DEVCONF_FORWARDING=1,
--	IPV4_DEVCONF_MC_FORWARDING,
--	IPV4_DEVCONF_PROXY_ARP,
--	IPV4_DEVCONF_ACCEPT_REDIRECTS,
--	IPV4_DEVCONF_SECURE_REDIRECTS,
--	IPV4_DEVCONF_SEND_REDIRECTS,
--	IPV4_DEVCONF_SHARED_MEDIA,
--	IPV4_DEVCONF_RP_FILTER,
--	IPV4_DEVCONF_ACCEPT_SOURCE_ROUTE,
--	IPV4_DEVCONF_BOOTP_RELAY,
--	IPV4_DEVCONF_LOG_MARTIANS,
--	IPV4_DEVCONF_TAG,
--	IPV4_DEVCONF_ARPFILTER,
--	IPV4_DEVCONF_MEDIUM_ID,
--	IPV4_DEVCONF_FORCE_IGMP_VERSION,
--	IPV4_DEVCONF_IGMPV2_UNSOLICITED_REPORT_INTERVAL,
--	IPV4_DEVCONF_IGMPV3_UNSOLICITED_REPORT_INTERVAL,
--	IPV4_DEVCONF_NOXFRM,
--	IPV4_DEVCONF_NOPOLICY,
--	IPV4_DEVCONF_ARP_ANNOUNCE,
--	IPV4_DEVCONF_ARP_IGNORE,
--	IPV4_DEVCONF_PROMOTE_SECONDARIES,
--	IPV4_DEVCONF_ARP_ACCEPT,
--	IPV4_DEVCONF_ARP_NOTIFY,
--	IPV4_DEVCONF_ACCEPT_LOCAL,
--	IPV4_DEVCONF_SRC_VMARK,
--	IPV4_DEVCONF_PROXY_ARP_PVLAN,
--	IPV4_DEVCONF_ROUTE_LOCALNET,
--	__IPV4_DEVCONF_MAX
--};
--
- #define IPV4_DEVCONF_MAX (__IPV4_DEVCONF_MAX - 1)
- 
-->>>>>>> linux-next/akpm-base
- struct ipv4_devconf {
- 	void	*sysctl;
- 	int	data[IPV4_DEVCONF_MAX];
+ 		/* Avoid waking kswapd by allocating pages_to_migrate pages. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-linux-next.patch
 revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
@@ -215,6 +107,7 @@ mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
 mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
 mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
 mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch
+mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
 lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 fat-additions-to-support-fat_fallocate-fix.patch
@@ -223,6 +116,7 @@ initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
 initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
 ipc-drop-ipcctl_pre_down-fix.patch
 ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+linux-next.patch
 revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
 memcg-trivial-cleanups.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
