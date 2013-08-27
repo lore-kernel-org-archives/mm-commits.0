@@ -1,45 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- move-might_sleep-and-friends-from-kernelh-to-schedh.patch removed from -mm
- tree
-Date: Tue, 27 Aug 2013 16:50:21 -0700
-Message-ID: <521d3b3d.NTpOPQGO+jmGoAsx%akpm@linux-foundation.org>
+Subject: [wrecked]
+ sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched.patch
+ removed from -mm tree
+Date: Tue, 27 Aug 2013 16:50:39 -0700
+Message-ID: <521d3b4f.3/srswcbmOxNzidl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43227 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43236 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754275Ab3H0XuW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Aug 2013 19:50:22 -0400
+	with ESMTP id S1754150Ab3H0Xuk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Aug 2013 19:50:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, a.p.zijlstra@chello.nl, ak@linux.intel.com
 
-Subject: [failures] move-might_sleep-and-friends-from-kernelh-to-schedh.patch removed from -mm tree
+Subject: [wrecked] sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched.patch removed from -mm tree
 To: ak@linux.intel.com,a.p.zijlstra@chello.nl,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 27 Aug 2013 16:50:21 -0700
+Date: Tue, 27 Aug 2013 16:50:39 -0700
 
 
 The patch titled
-     Subject: include/: move might_sleep and friends from kernel.h to sched.h
+     Subject: sched: inline the need_resched test into the caller for _cond_resched
 has been removed from the -mm tree.  Its filename was
-     move-might_sleep-and-friends-from-kernelh-to-schedh.patch
+     sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: include/: move might_sleep and friends from kernel.h to sched.h
+Subject: sched: inline the need_resched test into the caller for _cond_resched
 
-These are really related to scheduling, so they should be in sched.h Users
-usually will need to schedule anyways.
-
-The advantage of having them there is that we can access some of the
-scheduler inlines to make their fast path more efficient.  This will come
-in a followon patch.
+_cond_resched does at least two explicit calls just to decide to do
+nothing: _cond_resched and should_resched().  Inline a need_resched() into
+the caller to avoid these calls in the common case of no reschedule being
+needed.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -49,116 +47,21 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   35 -----------------------------------
- include/linux/sched.h  |   37 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+), 35 deletions(-)
+ include/linux/sched.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~move-might_sleep-and-friends-from-kernelh-to-schedh include/linux/kernel.h
---- a/include/linux/kernel.h~move-might_sleep-and-friends-from-kernelh-to-schedh
-+++ a/include/linux/kernel.h
-@@ -141,35 +141,6 @@ struct completion;
- struct pt_regs;
- struct user;
- 
--#ifdef CONFIG_PREEMPT_VOLUNTARY
--extern int _cond_resched(void);
--# define might_resched() _cond_resched()
--#else
--# define might_resched() do { } while (0)
--#endif
--
--#ifdef CONFIG_DEBUG_ATOMIC_SLEEP
--  void __might_sleep(const char *file, int line, int preempt_offset);
--/**
-- * might_sleep - annotation for functions that can sleep
-- *
-- * this macro will print a stack trace if it is executed in an atomic
-- * context (spinlock, irq-handler, ...).
-- *
-- * This is a useful debugging help to be able to catch problems early and not
-- * be bitten later when the calling function happens to sleep when it is not
-- * supposed to.
-- */
--# define might_sleep() \
--	do { __might_sleep(__FILE__, __LINE__, 0); might_resched(); } while (0)
--#else
--  static inline void __might_sleep(const char *file, int line,
--				   int preempt_offset) { }
--# define might_sleep() do { might_resched(); } while (0)
--#endif
--
--#define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
--
- /*
-  * abs() handles unsigned and signed longs, ints, shorts and chars.  For all
-  * input types abs() returns a signed long.
-@@ -193,12 +164,6 @@ extern int _cond_resched(void);
- 		(__x < 0) ? -__x : __x;		\
- 	})
- 
--#if defined(CONFIG_PROVE_LOCKING) || defined(CONFIG_DEBUG_ATOMIC_SLEEP)
--void might_fault(void);
--#else
--static inline void might_fault(void) { }
--#endif
--
- extern struct atomic_notifier_head panic_notifier_list;
- extern long (*panic_blink)(int state);
- __printf(1, 2)
-diff -puN include/linux/sched.h~move-might_sleep-and-friends-from-kernelh-to-schedh include/linux/sched.h
---- a/include/linux/sched.h~move-might_sleep-and-friends-from-kernelh-to-schedh
+diff -puN include/linux/sched.h~sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched include/linux/sched.h
+--- a/include/linux/sched.h~sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched
 +++ a/include/linux/sched.h
-@@ -2439,6 +2439,35 @@ extern int __cond_resched_softirq(void);
- 	__cond_resched_softirq();					\
- })
+@@ -2441,7 +2441,7 @@ extern int __cond_resched_softirq(void);
  
-+#ifdef CONFIG_PREEMPT_VOLUNTARY
-+extern int _cond_resched(void);
-+# define might_resched() _cond_resched()
-+#else
-+# define might_resched() do { } while (0)
-+#endif
-+
-+#ifdef CONFIG_DEBUG_ATOMIC_SLEEP
-+ void __might_sleep(const char *file, int line, int preempt_offset);
-+/**
-+ * might_sleep - annotation for functions that can sleep
-+ *
-+ * this macro will print a stack trace if it is executed in an atomic
-+ * context (spinlock, irq-handler, ...).
-+ *
-+ * This is a useful debugging help to be able to catch problems early and not
-+ * be bitten later when the calling function happens to sleep when it is not
-+ * supposed to.
-+ */
-+# define might_sleep() \
-+	do { __might_sleep(__FILE__, __LINE__, 0); might_resched(); } while (0)
-+#else
-+  static inline void __might_sleep(const char *file, int line,
-+				   int preempt_offset) { }
-+# define might_sleep() do { might_resched(); } while (0)
-+#endif
-+
-+#define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
-+
- static inline void cond_resched_rcu(void)
- {
- #if defined(CONFIG_DEBUG_ATOMIC_SLEEP) || !defined(CONFIG_PREEMPT_RCU)
-@@ -2448,6 +2477,14 @@ static inline void cond_resched_rcu(void
+ #ifdef CONFIG_PREEMPT_VOLUNTARY
+ extern int _cond_resched(void);
+-# define might_resched() _cond_resched()
++# define might_resched() (need_resched() ? _cond_resched() : 0)
+ #else
+ # define might_resched() do { } while (0)
  #endif
- }
- 
-+#ifdef CONFIG_PROVE_LOCKING
-+void might_fault(void);
-+#else
-+static inline void might_fault(void)
-+{
-+}
-+#endif
-+
- /*
-  * Does a critical section need to be broken due to another
-  * task waiting?: (technically does not depend on CONFIG_PREEMPT,
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
@@ -182,7 +85,6 @@ x86-add-1-2-4-8-byte-optimization-to-64bit-__copy_fromto_user_inatomic.patch
 x86-include-linux-schedh-in-asm-uaccessh.patch
 tree-sweep-include-linux-schedh-for-might_sleep-users.patch
 sched-mark-should_resched-__always_inline.patch
-sched-inline-the-need_resched-test-into-the-caller-for-_cond_resched.patch
 linux-next.patch
 thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
 mm-cleanup-add_to_page_cache_locked.patch
