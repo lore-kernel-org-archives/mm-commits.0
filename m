@@ -1,65 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- kernel-time-sched_clockc-correct-the-comparison-parameter-of-mhz.patch
- removed from -mm tree
-Date: Tue, 27 Aug 2013 18:26:29 -0700
-Message-ID: <521d51c5.l/94Lxt3XS4ABWox%akpm@linux-foundation.org>
+Subject: + mm-sparse-introduce-alloc_usemap_and_memmap-fix.patch added to
+ -mm tree
+Date: Wed, 28 Aug 2013 13:29:47 -0700
+Message-ID: <521e5dbb.ZCum7ktQSDHE9UsM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52310 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562Ab3H1B1b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Aug 2013 21:27:31 -0400
+	with ESMTP id S1752748Ab3H1U3s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Aug 2013 16:29:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, voice.shen@atmel.com
+To: mm-commits@vger.kernel.org, liwanp@linux.vnet.ibm.com
 
-Subject: [withdrawn] kernel-time-sched_clockc-correct-the-comparison-parameter-of-mhz.patch removed from -mm tree
-To: voice.shen@atmel.com,mingo@elte.hu,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: + mm-sparse-introduce-alloc_usemap_and_memmap-fix.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Tue, 27 Aug 2013 18:26:26 -0700
+Date: Wed, 28 Aug 2013 13:29:47 -0700
 
 
 The patch titled
-     Subject: kernel/time/sched_clock.c: correct the comparison parameter of MHz
-has been removed from the -mm tree.  Its filename was
-     kernel-time-sched_clockc-correct-the-comparison-parameter-of-mhz.patch
+     Subject: mm/sparse: introduce alloc_usemap_and_memmap fix
+has been added to the -mm tree.  Its filename is
+     mm-sparse-introduce-alloc_usemap_and_memmap-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-introduce-alloc_usemap_and_memmap-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-introduce-alloc_usemap_and_memmap-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Bo Shen <voice.shen@atmel.com>
-Subject: kernel/time/sched_clock.c: correct the comparison parameter of MHz
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/sparse: introduce alloc_usemap_and_memmap fix
 
-Correct the comparison parameter of MHz from 4,000,000 to 1,000,000
+Fix Section mismatch in reference from the function alloc_usemap_and_memmap()
+to the function .init.text:sparse_early_usemaps_alloc_node()
 
-Signed-off-by: Bo Shen <voice.shen@atmel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/sched_clock.c |    2 +-
+ mm/sparse.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/time/sched_clock.c~kernel-time-sched_clockc-correct-the-comparison-parameter-of-mhz kernel/time/sched_clock.c
---- a/kernel/time/sched_clock.c~kernel-time-sched_clockc-correct-the-comparison-parameter-of-mhz
-+++ a/kernel/time/sched_clock.c
-@@ -128,7 +128,7 @@ void __init setup_sched_clock(u32 (*read
- 	clocks_calc_mult_shift(&cd.mult, &cd.shift, rate, NSEC_PER_SEC, 0);
- 
- 	r = rate;
--	if (r >= 4000000) {
-+	if (r >= 1000000) {
- 		r /= 1000000;
- 		r_unit = 'M';
- 	} else if (r >= 1000) {
+diff -puN mm/sparse.c~mm-sparse-introduce-alloc_usemap_and_memmap-fix mm/sparse.c
+--- a/mm/sparse.c~mm-sparse-introduce-alloc_usemap_and_memmap-fix
++++ a/mm/sparse.c
+@@ -473,7 +473,7 @@ void __attribute__((weak)) __meminit vme
+  *  @map: usemap_map for pageblock flags or mmap_map for vmemmap
+  *  @use_map: true if memory allocated for pageblock flags, otherwise false
+  */
+-static void alloc_usemap_and_memmap(unsigned long **map, bool use_map)
++static void __init alloc_usemap_and_memmap(unsigned long **map, bool use_map)
+ {
+ 	unsigned long pnum;
+ 	unsigned long map_count;
 _
 
-Patches currently in -mm which might be from voice.shen@atmel.com are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
+mm-zswapc-get-swapper-address_space-by-using-macro.patch
+mm-fix-potential-null-pointer-dereference.patch
+mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
+mm-hugetlb-trivial-commenting-fix.patch
+mm-hugetlb-clean-up-alloc_huge_page.patch
+mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
+mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
+mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
+mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
+mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+mm-vmalloc-remove-useless-variable-in-vmap_block.patch
+mm-vmalloc-use-well-defined-find_last_bit-func.patch
+mm-hotplug-verify-hotplug-memory-range.patch
+mm-hotplug-verify-hotplug-memory-range-fix.patch
+mm-hotplug-remove-stop_machine-from-try_offline_node.patch
+mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
+mm-hugetlb-change-variable-name-reservations-to-resv.patch
+mm-hugetlb-fix-subpool-accounting-handling.patch
+mm-hugetlb-remove-useless-check-about-mapping-type.patch
+mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
+mm-hugetlb-return-a-reserved-page-to-a-reserved-pool-if-failed.patch
+mm-migrate-make-core-migration-code-aware-of-hugepage.patch
+mm-soft-offline-use-migrate_pages-instead-of-migrate_huge_page.patch
+migrate-add-hugepage-migration-code-to-migrate_pages.patch
+mm-migrate-add-hugepage-migration-code-to-move_pages.patch
+mm-mbind-add-hugepage-migration-code-to-mbind.patch
+mm-migrate-remove-vm_hugetlb-from-vma-flag-check-in-vma_migratable.patch
+mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage.patch
+mm-migrate-check-movability-of-hugepage-in-unmap_and_move_huge_page.patch
+mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
+mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2.patch
+mm-mempolicy-rename-check_range-to-queue_pages_range.patch
+mm-sparse-introduce-alloc_usemap_and_memmap.patch
+mm-sparse-introduce-alloc_usemap_and_memmap-fix.patch
+mm-writeback-make-writeback_inodes_wb-static.patch
+mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
+hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page.patch
+mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
+mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch
+mm-hwpoison-fix-race-against-poison-thp.patch
+mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
+mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch
+mm-hwpoison-drop-forward-reference-declarations-__soft_offline_page.patch
+mm-hwpoison-add-to-madvise_hwpoison.patch
+mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page.patch
+mm-hwpoison-injectc-change-permission-of-corrupt-pfn-unpoison-pfn-to-0200.patch
+mm-memory-failurec-fix-bug-triggered-by-unpoisoning-empty-zero-page.patch
+mm-hwpoison-fix-return-value-of-madvise_hwpoison.patch
+mm-madvisec-madvise_hwpoison-remove-local-ret.patch
 linux-next.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
