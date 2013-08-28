@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + sched_clock-document-4mhz-vs-1mhz-decision.patch added to -mm
- tree
-Date: Wed, 28 Aug 2013 14:14:10 -0700
-Message-ID: <521e6822.4kB8pcXEK3AkioZ1%akpm@linux-foundation.org>
+Subject: +
+ fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers.patch
+ added to -mm tree
+Date: Wed, 28 Aug 2013 14:48:55 -0700
+Message-ID: <521e7047.Aela4XnfEYbN7cId%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55000 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754067Ab3H1VOL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Aug 2013 17:14:11 -0400
+	with ESMTP id S1754122Ab3H1Vs4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Aug 2013 17:48:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, voice.shen@atmel.com, tglx@linutronix.de, rmk@arm.linux.org.uk, sboyd@codeaurora.org
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: + sched_clock-document-4mhz-vs-1mhz-decision.patch added to -mm tree
-To: sboyd@codeaurora.org,rmk@arm.linux.org.uk,tglx@linutronix.de,voice.shen@atmel.com
+Subject: + fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers.patch added to -mm tree
+To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
 From: akpm@linux-foundation.org
-Date: Wed, 28 Aug 2013 14:14:10 -0700
+Date: Wed, 28 Aug 2013 14:48:55 -0700
 
 
 The patch titled
-     Subject: sched_clock: document 4Mhz vs 1Mhz decision
+     Subject: fs/ocfs2/super.c: Use bigger nodestr to accomodate 32-bit node numbers
 has been added to the -mm tree.  Its filename is
-     sched_clock-document-4mhz-vs-1mhz-decision.patch
+     fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sched_clock-document-4mhz-vs-1mhz-decision.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sched_clock-document-4mhz-vs-1mhz-decision.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,43 +45,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: sched_clock: document 4Mhz vs 1Mhz decision
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: fs/ocfs2/super.c: Use bigger nodestr to accomodate 32-bit node numbers
 
-Bo Shen sent a patch to change this to 1Mhz instead of 4Mhz but according
-to Russell King the use of 4Mhz was intentional.  Add a comment to this
-effect so that others don't try to change the code as well.
+While using pacemaker/corosync, the node numbers are generated using IP
+address as opposed to serial node number generation.  This may not fit in
+a 8-byte string.  Use a bigger string to print the complete node number.
 
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Bo Shen <voice.shen@atmel.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/sched_clock.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/ocfs2/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/time/sched_clock.c~sched_clock-document-4mhz-vs-1mhz-decision kernel/time/sched_clock.c
---- a/kernel/time/sched_clock.c~sched_clock-document-4mhz-vs-1mhz-decision
-+++ a/kernel/time/sched_clock.c
-@@ -128,6 +128,10 @@ void __init setup_sched_clock(u32 (*read
- 	clocks_calc_mult_shift(&cd.mult, &cd.shift, rate, NSEC_PER_SEC, 0);
+diff -puN fs/ocfs2/super.c~fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers
++++ a/fs/ocfs2/super.c
+@@ -1022,7 +1022,7 @@ static int ocfs2_fill_super(struct super
+ 	struct inode *inode = NULL;
+ 	struct ocfs2_super *osb = NULL;
+ 	struct buffer_head *bh = NULL;
+-	char nodestr[8];
++	char nodestr[12];
+ 	struct ocfs2_blockcheck_stats stats;
  
- 	r = rate;
-+	/*
-+	 * Use 4MHz instead of 1MHz so that things like 1.832Mhz show as
-+	 * 1832Khz
-+	 */
- 	if (r >= 4000000) {
- 		r /= 1000000;
- 		r_unit = 'M';
+ 	trace_ocfs2_fill_super(sb, data, silent);
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
-drivers-iommu-remove-unnecessary-platform_set_drvdata.patch
-sched_clock-document-4mhz-vs-1mhz-decision.patch
-panic-call-panic-handlers-before-kmsg_dump.patch
-linux-next.patch
+fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers.patch
 
