@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- aoe-remove-do-nothing-name=%k-term-from-example-udev-rules.patch added to
- -mm tree
-Date: Wed, 28 Aug 2013 14:12:49 -0700
-Message-ID: <521e67d1.GiR61Gj2yxgOCSlG%akpm@linux-foundation.org>
+Subject: + sched_clock-document-4mhz-vs-1mhz-decision.patch added to -mm
+ tree
+Date: Wed, 28 Aug 2013 14:14:10 -0700
+Message-ID: <521e6822.4kB8pcXEK3AkioZ1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54342 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755171Ab3H1VMu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Aug 2013 17:12:50 -0400
+	with ESMTP id S1754067Ab3H1VOL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Aug 2013 17:14:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ecashin@coraid.com
+To: mm-commits@vger.kernel.org, voice.shen@atmel.com, tglx@linutronix.de, rmk@arm.linux.org.uk, sboyd@codeaurora.org
 
-Subject: + aoe-remove-do-nothing-name=%k-term-from-example-udev-rules.patch added to -mm tree
-To: ecashin@coraid.com
+Subject: + sched_clock-document-4mhz-vs-1mhz-decision.patch added to -mm tree
+To: sboyd@codeaurora.org,rmk@arm.linux.org.uk,tglx@linutronix.de,voice.shen@atmel.com
 From: akpm@linux-foundation.org
-Date: Wed, 28 Aug 2013 14:12:49 -0700
+Date: Wed, 28 Aug 2013 14:14:10 -0700
 
 
 The patch titled
-     Subject: aoe: remove do-nothing NAME="%k" term from example udev rules
+     Subject: sched_clock: document 4Mhz vs 1Mhz decision
 has been added to the -mm tree.  Its filename is
-     aoe-remove-do-nothing-name=%k-term-from-example-udev-rules.patch
+     sched_clock-document-4mhz-vs-1mhz-decision.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/aoe-remove-do-nothing-name=%k-term-from-example-udev-rules.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sched_clock-document-4mhz-vs-1mhz-decision.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/aoe-remove-do-nothing-name=%k-term-from-example-udev-rules.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sched_clock-document-4mhz-vs-1mhz-decision.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,47 +44,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: remove do-nothing NAME="%k" term from example udev rules
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: sched_clock: document 4Mhz vs 1Mhz decision
 
-When the example udev rules in the documentation are used without
-modification, warnings like the one shown below appear in the system logs:
+Bo Shen sent a patch to change this to 1Mhz instead of 4Mhz but according
+to Russell King the use of 4Mhz was intentional.  Add a comment to this
+effect so that others don't try to change the code as well.
 
-  /var/log/messages:Aug 22 11:09:11 kung udevd[445]: NAME="%k" \
-    is superfluous and breaks kernel supplied names, please remove \
-    it from /etc/udev/rules.d/60-aoe.rules:26
-
-Removing the term does not cause any problems with the creation of the
-special character and block device nodes.
-
-Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Bo Shen <voice.shen@atmel.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/aoe/udev.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/time/sched_clock.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN Documentation/aoe/udev.txt~aoe-remove-do-nothing-name=%k-term-from-example-udev-rules Documentation/aoe/udev.txt
---- a/Documentation/aoe/udev.txt~aoe-remove-do-nothing-name=%k-term-from-example-udev-rules
-+++ a/Documentation/aoe/udev.txt
-@@ -23,4 +23,4 @@ SUBSYSTEM=="aoe", KERNEL=="revalidate",
- SUBSYSTEM=="aoe", KERNEL=="flush",	NAME="etherd/%k", GROUP="disk", MODE="0220"
+diff -puN kernel/time/sched_clock.c~sched_clock-document-4mhz-vs-1mhz-decision kernel/time/sched_clock.c
+--- a/kernel/time/sched_clock.c~sched_clock-document-4mhz-vs-1mhz-decision
++++ a/kernel/time/sched_clock.c
+@@ -128,6 +128,10 @@ void __init setup_sched_clock(u32 (*read
+ 	clocks_calc_mult_shift(&cd.mult, &cd.shift, rate, NSEC_PER_SEC, 0);
  
- # aoe block devices     
--KERNEL=="etherd*",       NAME="%k", GROUP="disk"
-+KERNEL=="etherd*",       GROUP="disk"
+ 	r = rate;
++	/*
++	 * Use 4MHz instead of 1MHz so that things like 1.832Mhz show as
++	 * 1832Khz
++	 */
+ 	if (r >= 4000000) {
+ 		r /= 1000000;
+ 		r_unit = 'M';
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
-aoe-create-and-destroy-debugfs-directory-for-aoe.patch
-aoe-add-aoe-target-files-to-debugfs.patch
-aoe-provide-file-operations-for-debugfs-files.patch
-aoe-fill-in-per-aoe-target-information-for-debugfs-file.patch
-aoe-update-copyright-date.patch
-aoe-update-internal-version-number-to-85.patch
-aoe-remove-custom-implementation-of-kbasename.patch
-aoe-suppress-compiler-warnings.patch
-aoe-do-not-bug-if-memory-pressure-prevented-debugfs-file-creation.patch
-aoe-remove-do-nothing-name=%k-term-from-example-udev-rules.patch
+drivers-iommu-remove-unnecessary-platform_set_drvdata.patch
+sched_clock-document-4mhz-vs-1mhz-decision.patch
+panic-call-panic-handlers-before-kmsg_dump.patch
+linux-next.patch
 
