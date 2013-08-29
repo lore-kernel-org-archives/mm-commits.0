@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-the-end-cluster-offset-of-fiemap.patch added to -mm
- tree
-Date: Thu, 29 Aug 2013 13:37:47 -0700
-Message-ID: <521fb11b.7XB2ixYorBp4GqdV%akpm@linux-foundation.org>
+Subject: +
+ mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch added to -mm tree
+Date: Thu, 29 Aug 2013 14:28:49 -0700
+Message-ID: <521fbd11.gX3q0cfUQWfK4gUQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36726 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37221 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752731Ab3H2Uhs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Aug 2013 16:37:48 -0400
+	with ESMTP id S1753617Ab3H2V2u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Aug 2013 17:28:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wb@munzinger.de, sunil.mushran@gmail.com, stable@vger.kernel.org, mfasheh@suse.de, jlbec@evilplan.org, jeff.liu@oracle.com
+To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, joern@logfs.org, hughd@google.com, hannes@cmpxchg.org, vbabka@suse.cz
 
-Subject: + ocfs2-fix-the-end-cluster-offset-of-fiemap.patch added to -mm tree
-To: jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.de,stable@vger.kernel.org,sunil.mushran@gmail.com,wb@munzinger.de
+Subject: + mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch added to -mm tree
+To: vbabka@suse.cz,hannes@cmpxchg.org,hughd@google.com,joern@logfs.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,walken@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 29 Aug 2013 13:37:47 -0700
+Date: Thu, 29 Aug 2013 14:28:49 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix the end cluster offset of FIEMAP
+     Subject: mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-the-end-cluster-offset-of-fiemap.patch
+     mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-the-end-cluster-offset-of-fiemap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-the-end-cluster-offset-of-fiemap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,89 +44,291 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jie Liu <jeff.liu@oracle.com>
-Subject: ocfs2: fix the end cluster offset of FIEMAP
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3
 
-Call fiemap ioctl(2) with given start offset as well as an desired mapping
-range should show extents if possible.  However, we somehow figure out the
-end offset of mapping via 'mapping_end -= cpos' before iterating the
-extent records which would cause problems if the given fiemap length is
-too small to a cluster size, e.g,
+  o Split PTE walk to __munlock_pagevec_fill()
+  o __munlock_pagevec() does not reinitialize the pagevec anymore
+  o Use page_zone_id() for checking if pages are in the same zone (smaller
+    overhead than page_zone())
 
-Cluster size 4096:
-debugfs.ocfs2 1.6.3
-        Block Size Bits: 12   Cluster Size Bits: 12
-
-The extended fiemap test utility From David:
-https://gist.github.com/anonymous/6172331
-
-# dd if=/dev/urandom of=/ocfs2/test_file bs=1M count=1000
-# ./fiemap /ocfs2/test_file 4096 10
-start: 4096, length: 10
-File /ocfs2/test_file has 0 extents:
-#	Logical          Physical         Length           Flags
-	^^^^^ <-- No extent is shown
-
-In this case, at ocfs2_fiemap(): cpos == mapping_end == 1. Hence the
-loop of searching extent records was not executed at all.
-
-This patch remove the in question 'mapping_end -= cpos', and loops
-until the cpos is larger than the mapping_end as usual.
-
-# ./fiemap /ocfs2/test_file 4096 10
-start: 4096, length: 10
-File /ocfs2/test_file has 1 extents:
-#	Logical          Physical         Length           Flags
-0:	0000000000000000 0000000056a01000 0000000006a00000 0000
-
-Signed-off-by: Jie Liu <jeff.liu@oracle.com>
-Reported-by: David Weber <wb@munzinger.de>
-Tested-by: David Weber <wb@munzinger.de>
-Cc: Sunil Mushran <sunil.mushran@gmail.com>
-Cc: Mark Fashen <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jörn Engel <joern@logfs.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/extent_map.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/mm.h |   12 +-
+ mm/mlock.c         |  179 ++++++++++++++++++++-----------------------
+ 2 files changed, 91 insertions(+), 100 deletions(-)
 
-diff -puN fs/ocfs2/extent_map.c~ocfs2-fix-the-end-cluster-offset-of-fiemap fs/ocfs2/extent_map.c
---- a/fs/ocfs2/extent_map.c~ocfs2-fix-the-end-cluster-offset-of-fiemap
-+++ a/fs/ocfs2/extent_map.c
-@@ -781,7 +781,6 @@ int ocfs2_fiemap(struct inode *inode, st
- 	cpos = map_start >> osb->s_clustersize_bits;
- 	mapping_end = ocfs2_clusters_for_bytes(inode->i_sb,
- 					       map_start + map_len);
--	mapping_end -= cpos;
- 	is_last = 0;
- 	while (cpos < mapping_end && !is_last) {
- 		u32 fe_flags;
+diff -puN include/linux/mm.h~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3 include/linux/mm.h
+--- a/include/linux/mm.h~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3
++++ a/include/linux/mm.h
+@@ -643,12 +643,12 @@ static inline enum zone_type page_zonenu
+ #endif
+ 
+ /*
+- * The identification function is only used by the buddy allocator for
+- * determining if two pages could be buddies. We are not really
+- * identifying a zone since we could be using a the section number
+- * id if we have not node id available in page flags.
+- * We guarantee only that it will return the same value for two
+- * combinable pages in a zone.
++ * The identification function is mainly used by the buddy allocator for
++ * determining if two pages could be buddies. We are not really identifying
++ * the zone since we could be using the section number id if we do not have
++ * node id available in page flags.
++ * We only guarantee that it will return the same value for two combinable
++ * pages in a zone.
+  */
+ static inline int page_zone_id(struct page *page)
+ {
+diff -puN mm/mlock.c~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3 mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3
++++ a/mm/mlock.c
+@@ -280,8 +280,7 @@ static void __putback_lru_fast(struct pa
+  * The second phase finishes the munlock only for pages where isolation
+  * succeeded.
+  *
+- * Note that pvec is modified during the process. Before returning
+- * pagevec_reinit() is called on it.
++ * Note that the pagevec may be modified during the process.
+  */
+ static void __munlock_pagevec(struct pagevec *pvec, struct zone *zone)
+ {
+@@ -356,8 +355,60 @@ skip_munlock:
+ 	 */
+ 	if (pagevec_count(&pvec_putback))
+ 		__putback_lru_fast(&pvec_putback, pgrescued);
++}
++
++/*
++ * Fill up pagevec for __munlock_pagevec using pte walk
++ *
++ * The function expects that the struct page corresponding to @start address is
++ * a non-TPH page already pinned and in the @pvec, and that it belongs to @zone.
++ *
++ * The rest of @pvec is filled by subsequent pages within the same pmd and same
++ * zone, as long as the pte's are present and vm_normal_page() succeeds. These
++ * pages also get pinned.
++ *
++ * Returns the address of the next page that should be scanned. This equals
++ * @start + PAGE_SIZE when no page could be added by the pte walk.
++ */
++static unsigned long __munlock_pagevec_fill(struct pagevec *pvec,
++		struct vm_area_struct *vma, int zoneid,	unsigned long start,
++		unsigned long end)
++{
++	pte_t *pte;
++	spinlock_t *ptl;
+ 
+-	pagevec_reinit(pvec);
++	/*
++	 * Initialize pte walk starting at the already pinned page where we
++	 * are sure that there is a pte.
++	 */
++	pte = get_locked_pte(vma->vm_mm, start,	&ptl);
++	end = min(end, pmd_addr_end(start, end));
++
++	/* The page next to the pinned page is the first we will try to get */
++	start += PAGE_SIZE;
++	while (start < end) {
++		struct page *page = NULL;
++		pte++;
++		if (pte_present(*pte))
++			page = vm_normal_page(vma, start, *pte);
++		/*
++		 * Break if page could not be obtained or the page's node+zone does not
++		 * match
++		 */
++		if (!page || page_zone_id(page) != zoneid)
++			break;
++
++		get_page(page);
++		/*
++		 * Increase the address that will be returned *before* the
++		 * eventual break due to pvec becoming full by adding the page
++		 */
++		start += PAGE_SIZE;
++		if (pagevec_add(pvec, page) == 0)
++			break;
++	}
++	pte_unmap_unlock(pte, ptl);
++	return start;
+ }
+ 
+ /*
+@@ -381,81 +432,28 @@ skip_munlock:
+ void munlock_vma_pages_range(struct vm_area_struct *vma,
+ 			     unsigned long start, unsigned long end)
+ {
+-	struct pagevec pvec;
+-	struct zone *zone = NULL;
+-	pte_t *pte = NULL;
+-	spinlock_t *ptl;
+-	unsigned long pmd_end;
+-
+-	pagevec_init(&pvec, 0);
+ 	vma->vm_flags &= ~VM_LOCKED;
+ 
+ 	while (start < end) {
+ 		struct page *page = NULL;
+ 		unsigned int page_mask, page_increm;
+-		struct zone *pagezone;
+-
+-		/* If we can, try pte walk instead of follow_page_mask() */
+-		if (pte && start < pmd_end) {
+-			pte++;
+-			if (pte_present(*pte))
+-				page = vm_normal_page(vma, start, *pte);
+-			if (page) {
+-				get_page(page);
+-				page_mask = 0;
+-			}
+-		}
++		struct pagevec pvec;
++		struct zone *zone;
++		int zoneid;
+ 
++		pagevec_init(&pvec, 0);
+ 		/*
+-		 * If we did sucessful pte walk step, use that page.
+-		 * Otherwise (NULL pte, !pte_present or vm_normal_page failed
+-		 * due to e.g. zero page), fallback to follow_page_mask() which
+-		 * handles all exceptions.
++		 * Although FOLL_DUMP is intended for get_dump_page(),
++		 * it just so happens that its special treatment of the
++		 * ZERO_PAGE (returning an error instead of doing get_page)
++		 * suits munlock very well (and if somehow an abnormal page
++		 * has sneaked into the range, we won't oops here: great).
+ 		 */
+-		if (!page) {
+-			if (pte) {
+-				pte_unmap_unlock(pte, ptl);
+-				pte = NULL;
+-			}
+-
+-			/*
+-			 * Although FOLL_DUMP is intended for get_dump_page(),
+-			 * it just so happens that its special treatment of the
+-			 * ZERO_PAGE (returning an error instead of doing
+-			 * get_page) suits munlock very well (and if somehow an
+-			 * abnormal page has sneaked into the range, we won't
+-			 * oops here: great).
+-			 */
+-			page = follow_page_mask(vma, start,
+-					FOLL_GET | FOLL_DUMP, &page_mask);
+-			pmd_end = pmd_addr_end(start, end);
+-		}
++		page = follow_page_mask(vma, start, FOLL_GET | FOLL_DUMP,
++				&page_mask);
+ 
+ 		if (page && !IS_ERR(page)) {
+-			pagezone = page_zone(page);
+-			/* The whole pagevec must be in the same zone */
+-			if (pagezone != zone) {
+-				if (pagevec_count(&pvec)) {
+-					if (pte) {
+-						pte_unmap_unlock(pte, ptl);
+-						pte = NULL;
+-					}
+-					__munlock_pagevec(&pvec, zone);
+-				}
+-				zone = pagezone;
+-			}
+ 			if (PageTransHuge(page)) {
+-				/*
+-				 * We could not have stumbled upon a THP page
+-				 * using the pte walk.
+-				 */
+-				VM_BUG_ON(pte);
+-				/*
+-				 * THP pages are not handled by pagevec due
+-				 * to their possible split (see below).
+-				 */
+-				if (pagevec_count(&pvec))
+-					__munlock_pagevec(&pvec, zone);
+ 				lock_page(page);
+ 				/*
+ 				 * Any THP page found by follow_page_mask() may
+@@ -468,38 +466,31 @@ void munlock_vma_pages_range(struct vm_a
+ 				put_page(page); /* follow_page_mask() */
+ 			} else {
+ 				/*
+-				 * Initialize pte walk for further pages. We
+-				 * can do this here since we know the current
+-				 * page is not THP.
+-				 */
+-				if (!pte)
+-					pte = get_locked_pte(vma->vm_mm, start,
+-							&ptl);
+-				/*
+-				 * Non-huge pages are handled in batches
+-				 * via pagevec. The pin from
+-				 * follow_page_mask() prevents them from
+-				 * collapsing by THP.
+-				 */
+-				if (pagevec_add(&pvec, page) == 0) {
+-					if (pte) {
+-						pte_unmap_unlock(pte, ptl);
+-						pte = NULL;
+-					}
+-					__munlock_pagevec(&pvec, zone);
+-				}
++				 * Non-huge pages are handled in batches via
++				 * pagevec. The pin from follow_page_mask()
++				 * prevents them from collapsing by THP.
++				 */
++				pagevec_add(&pvec, page);
++				zone = page_zone(page);
++				zoneid = page_zone_id(page);
++
++				/*
++				 * Try to fill the rest of pagevec using fast
++				 * pte walk. This will also update start to
++				 * the next page to process. Then munlock the
++				 * pagevec.
++				 */
++				start = __munlock_pagevec_fill(&pvec, vma,
++						zoneid, start, end);
++				__munlock_pagevec(&pvec, zone);
++				goto next;
+ 			}
+ 		}
+ 		page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
+ 		start += page_increm * PAGE_SIZE;
+-		/* Don't resched while ptl is held */
+-		if (!pte)
+-			cond_resched();
++next:
++		cond_resched();
+ 	}
+-	if (pte)
+-		pte_unmap_unlock(pte, ptl);
+-	if (pagevec_count(&pvec))
+-		__munlock_pagevec(&pvec, zone);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from jeff.liu@oracle.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-ocfs2-lighten-up-allocate-transaction.patch
-ocfs2-using-i_size_read-to-access-i_size.patch
-ocfs2-dlm_request_all_locks-should-deal-with-the-status-sent-from-target-node.patch
-ocfs2-ac_bits_wanted-should-be-local_alloc_bits-when-returns-enospc.patch
-ocfs2-use-list_for_each_entry-instead-of-list_for_each.patch
-ocfs2-add-missing-return-value-check-of-ocfs2_get_clusters.patch
-ocfs2-fix-a-memory-leak-in-__ocfs2_move_extents.patch
-ocfs2-add-the-missing-return-value-check-of-ocfs2_xattr_get_clusters.patch
-ocfs2-free-meta_ac-and-data_ac-when-ocfs2_start_trans-fails-in-ocfs2_xattr_set.patch
-ocfs2-dlm-force-clean-refmap-when-doing-local-cleanup.patch
-ocfs2-fix-possible-double-free-in-ocfs2_reflink_xattr_rec.patch
-ocfs2-free-path-in-ocfs2_remove_inode_range.patch
-ocfs2-fix-the-end-cluster-offset-of-fiemap.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-linux-next.patch
-memcg-correct-resource_max-to-ullong_max.patch
-memcg-rename-resource_max-to-res_counter_max.patch
-memcg-avoid-overflow-caused-by-page_align.patch
-memcg-reduce-function-dereference.patch
+mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
+mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
+mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec.patch
+mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix.patch
+mm-munlock-batch-nr_mlock-zone-state-updates.patch
+mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
+mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
+mm-munlock-remove-redundant-get_page-put_page-pair-on-the-fast-path.patch
+mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask.patch
+mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch
 
