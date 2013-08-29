@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-simplify-devm_request_mem_region-devm_ioremap.patch added
- to -mm tree
-Date: Thu, 29 Aug 2013 15:07:46 -0700
-Message-ID: <521fc632.Qr6m09GDyRY2MFdl%akpm@linux-foundation.org>
+Subject: +
+ lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch added to
+ -mm tree
+Date: Thu, 29 Aug 2013 15:48:30 -0700
+Message-ID: <521fcfbe.eTu04O2sA7xfrRBr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37511 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37744 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752626Ab3H2WHr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Aug 2013 18:07:47 -0400
+	with ESMTP id S1752381Ab3H2Wsb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Aug 2013 18:48:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, Julia.Lawall@lip6.fr
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + rtc-simplify-devm_request_mem_region-devm_ioremap.patch added to -mm tree
-To: Julia.Lawall@lip6.fr
+Subject: + lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Thu, 29 Aug 2013 15:07:46 -0700
+Date: Thu, 29 Aug 2013 15:48:30 -0700
 
 
 The patch titled
-     Subject: rtc: simplify devm_request_mem_region/devm_ioremap
+     Subject: lib/genalloc.c: convert kmalloc_node(...GFP_ZERO...) to kzalloc_node(...)
 has been added to the -mm tree.  Its filename is
-     rtc-simplify-devm_request_mem_region-devm_ioremap.patch
+     lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-simplify-devm_request_mem_region-devm_ioremap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-simplify-devm_request_mem_region-devm_ioremap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,329 +45,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: rtc: simplify devm_request_mem_region/devm_ioremap
+From: Joe Perches <joe@perches.com>
+Subject: lib/genalloc.c: convert kmalloc_node(...GFP_ZERO...) to kzalloc_node(...)
 
-Convert the composition of devm_request_mem_region and devm_ioremap to a
-single call to devm_ioremap_resource.  The associated call to
-platform_get_resource is also simplified and moved next to the new call to
-devm_ioremap_resource.
+Use the helper function instead of __GFP_ZERO.
 
-This was done using a combination of the semantic patches
-devm_ioremap_resource.cocci and devm_request_and_ioremap.cocci, found in
-the scripts/coccinelle/api directory.
-
-In rtc-lpc32xx.c and rtc-mv.c, the local variable size is no longer needed.
-
-In rtc-ds1511.c the size field of the local structure is not useful any
-more, and is deleted.
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1511.c   |   17 +++++------------
- drivers/rtc/rtc-ds1553.c   |   13 ++++---------
- drivers/rtc/rtc-ep93xx.c   |   14 +++-----------
- drivers/rtc/rtc-imxdi.c    |   16 ++++------------
- drivers/rtc/rtc-lpc32xx.c  |   24 ++++--------------------
- drivers/rtc/rtc-mv.c       |   17 ++++-------------
- drivers/rtc/rtc-mxc.c      |   14 ++++----------
- drivers/rtc/rtc-stk17ta8.c |   15 +++++----------
- drivers/rtc/rtc-tx4939.c   |   14 ++++----------
- 9 files changed, 37 insertions(+), 107 deletions(-)
+ lib/genalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1511.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-ds1511.c
---- a/drivers/rtc/rtc-ds1511.c~rtc-simplify-devm_request_mem_region-devm_ioremap
-+++ a/drivers/rtc/rtc-ds1511.c
-@@ -89,7 +89,6 @@ enum ds1511reg {
- struct rtc_plat_data {
- 	struct rtc_device *rtc;
- 	void __iomem *ioaddr;		/* virtual base address */
--	int size;				/* amount of memory mapped */
- 	int irq;
- 	unsigned int irqen;
- 	int alrm_sec;
-@@ -479,20 +478,14 @@ static int ds1511_rtc_probe(struct platf
- 	struct rtc_plat_data *pdata;
- 	int ret = 0;
+diff -puN lib/genalloc.c~lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node lib/genalloc.c
+--- a/lib/genalloc.c~lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node
++++ a/lib/genalloc.c
+@@ -187,7 +187,7 @@ int gen_pool_add_virt(struct gen_pool *p
+ 	int nbytes = sizeof(struct gen_pool_chunk) +
+ 				BITS_TO_LONGS(nbits) * sizeof(long);
  
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENODEV;
--
- 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		return -ENOMEM;
--	pdata->size = resource_size(res);
--	if (!devm_request_mem_region(&pdev->dev, res->start, pdata->size,
--			pdev->name))
--		return -EBUSY;
--	ds1511_base = devm_ioremap(&pdev->dev, res->start, pdata->size);
--	if (!ds1511_base)
--		return -ENOMEM;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	ds1511_base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(ds1511_base))
-+		return PTR_ERR(ds1511_base);
- 	pdata->ioaddr = ds1511_base;
- 	pdata->irq = platform_get_irq(pdev, 0);
- 
-diff -puN drivers/rtc/rtc-ds1553.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-ds1553.c
---- a/drivers/rtc/rtc-ds1553.c~rtc-simplify-devm_request_mem_region-devm_ioremap
-+++ a/drivers/rtc/rtc-ds1553.c
-@@ -285,19 +285,14 @@ static int ds1553_rtc_probe(struct platf
- 	void __iomem *ioaddr;
- 	int ret = 0;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENODEV;
- 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		return -ENOMEM;
--	if (!devm_request_mem_region(&pdev->dev, res->start, RTC_REG_SIZE,
--			pdev->name))
--		return -EBUSY;
- 
--	ioaddr = devm_ioremap(&pdev->dev, res->start, RTC_REG_SIZE);
--	if (!ioaddr)
--		return -ENOMEM;
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	ioaddr = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(ioaddr))
-+		return PTR_ERR(ioaddr);
- 	pdata->ioaddr = ioaddr;
- 	pdata->irq = platform_get_irq(pdev, 0);
- 
-diff -puN drivers/rtc/rtc-ep93xx.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-ep93xx.c
---- a/drivers/rtc/rtc-ep93xx.c~rtc-simplify-devm_request_mem_region-devm_ioremap
-+++ a/drivers/rtc/rtc-ep93xx.c
-@@ -138,17 +138,9 @@ static int ep93xx_rtc_probe(struct platf
+-	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
++	chunk = kzalloc_node(nbytes, GFP_KERNEL, nid);
+ 	if (unlikely(chunk == NULL))
  		return -ENOMEM;
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENXIO;
--
--	if (!devm_request_mem_region(&pdev->dev, res->start,
--				     resource_size(res), pdev->name))
--		return -EBUSY;
--
--	ep93xx_rtc->mmio_base = devm_ioremap(&pdev->dev, res->start,
--					     resource_size(res));
--	if (!ep93xx_rtc->mmio_base)
--		return -ENXIO;
-+	ep93xx_rtc->mmio_base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(ep93xx_rtc->mmio_base))
-+		return PTR_ERR(ep93xx_rtc->mmio_base);
- 
- 	pdev->dev.platform_data = ep93xx_rtc;
- 	platform_set_drvdata(pdev, ep93xx_rtc);
-diff -puN drivers/rtc/rtc-imxdi.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-imxdi.c
---- a/drivers/rtc/rtc-imxdi.c~rtc-simplify-devm_request_mem_region-devm_ioremap
-+++ a/drivers/rtc/rtc-imxdi.c
-@@ -375,24 +375,16 @@ static int __init dryice_rtc_probe(struc
- 	struct imxdi_dev *imxdi;
- 	int rc;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENODEV;
--
- 	imxdi = devm_kzalloc(&pdev->dev, sizeof(*imxdi), GFP_KERNEL);
- 	if (!imxdi)
- 		return -ENOMEM;
- 
- 	imxdi->pdev = pdev;
- 
--	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size(res),
--				pdev->name))
--		return -EBUSY;
--
--	imxdi->ioaddr = devm_ioremap(&pdev->dev, res->start,
--			resource_size(res));
--	if (imxdi->ioaddr == NULL)
--		return -ENOMEM;
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	imxdi->ioaddr = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(imxdi->ioaddr))
-+		return PTR_ERR(imxdi->ioaddr);
- 
- 	spin_lock_init(&imxdi->irq_lock);
- 
-diff -puN drivers/rtc/rtc-lpc32xx.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-lpc32xx.c
---- a/drivers/rtc/rtc-lpc32xx.c~rtc-simplify-devm_request_mem_region-devm_ioremap
-+++ a/drivers/rtc/rtc-lpc32xx.c
-@@ -201,16 +201,9 @@ static int lpc32xx_rtc_probe(struct plat
- {
- 	struct resource *res;
- 	struct lpc32xx_rtc *rtc;
--	resource_size_t size;
- 	int rtcirq;
- 	u32 tmp;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		dev_err(&pdev->dev, "Can't get memory resource\n");
--		return -ENOENT;
--	}
--
- 	rtcirq = platform_get_irq(pdev, 0);
- 	if (rtcirq < 0 || rtcirq >= NR_IRQS) {
- 		dev_warn(&pdev->dev, "Can't get interrupt resource\n");
-@@ -224,19 +217,10 @@ static int lpc32xx_rtc_probe(struct plat
- 	}
- 	rtc->irq = rtcirq;
- 
--	size = resource_size(res);
--
--	if (!devm_request_mem_region(&pdev->dev, res->start, size,
--				     pdev->name)) {
--		dev_err(&pdev->dev, "RTC registers are not free\n");
--		return -EBUSY;
--	}
--
--	rtc->rtc_base = devm_ioremap(&pdev->dev, res->start, size);
--	if (!rtc->rtc_base) {
--		dev_err(&pdev->dev, "Can't map memory\n");
--		return -ENOMEM;
--	}
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	rtc->rtc_base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(rtc->rtc_base))
-+		return PTR_ERR(rtc->rtc_base);
- 
- 	spin_lock_init(&rtc->lock);
- 
-diff -puN drivers/rtc/rtc-mv.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-mv.c
---- a/drivers/rtc/rtc-mv.c~rtc-simplify-devm_request_mem_region-devm_ioremap
-+++ a/drivers/rtc/rtc-mv.c
-@@ -221,26 +221,17 @@ static int __init mv_rtc_probe(struct pl
- {
- 	struct resource *res;
- 	struct rtc_plat_data *pdata;
--	resource_size_t size;
- 	u32 rtc_time;
- 	int ret = 0;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENODEV;
--
- 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		return -ENOMEM;
- 
--	size = resource_size(res);
--	if (!devm_request_mem_region(&pdev->dev, res->start, size,
--				     pdev->name))
--		return -EBUSY;
--
--	pdata->ioaddr = devm_ioremap(&pdev->dev, res->start, size);
--	if (!pdata->ioaddr)
--		return -ENOMEM;
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	pdata->ioaddr = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(pdata->ioaddr))
-+		return PTR_ERR(pdata->ioaddr);
- 
- 	pdata->clk = devm_clk_get(&pdev->dev, NULL);
- 	/* Not all SoCs require a clock.*/
-diff -puN drivers/rtc/rtc-mxc.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-mxc.c
---- a/drivers/rtc/rtc-mxc.c~rtc-simplify-devm_request_mem_region-devm_ioremap
-+++ a/drivers/rtc/rtc-mxc.c
-@@ -377,22 +377,16 @@ static int mxc_rtc_probe(struct platform
- 	unsigned long rate;
- 	int ret;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENODEV;
--
- 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		return -ENOMEM;
- 
- 	pdata->devtype = pdev->id_entry->driver_data;
- 
--	if (!devm_request_mem_region(&pdev->dev, res->start,
--				     resource_size(res), pdev->name))
--		return -EBUSY;
--
--	pdata->ioaddr = devm_ioremap(&pdev->dev, res->start,
--				     resource_size(res));
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	pdata->ioaddr = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(pdata->ioaddr))
-+		return PTR_ERR(pdata->ioaddr);
- 
- 	pdata->clk = devm_clk_get(&pdev->dev, NULL);
- 	if (IS_ERR(pdata->clk)) {
-diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-stk17ta8.c
---- a/drivers/rtc/rtc-stk17ta8.c~rtc-simplify-devm_request_mem_region-devm_ioremap
-+++ a/drivers/rtc/rtc-stk17ta8.c
-@@ -294,19 +294,14 @@ static int stk17ta8_rtc_probe(struct pla
- 	void __iomem *ioaddr;
- 	int ret = 0;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENODEV;
--
- 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		return -ENOMEM;
--	if (!devm_request_mem_region(&pdev->dev, res->start, RTC_REG_SIZE,
--			pdev->name))
--		return -EBUSY;
--	ioaddr = devm_ioremap(&pdev->dev, res->start, RTC_REG_SIZE);
--	if (!ioaddr)
--		return -ENOMEM;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	ioaddr = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(ioaddr))
-+		return PTR_ERR(ioaddr);
- 	pdata->ioaddr = ioaddr;
- 	pdata->irq = platform_get_irq(pdev, 0);
- 
-diff -puN drivers/rtc/rtc-tx4939.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-tx4939.c
---- a/drivers/rtc/rtc-tx4939.c~rtc-simplify-devm_request_mem_region-devm_ioremap
-+++ a/drivers/rtc/rtc-tx4939.c
-@@ -244,9 +244,6 @@ static int __init tx4939_rtc_probe(struc
- 	struct resource *res;
- 	int irq, ret;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENODEV;
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0)
- 		return -ENODEV;
-@@ -255,13 +252,10 @@ static int __init tx4939_rtc_probe(struc
- 		return -ENOMEM;
- 	platform_set_drvdata(pdev, pdata);
- 
--	if (!devm_request_mem_region(&pdev->dev, res->start,
--				     resource_size(res), pdev->name))
--		return -EBUSY;
--	pdata->rtcreg = devm_ioremap(&pdev->dev, res->start,
--				     resource_size(res));
--	if (!pdata->rtcreg)
--		return -EBUSY;
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	pdata->rtcreg = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(pdata->rtcreg))
-+		return PTR_ERR(pdata->rtcreg);
- 
- 	spin_lock_init(&pdata->lock);
- 	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
 _
 
-Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
+Patches currently in -mm which might be from joe@perches.com are
 
-rtc-simplify-devm_request_mem_region-devm_ioremap.patch
+lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
+mm-mempoolc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
+maintainers-exynos-remove-board-files.patch
+maintainers-arm-omap2-3-remove-unused-clockdomain-files.patch
+maintainers-omap-powerdomain-update-patterns.patch
+maintainers-arm-s3c2410-update-patterns.patch
+maintainers-arm-spear-consolidate-sections.patch
+maintainers-arm-plat-nomadik-update-patterns.patch
+maintainers-arm-s3c24xx-remove-plat-s3c24xx.patch
+maintainers-ghes_edac-update-pattern.patch
+maintainers-update-siano-drivers.patch
+maintainers-si4713-fix-file-pattern.patch
+maintainers-update-it913x-patterns.patch
+maintainers-update-ssbi-patterns.patch
+maintainers-update-file-pattern-for-arc-uart.patch
+maintainers-update-usb-ehci-platform-pattern.patch
+maintainers-usb-phy-update-patterns.patch
+maintainers-update-gre-demux-patterns.patch
+maintainers-append-to-directory-patterns.patch
+checkpatch-add-a-few-more-fix-corrections.patch
+checkpatch-check-camelcase-by-word-not-by-lval.patch
+checkpatch-enforce-sane-perl-version.patch
+checkpatch-check-for-duplicate-signatures.patch
+checkpatch-warn-when-using-extern-with-function-prototypes-in-h-files.patch
+checkpatch-fix-networking-kernel-doc-block-comment-defect.patch
+checkpatch-add-types-option-to-report-only-specific-message-types.patch
+checkpatch-ignore-define-trace_foo-macros.patch
+checkpatch-better-fix-of-spacing-errors.patch
+checkpatch-reduce-runtime-cpu-time-used.patch
+checkpatch-fix-perl-version-512-and-earlier-incompatibility.patch
+checkpatch-add-test-for-positional-misuse-of-section-specifiers-like-__initdata.patch
+firmware-dmi_scan-drop-obsolete-comment.patch
+firmware-dmi_scan-fix-most-checkpatch-errors-and-warnings.patch
+firmware-dmi_scan-constify-strings.patch
+firmware-dmi_scan-drop-oom-messages.patch
+pktcdvd-convert-zone-macro-to-static-function-get_zone.patch
+pktcdvd-convert-printk-to-pr_level.patch
+pktcdvd-consolidate-dprintk-and-vprintk-macros.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dbg.patch
+pktcdvd-add-struct-pktcdvd_devicename-to-pr_err-logging-where-possible.patch
+pktcdvd-convert-pr_notice-to-pkt_notice.patch
+pktcdvd-convert-pr_info-to-pkt_info.patch
+pktcdvd-add-struct-pktcdvd_device-to-pkt_dump_sense.patch
+pktcdvd-fix-defective-misuses-of-pkt_level.patch
 linux-next.patch
 
