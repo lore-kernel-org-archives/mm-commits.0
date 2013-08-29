@@ -1,124 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memcg-check-that-kmem_cache-has-memcg_params-before-accessing-it.patch
+ fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers.patch
  removed from -mm tree
-Date: Thu, 29 Aug 2013 12:43:03 -0700
-Message-ID: <521fa447.Xk0okAtbSKJRZA0K%akpm__22332.909963052$1377805395$gmane$org@linux-foundation.org>
+Date: Thu, 29 Aug 2013 12:43:05 -0700
+Message-ID: <521fa449.a0WhKRegtoknB219%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36298 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756923Ab3H2TnE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Aug 2013 15:43:04 -0400
+	with ESMTP id S1756935Ab3H2TnG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Aug 2013 15:43:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, penberg@kernel.org, mhocko@suse.cz, js1304@gmail.com, hannes@cmpxchg.org, glommer@openvz.org, cl@linux.com, avagin@openvz.org
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: [merged] memcg-check-that-kmem_cache-has-memcg_params-before-accessing-it.patch removed from -mm tree
-To: avagin@openvz.org,cl@linux.com,glommer@openvz.org,hannes@cmpxchg.org,js1304@gmail.com,mhocko@suse.cz,penberg@kernel.org,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers.patch removed from -mm tree
+To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 29 Aug 2013 12:43:03 -0700
+Date: Thu, 29 Aug 2013 12:43:05 -0700
 
 
 The patch titled
-     Subject: memcg: check that kmem_cache has memcg_params before accessing it
+     Subject: fs/ocfs2/super.c: Use bigger nodestr to accomodate 32-bit node numbers
 has been removed from the -mm tree.  Its filename was
-     memcg-check-that-kmem_cache-has-memcg_params-before-accessing-it.patch
+     fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Vagin <avagin@openvz.org>
-Subject: memcg: check that kmem_cache has memcg_params before accessing it
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: fs/ocfs2/super.c: Use bigger nodestr to accomodate 32-bit node numbers
 
-If the system had a few memory groups and all of them were destroyed,
-memcg_limited_groups_array_size has non-zero value, but all new caches
-are created without memcg_params, because memcg_kmem_enabled() returns
-false.
+While using pacemaker/corosync, the node numbers are generated using IP
+address as opposed to serial node number generation.  This may not fit in
+a 8-byte string.  Use a bigger string to print the complete node number.
 
-We try to enumirate child caches in a few places and all of them are
-potentially dangerous.
-
-For example my kernel is compiled with CONFIG_SLAB and it crashed when I
-tryed to mount a NFS share after a few experiments with kmemcg.
-
-[   92.563747] BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
-[   92.564553] IP: [<ffffffff8118166a>] do_tune_cpucache+0x8a/0xd0
-[   92.564553] PGD b942a067 PUD b999f067 PMD 0
-[   92.564553] Oops: 0000 [#1] SMP
-[   92.564553] Modules linked in: fscache(+) ip6table_filter ip6_tables iptable_filter ip_tables i2c_piix4 pcspkr virtio_net virtio_balloon i2c_core floppy
-[   92.564553] CPU: 0 PID: 357 Comm: modprobe Not tainted 3.11.0-rc7+ #59
-[   92.564553] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
-[   92.564553] task: ffff8800b9f98240 ti: ffff8800ba32e000 task.ti: ffff8800ba32e000
-[   92.564553] RIP: 0010:[<ffffffff8118166a>]  [<ffffffff8118166a>] do_tune_cpucache+0x8a/0xd0
-[   92.564553] RSP: 0018:ffff8800ba32fb70  EFLAGS: 00010246
-[   92.564553] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000006
-[   92.564553] RDX: 0000000000000000 RSI: ffff8800b9f98910 RDI: 0000000000000246
-[   92.564553] RBP: ffff8800ba32fba0 R08: 0000000000000002 R09: 0000000000000004
-[   92.564553] R10: 0000000000000001 R11: 0000000000000001 R12: 0000000000000010
-[   92.564553] R13: 0000000000000008 R14: 00000000000000d0 R15: ffff8800375d0200
-[   92.564553] FS:  00007f55f1378740(0000) GS:ffff8800bfa00000(0000) knlGS:0000000000000000
-[   92.564553] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[   92.564553] CR2: 00007f24feba57a0 CR3: 0000000037b51000 CR4: 00000000000006f0
-[   92.564553] Stack:
-[   92.564553]  0000002000000000 0000000000000020 ffff8800375d0200 0000000000000010
-[   92.564553]  0000000000000080 0000000000000000 ffff8800ba32fbd0 ffffffff811816f9
-[   92.564553]  000000d0ba32ffd8 ffff8800375d0200 ffff8800375d0200 0000000000000080
-[   92.564553] Call Trace:
-[   92.564553]  [<ffffffff811816f9>] enable_cpucache+0x49/0x100
-[   92.564553]  [<ffffffff8162adc5>] setup_cpu_cache+0x215/0x280
-[   92.564553]  [<ffffffff81181baa>] __kmem_cache_create+0x2fa/0x450
-[   92.564553]  [<ffffffff81152274>] kmem_cache_create_memcg+0x214/0x350
-[   92.564553]  [<ffffffffa005fe50>] ? __fscache_invalidate+0xe0/0xe0 [fscache]
-[   92.564553]  [<ffffffff811523db>] kmem_cache_create+0x2b/0x30
-[   92.564553]  [<ffffffffa007019b>] fscache_init+0x19b/0x230 [fscache]
-[   92.564553]  [<ffffffffa0070000>] ? 0xffffffffa006ffff
-[   92.564553]  [<ffffffff810002ca>] do_one_initcall+0xfa/0x1b0
-[   92.564553]  [<ffffffff81042a03>] ? set_memory_nx+0x43/0x50
-[   92.564553]  [<ffffffff810cadd1>] load_module+0x1c41/0x26d0
-[   92.564553]  [<ffffffff810c7040>] ? store_uevent+0x40/0x40
-[   92.564553]  [<ffffffff810cb9f6>] SyS_finit_module+0x86/0xb0
-[   92.564553]  [<ffffffff81644659>] system_call_fastpath+0x16/0x1b
-[   92.564553] Code: c6 b0 b6 81 81 48 c7 c7 c1 ba 9f 81 e8 af de 4a 00 44 8b 0d c1 54 6d 01 45 85 c9 7e 34 31 db 66 90 49 8b 87 e0 00 00 00 48 63 d3 <48> 8b 7c d0 08 48 85 ff 74 11 8b 75 d4 45 89 f0 44 89 e9 44 89
-[   92.564553] RIP  [<ffffffff8118166a>] do_tune_cpucache+0x8a/0xd0
-[   92.564553]  RSP <ffff8800ba32fb70>
-[   92.564553] CR2: 0000000000000008
-[   92.610992] ---[ end trace adf2b24549e1f11d ]---
-
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Glauber Costa <glommer@openvz.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ocfs2/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.h~memcg-check-that-kmem_cache-has-memcg_params-before-accessing-it mm/slab.h
---- a/mm/slab.h~memcg-check-that-kmem_cache-has-memcg_params-before-accessing-it
-+++ a/mm/slab.h
-@@ -162,6 +162,8 @@ static inline const char *cache_name(str
+diff -puN fs/ocfs2/super.c~fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~fs-ocfs2-superc-use-bigger-nodestr-to-accomodate-32-bit-node-numbers
++++ a/fs/ocfs2/super.c
+@@ -1022,7 +1022,7 @@ static int ocfs2_fill_super(struct super
+ 	struct inode *inode = NULL;
+ 	struct ocfs2_super *osb = NULL;
+ 	struct buffer_head *bh = NULL;
+-	char nodestr[8];
++	char nodestr[12];
+ 	struct ocfs2_blockcheck_stats stats;
  
- static inline struct kmem_cache *cache_from_memcg(struct kmem_cache *s, int idx)
- {
-+	if (!s->memcg_params)
-+		return NULL;
- 	return s->memcg_params->memcg_caches[idx];
- }
- 
+ 	trace_ocfs2_fill_super(sb, data, silent);
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
 origin.patch
-kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 
