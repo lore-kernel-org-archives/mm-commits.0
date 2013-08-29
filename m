@@ -1,84 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch removed from
- -mm tree
-Date: Thu, 29 Aug 2013 11:31:41 -0700
-Message-ID: <521f938d.6s9Y1ceKi63rXfXt%akpm@linux-foundation.org>
+Subject: +
+ dcache-remove-dentries-from-lru-before-putting-on-dispose-list-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 29 Aug 2013 12:04:53 -0700
+Message-ID: <521f9b55.5n81koB3nNStmtUR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35381 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35780 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753844Ab3H2Sbn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Aug 2013 14:31:43 -0400
+	with ESMTP id S1753771Ab3H2TEy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Aug 2013 15:04:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peter@hurleysoftware.com, greg@kroah.com, eparis@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, glommer@openvz.org, akpm@linux-foundation.org
 
-Subject: [obsolete] revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch removed from -mm tree
-To: akpm@linux-foundation.org,eparis@redhat.com,greg@kroah.com,peter@hurleysoftware.com,mm-commits@vger.kernel.org
+Subject: + dcache-remove-dentries-from-lru-before-putting-on-dispose-list-checkpatch-fixes.patch added to -mm tree
+To: akpm@linux-foundation.org,glommer@openvz.org
 From: akpm@linux-foundation.org
-Date: Thu, 29 Aug 2013 11:31:41 -0700
+Date: Thu, 29 Aug 2013 12:04:53 -0700
 
 
 The patch titled
-     Subject: revert "SELinux: do not handle seclabel as a special flag"
-has been removed from the -mm tree.  Its filename was
-     revert-selinux-do-not-handle-seclabel-as-a-special-flag.patch
+     Subject: dcache-remove-dentries-from-lru-before-putting-on-dispose-list-checkpatch-fixes
+has been added to the -mm tree.  Its filename is
+     dcache-remove-dentries-from-lru-before-putting-on-dispose-list-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/dcache-remove-dentries-from-lru-before-putting-on-dispose-list-checkpatch-fixes.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/dcache-remove-dentries-from-lru-before-putting-on-dispose-list-checkpatch-fixes.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "SELinux: do not handle seclabel as a special flag"
+Subject: dcache-remove-dentries-from-lru-before-putting-on-dispose-list-checkpatch-fixes
 
-It breaks my FC6 test box.  /dev/pts is not mounted.  dmesg says
+ERROR: "foo * bar" should be "foo *bar"
+#158: FILE: fs/dcache.c:773:
++static struct dentry * try_prune_one_dentry(struct dentry *dentry)
 
-SELinux: mount invalid.  Same superblock, different security settings for (dev devpts, type devpts)
+total: 1 errors, 0 warnings, 208 lines checked
 
-Cc: Peter Hurley <peter@hurleysoftware.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Eric Paris <eparis@redhat.com>
+./patches/dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Glauber Costa <glommer@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c            |    3 +++
- security/selinux/include/security.h |    2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ fs/dcache.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/selinux/hooks.c~revert-selinux-do-not-handle-seclabel-as-a-special-flag security/selinux/hooks.c
---- a/security/selinux/hooks.c~revert-selinux-do-not-handle-seclabel-as-a-special-flag
-+++ a/security/selinux/hooks.c
-@@ -502,6 +502,9 @@ static int selinux_get_mnt_opts(const st
- 			opts->num_mnt_opts++;
- 		tmp >>= 1;
- 	}
-+	/* Check if the Label support flag is set */
-+	if (sbsec->flags & SBLABEL_MNT)
-+		opts->num_mnt_opts++;
- 
- 	opts->mnt_opts = kcalloc(opts->num_mnt_opts, sizeof(char *), GFP_ATOMIC);
- 	if (!opts->mnt_opts) {
-diff -puN security/selinux/include/security.h~revert-selinux-do-not-handle-seclabel-as-a-special-flag security/selinux/include/security.h
---- a/security/selinux/include/security.h~revert-selinux-do-not-handle-seclabel-as-a-special-flag
-+++ a/security/selinux/include/security.h
-@@ -43,7 +43,7 @@
- #endif
- 
- /* Mask for just the mount related flags */
--#define SE_MNTMASK	0x1f
-+#define SE_MNTMASK	0x0f
- /* Super block security struct flags for mount options */
- /* BE CAREFUL, these need to be the low order bits for selinux_get_mnt_opts */
- #define CONTEXT_MNT	0x01
+diff -puN fs/dcache.c~dcache-remove-dentries-from-lru-before-putting-on-dispose-list-checkpatch-fixes fs/dcache.c
+--- a/fs/dcache.c~dcache-remove-dentries-from-lru-before-putting-on-dispose-list-checkpatch-fixes
++++ a/fs/dcache.c
+@@ -770,7 +770,7 @@ EXPORT_SYMBOL(d_prune_aliases);
+  *
+  * This may fail if locks cannot be acquired no problem, just try again.
+  */
+-static struct dentry * try_prune_one_dentry(struct dentry *dentry)
++static struct dentry *try_prune_one_dentry(struct dentry *dentry)
+ 	__releases(dentry->d_lock)
+ {
+ 	struct dentry *parent;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-linux-next.patch
 revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
@@ -111,8 +116,10 @@ initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
 initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
 ipc-drop-ipcctl_pre_down-fix.patch
 ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+linux-next.patch
 memcg-trivial-cleanups.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+dcache-remove-dentries-from-lru-before-putting-on-dispose-list-checkpatch-fixes.patch
 shrinker-convert-superblock-shrinkers-to-new-api-fix.patch
 xfs-convert-buftarg-lru-to-generic-code-fix.patch
 xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
