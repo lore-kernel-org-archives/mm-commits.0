@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch added to -mm tree
-Date: Thu, 29 Aug 2013 14:28:49 -0700
-Message-ID: <521fbd11.gX3q0cfUQWfK4gUQ%akpm@linux-foundation.org>
+Subject: + rtc-convert-rtc-cmos-to-dev_pm_ops-from-legacy-pm_ops.patch
+ added to -mm tree
+Date: Thu, 29 Aug 2013 14:37:32 -0700
+Message-ID: <521fbf1c.//SANEHBqhck/gM6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37221 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37278 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753617Ab3H2V2u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Aug 2013 17:28:50 -0400
+	with ESMTP id S1752570Ab3H2Vhe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Aug 2013 17:37:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, joern@logfs.org, hughd@google.com, hannes@cmpxchg.org, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, tpmdd@sirrix.com, tpmdd@selhorst.net, rob.herring@calxeda.com, rafael.j.wysocki@intel.com, matthew.garrett@nebula.com, mail@srajiv.net, leosilva@linux.vnet.ibm.com, grant.likely@linaro.org, bhelgaas@google.com, ashley@ashleylai.com, a.zummo@towertech.it, PeterHuewe@gmx.de, shuah.kh@samsung.com
 
-Subject: + mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch added to -mm tree
-To: vbabka@suse.cz,hannes@cmpxchg.org,hughd@google.com,joern@logfs.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,walken@google.com
+Subject: + rtc-convert-rtc-cmos-to-dev_pm_ops-from-legacy-pm_ops.patch added to -mm tree
+To: shuah.kh@samsung.com,PeterHuewe@gmx.de,a.zummo@towertech.it,ashley@ashleylai.com,bhelgaas@google.com,grant.likely@linaro.org,leosilva@linux.vnet.ibm.com,mail@srajiv.net,matthew.garrett@nebula.com,rafael.j.wysocki@intel.com,rob.herring@calxeda.com,tpmdd@selhorst.net,tpmdd@sirrix.com
 From: akpm@linux-foundation.org
-Date: Thu, 29 Aug 2013 14:28:49 -0700
+Date: Thu, 29 Aug 2013 14:37:32 -0700
 
 
 The patch titled
-     Subject: mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3
+     Subject: rtc: convert rtc-cmos to dev_pm_ops from legacy pm_ops
 has been added to the -mm tree.  Its filename is
-     mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch
+     rtc-convert-rtc-cmos-to-dev_pm_ops-from-legacy-pm_ops.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-convert-rtc-cmos-to-dev_pm_ops-from-legacy-pm_ops.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-convert-rtc-cmos-to-dev_pm_ops-from-legacy-pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,291 +44,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3
+From: Shuah Khan <shuah.kh@samsung.com>
+Subject: rtc: convert rtc-cmos to dev_pm_ops from legacy pm_ops
 
-  o Split PTE walk to __munlock_pagevec_fill()
-  o __munlock_pagevec() does not reinitialize the pagevec anymore
-  o Use page_zone_id() for checking if pages are in the same zone (smaller
-    overhead than page_zone())
+Convert drivers/rtc/rtc-cmos to use dev_pm_ops instead of legacy pm_ops. 
+This patch depends on pnp driver bus ops change to invoke pnp_driver
+dev_pm_ops.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jörn Engel <joern@logfs.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: Leonidas Da Silva Barbosa <leosilva@linux.vnet.ibm.com>
+Cc: Ashley Lai <ashley@ashleylai.com>
+Cc: Rajiv Andrade <mail@srajiv.net>
+Cc: Marcel Selhorst <tpmdd@selhorst.net>
+Cc: Sirrix AG <tpmdd@sirrix.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Peter Hüwe <PeterHuewe@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   12 +-
- mm/mlock.c         |  179 ++++++++++++++++++++-----------------------
- 2 files changed, 91 insertions(+), 100 deletions(-)
+ drivers/rtc/rtc-cmos.c |   24 +++++-------------------
+ 1 file changed, 5 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/mm.h~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3 include/linux/mm.h
---- a/include/linux/mm.h~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3
-+++ a/include/linux/mm.h
-@@ -643,12 +643,12 @@ static inline enum zone_type page_zonenu
- #endif
- 
- /*
-- * The identification function is only used by the buddy allocator for
-- * determining if two pages could be buddies. We are not really
-- * identifying a zone since we could be using a the section number
-- * id if we have not node id available in page flags.
-- * We guarantee only that it will return the same value for two
-- * combinable pages in a zone.
-+ * The identification function is mainly used by the buddy allocator for
-+ * determining if two pages could be buddies. We are not really identifying
-+ * the zone since we could be using the section number id if we do not have
-+ * node id available in page flags.
-+ * We only guarantee that it will return the same value for two combinable
-+ * pages in a zone.
-  */
- static inline int page_zone_id(struct page *page)
- {
-diff -puN mm/mlock.c~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3 mm/mlock.c
---- a/mm/mlock.c~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3
-+++ a/mm/mlock.c
-@@ -280,8 +280,7 @@ static void __putback_lru_fast(struct pa
-  * The second phase finishes the munlock only for pages where isolation
-  * succeeded.
-  *
-- * Note that pvec is modified during the process. Before returning
-- * pagevec_reinit() is called on it.
-+ * Note that the pagevec may be modified during the process.
-  */
- static void __munlock_pagevec(struct pagevec *pvec, struct zone *zone)
- {
-@@ -356,8 +355,60 @@ skip_munlock:
- 	 */
- 	if (pagevec_count(&pvec_putback))
- 		__putback_lru_fast(&pvec_putback, pgrescued);
-+}
-+
-+/*
-+ * Fill up pagevec for __munlock_pagevec using pte walk
-+ *
-+ * The function expects that the struct page corresponding to @start address is
-+ * a non-TPH page already pinned and in the @pvec, and that it belongs to @zone.
-+ *
-+ * The rest of @pvec is filled by subsequent pages within the same pmd and same
-+ * zone, as long as the pte's are present and vm_normal_page() succeeds. These
-+ * pages also get pinned.
-+ *
-+ * Returns the address of the next page that should be scanned. This equals
-+ * @start + PAGE_SIZE when no page could be added by the pte walk.
-+ */
-+static unsigned long __munlock_pagevec_fill(struct pagevec *pvec,
-+		struct vm_area_struct *vma, int zoneid,	unsigned long start,
-+		unsigned long end)
-+{
-+	pte_t *pte;
-+	spinlock_t *ptl;
- 
--	pagevec_reinit(pvec);
-+	/*
-+	 * Initialize pte walk starting at the already pinned page where we
-+	 * are sure that there is a pte.
-+	 */
-+	pte = get_locked_pte(vma->vm_mm, start,	&ptl);
-+	end = min(end, pmd_addr_end(start, end));
-+
-+	/* The page next to the pinned page is the first we will try to get */
-+	start += PAGE_SIZE;
-+	while (start < end) {
-+		struct page *page = NULL;
-+		pte++;
-+		if (pte_present(*pte))
-+			page = vm_normal_page(vma, start, *pte);
-+		/*
-+		 * Break if page could not be obtained or the page's node+zone does not
-+		 * match
-+		 */
-+		if (!page || page_zone_id(page) != zoneid)
-+			break;
-+
-+		get_page(page);
-+		/*
-+		 * Increase the address that will be returned *before* the
-+		 * eventual break due to pvec becoming full by adding the page
-+		 */
-+		start += PAGE_SIZE;
-+		if (pagevec_add(pvec, page) == 0)
-+			break;
-+	}
-+	pte_unmap_unlock(pte, ptl);
-+	return start;
+diff -puN drivers/rtc/rtc-cmos.c~rtc-convert-rtc-cmos-to-dev_pm_ops-from-legacy-pm_ops drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-convert-rtc-cmos-to-dev_pm_ops-from-legacy-pm_ops
++++ a/drivers/rtc/rtc-cmos.c
+@@ -1018,23 +1018,6 @@ static void __exit cmos_pnp_remove(struc
+ 	cmos_do_remove(&pnp->dev);
  }
  
- /*
-@@ -381,81 +432,28 @@ skip_munlock:
- void munlock_vma_pages_range(struct vm_area_struct *vma,
- 			     unsigned long start, unsigned long end)
+-#ifdef	CONFIG_PM
+-
+-static int cmos_pnp_suspend(struct pnp_dev *pnp, pm_message_t mesg)
+-{
+-	return cmos_suspend(&pnp->dev);
+-}
+-
+-static int cmos_pnp_resume(struct pnp_dev *pnp)
+-{
+-	return cmos_resume(&pnp->dev);
+-}
+-
+-#else
+-#define	cmos_pnp_suspend	NULL
+-#define	cmos_pnp_resume		NULL
+-#endif
+-
+ static void cmos_pnp_shutdown(struct pnp_dev *pnp)
  {
--	struct pagevec pvec;
--	struct zone *zone = NULL;
--	pte_t *pte = NULL;
--	spinlock_t *ptl;
--	unsigned long pmd_end;
--
--	pagevec_init(&pvec, 0);
- 	vma->vm_flags &= ~VM_LOCKED;
+ 	if (system_state == SYSTEM_POWER_OFF && !cmos_poweroff(&pnp->dev))
+@@ -1060,8 +1043,11 @@ static struct pnp_driver cmos_pnp_driver
  
- 	while (start < end) {
- 		struct page *page = NULL;
- 		unsigned int page_mask, page_increm;
--		struct zone *pagezone;
--
--		/* If we can, try pte walk instead of follow_page_mask() */
--		if (pte && start < pmd_end) {
--			pte++;
--			if (pte_present(*pte))
--				page = vm_normal_page(vma, start, *pte);
--			if (page) {
--				get_page(page);
--				page_mask = 0;
--			}
--		}
-+		struct pagevec pvec;
-+		struct zone *zone;
-+		int zoneid;
+ 	/* flag ensures resume() gets called, and stops syslog spam */
+ 	.flags		= PNP_DRIVER_RES_DO_NOT_CHANGE,
+-	.suspend	= cmos_pnp_suspend,
+-	.resume		= cmos_pnp_resume,
++#ifdef CONFIG_PM_SLEEP
++	.driver		= {
++			.pm = &cmos_pm_ops,
++	},
++#endif
+ };
  
-+		pagevec_init(&pvec, 0);
- 		/*
--		 * If we did sucessful pte walk step, use that page.
--		 * Otherwise (NULL pte, !pte_present or vm_normal_page failed
--		 * due to e.g. zero page), fallback to follow_page_mask() which
--		 * handles all exceptions.
-+		 * Although FOLL_DUMP is intended for get_dump_page(),
-+		 * it just so happens that its special treatment of the
-+		 * ZERO_PAGE (returning an error instead of doing get_page)
-+		 * suits munlock very well (and if somehow an abnormal page
-+		 * has sneaked into the range, we won't oops here: great).
- 		 */
--		if (!page) {
--			if (pte) {
--				pte_unmap_unlock(pte, ptl);
--				pte = NULL;
--			}
--
--			/*
--			 * Although FOLL_DUMP is intended for get_dump_page(),
--			 * it just so happens that its special treatment of the
--			 * ZERO_PAGE (returning an error instead of doing
--			 * get_page) suits munlock very well (and if somehow an
--			 * abnormal page has sneaked into the range, we won't
--			 * oops here: great).
--			 */
--			page = follow_page_mask(vma, start,
--					FOLL_GET | FOLL_DUMP, &page_mask);
--			pmd_end = pmd_addr_end(start, end);
--		}
-+		page = follow_page_mask(vma, start, FOLL_GET | FOLL_DUMP,
-+				&page_mask);
- 
- 		if (page && !IS_ERR(page)) {
--			pagezone = page_zone(page);
--			/* The whole pagevec must be in the same zone */
--			if (pagezone != zone) {
--				if (pagevec_count(&pvec)) {
--					if (pte) {
--						pte_unmap_unlock(pte, ptl);
--						pte = NULL;
--					}
--					__munlock_pagevec(&pvec, zone);
--				}
--				zone = pagezone;
--			}
- 			if (PageTransHuge(page)) {
--				/*
--				 * We could not have stumbled upon a THP page
--				 * using the pte walk.
--				 */
--				VM_BUG_ON(pte);
--				/*
--				 * THP pages are not handled by pagevec due
--				 * to their possible split (see below).
--				 */
--				if (pagevec_count(&pvec))
--					__munlock_pagevec(&pvec, zone);
- 				lock_page(page);
- 				/*
- 				 * Any THP page found by follow_page_mask() may
-@@ -468,38 +466,31 @@ void munlock_vma_pages_range(struct vm_a
- 				put_page(page); /* follow_page_mask() */
- 			} else {
- 				/*
--				 * Initialize pte walk for further pages. We
--				 * can do this here since we know the current
--				 * page is not THP.
--				 */
--				if (!pte)
--					pte = get_locked_pte(vma->vm_mm, start,
--							&ptl);
--				/*
--				 * Non-huge pages are handled in batches
--				 * via pagevec. The pin from
--				 * follow_page_mask() prevents them from
--				 * collapsing by THP.
--				 */
--				if (pagevec_add(&pvec, page) == 0) {
--					if (pte) {
--						pte_unmap_unlock(pte, ptl);
--						pte = NULL;
--					}
--					__munlock_pagevec(&pvec, zone);
--				}
-+				 * Non-huge pages are handled in batches via
-+				 * pagevec. The pin from follow_page_mask()
-+				 * prevents them from collapsing by THP.
-+				 */
-+				pagevec_add(&pvec, page);
-+				zone = page_zone(page);
-+				zoneid = page_zone_id(page);
-+
-+				/*
-+				 * Try to fill the rest of pagevec using fast
-+				 * pte walk. This will also update start to
-+				 * the next page to process. Then munlock the
-+				 * pagevec.
-+				 */
-+				start = __munlock_pagevec_fill(&pvec, vma,
-+						zoneid, start, end);
-+				__munlock_pagevec(&pvec, zone);
-+				goto next;
- 			}
- 		}
- 		page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
- 		start += page_increm * PAGE_SIZE;
--		/* Don't resched while ptl is held */
--		if (!pte)
--			cond_resched();
-+next:
-+		cond_resched();
- 	}
--	if (pte)
--		pte_unmap_unlock(pte, ptl);
--	if (pagevec_count(&pvec))
--		__munlock_pagevec(&pvec, zone);
- }
- 
- /*
+ #endif	/* CONFIG_PNP */
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from shuah.kh@samsung.com are
 
-mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
-mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
-mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec.patch
-mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec-fix.patch
-mm-munlock-batch-nr_mlock-zone-state-updates.patch
-mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
-mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
-mm-munlock-remove-redundant-get_page-put_page-pair-on-the-fast-path.patch
-mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask.patch
-mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch
+pnp-change-pnp-bus-pm_ops-to-invoke-pnp-driver-dev_pm_ops-if-specified.patch
+rtc-convert-rtc-cmos-to-dev_pm_ops-from-legacy-pm_ops.patch
+tpm-convert-tpm_tis-driver-to-use-dev_pm_ops-from-legacy-pm_ops.patch
+platform-convert-apple-gmux-driver-to-dev_pm_ops-from-legacy-pm_ops.patch
+linux-next.patch
 
