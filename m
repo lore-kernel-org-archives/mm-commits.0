@@ -1,38 +1,38 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch removed
- from -mm tree
-Date: Tue, 10 Sep 2013 15:32:48 -0700
-Message-ID: <522f9e10.GkXoTJYXEpYTt60G%akpm@linux-foundation.org>
+ hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+ removed from -mm tree
+Date: Tue, 10 Sep 2013 15:33:11 -0700
+Message-ID: <522f9e27.nVKE2o+rlRF1cU2z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40093 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab3IJWct (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 18:32:49 -0400
+	with ESMTP id S1752613Ab3IJWdM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 18:33:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch removed from -mm tree
+Subject: [folded-merged] hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch removed from -mm tree
 To: akpm@linux-foundation.org,dchinner@redhat.com,glommer@openvz.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Sep 2013 15:32:48 -0700
+Date: Tue, 10 Sep 2013 15:33:11 -0700
 
 
 The patch titled
-     Subject: shrinker-convert-remaining-shrinkers-to-count-scan-api-fix
+     Subject: hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix
 has been removed from the -mm tree.  Its filename was
-     shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+     hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
 
-This patch was dropped because it was folded into shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
+This patch was dropped because it was folded into hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: shrinker-convert-remaining-shrinkers-to-count-scan-api-fix
+Subject: hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix
 
 fix warnings
 
@@ -41,75 +41,29 @@ Cc: Glauber Costa <glommer@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c |   10 ++++++----
- net/sunrpc/auth.c  |    6 +++---
- 2 files changed, 9 insertions(+), 7 deletions(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~shrinker-convert-remaining-shrinkers-to-count-scan-api-fix arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~shrinker-convert-remaining-shrinkers-to-count-scan-api-fix
-+++ a/arch/x86/kvm/mmu.c
-@@ -4421,12 +4421,12 @@ void kvm_mmu_invalidate_mmio_sptes(struc
- 	}
+diff -puN mm/huge_memory.c~hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix
++++ a/mm/huge_memory.c
+@@ -211,14 +211,14 @@ static void put_huge_zero_page(void)
+ 	BUG_ON(atomic_dec_and_test(&huge_zero_refcount));
  }
  
--static long
-+static unsigned long
- mmu_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
+-static long shrink_huge_zero_page_count(struct shrinker *shrink,
++static unsigned long shrink_huge_zero_page_count(struct shrinker *shrink,
+ 					struct shrink_control *sc)
  {
- 	struct kvm *kvm;
- 	int nr_to_scan = sc->nr_to_scan;
--	long freed = 0;
-+	unsigned long freed = 0;
- 
- 	raw_spin_lock(&kvm_lock);
- 
-@@ -4461,7 +4461,8 @@ mmu_shrink_scan(struct shrinker *shrink,
- 			goto unlock;
- 		}
- 
--		freed += prepare_zap_oldest_mmu_page(kvm, &invalid_list);
-+		if (prepare_zap_oldest_mmu_page(kvm, &invalid_list))
-+			freed++;
- 		kvm_mmu_commit_zap_page(kvm, &invalid_list);
- 
- unlock:
-@@ -4482,7 +4483,8 @@ unlock:
- 
+ 	/* we can free zero page only if last reference remains */
+ 	return atomic_read(&huge_zero_refcount) == 1 ? HPAGE_PMD_NR : 0;
  }
  
--static long mmu_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
-+static unsigned long
-+mmu_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
+-static long shrink_huge_zero_page_scan(struct shrinker *shrink,
++static unsigned long shrink_huge_zero_page_scan(struct shrinker *shrink,
+ 				       struct shrink_control *sc)
  {
- 	return percpu_counter_read_positive(&kvm_total_used_mmu_pages);
- }
-diff -puN net/sunrpc/auth.c~shrinker-convert-remaining-shrinkers-to-count-scan-api-fix net/sunrpc/auth.c
---- a/net/sunrpc/auth.c~shrinker-convert-remaining-shrinkers-to-count-scan-api-fix
-+++ a/net/sunrpc/auth.c
-@@ -454,12 +454,12 @@ rpcauth_prune_expired(struct list_head *
- /*
-  * Run memory cache shrinker.
-  */
--static long
-+static unsigned long
- rpcauth_cache_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
- 
- {
- 	LIST_HEAD(free);
--	long freed;
-+	unsigned long freed;
- 
- 	if ((sc->gfp_mask & GFP_KERNEL) != GFP_KERNEL)
- 		return SHRINK_STOP;
-@@ -476,7 +476,7 @@ rpcauth_cache_shrink_scan(struct shrinke
- 	return freed;
- }
- 
--static long
-+static unsigned long
- rpcauth_cache_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
- 
- {
+ 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -159,7 +113,7 @@ xfs-convert-dquot-cache-lru-to-list_lru.patch
 fs-convert-fs-shrinkers-to-new-scan-count-api.patch
 drivers-convert-shrinkers-to-new-count-scan-api.patch
 shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
-hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
 shrinker-kill-old-shrink-api-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
