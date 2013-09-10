@@ -1,104 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + fat-additions-to-support-fat_fallocate-fix-fix.patch added to
- -mm tree
-Date: Tue, 10 Sep 2013 16:34:21 -0700
-Message-ID: <522fac7d.+hPIz4tSPwhlKVRQ%akpm@linux-foundation.org>
+Subject: [to-be-updated] x86-include-linux-schedh-in-asm-uaccessh.patch
+ removed from -mm tree
+Date: Tue, 10 Sep 2013 16:52:20 -0700
+Message-ID: <522fb0b4.WNdVdEuS+e5pOMaQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40365 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40520 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751535Ab3IJXeW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 19:34:22 -0400
+	with ESMTP id S1751689Ab3IJXwV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 19:52:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, namjae.jeon@samsung.com, hirofumi@mail.parknet.co.jp, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, a.p.zijlstra@chello.nl, ak@linux.intel.com
 
-Subject: + fat-additions-to-support-fat_fallocate-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,hirofumi@mail.parknet.co.jp,namjae.jeon@samsung.com
+Subject: [to-be-updated] x86-include-linux-schedh-in-asm-uaccessh.patch removed from -mm tree
+To: ak@linux.intel.com,a.p.zijlstra@chello.nl,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Sep 2013 16:34:21 -0700
+Date: Tue, 10 Sep 2013 16:52:20 -0700
 
 
 The patch titled
-     Subject: fat-additions-to-support-fat_fallocate-fix-fix
-has been added to the -mm tree.  Its filename is
-     fat-additions-to-support-fat_fallocate-fix-fix.patch
+     Subject: x86: include linux/sched.h in asm/uaccess.h
+has been removed from the -mm tree.  Its filename was
+     x86-include-linux-schedh-in-asm-uaccessh.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-additions-to-support-fat_fallocate-fix-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fat-additions-to-support-fat_fallocate-fix-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fat-additions-to-support-fat_fallocate-fix-fix
+From: Andi Kleen <ak@linux.intel.com>
+Subject: x86: include linux/sched.h in asm/uaccess.h
 
-use the new d_count()
+uaccess.h uses might_sleep, but there is currently no explicit include for
+this.  Since a upcoming patch moves might_sleep into sched.h include
+sched.h here.
 
-Cc: Namjae Jeon <namjae.jeon@samsung.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/uaccess.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/fat/inode.c~fat-additions-to-support-fat_fallocate-fix-fix fs/fat/inode.c
-diff -puN fs/fat/file.c~fat-additions-to-support-fat_fallocate-fix-fix fs/fat/file.c
---- a/fs/fat/file.c~fat-additions-to-support-fat_fallocate-fix-fix
-+++ a/fs/fat/file.c
-@@ -163,7 +163,7 @@ static int fat_file_release(struct inode
- 	mmu_private_ideal = round_up(inode->i_size, sb->s_blocksize);
- 
- 	if (mmu_private_ideal < MSDOS_I(inode)->mmu_private &&
--	    filp->f_dentry->d_count == 1)
-+	    d_count(filp->f_dentry) == 1)
- 		fat_truncate_blocks(inode, inode->i_size);
- 	mutex_unlock(&inode->i_mutex);
- 
+diff -puN arch/x86/include/asm/uaccess.h~x86-include-linux-schedh-in-asm-uaccessh arch/x86/include/asm/uaccess.h
+--- a/arch/x86/include/asm/uaccess.h~x86-include-linux-schedh-in-asm-uaccessh
++++ a/arch/x86/include/asm/uaccess.h
+@@ -3,6 +3,7 @@
+ /*
+  * User space memory access functions
+  */
++#include <linux/sched.h>
+ #include <linux/errno.h>
+ #include <linux/compiler.h>
+ #include <linux/thread_info.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 origin.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
-mm-swapfilec-convert-to-pr_foo.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
-swap-make-swap-discard-async-checkpatch-fixes.patch
-swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
-mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
-mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
-vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
-genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
-mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
-mm-hotplug-verify-hotplug-memory-range-fix.patch
-mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
-mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
-mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
-mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch
-mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
-mm-page-writebackc-add-strictlimit-feature-fix.patch
-mm-madvisec-madvise_hwpoison-remove-local-ret.patch
-vfs-allow-umount-to-handle-mountpoints-without-revalidating-them-fix.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-fat-additions-to-support-fat_fallocate-fix-fix.patch
+mm-migrate-make-core-migration-code-aware-of-hugepage.patch
+mm-soft-offline-use-migrate_pages-instead-of-migrate_huge_page.patch
+migrate-add-hugepage-migration-code-to-migrate_pages.patch
+mm-migrate-add-hugepage-migration-code-to-move_pages.patch
+mm-mbind-add-hugepage-migration-code-to-mbind.patch
+mm-migrate-remove-vm_hugetlb-from-vma-flag-check-in-vma_migratable.patch
+mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage.patch
+mm-migrate-check-movability-of-hugepage-in-unmap_and_move_huge_page.patch
+mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
+mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2.patch
+mm-mempolicy-rename-check_range-to-queue_pages_range.patch
+kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
+lto-watchdog-hpwdtc-make-assembler-label-global.patch
+syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
+x86-add-1-2-4-8-byte-optimization-to-64bit-__copy_fromto_user_inatomic.patch
+tree-sweep-include-linux-schedh-for-might_sleep-users.patch
+sched-mark-should_resched-__always_inline.patch
+thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
+mm-cleanup-add_to_page_cache_locked.patch
+thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
+thp-do_huge_pmd_anonymous_page-cleanup.patch
+thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
 
