@@ -1,94 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch
- removed from -mm tree
-Date: Tue, 10 Sep 2013 15:30:42 -0700
-Message-ID: <522f9d92.lNy7kJjIKacS9xBu%akpm@linux-foundation.org>
+Subject: [folded-merged] xfs-convert-dquot-cache-lru-to-list_lru-fix.patch removed from -mm tree
+Date: Tue, 10 Sep 2013 15:30:40 -0700
+Message-ID: <522f9d90.x0/9YlzolFXPYQW/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40059 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40056 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645Ab3IJWan (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 18:30:43 -0400
+	with ESMTP id S1751645Ab3IJWal (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 18:30:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, glommer@gmail.com, dchinner@redhat.com, david@fromorbit.com
+To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch removed from -mm tree
-To: david@fromorbit.com,dchinner@redhat.com,glommer@gmail.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [folded-merged] xfs-convert-dquot-cache-lru-to-list_lru-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,dchinner@redhat.com,glommer@openvz.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Sep 2013 15:30:42 -0700
+Date: Tue, 10 Sep 2013 15:30:40 -0700
 
 
 The patch titled
-     Subject: xfs: fix dquot isolation hang
+     Subject: xfs-convert-dquot-cache-lru-to-list_lru-fix
 has been removed from the -mm tree.  Its filename was
-     xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang.patch
+     xfs-convert-dquot-cache-lru-to-list_lru-fix.patch
 
 This patch was dropped because it was folded into xfs-convert-dquot-cache-lru-to-list_lru.patch
 
 ------------------------------------------------------
-From: Dave Chinner <david@fromorbit.com>
-Subject: xfs: fix dquot isolation hang
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: xfs-convert-dquot-cache-lru-to-list_lru-fix
 
-The new LRU list isolation code in xfs_qm_dquot_isolate() isn't
-completely up to date.  Firstly, it needs conversion to return enum
-lru_status values, not raw numbers. Secondly - most importantly - it
-fails to unlock the dquot and relock the LRU in the LRU_RETRY path.
-This leads to deadlocks in xfstests generic/232. Fix them.
+fix warnings
 
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
-Cc: Glauber Costa <glommer@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Glauber Costa <glommer@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_qm.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/xfs/xfs_qm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/xfs/xfs_qm.c~xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang fs/xfs/xfs_qm.c
---- a/fs/xfs/xfs_qm.c~xfs-convert-dquot-cache-lru-to-list_lru-fix-dquot-isolation-hang
+diff -puN fs/xfs/xfs_qm.c~xfs-convert-dquot-cache-lru-to-list_lru-fix fs/xfs/xfs_qm.c
+--- a/fs/xfs/xfs_qm.c~xfs-convert-dquot-cache-lru-to-list_lru-fix
 +++ a/fs/xfs/xfs_qm.c
-@@ -707,7 +707,7 @@ xfs_qm_dquot_isolate(
- 		trace_xfs_dqreclaim_want(dqp);
- 		list_del_init(&dqp->q_lru);
- 		XFS_STATS_DEC(xs_qm_dquot_unused);
--		return 0;
-+		return LRU_REMOVED;
- 	}
- 
- 	/*
-@@ -753,17 +753,19 @@ xfs_qm_dquot_isolate(
- 	XFS_STATS_DEC(xs_qm_dquot_unused);
- 	trace_xfs_dqreclaim_done(dqp);
- 	XFS_STATS_INC(xs_qm_dqreclaims);
--	return 0;
-+	return LRU_REMOVED;
- 
- out_miss_busy:
- 	trace_xfs_dqreclaim_busy(dqp);
- 	XFS_STATS_INC(xs_qm_dqreclaim_misses);
--	return 2;
-+	return LRU_SKIP;
- 
- out_unlock_dirty:
- 	trace_xfs_dqreclaim_busy(dqp);
- 	XFS_STATS_INC(xs_qm_dqreclaim_misses);
--	return 3;
-+	xfs_dqunlock(dqp);
-+	spin_lock(lru_lock);
-+	return LRU_RETRY;
+@@ -766,7 +766,7 @@ out_unlock_dirty:
+ 	return 3;
  }
  
- static unsigned long
+-static long
++static unsigned long
+ xfs_qm_shrink_scan(
+ 	struct shrinker		*shrink,
+ 	struct shrink_control	*sc)
+@@ -774,7 +774,7 @@ xfs_qm_shrink_scan(
+ 	struct xfs_quotainfo	*qi = container_of(shrink,
+ 					struct xfs_quotainfo, qi_shrinker);
+ 	struct xfs_qm_isolate	isol;
+-	long			freed;
++	unsigned long		freed;
+ 	int			error;
+ 	unsigned long		nr_to_scan = sc->nr_to_scan;
+ 
+@@ -802,7 +802,7 @@ xfs_qm_shrink_scan(
+ 	return freed;
+ }
+ 
+-static long
++static unsigned long
+ xfs_qm_shrink_count(
+ 	struct shrinker		*shrink,
+ 	struct shrink_control	*sc)
 _
 
-Patches currently in -mm which might be from david@fromorbit.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-super-fix-calculation-of-shrinkable-objects-for-small-numbers.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch
+block-support-embedded-device-command-line-partition.patch
+mm.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+swap-make-swap-discard-async-checkpatch-fixes.patch
+swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
+mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
+mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
+vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
+genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
+mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+mm-hotplug-verify-hotplug-memory-range-fix.patch
+mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
+mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
+mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
+mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch
+mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
+mm-page-writebackc-add-strictlimit-feature-fix.patch
+mm-madvisec-madvise_hwpoison-remove-local-ret.patch
+vfs-allow-umount-to-handle-mountpoints-without-revalidating-them-fix.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+revert-1.patch
+memcg-trivial-cleanups.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+dcache-remove-dentries-from-lru-before-putting-on-dispose-list.patch
+shrinker-convert-superblock-shrinkers-to-new-api.patch
+xfs-convert-buftarg-lru-to-generic-code.patch
 xfs-convert-dquot-cache-lru-to-list_lru.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
+drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+shrinker-kill-old-shrink-api-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
