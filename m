@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-sparse-introduce-alloc_usemap_and_memmap-fix-3.patch added
- to -mm tree
-Date: Tue, 10 Sep 2013 16:32:01 -0700
-Message-ID: <522fabf1.yopl2L6VFYyixTYp%akpm@linux-foundation.org>
+Subject: + fat-additions-to-support-fat_fallocate-fix-fix.patch added to
+ -mm tree
+Date: Tue, 10 Sep 2013 16:34:21 -0700
+Message-ID: <522fac7d.+hPIz4tSPwhlKVRQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40365 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751411Ab3IJXcD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 19:32:03 -0400
+	with ESMTP id S1751535Ab3IJXeW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 19:34:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, namjae.jeon@samsung.com, hirofumi@mail.parknet.co.jp, akpm@linux-foundation.org
 
-Subject: + mm-sparse-introduce-alloc_usemap_and_memmap-fix-3.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,yinghai@kernel.org
+Subject: + fat-additions-to-support-fat_fallocate-fix-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,hirofumi@mail.parknet.co.jp,namjae.jeon@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Sep 2013 16:32:01 -0700
+Date: Tue, 10 Sep 2013 16:34:21 -0700
 
 
 The patch titled
-     Subject: mm-sparse-introduce-alloc_usemap_and_memmap-fix-3
+     Subject: fat-additions-to-support-fat_fallocate-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-sparse-introduce-alloc_usemap_and_memmap-fix-3.patch
+     fat-additions-to-support-fat_fallocate-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-introduce-alloc_usemap_and_memmap-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fat-additions-to-support-fat_fallocate-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-introduce-alloc_usemap_and_memmap-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fat-additions-to-support-fat_fallocate-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,113 +44,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm-sparse-introduce-alloc_usemap_and_memmap-fix-3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fat-additions-to-support-fat_fallocate-fix-fix
 
-Replace void ** by void *.
+use the new d_count()
 
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Namjae Jeon <namjae.jeon@samsung.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/fat/file.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/sparse.c~mm-sparse-introduce-alloc_usemap_and_memmap-fix-3 mm/sparse.c
---- a/mm/sparse.c~mm-sparse-introduce-alloc_usemap_and_memmap-fix-3
-+++ a/mm/sparse.c
-@@ -339,7 +339,7 @@ static void __init check_usemap_section_
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
+diff -puN fs/fat/inode.c~fat-additions-to-support-fat_fallocate-fix-fix fs/fat/inode.c
+diff -puN fs/fat/file.c~fat-additions-to-support-fat_fallocate-fix-fix fs/fat/file.c
+--- a/fs/fat/file.c~fat-additions-to-support-fat_fallocate-fix-fix
++++ a/fs/fat/file.c
+@@ -163,7 +163,7 @@ static int fat_file_release(struct inode
+ 	mmu_private_ideal = round_up(inode->i_size, sb->s_blocksize);
  
--static void __init sparse_early_usemaps_alloc_node(void **data,
-+static void __init sparse_early_usemaps_alloc_node(void *data,
- 				 unsigned long pnum_begin,
- 				 unsigned long pnum_end,
- 				 unsigned long usemap_count, int nodeid)
-@@ -431,7 +431,7 @@ void __init sparse_mem_maps_populate_nod
- #endif /* !CONFIG_SPARSEMEM_VMEMMAP */
+ 	if (mmu_private_ideal < MSDOS_I(inode)->mmu_private &&
+-	    filp->f_dentry->d_count == 1)
++	    d_count(filp->f_dentry) == 1)
+ 		fat_truncate_blocks(inode, inode->i_size);
+ 	mutex_unlock(&inode->i_mutex);
  
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
--static void __init sparse_early_mem_maps_alloc_node(void **data,
-+static void __init sparse_early_mem_maps_alloc_node(void *data,
- 				 unsigned long pnum_begin,
- 				 unsigned long pnum_end,
- 				 unsigned long map_count, int nodeid)
-@@ -467,8 +467,8 @@ void __attribute__((weak)) __meminit vme
-  *  @map: usemap_map for pageblock flags or mmap_map for vmemmap
-  */
- static void __init alloc_usemap_and_memmap(void (*alloc_func)
--					(void **, unsigned long, unsigned long,
--					unsigned long, int), void **data)
-+					(void *, unsigned long, unsigned long,
-+					unsigned long, int), void *data)
- {
- 	unsigned long pnum;
- 	unsigned long map_count;
-@@ -549,7 +549,7 @@ void __init sparse_init(void)
- 	if (!usemap_map)
- 		panic("can not allocate usemap_map\n");
- 	alloc_usemap_and_memmap(sparse_early_usemaps_alloc_node,
--							(void **)usemap_map);
-+							(void *)usemap_map);
- 
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
- 	size2 = sizeof(struct page *) * NR_MEM_SECTIONS;
-@@ -557,7 +557,7 @@ void __init sparse_init(void)
- 	if (!map_map)
- 		panic("can not allocate map_map\n");
- 	alloc_usemap_and_memmap(sparse_early_mem_maps_alloc_node,
--							(void **)map_map);
-+							(void *)map_map);
- #endif
- 
- 	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-zswapc-get-swapper-address_space-by-using-macro.patch
-mm-fix-potential-null-pointer-dereference.patch
-mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
-mm-hugetlb-trivial-commenting-fix.patch
-mm-hugetlb-clean-up-alloc_huge_page.patch
-mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
-mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
-mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
-mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
-mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
-mm-vmalloc-remove-useless-variable-in-vmap_block.patch
-mm-vmalloc-use-well-defined-find_last_bit-func.patch
-mm-hotplug-verify-hotplug-memory-range.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size-fix.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too-fix.patch
+swap-make-swap-discard-async-checkpatch-fixes.patch
+swap-make-cluster-allocation-per-cpu-checkpatch-fixes.patch
+mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug-fix.patch
+mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache-fix.patch
+mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
+vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters-fix.patch
+genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
+mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
 mm-hotplug-verify-hotplug-memory-range-fix.patch
-mm-hotplug-remove-stop_machine-from-try_offline_node.patch
-mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
-mm-hugetlb-change-variable-name-reservations-to-resv.patch
-mm-hugetlb-fix-subpool-accounting-handling.patch
-mm-hugetlb-remove-useless-check-about-mapping-type.patch
-mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
-mm-hugetlb-return-a-reserved-page-to-a-reserved-pool-if-failed.patch
-mm-sparse-introduce-alloc_usemap_and_memmap.patch
-mm-sparse-introduce-alloc_usemap_and_memmap-fix.patch
-mm-sparse-introduce-alloc_usemap_and_memmap-fix-2.patch
-mm-sparse-introduce-alloc_usemap_and_memmap-fix-3.patch
-mm-writeback-make-writeback_inodes_wb-static.patch
-mm-vmalloc-use-wrapper-function-get_vm_area_size-to-caculate-size-of-vm-area.patch
-hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page.patch
-mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
-mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch
-mm-hwpoison-fix-race-against-poison-thp.patch
-mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
-mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch
-mm-hwpoison-drop-forward-reference-declarations-__soft_offline_page.patch
-mm-hwpoison-add-to-madvise_hwpoison.patch
-mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page.patch
-mm-hwpoison-injectc-change-permission-of-corrupt-pfn-unpoison-pfn-to-0200.patch
-mm-memory-failurec-fix-bug-triggered-by-unpoisoning-empty-zero-page.patch
-mm-hwpoison-fix-return-value-of-madvise_hwpoison.patch
+mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
+mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
+mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
+mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch
+mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
+mm-page-writebackc-add-strictlimit-feature-fix.patch
 mm-madvisec-madvise_hwpoison-remove-local-ret.patch
+vfs-allow-umount-to-handle-mountpoints-without-revalidating-them-fix.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+fat-additions-to-support-fat_fallocate-fix-fix.patch
 
