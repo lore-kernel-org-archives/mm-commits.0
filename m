@@ -1,87 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch removed from
+ drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch removed from
  -mm tree
-Date: Tue, 10 Sep 2013 15:31:26 -0700
-Message-ID: <522f9dbe.g86jQRSYdj7R3Fw3%akpm@linux-foundation.org>
+Date: Tue, 10 Sep 2013 15:32:21 -0700
+Message-ID: <522f9df5.Q7E0/LPQUHwcMiI1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40075 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40084 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560Ab3IJWb1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 18:31:27 -0400
+	with ESMTP id S1751819Ab3IJWcW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 18:32:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kees@outflux.net, glommer@openvz.org, dchinner@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch removed from -mm tree
-To: akpm@linux-foundation.org,dchinner@redhat.com,glommer@openvz.org,kees@outflux.net,mm-commits@vger.kernel.org
+Subject: [folded-merged] drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch removed from -mm tree
+To: akpm@linux-foundation.org,dchinner@redhat.com,glommer@openvz.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Sep 2013 15:31:26 -0700
+Date: Tue, 10 Sep 2013 15:32:21 -0700
 
 
 The patch titled
-     Subject: fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2
+     Subject: drivers-convert-shrinkers-to-new-count-scan-api-fix-2
 has been removed from the -mm tree.  Its filename was
-     fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2.patch
+     drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
 
-This patch was dropped because it was folded into fs-convert-fs-shrinkers-to-new-scan-count-api.patch
+This patch was dropped because it was folded into drivers-convert-shrinkers-to-new-count-scan-api.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2
+Subject: drivers-convert-shrinkers-to-new-count-scan-api-fix-2
 
-fix shadowed local, spell "skipped" correctly
+fix warnings
 
 Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Glauber Costa <glommer@openvz.org>
-Cc: Kees Cook <kees@outflux.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/extents_status.c |   10 +++++-----
+ drivers/gpu/drm/ttm/ttm_page_alloc_dma.c |   10 +++++-----
  1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext4/extents_status.c~fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2 fs/ext4/extents_status.c
---- a/fs/ext4/extents_status.c~fs-convert-fs-shrinkers-to-new-scan-count-api-fix-fix-2
-+++ a/fs/ext4/extents_status.c
-@@ -947,14 +947,14 @@ static int __ext4_es_shrink(struct ext4_
- 	struct ext4_inode_info *ei;
- 	struct list_head *cur, *tmp;
- 	LIST_HEAD(skipped);
--	int ret, nr_shrunk = 0;
-+	int nr_shrunk = 0;
- 	int retried = 0, skip_precached = 1, nr_skipped = 0;
+diff -puN drivers/gpu/drm/ttm/ttm_page_alloc_dma.c~drivers-convert-shrinkers-to-new-count-scan-api-fix-2 drivers/gpu/drm/ttm/ttm_page_alloc_dma.c
+--- a/drivers/gpu/drm/ttm/ttm_page_alloc_dma.c~drivers-convert-shrinkers-to-new-count-scan-api-fix-2
++++ a/drivers/gpu/drm/ttm/ttm_page_alloc_dma.c
+@@ -1000,7 +1000,7 @@ EXPORT_SYMBOL_GPL(ttm_dma_unpopulate);
+  * I'm getting sadder as I hear more pathetical whimpers about needing per-pool
+  * shrinkers
+  */
+-static long
++static unsigned long
+ ttm_dma_pool_shrink_scan(struct shrinker *shrink, struct shrink_control *sc)
+ {
+ 	static atomic_t start_pool = ATOMIC_INIT(0);
+@@ -1008,7 +1008,7 @@ ttm_dma_pool_shrink_scan(struct shrinker
+ 	unsigned pool_offset = atomic_add_return(1, &start_pool);
+ 	unsigned shrink_pages = sc->nr_to_scan;
+ 	struct device_pools *p;
+-	long freed = 0;
++	unsigned long freed = 0;
  
- 	spin_lock(&sbi->s_es_lru_lock);
+ 	if (list_empty(&_manager->pools))
+ 		return SHRINK_STOP;
+@@ -1037,11 +1037,11 @@ ttm_dma_pool_shrink_scan(struct shrinker
+ 	return freed;
+ }
  
- retry:
- 	list_for_each_safe(cur, tmp, &sbi->s_es_lru) {
--		int ret;
-+		int shrunk;
+-static long
++static unsigned long
+ ttm_dma_pool_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
+ {
+ 	struct device_pools *p;
+-	long count = 0;
++	unsigned long count = 0;
  
- 		/*
- 		 * If we have already reclaimed all extents from extent
-@@ -982,13 +982,13 @@ retry:
- 			continue;
+ 	mutex_lock(&_manager->lock);
+ 	list_for_each_entry(p, &_manager->pools, pools)
+@@ -1052,7 +1052,7 @@ ttm_dma_pool_shrink_count(struct shrinke
  
- 		write_lock(&ei->i_es_lock);
--		ret = __es_try_to_reclaim_extents(ei, nr_to_scan);
-+		shrunk = __es_try_to_reclaim_extents(ei, nr_to_scan);
- 		if (ei->i_es_lru_nr == 0)
- 			list_del_init(&ei->i_es_lru);
- 		write_unlock(&ei->i_es_lock);
- 
--		nr_shrunk += ret;
--		nr_to_scan -= ret;
-+		nr_shrunk += shrunk;
-+		nr_to_scan -= shrunk;
- 		if (nr_to_scan == 0)
- 			break;
- 	}
+ static void ttm_dma_pool_mm_shrink_init(struct ttm_pool_manager *manager)
+ {
+-	manager->mm_shrink.count_objects = &ttm_dma_pool_shrink_count;
++	manager->mm_shrink.count_objects = ttm_dma_pool_shrink_count;
+ 	manager->mm_shrink.scan_objects = &ttm_dma_pool_shrink_scan;
+ 	manager->mm_shrink.seeks = 1;
+ 	register_shrinker(&manager->mm_shrink);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,8 +135,7 @@ shrinker-convert-superblock-shrinkers-to-new-api.patch
 xfs-convert-buftarg-lru-to-generic-code.patch
 xfs-convert-dquot-cache-lru-to-list_lru.patch
 fs-convert-fs-shrinkers-to-new-scan-count-api.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix.patch
-drivers-convert-shrinkers-to-new-count-scan-api-fix-2.patch
+drivers-convert-shrinkers-to-new-count-scan-api.patch
 shrinker-convert-remaining-shrinkers-to-count-scan-api-fix.patch
 hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
 shrinker-kill-old-shrink-api-fix.patch
