@@ -1,69 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
- removed from -mm tree
-Date: Tue, 10 Sep 2013 15:33:11 -0700
-Message-ID: <522f9e27.nVKE2o+rlRF1cU2z%akpm@linux-foundation.org>
+Subject: [folded-merged] shrinker-kill-old-shrink-api-fix.patch removed
+ from -mm tree
+Date: Tue, 10 Sep 2013 15:33:32 -0700
+Message-ID: <522f9e3c.HeDbDeCk7YT41PNi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40093 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40095 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab3IJWdM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 18:33:12 -0400
+	with ESMTP id S1752843Ab3IJWdd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 18:33:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, glommer@openvz.org, dchinner@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, glommer@openvz.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,dchinner@redhat.com,glommer@openvz.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] shrinker-kill-old-shrink-api-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,glommer@openvz.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Sep 2013 15:33:11 -0700
+Date: Tue, 10 Sep 2013 15:33:32 -0700
 
 
 The patch titled
-     Subject: hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix
+     Subject: shrinker-kill-old-shrink-api-fix
 has been removed from the -mm tree.  Its filename was
-     hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix.patch
+     shrinker-kill-old-shrink-api-fix.patch
 
-This patch was dropped because it was folded into hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+This patch was dropped because it was folded into shrinker-kill-old-shrink-api.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix
+Subject: shrinker-kill-old-shrink-api-fix
 
-fix warnings
+fix whitespace
 
-Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Glauber Costa <glommer@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix mm/huge_memory.c
---- a/mm/huge_memory.c~hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api-fix
-+++ a/mm/huge_memory.c
-@@ -211,14 +211,14 @@ static void put_huge_zero_page(void)
- 	BUG_ON(atomic_dec_and_test(&huge_zero_refcount));
- }
+diff -puN mm/vmscan.c~shrinker-kill-old-shrink-api-fix mm/vmscan.c
+--- a/mm/vmscan.c~shrinker-kill-old-shrink-api-fix
++++ a/mm/vmscan.c
+@@ -292,11 +292,10 @@ shrink_slab_node(struct shrink_control *
+ 				max_pass, delta, total_scan);
  
--static long shrink_huge_zero_page_count(struct shrinker *shrink,
-+static unsigned long shrink_huge_zero_page_count(struct shrinker *shrink,
- 					struct shrink_control *sc)
- {
- 	/* we can free zero page only if last reference remains */
- 	return atomic_read(&huge_zero_refcount) == 1 ? HPAGE_PMD_NR : 0;
- }
- 
--static long shrink_huge_zero_page_scan(struct shrinker *shrink,
-+static unsigned long shrink_huge_zero_page_scan(struct shrinker *shrink,
- 				       struct shrink_control *sc)
- {
- 	if (atomic_cmpxchg(&huge_zero_refcount, 1, 0) == 1) {
+ 	while (total_scan >= batch_size) {
+-
+ 		unsigned long ret;
++
+ 		shrinkctl->nr_to_scan = batch_size;
+ 		ret = shrinker->scan_objects(shrinker, shrinkctl);
+-
+ 		if (ret == SHRINK_STOP)
+ 			break;
+ 		freed += ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,7 +108,7 @@ fs-convert-fs-shrinkers-to-new-scan-count-api.patch
 drivers-convert-shrinkers-to-new-count-scan-api.patch
 shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
 hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
-shrinker-kill-old-shrink-api-fix.patch
+shrinker-kill-old-shrink-api.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 journal_add_journal_head-debug.patch
