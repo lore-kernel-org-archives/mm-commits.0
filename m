@@ -1,60 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch removed from -mm
+ partitions-efi-some-style-cleanups-checkpatch-fixes.patch removed from -mm
  tree
-Date: Wed, 11 Sep 2013 14:05:29 -0700
-Message-ID: <5230db19.QiYw52naMCcENgap%akpm@linux-foundation.org>
+Date: Wed, 11 Sep 2013 14:05:47 -0700
+Message-ID: <5230db2b.T3rYVh67KnIj9mcZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49260 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757269Ab3IKVFa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:05:30 -0400
+	with ESMTP id S1756996Ab3IKVFs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:05:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, matt.fleming@intel.com, kzak@redhat.com, davidlohr@hp.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch removed from -mm tree
+Subject: [folded-merged] partitions-efi-some-style-cleanups-checkpatch-fixes.patch removed from -mm tree
 To: akpm@linux-foundation.org,davidlohr@hp.com,kzak@redhat.com,matt.fleming@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 14:05:29 -0700
+Date: Wed, 11 Sep 2013 14:05:47 -0700
 
 
 The patch titled
-     Subject: partitions-efi-detect-hybrid-mbrs-checkpatch-fixes
+     Subject: partitions-efi-some-style-cleanups-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch
+     partitions-efi-some-style-cleanups-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into partitions-efi-detect-hybrid-mbrs.patch
+This patch was dropped because it was folded into partitions-efi-some-style-cleanups.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: partitions-efi-detect-hybrid-mbrs-checkpatch-fixes
+Subject: partitions-efi-some-style-cleanups-checkpatch-fixes
 
 Cc: Davidlohr Bueso <davidlohr@hp.com>
 
-WARNING: line over 80 characters
-#92: FILE: block/partitions/efi.c:206:
-+		if ((mbr->partition_record[i].os_type != EFI_PMBR_OSTYPE_EFI_GPT) &&
+ERROR: code indent should use tabs where possible
+#34: FILE: block/partitions/efi.c:295:
++                     (u8 *) pte, count) < count) {$
 
-WARNING: space prohibited between function name and open parenthesis '('
-#116: FILE: block/partitions/efi.c:578:
-+		legacymbr = kzalloc(sizeof (*legacymbr), GFP_KERNEL);
-
-WARNING: space prohibited between function name and open parenthesis '('
-#120: FILE: block/partitions/efi.c:582:
-+		read_lba(state, 0, (u8 *) legacymbr, sizeof (*legacymbr));
+WARNING: please, no spaces at the start of a line
+#34: FILE: block/partitions/efi.c:295:
++                     (u8 *) pte, count) < count) {$
 
 WARNING: line over 80 characters
-#128: FILE: block/partitions/efi.c:590:
-+			 good_pmbr == GPT_MBR_PROTECTIVE ? "protective" : "hybrid");
+#44: FILE: block/partitions/efi.c:620:
++		good_agpt = is_gpt_valid(state, le64_to_cpu(pgpt->alternate_lba),
 
-total: 0 errors, 4 warnings, 105 lines checked
+ERROR: code indent should use tabs where possible
+#55: FILE: block/partitions/efi.c:638:
++                        printk(KERN_WARNING "Alternate GPT is invalid, using primary GPT.\n");$
 
-./patches/partitions-efi-detect-hybrid-mbrs.patch has style problems, please review.
+WARNING: please, no spaces at the start of a line
+#55: FILE: block/partitions/efi.c:638:
++                        printk(KERN_WARNING "Alternate GPT is invalid, using primary GPT.\n");$
+
+WARNING: Prefer netdev_warn(netdev, ... then dev_warn(dev, ... then pr_warn(...  to printk(KERN_WARNING ...
+#55: FILE: block/partitions/efi.c:638:
++                        printk(KERN_WARNING "Alternate GPT is invalid, using primary GPT.\n");
+
+ERROR: code indent should use tabs where possible
+#65: FILE: block/partitions/efi.c:647:
++                printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");$
+
+WARNING: please, no spaces at the start of a line
+#65: FILE: block/partitions/efi.c:647:
++                printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");$
+
+WARNING: Prefer netdev_warn(netdev, ... then dev_warn(dev, ... then pr_warn(...  to printk(KERN_WARNING ...
+#65: FILE: block/partitions/efi.c:647:
++                printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");
+
+WARNING: line over 80 characters
+#75: FILE: block/partitions/efi.c:709:
++		if (!efi_guidcmp(ptes[i].partition_type_guid, PARTITION_LINUX_RAID_GUID))
+
+total: 3 errors, 7 warnings, 55 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/partitions-efi-some-style-cleanups.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -67,46 +94,51 @@ Cc: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/efi.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ block/partitions/efi.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN block/partitions/efi.c~partitions-efi-detect-hybrid-mbrs-checkpatch-fixes block/partitions/efi.c
---- a/block/partitions/efi.c~partitions-efi-detect-hybrid-mbrs-checkpatch-fixes
+diff -puN block/partitions/efi.c~partitions-efi-some-style-cleanups-checkpatch-fixes block/partitions/efi.c
+--- a/block/partitions/efi.c~partitions-efi-some-style-cleanups-checkpatch-fixes
 +++ a/block/partitions/efi.c
-@@ -203,7 +203,8 @@ static int is_pmbr_valid(legacy_mbr *mbr
- 		goto done;
- check_hybrid:
- 	for (i = 0; i < 4; i++)
--		if ((mbr->partition_record[i].os_type != EFI_PMBR_OSTYPE_EFI_GPT) &&
-+		if ((mbr->partition_record[i].os_type !=
-+			EFI_PMBR_OSTYPE_EFI_GPT) &&
- 		    (mbr->partition_record[i].os_type != 0x00))
- 			ret = GPT_MBR_HYBRID;
- done:
-@@ -575,11 +576,11 @@ static int find_valid_gpt(struct parsed_
- 	lastlba = last_lba(state->bdev);
-         if (!force_gpt) {
- 		/* This will be added to the EFI Spec. per Intel after v1.02. */
--		legacymbr = kzalloc(sizeof (*legacymbr), GFP_KERNEL);
-+		legacymbr = kzalloc(sizeof(*legacymbr), GFP_KERNEL);
- 		if (!legacymbr)
- 			goto fail;
+@@ -292,7 +292,7 @@ static gpt_entry *alloc_read_gpt_entries
+ 		return NULL;
  
--		read_lba(state, 0, (u8 *) legacymbr, sizeof (*legacymbr));
-+		read_lba(state, 0, (u8 *)legacymbr, sizeof(*legacymbr));
- 		good_pmbr = is_pmbr_valid(legacymbr);
- 		kfree(legacymbr);
- 
-@@ -587,7 +588,8 @@ static int find_valid_gpt(struct parsed_
- 			goto fail;
- 
- 		pr_debug("Device has a %s MBR\n",
--			 good_pmbr == GPT_MBR_PROTECTIVE ? "protective" : "hybrid");
-+			 good_pmbr == GPT_MBR_PROTECTIVE ?
-+						"protective" : "hybrid");
- 	}
- 
+ 	if (read_lba(state, le64_to_cpu(gpt->partition_entry_lba),
+-                     (u8 *) pte, count) < count) {
++			(u8 *) pte, count) < count) {
+ 		kfree(pte);
+                 pte=NULL;
+ 		return NULL;
+@@ -617,7 +617,8 @@ static int find_valid_gpt(struct parsed_
  	good_pgpt = is_gpt_valid(state, GPT_PRIMARY_PARTITION_TABLE_LBA,
+ 				 &pgpt, &pptes);
+         if (good_pgpt)
+-		good_agpt = is_gpt_valid(state, le64_to_cpu(pgpt->alternate_lba),
++		good_agpt = is_gpt_valid(state,
++					 le64_to_cpu(pgpt->alternate_lba),
+ 					 &agpt, &aptes);
+         if (!good_agpt && force_gpt)
+                 good_agpt = is_gpt_valid(state, lastlba, &agpt, &aptes);
+@@ -634,9 +635,8 @@ static int find_valid_gpt(struct parsed_
+                 *ptes = pptes;
+                 kfree(agpt);
+                 kfree(aptes);
+-                if (!good_agpt) {
++		if (!good_agpt)
+                         printk(KERN_WARNING "Alternate GPT is invalid, using primary GPT.\n");
+-                }
+                 return 1;
+         }
+         else if (good_agpt) {
+@@ -644,7 +644,7 @@ static int find_valid_gpt(struct parsed_
+                 *ptes = aptes;
+                 kfree(pgpt);
+                 kfree(pptes);
+-                printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");
++		printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");
+                 return 1;
+         }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,7 +168,7 @@ move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 partitions-efi-use-lba-aware-partition-records.patch
 partitions-efi-check-pmbr-records-starting-lba.patch
 partitions-efi-detect-hybrid-mbrs.patch
-partitions-efi-some-style-cleanups-checkpatch-fixes.patch
+partitions-efi-some-style-cleanups.patch
 block-partitions-efic-consistently-use-pr_foo.patch
 initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
 initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
