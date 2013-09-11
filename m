@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch added
- to -mm tree
-Date: Tue, 10 Sep 2013 17:21:37 -0700
-Message-ID: <522fb791.VT0cB5khtI5+zI9K%akpm@linux-foundation.org>
+Subject: + block-partitions-efic-consistently-use-pr_foo.patch added to
+ -mm tree
+Date: Tue, 10 Sep 2013 17:21:42 -0700
+Message-ID: <522fb796.HYckokZbpBYEFiZz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40711 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40719 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752029Ab3IKAVi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 20:21:38 -0400
+	with ESMTP id S1752129Ab3IKAVn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 20:21:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, matt.fleming@intel.com, kzak@redhat.com, davidlohr@hp.com, akpm@linux-foundation.org
 
-Subject: + partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch added to -mm tree
+Subject: + block-partitions-efic-consistently-use-pr_foo.patch added to -mm tree
 To: akpm@linux-foundation.org,davidlohr@hp.com,kzak@redhat.com,matt.fleming@intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Sep 2013 17:21:37 -0700
+Date: Tue, 10 Sep 2013 17:21:42 -0700
 
 
 The patch titled
-     Subject: partitions-efi-detect-hybrid-mbrs-checkpatch-fixes
+     Subject: block/partitions/efi.c: consistently use pr_foo()
 has been added to the -mm tree.  Its filename is
-     partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch
+     block-partitions-efic-consistently-use-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-partitions-efic-consistently-use-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-partitions-efic-consistently-use-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,34 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: partitions-efi-detect-hybrid-mbrs-checkpatch-fixes
-
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-
-WARNING: line over 80 characters
-#92: FILE: block/partitions/efi.c:206:
-+		if ((mbr->partition_record[i].os_type != EFI_PMBR_OSTYPE_EFI_GPT) &&
-
-WARNING: space prohibited between function name and open parenthesis '('
-#116: FILE: block/partitions/efi.c:578:
-+		legacymbr = kzalloc(sizeof (*legacymbr), GFP_KERNEL);
-
-WARNING: space prohibited between function name and open parenthesis '('
-#120: FILE: block/partitions/efi.c:582:
-+		read_lba(state, 0, (u8 *) legacymbr, sizeof (*legacymbr));
-
-WARNING: line over 80 characters
-#128: FILE: block/partitions/efi.c:590:
-+			 good_pmbr == GPT_MBR_PROTECTIVE ? "protective" : "hybrid");
-
-total: 0 errors, 4 warnings, 105 lines checked
-
-./patches/partitions-efi-detect-hybrid-mbrs.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+Subject: block/partitions/efi.c: consistently use pr_foo()
 
 Cc: Davidlohr Bueso <davidlohr@hp.com>
 Cc: Karel Zak <kzak@redhat.com>
@@ -80,46 +53,136 @@ Cc: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/efi.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ block/partitions/efi.c |   45 ++++++++++++++++-----------------------
+ 1 file changed, 19 insertions(+), 26 deletions(-)
 
-diff -puN block/partitions/efi.c~partitions-efi-detect-hybrid-mbrs-checkpatch-fixes block/partitions/efi.c
---- a/block/partitions/efi.c~partitions-efi-detect-hybrid-mbrs-checkpatch-fixes
+diff -puN block/partitions/efi.c~block-partitions-efic-consistently-use-pr_foo block/partitions/efi.c
+--- a/block/partitions/efi.c~block-partitions-efic-consistently-use-pr_foo
 +++ a/block/partitions/efi.c
-@@ -203,7 +203,8 @@ static int is_pmbr_valid(legacy_mbr *mbr
- 		goto done;
- check_hybrid:
- 	for (i = 0; i < 4; i++)
--		if ((mbr->partition_record[i].os_type != EFI_PMBR_OSTYPE_EFI_GPT) &&
-+		if ((mbr->partition_record[i].os_type !=
-+			EFI_PMBR_OSTYPE_EFI_GPT) &&
- 		    (mbr->partition_record[i].os_type != 0x00))
- 			ret = GPT_MBR_HYBRID;
- done:
-@@ -575,11 +576,11 @@ static int find_valid_gpt(struct parsed_
- 	lastlba = last_lba(state->bdev);
-         if (!force_gpt) {
- 		/* This will be added to the EFI Spec. per Intel after v1.02. */
--		legacymbr = kzalloc(sizeof (*legacymbr), GFP_KERNEL);
-+		legacymbr = kzalloc(sizeof(*legacymbr), GFP_KERNEL);
- 		if (!legacymbr)
- 			goto fail;
- 
--		read_lba(state, 0, (u8 *) legacymbr, sizeof (*legacymbr));
-+		read_lba(state, 0, (u8 *)legacymbr, sizeof(*legacymbr));
- 		good_pmbr = is_pmbr_valid(legacymbr);
- 		kfree(legacymbr);
- 
-@@ -587,7 +588,8 @@ static int find_valid_gpt(struct parsed_
- 			goto fail;
- 
- 		pr_debug("Device has a %s MBR\n",
--			 good_pmbr == GPT_MBR_PROTECTIVE ? "protective" : "hybrid");
-+			 good_pmbr == GPT_MBR_PROTECTIVE ?
-+						"protective" : "hybrid");
+@@ -482,44 +482,42 @@ compare_gpts(gpt_header *pgpt, gpt_heade
+ 	if (!pgpt || !agpt)
+ 		return;
+ 	if (le64_to_cpu(pgpt->my_lba) != le64_to_cpu(agpt->alternate_lba)) {
+-		printk(KERN_WARNING
+-		       "GPT:Primary header LBA != Alt. header alternate_lba\n");
+-		printk(KERN_WARNING "GPT:%lld != %lld\n",
++		pr_warn("GPT:Primary header LBA != Alt. header alternate_lba\n");
++		pr_warn("GPT:%lld != %lld\n",
+ 		       (unsigned long long)le64_to_cpu(pgpt->my_lba),
+                        (unsigned long long)le64_to_cpu(agpt->alternate_lba));
+ 		error_found++;
+ 	}
+ 	if (le64_to_cpu(pgpt->alternate_lba) != le64_to_cpu(agpt->my_lba)) {
+-		printk(KERN_WARNING
+-		       "GPT:Primary header alternate_lba != Alt. header my_lba\n");
+-		printk(KERN_WARNING "GPT:%lld != %lld\n",
++		pr_warn("GPT:Primary header alternate_lba != Alt. header my_lba\n");
++		pr_warn("GPT:%lld != %lld\n",
+ 		       (unsigned long long)le64_to_cpu(pgpt->alternate_lba),
+                        (unsigned long long)le64_to_cpu(agpt->my_lba));
+ 		error_found++;
+ 	}
+ 	if (le64_to_cpu(pgpt->first_usable_lba) !=
+             le64_to_cpu(agpt->first_usable_lba)) {
+-		printk(KERN_WARNING "GPT:first_usable_lbas don't match.\n");
+-		printk(KERN_WARNING "GPT:%lld != %lld\n",
++		pr_warn("GPT:first_usable_lbas don't match.\n");
++		pr_warn("GPT:%lld != %lld\n",
+ 		       (unsigned long long)le64_to_cpu(pgpt->first_usable_lba),
+                        (unsigned long long)le64_to_cpu(agpt->first_usable_lba));
+ 		error_found++;
+ 	}
+ 	if (le64_to_cpu(pgpt->last_usable_lba) !=
+             le64_to_cpu(agpt->last_usable_lba)) {
+-		printk(KERN_WARNING "GPT:last_usable_lbas don't match.\n");
+-		printk(KERN_WARNING "GPT:%lld != %lld\n",
++		pr_warn("GPT:last_usable_lbas don't match.\n");
++		pr_warn("GPT:%lld != %lld\n",
+ 		       (unsigned long long)le64_to_cpu(pgpt->last_usable_lba),
+                        (unsigned long long)le64_to_cpu(agpt->last_usable_lba));
+ 		error_found++;
+ 	}
+ 	if (efi_guidcmp(pgpt->disk_guid, agpt->disk_guid)) {
+-		printk(KERN_WARNING "GPT:disk_guids don't match.\n");
++		pr_warn("GPT:disk_guids don't match.\n");
+ 		error_found++;
+ 	}
+ 	if (le32_to_cpu(pgpt->num_partition_entries) !=
+             le32_to_cpu(agpt->num_partition_entries)) {
+-		printk(KERN_WARNING "GPT:num_partition_entries don't match: "
++		pr_warn("GPT:num_partition_entries don't match: "
+ 		       "0x%x != 0x%x\n",
+ 		       le32_to_cpu(pgpt->num_partition_entries),
+ 		       le32_to_cpu(agpt->num_partition_entries));
+@@ -527,8 +525,7 @@ compare_gpts(gpt_header *pgpt, gpt_heade
+ 	}
+ 	if (le32_to_cpu(pgpt->sizeof_partition_entry) !=
+             le32_to_cpu(agpt->sizeof_partition_entry)) {
+-		printk(KERN_WARNING
+-		       "GPT:sizeof_partition_entry values don't match: "
++		pr_warn("GPT:sizeof_partition_entry values don't match: "
+ 		       "0x%x != 0x%x\n",
+                        le32_to_cpu(pgpt->sizeof_partition_entry),
+ 		       le32_to_cpu(agpt->sizeof_partition_entry));
+@@ -536,34 +533,30 @@ compare_gpts(gpt_header *pgpt, gpt_heade
+ 	}
+ 	if (le32_to_cpu(pgpt->partition_entry_array_crc32) !=
+             le32_to_cpu(agpt->partition_entry_array_crc32)) {
+-		printk(KERN_WARNING
+-		       "GPT:partition_entry_array_crc32 values don't match: "
++		pr_warn("GPT:partition_entry_array_crc32 values don't match: "
+ 		       "0x%x != 0x%x\n",
+                        le32_to_cpu(pgpt->partition_entry_array_crc32),
+ 		       le32_to_cpu(agpt->partition_entry_array_crc32));
+ 		error_found++;
+ 	}
+ 	if (le64_to_cpu(pgpt->alternate_lba) != lastlba) {
+-		printk(KERN_WARNING
+-		       "GPT:Primary header thinks Alt. header is not at the end of the disk.\n");
+-		printk(KERN_WARNING "GPT:%lld != %lld\n",
++		pr_warn("GPT:Primary header thinks Alt. header is not at the end of the disk.\n");
++		pr_warn("GPT:%lld != %lld\n",
+ 			(unsigned long long)le64_to_cpu(pgpt->alternate_lba),
+ 			(unsigned long long)lastlba);
+ 		error_found++;
  	}
  
- 	good_pgpt = is_gpt_valid(state, GPT_PRIMARY_PARTITION_TABLE_LBA,
+ 	if (le64_to_cpu(agpt->my_lba) != lastlba) {
+-		printk(KERN_WARNING
+-		       "GPT:Alternate GPT header not at the end of the disk.\n");
+-		printk(KERN_WARNING "GPT:%lld != %lld\n",
++		pr_warn("GPT:Alternate GPT header not at the end of the disk.\n");
++		pr_warn("GPT:%lld != %lld\n",
+ 			(unsigned long long)le64_to_cpu(agpt->my_lba),
+ 			(unsigned long long)lastlba);
+ 		error_found++;
+ 	}
+ 
+ 	if (error_found)
+-		printk(KERN_WARNING
+-		       "GPT: Use GNU Parted to correct GPT errors.\n");
++		pr_warn("GPT: Use GNU Parted to correct GPT errors.\n");
+ 	return;
+ }
+ 
+@@ -636,7 +629,7 @@ static int find_valid_gpt(struct parsed_
+                 kfree(agpt);
+                 kfree(aptes);
+ 		if (!good_agpt)
+-                        printk(KERN_WARNING "Alternate GPT is invalid, using primary GPT.\n");
++                        pr_warn("Alternate GPT is invalid, using primary GPT.\n");
+                 return 1;
+         }
+         else if (good_agpt) {
+@@ -644,7 +637,7 @@ static int find_valid_gpt(struct parsed_
+                 *ptes = aptes;
+                 kfree(pgpt);
+                 kfree(pptes);
+-		printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");
++		pr_warn("Primary GPT is invalid, using alternate GPT.\n");
+                 return 1;
+         }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
