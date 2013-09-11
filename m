@@ -1,83 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] ipc-drop-ipcctl_pre_down-fix.patch removed from
- -mm tree
-Date: Wed, 11 Sep 2013 14:07:14 -0700
-Message-ID: <5230db82.PBlroYYfWxei9y1T%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch removed from -mm
+ tree
+Date: Wed, 11 Sep 2013 14:07:35 -0700
+Message-ID: <5230db97.TETVucy+z4XEMiQ7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49287 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757053Ab3IKVHP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:07:15 -0400
+	with ESMTP id S1754613Ab3IKVHg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:07:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, davidlohr.bueso@hp.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] ipc-drop-ipcctl_pre_down-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,davidlohr.bueso@hp.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 14:07:14 -0700
+Date: Wed, 11 Sep 2013 14:07:35 -0700
 
 
 The patch titled
-     Subject: ipc-drop-ipcctl_pre_down-fix
+     Subject: ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ipc-drop-ipcctl_pre_down-fix.patch
+     ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into ipc-drop-ipcctl_pre_down.patch
+This patch was dropped because it was folded into ipcshm-make-shmctl_nolock-lockless.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-drop-ipcctl_pre_down-fix
+Subject: ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes
 
-fix function name in kerneldoc, cleanups
+WARNING: space prohibited between function name and open parenthesis '('
+#65: FILE: ipc/shm.c:921:
++		if (copy_shmid_to_user (buf, &tbuf, version))
+
+total: 0 errors, 1 warnings, 54 lines checked
+
+./patches/ipcshm-make-shmctl_nolock-lockless.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sedat Dilek <sedat.dilek@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ ipc/shm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/util.c~ipc-drop-ipcctl_pre_down-fix ipc/util.c
---- a/ipc/util.c~ipc-drop-ipcctl_pre_down-fix
-+++ a/ipc/util.c
-@@ -733,7 +733,7 @@ int ipc_update_perm(struct ipc64_perm *i
- }
+diff -puN ipc/shm.c~ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes ipc/shm.c
+--- a/ipc/shm.c~ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes
++++ a/ipc/shm.c
+@@ -918,7 +918,7 @@ static int shmctl_nolock(struct ipc_name
+ 		tbuf.shm_nattch	= shp->shm_nattch;
+ 		rcu_read_unlock();
  
- /**
-- * ipcctl_pre_down - retrieve an ipc and check permissions for some IPC_XXX cmd
-+ * ipcctl_pre_down_nolock - retrieve an ipc and check permissions for some IPC_XXX cmd
-  * @ns:  the ipc namespace
-  * @ids:  the table of ids where to look for the ipc
-  * @id:   the id of the ipc to retrieve
-@@ -751,8 +751,8 @@ int ipc_update_perm(struct ipc64_perm *i
-  * Call holding the both the rw_mutex and the rcu read lock.
-  */
- struct kern_ipc_perm *ipcctl_pre_down_nolock(struct ipc_namespace *ns,
--					     struct ipc_ids *ids, int id, int cmd,
--					     struct ipc64_perm *perm, int extra_perm)
-+					struct ipc_ids *ids, int id, int cmd,
-+					struct ipc64_perm *perm, int extra_perm)
- {
- 	kuid_t euid;
- 	int err = -EPERM;
-@@ -766,7 +766,8 @@ struct kern_ipc_perm *ipcctl_pre_down_no
- 
- 	audit_ipc_obj(ipcp);
- 	if (cmd == IPC_SET)
--		audit_ipc_set_perm(extra_perm, perm->uid, perm->gid, perm->mode);
-+		audit_ipc_set_perm(extra_perm, perm->uid,
-+				   perm->gid, perm->mode);
- 
- 	euid = current_euid();
- 	if (uid_eq(euid, ipcp->cuid) || uid_eq(euid, ipcp->uid)  ||
+-		if (copy_shmid_to_user (buf, &tbuf, version))
++		if (copy_shmid_to_user(buf, &tbuf, version))
+ 			err = -EFAULT;
+ 		else
+ 			err = result;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +100,6 @@ block-partitions-efic-consistently-use-pr_foo.patch
 initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs.patch
 initmpfs-use-initramfs-if-rootfstype=-or-root=-specified.patch
 ipc-drop-ipcctl_pre_down.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+ipcshm-make-shmctl_nolock-lockless.patch
 drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
 
