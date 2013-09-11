@@ -1,79 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 11 Sep 2013 14:06:47 -0700
-Message-ID: <5230db67.dBzcxeyOSe+IctCA%akpm@linux-foundation.org>
+Subject: [folded-merged] ipc-drop-ipcctl_pre_down-fix.patch removed from
+ -mm tree
+Date: Wed, 11 Sep 2013 14:07:14 -0700
+Message-ID: <5230db82.PBlroYYfWxei9y1T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49287 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757053Ab3IKVGs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:06:48 -0400
+	with ESMTP id S1757053Ab3IKVHP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:07:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rob@landley.net, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,rob@landley.net,mm-commits@vger.kernel.org
+Subject: [folded-merged] ipc-drop-ipcctl_pre_down-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 14:06:47 -0700
+Date: Wed, 11 Sep 2013 14:07:14 -0700
 
 
 The patch titled
-     Subject: initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes
+     Subject: ipc-drop-ipcctl_pre_down-fix
 has been removed from the -mm tree.  Its filename was
-     initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+     ipc-drop-ipcctl_pre_down-fix.patch
 
-This patch was dropped because it was folded into initmpfs-use-initramfs-if-rootfstype=-or-root=-specified.patch
+This patch was dropped because it was folded into ipc-drop-ipcctl_pre_down.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes
+Subject: ipc-drop-ipcctl_pre_down-fix
 
-ERROR: that open brace { should be on the previous line
-#56: FILE: init/do_mounts.c:623:
-+	if (IS_ENABLED(CONFIG_TMPFS) && !saved_root_name[0] &&
-+		(!root_fs_names || strstr(root_fs_names, "tmpfs")))
-+	{
+fix function name in kerneldoc, cleanups
 
-total: 1 errors, 0 warnings, 36 lines checked
-
-./patches/initmpfs-use-initramfs-if-rootfstype=-or-root=-specified.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Rob Landley <rob@landley.net>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Sedat Dilek <sedat.dilek@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ ipc/util.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN init/do_mounts.c~initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes init/do_mounts.c
---- a/init/do_mounts.c~initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes
-+++ a/init/do_mounts.c
-@@ -621,12 +621,12 @@ int __init init_rootfs(void)
- 		return err;
+diff -puN ipc/util.c~ipc-drop-ipcctl_pre_down-fix ipc/util.c
+--- a/ipc/util.c~ipc-drop-ipcctl_pre_down-fix
++++ a/ipc/util.c
+@@ -733,7 +733,7 @@ int ipc_update_perm(struct ipc64_perm *i
+ }
  
- 	if (IS_ENABLED(CONFIG_TMPFS) && !saved_root_name[0] &&
--		(!root_fs_names || strstr(root_fs_names, "tmpfs")))
--	{
-+		(!root_fs_names || strstr(root_fs_names, "tmpfs"))) {
- 		err = shmem_init();
- 		is_tmpfs = true;
--	} else
-+	} else {
- 		err = init_ramfs_fs();
-+	}
+ /**
+- * ipcctl_pre_down - retrieve an ipc and check permissions for some IPC_XXX cmd
++ * ipcctl_pre_down_nolock - retrieve an ipc and check permissions for some IPC_XXX cmd
+  * @ns:  the ipc namespace
+  * @ids:  the table of ids where to look for the ipc
+  * @id:   the id of the ipc to retrieve
+@@ -751,8 +751,8 @@ int ipc_update_perm(struct ipc64_perm *i
+  * Call holding the both the rw_mutex and the rcu read lock.
+  */
+ struct kern_ipc_perm *ipcctl_pre_down_nolock(struct ipc_namespace *ns,
+-					     struct ipc_ids *ids, int id, int cmd,
+-					     struct ipc64_perm *perm, int extra_perm)
++					struct ipc_ids *ids, int id, int cmd,
++					struct ipc64_perm *perm, int extra_perm)
+ {
+ 	kuid_t euid;
+ 	int err = -EPERM;
+@@ -766,7 +766,8 @@ struct kern_ipc_perm *ipcctl_pre_down_no
  
- 	if (err)
- 		unregister_filesystem(&rootfs_fs_type);
+ 	audit_ipc_obj(ipcp);
+ 	if (cmd == IPC_SET)
+-		audit_ipc_set_perm(extra_perm, perm->uid, perm->gid, perm->mode);
++		audit_ipc_set_perm(extra_perm, perm->uid,
++				   perm->gid, perm->mode);
+ 
+ 	euid = current_euid();
+ 	if (uid_eq(euid, ipcp->cuid) || uid_eq(euid, ipcp->uid)  ||
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,7 +111,7 @@ partitions-efi-some-style-cleanups.patch
 block-partitions-efic-consistently-use-pr_foo.patch
 initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs.patch
 initmpfs-use-initramfs-if-rootfstype=-or-root=-specified.patch
-ipc-drop-ipcctl_pre_down-fix.patch
+ipc-drop-ipcctl_pre_down.patch
 ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
 drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
 
