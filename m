@@ -1,113 +1,139 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+ drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch
  removed from -mm tree
-Date: Wed, 11 Sep 2013 14:02:49 -0700
-Message-ID: <5230da79.XcvBy056HpmTKp4h%akpm@linux-foundation.org>
+Date: Wed, 11 Sep 2013 14:03:27 -0700
+Message-ID: <5230da9f.VMk6dzgqApM4lN0P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49157 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49159 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753987Ab3IKVCu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:02:50 -0400
+	with ESMTP id S1755914Ab3IKVD1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, guz.fnst@cn.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, galak@codeaurora.org, balbi@ti.com, ldewangan@nvidia.com
 
-Subject: [folded-merged] lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,guz.fnst@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch removed from -mm tree
+To: ldewangan@nvidia.com,balbi@ti.com,galak@codeaurora.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 14:02:49 -0700
+Date: Wed, 11 Sep 2013 14:03:27 -0700
 
 
 The patch titled
-     Subject: lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes
+     Subject: drivers/rtc/rtc-palmas.c: rename charging dt property name
 has been removed from the -mm tree.  Its filename was
-     lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+     drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch
 
-This patch was dropped because it was folded into lib-crc32-update-the-comments-of-crc32_bele_generic.patch
+This patch was dropped because it was folded into drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Subject: drivers/rtc/rtc-palmas.c: rename charging dt property name
 
-WARNING: please, no space before tabs
-#20: FILE: lib/crc32.c:135:
-+ * ^I^I^ICRC32/CRC32C$
+Rename the charging property names to be more meaningful:
 
-WARNING: line over 80 characters
-#24: FILE: lib/crc32.c:137:
-+ *	other uses, or the previous crc32/crc32c value if computing incrementally.
+Rename property "ti,back-battery-charge-enable" to
+"ti,backup-battery-chargeable" to tells OS that attahced battery is
+chargeable and OS can do charging.
 
-total: 0 errors, 2 warnings, 32 lines checked
+Rename property "ti,back-battery-charge-low-current" to
+"ti,backup-battery-charge-high-current" for safe configuration as maximum
+charging current of battery depends on battery type and overcurrent
+charging can damage the battery.  So enable the high current charging only
+if this property is available.
 
-./patches/lib-crc32-update-the-comments-of-crc32_bele_generic.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Acked-by: Kumar Gala <galak@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/crc32.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/devicetree/bindings/rtc/rtc-palmas.txt |   22 +++++-----
+ drivers/rtc/rtc-palmas.c                             |   14 +++---
+ 2 files changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN lib/crc32.c~lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes lib/crc32.c
---- a/lib/crc32.c~lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes
-+++ a/lib/crc32.c
-@@ -132,9 +132,9 @@ crc32_body(u32 crc, unsigned char const
+diff -puN Documentation/devicetree/bindings/rtc/rtc-palmas.txt~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix Documentation/devicetree/bindings/rtc/rtc-palmas.txt
+--- a/Documentation/devicetree/bindings/rtc/rtc-palmas.txt~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix
++++ a/Documentation/devicetree/bindings/rtc/rtc-palmas.txt
+@@ -7,13 +7,17 @@ Required properties:
+ - interrupts: Interrupt number of RTC submodule on device.
  
- /**
-  * crc32_le_generic() - Calculate bitwise little-endian Ethernet AUTODIN II
-- * 			CRC32/CRC32C
-- * @crc: seed value for computation.  ~0 for Ethernet, sometimes 0 for
-- *	other uses, or the previous crc32/crc32c value if computing incrementally.
-+ *			CRC32/CRC32C
-+ * @crc: seed value for computation.  ~0 for Ethernet, sometimes 0 for other
-+ *	 uses, or the previous crc32/crc32c value if computing incrementally.
-  * @p: pointer to buffer over which CRC32/CRC32C is run
-  * @len: length of buffer @p
-  * @tab: little-endian Ethernet table
+ Optional properties:
+-- ti,back-battery-charge-enable: The palmas series device like TPS65913 or
+-	TPS80036 supports the battery backup for powering the RTC when main
+-	battery is removed or in very low power state. This flag will enable
+-	the backup battery charging.
+-- ti,back-battery-charge-low-current: Configure lower charging current. Device
+-	supports the charging current as < 100mA or >100mA. Low current will
+-	set as <100mA.
++
++- ti,backup-battery-chargeable: The Palmas series device like TPS65913 or
++	TPS80036 supports the backup battery for powering the RTC when main
++	battery is removed or in very low power state. The backup battery
++	can be chargeable or non-chargeable. This flag will tells whether
++	battery is chargeable or not. If charging battery then driver can
++	enable the charging.
++- ti,backup-battery-charge-high-current: Enable high current charging in
++	backup battery. Device supports the < 100mA and > 100mA charging.
++	The high current will be > 100mA. Absence of this property will
++	charge battery to lower current i.e. < 100mA.
+ 
+ Example:
+ 	palmas: tps65913@58 {
+@@ -22,8 +26,8 @@ Example:
+ 			compatible = "ti,palmas-rtc";
+ 			interrupt-parent = <&palmas>;
+ 			interrupts = <8 0>;
+-			ti,back-battery-charge-enable;
+-			ti,back-battery-charge-low-current;
++			ti,backup-battery-chargeable;
++			ti,backup-battery-charge-high-current;
+ 		};
+ 		...
+ 	};
+diff -puN drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix drivers/rtc/rtc-palmas.c
+--- a/drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix
++++ a/drivers/rtc/rtc-palmas.c
+@@ -239,13 +239,13 @@ static int palmas_rtc_probe(struct platf
+ 	struct palmas_rtc *palmas_rtc = NULL;
+ 	int ret;
+ 	bool enable_bb_charging = false;
+-	bool low_bb_charging;
++	bool high_bb_charging;
+ 
+ 	if (pdev->dev.of_node) {
+ 		enable_bb_charging = of_property_read_bool(pdev->dev.of_node,
+-					"ti,back-battery-charge-enable");
+-		low_bb_charging = of_property_read_bool(pdev->dev.of_node,
+-					"ti,back-battery-charge-low-current");
++					"ti,backup-battery-chargeable");
++		high_bb_charging = of_property_read_bool(pdev->dev.of_node,
++					"ti,backup-battery-charge-high-current");
+ 	}
+ 
+ 	palmas_rtc = devm_kzalloc(&pdev->dev, sizeof(struct palmas_rtc),
+@@ -264,10 +264,10 @@ static int palmas_rtc_probe(struct platf
+ 	platform_set_drvdata(pdev, palmas_rtc);
+ 
+ 	if (enable_bb_charging) {
+-		unsigned reg = 0;
++		unsigned reg = PALMAS_BACKUP_BATTERY_CTRL_BBS_BBC_LOW_ICHRG;
+ 
+-		if (low_bb_charging)
+-			reg |= PALMAS_BACKUP_BATTERY_CTRL_BBS_BBC_LOW_ICHRG;
++		if (high_bb_charging)
++			reg = 0;
+ 
+ 		ret = palmas_update_bits(palmas, PALMAS_PMU_CONTROL_BASE,
+ 			PALMAS_BACKUP_BATTERY_CTRL,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ldewangan@nvidia.com are
 
 origin.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-block-support-embedded-device-command-line-partition.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size.patch
-mm-swapfilec-convert-to-pr_foo.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too.patch
-swap-make-swap-discard-async.patch
-swap-make-cluster-allocation-per-cpu.patch
-mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
-mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
-vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch
-genalloc-fix-overflow-of-ending-address-of-memory-chunk.patch
-mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages.patch
-mm-hotplug-verify-hotplug-memory-range.patch
-mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
-mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
-mm-vmscan-fix-do_try_to_free_pages-livelock.patch
-mm-page-writebackc-add-strictlimit-feature.patch
-mm-madvisec-madvise_hwpoison-remove-local-ret.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-partitions-efi-use-lba-aware-partition-records-checkpatch-fixes.patch
-partitions-efi-check-pmbr-records-starting-lba-checkpatch-fixes.patch
-partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch
-partitions-efi-some-style-cleanups-checkpatch-fixes.patch
-block-partitions-efic-consistently-use-pr_foo.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
-drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
+drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch
 
