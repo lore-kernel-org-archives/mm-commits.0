@@ -1,64 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+Subject: [folded-merged] mm-hotplug-verify-hotplug-memory-range-fix.patch
  removed from -mm tree
-Date: Wed, 11 Sep 2013 13:57:19 -0700
-Message-ID: <5230d92f.dzGg2IsyOIHrDVYx%akpm@linux-foundation.org>
+Date: Wed, 11 Sep 2013 13:57:44 -0700
+Message-ID: <5230d948.D0//YyNbeM46oXwg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49047 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49051 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752939Ab3IKU5U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 16:57:20 -0400
+	with ESMTP id S1752939Ab3IKU5p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 16:57:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, qiuxishi@huawei.com, cody@linux.vnet.ibm.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, toshi.kani@hp.com, tangchen@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,cody@linux.vnet.ibm.com,qiuxishi@huawei.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-hotplug-verify-hotplug-memory-range-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,tangchen@cn.fujitsu.com,toshi.kani@hp.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 13:57:19 -0700
+Date: Wed, 11 Sep 2013 13:57:44 -0700
 
 
 The patch titled
-     Subject: mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
+     Subject: mm-hotplug-verify-hotplug-memory-range-fix
 has been removed from the -mm tree.  Its filename was
-     mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+     mm-hotplug-verify-hotplug-memory-range-fix.patch
 
-This patch was dropped because it was folded into mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages.patch
+This patch was dropped because it was folded into mm-hotplug-verify-hotplug-memory-range.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
+Subject: mm-hotplug-verify-hotplug-memory-range-fix
 
-fix build
+avoid printk warnings
 
-Cc: Cody P Schafer <cody@linux.vnet.ibm.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
+diff -puN mm/memory_hotplug.c~mm-hotplug-verify-hotplug-memory-range-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-hotplug-verify-hotplug-memory-range-fix
 +++ a/mm/memory_hotplug.c
-@@ -514,8 +514,9 @@ static int find_biggest_section_pfn(int
- static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
- 			     unsigned long end_pfn)
- {
--	unsigned long zone_start_pfn =  zone->zone_start_pfn;
--	unsigned long zone_end_pfn = zone_end_pfn(zone);
-+	unsigned long zone_start_pfn = zone->zone_start_pfn;
-+	unsigned long z = zone_end_pfn(zone); /* zone_end_pfn namespace clash */
-+	unsigned long zone_end_pfn = z;
- 	unsigned long pfn;
- 	struct mem_section *ms;
- 	int nid = zone_to_nid(zone);
+@@ -1079,7 +1079,8 @@ static int check_hotplug_memory_range(u6
+ 	if ((start_pfn & ~PAGE_SECTION_MASK) ||
+ 	    (nr_pages % PAGES_PER_SECTION) || (!nr_pages)) {
+ 		pr_err("Section-unaligned hotplug range: start 0x%llx, size 0x%llx\n",
+-				start, size);
++				(unsigned long long)start,
++				(unsigned long long)size);
+ 		return -EINVAL;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,7 +76,7 @@ mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
 vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch
 genalloc-fix-overflow-of-ending-address-of-memory-chunk.patch
 mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages.patch
-mm-hotplug-verify-hotplug-memory-range-fix.patch
+mm-hotplug-verify-hotplug-memory-range.patch
 mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
 mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
 mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
