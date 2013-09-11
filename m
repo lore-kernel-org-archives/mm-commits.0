@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + vmpressure-fix-divide-by-0-in-vmpressure_work_fn.patch added to -mm tree
-Date: Wed, 11 Sep 2013 11:24:28 -0700
-Message-ID: <5230b55c.BlMs8BbsDqDpU4ww%akpm__39984.5666521744$1378923879$gmane$org@linux-foundation.org>
+Subject: +
+ migrate-add-hugepage-migration-code-to-migrate_pages-add-check-to-avoid-queuing-hugepage-under-migration.patch added to -mm tree
+Date: Wed, 11 Sep 2013 11:30:11 -0700
+Message-ID: <5230b6b3.p34VU8InyhlgL3r3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47441 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47457 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753177Ab3IKSYa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 14:24:30 -0400
+	with ESMTP id S1754840Ab3IKSaM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 14:30:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, hughd@google.com, anton@enomsg.org, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, hughd@google.com, dhillf@gmail.com, aneesh.kumar@linux.vnet.ibm.com, ak@linux.intel.com, n-horiguchi@ah.jp.nec.com
 
-Subject: + vmpressure-fix-divide-by-0-in-vmpressure_work_fn.patch added to -mm tree
-To: mhocko@suse.cz,anton@enomsg.org,hughd@google.com,rientjes@google.com,stable@vger.kernel.org
+Subject: + migrate-add-hugepage-migration-code-to-migrate_pages-add-check-to-avoid-queuing-hugepage-under-migration.patch added to -mm tree
+To: n-horiguchi@ah.jp.nec.com,ak@linux.intel.com,aneesh.kumar@linux.vnet.ibm.com,dhillf@gmail.com,hughd@google.com,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 11:24:28 -0700
+Date: Wed, 11 Sep 2013 11:30:11 -0700
 
 
 The patch titled
-     Subject: vmpressure: fix divide-by-0 in vmpressure_work_fn
+     Subject: mm/mempolicy.c: add check to avoid queuing hugepage under migration
 has been added to the -mm tree.  Its filename is
-     vmpressure-fix-divide-by-0-in-vmpressure_work_fn.patch
+     migrate-add-hugepage-migration-code-to-migrate_pages-add-check-to-avoid-queuing-hugepage-under-migration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmpressure-fix-divide-by-0-in-vmpressure_work_fn.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/migrate-add-hugepage-migration-code-to-migrate_pages-add-check-to-avoid-queuing-hugepage-under-migration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmpressure-fix-divide-by-0-in-vmpressure_work_fn.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/migrate-add-hugepage-migration-code-to-migrate_pages-add-check-to-avoid-queuing-hugepage-under-migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,77 +44,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: vmpressure: fix divide-by-0 in vmpressure_work_fn
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/mempolicy.c: add check to avoid queuing hugepage under migration
 
-Hugh Dickins has reported a division by 0 when a vmpressure event is
-processed.  The reason for the exception is that a single vmpressure work
-item (which is per memcg) might be processed by multiple CPUs because it
-is enqueued on system_wq which is !WQ_NON_REENTRANT.  This means that the
-out of lock vmpr->scanned check in vmpressure_work_fn is inherently racy
-and the racing workers will see already zeroed scanned value after they
-manage to take the spin lock.
+queue_pages_pmd_range() checks pmd_huge() to find hugepage, but this check
+assumes the pmd is in the normal format and does not work on migration
+entry whoes format is like swap entry.  We can distinguish them with
+present bit, so we need to check it before cheking pmd_huge().  Otherwise,
+pmd_huge() can wrongly return false for hugepage, and the behavior is
+unpredictable.
 
-The patch simply moves the vmp->scanned check inside the sr_lock to fix
-the race.
+This patch is against mmotm-2013-08-27.
 
-The issue was there since the very beginning but "vmpressure: change
-vmpressure::sr_lock to spinlock" might have made it more visible as the
-racing workers would sleep on the mutex and give it more time to see
-updated value.  The issue was still there, though.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Hugh Dickins <hughd@google.com>
-Acked-by: Anton Vorontsov <anton@enomsg.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmpressure.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ mm/mempolicy.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/vmpressure.c~vmpressure-fix-divide-by-0-in-vmpressure_work_fn mm/vmpressure.c
---- a/mm/vmpressure.c~vmpressure-fix-divide-by-0-in-vmpressure_work_fn
-+++ a/mm/vmpressure.c
-@@ -164,18 +164,19 @@ static void vmpressure_work_fn(struct wo
- 	unsigned long scanned;
- 	unsigned long reclaimed;
- 
-+	spin_lock(&vmpr->sr_lock);
-+
- 	/*
--	 * Several contexts might be calling vmpressure(), so it is
--	 * possible that the work was rescheduled again before the old
--	 * work context cleared the counters. In that case we will run
--	 * just after the old work returns, but then scanned might be zero
--	 * here. No need for any locks here since we don't care if
--	 * vmpr->reclaimed is in sync.
-+	 * Several contexts might be calling vmpressure() and the work
-+	 * item is sitting on !WQ_NON_REENTRANT workqueue so different
-+	 * CPUs might execute it concurrently. Bail out if the scanned
-+	 * counter is already 0 because all the work has been done already.
- 	 */
--	if (!vmpr->scanned)
-+	if (!vmpr->scanned) {
-+		spin_unlock(&vmpr->sr_lock);
- 		return;
-+	}
- 
--	spin_lock(&vmpr->sr_lock);
- 	scanned = vmpr->scanned;
- 	reclaimed = vmpr->reclaimed;
- 	vmpr->scanned = 0;
+diff -puN mm/mempolicy.c~migrate-add-hugepage-migration-code-to-migrate_pages-add-check-to-avoid-queuing-hugepage-under-migration mm/mempolicy.c
+--- a/mm/mempolicy.c~migrate-add-hugepage-migration-code-to-migrate_pages-add-check-to-avoid-queuing-hugepage-under-migration
++++ a/mm/mempolicy.c
+@@ -550,6 +550,8 @@ static inline int check_pmd_range(struct
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+ 		next = pmd_addr_end(addr, end);
++		if (!pmd_present(*pmd))
++			continue;
+ 		if (pmd_huge(*pmd) && is_vm_hugetlb_page(vma)) {
+ 			check_hugetlb_pmd_range(vma, pmd, nodes,
+ 						flags, private);
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-origin.patch
-include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
-watchdog-update-watchdog-attributes-atomically.patch
-watchdog-update-watchdog_tresh-properly.patch
-watchdog-update-watchdog_tresh-properly-fix.patch
-mm-fix-potential-null-pointer-dereference.patch
 mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
 mm-hugetlb-trivial-commenting-fix.patch
 mm-hugetlb-clean-up-alloc_huge_page.patch
@@ -123,56 +97,39 @@ mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
 mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
 mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
 mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
+mm-hugetlb-change-variable-name-reservations-to-resv.patch
+mm-hugetlb-fix-subpool-accounting-handling.patch
+mm-hugetlb-remove-useless-check-about-mapping-type.patch
+mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
+mm-hugetlb-return-a-reserved-page-to-a-reserved-pool-if-failed.patch
 mm-migrate-make-core-migration-code-aware-of-hugepage.patch
 mm-soft-offline-use-migrate_pages-instead-of-migrate_huge_page.patch
 migrate-add-hugepage-migration-code-to-migrate_pages.patch
+migrate-add-hugepage-migration-code-to-migrate_pages-add-check-to-avoid-queuing-hugepage-under-migration.patch
 mm-migrate-add-hugepage-migration-code-to-move_pages.patch
 mm-mbind-add-hugepage-migration-code-to-mbind.patch
 mm-migrate-remove-vm_hugetlb-from-vma-flag-check-in-vma_migratable.patch
 mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage.patch
+mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix.patch
+mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage-fix-2.patch
 mm-migrate-check-movability-of-hugepage-in-unmap_and_move_huge_page.patch
 mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
 mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2.patch
+mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
 mm-mempolicy-rename-check_range-to-queue_pages_range.patch
-kmemcg-dont-allocate-extra-memory-for-root-memcg_cache_params-v2.patch
-mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
-mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
-mm-munlock-batch-non-thp-page-isolation-and-munlockputback-using-pagevec.patch
-mm-munlock-batch-nr_mlock-zone-state-updates.patch
-mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
-mm-munlock-remove-redundant-get_page-put_page-pair-on-the-fast-path.patch
-mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask.patch
-mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask-v3.patch
-mm-vmscan-fix-do_try_to_free_pages-livelock.patch
-mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch
-mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
-memcg-fix-multiple-large-threshold-notifications.patch
-vmpressure-fix-divide-by-0-in-vmpressure_work_fn.patch
-memcg-remove-redundant-code-in-mem_cgroup_force_empty_write.patch
-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-memcg-enhance-memcg-iterator-to-support-predicates.patch
-memcg-enhance-memcg-iterator-to-support-predicates-fix.patch
-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-memcg-track-all-children-over-limit-in-the-root.patch
-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-memcg-trivial-cleanups.patch
-arch-mm-remove-obsolete-init-oom-protection.patch
-arch-mm-do-not-invoke-oom-killer-on-kernel-fault-oom.patch
-arch-mm-pass-userspace-fault-flag-to-generic-fault-handler.patch
-x86-finish-user-fault-error-path-with-fatal-signal.patch
-mm-memcg-enable-memcg-oom-killer-only-for-user-faults.patch
-mm-memcg-rework-and-document-oom-waiting-and-wakeup.patch
-mm-memcg-do-not-trap-chargers-with-full-callstack-on-oom.patch
-memcg-correct-resource_max-to-ullong_max.patch
-memcg-rename-resource_max-to-res_counter_max.patch
-memcg-avoid-overflow-caused-by-page_align.patch
-memcg-reduce-function-dereference.patch
-memcg-remove-memcg_nr_file_mapped.patch
-memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat.patch
-memcg-add-per-cgroup-writeback-pages-accounting.patch
-memcg-document-cgroup-dirty-writeback-memory-statistics.patch
-mm-kconfig-add-mmu-dependency-for-migration.patch
+mbind-add-bug_onvma-in-new_vma_page.patch
+hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page.patch
+mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
+mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch
+mm-hwpoison-fix-race-against-poison-thp.patch
+mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
+mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch
+mm-hwpoison-drop-forward-reference-declarations-__soft_offline_page.patch
+mm-hwpoison-add-to-madvise_hwpoison.patch
+mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page.patch
+mm-hwpoison-injectc-change-permission-of-corrupt-pfn-unpoison-pfn-to-0200.patch
+mm-memory-failurec-fix-bug-triggered-by-unpoisoning-empty-zero-page.patch
+mm-hwpoison-fix-return-value-of-madvise_hwpoison.patch
+mm-madvisec-madvise_hwpoison-remove-local-ret.patch
 
