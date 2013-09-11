@@ -1,139 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch
- removed from -mm tree
-Date: Wed, 11 Sep 2013 14:03:27 -0700
-Message-ID: <5230da9f.VMk6dzgqApM4lN0P%akpm@linux-foundation.org>
+Subject: [folded-merged] vmcore-introduce-remap_oldmem_pfn_range-fix.patch removed from -mm tree
+Date: Wed, 11 Sep 2013 14:04:09 -0700
+Message-ID: <5230dac9.uDrBK4mU6BORxcNz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49159 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49237 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755914Ab3IKVD1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:03:27 -0400
+	with ESMTP id S1756941Ab3IKVEK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:04:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, galak@codeaurora.org, balbi@ti.com, ldewangan@nvidia.com
+To: mm-commits@vger.kernel.org, willeke@de.ibm.com, vgoyal@redhat.com, fengguang.wu@intel.com, d.hatayama@jp.fujitsu.com, holzheu@linux.vnet.ibm.com
 
-Subject: [folded-merged] drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch removed from -mm tree
-To: ldewangan@nvidia.com,balbi@ti.com,galak@codeaurora.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] vmcore-introduce-remap_oldmem_pfn_range-fix.patch removed from -mm tree
+To: holzheu@linux.vnet.ibm.com,d.hatayama@jp.fujitsu.com,fengguang.wu@intel.com,vgoyal@redhat.com,willeke@de.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 14:03:27 -0700
+Date: Wed, 11 Sep 2013 14:04:09 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-palmas.c: rename charging dt property name
+     Subject: vmcore: fix address space sparse warnings
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix.patch
+     vmcore-introduce-remap_oldmem_pfn_range-fix.patch
 
-This patch was dropped because it was folded into drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch
+This patch was dropped because it was folded into vmcore-introduce-remap_oldmem_pfn_range.patch
 
 ------------------------------------------------------
-From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: drivers/rtc/rtc-palmas.c: rename charging dt property name
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: vmcore: fix address space sparse warnings
 
-Rename the charging property names to be more meaningful:
+Fix the following sparse warnings:
 
-Rename property "ti,back-battery-charge-enable" to
-"ti,backup-battery-chargeable" to tells OS that attahced battery is
-chargeable and OS can do charging.
+ fs/proc/vmcore.c:173:34: sparse: incorrect type in argument 1
+                                  (different address spaces)
+ fs/proc/vmcore.c:173:34:    expected void [noderef] <asn:1>*dst
+ fs/proc/vmcore.c:173:34:    got void *target
+ fs/proc/vmcore.c:256:30: sparse: incorrect type in argument 1
+                                  (different address spaces)
+ fs/proc/vmcore.c:256:30:    expected char *[assigned] buffer
+ fs/proc/vmcore.c:256:30:    got char [noderef] <asn:1>*buffer
 
-Rename property "ti,back-battery-charge-low-current" to
-"ti,backup-battery-charge-high-current" for safe configuration as maximum
-charging current of battery depends on battery type and overcurrent
-charging can damage the battery.  So enable the high current charging only
-if this property is available.
-
-Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Acked-by: Kumar Gala <galak@codeaurora.org>
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: Jan Willeke <willeke@de.ibm.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/rtc/rtc-palmas.txt |   22 +++++-----
- drivers/rtc/rtc-palmas.c                             |   14 +++---
- 2 files changed, 20 insertions(+), 16 deletions(-)
+ fs/proc/vmcore.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/devicetree/bindings/rtc/rtc-palmas.txt~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix Documentation/devicetree/bindings/rtc/rtc-palmas.txt
---- a/Documentation/devicetree/bindings/rtc/rtc-palmas.txt~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix
-+++ a/Documentation/devicetree/bindings/rtc/rtc-palmas.txt
-@@ -7,13 +7,17 @@ Required properties:
- - interrupts: Interrupt number of RTC submodule on device.
+diff -puN fs/proc/vmcore.c~vmcore-introduce-remap_oldmem_pfn_range-fix fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-introduce-remap_oldmem_pfn_range-fix
++++ a/fs/proc/vmcore.c
+@@ -170,7 +170,7 @@ int __weak remap_oldmem_pfn_range(struct
+ static int copy_to(void *target, void *src, size_t size, int userbuf)
+ {
+ 	if (userbuf) {
+-		if (copy_to_user(target, src, size))
++		if (copy_to_user((char __user *) target, src, size))
+ 			return -EFAULT;
+ 	} else {
+ 		memcpy(target, src, size);
+@@ -253,7 +253,7 @@ static ssize_t __read_vmcore(char *buffe
+ static ssize_t read_vmcore(struct file *file, char __user *buffer,
+ 			   size_t buflen, loff_t *fpos)
+ {
+-	return __read_vmcore(buffer, buflen, fpos, 1);
++	return __read_vmcore((__force char *) buffer, buflen, fpos, 1);
+ }
  
- Optional properties:
--- ti,back-battery-charge-enable: The palmas series device like TPS65913 or
--	TPS80036 supports the battery backup for powering the RTC when main
--	battery is removed or in very low power state. This flag will enable
--	the backup battery charging.
--- ti,back-battery-charge-low-current: Configure lower charging current. Device
--	supports the charging current as < 100mA or >100mA. Low current will
--	set as <100mA.
-+
-+- ti,backup-battery-chargeable: The Palmas series device like TPS65913 or
-+	TPS80036 supports the backup battery for powering the RTC when main
-+	battery is removed or in very low power state. The backup battery
-+	can be chargeable or non-chargeable. This flag will tells whether
-+	battery is chargeable or not. If charging battery then driver can
-+	enable the charging.
-+- ti,backup-battery-charge-high-current: Enable high current charging in
-+	backup battery. Device supports the < 100mA and > 100mA charging.
-+	The high current will be > 100mA. Absence of this property will
-+	charge battery to lower current i.e. < 100mA.
- 
- Example:
- 	palmas: tps65913@58 {
-@@ -22,8 +26,8 @@ Example:
- 			compatible = "ti,palmas-rtc";
- 			interrupt-parent = <&palmas>;
- 			interrupts = <8 0>;
--			ti,back-battery-charge-enable;
--			ti,back-battery-charge-low-current;
-+			ti,backup-battery-chargeable;
-+			ti,backup-battery-charge-high-current;
- 		};
- 		...
- 	};
-diff -puN drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix drivers/rtc/rtc-palmas.c
---- a/drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-support-for-backup-battery-charging-fix
-+++ a/drivers/rtc/rtc-palmas.c
-@@ -239,13 +239,13 @@ static int palmas_rtc_probe(struct platf
- 	struct palmas_rtc *palmas_rtc = NULL;
- 	int ret;
- 	bool enable_bb_charging = false;
--	bool low_bb_charging;
-+	bool high_bb_charging;
- 
- 	if (pdev->dev.of_node) {
- 		enable_bb_charging = of_property_read_bool(pdev->dev.of_node,
--					"ti,back-battery-charge-enable");
--		low_bb_charging = of_property_read_bool(pdev->dev.of_node,
--					"ti,back-battery-charge-low-current");
-+					"ti,backup-battery-chargeable");
-+		high_bb_charging = of_property_read_bool(pdev->dev.of_node,
-+					"ti,backup-battery-charge-high-current");
- 	}
- 
- 	palmas_rtc = devm_kzalloc(&pdev->dev, sizeof(struct palmas_rtc),
-@@ -264,10 +264,10 @@ static int palmas_rtc_probe(struct platf
- 	platform_set_drvdata(pdev, palmas_rtc);
- 
- 	if (enable_bb_charging) {
--		unsigned reg = 0;
-+		unsigned reg = PALMAS_BACKUP_BATTERY_CTRL_BBS_BBC_LOW_ICHRG;
- 
--		if (low_bb_charging)
--			reg |= PALMAS_BACKUP_BATTERY_CTRL_BBS_BBC_LOW_ICHRG;
-+		if (high_bb_charging)
-+			reg = 0;
- 
- 		ret = palmas_update_bits(palmas, PALMAS_PMU_CONTROL_BASE,
- 			PALMAS_BACKUP_BATTERY_CTRL,
+ /*
 _
 
-Patches currently in -mm which might be from ldewangan@nvidia.com are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
-origin.patch
-drivers-rtc-rtc-palmasc-support-for-backup-battery-charging.patch
+vmcore-introduce-elf-header-in-new-memory-feature.patch
+s390-vmcore-use-elf-header-in-new-memory-feature.patch
+vmcore-introduce-remap_oldmem_pfn_range.patch
+s390-vmcore-implement-remap_oldmem_pfn_range-for-s390.patch
+vmcore-enable-proc-vmcore-mmap-for-s390.patch
+s390-vmcore-use-vmcore-for-zfcpdump.patch
 
