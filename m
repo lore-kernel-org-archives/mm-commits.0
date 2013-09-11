@@ -1,62 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch removed
- from -mm tree
-Date: Wed, 11 Sep 2013 13:57:02 -0700
-Message-ID: <5230d91e.2HO4KWGtrLCFqnsU%akpm@linux-foundation.org>
+ mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+ removed from -mm tree
+Date: Wed, 11 Sep 2013 13:57:19 -0700
+Message-ID: <5230d92f.dzGg2IsyOIHrDVYx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49047 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755375Ab3IKU5D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 16:57:03 -0400
+	with ESMTP id S1752939Ab3IKU5U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 16:57:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jy0922.shim@samsung.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, qiuxishi@huawei.com, cody@linux.vnet.ibm.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,jy0922.shim@samsung.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,cody@linux.vnet.ibm.com,qiuxishi@huawei.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 13:57:02 -0700
+Date: Wed, 11 Sep 2013 13:57:19 -0700
 
 
 The patch titled
-     Subject: genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix
+     Subject: mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
 has been removed from the -mm tree.  Its filename was
-     genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix.patch
+     mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
 
-This patch was dropped because it was folded into genalloc-fix-overflow-of-ending-address-of-memory-chunk.patch
+This patch was dropped because it was folded into mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix
+Subject: mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
 
-add comment to struct gen_pool_chunk:end_addr
+fix build
 
-Cc: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: Cody P Schafer <cody@linux.vnet.ibm.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genalloc.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/genalloc.h~genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix include/linux/genalloc.h
---- a/include/linux/genalloc.h~genalloc-fix-overflow-of-ending-address-of-memory-chunk-fix
-+++ a/include/linux/genalloc.h
-@@ -66,8 +66,8 @@ struct gen_pool_chunk {
- 	struct list_head next_chunk;	/* next chunk in pool */
- 	atomic_t avail;
- 	phys_addr_t phys_addr;		/* physical starting address of memory chunk */
--	unsigned long start_addr;	/* starting address of memory chunk */
--	unsigned long end_addr;		/* ending address of memory chunk */
-+	unsigned long start_addr;	/* start address of memory chunk */
-+	unsigned long end_addr;		/* end address of memory chunk (inclusive) */
- 	unsigned long bits[0];		/* bitmap for allocating memory chunk */
- };
- 
+diff -puN mm/memory_hotplug.c~mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix
++++ a/mm/memory_hotplug.c
+@@ -514,8 +514,9 @@ static int find_biggest_section_pfn(int
+ static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+ 			     unsigned long end_pfn)
+ {
+-	unsigned long zone_start_pfn =  zone->zone_start_pfn;
+-	unsigned long zone_end_pfn = zone_end_pfn(zone);
++	unsigned long zone_start_pfn = zone->zone_start_pfn;
++	unsigned long z = zone_end_pfn(zone); /* zone_end_pfn namespace clash */
++	unsigned long zone_end_pfn = z;
+ 	unsigned long pfn;
+ 	struct mem_section *ms;
+ 	int nid = zone_to_nid(zone);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +76,7 @@ mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
 mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
 vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch
 genalloc-fix-overflow-of-ending-address-of-memory-chunk.patch
-mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages-fix.patch
+mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages.patch
 mm-hotplug-verify-hotplug-memory-range-fix.patch
 mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
 mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
