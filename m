@@ -1,102 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
+ mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
  removed from -mm tree
-Date: Wed, 11 Sep 2013 13:59:07 -0700
-Message-ID: <5230d99b.+c9sWihsEVyxAf9S%akpm@linux-foundation.org>
+Date: Wed, 11 Sep 2013 13:59:25 -0700
+Message-ID: <5230d9ad.OchhKNoDD8f3ixdI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49086 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754308Ab3IKU7I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 16:59:08 -0400
+	with ESMTP id S1754308Ab3IKU70 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 16:59:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, khalid.aziz@oracle.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch removed from -mm tree
-To: n-horiguchi@ah.jp.nec.com,fengguang.wu@intel.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,khalid.aziz@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 13:59:07 -0700
+Date: Wed, 11 Sep 2013 13:59:25 -0700
 
 
 The patch titled
-     Subject: [PATCH] fix return type of htlb_alloc_mask
+     Subject: mm-fix-aio-performance-regression-for-database-caused-by-thp-fix
 has been removed from the -mm tree.  Its filename was
-     mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix.patch
+     mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
 
-This patch was dropped because it was folded into mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
+This patch was dropped because it was folded into mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: [PATCH] fix return type of htlb_alloc_mask
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-fix-aio-performance-regression-for-database-caused-by-thp-fix
 
-This is to fix the incorrect return type of htlb_alloc_mask().
+tweak comments
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable-v2-fix
-+++ a/mm/hugetlb.c
-@@ -539,7 +539,7 @@ static struct page *dequeue_huge_page_no
- }
- 
- /* Movability of hugepages depends on migration support. */
--static inline int htlb_alloc_mask(struct hstate *h)
-+static inline gfp_t htlb_alloc_mask(struct hstate *h)
+diff -puN mm/swap.c~mm-fix-aio-performance-regression-for-database-caused-by-thp-fix mm/swap.c
+--- a/mm/swap.c~mm-fix-aio-performance-regression-for-database-caused-by-thp-fix
++++ a/mm/swap.c
+@@ -83,9 +83,9 @@ static void __put_compound_page(struct p
+ static void put_compound_page(struct page *page)
  {
- 	if (hugepages_treat_as_movable || hugepage_migration_support(h))
- 		return GFP_HIGHUSER_MOVABLE;
+ 	/*
+-	 * hugetlbfs pages can not be split from under us. If this
+-	 * is a hugetlbfs page, check refcount on head page and release
+-	 * the page if refcount is zero.
++	 * hugetlbfs pages cannot be split from under us.  If this is a
++	 * hugetlbfs page, check refcount on head page and release the page if
++	 * the refcount becomes zero.
+ 	 */
+ 	if (PageHuge(page)) {
+ 		page = compound_head(page);
+@@ -202,8 +202,8 @@ bool __get_page_tail(struct page *page)
+ 	struct page *page_head;
+ 
+ 	/*
+-	 * If this is a hugetlbfs page, it can not be split under
+-	 * us. Simply increment refcount for head page
++	 * If this is a hugetlbfs page it cannot be split under us.  Simply
++	 * increment refcount for the head page.
+ 	 */
+ 	if (PageHuge(page)) {
+ 		page_head = compound_head(page);
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-move-up-the-code-which-check-availability-of-free-huge-page.patch
-mm-hugetlb-trivial-commenting-fix.patch
-mm-hugetlb-clean-up-alloc_huge_page.patch
-mm-hugetlb-fix-and-clean-up-node-iteration-code-to-alloc-or-free.patch
-mm-hugetlb-remove-redundant-list_empty-check-in-gather_surplus_pages.patch
-mm-hugetlb-do-not-use-a-page-in-page-cache-for-cow-optimization.patch
-mm-hugetlb-add-vm_noreserve-check-in-vma_has_reserves.patch
-mm-hugetlb-remove-decrement_hugepage_resv_vma.patch
+origin.patch
+revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
+block-support-embedded-device-command-line-partition.patch
+swap-warn-when-a-swap-area-overflows-the-maximum-size.patch
+mm-swapfilec-convert-to-pr_foo.patch
+mm-vmstats-track-tlb-flush-stats-on-up-too.patch
+swap-make-swap-discard-async.patch
+swap-make-cluster-allocation-per-cpu.patch
+mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug.patch
 mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
-mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
-mm-hugetlb-change-variable-name-reservations-to-resv.patch
-mm-hugetlb-fix-subpool-accounting-handling.patch
-mm-hugetlb-remove-useless-check-about-mapping-type.patch
-mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
-mm-hugetlb-return-a-reserved-page-to-a-reserved-pool-if-failed.patch
-mm-migrate-make-core-migration-code-aware-of-hugepage.patch
-mm-soft-offline-use-migrate_pages-instead-of-migrate_huge_page.patch
-migrate-add-hugepage-migration-code-to-migrate_pages.patch
-mm-migrate-add-hugepage-migration-code-to-move_pages.patch
-mm-mbind-add-hugepage-migration-code-to-mbind.patch
-mm-migrate-remove-vm_hugetlb-from-vma-flag-check-in-vma_migratable.patch
-mm-memory-hotplug-enable-memory-hotplug-to-handle-hugepage.patch
-mm-migrate-check-movability-of-hugepage-in-unmap_and_move_huge_page.patch
-mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
-mm-mempolicy-rename-check_range-to-queue_pages_range.patch
-mbind-add-bug_onvma-in-new_vma_page.patch
-hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page.patch
-mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
-mm-hwpoison-dont-need-to-hold-compound-lock-for-hugetlbfs-page.patch
-mm-hwpoison-fix-race-against-poison-thp.patch
-mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
-mm-hwpoison-dont-set-migration-type-twice-to-avoid-holding-heavily-contend-zone-lock.patch
-mm-hwpoison-drop-forward-reference-declarations-__soft_offline_page.patch
-mm-hwpoison-add-to-madvise_hwpoison.patch
-mm-hwpoisonc-fix-held-reference-count-after-unpoisoning-empty-zero-page.patch
-mm-hwpoison-injectc-change-permission-of-corrupt-pfn-unpoison-pfn-to-0200.patch
-mm-memory-failurec-fix-bug-triggered-by-unpoisoning-empty-zero-page.patch
-mm-hwpoison-fix-return-value-of-madvise_hwpoison.patch
+mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
+vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch
+genalloc-fix-overflow-of-ending-address-of-memory-chunk.patch
+mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages.patch
+mm-hotplug-verify-hotplug-memory-range.patch
+mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
+mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
+mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
+mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch
+mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
+mm-page-writebackc-add-strictlimit-feature-fix.patch
 mm-madvisec-madvise_hwpoison-remove-local-ret.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+move-exit_task_namespaces-outside-of-exit_notify-fix.patch
+partitions-efi-use-lba-aware-partition-records-checkpatch-fixes.patch
+partitions-efi-check-pmbr-records-starting-lba-checkpatch-fixes.patch
+partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch
+partitions-efi-some-style-cleanups-checkpatch-fixes.patch
+block-partitions-efic-consistently-use-pr_foo.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
+ipc-drop-ipcctl_pre_down-fix.patch
+ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
+drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
 
