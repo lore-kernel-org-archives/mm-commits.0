@@ -1,74 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page-writebackc-add-strictlimit-feature-fix.patch removed from -mm tree
-Date: Wed, 11 Sep 2013 14:01:58 -0700
-Message-ID: <5230da46.z5PhttNxkkm3G2q5%akpm@linux-foundation.org>
+ lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Wed, 11 Sep 2013 14:02:49 -0700
+Message-ID: <5230da79.XcvBy056HpmTKp4h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49152 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49157 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753987Ab3IKVB7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:01:59 -0400
+	with ESMTP id S1753987Ab3IKVCu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:02:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, mpatlasov@parallels.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, guz.fnst@cn.fujitsu.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-page-writebackc-add-strictlimit-feature-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,mpatlasov@parallels.com,sfr@canb.auug.org.au,mm-commits@vger.kernel.org
+Subject: [folded-merged] lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,guz.fnst@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 14:01:58 -0700
+Date: Wed, 11 Sep 2013 14:02:49 -0700
 
 
 The patch titled
-     Subject: mm-page-writebackc-add-strictlimit-feature-fix
+     Subject: lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-page-writebackc-add-strictlimit-feature-fix.patch
+     lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-page-writebackc-add-strictlimit-feature.patch
+This patch was dropped because it was folded into lib-crc32-update-the-comments-of-crc32_bele_generic.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page-writebackc-add-strictlimit-feature-fix
+Subject: lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes
 
-fix warning in page-writeback.c
+WARNING: please, no space before tabs
+#20: FILE: lib/crc32.c:135:
++ * ^I^I^ICRC32/CRC32C$
 
-Cc: Maxim Patlasov <mpatlasov@parallels.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+WARNING: line over 80 characters
+#24: FILE: lib/crc32.c:137:
++ *	other uses, or the previous crc32/crc32c value if computing incrementally.
+
+total: 0 errors, 2 warnings, 32 lines checked
+
+./patches/lib-crc32-update-the-comments-of-crc32_bele_generic.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    6 +++---
+ lib/crc32.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-page-writebackc-add-strictlimit-feature-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-page-writebackc-add-strictlimit-feature-fix
-+++ a/mm/page-writeback.c
-@@ -1366,10 +1366,8 @@ static void balance_dirty_pages(struct a
- {
- 	unsigned long nr_reclaimable;	/* = file_dirty + unstable_nfs */
- 	unsigned long nr_dirty;  /* = file_dirty + writeback + unstable_nfs */
--	unsigned long bdi_dirty;
- 	unsigned long background_thresh;
- 	unsigned long dirty_thresh;
--	unsigned long bdi_thresh;
- 	long period;
- 	long pause;
- 	long max_pause;
-@@ -1385,8 +1383,10 @@ static void balance_dirty_pages(struct a
+diff -puN lib/crc32.c~lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes lib/crc32.c
+--- a/lib/crc32.c~lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes
++++ a/lib/crc32.c
+@@ -132,9 +132,9 @@ crc32_body(u32 crc, unsigned char const
  
- 	for (;;) {
- 		unsigned long now = jiffies;
--		unsigned long dirty;
-+		unsigned long uninitialized_var(bdi_thresh);
- 		unsigned long thresh;
-+		unsigned long uninitialized_var(bdi_dirty);
-+		unsigned long dirty;
- 		unsigned long bg_thresh;
- 
- 		/*
+ /**
+  * crc32_le_generic() - Calculate bitwise little-endian Ethernet AUTODIN II
+- * 			CRC32/CRC32C
+- * @crc: seed value for computation.  ~0 for Ethernet, sometimes 0 for
+- *	other uses, or the previous crc32/crc32c value if computing incrementally.
++ *			CRC32/CRC32C
++ * @crc: seed value for computation.  ~0 for Ethernet, sometimes 0 for other
++ *	 uses, or the previous crc32/crc32c value if computing incrementally.
+  * @p: pointer to buffer over which CRC32/CRC32C is run
+  * @len: length of buffer @p
+  * @tab: little-endian Ethernet table
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +98,7 @@ mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
 mm-vmscan-fix-do_try_to_free_pages-livelock.patch
 mm-page-writebackc-add-strictlimit-feature.patch
 mm-madvisec-madvise_hwpoison-remove-local-ret.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
+lib-crc32-update-the-comments-of-crc32_bele_generic.patch
 move-exit_task_namespaces-outside-of-exit_notify-fix.patch
 partitions-efi-use-lba-aware-partition-records-checkpatch-fixes.patch
 partitions-efi-check-pmbr-records-starting-lba-checkpatch-fixes.patch
