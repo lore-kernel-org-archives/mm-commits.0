@@ -1,159 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page_alloc-fair-zone-allocator-policy-v2-fix.patch removed from -mm tree
-Date: Wed, 11 Sep 2013 13:54:19 -0700
-Message-ID: <5230d87b.qImtWkNZI58p40EU%akpm@linux-foundation.org>
+ mm-page_alloc-fair-zone-allocator-policy-v2-fix-2.patch removed from -mm
+ tree
+Date: Wed, 11 Sep 2013 13:54:21 -0700
+Message-ID: <5230d87d.PxZqkhz+CxOw1vWZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48991 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49008 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755519Ab3IKUyV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 16:54:21 -0400
+	with ESMTP id S1755519Ab3IKUyX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 16:54:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zcalusic@bitsync.net, riel@redhat.com, paul.bollee@gmail.com, mgorman@suse.de, aarcange@redhat.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, khilman@linaro.org, hannes@cmpxchg.org
 
-Subject: [folded-merged] mm-page_alloc-fair-zone-allocator-policy-v2-fix.patch removed from -mm tree
-To: hannes@cmpxchg.org,aarcange@redhat.com,mgorman@suse.de,paul.bollee@gmail.com,riel@redhat.com,zcalusic@bitsync.net,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-page_alloc-fair-zone-allocator-policy-v2-fix-2.patch removed from -mm tree
+To: hannes@cmpxchg.org,khilman@linaro.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 13:54:19 -0700
+Date: Wed, 11 Sep 2013 13:54:21 -0700
 
 
 The patch titled
-     Subject: mm: page_alloc: use vmstats for fair zone allocation batching
+     Subject: mm: page_alloc: use vmstats for fair zone allocation batching fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fair-zone-allocator-policy-v2-fix.patch
+     mm-page_alloc-fair-zone-allocator-policy-v2-fix-2.patch
 
 This patch was dropped because it was folded into mm-page_alloc-fair-zone-allocator-policy.patch
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: use vmstats for fair zone allocation batching
+Subject: mm: page_alloc: use vmstats for fair zone allocation batching fix
 
-Avoid dirtying the same cache line with every single page allocation by
-making the fair per-zone allocation batch a vmstat item, which will turn
-it into batched percpu counters on SMP.
+Initialize the per-cpu counters before modifying them.  Otherwise:
+
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 3.11.0-rc5-next-20130816 (khilman@paris) (gcc version 4.7.2 (Ubuntu/Linaro 4.7.2-1ubuntu1) ) #30 SMP Fri Aug 16 09:47:32 PDT 2013
+[    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model: TI AM335x BeagleBone
+[    0.000000] bootconsole [earlycon0] enabled
+[    0.000000] Memory policy: ECC disabled, Data cache writeback
+[    0.000000] On node 0 totalpages: 130816
+[    0.000000] free_area_init_node: node 0, pgdat c081d400, node_mem_map c12fc000
+[    0.000000]   Normal zone: 1024 pages used for memmap
+[    0.000000]   Normal zone: 0 pages reserved
+[    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000026
+[    0.000000] pgd = c0004000
+[    0.000000] [00000026] *pgd=00000000
+[    0.000000] Internal error: Oops: 5 [#1] SMP ARM
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 3.11.0-rc5-next-20130816 #30
+[    0.000000] task: c0793c70 ti: c0788000 task.ti: c0788000
+[    0.000000] PC is at __mod_zone_page_state+0x2c/0xb4
+[    0.000000] LR is at mod_zone_page_state+0x2c/0x4c
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Zlatko Calusic <zcalusic@bitsync.net>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Paul Bolle <paul.bollee@gmail.com>
+Reported-by: Kevin Hilman <khilman@linaro.org>
+Tested-by: Kevin Hilman <khilman@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- mm/page_alloc.c        |   21 ++++++++++++---------
- mm/vmstat.c            |    1 +
- 3 files changed, 14 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~mm-page_alloc-fair-zone-allocator-policy-v2-fix include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-page_alloc-fair-zone-allocator-policy-v2-fix
-+++ a/include/linux/mmzone.h
-@@ -105,6 +105,7 @@ struct zone_padding {
- enum zone_stat_item {
- 	/* First 128 byte cacheline (assuming 64 bit words) */
- 	NR_FREE_PAGES,
-+	NR_ALLOC_BATCH,
- 	NR_LRU_BASE,
- 	NR_INACTIVE_ANON = NR_LRU_BASE, /* must match order of LRU_[IN]ACTIVE */
- 	NR_ACTIVE_ANON,		/*  "     "     "   "       "         */
-@@ -352,7 +353,6 @@ struct zone {
- 	 * free areas of different sizes
- 	 */
- 	spinlock_t		lock;
--	int			alloc_batch;
- 	int                     all_unreclaimable; /* All pages pinned */
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
- 	/* Set to true when the PG_migrate_skip bits should be cleared */
-diff -puN mm/page_alloc.c~mm-page_alloc-fair-zone-allocator-policy-v2-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fair-zone-allocator-policy-v2-fix
+diff -puN mm/page_alloc.c~mm-page_alloc-fair-zone-allocator-policy-v2-fix-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fair-zone-allocator-policy-v2-fix-2
 +++ a/mm/page_alloc.c
-@@ -1551,6 +1551,7 @@ again:
- 					  get_pageblock_migratetype(page));
- 	}
- 
-+	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
- 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
- 	zone_statistics(preferred_zone, zone, gfp_flags);
- 	local_irq_restore(flags);
-@@ -1924,7 +1925,7 @@ zonelist_scan:
- 		 * fairness round-robin cycle of this zonelist.
- 		 */
- 		if (alloc_flags & ALLOC_WMARK_LOW) {
--			if (zone->alloc_batch <= 0)
-+			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
- 				continue;
- 			if (zone_reclaim_mode &&
- 			    !zone_local(preferred_zone, zone))
-@@ -2036,8 +2037,7 @@ this_zone_full:
- 		goto zonelist_scan;
- 	}
- 
--	if (page) {
--		zone->alloc_batch -= 1U << order;
-+	if (page)
- 		/*
- 		 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
- 		 * necessary to allocate the page. The expectation is
-@@ -2046,7 +2046,6 @@ this_zone_full:
- 		 * for !PFMEMALLOC purposes.
- 		 */
- 		page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
--	}
- 
- 	return page;
- }
-@@ -2397,8 +2396,10 @@ static void prepare_slowpath(gfp_t gfp_m
- 		 */
- 		if (zone_reclaim_mode && !zone_local(preferred_zone, zone))
- 			continue;
--		zone->alloc_batch = high_wmark_pages(zone) -
--			low_wmark_pages(zone);
-+		mod_zone_page_state(zone, NR_ALLOC_BATCH,
-+				    high_wmark_pages(zone) -
-+				    low_wmark_pages(zone) -
-+				    zone_page_state(zone, NR_ALLOC_BATCH));
- 	}
- }
- 
-@@ -4798,7 +4799,7 @@ static void __paginginit free_area_init_
+@@ -4797,11 +4797,11 @@ static void __paginginit free_area_init_
+ 		spin_lock_init(&zone->lru_lock);
+ 		zone_seqlock_init(zone);
  		zone->zone_pgdat = pgdat;
++		zone_pcp_init(zone);
  
  		/* For bootup, initialized properly in watermark setup */
--		zone->alloc_batch = zone->managed_pages;
-+		mod_zone_page_state(zone, NR_ALLOC_BATCH, zone->managed_pages);
+ 		mod_zone_page_state(zone, NR_ALLOC_BATCH, zone->managed_pages);
  
- 		zone_pcp_init(zone);
+-		zone_pcp_init(zone);
  		lruvec_init(&zone->lruvec);
-@@ -5571,8 +5572,10 @@ static void __setup_per_zone_wmarks(void
- 		zone->watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp >> 2);
- 		zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp >> 1);
- 
--		zone->alloc_batch = high_wmark_pages(zone) -
--			low_wmark_pages(zone);
-+		__mod_zone_page_state(zone, NR_ALLOC_BATCH,
-+				      high_wmark_pages(zone) -
-+				      low_wmark_pages(zone) -
-+				      zone_page_state(zone, NR_ALLOC_BATCH));
- 
- 		setup_zone_migrate_reserve(zone);
- 		spin_unlock_irqrestore(&zone->lock, flags);
-diff -puN mm/vmstat.c~mm-page_alloc-fair-zone-allocator-policy-v2-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-page_alloc-fair-zone-allocator-policy-v2-fix
-+++ a/mm/vmstat.c
-@@ -703,6 +703,7 @@ static void walk_zones_in_node(struct se
- const char * const vmstat_text[] = {
- 	/* Zoned VM counters */
- 	"nr_free_pages",
-+	"nr_alloc_batch",
- 	"nr_inactive_anon",
- 	"nr_active_anon",
- 	"nr_inactive_file",
+ 		if (!size)
+ 			continue;
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -163,7 +91,6 @@ mm-kill-one-if-loop-in-__free_pages_bootmem.patch
 mm-vmscan-fix-numa-reclaim-balance-problem-in-kswapd.patch
 mm-page_alloc-rearrange-watermark-checking-in-get_page_from_freelist.patch
 mm-page_alloc-fair-zone-allocator-policy.patch
-mm-page_alloc-fair-zone-allocator-policy-v2-fix-2.patch
 mm-revert-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory.patch
 mm-page_alloc-add-unlikely-macro-to-help-compiler-optimization.patch
 mm-move-pgtable-related-functions-to-right-place.patch
