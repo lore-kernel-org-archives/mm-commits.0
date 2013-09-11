@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- thp-account-anon-transparent-huge-pages-into-nr_anon_pages-fix.patch added
- to -mm tree
-Date: Tue, 10 Sep 2013 16:59:29 -0700
-Message-ID: <522fb261.KWyE4Fw8M4oFCzIX%akpm@linux-foundation.org>
+Subject: + memcg-fix-multiple-large-threshold-notifications.patch added to -mm tree
+Date: Tue, 10 Sep 2013 17:04:26 -0700
+Message-ID: <522fb38a.NVINB/JaFfAxrCYF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40561 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750879Ab3IJX7a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 19:59:30 -0400
+	with ESMTP id S1751911Ab3IKAE1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 20:04:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, quning@google.com, mgorman@suse.de, dave.hansen@linux.intel.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, kirill.shutemov@linux.intel.com, hannes@cmpxchg.org, gthelen@google.com
 
-Subject: + thp-account-anon-transparent-huge-pages-into-nr_anon_pages-fix.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,aarcange@redhat.com,dave.hansen@linux.intel.com,mgorman@suse.de,quning@google.com
+Subject: + memcg-fix-multiple-large-threshold-notifications.patch added to -mm tree
+To: gthelen@google.com,hannes@cmpxchg.org,kirill.shutemov@linux.intel.com,mhocko@suse.cz,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Sep 2013 16:59:29 -0700
+Date: Tue, 10 Sep 2013 17:04:26 -0700
 
 
 The patch titled
-     Subject: mm: fix accounting on page_remove_rmap()
+     Subject: memcg: fix multiple large threshold notifications
 has been added to the -mm tree.  Its filename is
-     thp-account-anon-transparent-huge-pages-into-nr_anon_pages-fix.patch
+     memcg-fix-multiple-large-threshold-notifications.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-account-anon-transparent-huge-pages-into-nr_anon_pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-multiple-large-threshold-notifications.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-account-anon-transparent-huge-pages-into-nr_anon_pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-multiple-large-threshold-notifications.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,51 +43,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix accounting on page_remove_rmap()
+From: Greg Thelen <gthelen@google.com>
+Subject: memcg: fix multiple large threshold notifications
 
-There's typo in page_remove_rmap(): we increase NR_ANON_PAGES counter
-instead of decreasing it. Let's fix this.
+A memory cgroup with (1) multiple threshold notifications and (2) at least
+one threshold >=2G was not reliable.  Specifically the notifications would
+either not fire or would not fire in the proper order.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Ning Qu <quning@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
+The __mem_cgroup_threshold() signaling logic depends on keeping 64 bit
+thresholds in sorted order.  mem_cgroup_usage_register_event() sorts them
+with compare_thresholds(), which returns the difference of two 64 bit
+thresholds as an int.  If the difference is positive but has bit[31] set,
+then sort() treats the difference as negative and breaks sort order.
+
+This fix compares the two arbitrary 64 bit thresholds returning the
+classic -1, 0, 1 result.
+
+The test below sets two notifications (at 0x1000 and 0x81001000):
+  cd /sys/fs/cgroup/memory
+  mkdir x
+  for x in 4096 2164264960; do
+    cgroup_event_listener x/memory.usage_in_bytes $x | sed "s/^/$x listener:/" &
+  done
+  echo $$ > x/cgroup.procs
+  anon_leaker 500M
+
+v3.11-rc7 fails to signal the 4096 event listener:
+  Leaking...
+  Done leaking pages.
+
+Patched v3.11-rc7 properly notifies:
+  Leaking...
+  4096 listener:2013:8:31:14:13:36
+  Done leaking pages.
+
+The fixed bug is old.  It appears to date back to the introduction of
+memcg threshold notifications in v2.6.34-rc1-116-g2e72b6347c94 "memcg:
+implement memory thresholds"
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/rmap.c~thp-account-anon-transparent-huge-pages-into-nr_anon_pages-fix mm/rmap.c
---- a/mm/rmap.c~thp-account-anon-transparent-huge-pages-into-nr_anon_pages-fix
-+++ a/mm/rmap.c
-@@ -1152,7 +1152,7 @@ void page_remove_rmap(struct page *page)
- 			__dec_zone_page_state(page,
- 					      NR_ANON_TRANSPARENT_HUGEPAGES);
- 		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES,
--				hpage_nr_pages(page));
-+				-hpage_nr_pages(page));
- 	} else {
- 		__dec_zone_page_state(page, NR_FILE_MAPPED);
- 		mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED);
+diff -puN mm/memcontrol.c~memcg-fix-multiple-large-threshold-notifications mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-multiple-large-threshold-notifications
++++ a/mm/memcontrol.c
+@@ -5591,7 +5591,13 @@ static int compare_thresholds(const void
+ 	const struct mem_cgroup_threshold *_a = a;
+ 	const struct mem_cgroup_threshold *_b = b;
+ 
+-	return _a->threshold - _b->threshold;
++	if (_a->threshold > _b->threshold)
++		return 1;
++
++	if (_a->threshold < _b->threshold)
++		return -1;
++
++	return 0;
+ }
+ 
+ static int mem_cgroup_oom_notify_cb(struct mem_cgroup *memcg)
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
-origin.patch
-mm-fix-potential-null-pointer-dereference.patch
-thp-mm-locking-tail-page-is-a-bug.patch
-thp-mm-locking-tail-page-is-a-bug-fix.patch
-truncate-drop-oldsize-truncate_pagecache-parameter.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
-thp-account-anon-transparent-huge-pages-into-nr_anon_pages-fix.patch
-mm-cleanup-add_to_page_cache_locked.patch
-thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
-thp-do_huge_pmd_anonymous_page-cleanup.patch
-thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
-mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails.patch
+memcg-fix-multiple-large-threshold-notifications.patch
+memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+memcg-get-rid-of-soft-limit-tree-infrastructure.patch
+vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
+memcg-enhance-memcg-iterator-to-support-predicates.patch
+memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
+memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+memcg-track-all-children-over-limit-in-the-root.patch
+memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
+memcg-remove-memcg_nr_file_mapped.patch
+memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat.patch
+memcg-add-per-cgroup-writeback-pages-accounting.patch
+memcg-document-cgroup-dirty-writeback-memory-statistics.patch
 
