@@ -1,144 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- partitions-efi-some-style-cleanups-checkpatch-fixes.patch removed from -mm
- tree
-Date: Wed, 11 Sep 2013 14:05:47 -0700
-Message-ID: <5230db2b.T3rYVh67KnIj9mcZ%akpm@linux-foundation.org>
+ initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch removed
+ from -mm tree
+Date: Wed, 11 Sep 2013 14:06:22 -0700
+Message-ID: <5230db4e.B/05lrAo0oAAtcyL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49273 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756996Ab3IKVFs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:05:48 -0400
+	with ESMTP id S1754636Ab3IKVGX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:06:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, matt.fleming@intel.com, kzak@redhat.com, davidlohr@hp.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, swarren@nvidia.com, sam@ravnborg.org, rusty@rustcorp.com.au, rob@landley.net, jlayton@redhat.com, jim.cromie@gmail.com, hpa@zytor.com, gregkh@linuxfoundation.org, ebiederm@xmission.com, axboe@kernel.dk, akpm@linux-foundation.org
 
-Subject: [folded-merged] partitions-efi-some-style-cleanups-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,davidlohr@hp.com,kzak@redhat.com,matt.fleming@intel.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,axboe@kernel.dk,ebiederm@xmission.com,gregkh@linuxfoundation.org,hpa@zytor.com,jim.cromie@gmail.com,jlayton@redhat.com,rob@landley.net,rusty@rustcorp.com.au,sam@ravnborg.org,swarren@nvidia.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 14:05:47 -0700
+Date: Wed, 11 Sep 2013 14:06:22 -0700
 
 
 The patch titled
-     Subject: partitions-efi-some-style-cleanups-checkpatch-fixes
+     Subject: initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix
 has been removed from the -mm tree.  Its filename was
-     partitions-efi-some-style-cleanups-checkpatch-fixes.patch
+     initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
 
-This patch was dropped because it was folded into partitions-efi-some-style-cleanups.patch
+This patch was dropped because it was folded into initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: partitions-efi-some-style-cleanups-checkpatch-fixes
+Subject: initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix
 
-Cc: Davidlohr Bueso <davidlohr@hp.com>
+using bit 1 was odd
 
-ERROR: code indent should use tabs where possible
-#34: FILE: block/partitions/efi.c:295:
-+                     (u8 *) pte, count) < count) {$
-
-WARNING: please, no spaces at the start of a line
-#34: FILE: block/partitions/efi.c:295:
-+                     (u8 *) pte, count) < count) {$
-
-WARNING: line over 80 characters
-#44: FILE: block/partitions/efi.c:620:
-+		good_agpt = is_gpt_valid(state, le64_to_cpu(pgpt->alternate_lba),
-
-ERROR: code indent should use tabs where possible
-#55: FILE: block/partitions/efi.c:638:
-+                        printk(KERN_WARNING "Alternate GPT is invalid, using primary GPT.\n");$
-
-WARNING: please, no spaces at the start of a line
-#55: FILE: block/partitions/efi.c:638:
-+                        printk(KERN_WARNING "Alternate GPT is invalid, using primary GPT.\n");$
-
-WARNING: Prefer netdev_warn(netdev, ... then dev_warn(dev, ... then pr_warn(...  to printk(KERN_WARNING ...
-#55: FILE: block/partitions/efi.c:638:
-+                        printk(KERN_WARNING "Alternate GPT is invalid, using primary GPT.\n");
-
-ERROR: code indent should use tabs where possible
-#65: FILE: block/partitions/efi.c:647:
-+                printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");$
-
-WARNING: please, no spaces at the start of a line
-#65: FILE: block/partitions/efi.c:647:
-+                printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");$
-
-WARNING: Prefer netdev_warn(netdev, ... then dev_warn(dev, ... then pr_warn(...  to printk(KERN_WARNING ...
-#65: FILE: block/partitions/efi.c:647:
-+                printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");
-
-WARNING: line over 80 characters
-#75: FILE: block/partitions/efi.c:709:
-+		if (!efi_guidcmp(ptes[i].partition_type_guid, PARTITION_LINUX_RAID_GUID))
-
-total: 3 errors, 7 warnings, 55 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/partitions-efi-some-style-cleanups.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Karel Zak <kzak@redhat.com>
-Cc: Matt Fleming <matt.fleming@intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jeff Layton <jlayton@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jim Cromie <jim.cromie@gmail.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Stephen Warren <swarren@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/efi.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/ramfs/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN block/partitions/efi.c~partitions-efi-some-style-cleanups-checkpatch-fixes block/partitions/efi.c
---- a/block/partitions/efi.c~partitions-efi-some-style-cleanups-checkpatch-fixes
-+++ a/block/partitions/efi.c
-@@ -292,7 +292,7 @@ static gpt_entry *alloc_read_gpt_entries
- 		return NULL;
+diff -puN fs/ramfs/inode.c~initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix
++++ a/fs/ramfs/inode.c
+@@ -249,7 +249,7 @@ static struct dentry *rootfs_mount(struc
+ {
+ 	static unsigned long once;
  
- 	if (read_lba(state, le64_to_cpu(gpt->partition_entry_lba),
--                     (u8 *) pte, count) < count) {
-+			(u8 *) pte, count) < count) {
- 		kfree(pte);
-                 pte=NULL;
- 		return NULL;
-@@ -617,7 +617,8 @@ static int find_valid_gpt(struct parsed_
- 	good_pgpt = is_gpt_valid(state, GPT_PRIMARY_PARTITION_TABLE_LBA,
- 				 &pgpt, &pptes);
-         if (good_pgpt)
--		good_agpt = is_gpt_valid(state, le64_to_cpu(pgpt->alternate_lba),
-+		good_agpt = is_gpt_valid(state,
-+					 le64_to_cpu(pgpt->alternate_lba),
- 					 &agpt, &aptes);
-         if (!good_agpt && force_gpt)
-                 good_agpt = is_gpt_valid(state, lastlba, &agpt, &aptes);
-@@ -634,9 +635,8 @@ static int find_valid_gpt(struct parsed_
-                 *ptes = pptes;
-                 kfree(agpt);
-                 kfree(aptes);
--                if (!good_agpt) {
-+		if (!good_agpt)
-                         printk(KERN_WARNING "Alternate GPT is invalid, using primary GPT.\n");
--                }
-                 return 1;
-         }
-         else if (good_agpt) {
-@@ -644,7 +644,7 @@ static int find_valid_gpt(struct parsed_
-                 *ptes = aptes;
-                 kfree(pgpt);
-                 kfree(pptes);
--                printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");
-+		printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");
-                 return 1;
-         }
+-	if (test_and_set_bit(1, &once))
++	if (test_and_set_bit(0, &once))
+ 		return ERR_PTR(-ENODEV);
  
+ 	return mount_nodev(fs_type, flags, data, ramfs_fill_super);
+@@ -278,7 +278,7 @@ static int __init init_ramfs_fs(void)
+ 	static unsigned long once;
+ 	int err;
+ 
+-	if (test_and_set_bit(1, &once))
++	if (test_and_set_bit(0, &once))
+ 		return 0;
+ 
+ 	err = bdi_init(&ramfs_backing_dev_info);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,7 +105,7 @@ partitions-efi-check-pmbr-records-starting-lba.patch
 partitions-efi-detect-hybrid-mbrs.patch
 partitions-efi-some-style-cleanups.patch
 block-partitions-efic-consistently-use-pr_foo.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
+initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs.patch
 initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
 ipc-drop-ipcctl_pre_down-fix.patch
 ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
