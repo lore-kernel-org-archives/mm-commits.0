@@ -1,111 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
- removed from -mm tree
-Date: Wed, 11 Sep 2013 13:59:25 -0700
-Message-ID: <5230d9ad.OchhKNoDD8f3ixdI%akpm@linux-foundation.org>
+ mm-track-vma-changes-with-vm_softdirty-bit-fix.patch removed from -mm tree
+Date: Wed, 11 Sep 2013 13:59:48 -0700
+Message-ID: <5230d9c4.XcmL65fcMsDbYo9N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49094 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754308Ab3IKU70 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 16:59:26 -0400
+	with ESMTP id S1753996Ab3IKU7t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 16:59:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, khalid.aziz@oracle.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, xiaoguangrong@linux.vnet.ibm.com, xemul@parallels.com, sfr@canb.auug.org.au, rob@landley.net, rdunlap@infradead.org, peterz@infradead.org, mtosatti@redhat.com, mpm@selenic.com, luto@amacapital.net, kosaki.motohiro@gmail.com, gorcunov@openvz.org, aneesh.kumar@linux.vnet.ibm.com, akpm@linux-foundation.org, gorcunov@gmail.com
 
-Subject: [folded-merged] mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,khalid.aziz@oracle.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-track-vma-changes-with-vm_softdirty-bit-fix.patch removed from -mm tree
+To: gorcunov@gmail.com,akpm@linux-foundation.org,aneesh.kumar@linux.vnet.ibm.com,gorcunov@openvz.org,kosaki.motohiro@gmail.com,luto@amacapital.net,mpm@selenic.com,mtosatti@redhat.com,peterz@infradead.org,rdunlap@infradead.org,rob@landley.net,sfr@canb.auug.org.au,xemul@parallels.com,xiaoguangrong@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 13:59:25 -0700
+Date: Wed, 11 Sep 2013 13:59:48 -0700
 
 
 The patch titled
-     Subject: mm-fix-aio-performance-regression-for-database-caused-by-thp-fix
+     Subject: docs: Document soft dirty behaviour for freshly created memory regions, v2
 has been removed from the -mm tree.  Its filename was
-     mm-fix-aio-performance-regression-for-database-caused-by-thp-fix.patch
+     mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
 
-This patch was dropped because it was folded into mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
+This patch was dropped because it was folded into mm-track-vma-changes-with-vm_softdirty-bit.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-aio-performance-regression-for-database-caused-by-thp-fix
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: docs: Document soft dirty behaviour for freshly created memory regions, v2
 
-tweak comments
-
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ Documentation/vm/soft-dirty.txt |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/swap.c~mm-fix-aio-performance-regression-for-database-caused-by-thp-fix mm/swap.c
---- a/mm/swap.c~mm-fix-aio-performance-regression-for-database-caused-by-thp-fix
-+++ a/mm/swap.c
-@@ -83,9 +83,9 @@ static void __put_compound_page(struct p
- static void put_compound_page(struct page *page)
- {
- 	/*
--	 * hugetlbfs pages can not be split from under us. If this
--	 * is a hugetlbfs page, check refcount on head page and release
--	 * the page if refcount is zero.
-+	 * hugetlbfs pages cannot be split from under us.  If this is a
-+	 * hugetlbfs page, check refcount on head page and release the page if
-+	 * the refcount becomes zero.
- 	 */
- 	if (PageHuge(page)) {
- 		page = compound_head(page);
-@@ -202,8 +202,8 @@ bool __get_page_tail(struct page *page)
- 	struct page *page_head;
+diff -puN Documentation/vm/soft-dirty.txt~mm-track-vma-changes-with-vm_softdirty-bit-fix Documentation/vm/soft-dirty.txt
+--- a/Documentation/vm/soft-dirty.txt~mm-track-vma-changes-with-vm_softdirty-bit-fix
++++ a/Documentation/vm/soft-dirty.txt
+@@ -28,6 +28,13 @@ This is so, since the pages are still ma
+ the kernel does is finds this fact out and puts both writable and soft-dirty
+ bits on the PTE.
  
- 	/*
--	 * If this is a hugetlbfs page, it can not be split under
--	 * us. Simply increment refcount for head page
-+	 * If this is a hugetlbfs page it cannot be split under us.  Simply
-+	 * increment refcount for the head page.
- 	 */
- 	if (PageHuge(page)) {
- 		page_head = compound_head(page);
++  While in most cases tracking memory changes by #PF-s is more than enough
++there is still a scenario when we can lose soft dirty bits -- a task
++unmaps a previously mapped memory region and then maps a new one at exactly
++the same place. When unmap is called, the kernel internally clears PTE values
++including soft dirty bits. To notify user space application about such
++memory region renewal the kernel always marks new memory regions (and
++expanded regions) as soft dirty.
+ 
+   This feature is actively used by the checkpoint-restore project. You
+ can find more details about it on http://criu.org
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-origin.patch
-revert-include-linux-smph-on_each_cpu-switch-back-to-a-macro.patch
-block-support-embedded-device-command-line-partition.patch
-swap-warn-when-a-swap-area-overflows-the-maximum-size.patch
-mm-swapfilec-convert-to-pr_foo.patch
-mm-vmstats-track-tlb-flush-stats-on-up-too.patch
-swap-make-swap-discard-async.patch
-swap-make-cluster-allocation-per-cpu.patch
-mm-page_alloc-restructure-free-page-stealing-code-and-fix-a-bug.patch
-mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
-mm-mempolicy-return-null-if-node-is-numa_no_node-in-get_task_policy.patch
-vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch
-genalloc-fix-overflow-of-ending-address-of-memory-chunk.patch
-mm-use-zone_end_pfn-instead-of-zone_start_pfnspanned_pages.patch
-mm-hotplug-verify-hotplug-memory-range.patch
-mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
-mm-track-vma-changes-with-vm_softdirty-bit-fix.patch
-mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page-fix.patch
-mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch
-mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
-mm-page-writebackc-add-strictlimit-feature-fix.patch
-mm-madvisec-madvise_hwpoison-remove-local-ret.patch
-lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
-move-exit_task_namespaces-outside-of-exit_notify-fix.patch
-partitions-efi-use-lba-aware-partition-records-checkpatch-fixes.patch
-partitions-efi-check-pmbr-records-starting-lba-checkpatch-fixes.patch
-partitions-efi-detect-hybrid-mbrs-checkpatch-fixes.patch
-partitions-efi-some-style-cleanups-checkpatch-fixes.patch
-block-partitions-efic-consistently-use-pr_foo.patch
-initmpfs-move-bdi-setup-from-init_rootfs-to-init_ramfs-fix.patch
-initmpfs-use-initramfs-if-rootfstype=-or-root=-specified-checkpatch-fixes.patch
-ipc-drop-ipcctl_pre_down-fix.patch
-ipcshm-make-shmctl_nolock-lockless-checkpatch-fixes.patch
-drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
+mm-track-vma-changes-with-vm_softdirty-bit.patch
+mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte.patch
+fs-proc-task_mmuc-check-the-return-value-of-mpol_to_str.patch
 
