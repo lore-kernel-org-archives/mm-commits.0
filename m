@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-multiple-large-threshold-notifications.patch added to -mm tree
-Date: Tue, 10 Sep 2013 17:04:26 -0700
-Message-ID: <522fb38a.NVINB/JaFfAxrCYF%akpm@linux-foundation.org>
+Subject: + partitions-efi-use-lba-aware-partition-records.patch added to
+ -mm tree
+Date: Tue, 10 Sep 2013 17:09:00 -0700
+Message-ID: <522fb49c.rKToc26wpDP70dqB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40561 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40571 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751911Ab3IKAE1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 20:04:27 -0400
+	with ESMTP id S1751388Ab3IKAJB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 20:09:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, kirill.shutemov@linux.intel.com, hannes@cmpxchg.org, gthelen@google.com
+To: mm-commits@vger.kernel.org, matt.fleming@intel.com, kzak@redhat.com, davidlohr@hp.com
 
-Subject: + memcg-fix-multiple-large-threshold-notifications.patch added to -mm tree
-To: gthelen@google.com,hannes@cmpxchg.org,kirill.shutemov@linux.intel.com,mhocko@suse.cz,stable@vger.kernel.org
+Subject: + partitions-efi-use-lba-aware-partition-records.patch added to -mm tree
+To: davidlohr@hp.com,kzak@redhat.com,matt.fleming@intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Sep 2013 17:04:26 -0700
+Date: Tue, 10 Sep 2013 17:09:00 -0700
 
 
 The patch titled
-     Subject: memcg: fix multiple large threshold notifications
+     Subject: partitions/efi: use lba-aware partition records
 has been added to the -mm tree.  Its filename is
-     memcg-fix-multiple-large-threshold-notifications.patch
+     partitions-efi-use-lba-aware-partition-records.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-multiple-large-threshold-notifications.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/partitions-efi-use-lba-aware-partition-records.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-multiple-large-threshold-notifications.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/partitions-efi-use-lba-aware-partition-records.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,88 +44,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: memcg: fix multiple large threshold notifications
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: partitions/efi: use lba-aware partition records
 
-A memory cgroup with (1) multiple threshold notifications and (2) at least
-one threshold >=2G was not reliable.  Specifically the notifications would
-either not fire or would not fire in the proper order.
+The kernel's GPT implementation currently uses the generic 'struct
+partition' type for dealing with legacy MBR partition records.  While this
+is is useful for disklabels that we designed for CHS addressing, such as
+msdos, it doesn't adapt well to newer standards that use LBA instead, such
+as GUID partition tables.  Furthermore, these generic partition structures
+do not have all the required fields to properly follow the UEFI specs.
 
-The __mem_cgroup_threshold() signaling logic depends on keeping 64 bit
-thresholds in sorted order.  mem_cgroup_usage_register_event() sorts them
-with compare_thresholds(), which returns the difference of two 64 bit
-thresholds as an int.  If the difference is positive but has bit[31] set,
-then sort() treats the difference as negative and breaks sort order.
+While a CHS address can be translated to LBA, it's much simpler and
+cleaner to just replace the partition type.  This patch adds a new
+'gpt_record' type that is fully compliant with EFI and will allow, in the
+next patches, to add more checks to properly verify a protective MBR,
+which is paramount to probing a device that makes use of GPT.
 
-This fix compares the two arbitrary 64 bit thresholds returning the
-classic -1, 0, 1 result.
-
-The test below sets two notifications (at 0x1000 and 0x81001000):
-  cd /sys/fs/cgroup/memory
-  mkdir x
-  for x in 4096 2164264960; do
-    cgroup_event_listener x/memory.usage_in_bytes $x | sed "s/^/$x listener:/" &
-  done
-  echo $$ > x/cgroup.procs
-  anon_leaker 500M
-
-v3.11-rc7 fails to signal the 4096 event listener:
-  Leaking...
-  Done leaking pages.
-
-Patched v3.11-rc7 properly notifies:
-  Leaking...
-  4096 listener:2013:8:31:14:13:36
-  Done leaking pages.
-
-The fixed bug is old.  It appears to date back to the introduction of
-memcg threshold notifications in v2.6.34-rc1-116-g2e72b6347c94 "memcg:
-implement memory thresholds"
-
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Reviewed-by: Karel Zak <kzak@redhat.com>
+Acked-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ block/partitions/efi.c |    7 +++----
+ block/partitions/efi.h |   16 +++++++++++++++-
+ 2 files changed, 18 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-multiple-large-threshold-notifications mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-multiple-large-threshold-notifications
-+++ a/mm/memcontrol.c
-@@ -5591,7 +5591,13 @@ static int compare_thresholds(const void
- 	const struct mem_cgroup_threshold *_a = a;
- 	const struct mem_cgroup_threshold *_b = b;
- 
--	return _a->threshold - _b->threshold;
-+	if (_a->threshold > _b->threshold)
-+		return 1;
-+
-+	if (_a->threshold < _b->threshold)
-+		return -1;
-+
-+	return 0;
+diff -puN block/partitions/efi.c~partitions-efi-use-lba-aware-partition-records block/partitions/efi.c
+--- a/block/partitions/efi.c~partitions-efi-use-lba-aware-partition-records
++++ a/block/partitions/efi.c
+@@ -149,11 +149,10 @@ static u64 last_lba(struct block_device
+ 		       bdev_logical_block_size(bdev)) - 1ULL;
  }
  
- static int mem_cgroup_oom_notify_cb(struct mem_cgroup *memcg)
+-static inline int
+-pmbr_part_valid(struct partition *part)
++static inline int pmbr_part_valid(gpt_record *part)
+ {
+-        if (part->sys_ind == EFI_PMBR_OSTYPE_EFI_GPT &&
+-            le32_to_cpu(part->start_sect) == 1UL)
++        if (part->os_type == EFI_PMBR_OSTYPE_EFI_GPT &&
++            le32_to_cpu(part->start_sector) == 1UL)
+                 return 1;
+         return 0;
+ }
+diff -puN block/partitions/efi.h~partitions-efi-use-lba-aware-partition-records block/partitions/efi.h
+--- a/block/partitions/efi.h~partitions-efi-use-lba-aware-partition-records
++++ a/block/partitions/efi.h
+@@ -101,11 +101,25 @@ typedef struct _gpt_entry {
+ 	efi_char16_t partition_name[72 / sizeof (efi_char16_t)];
+ } __attribute__ ((packed)) gpt_entry;
+ 
++typedef struct _gpt_record {
++        u8      boot_indicator; /* unused by EFI, set to 0x80 for bootable */
++        u8      start_head;     /* unused by EFI, pt start in CHS */
++        u8      start_sector;   /* unused by EFI, pt start in CHS */
++        u8      start_track;
++        u8      os_type;        /* EFI and legacy non-EFI OS types */
++        u8      end_head;       /* unused by EFI, pt end in CHS */
++        u8      end_sector;     /* unused by EFI, pt end in CHS */
++        u8      end_track;      /* unused by EFI, pt end in CHS */
++        __le32  starting_lba;   /* used by EFI - start addr of the on disk pt */
++        __le32  size_in_lba;    /* used by EFI - size of pt in LBA */
++} __attribute__ ((packed)) gpt_record;
++
++
+ typedef struct _legacy_mbr {
+ 	u8 boot_code[440];
+ 	__le32 unique_mbr_signature;
+ 	__le16 unknown;
+-	struct partition partition_record[4];
++	gpt_record partition_record[4];
+ 	__le16 signature;
+ } __attribute__ ((packed)) legacy_mbr;
+ 
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from davidlohr@hp.com are
 
-memcg-fix-multiple-large-threshold-notifications.patch
-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-memcg-enhance-memcg-iterator-to-support-predicates.patch
-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-memcg-track-all-children-over-limit-in-the-root.patch
-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-memcg-remove-memcg_nr_file_mapped.patch
-memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat.patch
-memcg-add-per-cgroup-writeback-pages-accounting.patch
-memcg-document-cgroup-dirty-writeback-memory-statistics.patch
+hugepage-mention-libhugetlbfs-in-doc.patch
+mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
+mm-hugetlb-change-variable-name-reservations-to-resv.patch
+mm-hugetlb-fix-subpool-accounting-handling.patch
+mm-hugetlb-remove-useless-check-about-mapping-type.patch
+mm-hugetlb-grab-a-page_table_lock-after-page_cache_release.patch
+mm-hugetlb-return-a-reserved-page-to-a-reserved-pool-if-failed.patch
+partitions-efi-use-lba-aware-partition-records.patch
+partitions-efi-use-lba-aware-partition-records-fix.patch
+partitions-efi-check-pmbr-records-starting-lba.patch
+partitions-efi-do-not-require-gpt-partition-to-begin-at-sector-1.patch
+partitions-efi-detect-hybrid-mbrs.patch
+partitions-efi-account-for-pmbr-size-in-lba.patch
+partitions-efi-compare-first-and-last-usable-lbas.patch
+partitions-efi-delete-annoying-emacs-style-comments.patch
+partitions-efi-some-style-cleanups.patch
 
