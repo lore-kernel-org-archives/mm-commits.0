@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + partitions-efi-some-style-cleanups.patch added to -mm tree
-Date: Tue, 10 Sep 2013 17:09:08 -0700
-Message-ID: <522fb4a4.stViAewWNspoTUBp%akpm@linux-foundation.org>
+Subject: + partitions-efi-delete-annoying-emacs-style-comments.patch added to -mm tree
+Date: Tue, 10 Sep 2013 17:09:07 -0700
+Message-ID: <522fb4a3.SQsvm8FJDe6aMuqk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40600 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40599 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752117Ab3IKAJJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 20:09:09 -0400
+	with ESMTP id S1752081Ab3IKAJI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Sep 2013 20:09:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, matt.fleming@intel.com, kzak@redhat.com, davidlohr@hp.com
 
-Subject: + partitions-efi-some-style-cleanups.patch added to -mm tree
+Subject: + partitions-efi-delete-annoying-emacs-style-comments.patch added to -mm tree
 To: davidlohr@hp.com,kzak@redhat.com,matt.fleming@intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Sep 2013 17:09:08 -0700
+Date: Tue, 10 Sep 2013 17:09:07 -0700
 
 
 The patch titled
-     Subject: partitions/efi: some style cleanups
+     Subject: partitions/efi: delete annoying emacs style comments
 has been added to the -mm tree.  Its filename is
-     partitions-efi-some-style-cleanups.patch
+     partitions-efi-delete-annoying-emacs-style-comments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/partitions-efi-some-style-cleanups.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/partitions-efi-delete-annoying-emacs-style-comments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/partitions-efi-some-style-cleanups.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/partitions-efi-delete-annoying-emacs-style-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,9 +44,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: partitions/efi: some style cleanups
+Subject: partitions/efi: delete annoying emacs style comments
 
-Trivial coding style cleanups - still plenty left.
+I love emacs, but these settings for coding style are annoying when trying
+to open the efi.h file.  More important, we already have checkpatch for
+that.
 
 Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
 Reviewed-by: Karel Zak <kzak@redhat.com>
@@ -54,73 +56,35 @@ Acked-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/efi.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ block/partitions/efi.h |   19 -------------------
+ 1 file changed, 19 deletions(-)
 
-diff -puN block/partitions/efi.c~partitions-efi-some-style-cleanups block/partitions/efi.c
---- a/block/partitions/efi.c~partitions-efi-some-style-cleanups
-+++ a/block/partitions/efi.c
-@@ -25,6 +25,9 @@
-  * TODO:
-  *
-  * Changelog:
-+ * Mon August 5th, 2013 Davidlohr Bueso <davidlohr@hp.com>
-+ * - detect hybrid MBRs, tighter pMBR checking & cleanups.
-+ *
-  * Mon Nov 09 2004 Matt Domsch <Matt_Domsch@dell.com>
-  * - test for valid PMBR and valid PGPT before ever reading
-  *   AGPT, allow override with 'gpt' kernel command line option.
-@@ -288,8 +291,7 @@ static gpt_entry *alloc_read_gpt_entries
- 		return NULL;
+diff -puN block/partitions/efi.h~partitions-efi-delete-annoying-emacs-style-comments block/partitions/efi.h
+--- a/block/partitions/efi.h~partitions-efi-delete-annoying-emacs-style-comments
++++ a/block/partitions/efi.h
+@@ -130,22 +130,3 @@ typedef struct _legacy_mbr {
+ extern int efi_partition(struct parsed_partitions *state);
  
- 	if (read_lba(state, le64_to_cpu(gpt->partition_entry_lba),
--                     (u8 *) pte,
--		     count) < count) {
-+                     (u8 *) pte, count) < count) {
- 		kfree(pte);
-                 pte=NULL;
- 		return NULL;
-@@ -613,8 +615,7 @@ static int find_valid_gpt(struct parsed_
- 	good_pgpt = is_gpt_valid(state, GPT_PRIMARY_PARTITION_TABLE_LBA,
- 				 &pgpt, &pptes);
-         if (good_pgpt)
--		good_agpt = is_gpt_valid(state,
--					 le64_to_cpu(pgpt->alternate_lba),
-+		good_agpt = is_gpt_valid(state, le64_to_cpu(pgpt->alternate_lba),
- 					 &agpt, &aptes);
-         if (!good_agpt && force_gpt)
-                 good_agpt = is_gpt_valid(state, lastlba, &agpt, &aptes);
-@@ -632,9 +633,7 @@ static int find_valid_gpt(struct parsed_
-                 kfree(agpt);
-                 kfree(aptes);
-                 if (!good_agpt) {
--                        printk(KERN_WARNING 
--			       "Alternate GPT is invalid, "
--                               "using primary GPT.\n");
-+                        printk(KERN_WARNING "Alternate GPT is invalid, using primary GPT.\n");
-                 }
-                 return 1;
-         }
-@@ -643,8 +642,7 @@ static int find_valid_gpt(struct parsed_
-                 *ptes = aptes;
-                 kfree(pgpt);
-                 kfree(pptes);
--                printk(KERN_WARNING 
--                       "Primary GPT is invalid, using alternate GPT.\n");
-+                printk(KERN_WARNING "Primary GPT is invalid, using alternate GPT.\n");
-                 return 1;
-         }
- 
-@@ -706,8 +704,7 @@ int efi_partition(struct parsed_partitio
- 		put_partition(state, i+1, start * ssz, size * ssz);
- 
- 		/* If this is a RAID volume, tell md */
--		if (!efi_guidcmp(ptes[i].partition_type_guid,
--				 PARTITION_LINUX_RAID_GUID))
-+		if (!efi_guidcmp(ptes[i].partition_type_guid, PARTITION_LINUX_RAID_GUID))
- 			state->parts[i + 1].flags = ADDPART_FLAG_RAID;
- 
- 		info = &state->parts[i + 1].info;
+ #endif
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * --------------------------------------------------------------------------
+- * Local variables:
+- * c-indent-level: 4 
+- * c-brace-imaginary-offset: 0
+- * c-brace-offset: -4
+- * c-argdecl-indent: 4
+- * c-label-offset: -4
+- * c-continued-statement-offset: 4
+- * c-continued-brace-offset: 0
+- * indent-tabs-mode: nil
+- * tab-width: 8
+- * End:
+- */
 _
 
 Patches currently in -mm which might be from davidlohr@hp.com are
