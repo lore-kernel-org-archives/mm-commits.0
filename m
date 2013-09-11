@@ -1,39 +1,38 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch removed from -mm tree
-Date: Wed, 11 Sep 2013 14:00:58 -0700
-Message-ID: <5230da0a.zD9fpzGmgEfYj5SI%akpm@linux-foundation.org>
+ mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch removed from -mm
+ tree
+Date: Wed, 11 Sep 2013 14:01:01 -0700
+Message-ID: <5230da0d.tDVaWFovbaQtM4qd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49123 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49138 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753987Ab3IKVBA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:01:00 -0400
+	with ESMTP id S1753987Ab3IKVBC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Sep 2013 17:01:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangwm@marvell.com, yinghan@google.com, riel@redhat.com, npiggin@gmail.com, minchan@kernel.org, mhocko@suse.cz, mel@csn.ul.ie, lliubbo@gmail.com, linux@arm.linux.org.uk, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, cldu@marvell.com, cl@linux.com, aaditya.kumar.30@gmail.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch removed from -mm tree
+Subject: [folded-merged] mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch removed from -mm tree
 To: akpm@linux-foundation.org,aaditya.kumar.30@gmail.com,cl@linux.com,cldu@marvell.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,linux@arm.linux.org.uk,lliubbo@gmail.com,mel@csn.ul.ie,mhocko@suse.cz,minchan@kernel.org,npiggin@gmail.com,riel@redhat.com,yinghan@google.com,zhangwm@marvell.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 11 Sep 2013 14:00:58 -0700
+Date: Wed, 11 Sep 2013 14:01:01 -0700
 
 
 The patch titled
-     Subject: mm-vmscan-fix-do_try_to_free_pages-livelock-fix
+     Subject: mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-do_try_to_free_pages-livelock-fix.patch
+     mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
 
 This patch was dropped because it was folded into mm-vmscan-fix-do_try_to_free_pages-livelock.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-fix-do_try_to_free_pages-livelock-fix
-
-uninline zone_reclaimable_pages() and zone_reclaimable().
+Subject: mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2
 
 Cc: Aaditya Kumar <aaditya.kumar.30@gmail.com>
 Cc: Bob Liu <lliubbo@gmail.com>
@@ -53,105 +52,21 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   19 -------------------
- mm/internal.h             |    2 ++
- mm/page-writeback.c       |    2 ++
- mm/vmscan.c               |   19 +++++++++++++++++++
- mm/vmstat.c               |    2 ++
- 5 files changed, 25 insertions(+), 19 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm_inline.h~mm-vmscan-fix-do_try_to_free_pages-livelock-fix include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-vmscan-fix-do_try_to_free_pages-livelock-fix
-+++ a/include/linux/mm_inline.h
-@@ -100,23 +100,4 @@ static __always_inline enum lru_list pag
- 	return lru;
- }
+diff -puN mm/migrate.c~mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2 mm/migrate.c
+--- a/mm/migrate.c~mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2
++++ a/mm/migrate.c
+@@ -1471,7 +1471,7 @@ static bool migrate_balanced_pgdat(struc
+ 		if (!populated_zone(zone))
+ 			continue;
  
--static inline unsigned long zone_reclaimable_pages(struct zone *zone)
--{
--	int nr;
--
--	nr = zone_page_state(zone, NR_ACTIVE_FILE) +
--	     zone_page_state(zone, NR_INACTIVE_FILE);
--
--	if (get_nr_swap_pages() > 0)
--		nr += zone_page_state(zone, NR_ACTIVE_ANON) +
--		      zone_page_state(zone, NR_INACTIVE_ANON);
--
--	return nr;
--}
--
--static inline bool zone_reclaimable(struct zone *zone)
--{
--	return zone->pages_scanned < zone_reclaimable_pages(zone) * 6;
--}
--
- #endif
-diff -puN mm/internal.h~mm-vmscan-fix-do_try_to_free_pages-livelock-fix mm/internal.h
---- a/mm/internal.h~mm-vmscan-fix-do_try_to_free_pages-livelock-fix
-+++ a/mm/internal.h
-@@ -85,6 +85,8 @@ extern unsigned long highest_memmap_pfn;
-  */
- extern int isolate_lru_page(struct page *page);
- extern void putback_lru_page(struct page *page);
-+extern unsigned long zone_reclaimable_pages(struct zone *zone);
-+extern bool zone_reclaimable(struct zone *zone);
+-		if (zone->all_unreclaimable)
++		if (!zone_reclaimable(zone))
+ 			continue;
  
- /*
-  * in mm/rmap.c:
-diff -puN mm/page-writeback.c~mm-vmscan-fix-do_try_to_free_pages-livelock-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-vmscan-fix-do_try_to_free_pages-livelock-fix
-+++ a/mm/page-writeback.c
-@@ -39,6 +39,8 @@
- #include <linux/mm_inline.h>
- #include <trace/events/writeback.h>
- 
-+#include "internal.h"
-+
- /*
-  * Sleep at most 200ms at a time in balance_dirty_pages().
-  */
-diff -puN mm/vmscan.c~mm-vmscan-fix-do_try_to_free_pages-livelock-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-do_try_to_free_pages-livelock-fix
-+++ a/mm/vmscan.c
-@@ -146,6 +146,25 @@ static bool global_reclaim(struct scan_c
- }
- #endif
- 
-+unsigned long zone_reclaimable_pages(struct zone *zone)
-+{
-+	int nr;
-+
-+	nr = zone_page_state(zone, NR_ACTIVE_FILE) +
-+	     zone_page_state(zone, NR_INACTIVE_FILE);
-+
-+	if (get_nr_swap_pages() > 0)
-+		nr += zone_page_state(zone, NR_ACTIVE_ANON) +
-+		      zone_page_state(zone, NR_INACTIVE_ANON);
-+
-+	return nr;
-+}
-+
-+bool zone_reclaimable(struct zone *zone)
-+{
-+	return zone->pages_scanned < zone_reclaimable_pages(zone) * 6;
-+}
-+
- static unsigned long get_lru_size(struct lruvec *lruvec, enum lru_list lru)
- {
- 	if (!mem_cgroup_disabled())
-diff -puN mm/vmstat.c~mm-vmscan-fix-do_try_to_free_pages-livelock-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-vmscan-fix-do_try_to_free_pages-livelock-fix
-+++ a/mm/vmstat.c
-@@ -21,6 +21,8 @@
- #include <linux/compaction.h>
- #include <linux/mm_inline.h>
- 
-+#include "internal.h"
-+
- #ifdef CONFIG_VM_EVENT_COUNTERS
- DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
- EXPORT_PER_CPU_SYMBOL(vm_event_states);
+ 		/* Avoid waking kswapd by allocating pages_to_migrate pages. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -174,7 +89,6 @@ mm-hotplug-verify-hotplug-memory-range.patch
 mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
 mm-munlock-bypass-per-cpu-pvec-for-putback_lru_page.patch
 mm-vmscan-fix-do_try_to_free_pages-livelock.patch
-mm-vmscan-fix-do_try_to_free_pages-livelock-fix-2.patch
 mm-page-writebackc-add-strictlimit-feature-fix.patch
 mm-madvisec-madvise_hwpoison-remove-local-ret.patch
 lib-crc32-update-the-comments-of-crc32_bele_generic-checkpatch-fixes.patch
