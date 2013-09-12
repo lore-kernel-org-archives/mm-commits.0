@@ -1,95 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-use-zone_is_empty-instead-of-ifzone-spanned_pages.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:43:47 -0700
-Message-ID: <52321973.BYZGf+DMftUR3zxr%akpm@linux-foundation.org>
+Subject: [merged] hugepage-mention-libhugetlbfs-in-doc.patch removed from
+ -mm tree
+Date: Thu, 12 Sep 2013 12:43:53 -0700
+Message-ID: <52321979.85OKz+Fx+ijcLj/S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58250 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58260 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755797Ab3ILTnr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:47 -0400
+	with ESMTP id S1755797Ab3ILTnx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, cody@linux.vnet.ibm.com, qiuxishi@huawei.com
+To: mm-commits@vger.kernel.org, davidlohr@hp.com
 
-Subject: [merged] mm-use-zone_is_empty-instead-of-ifzone-spanned_pages.patch removed from -mm tree
-To: qiuxishi@huawei.com,cody@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [merged] hugepage-mention-libhugetlbfs-in-doc.patch removed from -mm tree
+To: davidlohr@hp.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:43:47 -0700
+Date: Thu, 12 Sep 2013 12:43:53 -0700
 
 
 The patch titled
-     Subject: mm: use zone_is_empty() instead of if(zone->spanned_pages)
+     Subject: hugepage: mention libhugetlbfs in doc
 has been removed from the -mm tree.  Its filename was
-     mm-use-zone_is_empty-instead-of-ifzone-spanned_pages.patch
+     hugepage-mention-libhugetlbfs-in-doc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mm: use zone_is_empty() instead of if(zone->spanned_pages)
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: hugepage: mention libhugetlbfs in doc
 
-Use "zone_is_empty()" instead of "if (zone->spanned_pages)".
-Simplify the code, no functional change.
+Explicitly mention/recommend using the libhugetlbfs test cases when
+changing related kernel code.  Developers that are unaware of the project
+can easily miss this and introduce potential regressions that may or may
+not be caught by community review.
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Cody P Schafer <cody@linux.vnet.ibm.com>
+Also do some cleanups that make the document visually easier to view at a
+first glance.
+
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 +++---
- mm/page_alloc.c     |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ Documentation/vm/hugetlbpage.txt |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-use-zone_is_empty-instead-of-ifzone-spanned_pages mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-use-zone_is_empty-instead-of-ifzone-spanned_pages
-+++ a/mm/memory_hotplug.c
-@@ -230,7 +230,7 @@ static void grow_zone_span(struct zone *
- 	zone_span_writelock(zone);
+diff -puN Documentation/vm/hugetlbpage.txt~hugepage-mention-libhugetlbfs-in-doc Documentation/vm/hugetlbpage.txt
+--- a/Documentation/vm/hugetlbpage.txt~hugepage-mention-libhugetlbfs-in-doc
++++ a/Documentation/vm/hugetlbpage.txt
+@@ -165,6 +165,7 @@ which function as described above for th
  
- 	old_zone_end_pfn = zone_end_pfn(zone);
--	if (!zone->spanned_pages || start_pfn < zone->zone_start_pfn)
-+	if (zone_is_empty(zone) || start_pfn < zone->zone_start_pfn)
- 		zone->zone_start_pfn = start_pfn;
  
- 	zone->spanned_pages = max(old_zone_end_pfn, end_pfn) -
-@@ -305,7 +305,7 @@ static int __meminit move_pfn_range_left
- 		goto out_fail;
+ Interaction of Task Memory Policy with Huge Page Allocation/Freeing
++===================================================================
  
- 	/* use start_pfn for z1's start_pfn if z1 is empty */
--	if (z1->spanned_pages)
-+	if (!zone_is_empty(z1))
- 		z1_start_pfn = z1->zone_start_pfn;
- 	else
- 		z1_start_pfn = start_pfn;
-@@ -347,7 +347,7 @@ static int __meminit move_pfn_range_righ
- 		goto out_fail;
+ Whether huge pages are allocated and freed via the /proc interface or
+ the /sysfs interface using the nr_hugepages_mempolicy attribute, the NUMA
+@@ -229,6 +230,7 @@ resulting effect on persistent huge page
+    of huge pages over all on-lines nodes with memory.
  
- 	/* use end_pfn for z2's end_pfn if z2 is empty */
--	if (z2->spanned_pages)
-+	if (!zone_is_empty(z2))
- 		z2_end_pfn = zone_end_pfn(z2);
- 	else
- 		z2_end_pfn = end_pfn;
-diff -puN mm/page_alloc.c~mm-use-zone_is_empty-instead-of-ifzone-spanned_pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-use-zone_is_empty-instead-of-ifzone-spanned_pages
-+++ a/mm/page_alloc.c
-@@ -1306,7 +1306,7 @@ void mark_free_pages(struct zone *zone)
- 	int order, t;
- 	struct list_head *curr;
+ Per Node Hugepages Attributes
++=============================
  
--	if (!zone->spanned_pages)
-+	if (zone_is_empty(zone))
- 		return;
+ A subset of the contents of the root huge page control directory in sysfs,
+ described above, will be replicated under each the system device of each
+@@ -258,6 +260,7 @@ applied, from which node the huge page a
  
- 	spin_lock_irqsave(&zone->lock, flags);
-_
-
-Patches currently in -mm which might be from qiuxishi@huawei.com are
-
-origin.patch
-
+ 
+ Using Huge Pages
++================
+ 
+ If the user applications are going to request huge pages using mmap system
+ call, then it is required that system administrator mount a file system of
+@@ -296,20 +299,16 @@ calls, though the mount of filesystem wi
+ without MAP_HUGETLB.  For an example of how to use mmap with MAP_HUGETLB see
+ map_hugetlb.c.
+ 
+-*******************************************************************
++Examples
++========
+ 
+-/*
+- * map_hugetlb: see tools/testing/selftests/vm/map_hugetlb.c
+- */
++1) map_hugetlb: see tools/testing/selftests/vm/map_hugetlb.c
+ 
+-*******************************************************************
++2) hugepage-shm:  see tools/testing/selftests/vm/hugepage-shm.c
+ 
+-/*
+- * hugepage-shm:  see tools/testing/selftests/vm/hugepage-shm.c
+- */
++3) hugepage-mmap:  see tools/testing/selftests/vm/hugepage-mmap.c
+ 
+-*******************************************************************
