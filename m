@@ -1,80 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-avoid-possible-null-pointer-dereference-in-o2net_accept_one.patch
- removed from -mm tree
-Date: Thu, 12 Sep 2013 12:41:49 -0700
-Message-ID: <523218fd.5atpcq6IZPsJVk7Q%akpm@linux-foundation.org>
+Subject: [merged] block-replace-strict_strtoul-with-kstrtoul.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:41:59 -0700
+Message-ID: <52321907.VIDqbqES54vX7G6o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57938 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793Ab3ILTlu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:50 -0400
+	with ESMTP id S1753793Ab3ILTl7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: [merged] ocfs2-avoid-possible-null-pointer-dereference-in-o2net_accept_one.patch removed from -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] block-replace-strict_strtoul-with-kstrtoul.patch removed from -mm tree
+To: jg1.han@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:41:49 -0700
+Date: Thu, 12 Sep 2013 12:41:59 -0700
 
 
 The patch titled
-     Subject: ocfs2: avoid possible NULL pointer dereference in o2net_accept_one()
+     Subject: block: replace strict_strtoul() with kstrtoul()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-avoid-possible-null-pointer-dereference-in-o2net_accept_one.patch
+     block-replace-strict_strtoul-with-kstrtoul.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: avoid possible NULL pointer dereference in o2net_accept_one()
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: block: replace strict_strtoul() with kstrtoul()
 
-Since o2nm_get_node_by_num() may return NULL, we add this check in
-o2net_accept_one() to avoid possible NULL pointer dereference.
+The use of strict_strtoul() is not preferred, because strict_strtoul() is
+obsolete.  Thus, kstrtoul() should be used.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/block/osdblk.c             |    2 +-
+ drivers/block/rbd.c                |    2 +-
+ drivers/block/xen-blkback/xenbus.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-avoid-possible-null-pointer-dereference-in-o2net_accept_one fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-avoid-possible-null-pointer-dereference-in-o2net_accept_one
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -1873,12 +1873,16 @@ static int o2net_accept_one(struct socke
+diff -puN drivers/block/osdblk.c~block-replace-strict_strtoul-with-kstrtoul drivers/block/osdblk.c
+--- a/drivers/block/osdblk.c~block-replace-strict_strtoul-with-kstrtoul
++++ a/drivers/block/osdblk.c
+@@ -598,7 +598,7 @@ static ssize_t class_osdblk_remove(struc
+ 	unsigned long ul;
+ 	struct list_head *tmp;
  
- 	if (o2nm_this_node() >= node->nd_num) {
- 		local_node = o2nm_get_node_by_num(o2nm_this_node());
--		printk(KERN_NOTICE "o2net: Unexpected connect attempt seen "
--		       "at node '%s' (%u, %pI4:%d) from node '%s' (%u, "
--		       "%pI4:%d)\n", local_node->nd_name, local_node->nd_num,
--		       &(local_node->nd_ipv4_address),
--		       ntohs(local_node->nd_ipv4_port), node->nd_name,
--		       node->nd_num, &sin.sin_addr.s_addr, ntohs(sin.sin_port));
-+		if (local_node)
-+			printk(KERN_NOTICE "o2net: Unexpected connect attempt "
-+					"seen at node '%s' (%u, %pI4:%d) from "
-+					"node '%s' (%u, %pI4:%d)\n",
-+					local_node->nd_name, local_node->nd_num,
-+					&(local_node->nd_ipv4_address),
-+					ntohs(local_node->nd_ipv4_port),
-+					node->nd_name,
-+					node->nd_num, &sin.sin_addr.s_addr,
-+					ntohs(sin.sin_port));
- 		ret = -EINVAL;
- 		goto out;
+-	rc = strict_strtoul(buf, 10, &ul);
++	rc = kstrtoul(buf, 10, &ul);
+ 	if (rc)
+ 		return rc;
+ 
+diff -puN drivers/block/rbd.c~block-replace-strict_strtoul-with-kstrtoul drivers/block/rbd.c
+--- a/drivers/block/rbd.c~block-replace-strict_strtoul-with-kstrtoul
++++ a/drivers/block/rbd.c
+@@ -5132,7 +5132,7 @@ static ssize_t rbd_remove(struct bus_typ
+ 	bool already = false;
+ 	int ret;
+ 
+-	ret = strict_strtoul(buf, 10, &ul);
++	ret = kstrtoul(buf, 10, &ul);
+ 	if (ret)
+ 		return ret;
+ 
+diff -puN drivers/block/xen-blkback/xenbus.c~block-replace-strict_strtoul-with-kstrtoul drivers/block/xen-blkback/xenbus.c
+--- a/drivers/block/xen-blkback/xenbus.c~block-replace-strict_strtoul-with-kstrtoul
++++ a/drivers/block/xen-blkback/xenbus.c
+@@ -620,7 +620,7 @@ static void backend_changed(struct xenbu
  	}
+ 
+ 	/* Front end dir is a number, which is used as the handle. */
+-	err = strict_strtoul(strrchr(dev->otherend, '/') + 1, 0, &handle);
++	err = kstrtoul(strrchr(dev->otherend, '/') + 1, 0, &handle);
+ 	if (err)
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
+kernel-replace-strict_strto-with-kstrto.patch
 
