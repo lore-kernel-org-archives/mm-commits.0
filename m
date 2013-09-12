@@ -1,107 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-adjust-code-style-for-o2net_handler_tree_lookup.patch removed from
- -mm tree
-Date: Thu, 12 Sep 2013 12:41:47 -0700
-Message-ID: <523218fb.RsywsvhPvf7mV764%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-free-path-in-ocfs2_remove_inode_range.patch
+ removed from -mm tree
+Date: Thu, 12 Sep 2013 12:41:45 -0700
+Message-ID: <523218f9.EVOmL4OxowOgfM3o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57906 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793Ab3ILTlr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:47 -0400
+	with ESMTP id S1753793Ab3ILTlp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
 
-Subject: [merged] ocfs2-adjust-code-style-for-o2net_handler_tree_lookup.patch removed from -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-free-path-in-ocfs2_remove_inode_range.patch removed from -mm tree
+To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:41:47 -0700
+Date: Thu, 12 Sep 2013 12:41:45 -0700
 
 
 The patch titled
-     Subject: ocfs2: adjust code style for o2net_handler_tree_lookup()
+     Subject: ocfs2: free path in ocfs2_remove_inode_range()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-adjust-code-style-for-o2net_handler_tree_lookup.patch
+     ocfs2-free-path-in-ocfs2_remove_inode_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: adjust code style for o2net_handler_tree_lookup()
+From: Younger Liu <younger.liu@huawei.com>
+Subject: ocfs2: free path in ocfs2_remove_inode_range()
 
-Code in o2net_handler_tree_lookup() may be corrupted by mistake.  So
-adjust it to promote readability.
+In ocfs2_remove_inode_range(), there is a memory leak.  The variable path
+has allocated memory with ocfs2_new_path_from_et(), but it is not free.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Younger Liu <younger.liu@huawei.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ fs/ocfs2/file.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-adjust-code-style-for-o2net_handler_tree_lookup fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-adjust-code-style-for-o2net_handler_tree_lookup
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -766,32 +766,32 @@ static struct o2net_msg_handler *
- o2net_handler_tree_lookup(u32 msg_type, u32 key, struct rb_node ***ret_p,
- 			  struct rb_node **ret_parent)
- {
--        struct rb_node **p = &o2net_handler_tree.rb_node;
--        struct rb_node *parent = NULL;
-+	struct rb_node **p = &o2net_handler_tree.rb_node;
-+	struct rb_node *parent = NULL;
- 	struct o2net_msg_handler *nmh, *ret = NULL;
- 	int cmp;
+diff -puN fs/ocfs2/file.c~ocfs2-free-path-in-ocfs2_remove_inode_range fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-free-path-in-ocfs2_remove_inode_range
++++ a/fs/ocfs2/file.c
+@@ -1796,6 +1796,7 @@ static int ocfs2_remove_inode_range(stru
+ 	ocfs2_truncate_cluster_pages(inode, byte_start, byte_len);
  
--        while (*p) {
--                parent = *p;
--                nmh = rb_entry(parent, struct o2net_msg_handler, nh_node);
-+	while (*p) {
-+		parent = *p;
-+		nmh = rb_entry(parent, struct o2net_msg_handler, nh_node);
- 		cmp = o2net_handler_cmp(nmh, msg_type, key);
+ out:
++	ocfs2_free_path(path);
+ 	ocfs2_schedule_truncate_log_flush(osb, 1);
+ 	ocfs2_run_deallocs(osb, &dealloc);
  
--                if (cmp < 0)
--                        p = &(*p)->rb_left;
--                else if (cmp > 0)
--                        p = &(*p)->rb_right;
--                else {
-+		if (cmp < 0)
-+			p = &(*p)->rb_left;
-+		else if (cmp > 0)
-+			p = &(*p)->rb_right;
-+		else {
- 			ret = nmh;
--                        break;
-+			break;
- 		}
--        }
-+	}
- 
--        if (ret_p != NULL)
--                *ret_p = p;
--        if (ret_parent != NULL)
--                *ret_parent = parent;
-+	if (ret_p != NULL)
-+		*ret_p = p;
-+	if (ret_parent != NULL)
-+		*ret_parent = parent;
- 
--        return ret;
-+	return ret;
- }
- 
- static void o2net_handler_kref_release(struct kref *kref)
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from younger.liu@huawei.com are
 
 origin.patch
+ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
+ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
+ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
