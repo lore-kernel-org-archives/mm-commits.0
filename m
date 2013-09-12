@@ -1,255 +1,257 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-sparse-introduce-alloc_usemap_and_memmap.patch
+Subject: [merged]
+ mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask.patch
  removed from -mm tree
-Date: Thu, 12 Sep 2013 12:45:03 -0700
-Message-ID: <523219bf.Cfj/khb7HpnQqxDw%akpm@linux-foundation.org>
+Date: Thu, 12 Sep 2013 12:44:59 -0700
+Message-ID: <523219bb.tbztezBWv2UK7nce%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58517 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58495 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756126Ab3ILTpE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:04 -0400
+	with ESMTP id S1756118Ab3ILTpA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, tj@kernel.org, rientjes@google.com, riel@redhat.com, kosaki.motohiro@jp.fujitsu.com, jkosina@suse.cz, isimatu.yasuaki@jp.fujitsu.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, fengguang.wu@intel.com, dave.hansen@linux.intel.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, joern@logfs.org, hughd@google.com, hannes@cmpxchg.org, vbabka@suse.cz
 
-Subject: [merged] mm-sparse-introduce-alloc_usemap_and_memmap.patch removed from -mm tree
-To: liwanp@linux.vnet.ibm.com,dave.hansen@linux.intel.com,fengguang.wu@intel.com,hannes@cmpxchg.org,iamjoonsoo.kim@lge.com,isimatu.yasuaki@jp.fujitsu.com,jkosina@suse.cz,kosaki.motohiro@jp.fujitsu.com,riel@redhat.com,rientjes@google.com,tj@kernel.org,yinghai@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask.patch removed from -mm tree
+To: vbabka@suse.cz,hannes@cmpxchg.org,hughd@google.com,joern@logfs.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,walken@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:45:03 -0700
+Date: Thu, 12 Sep 2013 12:44:59 -0700
 
 
 The patch titled
-     Subject: mm/sparse: introduce alloc_usemap_and_memmap
+     Subject: mm: munlock: manual pte walk in fast path instead of follow_page_mask()
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-introduce-alloc_usemap_and_memmap.patch
+     mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/sparse: introduce alloc_usemap_and_memmap
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: munlock: manual pte walk in fast path instead of follow_page_mask()
 
-After commit 9bdac91424075 ("sparsemem: Put mem map for one node
-together."), vmemmap for one node will be allocated together, its logic is
-similar as memory allocation for pageblock flags.  This patch introduces
-alloc_usemap_and_memmap to extract the same logic of memory alloction for
-pageblock flags and vmemmap.
+Currently munlock_vma_pages_range() calls follow_page_mask() to obtain
+each individual struct page.  This entails repeated full page table
+translations and page table lock taken for each page separately.
 
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+This patch avoids the costly follow_page_mask() where possible, by
+iterating over ptes within single pmd under single page table lock.  The
+first pte is obtained by get_locked_pte() for non-THP page acquired by the
+initial follow_page_mask().  The rest of the on-stack pagevec for munlock
+is filled up using pte_walk as long as pte_present() and vm_normal_page()
+are sufficient to obtain the struct page.
+
+After this patch, a 14% speedup was measured for munlocking a 56GB large
+memory area with THP disabled.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jörn Engel <joern@logfs.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |  133 +++++++++++++++++++++-----------------------------
- 1 file changed, 57 insertions(+), 76 deletions(-)
+ include/linux/mm.h |   12 ++--
+ mm/mlock.c         |  110 ++++++++++++++++++++++++++++++-------------
+ 2 files changed, 85 insertions(+), 37 deletions(-)
 
-diff -puN mm/sparse.c~mm-sparse-introduce-alloc_usemap_and_memmap mm/sparse.c
---- a/mm/sparse.c~mm-sparse-introduce-alloc_usemap_and_memmap
-+++ a/mm/sparse.c
-@@ -339,13 +339,14 @@ static void __init check_usemap_section_
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
+diff -puN include/linux/mm.h~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask include/linux/mm.h
+--- a/include/linux/mm.h~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask
++++ a/include/linux/mm.h
+@@ -643,12 +643,12 @@ static inline enum zone_type page_zonenu
+ #endif
  
--static void __init sparse_early_usemaps_alloc_node(unsigned long**usemap_map,
-+static void __init sparse_early_usemaps_alloc_node(void *data,
- 				 unsigned long pnum_begin,
- 				 unsigned long pnum_end,
- 				 unsigned long usemap_count, int nodeid)
+ /*
+- * The identification function is only used by the buddy allocator for
+- * determining if two pages could be buddies. We are not really
+- * identifying a zone since we could be using a the section number
+- * id if we have not node id available in page flags.
+- * We guarantee only that it will return the same value for two
+- * combinable pages in a zone.
++ * The identification function is mainly used by the buddy allocator for
++ * determining if two pages could be buddies. We are not really identifying
++ * the zone since we could be using the section number id if we do not have
++ * node id available in page flags.
++ * We only guarantee that it will return the same value for two combinable
++ * pages in a zone.
+  */
+ static inline int page_zone_id(struct page *page)
  {
- 	void *usemap;
- 	unsigned long pnum;
-+	unsigned long **usemap_map = (unsigned long **)data;
- 	int size = usemap_size();
- 
- 	usemap = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nodeid),
-@@ -430,11 +431,12 @@ void __init sparse_mem_maps_populate_nod
- #endif /* !CONFIG_SPARSEMEM_VMEMMAP */
- 
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
--static void __init sparse_early_mem_maps_alloc_node(struct page **map_map,
-+static void __init sparse_early_mem_maps_alloc_node(void *data,
- 				 unsigned long pnum_begin,
- 				 unsigned long pnum_end,
- 				 unsigned long map_count, int nodeid)
+diff -puN mm/mlock.c~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-manual-pte-walk-in-fast-path-instead-of-follow_page_mask
++++ a/mm/mlock.c
+@@ -280,8 +280,7 @@ static void __putback_lru_fast(struct pa
+  * The second phase finishes the munlock only for pages where isolation
+  * succeeded.
+  *
+- * Note that pvec is modified during the process. Before returning
+- * pagevec_reinit() is called on it.
++ * Note that the pagevec may be modified during the process.
+  */
+ static void __munlock_pagevec(struct pagevec *pvec, struct zone *zone)
  {
-+	struct page **map_map = (struct page **)data;
- 	sparse_mem_maps_populate_node(map_map, pnum_begin, pnum_end,
- 					 map_count, nodeid);
- }
-@@ -460,6 +462,55 @@ void __attribute__((weak)) __meminit vme
- {
- }
- 
-+/**
-+ *  alloc_usemap_and_memmap - memory alloction for pageblock flags and vmemmap
-+ *  @map: usemap_map for pageblock flags or mmap_map for vmemmap
-+ */
-+static void __init alloc_usemap_and_memmap(void (*alloc_func)
-+					(void *, unsigned long, unsigned long,
-+					unsigned long, int), void *data)
-+{
-+	unsigned long pnum;
-+	unsigned long map_count;
-+	int nodeid_begin = 0;
-+	unsigned long pnum_begin = 0;
-+
-+	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
-+		struct mem_section *ms;
-+
-+		if (!present_section_nr(pnum))
-+			continue;
-+		ms = __nr_to_section(pnum);
-+		nodeid_begin = sparse_early_nid(ms);
-+		pnum_begin = pnum;
-+		break;
-+	}
-+	map_count = 1;
-+	for (pnum = pnum_begin + 1; pnum < NR_MEM_SECTIONS; pnum++) {
-+		struct mem_section *ms;
-+		int nodeid;
-+
-+		if (!present_section_nr(pnum))
-+			continue;
-+		ms = __nr_to_section(pnum);
-+		nodeid = sparse_early_nid(ms);
-+		if (nodeid == nodeid_begin) {
-+			map_count++;
-+			continue;
-+		}
-+		/* ok, we need to take cake of from pnum_begin to pnum - 1*/
-+		alloc_func(data, pnum_begin, pnum,
-+						map_count, nodeid_begin);
-+		/* new start, update count etc*/
-+		nodeid_begin = nodeid;
-+		pnum_begin = pnum;
-+		map_count = 1;
-+	}
-+	/* ok, last chunk */
-+	alloc_func(data, pnum_begin, NR_MEM_SECTIONS,
-+						map_count, nodeid_begin);
+@@ -356,8 +355,60 @@ skip_munlock:
+ 	 */
+ 	if (pagevec_count(&pvec_putback))
+ 		__putback_lru_fast(&pvec_putback, pgrescued);
 +}
 +
++/*
++ * Fill up pagevec for __munlock_pagevec using pte walk
++ *
++ * The function expects that the struct page corresponding to @start address is
++ * a non-TPH page already pinned and in the @pvec, and that it belongs to @zone.
++ *
++ * The rest of @pvec is filled by subsequent pages within the same pmd and same
++ * zone, as long as the pte's are present and vm_normal_page() succeeds. These
++ * pages also get pinned.
++ *
++ * Returns the address of the next page that should be scanned. This equals
++ * @start + PAGE_SIZE when no page could be added by the pte walk.
++ */
++static unsigned long __munlock_pagevec_fill(struct pagevec *pvec,
++		struct vm_area_struct *vma, int zoneid,	unsigned long start,
++		unsigned long end)
++{
++	pte_t *pte;
++	spinlock_t *ptl;
++
++	/*
++	 * Initialize pte walk starting at the already pinned page where we
++	 * are sure that there is a pte.
++	 */
++	pte = get_locked_pte(vma->vm_mm, start,	&ptl);
++	end = min(end, pmd_addr_end(start, end));
++
++	/* The page next to the pinned page is the first we will try to get */
++	start += PAGE_SIZE;
++	while (start < end) {
++		struct page *page = NULL;
++		pte++;
++		if (pte_present(*pte))
++			page = vm_normal_page(vma, start, *pte);
++		/*
++		 * Break if page could not be obtained or the page's node+zone does not
++		 * match
++		 */
++		if (!page || page_zone_id(page) != zoneid)
++			break;
+ 
+-	pagevec_reinit(pvec);
++		get_page(page);
++		/*
++		 * Increase the address that will be returned *before* the
++		 * eventual break due to pvec becoming full by adding the page
++		 */
++		start += PAGE_SIZE;
++		if (pagevec_add(pvec, page) == 0)
++			break;
++	}
++	pte_unmap_unlock(pte, ptl);
++	return start;
+ }
+ 
  /*
-  * Allocate the accumulated non-linear sections, allocate a mem_map
-  * for each and record the physical to section mapping.
-@@ -471,11 +522,7 @@ void __init sparse_init(void)
- 	unsigned long *usemap;
- 	unsigned long **usemap_map;
- 	int size;
--	int nodeid_begin = 0;
--	unsigned long pnum_begin = 0;
--	unsigned long usemap_count;
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
--	unsigned long map_count;
- 	int size2;
- 	struct page **map_map;
- #endif
-@@ -501,82 +548,16 @@ void __init sparse_init(void)
- 	usemap_map = alloc_bootmem(size);
- 	if (!usemap_map)
- 		panic("can not allocate usemap_map\n");
+@@ -381,17 +432,16 @@ skip_munlock:
+ void munlock_vma_pages_range(struct vm_area_struct *vma,
+ 			     unsigned long start, unsigned long end)
+ {
+-	struct pagevec pvec;
+-	struct zone *zone = NULL;
 -
--	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
--		struct mem_section *ms;
--
--		if (!present_section_nr(pnum))
--			continue;
--		ms = __nr_to_section(pnum);
--		nodeid_begin = sparse_early_nid(ms);
--		pnum_begin = pnum;
--		break;
--	}
--	usemap_count = 1;
--	for (pnum = pnum_begin + 1; pnum < NR_MEM_SECTIONS; pnum++) {
--		struct mem_section *ms;
--		int nodeid;
--
--		if (!present_section_nr(pnum))
--			continue;
--		ms = __nr_to_section(pnum);
--		nodeid = sparse_early_nid(ms);
--		if (nodeid == nodeid_begin) {
--			usemap_count++;
--			continue;
--		}
--		/* ok, we need to take cake of from pnum_begin to pnum - 1*/
--		sparse_early_usemaps_alloc_node(usemap_map, pnum_begin, pnum,
--						 usemap_count, nodeid_begin);
--		/* new start, update count etc*/
--		nodeid_begin = nodeid;
--		pnum_begin = pnum;
--		usemap_count = 1;
--	}
--	/* ok, last chunk */
--	sparse_early_usemaps_alloc_node(usemap_map, pnum_begin, NR_MEM_SECTIONS,
--					 usemap_count, nodeid_begin);
-+	alloc_usemap_and_memmap(sparse_early_usemaps_alloc_node,
-+							(void *)usemap_map);
+-	pagevec_init(&pvec, 0);
+ 	vma->vm_flags &= ~VM_LOCKED;
  
- #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
- 	size2 = sizeof(struct page *) * NR_MEM_SECTIONS;
- 	map_map = alloc_bootmem(size2);
- 	if (!map_map)
- 		panic("can not allocate map_map\n");
--
--	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
--		struct mem_section *ms;
--
--		if (!present_section_nr(pnum))
--			continue;
--		ms = __nr_to_section(pnum);
--		nodeid_begin = sparse_early_nid(ms);
--		pnum_begin = pnum;
--		break;
--	}
--	map_count = 1;
--	for (pnum = pnum_begin + 1; pnum < NR_MEM_SECTIONS; pnum++) {
--		struct mem_section *ms;
--		int nodeid;
--
--		if (!present_section_nr(pnum))
--			continue;
--		ms = __nr_to_section(pnum);
--		nodeid = sparse_early_nid(ms);
--		if (nodeid == nodeid_begin) {
--			map_count++;
--			continue;
--		}
--		/* ok, we need to take cake of from pnum_begin to pnum - 1*/
--		sparse_early_mem_maps_alloc_node(map_map, pnum_begin, pnum,
--						 map_count, nodeid_begin);
--		/* new start, update count etc*/
--		nodeid_begin = nodeid;
--		pnum_begin = pnum;
--		map_count = 1;
--	}
--	/* ok, last chunk */
--	sparse_early_mem_maps_alloc_node(map_map, pnum_begin, NR_MEM_SECTIONS,
--					 map_count, nodeid_begin);
-+	alloc_usemap_and_memmap(sparse_early_mem_maps_alloc_node,
-+							(void *)map_map);
- #endif
+ 	while (start < end) {
+-		struct page *page;
++		struct page *page = NULL;
+ 		unsigned int page_mask, page_increm;
+-		struct zone *pagezone;
++		struct pagevec pvec;
++		struct zone *zone;
++		int zoneid;
  
- 	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
++		pagevec_init(&pvec, 0);
+ 		/*
+ 		 * Although FOLL_DUMP is intended for get_dump_page(),
+ 		 * it just so happens that its special treatment of the
+@@ -400,22 +450,10 @@ void munlock_vma_pages_range(struct vm_a
+ 		 * has sneaked into the range, we won't oops here: great).
+ 		 */
+ 		page = follow_page_mask(vma, start, FOLL_GET | FOLL_DUMP,
+-					&page_mask);
++				&page_mask);
++
+ 		if (page && !IS_ERR(page)) {
+-			pagezone = page_zone(page);
+-			/* The whole pagevec must be in the same zone */
+-			if (pagezone != zone) {
+-				if (pagevec_count(&pvec))
+-					__munlock_pagevec(&pvec, zone);
+-				zone = pagezone;
+-			}
+ 			if (PageTransHuge(page)) {
+-				/*
+-				 * THP pages are not handled by pagevec due
+-				 * to their possible split (see below).
+-				 */
+-				if (pagevec_count(&pvec))
+-					__munlock_pagevec(&pvec, zone);
+ 				lock_page(page);
+ 				/*
+ 				 * Any THP page found by follow_page_mask() may
+@@ -428,21 +466,31 @@ void munlock_vma_pages_range(struct vm_a
+ 				put_page(page); /* follow_page_mask() */
+ 			} else {
+ 				/*
+-				 * Non-huge pages are handled in batches
+-				 * via pagevec. The pin from
+-				 * follow_page_mask() prevents them from
+-				 * collapsing by THP.
++				 * Non-huge pages are handled in batches via
++				 * pagevec. The pin from follow_page_mask()
++				 * prevents them from collapsing by THP.
++				 */
++				pagevec_add(&pvec, page);
++				zone = page_zone(page);
++				zoneid = page_zone_id(page);
++
++				/*
++				 * Try to fill the rest of pagevec using fast
++				 * pte walk. This will also update start to
++				 * the next page to process. Then munlock the
++				 * pagevec.
+ 				 */
+-				if (pagevec_add(&pvec, page) == 0)
+-					__munlock_pagevec(&pvec, zone);
++				start = __munlock_pagevec_fill(&pvec, vma,
++						zoneid, start, end);
++				__munlock_pagevec(&pvec, zone);
++				goto next;
+ 			}
+ 		}
+ 		page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
+ 		start += page_increm * PAGE_SIZE;
++next:
+ 		cond_resched();
+ 	}
+-	if (pagevec_count(&pvec))
+-		__munlock_pagevec(&pvec, zone);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 origin.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
