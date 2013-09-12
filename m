@@ -1,64 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch removed
- from -mm tree
-Date: Thu, 12 Sep 2013 12:45:49 -0700
-Message-ID: <523219ed.HP8ZTBGraUu1WQ1v%akpm@linux-foundation.org>
+ mm-hwpoison-injectc-change-permission-of-corrupt-pfn-unpoison-pfn-to-0200.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:45:37 -0700
+Message-ID: <523219e1.VkOmr0DF9Xns74yB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58631 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58609 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756333Ab3ILTpt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:49 -0400
+	with ESMTP id S1756251Ab3ILTpi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
 
-Subject: [merged] lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch removed from -mm tree
-To: joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-hwpoison-injectc-change-permission-of-corrupt-pfn-unpoison-pfn-to-0200.patch removed from -mm tree
+To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:45:49 -0700
+Date: Thu, 12 Sep 2013 12:45:37 -0700
 
 
 The patch titled
-     Subject: lib/genalloc.c: convert kmalloc_node(...GFP_ZERO...) to kzalloc_node(...)
+     Subject: mm/hwpoison-inject.c: change permission of corrupt-pfn/unpoison-pfn to 0200
 has been removed from the -mm tree.  Its filename was
-     lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
+     mm-hwpoison-injectc-change-permission-of-corrupt-pfn-unpoison-pfn-to-0200.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: lib/genalloc.c: convert kmalloc_node(...GFP_ZERO...) to kzalloc_node(...)
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/hwpoison-inject.c: change permission of corrupt-pfn/unpoison-pfn to 0200
 
-Use the helper function instead of __GFP_ZERO.
+Hwpoison injection doesn't implement read method for
+corrupt-pfn/unpoison-pfn attributes:
 
-Signed-off-by: Joe Perches <joe@perches.com>
+# cat /sys/kernel/debug/hwpoison/corrupt-pfn
+cat: /sys/kernel/debug/hwpoison/corrupt-pfn: Permission denied
+# cat /sys/kernel/debug/hwpoison/unpoison-pfn
+cat: /sys/kernel/debug/hwpoison/unpoison-pfn: Permission denied
+
+This patch changes the permission of corrupt-pfn/unpoison-pfn to 0200.
+
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/genalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hwpoison-inject.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/genalloc.c~lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node lib/genalloc.c
---- a/lib/genalloc.c~lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node
-+++ a/lib/genalloc.c
-@@ -187,7 +187,7 @@ int gen_pool_add_virt(struct gen_pool *p
- 	int nbytes = sizeof(struct gen_pool_chunk) +
- 				BITS_TO_LONGS(nbits) * sizeof(long);
+diff -puN mm/hwpoison-inject.c~mm-hwpoison-injectc-change-permission-of-corrupt-pfn-unpoison-pfn-to-0200 mm/hwpoison-inject.c
+--- a/mm/hwpoison-inject.c~mm-hwpoison-injectc-change-permission-of-corrupt-pfn-unpoison-pfn-to-0200
++++ a/mm/hwpoison-inject.c
+@@ -88,12 +88,12 @@ static int pfn_inject_init(void)
+ 	 * hardware status change, hence do not require hardware support.
+ 	 * They are mainly for testing hwpoison in software level.
+ 	 */
+-	dentry = debugfs_create_file("corrupt-pfn", 0600, hwpoison_dir,
++	dentry = debugfs_create_file("corrupt-pfn", 0200, hwpoison_dir,
+ 					  NULL, &hwpoison_fops);
+ 	if (!dentry)
+ 		goto fail;
  
--	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
-+	chunk = kzalloc_node(nbytes, GFP_KERNEL, nid);
- 	if (unlikely(chunk == NULL))
- 		return -ENOMEM;
- 
+-	dentry = debugfs_create_file("unpoison-pfn", 0600, hwpoison_dir,
++	dentry = debugfs_create_file("unpoison-pfn", 0200, hwpoison_dir,
+ 				     NULL, &unpoison_fops);
+ 	if (!dentry)
+ 		goto fail;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
 origin.patch
-kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
