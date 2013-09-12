@@ -1,168 +1,173 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:43:29 -0700
-Message-ID: <52321961.tEcb+PZPBn7aodqB%akpm@linux-foundation.org>
+ mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
+ removed from -mm tree
+Date: Thu, 12 Sep 2013 12:43:19 -0700
+Message-ID: <52321957.Xhrrza/4BQQymgMu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58214 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58184 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755721Ab3ILTna (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:30 -0400
+	with ESMTP id S1755304Ab3ILTnU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, js1304@gmail.com, adobriyan@gmail.com, cl@linux.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, dhillf@gmail.com, davidlohr.bueso@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
 
-Subject: [merged] vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch removed from -mm tree
-To: cl@linux.com,adobriyan@gmail.com,js1304@gmail.com,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch removed from -mm tree
+To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr.bueso@hp.com,dhillf@gmail.com,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,n-horiguchi@ah.jp.nec.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:43:29 -0700
+Date: Thu, 12 Sep 2013 12:43:19 -0700
 
 
 The patch titled
-     Subject: vmstat: create separate function to fold per cpu diffs into local counters
+     Subject: mm, hugetlb: decrement reserve count if VM_NORESERVE alloc page cache
 has been removed from the -mm tree.  Its filename was
-     vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch
+     mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: vmstat: create separate function to fold per cpu diffs into local counters
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm, hugetlb: decrement reserve count if VM_NORESERVE alloc page cache
 
-The main idea behind this patchset is to reduce the vmstat update overhead
-by avoiding interrupt enable/disable and the use of per cpu atomics.
+If a vma with VM_NORESERVE allocate a new page for page cache, we should
+check whether this area is reserved or not.  If this address is already
+reserved by other process(in case of chg == 0), we should decrement
+reserve count, because this allocated page will go into page cache and
+currently, there is no way to know that this page comes from reserved pool
+or not when releasing inode.  This may introduce over-counting problem to
+reserved count.  With following example code, you can easily reproduce
+this situation.
 
+Assume 2MB, nr_hugepages = 100
 
-This patch (of 3):
+        size = 20 * MB;
+        flag = MAP_SHARED;
+        p = mmap(NULL, size, PROT_READ|PROT_WRITE, flag, fd, 0);
+        if (p == MAP_FAILED) {
+                fprintf(stderr, "mmap() failed: %s\n", strerror(errno));
+                return -1;
+        }
 
-It is better to have a separate folding function because
-refresh_cpu_vm_stats() also does other things like expire pages in the
-page allocator caches.
+        flag = MAP_SHARED | MAP_NORESERVE;
+        q = mmap(NULL, size, PROT_READ|PROT_WRITE, flag, fd, 0);
+        if (q == MAP_FAILED) {
+                fprintf(stderr, "mmap() failed: %s\n", strerror(errno));
+        }
+        q[0] = 'c';
 
-If we have a separate function then refresh_cpu_vm_stats() is only called
-from the local cpu which allows additional optimizations.
+After finish the program, run 'cat /proc/meminfo'.  You can see below
+result.
 
-The folding function is only called when a cpu is being downed and
-therefore no other processor will be accessing the counters.  Also
-simplifies synchronization.
+HugePages_Free:      100
+HugePages_Rsvd:        1
 
-[akpm@linux-foundation.org: fix UP build]
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Tejun Heo <tj@kernel.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+To fix this, we should check our mapping type and tracked region.  If our
+mapping is VM_NORESERVE, VM_MAYSHARE and chg is 0, this imply that current
+allocated page will go into page cache which is already reserved region
+when mapping is created.  In this case, we should decrease reserve count. 
+As implementing above, this patch solve the problem.
+
+[akpm@linux-foundation.org: fix spelling in comment]
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Hillf Danton <dhillf@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    3 +-
- mm/page_alloc.c        |    2 -
- mm/vmstat.c            |   40 +++++++++++++++++++++++++++++++++------
- 3 files changed, 37 insertions(+), 8 deletions(-)
+ mm/hugetlb.c |   34 ++++++++++++++++++++++++++--------
+ 1 file changed, 26 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/vmstat.h~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters include/linux/vmstat.h
---- a/include/linux/vmstat.h~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters
-+++ a/include/linux/vmstat.h
-@@ -198,7 +198,7 @@ extern void __inc_zone_state(struct zone
- extern void dec_zone_state(struct zone *, enum zone_stat_item);
- extern void __dec_zone_state(struct zone *, enum zone_stat_item);
- 
--void refresh_cpu_vm_stats(int);
-+void cpu_vm_stats_fold(int cpu);
- void refresh_zone_stat_thresholds(void);
- 
- void drain_zonestat(struct zone *zone, struct per_cpu_pageset *);
-@@ -255,6 +255,7 @@ static inline void __dec_zone_page_state
- 
- static inline void refresh_cpu_vm_stats(int cpu) { }
- static inline void refresh_zone_stat_thresholds(void) { }
-+static inline void cpu_vm_stats_fold(int cpu) { }
- 
- static inline void drain_zonestat(struct zone *zone,
- 			struct per_cpu_pageset *pset) { }
-diff -puN mm/page_alloc.c~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters mm/page_alloc.c
---- a/mm/page_alloc.c~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters
-+++ a/mm/page_alloc.c
-@@ -5435,7 +5435,7 @@ static int page_alloc_cpu_notify(struct
- 		 * This is only okay since the processor is dead and cannot
- 		 * race with what we are doing.
- 		 */
--		refresh_cpu_vm_stats(cpu);
-+		cpu_vm_stats_fold(cpu);
- 	}
- 	return NOTIFY_OK;
+diff -puN mm/hugetlb.c~mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-decrement-reserve-count-if-vm_noreserve-alloc-page-cache
++++ a/mm/hugetlb.c
+@@ -443,10 +443,23 @@ void reset_vma_resv_huge_pages(struct vm
  }
-diff -puN mm/vmstat.c~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters mm/vmstat.c
---- a/mm/vmstat.c~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters
-+++ a/mm/vmstat.c
-@@ -415,11 +415,7 @@ EXPORT_SYMBOL(dec_zone_page_state);
- #endif
  
- /*
-- * Update the zone counters for one cpu.
-- *
-- * The cpu specified must be either the current cpu or a processor that
-- * is not online. If it is the current cpu then the execution thread must
-- * be pinned to the current cpu.
-+ * Update the zone counters for the current cpu.
-  *
-  * Note that refresh_cpu_vm_stats strives to only access
-  * node local memory. The per cpu pagesets on remote zones are placed
-@@ -432,7 +428,7 @@ EXPORT_SYMBOL(dec_zone_page_state);
-  * with the global counters. These could cause remote node cache line
-  * bouncing and will have to be only done when necessary.
-  */
--void refresh_cpu_vm_stats(int cpu)
-+static void refresh_cpu_vm_stats(int cpu)
+ /* Returns true if the VMA has associated reserve pages */
+-static int vma_has_reserves(struct vm_area_struct *vma)
++static int vma_has_reserves(struct vm_area_struct *vma, long chg)
  {
- 	struct zone *zone;
- 	int i;
-@@ -489,6 +485,38 @@ void refresh_cpu_vm_stats(int cpu)
- 	}
- 
- 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-+		if (global_diff[i])
-+			atomic_long_add(global_diff[i], &vm_stat[i]);
-+}
-+
-+/*
-+ * Fold the data for an offline cpu into the global array.
-+ * There cannot be any access by the offline cpu and therefore
-+ * synchronization is simplified.
-+ */
-+void cpu_vm_stats_fold(int cpu)
-+{
-+	struct zone *zone;
-+	int i;
-+	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
-+
-+	for_each_populated_zone(zone) {
-+		struct per_cpu_pageset *p;
-+
-+		p = per_cpu_ptr(zone->pageset, cpu);
-+
-+		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-+			if (p->vm_stat_diff[i]) {
-+				int v;
-+
-+				v = p->vm_stat_diff[i];
-+				p->vm_stat_diff[i] = 0;
-+				atomic_long_add(v, &zone->vm_stat[i]);
-+				global_diff[i] += v;
-+			}
+-	if (vma->vm_flags & VM_NORESERVE)
+-		return 0;
++	if (vma->vm_flags & VM_NORESERVE) {
++		/*
++		 * This address is already reserved by other process(chg == 0),
++		 * so, we should decrement reserved count. Without decrementing,
++		 * reserve count remains after releasing inode, because this
++		 * allocated page will go into page cache and is regarded as
++		 * coming from reserved pool in releasing step.  Currently, we
++		 * don't have any other solution to deal with this situation
++		 * properly, so add work-around here.
++		 */
++		if (vma->vm_flags & VM_MAYSHARE && chg == 0)
++			return 1;
++		else
++			return 0;
 +	}
+ 
+ 	/* Shared mappings always use reserves */
+ 	if (vma->vm_flags & VM_MAYSHARE)
+@@ -520,7 +533,8 @@ static struct page *dequeue_huge_page_no
+ 
+ static struct page *dequeue_huge_page_vma(struct hstate *h,
+ 				struct vm_area_struct *vma,
+-				unsigned long address, int avoid_reserve)
++				unsigned long address, int avoid_reserve,
++				long chg)
+ {
+ 	struct page *page = NULL;
+ 	struct mempolicy *mpol;
+@@ -535,7 +549,7 @@ static struct page *dequeue_huge_page_vm
+ 	 * have no page reserves. This check ensures that reservations are
+ 	 * not "stolen". The child may still get SIGKILLed
+ 	 */
+-	if (!vma_has_reserves(vma) &&
++	if (!vma_has_reserves(vma, chg) &&
+ 			h->free_huge_pages - h->resv_huge_pages == 0)
+ 		goto err;
+ 
+@@ -553,8 +567,12 @@ retry_cpuset:
+ 		if (cpuset_zone_allowed_softwall(zone, htlb_alloc_mask)) {
+ 			page = dequeue_huge_page_node(h, zone_to_nid(zone));
+ 			if (page) {
+-				if (!avoid_reserve && vma_has_reserves(vma))
+-					h->resv_huge_pages--;
++				if (avoid_reserve)
++					break;
++				if (!vma_has_reserves(vma, chg))
++					break;
 +
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
- 		if (global_diff[i])
- 			atomic_long_add(global_diff[i], &vm_stat[i]);
- }
++				h->resv_huge_pages--;
+ 				break;
+ 			}
+ 		}
+@@ -1155,7 +1173,7 @@ static struct page *alloc_huge_page(stru
+ 		return ERR_PTR(-ENOSPC);
+ 	}
+ 	spin_lock(&hugetlb_lock);
+-	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve);
++	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve, chg);
+ 	if (!page) {
+ 		spin_unlock(&hugetlb_lock);
+ 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 origin.patch
 
