@@ -1,84 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-replace-strict_strtoul-with-kstrtoul.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:41:59 -0700
-Message-ID: <52321907.VIDqbqES54vX7G6o%akpm@linux-foundation.org>
+Subject: [merged]
+ block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:42:01 -0700
+Message-ID: <52321909.RrMrSCD8765orMnx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57941 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793Ab3ILTl7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:59 -0400
+	with ESMTP id S1753793Ab3ILTmB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:42:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: [merged] block-replace-strict_strtoul-with-kstrtoul.patch removed from -mm tree
+Subject: [merged] block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch removed from -mm tree
 To: jg1.han@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:41:59 -0700
+Date: Thu, 12 Sep 2013 12:42:01 -0700
 
 
 The patch titled
-     Subject: block: replace strict_strtoul() with kstrtoul()
+     Subject: block/blk-sysfs.c: replace strict_strtoul() with kstrtoul()
 has been removed from the -mm tree.  Its filename was
-     block-replace-strict_strtoul-with-kstrtoul.patch
+     block-blk-sysfs-replace-strict_strtoul-with-kstrtoul.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: block: replace strict_strtoul() with kstrtoul()
+Subject: block/blk-sysfs.c: replace strict_strtoul() with kstrtoul()
 
-The use of strict_strtoul() is not preferred, because strict_strtoul() is
-obsolete.  Thus, kstrtoul() should be used.
+The usage of strict_strtoul() is not preferred, because strict_strtoul()
+is obsolete.  Thus, kstrtoul() should be used.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/osdblk.c             |    2 +-
- drivers/block/rbd.c                |    2 +-
- drivers/block/xen-blkback/xenbus.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ block/blk-sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/osdblk.c~block-replace-strict_strtoul-with-kstrtoul drivers/block/osdblk.c
---- a/drivers/block/osdblk.c~block-replace-strict_strtoul-with-kstrtoul
-+++ a/drivers/block/osdblk.c
-@@ -598,7 +598,7 @@ static ssize_t class_osdblk_remove(struc
- 	unsigned long ul;
- 	struct list_head *tmp;
+diff -puN block/blk-sysfs.c~block-blk-sysfs-replace-strict_strtoul-with-kstrtoul block/blk-sysfs.c
+--- a/block/blk-sysfs.c~block-blk-sysfs-replace-strict_strtoul-with-kstrtoul
++++ a/block/blk-sysfs.c
+@@ -29,7 +29,7 @@ queue_var_store(unsigned long *var, cons
+ 	int err;
+ 	unsigned long v;
  
--	rc = strict_strtoul(buf, 10, &ul);
-+	rc = kstrtoul(buf, 10, &ul);
- 	if (rc)
- 		return rc;
- 
-diff -puN drivers/block/rbd.c~block-replace-strict_strtoul-with-kstrtoul drivers/block/rbd.c
---- a/drivers/block/rbd.c~block-replace-strict_strtoul-with-kstrtoul
-+++ a/drivers/block/rbd.c
-@@ -5132,7 +5132,7 @@ static ssize_t rbd_remove(struct bus_typ
- 	bool already = false;
- 	int ret;
- 
--	ret = strict_strtoul(buf, 10, &ul);
-+	ret = kstrtoul(buf, 10, &ul);
- 	if (ret)
- 		return ret;
- 
-diff -puN drivers/block/xen-blkback/xenbus.c~block-replace-strict_strtoul-with-kstrtoul drivers/block/xen-blkback/xenbus.c
---- a/drivers/block/xen-blkback/xenbus.c~block-replace-strict_strtoul-with-kstrtoul
-+++ a/drivers/block/xen-blkback/xenbus.c
-@@ -620,7 +620,7 @@ static void backend_changed(struct xenbu
- 	}
- 
- 	/* Front end dir is a number, which is used as the handle. */
--	err = strict_strtoul(strrchr(dev->otherend, '/') + 1, 0, &handle);
-+	err = kstrtoul(strrchr(dev->otherend, '/') + 1, 0, &handle);
- 	if (err)
- 		return;
+-	err = strict_strtoul(page, 10, &v);
++	err = kstrtoul(page, 10, &v);
+ 	if (err || v > UINT_MAX)
+ 		return -EINVAL;
  
 _
 
