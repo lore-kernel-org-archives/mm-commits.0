@@ -1,133 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] readahead-make-context-readahead-more-conservative.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:43:51 -0700
-Message-ID: <52321977.5e3yZg2mfHNwaOUo%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
+ removed from -mm tree
+Date: Thu, 12 Sep 2013 12:43:59 -0700
+Message-ID: <5232197f.7LOedkezA3jxuVIC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58276 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755797Ab3ILTnw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:52 -0400
+	with ESMTP id S1755833Ab3ILToA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tm@tao.ma, miaox@cn.fujitsu.com, fengguang.wu@intel.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, liwanp@linux.vnet.ibm.com, dhillf@gmail.com, davidlohr@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
 
-Subject: [merged] readahead-make-context-readahead-more-conservative.patch removed from -mm tree
-To: fengguang.wu@intel.com,miaox@cn.fujitsu.com,tm@tao.ma,mm-commits@vger.kernel.org
+Subject: [merged] mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch removed from -mm tree
+To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr@hp.com,dhillf@gmail.com,liwanp@linux.vnet.ibm.com,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:43:51 -0700
+Date: Thu, 12 Sep 2013 12:43:59 -0700
 
 
 The patch titled
-     Subject: readahead: make context readahead more conservative
+     Subject: mm, hugetlb: protect reserved pages when soft offlining a hugepage
 has been removed from the -mm tree.  Its filename was
-     readahead-make-context-readahead-more-conservative.patch
+     mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: readahead: make context readahead more conservative
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm, hugetlb: protect reserved pages when soft offlining a hugepage
 
-This helps performance on moderately dense random reads on SSD.
+Don't use the reserve pool when soft offlining a hugepage.  Check we have
+free pages outside the reserve pool before we dequeue the huge page. 
+Otherwise, we can steal other's reserve page.
 
-Transaction-Per-Second numbers provided by Taobao:
-
-		QPS	case
-		-------------------------------------------------------
-		7536	disable context readahead totally
-w/ patch:	7129	slower size rampup and start RA on the 3rd read
-		6717	slower size rampup
-w/o patch:	5581	unmodified context readahead
-
-Before, readahead will be started whenever reading page N+1 when it happen
-to read N recently.  After patch, we'll only start readahead when *three*
-random reads happen to access pages N, N+1, N+2.  The probability of this
-happening is extremely low for pure random reads, unless they are very
-dense, which actually deserves some readahead.
-
-Also start with a smaller readahead window.  The impact to interleaved
-sequential reads should be small, because for a long run stream, the the
-small readahead window rampup phase is negletable.
-
-The context readahead actually benefits clustered random reads on HDD
-whose seek cost is pretty high.  However as SSD is increasingly used for
-random read workloads it's better for the context readahead to concentrate
-on interleaved sequential reads.
-
-Another SSD rand read test from Miao
-
-        # file size:        2GB
-        # read IO amount: 625MB
-        sysbench --test=fileio          \
-                --max-requests=10000    \
-                --num-threads=1         \
-                --file-num=1            \
-                --file-block-size=64K   \
-                --file-test-mode=rndrd  \
-                --file-fsync-freq=0     \
-                --file-fsync-end=off    run
-
-shows the performance of btrfs grows up from 69MB/s to 121MB/s, ext4 from
-104MB/s to 121MB/s.
-
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Tested-by: Tao Ma <tm@tao.ma>
-Tested-by: Miao Xie <miaox@cn.fujitsu.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/readahead.c~readahead-make-context-readahead-more-conservative mm/readahead.c
---- a/mm/readahead.c~readahead-make-context-readahead-more-conservative
-+++ a/mm/readahead.c
-@@ -371,10 +371,10 @@ static int try_context_readahead(struct
- 	size = count_history_pages(mapping, ra, offset, max);
+diff -puN mm/hugetlb.c~mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage
++++ a/mm/hugetlb.c
+@@ -955,10 +955,11 @@ static struct page *alloc_buddy_huge_pag
+  */
+ struct page *alloc_huge_page_node(struct hstate *h, int nid)
+ {
+-	struct page *page;
++	struct page *page = NULL;
  
- 	/*
--	 * no history pages:
-+	 * not enough history pages:
- 	 * it could be a random read
- 	 */
--	if (!size)
-+	if (size <= req_size)
- 		return 0;
+ 	spin_lock(&hugetlb_lock);
+-	page = dequeue_huge_page_node(h, nid);
++	if (h->free_huge_pages - h->resv_huge_pages > 0)
++		page = dequeue_huge_page_node(h, nid);
+ 	spin_unlock(&hugetlb_lock);
  
- 	/*
-@@ -385,8 +385,8 @@ static int try_context_readahead(struct
- 		size *= 2;
- 
- 	ra->start = offset;
--	ra->size = get_init_ra_size(size + req_size, max);
--	ra->async_size = ra->size;
-+	ra->size = min(size + req_size, max);
-+	ra->async_size = 1;
- 
- 	return 1;
- }
+ 	if (!page)
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 origin.patch
-watchdog-update-watchdog_tresh-properly-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-memcg-remove-memcg_nr_file_mapped.patch
-memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat.patch
-memcg-add-per-cgroup-writeback-pages-accounting.patch
-memcg-document-cgroup-dirty-writeback-memory-statistics.patch
-thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
-mm-cleanup-add_to_page_cache_locked.patch
-thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
-thp-do_huge_pmd_anonymous_page-cleanup.patch
-thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
 
