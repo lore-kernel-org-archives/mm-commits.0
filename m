@@ -1,113 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hotplug-verify-hotplug-memory-range.patch removed
- from -mm tree
-Date: Thu, 12 Sep 2013 12:43:55 -0700
-Message-ID: <5232197b.L03wCpBO+XSoYHvy%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-hotplug-remove-stop_machine-from-try_offline_node.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:43:57 -0700
+Message-ID: <5232197d.si8c5IN97UyMhUgU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58269 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755338Ab3ILTn4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:56 -0400
+	with ESMTP id S1755833Ab3ILTn6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, toshi.kani@hp.com
+To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com, rafael.j.wysocki@intel.com, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, toshi.kani@hp.com
 
-Subject: [merged] mm-hotplug-verify-hotplug-memory-range.patch removed from -mm tree
-To: toshi.kani@hp.com,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,tangchen@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-hotplug-remove-stop_machine-from-try_offline_node.patch removed from -mm tree
+To: toshi.kani@hp.com,isimatu.yasuaki@jp.fujitsu.com,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,rafael.j.wysocki@intel.com,tangchen@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:43:55 -0700
+Date: Thu, 12 Sep 2013 12:43:57 -0700
 
 
 The patch titled
-     Subject: mm/hotplug: verify hotplug memory range
+     Subject: mm/hotplug: remove stop_machine() from try_offline_node()
 has been removed from the -mm tree.  Its filename was
-     mm-hotplug-verify-hotplug-memory-range.patch
+     mm-hotplug-remove-stop_machine-from-try_offline_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm/hotplug: verify hotplug memory range
+Subject: mm/hotplug: remove stop_machine() from try_offline_node()
 
-add_memory() and remove_memory() can only handle a memory range aligned
-with section.  There are problems when an unaligned range is added and
-then deleted as follows:
+lock_device_hotplug() serializes hotplug & online/offline operations.  The
+lock is held in common sysfs online/offline interfaces and ACPI hotplug
+code paths.
 
- - add_memory() with an unaligned range succeeds, but __add_pages()
-   called from add_memory() adds a whole section of pages even though
-   a given memory range is less than the section size.
- - remove_memory() to the added unaligned range hits BUG_ON() in
-   __remove_pages().
+And here are the code paths:
 
-This patch changes add_memory() and remove_memory() to check if a given
-memory range is aligned with section at the beginning.  As the result,
-add_memory() fails with -EINVAL when a given range is unaligned, and does
-not add such memory range.  This prevents remove_memory() to be called
-with an unaligned range as well.  Note that remove_memory() has to use
-BUG_ON() since this function cannot fail.
+- CPU & Mem online/offline via sysfs online
+	store_online()->lock_device_hotplug()
 
-[akpm@linux-foundation.org: avoid printk warnings]
+- Mem online via sysfs state:
+	store_mem_state()->lock_device_hotplug()
+
+- ACPI CPU & Mem hot-add:
+	acpi_scan_bus_device_check()->lock_device_hotplug()
+
+- ACPI CPU & Mem hot-delete:
+	acpi_scan_hot_remove()->lock_device_hotplug()
+
+try_offline_node() off-lines a node if all memory sections and cpus are
+removed on the node.  It is called from acpi_processor_remove() and
+acpi_memory_remove_memory()->remove_memory() paths, both of which are in
+the ACPI hotplug code.
+
+try_offline_node() calls stop_machine() to stop all cpus while checking
+all cpu status with the assumption that the caller is not protected from
+CPU hotplug or CPU online/offline operations.  However, the caller is
+always serialized with lock_device_hotplug().  Also, the code needs to be
+properly serialized with a lock, not by stopping all cpus at a random
+place with stop_machine().
+
+This patch removes the use of stop_machine() in try_offline_node() and
+adds comments to try_offline_node() and remove_memory() that
+lock_device_hotplug() is required.
+
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ mm/memory_hotplug.c |   31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-hotplug-verify-hotplug-memory-range mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-hotplug-verify-hotplug-memory-range
+diff -puN mm/memory_hotplug.c~mm-hotplug-remove-stop_machine-from-try_offline_node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-hotplug-remove-stop_machine-from-try_offline_node
 +++ a/mm/memory_hotplug.c
-@@ -1070,6 +1070,23 @@ out:
+@@ -1695,9 +1695,8 @@ static int is_memblock_offlined_cb(struc
  	return ret;
  }
  
-+static int check_hotplug_memory_range(u64 start, u64 size)
-+{
-+	u64 start_pfn = start >> PAGE_SHIFT;
-+	u64 nr_pages = size >> PAGE_SHIFT;
-+
-+	/* Memory range must be aligned with section */
-+	if ((start_pfn & ~PAGE_SECTION_MASK) ||
-+	    (nr_pages % PAGES_PER_SECTION) || (!nr_pages)) {
-+		pr_err("Section-unaligned hotplug range: start 0x%llx, size 0x%llx\n",
-+				(unsigned long long)start,
-+				(unsigned long long)size);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
- int __ref add_memory(int nid, u64 start, u64 size)
+-static int check_cpu_on_node(void *data)
++static int check_cpu_on_node(pg_data_t *pgdat)
  {
-@@ -1079,6 +1096,10 @@ int __ref add_memory(int nid, u64 start,
- 	struct resource *res;
- 	int ret;
+-	struct pglist_data *pgdat = data;
+ 	int cpu;
  
-+	ret = check_hotplug_memory_range(start, size);
-+	if (ret)
-+		return ret;
-+
- 	lock_memory_hotplug();
+ 	for_each_present_cpu(cpu) {
+@@ -1712,10 +1711,9 @@ static int check_cpu_on_node(void *data)
+ 	return 0;
+ }
  
- 	res = register_memory_resource(start, size);
-@@ -1786,6 +1807,8 @@ void __ref remove_memory(int nid, u64 st
+-static void unmap_cpu_on_node(void *data)
++static void unmap_cpu_on_node(pg_data_t *pgdat)
  {
- 	int ret;
+ #ifdef CONFIG_ACPI_NUMA
+-	struct pglist_data *pgdat = data;
+ 	int cpu;
  
-+	BUG_ON(check_hotplug_memory_range(start, size));
-+
- 	lock_memory_hotplug();
+ 	for_each_possible_cpu(cpu)
+@@ -1724,10 +1722,11 @@ static void unmap_cpu_on_node(void *data
+ #endif
+ }
+ 
+-static int check_and_unmap_cpu_on_node(void *data)
++static int check_and_unmap_cpu_on_node(pg_data_t *pgdat)
+ {
+-	int ret = check_cpu_on_node(data);
++	int ret;
+ 
++	ret = check_cpu_on_node(pgdat);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -1736,11 +1735,18 @@ static int check_and_unmap_cpu_on_node(v
+ 	 * the cpu_to_node() now.
+ 	 */
+ 
+-	unmap_cpu_on_node(data);
++	unmap_cpu_on_node(pgdat);
+ 	return 0;
+ }
+ 
+-/* offline the node if all memory sections of this node are removed */
++/**
++ * try_offline_node
++ *
++ * Offline a node if all memory sections and cpus of the node are removed.
++ *
++ * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
++ * and online/offline operations before this call.
++ */
+ void try_offline_node(int nid)
+ {
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+@@ -1766,7 +1772,7 @@ void try_offline_node(int nid)
+ 		return;
+ 	}
+ 
+-	if (stop_machine(check_and_unmap_cpu_on_node, pgdat, NULL))
++	if (check_and_unmap_cpu_on_node(pgdat))
+ 		return;
  
  	/*
+@@ -1803,6 +1809,13 @@ void try_offline_node(int nid)
+ }
+ EXPORT_SYMBOL(try_offline_node);
+ 
++/**
++ * remove_memory
++ *
++ * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
++ * and online/offline operations before this call, as required by
++ * try_offline_node().
++ */
+ void __ref remove_memory(int nid, u64 start, u64 size)
+ {
+ 	int ret;
 _
 
 Patches currently in -mm which might be from toshi.kani@hp.com are
