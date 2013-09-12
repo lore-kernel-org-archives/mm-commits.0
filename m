@@ -1,70 +1,107 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-add-missing-return-value-check-of-ocfs2_get_clusters.patch removed
- from -mm tree
-Date: Thu, 12 Sep 2013 12:41:33 -0700
-Message-ID: <523218ed.ogVlXGUKUSUiEUBy%akpm@linux-foundation.org>
+ ocfs2-adjust-code-style-for-o2net_handler_tree_lookup.patch removed from
+ -mm tree
+Date: Thu, 12 Sep 2013 12:41:47 -0700
+Message-ID: <523218fb.RsywsvhPvf7mV764%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57873 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57910 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793Ab3ILTld (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:33 -0400
+	with ESMTP id S1753793Ab3ILTlr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
 
-Subject: [merged] ocfs2-add-missing-return-value-check-of-ocfs2_get_clusters.patch removed from -mm tree
-To: joseph.qi@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-adjust-code-style-for-o2net_handler_tree_lookup.patch removed from -mm tree
+To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:41:33 -0700
+Date: Thu, 12 Sep 2013 12:41:47 -0700
 
 
 The patch titled
-     Subject: ocfs2: add missing return value check of ocfs2_get_clusters()
+     Subject: ocfs2: adjust code style for o2net_handler_tree_lookup()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-missing-return-value-check-of-ocfs2_get_clusters.patch
+     ocfs2-adjust-code-style-for-o2net_handler_tree_lookup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: add missing return value check of ocfs2_get_clusters()
+Subject: ocfs2: adjust code style for o2net_handler_tree_lookup()
 
-In ocfs2_attach_refcount_tree() and ocfs2_duplicate_extent_list(), if
-error occurs when calling ocfs2_get_clusters(), it will go with
-unexpected behavior as local variables p_cluster, num_clusters and
-ext_flags are declared without initialization.
+Code in o2net_handler_tree_lookup() may be corrupted by mistake.  So
+adjust it to promote readability.
 
 Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ fs/ocfs2/cluster/tcp.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-add-missing-return-value-check-of-ocfs2_get_clusters fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-add-missing-return-value-check-of-ocfs2_get_clusters
-+++ a/fs/ocfs2/refcounttree.c
-@@ -3854,7 +3854,10 @@ static int ocfs2_attach_refcount_tree(st
- 	while (cpos < clusters) {
- 		ret = ocfs2_get_clusters(inode, cpos, &p_cluster,
- 					 &num_clusters, &ext_flags);
--
-+		if (ret) {
-+			mlog_errno(ret);
-+			goto unlock;
-+		}
- 		if (p_cluster && !(ext_flags & OCFS2_EXT_REFCOUNTED)) {
- 			ret = ocfs2_add_refcount_flag(inode, &di_et,
- 						      &ref_tree->rf_ci,
-@@ -4025,7 +4028,10 @@ static int ocfs2_duplicate_extent_list(s
- 	while (cpos < clusters) {
- 		ret = ocfs2_get_clusters(s_inode, cpos, &p_cluster,
- 					 &num_clusters, &ext_flags);
+diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-adjust-code-style-for-o2net_handler_tree_lookup fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-adjust-code-style-for-o2net_handler_tree_lookup
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -766,32 +766,32 @@ static struct o2net_msg_handler *
+ o2net_handler_tree_lookup(u32 msg_type, u32 key, struct rb_node ***ret_p,
+ 			  struct rb_node **ret_parent)
+ {
+-        struct rb_node **p = &o2net_handler_tree.rb_node;
+-        struct rb_node *parent = NULL;
++	struct rb_node **p = &o2net_handler_tree.rb_node;
++	struct rb_node *parent = NULL;
+ 	struct o2net_msg_handler *nmh, *ret = NULL;
+ 	int cmp;
+ 
+-        while (*p) {
+-                parent = *p;
+-                nmh = rb_entry(parent, struct o2net_msg_handler, nh_node);
++	while (*p) {
++		parent = *p;
++		nmh = rb_entry(parent, struct o2net_msg_handler, nh_node);
+ 		cmp = o2net_handler_cmp(nmh, msg_type, key);
+ 
+-                if (cmp < 0)
+-                        p = &(*p)->rb_left;
+-                else if (cmp > 0)
+-                        p = &(*p)->rb_right;
+-                else {
++		if (cmp < 0)
++			p = &(*p)->rb_left;
++		else if (cmp > 0)
++			p = &(*p)->rb_right;
++		else {
+ 			ret = nmh;
+-                        break;
++			break;
+ 		}
+-        }
++	}
+ 
+-        if (ret_p != NULL)
+-                *ret_p = p;
+-        if (ret_parent != NULL)
+-                *ret_parent = parent;
++	if (ret_p != NULL)
++		*ret_p = p;
++	if (ret_parent != NULL)
++		*ret_parent = parent;
+ 
+-        return ret;
++	return ret;
+ }
+ 
+ static void o2net_handler_kref_release(struct kref *kref)
+_
+
+Patches currently in -mm which might be from joseph.qi@huawei.com are
+
+origin.patch
+
