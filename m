@@ -1,85 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-spinlockc-add-default-arch__relax-definitions-for-generic_lockbreak.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:46:15 -0700
-Message-ID: <52321a07.BOiMYITfwlOwld+7%akpm@linux-foundation.org>
+ kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:46:07 -0700
+Message-ID: <523219ff.1y9VoiXcdsnyaANJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756461Ab3ILTqQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:46:16 -0400
+	with ESMTP id S1756432Ab3ILTqH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:46:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, schwidefsky@de.ibm.com, mingo@elte.hu, benh@kernel.crashing.org, will.deacon@arm.com
+To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, dhowells@redhat.com, ak@linux.intel.com
 
-Subject: [merged] kernel-spinlockc-add-default-arch__relax-definitions-for-generic_lockbreak.patch removed from -mm tree
-To: will.deacon@arm.com,benh@kernel.crashing.org,mingo@elte.hu,schwidefsky@de.ibm.com,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: [merged] kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch removed from -mm tree
+To: ak@linux.intel.com,dhowells@redhat.com,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:46:15 -0700
+Date: Thu, 12 Sep 2013 12:46:07 -0700
 
 
 The patch titled
-     Subject: kernel/spinlock.c: add default arch_*_relax definitions for GENERIC_LOCKBREAK
+     Subject: kernel/modsign_pubkey.c: fix init const for module signing code
 has been removed from the -mm tree.  Its filename was
-     kernel-spinlockc-add-default-arch__relax-definitions-for-generic_lockbreak.patch
+     kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Will Deacon <will.deacon@arm.com>
-Subject: kernel/spinlock.c: add default arch_*_relax definitions for GENERIC_LOCKBREAK
+From: Andi Kleen <ak@linux.intel.com>
+Subject: kernel/modsign_pubkey.c: fix init const for module signing code
 
-When running with GENERIC_LOCKBREAK=y, the locking implementations emit
-calls to arch_{read,write,spin}_relax when spinning on a contended lock in
-order to allow architectures to favour the CPU owning the lock if
-possible.
+const has to use __initconst, not __initdata
 
-In reality, everybody apart from PowerPC and S390 just does cpu_relax()
-here, so make that the default behaviour and allow it to be overridden if
-required.
-
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/spinlock.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ kernel/modsign_pubkey.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/spinlock.c~kernel-spinlockc-add-default-arch__relax-definitions-for-generic_lockbreak kernel/spinlock.c
---- a/kernel/spinlock.c~kernel-spinlockc-add-default-arch__relax-definitions-for-generic_lockbreak
-+++ a/kernel/spinlock.c
-@@ -34,6 +34,20 @@
- #else
- #define raw_read_can_lock(l)	read_can_lock(l)
- #define raw_write_can_lock(l)	write_can_lock(l)
-+
-+/*
-+ * Some architectures can relax in favour of the CPU owning the lock.
-+ */
-+#ifndef arch_read_relax
-+# define arch_read_relax(l)	cpu_relax()
-+#endif
-+#ifndef arch_write_relax
-+# define arch_write_relax(l)	cpu_relax()
-+#endif
-+#ifndef arch_spin_relax
-+# define arch_spin_relax(l)	cpu_relax()
-+#endif
-+
+diff -puN kernel/modsign_pubkey.c~kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code kernel/modsign_pubkey.c
+--- a/kernel/modsign_pubkey.c~kernel-modsign_pubkeyc-fix-init-const-for-module-signing-code
++++ a/kernel/modsign_pubkey.c
+@@ -18,14 +18,14 @@
+ 
+ struct key *modsign_keyring;
+ 
+-extern __initdata const u8 modsign_certificate_list[];
+-extern __initdata const u8 modsign_certificate_list_end[];
++extern __initconst const u8 modsign_certificate_list[];
++extern __initconst const u8 modsign_certificate_list_end[];
+ 
  /*
-  * We build the __lock_function inlines here. They are too large for
-  * inlining all over the place, but here is only one user per function
+  * We need to make sure ccache doesn't cache the .o file as it doesn't notice
+  * if modsign.pub changes.
+  */
+-static __initdata const char annoy_ccache[] = __TIME__ "foo";
++static __initconst const char annoy_ccache[] = __TIME__ "foo";
+ 
+ /*
+  * Load the compiled-in keys
 _
 
-Patches currently in -mm which might be from will.deacon@arm.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 origin.patch
+x86-add-1-2-4-8-byte-optimization-to-64bit-__copy_fromto_user_inatomic.patch
+thp-account-anon-transparent-huge-pages-into-nr_anon_pages.patch
+mm-cleanup-add_to_page_cache_locked.patch
+thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
+thp-do_huge_pmd_anonymous_page-cleanup.patch
+thp-consolidate-code-between-handle_mm_fault-and-do_huge_pmd_anonymous_page.patch
 
