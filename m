@@ -1,79 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cciss-set-max-scatter-gather-entries-to-32-on-p600.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:42:07 -0700
-Message-ID: <5232190f.ehtcMKHrOIqBjIIA%akpm@linux-foundation.org>
+Subject: [merged] mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
+ removed from -mm tree
+Date: Thu, 12 Sep 2013 12:42:21 -0700
+Message-ID: <5232191d.rYpJyeOAkBWCcOND%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57953 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57982 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793Ab3ILTmI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:42:08 -0400
+	with ESMTP id S1753964Ab3ILTmW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:42:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, thenzl@redhat.com, steve.cameron@hp.com, bubrown@redhat.com, axboe@kernel.dk, mike.miller@hp.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, hughd@google.com, ccross@android.com, oleg@redhat.com
 
-Subject: [merged] cciss-set-max-scatter-gather-entries-to-32-on-p600.patch removed from -mm tree
-To: mike.miller@hp.com,axboe@kernel.dk,bubrown@redhat.com,steve.cameron@hp.com,thenzl@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch removed from -mm tree
+To: oleg@redhat.com,ccross@android.com,hughd@google.com,kosaki.motohiro@jp.fujitsu.com,rientjes@google.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:42:07 -0700
+Date: Thu, 12 Sep 2013 12:42:21 -0700
 
 
 The patch titled
-     Subject: cciss: set max scatter gather entries to 32 on P600
+     Subject: mm: do_mmap_pgoff: cleanup the usage of file_inode()
 has been removed from the -mm tree.  Its filename was
-     cciss-set-max-scatter-gather-entries-to-32-on-p600.patch
+     mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Miller <mike.miller@hp.com>
-Subject: cciss: set max scatter gather entries to 32 on P600
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm: do_mmap_pgoff: cleanup the usage of file_inode()
 
-At one time we used to set the maximum number of scatter gather elements
-on all Smart Array controllers to 32.  At some point in time the firmware
-began to write the "appropriate" value for each controller into the config
-table.  The cciss driver would then read that and set h->maxsgentries.
+Simple cleanup.  Move "struct inode *inode" variable into "if (file)"
+block to simplify the code and avoid the unnecessary check.
 
-        h->maxsgentries = readl(&(h->cfgtable->MaxSGElements);
-
-On the P600 that value is 544.  Under some workloads a significant
-performance reduction may result.  This patch forces the P600 to use only
-32 scatter gather elements.  Other controllers are not affected.
-
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Signed-off-by: Dwight (Bud) Brown <bubrown@redhat.com>
-Signed-off-by: Tomas Henzl <thenzl@redhat.com>
-Acked-by: Stephen M. Cameron <steve.cameron@hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Colin Cross <ccross@android.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/mmap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-set-max-scatter-gather-entries-to-32-on-p600 drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-set-max-scatter-gather-entries-to-32-on-p600
-+++ a/drivers/block/cciss.c
-@@ -4258,6 +4258,13 @@ static void cciss_find_board_params(ctlr
- 	h->nr_cmds = h->max_commands - 4 - cciss_tape_cmds;
- 	h->maxsgentries = readl(&(h->cfgtable->MaxSGElements));
- 	/*
-+	 * The P600 may exhibit poor performnace under some workloads
-+	 * if we use the value in the configuration table. Limit this
-+	 * controller to MAXSGENTRIES (32) instead.
-+	 */
-+	if (h->board_id == 0x3225103C)
-+		h->maxsgentries = MAXSGENTRIES;
-+	/*
- 	 * Limit in-command s/g elements to 32 save dma'able memory.
- 	 * Howvever spec says if 0, use 31
- 	 */
-_
-
-Patches currently in -mm which might be from mike.miller@hp.com are
-
-origin.patch
-
+diff -puN mm/mmap.c~mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode mm/mmap.c
+--- a/mm/mmap.c~mm-do_mmap_pgoff-cleanup-the-usage-of-file_inode
++++ a/mm/mmap.c
+@@ -1202,7 +1202,6 @@ unsigned long do_mmap_pgoff(struct file
+ 			unsigned long *populate)
+ {
+ 	struct mm_struct * mm = current->mm;
+-	struct inode *inode;
+ 	vm_flags_t vm_flags;
+ 
+ 	*populate = 0;
+@@ -1265,9 +1264,9 @@ unsigned long do_mmap_pgoff(struct file
+ 			return -EAGAIN;
+ 	}
+ 
+-	inode = file ? file_inode(file) : NULL;
