@@ -1,86 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-free-meta_ac-and-data_ac-when-ocfs2_start_trans-fails-in-ocfs2_xattr_set.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:41:39 -0700
-Message-ID: <523218f3.usazFw+l1DA43vA/%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-fix-a-tiny-race-case-when-firing-callbacks.patch
+ removed from -mm tree
+Date: Thu, 12 Sep 2013 12:41:51 -0700
+Message-ID: <523218ff.D4CqoyCtSBdlhPJo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57885 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57917 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793Ab3ILTlk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:40 -0400
+	with ESMTP id S1753793Ab3ILTlw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: [merged] ocfs2-free-meta_ac-and-data_ac-when-ocfs2_start_trans-fails-in-ocfs2_xattr_set.patch removed from -mm tree
-To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-fix-a-tiny-race-case-when-firing-callbacks.patch removed from -mm tree
+To: xuejiufei@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:41:39 -0700
+Date: Thu, 12 Sep 2013 12:41:51 -0700
 
 
 The patch titled
-     Subject: ocfs2: free meta_ac and data_ac when ocfs2_start_trans fails in ocfs2_xattr_set()
+     Subject: ocfs2: fix a tiny race case when firing callbacks
 has been removed from the -mm tree.  Its filename was
-     ocfs2-free-meta_ac-and-data_ac-when-ocfs2_start_trans-fails-in-ocfs2_xattr_set.patch
+     ocfs2-fix-a-tiny-race-case-when-firing-callbacks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Younger Liu <younger.liu@huawei.com>
-Subject: ocfs2: free meta_ac and data_ac when ocfs2_start_trans fails in ocfs2_xattr_set()
+From: Joyce <xuejiufei@huawei.com>
+Subject: ocfs2: fix a tiny race case when firing callbacks
 
-In ocfs2_xattr_set(), if ocfs2_start_trans failed, meta_ac and data_ac
-should be free.  Otherwise, It would lead to a memory leak.
+In o2hb_shutdown_slot() and o2hb_check_slot(), since event is defined as
+local, it is only valid during the call stack.  So the following tiny race
+case may happen in a multi-volumes mounted environment:
 
-Signed-off-by: Younger Liu <younger.liu@huawei.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+o2hb-vol1                         o2hb-vol2
+1) o2hb_shutdown_slot
+allocate local event1
+2) queue_node_event
+add event1 to global o2hb_node_events
+                                  3) o2hb_shutdown_slot
+                                  allocate local event2
+                                  4) queue_node_event
+                                  add event2 to global o2hb_node_events
+                                  5) o2hb_run_event_list
+                                  delete event1 from o2hb_node_events
+6) o2hb_run_event_list
+event1 empty, return
+7) o2hb_shutdown_slot
+event1 lifecycle ends
+                                  8) o2hb_fire_callbacks
+                                  event1 is already *invalid*
+
+This patch lets it wait on o2hb_callback_sem when another thread is firing
+callbacks.  And for performance consideration, we only call
+o2hb_run_event_list when there is an event queued.
+
+Signed-off-by: Joyce <xuejiufei@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN fs/ocfs2/xattr.c~ocfs2-free-meta_ac-and-data_ac-when-ocfs2_start_trans-fails-in-ocfs2_xattr_set fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-free-meta_ac-and-data_ac-when-ocfs2_start_trans-fails-in-ocfs2_xattr_set
-+++ a/fs/ocfs2/xattr.c
-@@ -3505,7 +3505,7 @@ int ocfs2_xattr_set(struct inode *inode,
- 	int ret, credits, ref_meta = 0, ref_credits = 0;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 	struct inode *tl_inode = osb->osb_tl_inode;
--	struct ocfs2_xattr_set_ctxt ctxt = { NULL, NULL, };
-+	struct ocfs2_xattr_set_ctxt ctxt = { NULL, NULL, NULL, };
- 	struct ocfs2_refcount_tree *ref_tree = NULL;
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-a-tiny-race-case-when-firing-callbacks fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-a-tiny-race-case-when-firing-callbacks
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -639,16 +639,9 @@ static void o2hb_fire_callbacks(struct o
+ /* Will run the list in order until we process the passed event */
+ static void o2hb_run_event_list(struct o2hb_node_event *queued_event)
+ {
+-	int empty;
+ 	struct o2hb_callback *hbcall;
+ 	struct o2hb_node_event *event;
  
- 	struct ocfs2_xattr_info xi = {
-@@ -3609,13 +3609,14 @@ int ocfs2_xattr_set(struct inode *inode,
- 	if (IS_ERR(ctxt.handle)) {
- 		ret = PTR_ERR(ctxt.handle);
- 		mlog_errno(ret);
--		goto cleanup;
-+		goto out_free_ac;
+-	spin_lock(&o2hb_live_lock);
+-	empty = list_empty(&queued_event->hn_item);
+-	spin_unlock(&o2hb_live_lock);
+-	if (empty)
+-		return;
+-
+ 	/* Holding callback sem assures we don't alter the callback
+ 	 * lists when doing this, and serializes ourselves with other
+ 	 * processes wanting callbacks. */
+@@ -707,6 +700,7 @@ static void o2hb_shutdown_slot(struct o2
+ 	struct o2hb_node_event event =
+ 		{ .hn_item = LIST_HEAD_INIT(event.hn_item), };
+ 	struct o2nm_node *node;
++	int queued = 0;
+ 
+ 	node = o2nm_get_node_by_num(slot->ds_node_num);
+ 	if (!node)
+@@ -724,11 +718,13 @@ static void o2hb_shutdown_slot(struct o2
+ 
+ 			o2hb_queue_node_event(&event, O2HB_NODE_DOWN_CB, node,
+ 					      slot->ds_node_num);
++			queued = 1;
+ 		}
  	}
+ 	spin_unlock(&o2hb_live_lock);
  
- 	ret = __ocfs2_xattr_set_handle(inode, di, &xi, &xis, &xbs, &ctxt);
+-	o2hb_run_event_list(&event);
++	if (queued)
++		o2hb_run_event_list(&event);
  
- 	ocfs2_commit_trans(osb, ctxt.handle);
+ 	o2nm_node_put(node);
+ }
+@@ -788,6 +784,7 @@ static int o2hb_check_slot(struct o2hb_r
+ 	unsigned int dead_ms = o2hb_dead_threshold * O2HB_REGION_TIMEOUT_MS;
+ 	unsigned int slot_dead_ms;
+ 	int tmp;
++	int queued = 0;
  
-+out_free_ac:
- 	if (ctxt.data_ac)
- 		ocfs2_free_alloc_context(ctxt.data_ac);
- 	if (ctxt.meta_ac)
+ 	memcpy(hb_block, slot->ds_raw_block, reg->hr_block_bytes);
+ 
+@@ -881,6 +878,7 @@ fire_callbacks:
+ 					      slot->ds_node_num);
+ 
+ 			changed = 1;
++			queued = 1;
+ 		}
+ 
+ 		list_add_tail(&slot->ds_live_item,
+@@ -932,6 +930,7 @@ fire_callbacks:
+ 					      node, slot->ds_node_num);
+ 
+ 			changed = 1;
++			queued = 1;
+ 		}
+ 
+ 		/* We don't clear this because the node is still
+@@ -947,7 +946,8 @@ fire_callbacks:
+ out:
+ 	spin_unlock(&o2hb_live_lock);
+ 
+-	o2hb_run_event_list(&event);
++	if (queued)
++		o2hb_run_event_list(&event);
+ 
+ 	if (node)
+ 		o2nm_node_put(node);
 _
 
-Patches currently in -mm which might be from younger.liu@huawei.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
 origin.patch
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
