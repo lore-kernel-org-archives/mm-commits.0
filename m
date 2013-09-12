@@ -1,124 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-move-pgtable-related-functions-to-right-place.patch
- removed from -mm tree
-Date: Thu, 12 Sep 2013 12:43:25 -0700
-Message-ID: <5232195d.3JUOFdqYJ6T9l10N%akpm@linux-foundation.org>
+Subject: [merged]
+ vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:43:29 -0700
+Message-ID: <52321961.tEcb+PZPBn7aodqB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58205 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58214 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755688Ab3ILTn0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:26 -0400
+	with ESMTP id S1755721Ab3ILTna (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, minchan@kernel.org, mgorman@suse.de, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, js1304@gmail.com, adobriyan@gmail.com, cl@linux.com
 
-Subject: [merged] mm-move-pgtable-related-functions-to-right-place.patch removed from -mm tree
-To: iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,mgorman@suse.de,minchan@kernel.org,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch removed from -mm tree
+To: cl@linux.com,adobriyan@gmail.com,js1304@gmail.com,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:43:25 -0700
+Date: Thu, 12 Sep 2013 12:43:29 -0700
 
 
 The patch titled
-     Subject: mm: move pgtable related functions to right place
+     Subject: vmstat: create separate function to fold per cpu diffs into local counters
 has been removed from the -mm tree.  Its filename was
-     mm-move-pgtable-related-functions-to-right-place.patch
+     vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm: move pgtable related functions to right place
+From: Christoph Lameter <cl@linux.com>
+Subject: vmstat: create separate function to fold per cpu diffs into local counters
 
-pgtable related functions are mostly in pgtable-generic.c.
-So move remaining functions from memory.c to pgtable-generic.c.
+The main idea behind this patchset is to reduce the vmstat update overhead
+by avoiding interrupt enable/disable and the use of per cpu atomics.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+
+This patch (of 3):
+
+It is better to have a separate folding function because
+refresh_cpu_vm_stats() also does other things like expire pages in the
+page allocator caches.
+
+If we have a separate function then refresh_cpu_vm_stats() is only called
+from the local cpu which allows additional optimizations.
+
+The folding function is only called when a cpu is being downed and
+therefore no other processor will be accessing the counters.  Also
+simplifies synchronization.
+
+[akpm@linux-foundation.org: fix UP build]
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Tejun Heo <tj@kernel.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c          |   24 ------------------------
- mm/pgtable-generic.c |   24 ++++++++++++++++++++++++
- 2 files changed, 24 insertions(+), 24 deletions(-)
+ include/linux/vmstat.h |    3 +-
+ mm/page_alloc.c        |    2 -
+ mm/vmstat.c            |   40 +++++++++++++++++++++++++++++++++------
+ 3 files changed, 37 insertions(+), 8 deletions(-)
 
-diff -puN mm/memory.c~mm-move-pgtable-related-functions-to-right-place mm/memory.c
---- a/mm/memory.c~mm-move-pgtable-related-functions-to-right-place
-+++ a/mm/memory.c
-@@ -373,30 +373,6 @@ void tlb_remove_table(struct mmu_gather
- #endif /* CONFIG_HAVE_RCU_TABLE_FREE */
+diff -puN include/linux/vmstat.h~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters include/linux/vmstat.h
+--- a/include/linux/vmstat.h~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters
++++ a/include/linux/vmstat.h
+@@ -198,7 +198,7 @@ extern void __inc_zone_state(struct zone
+ extern void dec_zone_state(struct zone *, enum zone_stat_item);
+ extern void __dec_zone_state(struct zone *, enum zone_stat_item);
+ 
+-void refresh_cpu_vm_stats(int);
++void cpu_vm_stats_fold(int cpu);
+ void refresh_zone_stat_thresholds(void);
+ 
+ void drain_zonestat(struct zone *zone, struct per_cpu_pageset *);
+@@ -255,6 +255,7 @@ static inline void __dec_zone_page_state
+ 
+ static inline void refresh_cpu_vm_stats(int cpu) { }
+ static inline void refresh_zone_stat_thresholds(void) { }
++static inline void cpu_vm_stats_fold(int cpu) { }
+ 
+ static inline void drain_zonestat(struct zone *zone,
+ 			struct per_cpu_pageset *pset) { }
+diff -puN mm/page_alloc.c~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters mm/page_alloc.c
+--- a/mm/page_alloc.c~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters
++++ a/mm/page_alloc.c
+@@ -5435,7 +5435,7 @@ static int page_alloc_cpu_notify(struct
+ 		 * This is only okay since the processor is dead and cannot
+ 		 * race with what we are doing.
+ 		 */
+-		refresh_cpu_vm_stats(cpu);
++		cpu_vm_stats_fold(cpu);
+ 	}
+ 	return NOTIFY_OK;
+ }
+diff -puN mm/vmstat.c~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-create-separate-function-to-fold-per-cpu-diffs-into-local-counters
++++ a/mm/vmstat.c
+@@ -415,11 +415,7 @@ EXPORT_SYMBOL(dec_zone_page_state);
+ #endif
  
  /*
-- * If a p?d_bad entry is found while walking page tables, report
-- * the error, before resetting entry to p?d_none.  Usually (but
-- * very seldom) called out from the p?d_none_or_clear_bad macros.
-- */
--
--void pgd_clear_bad(pgd_t *pgd)
--{
--	pgd_ERROR(*pgd);
--	pgd_clear(pgd);
--}
--
--void pud_clear_bad(pud_t *pud)
--{
--	pud_ERROR(*pud);
--	pud_clear(pud);
--}
--
--void pmd_clear_bad(pmd_t *pmd)
--{
--	pmd_ERROR(*pmd);
--	pmd_clear(pmd);
--}
--
--/*
-  * Note: this doesn't free the actual pages themselves. That
-  * has been handled earlier when unmapping all the memory regions.
+- * Update the zone counters for one cpu.
+- *
+- * The cpu specified must be either the current cpu or a processor that
+- * is not online. If it is the current cpu then the execution thread must
+- * be pinned to the current cpu.
++ * Update the zone counters for the current cpu.
+  *
+  * Note that refresh_cpu_vm_stats strives to only access
+  * node local memory. The per cpu pagesets on remote zones are placed
+@@ -432,7 +428,7 @@ EXPORT_SYMBOL(dec_zone_page_state);
+  * with the global counters. These could cause remote node cache line
+  * bouncing and will have to be only done when necessary.
   */
-diff -puN mm/pgtable-generic.c~mm-move-pgtable-related-functions-to-right-place mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~mm-move-pgtable-related-functions-to-right-place
-+++ a/mm/pgtable-generic.c
-@@ -10,6 +10,30 @@
- #include <asm/tlb.h>
- #include <asm-generic/pgtable.h>
+-void refresh_cpu_vm_stats(int cpu)
++static void refresh_cpu_vm_stats(int cpu)
+ {
+ 	struct zone *zone;
+ 	int i;
+@@ -489,6 +485,38 @@ void refresh_cpu_vm_stats(int cpu)
+ 	}
  
+ 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
++		if (global_diff[i])
++			atomic_long_add(global_diff[i], &vm_stat[i]);
++}
++
 +/*
-+ * If a p?d_bad entry is found while walking page tables, report
-+ * the error, before resetting entry to p?d_none.  Usually (but
-+ * very seldom) called out from the p?d_none_or_clear_bad macros.
++ * Fold the data for an offline cpu into the global array.
++ * There cannot be any access by the offline cpu and therefore
++ * synchronization is simplified.
 + */
-+
-+void pgd_clear_bad(pgd_t *pgd)
++void cpu_vm_stats_fold(int cpu)
 +{
-+	pgd_ERROR(*pgd);
-+	pgd_clear(pgd);
-+}
++	struct zone *zone;
++	int i;
++	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
 +
-+void pud_clear_bad(pud_t *pud)
-+{
-+	pud_ERROR(*pud);
-+	pud_clear(pud);
-+}
++	for_each_populated_zone(zone) {
++		struct per_cpu_pageset *p;
 +
-+void pmd_clear_bad(pmd_t *pmd)
-+{
-+	pmd_ERROR(*pmd);
-+	pmd_clear(pmd);
-+}
++		p = per_cpu_ptr(zone->pageset, cpu);
 +
- #ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- /*
-  * Only sets the access flags (dirty, accessed), as well as write 
++		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
++			if (p->vm_stat_diff[i]) {
++				int v;
++
++				v = p->vm_stat_diff[i];
++				p->vm_stat_diff[i] = 0;
++				atomic_long_add(v, &zone->vm_stat[i]);
++				global_diff[i] += v;
++			}
++	}
++
++	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
+ 		if (global_diff[i])
+ 			atomic_long_add(global_diff[i], &vm_stat[i]);
+ }
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from cl@linux.com are
 
 origin.patch
 
