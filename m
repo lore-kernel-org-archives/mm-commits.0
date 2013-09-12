@@ -1,87 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swap-clean-up-ifdef-in-page_mapping.patch removed from
- -mm tree
-Date: Thu, 12 Sep 2013 12:43:27 -0700
-Message-ID: <5232195f.KBf1vaatZp4+FKfv%akpm@linux-foundation.org>
+Subject: [merged] vmstat-create-fold_diff.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:43:31 -0700
+Message-ID: <52321963.OCYUxmciAiUJAZRi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58218 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755716Ab3ILTn2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:28 -0400
+	with ESMTP id S1753000Ab3ILTnc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, minchan@kernel.org, mgorman@suse.de, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, js1304@gmail.com, adobriyan@gmail.com, cl@linux.com
 
-Subject: [merged] swap-clean-up-ifdef-in-page_mapping.patch removed from -mm tree
-To: iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,mgorman@suse.de,minchan@kernel.org,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] vmstat-create-fold_diff.patch removed from -mm tree
+To: cl@linux.com,adobriyan@gmail.com,js1304@gmail.com,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:43:27 -0700
+Date: Thu, 12 Sep 2013 12:43:31 -0700
 
 
 The patch titled
-     Subject: swap: clean-up #ifdef in page_mapping()
+     Subject: vmstat: create fold_diff
 has been removed from the -mm tree.  Its filename was
-     swap-clean-up-ifdef-in-page_mapping.patch
+     vmstat-create-fold_diff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: swap: clean-up #ifdef in page_mapping()
+From: Christoph Lameter <cl@linux.com>
+Subject: vmstat: create fold_diff
 
-PageSwapCache() is always false when !CONFIG_SWAP, so compiler
-properly discard related code. Therefore, we don't need #ifdef explicitly.
+Both functions that update global counters use the same mechanism.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+Create a function that contains the common code.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Tejun Heo <tj@kernel.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 +
- mm/util.c            |    5 +----
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ mm/vmstat.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/swap.h~swap-clean-up-ifdef-in-page_mapping include/linux/swap.h
---- a/include/linux/swap.h~swap-clean-up-ifdef-in-page_mapping
-+++ a/include/linux/swap.h
-@@ -447,6 +447,7 @@ mem_cgroup_uncharge_swapcache(struct pag
+diff -puN mm/vmstat.c~vmstat-create-fold_diff mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-create-fold_diff
++++ a/mm/vmstat.c
+@@ -414,6 +414,15 @@ void dec_zone_page_state(struct page *pa
+ EXPORT_SYMBOL(dec_zone_page_state);
+ #endif
  
- #else /* CONFIG_SWAP */
- 
-+#define swap_address_space(entry)		(NULL)
- #define get_nr_swap_pages()			0L
- #define total_swap_pages			0L
- #define total_swapcache_pages()			0UL
-diff -puN mm/util.c~swap-clean-up-ifdef-in-page_mapping mm/util.c
---- a/mm/util.c~swap-clean-up-ifdef-in-page_mapping
-+++ a/mm/util.c
-@@ -388,15 +388,12 @@ struct address_space *page_mapping(struc
- 	struct address_space *mapping = page->mapping;
- 
- 	VM_BUG_ON(PageSlab(page));
--#ifdef CONFIG_SWAP
- 	if (unlikely(PageSwapCache(page))) {
- 		swp_entry_t entry;
- 
- 		entry.val = page_private(page);
- 		mapping = swap_address_space(entry);
--	} else
--#endif
--	if ((unsigned long)mapping & PAGE_MAPPING_ANON)
-+	} else if ((unsigned long)mapping & PAGE_MAPPING_ANON)
- 		mapping = NULL;
- 	return mapping;
- }
-_
-
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
-
-origin.patch
-
++static inline void fold_diff(int *diff)
++{
++	int i;
++
++	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
++		if (diff[i])
++			atomic_long_add(diff[i], &vm_stat[i]);
++}
++
+ /*
+  * Update the zone counters for the current cpu.
+  *
+@@ -483,10 +492,7 @@ static void refresh_cpu_vm_stats(int cpu
+ 			drain_zone_pages(zone, &p->pcp);
+ #endif
+ 	}
