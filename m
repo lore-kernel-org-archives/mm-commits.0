@@ -1,45 +1,51 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-mempolicy-rename-check_range-to-queue_pages_range.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:44:29 -0700
-Message-ID: <5232199d.0ebpqH0+tyS6XEso%akpm@linux-foundation.org>
+ mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch removed
+ from -mm tree
+Date: Thu, 12 Sep 2013 12:44:27 -0700
+Message-ID: <5232199b.qi/F+1aJhxa7kdDi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58390 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229Ab3ILToa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:30 -0400
+	with ESMTP id S1751229Ab3ILTo2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, hughd@google.com, dhillf@gmail.com, aneesh.kumar@linux.vnet.ibm.com, ak@linux.intel.com, n-horiguchi@ah.jp.nec.com
 
-Subject: [merged] mm-mempolicy-rename-check_range-to-queue_pages_range.patch removed from -mm tree
+Subject: [merged] mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch removed from -mm tree
 To: n-horiguchi@ah.jp.nec.com,ak@linux.intel.com,aneesh.kumar@linux.vnet.ibm.com,dhillf@gmail.com,hughd@google.com,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:44:29 -0700
+Date: Thu, 12 Sep 2013 12:44:27 -0700
 
 
 The patch titled
-     Subject: mm/mempolicy: rename check_*range to queue_pages_*range
+     Subject: mm: prepare to remove /proc/sys/vm/hugepages_treat_as_movable
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-rename-check_range-to-queue_pages_range.patch
+     mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/mempolicy: rename check_*range to queue_pages_*range
+Subject: mm: prepare to remove /proc/sys/vm/hugepages_treat_as_movable
 
-The function check_range() (and its family) is not well-named, because it
-does not only checking something, but moving pages from list to list to do
-page migration for them.  So queue_pages_*range is more desirable name.
+Now hugepage migration is enabled, although restricted on pmd-based
+hugepages for now (due to lack of testing.) So we should allocate
+migratable hugepages from ZONE_MOVABLE if possible.
+
+This patch makes GFP flags in hugepage allocation dependent on migration
+support, not only the value of hugepages_treat_as_movable.  It provides no
+change on the behavior for architectures which do not support hugepage
+migration,
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Hugh Dickins <hughd@google.com>
@@ -50,146 +56,140 @@ Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   41 +++++++++++++++++++++++------------------
- 1 file changed, 23 insertions(+), 18 deletions(-)
+ Documentation/sysctl/vm.txt |   30 +++++++++++++++++++-----------
+ kernel/sysctl.c             |    2 +-
+ mm/hugetlb.c                |   32 ++++++++++++++------------------
+ 3 files changed, 34 insertions(+), 30 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-rename-check_range-to-queue_pages_range mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-rename-check_range-to-queue_pages_range
-+++ a/mm/mempolicy.c
-@@ -476,8 +476,11 @@ static const struct mempolicy_operations
- static void migrate_page_add(struct page *page, struct list_head *pagelist,
- 				unsigned long flags);
+diff -puN Documentation/sysctl/vm.txt~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable
++++ a/Documentation/sysctl/vm.txt
+@@ -200,17 +200,25 @@ fragmentation index is <= extfrag_thresh
  
--/* Scan through pages checking if pages follow certain conditions. */
--static int check_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
-+/*
-+ * Scan through pages checking if pages follow certain conditions,
-+ * and move them to the pagelist if they do.
-+ */
-+static int queue_pages_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, unsigned long end,
- 		const nodemask_t *nodes, unsigned long flags,
- 		void *private)
-@@ -515,8 +518,8 @@ static int check_pte_range(struct vm_are
- 	return addr != end;
+ hugepages_treat_as_movable
+ 
+-This parameter is only useful when kernelcore= is specified at boot time to
+-create ZONE_MOVABLE for pages that may be reclaimed or migrated. Huge pages
+-are not movable so are not normally allocated from ZONE_MOVABLE. A non-zero
+-value written to hugepages_treat_as_movable allows huge pages to be allocated
+-from ZONE_MOVABLE.
+-
+-Once enabled, the ZONE_MOVABLE is treated as an area of memory the huge
+-pages pool can easily grow or shrink within. Assuming that applications are
+-not running that mlock() a lot of memory, it is likely the huge pages pool
+-can grow to the size of ZONE_MOVABLE by repeatedly entering the desired value
+-into nr_hugepages and triggering page reclaim.
++This parameter controls whether we can allocate hugepages from ZONE_MOVABLE
++or not. If set to non-zero, hugepages can be allocated from ZONE_MOVABLE.
++ZONE_MOVABLE is created when kernel boot parameter kernelcore= is specified,
++so this parameter has no effect if used without kernelcore=.
++
++Hugepage migration is now available in some situations which depend on the
++architecture and/or the hugepage size. If a hugepage supports migration,
++allocation from ZONE_MOVABLE is always enabled for the hugepage regardless
++of the value of this parameter.
++IOW, this parameter affects only non-migratable hugepages.
++
++Assuming that hugepages are not migratable in your system, one usecase of
++this parameter is that users can make hugepage pool more extensible by
++enabling the allocation from ZONE_MOVABLE. This is because on ZONE_MOVABLE
++page reclaim/migration/compaction work more and you can get contiguous
++memory more likely. Note that using ZONE_MOVABLE for non-migratable
++hugepages can do harm to other features like memory hotremove (because
++memory hotremove expects that memory blocks on ZONE_MOVABLE are always
++removable,) so it's a trade-off responsible for the users.
+ 
+ ==============================================================
+ 
+diff -puN kernel/sysctl.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable
++++ a/kernel/sysctl.c
+@@ -1225,7 +1225,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &hugepages_treat_as_movable,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= hugetlb_treat_movable_handler,
++		.proc_handler	= proc_dointvec,
+ 	},
+ 	{
+ 		.procname	= "nr_overcommit_hugepages",
+diff -puN mm/hugetlb.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable
++++ a/mm/hugetlb.c
+@@ -34,7 +34,6 @@
+ #include "internal.h"
+ 
+ const unsigned long hugetlb_zero = 0, hugetlb_infinity = ~0UL;
+-static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
+ 
+ int hugetlb_max_hstate __read_mostly;
+@@ -539,6 +538,15 @@ static struct page *dequeue_huge_page_no
+ 	return page;
  }
  
--static void check_hugetlb_pmd_range(struct vm_area_struct *vma, pmd_t *pmd,
--		const nodemask_t *nodes, unsigned long flags,
-+static void queue_pages_hugetlb_pmd_range(struct vm_area_struct *vma,
-+		pmd_t *pmd, const nodemask_t *nodes, unsigned long flags,
- 				    void *private)
- {
- #ifdef CONFIG_HUGETLB_PAGE
-@@ -539,7 +542,7 @@ unlock:
- #endif
++/* Movability of hugepages depends on migration support. */
++static inline gfp_t htlb_alloc_mask(struct hstate *h)
++{
++	if (hugepages_treat_as_movable || hugepage_migration_support(h))
++		return GFP_HIGHUSER_MOVABLE;
++	else
++		return GFP_HIGHUSER;
++}
++
+ static struct page *dequeue_huge_page_vma(struct hstate *h,
+ 				struct vm_area_struct *vma,
+ 				unsigned long address, int avoid_reserve,
+@@ -568,11 +576,11 @@ static struct page *dequeue_huge_page_vm
+ retry_cpuset:
+ 	cpuset_mems_cookie = get_mems_allowed();
+ 	zonelist = huge_zonelist(vma, address,
+-					htlb_alloc_mask, &mpol, &nodemask);
++					htlb_alloc_mask(h), &mpol, &nodemask);
+ 
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+ 						MAX_NR_ZONES - 1, nodemask) {
+-		if (cpuset_zone_allowed_softwall(zone, htlb_alloc_mask)) {
++		if (cpuset_zone_allowed_softwall(zone, htlb_alloc_mask(h))) {
+ 			page = dequeue_huge_page_node(h, zone_to_nid(zone));
+ 			if (page) {
+ 				if (avoid_reserve)
+@@ -738,7 +746,7 @@ static struct page *alloc_fresh_huge_pag
+ 		return NULL;
+ 
+ 	page = alloc_pages_exact_node(nid,
+-		htlb_alloc_mask|__GFP_COMP|__GFP_THISNODE|
++		htlb_alloc_mask(h)|__GFP_COMP|__GFP_THISNODE|
+ 						__GFP_REPEAT|__GFP_NOWARN,
+ 		huge_page_order(h));
+ 	if (page) {
+@@ -965,12 +973,12 @@ static struct page *alloc_buddy_huge_pag
+ 	spin_unlock(&hugetlb_lock);
+ 
+ 	if (nid == NUMA_NO_NODE)
+-		page = alloc_pages(htlb_alloc_mask|__GFP_COMP|
++		page = alloc_pages(htlb_alloc_mask(h)|__GFP_COMP|
+ 				   __GFP_REPEAT|__GFP_NOWARN,
+ 				   huge_page_order(h));
+ 	else
+ 		page = alloc_pages_exact_node(nid,
+-			htlb_alloc_mask|__GFP_COMP|__GFP_THISNODE|
++			htlb_alloc_mask(h)|__GFP_COMP|__GFP_THISNODE|
+ 			__GFP_REPEAT|__GFP_NOWARN, huge_page_order(h));
+ 
+ 	if (page && arch_prepare_hugepage(page)) {
+@@ -2117,18 +2125,6 @@ int hugetlb_mempolicy_sysctl_handler(str
  }
+ #endif /* CONFIG_NUMA */
  
--static inline int check_pmd_range(struct vm_area_struct *vma, pud_t *pud,
-+static inline int queue_pages_pmd_range(struct vm_area_struct *vma, pud_t *pud,
- 		unsigned long addr, unsigned long end,
- 		const nodemask_t *nodes, unsigned long flags,
- 		void *private)
-@@ -553,21 +556,21 @@ static inline int check_pmd_range(struct
- 		if (!pmd_present(*pmd))
- 			continue;
- 		if (pmd_huge(*pmd) && is_vm_hugetlb_page(vma)) {
--			check_hugetlb_pmd_range(vma, pmd, nodes,
-+			queue_pages_hugetlb_pmd_range(vma, pmd, nodes,
- 						flags, private);
- 			continue;
- 		}
- 		split_huge_page_pmd(vma, addr, pmd);
- 		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
- 			continue;
--		if (check_pte_range(vma, pmd, addr, next, nodes,
-+		if (queue_pages_pte_range(vma, pmd, addr, next, nodes,
- 				    flags, private))
- 			return -EIO;
- 	} while (pmd++, addr = next, addr != end);
- 	return 0;
- }
- 
--static inline int check_pud_range(struct vm_area_struct *vma, pgd_t *pgd,
-+static inline int queue_pages_pud_range(struct vm_area_struct *vma, pgd_t *pgd,
- 		unsigned long addr, unsigned long end,
- 		const nodemask_t *nodes, unsigned long flags,
- 		void *private)
-@@ -582,14 +585,14 @@ static inline int check_pud_range(struct
- 			continue;
- 		if (pud_none_or_clear_bad(pud))
- 			continue;
--		if (check_pmd_range(vma, pud, addr, next, nodes,
-+		if (queue_pages_pmd_range(vma, pud, addr, next, nodes,
- 				    flags, private))
- 			return -EIO;
- 	} while (pud++, addr = next, addr != end);
- 	return 0;
- }
- 
--static inline int check_pgd_range(struct vm_area_struct *vma,
-+static inline int queue_pages_pgd_range(struct vm_area_struct *vma,
- 		unsigned long addr, unsigned long end,
- 		const nodemask_t *nodes, unsigned long flags,
- 		void *private)
-@@ -602,7 +605,7 @@ static inline int check_pgd_range(struct
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd))
- 			continue;
--		if (check_pud_range(vma, pgd, addr, next, nodes,
-+		if (queue_pages_pud_range(vma, pgd, addr, next, nodes,
- 				    flags, private))
- 			return -EIO;
- 	} while (pgd++, addr = next, addr != end);
-@@ -640,12 +643,14 @@ static unsigned long change_prot_numa(st
- #endif /* CONFIG_ARCH_USES_NUMA_PROT_NONE */
- 
- /*
-- * Check if all pages in a range are on a set of nodes.
-- * If pagelist != NULL then isolate pages from the LRU and
-- * put them on the pagelist.
-+ * Walk through page tables and collect pages to be migrated.
-+ *
-+ * If pages found in a given range are on a set of nodes (determined by
-+ * @nodes and @flags,) it's isolated and queued to the pagelist which is
-+ * passed via @private.)
-  */
- static struct vm_area_struct *
--check_range(struct mm_struct *mm, unsigned long start, unsigned long end,
-+queue_pages_range(struct mm_struct *mm, unsigned long start, unsigned long end,
- 		const nodemask_t *nodes, unsigned long flags, void *private)
- {
- 	int err;
-@@ -680,7 +685,7 @@ check_range(struct mm_struct *mm, unsign
- 		     ((flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) &&
- 		      vma_migratable(vma))) {
- 
--			err = check_pgd_range(vma, start, endvma, nodes,
-+			err = queue_pages_pgd_range(vma, start, endvma, nodes,
- 						flags, private);
- 			if (err) {
- 				first = ERR_PTR(err);
-@@ -1050,7 +1055,7 @@ static int migrate_to_node(struct mm_str
- 	 * space range and MPOL_MF_DISCONTIG_OK, this call can not fail.
- 	 */
- 	VM_BUG_ON(!(flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)));
--	check_range(mm, mm->mmap->vm_start, mm->task_size, &nmask,
-+	queue_pages_range(mm, mm->mmap->vm_start, mm->task_size, &nmask,
- 			flags | MPOL_MF_DISCONTIG_OK, &pagelist);
- 
- 	if (!list_empty(&pagelist)) {
-@@ -1288,7 +1293,7 @@ static long do_mbind(unsigned long start
- 	if (err)
- 		goto mpol_out;
- 
--	vma = check_range(mm, start, end, nmask,
-+	vma = queue_pages_range(mm, start, end, nmask,
- 			  flags | MPOL_MF_INVERT, &pagelist);
- 
- 	err = PTR_ERR(vma);	/* maybe ... */
-_
-
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
-
-origin.patch
-
+-int hugetlb_treat_movable_handler(struct ctl_table *table, int write,
+-			void __user *buffer,
+-			size_t *length, loff_t *ppos)
+-{
+-	proc_dointvec(table, write, buffer, length, ppos);
+-	if (hugepages_treat_as_movable)
+-		htlb_alloc_mask = GFP_HIGHUSER_MOVABLE;
+-	else
+-		htlb_alloc_mask = GFP_HIGHUSER;
+-	return 0;
+-}
