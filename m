@@ -1,140 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- vmstat-use-this_cpu-to-avoid-irqon-off-sequence-in-refresh_cpu_vm_stats.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:43:33 -0700
-Message-ID: <52321965.F5Qbsx+M9bUHOiY2%akpm@linux-foundation.org>
+Subject: [merged] mm-vmalloc-use-well-defined-find_last_bit-func.patch
+ removed from -mm tree
+Date: Thu, 12 Sep 2013 12:43:37 -0700
+Message-ID: <52321969.WgWRm+8n/MTuTxpZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58225 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58236 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753000Ab3ILTne (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:34 -0400
+	with ESMTP id S1755770Ab3ILTni (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, js1304@gmail.com, adobriyan@gmail.com, cl@linux.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com
 
-Subject: [merged] vmstat-use-this_cpu-to-avoid-irqon-off-sequence-in-refresh_cpu_vm_stats.patch removed from -mm tree
-To: cl@linux.com,adobriyan@gmail.com,js1304@gmail.com,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-vmalloc-use-well-defined-find_last_bit-func.patch removed from -mm tree
+To: iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,liwanp@linux.vnet.ibm.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:43:33 -0700
+Date: Thu, 12 Sep 2013 12:43:37 -0700
 
 
 The patch titled
-     Subject: vmstat: use this_cpu() to avoid irqon/off sequence in refresh_cpu_vm_stats
+     Subject: mm, vmalloc: use well-defined find_last_bit() func
 has been removed from the -mm tree.  Its filename was
-     vmstat-use-this_cpu-to-avoid-irqon-off-sequence-in-refresh_cpu_vm_stats.patch
+     mm-vmalloc-use-well-defined-find_last_bit-func.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: vmstat: use this_cpu() to avoid irqon/off sequence in refresh_cpu_vm_stats
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm, vmalloc: use well-defined find_last_bit() func
 
-Disabling interrupts repeatedly can be avoided in the inner loop if we use
-a this_cpu operation.
+Our intention in here is to find last_bit within the region to flush. 
+There is well-defined function, find_last_bit() for this purpose and its
+performance may be slightly better than current implementation.  So change
+it.
 
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Tejun Heo <tj@kernel.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   35 ++++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 19 deletions(-)
+ mm/vmalloc.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-use-this_cpu-to-avoid-irqon-off-sequence-in-refresh_cpu_vm_stats mm/vmstat.c
---- a/mm/vmstat.c~vmstat-use-this_cpu-to-avoid-irqon-off-sequence-in-refresh_cpu_vm_stats
-+++ a/mm/vmstat.c
-@@ -437,33 +437,29 @@ static inline void fold_diff(int *diff)
-  * with the global counters. These could cause remote node cache line
-  * bouncing and will have to be only done when necessary.
-  */
--static void refresh_cpu_vm_stats(int cpu)
-+static void refresh_cpu_vm_stats(void)
- {
- 	struct zone *zone;
- 	int i;
- 	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
+diff -puN mm/vmalloc.c~mm-vmalloc-use-well-defined-find_last_bit-func mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-use-well-defined-find_last_bit-func
++++ a/mm/vmalloc.c
+@@ -1016,15 +1016,16 @@ void vm_unmap_aliases(void)
  
- 	for_each_populated_zone(zone) {
--		struct per_cpu_pageset *p;
-+		struct per_cpu_pageset __percpu *p = zone->pageset;
+ 		rcu_read_lock();
+ 		list_for_each_entry_rcu(vb, &vbq->free, free_list) {
+-			int i;
++			int i, j;
  
--		p = per_cpu_ptr(zone->pageset, cpu);
-+		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
-+			int v;
- 
--		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
--			if (p->vm_stat_diff[i]) {
--				unsigned long flags;
--				int v;
-+			v = this_cpu_xchg(p->vm_stat_diff[i], 0);
-+			if (v) {
- 
--				local_irq_save(flags);
--				v = p->vm_stat_diff[i];
--				p->vm_stat_diff[i] = 0;
--				local_irq_restore(flags);
- 				atomic_long_add(v, &zone->vm_stat[i]);
- 				global_diff[i] += v;
- #ifdef CONFIG_NUMA
- 				/* 3 seconds idle till flush */
--				p->expire = 3;
-+				__this_cpu_write(p->expire, 3);
- #endif
- 			}
-+		}
- 		cond_resched();
- #ifdef CONFIG_NUMA
- 		/*
-@@ -473,23 +469,24 @@ static void refresh_cpu_vm_stats(int cpu
- 		 * Check if there are pages remaining in this pageset
- 		 * if not then there is nothing to expire.
- 		 */
--		if (!p->expire || !p->pcp.count)
-+		if (!__this_cpu_read(p->expire) ||
-+			       !__this_cpu_read(p->pcp.count))
- 			continue;
- 
- 		/*
- 		 * We never drain zones local to this processor.
- 		 */
- 		if (zone_to_nid(zone) == numa_node_id()) {
--			p->expire = 0;
-+			__this_cpu_write(p->expire, 0);
- 			continue;
- 		}
- 
--		p->expire--;
--		if (p->expire)
+ 			spin_lock(&vb->lock);
+ 			i = find_first_bit(vb->dirty_map, VMAP_BBMAP_BITS);
+-			while (i < VMAP_BBMAP_BITS) {
++			if (i < VMAP_BBMAP_BITS) {
+ 				unsigned long s, e;
+-				int j;
+-				j = find_next_zero_bit(vb->dirty_map,
+-					VMAP_BBMAP_BITS, i);
 +
-+		if (__this_cpu_dec_return(p->expire))
- 			continue;
++				j = find_last_bit(vb->dirty_map,
++							VMAP_BBMAP_BITS);
++				j = j + 1; /* need exclusive index */
  
--		if (p->pcp.count)
--			drain_zone_pages(zone, &p->pcp);
-+		if (__this_cpu_read(p->pcp.count))
-+			drain_zone_pages(zone, __this_cpu_ptr(&p->pcp));
- #endif
- 	}
- 	fold_diff(global_diff);
-@@ -1216,7 +1213,7 @@ int sysctl_stat_interval __read_mostly =
- 
- static void vmstat_update(struct work_struct *w)
- {
--	refresh_cpu_vm_stats(smp_processor_id());
-+	refresh_cpu_vm_stats();
- 	schedule_delayed_work(&__get_cpu_var(vmstat_work),
- 		round_jiffies_relative(sysctl_stat_interval));
- }
-_
-
-Patches currently in -mm which might be from cl@linux.com are
-
-origin.patch
-
+ 				s = vb->va->va_start + (i << PAGE_SHIFT);
+ 				e = vb->va->va_start + (j << PAGE_SHIFT);
+@@ -1034,10 +1035,6 @@ void vm_unmap_aliases(void)
+ 					start = s;
+ 				if (e > end)
+ 					end = e;
