@@ -1,331 +1,357 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hfsplus-implement-posix-acls-support.patch removed from
- -mm tree
-Date: Thu, 12 Sep 2013 12:48:21 -0700
-Message-ID: <52321a85.cX86DU50XYmC1Qa8%akpm@linux-foundation.org>
+Subject: [merged] rtc-simplify-devm_request_mem_region-devm_ioremap.patch
+ removed from -mm tree
+Date: Thu, 12 Sep 2013 12:48:17 -0700
+Message-ID: <52321a81.LFPmoncq2Z3uIKmg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58764 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58748 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756529Ab3ILTsh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:48:37 -0400
+	with ESMTP id S1756590Ab3ILTsc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:48:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
+To: mm-commits@vger.kernel.org, Julia.Lawall@lip6.fr
 
-Subject: [merged] hfsplus-implement-posix-acls-support.patch removed from -mm tree
-To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] rtc-simplify-devm_request_mem_region-devm_ioremap.patch removed from -mm tree
+To: Julia.Lawall@lip6.fr,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:48:21 -0700
+Date: Thu, 12 Sep 2013 12:48:17 -0700
 
 
 The patch titled
-     Subject: hfsplus: implement POSIX ACLs support
+     Subject: rtc: simplify devm_request_mem_region/devm_ioremap
 has been removed from the -mm tree.  Its filename was
-     hfsplus-implement-posix-acls-support.patch
+     rtc-simplify-devm_request_mem_region-devm_ioremap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: implement POSIX ACLs support
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: rtc: simplify devm_request_mem_region/devm_ioremap
 
-Implement POSIX ACLs support in hfsplus driver.
+Convert the composition of devm_request_mem_region and devm_ioremap to a
+single call to devm_ioremap_resource.  The associated call to
+platform_get_resource is also simplified and moved next to the new call to
+devm_ioremap_resource.
 
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
+This was done using a combination of the semantic patches
+devm_ioremap_resource.cocci and devm_request_and_ioremap.cocci, found in
+the scripts/coccinelle/api directory.
+
+In rtc-lpc32xx.c and rtc-mv.c, the local variable size is no longer needed.
+
+In rtc-ds1511.c the size field of the local structure is not useful any
+more, and is deleted.
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/posix_acl.c |  274 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 274 insertions(+)
+ drivers/rtc/rtc-ds1511.c   |   17 +++++------------
+ drivers/rtc/rtc-ds1553.c   |   13 ++++---------
+ drivers/rtc/rtc-ep93xx.c   |   14 +++-----------
+ drivers/rtc/rtc-imxdi.c    |   16 ++++------------
+ drivers/rtc/rtc-lpc32xx.c  |   24 ++++--------------------
+ drivers/rtc/rtc-mv.c       |   17 ++++-------------
+ drivers/rtc/rtc-mxc.c      |   14 ++++----------
+ drivers/rtc/rtc-stk17ta8.c |   15 +++++----------
+ drivers/rtc/rtc-tx4939.c   |   14 ++++----------
+ 9 files changed, 37 insertions(+), 107 deletions(-)
 
-diff -puN /dev/null fs/hfsplus/posix_acl.c
---- /dev/null
-+++ a/fs/hfsplus/posix_acl.c
-@@ -0,0 +1,274 @@
-+/*
-+ * linux/fs/hfsplus/posix_acl.c
-+ *
-+ * Vyacheslav Dubeyko <slava@dubeyko.com>
-+ *
-+ * Handler for Posix Access Control Lists (ACLs) support.
-+ */
+diff -puN drivers/rtc/rtc-ds1511.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-ds1511.c
+--- a/drivers/rtc/rtc-ds1511.c~rtc-simplify-devm_request_mem_region-devm_ioremap
++++ a/drivers/rtc/rtc-ds1511.c
+@@ -89,7 +89,6 @@ enum ds1511reg {
+ struct rtc_plat_data {
+ 	struct rtc_device *rtc;
+ 	void __iomem *ioaddr;		/* virtual base address */
+-	int size;				/* amount of memory mapped */
+ 	int irq;
+ 	unsigned int irqen;
+ 	int alrm_sec;
+@@ -479,20 +478,14 @@ static int ds1511_rtc_probe(struct platf
+ 	struct rtc_plat_data *pdata;
+ 	int ret = 0;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENODEV;
+-
+ 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+ 	if (!pdata)
+ 		return -ENOMEM;
+-	pdata->size = resource_size(res);
+-	if (!devm_request_mem_region(&pdev->dev, res->start, pdata->size,
+-			pdev->name))
+-		return -EBUSY;
+-	ds1511_base = devm_ioremap(&pdev->dev, res->start, pdata->size);
+-	if (!ds1511_base)
+-		return -ENOMEM;
 +
-+#include "hfsplus_fs.h"
-+#include "xattr.h"
-+#include "acl.h"
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	ds1511_base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(ds1511_base))
++		return PTR_ERR(ds1511_base);
+ 	pdata->ioaddr = ds1511_base;
+ 	pdata->irq = platform_get_irq(pdev, 0);
+ 
+diff -puN drivers/rtc/rtc-ds1553.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-ds1553.c
+--- a/drivers/rtc/rtc-ds1553.c~rtc-simplify-devm_request_mem_region-devm_ioremap
++++ a/drivers/rtc/rtc-ds1553.c
+@@ -285,19 +285,14 @@ static int ds1553_rtc_probe(struct platf
+ 	void __iomem *ioaddr;
+ 	int ret = 0;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENODEV;
+ 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+ 	if (!pdata)
+ 		return -ENOMEM;
+-	if (!devm_request_mem_region(&pdev->dev, res->start, RTC_REG_SIZE,
+-			pdev->name))
+-		return -EBUSY;
+ 
+-	ioaddr = devm_ioremap(&pdev->dev, res->start, RTC_REG_SIZE);
+-	if (!ioaddr)
+-		return -ENOMEM;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	ioaddr = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(ioaddr))
++		return PTR_ERR(ioaddr);
+ 	pdata->ioaddr = ioaddr;
+ 	pdata->irq = platform_get_irq(pdev, 0);
+ 
+diff -puN drivers/rtc/rtc-ep93xx.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-ep93xx.c
+--- a/drivers/rtc/rtc-ep93xx.c~rtc-simplify-devm_request_mem_region-devm_ioremap
++++ a/drivers/rtc/rtc-ep93xx.c
+@@ -138,17 +138,9 @@ static int ep93xx_rtc_probe(struct platf
+ 		return -ENOMEM;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENXIO;
+-
+-	if (!devm_request_mem_region(&pdev->dev, res->start,
+-				     resource_size(res), pdev->name))
+-		return -EBUSY;
+-
+-	ep93xx_rtc->mmio_base = devm_ioremap(&pdev->dev, res->start,
+-					     resource_size(res));
+-	if (!ep93xx_rtc->mmio_base)
+-		return -ENXIO;
++	ep93xx_rtc->mmio_base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(ep93xx_rtc->mmio_base))
++		return PTR_ERR(ep93xx_rtc->mmio_base);
+ 
+ 	pdev->dev.platform_data = ep93xx_rtc;
+ 	platform_set_drvdata(pdev, ep93xx_rtc);
+diff -puN drivers/rtc/rtc-imxdi.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-imxdi.c
+--- a/drivers/rtc/rtc-imxdi.c~rtc-simplify-devm_request_mem_region-devm_ioremap
++++ a/drivers/rtc/rtc-imxdi.c
+@@ -375,24 +375,16 @@ static int __init dryice_rtc_probe(struc
+ 	struct imxdi_dev *imxdi;
+ 	int rc;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENODEV;
+-
+ 	imxdi = devm_kzalloc(&pdev->dev, sizeof(*imxdi), GFP_KERNEL);
+ 	if (!imxdi)
+ 		return -ENOMEM;
+ 
+ 	imxdi->pdev = pdev;
+ 
+-	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size(res),
+-				pdev->name))
+-		return -EBUSY;
+-
+-	imxdi->ioaddr = devm_ioremap(&pdev->dev, res->start,
+-			resource_size(res));
+-	if (imxdi->ioaddr == NULL)
+-		return -ENOMEM;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	imxdi->ioaddr = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(imxdi->ioaddr))
++		return PTR_ERR(imxdi->ioaddr);
+ 
+ 	spin_lock_init(&imxdi->irq_lock);
+ 
+diff -puN drivers/rtc/rtc-lpc32xx.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-lpc32xx.c
+--- a/drivers/rtc/rtc-lpc32xx.c~rtc-simplify-devm_request_mem_region-devm_ioremap
++++ a/drivers/rtc/rtc-lpc32xx.c
+@@ -201,16 +201,9 @@ static int lpc32xx_rtc_probe(struct plat
+ {
+ 	struct resource *res;
+ 	struct lpc32xx_rtc *rtc;
+-	resource_size_t size;
+ 	int rtcirq;
+ 	u32 tmp;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		dev_err(&pdev->dev, "Can't get memory resource\n");
+-		return -ENOENT;
+-	}
+-
+ 	rtcirq = platform_get_irq(pdev, 0);
+ 	if (rtcirq < 0 || rtcirq >= NR_IRQS) {
+ 		dev_warn(&pdev->dev, "Can't get interrupt resource\n");
+@@ -224,19 +217,10 @@ static int lpc32xx_rtc_probe(struct plat
+ 	}
+ 	rtc->irq = rtcirq;
+ 
+-	size = resource_size(res);
+-
+-	if (!devm_request_mem_region(&pdev->dev, res->start, size,
+-				     pdev->name)) {
+-		dev_err(&pdev->dev, "RTC registers are not free\n");
+-		return -EBUSY;
+-	}
+-
+-	rtc->rtc_base = devm_ioremap(&pdev->dev, res->start, size);
+-	if (!rtc->rtc_base) {
+-		dev_err(&pdev->dev, "Can't map memory\n");
+-		return -ENOMEM;
+-	}
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	rtc->rtc_base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(rtc->rtc_base))
++		return PTR_ERR(rtc->rtc_base);
+ 
+ 	spin_lock_init(&rtc->lock);
+ 
+diff -puN drivers/rtc/rtc-mv.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-mv.c
+--- a/drivers/rtc/rtc-mv.c~rtc-simplify-devm_request_mem_region-devm_ioremap
++++ a/drivers/rtc/rtc-mv.c
+@@ -221,26 +221,17 @@ static int __init mv_rtc_probe(struct pl
+ {
+ 	struct resource *res;
+ 	struct rtc_plat_data *pdata;
+-	resource_size_t size;
+ 	u32 rtc_time;
+ 	int ret = 0;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENODEV;
+-
+ 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+ 	if (!pdata)
+ 		return -ENOMEM;
+ 
+-	size = resource_size(res);
+-	if (!devm_request_mem_region(&pdev->dev, res->start, size,
+-				     pdev->name))
+-		return -EBUSY;
+-
+-	pdata->ioaddr = devm_ioremap(&pdev->dev, res->start, size);
+-	if (!pdata->ioaddr)
+-		return -ENOMEM;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	pdata->ioaddr = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(pdata->ioaddr))
++		return PTR_ERR(pdata->ioaddr);
+ 
+ 	pdata->clk = devm_clk_get(&pdev->dev, NULL);
+ 	/* Not all SoCs require a clock.*/
+diff -puN drivers/rtc/rtc-mxc.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~rtc-simplify-devm_request_mem_region-devm_ioremap
++++ a/drivers/rtc/rtc-mxc.c
+@@ -377,22 +377,16 @@ static int mxc_rtc_probe(struct platform
+ 	unsigned long rate;
+ 	int ret;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENODEV;
+-
+ 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+ 	if (!pdata)
+ 		return -ENOMEM;
+ 
+ 	pdata->devtype = pdev->id_entry->driver_data;
+ 
+-	if (!devm_request_mem_region(&pdev->dev, res->start,
+-				     resource_size(res), pdev->name))
+-		return -EBUSY;
+-
+-	pdata->ioaddr = devm_ioremap(&pdev->dev, res->start,
+-				     resource_size(res));
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	pdata->ioaddr = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(pdata->ioaddr))
++		return PTR_ERR(pdata->ioaddr);
+ 
+ 	pdata->clk = devm_clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(pdata->clk)) {
+diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-stk17ta8.c
+--- a/drivers/rtc/rtc-stk17ta8.c~rtc-simplify-devm_request_mem_region-devm_ioremap
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -294,19 +294,14 @@ static int stk17ta8_rtc_probe(struct pla
+ 	void __iomem *ioaddr;
+ 	int ret = 0;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENODEV;
+-
+ 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+ 	if (!pdata)
+ 		return -ENOMEM;
+-	if (!devm_request_mem_region(&pdev->dev, res->start, RTC_REG_SIZE,
+-			pdev->name))
+-		return -EBUSY;
+-	ioaddr = devm_ioremap(&pdev->dev, res->start, RTC_REG_SIZE);
+-	if (!ioaddr)
+-		return -ENOMEM;
 +
-+struct posix_acl *hfsplus_get_posix_acl(struct inode *inode, int type)
-+{
-+	struct posix_acl *acl;
-+	char *xattr_name;
-+	char *value = NULL;
-+	ssize_t size;
-+
-+	acl = get_cached_acl(inode, type);
-+	if (acl != ACL_NOT_CACHED)
-+		return acl;
-+
-+	switch (type) {
-+	case ACL_TYPE_ACCESS:
-+		xattr_name = POSIX_ACL_XATTR_ACCESS;
-+		break;
-+	case ACL_TYPE_DEFAULT:
-+		xattr_name = POSIX_ACL_XATTR_DEFAULT;
-+		break;
-+	default:
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	size = __hfsplus_getxattr(inode, xattr_name, NULL, 0);
-+
-+	if (size > 0) {
-+		value = (char *)hfsplus_alloc_attr_entry();
-+		if (unlikely(!value))
-+			return ERR_PTR(-ENOMEM);
-+		size = __hfsplus_getxattr(inode, xattr_name, value, size);
-+	}
-+
-+	if (size > 0)
-+		acl = posix_acl_from_xattr(&init_user_ns, value, size);
-+	else if (size == -ENODATA)
-+		acl = NULL;
-+	else
-+		acl = ERR_PTR(size);
-+
-+	hfsplus_destroy_attr_entry((hfsplus_attr_entry *)value);
-+
-+	if (!IS_ERR(acl))
-+		set_cached_acl(inode, type, acl);
-+
-+	return acl;
-+}
-+
-+static int hfsplus_set_posix_acl(struct inode *inode,
-+					int type,
-+					struct posix_acl *acl)
-+{
-+	int err;
-+	char *xattr_name;
-+	size_t size = 0;
-+	char *value = NULL;
-+
-+	if (S_ISLNK(inode->i_mode))
-+		return -EOPNOTSUPP;
-+
-+	switch (type) {
-+	case ACL_TYPE_ACCESS:
-+		xattr_name = POSIX_ACL_XATTR_ACCESS;
-+		if (acl) {
-+			err = posix_acl_equiv_mode(acl, &inode->i_mode);
-+			if (err < 0)
-+				return err;
-+		}
-+		err = 0;
-+		break;
-+
-+	case ACL_TYPE_DEFAULT:
-+		xattr_name = POSIX_ACL_XATTR_DEFAULT;
-+		if (!S_ISDIR(inode->i_mode))
-+			return acl ? -EACCES : 0;
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (acl) {
-+		size = posix_acl_xattr_size(acl->a_count);
-+		if (unlikely(size > HFSPLUS_MAX_INLINE_DATA_SIZE))
-+			return -ENOMEM;
-+		value = (char *)hfsplus_alloc_attr_entry();
-+		if (unlikely(!value))
-+			return -ENOMEM;
-+		err = posix_acl_to_xattr(&init_user_ns, acl, value, size);
-+		if (unlikely(err < 0))
-+			goto end_set_acl;
-+	}
-+
-+	err = __hfsplus_setxattr(inode, xattr_name, value, size, 0);
-+
-+end_set_acl:
-+	hfsplus_destroy_attr_entry((hfsplus_attr_entry *)value);
-+
-+	if (!err)
-+		set_cached_acl(inode, type, acl);
-+
-+	return err;
-+}
-+
-+int hfsplus_init_posix_acl(struct inode *inode, struct inode *dir)
-+{
-+	int err = 0;
-+	struct posix_acl *acl = NULL;
-+
-+	hfs_dbg(ACL_MOD,
-+		"[%s]: ino %lu, dir->ino %lu\n",
-+		__func__, inode->i_ino, dir->i_ino);
-+
-+	if (S_ISLNK(inode->i_mode))
-+		return 0;
-+
-+	acl = hfsplus_get_posix_acl(dir, ACL_TYPE_DEFAULT);
-+	if (IS_ERR(acl))
-+		return PTR_ERR(acl);
-+
-+	if (acl) {
-+		if (S_ISDIR(inode->i_mode)) {
-+			err = hfsplus_set_posix_acl(inode,
-+							ACL_TYPE_DEFAULT,
-+							acl);
-+			if (unlikely(err))
-+				goto init_acl_cleanup;
-+		}
-+
-+		err = posix_acl_create(&acl, GFP_NOFS, &inode->i_mode);
-+		if (unlikely(err < 0))
-+			return err;
-+
-+		if (err > 0)
-+			err = hfsplus_set_posix_acl(inode,
-+							ACL_TYPE_ACCESS,
-+							acl);
-+	} else
-+		inode->i_mode &= ~current_umask();
-+
-+init_acl_cleanup:
-+	posix_acl_release(acl);
-+	return err;
-+}
-+
-+int hfsplus_posix_acl_chmod(struct inode *inode)
-+{
-+	int err;
-+	struct posix_acl *acl;
-+
-+	hfs_dbg(ACL_MOD, "[%s]: ino %lu\n", __func__, inode->i_ino);
-+
-+	if (S_ISLNK(inode->i_mode))
-+		return -EOPNOTSUPP;
-+
-+	acl = hfsplus_get_posix_acl(inode, ACL_TYPE_ACCESS);
-+	if (IS_ERR(acl) || !acl)
-+		return PTR_ERR(acl);
-+
-+	err = posix_acl_chmod(&acl, GFP_KERNEL, inode->i_mode);
-+	if (unlikely(err))
-+		return err;
-+
-+	err = hfsplus_set_posix_acl(inode, ACL_TYPE_ACCESS, acl);
-+	posix_acl_release(acl);
-+	return err;
-+}
-+
-+static int hfsplus_xattr_get_posix_acl(struct dentry *dentry,
-+					const char *name,
-+					void *buffer,
-+					size_t size,
-+					int type)
-+{
-+	int err = 0;
-+	struct posix_acl *acl;
-+
-+	hfs_dbg(ACL_MOD,
-+		"[%s]: ino %lu, buffer %p, size %zu, type %#x\n",
-+		__func__, dentry->d_inode->i_ino, buffer, size, type);
-+
-+	if (strcmp(name, "") != 0)
-+		return -EINVAL;
-+
-+	acl = hfsplus_get_posix_acl(dentry->d_inode, type);
-+	if (IS_ERR(acl))
-+		return PTR_ERR(acl);
-+	if (acl == NULL)
-+		return -ENODATA;
-+
-+	err = posix_acl_to_xattr(&init_user_ns, acl, buffer, size);
-+	posix_acl_release(acl);
-+
-+	return err;
-+}
-+
-+static int hfsplus_xattr_set_posix_acl(struct dentry *dentry,
-+					const char *name,
-+					const void *value,
-+					size_t size,
-+					int flags,
-+					int type)
-+{
-+	int err = 0;
-+	struct inode *inode = dentry->d_inode;
-+	struct posix_acl *acl = NULL;
-+
-+	hfs_dbg(ACL_MOD,
-+		"[%s]: ino %lu, value %p, size %zu, flags %#x, type %#x\n",
-+		__func__, inode->i_ino, value, size, flags, type);
-+
-+	if (strcmp(name, "") != 0)
-+		return -EINVAL;
-+
-+	if (!inode_owner_or_capable(inode))
-+		return -EPERM;
-+
-+	if (value) {
-+		acl = posix_acl_from_xattr(&init_user_ns, value, size);
-+		if (IS_ERR(acl))
-+			return PTR_ERR(acl);
-+		else if (acl) {
-+			err = posix_acl_valid(acl);
-+			if (err)
-+				goto end_xattr_set_acl;
-+		}
-+	}
-+
-+	err = hfsplus_set_posix_acl(inode, type, acl);
-+
-+end_xattr_set_acl:
-+	posix_acl_release(acl);
-+	return err;
-+}
-+
-+static size_t hfsplus_xattr_list_posix_acl(struct dentry *dentry,
-+						char *list,
-+						size_t list_size,
-+						const char *name,
-+						size_t name_len,
-+						int type)
-+{
-+	/*
-+	 * This method is not used.
-+	 * It is used hfsplus_listxattr() instead of generic_listxattr().
-+	 */
-+	return -EOPNOTSUPP;
-+}
-+
-+const struct xattr_handler hfsplus_xattr_acl_access_handler = {
-+	.prefix	= POSIX_ACL_XATTR_ACCESS,
-+	.flags	= ACL_TYPE_ACCESS,
-+	.list	= hfsplus_xattr_list_posix_acl,
-+	.get	= hfsplus_xattr_get_posix_acl,
-+	.set	= hfsplus_xattr_set_posix_acl,
-+};
-+
-+const struct xattr_handler hfsplus_xattr_acl_default_handler = {
-+	.prefix	= POSIX_ACL_XATTR_DEFAULT,
-+	.flags	= ACL_TYPE_DEFAULT,
-+	.list	= hfsplus_xattr_list_posix_acl,
-+	.get	= hfsplus_xattr_get_posix_acl,
-+	.set	= hfsplus_xattr_set_posix_acl,
-+};
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	ioaddr = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(ioaddr))
++		return PTR_ERR(ioaddr);
+ 	pdata->ioaddr = ioaddr;
+ 	pdata->irq = platform_get_irq(pdev, 0);
+ 
+diff -puN drivers/rtc/rtc-tx4939.c~rtc-simplify-devm_request_mem_region-devm_ioremap drivers/rtc/rtc-tx4939.c
+--- a/drivers/rtc/rtc-tx4939.c~rtc-simplify-devm_request_mem_region-devm_ioremap
++++ a/drivers/rtc/rtc-tx4939.c
+@@ -244,9 +244,6 @@ static int __init tx4939_rtc_probe(struc
+ 	struct resource *res;
+ 	int irq, ret;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENODEV;
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0)
+ 		return -ENODEV;
+@@ -255,13 +252,10 @@ static int __init tx4939_rtc_probe(struc
+ 		return -ENOMEM;
+ 	platform_set_drvdata(pdev, pdata);
+ 
+-	if (!devm_request_mem_region(&pdev->dev, res->start,
+-				     resource_size(res), pdev->name))
+-		return -EBUSY;
+-	pdata->rtcreg = devm_ioremap(&pdev->dev, res->start,
+-				     resource_size(res));
+-	if (!pdata->rtcreg)
+-		return -EBUSY;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	pdata->rtcreg = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(pdata->rtcreg))
++		return PTR_ERR(pdata->rtcreg);
+ 
+ 	spin_lock_init(&pdata->lock);
+ 	tx4939_rtc_cmd(pdata->rtcreg, TX4939_RTCCTL_COMMAND_NOP);
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
 
 origin.patch
 
