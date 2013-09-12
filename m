@@ -1,154 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-fix-a-tiny-race-case-when-firing-callbacks.patch
- removed from -mm tree
-Date: Thu, 12 Sep 2013 12:41:51 -0700
-Message-ID: <523218ff.D4CqoyCtSBdlhPJo%akpm@linux-foundation.org>
+Subject: [merged]
+ include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:41:57 -0700
+Message-ID: <52321905.Z4wQa3f/VKWlDwyb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57917 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57931 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793Ab3ILTlw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:52 -0400
+	with ESMTP id S1753793Ab3ILTl6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, xuejiufei@huawei.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, mhocko@suse.cz, ebiederm@xmission.com, dserrg@gmail.com, a.p.zijlstra@chello.nl, oleg@redhat.com
 
-Subject: [merged] ocfs2-fix-a-tiny-race-case-when-firing-callbacks.patch removed from -mm tree
-To: xuejiufei@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch removed from -mm tree
+To: oleg@redhat.com,a.p.zijlstra@chello.nl,dserrg@gmail.com,ebiederm@xmission.com,mhocko@suse.cz,mingo@elte.hu,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:41:51 -0700
+Date: Thu, 12 Sep 2013 12:41:57 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix a tiny race case when firing callbacks
+     Subject: include/linux/sched.h: don't use task->pid/tgid in same_thread_group/has_group_leader_pid
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-a-tiny-race-case-when-firing-callbacks.patch
+     include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joyce <xuejiufei@huawei.com>
-Subject: ocfs2: fix a tiny race case when firing callbacks
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: include/linux/sched.h: don't use task->pid/tgid in same_thread_group/has_group_leader_pid
 
-In o2hb_shutdown_slot() and o2hb_check_slot(), since event is defined as
-local, it is only valid during the call stack.  So the following tiny race
-case may happen in a multi-volumes mounted environment:
+task_struct->pid/tgid should go away.
 
-o2hb-vol1                         o2hb-vol2
-1) o2hb_shutdown_slot
-allocate local event1
-2) queue_node_event
-add event1 to global o2hb_node_events
-                                  3) o2hb_shutdown_slot
-                                  allocate local event2
-                                  4) queue_node_event
-                                  add event2 to global o2hb_node_events
-                                  5) o2hb_run_event_list
-                                  delete event1 from o2hb_node_events
-6) o2hb_run_event_list
-event1 empty, return
-7) o2hb_shutdown_slot
-event1 lifecycle ends
-                                  8) o2hb_fire_callbacks
-                                  event1 is already *invalid*
+1. Change same_thread_group() to use task->signal for comparison.
 
-This patch lets it wait on o2hb_callback_sem when another thread is firing
-callbacks.  And for performance consideration, we only call
-o2hb_run_event_list when there is an event queued.
+2. Change has_group_leader_pid(task) to compare task_pid(task) with
+   signal->leader_pid.
 
-Signed-off-by: Joyce <xuejiufei@huawei.com>
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Sergey Dyasly <dserrg@gmail.com>
+Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/linux/sched.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-a-tiny-race-case-when-firing-callbacks fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-a-tiny-race-case-when-firing-callbacks
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -639,16 +639,9 @@ static void o2hb_fire_callbacks(struct o
- /* Will run the list in order until we process the passed event */
- static void o2hb_run_event_list(struct o2hb_node_event *queued_event)
+diff -puN include/linux/sched.h~include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid include/linux/sched.h
+--- a/include/linux/sched.h~include-linux-schedh-dont-use-task-pid-tgid-in-same_thread_group-has_group_leader_pid
++++ a/include/linux/sched.h
+@@ -2169,15 +2169,15 @@ static inline bool thread_group_leader(s
+  * all we care about is that we have a task with the appropriate
+  * pid, we don't actually care if we have the right task.
+  */
+-static inline int has_group_leader_pid(struct task_struct *p)
++static inline bool has_group_leader_pid(struct task_struct *p)
  {
--	int empty;
- 	struct o2hb_callback *hbcall;
- 	struct o2hb_node_event *event;
- 
--	spin_lock(&o2hb_live_lock);
--	empty = list_empty(&queued_event->hn_item);
--	spin_unlock(&o2hb_live_lock);
--	if (empty)
--		return;
--
- 	/* Holding callback sem assures we don't alter the callback
- 	 * lists when doing this, and serializes ourselves with other
- 	 * processes wanting callbacks. */
-@@ -707,6 +700,7 @@ static void o2hb_shutdown_slot(struct o2
- 	struct o2hb_node_event event =
- 		{ .hn_item = LIST_HEAD_INIT(event.hn_item), };
- 	struct o2nm_node *node;
-+	int queued = 0;
- 
- 	node = o2nm_get_node_by_num(slot->ds_node_num);
- 	if (!node)
-@@ -724,11 +718,13 @@ static void o2hb_shutdown_slot(struct o2
- 
- 			o2hb_queue_node_event(&event, O2HB_NODE_DOWN_CB, node,
- 					      slot->ds_node_num);
-+			queued = 1;
- 		}
- 	}
- 	spin_unlock(&o2hb_live_lock);
- 
--	o2hb_run_event_list(&event);
-+	if (queued)
-+		o2hb_run_event_list(&event);
- 
- 	o2nm_node_put(node);
+-	return p->pid == p->tgid;
++	return task_pid(p) == p->signal->leader_pid;
  }
-@@ -788,6 +784,7 @@ static int o2hb_check_slot(struct o2hb_r
- 	unsigned int dead_ms = o2hb_dead_threshold * O2HB_REGION_TIMEOUT_MS;
- 	unsigned int slot_dead_ms;
- 	int tmp;
-+	int queued = 0;
  
- 	memcpy(hb_block, slot->ds_raw_block, reg->hr_block_bytes);
+ static inline
+-int same_thread_group(struct task_struct *p1, struct task_struct *p2)
++bool same_thread_group(struct task_struct *p1, struct task_struct *p2)
+ {
+-	return p1->tgid == p2->tgid;
++	return p1->signal == p2->signal;
+ }
  
-@@ -881,6 +878,7 @@ fire_callbacks:
- 					      slot->ds_node_num);
- 
- 			changed = 1;
-+			queued = 1;
- 		}
- 
- 		list_add_tail(&slot->ds_live_item,
-@@ -932,6 +930,7 @@ fire_callbacks:
- 					      node, slot->ds_node_num);
- 
- 			changed = 1;
-+			queued = 1;
- 		}
- 
- 		/* We don't clear this because the node is still
-@@ -947,7 +946,8 @@ fire_callbacks:
- out:
- 	spin_unlock(&o2hb_live_lock);
- 
--	o2hb_run_event_list(&event);
-+	if (queued)
-+		o2hb_run_event_list(&event);
- 
- 	if (node)
- 		o2nm_node_put(node);
+ static inline struct task_struct *next_thread(const struct task_struct *p)
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+anon_inodefs-forbid-open-via-proc.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+signals-eventpoll-set-saved_sigmask-at-the-start.patch
 
