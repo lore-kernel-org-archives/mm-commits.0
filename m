@@ -1,130 +1,128 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte.patch
- removed from -mm tree
-Date: Thu, 12 Sep 2013 12:45:15 -0700
-Message-ID: <523219cb.zKYLcrXMzpuvbMTE%akpm@linux-foundation.org>
+ mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch removed
+ from -mm tree
+Date: Thu, 12 Sep 2013 12:45:21 -0700
+Message-ID: <523219d1.b274tRGCSLRmizHF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58557 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58571 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755910Ab3ILTpQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:16 -0400
+	with ESMTP id S1756126Ab3ILTpW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, jbeulich@suse.com, gorcunov@openvz.org, gorcunov@gmail.com
+To: mm-commits@vger.kernel.org, tony.luck@intel.com, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
 
-Subject: [merged] mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte.patch removed from -mm tree
-To: gorcunov@gmail.com,gorcunov@openvz.org,jbeulich@suse.com,xemul@parallels.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch removed from -mm tree
+To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com,tony.luck@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:45:15 -0700
+Date: Thu, 12 Sep 2013 12:45:21 -0700
 
 
 The patch titled
-     Subject: mm: make sure _PAGE_SWP_SOFT_DIRTY bit is not set on present pte
+     Subject: mm/hwpoison: fix loss of PG_dirty for errors on mlocked pages
 has been removed from the -mm tree.  Its filename was
-     mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte.patch
+     mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: mm: make sure _PAGE_SWP_SOFT_DIRTY bit is not set on present pte
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/hwpoison: fix loss of PG_dirty for errors on mlocked pages
 
-_PAGE_SOFT_DIRTY bit should never be set on present pte so add VM_BUG_ON
-to catch any potential future abuse.
+memory_failure() store the page flag of the error page before doing unmap,
+and (only) if the first check with page flags at the time decided the
+error page is unknown, it do the second check with the stored page flag
+since memory_failure() does unmapping of the error pages before doing
+page_action().  This unmapping changes the page state, especially
+page_remove_rmap() (called from try_to_unmap_one()) clears PG_mlocked, so
+page_action() can't catch mlocked pages after that.
 
-Also add a comment on _PAGE_SWP_SOFT_DIRTY definition explaining scope of
-its usage.
+However, memory_failure() can't handle memory errors on dirty mlocked
+pages correctly.  try_to_unmap_one will move the dirty bit from pte to the
+physical page, the second check lose it since it check the stored page
+flag.  This patch fix it by restore PG_dirty flag to stored page flag if
+the page is dirty.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Pavel Emelyanov <xemul@parallels.com>
-Acked-by: Jan Beulich <jbeulich@suse.com>
+Testcase:
+
+#define _GNU_SOURCE
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <errno.h>
+
+#define PAGES_TO_TEST 2
+#define PAGE_SIZE	4096
+
+int main(void)
+{
+	char *mem;
+	int i;
+
+	mem = mmap(NULL, PAGES_TO_TEST * PAGE_SIZE,
+			PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_LOCKED, 0, 0);
+
+	for (i = 0; i < PAGES_TO_TEST; i++)
+		mem[i * PAGE_SIZE] = 'a';
+
+	if (madvise(mem, PAGES_TO_TEST * PAGE_SIZE, MADV_HWPOISON) == -1)
+		return -1;
+
+	return 0;
+}
+
+Before patch:
+
+[  912.839247] Injecting memory failure for page 7dfb8 at 7f6b4e37b000
+[  912.839257] MCE 0x7dfb8: clean mlocked LRU page recovery: Recovered
+[  912.845550] MCE 0x7dfb8: clean mlocked LRU page still referenced by 1 users
+[  912.852586] Injecting memory failure for page 7e6aa at 7f6b4e37c000
+[  912.852594] MCE 0x7e6aa: clean mlocked LRU page recovery: Recovered
+[  912.858936] MCE 0x7e6aa: clean mlocked LRU page still referenced by 1 users
+
+After patch:
+
+[  163.590225] Injecting memory failure for page 91bc2f at 7f9f5b0e5000
+[  163.590264] MCE 0x91bc2f: dirty mlocked LRU page recovery: Recovered
+[  163.596680] MCE 0x91bc2f: dirty mlocked LRU page still referenced by 1 users
+[  163.603831] Injecting memory failure for page 91cdd3 at 7f9f5b0e6000
+[  163.603852] MCE 0x91cdd3: dirty mlocked LRU page recovery: Recovered
+[  163.610305] MCE 0x91cdd3: dirty mlocked LRU page still referenced by 1 users
+
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h       |   34 +++++++++++++------------
- arch/x86/include/asm/pgtable_types.h |    3 ++
- 2 files changed, 22 insertions(+), 15 deletions(-)
+ mm/memory-failure.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/x86/include/asm/pgtable.h~mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -315,21 +315,6 @@ static inline pmd_t pmd_mksoft_dirty(pmd
- 	return pmd_set_flags(pmd, _PAGE_SOFT_DIRTY);
- }
- 
--static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
--{
--	return pte_set_flags(pte, _PAGE_SWP_SOFT_DIRTY);
--}
--
--static inline int pte_swp_soft_dirty(pte_t pte)
--{
--	return pte_flags(pte) & _PAGE_SWP_SOFT_DIRTY;
--}
--
--static inline pte_t pte_swp_clear_soft_dirty(pte_t pte)
--{
--	return pte_clear_flags(pte, _PAGE_SWP_SOFT_DIRTY);
--}
--
- static inline pte_t pte_file_clear_soft_dirty(pte_t pte)
- {
- 	return pte_clear_flags(pte, _PAGE_SOFT_DIRTY);
-@@ -446,6 +431,7 @@ pte_t *populate_extra_pte(unsigned long
- 
- #ifndef __ASSEMBLY__
- #include <linux/mm_types.h>
-+#include <linux/mmdebug.h>
- #include <linux/log2.h>
- 
- static inline int pte_none(pte_t pte)
-@@ -864,6 +850,24 @@ static inline void update_mmu_cache_pmd(
- {
- }
- 
-+static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
-+{
-+	VM_BUG_ON(pte_present(pte));
-+	return pte_set_flags(pte, _PAGE_SWP_SOFT_DIRTY);
-+}
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages
++++ a/mm/memory-failure.c
+@@ -1204,6 +1204,9 @@ int memory_failure(unsigned long pfn, in
+ 	for (ps = error_states;; ps++)
+ 		if ((p->flags & ps->mask) == ps->res)
+ 			break;
 +
-+static inline int pte_swp_soft_dirty(pte_t pte)
-+{
-+	VM_BUG_ON(pte_present(pte));
-+	return pte_flags(pte) & _PAGE_SWP_SOFT_DIRTY;
-+}
++	page_flags |= (p->flags & (1UL << PG_dirty));
 +
-+static inline pte_t pte_swp_clear_soft_dirty(pte_t pte)
-+{
-+	VM_BUG_ON(pte_present(pte));
-+	return pte_clear_flags(pte, _PAGE_SWP_SOFT_DIRTY);
-+}
-+
- #include <asm-generic/pgtable.h>
- #endif	/* __ASSEMBLY__ */
- 
-diff -puN arch/x86/include/asm/pgtable_types.h~mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte arch/x86/include/asm/pgtable_types.h
---- a/arch/x86/include/asm/pgtable_types.h~mm-make-sure-_page_swp_soft_dirty-bit-is-not-set-on-present-pte
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -75,6 +75,9 @@
-  * with swap entry format. On x86 bits 6 and 7 are *not* involved
-  * into swap entry computation, but bit 6 is used for nonlinear
-  * file mapping, so we borrow bit 7 for soft dirty tracking.
-+ *
-+ * Please note that this bit must be treated as swap dirty page
-+ * mark if and only if the PTE has present bit clear!
-  */
- #ifdef CONFIG_MEM_SOFT_DIRTY
- #define _PAGE_SWP_SOFT_DIRTY	_PAGE_PSE
+ 	if (!ps->mask)
+ 		for (ps = error_states;; ps++)
+ 			if ((page_flags & ps->mask) == ps->res)
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
 origin.patch
-arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
