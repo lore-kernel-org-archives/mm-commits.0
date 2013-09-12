@@ -1,117 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-multiple-large-threshold-notifications.patch
- removed from -mm tree
-Date: Thu, 12 Sep 2013 12:45:53 -0700
-Message-ID: <523219f1.XuuOdiF/V3oMFcQH%akpm__17139.5604069859$1379015171$gmane$org@linux-foundation.org>
+Subject: [merged]
+ pnp-change-pnp-bus-pm_ops-to-invoke-pnp-driver-dev_pm_ops-if-specified.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:45:55 -0700
+Message-ID: <523219f3.Z3gNyISOoiViB+1R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58642 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756369Ab3ILTpy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:54 -0400
+	with ESMTP id S1756398Ab3ILTp4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, kirill.shutemov@linux.intel.com, hannes@cmpxchg.org, gthelen@google.com
+To: mm-commits@vger.kernel.org, tpmdd@sirrix.com, tpmdd@selhorst.net, rob.herring@calxeda.com, rafael.j.wysocki@intel.com, matthew.garrett@nebula.com, mail@srajiv.net, leosilva@linux.vnet.ibm.com, grant.likely@linaro.org, bhelgaas@google.com, ashley@ashleylai.com, a.zummo@towertech.it, PeterHuewe@gmx.de, shuah.kh@samsung.com
 
-Subject: [merged] memcg-fix-multiple-large-threshold-notifications.patch removed from -mm tree
-To: gthelen@google.com,hannes@cmpxchg.org,kirill.shutemov@linux.intel.com,mhocko@suse.cz,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] pnp-change-pnp-bus-pm_ops-to-invoke-pnp-driver-dev_pm_ops-if-specified.patch removed from -mm tree
+To: shuah.kh@samsung.com,PeterHuewe@gmx.de,a.zummo@towertech.it,ashley@ashleylai.com,bhelgaas@google.com,grant.likely@linaro.org,leosilva@linux.vnet.ibm.com,mail@srajiv.net,matthew.garrett@nebula.com,rafael.j.wysocki@intel.com,rob.herring@calxeda.com,tpmdd@selhorst.net,tpmdd@sirrix.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:45:53 -0700
+Date: Thu, 12 Sep 2013 12:45:55 -0700
 
 
 The patch titled
-     Subject: memcg: fix multiple large threshold notifications
+     Subject: pnp: change pnp bus pm_ops to invoke pnp driver dev_pm_ops if specified
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-multiple-large-threshold-notifications.patch
+     pnp-change-pnp-bus-pm_ops-to-invoke-pnp-driver-dev_pm_ops-if-specified.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: memcg: fix multiple large threshold notifications
+From: Shuah Khan <shuah.kh@samsung.com>
+Subject: pnp: change pnp bus pm_ops to invoke pnp driver dev_pm_ops if specified
 
-A memory cgroup with (1) multiple threshold notifications and (2) at least
-one threshold >=2G was not reliable.  Specifically the notifications would
-either not fire or would not fire in the proper order.
+pnp_bus_suspend() and pnp_bus_resume() invoke legacy pm_ops from
+pnp_driver.  Changed pnp_bus_suspend() and pnp_bus_resume() to check if
+pnp driver has dev_pm_ops and call.  If dev_pm_ops don't exist, then call
+use legacy pm_ops.  Without this change, pnp_driver dev_pm_ops will not
+get called.
 
-The __mem_cgroup_threshold() signaling logic depends on keeping 64 bit
-thresholds in sorted order.  mem_cgroup_usage_register_event() sorts them
-with compare_thresholds(), which returns the difference of two 64 bit
-thresholds as an int.  If the difference is positive but has bit[31] set,
-then sort() treats the difference as negative and breaks sort order.
+In addition to the pnp driver bus pm_ops change to invoke driver
+dev_pm_ops, this patch set contains changes to rtc-cmos, tpm_tis, and
+apple-gmux pnp drivers to convert from legacy pm_ops to dev_pm_ops.
 
-This fix compares the two arbitrary 64 bit thresholds returning the
-classic -1, 0, 1 result.
 
-The test below sets two notifications (at 0x1000 and 0x81001000):
-  cd /sys/fs/cgroup/memory
-  mkdir x
-  for x in 4096 2164264960; do
-    cgroup_event_listener x/memory.usage_in_bytes $x | sed "s/^/$x listener:/" &
-  done
-  echo $$ > x/cgroup.procs
-  anon_leaker 500M
+This patch (of 4):
 
-v3.11-rc7 fails to signal the 4096 event listener:
-  Leaking...
-  Done leaking pages.
+pnp_bus_suspend() and pnp_bus_resume() invoke legacy pm_ops from
+pnp_driver.  Changed pnp_bus_suspend() and pnp_bus_resume() to check if
+pnp driver has dev_pm_ops and call.  If dev_pm_ops don't exist, then call
+use legacy pm_ops.  Without this change, pnp_driver dev_pm_ops will not
+get called.
 
-Patched v3.11-rc7 properly notifies:
-  Leaking...
-  4096 listener:2013:8:31:14:13:36
-  Done leaking pages.
-
-The fixed bug is old.  It appears to date back to the introduction of
-memcg threshold notifications in v2.6.34-rc1-116-g2e72b6347c94 "memcg:
-implement memory thresholds"
-
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Cc: Matthew Garrett <matthew.garrett@nebula.com>
+Cc: Leonidas Da Silva Barbosa <leosilva@linux.vnet.ibm.com>
+Cc: Ashley Lai <ashley@ashleylai.com>
+Cc: Rajiv Andrade <mail@srajiv.net>
+Cc: Marcel Selhorst <tpmdd@selhorst.net>
+Cc: Sirrix AG <tpmdd@sirrix.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Peter Hüwe <PeterHuewe@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/pnp/driver.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-fix-multiple-large-threshold-notifications mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-multiple-large-threshold-notifications
-+++ a/mm/memcontrol.c
-@@ -5591,7 +5591,13 @@ static int compare_thresholds(const void
- 	const struct mem_cgroup_threshold *_a = a;
- 	const struct mem_cgroup_threshold *_b = b;
+diff -puN drivers/pnp/driver.c~pnp-change-pnp-bus-pm_ops-to-invoke-pnp-driver-dev_pm_ops-if-specified drivers/pnp/driver.c
+--- a/drivers/pnp/driver.c~pnp-change-pnp-bus-pm_ops-to-invoke-pnp-driver-dev_pm_ops-if-specified
++++ a/drivers/pnp/driver.c
+@@ -163,6 +163,13 @@ static int __pnp_bus_suspend(struct devi
+ 	if (!pnp_drv)
+ 		return 0;
  
--	return _a->threshold - _b->threshold;
-+	if (_a->threshold > _b->threshold)
-+		return 1;
++	if (pnp_drv->driver.pm && pnp_drv->driver.pm->suspend) {
++		error = pnp_drv->driver.pm->suspend(dev);
++		suspend_report_result(pnp_drv->driver.pm->suspend, error);
++		if (error)
++			return error;
++	}
 +
-+	if (_a->threshold < _b->threshold)
-+		return -1;
+ 	if (pnp_drv->suspend) {
+ 		error = pnp_drv->suspend(pnp_dev, state);
+ 		if (error)
+@@ -210,6 +217,12 @@ static int pnp_bus_resume(struct device
+ 		if (error)
+ 			return error;
+ 	}
 +
-+	return 0;
- }
++	if (pnp_drv->driver.pm && pnp_drv->driver.pm->resume) {
++		error = pnp_drv->driver.pm->resume(dev);
++		if (error)
++			return error;
++	}
  
- static int mem_cgroup_oom_notify_cb(struct mem_cgroup *memcg)
+ 	if (pnp_drv->resume) {
+ 		error = pnp_drv->resume(pnp_dev);
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from shuah.kh@samsung.com are
 
 origin.patch
-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-memcg-enhance-memcg-iterator-to-support-predicates.patch
-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-memcg-track-all-children-over-limit-in-the-root.patch
-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-memcg-remove-memcg_nr_file_mapped.patch
-memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat.patch
-memcg-add-per-cgroup-writeback-pages-accounting.patch
-memcg-document-cgroup-dirty-writeback-memory-statistics.patch
 
