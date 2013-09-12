@@ -1,43 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-munlock-batch-nr_mlock-zone-state-updates.patch
- removed from -mm tree
-Date: Thu, 12 Sep 2013 12:44:53 -0700
-Message-ID: <523219b5.t2k7gmyOoVk/NyOj%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch removed from -mm
+ tree
+Date: Thu, 12 Sep 2013 12:44:49 -0700
+Message-ID: <523219b1.CoPvEWc4o9BRpuEH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58474 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756012Ab3ILToy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:54 -0400
+	with ESMTP id S1756012Ab3ILTou (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, joern@logfs.org, hughd@google.com, hannes@cmpxchg.org, vbabka@suse.cz
 
-Subject: [merged] mm-munlock-batch-nr_mlock-zone-state-updates.patch removed from -mm tree
+Subject: [merged] mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch removed from -mm tree
 To: vbabka@suse.cz,hannes@cmpxchg.org,hughd@google.com,joern@logfs.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,walken@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:44:53 -0700
+Date: Thu, 12 Sep 2013 12:44:49 -0700
 
 
 The patch titled
-     Subject: mm: munlock: batch NR_MLOCK zone state updates
+     Subject: mm: munlock: remove unnecessary call to lru_add_drain()
 has been removed from the -mm tree.  Its filename was
-     mm-munlock-batch-nr_mlock-zone-state-updates.patch
+     mm-munlock-remove-unnecessary-call-to-lru_add_drain.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: munlock: batch NR_MLOCK zone state updates
+Subject: mm: munlock: remove unnecessary call to lru_add_drain()
 
-Depending on previous batch which introduced batched isolation in
-munlock_vma_range(), we can batch also the updates of NR_MLOCK page stats.
- After the whole pagevec is processed for page isolation, the stats are
-updated only once with the number of successful isolations.  There were
-however no measurable perfomance gains.
+In munlock_vma_range(), lru_add_drain() is currently called in a loop
+before each munlock_vma_page() call.
+
+This is suboptimal for performance when munlocking many pages.  The
+benefits of per-cpu pagevec for batching the LRU putback are removed since
+the pagevec only holds at most one page from the previous loop's
+iteration.
+
+The lru_add_drain() call also does not serve any purposes for correctness
+- it does not even drain pagavecs of all cpu's.  The munlock code already
+expects and handles situations where a page cannot be isolated from the
+LRU (e.g.  because it is on some per-cpu pagevec).
+
+The history of the (not commented) call also suggest that it appears there
+as an oversight rather than intentionally.  Before commit ff6a6da6 ("mm:
+accelerate munlock() treatment of THP pages") the call happened only once
+upon entering the function.  The commit has moved the call into the while
+loope.  So while the other changes in the commit improved munlock
+performance for THP pages, it introduced the abovementioned suboptimal
+per-cpu pagevec usage.
+
+Further in history, before commit 408e82b7 ("mm: munlock use
+follow_page"), munlock_vma_pages_range() was just a wrapper around
+__mlock_vma_pages_range which performed both mlock and munlock depending
+on a flag.  However, before ba470de4 ("mmap: handle mlocked pages during
+map, remap, unmap") the function handled only mlock, not munlock.  The
+lru_add_drain call thus comes from the implementation in commit b291f000
+("mlock: mlocked pages are unevictable" and was intended only for
+mlocking, not munlocking.  The original intention of draining the LRU
+pagevec at mlock time was to ensure the pages were on the LRU before the
+lock operation so that they could be placed on the unevictable list
+immediately.  There is very little motivation to do the same in the
+munlock path this, particularly for every single page.
+
+This patch therefore removes the call completely.  After removing the
+call, a 10% speedup was measured for munlock() of a 56GB large memory area
+with THP disabled.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Jörn Engel <joern@logfs.org>
@@ -51,23 +84,23 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/mlock.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/mlock.c~mm-munlock-batch-nr_mlock-zone-state-updates mm/mlock.c
---- a/mm/mlock.c~mm-munlock-batch-nr_mlock-zone-state-updates
+diff -puN mm/mlock.c~mm-munlock-remove-unnecessary-call-to-lru_add_drain mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-remove-unnecessary-call-to-lru_add_drain
 +++ a/mm/mlock.c
-@@ -241,6 +241,7 @@ static void __munlock_pagevec(struct pag
- {
- 	int i;
- 	int nr = pagevec_count(pvec);
-+	int delta_munlocked = -nr;
- 
- 	/* Phase 1: page isolation */
- 	spin_lock_irq(&zone->lru_lock);
-@@ -251,9 +252,6 @@ static void __munlock_pagevec(struct pag
- 			struct lruvec *lruvec;
- 			int lru;
- 
--			/* we have disabled interrupts */
--			__mod_zone_page_state(zone, NR_MLOCK, -1);
+@@ -247,7 +247,6 @@ void munlock_vma_pages_range(struct vm_a
+ 					&page_mask);
+ 		if (page && !IS_ERR(page)) {
+ 			lock_page(page);
+-			lru_add_drain();
+ 			/*
+ 			 * Any THP page found by follow_page_mask() may have
+ 			 * gotten split before reaching munlock_vma_page(),
+_
+
+Patches currently in -mm which might be from vbabka@suse.cz are
+
+origin.patch
+
