@@ -1,176 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-lighten-up-allocate-transaction.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:41:19 -0700
-Message-ID: <523218df.FGG0Cno/VPPCLpXQ%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-ocfs2-cluster-tcpc-fix-possible-null-pointer-dereferences.patch removed
+ from -mm tree
+Date: Thu, 12 Sep 2013 12:41:27 -0700
+Message-ID: <523218e7.4mFKxCDXIvsUdlCF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57840 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57859 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753028Ab3ILTlU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:20 -0400
+	with ESMTP id S1753793Ab3ILTl2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, younger.liu@huawei.com
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, guozhonghua@h3c.com, error27@gmail.com, sunil.mushran@oracle.com
 
-Subject: [merged] ocfs2-lighten-up-allocate-transaction.patch removed from -mm tree
-To: younger.liu@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-ocfs2-cluster-tcpc-fix-possible-null-pointer-dereferences.patch removed from -mm tree
+To: sunil.mushran@oracle.com,error27@gmail.com,guozhonghua@h3c.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com,sunil.mushran@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:41:19 -0700
+Date: Thu, 12 Sep 2013 12:41:27 -0700
 
 
 The patch titled
-     Subject: ocfs2: lighten up allocate transaction
+     Subject: fs/ocfs2/cluster/tcp.c: fix possible null pointer dereferences
 has been removed from the -mm tree.  Its filename was
-     ocfs2-lighten-up-allocate-transaction.patch
+     fs-ocfs2-cluster-tcpc-fix-possible-null-pointer-dereferences.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Younger Liu <younger.liu@huawei.com>
-Subject: ocfs2: lighten up allocate transaction
+From: Sunil Mushran <sunil.mushran@oracle.com>
+Subject: fs/ocfs2/cluster/tcp.c: fix possible null pointer dereferences
 
-The issue scenario is as following:
+Fix some possible null pointer dereferences that were detected by the
+static code analyser, smatch.
 
-When fallocating a very large disk space for a small file,
-__ocfs2_extend_allocation attempts to get a very large transaction.  For
-some journal sizes, there may be not enough room for this transaction, and
-the fallocate will fail.
-
-The patch below extends & restarts the transaction as necessary while
-allocating space, and should work with even the smallest journal.  This
-patch refers ext4 resize.
-
-Test:
-# mkfs.ocfs2 -b 4K -C 32K -T datafiles /dev/sdc
-...(jounral size is 32M)
-# mount.ocfs2 /dev/sdc /mnt/ocfs2/
-# touch /mnt/ocfs2/1.log
-# fallocate -o 0 -l 400G /mnt/ocfs2/1.log
-fallocate: /mnt/ocfs2/1.log: fallocate failed: Cannot allocate memory
-# tail -f /var/log/messages
-[ 7372.278591] JBD: fallocate wants too many credits (2051 > 2048)
-[ 7372.278597] (fallocate,6438,0):__ocfs2_extend_allocation:709 ERROR: status = -12
-[ 7372.278603] (fallocate,6438,0):ocfs2_allocate_unwritten_extents:1504 ERROR: status = -12
-[ 7372.278607] (fallocate,6438,0):__ocfs2_change_file_space:1955 ERROR: status = -12
-^C
-With this patch, the test works well.
-
-Signed-off-by: Younger Liu <younger.liu@huawei.com>
-Cc: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Sunil Mushran <sunil.mushran@oracle.com>
+Reported-by: Dan Carpenter <error27@gmail.com>
+Reported-by: Guozhonghua <guozhonghua@h3c.com>
+Cc: Sunil Mushran <sunil.mushran@gmail.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c        |    6 +-----
- fs/ocfs2/journal.c     |   35 +++++++++++++++++++++++++++++++++++
- fs/ocfs2/journal.h     |   11 +++++++++++
- fs/ocfs2/ocfs2_trace.h |    2 ++
- 4 files changed, 49 insertions(+), 5 deletions(-)
+ fs/ocfs2/cluster/tcp.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-lighten-up-allocate-transaction fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-lighten-up-allocate-transaction
-+++ a/fs/ocfs2/file.c
-@@ -671,11 +671,7 @@ restarted_transaction:
- 		} else {
- 			BUG_ON(why != RESTART_TRANS);
+diff -puN fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-tcpc-fix-possible-null-pointer-dereferences fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-tcpc-fix-possible-null-pointer-dereferences
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -543,8 +543,9 @@ static void o2net_set_nn_state(struct o2
+ 	}
  
--			/* TODO: This can be more intelligent. */
--			credits = ocfs2_calc_extend_credits(osb->sb,
--							    &fe->id2.i_list,
--							    clusters_to_add);
--			status = ocfs2_extend_trans(handle, credits);
-+			status = ocfs2_allocate_extend_trans(handle, 1);
- 			if (status < 0) {
- 				/* handle still has to be committed at
- 				 * this point. */
-diff -puN fs/ocfs2/journal.c~ocfs2-lighten-up-allocate-transaction fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-lighten-up-allocate-transaction
-+++ a/fs/ocfs2/journal.c
-@@ -455,6 +455,41 @@ bail:
- 	return status;
- }
+ 	if (was_valid && !valid) {
+-		printk(KERN_NOTICE "o2net: No longer connected to "
+-		       SC_NODEF_FMT "\n", SC_NODEF_ARGS(old_sc));
++		if (old_sc)
++			printk(KERN_NOTICE "o2net: No longer connected to "
++				SC_NODEF_FMT "\n", SC_NODEF_ARGS(old_sc));
+ 		o2net_complete_nodes_nsw(nn);
+ 	}
  
-+/*
-+ * If we have fewer than thresh credits, extend by OCFS2_MAX_TRANS_DATA.
-+ * If that fails, restart the transaction & regain write access for the
-+ * buffer head which is used for metadata modifications.
-+ * Taken from Ext4: extend_or_restart_transaction()
-+ */
-+int ocfs2_allocate_extend_trans(handle_t *handle, int thresh)
-+{
-+	int status, old_nblks;
-+
-+	BUG_ON(!handle);
-+
-+	old_nblks = handle->h_buffer_credits;
-+	trace_ocfs2_allocate_extend_trans(old_nblks, thresh);
-+
-+	if (old_nblks < thresh)
-+		return 0;
-+
-+	status = jbd2_journal_extend(handle, OCFS2_MAX_TRANS_DATA);
-+	if (status < 0) {
-+		mlog_errno(status);
-+		goto bail;
-+	}
-+
-+	if (status > 0) {
-+		status = jbd2_journal_restart(handle, OCFS2_MAX_TRANS_DATA);
-+		if (status < 0)
-+			mlog_errno(status);
-+	}
-+
-+bail:
-+	return status;
-+}
-+
-+
- struct ocfs2_triggers {
- 	struct jbd2_buffer_trigger_type	ot_triggers;
- 	int				ot_offset;
-diff -puN fs/ocfs2/journal.h~ocfs2-lighten-up-allocate-transaction fs/ocfs2/journal.h
---- a/fs/ocfs2/journal.h~ocfs2-lighten-up-allocate-transaction
-+++ a/fs/ocfs2/journal.h
-@@ -258,6 +258,17 @@ handle_t		    *ocfs2_start_trans(struct
- int			     ocfs2_commit_trans(struct ocfs2_super *osb,
- 						handle_t *handle);
- int			     ocfs2_extend_trans(handle_t *handle, int nblocks);
-+int			     ocfs2_allocate_extend_trans(handle_t *handle,
-+						int thresh);
-+
-+/*
-+ * Define an arbitrary limit for the amount of data we will anticipate
-+ * writing to any given transaction.  For unbounded transactions such as
-+ * fallocate(2) we can write more than this, but we always
-+ * start off at the maximum transaction size and grow the transaction
-+ * optimistically as we go.
-+ */
-+#define OCFS2_MAX_TRANS_DATA	64U
+@@ -1695,13 +1696,12 @@ static void o2net_start_connect(struct w
+ 		ret = 0;
  
- /*
-  * Create access is for when we get a newly created buffer and we're
-diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-lighten-up-allocate-transaction fs/ocfs2/ocfs2_trace.h
---- a/fs/ocfs2/ocfs2_trace.h~ocfs2-lighten-up-allocate-transaction
-+++ a/fs/ocfs2/ocfs2_trace.h
-@@ -2579,6 +2579,8 @@ DEFINE_OCFS2_INT_INT_EVENT(ocfs2_extend_
- 
- DEFINE_OCFS2_INT_EVENT(ocfs2_extend_trans_restart);
- 
-+DEFINE_OCFS2_INT_INT_EVENT(ocfs2_allocate_extend_trans);
-+
- DEFINE_OCFS2_ULL_ULL_UINT_UINT_EVENT(ocfs2_journal_access);
- 
- DEFINE_OCFS2_ULL_EVENT(ocfs2_journal_dirty);
+ out:
+-	if (ret) {
++	if (ret && sc) {
+ 		printk(KERN_NOTICE "o2net: Connect attempt to " SC_NODEF_FMT
+ 		       " failed with errno %d\n", SC_NODEF_ARGS(sc), ret);
+ 		/* 0 err so that another will be queued and attempted
+ 		 * from set_nn_state */
+-		if (sc)
+-			o2net_ensure_shutdown(nn, sc, 0);
++		o2net_ensure_shutdown(nn, sc, 0);
+ 	}
+ 	if (sc)
+ 		sc_put(sc);
 _
 
-Patches currently in -mm which might be from younger.liu@huawei.com are
+Patches currently in -mm which might be from sunil.mushran@oracle.com are
 
 origin.patch
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
