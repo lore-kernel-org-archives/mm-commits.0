@@ -1,123 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch removed
+Subject: [merged] mm-hwpoison-fix-race-against-poison-thp.patch removed
  from -mm tree
-Date: Thu, 12 Sep 2013 12:45:21 -0700
-Message-ID: <523219d1.b274tRGCSLRmizHF%akpm@linux-foundation.org>
+Date: Thu, 12 Sep 2013 12:45:25 -0700
+Message-ID: <523219d5.fc91mgOISExCQvkQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58571 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58581 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756126Ab3ILTpW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:22 -0400
+	with ESMTP id S1756181Ab3ILTp0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tony.luck@intel.com, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
 
-Subject: [merged] mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch removed from -mm tree
+Subject: [merged] mm-hwpoison-fix-race-against-poison-thp.patch removed from -mm tree
 To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com,tony.luck@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:45:21 -0700
+Date: Thu, 12 Sep 2013 12:45:25 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: fix loss of PG_dirty for errors on mlocked pages
+     Subject: mm/hwpoison: fix race against poison thp
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages.patch
+     mm-hwpoison-fix-race-against-poison-thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: fix loss of PG_dirty for errors on mlocked pages
+Subject: mm/hwpoison: fix race against poison thp
 
-memory_failure() store the page flag of the error page before doing unmap,
-and (only) if the first check with page flags at the time decided the
-error page is unknown, it do the second check with the stored page flag
-since memory_failure() does unmapping of the error pages before doing
-page_action().  This unmapping changes the page state, especially
-page_remove_rmap() (called from try_to_unmap_one()) clears PG_mlocked, so
-page_action() can't catch mlocked pages after that.
+There is a race between hwpoison page and unpoison page, memory_failure
+set the page hwpoison and increase num_poisoned_pages without hold page
+lock, and one page count will be accounted against thp for
+num_poisoned_pages.  However, unpoison can occur before memory_failure
+hold page lock and split transparent hugepage, unpoison will decrease
+num_poisoned_pages by 1 << compound_order since memory_failure has not yet
+split transparent hugepage with page lock held.  That means we account one
+page for hwpoison and 1 << compound_order for unpoison.  This patch fix it
+by inserting a PageTransHuge check before doing TestClearPageHWPoison,
+unpoison failed without clearing PageHWPoison and decreasing
+num_poisoned_pages.
 
-However, memory_failure() can't handle memory errors on dirty mlocked
-pages correctly.  try_to_unmap_one will move the dirty bit from pte to the
-physical page, the second check lose it since it check the stored page
-flag.  This patch fix it by restore PG_dirty flag to stored page flag if
-the page is dirty.
-
-Testcase:
-
-#define _GNU_SOURCE
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <errno.h>
-
-#define PAGES_TO_TEST 2
-#define PAGE_SIZE	4096
-
-int main(void)
-{
-	char *mem;
-	int i;
-
-	mem = mmap(NULL, PAGES_TO_TEST * PAGE_SIZE,
-			PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_LOCKED, 0, 0);
-
-	for (i = 0; i < PAGES_TO_TEST; i++)
-		mem[i * PAGE_SIZE] = 'a';
-
-	if (madvise(mem, PAGES_TO_TEST * PAGE_SIZE, MADV_HWPOISON) == -1)
-		return -1;
-
-	return 0;
-}
-
-Before patch:
-
-[  912.839247] Injecting memory failure for page 7dfb8 at 7f6b4e37b000
-[  912.839257] MCE 0x7dfb8: clean mlocked LRU page recovery: Recovered
-[  912.845550] MCE 0x7dfb8: clean mlocked LRU page still referenced by 1 users
-[  912.852586] Injecting memory failure for page 7e6aa at 7f6b4e37c000
-[  912.852594] MCE 0x7e6aa: clean mlocked LRU page recovery: Recovered
-[  912.858936] MCE 0x7e6aa: clean mlocked LRU page still referenced by 1 users
-
-After patch:
-
-[  163.590225] Injecting memory failure for page 91bc2f at 7f9f5b0e5000
-[  163.590264] MCE 0x91bc2f: dirty mlocked LRU page recovery: Recovered
-[  163.596680] MCE 0x91bc2f: dirty mlocked LRU page still referenced by 1 users
-[  163.603831] Injecting memory failure for page 91cdd3 at 7f9f5b0e6000
-[  163.603852] MCE 0x91cdd3: dirty mlocked LRU page recovery: Recovered
-[  163.610305] MCE 0x91cdd3: dirty mlocked LRU page still referenced by 1 users
+            A                                                 	B
+    	memory_failue
+        TestSetPageHWPoison(p);
+        if (PageHuge(p))
+            nr_pages = 1 << compound_order(hpage);
+        else
+            nr_pages = 1;
+        atomic_long_add(nr_pages, &num_poisoned_pages);
+                                                            unpoison_memory
+	                                                        nr_pages = 1<< compound_trans_order(page);
+                                                            if(TestClearPageHWPoison(p))
+                                                            atomic_long_sub(nr_pages, &num_poisoned_pages);
+        lock page
+        if (!PageHWPoison(p))
+        	unlock page and return
+        hwpoison_user_mappings
+        if (PageTransHuge(hpage))
+        	split_huge_page(hpage);
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory-failure.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-fix-loss-of-pg_dirty-for-errors-on-mlocked-pages
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-race-against-poison-thp mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-race-against-poison-thp
 +++ a/mm/memory-failure.c
-@@ -1204,6 +1204,9 @@ int memory_failure(unsigned long pfn, in
- 	for (ps = error_states;; ps++)
- 		if ((p->flags & ps->mask) == ps->res)
- 			break;
+@@ -1342,6 +1342,16 @@ int unpoison_memory(unsigned long pfn)
+ 		return 0;
+ 	}
+ 
++	/*
++	 * unpoison_memory() can encounter thp only when the thp is being
++	 * worked by memory_failure() and the page lock is not held yet.
++	 * In such case, we yield to memory_failure() and make unpoison fail.
++	 */
++	if (PageTransHuge(page)) {
++		pr_info("MCE: Memory failure is now running on %#lx\n", pfn);
++			return 0;
++	}
 +
-+	page_flags |= (p->flags & (1UL << PG_dirty));
-+
- 	if (!ps->mask)
- 		for (ps = error_states;; ps++)
- 			if ((page_flags & ps->mask) == ps->res)
+ 	nr_pages = 1 << compound_order(page);
+ 
+ 	if (!get_page_unless_zero(page)) {
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
