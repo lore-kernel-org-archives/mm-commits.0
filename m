@@ -1,202 +1,404 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
+Subject: [merged] mm-vmscan-fix-do_try_to_free_pages-livelock.patch
  removed from -mm tree
-Date: Thu, 12 Sep 2013 12:44:47 -0700
-Message-ID: <523219af.pr1jz+lQSwyKDoGX%akpm@linux-foundation.org>
+Date: Thu, 12 Sep 2013 12:45:01 -0700
+Message-ID: <523219bd.DMkUN47FiapiWSq1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58452 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58502 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756012Ab3ILTos (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:48 -0400
+	with ESMTP id S1756123Ab3ILTpD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, joern@logfs.org, hughd@google.com, hannes@cmpxchg.org, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, zhangwm@marvell.com, yinghan@google.com, riel@redhat.com, npiggin@gmail.com, minchan@kernel.org, mhocko@suse.cz, mel@csn.ul.ie, lliubbo@gmail.com, linux@arm.linux.org.uk, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, cl@linux.com, aaditya.kumar.30@gmail.com, cldu@marvell.com
 
-Subject: [merged] mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch removed from -mm tree
-To: vbabka@suse.cz,hannes@cmpxchg.org,hughd@google.com,joern@logfs.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,walken@google.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-vmscan-fix-do_try_to_free_pages-livelock.patch removed from -mm tree
+To: cldu@marvell.com,aaditya.kumar.30@gmail.com,cl@linux.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,linux@arm.linux.org.uk,lliubbo@gmail.com,mel@csn.ul.ie,mhocko@suse.cz,minchan@kernel.org,npiggin@gmail.com,riel@redhat.com,yinghan@google.com,zhangwm@marvell.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:44:47 -0700
+Date: Thu, 12 Sep 2013 12:45:01 -0700
 
 
 The patch titled
-     Subject: mm: putback_lru_page: remove unnecessary call to page_lru_base_type()
+     Subject: mm: vmscan: fix do_try_to_free_pages() livelock
 has been removed from the -mm tree.  Its filename was
-     mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type.patch
+     mm-vmscan-fix-do_try_to_free_pages-livelock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: putback_lru_page: remove unnecessary call to page_lru_base_type()
+From: Lisa Du <cldu@marvell.com>
+Subject: mm: vmscan: fix do_try_to_free_pages() livelock
 
-The goal of this patch series is to improve performance of munlock() of
-large mlocked memory areas on systems without THP.  This is motivated by
-reported very long times of crash recovery of processes with such areas,
-where munlock() can take several seconds.  See
-http://lwn.net/Articles/548108/
+This patch is based on KOSAKI's work and I add a little more description,
+please refer https://lkml.org/lkml/2012/6/14/74.
 
-The work was driven by a simple benchmark (to be included in mmtests) that
-mmaps() e.g.  56GB with MAP_LOCKED | MAP_POPULATE and measures the time of
-munlock().  Profiling was performed by attaching operf --pid to the
-process and sending a signal to trigger the munlock() part and then notify
-bach the monitoring wrapper to stop operf, so that only munlock() appears
-in the profile.
+Currently, I found system can enter a state that there are lots of free
+pages in a zone but only order-0 and order-1 pages which means the zone is
+heavily fragmented, then high order allocation could make direct reclaim
+path's long stall(ex, 60 seconds) especially in no swap and no compaciton
+enviroment.  This problem happened on v3.4, but it seems issue still lives
+in current tree, the reason is do_try_to_free_pages enter live lock:
 
-The profiles have shown that CPU time is spent mostly by atomic operations
-and repeated locking per single pages. This series aims to reduce both, starting
-from simpler to more complex changes.
+kswapd will go to sleep if the zones have been fully scanned and are still
+not balanced.  As kswapd thinks there's little point trying all over again
+to avoid infinite loop.  Instead it changes order from high-order to
+0-order because kswapd think order-0 is the most important.  Look at
+73ce02e9 in detail.  If watermarks are ok, kswapd will go back to sleep
+and may leave zone->all_unreclaimable =3D 0.  It assume high-order users
+can still perform direct reclaim if they wish.
 
-Patch 1 performs a simple cleanup in putback_lru_page() so that page lru base
-	type is not determined without being actually needed.
+Direct reclaim continue to reclaim for a high order which is not a
+COSTLY_ORDER without oom-killer until kswapd turn on
+zone->all_unreclaimble= .  This is because to avoid too early oom-kill. 
+So it means direct_reclaim depends on kswapd to break this loop.
 
-Patch 2 removes an unnecessary call to lru_add_drain() which drains the per-cpu
-	pagevec after each munlocked page is put there.
+In worst case, direct-reclaim may continue to page reclaim forever when
+kswapd sleeps forever until someone like watchdog detect and finally kill
+the process.  As described in:
+http://thread.gmane.org/gmane.linux.kernel.mm/103737
 
-Patch 3 changes munlock_vma_range() to use an on-stack pagevec for isolating
-	multiple non-THP pages under a single lru_lock instead of locking and
-	processing each page separately.
+We can't turn on zone->all_unreclaimable from direct reclaim path because
+direct reclaim path don't take any lock and this way is racy.  Thus this
+patch removes zone->all_unreclaimable field completely and recalculates
+zone reclaimable state every time.
 
-Patch 4 changes the NR_MLOCK accounting to be called only once per the pvec
-	introduced by previous patch.
+Note: we can't take the idea that direct-reclaim see zone->pages_scanned
+directly and kswapd continue to use zone->all_unreclaimable.  Because, it
+is racy.  commit 929bea7c71 (vmscan: all_unreclaimable() use
+zone->all_unreclaimable as a name) describes the detail.
 
-Patch 5 uses the introduced pagevec to batch also the work of putback_lru_page
-	when possible, bypassing the per-cpu pvec and associated overhead.
-
-Patch 6 removes a redundant get_page/put_page pair which saves costly atomic
-	operations.
-
-Patch 7 avoids calling follow_page_mask() on each individual page, and obtains
-	multiple page references under a single page table lock where possible.
-
-Measurements were made using 3.11-rc3 as a baseline.  The first set of
-measurements shows the possibly ideal conditions where batching should
-help the most.  All memory is allocated from a single NUMA node and THP is
-disabled.
-
-timedmunlock
-                            3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3
-                                   0                     1                     2                     3                     4                     5                     6                     7
-Elapsed min           3.38 (  0.00%)        3.39 ( -0.13%)        3.00 ( 11.33%)        2.70 ( 20.20%)        2.67 ( 21.11%)        2.37 ( 29.88%)        2.20 ( 34.91%)        1.91 ( 43.59%)
-Elapsed mean          3.39 (  0.00%)        3.40 ( -0.23%)        3.01 ( 11.33%)        2.70 ( 20.26%)        2.67 ( 21.21%)        2.38 ( 29.88%)        2.21 ( 34.93%)        1.92 ( 43.46%)
-Elapsed stddev        0.01 (  0.00%)        0.01 (-43.09%)        0.01 ( 15.42%)        0.01 ( 23.42%)        0.00 ( 89.78%)        0.01 ( -7.15%)        0.00 ( 76.69%)        0.02 (-91.77%)
-Elapsed max           3.41 (  0.00%)        3.43 ( -0.52%)        3.03 ( 11.29%)        2.72 ( 20.16%)        2.67 ( 21.63%)        2.40 ( 29.50%)        2.21 ( 35.21%)        1.96 ( 42.39%)
-Elapsed range         0.03 (  0.00%)        0.04 (-51.16%)        0.02 (  6.27%)        0.02 ( 14.67%)        0.00 ( 88.90%)        0.03 (-19.18%)        0.01 ( 73.70%)        0.06 (-113.35%
-
-The second set of measurements simulates the worst possible conditions for
-batching by using numactl --interleave, so that there is in fact only one
-page per pagevec.  Even in this case the series seems to improve
-performance thanks to reduced atomic operations and removal of
-lru_add_drain().
-
-timedmunlock
-                            3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3
-                                   0                     1                     2                     3                     4                     5                     6                     7
-Elapsed min           4.00 (  0.00%)        4.04 ( -0.93%)        3.87 (  3.37%)        3.72 (  6.94%)        3.81 (  4.72%)        3.69 (  7.82%)        3.64 (  8.92%)        3.41 ( 14.81%)
-Elapsed mean          4.17 (  0.00%)        4.15 (  0.51%)        4.03 (  3.49%)        3.89 (  6.84%)        3.86 (  7.48%)        3.89 (  6.69%)        3.70 ( 11.27%)        3.48 ( 16.59%)
-Elapsed stddev        0.16 (  0.00%)        0.08 ( 50.76%)        0.10 ( 41.58%)        0.16 (  4.59%)        0.05 ( 72.38%)        0.19 (-12.91%)        0.05 ( 68.09%)        0.06 ( 66.03%)
-Elapsed max           4.34 (  0.00%)        4.32 (  0.56%)        4.19 (  3.62%)        4.12 (  5.15%)        3.91 (  9.88%)        4.12 (  5.25%)        3.80 ( 12.58%)        3.56 ( 18.08%)
-Elapsed range         0.34 (  0.00%)        0.28 ( 17.91%)        0.32 (  6.45%)        0.40 (-15.73%)        0.10 ( 70.06%)        0.43 (-24.84%)        0.15 ( 55.32%)        0.15 ( 56.16%)
-
-For completeness, a third set of measurements shows the situation where
-THP is enabled and allocations are again done on a single NUMA node.  Here
-munlock() is already very fast thanks to huge pages, and this series does
-not compromise that performance.  It seems that the removal of call to
-lru_add_drain() still helps a bit.
-
-timedmunlock
-                            3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3              3.11-rc3
-                                   0                     1                     2                     3                     4                     5                     6                     7
-Elapsed min           0.01 (  0.00%)        0.01 ( -0.11%)        0.01 (  6.59%)        0.01 (  5.41%)        0.01 (  5.45%)        0.01 (  5.03%)        0.01 (  6.08%)        0.01 (  5.20%)
-Elapsed mean          0.01 (  0.00%)        0.01 ( -0.27%)        0.01 (  6.39%)        0.01 (  5.30%)        0.01 (  5.32%)        0.01 (  5.03%)        0.01 (  5.97%)        0.01 (  5.22%)
-Elapsed stddev        0.00 (  0.00%)        0.00 ( -9.59%)        0.00 ( 10.77%)        0.00 (  3.24%)        0.00 ( 24.42%)        0.00 ( 31.86%)        0.00 ( -7.46%)        0.00 (  6.11%)
-Elapsed max           0.01 (  0.00%)        0.01 ( -0.01%)        0.01 (  6.83%)        0.01 (  5.42%)        0.01 (  5.79%)        0.01 (  5.53%)        0.01 (  6.08%)        0.01 (  5.26%)
-Elapsed range         0.00 (  0.00%)        0.00 (  7.30%)        0.00 ( 24.38%)        0.00 (  6.10%)        0.00 ( 30.79%)        0.00 ( 42.52%)        0.00 (  6.11%)        0.00 ( 10.07%)
-
-
-
-This patch (of 7):
-
-In putback_lru_page() since commit c53954a092 (""mm: remove lru parameter
-from __lru_cache_add and lru_cache_add_lru") it is no longer needed to
-determine lru list via page_lru_base_type().
-
-This patch replaces it with simple flag is_unevictable which says that the
-page was put on the inevictable list.  This is the only information that
-matters in subsequent tests.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Jörn Engel <joern@logfs.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[akpm@linux-foundation.org: uninline zone_reclaimable_pages() and zone_reclaimable()]
+Cc: Aaditya Kumar <aaditya.kumar.30@gmail.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Nick Piggin <npiggin@gmail.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Bob Liu <lliubbo@gmail.com>
+Cc: Neil Zhang <zhangwm@marvell.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Lisa Du <cldu@marvell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/mm_inline.h |    1 
+ include/linux/mmzone.h    |    1 
+ include/linux/vmstat.h    |    1 
+ mm/internal.h             |    2 +
+ mm/migrate.c              |    2 -
+ mm/page-writeback.c       |    3 +
+ mm/page_alloc.c           |    5 +-
+ mm/vmscan.c               |   66 ++++++++++++++++--------------------
+ mm/vmstat.c               |    5 ++
+ 9 files changed, 44 insertions(+), 42 deletions(-)
 
-diff -puN mm/vmscan.c~mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type mm/vmscan.c
---- a/mm/vmscan.c~mm-putback_lru_page-remove-unnecessary-call-to-page_lru_base_type
-+++ a/mm/vmscan.c
-@@ -545,7 +545,7 @@ int remove_mapping(struct address_space
-  */
- void putback_lru_page(struct page *page)
- {
--	int lru;
-+	bool is_unevictable;
- 	int was_unevictable = PageUnevictable(page);
+diff -puN include/linux/mm_inline.h~mm-vmscan-fix-do_try_to_free_pages-livelock include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-vmscan-fix-do_try_to_free_pages-livelock
++++ a/include/linux/mm_inline.h
+@@ -2,6 +2,7 @@
+ #define LINUX_MM_INLINE_H
  
- 	VM_BUG_ON(PageLRU(page));
-@@ -560,14 +560,14 @@ redo:
- 		 * unevictable page on [in]active list.
- 		 * We know how to handle that.
- 		 */
--		lru = page_lru_base_type(page);
-+		is_unevictable = false;
- 		lru_cache_add(page);
- 	} else {
- 		/*
- 		 * Put unevictable pages directly on zone's unevictable
- 		 * list.
- 		 */
--		lru = LRU_UNEVICTABLE;
-+		is_unevictable = true;
- 		add_page_to_unevictable_list(page);
- 		/*
- 		 * When racing with an mlock or AS_UNEVICTABLE clearing
-@@ -587,7 +587,7 @@ redo:
- 	 * page is on unevictable list, it never be freed. To avoid that,
- 	 * check after we added it to the list, again.
+ #include <linux/huge_mm.h>
++#include <linux/swap.h>
+ 
+ /**
+  * page_is_file_cache - should the page be on a file LRU or anon LRU?
+diff -puN include/linux/mmzone.h~mm-vmscan-fix-do_try_to_free_pages-livelock include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-vmscan-fix-do_try_to_free_pages-livelock
++++ a/include/linux/mmzone.h
+@@ -353,7 +353,6 @@ struct zone {
+ 	 * free areas of different sizes
  	 */
--	if (lru == LRU_UNEVICTABLE && page_evictable(page)) {
-+	if (is_unevictable && page_evictable(page)) {
- 		if (!isolate_lru_page(page)) {
- 			put_page(page);
- 			goto redo;
-@@ -598,9 +598,9 @@ redo:
- 		 */
+ 	spinlock_t		lock;
+-	int                     all_unreclaimable; /* All pages pinned */
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+ 	/* Set to true when the PG_migrate_skip bits should be cleared */
+ 	bool			compact_blockskip_flush;
+diff -puN include/linux/vmstat.h~mm-vmscan-fix-do_try_to_free_pages-livelock include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-vmscan-fix-do_try_to_free_pages-livelock
++++ a/include/linux/vmstat.h
+@@ -143,7 +143,6 @@ static inline unsigned long zone_page_st
+ }
+ 
+ extern unsigned long global_reclaimable_pages(void);
+-extern unsigned long zone_reclaimable_pages(struct zone *zone);
+ 
+ #ifdef CONFIG_NUMA
+ /*
+diff -puN mm/internal.h~mm-vmscan-fix-do_try_to_free_pages-livelock mm/internal.h
+--- a/mm/internal.h~mm-vmscan-fix-do_try_to_free_pages-livelock
++++ a/mm/internal.h
+@@ -85,6 +85,8 @@ extern unsigned long highest_memmap_pfn;
+  */
+ extern int isolate_lru_page(struct page *page);
+ extern void putback_lru_page(struct page *page);
++extern unsigned long zone_reclaimable_pages(struct zone *zone);
++extern bool zone_reclaimable(struct zone *zone);
+ 
+ /*
+  * in mm/rmap.c:
+diff -puN mm/migrate.c~mm-vmscan-fix-do_try_to_free_pages-livelock mm/migrate.c
+--- a/mm/migrate.c~mm-vmscan-fix-do_try_to_free_pages-livelock
++++ a/mm/migrate.c
+@@ -1471,7 +1471,7 @@ static bool migrate_balanced_pgdat(struc
+ 		if (!populated_zone(zone))
+ 			continue;
+ 
+-		if (zone->all_unreclaimable)
++		if (!zone_reclaimable(zone))
+ 			continue;
+ 
+ 		/* Avoid waking kswapd by allocating pages_to_migrate pages. */
+diff -puN mm/page-writeback.c~mm-vmscan-fix-do_try_to_free_pages-livelock mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-vmscan-fix-do_try_to_free_pages-livelock
++++ a/mm/page-writeback.c
+@@ -36,8 +36,11 @@
+ #include <linux/pagevec.h>
+ #include <linux/timer.h>
+ #include <linux/sched/rt.h>
++#include <linux/mm_inline.h>
+ #include <trace/events/writeback.h>
+ 
++#include "internal.h"
++
+ /*
+  * Sleep at most 200ms at a time in balance_dirty_pages().
+  */
+diff -puN mm/page_alloc.c~mm-vmscan-fix-do_try_to_free_pages-livelock mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-vmscan-fix-do_try_to_free_pages-livelock
++++ a/mm/page_alloc.c
+@@ -56,6 +56,7 @@
+ #include <linux/ftrace_event.h>
+ #include <linux/memcontrol.h>
+ #include <linux/prefetch.h>
++#include <linux/mm_inline.h>
+ #include <linux/migrate.h>
+ #include <linux/page-debug-flags.h>
+ #include <linux/hugetlb.h>
+@@ -647,7 +648,6 @@ static void free_pcppages_bulk(struct zo
+ 	int to_free = count;
+ 
+ 	spin_lock(&zone->lock);
+-	zone->all_unreclaimable = 0;
+ 	zone->pages_scanned = 0;
+ 
+ 	while (to_free) {
+@@ -696,7 +696,6 @@ static void free_one_page(struct zone *z
+ 				int migratetype)
+ {
+ 	spin_lock(&zone->lock);
+-	zone->all_unreclaimable = 0;
+ 	zone->pages_scanned = 0;
+ 
+ 	__free_one_page(page, zone, order, migratetype);
+@@ -3164,7 +3163,7 @@ void show_free_areas(unsigned int filter
+ 			K(zone_page_state(zone, NR_FREE_CMA_PAGES)),
+ 			K(zone_page_state(zone, NR_WRITEBACK_TEMP)),
+ 			zone->pages_scanned,
+-			(zone->all_unreclaimable ? "yes" : "no")
++			(!zone_reclaimable(zone) ? "yes" : "no")
+ 			);
+ 		printk("lowmem_reserve[]:");
+ 		for (i = 0; i < MAX_NR_ZONES; i++)
+diff -puN mm/vmscan.c~mm-vmscan-fix-do_try_to_free_pages-livelock mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-do_try_to_free_pages-livelock
++++ a/mm/vmscan.c
+@@ -146,6 +146,25 @@ static bool global_reclaim(struct scan_c
+ }
+ #endif
+ 
++unsigned long zone_reclaimable_pages(struct zone *zone)
++{
++	int nr;
++
++	nr = zone_page_state(zone, NR_ACTIVE_FILE) +
++	     zone_page_state(zone, NR_INACTIVE_FILE);
++
++	if (get_nr_swap_pages() > 0)
++		nr += zone_page_state(zone, NR_ACTIVE_ANON) +
++		      zone_page_state(zone, NR_INACTIVE_ANON);
++
++	return nr;
++}
++
++bool zone_reclaimable(struct zone *zone)
++{
++	return zone->pages_scanned < zone_reclaimable_pages(zone) * 6;
++}
++
+ static unsigned long get_lru_size(struct lruvec *lruvec, enum lru_list lru)
+ {
+ 	if (!mem_cgroup_disabled())
+@@ -1789,7 +1808,7 @@ static void get_scan_count(struct lruvec
+ 	 * latencies, so it's better to scan a minimum amount there as
+ 	 * well.
+ 	 */
+-	if (current_is_kswapd() && zone->all_unreclaimable)
++	if (current_is_kswapd() && !zone_reclaimable(zone))
+ 		force_scan = true;
+ 	if (!global_reclaim(sc))
+ 		force_scan = true;
+@@ -2244,8 +2263,8 @@ static bool shrink_zones(struct zonelist
+ 		if (global_reclaim(sc)) {
+ 			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 				continue;
+-			if (zone->all_unreclaimable &&
+-					sc->priority != DEF_PRIORITY)
++			if (sc->priority != DEF_PRIORITY &&
++			    !zone_reclaimable(zone))
+ 				continue;	/* Let kswapd poll it */
+ 			if (IS_ENABLED(CONFIG_COMPACTION)) {
+ 				/*
+@@ -2283,11 +2302,6 @@ static bool shrink_zones(struct zonelist
+ 	return aborted_reclaim;
+ }
+ 
+-static bool zone_reclaimable(struct zone *zone)
+-{
+-	return zone->pages_scanned < zone_reclaimable_pages(zone) * 6;
+-}
+-
+ /* All zones in zonelist are unreclaimable? */
+ static bool all_unreclaimable(struct zonelist *zonelist,
+ 		struct scan_control *sc)
+@@ -2301,7 +2315,7 @@ static bool all_unreclaimable(struct zon
+ 			continue;
+ 		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 			continue;
+-		if (!zone->all_unreclaimable)
++		if (zone_reclaimable(zone))
+ 			return false;
  	}
  
--	if (was_unevictable && lru != LRU_UNEVICTABLE)
-+	if (was_unevictable && !is_unevictable)
- 		count_vm_event(UNEVICTABLE_PGRESCUED);
--	else if (!was_unevictable && lru == LRU_UNEVICTABLE)
-+	else if (!was_unevictable && is_unevictable)
- 		count_vm_event(UNEVICTABLE_PGCULLED);
+@@ -2712,7 +2726,7 @@ static bool pgdat_balanced(pg_data_t *pg
+ 		 * DEF_PRIORITY. Effectively, it considers them balanced so
+ 		 * they must be considered balanced here as well!
+ 		 */
+-		if (zone->all_unreclaimable) {
++		if (!zone_reclaimable(zone)) {
+ 			balanced_pages += zone->managed_pages;
+ 			continue;
+ 		}
+@@ -2773,7 +2787,6 @@ static bool kswapd_shrink_zone(struct zo
+ 			       unsigned long lru_pages,
+ 			       unsigned long *nr_attempted)
+ {
+-	unsigned long nr_slab;
+ 	int testorder = sc->order;
+ 	unsigned long balance_gap;
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+@@ -2818,15 +2831,12 @@ static bool kswapd_shrink_zone(struct zo
+ 	shrink_zone(zone, sc);
  
- 	put_page(page);		/* drop ref from isolate */
+ 	reclaim_state->reclaimed_slab = 0;
+-	nr_slab = shrink_slab(&shrink, sc->nr_scanned, lru_pages);
++	shrink_slab(&shrink, sc->nr_scanned, lru_pages);
+ 	sc->nr_reclaimed += reclaim_state->reclaimed_slab;
+ 
+ 	/* Account for the number of pages attempted to reclaim */
+ 	*nr_attempted += sc->nr_to_reclaim;
+ 
+-	if (nr_slab == 0 && !zone_reclaimable(zone))
+-		zone->all_unreclaimable = 1;
+-
+ 	zone_clear_flag(zone, ZONE_WRITEBACK);
+ 
+ 	/*
+@@ -2835,7 +2845,7 @@ static bool kswapd_shrink_zone(struct zo
+ 	 * BDIs but as pressure is relieved, speculatively avoid congestion
+ 	 * waits.
+ 	 */
+-	if (!zone->all_unreclaimable &&
++	if (zone_reclaimable(zone) &&
+ 	    zone_balanced(zone, testorder, 0, classzone_idx)) {
+ 		zone_clear_flag(zone, ZONE_CONGESTED);
+ 		zone_clear_flag(zone, ZONE_TAIL_LRU_DIRTY);
+@@ -2901,8 +2911,8 @@ static unsigned long balance_pgdat(pg_da
+ 			if (!populated_zone(zone))
+ 				continue;
+ 
+-			if (zone->all_unreclaimable &&
+-			    sc.priority != DEF_PRIORITY)
++			if (sc.priority != DEF_PRIORITY &&
++			    !zone_reclaimable(zone))
+ 				continue;
+ 
+ 			/*
+@@ -2980,8 +2990,8 @@ static unsigned long balance_pgdat(pg_da
+ 			if (!populated_zone(zone))
+ 				continue;
+ 
+-			if (zone->all_unreclaimable &&
+-			    sc.priority != DEF_PRIORITY)
++			if (sc.priority != DEF_PRIORITY &&
++			    !zone_reclaimable(zone))
+ 				continue;
+ 
+ 			sc.nr_scanned = 0;
+@@ -3265,20 +3275,6 @@ unsigned long global_reclaimable_pages(v
+ 	return nr;
+ }
+ 
+-unsigned long zone_reclaimable_pages(struct zone *zone)
+-{
+-	int nr;
+-
+-	nr = zone_page_state(zone, NR_ACTIVE_FILE) +
+-	     zone_page_state(zone, NR_INACTIVE_FILE);
+-
+-	if (get_nr_swap_pages() > 0)
+-		nr += zone_page_state(zone, NR_ACTIVE_ANON) +
+-		      zone_page_state(zone, NR_INACTIVE_ANON);
+-
+-	return nr;
+-}
+-
+ #ifdef CONFIG_HIBERNATION
+ /*
+  * Try to free `nr_to_reclaim' of memory, system-wide, and return the number of
+@@ -3576,7 +3572,7 @@ int zone_reclaim(struct zone *zone, gfp_
+ 	    zone_page_state(zone, NR_SLAB_RECLAIMABLE) <= zone->min_slab_pages)
+ 		return ZONE_RECLAIM_FULL;
+ 
+-	if (zone->all_unreclaimable)
++	if (!zone_reclaimable(zone))
+ 		return ZONE_RECLAIM_FULL;
+ 
+ 	/*
+diff -puN mm/vmstat.c~mm-vmscan-fix-do_try_to_free_pages-livelock mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmscan-fix-do_try_to_free_pages-livelock
++++ a/mm/vmstat.c
+@@ -19,6 +19,9 @@
+ #include <linux/math64.h>
+ #include <linux/writeback.h>
+ #include <linux/compaction.h>
++#include <linux/mm_inline.h>
++
++#include "internal.h"
+ 
+ #ifdef CONFIG_VM_EVENT_COUNTERS
+ DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
+@@ -1088,7 +1091,7 @@ static void zoneinfo_show_print(struct s
+ 		   "\n  all_unreclaimable: %u"
+ 		   "\n  start_pfn:         %lu"
+ 		   "\n  inactive_ratio:    %u",
+-		   zone->all_unreclaimable,
++		   !zone_reclaimable(zone),
+ 		   zone->zone_start_pfn,
+ 		   zone->inactive_ratio);
+ 	seq_putc(m, '\n');
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from cldu@marvell.com are
 
 origin.patch
 
