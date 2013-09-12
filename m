@@ -1,195 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch removed
- from -mm tree
-Date: Thu, 12 Sep 2013 12:44:27 -0700
-Message-ID: <5232199b.qi/F+1aJhxa7kdDi%akpm@linux-foundation.org>
+Subject: [merged] memblock-numa-binary-search-node-id.patch removed from
+ -mm tree
+Date: Thu, 12 Sep 2013 12:44:33 -0700
+Message-ID: <523219a1.ZseL6o5i0Gp3qXyD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58390 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58407 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229Ab3ILTo2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:28 -0400
+	with ESMTP id S1751229Ab3ILToe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, hughd@google.com, dhillf@gmail.com, aneesh.kumar@linux.vnet.ibm.com, ak@linux.intel.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, rja@sgi.com, yinghai@kernel.org
 
-Subject: [merged] mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch removed from -mm tree
-To: n-horiguchi@ah.jp.nec.com,ak@linux.intel.com,aneesh.kumar@linux.vnet.ibm.com,dhillf@gmail.com,hughd@google.com,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] memblock-numa-binary-search-node-id.patch removed from -mm tree
+To: yinghai@kernel.org,rja@sgi.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:44:27 -0700
+Date: Thu, 12 Sep 2013 12:44:33 -0700
 
 
 The patch titled
-     Subject: mm: prepare to remove /proc/sys/vm/hugepages_treat_as_movable
+     Subject: memblock, numa: binary search node id
 has been removed from the -mm tree.  Its filename was
-     mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable.patch
+     memblock-numa-binary-search-node-id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: prepare to remove /proc/sys/vm/hugepages_treat_as_movable
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: memblock, numa: binary search node id
 
-Now hugepage migration is enabled, although restricted on pmd-based
-hugepages for now (due to lack of testing.) So we should allocate
-migratable hugepages from ZONE_MOVABLE if possible.
+Current early_pfn_to_nid() on arch that support memblock go over
+memblock.memory one by one, so will take too many try near the end.
 
-This patch makes GFP flags in hugepage allocation dependent on migration
-support, not only the value of hugepages_treat_as_movable.  It provides no
-change on the behavior for architectures which do not support hugepage
-migration,
+We can use existing memblock_search to find the node id for given pfn,
+that could save some time on bigger system that have many entries
+memblock.memory array.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Andi Kleen <ak@linux.intel.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Here are the timing differences for several machines.  In each case with
+the patch less time was spent in __early_pfn_to_nid().
+
+                        3.11-rc5        with patch      difference (%)
+                        --------        ----------      --------------
+UV1: 256 nodes  9TB:     411.66          402.47         -9.19 (2.23%)
+UV2: 255 nodes 16TB:    1141.02         1138.12         -2.90 (0.25%)
+UV2:  64 nodes  2TB:     128.15          126.53         -1.62 (1.26%)
+UV2:  32 nodes  2TB:     121.87          121.07         -0.80 (0.66%)
+                        Time in seconds.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Acked-by: Russ Anderson <rja@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   30 +++++++++++++++++++-----------
- kernel/sysctl.c             |    2 +-
- mm/hugetlb.c                |   32 ++++++++++++++------------------
- 3 files changed, 34 insertions(+), 30 deletions(-)
+ include/linux/memblock.h |    2 ++
+ mm/memblock.c            |   18 ++++++++++++++++++
+ mm/page_alloc.c          |   19 +++++++++----------
+ 3 files changed, 29 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable
-+++ a/Documentation/sysctl/vm.txt
-@@ -200,17 +200,25 @@ fragmentation index is <= extfrag_thresh
+diff -puN include/linux/memblock.h~memblock-numa-binary-search-node-id include/linux/memblock.h
+--- a/include/linux/memblock.h~memblock-numa-binary-search-node-id
++++ a/include/linux/memblock.h
+@@ -60,6 +60,8 @@ int memblock_reserve(phys_addr_t base, p
+ void memblock_trim_memory(phys_addr_t align);
  
- hugepages_treat_as_movable
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
++int memblock_search_pfn_nid(unsigned long pfn, unsigned long *start_pfn,
++			    unsigned long  *end_pfn);
+ void __next_mem_pfn_range(int *idx, int nid, unsigned long *out_start_pfn,
+ 			  unsigned long *out_end_pfn, int *out_nid);
  
--This parameter is only useful when kernelcore= is specified at boot time to
--create ZONE_MOVABLE for pages that may be reclaimed or migrated. Huge pages
--are not movable so are not normally allocated from ZONE_MOVABLE. A non-zero
--value written to hugepages_treat_as_movable allows huge pages to be allocated
--from ZONE_MOVABLE.
--
--Once enabled, the ZONE_MOVABLE is treated as an area of memory the huge
--pages pool can easily grow or shrink within. Assuming that applications are
--not running that mlock() a lot of memory, it is likely the huge pages pool
--can grow to the size of ZONE_MOVABLE by repeatedly entering the desired value
--into nr_hugepages and triggering page reclaim.
-+This parameter controls whether we can allocate hugepages from ZONE_MOVABLE
-+or not. If set to non-zero, hugepages can be allocated from ZONE_MOVABLE.
-+ZONE_MOVABLE is created when kernel boot parameter kernelcore= is specified,
-+so this parameter has no effect if used without kernelcore=.
-+
-+Hugepage migration is now available in some situations which depend on the
-+architecture and/or the hugepage size. If a hugepage supports migration,
-+allocation from ZONE_MOVABLE is always enabled for the hugepage regardless
-+of the value of this parameter.
-+IOW, this parameter affects only non-migratable hugepages.
-+
-+Assuming that hugepages are not migratable in your system, one usecase of
-+this parameter is that users can make hugepage pool more extensible by
-+enabling the allocation from ZONE_MOVABLE. This is because on ZONE_MOVABLE
-+page reclaim/migration/compaction work more and you can get contiguous
-+memory more likely. Note that using ZONE_MOVABLE for non-migratable
-+hugepages can do harm to other features like memory hotremove (because
-+memory hotremove expects that memory blocks on ZONE_MOVABLE are always
-+removable,) so it's a trade-off responsible for the users.
- 
- ==============================================================
- 
-diff -puN kernel/sysctl.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable kernel/sysctl.c
---- a/kernel/sysctl.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable
-+++ a/kernel/sysctl.c
-@@ -1225,7 +1225,7 @@ static struct ctl_table vm_table[] = {
- 		.data		= &hugepages_treat_as_movable,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= hugetlb_treat_movable_handler,
-+		.proc_handler	= proc_dointvec,
- 	},
- 	{
- 		.procname	= "nr_overcommit_hugepages",
-diff -puN mm/hugetlb.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable mm/hugetlb.c
---- a/mm/hugetlb.c~mm-prepare-to-remove-proc-sys-vm-hugepages_treat_as_movable
-+++ a/mm/hugetlb.c
-@@ -34,7 +34,6 @@
- #include "internal.h"
- 
- const unsigned long hugetlb_zero = 0, hugetlb_infinity = ~0UL;
--static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
- unsigned long hugepages_treat_as_movable;
- 
- int hugetlb_max_hstate __read_mostly;
-@@ -539,6 +538,15 @@ static struct page *dequeue_huge_page_no
- 	return page;
+diff -puN mm/memblock.c~memblock-numa-binary-search-node-id mm/memblock.c
+--- a/mm/memblock.c~memblock-numa-binary-search-node-id
++++ a/mm/memblock.c
+@@ -914,6 +914,24 @@ int __init_memblock memblock_is_memory(p
+ 	return memblock_search(&memblock.memory, addr) != -1;
  }
  
-+/* Movability of hugepages depends on migration support. */
-+static inline gfp_t htlb_alloc_mask(struct hstate *h)
++#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
++int __init_memblock memblock_search_pfn_nid(unsigned long pfn,
++			 unsigned long *start_pfn, unsigned long *end_pfn)
 +{
-+	if (hugepages_treat_as_movable || hugepage_migration_support(h))
-+		return GFP_HIGHUSER_MOVABLE;
-+	else
-+		return GFP_HIGHUSER;
-+}
++	struct memblock_type *type = &memblock.memory;
++	int mid = memblock_search(type, (phys_addr_t)pfn << PAGE_SHIFT);
 +
- static struct page *dequeue_huge_page_vma(struct hstate *h,
- 				struct vm_area_struct *vma,
- 				unsigned long address, int avoid_reserve,
-@@ -568,11 +576,11 @@ static struct page *dequeue_huge_page_vm
- retry_cpuset:
- 	cpuset_mems_cookie = get_mems_allowed();
- 	zonelist = huge_zonelist(vma, address,
--					htlb_alloc_mask, &mpol, &nodemask);
-+					htlb_alloc_mask(h), &mpol, &nodemask);
++	if (mid == -1)
++		return -1;
++
++	*start_pfn = type->regions[mid].base >> PAGE_SHIFT;
++	*end_pfn = (type->regions[mid].base + type->regions[mid].size)
++			>> PAGE_SHIFT;
++
++	return type->regions[mid].nid;
++}
++#endif
++
+ /**
+  * memblock_is_region_memory - check if a region is a subset of memory
+  * @base: base of region to check
+diff -puN mm/page_alloc.c~memblock-numa-binary-search-node-id mm/page_alloc.c
+--- a/mm/page_alloc.c~memblock-numa-binary-search-node-id
++++ a/mm/page_alloc.c
+@@ -4306,7 +4306,7 @@ int __meminit init_currently_empty_zone(
+ int __meminit __early_pfn_to_nid(unsigned long pfn)
+ {
+ 	unsigned long start_pfn, end_pfn;
+-	int i, nid;
++	int nid;
+ 	/*
+ 	 * NOTE: The following SMP-unsafe globals are only used early in boot
+ 	 * when the kernel is running single-threaded.
+@@ -4317,15 +4317,14 @@ int __meminit __early_pfn_to_nid(unsigne
+ 	if (last_start_pfn <= pfn && pfn < last_end_pfn)
+ 		return last_nid;
  
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 						MAX_NR_ZONES - 1, nodemask) {
--		if (cpuset_zone_allowed_softwall(zone, htlb_alloc_mask)) {
-+		if (cpuset_zone_allowed_softwall(zone, htlb_alloc_mask(h))) {
- 			page = dequeue_huge_page_node(h, zone_to_nid(zone));
- 			if (page) {
- 				if (avoid_reserve)
-@@ -738,7 +746,7 @@ static struct page *alloc_fresh_huge_pag
- 		return NULL;
- 
- 	page = alloc_pages_exact_node(nid,
--		htlb_alloc_mask|__GFP_COMP|__GFP_THISNODE|
-+		htlb_alloc_mask(h)|__GFP_COMP|__GFP_THISNODE|
- 						__GFP_REPEAT|__GFP_NOWARN,
- 		huge_page_order(h));
- 	if (page) {
-@@ -965,12 +973,12 @@ static struct page *alloc_buddy_huge_pag
- 	spin_unlock(&hugetlb_lock);
- 
- 	if (nid == NUMA_NO_NODE)
--		page = alloc_pages(htlb_alloc_mask|__GFP_COMP|
-+		page = alloc_pages(htlb_alloc_mask(h)|__GFP_COMP|
- 				   __GFP_REPEAT|__GFP_NOWARN,
- 				   huge_page_order(h));
- 	else
- 		page = alloc_pages_exact_node(nid,
--			htlb_alloc_mask|__GFP_COMP|__GFP_THISNODE|
-+			htlb_alloc_mask(h)|__GFP_COMP|__GFP_THISNODE|
- 			__GFP_REPEAT|__GFP_NOWARN, huge_page_order(h));
- 
- 	if (page && arch_prepare_hugepage(page)) {
-@@ -2117,18 +2125,6 @@ int hugetlb_mempolicy_sysctl_handler(str
+-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
+-		if (start_pfn <= pfn && pfn < end_pfn) {
+-			last_start_pfn = start_pfn;
+-			last_end_pfn = end_pfn;
+-			last_nid = nid;
+-			return nid;
+-		}
+-	/* This is a memory hole */
+-	return -1;
++	nid = memblock_search_pfn_nid(pfn, &start_pfn, &end_pfn);
++	if (nid != -1) {
++		last_start_pfn = start_pfn;
++		last_end_pfn = end_pfn;
++		last_nid = nid;
++	}
++
++	return nid;
  }
- #endif /* CONFIG_NUMA */
+ #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
  
--int hugetlb_treat_movable_handler(struct ctl_table *table, int write,
--			void __user *buffer,
--			size_t *length, loff_t *ppos)
--{
--	proc_dointvec(table, write, buffer, length, ppos);
--	if (hugepages_treat_as_movable)
--		htlb_alloc_mask = GFP_HIGHUSER_MOVABLE;
--	else
--		htlb_alloc_mask = GFP_HIGHUSER;
--	return 0;
--}
+_
+
+Patches currently in -mm which might be from yinghai@kernel.org are
+
+origin.patch
+
