@@ -1,72 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmalloc-remove-useless-variable-in-vmap_block.patch
- removed from -mm tree
-Date: Thu, 12 Sep 2013 12:43:35 -0700
-Message-ID: <52321967.rrL4CbO2uirjTI5j%akpm@linux-foundation.org>
+Subject: [merged]
+ vmstat-use-this_cpu-to-avoid-irqon-off-sequence-in-refresh_cpu_vm_stats.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:43:33 -0700
+Message-ID: <52321965.F5Qbsx+M9bUHOiY2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58225 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755407Ab3ILTnf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:35 -0400
+	with ESMTP id S1753000Ab3ILTne (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, js1304@gmail.com, adobriyan@gmail.com, cl@linux.com
 
-Subject: [merged] mm-vmalloc-remove-useless-variable-in-vmap_block.patch removed from -mm tree
-To: iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,liwanp@linux.vnet.ibm.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] vmstat-use-this_cpu-to-avoid-irqon-off-sequence-in-refresh_cpu_vm_stats.patch removed from -mm tree
+To: cl@linux.com,adobriyan@gmail.com,js1304@gmail.com,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:43:35 -0700
+Date: Thu, 12 Sep 2013 12:43:33 -0700
 
 
 The patch titled
-     Subject: mm, vmalloc: remove useless variable in vmap_block
+     Subject: vmstat: use this_cpu() to avoid irqon/off sequence in refresh_cpu_vm_stats
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-remove-useless-variable-in-vmap_block.patch
+     vmstat-use-this_cpu-to-avoid-irqon-off-sequence-in-refresh_cpu_vm_stats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, vmalloc: remove useless variable in vmap_block
+From: Christoph Lameter <cl@linux.com>
+Subject: vmstat: use this_cpu() to avoid irqon/off sequence in refresh_cpu_vm_stats
 
-vbq in vmap_block isn't used. So remove it.
+Disabling interrupts repeatedly can be avoided in the inner loop if we use
+a this_cpu operation.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Tejun Heo <tj@kernel.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/vmstat.c |   35 ++++++++++++++++-------------------
+ 1 file changed, 16 insertions(+), 19 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-remove-useless-variable-in-vmap_block mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-remove-useless-variable-in-vmap_block
-+++ a/mm/vmalloc.c
-@@ -752,7 +752,6 @@ struct vmap_block_queue {
- struct vmap_block {
- 	spinlock_t lock;
- 	struct vmap_area *va;
--	struct vmap_block_queue *vbq;
- 	unsigned long free, dirty;
- 	DECLARE_BITMAP(dirty_map, VMAP_BBMAP_BITS);
- 	struct list_head free_list;
-@@ -830,7 +829,6 @@ static struct vmap_block *new_vmap_block
- 	radix_tree_preload_end();
+diff -puN mm/vmstat.c~vmstat-use-this_cpu-to-avoid-irqon-off-sequence-in-refresh_cpu_vm_stats mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-use-this_cpu-to-avoid-irqon-off-sequence-in-refresh_cpu_vm_stats
++++ a/mm/vmstat.c
+@@ -437,33 +437,29 @@ static inline void fold_diff(int *diff)
+  * with the global counters. These could cause remote node cache line
+  * bouncing and will have to be only done when necessary.
+  */
+-static void refresh_cpu_vm_stats(int cpu)
++static void refresh_cpu_vm_stats(void)
+ {
+ 	struct zone *zone;
+ 	int i;
+ 	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
  
- 	vbq = &get_cpu_var(vmap_block_queue);
--	vb->vbq = vbq;
- 	spin_lock(&vbq->lock);
- 	list_add_rcu(&vb->free_list, &vbq->free);
- 	spin_unlock(&vbq->lock);
+ 	for_each_populated_zone(zone) {
+-		struct per_cpu_pageset *p;
++		struct per_cpu_pageset __percpu *p = zone->pageset;
+ 
+-		p = per_cpu_ptr(zone->pageset, cpu);
++		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
++			int v;
+ 
+-		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
+-			if (p->vm_stat_diff[i]) {
+-				unsigned long flags;
+-				int v;
++			v = this_cpu_xchg(p->vm_stat_diff[i], 0);
++			if (v) {
+ 
+-				local_irq_save(flags);
+-				v = p->vm_stat_diff[i];
+-				p->vm_stat_diff[i] = 0;
+-				local_irq_restore(flags);
+ 				atomic_long_add(v, &zone->vm_stat[i]);
+ 				global_diff[i] += v;
+ #ifdef CONFIG_NUMA
+ 				/* 3 seconds idle till flush */
+-				p->expire = 3;
++				__this_cpu_write(p->expire, 3);
+ #endif
+ 			}
++		}
+ 		cond_resched();
+ #ifdef CONFIG_NUMA
+ 		/*
+@@ -473,23 +469,24 @@ static void refresh_cpu_vm_stats(int cpu
+ 		 * Check if there are pages remaining in this pageset
+ 		 * if not then there is nothing to expire.
+ 		 */
+-		if (!p->expire || !p->pcp.count)
++		if (!__this_cpu_read(p->expire) ||
++			       !__this_cpu_read(p->pcp.count))
+ 			continue;
+ 
+ 		/*
+ 		 * We never drain zones local to this processor.
+ 		 */
+ 		if (zone_to_nid(zone) == numa_node_id()) {
+-			p->expire = 0;
++			__this_cpu_write(p->expire, 0);
+ 			continue;
+ 		}
+ 
+-		p->expire--;
+-		if (p->expire)
++
++		if (__this_cpu_dec_return(p->expire))
+ 			continue;
+ 
+-		if (p->pcp.count)
+-			drain_zone_pages(zone, &p->pcp);
++		if (__this_cpu_read(p->pcp.count))
++			drain_zone_pages(zone, __this_cpu_ptr(&p->pcp));
+ #endif
+ 	}
+ 	fold_diff(global_diff);
+@@ -1216,7 +1213,7 @@ int sysctl_stat_interval __read_mostly =
+ 
+ static void vmstat_update(struct work_struct *w)
+ {
+-	refresh_cpu_vm_stats(smp_processor_id());
++	refresh_cpu_vm_stats();
+ 	schedule_delayed_work(&__get_cpu_var(vmstat_work),
+ 		round_jiffies_relative(sysctl_stat_interval));
+ }
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from cl@linux.com are
 
 origin.patch
 
