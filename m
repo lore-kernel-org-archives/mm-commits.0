@@ -1,146 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memblock-numa-binary-search-node-id.patch removed from
- -mm tree
-Date: Thu, 12 Sep 2013 12:44:33 -0700
-Message-ID: <523219a1.ZseL6o5i0Gp3qXyD%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-fix-aio-performance-regression-for-database-caused-by-thp.patch removed
+ from -mm tree
+Date: Thu, 12 Sep 2013 12:44:39 -0700
+Message-ID: <523219a7.WdCOoX+aMtpiBUa5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58407 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58425 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229Ab3ILToe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:34 -0400
+	with ESMTP id S1756012Ab3ILTok (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, rja@sgi.com, yinghai@kernel.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, pshelar@nicira.com, minchan@kernel.org, mel@csn.ul.ie, hannes@cmpxchg.org, cl@linux.com, andi@firstfloor.org, aarcange@redhat.com, khalid.aziz@oracle.com
 
-Subject: [merged] memblock-numa-binary-search-node-id.patch removed from -mm tree
-To: yinghai@kernel.org,rja@sgi.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-fix-aio-performance-regression-for-database-caused-by-thp.patch removed from -mm tree
+To: khalid.aziz@oracle.com,aarcange@redhat.com,andi@firstfloor.org,cl@linux.com,hannes@cmpxchg.org,mel@csn.ul.ie,minchan@kernel.org,pshelar@nicira.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:44:33 -0700
+Date: Thu, 12 Sep 2013 12:44:39 -0700
 
 
 The patch titled
-     Subject: memblock, numa: binary search node id
+     Subject: mm: fix aio performance regression for database caused by THP
 has been removed from the -mm tree.  Its filename was
-     memblock-numa-binary-search-node-id.patch
+     mm-fix-aio-performance-regression-for-database-caused-by-thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: memblock, numa: binary search node id
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Subject: mm: fix aio performance regression for database caused by THP
 
-Current early_pfn_to_nid() on arch that support memblock go over
-memblock.memory one by one, so will take too many try near the end.
+I am working with a tool that simulates oracle database I/O workload. 
+This tool (orion to be specific -
+<http://docs.oracle.com/cd/E11882_01/server.112/e16638/iodesign.htm#autoId24>)
+allocates hugetlbfs pages using shmget() with SHM_HUGETLB flag.  It then
+does aio into these pages from flash disks using various common block
+sizes used by database.  I am looking at performance with two of the most
+common block sizes - 1M and 64K.  aio performance with these two block
+sizes plunged after Transparent HugePages was introduced in the kernel. 
+Here are performance numbers:
 
-We can use existing memblock_search to find the node id for given pfn,
-that could save some time on bigger system that have many entries
-memblock.memory array.
+		pre-THP		2.6.39		3.11-rc5
+1M read		8384 MB/s	5629 MB/s	6501 MB/s
+64K read	7867 MB/s	4576 MB/s	4251 MB/s
 
-Here are the timing differences for several machines.  In each case with
-the patch less time was spent in __early_pfn_to_nid().
+I have narrowed the performance impact down to the overheads introduced by
+THP in __get_page_tail() and put_compound_page() routines.  perf top shows
+>40% of cycles being spent in these two routines.  Every time direct I/O
+to hugetlbfs pages starts, kernel calls get_page() to grab a reference to
+the pages and calls put_page() when I/O completes to put the reference
+away.  THP introduced significant amount of locking overhead to get_page()
+and put_page() when dealing with compound pages because hugepages can be
+split underneath get_page() and put_page().  It added this overhead
+irrespective of whether it is dealing with hugetlbfs pages or transparent
+hugepages.  This resulted in 20%-45% drop in aio performance when using
+hugetlbfs pages.
 
-                        3.11-rc5        with patch      difference (%)
-                        --------        ----------      --------------
-UV1: 256 nodes  9TB:     411.66          402.47         -9.19 (2.23%)
-UV2: 255 nodes 16TB:    1141.02         1138.12         -2.90 (0.25%)
-UV2:  64 nodes  2TB:     128.15          126.53         -1.62 (1.26%)
-UV2:  32 nodes  2TB:     121.87          121.07         -0.80 (0.66%)
-                        Time in seconds.
+Since hugetlbfs pages can not be split, there is no reason to go through
+all the locking overhead for these pages from what I can see.  I added
+code to __get_page_tail() and put_compound_page() to bypass all the
+locking code when working with hugetlbfs pages.  This improved performance
+significantly.  Performance numbers with this patch:
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Acked-by: Russ Anderson <rja@sgi.com>
+		pre-THP		3.11-rc5	3.11-rc5 + Patch
+1M read		8384 MB/s	6501 MB/s	8371 MB/s
+64K read	7867 MB/s	4251 MB/s	6510 MB/s
+
+Performance with 64K read is still lower than what it was before THP, but
+still a 53% improvement.  It does mean there is more work to be done but I
+will take a 53% improvement for now.
+
+Please take a look at the following patch and let me know if it looks
+reasonable.
+
+[akpm@linux-foundation.org: tweak comments]
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Pravin B Shelar <pshelar@nicira.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    2 ++
- mm/memblock.c            |   18 ++++++++++++++++++
- mm/page_alloc.c          |   19 +++++++++----------
- 3 files changed, 29 insertions(+), 10 deletions(-)
+ mm/swap.c |   77 +++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 52 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/memblock.h~memblock-numa-binary-search-node-id include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-numa-binary-search-node-id
-+++ a/include/linux/memblock.h
-@@ -60,6 +60,8 @@ int memblock_reserve(phys_addr_t base, p
- void memblock_trim_memory(phys_addr_t align);
+diff -puN mm/swap.c~mm-fix-aio-performance-regression-for-database-caused-by-thp mm/swap.c
+--- a/mm/swap.c~mm-fix-aio-performance-regression-for-database-caused-by-thp
++++ a/mm/swap.c
+@@ -31,6 +31,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/gfp.h>
+ #include <linux/uio.h>
++#include <linux/hugetlb.h>
  
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
-+int memblock_search_pfn_nid(unsigned long pfn, unsigned long *start_pfn,
-+			    unsigned long  *end_pfn);
- void __next_mem_pfn_range(int *idx, int nid, unsigned long *out_start_pfn,
- 			  unsigned long *out_end_pfn, int *out_nid);
+ #include "internal.h"
  
-diff -puN mm/memblock.c~memblock-numa-binary-search-node-id mm/memblock.c
---- a/mm/memblock.c~memblock-numa-binary-search-node-id
-+++ a/mm/memblock.c
-@@ -914,6 +914,24 @@ int __init_memblock memblock_is_memory(p
- 	return memblock_search(&memblock.memory, addr) != -1;
- }
+@@ -81,6 +82,19 @@ static void __put_compound_page(struct p
  
-+#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
-+int __init_memblock memblock_search_pfn_nid(unsigned long pfn,
-+			 unsigned long *start_pfn, unsigned long *end_pfn)
-+{
-+	struct memblock_type *type = &memblock.memory;
-+	int mid = memblock_search(type, (phys_addr_t)pfn << PAGE_SHIFT);
-+
-+	if (mid == -1)
-+		return -1;
-+
-+	*start_pfn = type->regions[mid].base >> PAGE_SHIFT;
-+	*end_pfn = (type->regions[mid].base + type->regions[mid].size)
-+			>> PAGE_SHIFT;
-+
-+	return type->regions[mid].nid;
-+}
-+#endif
-+
- /**
-  * memblock_is_region_memory - check if a region is a subset of memory
-  * @base: base of region to check
-diff -puN mm/page_alloc.c~memblock-numa-binary-search-node-id mm/page_alloc.c
---- a/mm/page_alloc.c~memblock-numa-binary-search-node-id
-+++ a/mm/page_alloc.c
-@@ -4306,7 +4306,7 @@ int __meminit init_currently_empty_zone(
- int __meminit __early_pfn_to_nid(unsigned long pfn)
+ static void put_compound_page(struct page *page)
  {
- 	unsigned long start_pfn, end_pfn;
--	int i, nid;
-+	int nid;
- 	/*
- 	 * NOTE: The following SMP-unsafe globals are only used early in boot
- 	 * when the kernel is running single-threaded.
-@@ -4317,15 +4317,14 @@ int __meminit __early_pfn_to_nid(unsigne
- 	if (last_start_pfn <= pfn && pfn < last_end_pfn)
- 		return last_nid;
- 
--	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
--		if (start_pfn <= pfn && pfn < end_pfn) {
--			last_start_pfn = start_pfn;
--			last_end_pfn = end_pfn;
--			last_nid = nid;
--			return nid;
--		}
--	/* This is a memory hole */
--	return -1;
-+	nid = memblock_search_pfn_nid(pfn, &start_pfn, &end_pfn);
-+	if (nid != -1) {
-+		last_start_pfn = start_pfn;
-+		last_end_pfn = end_pfn;
-+		last_nid = nid;
++	/*
++	 * hugetlbfs pages cannot be split from under us.  If this is a
++	 * hugetlbfs page, check refcount on head page and release the page if
++	 * the refcount becomes zero.
++	 */
++	if (PageHuge(page)) {
++		page = compound_head(page);
++		if (put_page_testzero(page))
++			__put_compound_page(page);
++
++		return;
 +	}
 +
-+	return nid;
- }
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+ 	if (unlikely(PageTail(page))) {
+ 		/* __split_huge_page_refcount can run under us */
+ 		struct page *page_head = compound_trans_head(page);
+@@ -184,38 +198,51 @@ bool __get_page_tail(struct page *page)
+ 	 * proper PT lock that already serializes against
+ 	 * split_huge_page().
+ 	 */
+-	unsigned long flags;
+ 	bool got = false;
+-	struct page *page_head = compound_trans_head(page);
++	struct page *page_head;
  
-_
-
-Patches currently in -mm which might be from yinghai@kernel.org are
-
-origin.patch
-
+-	if (likely(page != page_head && get_page_unless_zero(page_head))) {
++	/*
++	 * If this is a hugetlbfs page it cannot be split under us.  Simply
++	 * increment refcount for the head page.
++	 */
++	if (PageHuge(page)) {
++		page_head = compound_head(page);
++		atomic_inc(&page_head->_count);
++		got = true;
++	} else {
++		unsigned long flags;
++
++		page_head = compound_trans_head(page);
++		if (likely(page != page_head &&
++					get_page_unless_zero(page_head))) {
++
++			/* Ref to put_compound_page() comment. */
++			if (PageSlab(page_head)) {
++				if (likely(PageTail(page))) {
++					__get_page_tail_foll(page, false);
++					return true;
++				} else {
++					put_page(page_head);
++					return false;
++				}
++			}
+ 
+-		/* Ref to put_compound_page() comment. */
+-		if (PageSlab(page_head)) {
++			/*
++			 * page_head wasn't a dangling pointer but it
++			 * may not be a head page anymore by the time
++			 * we obtain the lock. That is ok as long as it
++			 * can't be freed from under us.
++			 */
++			flags = compound_lock_irqsave(page_head);
++			/* here __split_huge_page_refcount won't run anymore */
+ 			if (likely(PageTail(page))) {
+ 				__get_page_tail_foll(page, false);
+-				return true;
+-			} else {
+-				put_page(page_head);
+-				return false;
++				got = true;
+ 			}
++			compound_unlock_irqrestore(page_head, flags);
++			if (unlikely(!got))
++				put_page(page_head);
+ 		}
