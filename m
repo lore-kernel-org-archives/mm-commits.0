@@ -1,228 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-using-i_size_read-to-access-i_size.patch removed
+Subject: [merged]
+ fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks.patch removed
  from -mm tree
-Date: Thu, 12 Sep 2013 12:41:21 -0700
-Message-ID: <523218e1.gO+dEFkIS5PMN4xz%akpm@linux-foundation.org>
+Date: Thu, 12 Sep 2013 12:41:13 -0700
+Message-ID: <523218d9.159MWefErcMYwieh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57845 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57827 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753028Ab3ILTlV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:21 -0400
+	with ESMTP id S1751687Ab3ILTlO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, junxiao.bi@oracle.com
+To: mm-commits@vger.kernel.org, walters@redhat.com, luto@amacapital.net, ebiederm@xmission.com, oleg@redhat.com
 
-Subject: [merged] ocfs2-using-i_size_read-to-access-i_size.patch removed from -mm tree
-To: junxiao.bi@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks.patch removed from -mm tree
+To: oleg@redhat.com,ebiederm@xmission.com,luto@amacapital.net,walters@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:41:21 -0700
+Date: Thu, 12 Sep 2013 12:41:13 -0700
 
 
 The patch titled
-     Subject: ocfs2: use i_size_read() to access i_size
+     Subject: fork: unify and tighten up CLONE_NEWUSER/CLONE_NEWPID checks
 has been removed from the -mm tree.  Its filename was
-     ocfs2-using-i_size_read-to-access-i_size.patch
+     fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: use i_size_read() to access i_size
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: fork: unify and tighten up CLONE_NEWUSER/CLONE_NEWPID checks
 
-Though ocfs2 uses inode->i_mutex to protect i_size, there are both
-i_size_read/write() and direct accesses.  Clean up all direct access to
-eliminate confusion.
+do_fork() denies CLONE_THREAD | CLONE_PARENT if NEWUSER | NEWPID.
 
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Jie Liu <jeff.liu@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Then later copy_process() denies CLONE_SIGHAND if the new process will be
+in a different pid namespace (task_active_pid_ns() doesn't match
+current->nsproxy->pid_ns).
+
+This looks confusing and inconsistent.  CLONE_NEWPID is very similar to
+the case when ->pid_ns was already unshared, we want the same restrictions
+so copy_process() should also nack CLONE_PARENT.
+
+And it would be better to deny CLONE_NEWUSER && CLONE_SIGHAND as well just
+for consistency.
+
+Kill the "CLONE_NEWUSER | CLONE_NEWPID" check in do_fork() and change
+copy_process() to do the same check along with ->pid_ns check we already
+have.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Andy Lutomirski <luto@amacapital.net>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Colin Walters <walters@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c         |    2 +-
- fs/ocfs2/extent_map.c   |   10 +++++-----
- fs/ocfs2/ioctl.c        |    2 +-
- fs/ocfs2/journal.c      |    8 ++++----
- fs/ocfs2/move_extents.c |    2 +-
- fs/ocfs2/quota_global.c |    6 +++---
- fs/ocfs2/quota_local.c  |   12 ++++++------
- 7 files changed, 21 insertions(+), 21 deletions(-)
+ kernel/fork.c |   24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/aops.c
-@@ -2044,7 +2044,7 @@ int ocfs2_write_end_nolock(struct addres
+diff -puN kernel/fork.c~fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks kernel/fork.c
+--- a/kernel/fork.c~fork-unify-and-tighten-up-clone_newuser-clone_newpid-checks
++++ a/kernel/fork.c
+@@ -1173,13 +1173,16 @@ static struct task_struct *copy_process(
+ 		return ERR_PTR(-EINVAL);
  
- out_write_size:
- 	pos += copied;
--	if (pos > inode->i_size) {
-+	if (pos > i_size_read(inode)) {
- 		i_size_write(inode, pos);
- 		mark_inode_dirty(inode);
- 	}
-diff -puN fs/ocfs2/extent_map.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/extent_map.c
---- a/fs/ocfs2/extent_map.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/extent_map.c
-@@ -852,20 +852,20 @@ int ocfs2_seek_data_hole_offset(struct f
+ 	/*
+-	 * If the new process will be in a different pid namespace don't
+-	 * allow it to share a thread group or signal handlers with the
+-	 * forking task.
++	 * If the new process will be in a different pid or user namespace
++	 * do not allow it to share a thread group or signal handlers or
++	 * parent with the forking task.
+ 	 */
+-	if ((clone_flags & CLONE_SIGHAND) && (task_active_pid_ns(current) !=
+-					current->nsproxy->pid_ns_for_children))
+-		return ERR_PTR(-EINVAL);
++	if (clone_flags & (CLONE_SIGHAND | CLONE_PARENT)) {
++		if ((clone_flags & (CLONE_NEWUSER | CLONE_NEWPID)) ||
++		    (task_active_pid_ns(current) !=
++				current->nsproxy->pid_ns_for_children))
++			return ERR_PTR(-EINVAL);
++	}
  
- 	down_read(&OCFS2_I(inode)->ip_alloc_sem);
+ 	retval = security_task_create(clone_flags);
+ 	if (retval)
+@@ -1576,15 +1579,6 @@ long do_fork(unsigned long clone_flags,
+ 	long nr;
  
--	if (*offset >= inode->i_size) {
-+	if (*offset >= i_size_read(inode)) {
- 		ret = -ENXIO;
- 		goto out_unlock;
- 	}
- 
- 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL) {
- 		if (whence == SEEK_HOLE)
--			*offset = inode->i_size;
-+			*offset = i_size_read(inode);
- 		goto out_unlock;
- 	}
- 
- 	clen = 0;
- 	cpos = *offset >> cs_bits;
--	cend = ocfs2_clusters_for_bytes(inode->i_sb, inode->i_size);
-+	cend = ocfs2_clusters_for_bytes(inode->i_sb, i_size_read(inode));
- 
- 	while (cpos < cend && !is_last) {
- 		ret = ocfs2_get_clusters_nocache(inode, di_bh, cpos, &hole_size,
-@@ -904,8 +904,8 @@ int ocfs2_seek_data_hole_offset(struct f
- 		extlen = clen;
- 		extlen <<=  cs_bits;
- 
--		if ((extoff + extlen) > inode->i_size)
--			extlen = inode->i_size - extoff;
-+		if ((extoff + extlen) > i_size_read(inode))
-+			extlen = i_size_read(inode) - extoff;
- 		extoff += extlen;
- 		if (extoff > *offset)
- 			*offset = extoff;
-diff -puN fs/ocfs2/ioctl.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/ioctl.c
---- a/fs/ocfs2/ioctl.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/ioctl.c
-@@ -303,7 +303,7 @@ int ocfs2_info_handle_journal_size(struc
- 	if (o2info_from_user(oij, req))
- 		goto bail;
- 
--	oij.ij_journal_size = osb->journal->j_inode->i_size;
-+	oij.ij_journal_size = i_size_read(osb->journal->j_inode);
- 
- 	o2info_set_request_filled(&oij.ij_req);
- 
-diff -puN fs/ocfs2/journal.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/journal.c
-@@ -836,14 +836,14 @@ int ocfs2_journal_init(struct ocfs2_jour
- 	inode_lock = 1;
- 	di = (struct ocfs2_dinode *)bh->b_data;
- 
--	if (inode->i_size <  OCFS2_MIN_JOURNAL_SIZE) {
-+	if (i_size_read(inode) <  OCFS2_MIN_JOURNAL_SIZE) {
- 		mlog(ML_ERROR, "Journal file size (%lld) is too small!\n",
--		     inode->i_size);
-+		     i_size_read(inode));
- 		status = -EINVAL;
- 		goto done;
- 	}
- 
--	trace_ocfs2_journal_init(inode->i_size,
-+	trace_ocfs2_journal_init(i_size_read(inode),
- 				 (unsigned long long)inode->i_blocks,
- 				 OCFS2_I(inode)->ip_clusters);
- 
-@@ -1131,7 +1131,7 @@ static int ocfs2_force_read_journal(stru
- 
- 	memset(bhs, 0, sizeof(struct buffer_head *) * CONCURRENT_JOURNAL_FILL);
- 
--	num_blocks = ocfs2_blocks_for_bytes(inode->i_sb, inode->i_size);
-+	num_blocks = ocfs2_blocks_for_bytes(inode->i_sb, i_size_read(inode));
- 	v_blkno = 0;
- 	while (v_blkno < num_blocks) {
- 		status = ocfs2_extent_map_get_blocks(inode, v_blkno,
-diff -puN fs/ocfs2/move_extents.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/move_extents.c
---- a/fs/ocfs2/move_extents.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/move_extents.c
-@@ -845,7 +845,7 @@ static int __ocfs2_move_extents_range(st
- 	struct ocfs2_move_extents *range = context->range;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 
--	if ((inode->i_size == 0) || (range->me_len == 0))
-+	if ((i_size_read(inode) == 0) || (range->me_len == 0))
- 		return 0;
- 
- 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL)
-diff -puN fs/ocfs2/quota_global.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/quota_global.c
---- a/fs/ocfs2/quota_global.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/quota_global.c
-@@ -234,7 +234,7 @@ ssize_t ocfs2_quota_write(struct super_b
- 		len = sb->s_blocksize - OCFS2_QBLK_RESERVED_SPACE - offset;
- 	}
- 
--	if (gqinode->i_size < off + len) {
-+	if (i_size_read(gqinode) < off + len) {
- 		loff_t rounded_end =
- 				ocfs2_align_bytes_to_blocks(sb, off + len);
- 
-@@ -778,8 +778,8 @@ static int ocfs2_acquire_dquot(struct dq
- 		 */
- 		WARN_ON(journal_current_handle());
- 		status = ocfs2_extend_no_holes(gqinode, NULL,
--			gqinode->i_size + (need_alloc << sb->s_blocksize_bits),
--			gqinode->i_size);
-+			i_size_read(gqinode) + (need_alloc << sb->s_blocksize_bits),
-+			i_size_read(gqinode));
- 		if (status < 0)
- 			goto out_dq;
- 	}
-diff -puN fs/ocfs2/quota_local.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/quota_local.c
---- a/fs/ocfs2/quota_local.c~ocfs2-using-i_size_read-to-access-i_size
-+++ a/fs/ocfs2/quota_local.c
-@@ -982,14 +982,14 @@ static struct ocfs2_quota_chunk *ocfs2_l
- 
- 	/* We are protected by dqio_sem so no locking needed */
- 	status = ocfs2_extend_no_holes(lqinode, NULL,
--				       lqinode->i_size + 2 * sb->s_blocksize,
--				       lqinode->i_size);
-+				       i_size_read(lqinode) + 2 * sb->s_blocksize,
-+				       i_size_read(lqinode));
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto out;
- 	}
- 	status = ocfs2_simple_size_update(lqinode, oinfo->dqi_lqi_bh,
--					  lqinode->i_size + 2 * sb->s_blocksize);
-+					  i_size_read(lqinode) + 2 * sb->s_blocksize);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto out;
-@@ -1125,14 +1125,14 @@ static struct ocfs2_quota_chunk *ocfs2_e
- 
- 	/* We are protected by dqio_sem so no locking needed */
- 	status = ocfs2_extend_no_holes(lqinode, NULL,
--				       lqinode->i_size + sb->s_blocksize,
--				       lqinode->i_size);
-+				       i_size_read(lqinode) + sb->s_blocksize,
-+				       i_size_read(lqinode));
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto out;
- 	}
- 	status = ocfs2_simple_size_update(lqinode, oinfo->dqi_lqi_bh,
--					  lqinode->i_size + sb->s_blocksize);
-+					  i_size_read(lqinode) + sb->s_blocksize);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto out;
-_
-
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
-
-origin.patch
-ocfs2-update-inode-size-after-zeronig-the-hole.patch
-
+ 	/*
+-	 * Do some preliminary argument and permissions checking before we
+-	 * actually start allocating stuff
+-	 */
+-	if (clone_flags & (CLONE_NEWUSER | CLONE_NEWPID)) {
+-		if (clone_flags & (CLONE_THREAD|CLONE_PARENT))
+-			return -EINVAL;
+-	}
