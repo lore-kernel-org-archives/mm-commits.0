@@ -1,62 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mmap-remove-unnecessary-assignment.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:45:47 -0700
-Message-ID: <523219eb.LCWj6kcCwnNhKztW%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch removed
+ from -mm tree
+Date: Thu, 12 Sep 2013 12:45:49 -0700
+Message-ID: <523219ed.HP8ZTBGraUu1WQ1v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58631 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756302Ab3ILTps (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:48 -0400
+	with ESMTP id S1756333Ab3ILTpt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, ycnian@gmail.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] mm-mmap-remove-unnecessary-assignment.patch removed from -mm tree
-To: ycnian@gmail.com,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: [merged] lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch removed from -mm tree
+To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:45:47 -0700
+Date: Thu, 12 Sep 2013 12:45:49 -0700
 
 
 The patch titled
-     Subject: mm/mmap: remove unnecessary assignment
+     Subject: lib/genalloc.c: convert kmalloc_node(...GFP_ZERO...) to kzalloc_node(...)
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-remove-unnecessary-assignment.patch
+     lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yanchuan Nian <ycnian@gmail.com>
-Subject: mm/mmap: remove unnecessary assignment
+From: Joe Perches <joe@perches.com>
+Subject: lib/genalloc.c: convert kmalloc_node(...GFP_ZERO...) to kzalloc_node(...)
 
-pgoff is not used after the statement "pgoff = vma->vm_pgoff;", so the
-assignment is redundant.
+Use the helper function instead of __GFP_ZERO.
 
-Signed-off-by: Yanchuan Nian <ycnian@gmail.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/genalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-mmap-remove-unnecessary-assignment mm/mmap.c
---- a/mm/mmap.c~mm-mmap-remove-unnecessary-assignment
-+++ a/mm/mmap.c
-@@ -1566,7 +1566,6 @@ munmap_back:
- 		WARN_ON_ONCE(addr != vma->vm_start);
+diff -puN lib/genalloc.c~lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node lib/genalloc.c
+--- a/lib/genalloc.c~lib-genallocc-convert-kmalloc_nodegfp_zero-to-kzalloc_node
++++ a/lib/genalloc.c
+@@ -187,7 +187,7 @@ int gen_pool_add_virt(struct gen_pool *p
+ 	int nbytes = sizeof(struct gen_pool_chunk) +
+ 				BITS_TO_LONGS(nbits) * sizeof(long);
  
- 		addr = vma->vm_start;
--		pgoff = vma->vm_pgoff;
- 		vm_flags = vma->vm_flags;
- 	} else if (vm_flags & VM_SHARED) {
- 		error = shmem_zero_setup(vma);
+-	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
++	chunk = kzalloc_node(nbytes, GFP_KERNEL, nid);
+ 	if (unlikely(chunk == NULL))
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from ycnian@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
 
