@@ -1,68 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:45:27 -0700
-Message-ID: <523219d7.Lq8xLBgN6IuO8Y6B%akpm@linux-foundation.org>
+Subject: [merged] writeback-fix-race-that-cause-writeback-hung.patch
+ removed from -mm tree
+Date: Thu, 12 Sep 2013 12:45:45 -0700
+Message-ID: <523219e9.z3kjjzm/jOHdIKH6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756196Ab3ILTp2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:28 -0400
+	with ESMTP id S1756302Ab3ILTpq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, jack@suse.cz, fengguang.wu@intel.com, junxiao.bi@oracle.com
 
-Subject: [merged] mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch removed from -mm tree
-To: liwanp@linux.vnet.ibm.com,andi@firstfloor.org,n-horiguchi@ah.jp.nec.com,tony.luck@intel.com,mm-commits@vger.kernel.org
+Subject: [merged] writeback-fix-race-that-cause-writeback-hung.patch removed from -mm tree
+To: junxiao.bi@oracle.com,fengguang.wu@intel.com,jack@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:45:27 -0700
+Date: Thu, 12 Sep 2013 12:45:45 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: replace atomic_long_sub() with atomic_long_dec()
+     Subject: writeback: fix race that cause writeback hung
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec.patch
+     writeback-fix-race-that-cause-writeback-hung.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: replace atomic_long_sub() with atomic_long_dec()
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: writeback: fix race that cause writeback hung
 
-Replace atomic_long_sub() with atomic_long_dec() since the page is normal
-page instead of hugetlbfs page or thp.
+There is a race between mark inode dirty and writeback thread, see the
+following scenario.  In this case, writeback thread will not run though
+there is dirty_io.
 
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Tony Luck <tony.luck@intel.com>
+__mark_inode_dirty()                                          bdi_writeback_workfn()
+	...                                                       	...
+	spin_lock(&inode->i_lock);
+	...
+	if (bdi_cap_writeback_dirty(bdi)) {
+	    <<< assume wb has dirty_io, so wakeup_bdi is false.
+	    <<< the following inode_dirty also have wakeup_bdi false.
+	    if (!wb_has_dirty_io(&bdi->wb))
+		    wakeup_bdi = true;
+	}
+	spin_unlock(&inode->i_lock);
+	                                                            <<< assume last dirty_io is removed here.
+	                                                            pages_written = wb_do_writeback(wb);
+	                                                            ...
+	                                                            <<< work_list empty and wb has no dirty_io,
+	                                                            <<< delayed_work will not be queued.
+	                                                            if (!list_empty(&bdi->work_list) ||
+	                                                                (wb_has_dirty_io(wb) && dirty_writeback_interval))
+	                                                                queue_delayed_work(bdi_wq, &wb->dwork,
+	                                                                    msecs_to_jiffies(dirty_writeback_interval * 10));
+	spin_lock(&bdi->wb.list_lock);
+	inode->dirtied_when = jiffies;
+	<<< new dirty_io is added.
+	list_move(&inode->i_wb_list, &bdi->wb.b_dirty);
+	spin_unlock(&bdi->wb.list_lock);
+
+	<<< though there is dirty_io, but wakeup_bdi is false,
+	<<< so writeback thread will not be waked up and
+	<<< the new dirty_io will not be flushed.
+	if (wakeup_bdi)
+	    bdi_wakeup_thread_delayed(bdi);
+
+Writeback will run until there is a new flush work queued.  This may cause
+a lot of dirty pages stay in memory for a long time.
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fs-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-replace-atomic_long_sub-with-atomic_long_dec
-+++ a/mm/memory-failure.c
-@@ -1366,7 +1366,7 @@ int unpoison_memory(unsigned long pfn)
- 			return 0;
- 		}
- 		if (TestClearPageHWPoison(p))
--			atomic_long_sub(nr_pages, &num_poisoned_pages);
-+			atomic_long_dec(&num_poisoned_pages);
- 		pr_info("MCE: Software-unpoisoned free page %#lx\n", pfn);
- 		return 0;
- 	}
+diff -puN fs/fs-writeback.c~writeback-fix-race-that-cause-writeback-hung fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-fix-race-that-cause-writeback-hung
++++ a/fs/fs-writeback.c
+@@ -1171,6 +1171,8 @@ void __mark_inode_dirty(struct inode *in
+ 			bool wakeup_bdi = false;
+ 			bdi = inode_to_bdi(inode);
+ 
++			spin_unlock(&inode->i_lock);
++			spin_lock(&bdi->wb.list_lock);
+ 			if (bdi_cap_writeback_dirty(bdi)) {
+ 				WARN(!test_bit(BDI_registered, &bdi->state),
+ 				     "bdi-%s not registered\n", bdi->name);
+@@ -1185,8 +1187,6 @@ void __mark_inode_dirty(struct inode *in
+ 					wakeup_bdi = true;
+ 			}
+ 
+-			spin_unlock(&inode->i_lock);
+-			spin_lock(&bdi->wb.list_lock);
+ 			inode->dirtied_when = jiffies;
+ 			list_move(&inode->i_wb_list, &bdi->wb.b_dirty);
+ 			spin_unlock(&bdi->wb.list_lock);
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 origin.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
