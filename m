@@ -1,78 +1,331 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-proc-task_mmuc-check-the-return-value-of-mpol_to_str.patch removed from
+Subject: [merged] hfsplus-implement-posix-acls-support.patch removed from
  -mm tree
-Date: Thu, 12 Sep 2013 12:48:33 -0700
-Message-ID: <52321a91.vsGANAIYkH/xaSu1%akpm@linux-foundation.org>
+Date: Thu, 12 Sep 2013 12:48:21 -0700
+Message-ID: <52321a85.cX86DU50XYmC1Qa8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58761 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58764 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756598Ab3ILTsg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:48:36 -0400
+	with ESMTP id S1756529Ab3ILTsh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:48:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mel@csn.ul.ie, gorcunov@gmail.com, andi@firstfloor.org, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: [merged] fs-proc-task_mmuc-check-the-return-value-of-mpol_to_str.patch removed from -mm tree
-To: gang.chen@asianux.com,andi@firstfloor.org,gorcunov@gmail.com,mel@csn.ul.ie,mm-commits@vger.kernel.org
+Subject: [merged] hfsplus-implement-posix-acls-support.patch removed from -mm tree
+To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:48:33 -0700
+Date: Thu, 12 Sep 2013 12:48:21 -0700
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: check the return value of mpol_to_str()
+     Subject: hfsplus: implement POSIX ACLs support
 has been removed from the -mm tree.  Its filename was
-     fs-proc-task_mmuc-check-the-return-value-of-mpol_to_str.patch
+     hfsplus-implement-posix-acls-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: fs/proc/task_mmu.c: check the return value of mpol_to_str()
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: hfsplus: implement POSIX ACLs support
 
-mpol_to_str() may fail, and not fill the buffer (e.g. -EINVAL), so need
-check about it, or buffer may not be zero based, and next seq_printf()
-will cause issue.
+Implement POSIX ACLs support in hfsplus driver.
 
-The failure return need after mpol_cond_put() to match get_vma_policy().
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/hfsplus/posix_acl.c |  274 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 274 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~fs-proc-task_mmuc-check-the-return-value-of-mpol_to_str fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-check-the-return-value-of-mpol_to_str
-+++ a/fs/proc/task_mmu.c
-@@ -1402,8 +1402,10 @@ static int show_numa_map(struct seq_file
- 	walk.mm = mm;
- 
- 	pol = get_vma_policy(task, vma, vma->vm_start);
--	mpol_to_str(buffer, sizeof(buffer), pol);
-+	n = mpol_to_str(buffer, sizeof(buffer), pol);
- 	mpol_cond_put(pol);
-+	if (n < 0)
-+		return n;
- 
- 	seq_printf(m, "%08lx %s", vma->vm_start, buffer);
- 
+diff -puN /dev/null fs/hfsplus/posix_acl.c
+--- /dev/null
++++ a/fs/hfsplus/posix_acl.c
+@@ -0,0 +1,274 @@
++/*
++ * linux/fs/hfsplus/posix_acl.c
++ *
++ * Vyacheslav Dubeyko <slava@dubeyko.com>
++ *
++ * Handler for Posix Access Control Lists (ACLs) support.
++ */
++
++#include "hfsplus_fs.h"
++#include "xattr.h"
++#include "acl.h"
++
++struct posix_acl *hfsplus_get_posix_acl(struct inode *inode, int type)
++{
++	struct posix_acl *acl;
++	char *xattr_name;
++	char *value = NULL;
++	ssize_t size;
++
++	acl = get_cached_acl(inode, type);
++	if (acl != ACL_NOT_CACHED)
++		return acl;
++
++	switch (type) {
++	case ACL_TYPE_ACCESS:
++		xattr_name = POSIX_ACL_XATTR_ACCESS;
++		break;
++	case ACL_TYPE_DEFAULT:
++		xattr_name = POSIX_ACL_XATTR_DEFAULT;
++		break;
++	default:
++		return ERR_PTR(-EINVAL);
++	}
++
++	size = __hfsplus_getxattr(inode, xattr_name, NULL, 0);
++
++	if (size > 0) {
++		value = (char *)hfsplus_alloc_attr_entry();
++		if (unlikely(!value))
++			return ERR_PTR(-ENOMEM);
++		size = __hfsplus_getxattr(inode, xattr_name, value, size);
++	}
++
++	if (size > 0)
++		acl = posix_acl_from_xattr(&init_user_ns, value, size);
++	else if (size == -ENODATA)
++		acl = NULL;
++	else
++		acl = ERR_PTR(size);
++
++	hfsplus_destroy_attr_entry((hfsplus_attr_entry *)value);
++
++	if (!IS_ERR(acl))
++		set_cached_acl(inode, type, acl);
++
++	return acl;
++}
++
++static int hfsplus_set_posix_acl(struct inode *inode,
++					int type,
++					struct posix_acl *acl)
++{
++	int err;
++	char *xattr_name;
++	size_t size = 0;
++	char *value = NULL;
++
++	if (S_ISLNK(inode->i_mode))
++		return -EOPNOTSUPP;
++
++	switch (type) {
++	case ACL_TYPE_ACCESS:
++		xattr_name = POSIX_ACL_XATTR_ACCESS;
++		if (acl) {
++			err = posix_acl_equiv_mode(acl, &inode->i_mode);
++			if (err < 0)
++				return err;
++		}
++		err = 0;
++		break;
++
++	case ACL_TYPE_DEFAULT:
++		xattr_name = POSIX_ACL_XATTR_DEFAULT;
++		if (!S_ISDIR(inode->i_mode))
++			return acl ? -EACCES : 0;
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	if (acl) {
++		size = posix_acl_xattr_size(acl->a_count);
++		if (unlikely(size > HFSPLUS_MAX_INLINE_DATA_SIZE))
++			return -ENOMEM;
++		value = (char *)hfsplus_alloc_attr_entry();
++		if (unlikely(!value))
++			return -ENOMEM;
++		err = posix_acl_to_xattr(&init_user_ns, acl, value, size);
++		if (unlikely(err < 0))
++			goto end_set_acl;
++	}
++
++	err = __hfsplus_setxattr(inode, xattr_name, value, size, 0);
++
++end_set_acl:
++	hfsplus_destroy_attr_entry((hfsplus_attr_entry *)value);
++
++	if (!err)
++		set_cached_acl(inode, type, acl);
++
++	return err;
++}
++
++int hfsplus_init_posix_acl(struct inode *inode, struct inode *dir)
++{
++	int err = 0;
++	struct posix_acl *acl = NULL;
++
++	hfs_dbg(ACL_MOD,
++		"[%s]: ino %lu, dir->ino %lu\n",
++		__func__, inode->i_ino, dir->i_ino);
++
++	if (S_ISLNK(inode->i_mode))
++		return 0;
++
++	acl = hfsplus_get_posix_acl(dir, ACL_TYPE_DEFAULT);
++	if (IS_ERR(acl))
++		return PTR_ERR(acl);
++
++	if (acl) {
++		if (S_ISDIR(inode->i_mode)) {
++			err = hfsplus_set_posix_acl(inode,
++							ACL_TYPE_DEFAULT,
++							acl);
++			if (unlikely(err))
++				goto init_acl_cleanup;
++		}
++
++		err = posix_acl_create(&acl, GFP_NOFS, &inode->i_mode);
++		if (unlikely(err < 0))
++			return err;
++
++		if (err > 0)
++			err = hfsplus_set_posix_acl(inode,
++							ACL_TYPE_ACCESS,
++							acl);
++	} else
++		inode->i_mode &= ~current_umask();
++
++init_acl_cleanup:
++	posix_acl_release(acl);
++	return err;
++}
++
++int hfsplus_posix_acl_chmod(struct inode *inode)
++{
++	int err;
++	struct posix_acl *acl;
++
++	hfs_dbg(ACL_MOD, "[%s]: ino %lu\n", __func__, inode->i_ino);
++
++	if (S_ISLNK(inode->i_mode))
++		return -EOPNOTSUPP;
++
++	acl = hfsplus_get_posix_acl(inode, ACL_TYPE_ACCESS);
++	if (IS_ERR(acl) || !acl)
++		return PTR_ERR(acl);
++
++	err = posix_acl_chmod(&acl, GFP_KERNEL, inode->i_mode);
++	if (unlikely(err))
++		return err;
++
++	err = hfsplus_set_posix_acl(inode, ACL_TYPE_ACCESS, acl);
++	posix_acl_release(acl);
++	return err;
++}
++
++static int hfsplus_xattr_get_posix_acl(struct dentry *dentry,
++					const char *name,
++					void *buffer,
++					size_t size,
++					int type)
++{
++	int err = 0;
++	struct posix_acl *acl;
++
++	hfs_dbg(ACL_MOD,
++		"[%s]: ino %lu, buffer %p, size %zu, type %#x\n",
++		__func__, dentry->d_inode->i_ino, buffer, size, type);
++
++	if (strcmp(name, "") != 0)
++		return -EINVAL;
++
++	acl = hfsplus_get_posix_acl(dentry->d_inode, type);
++	if (IS_ERR(acl))
++		return PTR_ERR(acl);
++	if (acl == NULL)
++		return -ENODATA;
++
++	err = posix_acl_to_xattr(&init_user_ns, acl, buffer, size);
++	posix_acl_release(acl);
++
++	return err;
++}
++
++static int hfsplus_xattr_set_posix_acl(struct dentry *dentry,
++					const char *name,
++					const void *value,
++					size_t size,
++					int flags,
++					int type)
++{
++	int err = 0;
++	struct inode *inode = dentry->d_inode;
++	struct posix_acl *acl = NULL;
++
++	hfs_dbg(ACL_MOD,
++		"[%s]: ino %lu, value %p, size %zu, flags %#x, type %#x\n",
++		__func__, inode->i_ino, value, size, flags, type);
++
++	if (strcmp(name, "") != 0)
++		return -EINVAL;
++
++	if (!inode_owner_or_capable(inode))
++		return -EPERM;
++
++	if (value) {
++		acl = posix_acl_from_xattr(&init_user_ns, value, size);
++		if (IS_ERR(acl))
++			return PTR_ERR(acl);
++		else if (acl) {
++			err = posix_acl_valid(acl);
++			if (err)
++				goto end_xattr_set_acl;
++		}
++	}
++
++	err = hfsplus_set_posix_acl(inode, type, acl);
++
++end_xattr_set_acl:
++	posix_acl_release(acl);
++	return err;
++}
++
++static size_t hfsplus_xattr_list_posix_acl(struct dentry *dentry,
++						char *list,
++						size_t list_size,
++						const char *name,
++						size_t name_len,
++						int type)
++{
++	/*
++	 * This method is not used.
++	 * It is used hfsplus_listxattr() instead of generic_listxattr().
++	 */
++	return -EOPNOTSUPP;
++}
++
++const struct xattr_handler hfsplus_xattr_acl_access_handler = {
++	.prefix	= POSIX_ACL_XATTR_ACCESS,
++	.flags	= ACL_TYPE_ACCESS,
++	.list	= hfsplus_xattr_list_posix_acl,
++	.get	= hfsplus_xattr_get_posix_acl,
++	.set	= hfsplus_xattr_set_posix_acl,
++};
++
++const struct xattr_handler hfsplus_xattr_acl_default_handler = {
++	.prefix	= POSIX_ACL_XATTR_DEFAULT,
++	.flags	= ACL_TYPE_DEFAULT,
++	.list	= hfsplus_xattr_list_posix_acl,
++	.get	= hfsplus_xattr_get_posix_acl,
++	.set	= hfsplus_xattr_set_posix_acl,
++};
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
 origin.patch
-sh64-kernel-use-usp-instead-of-fn.patch
-sh64-kernel-remove-useless-variable-regs.patch
-include-linux-interrupth-add-dummy-irq_set_irq_wake-for-generic_hardirqs.patch
-h8300-kernel-timer-timer8c-add-missing-semicolon.patch
-mm-kconfig-add-mmu-dependency-for-migration.patch
 
