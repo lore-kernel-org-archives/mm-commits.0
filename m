@@ -1,72 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmstat-create-fold_diff.patch removed from -mm tree
-Date: Thu, 12 Sep 2013 12:43:31 -0700
-Message-ID: <52321963.OCYUxmciAiUJAZRi%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_alloc-add-unlikely-macro-to-help-compiler-optimization.patch
+ removed from -mm tree
+Date: Thu, 12 Sep 2013 12:43:23 -0700
+Message-ID: <5232195b.oix/HXus9L83Intu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58218 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58199 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753000Ab3ILTnc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:32 -0400
+	with ESMTP id S1755678Ab3ILTnY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, js1304@gmail.com, adobriyan@gmail.com, cl@linux.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, minchan@kernel.org, mgorman@suse.de, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com
 
-Subject: [merged] vmstat-create-fold_diff.patch removed from -mm tree
-To: cl@linux.com,adobriyan@gmail.com,js1304@gmail.com,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-page_alloc-add-unlikely-macro-to-help-compiler-optimization.patch removed from -mm tree
+To: iamjoonsoo.kim@lge.com,hannes@cmpxchg.org,mgorman@suse.de,minchan@kernel.org,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:43:31 -0700
+Date: Thu, 12 Sep 2013 12:43:23 -0700
 
 
 The patch titled
-     Subject: vmstat: create fold_diff
+     Subject: mm, page_alloc: add unlikely macro to help compiler optimization
 has been removed from the -mm tree.  Its filename was
-     vmstat-create-fold_diff.patch
+     mm-page_alloc-add-unlikely-macro-to-help-compiler-optimization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: vmstat: create fold_diff
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm, page_alloc: add unlikely macro to help compiler optimization
 
-Both functions that update global counters use the same mechanism.
+We rarely allocate a page with ALLOC_NO_WATERMARKS and it is used in slow
+path.  For helping compiler optimization, add unlikely macro to
+ALLOC_NO_WATERMARKS checking.
 
-Create a function that contains the common code.
+This patch doesn't have any effect now, because gcc already optimize this
+properly.  But we cannot assume that gcc always does right and nobody
+re-evaluate if gcc do proper optimization with their change, for example,
+it is not optimized properly on v3.10.  So adding compiler hint here is
+reasonable.
 
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Tejun Heo <tj@kernel.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~vmstat-create-fold_diff mm/vmstat.c
---- a/mm/vmstat.c~vmstat-create-fold_diff
-+++ a/mm/vmstat.c
-@@ -414,6 +414,15 @@ void dec_zone_page_state(struct page *pa
- EXPORT_SYMBOL(dec_zone_page_state);
- #endif
- 
-+static inline void fold_diff(int *diff)
-+{
-+	int i;
-+
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-+		if (diff[i])
-+			atomic_long_add(diff[i], &vm_stat[i]);
-+}
-+
- /*
-  * Update the zone counters for the current cpu.
-  *
-@@ -483,10 +492,7 @@ static void refresh_cpu_vm_stats(int cpu
- 			drain_zone_pages(zone, &p->pcp);
- #endif
- 	}
+diff -puN mm/page_alloc.c~mm-page_alloc-add-unlikely-macro-to-help-compiler-optimization mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-add-unlikely-macro-to-help-compiler-optimization
++++ a/mm/page_alloc.c
+@@ -1909,7 +1909,7 @@ zonelist_scan:
+ 			!cpuset_zone_allowed_softwall(zone, gfp_mask))
+ 				continue;
+ 		BUILD_BUG_ON(ALLOC_NO_WATERMARKS < NR_WMARK);
+-		if (alloc_flags & ALLOC_NO_WATERMARKS)
++		if (unlikely(alloc_flags & ALLOC_NO_WATERMARKS))
+ 			goto try_this_zone;
+ 		/*
+ 		 * Distribute pages in proportion to the individual
+_
+
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+
+origin.patch
+
