@@ -1,45 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-document-general-ipc-locking-scheme.patch removed
- from -mm tree
-Date: Thu, 12 Sep 2013 12:50:59 -0700
-Message-ID: <52321b23.CXlLoOqDh3y8Ivpa%akpm@linux-foundation.org>
+Subject: [merged] ipcshm-make-shmctl_nolock-lockless.patch removed from
+ -mm tree
+Date: Thu, 12 Sep 2013 12:50:47 -0700
+Message-ID: <52321b17.ilj6u+H9uyjhji8a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58805 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756216Ab3ILTvP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:51:15 -0400
+	with ESMTP id S1756200Ab3ILTvT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:51:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sedat.dilek@gmail.com, riel@redhat.com, manfred@colorfullife.com, davidlohr.bueso@hp.com
 
-Subject: [merged] ipc-document-general-ipc-locking-scheme.patch removed from -mm tree
+Subject: [merged] ipcshm-make-shmctl_nolock-lockless.patch removed from -mm tree
 To: davidlohr.bueso@hp.com,manfred@colorfullife.com,riel@redhat.com,sedat.dilek@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:50:59 -0700
+Date: Thu, 12 Sep 2013 12:50:47 -0700
 
 
 The patch titled
-     Subject: ipc: document general ipc locking scheme
+     Subject: ipc,shm: make shmctl_nolock lockless
 has been removed from the -mm tree.  Its filename was
-     ipc-document-general-ipc-locking-scheme.patch
+     ipcshm-make-shmctl_nolock-lockless.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: ipc: document general ipc locking scheme
+Subject: ipc,shm: make shmctl_nolock lockless
 
-As suggested by Andrew, add a generic initial locking scheme used
-throughout all sysv ipc mechanisms.  Documenting the ids rwsem, how rcu
-can be enough to do the initial checks and when to actually acquire the
-kern_ipc_perm.lock spinlock.
+While the INFO cmd doesn't take the ipc lock, the STAT commands do acquire
+it unnecessarily.  We can do the permissions and security checks only
+holding the rcu lock.
 
-I found that adding it to util.c was generic enough.
-
+[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -47,27 +45,69 @@ Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ ipc/shm.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN ipc/util.c~ipc-document-general-ipc-locking-scheme ipc/util.c
---- a/ipc/util.c~ipc-document-general-ipc-locking-scheme
-+++ a/ipc/util.c
-@@ -15,6 +15,14 @@
-  * Jun 2006 - namespaces ssupport
-  *            OpenVZ, SWsoft Inc.
-  *            Pavel Emelianov <xemul@openvz.org>
-+ *
-+ * General sysv ipc locking scheme:
-+ *  when doing ipc id lookups, take the ids->rwsem
-+ *      rcu_read_lock()
-+ *          obtain the ipc object (kern_ipc_perm)
-+ *          perform security, capabilities, auditing and permission checks, etc.
-+ *          acquire the ipc lock (kern_ipc_perm.lock) throught ipc_lock_object()
-+ *             perform data updates (ie: SET, RMID, LOCK/UNLOCK commands)
-  */
+diff -puN ipc/shm.c~ipcshm-make-shmctl_nolock-lockless ipc/shm.c
+--- a/ipc/shm.c~ipcshm-make-shmctl_nolock-lockless
++++ a/ipc/shm.c
+@@ -882,27 +882,31 @@ static int shmctl_nolock(struct ipc_name
+ 		struct shmid64_ds tbuf;
+ 		int result;
  
- #include <linux/mm.h>
++		rcu_read_lock();
+ 		if (cmd == SHM_STAT) {
+-			shp = shm_lock(ns, shmid);
++			shp = shm_obtain_object(ns, shmid);
+ 			if (IS_ERR(shp)) {
+ 				err = PTR_ERR(shp);
+-				goto out;
++				goto out_unlock;
+ 			}
+ 			result = shp->shm_perm.id;
+ 		} else {
+-			shp = shm_lock_check(ns, shmid);
++			shp = shm_obtain_object_check(ns, shmid);
+ 			if (IS_ERR(shp)) {
+ 				err = PTR_ERR(shp);
+-				goto out;
++				goto out_unlock;
+ 			}
+ 			result = 0;
+ 		}
++
+ 		err = -EACCES;
+ 		if (ipcperms(ns, &shp->shm_perm, S_IRUGO))
+ 			goto out_unlock;
++
+ 		err = security_shm_shmctl(shp, cmd);
+ 		if (err)
+ 			goto out_unlock;
++
+ 		memset(&tbuf, 0, sizeof(tbuf));
+ 		kernel_to_ipc64_perm(&shp->shm_perm, &tbuf.shm_perm);
+ 		tbuf.shm_segsz	= shp->shm_segsz;
+@@ -912,8 +916,9 @@ static int shmctl_nolock(struct ipc_name
+ 		tbuf.shm_cpid	= shp->shm_cprid;
+ 		tbuf.shm_lpid	= shp->shm_lprid;
+ 		tbuf.shm_nattch	= shp->shm_nattch;
+-		shm_unlock(shp);
+-		if(copy_shmid_to_user (buf, &tbuf, version))
++		rcu_read_unlock();
++
++		if (copy_shmid_to_user(buf, &tbuf, version))
+ 			err = -EFAULT;
+ 		else
+ 			err = result;
+@@ -924,7 +929,7 @@ static int shmctl_nolock(struct ipc_name
+ 	}
+ 
+ out_unlock:
+-	shm_unlock(shp);
++	rcu_read_unlock();
+ out:
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from davidlohr.bueso@hp.com are
