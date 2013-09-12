@@ -1,523 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-use-list_for_each_entry-instead-of-list_for_each.patch removed from
- -mm tree
-Date: Thu, 12 Sep 2013 12:41:29 -0700
-Message-ID: <523218e9.rZwkYqKWPsMFM1nb%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-using-i_size_read-to-access-i_size.patch removed
+ from -mm tree
+Date: Thu, 12 Sep 2013 12:41:21 -0700
+Message-ID: <523218e1.gO+dEFkIS5PMN4xz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57845 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793Ab3ILTla (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:30 -0400
+	with ESMTP id S1753028Ab3ILTlV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:41:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, dan.carpenter@oracle.com, yp.fangdong@gmail.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, junxiao.bi@oracle.com
 
-Subject: [merged] ocfs2-use-list_for_each_entry-instead-of-list_for_each.patch removed from -mm tree
-To: yp.fangdong@gmail.com,dan.carpenter@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-using-i_size_read-to-access-i_size.patch removed from -mm tree
+To: junxiao.bi@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:41:29 -0700
+Date: Thu, 12 Sep 2013 12:41:21 -0700
 
 
 The patch titled
-     Subject: ocfs2: use list_for_each_entry() instead of list_for_each()
+     Subject: ocfs2: use i_size_read() to access i_size
 has been removed from the -mm tree.  Its filename was
-     ocfs2-use-list_for_each_entry-instead-of-list_for_each.patch
+     ocfs2-using-i_size_read-to-access-i_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dong Fang <yp.fangdong@gmail.com>
-Subject: ocfs2: use list_for_each_entry() instead of list_for_each()
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: use i_size_read() to access i_size
 
-[dan.carpenter@oracle.com: fix up some NULL dereference bugs]
-Signed-off-by: Dong Fang <yp.fangdong@gmail.com>
+Though ocfs2 uses inode->i_mutex to protect i_size, there are both
+i_size_read/write() and direct accesses.  Clean up all direct access to
+eliminate confusion.
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Jie Liu <jeff.liu@oracle.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Jeff Liu <jeff.liu@oracle.com>
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |   14 ++++---------
- fs/ocfs2/dlm/dlmast.c        |    8 ++-----
- fs/ocfs2/dlm/dlmcommon.h     |    4 ---
- fs/ocfs2/dlm/dlmconvert.c    |   18 ++++++----------
- fs/ocfs2/dlm/dlmdebug.c      |   15 +++-----------
- fs/ocfs2/dlm/dlmdomain.c     |   35 +++++++++++----------------------
- fs/ocfs2/dlm/dlmlock.c       |    9 +-------
- fs/ocfs2/dlm/dlmmaster.c     |   18 ++++------------
- fs/ocfs2/dlm/dlmthread.c     |   19 ++++-------------
- fs/ocfs2/dlm/dlmunlock.c     |    4 ---
- 10 files changed, 45 insertions(+), 99 deletions(-)
+ fs/ocfs2/aops.c         |    2 +-
+ fs/ocfs2/extent_map.c   |   10 +++++-----
+ fs/ocfs2/ioctl.c        |    2 +-
+ fs/ocfs2/journal.c      |    8 ++++----
+ fs/ocfs2/move_extents.c |    2 +-
+ fs/ocfs2/quota_global.c |    6 +++---
+ fs/ocfs2/quota_local.c  |   12 ++++++------
+ 7 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -628,11 +628,9 @@ static void o2hb_fire_callbacks(struct o
- 				struct o2nm_node *node,
- 				int idx)
- {
--	struct list_head *iter;
- 	struct o2hb_callback_func *f;
+diff -puN fs/ocfs2/aops.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-using-i_size_read-to-access-i_size
++++ a/fs/ocfs2/aops.c
+@@ -2044,7 +2044,7 @@ int ocfs2_write_end_nolock(struct addres
  
--	list_for_each(iter, &hbcall->list) {
--		f = list_entry(iter, struct o2hb_callback_func, hc_item);
-+	list_for_each_entry(f, &hbcall->list, hc_item) {
- 		mlog(ML_HEARTBEAT, "calling funcs %p\n", f);
- 		(f->hc_func)(node, idx, f->hc_data);
+ out_write_size:
+ 	pos += copied;
+-	if (pos > inode->i_size) {
++	if (pos > i_size_read(inode)) {
+ 		i_size_write(inode, pos);
+ 		mark_inode_dirty(inode);
  	}
-@@ -2516,8 +2514,7 @@ unlock:
- int o2hb_register_callback(const char *region_uuid,
- 			   struct o2hb_callback_func *hc)
- {
--	struct o2hb_callback_func *tmp;
--	struct list_head *iter;
-+	struct o2hb_callback_func *f;
- 	struct o2hb_callback *hbcall;
- 	int ret;
+diff -puN fs/ocfs2/extent_map.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/extent_map.c
+--- a/fs/ocfs2/extent_map.c~ocfs2-using-i_size_read-to-access-i_size
++++ a/fs/ocfs2/extent_map.c
+@@ -852,20 +852,20 @@ int ocfs2_seek_data_hole_offset(struct f
  
-@@ -2540,10 +2537,9 @@ int o2hb_register_callback(const char *r
+ 	down_read(&OCFS2_I(inode)->ip_alloc_sem);
  
- 	down_write(&o2hb_callback_sem);
- 
--	list_for_each(iter, &hbcall->list) {
--		tmp = list_entry(iter, struct o2hb_callback_func, hc_item);
--		if (hc->hc_priority < tmp->hc_priority) {
--			list_add_tail(&hc->hc_item, iter);
-+	list_for_each_entry(f, &hbcall->list, hc_item) {
-+		if (hc->hc_priority < f->hc_priority) {
-+			list_add_tail(&hc->hc_item, &f->hc_item);
- 			break;
- 		}
- 	}
-diff -puN fs/ocfs2/dlm/dlmast.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmast.c
---- a/fs/ocfs2/dlm/dlmast.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmast.c
-@@ -292,7 +292,7 @@ int dlm_proxy_ast_handler(struct o2net_m
- 	struct dlm_lock *lock = NULL;
- 	struct dlm_proxy_ast *past = (struct dlm_proxy_ast *) msg->buf;
- 	char *name;
--	struct list_head *iter, *head=NULL;
-+	struct list_head *head = NULL;
- 	__be64 cookie;
- 	u32 flags;
- 	u8 node;
-@@ -373,8 +373,7 @@ int dlm_proxy_ast_handler(struct o2net_m
- 	/* try convert queue for both ast/bast */
- 	head = &res->converting;
- 	lock = NULL;
--	list_for_each(iter, head) {
--		lock = list_entry (iter, struct dlm_lock, list);
-+	list_for_each_entry(lock, head, list) {
- 		if (lock->ml.cookie == cookie)
- 			goto do_ast;
- 	}
-@@ -385,8 +384,7 @@ int dlm_proxy_ast_handler(struct o2net_m
- 	else
- 		head = &res->granted;
- 
--	list_for_each(iter, head) {
--		lock = list_entry (iter, struct dlm_lock, list);
-+	list_for_each_entry(lock, head, list) {
- 		if (lock->ml.cookie == cookie)
- 			goto do_ast;
- 	}
-diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmcommon.h
---- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -1079,11 +1079,9 @@ static inline int dlm_lock_compatible(in
- static inline int dlm_lock_on_list(struct list_head *head,
- 				   struct dlm_lock *lock)
- {
--	struct list_head *iter;
- 	struct dlm_lock *tmplock;
- 
--	list_for_each(iter, head) {
--		tmplock = list_entry(iter, struct dlm_lock, list);
-+	list_for_each_entry(tmplock, head, list) {
- 		if (tmplock == lock)
- 			return 1;
- 	}
-diff -puN fs/ocfs2/dlm/dlmconvert.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmconvert.c
---- a/fs/ocfs2/dlm/dlmconvert.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmconvert.c
-@@ -123,7 +123,6 @@ static enum dlm_status __dlmconvert_mast
- 					   int *kick_thread)
- {
- 	enum dlm_status status = DLM_NORMAL;
--	struct list_head *iter;
- 	struct dlm_lock *tmplock=NULL;
- 
- 	assert_spin_locked(&res->spinlock);
-@@ -185,16 +184,14 @@ static enum dlm_status __dlmconvert_mast
- 
- 	/* upconvert from here on */
- 	status = DLM_NORMAL;
--	list_for_each(iter, &res->granted) {
--		tmplock = list_entry(iter, struct dlm_lock, list);
-+	list_for_each_entry(tmplock, &res->granted, list) {
- 		if (tmplock == lock)
- 			continue;
- 		if (!dlm_lock_compatible(tmplock->ml.type, type))
- 			goto switch_queues;
+-	if (*offset >= inode->i_size) {
++	if (*offset >= i_size_read(inode)) {
+ 		ret = -ENXIO;
+ 		goto out_unlock;
  	}
  
--	list_for_each(iter, &res->converting) {
--		tmplock = list_entry(iter, struct dlm_lock, list);
-+	list_for_each_entry(tmplock, &res->converting, list) {
- 		if (!dlm_lock_compatible(tmplock->ml.type, type))
- 			goto switch_queues;
- 		/* existing conversion requests take precedence */
-@@ -424,8 +421,8 @@ int dlm_convert_lock_handler(struct o2ne
- 	struct dlm_ctxt *dlm = data;
- 	struct dlm_convert_lock *cnv = (struct dlm_convert_lock *)msg->buf;
- 	struct dlm_lock_resource *res = NULL;
--	struct list_head *iter;
- 	struct dlm_lock *lock = NULL;
-+	struct dlm_lock *tmp_lock;
- 	struct dlm_lockstatus *lksb;
- 	enum dlm_status status = DLM_NORMAL;
- 	u32 flags;
-@@ -471,14 +468,13 @@ int dlm_convert_lock_handler(struct o2ne
- 		dlm_error(status);
- 		goto leave;
- 	}
--	list_for_each(iter, &res->granted) {
--		lock = list_entry(iter, struct dlm_lock, list);
--		if (lock->ml.cookie == cnv->cookie &&
--		    lock->ml.node == cnv->node_idx) {
-+	list_for_each_entry(tmp_lock, &res->granted, list) {
-+		if (tmp_lock->ml.cookie == cnv->cookie &&
-+		    tmp_lock->ml.node == cnv->node_idx) {
-+			lock = tmp_lock;
- 			dlm_lock_get(lock);
- 			break;
- 		}
--		lock = NULL;
- 	}
- 	spin_unlock(&res->spinlock);
- 	if (!lock) {
-diff -puN fs/ocfs2/dlm/dlmdebug.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmdebug.c
---- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmdebug.c
-@@ -96,7 +96,6 @@ static void __dlm_print_lock(struct dlm_
- 
- void __dlm_print_one_lock_resource(struct dlm_lock_resource *res)
- {
--	struct list_head *iter2;
- 	struct dlm_lock *lock;
- 	char buf[DLM_LOCKID_NAME_MAX];
- 
-@@ -118,18 +117,15 @@ void __dlm_print_one_lock_resource(struc
- 	       res->inflight_locks, atomic_read(&res->asts_reserved));
- 	dlm_print_lockres_refmap(res);
- 	printk("  granted queue:\n");
--	list_for_each(iter2, &res->granted) {
--		lock = list_entry(iter2, struct dlm_lock, list);
-+	list_for_each_entry(lock, &res->granted, list) {
- 		__dlm_print_lock(lock);
- 	}
- 	printk("  converting queue:\n");
--	list_for_each(iter2, &res->converting) {
--		lock = list_entry(iter2, struct dlm_lock, list);
-+	list_for_each_entry(lock, &res->converting, list) {
- 		__dlm_print_lock(lock);
- 	}
- 	printk("  blocked queue:\n");
--	list_for_each(iter2, &res->blocked) {
--		lock = list_entry(iter2, struct dlm_lock, list);
-+	list_for_each_entry(lock, &res->blocked, list) {
- 		__dlm_print_lock(lock);
- 	}
- }
-@@ -446,7 +442,6 @@ static int debug_mle_print(struct dlm_ct
- {
- 	struct dlm_master_list_entry *mle;
- 	struct hlist_head *bucket;
--	struct hlist_node *list;
- 	int i, out = 0;
- 	unsigned long total = 0, longest = 0, bucket_count = 0;
- 
-@@ -456,9 +451,7 @@ static int debug_mle_print(struct dlm_ct
- 	spin_lock(&dlm->master_lock);
- 	for (i = 0; i < DLM_HASH_BUCKETS; i++) {
- 		bucket = dlm_master_hash(dlm, i);
--		hlist_for_each(list, bucket) {
--			mle = hlist_entry(list, struct dlm_master_list_entry,
--					  master_hash_node);
-+		hlist_for_each_entry(mle, bucket, master_hash_node) {
- 			++total;
- 			++bucket_count;
- 			if (len - out < 200)
-diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmdomain.c
---- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -193,7 +193,7 @@ struct dlm_lock_resource * __dlm_lookup_
- 						     unsigned int hash)
- {
- 	struct hlist_head *bucket;
--	struct hlist_node *list;
-+	struct dlm_lock_resource *res;
- 
- 	mlog(0, "%.*s\n", len, name);
- 
-@@ -201,9 +201,7 @@ struct dlm_lock_resource * __dlm_lookup_
- 
- 	bucket = dlm_lockres_hash(dlm, hash);
- 
--	hlist_for_each(list, bucket) {
--		struct dlm_lock_resource *res = hlist_entry(list,
--			struct dlm_lock_resource, hash_node);
-+	hlist_for_each_entry(res, bucket, hash_node) {
- 		if (res->lockname.name[0] != name[0])
- 			continue;
- 		if (unlikely(res->lockname.len != len))
-@@ -262,22 +260,19 @@ struct dlm_lock_resource * dlm_lookup_lo
- 
- static struct dlm_ctxt * __dlm_lookup_domain_full(const char *domain, int len)
- {
--	struct dlm_ctxt *tmp = NULL;
--	struct list_head *iter;
-+	struct dlm_ctxt *tmp;
- 
- 	assert_spin_locked(&dlm_domain_lock);
- 
- 	/* tmp->name here is always NULL terminated,
- 	 * but domain may not be! */
--	list_for_each(iter, &dlm_domains) {
--		tmp = list_entry (iter, struct dlm_ctxt, list);
-+	list_for_each_entry(tmp, &dlm_domains, list) {
- 		if (strlen(tmp->name) == len &&
- 		    memcmp(tmp->name, domain, len)==0)
--			break;
--		tmp = NULL;
-+			return tmp;
+ 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL) {
+ 		if (whence == SEEK_HOLE)
+-			*offset = inode->i_size;
++			*offset = i_size_read(inode);
+ 		goto out_unlock;
  	}
  
--	return tmp;
-+	return NULL;
- }
+ 	clen = 0;
+ 	cpos = *offset >> cs_bits;
+-	cend = ocfs2_clusters_for_bytes(inode->i_sb, inode->i_size);
++	cend = ocfs2_clusters_for_bytes(inode->i_sb, i_size_read(inode));
  
- /* For null terminated domain strings ONLY */
-@@ -366,25 +361,22 @@ static void __dlm_get(struct dlm_ctxt *d
-  * you shouldn't trust your pointer. */
- struct dlm_ctxt *dlm_grab(struct dlm_ctxt *dlm)
- {
--	struct list_head *iter;
--	struct dlm_ctxt *target = NULL;
-+	struct dlm_ctxt *target;
-+	struct dlm_ctxt *ret = NULL;
+ 	while (cpos < cend && !is_last) {
+ 		ret = ocfs2_get_clusters_nocache(inode, di_bh, cpos, &hole_size,
+@@ -904,8 +904,8 @@ int ocfs2_seek_data_hole_offset(struct f
+ 		extlen = clen;
+ 		extlen <<=  cs_bits;
  
- 	spin_lock(&dlm_domain_lock);
+-		if ((extoff + extlen) > inode->i_size)
+-			extlen = inode->i_size - extoff;
++		if ((extoff + extlen) > i_size_read(inode))
++			extlen = i_size_read(inode) - extoff;
+ 		extoff += extlen;
+ 		if (extoff > *offset)
+ 			*offset = extoff;
+diff -puN fs/ocfs2/ioctl.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/ioctl.c
+--- a/fs/ocfs2/ioctl.c~ocfs2-using-i_size_read-to-access-i_size
++++ a/fs/ocfs2/ioctl.c
+@@ -303,7 +303,7 @@ int ocfs2_info_handle_journal_size(struc
+ 	if (o2info_from_user(oij, req))
+ 		goto bail;
  
--	list_for_each(iter, &dlm_domains) {
--		target = list_entry (iter, struct dlm_ctxt, list);
--
-+	list_for_each_entry(target, &dlm_domains, list) {
- 		if (target == dlm) {
- 			__dlm_get(target);
-+			ret = target;
- 			break;
- 		}
--
--		target = NULL;
+-	oij.ij_journal_size = osb->journal->j_inode->i_size;
++	oij.ij_journal_size = i_size_read(osb->journal->j_inode);
+ 
+ 	o2info_set_request_filled(&oij.ij_req);
+ 
+diff -puN fs/ocfs2/journal.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-using-i_size_read-to-access-i_size
++++ a/fs/ocfs2/journal.c
+@@ -836,14 +836,14 @@ int ocfs2_journal_init(struct ocfs2_jour
+ 	inode_lock = 1;
+ 	di = (struct ocfs2_dinode *)bh->b_data;
+ 
+-	if (inode->i_size <  OCFS2_MIN_JOURNAL_SIZE) {
++	if (i_size_read(inode) <  OCFS2_MIN_JOURNAL_SIZE) {
+ 		mlog(ML_ERROR, "Journal file size (%lld) is too small!\n",
+-		     inode->i_size);
++		     i_size_read(inode));
+ 		status = -EINVAL;
+ 		goto done;
  	}
  
- 	spin_unlock(&dlm_domain_lock);
+-	trace_ocfs2_journal_init(inode->i_size,
++	trace_ocfs2_journal_init(i_size_read(inode),
+ 				 (unsigned long long)inode->i_blocks,
+ 				 OCFS2_I(inode)->ip_clusters);
  
--	return target;
-+	return ret;
- }
+@@ -1131,7 +1131,7 @@ static int ocfs2_force_read_journal(stru
  
- int dlm_domain_fully_joined(struct dlm_ctxt *dlm)
-@@ -2296,13 +2288,10 @@ static DECLARE_RWSEM(dlm_callback_sem);
- void dlm_fire_domain_eviction_callbacks(struct dlm_ctxt *dlm,
- 					int node_num)
- {
--	struct list_head *iter;
- 	struct dlm_eviction_cb *cb;
+ 	memset(bhs, 0, sizeof(struct buffer_head *) * CONCURRENT_JOURNAL_FILL);
  
- 	down_read(&dlm_callback_sem);
--	list_for_each(iter, &dlm->dlm_eviction_callbacks) {
--		cb = list_entry(iter, struct dlm_eviction_cb, ec_item);
--
-+	list_for_each_entry(cb, &dlm->dlm_eviction_callbacks, ec_item) {
- 		cb->ec_func(node_num, cb->ec_data);
- 	}
- 	up_read(&dlm_callback_sem);
-diff -puN fs/ocfs2/dlm/dlmlock.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmlock.c
---- a/fs/ocfs2/dlm/dlmlock.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmlock.c
-@@ -91,19 +91,14 @@ void dlm_destroy_lock_cache(void)
- static int dlm_can_grant_new_lock(struct dlm_lock_resource *res,
- 				  struct dlm_lock *lock)
- {
--	struct list_head *iter;
- 	struct dlm_lock *tmplock;
+-	num_blocks = ocfs2_blocks_for_bytes(inode->i_sb, inode->i_size);
++	num_blocks = ocfs2_blocks_for_bytes(inode->i_sb, i_size_read(inode));
+ 	v_blkno = 0;
+ 	while (v_blkno < num_blocks) {
+ 		status = ocfs2_extent_map_get_blocks(inode, v_blkno,
+diff -puN fs/ocfs2/move_extents.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/move_extents.c
+--- a/fs/ocfs2/move_extents.c~ocfs2-using-i_size_read-to-access-i_size
++++ a/fs/ocfs2/move_extents.c
+@@ -845,7 +845,7 @@ static int __ocfs2_move_extents_range(st
+ 	struct ocfs2_move_extents *range = context->range;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
  
--	list_for_each(iter, &res->granted) {
--		tmplock = list_entry(iter, struct dlm_lock, list);
--
-+	list_for_each_entry(tmplock, &res->granted, list) {
- 		if (!dlm_lock_compatible(tmplock->ml.type, lock->ml.type))
- 			return 0;
+-	if ((inode->i_size == 0) || (range->me_len == 0))
++	if ((i_size_read(inode) == 0) || (range->me_len == 0))
+ 		return 0;
+ 
+ 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL)
+diff -puN fs/ocfs2/quota_global.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/quota_global.c
+--- a/fs/ocfs2/quota_global.c~ocfs2-using-i_size_read-to-access-i_size
++++ a/fs/ocfs2/quota_global.c
+@@ -234,7 +234,7 @@ ssize_t ocfs2_quota_write(struct super_b
+ 		len = sb->s_blocksize - OCFS2_QBLK_RESERVED_SPACE - offset;
  	}
  
--	list_for_each(iter, &res->converting) {
--		tmplock = list_entry(iter, struct dlm_lock, list);
--
-+	list_for_each_entry(tmplock, &res->converting, list) {
- 		if (!dlm_lock_compatible(tmplock->ml.type, lock->ml.type))
- 			return 0;
- 		if (!dlm_lock_compatible(tmplock->ml.convert_type,
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -342,16 +342,13 @@ static int dlm_find_mle(struct dlm_ctxt
- {
- 	struct dlm_master_list_entry *tmpmle;
- 	struct hlist_head *bucket;
--	struct hlist_node *list;
- 	unsigned int hash;
+-	if (gqinode->i_size < off + len) {
++	if (i_size_read(gqinode) < off + len) {
+ 		loff_t rounded_end =
+ 				ocfs2_align_bytes_to_blocks(sb, off + len);
  
- 	assert_spin_locked(&dlm->master_lock);
- 
- 	hash = dlm_lockid_hash(name, namelen);
- 	bucket = dlm_master_hash(dlm, hash);
--	hlist_for_each(list, bucket) {
--		tmpmle = hlist_entry(list, struct dlm_master_list_entry,
--				     master_hash_node);
-+	hlist_for_each_entry(tmpmle, bucket, master_hash_node) {
- 		if (!dlm_mle_equal(dlm, tmpmle, name, namelen))
- 			continue;
- 		dlm_get_mle(tmpmle);
-@@ -3183,7 +3180,7 @@ void dlm_clean_master_list(struct dlm_ct
- 	struct dlm_master_list_entry *mle;
- 	struct dlm_lock_resource *res;
- 	struct hlist_head *bucket;
--	struct hlist_node *list;
-+	struct hlist_node *tmp;
- 	unsigned int i;
- 
- 	mlog(0, "dlm=%s, dead node=%u\n", dlm->name, dead_node);
-@@ -3194,10 +3191,7 @@ top:
- 	spin_lock(&dlm->master_lock);
- 	for (i = 0; i < DLM_HASH_BUCKETS; i++) {
- 		bucket = dlm_master_hash(dlm, i);
--		hlist_for_each(list, bucket) {
--			mle = hlist_entry(list, struct dlm_master_list_entry,
--					  master_hash_node);
--
-+		hlist_for_each_entry_safe(mle, tmp, bucket, master_hash_node) {
- 			BUG_ON(mle->type != DLM_MLE_BLOCK &&
- 			       mle->type != DLM_MLE_MASTER &&
- 			       mle->type != DLM_MLE_MIGRATION);
-@@ -3378,7 +3372,7 @@ void dlm_force_free_mles(struct dlm_ctxt
- 	int i;
- 	struct hlist_head *bucket;
- 	struct dlm_master_list_entry *mle;
--	struct hlist_node *tmp, *list;
-+	struct hlist_node *tmp;
- 
- 	/*
- 	 * We notified all other nodes that we are exiting the domain and
-@@ -3394,9 +3388,7 @@ void dlm_force_free_mles(struct dlm_ctxt
- 
- 	for (i = 0; i < DLM_HASH_BUCKETS; i++) {
- 		bucket = dlm_master_hash(dlm, i);
--		hlist_for_each_safe(list, tmp, bucket) {
--			mle = hlist_entry(list, struct dlm_master_list_entry,
--					  master_hash_node);
-+		hlist_for_each_entry_safe(mle, tmp, bucket, master_hash_node) {
- 			if (mle->type != DLM_MLE_BLOCK) {
- 				mlog(ML_ERROR, "bad mle: %p\n", mle);
- 				dlm_print_one_mle(mle);
-diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmthread.c
---- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmthread.c
-@@ -286,8 +286,6 @@ static void dlm_shuffle_lists(struct dlm
- 			      struct dlm_lock_resource *res)
- {
- 	struct dlm_lock *lock, *target;
--	struct list_head *iter;
--	struct list_head *head;
- 	int can_grant = 1;
- 
- 	/*
-@@ -314,9 +312,7 @@ converting:
- 		     dlm->name, res->lockname.len, res->lockname.name);
- 		BUG();
+@@ -778,8 +778,8 @@ static int ocfs2_acquire_dquot(struct dq
+ 		 */
+ 		WARN_ON(journal_current_handle());
+ 		status = ocfs2_extend_no_holes(gqinode, NULL,
+-			gqinode->i_size + (need_alloc << sb->s_blocksize_bits),
+-			gqinode->i_size);
++			i_size_read(gqinode) + (need_alloc << sb->s_blocksize_bits),
++			i_size_read(gqinode));
+ 		if (status < 0)
+ 			goto out_dq;
  	}
--	head = &res->granted;
--	list_for_each(iter, head) {
--		lock = list_entry(iter, struct dlm_lock, list);
-+	list_for_each_entry(lock, &res->granted, list) {
- 		if (lock==target)
- 			continue;
- 		if (!dlm_lock_compatible(lock->ml.type,
-@@ -333,9 +329,8 @@ converting:
- 					target->ml.convert_type;
- 		}
- 	}
--	head = &res->converting;
--	list_for_each(iter, head) {
--		lock = list_entry(iter, struct dlm_lock, list);
-+
-+	list_for_each_entry(lock, &res->converting, list) {
- 		if (lock==target)
- 			continue;
- 		if (!dlm_lock_compatible(lock->ml.type,
-@@ -384,9 +379,7 @@ blocked:
- 		goto leave;
- 	target = list_entry(res->blocked.next, struct dlm_lock, list);
+diff -puN fs/ocfs2/quota_local.c~ocfs2-using-i_size_read-to-access-i_size fs/ocfs2/quota_local.c
+--- a/fs/ocfs2/quota_local.c~ocfs2-using-i_size_read-to-access-i_size
++++ a/fs/ocfs2/quota_local.c
+@@ -982,14 +982,14 @@ static struct ocfs2_quota_chunk *ocfs2_l
  
--	head = &res->granted;
--	list_for_each(iter, head) {
--		lock = list_entry(iter, struct dlm_lock, list);
-+	list_for_each_entry(lock, &res->granted, list) {
- 		if (lock==target)
- 			continue;
- 		if (!dlm_lock_compatible(lock->ml.type, target->ml.type)) {
-@@ -400,9 +393,7 @@ blocked:
- 		}
+ 	/* We are protected by dqio_sem so no locking needed */
+ 	status = ocfs2_extend_no_holes(lqinode, NULL,
+-				       lqinode->i_size + 2 * sb->s_blocksize,
+-				       lqinode->i_size);
++				       i_size_read(lqinode) + 2 * sb->s_blocksize,
++				       i_size_read(lqinode));
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto out;
  	}
+ 	status = ocfs2_simple_size_update(lqinode, oinfo->dqi_lqi_bh,
+-					  lqinode->i_size + 2 * sb->s_blocksize);
++					  i_size_read(lqinode) + 2 * sb->s_blocksize);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto out;
+@@ -1125,14 +1125,14 @@ static struct ocfs2_quota_chunk *ocfs2_e
  
--	head = &res->converting;
--	list_for_each(iter, head) {
--		lock = list_entry(iter, struct dlm_lock, list);
-+	list_for_each_entry(lock, &res->converting, list) {
- 		if (lock==target)
- 			continue;
- 		if (!dlm_lock_compatible(lock->ml.type, target->ml.type)) {
-diff -puN fs/ocfs2/dlm/dlmunlock.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmunlock.c
---- a/fs/ocfs2/dlm/dlmunlock.c~ocfs2-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmunlock.c
-@@ -388,7 +388,6 @@ int dlm_unlock_lock_handler(struct o2net
- 	struct dlm_ctxt *dlm = data;
- 	struct dlm_unlock_lock *unlock = (struct dlm_unlock_lock *)msg->buf;
- 	struct dlm_lock_resource *res = NULL;
--	struct list_head *iter;
- 	struct dlm_lock *lock = NULL;
- 	enum dlm_status status = DLM_NORMAL;
- 	int found = 0, i;
-@@ -458,8 +457,7 @@ int dlm_unlock_lock_handler(struct o2net
+ 	/* We are protected by dqio_sem so no locking needed */
+ 	status = ocfs2_extend_no_holes(lqinode, NULL,
+-				       lqinode->i_size + sb->s_blocksize,
+-				       lqinode->i_size);
++				       i_size_read(lqinode) + sb->s_blocksize,
++				       i_size_read(lqinode));
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto out;
  	}
- 
- 	for (i=0; i<3; i++) {
--		list_for_each(iter, queue) {
--			lock = list_entry(iter, struct dlm_lock, list);
-+		list_for_each_entry(lock, queue, list) {
- 			if (lock->ml.cookie == unlock->cookie &&
- 		    	    lock->ml.node == unlock->node_idx) {
- 				dlm_lock_get(lock);
+ 	status = ocfs2_simple_size_update(lqinode, oinfo->dqi_lqi_bh,
+-					  lqinode->i_size + sb->s_blocksize);
++					  i_size_read(lqinode) + sb->s_blocksize);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from yp.fangdong@gmail.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 origin.patch
+ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
