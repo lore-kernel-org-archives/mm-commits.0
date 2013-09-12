@@ -1,76 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
- removed from -mm tree
-Date: Thu, 12 Sep 2013 12:43:59 -0700
-Message-ID: <5232197f.7LOedkezA3jxuVIC%akpm@linux-foundation.org>
+ mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch removed from
+ -mm tree
+Date: Thu, 12 Sep 2013 12:43:39 -0700
+Message-ID: <5232196b.30ncKNknAr+m7Ufo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58276 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58239 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755833Ab3ILToA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:44:00 -0400
+	with ESMTP id S1755770Ab3ILTnj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:43:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, liwanp@linux.vnet.ibm.com, dhillf@gmail.com, davidlohr@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, toshi.kani@hp.com, dave.hansen@linux.intel.com, qiuxishi@huawei.com
 
-Subject: [merged] mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch removed from -mm tree
-To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr@hp.com,dhillf@gmail.com,liwanp@linux.vnet.ibm.com,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch removed from -mm tree
+To: qiuxishi@huawei.com,dave.hansen@linux.intel.com,toshi.kani@hp.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:43:59 -0700
+Date: Thu, 12 Sep 2013 12:43:39 -0700
 
 
 The patch titled
-     Subject: mm, hugetlb: protect reserved pages when soft offlining a hugepage
+     Subject: mm/hotplug: remove unnecessary BUG_ON in __offline_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage.patch
+     mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, hugetlb: protect reserved pages when soft offlining a hugepage
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mm/hotplug: remove unnecessary BUG_ON in __offline_pages()
 
-Don't use the reserve pool when soft offlining a hugepage.  Check we have
-free pages outside the reserve pool before we dequeue the huge page. 
-Otherwise, we can steal other's reserve page.
+I think we can remove "BUG_ON(start_pfn >= end_pfn)" in __offline_pages(),
+because in memory_block_action() "nr_pages = PAGES_PER_SECTION * sections_per_block"
+is always greater than 0.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Hillf Danton <dhillf@gmail.com>
+memory_block_action()
+	offline_pages()
+		__offline_pages()
+			BUG_ON(start_pfn >= end_pfn)
+
+In v2.6.32, If info->length==0, this way may hit this BUG_ON().
+acpi_memory_disable_device()
+	remove_memory(info->start_addr, info->length)
+			offline_pages()
+
+A later Fujitsu patch renamed this function and the BUG_ON() is
+unnecessary.
+
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-protect-reserved-pages-when-soft-offlining-a-hugepage
-+++ a/mm/hugetlb.c
-@@ -955,10 +955,11 @@ static struct page *alloc_buddy_huge_pag
-  */
- struct page *alloc_huge_page_node(struct hstate *h, int nid)
- {
--	struct page *page;
-+	struct page *page = NULL;
+diff -puN mm/memory_hotplug.c~mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-hotplug-remove-unnecessary-bug_on-in-__offline_pages
++++ a/mm/memory_hotplug.c
+@@ -1472,7 +1472,6 @@ static int __ref __offline_pages(unsigne
+ 	struct zone *zone;
+ 	struct memory_notify arg;
  
- 	spin_lock(&hugetlb_lock);
--	page = dequeue_huge_page_node(h, nid);
-+	if (h->free_huge_pages - h->resv_huge_pages > 0)
-+		page = dequeue_huge_page_node(h, nid);
- 	spin_unlock(&hugetlb_lock);
- 
- 	if (!page)
+-	BUG_ON(start_pfn >= end_pfn);
+ 	/* at least, alignment against pageblock is necessary */
+ 	if (!IS_ALIGNED(start_pfn, pageblock_nr_pages))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
 origin.patch
 
