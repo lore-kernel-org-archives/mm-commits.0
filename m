@@ -1,81 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-correct-the-comment-about-the-value-for-buddy-_mapcount.patch removed
- from -mm tree
-Date: Thu, 12 Sep 2013 12:45:17 -0700
-Message-ID: <523219cd.WtZE+Kxa5l470OXi%akpm@linux-foundation.org>
+ hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page.patch removed from -mm tree
+Date: Thu, 12 Sep 2013 12:45:19 -0700
+Message-ID: <523219cf.lvGvRqz3lkLUR4b6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58561 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58566 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756126Ab3ILTpR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:17 -0400
+	with ESMTP id S1756118Ab3ILTpU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Sep 2013 15:45:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mel@csn.ul.ie, shhuiw@gmail.com
+To: mm-commits@vger.kernel.org, tony.luck@intel.com, liwanp@linux.vnet.ibm.com, fengguang.wu@intel.com, andi@firstfloor.org, n-horiguchi@ah.jp.nec.com
 
-Subject: [merged] mm-correct-the-comment-about-the-value-for-buddy-_mapcount.patch removed from -mm tree
-To: shhuiw@gmail.com,mel@csn.ul.ie,mm-commits@vger.kernel.org
+Subject: [merged] hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page.patch removed from -mm tree
+To: n-horiguchi@ah.jp.nec.com,andi@firstfloor.org,fengguang.wu@intel.com,liwanp@linux.vnet.ibm.com,tony.luck@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Sep 2013 12:45:17 -0700
+Date: Thu, 12 Sep 2013 12:45:19 -0700
 
 
 The patch titled
-     Subject: mm: correct the comment about the value for buddy _mapcount
+     Subject: hwpoison: always unset MIGRATE_ISOLATE before returning from soft_offline_page()
 has been removed from the -mm tree.  Its filename was
-     mm-correct-the-comment-about-the-value-for-buddy-_mapcount.patch
+     hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wang Sheng-Hui <shhuiw@gmail.com>
-Subject: mm: correct the comment about the value for buddy _mapcount
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: hwpoison: always unset MIGRATE_ISOLATE before returning from soft_offline_page()
 
-Set _mapcount PAGE_BUDDY_MAPCOUNT_VALUE to make the page buddy.  Not the
-magic number -2.
+Soft offline code expects that MIGRATE_ISOLATE is set on the target page
+only during soft offlining work.  But currenly it doesn't work as expected
+when get_any_page() fails and returns negative value.  In the result, end
+users can have unexpectedly isolated pages.  This patch just fixes it.
 
-Signed-off-by: Wang Sheng-Hui <shhuiw@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-correct-the-comment-about-the-value-for-buddy-_mapcount mm/page_alloc.c
---- a/mm/page_alloc.c~mm-correct-the-comment-about-the-value-for-buddy-_mapcount
-+++ a/mm/page_alloc.c
-@@ -489,8 +489,10 @@ __find_buddy_index(unsigned long page_id
-  * (c) a page and its buddy have the same order &&
-  * (d) a page and its buddy are in the same zone.
-  *
-- * For recording whether a page is in the buddy system, we set ->_mapcount -2.
-- * Setting, clearing, and testing _mapcount -2 is serialized by zone->lock.
-+ * For recording whether a page is in the buddy system, we set ->_mapcount
-+ * PAGE_BUDDY_MAPCOUNT_VALUE.
-+ * Setting, clearing, and testing _mapcount PAGE_BUDDY_MAPCOUNT_VALUE is
-+ * serialized by zone->lock.
-  *
-  * For recording page's order, we use page_private(page).
-  */
-@@ -528,8 +530,9 @@ static inline int page_is_buddy(struct p
-  * as necessary, plus some accounting needed to play nicely with other
-  * parts of the VM system.
-  * At each level, we keep a list of pages, which are heads of continuous
-- * free pages of length of (1 << order) and marked with _mapcount -2. Page's
-- * order is recorded in page_private(page) field.
-+ * free pages of length of (1 << order) and marked with _mapcount
-+ * PAGE_BUDDY_MAPCOUNT_VALUE. Page's order is recorded in page_private(page)
-+ * field.
-  * So when we are allocating or freeing one, we can derive the state of the
-  * other.  That is, if we allocate a small block, and both were
-  * free, the remainder of the region must be split into blocks.
+diff -puN mm/memory-failure.c~hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page mm/memory-failure.c
+--- a/mm/memory-failure.c~hwpoison-always-unset-migrate_isolate-before-returning-from-soft_offline_page
++++ a/mm/memory-failure.c
+@@ -1553,7 +1553,7 @@ int soft_offline_page(struct page *page,
+ 
+ 	ret = get_any_page(page, pfn, flags);
+ 	if (ret < 0)
+-		return ret;
++		goto unset;
+ 	if (ret) { /* for in-use pages */
+ 		if (PageHuge(page))
+ 			ret = soft_offline_huge_page(page, flags);
+@@ -1570,6 +1570,7 @@ int soft_offline_page(struct page *page,
+ 			atomic_long_inc(&num_poisoned_pages);
+ 		}
+ 	}
++unset:
+ 	unset_migratetype_isolate(page, MIGRATE_MOVABLE);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from shhuiw@gmail.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
 
