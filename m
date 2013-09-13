@@ -1,45 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] list_lru-per-node-api.patch removed from -mm tree
-Date: Fri, 13 Sep 2013 14:16:03 -0700
-Message-ID: <52338093.gfi49Rqc/4LHU2xW%akpm@linux-foundation.org>
+Subject: [merged] shrinker-add-node-awareness.patch removed from -mm tree
+Date: Fri, 13 Sep 2013 14:16:07 -0700
+Message-ID: <52338097.NG3Brc8fvrc6BqUc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38582 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38612 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754924Ab3IMVQE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:16:04 -0400
+	with ESMTP id S1754924Ab3IMVQJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:16:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, gleb@redhat.com, dchinner@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, glommer@openvz.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, glommer@openvz.org, gleb@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, dchinner@redhat.com
 
-Subject: [merged] list_lru-per-node-api.patch removed from -mm tree
-To: glommer@openvz.org,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,dchinner@redhat.com,gleb@redhat.com,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] shrinker-add-node-awareness.patch removed from -mm tree
+To: dchinner@redhat.com,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,gleb@redhat.com,glommer@openvz.org,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 14:16:03 -0700
+Date: Fri, 13 Sep 2013 14:16:07 -0700
 
 
 The patch titled
-     Subject: list_lru: per-node API
+     Subject: shrinker: add node awareness
 has been removed from the -mm tree.  Its filename was
-     list_lru-per-node-api.patch
+     shrinker-add-node-awareness.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@openvz.org>
-Subject: list_lru: per-node API
+From: Dave Chinner <dchinner@redhat.com>
+Subject: shrinker: add node awareness
 
-This patch adapts the list_lru API to accept an optional node argument, to
-be used by NUMA aware shrinking functions.  Code that does not care about
-the NUMA placement of objects can still call into the very same functions
-as before.  They will simply iterate over all nodes.
+Pass the node of the current zone being reclaimed to shrink_slab(),
+allowing the shrinker control nodemask to be set appropriately for node
+aware shrinkers.
 
+Signed-off-by: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Glauber Costa <glommer@openvz.org>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -67,131 +66,128 @@ Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |   39 ++++++++++++++++++++++++++++++++-----
- mm/list_lru.c            |   37 ++++++++---------------------------
- 2 files changed, 43 insertions(+), 33 deletions(-)
+ drivers/staging/android/ashmem.c |    3 +++
+ fs/drop_caches.c                 |    1 +
+ include/linux/shrinker.h         |    3 +++
+ mm/memory-failure.c              |    2 ++
+ mm/vmscan.c                      |   11 ++++++++---
+ 5 files changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/list_lru.h~list_lru-per-node-api include/linux/list_lru.h
---- a/include/linux/list_lru.h~list_lru-per-node-api
-+++ a/include/linux/list_lru.h
-@@ -75,20 +75,32 @@ bool list_lru_add(struct list_lru *lru,
- bool list_lru_del(struct list_lru *lru, struct list_head *item);
- 
- /**
-- * list_lru_count: return the number of objects currently held by @lru
-+ * list_lru_count_node: return the number of objects currently held by @lru
-  * @lru: the lru pointer.
-+ * @nid: the node id to count from.
-  *
-  * Always return a non-negative number, 0 for empty lists. There is no
-  * guarantee that the list is not updated while the count is being computed.
-  * Callers that want such a guarantee need to provide an outer lock.
-  */
--unsigned long list_lru_count(struct list_lru *lru);
-+unsigned long list_lru_count_node(struct list_lru *lru, int nid);
-+static inline unsigned long list_lru_count(struct list_lru *lru)
-+{
-+	long count = 0;
-+	int nid;
+diff -puN drivers/staging/android/ashmem.c~shrinker-add-node-awareness drivers/staging/android/ashmem.c
+--- a/drivers/staging/android/ashmem.c~shrinker-add-node-awareness
++++ a/drivers/staging/android/ashmem.c
+@@ -692,6 +692,9 @@ static long ashmem_ioctl(struct file *fi
+ 				.gfp_mask = GFP_KERNEL,
+ 				.nr_to_scan = 0,
+ 			};
 +
-+	for_each_node_mask(nid, lru->active_nodes)
-+		count += list_lru_count_node(lru, nid);
++			nodes_setall(sc.nodes_to_scan);
 +
-+	return count;
-+}
+ 			ret = ashmem_shrink(&ashmem_shrinker, &sc);
+ 			sc.nr_to_scan = ret;
+ 			ashmem_shrink(&ashmem_shrinker, &sc);
+diff -puN fs/drop_caches.c~shrinker-add-node-awareness fs/drop_caches.c
+--- a/fs/drop_caches.c~shrinker-add-node-awareness
++++ a/fs/drop_caches.c
+@@ -44,6 +44,7 @@ static void drop_slab(void)
+ 		.gfp_mask = GFP_KERNEL,
+ 	};
  
- typedef enum lru_status
- (*list_lru_walk_cb)(struct list_head *item, spinlock_t *lock, void *cb_arg);
- /**
-- * list_lru_walk: walk a list_lru, isolating and disposing freeable items.
-+ * list_lru_walk_node: walk a list_lru, isolating and disposing freeable items.
-  * @lru: the lru pointer.
-+ * @nid: the node id to scan from.
-  * @isolate: callback function that is resposible for deciding what to do with
-  *  the item currently being scanned
-  * @cb_arg: opaque type that will be passed to @isolate
-@@ -106,8 +118,25 @@ typedef enum lru_status
-  *
-  * Return value: the number of objects effectively removed from the LRU.
-  */
--unsigned long list_lru_walk(struct list_lru *lru, list_lru_walk_cb isolate,
--		   void *cb_arg, unsigned long nr_to_walk);
-+unsigned long list_lru_walk_node(struct list_lru *lru, int nid,
-+				 list_lru_walk_cb isolate, void *cb_arg,
-+				 unsigned long *nr_to_walk);
++	nodes_setall(shrink.nodes_to_scan);
+ 	do {
+ 		nr_objects = shrink_slab(&shrink, 1000, 1000);
+ 	} while (nr_objects > 10);
+diff -puN include/linux/shrinker.h~shrinker-add-node-awareness include/linux/shrinker.h
+--- a/include/linux/shrinker.h~shrinker-add-node-awareness
++++ a/include/linux/shrinker.h
+@@ -16,6 +16,9 @@ struct shrink_control {
+ 
+ 	/* How many slab objects shrinker() should scan and try to reclaim */
+ 	unsigned long nr_to_scan;
 +
-+static inline unsigned long
-+list_lru_walk(struct list_lru *lru, list_lru_walk_cb isolate,
-+	      void *cb_arg, unsigned long nr_to_walk)
-+{
-+	long isolated = 0;
-+	int nid;
++	/* shrink from these nodes */
++	nodemask_t nodes_to_scan;
+ };
+ 
+ #define SHRINK_STOP (~0UL)
+diff -puN mm/memory-failure.c~shrinker-add-node-awareness mm/memory-failure.c
+--- a/mm/memory-failure.c~shrinker-add-node-awareness
++++ a/mm/memory-failure.c
+@@ -248,10 +248,12 @@ void shake_page(struct page *p, int acce
+ 	 */
+ 	if (access) {
+ 		int nr;
++		int nid = page_to_nid(p);
+ 		do {
+ 			struct shrink_control shrink = {
+ 				.gfp_mask = GFP_KERNEL,
+ 			};
++			node_set(nid, shrink.nodes_to_scan);
+ 
+ 			nr = shrink_slab(&shrink, 1000, 1000);
+ 			if (page_count(p) == 1)
+diff -puN mm/vmscan.c~shrinker-add-node-awareness mm/vmscan.c
+--- a/mm/vmscan.c~shrinker-add-node-awareness
++++ a/mm/vmscan.c
+@@ -2420,12 +2420,16 @@ static unsigned long do_try_to_free_page
+ 		 */
+ 		if (global_reclaim(sc)) {
+ 			unsigned long lru_pages = 0;
 +
-+	for_each_node_mask(nid, lru->active_nodes) {
-+		isolated += list_lru_walk_node(lru, nid, isolate,
-+					       cb_arg, &nr_to_walk);
-+		if (nr_to_walk <= 0)
-+			break;
-+	}
-+	return isolated;
-+}
++			nodes_clear(shrink->nodes_to_scan);
+ 			for_each_zone_zonelist(zone, z, zonelist,
+ 					gfp_zone(sc->gfp_mask)) {
+ 				if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 					continue;
  
- typedef void (*list_lru_dispose_cb)(struct list_head *dispose_list);
- /**
-diff -puN mm/list_lru.c~list_lru-per-node-api mm/list_lru.c
---- a/mm/list_lru.c~list_lru-per-node-api
-+++ a/mm/list_lru.c
-@@ -47,25 +47,22 @@ bool list_lru_del(struct list_lru *lru,
- }
- EXPORT_SYMBOL_GPL(list_lru_del);
+ 				lru_pages += zone_reclaimable_pages(zone);
++				node_set(zone_to_nid(zone),
++					 shrink->nodes_to_scan);
+ 			}
  
--unsigned long list_lru_count(struct list_lru *lru)
-+unsigned long
-+list_lru_count_node(struct list_lru *lru, int nid)
- {
- 	unsigned long count = 0;
--	int nid;
-+	struct list_lru_node *nlru = &lru->node[nid];
+ 			shrink_slab(shrink, sc->nr_scanned, lru_pages);
+@@ -2881,6 +2885,8 @@ static bool kswapd_shrink_zone(struct zo
+ 		return true;
  
--	for_each_node_mask(nid, lru->active_nodes) {
--		struct list_lru_node *nlru = &lru->node[nid];
--
--		spin_lock(&nlru->lock);
--		WARN_ON_ONCE(nlru->nr_items < 0);
--		count += nlru->nr_items;
--		spin_unlock(&nlru->lock);
--	}
-+	spin_lock(&nlru->lock);
-+	WARN_ON_ONCE(nlru->nr_items < 0);
-+	count += nlru->nr_items;
-+	spin_unlock(&nlru->lock);
+ 	shrink_zone(zone, sc);
++	nodes_clear(shrink.nodes_to_scan);
++	node_set(zone_to_nid(zone), shrink.nodes_to_scan);
  
- 	return count;
- }
--EXPORT_SYMBOL_GPL(list_lru_count);
-+EXPORT_SYMBOL_GPL(list_lru_count_node);
+ 	reclaim_state->reclaimed_slab = 0;
+ 	shrink_slab(&shrink, sc->nr_scanned, lru_pages);
+@@ -3561,10 +3567,9 @@ static int __zone_reclaim(struct zone *z
+ 		 * number of slab pages and shake the slab until it is reduced
+ 		 * by the same nr_pages that we used for reclaiming unmapped
+ 		 * pages.
+-		 *
+-		 * Note that shrink_slab will free memory on all zones and may
+-		 * take a long time.
+ 		 */
++		nodes_clear(shrink.nodes_to_scan);
++		node_set(zone_to_nid(zone), shrink.nodes_to_scan);
+ 		for (;;) {
+ 			unsigned long lru_pages = zone_reclaimable_pages(zone);
  
--static unsigned long
-+unsigned long
- list_lru_walk_node(struct list_lru *lru, int nid, list_lru_walk_cb isolate,
- 		   void *cb_arg, unsigned long *nr_to_walk)
- {
-@@ -115,22 +112,6 @@ restart:
- }
- EXPORT_SYMBOL_GPL(list_lru_walk_node);
- 
--unsigned long list_lru_walk(struct list_lru *lru, list_lru_walk_cb isolate,
--			    void *cb_arg, unsigned long nr_to_walk)
--{
--	unsigned long isolated = 0;
--	int nid;
--
--	for_each_node_mask(nid, lru->active_nodes) {
--		isolated += list_lru_walk_node(lru, nid, isolate,
--					       cb_arg, &nr_to_walk);
--		if (nr_to_walk <= 0)
--			break;
--	}
--	return isolated;
--}
--EXPORT_SYMBOL_GPL(list_lru_walk);
+_
+
+Patches currently in -mm which might be from dchinner@redhat.com are
+
+origin.patch
+linux-next.patch
+vmscan-per-node-deferred-work.patch
+fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
+xfs-convert-buftarg-lru-to-generic-code.patch
+xfs-rework-buffer-dispose-list-tracking.patch
+xfs-convert-dquot-cache-lru-to-list_lru.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api.patch
+drivers-convert-shrinkers-to-new-count-scan-api.patch
+i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+shrinker-kill-old-shrink-api.patch
+list_lru-dynamically-adjust-node-arrays.patch
+staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
+staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
+staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
+staging-lustre-libcfs-cleanup-linux-memh.patch
+
