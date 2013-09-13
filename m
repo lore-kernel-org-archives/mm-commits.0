@@ -1,40 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
+Subject: [merged] staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
  removed from -mm tree
-Date: Fri, 13 Sep 2013 14:16:35 -0700
-Message-ID: <523380b3.EwcCvtbC57Jir2UN%akpm@linux-foundation.org>
+Date: Fri, 13 Sep 2013 14:16:37 -0700
+Message-ID: <523380b5.tknXVpqTgTP8xqLN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38840 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754864Ab3IMVQg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:16:36 -0400
+	with ESMTP id S1755395Ab3IMVQi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:16:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tao.peng@emc.com, mhocko@suse.cz, dchinner@redhat.com, andreas.dilger@intel.com, bergwolf@gmail.com
 
-Subject: [merged] staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch removed from -mm tree
+Subject: [merged] staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch removed from -mm tree
 To: bergwolf@gmail.com,andreas.dilger@intel.com,dchinner@redhat.com,mhocko@suse.cz,tao.peng@emc.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 14:16:35 -0700
+Date: Fri, 13 Sep 2013 14:16:37 -0700
 
 
 The patch titled
-     Subject: staging/lustre/obdclass: convert lu_object shrinker to count/scan API
+     Subject: staging/lustre/ptlrpc: convert to new shrinker API
 has been removed from the -mm tree.  Its filename was
-     staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
+     staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peng Tao <bergwolf@gmail.com>
-Subject: staging/lustre/obdclass: convert lu_object shrinker to count/scan API
+Subject: staging/lustre/ptlrpc: convert to new shrinker API
 
-convert lu_object shrinker to new count/scan API.
+Convert sptlrpc encode pool shrinker to use scan/count API.
 
 Signed-off-by: Peng Tao <tao.peng@emc.com>
 Signed-off-by: Andreas Dilger <andreas.dilger@intel.com>
@@ -43,155 +42,144 @@ Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/obdclass/lu_object.c |   98 +++++------
- 1 file changed, 52 insertions(+), 46 deletions(-)
+ drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c |   76 +++++++-------
+ 1 file changed, 42 insertions(+), 34 deletions(-)
 
-diff -puN drivers/staging/lustre/lustre/obdclass/lu_object.c~staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api drivers/staging/lustre/lustre/obdclass/lu_object.c
---- a/drivers/staging/lustre/lustre/obdclass/lu_object.c~staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api
-+++ a/drivers/staging/lustre/lustre/obdclass/lu_object.c
-@@ -1779,7 +1779,6 @@ int lu_env_refill_by_tags(struct lu_env
- }
- EXPORT_SYMBOL(lu_env_refill_by_tags);
+diff -puN drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c~staging-lustre-ptlrpc-convert-to-new-shrinker-api drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c
+--- a/drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c~staging-lustre-ptlrpc-convert-to-new-shrinker-api
++++ a/drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c
+@@ -121,13 +121,6 @@ static struct ptlrpc_enc_page_pool {
+ } page_pools;
  
--static struct shrinker *lu_site_shrinker = NULL;
- 
- typedef struct lu_site_stats{
- 	unsigned	lss_populated;
-@@ -1835,61 +1834,68 @@ static void lu_site_stats_get(cfs_hash_t
-  * objects without taking the  lu_sites_guard lock, but this is not
-  * possible in the current implementation.
+ /*
+- * memory shrinker
+- */
+-const int pools_shrinker_seeks = DEFAULT_SEEKS;
+-static struct shrinker *pools_shrinker = NULL;
+-
+-
+-/*
+  * /proc/fs/lustre/sptlrpc/encrypt_page_pools
   */
--static int lu_cache_shrink(SHRINKER_ARGS(sc, nr_to_scan, gfp_mask))
-+static unsigned long lu_cache_shrink_count(struct shrinker *sk,
-+					   struct shrink_control *sc)
- {
- 	lu_site_stats_t stats;
- 	struct lu_site *s;
- 	struct lu_site *tmp;
--	int cached = 0;
--	int remain = shrink_param(sc, nr_to_scan);
--	LIST_HEAD(splice);
--
--	if (!(shrink_param(sc, gfp_mask) & __GFP_FS)) {
--		if (remain != 0)
--			return -1;
--		else
--			/* We must not take the lu_sites_guard lock when
--			 * __GFP_FS is *not* set because of the deadlock
--			 * possibility detailed above. Additionally,
--			 * since we cannot determine the number of
--			 * objects in the cache without taking this
--			 * lock, we're in a particularly tough spot. As
--			 * a result, we'll just lie and say our cache is
--			 * empty. This _should_ be ok, as we can't
--			 * reclaim objects when __GFP_FS is *not* set
--			 * anyways.
--			 */
--			return 0;
--	}
-+	unsigned long cached = 0;
- 
--	CDEBUG(D_INODE, "Shrink %d objects\n", remain);
-+	if (!(sc->gfp_mask & __GFP_FS))
-+		return 0;
- 
- 	mutex_lock(&lu_sites_guard);
- 	list_for_each_entry_safe(s, tmp, &lu_sites, ls_linkage) {
--		if (shrink_param(sc, nr_to_scan) != 0) {
--			remain = lu_site_purge(&lu_shrink_env, s, remain);
--			/*
--			 * Move just shrunk site to the tail of site list to
--			 * assure shrinking fairness.
--			 */
--			list_move_tail(&s->ls_linkage, &splice);
--		}
--
- 		memset(&stats, 0, sizeof(stats));
- 		lu_site_stats_get(s->ls_obj_hash, &stats, 0);
- 		cached += stats.lss_total - stats.lss_busy;
--		if (shrink_param(sc, nr_to_scan) && remain <= 0)
--			break;
- 	}
--	list_splice(&splice, lu_sites.prev);
- 	mutex_unlock(&lu_sites_guard);
- 
- 	cached = (cached / 100) * sysctl_vfs_cache_pressure;
--	if (shrink_param(sc, nr_to_scan) == 0)
--		CDEBUG(D_INODE, "%d objects cached\n", cached);
-+	CDEBUG(D_INODE, "%ld objects cached\n", cached);
- 	return cached;
+ int sptlrpc_proc_enc_pool_seq_show(struct seq_file *m, void *v)
+@@ -226,30 +219,46 @@ static void enc_pools_release_free_pages
  }
  
-+static unsigned long lu_cache_shrink_scan(struct shrinker *sk,
-+					  struct shrink_control *sc)
-+{
-+	struct lu_site *s;
-+	struct lu_site *tmp;
-+	unsigned long remain = sc->nr_to_scan, freed = 0;
-+	LIST_HEAD(splice);
-+
-+	if (!(sc->gfp_mask & __GFP_FS))
-+		/* We must not take the lu_sites_guard lock when
-+		 * __GFP_FS is *not* set because of the deadlock
-+		 * possibility detailed above. Additionally,
-+		 * since we cannot determine the number of
-+		 * objects in the cache without taking this
-+		 * lock, we're in a particularly tough spot. As
-+		 * a result, we'll just lie and say our cache is
-+		 * empty. This _should_ be ok, as we can't
-+		 * reclaim objects when __GFP_FS is *not* set
-+		 * anyways.
-+		 */
-+		return SHRINK_STOP;
-+
-+	mutex_lock(&lu_sites_guard);
-+	list_for_each_entry_safe(s, tmp, &lu_sites, ls_linkage) {
-+		freed = lu_site_purge(&lu_shrink_env, s, remain);
-+		remain -= freed;
-+		/*
-+		 * Move just shrunk site to the tail of site list to
-+		 * assure shrinking fairness.
-+		 */
-+		list_move_tail(&s->ls_linkage, &splice);
-+	}
-+	list_splice(&splice, lu_sites.prev);
-+	mutex_unlock(&lu_sites_guard);
-+
-+	return sc->nr_to_scan - remain;
+ /*
+- * could be called frequently for query (@nr_to_scan == 0).
+  * we try to keep at least PTLRPC_MAX_BRW_PAGES pages in the pool.
+  */
+-static int enc_pools_shrink(SHRINKER_ARGS(sc, nr_to_scan, gfp_mask))
++static unsigned long enc_pools_shrink_count(struct shrinker *s,
++					    struct shrink_control *sc)
+ {
+-	if (unlikely(shrink_param(sc, nr_to_scan) != 0)) {
++	/*
++	 * if no pool access for a long time, we consider it's fully idle.
++	 * a little race here is fine.
++	 */
++	if (unlikely(cfs_time_current_sec() - page_pools.epp_last_access >
++		     CACHE_QUIESCENT_PERIOD)) {
+ 		spin_lock(&page_pools.epp_lock);
+-		shrink_param(sc, nr_to_scan) = min_t(unsigned long,
+-						   shrink_param(sc, nr_to_scan),
+-						   page_pools.epp_free_pages -
+-						   PTLRPC_MAX_BRW_PAGES);
+-		if (shrink_param(sc, nr_to_scan) > 0) {
+-			enc_pools_release_free_pages(shrink_param(sc,
+-								  nr_to_scan));
+-			CDEBUG(D_SEC, "released %ld pages, %ld left\n",
+-			       (long)shrink_param(sc, nr_to_scan),
+-			       page_pools.epp_free_pages);
+-
+-			page_pools.epp_st_shrinks++;
+-			page_pools.epp_last_shrink = cfs_time_current_sec();
+-		}
++		page_pools.epp_idle_idx = IDLE_IDX_MAX;
+ 		spin_unlock(&page_pools.epp_lock);
+ 	}
+ 
++	LASSERT(page_pools.epp_idle_idx <= IDLE_IDX_MAX);
++	return max((int)page_pools.epp_free_pages - PTLRPC_MAX_BRW_PAGES, 0) *
++		(IDLE_IDX_MAX - page_pools.epp_idle_idx) / IDLE_IDX_MAX;
 +}
 +
- /*
-  * Debugging stuff.
-  */
-@@ -1913,6 +1919,12 @@ int lu_printk_printer(const struct lu_en
- 	return 0;
++/*
++ * we try to keep at least PTLRPC_MAX_BRW_PAGES pages in the pool.
++ */
++static unsigned long enc_pools_shrink_scan(struct shrinker *s,
++					   struct shrink_control *sc)
++{
++	spin_lock(&page_pools.epp_lock);
++	sc->nr_to_scan = min_t(unsigned long, sc->nr_to_scan,
++			      page_pools.epp_free_pages - PTLRPC_MAX_BRW_PAGES);
++	if (sc->nr_to_scan > 0) {
++		enc_pools_release_free_pages(sc->nr_to_scan);
++		CDEBUG(D_SEC, "released %ld pages, %ld left\n",
++		       (long)sc->nr_to_scan, page_pools.epp_free_pages);
++
++		page_pools.epp_st_shrinks++;
++		page_pools.epp_last_shrink = cfs_time_current_sec();
++	}
++	spin_unlock(&page_pools.epp_lock);
++
+ 	/*
+ 	 * if no pool access for a long time, we consider it's fully idle.
+ 	 * a little race here is fine.
+@@ -262,8 +271,7 @@ static int enc_pools_shrink(SHRINKER_ARG
+ 	}
+ 
+ 	LASSERT(page_pools.epp_idle_idx <= IDLE_IDX_MAX);
+-	return max((int)page_pools.epp_free_pages - PTLRPC_MAX_BRW_PAGES, 0) *
+-		(IDLE_IDX_MAX - page_pools.epp_idle_idx) / IDLE_IDX_MAX;
++	return sc->nr_to_scan;
  }
  
-+static struct shrinker lu_site_shrinker = {
-+	.count_objects	= lu_cache_shrink_count,
-+	.scan_objects	= lu_cache_shrink_scan,
-+	.seeks 		= DEFAULT_SEEKS,
+ static inline
+@@ -699,6 +707,12 @@ static inline void enc_pools_free(void)
+ 		       sizeof(*page_pools.epp_pools));
+ }
+ 
++static struct shrinker pools_shrinker = {
++	.count_objects	= enc_pools_shrink_count,
++	.scan_objects	= enc_pools_shrink_scan,
++	.seeks		= DEFAULT_SEEKS,
 +};
 +
- /**
-  * Initialization of global lu_* data.
-  */
-@@ -1947,9 +1959,7 @@ int lu_global_init(void)
- 	 * inode, one for ea. Unfortunately setting this high value results in
- 	 * lu_object/inode cache consuming all the memory.
- 	 */
--	lu_site_shrinker = set_shrinker(DEFAULT_SEEKS, lu_cache_shrink);
--	if (lu_site_shrinker == NULL)
--		return -ENOMEM;
-+	register_shrinker(&lu_site_shrinker);
- 
- 	return result;
- }
-@@ -1959,11 +1969,7 @@ int lu_global_init(void)
-  */
- void lu_global_fini(void)
+ int sptlrpc_enc_pool_init(void)
  {
--	if (lu_site_shrinker != NULL) {
--		remove_shrinker(lu_site_shrinker);
--		lu_site_shrinker = NULL;
+ 	/*
+@@ -736,12 +750,7 @@ int sptlrpc_enc_pool_init(void)
+ 	if (page_pools.epp_pools == NULL)
+ 		return -ENOMEM;
+ 
+-	pools_shrinker = set_shrinker(pools_shrinker_seeks,
+-					  enc_pools_shrink);
+-	if (pools_shrinker == NULL) {
+-		enc_pools_free();
+-		return -ENOMEM;
 -	}
++	register_shrinker(&pools_shrinker);
+ 
+ 	return 0;
+ }
+@@ -750,11 +759,10 @@ void sptlrpc_enc_pool_fini(void)
+ {
+ 	unsigned long cleaned, npools;
+ 
+-	LASSERT(pools_shrinker);
+ 	LASSERT(page_pools.epp_pools);
+ 	LASSERT(page_pools.epp_total_pages == page_pools.epp_free_pages);
+ 
+-	remove_shrinker(pools_shrinker);
++	unregister_shrinker(&pools_shrinker);
+ 
+ 	npools = npages_to_npools(page_pools.epp_total_pages);
+ 	cleaned = enc_pools_cleanup(page_pools.epp_pools, npools);
+_
+
+Patches currently in -mm which might be from bergwolf@gmail.com are
+
+origin.patch
+staging-lustre-libcfs-cleanup-linux-memh.patch
+
