@@ -1,314 +1,253 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch removed
+Subject: [merged] list_lru-dynamically-adjust-node-arrays.patch removed
  from -mm tree
-Date: Fri, 13 Sep 2013 14:16:33 -0700
-Message-ID: <523380b1.JkFuDX5tZPZw2jfu%akpm@linux-foundation.org>
+Date: Fri, 13 Sep 2013 14:16:31 -0700
+Message-ID: <523380af.9EiVCD2HeAgcEEmQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38818 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754860Ab3IMVQe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:16:34 -0400
+	with ESMTP id S1754924Ab3IMVQc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tao.peng@emc.com, mhocko@suse.cz, dchinner@redhat.com, andreas.dilger@intel.com, bergwolf@gmail.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, gleb@redhat.com, dchinner@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, glommer@openvz.org
 
-Subject: [merged] staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch removed from -mm tree
-To: bergwolf@gmail.com,andreas.dilger@intel.com,dchinner@redhat.com,mhocko@suse.cz,tao.peng@emc.com,mm-commits@vger.kernel.org
+Subject: [merged] list_lru-dynamically-adjust-node-arrays.patch removed from -mm tree
+To: glommer@openvz.org,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,dchinner@redhat.com,gleb@redhat.com,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 14:16:33 -0700
+Date: Fri, 13 Sep 2013 14:16:31 -0700
 
 
 The patch titled
-     Subject: staging/lustre/ldlm: convert to shrinkers to count/scan API
+     Subject: list_lru: dynamically adjust node arrays
 has been removed from the -mm tree.  Its filename was
-     staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
+     list_lru-dynamically-adjust-node-arrays.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peng Tao <bergwolf@gmail.com>
-Subject: staging/lustre/ldlm: convert to shrinkers to count/scan API
+From: Glauber Costa <glommer@openvz.org>
+Subject: list_lru: dynamically adjust node arrays
 
-convert ldlm shrinker to new count/scan API.
+We currently use a compile-time constant to size the node array for the
+list_lru structure.  Due to this, we don't need to allocate any memory at
+initialization time.  But as a consequence, the structures that contain
+embedded list_lru lists can become way too big (the superblock for
+instance contains two of them).
 
-Signed-off-by: Peng Tao <tao.peng@emc.com>
-Signed-off-by: Andreas Dilger <andreas.dilger@intel.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+This patch aims at ameliorating this situation by dynamically allocating
+the node arrays with the firmware provided nr_node_ids.
+
+[glommer@gmail.com: super: fix for destroy lrus]
+Signed-off-by: Glauber Costa <glommer@openvz.org>
 Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Cc: Arve Hjønnevåg <arve@android.com>
+Cc: Carlos Maiolino <cmaiolino@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gleb Natapov <gleb@redhat.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: J. Bruce Fields <bfields@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/ldlm/ldlm_pool.c |  148 ++++++++-------
- 1 file changed, 79 insertions(+), 69 deletions(-)
+ fs/super.c               |   14 ++++++++++++--
+ fs/xfs/xfs_buf.c         |    6 +++++-
+ fs/xfs/xfs_qm.c          |   10 ++++++++--
+ include/linux/list_lru.h |   13 ++-----------
+ mm/list_lru.c            |   14 +++++++++++++-
+ 5 files changed, 40 insertions(+), 17 deletions(-)
 
-diff -puN drivers/staging/lustre/lustre/ldlm/ldlm_pool.c~staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api drivers/staging/lustre/lustre/ldlm/ldlm_pool.c
---- a/drivers/staging/lustre/lustre/ldlm/ldlm_pool.c~staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api
-+++ a/drivers/staging/lustre/lustre/ldlm/ldlm_pool.c
-@@ -521,7 +521,7 @@ static int ldlm_cli_pool_shrink(struct l
- 				int nr, unsigned int gfp_mask)
+diff -puN fs/super.c~list_lru-dynamically-adjust-node-arrays fs/super.c
+--- a/fs/super.c~list_lru-dynamically-adjust-node-arrays
++++ a/fs/super.c
+@@ -195,8 +195,12 @@ static struct super_block *alloc_super(s
+ 		INIT_HLIST_NODE(&s->s_instances);
+ 		INIT_HLIST_BL_HEAD(&s->s_anon);
+ 		INIT_LIST_HEAD(&s->s_inodes);
+-		list_lru_init(&s->s_dentry_lru);
+-		list_lru_init(&s->s_inode_lru);
++
++		if (list_lru_init(&s->s_dentry_lru))
++			goto err_out;
++		if (list_lru_init(&s->s_inode_lru))
++			goto err_out_dentry_lru;
++
+ 		INIT_LIST_HEAD(&s->s_mounts);
+ 		init_rwsem(&s->s_umount);
+ 		lockdep_set_class(&s->s_umount, &type->s_umount_key);
+@@ -236,6 +240,9 @@ static struct super_block *alloc_super(s
+ 	}
+ out:
+ 	return s;
++
++err_out_dentry_lru:
++	list_lru_destroy(&s->s_dentry_lru);
+ err_out:
+ 	security_sb_free(s);
+ #ifdef CONFIG_SMP
+@@ -316,6 +323,9 @@ void deactivate_locked_super(struct supe
+ 
+ 		/* caches are now gone, we can safely kill the shrinker now */
+ 		unregister_shrinker(&s->s_shrink);
++		list_lru_destroy(&s->s_dentry_lru);
++		list_lru_destroy(&s->s_inode_lru);
++
+ 		put_filesystem(fs);
+ 		put_super(s);
+ 	} else {
+diff -puN fs/xfs/xfs_buf.c~list_lru-dynamically-adjust-node-arrays fs/xfs/xfs_buf.c
+--- a/fs/xfs/xfs_buf.c~list_lru-dynamically-adjust-node-arrays
++++ a/fs/xfs/xfs_buf.c
+@@ -1593,6 +1593,7 @@ xfs_free_buftarg(
+ 	struct xfs_buftarg	*btp)
  {
- 	struct ldlm_namespace *ns;
--	int canceled = 0, unused;
-+	int unused;
+ 	unregister_shrinker(&btp->bt_shrinker);
++	list_lru_destroy(&btp->bt_lru);
  
- 	ns = ldlm_pl2ns(pl);
+ 	if (mp->m_flags & XFS_MOUNT_BARRIER)
+ 		xfs_blkdev_issue_flush(btp);
+@@ -1666,9 +1667,12 @@ xfs_alloc_buftarg(
+ 	if (!btp->bt_bdi)
+ 		goto error;
  
-@@ -540,14 +540,10 @@ static int ldlm_cli_pool_shrink(struct l
- 	unused = ns->ns_nr_unused;
- 	spin_unlock(&ns->ns_lock);
+-	list_lru_init(&btp->bt_lru);
+ 	if (xfs_setsize_buftarg_early(btp, bdev))
+ 		goto error;
++
++	if (list_lru_init(&btp->bt_lru))
++		goto error;
++
+ 	btp->bt_shrinker.count_objects = xfs_buftarg_shrink_count;
+ 	btp->bt_shrinker.scan_objects = xfs_buftarg_shrink_scan;
+ 	btp->bt_shrinker.seeks = DEFAULT_SEEKS;
+diff -puN fs/xfs/xfs_qm.c~list_lru-dynamically-adjust-node-arrays fs/xfs/xfs_qm.c
+--- a/fs/xfs/xfs_qm.c~list_lru-dynamically-adjust-node-arrays
++++ a/fs/xfs/xfs_qm.c
+@@ -831,11 +831,18 @@ xfs_qm_init_quotainfo(
  
--	if (nr) {
--		canceled = ldlm_cancel_lru(ns, nr, LCF_ASYNC,
--					   LDLM_CANCEL_SHRINK);
--	}
+ 	qinf = mp->m_quotainfo = kmem_zalloc(sizeof(xfs_quotainfo_t), KM_SLEEP);
+ 
++	if ((error = list_lru_init(&qinf->qi_lru))) {
++		kmem_free(qinf);
++		mp->m_quotainfo = NULL;
++		return error;
++	}
++
+ 	/*
+ 	 * See if quotainodes are setup, and if not, allocate them,
+ 	 * and change the superblock accordingly.
+ 	 */
+ 	if ((error = xfs_qm_init_quotainos(mp))) {
++		list_lru_destroy(&qinf->qi_lru);
+ 		kmem_free(qinf);
+ 		mp->m_quotainfo = NULL;
+ 		return error;
+@@ -846,8 +853,6 @@ xfs_qm_init_quotainfo(
+ 	INIT_RADIX_TREE(&qinf->qi_pquota_tree, GFP_NOFS);
+ 	mutex_init(&qinf->qi_tree_lock);
+ 
+-	list_lru_init(&qinf->qi_lru);
+-
+ 	/* mutex used to serialize quotaoffs */
+ 	mutex_init(&qinf->qi_quotaofflock);
+ 
+@@ -936,6 +941,7 @@ xfs_qm_destroy_quotainfo(
+ 	ASSERT(qi != NULL);
+ 
+ 	unregister_shrinker(&qi->qi_shrinker);
++	list_lru_destroy(&qi->qi_lru);
+ 
+ 	if (qi->qi_uquotaip) {
+ 		IRELE(qi->qi_uquotaip);
+diff -puN include/linux/list_lru.h~list_lru-dynamically-adjust-node-arrays include/linux/list_lru.h
+--- a/include/linux/list_lru.h~list_lru-dynamically-adjust-node-arrays
++++ a/include/linux/list_lru.h
+@@ -27,20 +27,11 @@ struct list_lru_node {
+ } ____cacheline_aligned_in_smp;
+ 
+ struct list_lru {
 -	/*
--	 * Return the number of potentially reclaimable locks.
+-	 * Because we use a fixed-size array, this struct can be very big if
+-	 * MAX_NUMNODES is big. If this becomes a problem this is fixable by
+-	 * turning this into a pointer and dynamically allocating this to
+-	 * nr_node_ids. This quantity is firwmare-provided, and still would
+-	 * provide room for all nodes at the cost of a pointer lookup and an
+-	 * extra allocation. Because that allocation will most likely come from
+-	 * a different slab cache than the main structure holding this
+-	 * structure, we may very well fail.
 -	 */
--	return ((unused - canceled) / 100) * sysctl_vfs_cache_pressure;
-+	if (nr == 0)
-+		return (unused / 100) * sysctl_vfs_cache_pressure;
-+	else
-+		return ldlm_cancel_lru(ns, nr, LCF_ASYNC, LDLM_CANCEL_SHRINK);
- }
+-	struct list_lru_node	node[MAX_NUMNODES];
++	struct list_lru_node	*node;
+ 	nodemask_t		active_nodes;
+ };
  
- struct ldlm_pool_ops ldlm_srv_pool_ops = {
-@@ -601,9 +597,10 @@ int ldlm_pool_recalc(struct ldlm_pool *p
- 	return recalc_interval_sec;
- }
++void list_lru_destroy(struct list_lru *lru);
+ int list_lru_init(struct list_lru *lru);
  
--/**
-+/*
-  * Pool shrink wrapper. Will call either client or server pool recalc callback
-- * depending what pool \a pl is used.
-+ * depending what pool pl is used. When nr == 0, just return the number of
-+ * freeable locks. Otherwise, return the number of canceled locks.
-  */
- int ldlm_pool_shrink(struct ldlm_pool *pl, int nr,
- 		     unsigned int gfp_mask)
-@@ -1017,29 +1014,24 @@ static int ldlm_pool_granted(struct ldlm
- }
+ /**
+diff -puN mm/list_lru.c~list_lru-dynamically-adjust-node-arrays mm/list_lru.c
+--- a/mm/list_lru.c~list_lru-dynamically-adjust-node-arrays
++++ a/mm/list_lru.c
+@@ -8,6 +8,7 @@
+ #include <linux/module.h>
+ #include <linux/mm.h>
+ #include <linux/list_lru.h>
++#include <linux/slab.h>
  
- static struct ptlrpc_thread *ldlm_pools_thread;
--static struct shrinker *ldlm_pools_srv_shrinker;
--static struct shrinker *ldlm_pools_cli_shrinker;
- static struct completion ldlm_pools_comp;
- 
- /*
-- * Cancel \a nr locks from all namespaces (if possible). Returns number of
-- * cached locks after shrink is finished. All namespaces are asked to
-- * cancel approximately equal amount of locks to keep balancing.
-+ * count locks from all namespaces (if possible). Returns number of
-+ * cached locks.
-  */
--static int ldlm_pools_shrink(ldlm_side_t client, int nr,
--			     unsigned int gfp_mask)
-+static unsigned long ldlm_pools_count(ldlm_side_t client, unsigned int gfp_mask)
+ bool list_lru_add(struct list_lru *lru, struct list_head *item)
  {
--	int total = 0, cached = 0, nr_ns;
-+	int total = 0, nr_ns;
- 	struct ldlm_namespace *ns;
- 	struct ldlm_namespace *ns_old = NULL; /* loop detection */
- 	void *cookie;
- 
--	if (client == LDLM_NAMESPACE_CLIENT && nr != 0 &&
--	    !(gfp_mask & __GFP_FS))
--		return -1;
-+	if (client == LDLM_NAMESPACE_CLIENT && !(gfp_mask & __GFP_FS))
-+		return 0;
- 
--	CDEBUG(D_DLMTRACE, "Request to shrink %d %s locks from all pools\n",
--	       nr, client == LDLM_NAMESPACE_CLIENT ? "client" : "server");
-+	CDEBUG(D_DLMTRACE, "Request to count %s locks from all pools\n",
-+	       client == LDLM_NAMESPACE_CLIENT ? "client" : "server");
- 
- 	cookie = cl_env_reenter();
- 
-@@ -1047,8 +1039,7 @@ static int ldlm_pools_shrink(ldlm_side_t
- 	 * Find out how many resources we may release.
- 	 */
- 	for (nr_ns = ldlm_namespace_nr_read(client);
--	     nr_ns > 0; nr_ns--)
--	{
-+	     nr_ns > 0; nr_ns--) {
- 		mutex_lock(ldlm_namespace_lock(client));
- 		if (list_empty(ldlm_namespace_list(client))) {
- 			mutex_unlock(ldlm_namespace_lock(client));
-@@ -1078,17 +1069,27 @@ static int ldlm_pools_shrink(ldlm_side_t
- 		ldlm_namespace_put(ns);
- 	}
- 
--	if (nr == 0 || total == 0) {
--		cl_env_reexit(cookie);
--		return total;
--	}
-+	cl_env_reexit(cookie);
-+	return total;
-+}
+@@ -115,9 +116,14 @@ EXPORT_SYMBOL_GPL(list_lru_walk_node);
+ int list_lru_init(struct list_lru *lru)
+ {
+ 	int i;
++	size_t size = sizeof(*lru->node) * nr_node_ids;
 +
-+static unsigned long ldlm_pools_scan(ldlm_side_t client, int nr, unsigned int gfp_mask)
++	lru->node = kzalloc(size, GFP_KERNEL);
++	if (!lru->node)
++		return -ENOMEM;
+ 
+ 	nodes_clear(lru->active_nodes);
+-	for (i = 0; i < MAX_NUMNODES; i++) {
++	for (i = 0; i < nr_node_ids; i++) {
+ 		spin_lock_init(&lru->node[i].lock);
+ 		INIT_LIST_HEAD(&lru->node[i].list);
+ 		lru->node[i].nr_items = 0;
+@@ -125,3 +131,9 @@ int list_lru_init(struct list_lru *lru)
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(list_lru_init);
++
++void list_lru_destroy(struct list_lru *lru)
 +{
-+	unsigned long freed = 0;
-+	int tmp, nr_ns;
-+	struct ldlm_namespace *ns;
-+	void *cookie;
-+
-+	if (client == LDLM_NAMESPACE_CLIENT && !(gfp_mask & __GFP_FS))
-+		return -1;
-+
-+	cookie = cl_env_reenter();
- 
- 	/*
--	 * Shrink at least ldlm_namespace_nr(client) namespaces.
-+	 * Shrink at least ldlm_namespace_nr_read(client) namespaces.
- 	 */
--	for (nr_ns = ldlm_namespace_nr_read(client) - nr_ns;
--	     nr_ns > 0; nr_ns--)
--	{
-+	for (tmp = nr_ns = ldlm_namespace_nr_read(client);
-+	     tmp > 0; tmp--) {
- 		int cancel, nr_locks;
- 
- 		/*
-@@ -1097,12 +1098,6 @@ static int ldlm_pools_shrink(ldlm_side_t
- 		mutex_lock(ldlm_namespace_lock(client));
- 		if (list_empty(ldlm_namespace_list(client))) {
- 			mutex_unlock(ldlm_namespace_lock(client));
--			/*
--			 * If list is empty, we can't return any @cached > 0,
--			 * that probably would cause needless shrinker
--			 * call.
--			 */
--			cached = 0;
- 			break;
- 		}
- 		ns = ldlm_namespace_first_locked(client);
-@@ -1111,29 +1106,42 @@ static int ldlm_pools_shrink(ldlm_side_t
- 		mutex_unlock(ldlm_namespace_lock(client));
- 
- 		nr_locks = ldlm_pool_granted(&ns->ns_pool);
--		cancel = 1 + nr_locks * nr / total;
--		ldlm_pool_shrink(&ns->ns_pool, cancel, gfp_mask);
--		cached += ldlm_pool_granted(&ns->ns_pool);
-+		/*
-+		 * We use to shrink propotionally but with new shrinker API,
-+		 * we lost the total number of freeable locks.
-+		 */
-+		cancel = 1 + min_t(int, nr_locks, nr / nr_ns);
-+		freed += ldlm_pool_shrink(&ns->ns_pool, cancel, gfp_mask);
- 		ldlm_namespace_put(ns);
- 	}
- 	cl_env_reexit(cookie);
--	/* we only decrease the SLV in server pools shrinker, return -1 to
--	 * kernel to avoid needless loop. LU-1128 */
--	return (client == LDLM_NAMESPACE_SERVER) ? -1 : cached;
-+	/*
-+	 * we only decrease the SLV in server pools shrinker, return
-+	 * SHRINK_STOP to kernel to avoid needless loop. LU-1128
-+	 */
-+	return (client == LDLM_NAMESPACE_SERVER) ? SHRINK_STOP : freed;
++	kfree(lru->node);
 +}
-+
-+static unsigned long ldlm_pools_srv_count(struct shrinker *s, struct shrink_control *sc)
-+{
-+	return ldlm_pools_count(LDLM_NAMESPACE_SERVER, sc->gfp_mask);
- }
- 
--static int ldlm_pools_srv_shrink(SHRINKER_ARGS(sc, nr_to_scan, gfp_mask))
-+static unsigned long ldlm_pools_srv_scan(struct shrinker *s, struct shrink_control *sc)
- {
--	return ldlm_pools_shrink(LDLM_NAMESPACE_SERVER,
--				 shrink_param(sc, nr_to_scan),
--				 shrink_param(sc, gfp_mask));
-+	return ldlm_pools_scan(LDLM_NAMESPACE_SERVER, sc->nr_to_scan,
-+			       sc->gfp_mask);
- }
- 
--static int ldlm_pools_cli_shrink(SHRINKER_ARGS(sc, nr_to_scan, gfp_mask))
-+static unsigned long ldlm_pools_cli_count(struct shrinker *s, struct shrink_control *sc)
- {
--	return ldlm_pools_shrink(LDLM_NAMESPACE_CLIENT,
--				 shrink_param(sc, nr_to_scan),
--				 shrink_param(sc, gfp_mask));
-+	return ldlm_pools_count(LDLM_NAMESPACE_CLIENT, sc->gfp_mask);
-+}
-+
-+static unsigned long ldlm_pools_cli_scan(struct shrinker *s, struct shrink_control *sc)
-+{
-+	return ldlm_pools_scan(LDLM_NAMESPACE_CLIENT, sc->nr_to_scan,
-+			       sc->gfp_mask);
- }
- 
- int ldlm_pools_recalc(ldlm_side_t client)
-@@ -1216,7 +1224,7 @@ int ldlm_pools_recalc(ldlm_side_t client
- 	}
- 
- 	/*
--	 * Recalc at least ldlm_namespace_nr(client) namespaces.
-+	 * Recalc at least ldlm_namespace_nr_read(client) namespaces.
- 	 */
- 	for (nr = ldlm_namespace_nr_read(client); nr > 0; nr--) {
- 		int     skip;
-@@ -1383,18 +1391,26 @@ static void ldlm_pools_thread_stop(void)
- 	ldlm_pools_thread = NULL;
- }
- 
-+static struct shrinker ldlm_pools_srv_shrinker = {
-+	.count_objects	= ldlm_pools_srv_count,
-+	.scan_objects	= ldlm_pools_srv_scan,
-+	.seeks		= DEFAULT_SEEKS,
-+};
-+
-+static struct shrinker ldlm_pools_cli_shrinker = {
-+	.count_objects	= ldlm_pools_cli_count,
-+	.scan_objects	= ldlm_pools_cli_scan,
-+	.seeks		= DEFAULT_SEEKS,
-+};
-+
- int ldlm_pools_init(void)
- {
- 	int rc;
- 
- 	rc = ldlm_pools_thread_start();
- 	if (rc == 0) {
--		ldlm_pools_srv_shrinker =
--			set_shrinker(DEFAULT_SEEKS,
--					 ldlm_pools_srv_shrink);
--		ldlm_pools_cli_shrinker =
--			set_shrinker(DEFAULT_SEEKS,
--					 ldlm_pools_cli_shrink);
-+		register_shrinker(&ldlm_pools_srv_shrinker);
-+		register_shrinker(&ldlm_pools_cli_shrinker);
- 	}
- 	return rc;
- }
-@@ -1402,14 +1418,8 @@ EXPORT_SYMBOL(ldlm_pools_init);
- 
- void ldlm_pools_fini(void)
- {
--	if (ldlm_pools_srv_shrinker != NULL) {
--		remove_shrinker(ldlm_pools_srv_shrinker);
--		ldlm_pools_srv_shrinker = NULL;
--	}
--	if (ldlm_pools_cli_shrinker != NULL) {
--		remove_shrinker(ldlm_pools_cli_shrinker);
--		ldlm_pools_cli_shrinker = NULL;
--	}
-+	unregister_shrinker(&ldlm_pools_srv_shrinker);
-+	unregister_shrinker(&ldlm_pools_cli_shrinker);
- 	ldlm_pools_thread_stop();
- }
- EXPORT_SYMBOL(ldlm_pools_fini);
++EXPORT_SYMBOL_GPL(list_lru_destroy);
 _
 
-Patches currently in -mm which might be from bergwolf@gmail.com are
+Patches currently in -mm which might be from glommer@openvz.org are
 
 origin.patch
-staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
-staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
-staging-lustre-libcfs-cleanup-linux-memh.patch
 
