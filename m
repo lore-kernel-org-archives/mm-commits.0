@@ -1,118 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails.patch removed from
- -mm tree
-Date: Fri, 13 Sep 2013 13:03:04 -0700
-Message-ID: <52336f78.y9Ffmc6xShZTTq3Z%akpm@linux-foundation.org>
+Subject: [merged] kernel-replace-strict_strto-with-kstrto.patch removed
+ from -mm tree
+Date: Fri, 13 Sep 2013 13:03:06 -0700
+Message-ID: <52336f7a.feQyjx/AnBvgqsux%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38089 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755241Ab3IMUDF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:03:05 -0400
+	with ESMTP id S1755241Ab3IMUDH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:03:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mgorman@suse.de, kirill.shutemov@linux.intel.com, aarcange@redhat.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: [merged] mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails.patch removed from -mm tree
-To: rientjes@google.com,aarcange@redhat.com,kirill.shutemov@linux.intel.com,mgorman@suse.de,mm-commits@vger.kernel.org
+Subject: [merged] kernel-replace-strict_strto-with-kstrto.patch removed from -mm tree
+To: jg1.han@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 13:03:04 -0700
+Date: Fri, 13 Sep 2013 13:03:06 -0700
 
 
 The patch titled
-     Subject: mm, thp: count thp_fault_fallback anytime thp fault fails
+     Subject: kernel: replace strict_strto*() with kstrto*()
 has been removed from the -mm tree.  Its filename was
-     mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails.patch
+     kernel-replace-strict_strto-with-kstrto.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: count thp_fault_fallback anytime thp fault fails
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: kernel: replace strict_strto*() with kstrto*()
 
-Currently, thp_fault_fallback in vmstat only gets incremented if a
-hugepage allocation fails.  If current's memcg hits its limit or the page
-fault handler returns an error, it is incorrectly accounted as a
-successful thp_fault_alloc.
+The usage of strict_strto*() is not preferred, because strict_strto*() is
+obsolete.  Thus, kstrto*() should be used.
 
-Count thp_fault_fallback anytime the page fault handler falls back to
-using regular pages and only count thp_fault_alloc when a hugepage has
-actually been faulted.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ kernel/gcov/fs.c |    2 +-
+ kernel/ksysfs.c  |    2 +-
+ kernel/params.c  |   14 +++++++-------
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-count-thp_fault_fallback-anytime-thp-fault-fails
-+++ a/mm/huge_memory.c
-@@ -820,17 +820,19 @@ int do_huge_pmd_anonymous_page(struct mm
- 		count_vm_event(THP_FAULT_FALLBACK);
- 		return VM_FAULT_FALLBACK;
- 	}
--	count_vm_event(THP_FAULT_ALLOC);
- 	if (unlikely(mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))) {
- 		put_page(page);
-+		count_vm_event(THP_FAULT_FALLBACK);
- 		return VM_FAULT_FALLBACK;
- 	}
- 	if (unlikely(__do_huge_pmd_anonymous_page(mm, vma, haddr, pmd, page))) {
- 		mem_cgroup_uncharge_page(page);
- 		put_page(page);
-+		count_vm_event(THP_FAULT_FALLBACK);
- 		return VM_FAULT_FALLBACK;
- 	}
+diff -puN kernel/gcov/fs.c~kernel-replace-strict_strto-with-kstrto kernel/gcov/fs.c
+--- a/kernel/gcov/fs.c~kernel-replace-strict_strto-with-kstrto
++++ a/kernel/gcov/fs.c
+@@ -74,7 +74,7 @@ static int __init gcov_persist_setup(cha
+ {
+ 	unsigned long val;
  
-+	count_vm_event(THP_FAULT_ALLOC);
- 	return 0;
- }
- 
-@@ -1143,7 +1145,6 @@ alloc:
- 		new_page = NULL;
- 
- 	if (unlikely(!new_page)) {
--		count_vm_event(THP_FAULT_FALLBACK);
- 		if (is_huge_zero_pmd(orig_pmd)) {
- 			ret = do_huge_pmd_wp_zero_page_fallback(mm, vma,
- 					address, pmd, orig_pmd, haddr);
-@@ -1154,9 +1155,9 @@ alloc:
- 				split_huge_page(page);
- 			put_page(page);
- 		}
-+		count_vm_event(THP_FAULT_FALLBACK);
- 		goto out;
+-	if (strict_strtoul(str, 0, &val)) {
++	if (kstrtoul(str, 0, &val)) {
+ 		pr_warning("invalid gcov_persist parameter '%s'\n", str);
+ 		return 0;
  	}
--	count_vm_event(THP_FAULT_ALLOC);
+diff -puN kernel/ksysfs.c~kernel-replace-strict_strto-with-kstrto kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kernel-replace-strict_strto-with-kstrto
++++ a/kernel/ksysfs.c
+@@ -113,7 +113,7 @@ static ssize_t kexec_crash_size_store(st
+ 	unsigned long cnt;
+ 	int ret;
  
- 	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))) {
- 		put_page(new_page);
-@@ -1164,10 +1165,13 @@ alloc:
- 			split_huge_page(page);
- 			put_page(page);
- 		}
-+		count_vm_event(THP_FAULT_FALLBACK);
- 		ret |= VM_FAULT_OOM;
- 		goto out;
- 	}
+-	if (strict_strtoul(buf, 0, &cnt))
++	if (kstrtoul(buf, 0, &cnt))
+ 		return -EINVAL;
  
-+	count_vm_event(THP_FAULT_ALLOC);
-+
- 	if (is_huge_zero_pmd(orig_pmd))
- 		clear_huge_page(new_page, haddr, HPAGE_PMD_NR);
- 	else
+ 	ret = crash_shrink_memory(cnt);
+diff -puN kernel/params.c~kernel-replace-strict_strto-with-kstrto kernel/params.c
+--- a/kernel/params.c~kernel-replace-strict_strto-with-kstrto
++++ a/kernel/params.c
+@@ -253,13 +253,13 @@ int parse_args(const char *doing,
+ 	EXPORT_SYMBOL(param_ops_##name)
+ 
+ 
+-STANDARD_PARAM_DEF(byte, unsigned char, "%hhu", unsigned long, strict_strtoul);
+-STANDARD_PARAM_DEF(short, short, "%hi", long, strict_strtol);
+-STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, strict_strtoul);
+-STANDARD_PARAM_DEF(int, int, "%i", long, strict_strtol);
+-STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, strict_strtoul);
+-STANDARD_PARAM_DEF(long, long, "%li", long, strict_strtol);
+-STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, strict_strtoul);
++STANDARD_PARAM_DEF(byte, unsigned char, "%hhu", unsigned long, kstrtoul);
++STANDARD_PARAM_DEF(short, short, "%hi", long, kstrtoul);
++STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, kstrtoul);
++STANDARD_PARAM_DEF(int, int, "%i", long, kstrtoul);
++STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, kstrtoul);
++STANDARD_PARAM_DEF(long, long, "%li", long, kstrtoul);
++STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, kstrtoul);
+ 
+ int param_set_charp(const char *val, const struct kernel_param *kp)
+ {
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
+linux-next.patch
 
