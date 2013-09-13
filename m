@@ -1,73 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] watchdog-update-watchdog_tresh-properly-fix.patch removed from -mm tree
-Date: Fri, 13 Sep 2013 14:07:11 -0700
-Message-ID: <52337e7f.ueVcOV62FwjkEBk5%akpm@linux-foundation.org>
+Subject: [-] signals-eventpoll-set-saved_sigmask-at-the-start.patch
+ removed from -mm tree
+Date: Fri, 13 Sep 2013 14:14:38 -0700
+Message-ID: <5233803e.tWf1KZjypVfVOIEM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38359 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38370 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753354Ab3IMVHM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:07:12 -0400
+	with ESMTP id S1754864Ab3IMVOj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:14:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, festevam@gmail.com, fengguang.wu@intel.com, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, normalperson@yhbt.net, jbaron@redhat.com, dvlasenk@redhat.com, oleg@redhat.com
 
-Subject: [folded-merged] watchdog-update-watchdog_tresh-properly-fix.patch removed from -mm tree
-To: mhocko@suse.cz,fengguang.wu@intel.com,festevam@gmail.com,mm-commits@vger.kernel.org
+Subject: [-] signals-eventpoll-set-saved_sigmask-at-the-start.patch removed from -mm tree
+To: oleg@redhat.com,dvlasenk@redhat.com,jbaron@redhat.com,normalperson@yhbt.net,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 14:07:11 -0700
+Date: Fri, 13 Sep 2013 14:14:38 -0700
 
 
 The patch titled
-     Subject: include/linux/smp.h: define __smp_call_function_single for !CONFIG_SMP
+     Subject: signals: eventpoll: set ->saved_sigmask at the start
 has been removed from the -mm tree.  Its filename was
-     watchdog-update-watchdog_tresh-properly-fix.patch
+     signals-eventpoll-set-saved_sigmask-at-the-start.patch
 
-This patch was dropped because it was folded into watchdog-update-watchdog_tresh-properly.patch
+This patch was dropped because viro disliked it
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: include/linux/smp.h: define __smp_call_function_single for !CONFIG_SMP
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: signals: eventpoll: set ->saved_sigmask at the start
 
-This function was not needed until (watchdog: update watchdog_tresh
-properly) which cannot use on_each_cpu unfortunately as
-watchdog_nmi_enable relies on perf_event_alloc which is might sleep.
+task_struct->saved_sigmask has no meaning unless we return with
+set_restore_sigmask() and nobody except current can use it.
 
-Export it as an alias to on_each_cpu for !CONFIG_SMP.
+This means that sys_epoll_pwait() doesn't need to save ->blocked
+into the local var and then memcopy it into ->saved_sigmask, we
+can simply set ->saved_sigmask right before set_current_blocked().
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Reported-by: Fabio Estevam <festevam@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Eric Wong <normalperson@yhbt.net>
+Cc: Jason Baron <jbaron@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/eventpoll.c |   34 +++++++++++++++-------------------
+ 1 file changed, 15 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/smp.h~watchdog-update-watchdog_tresh-properly-fix include/linux/smp.h
---- a/include/linux/smp.h~watchdog-update-watchdog_tresh-properly-fix
-+++ a/include/linux/smp.h
-@@ -157,6 +157,12 @@ static inline void kick_all_cpus_sync(vo
- 
- #endif /* !SMP */
- 
-+static inline void __smp_call_function_single(int cpuid,
-+		struct call_single_data *data, int wait)
-+{
-+	on_each_cpu(data->func, data->info, wait);
-+}
+diff -puN fs/eventpoll.c~signals-eventpoll-set-saved_sigmask-at-the-start fs/eventpoll.c
+--- a/fs/eventpoll.c~signals-eventpoll-set-saved_sigmask-at-the-start
++++ a/fs/eventpoll.c
+@@ -1967,23 +1967,23 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
+ 		size_t, sigsetsize)
+ {
+ 	int error;
+-	sigset_t ksigmask, sigsaved;
+-
+ 	/*
+ 	 * If the caller wants a certain signal mask to be set during the wait,
+ 	 * we apply it here.
+ 	 */
+ 	if (sigmask) {
++		sigset_t ksigmask;
 +
- /*
-  * smp_processor_id(): get the current CPU ID.
-  *
+ 		if (sigsetsize != sizeof(sigset_t))
+ 			return -EINVAL;
+ 		if (copy_from_user(&ksigmask, sigmask, sizeof(ksigmask)))
+ 			return -EFAULT;
+-		sigsaved = current->blocked;
++
++		current->saved_sigmask = current->blocked;
+ 		set_current_blocked(&ksigmask);
+ 	}
+ 
+ 	error = sys_epoll_wait(epfd, events, maxevents, timeout);
+-
+ 	/*
+ 	 * If we changed the signal mask, we need to restore the original one.
+ 	 * In case we've got a signal while waiting, we do not restore the
+@@ -1991,12 +1991,10 @@ SYSCALL_DEFINE6(epoll_pwait, int, epfd,
+ 	 * the way back to userspace, before the signal mask is restored.
+ 	 */
+ 	if (sigmask) {
+-		if (error == -EINTR) {
+-			memcpy(&current->saved_sigmask, &sigsaved,
+-			       sizeof(sigsaved));
++		if (error == -EINTR)
+ 			set_restore_sigmask();
+-		} else
+-			set_current_blocked(&sigsaved);
++		else
++			__set_current_blocked(&current->saved_sigmask);
+ 	}
+ 
+ 	return error;
+@@ -2010,25 +2008,25 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
+ 			compat_size_t, sigsetsize)
+ {
+ 	long err;
+-	compat_sigset_t csigmask;
+-	sigset_t ksigmask, sigsaved;
+-
+ 	/*
+ 	 * If the caller wants a certain signal mask to be set during the wait,
+ 	 * we apply it here.
+ 	 */
+ 	if (sigmask) {
++		compat_sigset_t csigmask;
++		sigset_t ksigmask;
++
+ 		if (sigsetsize != sizeof(compat_sigset_t))
+ 			return -EINVAL;
+ 		if (copy_from_user(&csigmask, sigmask, sizeof(csigmask)))
+ 			return -EFAULT;
+ 		sigset_from_compat(&ksigmask, &csigmask);
+-		sigsaved = current->blocked;
++
++		current->saved_sigmask = current->blocked;
+ 		set_current_blocked(&ksigmask);
+ 	}
+ 
+ 	err = sys_epoll_wait(epfd, events, maxevents, timeout);
+-
+ 	/*
+ 	 * If we changed the signal mask, we need to restore the original one.
+ 	 * In case we've got a signal while waiting, we do not restore the
+@@ -2036,12 +2034,10 @@ COMPAT_SYSCALL_DEFINE6(epoll_pwait, int,
+ 	 * the way back to userspace, before the signal mask is restored.
+ 	 */
+ 	if (sigmask) {
+-		if (err == -EINTR) {
+-			memcpy(&current->saved_sigmask, &sigsaved,
+-			       sizeof(sigsaved));
++		if (err == -EINTR)
+ 			set_restore_sigmask();
+-		} else
+-			set_current_blocked(&sigsaved);
++		else
++			__set_current_blocked(&current->saved_sigmask);
+ 	}
+ 
+ 	return err;
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-watchdog-update-watchdog-attributes-atomically.patch
-watchdog-update-watchdog_tresh-properly.patch
+anon_inodefs-forbid-open-via-proc.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
 
