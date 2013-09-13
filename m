@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds1wm-use-dev_get_platdata.patch added to -mm tree
-Date: Fri, 13 Sep 2013 16:01:16 -0700
-Message-ID: <5233993c.bgZTH9/3zWWr0pmA%akpm@linux-foundation.org>
+Subject: + w1-w1-gpio-use-dev_get_platdata.patch added to -mm tree
+Date: Fri, 13 Sep 2013 16:01:15 -0700
+Message-ID: <5233993b.nnIMgfP2FZyfdFxk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39497 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39490 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754990Ab3IMXBR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 19:01:17 -0400
+	with ESMTP id S1754990Ab3IMXBQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 19:01:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zbr@ioremap.net, greg@kroah.com, jg1.han@samsung.com
 
-Subject: + w1-ds1wm-use-dev_get_platdata.patch added to -mm tree
+Subject: + w1-w1-gpio-use-dev_get_platdata.patch added to -mm tree
 To: jg1.han@samsung.com,greg@kroah.com,zbr@ioremap.net
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 16:01:16 -0700
+Date: Fri, 13 Sep 2013 16:01:15 -0700
 
 
 The patch titled
-     Subject: drivers/w1/masters/ds1wm.cuse dev_get_platdata()
+     Subject: drivers/w1/masters/w1-gpio.c: use dev_get_platdata()
 has been added to the -mm tree.  Its filename is
-     w1-ds1wm-use-dev_get_platdata.patch
+     w1-w1-gpio-use-dev_get_platdata.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/w1-ds1wm-use-dev_get_platdata.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/w1-w1-gpio-use-dev_get_platdata.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/w1-ds1wm-use-dev_get_platdata.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/w1-w1-gpio-use-dev_get_platdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +44,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/w1/masters/ds1wm.cuse dev_get_platdata()
+Subject: drivers/w1/masters/w1-gpio.c: use dev_get_platdata()
 
 Use the wrapper function for retrieving the platform data instead of
 accessing dev->platform_data directly.  This is a cosmetic change to make
@@ -56,44 +56,57 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds1wm.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/w1/masters/w1-gpio.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/w1/masters/ds1wm.c~w1-ds1wm-use-dev_get_platdata drivers/w1/masters/ds1wm.c
---- a/drivers/w1/masters/ds1wm.c~w1-ds1wm-use-dev_get_platdata
-+++ a/drivers/w1/masters/ds1wm.c
-@@ -255,17 +255,17 @@ static int ds1wm_find_divisor(int gclk)
- static void ds1wm_up(struct ds1wm_data *ds1wm_data)
+diff -puN drivers/w1/masters/w1-gpio.c~w1-w1-gpio-use-dev_get_platdata drivers/w1/masters/w1-gpio.c
+--- a/drivers/w1/masters/w1-gpio.c~w1-w1-gpio-use-dev_get_platdata
++++ a/drivers/w1/masters/w1-gpio.c
+@@ -56,7 +56,7 @@ MODULE_DEVICE_TABLE(of, w1_gpio_dt_ids);
+ 
+ static int w1_gpio_probe_dt(struct platform_device *pdev)
  {
- 	int divisor;
--	struct ds1wm_driver_data *plat = ds1wm_data->pdev->dev.platform_data;
-+	struct device *dev = &ds1wm_data->pdev->dev;
-+	struct ds1wm_driver_data *plat = dev_get_platdata(dev);
+-	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
++	struct w1_gpio_platform_data *pdata = dev_get_platdata(&pdev->dev);
+ 	struct device_node *np = pdev->dev.of_node;
  
- 	if (ds1wm_data->cell->enable)
- 		ds1wm_data->cell->enable(ds1wm_data->pdev);
- 
- 	divisor = ds1wm_find_divisor(plat->clock_rate);
--	dev_dbg(&ds1wm_data->pdev->dev,
--		"found divisor 0x%x for clock %d\n", divisor, plat->clock_rate);
-+	dev_dbg(dev, "found divisor 0x%x for clock %d\n",
-+		divisor, plat->clock_rate);
- 	if (divisor == 0) {
--		dev_err(&ds1wm_data->pdev->dev,
--			"no suitable divisor for %dHz clock\n",
-+		dev_err(dev, "no suitable divisor for %dHz clock\n",
- 			plat->clock_rate);
- 		return;
+ 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+@@ -87,7 +87,7 @@ static int w1_gpio_probe(struct platform
+ 		}
  	}
-@@ -481,7 +481,7 @@ static int ds1wm_probe(struct platform_d
- 	ds1wm_data->cell = mfd_get_cell(pdev);
- 	if (!ds1wm_data->cell)
- 		return -ENODEV;
--	plat = pdev->dev.platform_data;
-+	plat = dev_get_platdata(&pdev->dev);
- 	if (!plat)
- 		return -ENODEV;
  
+-	pdata = pdev->dev.platform_data;
++	pdata = dev_get_platdata(&pdev->dev);
+ 
+ 	if (!pdata) {
+ 		dev_err(&pdev->dev, "No configuration data\n");
+@@ -157,7 +157,7 @@ static int w1_gpio_probe(struct platform
+ static int w1_gpio_remove(struct platform_device *pdev)
+ {
+ 	struct w1_bus_master *master = platform_get_drvdata(pdev);
+-	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
++	struct w1_gpio_platform_data *pdata = dev_get_platdata(&pdev->dev);
+ 
+ 	if (pdata->enable_external_pullup)
+ 		pdata->enable_external_pullup(0);
+@@ -176,7 +176,7 @@ static int w1_gpio_remove(struct platfor
+ 
+ static int w1_gpio_suspend(struct platform_device *pdev, pm_message_t state)
+ {
+-	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
++	struct w1_gpio_platform_data *pdata = dev_get_platdata(&pdev->dev);
+ 
+ 	if (pdata->enable_external_pullup)
+ 		pdata->enable_external_pullup(0);
+@@ -186,7 +186,7 @@ static int w1_gpio_suspend(struct platfo
+ 
+ static int w1_gpio_resume(struct platform_device *pdev)
+ {
+-	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
++	struct w1_gpio_platform_data *pdata = dev_get_platdata(&pdev->dev);
+ 
+ 	if (pdata->enable_external_pullup)
+ 		pdata->enable_external_pullup(1);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
