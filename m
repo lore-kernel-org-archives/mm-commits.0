@@ -1,46 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cleanup-add_to_page_cache_locked.patch removed from
- -mm tree
-Date: Fri, 13 Sep 2013 13:02:56 -0700
-Message-ID: <52336f70.aqXX/JZyFMSsEQJD%akpm@linux-foundation.org>
+Subject: [merged] thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
+ removed from -mm tree
+Date: Fri, 13 Sep 2013 13:02:58 -0700
+Message-ID: <52336f72.02SL6Qe0l+XPDTzp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38051 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38062 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755241Ab3IMUC5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:02:57 -0400
+	with ESMTP id S1755241Ab3IMUC7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:02:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, willy@linux.intel.com, viro@zeniv.linux.org.uk, mgorman@suse.de, jack@suse.cz, hughd@google.com, fengguang.wu@intel.com, dhillf@gmail.com, dave.hansen@linux.intel.com, ak@linux.intel.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] mm-cleanup-add_to_page_cache_locked.patch removed from -mm tree
+Subject: [merged] thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch removed from -mm tree
 To: kirill.shutemov@linux.intel.com,aarcange@redhat.com,ak@linux.intel.com,dave.hansen@linux.intel.com,dhillf@gmail.com,fengguang.wu@intel.com,hughd@google.com,jack@suse.cz,mgorman@suse.de,viro@zeniv.linux.org.uk,willy@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 13:02:56 -0700
+Date: Fri, 13 Sep 2013 13:02:58 -0700
 
 
 The patch titled
-     Subject: mm: cleanup add_to_page_cache_locked()
+     Subject: thp: move maybe_pmd_mkwrite() out of mk_huge_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-cleanup-add_to_page_cache_locked.patch
+     thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: cleanup add_to_page_cache_locked()
+Subject: thp: move maybe_pmd_mkwrite() out of mk_huge_pmd()
 
-Make add_to_page_cache_locked() cleaner:
+It's confusing that mk_huge_pmd() has semantics different from mk_pte() or
+mk_pmd().  I spent some time on debugging issue cased by this
+inconsistency.
 
- - unindent most code of the function by inverting one condition;
- - streamline code no-error path;
- - move insert error path outside normal code path;
- - call radix_tree_preload_end() earlier;
-
-No functional changes.
+Let's move maybe_pmd_mkwrite() out of mk_huge_pmd() and adjust prototype
+to match mk_pte().
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
@@ -56,70 +54,56 @@ Cc: Hillf Danton <dhillf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   48 +++++++++++++++++++++++++-----------------------
- 1 file changed, 25 insertions(+), 23 deletions(-)
+ mm/huge_memory.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN mm/filemap.c~mm-cleanup-add_to_page_cache_locked mm/filemap.c
---- a/mm/filemap.c~mm-cleanup-add_to_page_cache_locked
-+++ a/mm/filemap.c
-@@ -467,32 +467,34 @@ int add_to_page_cache_locked(struct page
- 	error = mem_cgroup_cache_charge(page, current->mm,
- 					gfp_mask & GFP_RECLAIM_MASK);
- 	if (error)
--		goto out;
-+		return error;
- 
- 	error = radix_tree_maybe_preload(gfp_mask & ~__GFP_HIGHMEM);
--	if (error == 0) {
--		page_cache_get(page);
--		page->mapping = mapping;
--		page->index = offset;
--
--		spin_lock_irq(&mapping->tree_lock);
--		error = radix_tree_insert(&mapping->page_tree, offset, page);
--		if (likely(!error)) {
--			mapping->nrpages++;
--			__inc_zone_page_state(page, NR_FILE_PAGES);
--			spin_unlock_irq(&mapping->tree_lock);
--			trace_mm_filemap_add_to_page_cache(page);
--		} else {
--			page->mapping = NULL;
--			/* Leave page->index set: truncation relies upon it */
--			spin_unlock_irq(&mapping->tree_lock);
--			mem_cgroup_uncharge_cache_page(page);
--			page_cache_release(page);
--		}
--		radix_tree_preload_end();
--	} else
-+	if (error) {
- 		mem_cgroup_uncharge_cache_page(page);
--out:
-+		return error;
-+	}
-+
-+	page_cache_get(page);
-+	page->mapping = mapping;
-+	page->index = offset;
-+
-+	spin_lock_irq(&mapping->tree_lock);
-+	error = radix_tree_insert(&mapping->page_tree, offset, page);
-+	radix_tree_preload_end();
-+	if (unlikely(error))
-+		goto err_insert;
-+	mapping->nrpages++;
-+	__inc_zone_page_state(page, NR_FILE_PAGES);
-+	spin_unlock_irq(&mapping->tree_lock);
-+	trace_mm_filemap_add_to_page_cache(page);
-+	return 0;
-+err_insert:
-+	page->mapping = NULL;
-+	/* Leave page->index set: truncation relies upon it */
-+	spin_unlock_irq(&mapping->tree_lock);
-+	mem_cgroup_uncharge_cache_page(page);
-+	page_cache_release(page);
- 	return error;
+diff -puN mm/huge_memory.c~thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd
++++ a/mm/huge_memory.c
+@@ -690,11 +690,10 @@ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struc
+ 	return pmd;
  }
- EXPORT_SYMBOL(add_to_page_cache_locked);
+ 
+-static inline pmd_t mk_huge_pmd(struct page *page, struct vm_area_struct *vma)
++static inline pmd_t mk_huge_pmd(struct page *page, pgprot_t prot)
+ {
+ 	pmd_t entry;
+-	entry = mk_pmd(page, vma->vm_page_prot);
+-	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
++	entry = mk_pmd(page, prot);
+ 	entry = pmd_mkhuge(entry);
+ 	return entry;
+ }
+@@ -727,7 +726,8 @@ static int __do_huge_pmd_anonymous_page(
+ 		pte_free(mm, pgtable);
+ 	} else {
+ 		pmd_t entry;
+-		entry = mk_huge_pmd(page, vma);
++		entry = mk_huge_pmd(page, vma->vm_page_prot);
++		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 		page_add_new_anon_rmap(page, vma, haddr);
+ 		pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 		set_pmd_at(mm, haddr, pmd, entry);
+@@ -1210,7 +1210,8 @@ alloc:
+ 		goto out_mn;
+ 	} else {
+ 		pmd_t entry;
+-		entry = mk_huge_pmd(new_page, vma);
++		entry = mk_huge_pmd(new_page, vma->vm_page_prot);
++		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 		pmdp_clear_flush(vma, haddr, pmd);
+ 		page_add_new_anon_rmap(new_page, vma, haddr);
+ 		set_pmd_at(mm, haddr, pmd, entry);
+@@ -2358,7 +2359,8 @@ static void collapse_huge_page(struct mm
+ 	__SetPageUptodate(new_page);
+ 	pgtable = pmd_pgtable(_pmd);
+ 
+-	_pmd = mk_huge_pmd(new_page, vma);
++	_pmd = mk_huge_pmd(new_page, vma->vm_page_prot);
++	_pmd = maybe_pmd_mkwrite(pmd_mkdirty(_pmd), vma);
+ 
+ 	/*
+ 	 * spin_lock() below is not the equivalent of smp_wmb(), so
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
