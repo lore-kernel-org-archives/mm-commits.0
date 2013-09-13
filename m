@@ -1,66 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memcg-document-cgroup-dirty-writeback-memory-statistics.patch removed from
+Subject: [merged] mm-make-lru_add_drain_all-selective.patch removed from
  -mm tree
-Date: Fri, 13 Sep 2013 13:02:48 -0700
-Message-ID: <52336f68.ouFVEUnbAg69FlV0%akpm@linux-foundation.org>
+Date: Fri, 13 Sep 2013 13:02:50 -0700
+Message-ID: <52336f6a.cnj3u530kSI90fM6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38033 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755241Ab3IMUCt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:02:49 -0400
+	with ESMTP id S1755241Ab3IMUCu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:02:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, gthelen@google.com, fengguang.wu@intel.com, handai.szj@taobao.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, cmetcalf@tilera.com
 
-Subject: [merged] memcg-document-cgroup-dirty-writeback-memory-statistics.patch removed from -mm tree
-To: handai.szj@taobao.com,fengguang.wu@intel.com,gthelen@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] mm-make-lru_add_drain_all-selective.patch removed from -mm tree
+To: cmetcalf@tilera.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 13:02:48 -0700
+Date: Fri, 13 Sep 2013 13:02:50 -0700
 
 
 The patch titled
-     Subject: memcg: document cgroup dirty/writeback memory statistics
+     Subject: mm: make lru_add_drain_all() selective
 has been removed from the -mm tree.  Its filename was
-     memcg-document-cgroup-dirty-writeback-memory-statistics.patch
+     mm-make-lru_add_drain_all-selective.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sha Zhengju <handai.szj@taobao.com>
-Subject: memcg: document cgroup dirty/writeback memory statistics
+From: Chris Metcalf <cmetcalf@tilera.com>
+Subject: mm: make lru_add_drain_all() selective
 
-Signed-off-by: Sha Zhengju <handai.szj@taobao.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+make lru_add_drain_all() only selectively interrupt the cpus that have
+per-cpu free pages that can be drained.
+
+This is important in nohz mode where calling mlockall(), for example,
+otherwise will interrupt every core unnecessarily.
+
+This is important on workloads where nohz cores are handling 10 Gb traffic
+in userspace.  Those CPUs do not enter the kernel and place pages into LRU
+pagevecs and they really, really don't want to be interrupted, or they
+drop packets on the floor.
+
+Signed-off-by: Chris Metcalf <cmetcalf@tilera.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/swap.h |    2 -
+ mm/swap.c            |   44 ++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 40 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-document-cgroup-dirty-writeback-memory-statistics Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-document-cgroup-dirty-writeback-memory-statistics
-+++ a/Documentation/cgroups/memory.txt
-@@ -490,6 +490,8 @@ pgpgin		- # of charging events to the me
- pgpgout		- # of uncharging events to the memory cgroup. The uncharging
- 		event happens each time a page is unaccounted from the cgroup.
- swap		- # of bytes of swap usage
-+writeback	- # of bytes of file/anon cache that are queued for syncing to
-+		disk.
- inactive_anon	- # of bytes of anonymous and swap cache memory on inactive
- 		LRU list.
- active_anon	- # of bytes of anonymous and swap cache memory on active
+diff -puN include/linux/swap.h~mm-make-lru_add_drain_all-selective include/linux/swap.h
+--- a/include/linux/swap.h~mm-make-lru_add_drain_all-selective
++++ a/include/linux/swap.h
+@@ -280,7 +280,7 @@ extern void activate_page(struct page *)
+ extern void mark_page_accessed(struct page *);
+ extern void lru_add_drain(void);
+ extern void lru_add_drain_cpu(int cpu);
+-extern int lru_add_drain_all(void);
++extern void lru_add_drain_all(void);
+ extern void rotate_reclaimable_page(struct page *page);
+ extern void deactivate_page(struct page *page);
+ extern void swap_setup(void);
+diff -puN mm/swap.c~mm-make-lru_add_drain_all-selective mm/swap.c
+--- a/mm/swap.c~mm-make-lru_add_drain_all-selective
++++ a/mm/swap.c
+@@ -432,6 +432,11 @@ static void activate_page_drain(int cpu)
+ 		pagevec_lru_move_fn(pvec, __activate_page, NULL);
+ }
+ 
++static bool need_activate_page_drain(int cpu)
++{
++	return pagevec_count(&per_cpu(activate_page_pvecs, cpu)) != 0;
++}
++
+ void activate_page(struct page *page)
+ {
+ 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+@@ -449,6 +454,11 @@ static inline void activate_page_drain(i
+ {
+ }
+ 
++static bool need_activate_page_drain(int cpu)
++{
++	return false;
++}
++
+ void activate_page(struct page *page)
+ {
+ 	struct zone *zone = page_zone(page);
+@@ -701,12 +711,36 @@ static void lru_add_drain_per_cpu(struct
+ 	lru_add_drain();
+ }
+ 
+-/*
+- * Returns 0 for success
+- */
+-int lru_add_drain_all(void)
++static DEFINE_PER_CPU(struct work_struct, lru_add_drain_work);
++
++void lru_add_drain_all(void)
+ {
+-	return schedule_on_each_cpu(lru_add_drain_per_cpu);
++	static DEFINE_MUTEX(lock);
++	static struct cpumask has_work;
++	int cpu;
++
++	mutex_lock(&lock);
++	get_online_cpus();
++	cpumask_clear(&has_work);
++
++	for_each_online_cpu(cpu) {
++		struct work_struct *work = &per_cpu(lru_add_drain_work, cpu);
++
++		if (pagevec_count(&per_cpu(lru_add_pvec, cpu)) ||
++		    pagevec_count(&per_cpu(lru_rotate_pvecs, cpu)) ||
++		    pagevec_count(&per_cpu(lru_deactivate_pvecs, cpu)) ||
++		    need_activate_page_drain(cpu)) {
++			INIT_WORK(work, lru_add_drain_per_cpu);
++			schedule_work_on(cpu, work);
++			cpumask_set_cpu(cpu, &has_work);
++		}
++	}
++
++	for_each_cpu(cpu, &has_work)
++		flush_work(&per_cpu(lru_add_drain_work, cpu));
++
++	put_online_cpus();
++	mutex_unlock(&lock);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from handai.szj@taobao.com are
+Patches currently in -mm which might be from cmetcalf@tilera.com are
 
 origin.patch
 
