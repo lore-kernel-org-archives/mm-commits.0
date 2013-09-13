@@ -1,225 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shrinker-kill-old-shrink-api.patch removed from -mm tree
-Date: Fri, 13 Sep 2013 14:16:29 -0700
-Message-ID: <523380ad.j1L7GxCclcjJpZo4%akpm@linux-foundation.org>
+Subject: [merged]
+ staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
+ removed from -mm tree
+Date: Fri, 13 Sep 2013 14:16:35 -0700
+Message-ID: <523380b3.EwcCvtbC57Jir2UN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38808 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38832 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754924Ab3IMVQb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:16:31 -0400
+	with ESMTP id S1754864Ab3IMVQg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:16:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, glommer@openvz.org, gleb@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, dchinner@redhat.com
+To: mm-commits@vger.kernel.org, tao.peng@emc.com, mhocko@suse.cz, dchinner@redhat.com, andreas.dilger@intel.com, bergwolf@gmail.com
 
-Subject: [merged] shrinker-kill-old-shrink-api.patch removed from -mm tree
-To: dchinner@redhat.com,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,gleb@redhat.com,glommer@openvz.org,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch removed from -mm tree
+To: bergwolf@gmail.com,andreas.dilger@intel.com,dchinner@redhat.com,mhocko@suse.cz,tao.peng@emc.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 14:16:29 -0700
+Date: Fri, 13 Sep 2013 14:16:35 -0700
 
 
 The patch titled
-     Subject: shrinker: Kill old ->shrink API.
+     Subject: staging/lustre/obdclass: convert lu_object shrinker to count/scan API
 has been removed from the -mm tree.  Its filename was
-     shrinker-kill-old-shrink-api.patch
+     staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Chinner <dchinner@redhat.com>
-Subject: shrinker: Kill old ->shrink API.
+From: Peng Tao <bergwolf@gmail.com>
+Subject: staging/lustre/obdclass: convert lu_object shrinker to count/scan API
 
-There are no more users of this API, so kill it dead, dead, dead and
-quietly bury the corpse in a shallow, unmarked grave in a dark forest deep
-in the hills...
+convert lu_object shrinker to new count/scan API.
 
-[glommer@openvz.org: added flowers to the grave]
-[akpm@linux-foundation.org: fix whitespace]
-Signed-off-by: Dave Chinner <dchinner@redhat.com>
-Signed-off-by: Glauber Costa <glommer@openvz.org>
-Reviewed-by: Greg Thelen <gthelen@google.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: Arve Hjønnevåg <arve@android.com>
-Cc: Carlos Maiolino <cmaiolino@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Gleb Natapov <gleb@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: J. Bruce Fields <bfields@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Peng Tao <tao.peng@emc.com>
+Signed-off-by: Andreas Dilger <andreas.dilger@intel.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h      |   15 +++--------
- include/trace/events/vmscan.h |    4 +--
- mm/vmscan.c                   |   41 ++++++--------------------------
- 3 files changed, 15 insertions(+), 45 deletions(-)
+ drivers/staging/lustre/lustre/obdclass/lu_object.c |   98 +++++------
+ 1 file changed, 52 insertions(+), 46 deletions(-)
 
-diff -puN include/linux/shrinker.h~shrinker-kill-old-shrink-api include/linux/shrinker.h
---- a/include/linux/shrinker.h~shrinker-kill-old-shrink-api
-+++ a/include/linux/shrinker.h
-@@ -7,14 +7,15 @@
-  *
-  * The 'gfpmask' refers to the allocation we are currently trying to
-  * fulfil.
-- *
-- * Note that 'shrink' will be passed nr_to_scan == 0 when the VM is
-- * querying the cache size, so a fastpath for that case is appropriate.
-  */
- struct shrink_control {
- 	gfp_t gfp_mask;
- 
--	/* How many slab objects shrinker() should scan and try to reclaim */
-+	/*
-+	 * How many objects scan_objects should scan and try to reclaim.
-+	 * This is reset before every call, so it is safe for callees
-+	 * to modify.
-+	 */
- 	unsigned long nr_to_scan;
- 
- 	/* shrink from these nodes */
-@@ -27,11 +28,6 @@ struct shrink_control {
- /*
-  * A callback you can register to apply pressure to ageable caches.
-  *
-- * @shrink() should look through the least-recently-used 'nr_to_scan' entries
-- * and attempt to free them up.  It should return the number of objects which
-- * remain in the cache.  If it returns -1, it means it cannot do any scanning at
-- * this time (eg. there is a risk of deadlock).
-- *
-  * @count_objects should return the number of freeable items in the cache. If
-  * there are no objects to free or the number of freeable items cannot be
-  * determined, it should return 0. No deadlock checks should be done during the
-@@ -50,7 +46,6 @@ struct shrink_control {
-  * @flags determine the shrinker abilities, like numa awareness
-  */
- struct shrinker {
--	int (*shrink)(struct shrinker *, struct shrink_control *sc);
- 	unsigned long (*count_objects)(struct shrinker *,
- 				       struct shrink_control *sc);
- 	unsigned long (*scan_objects)(struct shrinker *,
-diff -puN include/trace/events/vmscan.h~shrinker-kill-old-shrink-api include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~shrinker-kill-old-shrink-api
-+++ a/include/trace/events/vmscan.h
-@@ -202,7 +202,7 @@ TRACE_EVENT(mm_shrink_slab_start,
- 
- 	TP_fast_assign(
- 		__entry->shr = shr;
--		__entry->shrink = shr->shrink;
-+		__entry->shrink = shr->scan_objects;
- 		__entry->nr_objects_to_shrink = nr_objects_to_shrink;
- 		__entry->gfp_flags = sc->gfp_mask;
- 		__entry->pgs_scanned = pgs_scanned;
-@@ -241,7 +241,7 @@ TRACE_EVENT(mm_shrink_slab_end,
- 
- 	TP_fast_assign(
- 		__entry->shr = shr;
--		__entry->shrink = shr->shrink;
-+		__entry->shrink = shr->scan_objects;
- 		__entry->unused_scan = unused_scan_cnt;
- 		__entry->new_scan = new_scan_cnt;
- 		__entry->retval = shrinker_retval;
-diff -puN mm/vmscan.c~shrinker-kill-old-shrink-api mm/vmscan.c
---- a/mm/vmscan.c~shrinker-kill-old-shrink-api
-+++ a/mm/vmscan.c
-@@ -225,14 +225,6 @@ void unregister_shrinker(struct shrinker
+diff -puN drivers/staging/lustre/lustre/obdclass/lu_object.c~staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api drivers/staging/lustre/lustre/obdclass/lu_object.c
+--- a/drivers/staging/lustre/lustre/obdclass/lu_object.c~staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api
++++ a/drivers/staging/lustre/lustre/obdclass/lu_object.c
+@@ -1779,7 +1779,6 @@ int lu_env_refill_by_tags(struct lu_env
  }
- EXPORT_SYMBOL(unregister_shrinker);
+ EXPORT_SYMBOL(lu_env_refill_by_tags);
  
--static inline int do_shrinker_shrink(struct shrinker *shrinker,
--				     struct shrink_control *sc,
--				     unsigned long nr_to_scan)
--{
--	sc->nr_to_scan = nr_to_scan;
--	return (*shrinker->shrink)(shrinker, sc);
--}
+-static struct shrinker *lu_site_shrinker = NULL;
+ 
+ typedef struct lu_site_stats{
+ 	unsigned	lss_populated;
+@@ -1835,61 +1834,68 @@ static void lu_site_stats_get(cfs_hash_t
+  * objects without taking the  lu_sites_guard lock, but this is not
+  * possible in the current implementation.
+  */
+-static int lu_cache_shrink(SHRINKER_ARGS(sc, nr_to_scan, gfp_mask))
++static unsigned long lu_cache_shrink_count(struct shrinker *sk,
++					   struct shrink_control *sc)
+ {
+ 	lu_site_stats_t stats;
+ 	struct lu_site *s;
+ 	struct lu_site *tmp;
+-	int cached = 0;
+-	int remain = shrink_param(sc, nr_to_scan);
+-	LIST_HEAD(splice);
 -
- #define SHRINK_BATCH 128
+-	if (!(shrink_param(sc, gfp_mask) & __GFP_FS)) {
+-		if (remain != 0)
+-			return -1;
+-		else
+-			/* We must not take the lu_sites_guard lock when
+-			 * __GFP_FS is *not* set because of the deadlock
+-			 * possibility detailed above. Additionally,
+-			 * since we cannot determine the number of
+-			 * objects in the cache without taking this
+-			 * lock, we're in a particularly tough spot. As
+-			 * a result, we'll just lie and say our cache is
+-			 * empty. This _should_ be ok, as we can't
+-			 * reclaim objects when __GFP_FS is *not* set
+-			 * anyways.
+-			 */
+-			return 0;
+-	}
++	unsigned long cached = 0;
  
- static unsigned long
-@@ -249,10 +241,7 @@ shrink_slab_node(struct shrink_control *
- 	long batch_size = shrinker->batch ? shrinker->batch
- 					  : SHRINK_BATCH;
+-	CDEBUG(D_INODE, "Shrink %d objects\n", remain);
++	if (!(sc->gfp_mask & __GFP_FS))
++		return 0;
  
--	if (shrinker->count_objects)
--		max_pass = shrinker->count_objects(shrinker, shrinkctl);
--	else
--		max_pass = do_shrinker_shrink(shrinker, shrinkctl, 0);
-+	max_pass = shrinker->count_objects(shrinker, shrinkctl);
- 	if (max_pass == 0)
- 		return 0;
- 
-@@ -271,7 +260,7 @@ shrink_slab_node(struct shrink_control *
- 	if (total_scan < 0) {
- 		printk(KERN_ERR
- 		"shrink_slab: %pF negative objects to delete nr=%ld\n",
--		       shrinker->shrink, total_scan);
-+		       shrinker->scan_objects, total_scan);
- 		total_scan = max_pass;
- 	}
- 
-@@ -303,27 +292,13 @@ shrink_slab_node(struct shrink_control *
- 				max_pass, delta, total_scan);
- 
- 	while (total_scan >= batch_size) {
-+		unsigned long ret;
- 
--		if (shrinker->scan_objects) {
--			unsigned long ret;
--			shrinkctl->nr_to_scan = batch_size;
--			ret = shrinker->scan_objects(shrinker, shrinkctl);
--
--			if (ret == SHRINK_STOP)
--				break;
--			freed += ret;
--		} else {
--			int nr_before;
--			long ret;
--
--			nr_before = do_shrinker_shrink(shrinker, shrinkctl, 0);
--			ret = do_shrinker_shrink(shrinker, shrinkctl,
--							batch_size);
--			if (ret == -1)
--				break;
--			if (ret < nr_before)
--				freed += nr_before - ret;
+ 	mutex_lock(&lu_sites_guard);
+ 	list_for_each_entry_safe(s, tmp, &lu_sites, ls_linkage) {
+-		if (shrink_param(sc, nr_to_scan) != 0) {
+-			remain = lu_site_purge(&lu_shrink_env, s, remain);
+-			/*
+-			 * Move just shrunk site to the tail of site list to
+-			 * assure shrinking fairness.
+-			 */
+-			list_move_tail(&s->ls_linkage, &splice);
 -		}
-+		shrinkctl->nr_to_scan = batch_size;
-+		ret = shrinker->scan_objects(shrinker, shrinkctl);
-+		if (ret == SHRINK_STOP)
-+			break;
-+		freed += ret;
+-
+ 		memset(&stats, 0, sizeof(stats));
+ 		lu_site_stats_get(s->ls_obj_hash, &stats, 0);
+ 		cached += stats.lss_total - stats.lss_busy;
+-		if (shrink_param(sc, nr_to_scan) && remain <= 0)
+-			break;
+ 	}
+-	list_splice(&splice, lu_sites.prev);
+ 	mutex_unlock(&lu_sites_guard);
  
- 		count_vm_events(SLABS_SCANNED, batch_size);
- 		total_scan -= batch_size;
-_
-
-Patches currently in -mm which might be from dchinner@redhat.com are
-
-origin.patch
-linux-next.patch
-list_lru-dynamically-adjust-node-arrays.patch
-staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
-staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
-staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
-staging-lustre-libcfs-cleanup-linux-memh.patch
-
+ 	cached = (cached / 100) * sysctl_vfs_cache_pressure;
+-	if (shrink_param(sc, nr_to_scan) == 0)
+-		CDEBUG(D_INODE, "%d objects cached\n", cached);
++	CDEBUG(D_INODE, "%ld objects cached\n", cached);
+ 	return cached;
+ }
+ 
++static unsigned long lu_cache_shrink_scan(struct shrinker *sk,
++					  struct shrink_control *sc)
++{
++	struct lu_site *s;
++	struct lu_site *tmp;
++	unsigned long remain = sc->nr_to_scan, freed = 0;
++	LIST_HEAD(splice);
++
++	if (!(sc->gfp_mask & __GFP_FS))
++		/* We must not take the lu_sites_guard lock when
++		 * __GFP_FS is *not* set because of the deadlock
++		 * possibility detailed above. Additionally,
++		 * since we cannot determine the number of
++		 * objects in the cache without taking this
++		 * lock, we're in a particularly tough spot. As
++		 * a result, we'll just lie and say our cache is
++		 * empty. This _should_ be ok, as we can't
++		 * reclaim objects when __GFP_FS is *not* set
++		 * anyways.
++		 */
++		return SHRINK_STOP;
++
++	mutex_lock(&lu_sites_guard);
++	list_for_each_entry_safe(s, tmp, &lu_sites, ls_linkage) {
++		freed = lu_site_purge(&lu_shrink_env, s, remain);
++		remain -= freed;
++		/*
++		 * Move just shrunk site to the tail of site list to
++		 * assure shrinking fairness.
++		 */
++		list_move_tail(&s->ls_linkage, &splice);
++	}
++	list_splice(&splice, lu_sites.prev);
++	mutex_unlock(&lu_sites_guard);
++
++	return sc->nr_to_scan - remain;
++}
++
+ /*
+  * Debugging stuff.
+  */
+@@ -1913,6 +1919,12 @@ int lu_printk_printer(const struct lu_en
+ 	return 0;
+ }
+ 
++static struct shrinker lu_site_shrinker = {
++	.count_objects	= lu_cache_shrink_count,
++	.scan_objects	= lu_cache_shrink_scan,
++	.seeks 		= DEFAULT_SEEKS,
++};
++
+ /**
+  * Initialization of global lu_* data.
+  */
+@@ -1947,9 +1959,7 @@ int lu_global_init(void)
+ 	 * inode, one for ea. Unfortunately setting this high value results in
+ 	 * lu_object/inode cache consuming all the memory.
+ 	 */
+-	lu_site_shrinker = set_shrinker(DEFAULT_SEEKS, lu_cache_shrink);
+-	if (lu_site_shrinker == NULL)
+-		return -ENOMEM;
++	register_shrinker(&lu_site_shrinker);
+ 
+ 	return result;
+ }
+@@ -1959,11 +1969,7 @@ int lu_global_init(void)
+  */
+ void lu_global_fini(void)
+ {
+-	if (lu_site_shrinker != NULL) {
+-		remove_shrinker(lu_site_shrinker);
+-		lu_site_shrinker = NULL;
+-	}
