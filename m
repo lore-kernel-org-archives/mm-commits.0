@@ -1,189 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-remove-memcg_nr_file_mapped.patch removed from -mm tree
-Date: Fri, 13 Sep 2013 13:02:42 -0700
-Message-ID: <52336f62.L7k1CeUD8Fc5qIxN%akpm@linux-foundation.org>
+Subject: [merged]
+ memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat.patch
+ removed from -mm tree
+Date: Fri, 13 Sep 2013 13:02:44 -0700
+Message-ID: <52336f64.3UqzLB8pXVK4mRmZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38008 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38016 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755241Ab3IMUCn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:02:43 -0400
+	with ESMTP id S1755241Ab3IMUCp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:02:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, gthelen@google.com, fengguang.wu@intel.com, handai.szj@taobao.com
 
-Subject: [merged] memcg-remove-memcg_nr_file_mapped.patch removed from -mm tree
+Subject: [merged] memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat.patch removed from -mm tree
 To: handai.szj@taobao.com,fengguang.wu@intel.com,gthelen@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 13:02:42 -0700
+Date: Fri, 13 Sep 2013 13:02:44 -0700
 
 
 The patch titled
-     Subject: memcg: remove MEMCG_NR_FILE_MAPPED
+     Subject: memcg: check for proper lock held in mem_cgroup_update_page_stat
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-memcg_nr_file_mapped.patch
+     memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sha Zhengju <handai.szj@taobao.com>
-Subject: memcg: remove MEMCG_NR_FILE_MAPPED
+Subject: memcg: check for proper lock held in mem_cgroup_update_page_stat
 
-While accounting memcg page stat, it's not worth to use
-MEMCG_NR_FILE_MAPPED as an extra layer of indirection because of the
-complexity and presumed performance overhead.  We can use
-MEM_CGROUP_STAT_FILE_MAPPED directly.
+We should call mem_cgroup_begin_update_page_stat() before
+mem_cgroup_update_page_stat() to get proper locks, however the latter
+doesn't do any checking that we use proper locking, which would be hard. 
+Suggested by Michal Hock we could at least test for rcu_read_lock_held()
+because RCU is held if !mem_cgroup_disabled().
 
 Signed-off-by: Sha Zhengju <handai.szj@taobao.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Fengguang Wu <fengguang.wu@intel.com>
 Reviewed-by: Greg Thelen <gthelen@google.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   27 +++++++++++++++++++--------
- mm/memcontrol.c            |   25 +------------------------
- mm/rmap.c                  |    4 ++--
- 3 files changed, 22 insertions(+), 34 deletions(-)
+ mm/memcontrol.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/memcontrol.h~memcg-remove-memcg_nr_file_mapped include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-remove-memcg_nr_file_mapped
-+++ a/include/linux/memcontrol.h
-@@ -30,9 +30,20 @@ struct page;
- struct mm_struct;
- struct kmem_cache;
- 
--/* Stats that can be updated by kernel. */
--enum mem_cgroup_page_stat_item {
--	MEMCG_NR_FILE_MAPPED, /* # of pages charged as file rss */
-+/*
-+ * The corresponding mem_cgroup_stat_names is defined in mm/memcontrol.c,
-+ * These two lists should keep in accord with each other.
-+ */
-+enum mem_cgroup_stat_index {
-+	/*
-+	 * For MEM_CONTAINER_TYPE_ALL, usage = pagecache + rss.
-+	 */
-+	MEM_CGROUP_STAT_CACHE,		/* # of pages charged as cache */
-+	MEM_CGROUP_STAT_RSS,		/* # of pages charged as anon rss */
-+	MEM_CGROUP_STAT_RSS_HUGE,	/* # of pages charged as anon huge */
-+	MEM_CGROUP_STAT_FILE_MAPPED,	/* # of pages charged as file rss */
-+	MEM_CGROUP_STAT_SWAP,		/* # of pages, swapped out */
-+	MEM_CGROUP_STAT_NSTATS,
- };
- 
- struct mem_cgroup_reclaim_cookie {
-@@ -233,17 +244,17 @@ static inline void mem_cgroup_end_update
- }
- 
- void mem_cgroup_update_page_stat(struct page *page,
--				 enum mem_cgroup_page_stat_item idx,
-+				 enum mem_cgroup_stat_index idx,
- 				 int val);
- 
- static inline void mem_cgroup_inc_page_stat(struct page *page,
--					    enum mem_cgroup_page_stat_item idx)
-+					    enum mem_cgroup_stat_index idx)
- {
- 	mem_cgroup_update_page_stat(page, idx, 1);
- }
- 
- static inline void mem_cgroup_dec_page_stat(struct page *page,
--					    enum mem_cgroup_page_stat_item idx)
-+					    enum mem_cgroup_stat_index idx)
- {
- 	mem_cgroup_update_page_stat(page, idx, -1);
- }
-@@ -449,12 +460,12 @@ static inline bool mem_cgroup_oom_synchr
- }
- 
- static inline void mem_cgroup_inc_page_stat(struct page *page,
--					    enum mem_cgroup_page_stat_item idx)
-+					    enum mem_cgroup_stat_index idx)
- {
- }
- 
- static inline void mem_cgroup_dec_page_stat(struct page *page,
--					    enum mem_cgroup_page_stat_item idx)
-+					    enum mem_cgroup_stat_index idx)
- {
- }
- 
-diff -puN mm/memcontrol.c~memcg-remove-memcg_nr_file_mapped mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-memcg_nr_file_mapped
+diff -puN mm/memcontrol.c~memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-check-for-proper-lock-held-in-mem_cgroup_update_page_stat
 +++ a/mm/memcontrol.c
-@@ -84,21 +84,6 @@ static int really_do_swap_account __init
- #endif
- 
- 
--/*
-- * Statistics for memory cgroup.
-- */
--enum mem_cgroup_stat_index {
--	/*
--	 * For MEM_CONTAINER_TYPE_ALL, usage = pagecache + rss.
--	 */
--	MEM_CGROUP_STAT_CACHE,		/* # of pages charged as cache */
--	MEM_CGROUP_STAT_RSS,		/* # of pages charged as anon rss */
--	MEM_CGROUP_STAT_RSS_HUGE,	/* # of pages charged as anon huge */
--	MEM_CGROUP_STAT_FILE_MAPPED,	/* # of pages charged as file rss */
--	MEM_CGROUP_STAT_SWAP,		/* # of pages, swapped out */
--	MEM_CGROUP_STAT_NSTATS,
--};
--
- static const char * const mem_cgroup_stat_names[] = {
- 	"cache",
- 	"rss",
-@@ -2231,7 +2216,7 @@ void __mem_cgroup_end_update_page_stat(s
- }
- 
- void mem_cgroup_update_page_stat(struct page *page,
--				 enum mem_cgroup_page_stat_item idx, int val)
-+				 enum mem_cgroup_stat_index idx, int val)
- {
- 	struct mem_cgroup *memcg;
- 	struct page_cgroup *pc = lookup_page_cgroup(page);
-@@ -2244,14 +2229,6 @@ void mem_cgroup_update_page_stat(struct
- 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
+@@ -2225,6 +2225,7 @@ void mem_cgroup_update_page_stat(struct
+ 	if (mem_cgroup_disabled())
  		return;
  
--	switch (idx) {
--	case MEMCG_NR_FILE_MAPPED:
--		idx = MEM_CGROUP_STAT_FILE_MAPPED;
--		break;
--	default:
--		BUG();
--	}
--
- 	this_cpu_add(memcg->stat->count[idx], val);
- }
- 
-diff -puN mm/rmap.c~memcg-remove-memcg_nr_file_mapped mm/rmap.c
---- a/mm/rmap.c~memcg-remove-memcg_nr_file_mapped
-+++ a/mm/rmap.c
-@@ -1111,7 +1111,7 @@ void page_add_file_rmap(struct page *pag
- 	mem_cgroup_begin_update_page_stat(page, &locked, &flags);
- 	if (atomic_inc_and_test(&page->_mapcount)) {
- 		__inc_zone_page_state(page, NR_FILE_MAPPED);
--		mem_cgroup_inc_page_stat(page, MEMCG_NR_FILE_MAPPED);
-+		mem_cgroup_inc_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED);
- 	}
- 	mem_cgroup_end_update_page_stat(page, &locked, &flags);
- }
-@@ -1155,7 +1155,7 @@ void page_remove_rmap(struct page *page)
- 					      NR_ANON_TRANSPARENT_HUGEPAGES);
- 	} else {
- 		__dec_zone_page_state(page, NR_FILE_MAPPED);
--		mem_cgroup_dec_page_stat(page, MEMCG_NR_FILE_MAPPED);
-+		mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED);
- 		mem_cgroup_end_update_page_stat(page, &locked, &flags);
- 	}
- 	if (unlikely(PageMlocked(page)))
++	VM_BUG_ON(!rcu_read_lock_held());
+ 	memcg = pc->mem_cgroup;
+ 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
+ 		return;
 _
 
 Patches currently in -mm which might be from handai.szj@taobao.com are
