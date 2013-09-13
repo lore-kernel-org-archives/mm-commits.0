@@ -1,85 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch removed from -mm tree
-Date: Fri, 13 Sep 2013 13:30:43 -0700
-Message-ID: <523375f3.1nEF0XVn3hS03spA%akpm@linux-foundation.org>
+Subject: +
+ revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch added to -mm tree
+Date: Fri, 13 Sep 2013 14:00:35 -0700
+Message-ID: <52337cf3.3gK2/E3+qDG5ZW7O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38231 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38344 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753772Ab3IMUao (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:30:44 -0400
+	with ESMTP id S1753354Ab3IMVAg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:00:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, slyfox@gentoo.org, mmarek@suse.cz, geert@linux-m68k.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, liwanp@linux.vnet.ibm.com, liuj97@gmail.com, kosaki.motohiro@jp.fujitsu.com, b.zolnierkie@samsung.com, jy0922.shim@samsung.com
 
-Subject: [folded-merged] makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,geert@linux-m68k.org,mmarek@suse.cz,slyfox@gentoo.org,mm-commits@vger.kernel.org
+Subject: + revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch added to -mm tree
+To: jy0922.shim@samsung.com,b.zolnierkie@samsung.com,kosaki.motohiro@jp.fujitsu.com,liuj97@gmail.com,liwanp@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 13:30:43 -0700
+Date: Fri, 13 Sep 2013 14:00:35 -0700
 
 
 The patch titled
-     Subject: makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix
-has been removed from the -mm tree.  Its filename was
-     makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch
+     Subject: revert "mm/memory-hotplug: fix lowmem count overflow when offline pages"
+has been added to the -mm tree.  Its filename is
+     revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
 
-This patch was dropped because it was folded into makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: revert "mm/memory-hotplug: fix lowmem count overflow when offline pages"
 
-fix typos in comments
+This reverts commit cea27eb2a202 ("mm/memory-hotplug: fix lowmem count
+overflow when offline pages").
 
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Sergei Trofimovich <slyfox@gentoo.org>
+The fixed bug by commit cea27eb was fixed to another way by commit 3dcc057
+("mm: correctly update zone->managed_pages").  The commit 3dcc057 enhances
+memory_hotplug.c to adjust totalhigh_pages when hot-removing memory, for
+details please refer to:
+http://marc.info/?l=linux-mm&m=136957578620221&w=2
+
+So, if not revert commit cea27eb, currently causes duplicated decreasing
+of totalhigh_pages.
+
+Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Jiang Liu <liuj97@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN Makefile~makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix Makefile
---- a/Makefile~makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix
-+++ a/Makefile
-@@ -659,10 +659,10 @@ KBUILD_CFLAGS	+= $(call cc-option,-fno-s
- # conserve stack if available
- KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
- 
--# disallog errors like 'EXPORT_GPL(foo);' with missing header
-+# disallow errors like 'EXPORT_GPL(foo);' with missing header
- KBUILD_CFLAGS   += $(call cc-option,-Werror=implicit-int)
- 
--# require functions to have argumens in prototypes, not empty 'int foo()'
-+# require functions to have arguments in prototypes, not empty 'int foo()'
- KBUILD_CFLAGS   += $(call cc-option,-Werror=strict-prototypes)
- 
- # use the deterministic mode of AR if available
+diff -puN mm/page_alloc.c~revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages
++++ a/mm/page_alloc.c
+@@ -6366,10 +6366,6 @@ __offline_isolated_pages(unsigned long s
+ 		list_del(&page->lru);
+ 		rmv_page_order(page);
+ 		zone->free_area[order].nr_free--;
+-#ifdef CONFIG_HIGHMEM
+-		if (PageHighMem(page))
+-			totalhigh_pages -= 1 << order;
+-#endif
+ 		for (i = 0; i < (1 << order); i++)
+ 			SetPageReserved((page+i));
+ 		pfn += (1 << order);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jy0922.shim@samsung.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-fat-additions-to-support-fat_fallocate-fix-fix.patch
-linux-next.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
 
