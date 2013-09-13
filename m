@@ -1,54 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-new-shrinker-api.patch removed from -mm tree
-Date: Fri, 13 Sep 2013 14:15:51 -0700
-Message-ID: <52338087.5EqbhlznJOG6wHoG%akpm@linux-foundation.org>
+Subject: [merged] shrinker-convert-superblock-shrinkers-to-new-api.patch
+ removed from -mm tree
+Date: Fri, 13 Sep 2013 14:15:53 -0700
+Message-ID: <52338089.P1Lk0WxmJQcn8fsk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38473 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38494 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755063Ab3IMVPx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:15:53 -0400
+	with ESMTP id S1755063Ab3IMVPz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:15:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, glommer@parallels.com, gleb@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, dchinner@redhat.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, glommer@openvz.org, gleb@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, dchinner@redhat.com
 
-Subject: [merged] mm-new-shrinker-api.patch removed from -mm tree
-To: dchinner@redhat.com,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,gleb@redhat.com,glommer@parallels.com,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] shrinker-convert-superblock-shrinkers-to-new-api.patch removed from -mm tree
+To: dchinner@redhat.com,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,gleb@redhat.com,glommer@openvz.org,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 14:15:51 -0700
+Date: Fri, 13 Sep 2013 14:15:53 -0700
 
 
 The patch titled
-     Subject: mm: new shrinker API
+     Subject: shrinker: convert superblock shrinkers to new API
 has been removed from the -mm tree.  Its filename was
-     mm-new-shrinker-api.patch
+     shrinker-convert-superblock-shrinkers-to-new-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dave Chinner <dchinner@redhat.com>
-Subject: mm: new shrinker API
+Subject: shrinker: convert superblock shrinkers to new API
 
-The current shrinker callout API uses an a single shrinker call for
-multiple functions.  To determine the function, a special magical value is
-passed in a parameter to change the behaviour.  This complicates the
-implementation and return value specification for the different
-behaviours.
+Convert superblock shrinker to use the new count/scan API, and propagate
+the API changes through to the filesystem callouts.  The filesystem
+callouts already use a count/scan API, so it's just changing counters to
+longs to match the VM API.
 
-Separate the two different behaviours into separate operations, one to
-return a count of freeable objects in the cache, and another to scan a
-certain number of objects in the cache for freeing.  In defining these new
-operations, ensure the return values and resultant behaviours are clearly
-defined and documented.
+This requires the dentry and inode shrinker callouts to be converted to
+the count/scan API.  This is mainly a mechanical change.
 
-Modify shrink_slab() to use the new API and implement the callouts for all
-the existing shrinkers.
-
+[glommer@openvz.org: use mult_frac for fractional proportions, build fixes]
+[akpm@linux-foundation.org: fix warnings]
 Signed-off-by: Dave Chinner <dchinner@redhat.com>
-Signed-off-by: Glauber Costa <glommer@parallels.com>
+Signed-off-by: Glauber Costa <glommer@openvz.org>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
@@ -77,201 +73,312 @@ Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |   38 +++++++++++++++++------
- mm/vmscan.c              |   60 ++++++++++++++++++++++++-------------
- 2 files changed, 69 insertions(+), 29 deletions(-)
+ fs/dcache.c         |    7 ++-
+ fs/inode.c          |    7 ++-
+ fs/internal.h       |    2 +
+ fs/super.c          |   80 +++++++++++++++++++++++++-----------------
+ fs/xfs/xfs_icache.c |    4 +-
+ fs/xfs/xfs_icache.h |    2 -
+ fs/xfs/xfs_super.c  |    8 ++--
+ include/linux/fs.h  |    8 +---
+ 8 files changed, 70 insertions(+), 48 deletions(-)
 
-diff -puN include/linux/shrinker.h~mm-new-shrinker-api include/linux/shrinker.h
---- a/include/linux/shrinker.h~mm-new-shrinker-api
-+++ a/include/linux/shrinker.h
-@@ -4,6 +4,12 @@
- /*
-  * This struct is used to pass information from page reclaim to the shrinkers.
-  * We consolidate the values for easier extention later.
-+ *
-+ * The 'gfpmask' refers to the allocation we are currently trying to
-+ * fulfil.
-+ *
-+ * Note that 'shrink' will be passed nr_to_scan == 0 when the VM is
-+ * querying the cache size, so a fastpath for that case is appropriate.
+diff -puN fs/dcache.c~shrinker-convert-superblock-shrinkers-to-new-api fs/dcache.c
+--- a/fs/dcache.c~shrinker-convert-superblock-shrinkers-to-new-api
++++ a/fs/dcache.c
+@@ -884,11 +884,12 @@ static void shrink_dentry_list(struct li
+  * This function may fail to free any resources if all the dentries are in
+  * use.
   */
- struct shrink_control {
- 	gfp_t gfp_mask;
-@@ -12,23 +18,37 @@ struct shrink_control {
- 	unsigned long nr_to_scan;
- };
- 
-+#define SHRINK_STOP (~0UL)
- /*
-  * A callback you can register to apply pressure to ageable caches.
-  *
-- * 'sc' is passed shrink_control which includes a count 'nr_to_scan'
-- * and a 'gfpmask'.  It should look through the least-recently-used
-- * 'nr_to_scan' entries and attempt to free them up.  It should return
-- * the number of objects which remain in the cache.  If it returns -1, it means
-- * it cannot do any scanning at this time (eg. there is a risk of deadlock).
-+ * @shrink() should look through the least-recently-used 'nr_to_scan' entries
-+ * and attempt to free them up.  It should return the number of objects which
-+ * remain in the cache.  If it returns -1, it means it cannot do any scanning at
-+ * this time (eg. there is a risk of deadlock).
-  *
-- * The 'gfpmask' refers to the allocation we are currently trying to
-- * fulfil.
-+ * @count_objects should return the number of freeable items in the cache. If
-+ * there are no objects to free or the number of freeable items cannot be
-+ * determined, it should return 0. No deadlock checks should be done during the
-+ * count callback - the shrinker relies on aggregating scan counts that couldn't
-+ * be executed due to potential deadlocks to be run at a later call when the
-+ * deadlock condition is no longer pending.
-  *
-- * Note that 'shrink' will be passed nr_to_scan == 0 when the VM is
-- * querying the cache size, so a fastpath for that case is appropriate.
-+ * @scan_objects will only be called if @count_objects returned a non-zero
-+ * value for the number of freeable objects. The callout should scan the cache
-+ * and attempt to free items from the cache. It should then return the number
-+ * of objects freed during the scan, or SHRINK_STOP if progress cannot be made
-+ * due to potential deadlocks. If SHRINK_STOP is returned, then no further
-+ * attempts to call the @scan_objects will be made from the current reclaim
-+ * context.
-  */
- struct shrinker {
- 	int (*shrink)(struct shrinker *, struct shrink_control *sc);
-+	unsigned long (*count_objects)(struct shrinker *,
-+				       struct shrink_control *sc);
-+	unsigned long (*scan_objects)(struct shrinker *,
-+				      struct shrink_control *sc);
-+
- 	int seeks;	/* seeks to recreate an obj */
- 	long batch;	/* reclaim batch size, 0 = default */
- 
-diff -puN mm/vmscan.c~mm-new-shrinker-api mm/vmscan.c
---- a/mm/vmscan.c~mm-new-shrinker-api
-+++ a/mm/vmscan.c
-@@ -236,19 +236,24 @@ static inline int do_shrinker_shrink(str
-  *
-  * Returns the number of slab objects which we shrunk.
-  */
--unsigned long shrink_slab(struct shrink_control *shrink,
-+unsigned long shrink_slab(struct shrink_control *shrinkctl,
- 			  unsigned long nr_pages_scanned,
- 			  unsigned long lru_pages)
+-void prune_dcache_sb(struct super_block *sb, int count)
++long prune_dcache_sb(struct super_block *sb, unsigned long nr_to_scan)
  {
- 	struct shrinker *shrinker;
--	unsigned long ret = 0;
-+	unsigned long freed = 0;
+ 	struct dentry *dentry;
+ 	LIST_HEAD(referenced);
+ 	LIST_HEAD(tmp);
++	long freed = 0;
  
- 	if (nr_pages_scanned == 0)
- 		nr_pages_scanned = SWAP_CLUSTER_MAX;
- 
- 	if (!down_read_trylock(&shrinker_rwsem)) {
--		/* Assume we'll be able to shrink next time */
--		ret = 1;
-+		/*
-+		 * If we would return 0, our callers would understand that we
-+		 * have nothing else to shrink and give up trying. By returning
-+		 * 1 we keep it going and assume we'll be able to shrink next
-+		 * time.
-+		 */
-+		freed = 1;
- 		goto out;
- 	}
- 
-@@ -256,14 +261,16 @@ unsigned long shrink_slab(struct shrink_
- 		unsigned long long delta;
- 		long total_scan;
- 		long max_pass;
--		int shrink_ret = 0;
- 		long nr;
- 		long new_nr;
- 		long batch_size = shrinker->batch ? shrinker->batch
- 						  : SHRINK_BATCH;
- 
--		max_pass = do_shrinker_shrink(shrinker, shrink, 0);
--		if (max_pass <= 0)
-+		if (shrinker->count_objects)
-+			max_pass = shrinker->count_objects(shrinker, shrinkctl);
-+		else
-+			max_pass = do_shrinker_shrink(shrinker, shrinkctl, 0);
-+		if (max_pass == 0)
- 			continue;
- 
- 		/*
-@@ -279,8 +286,8 @@ unsigned long shrink_slab(struct shrink_
- 		do_div(delta, lru_pages + 1);
- 		total_scan += delta;
- 		if (total_scan < 0) {
--			printk(KERN_ERR "shrink_slab: %pF negative objects to "
--			       "delete nr=%ld\n",
-+			printk(KERN_ERR
-+			"shrink_slab: %pF negative objects to delete nr=%ld\n",
- 			       shrinker->shrink, total_scan);
- 			total_scan = max_pass;
+ relock:
+ 	spin_lock(&sb->s_dentry_lru_lock);
+@@ -913,7 +914,8 @@ relock:
+ 			this_cpu_dec(nr_dentry_unused);
+ 			sb->s_nr_dentry_unused--;
+ 			spin_unlock(&dentry->d_lock);
+-			if (!--count)
++			freed++;
++			if (!--nr_to_scan)
+ 				break;
  		}
-@@ -308,20 +315,33 @@ unsigned long shrink_slab(struct shrink_
- 		if (total_scan > max_pass * 2)
- 			total_scan = max_pass * 2;
+ 		cond_resched_lock(&sb->s_dentry_lru_lock);
+@@ -923,6 +925,7 @@ relock:
+ 	spin_unlock(&sb->s_dentry_lru_lock);
  
--		trace_mm_shrink_slab_start(shrinker, shrink, nr,
-+		trace_mm_shrink_slab_start(shrinker, shrinkctl, nr,
- 					nr_pages_scanned, lru_pages,
- 					max_pass, delta, total_scan);
- 
- 		while (total_scan >= batch_size) {
--			int nr_before;
- 
--			nr_before = do_shrinker_shrink(shrinker, shrink, 0);
--			shrink_ret = do_shrinker_shrink(shrinker, shrink,
--							batch_size);
--			if (shrink_ret == -1)
--				break;
--			if (shrink_ret < nr_before)
--				ret += nr_before - shrink_ret;
-+			if (shrinker->scan_objects) {
-+				unsigned long ret;
-+				shrinkctl->nr_to_scan = batch_size;
-+				ret = shrinker->scan_objects(shrinker, shrinkctl);
-+
-+				if (ret == SHRINK_STOP)
-+					break;
-+				freed += ret;
-+			} else {
-+				int nr_before;
-+				long ret;
-+
-+				nr_before = do_shrinker_shrink(shrinker, shrinkctl, 0);
-+				ret = do_shrinker_shrink(shrinker, shrinkctl,
-+								batch_size);
-+				if (ret == -1)
-+					break;
-+				if (ret < nr_before)
-+					freed += nr_before - ret;
-+			}
-+
- 			count_vm_events(SLABS_SCANNED, batch_size);
- 			total_scan -= batch_size;
- 
-@@ -339,12 +359,12 @@ unsigned long shrink_slab(struct shrink_
- 		else
- 			new_nr = atomic_long_read(&shrinker->nr_in_batch);
- 
--		trace_mm_shrink_slab_end(shrinker, shrink_ret, nr, new_nr);
-+		trace_mm_shrink_slab_end(shrinker, freed, nr, new_nr);
- 	}
- 	up_read(&shrinker_rwsem);
- out:
- 	cond_resched();
--	return ret;
+ 	shrink_dentry_list(&tmp);
 +	return freed;
  }
  
- static inline int is_page_cache_freeable(struct page *page)
+ /*
+diff -puN fs/inode.c~shrinker-convert-superblock-shrinkers-to-new-api fs/inode.c
+--- a/fs/inode.c~shrinker-convert-superblock-shrinkers-to-new-api
++++ a/fs/inode.c
+@@ -707,10 +707,11 @@ static int can_unuse(struct inode *inode
+  * LRU does not have strict ordering. Hence we don't want to reclaim inodes
+  * with this flag set because they are the inodes that are out of order.
+  */
+-void prune_icache_sb(struct super_block *sb, int nr_to_scan)
++long prune_icache_sb(struct super_block *sb, unsigned long nr_to_scan)
+ {
+ 	LIST_HEAD(freeable);
+-	int nr_scanned;
++	long nr_scanned;
++	long freed = 0;
+ 	unsigned long reap = 0;
+ 
+ 	spin_lock(&sb->s_inode_lru_lock);
+@@ -780,6 +781,7 @@ void prune_icache_sb(struct super_block
+ 		list_move(&inode->i_lru, &freeable);
+ 		sb->s_nr_inodes_unused--;
+ 		this_cpu_dec(nr_unused);
++		freed++;
+ 	}
+ 	if (current_is_kswapd())
+ 		__count_vm_events(KSWAPD_INODESTEAL, reap);
+@@ -790,6 +792,7 @@ void prune_icache_sb(struct super_block
+ 		current->reclaim_state->reclaimed_slab += reap;
+ 
+ 	dispose_list(&freeable);
++	return freed;
+ }
+ 
+ static void __wait_on_freeing_inode(struct inode *inode);
+diff -puN fs/internal.h~shrinker-convert-superblock-shrinkers-to-new-api fs/internal.h
+--- a/fs/internal.h~shrinker-convert-superblock-shrinkers-to-new-api
++++ a/fs/internal.h
+@@ -111,6 +111,7 @@ extern int open_check_o_direct(struct fi
+  * inode.c
+  */
+ extern spinlock_t inode_sb_list_lock;
++extern long prune_icache_sb(struct super_block *sb, unsigned long nr_to_scan);
+ extern void inode_add_lru(struct inode *inode);
+ 
+ /*
+@@ -126,6 +127,7 @@ extern int invalidate_inodes(struct supe
+  * dcache.c
+  */
+ extern struct dentry *__d_alloc(struct super_block *, const struct qstr *);
++extern long prune_dcache_sb(struct super_block *sb, unsigned long nr_to_scan);
+ extern int d_set_mounted(struct dentry *dentry);
+ 
+ /*
+diff -puN fs/super.c~shrinker-convert-superblock-shrinkers-to-new-api fs/super.c
+--- a/fs/super.c~shrinker-convert-superblock-shrinkers-to-new-api
++++ a/fs/super.c
+@@ -53,11 +53,15 @@ static char *sb_writers_name[SB_FREEZE_L
+  * shrinker path and that leads to deadlock on the shrinker_rwsem. Hence we
+  * take a passive reference to the superblock to avoid this from occurring.
+  */
+-static int prune_super(struct shrinker *shrink, struct shrink_control *sc)
++static unsigned long super_cache_scan(struct shrinker *shrink,
++				      struct shrink_control *sc)
+ {
+ 	struct super_block *sb;
+-	int	fs_objects = 0;
+-	int	total_objects;
++	long	fs_objects = 0;
++	long	total_objects;
++	long	freed = 0;
++	long	dentries;
++	long	inodes;
+ 
+ 	sb = container_of(shrink, struct super_block, s_shrink);
+ 
+@@ -65,11 +69,11 @@ static int prune_super(struct shrinker *
+ 	 * Deadlock avoidance.  We may hold various FS locks, and we don't want
+ 	 * to recurse into the FS that called us in clear_inode() and friends..
+ 	 */
+-	if (sc->nr_to_scan && !(sc->gfp_mask & __GFP_FS))
+-		return -1;
++	if (!(sc->gfp_mask & __GFP_FS))
++		return SHRINK_STOP;
+ 
+ 	if (!grab_super_passive(sb))
+-		return -1;
++		return SHRINK_STOP;
+ 
+ 	if (sb->s_op && sb->s_op->nr_cached_objects)
+ 		fs_objects = sb->s_op->nr_cached_objects(sb);
+@@ -77,33 +81,46 @@ static int prune_super(struct shrinker *
+ 	total_objects = sb->s_nr_dentry_unused +
+ 			sb->s_nr_inodes_unused + fs_objects + 1;
+ 
+-	if (sc->nr_to_scan) {
+-		int	dentries;
+-		int	inodes;
+-
+-		/* proportion the scan between the caches */
+-		dentries = mult_frac(sc->nr_to_scan, sb->s_nr_dentry_unused,
+-							total_objects);
+-		inodes = mult_frac(sc->nr_to_scan, sb->s_nr_inodes_unused,
+-							total_objects);
+-		if (fs_objects)
+-			fs_objects = mult_frac(sc->nr_to_scan, fs_objects,
+-							total_objects);
+-		/*
+-		 * prune the dcache first as the icache is pinned by it, then
+-		 * prune the icache, followed by the filesystem specific caches
+-		 */
+-		prune_dcache_sb(sb, dentries);
+-		prune_icache_sb(sb, inodes);
++	/* proportion the scan between the caches */
++	dentries = mult_frac(sc->nr_to_scan, sb->s_nr_dentry_unused,
++								total_objects);
++	inodes = mult_frac(sc->nr_to_scan, sb->s_nr_inodes_unused,
++								total_objects);
+ 
+-		if (fs_objects && sb->s_op->free_cached_objects) {
+-			sb->s_op->free_cached_objects(sb, fs_objects);
+-			fs_objects = sb->s_op->nr_cached_objects(sb);
+-		}
+-		total_objects = sb->s_nr_dentry_unused +
+-				sb->s_nr_inodes_unused + fs_objects;
++	/*
++	 * prune the dcache first as the icache is pinned by it, then
++	 * prune the icache, followed by the filesystem specific caches
++	 */
++	freed = prune_dcache_sb(sb, dentries);
++	freed += prune_icache_sb(sb, inodes);
++
++	if (fs_objects) {
++		fs_objects = mult_frac(sc->nr_to_scan, fs_objects,
++								total_objects);
++		freed += sb->s_op->free_cached_objects(sb, fs_objects);
+ 	}
+ 
++	drop_super(sb);
++	return freed;
++}
++
++static unsigned long super_cache_count(struct shrinker *shrink,
++				       struct shrink_control *sc)
++{
++	struct super_block *sb;
++	long	total_objects = 0;
++
++	sb = container_of(shrink, struct super_block, s_shrink);
++
++	if (!grab_super_passive(sb))
++		return 0;
++
++	if (sb->s_op && sb->s_op->nr_cached_objects)
++		total_objects = sb->s_op->nr_cached_objects(sb);
++
++	total_objects += sb->s_nr_dentry_unused;
++	total_objects += sb->s_nr_inodes_unused;
++
+ 	total_objects = vfs_pressure_ratio(total_objects);
+ 	drop_super(sb);
+ 	return total_objects;
+@@ -211,7 +228,8 @@ static struct super_block *alloc_super(s
+ 		s->cleancache_poolid = -1;
+ 
+ 		s->s_shrink.seeks = DEFAULT_SEEKS;
+-		s->s_shrink.shrink = prune_super;
++		s->s_shrink.scan_objects = super_cache_scan;
++		s->s_shrink.count_objects = super_cache_count;
+ 		s->s_shrink.batch = 1024;
+ 	}
+ out:
+diff -puN fs/xfs/xfs_icache.c~shrinker-convert-superblock-shrinkers-to-new-api fs/xfs/xfs_icache.c
+--- a/fs/xfs/xfs_icache.c~shrinker-convert-superblock-shrinkers-to-new-api
++++ a/fs/xfs/xfs_icache.c
+@@ -1167,7 +1167,7 @@ xfs_reclaim_inodes(
+  * them to be cleaned, which we hope will not be very long due to the
+  * background walker having already kicked the IO off on those dirty inodes.
+  */
+-void
++long
+ xfs_reclaim_inodes_nr(
+ 	struct xfs_mount	*mp,
+ 	int			nr_to_scan)
+@@ -1176,7 +1176,7 @@ xfs_reclaim_inodes_nr(
+ 	xfs_reclaim_work_queue(mp);
+ 	xfs_ail_push_all(mp->m_ail);
+ 
+-	xfs_reclaim_inodes_ag(mp, SYNC_TRYLOCK | SYNC_WAIT, &nr_to_scan);
++	return xfs_reclaim_inodes_ag(mp, SYNC_TRYLOCK | SYNC_WAIT, &nr_to_scan);
+ }
+ 
+ /*
+diff -puN fs/xfs/xfs_icache.h~shrinker-convert-superblock-shrinkers-to-new-api fs/xfs/xfs_icache.h
+--- a/fs/xfs/xfs_icache.h~shrinker-convert-superblock-shrinkers-to-new-api
++++ a/fs/xfs/xfs_icache.h
+@@ -46,7 +46,7 @@ void xfs_reclaim_worker(struct work_stru
+ 
+ int xfs_reclaim_inodes(struct xfs_mount *mp, int mode);
+ int xfs_reclaim_inodes_count(struct xfs_mount *mp);
+-void xfs_reclaim_inodes_nr(struct xfs_mount *mp, int nr_to_scan);
++long xfs_reclaim_inodes_nr(struct xfs_mount *mp, int nr_to_scan);
+ 
+ void xfs_inode_set_reclaim_tag(struct xfs_inode *ip);
+ 
+diff -puN fs/xfs/xfs_super.c~shrinker-convert-superblock-shrinkers-to-new-api fs/xfs/xfs_super.c
+--- a/fs/xfs/xfs_super.c~shrinker-convert-superblock-shrinkers-to-new-api
++++ a/fs/xfs/xfs_super.c
+@@ -1535,19 +1535,19 @@ xfs_fs_mount(
+ 	return mount_bdev(fs_type, flags, dev_name, data, xfs_fs_fill_super);
+ }
+ 
+-static int
++static long
+ xfs_fs_nr_cached_objects(
+ 	struct super_block	*sb)
+ {
+ 	return xfs_reclaim_inodes_count(XFS_M(sb));
+ }
+ 
+-static void
++static long
+ xfs_fs_free_cached_objects(
+ 	struct super_block	*sb,
+-	int			nr_to_scan)
++	long			nr_to_scan)
+ {
+-	xfs_reclaim_inodes_nr(XFS_M(sb), nr_to_scan);
++	return xfs_reclaim_inodes_nr(XFS_M(sb), nr_to_scan);
+ }
+ 
+ static const struct super_operations xfs_super_operations = {
+diff -puN include/linux/fs.h~shrinker-convert-superblock-shrinkers-to-new-api include/linux/fs.h
+--- a/include/linux/fs.h~shrinker-convert-superblock-shrinkers-to-new-api
++++ a/include/linux/fs.h
+@@ -1335,10 +1335,6 @@ struct super_block {
+ 	struct workqueue_struct *s_dio_done_wq;
+ };
+ 
+-/* superblock cache pruning functions */
+-extern void prune_icache_sb(struct super_block *sb, int nr_to_scan);
+-extern void prune_dcache_sb(struct super_block *sb, int nr_to_scan);
+-
+ extern struct timespec current_fs_time(struct super_block *sb);
+ 
+ /*
+@@ -1631,8 +1627,8 @@ struct super_operations {
+ 	ssize_t (*quota_write)(struct super_block *, int, const char *, size_t, loff_t);
+ #endif
+ 	int (*bdev_try_to_free_page)(struct super_block*, struct page*, gfp_t);
+-	int (*nr_cached_objects)(struct super_block *);
+-	void (*free_cached_objects)(struct super_block *, int);
++	long (*nr_cached_objects)(struct super_block *);
++	long (*free_cached_objects)(struct super_block *, long);
+ };
+ 
+ /*
 _
 
 Patches currently in -mm which might be from dchinner@redhat.com are
 
 origin.patch
 linux-next.patch
-shrinker-convert-superblock-shrinkers-to-new-api.patch
 list-add-a-new-lru-list-type.patch
 inode-convert-inode-lru-list-to-generic-lru-list-code.patch
 dcache-convert-to-use-new-lru-list-infrastructure.patch
