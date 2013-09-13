@@ -1,107 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-track-all-children-over-limit-in-the-root.patch
- removed from -mm tree
-Date: Fri, 13 Sep 2013 13:02:14 -0700
-Message-ID: <52336f46.V6nvi9DQD2Kf6fj0%akpm@linux-foundation.org>
+Subject: [merged] memcg-trivial-cleanups.patch removed from -mm tree
+Date: Fri, 13 Sep 2013 13:02:18 -0700
+Message-ID: <52336f4a.lBrAJSs4vhYcDpNx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37922 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37934 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754582Ab3IMUCP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:02:15 -0400
+	with ESMTP id S1754582Ab3IMUCS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:02:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghan@google.com, walken@google.com, tj@kernel.org, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, glommer@openvz.org, bsingharora@gmail.com, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, akpm@linux-foundation.org
 
-Subject: [merged] memcg-track-all-children-over-limit-in-the-root.patch removed from -mm tree
-To: mhocko@suse.cz,bsingharora@gmail.com,glommer@openvz.org,gthelen@google.com,hannes@cmpxchg.org,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,tj@kernel.org,walken@google.com,yinghan@google.com,mm-commits@vger.kernel.org
+Subject: [merged] memcg-trivial-cleanups.patch removed from -mm tree
+To: akpm@linux-foundation.org,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 13:02:14 -0700
+Date: Fri, 13 Sep 2013 13:02:18 -0700
 
 
 The patch titled
-     Subject: memcg: track all children over limit in the root
+     Subject: memcg: trivial cleanups
 has been removed from the -mm tree.  Its filename was
-     memcg-track-all-children-over-limit-in-the-root.patch
+     memcg-trivial-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: track all children over limit in the root
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: trivial cleanups
 
-Children in soft limit excess are currently tracked up the hierarchy in
-memcg->children_in_excess.  Nevertheless there still might exist tons of
-groups that are not in hierarchy relation to the root cgroup (e.g.  all
-first level groups if root_mem_cgroup->use_hierarchy == false).
+Clean up some mess made by the "Soft limit rework" series, and a few other
+things.
 
-As the whole tree walk has to be done when the iteration starts at
-root_mem_cgroup the iterator should be able to skip the walk if there is
-no child above the limit without iterating them.  This can be done easily
-if the root tracks all children rather than only hierarchical children. 
-This is done by this patch which updates root_mem_cgroup
-children_in_excess if root_mem_cgroup->use_hierarchy == false so the root
-knows about all children in excess.
-
-Please note that this is not an issue for inner memcgs which have
-use_hierarchy == false because then only the single group is visited so no
-special optimization is necessary.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Glauber Costa <glommer@openvz.org>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Ying Han <yinghan@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/memcontrol.c |   30 +++++++++++++++---------------
+ mm/vmscan.c     |   12 ++++++------
+ 2 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-track-all-children-over-limit-in-the-root mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-track-all-children-over-limit-in-the-root
+diff -puN mm/memcontrol.c~memcg-trivial-cleanups mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-trivial-cleanups
 +++ a/mm/memcontrol.c
-@@ -864,9 +864,15 @@ static void mem_cgroup_update_soft_limit
- 	/*
- 	 * Necessary to update all ancestors when hierarchy is used
- 	 * because their event counter is not touched.
-+	 * We track children even outside the hierarchy for the root
-+	 * cgroup because tree walk starting at root should visit
-+	 * all cgroups and we want to prevent from pointless tree
-+	 * walk if no children is below the limit.
+@@ -279,7 +279,7 @@ struct mem_cgroup {
+ 	 * Should we move charges of a task when a task is moved into this
+ 	 * mem_cgroup ? And what type of charges should we move ?
  	 */
- 	while (delta && (parent = parent_mem_cgroup(parent)))
- 		atomic_add(delta, &parent->children_in_excess);
-+	if (memcg != root_mem_cgroup && !root_mem_cgroup->use_hierarchy)
-+		atomic_add(delta, &root_mem_cgroup->children_in_excess);
- 	spin_unlock(&memcg->soft_lock);
+-	unsigned long 	move_charge_at_immigrate;
++	unsigned long move_charge_at_immigrate;
+ 	/*
+ 	 * set > 0 if pages under this cgroup are moving to other cgroup.
+ 	 */
+@@ -324,7 +324,7 @@ struct mem_cgroup {
+ 
+ 	/*
+ 	 * If true then this group has increased parents' children_in_excess
+-         * when it got over the soft limit.
++	 * when it got over the soft limit.
+ 	 * When a group falls bellow the soft limit, parents' children_in_excess
+ 	 * is decreased and soft_contributed changed to false.
+ 	 */
+@@ -835,12 +835,12 @@ static bool mem_cgroup_event_ratelimit(s
  }
  
-@@ -6043,6 +6049,9 @@ static void mem_cgroup_css_offline(struc
- 	if (memcg->soft_contributed) {
- 		while ((memcg = parent_mem_cgroup(memcg)))
- 			atomic_dec(&memcg->children_in_excess);
-+
-+		if (memcg != root_mem_cgroup && !root_mem_cgroup->use_hierarchy)
-+			atomic_dec(&root_mem_cgroup->children_in_excess);
+ /*
+- * Called from rate-limitted memcg_check_events when enough
++ * Called from rate-limited memcg_check_events when enough
+  * MEM_CGROUP_TARGET_SOFTLIMIT events are accumulated and it makes sure
+- * that all the parents up the hierarchy will be noticed that this group
++ * that all the parents up the hierarchy will be notified that this group
+  * is in excess or that it is not in excess anymore. mmecg->soft_contributed
+  * makes the transition a single action whenever the state flips from one to
+- * other.
++ * the other.
+  */
+ static void mem_cgroup_update_soft_limit(struct mem_cgroup *memcg)
+ {
+@@ -1881,8 +1881,8 @@ int mem_cgroup_select_victim_node(struct
+ /*
+  * A group is eligible for the soft limit reclaim under the given root
+  * hierarchy if
+- * 	a) it is over its soft limit
+- * 	b) any parent up the hierarchy is over its soft limit
++ *	a) it is over its soft limit
++ *	b) any parent up the hierarchy is over its soft limit
+  *
+  * If the given group doesn't have any children over the limit then it
+  * doesn't make any sense to iterate its subtree.
+@@ -1904,7 +1904,7 @@ mem_cgroup_soft_reclaim_eligible(struct
+ 	 * If any parent up to the root in the hierarchy is over its soft limit
+ 	 * then we have to obey and reclaim from this group as well.
+ 	 */
+-	while((parent = parent_mem_cgroup(parent))) {
++	while ((parent = parent_mem_cgroup(parent))) {
+ 		if (res_counter_soft_limit_excess(&parent->res))
+ 			return VISIT;
+ 		if (parent == root)
+@@ -2309,7 +2309,7 @@ static void drain_all_stock(struct mem_c
+ 			flush_work(&stock->work);
  	}
- 	mem_cgroup_destroy_all_caches(memcg);
- 	vmpressure_cleanup(&memcg->vmpressure);
+ out:
+- 	put_online_cpus();
++	put_online_cpus();
+ }
+ 
+ /*
+@@ -2741,7 +2741,7 @@ static void __mem_cgroup_commit_charge(s
+ 	 * is accessed after testing USED bit. To make pc->mem_cgroup visible
+ 	 * before USED bit, we need memory barrier here.
+ 	 * See mem_cgroup_add_lru_list(), etc.
+- 	 */
++	 */
+ 	smp_wmb();
+ 	SetPageCgroupUsed(pc);
+ 
+@@ -3483,9 +3483,9 @@ __memcg_kmem_newpage_charge(gfp_t gfp, s
+ 	 * the page allocator. Therefore, the following sequence when backed by
+ 	 * the SLUB allocator:
+ 	 *
+-	 * 	memcg_stop_kmem_account();
+-	 * 	kmalloc(<large_number>)
+-	 * 	memcg_resume_kmem_account();
++	 *	memcg_stop_kmem_account();
++	 *	kmalloc(<large_number>)
++	 *	memcg_resume_kmem_account();
+ 	 *
+ 	 * would effectively ignore the fact that we should skip accounting,
+ 	 * since it will drive us directly to this function without passing
+@@ -4514,7 +4514,7 @@ static int mem_cgroup_resize_limit(struc
+ 				   MEM_CGROUP_RECLAIM_SHRINK);
+ 		curusage = res_counter_read_u64(&memcg->res, RES_USAGE);
+ 		/* Usage is reduced ? */
+-  		if (curusage >= oldusage)
++		if (curusage >= oldusage)
+ 			retry_count--;
+ 		else
+ 			oldusage = curusage;
+@@ -4535,7 +4535,7 @@ static int mem_cgroup_resize_memsw_limit
+ 	int enlarge = 0;
+ 
+ 	/* see mem_cgroup_resize_res_limit */
+- 	retry_count = children * MEM_CGROUP_RECLAIM_RETRIES;
++	retry_count = children * MEM_CGROUP_RECLAIM_RETRIES;
+ 	oldusage = res_counter_read_u64(&memcg->memsw, RES_USAGE);
+ 	while (retry_count) {
+ 		if (signal_pending(current)) {
+diff -puN mm/vmscan.c~memcg-trivial-cleanups mm/vmscan.c
+--- a/mm/vmscan.c~memcg-trivial-cleanups
++++ a/mm/vmscan.c
+@@ -2205,12 +2205,12 @@ static void shrink_zone(struct zone *zon
+ 
+ 	scanned_groups = __shrink_zone(zone, sc, do_soft_reclaim);
+ 	/*
+-         * memcg iterator might race with other reclaimer or start from
+-         * a incomplete tree walk so the tree walk in __shrink_zone
+-         * might have missed groups that are above the soft limit. Try
+-         * another loop to catch up with others. Do it just once to
+-         * prevent from reclaim latencies when other reclaimers always
+-         * preempt this one.
++	 * memcg iterator might race with other reclaimer or start from
++	 * a incomplete tree walk so the tree walk in __shrink_zone
++	 * might have missed groups that are above the soft limit. Try
++	 * another loop to catch up with others. Do it just once to
++	 * prevent from reclaim latencies when other reclaimers always
++	 * preempt this one.
+ 	 */
+ 	if (do_soft_reclaim && !scanned_groups)
+ 		__shrink_zone(zone, sc, do_soft_reclaim);
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-watchdog-update-watchdog-attributes-atomically.patch
-watchdog-update-watchdog_tresh-properly.patch
-watchdog-update-watchdog_tresh-properly-fix.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default-fix.patch
+mm.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+fat-additions-to-support-fat_fallocate-fix-fix.patch
+linux-next.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
