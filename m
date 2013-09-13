@@ -1,64 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-per-node-deferred-work.patch removed from -mm
- tree
-Date: Fri, 13 Sep 2013 14:16:09 -0700
-Message-ID: <52338099.uSGCCuhVVRogUJyu%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch removed from
+ -mm tree
+Date: Fri, 13 Sep 2013 14:16:11 -0700
+Message-ID: <5233809b.TkAosZ6B8mxG9wQQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38625 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38642 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754924Ab3IMVQK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:16:10 -0400
+	with ESMTP id S1754924Ab3IMVQN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 17:16:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, gleb@redhat.com, dchinner@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, glommer@openvz.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tytso@mit.edu, thellstrom@vmware.com, swhiteho@redhat.com, rientjes@google.com, mtosatti@redhat.com, mgorman@suse.de, koverstreet@google.com, kirill.shutemov@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, john.stultz@linaro.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de, gthelen@google.com, glommer@parallels.com, gleb@redhat.com, daniel.vetter@ffwll.ch, cmaiolino@redhat.com, chuck.lever@oracle.com, bfields@redhat.com, arve@android.com, artem.bityutskiy@linux.intel.com, adrian.hunter@intel.com, Trond.Myklebust@netapp.com, dchinner@redhat.com
 
-Subject: [merged] vmscan-per-node-deferred-work.patch removed from -mm tree
-To: glommer@openvz.org,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,dchinner@redhat.com,gleb@redhat.com,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch removed from -mm tree
+To: dchinner@redhat.com,Trond.Myklebust@netapp.com,adrian.hunter@intel.com,artem.bityutskiy@linux.intel.com,arve@android.com,bfields@redhat.com,chuck.lever@oracle.com,cmaiolino@redhat.com,daniel.vetter@ffwll.ch,gleb@redhat.com,glommer@parallels.com,gthelen@google.com,hch@lst.de,jack@suse.cz,jglisse@redhat.com,john.stultz@linaro.org,kamezawa.hiroyu@jp.fujitsu.com,kirill.shutemov@linux.intel.com,koverstreet@google.com,mgorman@suse.de,mtosatti@redhat.com,rientjes@google.com,swhiteho@redhat.com,thellstrom@vmware.com,tytso@mit.edu,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 14:16:09 -0700
+Date: Fri, 13 Sep 2013 14:16:11 -0700
 
 
 The patch titled
-     Subject: vmscan: per-node deferred work
+     Subject: fs: convert inode and dentry shrinking to be node aware
 has been removed from the -mm tree.  Its filename was
-     vmscan-per-node-deferred-work.patch
+     fs-convert-inode-and-dentry-shrinking-to-be-node-aware.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@openvz.org>
-Subject: vmscan: per-node deferred work
+From: Dave Chinner <dchinner@redhat.com>
+Subject: fs: convert inode and dentry shrinking to be node aware
 
-The list_lru infrastructure already keeps per-node LRU lists in its
-node-specific list_lru_node arrays and provide us with a per-node API, and
-the shrinkers are properly equiped with node information.  This means that
-we can now focus our shrinking effort in a single node, but the work that
-is deferred from one run to another is kept global at nr_in_batch.  Work
-can be deferred, for instance, during direct reclaim under a GFP_NOFS
-allocation, where situation, all the filesystem shrinkers will be
-prevented from running and accumulate in nr_in_batch the amount of work
-they should have done, but could not.
+Now that the shrinker is passing a node in the scan control structure, we
+can pass this to the the generic LRU list code to isolate reclaim to the
+lists on matching nodes.
 
-This creates an impedance problem, where upon node pressure, work deferred
-will accumulate and end up being flushed in other nodes.  The problem we
-describe is particularly harmful in big machines, where many nodes can
-accumulate at the same time, all adding to the global counter nr_in_batch.
- As we accumulate more and more, we start to ask for the caches to flush
-even bigger numbers.  The result is that the caches are depleted and do
-not stabilize.  To achieve stable steady state behavior, we need to tackle
-it differently.
-
-In this patch we keep the deferred count per-node, in the new array
-nr_deferred[] (the name is also a bit more descriptive) and will never
-accumulate that to other nodes.
-
-Signed-off-by: Glauber Costa <glommer@openvz.org>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Dave Chinner <dchinner@redhat.com>
+Signed-off-by: Glauber Costa <glommer@parallels.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -86,319 +68,202 @@ Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |   14 +-
- mm/vmscan.c              |  243 +++++++++++++++++++++----------------
- 2 files changed, 153 insertions(+), 104 deletions(-)
+ fs/dcache.c        |    8 +++++---
+ fs/inode.c         |    7 ++++---
+ fs/internal.h      |    6 ++++--
+ fs/super.c         |   23 ++++++++++++++---------
+ fs/xfs/xfs_super.c |    6 ++++--
+ include/linux/fs.h |    4 ++--
+ 6 files changed, 33 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/shrinker.h~vmscan-per-node-deferred-work include/linux/shrinker.h
---- a/include/linux/shrinker.h~vmscan-per-node-deferred-work
-+++ a/include/linux/shrinker.h
-@@ -19,6 +19,8 @@ struct shrink_control {
- 
- 	/* shrink from these nodes */
- 	nodemask_t nodes_to_scan;
-+	/* current node being shrunk (for NUMA aware shrinkers) */
-+	int nid;
- };
- 
- #define SHRINK_STOP (~0UL)
-@@ -44,6 +46,8 @@ struct shrink_control {
-  * due to potential deadlocks. If SHRINK_STOP is returned, then no further
-  * attempts to call the @scan_objects will be made from the current reclaim
-  * context.
-+ *
-+ * @flags determine the shrinker abilities, like numa awareness
-  */
- struct shrinker {
- 	int (*shrink)(struct shrinker *, struct shrink_control *sc);
-@@ -54,12 +58,18 @@ struct shrinker {
- 
- 	int seeks;	/* seeks to recreate an obj */
- 	long batch;	/* reclaim batch size, 0 = default */
-+	unsigned long flags;
- 
- 	/* These are for internal use */
- 	struct list_head list;
--	atomic_long_t nr_in_batch; /* objs pending delete */
-+	/* objs pending delete, per node */
-+	atomic_long_t *nr_deferred;
- };
- #define DEFAULT_SEEKS 2 /* A good number if you don't know better. */
--extern void register_shrinker(struct shrinker *);
-+
-+/* Flags */
-+#define SHRINKER_NUMA_AWARE (1 << 0)
-+
-+extern int register_shrinker(struct shrinker *);
- extern void unregister_shrinker(struct shrinker *);
- #endif
-diff -puN mm/vmscan.c~vmscan-per-node-deferred-work mm/vmscan.c
---- a/mm/vmscan.c~vmscan-per-node-deferred-work
-+++ a/mm/vmscan.c
-@@ -186,14 +186,31 @@ static unsigned long get_lru_size(struct
- }
- 
- /*
-- * Add a shrinker callback to be called from the vm
-+ * Add a shrinker callback to be called from the vm.
-  */
--void register_shrinker(struct shrinker *shrinker)
-+int register_shrinker(struct shrinker *shrinker)
- {
--	atomic_long_set(&shrinker->nr_in_batch, 0);
-+	size_t size = sizeof(*shrinker->nr_deferred);
-+
-+	/*
-+	 * If we only have one possible node in the system anyway, save
-+	 * ourselves the trouble and disable NUMA aware behavior. This way we
-+	 * will save memory and some small loop time later.
-+	 */
-+	if (nr_node_ids == 1)
-+		shrinker->flags &= ~SHRINKER_NUMA_AWARE;
-+
-+	if (shrinker->flags & SHRINKER_NUMA_AWARE)
-+		size *= nr_node_ids;
-+
-+	shrinker->nr_deferred = kzalloc(size, GFP_KERNEL);
-+	if (!shrinker->nr_deferred)
-+		return -ENOMEM;
-+
- 	down_write(&shrinker_rwsem);
- 	list_add_tail(&shrinker->list, &shrinker_list);
- 	up_write(&shrinker_rwsem);
-+	return 0;
- }
- EXPORT_SYMBOL(register_shrinker);
- 
-@@ -217,6 +234,118 @@ static inline int do_shrinker_shrink(str
- }
- 
- #define SHRINK_BATCH 128
-+
-+static unsigned long
-+shrink_slab_node(struct shrink_control *shrinkctl, struct shrinker *shrinker,
-+		 unsigned long nr_pages_scanned, unsigned long lru_pages)
-+{
-+	unsigned long freed = 0;
-+	unsigned long long delta;
-+	long total_scan;
-+	long max_pass;
-+	long nr;
-+	long new_nr;
-+	int nid = shrinkctl->nid;
-+	long batch_size = shrinker->batch ? shrinker->batch
-+					  : SHRINK_BATCH;
-+
-+	if (shrinker->count_objects)
-+		max_pass = shrinker->count_objects(shrinker, shrinkctl);
-+	else
-+		max_pass = do_shrinker_shrink(shrinker, shrinkctl, 0);
-+	if (max_pass == 0)
-+		return 0;
-+
-+	/*
-+	 * copy the current shrinker scan count into a local variable
-+	 * and zero it so that other concurrent shrinker invocations
-+	 * don't also do this scanning work.
-+	 */
-+	nr = atomic_long_xchg(&shrinker->nr_deferred[nid], 0);
-+
-+	total_scan = nr;
-+	delta = (4 * nr_pages_scanned) / shrinker->seeks;
-+	delta *= max_pass;
-+	do_div(delta, lru_pages + 1);
-+	total_scan += delta;
-+	if (total_scan < 0) {
-+		printk(KERN_ERR
-+		"shrink_slab: %pF negative objects to delete nr=%ld\n",
-+		       shrinker->shrink, total_scan);
-+		total_scan = max_pass;
-+	}
-+
-+	/*
-+	 * We need to avoid excessive windup on filesystem shrinkers
-+	 * due to large numbers of GFP_NOFS allocations causing the
-+	 * shrinkers to return -1 all the time. This results in a large
-+	 * nr being built up so when a shrink that can do some work
-+	 * comes along it empties the entire cache due to nr >>>
-+	 * max_pass.  This is bad for sustaining a working set in
-+	 * memory.
-+	 *
-+	 * Hence only allow the shrinker to scan the entire cache when
-+	 * a large delta change is calculated directly.
-+	 */
-+	if (delta < max_pass / 4)
-+		total_scan = min(total_scan, max_pass / 2);
-+
-+	/*
-+	 * Avoid risking looping forever due to too large nr value:
-+	 * never try to free more than twice the estimate number of
-+	 * freeable entries.
-+	 */
-+	if (total_scan > max_pass * 2)
-+		total_scan = max_pass * 2;
-+
-+	trace_mm_shrink_slab_start(shrinker, shrinkctl, nr,
-+				nr_pages_scanned, lru_pages,
-+				max_pass, delta, total_scan);
-+
-+	while (total_scan >= batch_size) {
-+
-+		if (shrinker->scan_objects) {
-+			unsigned long ret;
-+			shrinkctl->nr_to_scan = batch_size;
-+			ret = shrinker->scan_objects(shrinker, shrinkctl);
-+
-+			if (ret == SHRINK_STOP)
-+				break;
-+			freed += ret;
-+		} else {
-+			int nr_before;
-+			long ret;
-+
-+			nr_before = do_shrinker_shrink(shrinker, shrinkctl, 0);
-+			ret = do_shrinker_shrink(shrinker, shrinkctl,
-+							batch_size);
-+			if (ret == -1)
-+				break;
-+			if (ret < nr_before)
-+				freed += nr_before - ret;
-+		}
-+
-+		count_vm_events(SLABS_SCANNED, batch_size);
-+		total_scan -= batch_size;
-+
-+		cond_resched();
-+	}
-+
-+	/*
-+	 * move the unused scan count back into the shrinker in a
-+	 * manner that handles concurrent updates. If we exhausted the
-+	 * scan, there is no need to do an update.
-+	 */
-+	if (total_scan > 0)
-+		new_nr = atomic_long_add_return(total_scan,
-+						&shrinker->nr_deferred[nid]);
-+	else
-+		new_nr = atomic_long_read(&shrinker->nr_deferred[nid]);
-+
-+	trace_mm_shrink_slab_end(shrinker, freed, nr, new_nr);
-+	return freed;
-+}
-+
- /*
-  * Call the shrink functions to age shrinkable caches
+diff -puN fs/dcache.c~fs-convert-inode-and-dentry-shrinking-to-be-node-aware fs/dcache.c
+--- a/fs/dcache.c~fs-convert-inode-and-dentry-shrinking-to-be-node-aware
++++ a/fs/dcache.c
+@@ -907,6 +907,7 @@ dentry_lru_isolate(struct list_head *ite
+  * prune_dcache_sb - shrink the dcache
+  * @sb: superblock
+  * @nr_to_scan : number of entries to try to free
++ * @nid: which node to scan for freeable entities
   *
-@@ -258,108 +387,18 @@ unsigned long shrink_slab(struct shrink_
+  * Attempt to shrink the superblock dcache LRU by @nr_to_scan entries. This is
+  * done when we need more memory an called from the superblock shrinker
+@@ -915,13 +916,14 @@ dentry_lru_isolate(struct list_head *ite
+  * This function may fail to free any resources if all the dentries are in
+  * use.
+  */
+-long prune_dcache_sb(struct super_block *sb, unsigned long nr_to_scan)
++long prune_dcache_sb(struct super_block *sb, unsigned long nr_to_scan,
++		     int nid)
+ {
+ 	LIST_HEAD(dispose);
+ 	long freed;
+ 
+-	freed = list_lru_walk(&sb->s_dentry_lru, dentry_lru_isolate,
+-			      &dispose, nr_to_scan);
++	freed = list_lru_walk_node(&sb->s_dentry_lru, nid, dentry_lru_isolate,
++				       &dispose, &nr_to_scan);
+ 	shrink_dentry_list(&dispose);
+ 	return freed;
+ }
+diff -puN fs/inode.c~fs-convert-inode-and-dentry-shrinking-to-be-node-aware fs/inode.c
+--- a/fs/inode.c~fs-convert-inode-and-dentry-shrinking-to-be-node-aware
++++ a/fs/inode.c
+@@ -749,13 +749,14 @@ inode_lru_isolate(struct list_head *item
+  * to trim from the LRU. Inodes to be freed are moved to a temporary list and
+  * then are freed outside inode_lock by dispose_list().
+  */
+-long prune_icache_sb(struct super_block *sb, unsigned long nr_to_scan)
++long prune_icache_sb(struct super_block *sb, unsigned long nr_to_scan,
++		     int nid)
+ {
+ 	LIST_HEAD(freeable);
+ 	long freed;
+ 
+-	freed = list_lru_walk(&sb->s_inode_lru, inode_lru_isolate,
+-						&freeable, nr_to_scan);
++	freed = list_lru_walk_node(&sb->s_inode_lru, nid, inode_lru_isolate,
++				       &freeable, &nr_to_scan);
+ 	dispose_list(&freeable);
+ 	return freed;
+ }
+diff -puN fs/internal.h~fs-convert-inode-and-dentry-shrinking-to-be-node-aware fs/internal.h
+--- a/fs/internal.h~fs-convert-inode-and-dentry-shrinking-to-be-node-aware
++++ a/fs/internal.h
+@@ -111,7 +111,8 @@ extern int open_check_o_direct(struct fi
+  * inode.c
+  */
+ extern spinlock_t inode_sb_list_lock;
+-extern long prune_icache_sb(struct super_block *sb, unsigned long nr_to_scan);
++extern long prune_icache_sb(struct super_block *sb, unsigned long nr_to_scan,
++			    int nid);
+ extern void inode_add_lru(struct inode *inode);
+ 
+ /*
+@@ -127,7 +128,8 @@ extern int invalidate_inodes(struct supe
+  * dcache.c
+  */
+ extern struct dentry *__d_alloc(struct super_block *, const struct qstr *);
+-extern long prune_dcache_sb(struct super_block *sb, unsigned long nr_to_scan);
++extern long prune_dcache_sb(struct super_block *sb, unsigned long nr_to_scan,
++			    int nid);
+ extern int d_set_mounted(struct dentry *dentry);
+ 
+ /*
+diff -puN fs/super.c~fs-convert-inode-and-dentry-shrinking-to-be-node-aware fs/super.c
+--- a/fs/super.c~fs-convert-inode-and-dentry-shrinking-to-be-node-aware
++++ a/fs/super.c
+@@ -76,10 +76,10 @@ static unsigned long super_cache_scan(st
+ 		return SHRINK_STOP;
+ 
+ 	if (sb->s_op && sb->s_op->nr_cached_objects)
+-		fs_objects = sb->s_op->nr_cached_objects(sb);
++		fs_objects = sb->s_op->nr_cached_objects(sb, sc->nid);
+ 
+-	inodes = list_lru_count(&sb->s_inode_lru);
+-	dentries = list_lru_count(&sb->s_dentry_lru);
++	inodes = list_lru_count_node(&sb->s_inode_lru, sc->nid);
++	dentries = list_lru_count_node(&sb->s_dentry_lru, sc->nid);
+ 	total_objects = dentries + inodes + fs_objects + 1;
+ 
+ 	/* proportion the scan between the caches */
+@@ -90,13 +90,14 @@ static unsigned long super_cache_scan(st
+ 	 * prune the dcache first as the icache is pinned by it, then
+ 	 * prune the icache, followed by the filesystem specific caches
+ 	 */
+-	freed = prune_dcache_sb(sb, dentries);
+-	freed += prune_icache_sb(sb, inodes);
++	freed = prune_dcache_sb(sb, dentries, sc->nid);
++	freed += prune_icache_sb(sb, inodes, sc->nid);
+ 
+ 	if (fs_objects) {
+ 		fs_objects = mult_frac(sc->nr_to_scan, fs_objects,
+ 								total_objects);
+-		freed += sb->s_op->free_cached_objects(sb, fs_objects);
++		freed += sb->s_op->free_cached_objects(sb, fs_objects,
++						       sc->nid);
  	}
  
- 	list_for_each_entry(shrinker, &shrinker_list, list) {
--		unsigned long long delta;
--		long total_scan;
--		long max_pass;
--		long nr;
--		long new_nr;
--		long batch_size = shrinker->batch ? shrinker->batch
--						  : SHRINK_BATCH;
--
--		if (shrinker->count_objects)
--			max_pass = shrinker->count_objects(shrinker, shrinkctl);
--		else
--			max_pass = do_shrinker_shrink(shrinker, shrinkctl, 0);
--		if (max_pass == 0)
--			continue;
-+		for_each_node_mask(shrinkctl->nid, shrinkctl->nodes_to_scan) {
-+			if (!node_online(shrinkctl->nid))
-+				continue;
-+
-+			if (!(shrinker->flags & SHRINKER_NUMA_AWARE) &&
-+			    (shrinkctl->nid != 0))
-+				break;
+ 	drop_super(sb);
+@@ -115,10 +116,13 @@ static unsigned long super_cache_count(s
+ 		return 0;
  
--		/*
--		 * copy the current shrinker scan count into a local variable
--		 * and zero it so that other concurrent shrinker invocations
--		 * don't also do this scanning work.
--		 */
--		nr = atomic_long_xchg(&shrinker->nr_in_batch, 0);
-+			freed += shrink_slab_node(shrinkctl, shrinker,
-+				 nr_pages_scanned, lru_pages);
+ 	if (sb->s_op && sb->s_op->nr_cached_objects)
+-		total_objects = sb->s_op->nr_cached_objects(sb);
++		total_objects = sb->s_op->nr_cached_objects(sb,
++						 sc->nid);
  
--		total_scan = nr;
--		delta = (4 * nr_pages_scanned) / shrinker->seeks;
--		delta *= max_pass;
--		do_div(delta, lru_pages + 1);
--		total_scan += delta;
--		if (total_scan < 0) {
--			printk(KERN_ERR
--			"shrink_slab: %pF negative objects to delete nr=%ld\n",
--			       shrinker->shrink, total_scan);
--			total_scan = max_pass;
- 		}
--
--		/*
--		 * We need to avoid excessive windup on filesystem shrinkers
--		 * due to large numbers of GFP_NOFS allocations causing the
--		 * shrinkers to return -1 all the time. This results in a large
--		 * nr being built up so when a shrink that can do some work
--		 * comes along it empties the entire cache due to nr >>>
--		 * max_pass.  This is bad for sustaining a working set in
--		 * memory.
--		 *
--		 * Hence only allow the shrinker to scan the entire cache when
--		 * a large delta change is calculated directly.
--		 */
--		if (delta < max_pass / 4)
--			total_scan = min(total_scan, max_pass / 2);
--
--		/*
--		 * Avoid risking looping forever due to too large nr value:
--		 * never try to free more than twice the estimate number of
--		 * freeable entries.
--		 */
--		if (total_scan > max_pass * 2)
--			total_scan = max_pass * 2;
--
--		trace_mm_shrink_slab_start(shrinker, shrinkctl, nr,
--					nr_pages_scanned, lru_pages,
--					max_pass, delta, total_scan);
--
--		while (total_scan >= batch_size) {
--
--			if (shrinker->scan_objects) {
--				unsigned long ret;
--				shrinkctl->nr_to_scan = batch_size;
--				ret = shrinker->scan_objects(shrinker, shrinkctl);
--
--				if (ret == SHRINK_STOP)
--					break;
--				freed += ret;
--			} else {
--				int nr_before;
--				long ret;
--
--				nr_before = do_shrinker_shrink(shrinker, shrinkctl, 0);
--				ret = do_shrinker_shrink(shrinker, shrinkctl,
--								batch_size);
--				if (ret == -1)
--					break;
--				if (ret < nr_before)
--					freed += nr_before - ret;
--			}
--
--			count_vm_events(SLABS_SCANNED, batch_size);
--			total_scan -= batch_size;
--
--			cond_resched();
--		}
--
--		/*
--		 * move the unused scan count back into the shrinker in a
--		 * manner that handles concurrent updates. If we exhausted the
--		 * scan, there is no need to do an update.
--		 */
--		if (total_scan > 0)
--			new_nr = atomic_long_add_return(total_scan,
--					&shrinker->nr_in_batch);
--		else
--			new_nr = atomic_long_read(&shrinker->nr_in_batch);
+-	total_objects += list_lru_count(&sb->s_dentry_lru);
+-	total_objects += list_lru_count(&sb->s_inode_lru);
++	total_objects += list_lru_count_node(&sb->s_dentry_lru,
++						 sc->nid);
++	total_objects += list_lru_count_node(&sb->s_inode_lru,
++						 sc->nid);
+ 
+ 	total_objects = vfs_pressure_ratio(total_objects);
+ 	drop_super(sb);
+@@ -228,6 +232,7 @@ static struct super_block *alloc_super(s
+ 		s->s_shrink.scan_objects = super_cache_scan;
+ 		s->s_shrink.count_objects = super_cache_count;
+ 		s->s_shrink.batch = 1024;
++		s->s_shrink.flags = SHRINKER_NUMA_AWARE;
+ 	}
+ out:
+ 	return s;
+diff -puN fs/xfs/xfs_super.c~fs-convert-inode-and-dentry-shrinking-to-be-node-aware fs/xfs/xfs_super.c
+--- a/fs/xfs/xfs_super.c~fs-convert-inode-and-dentry-shrinking-to-be-node-aware
++++ a/fs/xfs/xfs_super.c
+@@ -1537,7 +1537,8 @@ xfs_fs_mount(
+ 
+ static long
+ xfs_fs_nr_cached_objects(
+-	struct super_block	*sb)
++	struct super_block	*sb,
++	int			nid)
+ {
+ 	return xfs_reclaim_inodes_count(XFS_M(sb));
+ }
+@@ -1545,7 +1546,8 @@ xfs_fs_nr_cached_objects(
+ static long
+ xfs_fs_free_cached_objects(
+ 	struct super_block	*sb,
+-	long			nr_to_scan)
++	long			nr_to_scan,
++	int			nid)
+ {
+ 	return xfs_reclaim_inodes_nr(XFS_M(sb), nr_to_scan);
+ }
+diff -puN include/linux/fs.h~fs-convert-inode-and-dentry-shrinking-to-be-node-aware include/linux/fs.h
+--- a/include/linux/fs.h~fs-convert-inode-and-dentry-shrinking-to-be-node-aware
++++ a/include/linux/fs.h
+@@ -1624,8 +1624,8 @@ struct super_operations {
+ 	ssize_t (*quota_write)(struct super_block *, int, const char *, size_t, loff_t);
+ #endif
+ 	int (*bdev_try_to_free_page)(struct super_block*, struct page*, gfp_t);
+-	long (*nr_cached_objects)(struct super_block *);
+-	long (*free_cached_objects)(struct super_block *, long);
++	long (*nr_cached_objects)(struct super_block *, int);
++	long (*free_cached_objects)(struct super_block *, long, int);
+ };
+ 
+ /*
+_
+
+Patches currently in -mm which might be from dchinner@redhat.com are
+
+origin.patch
+linux-next.patch
+xfs-convert-buftarg-lru-to-generic-code.patch
+xfs-rework-buffer-dispose-list-tracking.patch
+xfs-convert-dquot-cache-lru-to-list_lru.patch
+fs-convert-fs-shrinkers-to-new-scan-count-api.patch
+drivers-convert-shrinkers-to-new-count-scan-api.patch
+i915-bail-out-earlier-when-shrinker-cannot-acquire-mutex.patch
+shrinker-convert-remaining-shrinkers-to-count-scan-api.patch
+hugepage-convert-huge-zero-page-shrinker-to-new-shrinker-api.patch
+shrinker-kill-old-shrink-api.patch
+list_lru-dynamically-adjust-node-arrays.patch
+staging-lustre-ldlm-convert-to-shrinkers-to-count-scan-api.patch
+staging-lustre-obdclass-convert-lu_object-shrinker-to-count-scan-api.patch
+staging-lustre-ptlrpc-convert-to-new-shrinker-api.patch
+staging-lustre-libcfs-cleanup-linux-memh.patch
+
