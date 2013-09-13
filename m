@@ -1,47 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
- removed from -mm tree
-Date: Fri, 13 Sep 2013 13:02:58 -0700
-Message-ID: <52336f72.02SL6Qe0l+XPDTzp%akpm@linux-foundation.org>
+Subject: [merged] thp-do_huge_pmd_anonymous_page-cleanup.patch removed
+ from -mm tree
+Date: Fri, 13 Sep 2013 13:03:00 -0700
+Message-ID: <52336f74.RJ4L9wK9Md9E3NA4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38070 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755241Ab3IMUC7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:02:59 -0400
+	with ESMTP id S1755241Ab3IMUDB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Sep 2013 16:03:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, willy@linux.intel.com, viro@zeniv.linux.org.uk, mgorman@suse.de, jack@suse.cz, hughd@google.com, fengguang.wu@intel.com, dhillf@gmail.com, dave.hansen@linux.intel.com, ak@linux.intel.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch removed from -mm tree
+Subject: [merged] thp-do_huge_pmd_anonymous_page-cleanup.patch removed from -mm tree
 To: kirill.shutemov@linux.intel.com,aarcange@redhat.com,ak@linux.intel.com,dave.hansen@linux.intel.com,dhillf@gmail.com,fengguang.wu@intel.com,hughd@google.com,jack@suse.cz,mgorman@suse.de,viro@zeniv.linux.org.uk,willy@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 13 Sep 2013 13:02:58 -0700
+Date: Fri, 13 Sep 2013 13:03:00 -0700
 
 
 The patch titled
-     Subject: thp: move maybe_pmd_mkwrite() out of mk_huge_pmd()
+     Subject: thp: do_huge_pmd_anonymous_page() cleanup
 has been removed from the -mm tree.  Its filename was
-     thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd.patch
+     thp-do_huge_pmd_anonymous_page-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: move maybe_pmd_mkwrite() out of mk_huge_pmd()
+Subject: thp: do_huge_pmd_anonymous_page() cleanup
 
-It's confusing that mk_huge_pmd() has semantics different from mk_pte() or
-mk_pmd().  I spent some time on debugging issue cased by this
-inconsistency.
+Minor cleanup: unindent most code of the fucntion by inverting one
+condition.  It's preparation for the next patch.
 
-Let's move maybe_pmd_mkwrite() out of mk_huge_pmd() and adjust prototype
-to match mk_pte().
+No functional changes.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Acked-by: Hillf Danton <dhillf@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Hugh Dickins <hughd@google.com>
@@ -50,60 +48,113 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |   83 ++++++++++++++++++++++-----------------------
+ 1 file changed, 41 insertions(+), 42 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~thp-move-maybe_pmd_mkwrite-out-of-mk_huge_pmd
+diff -puN mm/huge_memory.c~thp-do_huge_pmd_anonymous_page-cleanup mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-do_huge_pmd_anonymous_page-cleanup
 +++ a/mm/huge_memory.c
-@@ -690,11 +690,10 @@ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struc
- 	return pmd;
- }
+@@ -785,55 +785,54 @@ int do_huge_pmd_anonymous_page(struct mm
+ 	unsigned long haddr = address & HPAGE_PMD_MASK;
+ 	pte_t *pte;
  
--static inline pmd_t mk_huge_pmd(struct page *page, struct vm_area_struct *vma)
-+static inline pmd_t mk_huge_pmd(struct page *page, pgprot_t prot)
- {
- 	pmd_t entry;
--	entry = mk_pmd(page, vma->vm_page_prot);
--	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
-+	entry = mk_pmd(page, prot);
- 	entry = pmd_mkhuge(entry);
- 	return entry;
- }
-@@ -727,7 +726,8 @@ static int __do_huge_pmd_anonymous_page(
- 		pte_free(mm, pgtable);
- 	} else {
- 		pmd_t entry;
--		entry = mk_huge_pmd(page, vma);
-+		entry = mk_huge_pmd(page, vma->vm_page_prot);
-+		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 		page_add_new_anon_rmap(page, vma, haddr);
- 		pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 		set_pmd_at(mm, haddr, pmd, entry);
-@@ -1210,7 +1210,8 @@ alloc:
- 		goto out_mn;
- 	} else {
- 		pmd_t entry;
--		entry = mk_huge_pmd(new_page, vma);
-+		entry = mk_huge_pmd(new_page, vma->vm_page_prot);
-+		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 		pmdp_clear_flush(vma, haddr, pmd);
- 		page_add_new_anon_rmap(new_page, vma, haddr);
- 		set_pmd_at(mm, haddr, pmd, entry);
-@@ -2358,7 +2359,8 @@ static void collapse_huge_page(struct mm
- 	__SetPageUptodate(new_page);
- 	pgtable = pmd_pgtable(_pmd);
- 
--	_pmd = mk_huge_pmd(new_page, vma);
-+	_pmd = mk_huge_pmd(new_page, vma->vm_page_prot);
-+	_pmd = maybe_pmd_mkwrite(pmd_mkdirty(_pmd), vma);
- 
+-	if (haddr >= vma->vm_start && haddr + HPAGE_PMD_SIZE <= vma->vm_end) {
+-		if (unlikely(anon_vma_prepare(vma)))
++	if (haddr < vma->vm_start || haddr + HPAGE_PMD_SIZE > vma->vm_end)
++		goto out;
++	if (unlikely(anon_vma_prepare(vma)))
++		return VM_FAULT_OOM;
++	if (unlikely(khugepaged_enter(vma)))
++		return VM_FAULT_OOM;
++	if (!(flags & FAULT_FLAG_WRITE) &&
++			transparent_hugepage_use_zero_page()) {
++		pgtable_t pgtable;
++		struct page *zero_page;
++		bool set;
++		pgtable = pte_alloc_one(mm, haddr);
++		if (unlikely(!pgtable))
+ 			return VM_FAULT_OOM;
+-		if (unlikely(khugepaged_enter(vma)))
+-			return VM_FAULT_OOM;
+-		if (!(flags & FAULT_FLAG_WRITE) &&
+-				transparent_hugepage_use_zero_page()) {
+-			pgtable_t pgtable;
+-			struct page *zero_page;
+-			bool set;
+-			pgtable = pte_alloc_one(mm, haddr);
+-			if (unlikely(!pgtable))
+-				return VM_FAULT_OOM;
+-			zero_page = get_huge_zero_page();
+-			if (unlikely(!zero_page)) {
+-				pte_free(mm, pgtable);
+-				count_vm_event(THP_FAULT_FALLBACK);
+-				goto out;
+-			}
+-			spin_lock(&mm->page_table_lock);
+-			set = set_huge_zero_page(pgtable, mm, vma, haddr, pmd,
+-					zero_page);
+-			spin_unlock(&mm->page_table_lock);
+-			if (!set) {
+-				pte_free(mm, pgtable);
+-				put_huge_zero_page();
+-			}
+-			return 0;
+-		}
+-		page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
+-					  vma, haddr, numa_node_id(), 0);
+-		if (unlikely(!page)) {
++		zero_page = get_huge_zero_page();
++		if (unlikely(!zero_page)) {
++			pte_free(mm, pgtable);
+ 			count_vm_event(THP_FAULT_FALLBACK);
+ 			goto out;
+ 		}
+-		count_vm_event(THP_FAULT_ALLOC);
+-		if (unlikely(mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))) {
+-			put_page(page);
+-			goto out;
+-		}
+-		if (unlikely(__do_huge_pmd_anonymous_page(mm, vma, haddr, pmd,
+-							  page))) {
+-			mem_cgroup_uncharge_page(page);
+-			put_page(page);
+-			goto out;
++		spin_lock(&mm->page_table_lock);
++		set = set_huge_zero_page(pgtable, mm, vma, haddr, pmd,
++				zero_page);
++		spin_unlock(&mm->page_table_lock);
++		if (!set) {
++			pte_free(mm, pgtable);
++			put_huge_zero_page();
+ 		}
+-
+ 		return 0;
+ 	}
++	page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
++			vma, haddr, numa_node_id(), 0);
++	if (unlikely(!page)) {
++		count_vm_event(THP_FAULT_FALLBACK);
++		goto out;
++	}
++	count_vm_event(THP_FAULT_ALLOC);
++	if (unlikely(mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))) {
++		put_page(page);
++		goto out;
++	}
++	if (unlikely(__do_huge_pmd_anonymous_page(mm, vma, haddr, pmd, page))) {
++		mem_cgroup_uncharge_page(page);
++		put_page(page);
++		goto out;
++	}
++
++	return 0;
+ out:
  	/*
- 	 * spin_lock() below is not the equivalent of smp_wmb(), so
+ 	 * Use __pte_alloc instead of pte_alloc_map, because we can't
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
