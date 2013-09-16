@@ -1,164 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: +
- arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers-update.patch added to -mm tree
-Date: Mon, 16 Sep 2013 14:21:34 -0700
-Message-ID: <5237765e.0S2j8vINjLz7hM80%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ misdn-add-support-for-group-membership-check.patch removed from -mm tree
+Date: Mon, 16 Sep 2013 14:22:55 -0700
+Message-ID: <523776af.wAtkX00eBlHvQHFP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57199 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57207 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002Ab3IPVVf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Sep 2013 17:21:35 -0400
+	with ESMTP id S1750968Ab3IPVW4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Sep 2013 17:22:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, gorcunov@openvz.org, gorcunov@gmail.com
+To: mm-commits@vger.kernel.org, sergei.shtylyov@cogentembedded.com, jslaby@suse.cz, isdn@linux-pingi.de, isdn4linux@koppen.de, davem@davemloft.net, jeffm@suse.com
 
-Subject: + arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers-update.patch added to -mm tree
-To: gorcunov@gmail.com,gorcunov@openvz.org,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de
+Subject: [to-be-updated] misdn-add-support-for-group-membership-check.patch removed from -mm tree
+To: jeffm@suse.com,davem@davemloft.net,isdn4linux@koppen.de,isdn@linux-pingi.de,jslaby@suse.cz,sergei.shtylyov@cogentembedded.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 16 Sep 2013 14:21:34 -0700
+Date: Mon, 16 Sep 2013 14:22:55 -0700
 
 
 The patch titled
-     Subject: mm: unify pte_to_pgoff and pgoff_to_pte helpers
-has been added to the -mm tree.  Its filename is
-     arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers-update.patch
+     Subject: mISDN: add support for group membership check
+has been removed from the -mm tree.  Its filename was
+     misdn-add-support-for-group-membership-check.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers-update.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers-update.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: mm: unify pte_to_pgoff and pgoff_to_pte helpers
+From: Jeff Mahoney <jeffm@suse.com>
+Subject: mISDN: add support for group membership check
 
-Use unified pte_bfop helper to manipulate bits in pte/pgoff bitfield, and
-convert pte_to_pgoff/pgoff_to_pte to inlines.
+This patch adds a module parameter to allow a group access to the mISDN
+devices.  Otherwise, unpriviledged users on systems with ISDN hardware
+have the ability to dial out, potentially causing expensive bills.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Based on a different implementation by Patrick Koppen.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Acked-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Patrick Koppen <isdn4linux@koppen.de>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable-2level.h |   70 +++++++++++++++---------
- 1 file changed, 44 insertions(+), 26 deletions(-)
+ drivers/isdn/mISDN/core.c   |    6 ++++++
+ drivers/isdn/mISDN/core.h   |    1 +
+ drivers/isdn/mISDN/socket.c |    9 +++++++++
+ 3 files changed, 16 insertions(+)
 
-diff -puN arch/x86/include/asm/pgtable-2level.h~arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers-update arch/x86/include/asm/pgtable-2level.h
---- a/arch/x86/include/asm/pgtable-2level.h~arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers-update
-+++ a/arch/x86/include/asm/pgtable-2level.h
-@@ -55,8 +55,12 @@ static inline pmd_t native_pmdp_get_and_
- #define native_pmdp_get_and_clear(xp) native_local_pmdp_get_and_clear(xp)
- #endif
+diff -puN drivers/isdn/mISDN/core.c~misdn-add-support-for-group-membership-check drivers/isdn/mISDN/core.c
+--- a/drivers/isdn/mISDN/core.c~misdn-add-support-for-group-membership-check
++++ a/drivers/isdn/mISDN/core.c
+@@ -21,10 +21,14 @@
+ #include "core.h"
  
--#define _mfrob(v,r,m,l)		((((v) >> (r)) & (m)) << (l))
--#define __frob(v,r,l)		(((v) >> (r)) << (l))
-+/* Bit manipulation helper on pte/pgoff entry */
-+static inline unsigned long pte_bfop(unsigned long value, unsigned int rightshift,
-+				     unsigned long mask, unsigned int leftshift)
-+{
-+	return ((value >> rightshift) & mask) << leftshift;
-+}
+ static u_int debug;
++static u_int gid;
++kgid_t misdn_permitted_gid;
  
- #ifdef CONFIG_MEM_SOFT_DIRTY
+ MODULE_AUTHOR("Karsten Keil");
+ MODULE_LICENSE("GPL");
+ module_param(debug, uint, S_IRUGO | S_IWUSR);
++module_param(gid, uint, 0);
++MODULE_PARM_DESC(gid, "Unix group for accessing misdn socket (default 0)");
  
-@@ -82,19 +86,26 @@ static inline pmd_t native_pmdp_get_and_
- #define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
- #define PTE_FILE_LSHIFT4	(PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3)
+ static u64		device_ids;
+ #define MAX_DEVICE_ID	63
+@@ -372,6 +376,8 @@ mISDNInit(void)
+ {
+ 	int	err;
  
--#define pte_to_pgoff(pte)							    \
--	(_mfrob((pte).pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1, 0)		  + \
--	 _mfrob((pte).pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2, PTE_FILE_LSHIFT2) + \
--	 _mfrob((pte).pte_low, PTE_FILE_SHIFT3, PTE_FILE_MASK3, PTE_FILE_LSHIFT3) + \
--	 __frob((pte).pte_low, PTE_FILE_SHIFT4, PTE_FILE_LSHIFT4))
--
--#define pgoff_to_pte(off)							\
--	((pte_t) { .pte_low =							\
--	_mfrob(off,                0, PTE_FILE_MASK1, PTE_FILE_SHIFT1)	+	\
--	_mfrob(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2, PTE_FILE_SHIFT2)	+	\
--	_mfrob(off, PTE_FILE_LSHIFT3, PTE_FILE_MASK3, PTE_FILE_SHIFT3)	+	\
--	__frob(off, PTE_FILE_LSHIFT4, PTE_FILE_SHIFT4)			+	\
--	_PAGE_FILE })
-+static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
-+{
-+	return (pgoff_t)
-+		(pte_bfop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		   +
-+		 pte_bfop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
-+		 pte_bfop(pte.pte_low, PTE_FILE_SHIFT3, PTE_FILE_MASK3,  PTE_FILE_LSHIFT3) +
-+		 pte_bfop(pte.pte_low, PTE_FILE_SHIFT4,           -1UL,  PTE_FILE_LSHIFT4));
-+}
++	misdn_permitted_gid = make_kgid(current_user_ns(), gid);
 +
-+static __always_inline pte_t pgoff_to_pte(pgoff_t off)
-+{
-+	return (pte_t){
-+		.pte_low =
-+			pte_bfop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
-+			pte_bfop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
-+			pte_bfop(off, PTE_FILE_LSHIFT3, PTE_FILE_MASK3,  PTE_FILE_SHIFT3) +
-+			pte_bfop(off, PTE_FILE_LSHIFT4,           -1UL,  PTE_FILE_SHIFT4) +
-+			_PAGE_FILE,
-+	};
-+}
+ 	printk(KERN_INFO "Modular ISDN core version %d.%d.%d\n",
+ 	       MISDN_MAJOR_VERSION, MISDN_MINOR_VERSION, MISDN_RELEASE);
+ 	mISDN_init_clock(&debug);
+diff -puN drivers/isdn/mISDN/core.h~misdn-add-support-for-group-membership-check drivers/isdn/mISDN/core.h
+--- a/drivers/isdn/mISDN/core.h~misdn-add-support-for-group-membership-check
++++ a/drivers/isdn/mISDN/core.h
+@@ -17,6 +17,7 @@
  
- #else /* CONFIG_MEM_SOFT_DIRTY */
+ extern struct mISDNdevice	*get_mdevice(u_int);
+ extern int			get_mdevice_count(void);
++extern kgid_t misdn_permitted_gid;
  
-@@ -120,17 +131,24 @@ static inline pmd_t native_pmdp_get_and_
- #define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
- #define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
+ /* stack status flag */
+ #define mISDN_STACK_ACTION_MASK		0x0000ffff
+diff -puN drivers/isdn/mISDN/socket.c~misdn-add-support-for-group-membership-check drivers/isdn/mISDN/socket.c
+--- a/drivers/isdn/mISDN/socket.c~misdn-add-support-for-group-membership-check
++++ a/drivers/isdn/mISDN/socket.c
+@@ -612,6 +612,11 @@ data_sock_create(struct net *net, struct
+ {
+ 	struct sock *sk;
  
--#define pte_to_pgoff(pte)							    \
--	(_mfrob((pte).pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1, 0)		  + \
--	 _mfrob((pte).pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2, PTE_FILE_LSHIFT2) + \
--	 __frob((pte).pte_low, PTE_FILE_SHIFT3, PTE_FILE_LSHIFT3))
--
--#define pgoff_to_pte(off)							\
--	((pte_t) { .pte_low =							\
--	_mfrob(off,                0, PTE_FILE_MASK1, PTE_FILE_SHIFT1)	+	\
--	_mfrob(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2, PTE_FILE_SHIFT2)	+	\
--	__frob(off, PTE_FILE_LSHIFT3, PTE_FILE_SHIFT3)			+	\
--	_PAGE_FILE })
-+static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
-+{
-+	return (pgoff_t)
-+		(pte_bfop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		   +
-+		 pte_bfop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
-+		 pte_bfop(pte.pte_low, PTE_FILE_SHIFT3,           -1UL,  PTE_FILE_LSHIFT3));
-+}
++	if (!capable(CAP_SYS_ADMIN) &&
++			!gid_eq(misdn_permitted_gid, current_gid()) &&
++			!in_group_p(misdn_permitted_gid))
++		return -EPERM;
 +
-+static __always_inline pte_t pgoff_to_pte(pgoff_t off)
-+{
-+	return (pte_t){
-+		.pte_low =
-+			pte_bfop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
-+			pte_bfop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
-+			pte_bfop(off, PTE_FILE_LSHIFT3,           -1UL,  PTE_FILE_SHIFT3) +
-+			_PAGE_FILE,
-+	};
-+}
+ 	if (sock->type != SOCK_DGRAM)
+ 		return -ESOCKTNOSUPPORT;
  
- #endif /* CONFIG_MEM_SOFT_DIRTY */
- 
+@@ -694,6 +699,10 @@ base_sock_ioctl(struct socket *sock, uns
+ 	case IMSETDEVNAME:
+ 	{
+ 		struct mISDN_devrename dn;
++		if (!capable(CAP_SYS_ADMIN) &&
++				!gid_eq(misdn_permitted_gid, current_gid()) &&
++				!in_group_p(misdn_permitted_gid))
++			return -EPERM;
+ 		if (copy_from_user(&dn, (void __user *)arg,
+ 				   sizeof(dn))) {
+ 			err = -EFAULT;
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
 origin.patch
-arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
-arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers-update.patch
+drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo.patch
+drivers-net-ethernet-ibm-ehea-ehea_mainc-add-alias-entry-for-portn-properties.patch
 
