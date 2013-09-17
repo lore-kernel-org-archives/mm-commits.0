@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch added to -mm tree
-Date: Tue, 17 Sep 2013 13:58:02 -0700
-Message-ID: <5238c25a.s2n5rtaWiQhqEFzp%akpm@linux-foundation.org>
+ revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
+ added to -mm tree
+Date: Tue, 17 Sep 2013 13:58:07 -0700
+Message-ID: <5238c25f.ebEf7YGOMTf1J/3y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38444 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753918Ab3IQU6D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 16:58:03 -0400
+	with ESMTP id S1753930Ab3IQU6I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 16:58:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, mhocko@suse.cz, hannes@cmpxchg.org, akpm@linux-foundation.org
 
-Subject: + revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch added to -mm tree
+Subject: + revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch added to -mm tree
 To: akpm@linux-foundation.org,hannes@cmpxchg.org,mhocko@suse.cz,torvalds@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Tue, 17 Sep 2013 13:58:02 -0700
+Date: Tue, 17 Sep 2013 13:58:07 -0700
 
 
 The patch titled
-     Subject: revert "memcg, vmscan: do not attempt soft limit reclaim if it would not scan anything"
+     Subject: revert "vmscan, memcg: do softlimit reclaim also for targeted reclaim"
 has been added to the -mm tree.  Its filename is
-     revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+     revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,17 +46,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "memcg, vmscan: do not attempt soft limit reclaim if it would not scan anything"
+Subject: revert "vmscan, memcg: do softlimit reclaim also for targeted reclaim"
 
 Revert
 
-: commit e839b6a1c8d0895803bcbd587595a54f4221a625
+: commit a5b7c87f92076352dbff2fe0423ec255e1c9a71b
 : Author:     Michal Hocko <mhocko@suse.cz>
-: AuthorDate: Thu Sep 12 15:13:30 2013 -0700
+: AuthorDate: Thu Sep 12 15:13:25 2013 -0700
 : Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-: CommitDate: Thu Sep 12 15:38:01 2013 -0700
+: CommitDate: Thu Sep 12 15:38:00 2013 -0700
 : 
-:     memcg, vmscan: do not attempt soft limit reclaim if it would not scan anything
+:     vmscan, memcg: do softlimit reclaim also for targeted reclaim
 
 I merged this prematurely - Michal and Johannes still disagree about the
 overall design direction and the future remains unclear.
@@ -65,40 +66,92 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +-----
- mm/vmscan.c     |    4 +---
- 2 files changed, 2 insertions(+), 8 deletions(-)
+ include/linux/memcontrol.h |    6 ++----
+ mm/memcontrol.c            |   14 +++++---------
+ mm/vmscan.c                |    4 ++--
+ 3 files changed, 9 insertions(+), 15 deletions(-)
 
-diff -puN mm/memcontrol.c~revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything mm/memcontrol.c
---- a/mm/memcontrol.c~revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything
-+++ a/mm/memcontrol.c
-@@ -1872,11 +1872,7 @@ enum mem_cgroup_filter_t
- mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg,
- 		struct mem_cgroup *root)
- {
--	struct mem_cgroup *parent;
--
--	if (!memcg)
--		memcg = root_mem_cgroup;
--	parent = memcg;
-+	struct mem_cgroup *parent = memcg;
+diff -puN include/linux/memcontrol.h~revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim
++++ a/include/linux/memcontrol.h
+@@ -234,8 +234,7 @@ static inline void mem_cgroup_dec_page_s
+ 	mem_cgroup_update_page_stat(page, idx, -1);
+ }
  
- 	if (res_counter_soft_limit_excess(&memcg->res))
- 		return VISIT;
-diff -puN mm/vmscan.c~revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything mm/vmscan.c
---- a/mm/vmscan.c~revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything
+-bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg,
+-		struct mem_cgroup *root);
++bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg);
+ 
+ void __mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
+ static inline void mem_cgroup_count_vm_event(struct mm_struct *mm,
+@@ -435,8 +434,7 @@ static inline void mem_cgroup_dec_page_s
+ }
+ 
+ static inline
+-bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg,
+-		struct mem_cgroup *root)
++bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg)
+ {
+ 	return false;
+ }
+diff -puN mm/memcontrol.c~revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim mm/memcontrol.c
+--- a/mm/memcontrol.c~revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim
++++ a/mm/memcontrol.c
+@@ -1760,13 +1760,11 @@ int mem_cgroup_select_victim_node(struct
+ #endif
+ 
+ /*
+- * A group is eligible for the soft limit reclaim under the given root
+- * hierarchy if
+- *	a) it is over its soft limit
++ * A group is eligible for the soft limit reclaim if
++ * 	a) it is over its soft limit
+  *	b) any parent up the hierarchy is over its soft limit
+  */
+-bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg,
+-		struct mem_cgroup *root)
++bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg)
+ {
+ 	struct mem_cgroup *parent = memcg;
+ 
+@@ -1774,14 +1772,12 @@ bool mem_cgroup_soft_reclaim_eligible(st
+ 		return true;
+ 
+ 	/*
+-	 * If any parent up to the root in the hierarchy is over its soft limit
+-	 * then we have to obey and reclaim from this group as well.
++	 * If any parent up the hierarchy is over its soft limit then we
++	 * have to obey and reclaim from this group as well.
+ 	 */
+ 	while ((parent = parent_mem_cgroup(parent))) {
+ 		if (res_counter_soft_limit_excess(&parent->res))
+ 			return true;
+-		if (parent == root)
+-			break;
+ 	}
+ 
+ 	return false;
+diff -puN mm/vmscan.c~revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim
 +++ a/mm/vmscan.c
-@@ -142,9 +142,7 @@ static bool global_reclaim(struct scan_c
+@@ -142,7 +142,7 @@ static bool global_reclaim(struct scan_c
  
  static bool mem_cgroup_should_soft_reclaim(struct scan_control *sc)
  {
--	struct mem_cgroup *root = sc->target_mem_cgroup;
--	return !mem_cgroup_disabled() &&
--		mem_cgroup_soft_reclaim_eligible(root, root) != SKIP_TREE;
-+	return !mem_cgroup_disabled();
+-	return !mem_cgroup_disabled();
++	return !mem_cgroup_disabled() && global_reclaim(sc);
  }
  #else
  static bool global_reclaim(struct scan_control *sc)
+@@ -2195,7 +2195,7 @@ __shrink_zone(struct zone *zone, struct
+ 			struct lruvec *lruvec;
+ 
+ 			if (soft_reclaim &&
+-			    !mem_cgroup_soft_reclaim_eligible(memcg, root)) {
++			    !mem_cgroup_soft_reclaim_eligible(memcg)) {
+ 				memcg = mem_cgroup_iter(root, memcg, &reclaim);
+ 				continue;
+ 			}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
