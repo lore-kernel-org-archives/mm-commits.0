@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ocfs2-filec-fix-wrong-comment.patch added to -mm tree
-Date: Tue, 17 Sep 2013 14:53:30 -0700
-Message-ID: <5238cf5a.AwoXZyLimlLcdwPV%akpm@linux-foundation.org>
+Subject: +
+ kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch
+ added to -mm tree
+Date: Tue, 17 Sep 2013 15:37:16 -0700
+Message-ID: <5238d99c.LODgu49Zy4ZvLtzu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39001 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39516 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753271Ab3IQVxa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 17:53:30 -0400
+	with ESMTP id S1752890Ab3IQWhR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 18:37:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, junxiao.bi@oracle.com
+To: mm-commits@vger.kernel.org, gang.chen@asianux.com
 
-Subject: + fs-ocfs2-filec-fix-wrong-comment.patch added to -mm tree
-To: junxiao.bi@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch added to -mm tree
+To: gang.chen@asianux.com
 From: akpm@linux-foundation.org
-Date: Tue, 17 Sep 2013 14:53:30 -0700
+Date: Tue, 17 Sep 2013 15:37:16 -0700
 
 
 The patch titled
-     Subject: fs/ocfs2/file.c: fix wrong comment
+     Subject: kernel/delayacct.c: remove redundant checking in __delayacct_add_tsk()
 has been added to the -mm tree.  Its filename is
-     fs-ocfs2-filec-fix-wrong-comment.patch
+     kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-filec-fix-wrong-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-filec-fix-wrong-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,39 +45,31 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: fs/ocfs2/file.c: fix wrong comment
+From: Chen Gang <gang.chen@asianux.com>
+Subject: kernel/delayacct.c: remove redundant checking in __delayacct_add_tsk()
 
-Unwritten extent only exists for file systems which support holes.  But
-the comment said was opposite meaning and also the comment is not very
-clear, so rephase it.
+The wrapper function delayacct_add_tsk() already checked 'tsk->delays',
+and __delayacct_add_tsk() has no another direct callers, so can remove the
+redundancy checking code.
 
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+And the label 'done' is also useless, so remove it, too.
+
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/delayacct.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN fs/ocfs2/file.c~fs-ocfs2-filec-fix-wrong-comment fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~fs-ocfs2-filec-fix-wrong-comment
-+++ a/fs/ocfs2/file.c
-@@ -580,7 +580,7 @@ static int __ocfs2_extend_allocation(str
- 	int did_quota = 0;
+diff -puN kernel/delayacct.c~kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk kernel/delayacct.c
+--- a/kernel/delayacct.c~kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk
++++ a/kernel/delayacct.c
+@@ -108,12 +108,6 @@ int __delayacct_add_tsk(struct taskstats
+ 	struct timespec ts;
+ 	cputime_t utime, stime, stimescaled, utimescaled;
  
- 	/*
--	 * This function only exists for file systems which don't
-+	 * Unwritten extent only exists for file systems which
- 	 * support holes.
- 	 */
- 	BUG_ON(mark_unwritten && !ocfs2_sparse_alloc(osb));
-_
-
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
-
-fs-ocfs2-filec-fix-wrong-comment.patch
-ocfs2-update-inode-size-after-zeronig-the-hole.patch
-linux-next.patch
-
+-	/* Though tsk->delays accessed later, early exit avoids
+-	 * unnecessary returning of other data
+-	 */
+-	if (!tsk->delays)
+-		goto done;
