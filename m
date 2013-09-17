@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch added to -mm tree
-Date: Tue, 17 Sep 2013 14:16:04 -0700
-Message-ID: <5238c694.Gp7MKnzYt4ZQS5I6%akpm@linux-foundation.org>
+Subject: + checkpatch-make-extern-in-h-prototypes-quieter.patch added to
+ -mm tree
+Date: Tue, 17 Sep 2013 14:18:52 -0700
+Message-ID: <5238c73c.yLeT2G34L/pFzEsy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38611 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38681 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753981Ab3IQVQG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 17:16:06 -0400
+	with ESMTP id S1753216Ab3IQVSx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 17:18:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zahid.chowdhury@starsolutions.com, szarpaj@grubelek.pl, stable@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp, klangga@gmail.com, jeromepoulin@gmail.com, hermes@ceres.dti.ne.jp, freeboy6716@gmail.com, fercerpav@gmail.com, devel@antoneliasson.se, Linux@riotingpacifist.net, slava@dubeyko.com
+To: mm-commits@vger.kernel.org, dhowells@redhat.com, joe@perches.com
 
-Subject: + nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch added to -mm tree
-To: slava@dubeyko.com,Linux@riotingpacifist.net,devel@antoneliasson.se,fercerpav@gmail.com,freeboy6716@gmail.com,hermes@ceres.dti.ne.jp,jeromepoulin@gmail.com,klangga@gmail.com,konishi.ryusuke@lab.ntt.co.jp,stable@vger.kernel.org,szarpaj@grubelek.pl,zahid.chowdhury@starsolutions.com
+Subject: + checkpatch-make-extern-in-h-prototypes-quieter.patch added to -mm tree
+To: joe@perches.com,dhowells@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 17 Sep 2013 14:16:04 -0700
+Date: Tue, 17 Sep 2013 14:18:52 -0700
 
 
 The patch titled
-     Subject: nilfs2: fix issue with race condition of competition between segments for dirty blocks
+     Subject: checkpatch: make extern in .h prototypes quieter
 has been added to the -mm tree.  Its filename is
-     nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch
+     checkpatch-make-extern-in-h-prototypes-quieter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-make-extern-in-h-prototypes-quieter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-make-extern-in-h-prototypes-quieter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,291 +44,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: nilfs2: fix issue with race condition of competition between segments for dirty blocks
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: make extern in .h prototypes quieter
 
-Many NILFS2 users were reported about strange file system corruption (for
-example):
+The use of extern in .h files is a bit contentious.
 
-[129306.872119] NILFS: bad btree node (blocknr=185027): level = 0, flags = 0x0, nchildren = 768
-[129306.872127] NILFS error (device sda4): nilfs_bmap_last_key: broken bmap (inode number=11540)
+Make the warning be emitted only when --strict is used on the command line.
 
-But such error messages are consequence of file system's issue that takes
-place more earlier.  Fortunately, Jerome Poulin <jeromepoulin@gmail.com>
-and Anton Eliasson <devel@antoneliasson.se> were reported about another
-issue not so recently.  These reports describe the issue with segctor
-thread's crash:
-
-[1677.310656] BUG: unable to handle kernel paging request at 0000000000004c83
-[1677.310683] IP: [<ffffffffa024d0f2>] nilfs_end_page_io+0x12/0xd0 [nilfs2]
-
-[1677.311562] Call Trace:
-[1677.311575]  [<ffffffffa024e4c5>] nilfs_segctor_do_construct+0xf25/0x1b20 [nilfs2]
-[1677.311596]  [<ffffffff81019d09>] ? sched_clock+0x9/0x10
-[1677.311614]  [<ffffffffa024f3ab>] nilfs_segctor_construct+0x17b/0x290 [nilfs2]
-[1677.311636]  [<ffffffffa024f5e2>] nilfs_segctor_thread+0x122/0x3b0 [nilfs2]
-[1677.311657]  [<ffffffffa024f4c0>] ?nilfs_segctor_construct+0x290/0x290 [nilfs2]
-[1677.311677]  [<ffffffff8107cae0>] kthread+0xc0/0xd0
-[1677.311690]  [<ffffffff8107ca20>] ? kthread_create_on_node+0x120/0x120
-[1677.311709]  [<ffffffff816dd16c>] ret_from_fork+0x7c/0xb0
-[1677.311724]  [<ffffffff8107ca20>] ? kthread_create_on_node+0x120/0x120
-
-These two issues have one reason.  This reason can raise third issue too. 
-Third issue results in hanging of segctor thread with eating of 100% CPU.
-
-REPRODUCING PATH:
-One of the possible way or the issue reproducing was described by
-Jermoe me Poulin <jeromepoulin@gmail.com>:
-
-1. init S to get to single user mode.
-2. sysrq+E to make sure only my shell is running
-3. start network-manager to get my wifi connection up
-4. login as root and launch "screen"
-5. cd /boot/log/nilfs which is a ext3 mount point and can log when NILFS dies.
-6. lscp | xz -9e > lscp.txt.xz
-7. mount my snapshot using mount -o cp=3360839,ro /dev/vgUbuntu/root /mnt/nilfs
-8. start a screen to dump /proc/kmsg to text file since rsyslog is killed
-9. start a screen and launch strace -f -o find-cat.log -t find
-/mnt/nilfs -type f -exec cat {} > /dev/null \;
-10. start a screen and launch strace -f -o apt-get.log -t apt-get update
-11. launch the last command again as it did not crash the first time
-12. apt-get crashes
-13. ps aux > ps-aux-crashed.log
-13. sysrq+W
-14. sysrq+E  wait for everything to terminate
-15. sysrq+SUSB
-
-Simplified way of the issue reproducing is starting kernel compilation
-task and "apt-get update" in parallel.
-
-REPRODUCIBILITY:
-
-The issue is reproduced not stable [60% - 80%].  It is very important to
-have proper environment for the issue reproducing.  The critical
-conditions for successful reproducing:
-
-(1) It should have big modified file by mmap() way.
-
-(2) This file should have the count of dirty blocks are greater that
-    several segments in size (for example, two or three) from time to time
-    during processing.
-
-(3) It should be intensive background activity of files modification
-    in another thread.
-
-INVESTIGATION:
-
-First of all, it is possible to see that the reason of crash is not valid
-page address:
-
-[291.101244] NILFS [nilfs_segctor_complete_write]:2100 bh->b_count 0, bh->b_blocknr 13895680, bh->b_size 13897727, bh->b_page 0000000000001a82
-[291.101249] NILFS [nilfs_segctor_complete_write]:2101 segbuf->sb_segnum 6783
-
-Moreover, value of b_page (0x1a82) is 6786.  This value looks like segment
-number.  And b_blocknr with b_size values look like block numbers.  So,
-buffer_head's pointer points on not proper address value.
-
-Detailed investigation of the issue is discovered such picture:
-
-[-----------------------------SEGMENT 6783-------------------------------]
-[290.886448] NILFS [nilfs_segctor_do_construct]:2310 nilfs_segctor_begin_construction
-[290.886460] NILFS [nilfs_segctor_do_construct]:2321 nilfs_segctor_collect
-[290.886578] NILFS [nilfs_segctor_do_construct]:2336 nilfs_segctor_assign
-[290.886601] NILFS [nilfs_segctor_do_construct]:2367 nilfs_segctor_update_segusage
-[290.886608] NILFS [nilfs_segctor_do_construct]:2371 nilfs_segctor_prepare_write
-[290.886631] NILFS [nilfs_segctor_do_construct]:2376 nilfs_add_checksums_on_logs
-[290.886663] NILFS [nilfs_segctor_do_construct]:2381 nilfs_segctor_write
-[290.886697] NILFS [nilfs_segbuf_submit_bio]:464 bio->bi_sector 111149024, segbuf->sb_segnum 6783
-
-[-----------------------------SEGMENT 6784-------------------------------]
-[290.886755] NILFS [nilfs_segctor_do_construct]:2310 nilfs_segctor_begin_construction
-[290.886765] NILFS [nilfs_segctor_do_construct]:2321 nilfs_segctor_collect
-[290.952406] NILFS [nilfs_lookup_dirty_data_buffers]:782 bh->b_count 1, bh->b_page ffffea000709b000, page->index 0, i_ino 1033103, i_size 25165824
-[290.952411] NILFS [nilfs_lookup_dirty_data_buffers]:783 bh->b_assoc_buffers.next ffff8802174a6798, bh->b_assoc_buffers.prev ffff880221cffee8
-[290.919399] NILFS [nilfs_segctor_do_construct]:2336 nilfs_segctor_assign
-[290.932458] NILFS [nilfs_segctor_do_construct]:2367 nilfs_segctor_update_segusage
-[290.933098] NILFS [nilfs_segctor_do_construct]:2371 nilfs_segctor_prepare_write
-[290.939184] NILFS [nilfs_segctor_do_construct]:2376 nilfs_add_checksums_on_logs
-[290.951133] NILFS [nilfs_segctor_do_construct]:2381 nilfs_segctor_write
-[290.951314] NILFS [nilfs_segbuf_submit_bh]:575 bh->b_count 1, bh->b_page ffffea000709b000, page->index 0, i_ino 1033103, i_size 25165824
-[290.951321] NILFS [nilfs_segbuf_submit_bh]:576 segbuf->sb_segnum 6784
-[290.951325] NILFS [nilfs_segbuf_submit_bh]:577 bh->b_assoc_buffers.next ffff880218a0d5f8, bh->b_assoc_buffers.prev ffff880218bcdf50
-[290.951534] NILFS [nilfs_segbuf_submit_bio]:464 bio->bi_sector 111150080, segbuf->sb_segnum 6784, segbuf->sb_nbio 0
-[----------] ditto
-[290.952308] NILFS [nilfs_segbuf_submit_bio]:464 bio->bi_sector 111164416, segbuf->sb_segnum 6784, segbuf->sb_nbio 15
-
-[-----------------------------SEGMENT 6785-------------------------------]
-[290.952340] NILFS [nilfs_segctor_do_construct]:2310 nilfs_segctor_begin_construction
-[290.952364] NILFS [nilfs_segctor_do_construct]:2321 nilfs_segctor_collect
-[290.952406] NILFS [nilfs_lookup_dirty_data_buffers]:782 bh->b_count 2, bh->b_page ffffea000709b000, page->index 0, i_ino 1033103, i_size 25165824
-[290.952411] NILFS [nilfs_lookup_dirty_data_buffers]:783 bh->b_assoc_buffers.next ffff880219277e80, bh->b_assoc_buffers.prev ffff880221cffc88
-[290.990248] NILFS [nilfs_segctor_do_construct]:2367 nilfs_segctor_update_segusage
-[290.990265] NILFS [nilfs_segctor_do_construct]:2371 nilfs_segctor_prepare_write
-[291.008348] NILFS [nilfs_segctor_do_construct]:2376 nilfs_add_checksums_on_logs
-[291.018110] NILFS [nilfs_segctor_do_construct]:2381 nilfs_segctor_write
-[291.021206] NILFS [nilfs_segbuf_submit_bh]:575 bh->b_count 2, bh->b_page ffffea000709b000, page->index 0, i_ino 1033103, i_size 25165824
-[291.021210] NILFS [nilfs_segbuf_submit_bh]:576 segbuf->sb_segnum 6785
-[291.021214] NILFS [nilfs_segbuf_submit_bh]:577 bh->b_assoc_buffers.next ffff880218a0d5f8, bh->b_assoc_buffers.prev ffff880222cc7ee8
-[291.021241] NILFS [nilfs_segbuf_submit_bio]:464 bio->bi_sector 111165440, segbuf->sb_segnum 6785, segbuf->sb_nbio 0
-[----------] ditto
-[291.021916] NILFS [nilfs_segbuf_submit_bio]:464 bio->bi_sector 111177728, segbuf->sb_segnum 6785, segbuf->sb_nbio 12
-
-[291.021944] NILFS [nilfs_segctor_do_construct]:2399 nilfs_segctor_wait
-[291.021950] NILFS [nilfs_segbuf_wait]:676 segbuf->sb_segnum 6783
-[291.021964] NILFS [nilfs_segbuf_wait]:676 segbuf->sb_segnum 6784
-[291.021984] NILFS [nilfs_segbuf_wait]:676 segbuf->sb_segnum 6785
-
-[291.071861] NILFS [nilfs_segctor_complete_write]:2100 bh->b_count 0, bh->b_blocknr 13895680, bh->b_size 13897727, bh->b_page 0000000000001a82
-
-BUG: unable to handle kernel paging request at 0000000000001a82
-IP: [<ffffffffa024d0f2>] nilfs_end_page_io+0x12/0xd0 [nilfs2]
-
-Usually, for every segment we collect dirty files in list.  Then, dirty
-blocks are gathered for every dirty file, prepared for write and submitted
-by means of nilfs_segbuf_submit_bh() call.  Finally, it takes place
-complete write phase after calling nilfs_end_bio_write() on the block
-layer.  Buffers/pages are marked as not dirty on final phase and processed
-files removed from the list of dirty files.
-
-It is possible to see that we had three prepare_write and submit_bio
-phases before segbuf_wait and complete_write phase.  Moreover, segments
-compete between each other for dirty blocks because on every iteration of
-segments processing dirty buffer_heads are added in several lists of
-payload_buffers:
-
-[SEGMENT 6784]: bh->b_assoc_buffers.next ffff880218a0d5f8, bh->b_assoc_buffers.prev ffff880218bcdf50
-[SEGMENT 6785]: bh->b_assoc_buffers.next ffff880218a0d5f8, bh->b_assoc_buffers.prev ffff880222cc7ee8
-
-The next pointer is the same but prev pointer has changed.  It means that
-buffer_head has next pointer from one list but prev pointer from another. 
-Such modification can be made several times.  And, finally, it can be
-resulted in various issues: (1) segctor hanging, (2) segctor crashing, (3)
-file system metadata corruption.
-
-FIX:
-This patch adds:
-
-(1) setting of BH_Async_Write flag in nilfs_segctor_prepare_write()
-    for every proccessed dirty block;
-
-(2) checking of BH_Async_Write flag in
-    nilfs_lookup_dirty_data_buffers() and
-    nilfs_lookup_dirty_node_buffers();
-
-(3) clearing of BH_Async_Write flag in nilfs_segctor_complete_write(),
-    nilfs_abort_logs(), nilfs_forget_buffer(), nilfs_clear_dirty_page().
-
-Reported-by: Jerome Poulin <jeromepoulin@gmail.com>
-Reported-by: Anton Eliasson <devel@antoneliasson.se>
-Cc: Paul Fertser <fercerpav@gmail.com>
-Cc: ARAI Shun-ichi <hermes@ceres.dti.ne.jp>
-Cc: Piotr Szymaniak <szarpaj@grubelek.pl>
-Cc: Juan Barry Manuel Canham <Linux@riotingpacifist.net>
-Cc: Zahid Chowdhury <zahid.chowdhury@starsolutions.com>
-Cc: Elmer Zhang <freeboy6716@gmail.com>
-Cc: Kenneth Langga <klangga@gmail.com>
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.c    |    2 ++
- fs/nilfs2/segment.c |   11 +++++++++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nilfs2/page.c~nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks fs/nilfs2/page.c
---- a/fs/nilfs2/page.c~nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks
-+++ a/fs/nilfs2/page.c
-@@ -94,6 +94,7 @@ void nilfs_forget_buffer(struct buffer_h
- 	clear_buffer_nilfs_volatile(bh);
- 	clear_buffer_nilfs_checked(bh);
- 	clear_buffer_nilfs_redirected(bh);
-+	clear_buffer_async_write(bh);
- 	clear_buffer_dirty(bh);
- 	if (nilfs_page_buffers_clean(page))
- 		__nilfs_clear_page_dirty(page);
-@@ -429,6 +430,7 @@ void nilfs_clear_dirty_page(struct page
- 					"discard block %llu, size %zu",
- 					(u64)bh->b_blocknr, bh->b_size);
+diff -puN scripts/checkpatch.pl~checkpatch-make-extern-in-h-prototypes-quieter scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-make-extern-in-h-prototypes-quieter
++++ a/scripts/checkpatch.pl
+@@ -3975,8 +3975,8 @@ sub string_find_replace {
+ # check for new externs in .h files.
+ 		if ($realfile =~ /\.h$/ &&
+ 		    $line =~ /^\+\s*(extern\s+)$Type\s*$Ident\s*\(/s) {
+-			if (WARN("AVOID_EXTERNS",
+-				 "extern prototypes should be avoided in .h files\n" . $herecurr) &&
++			if (CHK("AVOID_EXTERNS",
++				"extern prototypes should be avoided in .h files\n" . $herecurr) &&
+ 			    $fix) {
+ 				$fixed[$linenr - 1] =~ s/(.*)\bextern\b\s*(.*)/$1$2/;
  			}
-+			clear_buffer_async_write(bh);
- 			clear_buffer_dirty(bh);
- 			clear_buffer_nilfs_volatile(bh);
- 			clear_buffer_nilfs_checked(bh);
-diff -puN fs/nilfs2/segment.c~nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks
-+++ a/fs/nilfs2/segment.c
-@@ -665,7 +665,7 @@ static size_t nilfs_lookup_dirty_data_bu
- 
- 		bh = head = page_buffers(page);
- 		do {
--			if (!buffer_dirty(bh))
-+			if (!buffer_dirty(bh) || buffer_async_write(bh))
- 				continue;
- 			get_bh(bh);
- 			list_add_tail(&bh->b_assoc_buffers, listp);
-@@ -699,7 +699,8 @@ static void nilfs_lookup_dirty_node_buff
- 		for (i = 0; i < pagevec_count(&pvec); i++) {
- 			bh = head = page_buffers(pvec.pages[i]);
- 			do {
--				if (buffer_dirty(bh)) {
-+				if (buffer_dirty(bh) &&
-+						!buffer_async_write(bh)) {
- 					get_bh(bh);
- 					list_add_tail(&bh->b_assoc_buffers,
- 						      listp);
-@@ -1579,6 +1580,7 @@ static void nilfs_segctor_prepare_write(
- 
- 		list_for_each_entry(bh, &segbuf->sb_segsum_buffers,
- 				    b_assoc_buffers) {
-+			set_buffer_async_write(bh);
- 			if (bh->b_page != bd_page) {
- 				if (bd_page) {
- 					lock_page(bd_page);
-@@ -1592,6 +1594,7 @@ static void nilfs_segctor_prepare_write(
- 
- 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
- 				    b_assoc_buffers) {
-+			set_buffer_async_write(bh);
- 			if (bh == segbuf->sb_super_root) {
- 				if (bh->b_page != bd_page) {
- 					lock_page(bd_page);
-@@ -1677,6 +1680,7 @@ static void nilfs_abort_logs(struct list
- 	list_for_each_entry(segbuf, logs, sb_list) {
- 		list_for_each_entry(bh, &segbuf->sb_segsum_buffers,
- 				    b_assoc_buffers) {
-+			clear_buffer_async_write(bh);
- 			if (bh->b_page != bd_page) {
- 				if (bd_page)
- 					end_page_writeback(bd_page);
-@@ -1686,6 +1690,7 @@ static void nilfs_abort_logs(struct list
- 
- 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
- 				    b_assoc_buffers) {
-+			clear_buffer_async_write(bh);
- 			if (bh == segbuf->sb_super_root) {
- 				if (bh->b_page != bd_page) {
- 					end_page_writeback(bd_page);
-@@ -1755,6 +1760,7 @@ static void nilfs_segctor_complete_write
- 				    b_assoc_buffers) {
- 			set_buffer_uptodate(bh);
- 			clear_buffer_dirty(bh);
-+			clear_buffer_async_write(bh);
- 			if (bh->b_page != bd_page) {
- 				if (bd_page)
- 					end_page_writeback(bd_page);
-@@ -1776,6 +1782,7 @@ static void nilfs_segctor_complete_write
- 				    b_assoc_buffers) {
- 			set_buffer_uptodate(bh);
- 			clear_buffer_dirty(bh);
-+			clear_buffer_async_write(bh);
- 			clear_buffer_delay(bh);
- 			clear_buffer_nilfs_volatile(bh);
- 			clear_buffer_nilfs_redirected(bh);
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch
+checkpatch-make-extern-in-h-prototypes-quieter.patch
+kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
+ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
+linux-next.patch
 
