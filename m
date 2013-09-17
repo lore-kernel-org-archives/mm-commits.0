@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch added to -mm tree
-Date: Tue, 17 Sep 2013 13:11:57 -0700
-Message-ID: <5238b78d.RmP4ybyQEpgdBBHI%akpm@linux-foundation.org>
+ mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info.patch added
+ to -mm tree
+Date: Tue, 17 Sep 2013 13:11:58 -0700
+Message-ID: <5238b78e.473ZFZ7fl0X1o/+t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37719 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37721 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753842Ab3IQUL6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 16:11:58 -0400
+	with ESMTP id S1753842Ab3IQUL7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 16:11:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, liwanp@linux.vnet.ibm.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mitsuo.hayasaka.hu@hitachi.com, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,liwanp@linux.vnet.ibm.com
+Subject: + mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,mitsuo.hayasaka.hu@hitachi.com
 From: akpm@linux-foundation.org
-Date: Tue, 17 Sep 2013 13:11:57 -0700
+Date: Tue, 17 Sep 2013 13:11:58 -0700
 
 
 The patch titled
-     Subject: mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix
+     Subject: mm/vmalloc: move VM_UNINITIALIZED to just before show_numa_info
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch
+     mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,76 +45,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/vmalloc: move VM_UNINITIALIZED to just before show_numa_info
 
-avoid error-prone `return' in the middle of the function
+The VM_UNINITIALIZED/VM_UNLIST flag introduced by f5252e00 ("mm: avoid
+null pointer access in vm_struct via /proc/vmallocinfo") is used to avoid
+accessing the pages field with unallocated page when show_numa_info() is
+called.
 
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+This patch moves the check to just before show_numa_info in order that
+some messages still can be dumped via /proc/vmallocinfo.
+
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/vmalloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix
+diff -puN mm/vmalloc.c~mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info
 +++ a/mm/vmalloc.c
-@@ -1626,16 +1626,16 @@ void *__vmalloc_node_range(unsigned long
+@@ -2591,11 +2591,6 @@ static int s_show(struct seq_file *m, vo
  
- 	size = PAGE_ALIGN(size);
- 	if (!size || (size >> PAGE_SHIFT) > totalram_pages)
--		goto fail;
-+		goto warn;
+ 	v = va->vm;
  
- 	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNINITIALIZED,
- 				  start, end, node, gfp_mask, caller);
- 	if (!area)
--		goto fail;
-+		goto warn;
+-	/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
+-	smp_rmb();
+-	if (v->flags & VM_UNINITIALIZED)
+-		return 0;
+-
+ 	seq_printf(m, "0x%pK-0x%pK %7ld",
+ 		v->addr, v->addr + v->size, v->size);
  
- 	addr = __vmalloc_area_node(area, gfp_mask, prot, node, caller);
- 	if (!addr)
--		return NULL;
-+		goto fail;
+@@ -2623,6 +2618,11 @@ static int s_show(struct seq_file *m, vo
+ 	if (v->flags & VM_VPAGES)
+ 		seq_printf(m, " vpages");
  
- 	/*
- 	 * In this function, newly allocated vm_struct has VM_UNINITIALIZED
-@@ -1653,10 +1653,11 @@ void *__vmalloc_node_range(unsigned long
- 
- 	return addr;
- 
--fail:
-+warn:
- 	warn_alloc_failed(gfp_mask, 0,
- 			  "vmalloc: allocation failure: %lu bytes\n",
- 			  real_size);
-+fail:
- 	return NULL;
- }
- 
++	/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
++	smp_rmb();
++	if (v->flags & VM_UNINITIALIZED)
++		return;
++
+ 	show_numa_info(m, v);
+ 	seq_putc(m, '\n');
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm.patch
+revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
+ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
+mm-vmalloc-dont-set-area-caller-twice.patch
+mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice.patch
 mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-fat-additions-to-support-fat_fallocate-fix-fix.patch
-linux-next.patch
+mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
