@@ -1,47 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + of_irqh-fix-build-warnings-when-config_of-is-not-enabled.patch
- added to -mm tree
-Date: Tue, 17 Sep 2013 14:23:43 -0700
-Message-ID: <5238c85f.X34+gw+n8fY3b8bq%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ of_irqh-fix-build-warnings-when-config_of-is-not-enabled.patch removed from -mm tree
+Date: Tue, 17 Sep 2013 14:33:44 -0700
+Message-ID: <5238cab8.PMXpwtATe/wOWM8A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38735 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38920 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753378Ab3IQVXo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 17:23:44 -0400
+	with ESMTP id S1753301Ab3IQVdp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 17:33:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rob.herring@calxeda.com, grant.likely@linaro.org, rdunlap@infradead.org
 
-Subject: + of_irqh-fix-build-warnings-when-config_of-is-not-enabled.patch added to -mm tree
-To: rdunlap@infradead.org,grant.likely@linaro.org,rob.herring@calxeda.com
+Subject: [alternative-merged] of_irqh-fix-build-warnings-when-config_of-is-not-enabled.patch removed from -mm tree
+To: rdunlap@infradead.org,grant.likely@linaro.org,rob.herring@calxeda.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 17 Sep 2013 14:23:43 -0700
+Date: Tue, 17 Sep 2013 14:33:44 -0700
 
 
 The patch titled
      Subject: of_irq.h: fix build warnings when CONFIG_OF is not enabled
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      of_irqh-fix-build-warnings-when-config_of-is-not-enabled.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/of_irqh-fix-build-warnings-when-config_of-is-not-enabled.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/of_irqh-fix-build-warnings-when-config_of-is-not-enabled.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
@@ -79,7 +65,6 @@ _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
 
-of_irqh-fix-build-warnings-when-config_of-is-not-enabled.patch
 linux-next.patch
 debugging-keep-track-of-page-owners-fix-2.patch
 
