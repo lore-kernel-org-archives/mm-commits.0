@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch added to -mm tree
-Date: Mon, 16 Sep 2013 16:57:36 -0700
-Message-ID: <52379af0.DrcZ23LFHvzwxAqT%akpm@linux-foundation.org>
+Subject: + mm-vmalloc-dont-set-area-caller-twice.patch added to -mm tree
+Date: Tue, 17 Sep 2013 13:11:55 -0700
+Message-ID: <5238b78b.+0teSbksdQWYFdvj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37715 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751599Ab3IPX5h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Sep 2013 19:57:37 -0400
+	with ESMTP id S1753842Ab3IQUL4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 16:11:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, alonid@stratoscale.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, liwanp@linux.vnet.ibm.com
 
-Subject: + fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,alonid@stratoscale.com
+Subject: + mm-vmalloc-dont-set-area-caller-twice.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Sep 2013 16:57:36 -0700
+Date: Tue, 17 Sep 2013 13:11:55 -0700
 
 
 The patch titled
-     Subject: fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix
+     Subject: mm/vmalloc: don't set area->caller twice
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
+     mm-vmalloc-dont-set-area-caller-twice.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-dont-set-area-caller-twice.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-dont-set-area-caller-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,88 +43,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/vmalloc: don't set area->caller twice
 
-- avoid abusing E2BIG
-- remove a couple of not-really-needed local variables
+The caller address has already been set in setup_vmalloc_vm(), there's no
+need to set it again in __vmalloc_area_node.
 
-Cc: Dan Aloni <alonid@stratoscale.com>
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ mm/vmalloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix
-+++ a/fs/binfmt_elf.c
-@@ -1428,7 +1428,7 @@ static int fill_files_note(struct memelf
- 	names_ofs = (2 + 3 * count) * sizeof(data[0]);
-  alloc:
- 	if (size >= MAX_FILE_NOTE_SIZE) /* paranoia check */
--		return -E2BIG;
-+		return -EINVAL;
- 	size = round_up(size, PAGE_SIZE);
- 	data = vmalloc(size);
- 	if (!data)
-@@ -1607,7 +1607,6 @@ static int fill_note_info(struct elfhdr
- 	struct elf_prpsinfo *psinfo;
- 	struct core_thread *ct;
- 	unsigned int i;
--	int ret;
- 
- 	info->size = 0;
- 	info->thread = NULL;
-@@ -1687,8 +1686,7 @@ static int fill_note_info(struct elfhdr
- 	fill_auxv_note(&info->auxv, current->mm);
- 	info->size += notesize(&info->auxv);
- 
--	ret = fill_files_note(&info->files);
--	if (!ret)
-+	if (fill_files_note(&info->files) == 0)
- 		info->size += notesize(&info->files);
- 
- 	return 1;
-@@ -1853,7 +1851,6 @@ static int fill_note_info(struct elfhdr
- 			  siginfo_t *siginfo, struct pt_regs *regs)
- {
- 	struct list_head *t;
--	int ret;
- 
- 	if (!elf_note_info_init(info))
- 		return 0;
-@@ -1903,8 +1900,7 @@ static int fill_note_info(struct elfhdr
- 	fill_auxv_note(info->notes + 3, current->mm);
- 	info->numnote = 4;
- 
--	ret = fill_files_note(info->notes + info->numnote);
--	if (!ret) {
-+	if (fill_files_note(info->notes + info->numnote) == 0) {
- 		info->notes_files = info->notes + info->numnote;
- 		info->numnote++;
+diff -puN mm/vmalloc.c~mm-vmalloc-dont-set-area-caller-twice mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-dont-set-area-caller-twice
++++ a/mm/vmalloc.c
+@@ -1566,7 +1566,6 @@ static void *__vmalloc_area_node(struct
+ 		pages = kmalloc_node(array_size, nested_gfp, node);
  	}
+ 	area->pages = pages;
+-	area->caller = caller;
+ 	if (!area->pages) {
+ 		remove_vm_area(area->addr);
+ 		kfree(area);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-fat-additions-to-support-fat_fallocate-fix-fix.patch
-linux-next.patch
+revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
+ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
+mm-vmalloc-dont-set-area-caller-twice.patch
+mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice.patch
+mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch
+mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
