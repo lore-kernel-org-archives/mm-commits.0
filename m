@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch added to -mm tree
-Date: Tue, 17 Sep 2013 16:09:42 -0700
-Message-ID: <5238e136.tnDc/gK6e9HDliqW%akpm@linux-foundation.org>
+Subject: + ocfs2-return-enomem-when-sb_getblk-fails.patch added to -mm
+ tree
+Date: Tue, 17 Sep 2013 16:26:23 -0700
+Message-ID: <5238e51f.kvb9jQS01oc51tvP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39671 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39710 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753983Ab3IQXJn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 19:09:43 -0400
+	with ESMTP id S1753492Ab3IQX0Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 19:26:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mitsuo.hayasaka.hu@hitachi.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, rui.xiang@huawei.com
 
-Subject: + mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,mitsuo.hayasaka.hu@hitachi.com,zhangyanfei@cn.fujitsu.com
+Subject: + ocfs2-return-enomem-when-sb_getblk-fails.patch added to -mm tree
+To: rui.xiang@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 17 Sep 2013 16:09:42 -0700
+Date: Tue, 17 Sep 2013 16:26:23 -0700
 
 
 The patch titled
-     Subject: mm/vmalloc: revert "mm/vmalloc.c: check VM_UNINITIALIZED flag in s_show instead of show_numa_info"
+     Subject: ocfs2: return ENOMEM when sb_getblk() fails
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+     ocfs2-return-enomem-when-sb_getblk-fails.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-return-enomem-when-sb_getblk-fails.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-return-enomem-when-sb_getblk-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,49 +44,184 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/vmalloc: revert "mm/vmalloc.c: check VM_UNINITIALIZED flag in s_show instead of show_numa_info"
+From: Rui Xiang <rui.xiang@huawei.com>
+Subject: ocfs2: return ENOMEM when sb_getblk() fails
 
-The VM_UNINITIALIZED/VM_UNLIST flag introduced by commit f5252e00(mm:
-avoid null pointer access in vm_struct via /proc/vmallocinfo) is used to
-avoid accessing the pages field with unallocated page when
-show_numa_info() is called.
+The only reason for sb_getblk() failing is if it can't allocate the
+buffer_head.  So return ENOMEM instead when it fails.
 
-This patch move the check into show_numa_info in order that some messages
-still can be dumped via /proc/vmallocinfo.
-
-This patch revert commit d157a558 (mm/vmalloc.c: check VM_UNINITIALIZED
-flag in s_show instead of show_numa_info);
-
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Rui Xiang <rui.xiang@huawei.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/ocfs2/alloc.c        |    2 +-
+ fs/ocfs2/aops.c         |    1 +
+ fs/ocfs2/dir.c          |    8 ++++----
+ fs/ocfs2/namei.c        |    2 +-
+ fs/ocfs2/refcounttree.c |    6 +++---
+ fs/ocfs2/suballoc.c     |    4 ++--
+ fs/ocfs2/super.c        |    4 ++--
+ fs/ocfs2/xattr.c        |    2 +-
+ 8 files changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info
-+++ a/mm/vmalloc.c
-@@ -2563,6 +2563,11 @@ static void show_numa_info(struct seq_fi
- 		if (!counters)
- 			return;
+diff -puN fs/ocfs2/alloc.c~ocfs2-return-enomem-when-sb_getblk-fails fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-return-enomem-when-sb_getblk-fails
++++ a/fs/ocfs2/alloc.c
+@@ -1025,7 +1025,7 @@ static int ocfs2_create_new_meta_bhs(han
+ 		for(i = count;  i < (num_got + count); i++) {
+ 			bhs[i] = sb_getblk(osb->sb, first_blkno);
+ 			if (bhs[i] == NULL) {
+-				status = -EIO;
++				status = -ENOMEM;
+ 				mlog_errno(status);
+ 				goto bail;
+ 			}
+diff -puN fs/ocfs2/aops.c~ocfs2-return-enomem-when-sb_getblk-fails fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-return-enomem-when-sb_getblk-fails
++++ a/fs/ocfs2/aops.c
+@@ -80,6 +80,7 @@ static int ocfs2_symlink_get_block(struc
  
-+		/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
-+		smp_rmb();
-+		if (v->flags & VM_UNINITIALIZED)
-+			return;
-+
- 		memset(counters, 0, nr_node_ids * sizeof(unsigned int));
+ 	if ((u64)iblock >= ocfs2_clusters_to_blocks(inode->i_sb,
+ 						    le32_to_cpu(fe->i_clusters))) {
++		err = -ENOMEM;
+ 		mlog(ML_ERROR, "block offset is outside the allocated size: "
+ 		     "%llu\n", (unsigned long long)iblock);
+ 		goto bail;
+diff -puN fs/ocfs2/dir.c~ocfs2-return-enomem-when-sb_getblk-fails fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~ocfs2-return-enomem-when-sb_getblk-fails
++++ a/fs/ocfs2/dir.c
+@@ -2349,7 +2349,7 @@ static int ocfs2_dx_dir_attach_index(str
  
- 		for (nr = 0; nr < v->nr_pages; nr++)
-@@ -2591,11 +2596,6 @@ static int s_show(struct seq_file *m, vo
+ 	dx_root_bh = sb_getblk(osb->sb, dr_blkno);
+ 	if (dx_root_bh == NULL) {
+-		ret = -EIO;
++		ret = -ENOMEM;
+ 		goto out;
+ 	}
+ 	ocfs2_set_new_buffer_uptodate(INODE_CACHE(dir), dx_root_bh);
+@@ -2422,7 +2422,7 @@ static int ocfs2_dx_dir_format_cluster(s
+ 	for (i = 0; i < num_dx_leaves; i++) {
+ 		bh = sb_getblk(osb->sb, start_blk + i);
+ 		if (bh == NULL) {
+-			ret = -EIO;
++			ret = -ENOMEM;
+ 			goto out;
+ 		}
+ 		dx_leaves[i] = bh;
+@@ -2929,7 +2929,7 @@ static int ocfs2_expand_inline_dir(struc
+ 	blkno = ocfs2_clusters_to_blocks(dir->i_sb, bit_off);
+ 	dirdata_bh = sb_getblk(sb, blkno);
+ 	if (!dirdata_bh) {
+-		ret = -EIO;
++		ret = -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto out_commit;
+ 	}
+@@ -3159,7 +3159,7 @@ static int ocfs2_do_extend_dir(struct su
  
- 	v = va->vm;
+ 	*new_bh = sb_getblk(sb, p_blkno);
+ 	if (!*new_bh) {
+-		status = -EIO;
++		status = -ENOMEM;
+ 		mlog_errno(status);
+ 		goto bail;
+ 	}
+diff -puN fs/ocfs2/namei.c~ocfs2-return-enomem-when-sb_getblk-fails fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-return-enomem-when-sb_getblk-fails
++++ a/fs/ocfs2/namei.c
+@@ -489,7 +489,7 @@ static int __ocfs2_mknod_locked(struct i
  
--	/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
--	smp_rmb();
--	if (v->flags & VM_UNINITIALIZED)
--		return 0;
+ 	*new_fe_bh = sb_getblk(osb->sb, fe_blkno);
+ 	if (!*new_fe_bh) {
+-		status = -EIO;
++		status = -ENOMEM;
+ 		mlog_errno(status);
+ 		goto leave;
+ 	}
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-return-enomem-when-sb_getblk-fails fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-return-enomem-when-sb_getblk-fails
++++ a/fs/ocfs2/refcounttree.c
+@@ -1310,7 +1310,7 @@ static int ocfs2_expand_inline_ref_root(
+ 
+ 	new_bh = sb_getblk(sb, blkno);
+ 	if (new_bh == NULL) {
+-		ret = -EIO;
++		ret = -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto out;
+ 	}
+@@ -1561,7 +1561,7 @@ static int ocfs2_new_leaf_refcount_block
+ 
+ 	new_bh = sb_getblk(sb, blkno);
+ 	if (new_bh == NULL) {
+-		ret = -EIO;
++		ret = -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto out;
+ 	}
+@@ -3029,7 +3029,7 @@ int ocfs2_duplicate_clusters_by_jbd(hand
+ 	for (i = 0; i < blocks; i++, old_block++, new_block++) {
+ 		new_bh = sb_getblk(osb->sb, new_block);
+ 		if (new_bh == NULL) {
+-			ret = -EIO;
++			ret = -ENOMEM;
+ 			mlog_errno(ret);
+ 			break;
+ 		}
+diff -puN fs/ocfs2/suballoc.c~ocfs2-return-enomem-when-sb_getblk-fails fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-return-enomem-when-sb_getblk-fails
++++ a/fs/ocfs2/suballoc.c
+@@ -481,7 +481,7 @@ ocfs2_block_group_alloc_contig(struct oc
+ 
+ 	bg_bh = sb_getblk(osb->sb, bg_blkno);
+ 	if (!bg_bh) {
+-		status = -EIO;
++		status = -ENOMEM;
+ 		mlog_errno(status);
+ 		goto bail;
+ 	}
+@@ -661,7 +661,7 @@ ocfs2_block_group_alloc_discontig(handle
+ 
+ 	bg_bh = sb_getblk(osb->sb, bg_blkno);
+ 	if (!bg_bh) {
+-		status = -EIO;
++		status = -ENOMEM;
+ 		mlog_errno(status);
+ 		goto bail;
+ 	}
+diff -puN fs/ocfs2/super.c~ocfs2-return-enomem-when-sb_getblk-fails fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-return-enomem-when-sb_getblk-fails
++++ a/fs/ocfs2/super.c
+@@ -1848,8 +1848,8 @@ static int ocfs2_get_sector(struct super
+ 
+ 	*bh = sb_getblk(sb, block);
+ 	if (!*bh) {
+-		mlog_errno(-EIO);
+-		return -EIO;
++		mlog_errno(-ENOMEM);
++		return -ENOMEM;
+ 	}
+ 	lock_buffer(*bh);
+ 	if (!buffer_dirty(*bh))
+diff -puN fs/ocfs2/xattr.c~ocfs2-return-enomem-when-sb_getblk-fails fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-return-enomem-when-sb_getblk-fails
++++ a/fs/ocfs2/xattr.c
+@@ -377,7 +377,7 @@ static int ocfs2_init_xattr_bucket(struc
+ 		bucket->bu_bhs[i] = sb_getblk(bucket->bu_inode->i_sb,
+ 					      xb_blkno + i);
+ 		if (!bucket->bu_bhs[i]) {
+-			rc = -EIO;
++			rc = -ENOMEM;
+ 			mlog_errno(rc);
+ 			break;
+ 		}
+_
+
+Patches currently in -mm which might be from rui.xiang@huawei.com are
+
+ocfs2-return-enomem-when-sb_getblk-fails.patch
+ocfs2-add-necessary-check-in-case-sb_getblk-fails.patch
+
