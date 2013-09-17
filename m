@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch added to -mm tree
-Date: Tue, 17 Sep 2013 13:58:11 -0700
-Message-ID: <5238c263.bldH6nK4RQe5nN4l%akpm@linux-foundation.org>
+ nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch added to -mm tree
+Date: Tue, 17 Sep 2013 14:16:04 -0700
+Message-ID: <5238c694.Gp7MKnzYt4ZQS5I6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38453 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38611 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753931Ab3IQU6M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 16:58:12 -0400
+	with ESMTP id S1753981Ab3IQVQG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 17:16:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, mhocko@suse.cz, hannes@cmpxchg.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zahid.chowdhury@starsolutions.com, szarpaj@grubelek.pl, stable@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp, klangga@gmail.com, jeromepoulin@gmail.com, hermes@ceres.dti.ne.jp, freeboy6716@gmail.com, fercerpav@gmail.com, devel@antoneliasson.se, Linux@riotingpacifist.net, slava@dubeyko.com
 
-Subject: + revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch added to -mm tree
-To: akpm@linux-foundation.org,hannes@cmpxchg.org,mhocko@suse.cz,torvalds@linux-foundation.org
+Subject: + nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch added to -mm tree
+To: slava@dubeyko.com,Linux@riotingpacifist.net,devel@antoneliasson.se,fercerpav@gmail.com,freeboy6716@gmail.com,hermes@ceres.dti.ne.jp,jeromepoulin@gmail.com,klangga@gmail.com,konishi.ryusuke@lab.ntt.co.jp,stable@vger.kernel.org,szarpaj@grubelek.pl,zahid.chowdhury@starsolutions.com
 From: akpm@linux-foundation.org
-Date: Tue, 17 Sep 2013 13:58:11 -0700
+Date: Tue, 17 Sep 2013 14:16:04 -0700
 
 
 The patch titled
-     Subject: revert "memcg, vmscan: integrate soft reclaim tighter with zone shrinking code"
+     Subject: nilfs2: fix issue with race condition of competition between segments for dirty blocks
 has been added to the -mm tree.  Its filename is
-     revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+     nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,404 +44,291 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "memcg, vmscan: integrate soft reclaim tighter with zone shrinking code"
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: nilfs2: fix issue with race condition of competition between segments for dirty blocks
 
-Revert
+Many NILFS2 users were reported about strange file system corruption (for
+example):
 
-: commit 3b38722efd9f66da63bbbd41520c2e6fa9db3d68
-: Author:     Michal Hocko <mhocko@suse.cz>
-: AuthorDate: Thu Sep 12 15:13:21 2013 -0700
-: Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-: CommitDate: Thu Sep 12 15:38:00 2013 -0700
-: 
-:     memcg, vmscan: integrate soft reclaim tighter with zone shrinking code
+[129306.872119] NILFS: bad btree node (blocknr=185027): level = 0, flags = 0x0, nchildren = 768
+[129306.872127] NILFS error (device sda4): nilfs_bmap_last_key: broken bmap (inode number=11540)
 
-I merged this prematurely - Michal and Johannes still disagree about the
-overall design direction and the future remains unclear.
+But such error messages are consequence of file system's issue that takes
+place more earlier.  Fortunately, Jerome Poulin <jeromepoulin@gmail.com>
+and Anton Eliasson <devel@antoneliasson.se> were reported about another
+issue not so recently.  These reports describe the issue with segctor
+thread's crash:
 
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+[1677.310656] BUG: unable to handle kernel paging request at 0000000000004c83
+[1677.310683] IP: [<ffffffffa024d0f2>] nilfs_end_page_io+0x12/0xd0 [nilfs2]
+
+[1677.311562] Call Trace:
+[1677.311575]  [<ffffffffa024e4c5>] nilfs_segctor_do_construct+0xf25/0x1b20 [nilfs2]
+[1677.311596]  [<ffffffff81019d09>] ? sched_clock+0x9/0x10
+[1677.311614]  [<ffffffffa024f3ab>] nilfs_segctor_construct+0x17b/0x290 [nilfs2]
+[1677.311636]  [<ffffffffa024f5e2>] nilfs_segctor_thread+0x122/0x3b0 [nilfs2]
+[1677.311657]  [<ffffffffa024f4c0>] ?nilfs_segctor_construct+0x290/0x290 [nilfs2]
+[1677.311677]  [<ffffffff8107cae0>] kthread+0xc0/0xd0
+[1677.311690]  [<ffffffff8107ca20>] ? kthread_create_on_node+0x120/0x120
+[1677.311709]  [<ffffffff816dd16c>] ret_from_fork+0x7c/0xb0
+[1677.311724]  [<ffffffff8107ca20>] ? kthread_create_on_node+0x120/0x120
+
+These two issues have one reason.  This reason can raise third issue too. 
+Third issue results in hanging of segctor thread with eating of 100% CPU.
+
+REPRODUCING PATH:
+One of the possible way or the issue reproducing was described by
+Jermoe me Poulin <jeromepoulin@gmail.com>:
+
+1. init S to get to single user mode.
+2. sysrq+E to make sure only my shell is running
+3. start network-manager to get my wifi connection up
+4. login as root and launch "screen"
+5. cd /boot/log/nilfs which is a ext3 mount point and can log when NILFS dies.
+6. lscp | xz -9e > lscp.txt.xz
+7. mount my snapshot using mount -o cp=3360839,ro /dev/vgUbuntu/root /mnt/nilfs
+8. start a screen to dump /proc/kmsg to text file since rsyslog is killed
+9. start a screen and launch strace -f -o find-cat.log -t find
+/mnt/nilfs -type f -exec cat {} > /dev/null \;
+10. start a screen and launch strace -f -o apt-get.log -t apt-get update
+11. launch the last command again as it did not crash the first time
+12. apt-get crashes
+13. ps aux > ps-aux-crashed.log
+13. sysrq+W
+14. sysrq+E  wait for everything to terminate
+15. sysrq+SUSB
+
+Simplified way of the issue reproducing is starting kernel compilation
+task and "apt-get update" in parallel.
+
+REPRODUCIBILITY:
+
+The issue is reproduced not stable [60% - 80%].  It is very important to
+have proper environment for the issue reproducing.  The critical
+conditions for successful reproducing:
+
+(1) It should have big modified file by mmap() way.
+
+(2) This file should have the count of dirty blocks are greater that
+    several segments in size (for example, two or three) from time to time
+    during processing.
+
+(3) It should be intensive background activity of files modification
+    in another thread.
+
+INVESTIGATION:
+
+First of all, it is possible to see that the reason of crash is not valid
+page address:
+
+[291.101244] NILFS [nilfs_segctor_complete_write]:2100 bh->b_count 0, bh->b_blocknr 13895680, bh->b_size 13897727, bh->b_page 0000000000001a82
+[291.101249] NILFS [nilfs_segctor_complete_write]:2101 segbuf->sb_segnum 6783
+
+Moreover, value of b_page (0x1a82) is 6786.  This value looks like segment
+number.  And b_blocknr with b_size values look like block numbers.  So,
+buffer_head's pointer points on not proper address value.
+
+Detailed investigation of the issue is discovered such picture:
+
+[-----------------------------SEGMENT 6783-------------------------------]
+[290.886448] NILFS [nilfs_segctor_do_construct]:2310 nilfs_segctor_begin_construction
+[290.886460] NILFS [nilfs_segctor_do_construct]:2321 nilfs_segctor_collect
+[290.886578] NILFS [nilfs_segctor_do_construct]:2336 nilfs_segctor_assign
+[290.886601] NILFS [nilfs_segctor_do_construct]:2367 nilfs_segctor_update_segusage
+[290.886608] NILFS [nilfs_segctor_do_construct]:2371 nilfs_segctor_prepare_write
+[290.886631] NILFS [nilfs_segctor_do_construct]:2376 nilfs_add_checksums_on_logs
+[290.886663] NILFS [nilfs_segctor_do_construct]:2381 nilfs_segctor_write
+[290.886697] NILFS [nilfs_segbuf_submit_bio]:464 bio->bi_sector 111149024, segbuf->sb_segnum 6783
+
+[-----------------------------SEGMENT 6784-------------------------------]
+[290.886755] NILFS [nilfs_segctor_do_construct]:2310 nilfs_segctor_begin_construction
+[290.886765] NILFS [nilfs_segctor_do_construct]:2321 nilfs_segctor_collect
+[290.952406] NILFS [nilfs_lookup_dirty_data_buffers]:782 bh->b_count 1, bh->b_page ffffea000709b000, page->index 0, i_ino 1033103, i_size 25165824
+[290.952411] NILFS [nilfs_lookup_dirty_data_buffers]:783 bh->b_assoc_buffers.next ffff8802174a6798, bh->b_assoc_buffers.prev ffff880221cffee8
+[290.919399] NILFS [nilfs_segctor_do_construct]:2336 nilfs_segctor_assign
+[290.932458] NILFS [nilfs_segctor_do_construct]:2367 nilfs_segctor_update_segusage
+[290.933098] NILFS [nilfs_segctor_do_construct]:2371 nilfs_segctor_prepare_write
+[290.939184] NILFS [nilfs_segctor_do_construct]:2376 nilfs_add_checksums_on_logs
+[290.951133] NILFS [nilfs_segctor_do_construct]:2381 nilfs_segctor_write
+[290.951314] NILFS [nilfs_segbuf_submit_bh]:575 bh->b_count 1, bh->b_page ffffea000709b000, page->index 0, i_ino 1033103, i_size 25165824
+[290.951321] NILFS [nilfs_segbuf_submit_bh]:576 segbuf->sb_segnum 6784
+[290.951325] NILFS [nilfs_segbuf_submit_bh]:577 bh->b_assoc_buffers.next ffff880218a0d5f8, bh->b_assoc_buffers.prev ffff880218bcdf50
+[290.951534] NILFS [nilfs_segbuf_submit_bio]:464 bio->bi_sector 111150080, segbuf->sb_segnum 6784, segbuf->sb_nbio 0
+[----------] ditto
+[290.952308] NILFS [nilfs_segbuf_submit_bio]:464 bio->bi_sector 111164416, segbuf->sb_segnum 6784, segbuf->sb_nbio 15
+
+[-----------------------------SEGMENT 6785-------------------------------]
+[290.952340] NILFS [nilfs_segctor_do_construct]:2310 nilfs_segctor_begin_construction
+[290.952364] NILFS [nilfs_segctor_do_construct]:2321 nilfs_segctor_collect
+[290.952406] NILFS [nilfs_lookup_dirty_data_buffers]:782 bh->b_count 2, bh->b_page ffffea000709b000, page->index 0, i_ino 1033103, i_size 25165824
+[290.952411] NILFS [nilfs_lookup_dirty_data_buffers]:783 bh->b_assoc_buffers.next ffff880219277e80, bh->b_assoc_buffers.prev ffff880221cffc88
+[290.990248] NILFS [nilfs_segctor_do_construct]:2367 nilfs_segctor_update_segusage
+[290.990265] NILFS [nilfs_segctor_do_construct]:2371 nilfs_segctor_prepare_write
+[291.008348] NILFS [nilfs_segctor_do_construct]:2376 nilfs_add_checksums_on_logs
+[291.018110] NILFS [nilfs_segctor_do_construct]:2381 nilfs_segctor_write
+[291.021206] NILFS [nilfs_segbuf_submit_bh]:575 bh->b_count 2, bh->b_page ffffea000709b000, page->index 0, i_ino 1033103, i_size 25165824
+[291.021210] NILFS [nilfs_segbuf_submit_bh]:576 segbuf->sb_segnum 6785
+[291.021214] NILFS [nilfs_segbuf_submit_bh]:577 bh->b_assoc_buffers.next ffff880218a0d5f8, bh->b_assoc_buffers.prev ffff880222cc7ee8
+[291.021241] NILFS [nilfs_segbuf_submit_bio]:464 bio->bi_sector 111165440, segbuf->sb_segnum 6785, segbuf->sb_nbio 0
+[----------] ditto
+[291.021916] NILFS [nilfs_segbuf_submit_bio]:464 bio->bi_sector 111177728, segbuf->sb_segnum 6785, segbuf->sb_nbio 12
+
+[291.021944] NILFS [nilfs_segctor_do_construct]:2399 nilfs_segctor_wait
+[291.021950] NILFS [nilfs_segbuf_wait]:676 segbuf->sb_segnum 6783
+[291.021964] NILFS [nilfs_segbuf_wait]:676 segbuf->sb_segnum 6784
+[291.021984] NILFS [nilfs_segbuf_wait]:676 segbuf->sb_segnum 6785
+
+[291.071861] NILFS [nilfs_segctor_complete_write]:2100 bh->b_count 0, bh->b_blocknr 13895680, bh->b_size 13897727, bh->b_page 0000000000001a82
+
+BUG: unable to handle kernel paging request at 0000000000001a82
+IP: [<ffffffffa024d0f2>] nilfs_end_page_io+0x12/0xd0 [nilfs2]
+
+Usually, for every segment we collect dirty files in list.  Then, dirty
+blocks are gathered for every dirty file, prepared for write and submitted
+by means of nilfs_segbuf_submit_bh() call.  Finally, it takes place
+complete write phase after calling nilfs_end_bio_write() on the block
+layer.  Buffers/pages are marked as not dirty on final phase and processed
+files removed from the list of dirty files.
+
+It is possible to see that we had three prepare_write and submit_bio
+phases before segbuf_wait and complete_write phase.  Moreover, segments
+compete between each other for dirty blocks because on every iteration of
+segments processing dirty buffer_heads are added in several lists of
+payload_buffers:
+
+[SEGMENT 6784]: bh->b_assoc_buffers.next ffff880218a0d5f8, bh->b_assoc_buffers.prev ffff880218bcdf50
+[SEGMENT 6785]: bh->b_assoc_buffers.next ffff880218a0d5f8, bh->b_assoc_buffers.prev ffff880222cc7ee8
+
+The next pointer is the same but prev pointer has changed.  It means that
+buffer_head has next pointer from one list but prev pointer from another. 
+Such modification can be made several times.  And, finally, it can be
+resulted in various issues: (1) segctor hanging, (2) segctor crashing, (3)
+file system metadata corruption.
+
+FIX:
+This patch adds:
+
+(1) setting of BH_Async_Write flag in nilfs_segctor_prepare_write()
+    for every proccessed dirty block;
+
+(2) checking of BH_Async_Write flag in
+    nilfs_lookup_dirty_data_buffers() and
+    nilfs_lookup_dirty_node_buffers();
+
+(3) clearing of BH_Async_Write flag in nilfs_segctor_complete_write(),
+    nilfs_abort_logs(), nilfs_forget_buffer(), nilfs_clear_dirty_page().
+
+Reported-by: Jerome Poulin <jeromepoulin@gmail.com>
+Reported-by: Anton Eliasson <devel@antoneliasson.se>
+Cc: Paul Fertser <fercerpav@gmail.com>
+Cc: ARAI Shun-ichi <hermes@ceres.dti.ne.jp>
+Cc: Piotr Szymaniak <szarpaj@grubelek.pl>
+Cc: Juan Barry Manuel Canham <Linux@riotingpacifist.net>
+Cc: Zahid Chowdhury <zahid.chowdhury@starsolutions.com>
+Cc: Elmer Zhang <freeboy6716@gmail.com>
+Cc: Kenneth Langga <klangga@gmail.com>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 +-
- mm/memcontrol.c            |  163 ++++++++++++++++++++++++++++++-----
- mm/vmscan.c                |   62 +++++--------
- 3 files changed, 175 insertions(+), 60 deletions(-)
+ fs/nilfs2/page.c    |    2 ++
+ fs/nilfs2/segment.c |   11 +++++++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code
-+++ a/include/linux/memcontrol.h
-@@ -234,7 +234,9 @@ static inline void mem_cgroup_dec_page_s
- 	mem_cgroup_update_page_stat(page, idx, -1);
- }
- 
--bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg);
-+unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
-+						gfp_t gfp_mask,
-+						unsigned long *total_scanned);
- 
- void __mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
- static inline void mem_cgroup_count_vm_event(struct mm_struct *mm,
-@@ -434,9 +436,11 @@ static inline void mem_cgroup_dec_page_s
- }
- 
- static inline
--bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg)
-+unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
-+					    gfp_t gfp_mask,
-+					    unsigned long *total_scanned)
- {
--	return false;
-+	return 0;
- }
- 
- static inline void mem_cgroup_split_huge_fixup(struct page *head)
-diff -puN mm/memcontrol.c~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code mm/memcontrol.c
---- a/mm/memcontrol.c~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code
-+++ a/mm/memcontrol.c
-@@ -1991,28 +1991,57 @@ static bool mem_cgroup_reclaimable(struc
- }
- #endif
- 
--/*
-- * A group is eligible for the soft limit reclaim if
-- * 	a) it is over its soft limit
-- *	b) any parent up the hierarchy is over its soft limit
-- */
--bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg)
-+static int mem_cgroup_soft_reclaim(struct mem_cgroup *root_memcg,
-+				   struct zone *zone,
-+				   gfp_t gfp_mask,
-+				   unsigned long *total_scanned)
- {
--	struct mem_cgroup *parent = memcg;
--
--	if (res_counter_soft_limit_excess(&memcg->res))
--		return true;
--
--	/*
--	 * If any parent up the hierarchy is over its soft limit then we
--	 * have to obey and reclaim from this group as well.
--	 */
--	while ((parent = parent_mem_cgroup(parent))) {
--		if (res_counter_soft_limit_excess(&parent->res))
--			return true;
--	}
--
--	return false;
-+	struct mem_cgroup *victim = NULL;
-+	int total = 0;
-+	int loop = 0;
-+	unsigned long excess;
-+	unsigned long nr_scanned;
-+	struct mem_cgroup_reclaim_cookie reclaim = {
-+		.zone = zone,
-+		.priority = 0,
-+	};
-+
-+	excess = res_counter_soft_limit_excess(&root_memcg->res) >> PAGE_SHIFT;
-+
-+	while (1) {
-+		victim = mem_cgroup_iter(root_memcg, victim, &reclaim);
-+		if (!victim) {
-+			loop++;
-+			if (loop >= 2) {
-+				/*
-+				 * If we have not been able to reclaim
-+				 * anything, it might because there are
-+				 * no reclaimable pages under this hierarchy
-+				 */
-+				if (!total)
-+					break;
-+				/*
-+				 * We want to do more targeted reclaim.
-+				 * excess >> 2 is not to excessive so as to
-+				 * reclaim too much, nor too less that we keep
-+				 * coming back to reclaim from this cgroup
-+				 */
-+				if (total >= (excess >> 2) ||
-+					(loop > MEM_CGROUP_MAX_RECLAIM_LOOPS))
-+					break;
-+			}
-+			continue;
-+		}
-+		if (!mem_cgroup_reclaimable(victim, false))
-+			continue;
-+		total += mem_cgroup_shrink_node_zone(victim, gfp_mask, false,
-+						     zone, &nr_scanned);
-+		*total_scanned += nr_scanned;
-+		if (!res_counter_soft_limit_excess(&root_memcg->res))
-+			break;
-+ 	}
-+	mem_cgroup_iter_break(root_memcg, victim);
-+	return total;
- }
- 
- static DEFINE_SPINLOCK(memcg_oom_lock);
-@@ -4761,6 +4790,98 @@ static int mem_cgroup_resize_memsw_limit
- 	return ret;
- }
- 
-+unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
-+					    gfp_t gfp_mask,
-+					    unsigned long *total_scanned)
-+{
-+	unsigned long nr_reclaimed = 0;
-+	struct mem_cgroup_per_zone *mz, *next_mz = NULL;
-+	unsigned long reclaimed;
-+	int loop = 0;
-+	struct mem_cgroup_tree_per_zone *mctz;
-+	unsigned long long excess;
-+	unsigned long nr_scanned;
-+
-+	if (order > 0)
-+		return 0;
-+
-+	mctz = soft_limit_tree_node_zone(zone_to_nid(zone), zone_idx(zone));
-+	/*
-+	 * This loop can run a while, specially if mem_cgroup's continuously
-+	 * keep exceeding their soft limit and putting the system under
-+	 * pressure
-+	 */
-+	do {
-+		if (next_mz)
-+			mz = next_mz;
-+		else
-+			mz = mem_cgroup_largest_soft_limit_node(mctz);
-+		if (!mz)
-+			break;
-+
-+		nr_scanned = 0;
-+		reclaimed = mem_cgroup_soft_reclaim(mz->memcg, zone,
-+						    gfp_mask, &nr_scanned);
-+		nr_reclaimed += reclaimed;
-+		*total_scanned += nr_scanned;
-+		spin_lock(&mctz->lock);
-+
-+		/*
-+		 * If we failed to reclaim anything from this memory cgroup
-+		 * it is time to move on to the next cgroup
-+		 */
-+		next_mz = NULL;
-+		if (!reclaimed) {
-+			do {
-+				/*
-+				 * Loop until we find yet another one.
-+				 *
-+				 * By the time we get the soft_limit lock
-+				 * again, someone might have aded the
-+				 * group back on the RB tree. Iterate to
-+				 * make sure we get a different mem.
-+				 * mem_cgroup_largest_soft_limit_node returns
-+				 * NULL if no other cgroup is present on
-+				 * the tree
-+				 */
-+				next_mz =
-+				__mem_cgroup_largest_soft_limit_node(mctz);
-+				if (next_mz == mz)
-+					css_put(&next_mz->memcg->css);
-+				else /* next_mz == NULL or other memcg */
-+					break;
-+			} while (1);
-+		}
-+		__mem_cgroup_remove_exceeded(mz->memcg, mz, mctz);
-+		excess = res_counter_soft_limit_excess(&mz->memcg->res);
-+		/*
-+		 * One school of thought says that we should not add
-+		 * back the node to the tree if reclaim returns 0.
-+		 * But our reclaim could return 0, simply because due
-+		 * to priority we are exposing a smaller subset of
-+		 * memory to reclaim from. Consider this as a longer
-+		 * term TODO.
-+		 */
-+		/* If excess == 0, no tree ops */
-+		__mem_cgroup_insert_exceeded(mz->memcg, mz, mctz, excess);
-+		spin_unlock(&mctz->lock);
-+		css_put(&mz->memcg->css);
-+		loop++;
-+		/*
-+		 * Could not reclaim anything and there are no more
-+		 * mem cgroups to try or we seem to be looping without
-+		 * reclaiming anything.
-+		 */
-+		if (!nr_reclaimed &&
-+			(next_mz == NULL ||
-+			loop > MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS))
-+			break;
-+	} while (!nr_reclaimed);
-+	if (next_mz)
-+		css_put(&next_mz->memcg->css);
-+	return nr_reclaimed;
-+}
-+
- /**
-  * mem_cgroup_force_empty_list - clears LRU of a group
-  * @memcg: group to clear
-diff -puN mm/vmscan.c~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code mm/vmscan.c
---- a/mm/vmscan.c~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code
-+++ a/mm/vmscan.c
-@@ -139,21 +139,11 @@ static bool global_reclaim(struct scan_c
- {
- 	return !sc->target_mem_cgroup;
- }
--
--static bool mem_cgroup_should_soft_reclaim(struct scan_control *sc)
--{
--	return !mem_cgroup_disabled() && global_reclaim(sc);
--}
- #else
- static bool global_reclaim(struct scan_control *sc)
- {
- 	return true;
- }
--
--static bool mem_cgroup_should_soft_reclaim(struct scan_control *sc)
--{
--	return false;
--}
- #endif
- 
- unsigned long zone_reclaimable_pages(struct zone *zone)
-@@ -2174,8 +2164,7 @@ static inline bool should_continue_recla
- 	}
- }
- 
--static void
--__shrink_zone(struct zone *zone, struct scan_control *sc, bool soft_reclaim)
-+static void shrink_zone(struct zone *zone, struct scan_control *sc)
- {
- 	unsigned long nr_reclaimed, nr_scanned;
- 
-@@ -2194,12 +2183,6 @@ __shrink_zone(struct zone *zone, struct
- 		do {
- 			struct lruvec *lruvec;
- 
--			if (soft_reclaim &&
--			    !mem_cgroup_soft_reclaim_eligible(memcg)) {
--				memcg = mem_cgroup_iter(root, memcg, &reclaim);
--				continue;
--			}
--
- 			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
- 
- 			shrink_lruvec(lruvec, sc);
-@@ -2230,24 +2213,6 @@ __shrink_zone(struct zone *zone, struct
- 					 sc->nr_scanned - nr_scanned, sc));
- }
- 
--
--static void shrink_zone(struct zone *zone, struct scan_control *sc)
--{
--	bool do_soft_reclaim = mem_cgroup_should_soft_reclaim(sc);
--	unsigned long nr_scanned = sc->nr_scanned;
--
--	__shrink_zone(zone, sc, do_soft_reclaim);
--
--	/*
--	 * No group is over the soft limit or those that are do not have
--	 * pages in the zone we are reclaiming so we have to reclaim everybody
--	 */
--	if (do_soft_reclaim && (sc->nr_scanned == nr_scanned)) {
--		__shrink_zone(zone, sc, false);
--		return;
--	}
--}
--
- /* Returns true if compaction should go ahead for a high-order request */
- static inline bool compaction_ready(struct zone *zone, struct scan_control *sc)
- {
-@@ -2309,6 +2274,8 @@ static bool shrink_zones(struct zonelist
- {
- 	struct zoneref *z;
- 	struct zone *zone;
-+	unsigned long nr_soft_reclaimed;
-+	unsigned long nr_soft_scanned;
- 	bool aborted_reclaim = false;
- 
- 	/*
-@@ -2348,6 +2315,18 @@ static bool shrink_zones(struct zonelist
- 					continue;
- 				}
+diff -puN fs/nilfs2/page.c~nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks fs/nilfs2/page.c
+--- a/fs/nilfs2/page.c~nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks
++++ a/fs/nilfs2/page.c
+@@ -94,6 +94,7 @@ void nilfs_forget_buffer(struct buffer_h
+ 	clear_buffer_nilfs_volatile(bh);
+ 	clear_buffer_nilfs_checked(bh);
+ 	clear_buffer_nilfs_redirected(bh);
++	clear_buffer_async_write(bh);
+ 	clear_buffer_dirty(bh);
+ 	if (nilfs_page_buffers_clean(page))
+ 		__nilfs_clear_page_dirty(page);
+@@ -429,6 +430,7 @@ void nilfs_clear_dirty_page(struct page
+ 					"discard block %llu, size %zu",
+ 					(u64)bh->b_blocknr, bh->b_size);
  			}
-+			/*
-+			 * This steals pages from memory cgroups over softlimit
-+			 * and returns the number of reclaimed pages and
-+			 * scanned pages. This works for global memory pressure
-+			 * and balancing, not for a memcg's limit.
-+			 */
-+			nr_soft_scanned = 0;
-+			nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
-+						sc->order, sc->gfp_mask,
-+						&nr_soft_scanned);
-+			sc->nr_reclaimed += nr_soft_reclaimed;
-+			sc->nr_scanned += nr_soft_scanned;
- 			/* need some check for avoid more shrink_zone() */
- 		}
++			clear_buffer_async_write(bh);
+ 			clear_buffer_dirty(bh);
+ 			clear_buffer_nilfs_volatile(bh);
+ 			clear_buffer_nilfs_checked(bh);
+diff -puN fs/nilfs2/segment.c~nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks
++++ a/fs/nilfs2/segment.c
+@@ -665,7 +665,7 @@ static size_t nilfs_lookup_dirty_data_bu
  
-@@ -2941,6 +2920,8 @@ static unsigned long balance_pgdat(pg_da
- {
- 	int i;
- 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
-+	unsigned long nr_soft_reclaimed;
-+	unsigned long nr_soft_scanned;
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
- 		.priority = DEF_PRIORITY,
-@@ -3055,6 +3036,15 @@ static unsigned long balance_pgdat(pg_da
+ 		bh = head = page_buffers(page);
+ 		do {
+-			if (!buffer_dirty(bh))
++			if (!buffer_dirty(bh) || buffer_async_write(bh))
+ 				continue;
+ 			get_bh(bh);
+ 			list_add_tail(&bh->b_assoc_buffers, listp);
+@@ -699,7 +699,8 @@ static void nilfs_lookup_dirty_node_buff
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			bh = head = page_buffers(pvec.pages[i]);
+ 			do {
+-				if (buffer_dirty(bh)) {
++				if (buffer_dirty(bh) &&
++						!buffer_async_write(bh)) {
+ 					get_bh(bh);
+ 					list_add_tail(&bh->b_assoc_buffers,
+ 						      listp);
+@@ -1579,6 +1580,7 @@ static void nilfs_segctor_prepare_write(
  
- 			sc.nr_scanned = 0;
+ 		list_for_each_entry(bh, &segbuf->sb_segsum_buffers,
+ 				    b_assoc_buffers) {
++			set_buffer_async_write(bh);
+ 			if (bh->b_page != bd_page) {
+ 				if (bd_page) {
+ 					lock_page(bd_page);
+@@ -1592,6 +1594,7 @@ static void nilfs_segctor_prepare_write(
  
-+			nr_soft_scanned = 0;
-+			/*
-+			 * Call soft limit reclaim before calling shrink_zone.
-+			 */
-+			nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
-+							order, sc.gfp_mask,
-+							&nr_soft_scanned);
-+			sc.nr_reclaimed += nr_soft_reclaimed;
-+
- 			/*
- 			 * There should be no need to raise the scanning
- 			 * priority if enough pages are already being scanned
+ 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
+ 				    b_assoc_buffers) {
++			set_buffer_async_write(bh);
+ 			if (bh == segbuf->sb_super_root) {
+ 				if (bh->b_page != bd_page) {
+ 					lock_page(bd_page);
+@@ -1677,6 +1680,7 @@ static void nilfs_abort_logs(struct list
+ 	list_for_each_entry(segbuf, logs, sb_list) {
+ 		list_for_each_entry(bh, &segbuf->sb_segsum_buffers,
+ 				    b_assoc_buffers) {
++			clear_buffer_async_write(bh);
+ 			if (bh->b_page != bd_page) {
+ 				if (bd_page)
+ 					end_page_writeback(bd_page);
+@@ -1686,6 +1690,7 @@ static void nilfs_abort_logs(struct list
+ 
+ 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
+ 				    b_assoc_buffers) {
++			clear_buffer_async_write(bh);
+ 			if (bh == segbuf->sb_super_root) {
+ 				if (bh->b_page != bd_page) {
+ 					end_page_writeback(bd_page);
+@@ -1755,6 +1760,7 @@ static void nilfs_segctor_complete_write
+ 				    b_assoc_buffers) {
+ 			set_buffer_uptodate(bh);
+ 			clear_buffer_dirty(bh);
++			clear_buffer_async_write(bh);
+ 			if (bh->b_page != bd_page) {
+ 				if (bd_page)
+ 					end_page_writeback(bd_page);
+@@ -1776,6 +1782,7 @@ static void nilfs_segctor_complete_write
+ 				    b_assoc_buffers) {
+ 			set_buffer_uptodate(bh);
+ 			clear_buffer_dirty(bh);
++			clear_buffer_async_write(bh);
+ 			clear_buffer_delay(bh);
+ 			clear_buffer_nilfs_volatile(bh);
+ 			clear_buffer_nilfs_redirected(bh);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-revert-memcg-track-all-children-over-limit-in-the-root.patch
-revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
-revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm.patch
-mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-fat-additions-to-support-fat_fallocate-fix-fix.patch
-linux-next.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-revert-memcg-track-all-children-over-limit-in-the-root.patch
-revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
-revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch
 
