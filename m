@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch added to -mm tree
-Date: Tue, 17 Sep 2013 15:56:56 -0700
-Message-ID: <5238de38.XTeY7QLPC1v5HGih%akpm@linux-foundation.org>
+Subject: + mm-readaheadc-do_readhead-dont-check-for-readpage.patch added
+ to -mm tree
+Date: Tue, 17 Sep 2013 15:56:57 -0700
+Message-ID: <5238de39.0Ry8a0sIAgeV53OK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39571 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39572 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753371Ab3IQW45 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 18:56:57 -0400
+	with ESMTP id S1753371Ab3IQW46 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 18:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch added to -mm tree
-To: gang.chen@asianux.com,fengguang.wu@intel.com
+Subject: + mm-readaheadc-do_readhead-dont-check-for-readpage.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Tue, 17 Sep 2013 15:56:56 -0700
+Date: Tue, 17 Sep 2013 15:56:57 -0700
 
 
 The patch titled
-     Subject: mm/readahead.c: return the value which force_page_cache_readahead() returns
+     Subject: mm/readahead.c:do_readhead(): don't check for ->readpage
 has been added to the -mm tree.  Its filename is
-     mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
+     mm-readaheadc-do_readhead-dont-check-for-readpage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-readaheadc-do_readhead-dont-check-for-readpage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-readaheadc-do_readhead-dont-check-for-readpage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,68 +44,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: mm/readahead.c: return the value which force_page_cache_readahead() returns
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/readahead.c:do_readhead(): don't check for ->readpage
 
-force_page_cache_readahead() may fail, so let the related upper system
-calls know about it by its return value.
-
-For system call fadvise64_64(), ignore return value because fadvise()
-shall return success even if filesystem can't retrieve a hint.
+The callee force_page_cache_readahead() already does this and unlike
+do_readahead(), force_page_cache_readahead() remembers to check for
+->readpages() as well.
 
 
-(akpm: actually, force_page_cache_readahead() cannot fail - I see no code
-path via which it returns a -ve errno.
 
-Of course, that might change in the future and although readahead is
-usually a best-effort-dont-care-if-it-fails thing, I suppose that in
-the case of madvise() and sys_readahead() we should inform userspace,
-as readhead is the primary reason for thier performing the syscall.)
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c   |    4 ++--
- mm/readahead.c |    3 +--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ mm/readahead.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns mm/madvise.c
---- a/mm/madvise.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns
-+++ a/mm/madvise.c
-@@ -247,8 +247,8 @@ static long madvise_willneed(struct vm_a
- 		end = vma->vm_end;
- 	end = ((end - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
- 
--	force_page_cache_readahead(file->f_mapping, file, start, end - start);
--	return 0;
-+	return force_page_cache_readahead(file->f_mapping, file,
-+					start, end - start);
- }
- 
- /*
-diff -puN mm/readahead.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns mm/readahead.c
---- a/mm/readahead.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns
+diff -puN mm/readahead.c~mm-readaheadc-do_readhead-dont-check-for-readpage mm/readahead.c
+--- a/mm/readahead.c~mm-readaheadc-do_readhead-dont-check-for-readpage
 +++ a/mm/readahead.c
-@@ -572,8 +572,7 @@ do_readahead(struct address_space *mappi
- 	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
+@@ -569,7 +569,7 @@ static ssize_t
+ do_readahead(struct address_space *mapping, struct file *filp,
+ 	     pgoff_t index, unsigned long nr)
+ {
+-	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
++	if (!mapping || !mapping->a_ops)
  		return -EINVAL;
  
--	force_page_cache_readahead(mapping, filp, index, nr);
--	return 0;
-+	return force_page_cache_readahead(mapping, filp, index, nr);
- }
- 
- SYSCALL_DEFINE3(readahead, int, fd, loff_t, offset, size_t, count)
+ 	return force_page_cache_readahead(mapping, filp, index, nr);
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sh64-kernel-use-usp-instead-of-fn.patch
-sh64-kernel-remove-useless-variable-regs.patch
-mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
-kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch
-kernel-sysctlc-check-return-value-after-call-proc_put_char-in-__do_proc_doulongvec_minmax.patch
-kernel-taskstatsc-add-nla_nest_cancel-for-failure-processing-between-nla_nest_start-and-nla_nest_end.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
+revert-memcg-track-all-children-over-limit-in-the-root.patch
+revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
+revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
+revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
+revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
+revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
+drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm.patch
+mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+fat-additions-to-support-fat_fallocate-fix-fix.patch
+linux-next.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
