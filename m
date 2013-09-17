@@ -1,106 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: + mm-readaheadc-do_readhead-dont-check-for-readpage.patch added
- to -mm tree
-Date: Tue, 17 Sep 2013 15:56:57 -0700
-Message-ID: <5238de39.0Ry8a0sIAgeV53OK%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info.patch
+ removed from -mm tree
+Date: Tue, 17 Sep 2013 16:07:54 -0700
+Message-ID: <5238e0ca.PP0XwMVW3gAZUAux%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39572 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39666 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753371Ab3IQW46 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 18:56:58 -0400
+	with ESMTP id S1753992Ab3IQXHz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 19:07:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mitsuo.hayasaka.hu@hitachi.com, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-readaheadc-do_readhead-dont-check-for-readpage.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: [alternative-merged] mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info.patch removed from -mm tree
+To: liwanp@linux.vnet.ibm.com,mitsuo.hayasaka.hu@hitachi.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 17 Sep 2013 15:56:57 -0700
+Date: Tue, 17 Sep 2013 16:07:54 -0700
 
 
 The patch titled
-     Subject: mm/readahead.c:do_readhead(): don't check for ->readpage
-has been added to the -mm tree.  Its filename is
-     mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+     Subject: mm/vmalloc: move VM_UNINITIALIZED to just before show_numa_info
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/readahead.c:do_readhead(): don't check for ->readpage
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/vmalloc: move VM_UNINITIALIZED to just before show_numa_info
 
-The callee force_page_cache_readahead() already does this and unlike
-do_readahead(), force_page_cache_readahead() remembers to check for
-->readpages() as well.
+The VM_UNINITIALIZED/VM_UNLIST flag introduced by f5252e00 ("mm: avoid
+null pointer access in vm_struct via /proc/vmallocinfo") is used to avoid
+accessing the pages field with unallocated page when show_numa_info() is
+called.
 
+This patch moves the check to just before show_numa_info in order that
+some messages still can be dumped via /proc/vmallocinfo.
 
-
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/readahead.c~mm-readaheadc-do_readhead-dont-check-for-readpage mm/readahead.c
---- a/mm/readahead.c~mm-readaheadc-do_readhead-dont-check-for-readpage
-+++ a/mm/readahead.c
-@@ -569,7 +569,7 @@ static ssize_t
- do_readahead(struct address_space *mapping, struct file *filp,
- 	     pgoff_t index, unsigned long nr)
- {
--	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
-+	if (!mapping || !mapping->a_ops)
- 		return -EINVAL;
+diff -puN mm/vmalloc.c~mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-move-vm_uninitialized-to-just-before-show_numa_info
++++ a/mm/vmalloc.c
+@@ -2591,11 +2591,6 @@ static int s_show(struct seq_file *m, vo
  
- 	return force_page_cache_readahead(mapping, filp, index, nr);
+ 	v = va->vm;
+ 
+-	/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
+-	smp_rmb();
+-	if (v->flags & VM_UNINITIALIZED)
+-		return 0;
+-
+ 	seq_printf(m, "0x%pK-0x%pK %7ld",
+ 		v->addr, v->addr + v->size, v->size);
+ 
+@@ -2623,6 +2618,11 @@ static int s_show(struct seq_file *m, vo
+ 	if (v->flags & VM_VPAGES)
+ 		seq_printf(m, " vpages");
+ 
++	/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
++	smp_rmb();
++	if (v->flags & VM_UNINITIALIZED)
++		return;
++
+ 	show_numa_info(m, v);
+ 	seq_putc(m, '\n');
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-revert-memcg-track-all-children-over-limit-in-the-root.patch
-revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
-revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
+revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
+ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
+mm-vmalloc-dont-set-area-caller-twice.patch
+mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice.patch
 mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate-fix.patch
-fat-additions-to-support-fat_fallocate-fix-fix.patch
-linux-next.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
