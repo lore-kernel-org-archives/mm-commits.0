@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-obsolete-comments-about-page-table-lock.patch added
- to -mm tree
-Date: Wed, 18 Sep 2013 15:16:48 -0700
-Message-ID: <523a2650.bbw8MxcTuNj4iwnr%akpm@linux-foundation.org>
+Subject: + mm-compactionc-periodically-schedule-when-freeing-pages.patch
+ added to -mm tree
+Date: Wed, 18 Sep 2013 15:34:32 -0700
+Message-ID: <523a2a78.O6FrSKeyliLtHMKm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47189 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47542 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753188Ab3IRWQt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Sep 2013 18:16:49 -0400
+	with ESMTP id S1751558Ab3IRWed (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Sep 2013 18:34:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, rientjes@google.com
 
-Subject: + mm-remove-obsolete-comments-about-page-table-lock.patch added to -mm tree
-To: n-horiguchi@ah.jp.nec.com
+Subject: + mm-compactionc-periodically-schedule-when-freeing-pages.patch added to -mm tree
+To: rientjes@google.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 18 Sep 2013 15:16:48 -0700
+Date: Wed, 18 Sep 2013 15:34:32 -0700
 
 
 The patch titled
-     Subject: mm: remove obsolete comments about page table lock
+     Subject: mm/compaction.c: periodically schedule when freeing pages
 has been added to the -mm tree.  Its filename is
-     mm-remove-obsolete-comments-about-page-table-lock.patch
+     mm-compactionc-periodically-schedule-when-freeing-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-obsolete-comments-about-page-table-lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compactionc-periodically-schedule-when-freeing-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-obsolete-comments-about-page-table-lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compactionc-periodically-schedule-when-freeing-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,48 +44,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: remove obsolete comments about page table lock
+From: David Rientjes <rientjes@google.com>
+Subject: mm/compaction.c: periodically schedule when freeing pages
 
-The callers of free_pgd_range() and hugetlb_free_pgd_range() don't hold
-page table locks.  The comments seems to be obsolete, so let's remove
-them.
+We've been getting warnings about an excessive amount of time spent
+allocating pages for migration during memory compaction without
+scheduling.  isolate_freepages_block() already periodically checks for
+contended locks or the need to schedule, but isolate_freepages() never
+does.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+When a zone is massively long and no suitable targets can be found, this
+iteration can be quite expensive without ever doing cond_resched().
+
+Check periodically for the need to reschedule while the compaction free
+scanner iterates.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |    2 --
- mm/memory.c                   |    2 --
- 2 files changed, 4 deletions(-)
+ mm/compaction.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/powerpc/mm/hugetlbpage.c~mm-remove-obsolete-comments-about-page-table-lock arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~mm-remove-obsolete-comments-about-page-table-lock
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -633,8 +633,6 @@ static void hugetlb_free_pud_range(struc
+diff -puN mm/compaction.c~mm-compactionc-periodically-schedule-when-freeing-pages mm/compaction.c
+--- a/mm/compaction.c~mm-compactionc-periodically-schedule-when-freeing-pages
++++ a/mm/compaction.c
+@@ -677,6 +677,13 @@ static void isolate_freepages(struct zon
+ 					pfn -= pageblock_nr_pages) {
+ 		unsigned long isolated;
  
- /*
-  * This function frees user-level page tables of a process.
-- *
-- * Must be called with pagetable lock held.
-  */
- void hugetlb_free_pgd_range(struct mmu_gather *tlb,
- 			    unsigned long addr, unsigned long end,
-diff -puN mm/memory.c~mm-remove-obsolete-comments-about-page-table-lock mm/memory.c
---- a/mm/memory.c~mm-remove-obsolete-comments-about-page-table-lock
-+++ a/mm/memory.c
-@@ -453,8 +453,6 @@ static inline void free_pud_range(struct
++		/*
++		 * This can iterate a massively long zone without finding any
++		 * suitable migration targets, so periodically check if we need
++		 * to schedule.
++		 */
++		cond_resched();
++
+ 		if (!pfn_valid(pfn))
+ 			continue;
  
- /*
-  * This function frees user-level page tables of a process.
-- *
-- * Must be called with pagetable lock held.
-  */
- void free_pgd_range(struct mmu_gather *tlb,
- 			unsigned long addr, unsigned long end,
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-remove-obsolete-comments-about-page-table-lock.patch
+mm-compactionc-periodically-schedule-when-freeing-pages.patch
+mm-acpi-use-numa_no_node.patch
+x86-srat-use-numa_no_node.patch
+mm-vmalloc-use-numa_no_node.patch
+mm-vmalloc-dont-set-area-caller-twice.patch
+mm-vmalloc-revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
 
