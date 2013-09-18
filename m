@@ -1,83 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-add-necessary-check-in-case-sb_getblk-fails.patch added
- to -mm tree
-Date: Tue, 17 Sep 2013 16:26:25 -0700
-Message-ID: <5238e521.GeLag+VcWcwU97Ld%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
+ removed from -mm tree
+Date: Wed, 18 Sep 2013 13:02:23 -0700
+Message-ID: <523a06cf.9wH0JuPAryXdokhQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39718 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46112 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753921Ab3IQX00 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Sep 2013 19:26:26 -0400
+	with ESMTP id S1752031Ab3IRUCZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Sep 2013 16:02:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, rui.xiang@huawei.com
+To: mm-commits@vger.kernel.org, tao.peng@emc.com, gregkh@linuxfoundation.org, andreas.dilger@intel.com, akpm@linux-foundation.org
 
-Subject: + ocfs2-add-necessary-check-in-case-sb_getblk-fails.patch added to -mm tree
-To: rui.xiang@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: [merged] drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch removed from -mm tree
+To: akpm@linux-foundation.org,andreas.dilger@intel.com,gregkh@linuxfoundation.org,tao.peng@emc.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 17 Sep 2013 16:26:25 -0700
+Date: Wed, 18 Sep 2013 13:02:23 -0700
 
 
 The patch titled
-     Subject: ocfs2: add necessary check in case sb_getblk() fails
-has been added to the -mm tree.  Its filename is
-     ocfs2-add-necessary-check-in-case-sb_getblk-fails.patch
+     Subject: drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c: rename PTRS_PER_PAGE
+has been removed from the -mm tree.  Its filename was
+     drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-necessary-check-in-case-sb_getblk-fails.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-necessary-check-in-case-sb_getblk-fails.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rui Xiang <rui.xiang@huawei.com>
-Subject: ocfs2: add necessary check in case sb_getblk() fails
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c: rename PTRS_PER_PAGE
 
-sb_getblk() may return an err, so add a check for bh.
+It duplicates the definition in arch/alpha/include/asm/pgtable.h and emits
+warnings.
 
-Signed-off-by: Rui Xiang <rui.xiang@huawei.com>
-Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andreas Dilger <andreas.dilger@intel.com>
+Cc: Peng Tao <tao.peng@emc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-add-necessary-check-in-case-sb_getblk-fails fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-add-necessary-check-in-case-sb_getblk-fails
-+++ a/fs/ocfs2/refcounttree.c
-@@ -612,6 +612,11 @@ static int ocfs2_create_refcount_tree(st
- 	}
+diff -puN drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c~drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c
+--- a/drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c~drivers-staging-lustre-lustre-ptlrpc-sec_bulkc-rename-ptrs_per_page
++++ a/drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c
+@@ -59,8 +59,8 @@
+  ****************************************/
  
- 	new_bh = sb_getblk(inode->i_sb, first_blkno);
-+	if (!new_bh) {
-+		ret = -ENOMEM;
-+		mlog_errno(ret);
-+		goto out_commit;
-+	}
- 	ocfs2_set_new_buffer_uptodate(&new_tree->rf_ci, new_bh);
  
- 	ret = ocfs2_journal_access_rb(handle, &new_tree->rf_ci, new_bh,
+-#define PTRS_PER_PAGE   (PAGE_CACHE_SIZE / sizeof(void *))
+-#define PAGES_PER_POOL  (PTRS_PER_PAGE)
++#define POINTERS_PER_PAGE	(PAGE_CACHE_SIZE / sizeof(void *))
++#define PAGES_PER_POOL		(POINTERS_PER_PAGE)
+ 
+ #define IDLE_IDX_MAX	    (100)
+ #define IDLE_IDX_WEIGHT	 (3)
 _
 
-Patches currently in -mm which might be from rui.xiang@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-return-enomem-when-sb_getblk-fails.patch
-ocfs2-add-necessary-check-in-case-sb_getblk-fails.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
+revert-memcg-track-all-children-over-limit-in-the-root.patch
+revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
+revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
+revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
+revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
+revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm.patch
+mm-vmalloc-dont-warn-about-vmalloc-allocation-failure-twice-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate-fix.patch
+fat-additions-to-support-fat_fallocate-fix-fix.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
