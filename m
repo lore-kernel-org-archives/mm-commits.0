@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
- added to -mm tree
-Date: Wed, 18 Sep 2013 14:26:34 -0700
-Message-ID: <523a1a8a.D2hIgwhXSPLWcVnd%akpm@linux-foundation.org>
+Subject: + kernel-gcov-fsc-use-pr_warn.patch added to -mm tree
+Date: Wed, 18 Sep 2013 14:30:34 -0700
+Message-ID: <523a1b7a.sG7kOgo0qPMAI6b8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46625 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46709 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556Ab3IRV0f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Sep 2013 17:26:35 -0400
+	with ESMTP id S1752184Ab3IRVaf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Sep 2013 17:30:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fhrbata@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, peter.oberparleiter@de.ibm.com, keescook@chromium.org, jstancek@redhat.com, fhrbata@redhat.com, arnd@arndb.de, agospoda@redhat.com, akpm@linux-foundation.org
 
-Subject: + gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,fhrbata@redhat.com
+Subject: + kernel-gcov-fsc-use-pr_warn.patch added to -mm tree
+To: akpm@linux-foundation.org,agospoda@redhat.com,arnd@arndb.de,fhrbata@redhat.com,jstancek@redhat.com,keescook@chromium.org,peter.oberparleiter@de.ibm.com,rusty@rustcorp.com.au
 From: akpm@linux-foundation.org
-Date: Wed, 18 Sep 2013 14:26:34 -0700
+Date: Wed, 18 Sep 2013 14:30:34 -0700
 
 
 The patch titled
-     Subject: gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes
+     Subject: kernel/gcov/fs.c: use pr_warn()
 has been added to the -mm tree.  Its filename is
-     gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+     kernel-gcov-fsc-use-pr_warn.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-gcov-fsc-use-pr_warn.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-gcov-fsc-use-pr_warn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,57 +44,125 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes
+Subject: kernel/gcov/fs.c: use pr_warn()
 
-ERROR: that open brace { should be on the previous line
-#227: FILE: kernel/gcov/gcc_4_7.c:179:
-+	for (fi_idx = 0; fi_idx < info->n_functions; fi_idx++)
-+	{
+pr_warning() is deprecated in favor of pr_warn()
 
-ERROR: that open brace { should be on the previous line
-#269: FILE: kernel/gcov/gcc_4_7.c:221:
-+	for (fi_idx = 0; fi_idx < src->n_functions; fi_idx++)
-+	{
-
-total: 2 errors, 0 warnings, 574 lines checked
-
-./patches/gcov-add-support-for-gcc-47-gcov-format.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: Andy Gospodarek <agospoda@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Frantisek Hrbata <fhrbata@redhat.com>
+Cc: Jan Stancek <jstancek@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/gcc_4_7.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/gcov/fs.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes kernel/gcov/gcc_4_7.c
---- a/kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes
-+++ a/kernel/gcov/gcc_4_7.c
-@@ -176,8 +176,7 @@ void gcov_info_reset(struct gcov_info *i
- 	unsigned int fi_idx;
- 	unsigned int ct_idx;
+diff -puN include/asm-generic/vmlinux.lds.h~kernel-gcov-fsc-use-pr_warn include/asm-generic/vmlinux.lds.h
+diff -puN kernel/module.c~kernel-gcov-fsc-use-pr_warn kernel/module.c
+diff -puN kernel/gcov/fs.c~kernel-gcov-fsc-use-pr_warn kernel/gcov/fs.c
+--- a/kernel/gcov/fs.c~kernel-gcov-fsc-use-pr_warn
++++ a/kernel/gcov/fs.c
+@@ -75,7 +75,7 @@ static int __init gcov_persist_setup(cha
+ 	unsigned long val;
  
--	for (fi_idx = 0; fi_idx < info->n_functions; fi_idx++)
--	{
-+	for (fi_idx = 0; fi_idx < info->n_functions; fi_idx++) {
- 		ci_ptr = info->functions[fi_idx]->ctrs;
+ 	if (kstrtoul(str, 0, &val)) {
+-		pr_warning("invalid gcov_persist parameter '%s'\n", str);
++		pr_warn("invalid gcov_persist parameter '%s'\n", str);
+ 		return 0;
+ 	}
+ 	gcov_persist = val;
+@@ -451,7 +451,7 @@ static struct gcov_node *new_node(struct
+ 	} else
+ 		node->dentry = debugfs_create_dir(node->name, parent->dentry);
+ 	if (!node->dentry) {
+-		pr_warning("could not create file\n");
++		pr_warn("could not create file\n");
+ 		kfree(node);
+ 		return NULL;
+ 	}
+@@ -464,7 +464,7 @@ static struct gcov_node *new_node(struct
  
- 		for (ct_idx = 0; ct_idx < GCOV_COUNTERS; ct_idx++) {
-@@ -218,8 +217,7 @@ void gcov_info_add(struct gcov_info *dst
- 	unsigned int ct_idx;
- 	unsigned int val_idx;
+ err_nomem:
+ 	kfree(node);
+-	pr_warning("out of memory\n");
++	pr_warn("out of memory\n");
+ 	return NULL;
+ }
  
--	for (fi_idx = 0; fi_idx < src->n_functions; fi_idx++)
--	{
-+	for (fi_idx = 0; fi_idx < src->n_functions; fi_idx++) {
- 		dci_ptr = dst->functions[fi_idx]->ctrs;
- 		sci_ptr = src->functions[fi_idx]->ctrs;
+@@ -631,8 +631,8 @@ static void add_info(struct gcov_node *n
+ 	 */
+ 	loaded_info = kcalloc(num + 1, sizeof(struct gcov_info *), GFP_KERNEL);
+ 	if (!loaded_info) {
+-		pr_warning("could not add '%s' (out of memory)\n",
+-			   gcov_info_filename(info));
++		pr_warn("could not add '%s' (out of memory)\n",
++			gcov_info_filename(info));
+ 		return;
+ 	}
+ 	memcpy(loaded_info, node->loaded_info,
+@@ -645,9 +645,9 @@ static void add_info(struct gcov_node *n
+ 		 * data set replaces the copy of the last one.
+ 		 */
+ 		if (!gcov_info_is_compatible(node->unloaded_info, info)) {
+-			pr_warning("discarding saved data for %s "
+-				   "(incompatible version)\n",
+-				   gcov_info_filename(info));
++			pr_warn("discarding saved data for %s "
++				"(incompatible version)\n",
++				gcov_info_filename(info));
+ 			gcov_info_free(node->unloaded_info);
+ 			node->unloaded_info = NULL;
+ 		}
+@@ -657,8 +657,8 @@ static void add_info(struct gcov_node *n
+ 		 * The initial one takes precedence.
+ 		 */
+ 		if (!gcov_info_is_compatible(node->loaded_info[0], info)) {
+-			pr_warning("could not add '%s' (incompatible "
+-				   "version)\n", gcov_info_filename(info));
++			pr_warn("could not add '%s' (incompatible "
++				"version)\n", gcov_info_filename(info));
+ 			kfree(loaded_info);
+ 			return;
+ 		}
+@@ -693,9 +693,9 @@ static void save_info(struct gcov_node *
+ 	else {
+ 		node->unloaded_info = gcov_info_dup(info);
+ 		if (!node->unloaded_info) {
+-			pr_warning("could not save data for '%s' "
+-				   "(out of memory)\n",
+-				   gcov_info_filename(info));
++			pr_warn("could not save data for '%s' "
++				"(out of memory)\n",
++				gcov_info_filename(info));
+ 		}
+ 	}
+ }
+@@ -710,8 +710,8 @@ static void remove_info(struct gcov_node
  
+ 	i = get_info_index(node, info);
+ 	if (i < 0) {
+-		pr_warning("could not remove '%s' (not found)\n",
+-			   gcov_info_filename(info));
++		pr_warn("could not remove '%s' (not found)\n",
++			gcov_info_filename(info));
+ 		return;
+ 	}
+ 	if (gcov_persist)
+@@ -750,8 +750,8 @@ void gcov_event(enum gcov_action action,
+ 		if (node)
+ 			remove_info(node, info);
+ 		else {
+-			pr_warning("could not remove '%s' (not found)\n",
+-				   gcov_info_filename(info));
++			pr_warn("could not remove '%s' (not found)\n",
++				gcov_info_filename(info));
+ 		}
+ 		break;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +190,7 @@ fat-additions-to-support-fat_fallocate-fix-fix.patch
 gcov-add-support-for-gcc-47-gcov-format-fix.patch
 gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
 gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-gcov-fsc-use-pr_warn.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
