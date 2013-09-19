@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
- added to -mm tree
-Date: Thu, 19 Sep 2013 16:02:29 -0700
-Message-ID: <523b8285.7ex+vqYNJeAtVibL%akpm@linux-foundation.org>
+Subject: + mm-add-a-helper-function-to-check-may-oom-condition.patch added to -mm tree
+Date: Thu, 19 Sep 2013 16:10:18 -0700
+Message-ID: <523b845a.+e9sgj95dMPUdTc7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58581 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752386Ab3ISXCa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 19:02:30 -0400
+	with ESMTP id S1753669Ab3ISXKT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 19:10:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, robinmholt@linux.com, fei.li@intel.com, chuansheng.liu@intel.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, h.huangqiang@huawei.com
 
-Subject: + kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch added to -mm tree
-To: chuansheng.liu@intel.com,fei.li@intel.com,robinmholt@linux.com,stable@vger.kernel.org
+Subject: + mm-add-a-helper-function-to-check-may-oom-condition.patch added to -mm tree
+To: h.huangqiang@huawei.com,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 19 Sep 2013 16:02:29 -0700
+Date: Thu, 19 Sep 2013 16:10:18 -0700
 
 
 The patch titled
-     Subject: kernel/reboot.c: re-enable the function of variable reboot_default
+     Subject: mm: add a helper function to check may oom condition
 has been added to the -mm tree.  Its filename is
-     kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
+     mm-add-a-helper-function-to-check-may-oom-condition.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-a-helper-function-to-check-may-oom-condition.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-a-helper-function-to-check-may-oom-condition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,49 +43,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chuansheng Liu <chuansheng.liu@intel.com>
-Subject: kernel/reboot.c: re-enable the function of variable reboot_default
+From: Qiang Huang <h.huangqiang@huawei.com>
+Subject: mm: add a helper function to check may oom condition
 
-1b3a5d02ee07 ("reboot: move arch/x86 reboot= handling to generic kernel")
-did some cleanup for reboot= command line, but it made the reboot_default
-inoperative.
+Use helper function to check if we need to deal with oom condition.
 
-The default value of variable reboot_default should be 1, and if command
-line reboot= is not set, system will use the default reboot mode.
-
-Signed-off-by: Li Fei <fei.li@intel.com>
-Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
-Acked-by: Robin Holt <robinmholt@linux.com>
-Cc: <stable@vger.kernel.org>	[3.11.x]
+Signed-off-by: Qiang Huang <h.huangqiang@huawei.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ include/linux/oom.h |    5 +++++
+ mm/memcontrol.c     |    9 +--------
+ mm/page_alloc.c     |    2 +-
+ 3 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default kernel/reboot.c
---- a/kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default
-+++ a/kernel/reboot.c
-@@ -32,7 +32,14 @@ EXPORT_SYMBOL(cad_pid);
- #endif
- enum reboot_mode reboot_mode DEFAULT_REBOOT_MODE;
+diff -puN include/linux/oom.h~mm-add-a-helper-function-to-check-may-oom-condition include/linux/oom.h
+--- a/include/linux/oom.h~mm-add-a-helper-function-to-check-may-oom-condition
++++ a/include/linux/oom.h
+@@ -82,6 +82,11 @@ static inline void oom_killer_enable(voi
+ 	oom_killer_disabled = false;
+ }
  
--int reboot_default;
-+/*
-+ * This variable is used privately to keep track of whether or not
-+ * reboot_type is still set to its default value (i.e., reboot= hasn't
-+ * been set on the command line).  This is needed so that we can
-+ * suppress DMI scanning for reboot quirks.  Without it, it's
-+ * impossible to override a faulty reboot quirk without recompiling.
-+*/
-+int reboot_default = 1;
- int reboot_cpu;
- enum reboot_type reboot_type = BOOT_ACPI;
- int reboot_force;
++static inline bool oom_gfp_allowed(gfp_t gfp_mask)
++{
++	return (gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY);
++}
++
+ extern struct task_struct *find_lock_task_mm(struct task_struct *p);
+ 
+ /* sysctls */
+diff -puN mm/memcontrol.c~mm-add-a-helper-function-to-check-may-oom-condition mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-add-a-helper-function-to-check-may-oom-condition
++++ a/mm/memcontrol.c
+@@ -3008,21 +3008,14 @@ static int memcg_charge_kmem(struct mem_
+ 	struct res_counter *fail_res;
+ 	struct mem_cgroup *_memcg;
+ 	int ret = 0;
+-	bool may_oom;
+ 
+ 	ret = res_counter_charge(&memcg->kmem, size, &fail_res);
+ 	if (ret)
+ 		return ret;
+ 
+-	/*
+-	 * Conditions under which we can wait for the oom_killer. Those are
+-	 * the same conditions tested by the core page allocator
+-	 */
+-	may_oom = (gfp & __GFP_FS) && !(gfp & __GFP_NORETRY);
+-
+ 	_memcg = memcg;
+ 	ret = __mem_cgroup_try_charge(NULL, gfp, size >> PAGE_SHIFT,
+-				      &_memcg, may_oom);
++				      &_memcg, oom_gfp_allowed(gfp));
+ 
+ 	if (ret == -EINTR)  {
+ 		/*
+diff -puN mm/page_alloc.c~mm-add-a-helper-function-to-check-may-oom-condition mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-a-helper-function-to-check-may-oom-condition
++++ a/mm/page_alloc.c
+@@ -2593,7 +2593,7 @@ rebalance:
+ 	 * running out of options and have to consider going OOM
+ 	 */
+ 	if (!did_some_progress) {
+-		if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
++		if (oom_gfp_allowed(gfp_mask)) {
+ 			if (oom_killer_disabled)
+ 				goto nopage;
+ 			/* Coredumps can quickly deplete all memory reserves */
 _
 
-Patches currently in -mm which might be from chuansheng.liu@intel.com are
+Patches currently in -mm which might be from h.huangqiang@huawei.com are
 
-kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
-linux-next.patch
+mm-add-a-helper-function-to-check-may-oom-condition.patch
 
