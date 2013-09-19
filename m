@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + fat-additions-to-support-fat_fallocate-v6.patch added to -mm
- tree
-Date: Thu, 19 Sep 2013 16:25:17 -0700
-Message-ID: <523b87dd.XgB+y8N37t/Abt5v%akpm@linux-foundation.org>
+Subject: +
+ fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch added to
+ -mm tree
+Date: Thu, 19 Sep 2013 16:26:57 -0700
+Message-ID: <523b8841.JIZKM5JR9kr0scJS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58711 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58715 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566Ab3ISXZS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 19:25:18 -0400
+	with ESMTP id S1752566Ab3ISX06 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 19:26:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ravi.n1@samsung.com, hirofumi@mail.parknet.co.jp, a.sahrawat@samsung.com, namjae.jeon@samsung.com
+To: mm-commits@vger.kernel.org, namjae.jeon@samsung.com, akpm@linux-foundation.org
 
-Subject: + fat-additions-to-support-fat_fallocate-v6.patch added to -mm tree
-To: namjae.jeon@samsung.com,a.sahrawat@samsung.com,hirofumi@mail.parknet.co.jp,ravi.n1@samsung.com
+Subject: + fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch added to -mm tree
+To: akpm@linux-foundation.org,namjae.jeon@samsung.com
 From: akpm@linux-foundation.org
-Date: Thu, 19 Sep 2013 16:25:17 -0700
+Date: Thu, 19 Sep 2013 16:26:57 -0700
 
 
 The patch titled
-     Subject: fat: additions to support fat_fallocate
+     Subject: fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fat-additions-to-support-fat_fallocate-v6.patch
+     fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-additions-to-support-fat_fallocate-v6.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fat-additions-to-support-fat_fallocate-v6.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,253 +45,151 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: additions to support fat_fallocate
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes
 
-v6: In v3 of the patch we released the allocated clutsers in
-fat_file_release on the basis of d_count. Moving this from fat_file_release
-to fat_evict_inode and on the basis of i_count , so that allocated
-clusters are released at the last refrence of the inode when inode
-evicts from memory .
+ERROR: code indent should use tabs where possible
+#83: FILE: fs/fat/cache.c:331:
++ ^I^I^I * to map cluster in case of read request$
 
-In case of direct IO , writting in fallocated area fall back to
-buffered write.
+WARNING: please, no space before tabs
+#83: FILE: fs/fat/cache.c:331:
++ ^I^I^I * to map cluster in case of read request$
 
-Support for fibmap is also added for fallocated region
-by modifying fat_bmap to map cluster in case of read request
-for a block in fallocated region.
+ERROR: code indent should use tabs where possible
+#85: FILE: fs/fat/cache.c:333:
++ ^I^I^I */$
 
-v5: change to avoid compilation warning:
-  fs/fat/inode.c: In function 'fat_zero_falloc_area':
->> fs/fat/inode.c:169:11: warning: comparison of distinct pointer
-types lacks a cast [enabled by default]
+WARNING: please, no space before tabs
+#85: FILE: fs/fat/cache.c:333:
++ ^I^I^I */$
 
-v4: Rework based on review comments.
-Add check in fat_setattr to release fallocated blocks on a truncate
+ERROR: code indent should use tabs where possible
+#86: FILE: fs/fat/cache.c:334:
++  ^I^I^Iif (MSDOS_I(inode)->mmu_private >$
 
-v3: Release preallocated blocks at file release.
+WARNING: please, no space before tabs
+#86: FILE: fs/fat/cache.c:334:
++  ^I^I^Iif (MSDOS_I(inode)->mmu_private >$
 
-With FALLOC_FL_KEEP_SIZE, there is no way to distinguish if the
-mismatch between i_size and no. of clusters allocated is a consequence
-of fallocate or just plain corruption. When a non fallocate aware (old)
-linux fat driver tries to write to such a file, it throws an error.Also,
-fsck detects this as inconsistency and truncates the prealloc'd blocks.
+WARNING: please, no spaces at the start of a line
+#86: FILE: fs/fat/cache.c:334:
++  ^I^I^Iif (MSDOS_I(inode)->mmu_private >$
 
-To avoid this, as suggested by OGAWA, remove changes that make fallocate
-persistent across mounts and restrict lifetime of blocks from
-fallocate(2) to file release.
+ERROR: code indent should use tabs where possible
+#214: FILE: fs/fat/inode.c:261:
++ ^I^I * In case of writing in fallocated region, return 0 and$
 
-v2: On an area preallocated with FALLOC_FL_KEEP_SIZE, when a seek was
-done to an offset beyond i_size, the old (garbage) data was exposed as
-we did not zero out the area at allocation time. Added
-fat_zero_falloc_area() to fix this.
+WARNING: please, no space before tabs
+#214: FILE: fs/fat/inode.c:261:
++ ^I^I * In case of writing in fallocated region, return 0 and$
 
-v1: Reworked an earlier patch of the same name
-(https://lkml.org/lkml/2007/12/22/130) to fix some bugs:
-i) Preallocated space was not persistent and was lost on remount. Fixed
-it.
-ii) Did not zero out allocated clusters when FALLOC_FL_KEEP_SIZE was set,
-thereby speeding up preallocation time.
+ERROR: code indent should use tabs where possible
+#215: FILE: fs/fat/inode.c:262:
++ ^I^I * fallback to buffered write.$
 
-Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
-Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
-Cc: Ravishankar N <ravi.n1@samsung.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+WARNING: please, no space before tabs
+#215: FILE: fs/fat/inode.c:262:
++ ^I^I * fallback to buffered write.$
+
+ERROR: code indent should use tabs where possible
+#216: FILE: fs/fat/inode.c:263:
++ ^I^I */$
+
+WARNING: please, no space before tabs
+#216: FILE: fs/fat/inode.c:263:
++ ^I^I */$
+
+total: 6 errors, 7 warnings, 162 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/fat-additions-to-support-fat_fallocate-v6.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/cache.c |   16 +++++++++++++---
- fs/fat/file.c  |   25 ++-----------------------
- fs/fat/inode.c |   38 ++++++++++++++++++++++++++++----------
- 3 files changed, 43 insertions(+), 36 deletions(-)
+ fs/fat/cache.c |    6 +++---
+ fs/fat/inode.c |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/fat/cache.c~fat-additions-to-support-fat_fallocate-v6 fs/fat/cache.c
---- a/fs/fat/cache.c~fat-additions-to-support-fat_fallocate-v6
+diff -puN fs/fat/cache.c~fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes fs/fat/cache.c
+--- a/fs/fat/cache.c~fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes
 +++ a/fs/fat/cache.c
-@@ -312,6 +312,7 @@ int fat_bmap(struct inode *inode, sector
- 	const unsigned char blocksize_bits = sb->s_blocksize_bits;
- 	sector_t last_block;
- 	int cluster, offset;
-+	loff_t i_size = i_size_read(inode);
- 
- 	*phys = 0;
- 	*mapped_blocks = 0;
-@@ -323,11 +324,19 @@ int fat_bmap(struct inode *inode, sector
- 		return 0;
- 	}
- 
--	last_block = (i_size_read(inode) + (blocksize - 1)) >> blocksize_bits;
-+	last_block = (i_size + (blocksize - 1)) >> blocksize_bits;
+@@ -328,10 +328,10 @@ int fat_bmap(struct inode *inode, sector
  	if (sector >= last_block) {
--		if (!create)
--			return 0;
-+		if (!create) {
-+			/*
-+ 			 * to map cluster in case of read request
-+			 * for a block in fallocated region
-+ 			 */
-+  			if (MSDOS_I(inode)->mmu_private >
-+				round_up(i_size, sb->s_blocksize))
-+				goto out_map_cluster;
+ 		if (!create) {
+ 			/*
+- 			 * to map cluster in case of read request
++			 * to map cluster in case of read request
+ 			 * for a block in fallocated region
+- 			 */
+-  			if (MSDOS_I(inode)->mmu_private >
++			 */
++			if (MSDOS_I(inode)->mmu_private >
+ 				round_up(i_size, sb->s_blocksize))
+ 				goto out_map_cluster;
  
-+			return 0;
-+		}
- 		/*
- 		 * ->mmu_private can access on only allocation path.
- 		 * (caller must hold ->i_mutex)
-@@ -338,6 +347,7 @@ int fat_bmap(struct inode *inode, sector
- 			return 0;
- 	}
- 
-+out_map_cluster:
- 	cluster = sector >> (sbi->cluster_bits - sb->s_blocksize_bits);
- 	offset  = sector & (sbi->sec_per_clus - 1);
- 	cluster = fat_bmap_cluster(inode, cluster);
-diff -puN fs/fat/file.c~fat-additions-to-support-fat_fallocate-v6 fs/fat/file.c
---- a/fs/fat/file.c~fat-additions-to-support-fat_fallocate-v6
-+++ a/fs/fat/file.c
-@@ -151,22 +151,6 @@ static long fat_generic_compat_ioctl(str
- 
- static int fat_file_release(struct inode *inode, struct file *filp)
- {
--
--	struct super_block *sb = inode->i_sb;
--	loff_t mmu_private_ideal;
--
--	/*
--	 * Release unwritten fallocated blocks on file release.
--	 * Do this only when the last open file descriptor is closed.
--	 */
--	mutex_lock(&inode->i_mutex);
--	mmu_private_ideal = round_up(inode->i_size, sb->s_blocksize);
--
--	if (mmu_private_ideal < MSDOS_I(inode)->mmu_private &&
--	    d_count(filp->f_dentry) == 1)
--		fat_truncate_blocks(inode, inode->i_size);
--	mutex_unlock(&inode->i_mutex);
--
- 	if ((filp->f_mode & FMODE_WRITE) &&
- 	     MSDOS_SB(inode->i_sb)->options.flush) {
- 		fat_flush_inodes(inode->i_sb, inode, NULL);
-@@ -245,8 +229,7 @@ out:
-  * operation, which gets called from sys_fallocate system call. User
-  * space requests len bytes at offset. If FALLOC_FL_KEEP_SIZE is set
-  * we just allocate clusters without zeroing them out. Otherwise we
-- * allocate and zero out clusters via an expanding truncate. The
-- * allocated clusters are freed in fat_file_release().
-+ * allocate and zero out clusters via an expanding truncate.
-  */
- static long fat_fallocate(struct file *file, int mode,
- 				loff_t offset, loff_t len)
-@@ -488,9 +471,6 @@ int fat_setattr(struct dentry *dentry, s
- 	struct inode *inode = dentry->d_inode;
- 	unsigned int ia_valid;
- 	int error;
--	loff_t mmu_private_ideal;
--
--	mmu_private_ideal = round_up(inode->i_size, dentry->d_sb->s_blocksize);
- 
- 	/* Check for setting the inode time. */
- 	ia_valid = attr->ia_valid;
-@@ -516,8 +496,7 @@ int fat_setattr(struct dentry *dentry, s
- 	if (attr->ia_valid & ATTR_SIZE) {
- 		inode_dio_wait(inode);
- 
--		if (attr->ia_size > inode->i_size &&
--		    MSDOS_I(inode)->mmu_private <= mmu_private_ideal) {
-+		if (attr->ia_size > inode->i_size) {
- 			error = fat_cont_expand(inode, attr->ia_size);
- 			if (error || attr->ia_valid == ATTR_SIZE)
- 				goto out;
-diff -puN fs/fat/inode.c~fat-additions-to-support-fat_fallocate-v6 fs/fat/inode.c
---- a/fs/fat/inode.c~fat-additions-to-support-fat_fallocate-v6
+diff -puN fs/fat/inode.c~fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes
 +++ a/fs/fat/inode.c
-@@ -171,15 +171,15 @@ static int fat_zero_falloc_area(struct f
- 		bytes = min(bytes, count);
- 
- 		err = pagecache_write_begin(NULL, mapping, curpos, bytes,
--					AOP_FLAG_UNINTERRUPTIBLE,
--					&page, &fsdata);
-+				AOP_FLAG_UNINTERRUPTIBLE,
-+				&page, &fsdata);
- 		if (err)
- 			break;
- 
- 		zero_user(page, offset, bytes);
- 
- 		err = pagecache_write_end(NULL, mapping, curpos, bytes, bytes,
--					page, fsdata);
-+				page, fsdata);
- 		if (err < 0)
- 			break;
- 		curpos += bytes;
-@@ -195,15 +195,12 @@ static int fat_write_begin(struct file *
- 			struct page **pagep, void **fsdata)
- {
- 	int err;
--	loff_t mmu_private_ideal, mmu_private_actual;
--	loff_t size;
- 	struct inode *inode = mapping->host;
- 	struct super_block *sb = inode->i_sb;
-+	loff_t i_size = i_size_read(inode);
- 
--	size = i_size_read(inode);
--	mmu_private_actual = MSDOS_I(inode)->mmu_private;
--	mmu_private_ideal = round_up(size, sb->s_blocksize);
--	if ((mmu_private_actual > mmu_private_ideal) && (pos > size)) {
-+	if (MSDOS_I(inode)->mmu_private > round_up(i_size, sb->s_blocksize)
-+			&& pos > i_size) {
- 		err = fat_zero_falloc_area(file, mapping, pos);
- 		if (err) {
- 			fat_msg(sb, KERN_ERR,
-@@ -215,7 +212,7 @@ static int fat_write_begin(struct file *
- 	*pagep = NULL;
- 	err = cont_write_begin(file, mapping, pos, len, flags,
- 				pagep, fsdata, fat_get_block,
--				&MSDOS_I(mapping->host)->mmu_private);
-+				&MSDOS_I(inode)->mmu_private);
- 	if (err < 0)
- 		fat_write_failed(mapping, pos + len);
- 	return err;
-@@ -260,6 +257,14 @@ static ssize_t fat_direct_IO(int rw, str
- 		loff_t size = offset + iov_length(iov, nr_segs);
+@@ -258,9 +258,9 @@ static ssize_t fat_direct_IO(int rw, str
  		if (MSDOS_I(inode)->mmu_private < size)
  			return 0;
-+		/*
-+ 		 * In case of writing in fallocated region, return 0 and
-+ 		 * fallback to buffered write.
-+ 		 */
-+		if (MSDOS_I(inode)->mmu_private >
-+			round_up(i_size_read(inode), inode->i_sb->s_blocksize))
-+			return 0;
-+
- 	}
- 
- 	/*
-@@ -544,6 +549,19 @@ EXPORT_SYMBOL_GPL(fat_build_inode);
- 
- static void fat_evict_inode(struct inode *inode)
- {
-+
-+	struct super_block *sb = inode->i_sb;
-+
-+	/*
-+	 * Release unwritten fallocated blocks on file release.
-+	 * Do this only when the inode evict and i_count becomes 0.
-+	 */
-+	mutex_lock(&inode->i_mutex);
-+	if (round_up(inode->i_size, sb->s_blocksize) <
-+	    MSDOS_I(inode)->mmu_private && atomic_read(&inode->i_count) == 0)
-+		fat_truncate_blocks(inode, inode->i_size);
-+	mutex_unlock(&inode->i_mutex);
-+
- 	truncate_inode_pages(&inode->i_data, 0);
- 	if (!inode->i_nlink) {
- 		inode->i_size = 0;
+ 		/*
+- 		 * In case of writing in fallocated region, return 0 and
+- 		 * fallback to buffered write.
+- 		 */
++		 * In case of writing in fallocated region, return 0 and
++		 * fallback to buffered write.
++		 */
+ 		if (MSDOS_I(inode)->mmu_private >
+ 			round_up(i_size_read(inode), inode->i_sb->s_blocksize))
+ 			return 0;
 _
 
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+watchdog-update-watchdog_tresh-properly-fix.patch
+revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
+revert-memcg-track-all-children-over-limit-in-the-root.patch
+revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
+revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
+revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
+revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
+revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm.patch
+mm-vmalloc-revert-mm-vmallocc-emit-the-failure-message-before-return-fix.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6.patch
+fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-gcov-fsc-use-pr_warn.patch
+linux-next.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
