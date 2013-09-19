@@ -1,61 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- fat-additions-to-support-fat_fallocate-fix-fix.patch removed from -mm tree
-Date: Thu, 19 Sep 2013 16:22:28 -0700
-Message-ID: <523b8734.3Em6w+axUWcp5HdQ%akpm@linux-foundation.org>
+Subject: [folded-merged] fat-additions-to-support-fat_fallocate-fix.patch
+ removed from -mm tree
+Date: Thu, 19 Sep 2013 16:22:26 -0700
+Message-ID: <523b8732.zrAnwMEUTPPYCnVJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58633 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58627 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753016Ab3ISXW3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 19:22:29 -0400
+	with ESMTP id S1753016Ab3ISXW1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 19:22:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, namjae.jeon@samsung.com, hirofumi@mail.parknet.co.jp, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, ravi.n1@samsung.com, namjae.jeon@samsung.com, hirofumi@mail.parknet.co.jp, fengguang.wu@intel.com, a.sahrawat@samsung.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] fat-additions-to-support-fat_fallocate-fix-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,hirofumi@mail.parknet.co.jp,namjae.jeon@samsung.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] fat-additions-to-support-fat_fallocate-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,a.sahrawat@samsung.com,fengguang.wu@intel.com,hirofumi@mail.parknet.co.jp,namjae.jeon@samsung.com,ravi.n1@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Sep 2013 16:22:28 -0700
+Date: Thu, 19 Sep 2013 16:22:26 -0700
 
 
 The patch titled
-     Subject: fat-additions-to-support-fat_fallocate-fix-fix
+     Subject: fat-additions-to-support-fat_fallocate-fix
 has been removed from the -mm tree.  Its filename was
-     fat-additions-to-support-fat_fallocate-fix-fix.patch
+     fat-additions-to-support-fat_fallocate-fix.patch
 
 This patch was dropped because it was folded into fat-additions-to-support-fat_fallocate.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fat-additions-to-support-fat_fallocate-fix-fix
+Subject: fat-additions-to-support-fat_fallocate-fix
 
-use the new d_count()
+fix min() warning
 
+Cc: Amit Sahrawat <a.sahrawat@samsung.com>
 Cc: Namjae Jeon <namjae.jeon@samsung.com>
 Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Ravishankar N <ravi.n1@samsung.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fat/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/fat/inode.c~fat-additions-to-support-fat_fallocate-fix-fix fs/fat/inode.c
-diff -puN fs/fat/file.c~fat-additions-to-support-fat_fallocate-fix-fix fs/fat/file.c
---- a/fs/fat/file.c~fat-additions-to-support-fat_fallocate-fix-fix
-+++ a/fs/fat/file.c
-@@ -163,7 +163,7 @@ static int fat_file_release(struct inode
- 	mmu_private_ideal = round_up(inode->i_size, sb->s_blocksize);
+diff -puN fs/fat/inode.c~fat-additions-to-support-fat_fallocate-fix fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-additions-to-support-fat_fallocate-fix
++++ a/fs/fat/inode.c
+@@ -162,7 +162,8 @@ static int fat_zero_falloc_area(struct f
+ 	int err;
  
- 	if (mmu_private_ideal < MSDOS_I(inode)->mmu_private &&
--	    filp->f_dentry->d_count == 1)
-+	    d_count(filp->f_dentry) == 1)
- 		fat_truncate_blocks(inode, inode->i_size);
- 	mutex_unlock(&inode->i_mutex);
+ 	do {
+-		unsigned offset, bytes;
++		unsigned offset;
++		size_t bytes;
+ 		void *fsdata;
  
+ 		offset = (curpos & (PAGE_CACHE_SIZE - 1));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +84,7 @@ mm-vmalloc-revert-mm-vmallocc-emit-the-failure-message-before-return-fix.patch
 checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 fat-additions-to-support-fat_fallocate.patch
+fat-additions-to-support-fat_fallocate-fix-fix.patch
 gcov-add-support-for-gcc-47-gcov-format-fix.patch
 gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
 gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
