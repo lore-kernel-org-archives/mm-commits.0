@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch added to
- -mm tree
-Date: Thu, 19 Sep 2013 15:47:54 -0700
-Message-ID: <523b7f1a.TFEsoOEhqmfR1aRY%akpm@linux-foundation.org>
+ kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
+ added to -mm tree
+Date: Thu, 19 Sep 2013 16:02:29 -0700
+Message-ID: <523b8285.7ex+vqYNJeAtVibL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58457 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58581 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753669Ab3ISWrz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 18:47:55 -0400
+	with ESMTP id S1752386Ab3ISXCa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 19:02:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony@atomide.com, joro@8bytes.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, robinmholt@linux.com, fei.li@intel.com, chuansheng.liu@intel.com
 
-Subject: + drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch added to -mm tree
-To: jg1.han@samsung.com,joro@8bytes.org,tony@atomide.com
+Subject: + kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch added to -mm tree
+To: chuansheng.liu@intel.com,fei.li@intel.com,robinmholt@linux.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Sep 2013 15:47:54 -0700
+Date: Thu, 19 Sep 2013 16:02:29 -0700
 
 
 The patch titled
-     Subject: drivers/iommu/omap-iopgtable.h: remove unneeded cast of void*
+     Subject: kernel/reboot.c: re-enable the function of variable reboot_default
 has been added to the -mm tree.  Its filename is
-     drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
+     kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,52 +45,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/iommu/omap-iopgtable.h: remove unneeded cast of void*
+From: Chuansheng Liu <chuansheng.liu@intel.com>
+Subject: kernel/reboot.c: re-enable the function of variable reboot_default
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Tony Lindgren <tony@atomide.com>
+1b3a5d02ee07 ("reboot: move arch/x86 reboot= handling to generic kernel")
+did some cleanup for reboot= command line, but it made the reboot_default
+inoperative.
+
+The default value of variable reboot_default should be 1, and if command
+line reboot= is not set, system will use the default reboot mode.
+
+Signed-off-by: Li Fei <fei.li@intel.com>
+Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
+Acked-by: Robin Holt <robinmholt@linux.com>
+Cc: <stable@vger.kernel.org>	[3.11.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/omap-iopgtable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/reboot.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/iommu/omap-iopgtable.h~drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void drivers/iommu/omap-iopgtable.h
---- a/drivers/iommu/omap-iopgtable.h~drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void
-+++ a/drivers/iommu/omap-iopgtable.h
-@@ -95,4 +95,4 @@ static inline phys_addr_t omap_iommu_tra
- #define iopte_offset(iopgd, da)	(iopgd_page_vaddr(iopgd) + iopte_index(da))
+diff -puN kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default kernel/reboot.c
+--- a/kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default
++++ a/kernel/reboot.c
+@@ -32,7 +32,14 @@ EXPORT_SYMBOL(cad_pid);
+ #endif
+ enum reboot_mode reboot_mode DEFAULT_REBOOT_MODE;
  
- #define to_iommu(dev)							\
--	((struct omap_iommu *)platform_get_drvdata(to_platform_device(dev)))
-+	(platform_get_drvdata(to_platform_device(dev)))
+-int reboot_default;
++/*
++ * This variable is used privately to keep track of whether or not
++ * reboot_type is still set to its default value (i.e., reboot= hasn't
++ * been set on the command line).  This is needed so that we can
++ * suppress DMI scanning for reboot quirks.  Without it, it's
++ * impossible to override a faulty reboot quirk without recompiling.
++*/
++int reboot_default = 1;
+ int reboot_cpu;
+ enum reboot_type reboot_type = BOOT_ACPI;
+ int reboot_force;
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from chuansheng.liu@intel.com are
 
-origin.patch
-drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
-backlight-lp855x_bl-support-new-lp8555-device.patch
-backlight-lm3630-apply-chip-revision.patch
-backlight-ld9040-staticize-local-variable-gamma_table.patch
-backlight-lm3639-dont-mix-different-enum-types.patch
-backlight-lp8788-staticize-default_bl_config.patch
-backlight-use-dev_get_platdata.patch
-drivers-rtc-rtc-ds1307c-release-irq-on-error.patch
-drivers-rtc-rtc-isl1208c-remove-redundant-checks.patch
-drivers-rtc-rtc-max6900c-remove-redundant-checks.patch
-drivers-rtc-rtc-vt8500c-fix-return-value.patch
-drivers-rtc-rtc-at91rm9200c-use-devm_-apis.patch
-drivers-rtc-rtc-isl1208c-use-devm_-apis.patch
-drivers-rtc-rtc-sirfsocc-use-devm_rtc_device_register.patch
-drivers-rtc-rtc-cmosc-remove-redundant-dev_set_drvdata.patch
-drivers-rtc-rtc-mrstc-remove-redundant-dev_set_drvdata.patch
-drivers-rtc-rtc-vr41xxc-fix-checkpatch-warnings.patch
-drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void.patch
-drivers-char-xilinx_hwicap-xilinx_hwicapc-remove-unneeded-cast-of-void.patch
-w1-w1-gpio-use-dev_get_platdata.patch
-w1-ds1wm-use-dev_get_platdata.patch
+kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
 linux-next.patch
 
