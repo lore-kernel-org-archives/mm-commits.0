@@ -1,75 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-add-support-for-gcc-47-gcov-format-fix-3.patch added to
- -mm tree
-Date: Thu, 19 Sep 2013 14:01:04 -0700
-Message-ID: <523b6610.Al1zsdPkKOXs1lUr%akpm@linux-foundation.org>
+Subject: [withdrawn] thp-mm-locking-tail-page-is-a-bug-fix.patch removed
+ from -mm tree
+Date: Thu, 19 Sep 2013 14:39:18 -0700
+Message-ID: <523b6f06.gRqMhoY58NJbthZX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57520 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57650 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035Ab3ISVBF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 17:01:05 -0400
+	with ESMTP id S1752448Ab3ISVjT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 17:39:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fhrbata@redhat.com, oberpar@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
 
-Subject: + gcov-add-support-for-gcc-47-gcov-format-fix-3.patch added to -mm tree
-To: oberpar@linux.vnet.ibm.com,fhrbata@redhat.com
+Subject: [withdrawn] thp-mm-locking-tail-page-is-a-bug-fix.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Sep 2013 14:01:04 -0700
+Date: Thu, 19 Sep 2013 14:39:18 -0700
 
 
 The patch titled
-     Subject: gcov-add-support-for-gcc-47-gcov-format-fix-3
-has been added to the -mm tree.  Its filename is
-     gcov-add-support-for-gcc-47-gcov-format-fix-3.patch
+     Subject: thp-mm-locking-tail-page-is-a-bug-fix
+has been removed from the -mm tree.  Its filename was
+     thp-mm-locking-tail-page-is-a-bug-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/gcov-add-support-for-gcc-47-gcov-format-fix-3.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-add-support-for-gcc-47-gcov-format-fix-3.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
-Subject: gcov-add-support-for-gcc-47-gcov-format-fix-3
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp-mm-locking-tail-page-is-a-bug-fix
 
-gcc_4_7.c needs vmalloc.h
 
-Cc: Frantisek Hrbata <fhrbata@redhat.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/gcc_4_7.c |    1 +
+ include/linux/pagemap.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-47-gcov-format-fix-3 kernel/gcov/gcc_4_7.c
---- a/kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-47-gcov-format-fix-3
-+++ a/kernel/gcov/gcc_4_7.c
-@@ -15,6 +15,7 @@
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/seq_file.h>
-+#include <linux/vmalloc.h>
- #include "gcov.h"
+diff -puN include/linux/pagemap.h~thp-mm-locking-tail-page-is-a-bug-fix include/linux/pagemap.h
+--- a/include/linux/pagemap.h~thp-mm-locking-tail-page-is-a-bug-fix
++++ a/include/linux/pagemap.h
+@@ -339,6 +339,7 @@ static inline void __clear_page_locked(s
  
- #define GCOV_COUNTERS			8
+ static inline int trylock_page(struct page *page)
+ {
++	VM_BUG_ON(PageTail(page));
+ 	return (likely(!test_and_set_bit_lock(PG_locked, &page->flags)));
+ }
+ 
 _
 
-Patches currently in -mm which might be from oberpar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-gcov-add-support-for-gcc-47-gcov-format-fix-3.patch
+mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
+thp-mm-locking-tail-page-is-a-bug.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
