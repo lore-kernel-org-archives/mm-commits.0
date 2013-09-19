@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void.patch
- added to -mm tree
-Date: Thu, 19 Sep 2013 15:46:40 -0700
-Message-ID: <523b7ed0.GcgicJRfW1mkn7zb%akpm@linux-foundation.org>
+Subject: +
+ drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch added to
+ -mm tree
+Date: Thu, 19 Sep 2013 15:47:54 -0700
+Message-ID: <523b7f1a.TFEsoOEhqmfR1aRY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58457 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753669Ab3ISWqk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 18:46:40 -0400
+	with ESMTP id S1753669Ab3ISWrz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 18:47:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, tony@atomide.com, joro@8bytes.org, jg1.han@samsung.com
 
-Subject: + drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void.patch added to -mm tree
-To: jg1.han@samsung.com
+Subject: + drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch added to -mm tree
+To: jg1.han@samsung.com,joro@8bytes.org,tony@atomide.com
 From: akpm@linux-foundation.org
-Date: Thu, 19 Sep 2013 15:46:40 -0700
+Date: Thu, 19 Sep 2013 15:47:54 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-sirfsoc.c: remove unneeded casts of void*
+     Subject: drivers/iommu/omap-iopgtable.h: remove unneeded cast of void*
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void.patch
+     drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,68 +46,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-sirfsoc.c: remove unneeded casts of void*
+Subject: drivers/iommu/omap-iopgtable.h: remove unneeded cast of void*
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sirfsoc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/iommu/omap-iopgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void drivers/rtc/rtc-sirfsoc.c
---- a/drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void
-+++ a/drivers/rtc/rtc-sirfsoc.c
-@@ -59,7 +59,7 @@ static int sirfsoc_rtc_read_alarm(struct
- 	unsigned long rtc_alarm, rtc_count;
- 	struct sirfsoc_rtc_drv *rtcdrv;
+diff -puN drivers/iommu/omap-iopgtable.h~drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void drivers/iommu/omap-iopgtable.h
+--- a/drivers/iommu/omap-iopgtable.h~drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void
++++ a/drivers/iommu/omap-iopgtable.h
+@@ -95,4 +95,4 @@ static inline phys_addr_t omap_iommu_tra
+ #define iopte_offset(iopgd, da)	(iopgd_page_vaddr(iopgd) + iopte_index(da))
  
--	rtcdrv = (struct sirfsoc_rtc_drv *)dev_get_drvdata(dev);
-+	rtcdrv = dev_get_drvdata(dev);
- 
- 	local_irq_disable();
- 
-@@ -94,7 +94,7 @@ static int sirfsoc_rtc_set_alarm(struct
- {
- 	unsigned long rtc_status_reg, rtc_alarm;
- 	struct sirfsoc_rtc_drv *rtcdrv;
--	rtcdrv = (struct sirfsoc_rtc_drv *)dev_get_drvdata(dev);
-+	rtcdrv = dev_get_drvdata(dev);
- 
- 	if (alrm->enabled) {
- 		rtc_tm_to_time(&(alrm->time), &rtc_alarm);
-@@ -157,7 +157,7 @@ static int sirfsoc_rtc_read_time(struct
- {
- 	unsigned long tmp_rtc = 0;
- 	struct sirfsoc_rtc_drv *rtcdrv;
--	rtcdrv = (struct sirfsoc_rtc_drv *)dev_get_drvdata(dev);
-+	rtcdrv = dev_get_drvdata(dev);
- 	/*
- 	 * This patch is taken from WinCE - Need to validate this for
- 	 * correctness. To work around sirfsoc RTC counter double sync logic
-@@ -178,7 +178,7 @@ static int sirfsoc_rtc_set_time(struct d
- {
- 	unsigned long rtc_time;
- 	struct sirfsoc_rtc_drv *rtcdrv;
--	rtcdrv = (struct sirfsoc_rtc_drv *)dev_get_drvdata(dev);
-+	rtcdrv = dev_get_drvdata(dev);
- 
- 	rtc_tm_to_time(tm, &rtc_time);
- 
-@@ -364,7 +364,7 @@ static int sirfsoc_rtc_thaw(struct devic
- {
- 	u32 tmp;
- 	struct sirfsoc_rtc_drv *rtcdrv;
--	rtcdrv = (struct sirfsoc_rtc_drv *)dev_get_drvdata(dev);
-+	rtcdrv = dev_get_drvdata(dev);
- 
- 	/*
- 	 * if resume from snapshot and the rtc power is losed,
+ #define to_iommu(dev)							\
+-	((struct omap_iommu *)platform_get_drvdata(to_platform_device(dev)))
++	(platform_get_drvdata(to_platform_device(dev)))
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
+drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
 backlight-lp855x_bl-support-new-lp8555-device.patch
 backlight-lm3630-apply-chip-revision.patch
 backlight-ld9040-staticize-local-variable-gamma_table.patch
