@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-hpsac-remove-unused-smart-array-id.patch added to
- -mm tree
-Date: Thu, 19 Sep 2013 16:33:58 -0700
-Message-ID: <523b89e6.oVxgfiSA/RWaEyVb%akpm@linux-foundation.org>
+Subject: +
+ mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch added to -mm tree
+Date: Thu, 19 Sep 2013 16:39:42 -0700
+Message-ID: <523b8b3e.tzQw+0BvDS8oEy9t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58739 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58753 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752150Ab3ISXd7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 19:33:59 -0400
+	with ESMTP id S1752150Ab3ISXjn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 19:39:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mike.miller@hp.com
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, travis@sgi.com, robinmholt@linux.com, nzimmer@sgi.com, mingo@kernel.org, mgorman@suse.de, hpa@zytor.com, hannes@cmpxchg.org, robin.m.holt@gmail.com
 
-Subject: + drivers-scsi-hpsac-remove-unused-smart-array-id.patch added to -mm tree
-To: mike.miller@hp.com
+Subject: + mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch added to -mm tree
+To: robin.m.holt@gmail.com,hannes@cmpxchg.org,hpa@zytor.com,mgorman@suse.de,mingo@kernel.org,nzimmer@sgi.com,robinmholt@linux.com,travis@sgi.com,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Sep 2013 16:33:58 -0700
+Date: Thu, 19 Sep 2013 16:39:42 -0700
 
 
 The patch titled
-     Subject: drivers/scsi/hpsa.c: remove unused Smart Array ID
+     Subject: mm/nobootmem.c: have __free_pages_memory() free in larger chunks.
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-hpsac-remove-unused-smart-array-id.patch
+     mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-scsi-hpsac-remove-unused-smart-array-id.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-scsi-hpsac-remove-unused-smart-array-id.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,32 +44,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Miller <mike.miller@hp.com>
-Subject: drivers/scsi/hpsa.c: remove unused Smart Array ID
+From: Robin Holt <robin.m.holt@gmail.com>
+Subject: mm/nobootmem.c: have __free_pages_memory() free in larger chunks.
 
-Remove the PCI ID of a cancelled Smart Array.
+On large memory machines it can take a few minutes to get through
+free_all_bootmem().
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
+Currently, when free_all_bootmem() calls __free_pages_memory(), the number
+of contiguous pages that __free_pages_memory() passes to the buddy
+allocator is limited to BITS_PER_LONG.  BITS_PER_LONG was originally
+chosen to keep things similar to mm/nobootmem.c.  But it is more efficient
+to limit it to MAX_ORDER.
+
+       base   new  change
+8TB    202s  172s   30s
+16TB   401s  351s   50s
+
+That is around 1%-3% improvement on total boot time.
+
+This patch was spun off from the boot time rfc Robin and I had been
+working on.
+
+Signed-off-by: Robin Holt <robin.m.holt@gmail.com>
+Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Robin Holt <robinmholt@linux.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/nobootmem.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN drivers/scsi/hpsa.c~drivers-scsi-hpsac-remove-unused-smart-array-id drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~drivers-scsi-hpsac-remove-unused-smart-array-id
-+++ a/drivers/scsi/hpsa.c
-@@ -100,7 +100,6 @@ static const struct pci_device_id hpsa_p
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3354},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3355},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSF,     0x103C, 0x3356},
--	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1920},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1921},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1922},
- 	{PCI_VENDOR_ID_HP,     PCI_DEVICE_ID_HP_CISSH,     0x103C, 0x1923},
-_
-
-Patches currently in -mm which might be from mike.miller@hp.com are
-
-drivers-scsi-hpsac-remove-unused-smart-array-id.patch
-
+diff -puN mm/nobootmem.c~mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks
++++ a/mm/nobootmem.c
+@@ -82,27 +82,18 @@ void __init free_bootmem_late(unsigned l
+ 
+ static void __init __free_pages_memory(unsigned long start, unsigned long end)
+ {
+-	unsigned long i, start_aligned, end_aligned;
+-	int order = ilog2(BITS_PER_LONG);
++	int order;
+ 
+-	start_aligned = (start + (BITS_PER_LONG - 1)) & ~(BITS_PER_LONG - 1);
+-	end_aligned = end & ~(BITS_PER_LONG - 1);
++	while (start < end) {
++		order = min(MAX_ORDER - 1UL, __ffs(start));
+ 
+-	if (end_aligned <= start_aligned) {
+-		for (i = start; i < end; i++)
+-			__free_pages_bootmem(pfn_to_page(i), 0);
++		while (start + (1UL << order) > end)
++			order--;
+ 
+-		return;
+-	}
+-
+-	for (i = start; i < start_aligned; i++)
+-		__free_pages_bootmem(pfn_to_page(i), 0);
++		__free_pages_bootmem(pfn_to_page(start), order);
+ 
+-	for (i = start_aligned; i < end_aligned; i += BITS_PER_LONG)
+-		__free_pages_bootmem(pfn_to_page(i), order);
