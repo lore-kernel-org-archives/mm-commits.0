@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + staging-olpc_dcon-remove-unnecessary-work-pending-test.patch
- added to -mm tree
-Date: Thu, 19 Sep 2013 15:04:57 -0700
-Message-ID: <523b7509.iJyy43ep6fs7oxZa%akpm@linux-foundation.org>
+Subject: + ipc-remove-unnecessary-work-pending-test.patch added to -mm
+ tree
+Date: Thu, 19 Sep 2013 15:04:58 -0700
+Message-ID: <523b750a.Izfb0zhhgPw7YzHa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57767 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57770 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752696Ab3ISWE6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 18:04:58 -0400
+	with ESMTP id S1752696Ab3ISWE7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 18:04:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, jon.nettleton@gmail.com, jfrederich@gmail.com, gregkh@linuxfoundation.org, dsd@laptop.org, xiexiuqi@huawei.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, xiexiuqi@huawei.com
 
-Subject: + staging-olpc_dcon-remove-unnecessary-work-pending-test.patch added to -mm tree
-To: xiexiuqi@huawei.com,dsd@laptop.org,gregkh@linuxfoundation.org,jfrederich@gmail.com,jon.nettleton@gmail.com,tj@kernel.org
+Subject: + ipc-remove-unnecessary-work-pending-test.patch added to -mm tree
+To: xiexiuqi@huawei.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Sep 2013 15:04:57 -0700
+Date: Thu, 19 Sep 2013 15:04:58 -0700
 
 
 The patch titled
-     Subject: drivers/staging/olpc_dcon/olpc_dcon.c: remove unnecessary work pending test
+     Subject: ipc/util.c: remove unnecessary work pending test
 has been added to the -mm tree.  Its filename is
-     staging-olpc_dcon-remove-unnecessary-work-pending-test.patch
+     ipc-remove-unnecessary-work-pending-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/staging-olpc_dcon-remove-unnecessary-work-pending-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-remove-unnecessary-work-pending-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/staging-olpc_dcon-remove-unnecessary-work-pending-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-remove-unnecessary-work-pending-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,35 +45,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: drivers/staging/olpc_dcon/olpc_dcon.c: remove unnecessary work pending test
+Subject: ipc/util.c: remove unnecessary work pending test
 
-Remove unnecessary work pending test before calling schedule_work().
-It has been tested in queue_work_on() already. No functional changed.
+Remove unnecessary work pending test before calling schedule_work().  It
+has been tested in queue_work_on() already.  No functional changed.
 
 Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: Jens Frederich <jfrederich@gmail.com>
-Cc: Daniel Drake <dsd@laptop.org>
-Cc: Jon Nettleton <jon.nettleton@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Tejun Heo <tj@kernel.org>
 Reviewed-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/olpc_dcon/olpc_dcon.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/util.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/staging/olpc_dcon/olpc_dcon.c~staging-olpc_dcon-remove-unnecessary-work-pending-test drivers/staging/olpc_dcon/olpc_dcon.c
---- a/drivers/staging/olpc_dcon/olpc_dcon.c~staging-olpc_dcon-remove-unnecessary-work-pending-test
-+++ a/drivers/staging/olpc_dcon/olpc_dcon.c
-@@ -383,7 +383,7 @@ static void dcon_set_source(struct dcon_
- 
- 	dcon->pending_src = arg;
- 
--	if ((dcon->curr_src != arg) && !work_pending(&dcon->switch_source))
-+	if (dcon->curr_src != arg)
- 		schedule_work(&dcon->switch_source);
- }
- 
+diff -puN ipc/util.c~ipc-remove-unnecessary-work-pending-test ipc/util.c
+--- a/ipc/util.c~ipc-remove-unnecessary-work-pending-test
++++ a/ipc/util.c
+@@ -75,10 +75,8 @@ static int ipc_memory_callback(struct no
+ 		 * In order not to keep the lock on the hotplug memory chain
+ 		 * for too long, queue a work item that will, when waken up,
+ 		 * activate the ipcns notification chain.
+-		 * No need to keep several ipc work items on the queue.
+ 		 */
+-		if (!work_pending(&ipc_memory_wq))
+-			schedule_work(&ipc_memory_wq);
++		schedule_work(&ipc_memory_wq);
+ 		break;
+ 	case MEM_GOING_ONLINE:
+ 	case MEM_GOING_OFFLINE:
 _
 
 Patches currently in -mm which might be from xiexiuqi@huawei.com are
