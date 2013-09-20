@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-mod-modpostc-handle-non-abs-crc-symbols.patch added to
- -mm tree
-Date: Fri, 20 Sep 2013 13:32:28 -0700
-Message-ID: <523cb0dc.nQUE0Ab3bicaQIYf%akpm@linux-foundation.org>
+Subject: + cpqarray-fix-info-leak-in-ida_locked_ioctl.patch added to -mm
+ tree
+Date: Fri, 20 Sep 2013 13:33:12 -0700
+Message-ID: <523cb108.tWPiJ/mk0nr04NOS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36817 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36819 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755008Ab3ITUc3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Sep 2013 16:32:29 -0400
+	with ESMTP id S1753448Ab3ITUdN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Sep 2013 16:33:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, penguin-kernel@i-love.sakura.ne.jp, geert@linux-m68k.org, ak@linux.intel.com
+To: mm-commits@vger.kernel.org, mike.miller@hp.com, dan.carpenter@oracle.com
 
-Subject: + scripts-mod-modpostc-handle-non-abs-crc-symbols.patch added to -mm tree
-To: ak@linux.intel.com,geert@linux-m68k.org,penguin-kernel@i-love.sakura.ne.jp,viro@ZenIV.linux.org.uk
+Subject: + cpqarray-fix-info-leak-in-ida_locked_ioctl.patch added to -mm tree
+To: dan.carpenter@oracle.com,mike.miller@hp.com
 From: akpm@linux-foundation.org
-Date: Fri, 20 Sep 2013 13:32:28 -0700
+Date: Fri, 20 Sep 2013 13:33:12 -0700
 
 
 The patch titled
-     Subject: scripts/mod/modpost.c: handle non ABS crc symbols
+     Subject: cpqarray: fix info leak in ida_locked_ioctl()
 has been added to the -mm tree.  Its filename is
-     scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
+     cpqarray-fix-info-leak-in-ida_locked_ioctl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cpqarray-fix-info-leak-in-ida_locked_ioctl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cpqarray-fix-info-leak-in-ida_locked_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,59 +44,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: scripts/mod/modpost.c: handle non ABS crc symbols
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: cpqarray: fix info leak in ida_locked_ioctl()
 
-For some reason I managed to trick gcc into create CRC symbols that are
-not absolute anymore, but weak.
+The pciinfo struct has a two byte hole after ->dev_fn so stack information
+could be leaked to the user.
 
-Make modpost handle this case.
+This was assigned CVE-2013-2147.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ drivers/block/cpqarray.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/mod/modpost.c~scripts-mod-modpostc-handle-non-abs-crc-symbols scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~scripts-mod-modpostc-handle-non-abs-crc-symbols
-+++ a/scripts/mod/modpost.c
-@@ -599,18 +599,17 @@ static void handle_modversions(struct mo
- 	else
- 		export = export_from_sec(info, get_secindex(info, sym));
+diff -puN drivers/block/cpqarray.c~cpqarray-fix-info-leak-in-ida_locked_ioctl drivers/block/cpqarray.c
+--- a/drivers/block/cpqarray.c~cpqarray-fix-info-leak-in-ida_locked_ioctl
++++ a/drivers/block/cpqarray.c
+@@ -1193,6 +1193,7 @@ out_passthru:
+ 		ida_pci_info_struct pciinfo;
  
-+	/* CRC'd symbol */
-+	if (strncmp(symname, CRC_PFX, strlen(CRC_PFX)) == 0) {
-+		crc = (unsigned int) sym->st_value;
-+		sym_update_crc(symname + strlen(CRC_PFX), mod, crc,
-+				export);
-+	}
-+
- 	switch (sym->st_shndx) {
- 	case SHN_COMMON:
- 		warn("\"%s\" [%s] is COMMON symbol\n", symname, mod->name);
- 		break;
--	case SHN_ABS:
--		/* CRC'd symbol */
--		if (strncmp(symname, CRC_PFX, strlen(CRC_PFX)) == 0) {
--			crc = (unsigned int) sym->st_value;
--			sym_update_crc(symname + strlen(CRC_PFX), mod, crc,
--					export);
--		}
--		break;
- 	case SHN_UNDEF:
- 		/* undefined symbol */
- 		if (ELF_ST_BIND(sym->st_info) != STB_GLOBAL &&
+ 		if (!arg) return -EINVAL;
++		memset(&pciinfo, 0, sizeof(pciinfo));
+ 		pciinfo.bus = host->pci_dev->bus->number;
+ 		pciinfo.dev_fn = host->pci_dev->devfn;
+ 		pciinfo.board_id = host->board_id;
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
-syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
-scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
+cpqarray-fix-info-leak-in-ida_locked_ioctl.patch
 linux-next.patch
 
