@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
- added to -mm tree
-Date: Fri, 20 Sep 2013 14:17:21 -0700
-Message-ID: <523cbb61.bT/NkwMW3PhsTaGA%akpm@linux-foundation.org>
+ drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit.patch added to
+ -mm tree
+Date: Fri, 20 Sep 2013 15:31:35 -0700
+Message-ID: <523cccc7.Az4x0QYaHESju0Wd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37008 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37401 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753191Ab3ITVRW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Sep 2013 17:17:22 -0400
+	with ESMTP id S1754035Ab3ITWbg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Sep 2013 18:31:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, liwanp@linux.vnet.ibm.com, gong.chen@linux.intel.com, ak@linux.intel.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, jmoyer@redhat.com, axboe@kernel.dk, abhansali@stec-inc.com, akpm@linux-foundation.org
 
-Subject: + mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch added to -mm tree
-To: n-horiguchi@ah.jp.nec.com,ak@linux.intel.com,gong.chen@linux.intel.com,liwanp@linux.vnet.ibm.com
+Subject: + drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit.patch added to -mm tree
+To: akpm@linux-foundation.org,abhansali@stec-inc.com,axboe@kernel.dk,jmoyer@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 20 Sep 2013 14:17:21 -0700
+Date: Fri, 20 Sep 2013 15:31:35 -0700
 
 
 The patch titled
-     Subject: mm/memory-failure.c: move set_migratetype_isolate() outside get_any_page()
+     Subject: drivers/block/skd_main.c: fix a few things, disable on 32-bit
 has been added to the -mm tree.  Its filename is
-     mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
+     drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,102 +45,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/memory-failure.c: move set_migratetype_isolate() outside get_any_page()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/block/skd_main.c: fix a few things, disable on 32-bit
 
-Chen Gong pointed out that set/unset_migratetype_isolate() was done in
-readable/maintenable.  So this patch makes it done in soft_offline_page().
+Fix these (i386 allmodconfig):
 
-With this patch, we get to hold lock_memory_hotplug() longer but it's not
-a problem because races between memory hotplug and soft offline are very
-rare.
+drivers/block/skd_main.c:4559: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'unsigned int'
+drivers/block/skd_main.c:4614: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'unsigned int'
+drivers/block/skd_main.c:4614: warning: format '%lu' expects type 'long unsigned int', but argument 7 has type 'unsigned int'
+drivers/block/skd_main.c:4626: warning: format '%lu' expects type 'long unsigned int', but argument 6 has type 'unsigned int'
+drivers/block/skd_main.c:4626: warning: format '%lu' expects type 'long unsigned int', but argument 7 has type 'unsigned int'
+drivers/block/skd_main.c:4671: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'unsigned int'
+drivers/block/skd_main.c:4671: warning: format '%lu' expects type 'long unsigned int', but argument 7 has type 'unsigned int'
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Chen, Gong <gong.chen@linux.intel.com>
-Acked-by: Andi Kleen <ak@linux.intel.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+And what remains is these:
+
+drivers/block/skd_main.c: In function 'skd_reg_write64':
+drivers/block/skd_main.c:439: error: implicit declaration of function 'writeq'
+drivers/block/skd_main.c:441: error: implicit declaration of function 'readq'
+drivers/block/skd_main.c: In function 'skd_cons_skmsg':
+drivers/block/skd_main.c:4589: warning: cast from pointer to integer of different size
+drivers/block/skd_main.c:4592: warning: cast from pointer to integer of different size
+drivers/block/skd_main.c:4593: warning: cast to pointer from integer of different size
+
+Which is more than I'm prepared to address, so just disable the driver on
+32-bit builds.
+
+Cc: Akhil Bhansali <abhansali@stec-inc.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   36 +++++++++++++++++-------------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ drivers/block/Kconfig    |    1 +
+ drivers/block/skd_main.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page
-+++ a/mm/memory-failure.c
-@@ -1421,19 +1421,6 @@ static int __get_any_page(struct page *p
- 		return 1;
+diff -puN drivers/block/skd_main.c~drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit drivers/block/skd_main.c
+--- a/drivers/block/skd_main.c~drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit
++++ a/drivers/block/skd_main.c
+@@ -4556,7 +4556,7 @@ static int skd_cons_skmsg(struct skd_dev
+ 	int rc = 0;
+ 	u32 i;
  
- 	/*
--	 * The lock_memory_hotplug prevents a race with memory hotplug.
--	 * This is a big hammer, a better would be nicer.
--	 */
--	lock_memory_hotplug();
--
--	/*
--	 * Isolate the page, so that it doesn't get reallocated if it
--	 * was free. This flag should be kept set until the source page
--	 * is freed and PG_hwpoison on it is set.
--	 */
--	if (get_pageblock_migratetype(p) != MIGRATE_ISOLATE)
--		set_migratetype_isolate(p, true);
--	/*
- 	 * When the target page is a free hugepage, just remove it
- 	 * from free hugepage list.
- 	 */
-@@ -1453,7 +1440,6 @@ static int __get_any_page(struct page *p
- 		/* Not a free page */
- 		ret = 1;
- 	}
--	unlock_memory_hotplug();
- 	return ret;
- }
+-	VPRINTK(skdev, "skmsg_table kzalloc, struct %lu, count %u total %lu\n",
++	VPRINTK(skdev, "skmsg_table kzalloc, struct %u, count %u total %lu\n",
+ 		sizeof(struct skd_fitmsg_context),
+ 		skdev->num_fitmsg_context,
+ 		(unsigned long) sizeof(struct skd_fitmsg_context) *
+@@ -4611,7 +4611,7 @@ static int skd_cons_skreq(struct skd_dev
+ 	int rc = 0;
+ 	u32 i;
  
-@@ -1652,15 +1638,28 @@ int soft_offline_page(struct page *page,
- 		}
+-	VPRINTK(skdev, "skreq_table kzalloc, struct %lu, count %u total %lu\n",
++	VPRINTK(skdev, "skreq_table kzalloc, struct %u, count %u total %u\n",
+ 		sizeof(struct skd_request_context),
+ 		skdev->num_req_context,
+ 		sizeof(struct skd_request_context) * skdev->num_req_context);
+@@ -4623,7 +4623,7 @@ static int skd_cons_skreq(struct skd_dev
+ 		goto err_out;
  	}
  
-+	/*
-+	 * The lock_memory_hotplug prevents a race with memory hotplug.
-+	 * This is a big hammer, a better would be nicer.
-+	 */
-+	lock_memory_hotplug();
-+
-+	/*
-+	 * Isolate the page, so that it doesn't get reallocated if it
-+	 * was free. This flag should be kept set until the source page
-+	 * is freed and PG_hwpoison on it is set.
-+	 */
-+	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
-+		set_migratetype_isolate(page, true);
-+
- 	ret = get_any_page(page, pfn, flags);
--	if (ret < 0)
--		goto unset;
--	if (ret) { /* for in-use pages */
-+	unlock_memory_hotplug();
-+	if (ret > 0) { /* for in-use pages */
- 		if (PageHuge(page))
- 			ret = soft_offline_huge_page(page, flags);
- 		else
- 			ret = __soft_offline_page(page, flags);
--	} else { /* for free pages */
-+	} else if (ret == 0) { /* for free pages */
- 		if (PageHuge(page)) {
- 			set_page_hwpoison_huge_page(hpage);
- 			dequeue_hwpoisoned_huge_page(hpage);
-@@ -1671,7 +1670,6 @@ int soft_offline_page(struct page *page,
- 			atomic_long_inc(&num_poisoned_pages);
- 		}
- 	}
--unset:
- 	unset_migratetype_isolate(page, MIGRATE_MOVABLE);
- 	return ret;
- }
+-	VPRINTK(skdev, "alloc sg_table sg_per_req %u scatlist %lu total %lu\n",
++	VPRINTK(skdev, "alloc sg_table sg_per_req %u scatlist %u total %u\n",
+ 		skdev->sgs_per_request, sizeof(struct scatterlist),
+ 		skdev->sgs_per_request * sizeof(struct scatterlist));
+ 
+@@ -4668,7 +4668,7 @@ static int skd_cons_skspcl(struct skd_de
+ 	int rc = 0;
+ 	u32 i, nbytes;
+ 
+-	VPRINTK(skdev, "skspcl_table kzalloc, struct %lu, count %u total %lu\n",
++	VPRINTK(skdev, "skspcl_table kzalloc, struct %u, count %u total %u\n",
+ 		sizeof(struct skd_special_context),
+ 		skdev->n_special,
+ 		sizeof(struct skd_special_context) * skdev->n_special);
+diff -puN drivers/block/Kconfig~drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit drivers/block/Kconfig
+--- a/drivers/block/Kconfig~drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit
++++ a/drivers/block/Kconfig
+@@ -319,6 +319,7 @@ config BLK_DEV_NVME
+ config BLK_DEV_SKD
+ 	tristate "STEC S1120 Block Driver"
+ 	depends on PCI
++	depends on 64BIT
+ 	---help---
+ 	Saying Y or M here will enable support for the
+ 	STEC, Inc. S1120 PCIe SSD.
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-remove-obsolete-comments-about-page-table-lock.patch
-mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+watchdog-update-watchdog_tresh-properly-fix.patch
+revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
+revert-memcg-track-all-children-over-limit-in-the-root.patch
+revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
+revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
+revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
+revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
+revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
+fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm.patch
+mm-vmalloc-revert-mm-vmallocc-emit-the-failure-message-before-return-fix.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate.patch
+fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-gcov-fsc-use-pr_warn.patch
+linux-next.patch
+drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
