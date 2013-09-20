@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-delay-migration-when-the-lockres-is-in-migration-state.patch added to -mm tree
-Date: Fri, 20 Sep 2013 13:50:15 -0700
-Message-ID: <523cb507.fb2pYLOuCrNZ86rl%akpm@linux-foundation.org>
+Subject: + ocfs2-skip-locks-in-the-blocked-list.patch added to -mm tree
+Date: Fri, 20 Sep 2013 13:50:14 -0700
+Message-ID: <523cb506.GuF62omSr6+vasDn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36935 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36930 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754575Ab3ITUuQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Sep 2013 16:50:16 -0400
+	with ESMTP id S1754562Ab3ITUuP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Sep 2013 16:50:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: + ocfs2-delay-migration-when-the-lockres-is-in-migration-state.patch added to -mm tree
+Subject: + ocfs2-skip-locks-in-the-blocked-list.patch added to -mm tree
 To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Fri, 20 Sep 2013 13:50:15 -0700
+Date: Fri, 20 Sep 2013 13:50:14 -0700
 
 
 The patch titled
-     Subject: ocfs2: delay migration when the lockres is in migration state
+     Subject: ocfs2: skip locks in the blocked list
 has been added to the -mm tree.  Its filename is
-     ocfs2-delay-migration-when-the-lockres-is-in-migration-state.patch
+     ocfs2-skip-locks-in-the-blocked-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-delay-migration-when-the-lockres-is-in-migration-state.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-skip-locks-in-the-blocked-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-delay-migration-when-the-lockres-is-in-migration-state.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-skip-locks-in-the-blocked-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,21 +44,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: delay migration when the lockres is in migration state
+Subject: ocfs2: skip locks in the blocked list
 
-We trigger a bug in __dlm_lockres_reserve_ast() when we parallel umount 4
-nodes.  The situation is as follows:
+A parallel umount on 4 nodes triggered a bug in
+dlm_process_recovery_date().  Here's the situation:
 
-1) Node A migrate all lockres it owned(eg.  lockres A) to other nodes
-   say node B when it umounts.
+Receiving MIG_LOCKRES message, A node processes the locks in migratable
+lockres.  It copys lvb from migratable lockres when processing the first
+valid lock.
 
-2) Receiving MIG_LOCKRES message from A, Node B masters the lockres A
-   with DLM_LOCK_RES_MIGRATING state set.
-
-3) Then we umount ocfs2 on node B.  It also should migrate lockres A to
-   another node, say node C.  But now, DLM_LOCK_RES_MIGRATING state of
-   lockers A is not cleared.  Node B triggered the BUG on lockres with
-   state DLM_LOCK_RES_MIGRATING.
+If there is a lock in the blocked list with the EX level, it triggers the
+BUG.  Since valid lvbs are set when locks are granted with EX or PR
+levels, locks in the blocked list cannot have valid lvbs.  Therefore I
+think we should skip the locks in the blocked list.
 
 Signed-off-by: Xuejiufei <xuejiufei@huawei.com>
 Signed-off-by: Joel Becker <jlbec@evilplan.org>
@@ -67,23 +64,26 @@ Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/ocfs2/dlm/dlmrecovery.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-delay-migration-when-the-lockres-is-in-migration-state fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-delay-migration-when-the-lockres-is-in-migration-state
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -2354,6 +2354,10 @@ static int dlm_is_lockres_migrateable(st
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-skip-locks-in-the-blocked-list fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-skip-locks-in-the-blocked-list
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -1886,6 +1886,13 @@ static int dlm_process_recovery_data(str
+ 		if (ml->type == LKM_NLMODE)
+ 			goto skip_lvb;
  
- 	assert_spin_locked(&res->spinlock);
- 
-+	/* delay migration when the lockres is in MIGRATING state */
-+	if (res->state & DLM_LOCK_RES_MIGRATING)
-+		return 0;
++		/*
++		 * If the lock is in the blocked list it can't have a valid lvb,
++		 * so skip it
++		 */
++		if (ml->list == DLM_BLOCKED_LIST)
++			goto skip_lvb;
 +
- 	if (res->owner != dlm->node_num)
- 		return 0;
- 
+ 		if (!dlm_lvb_is_empty(mres->lvb)) {
+ 			if (lksb->flags & DLM_LKSB_PUT_LVB) {
+ 				/* other node was trying to update
 _
 
 Patches currently in -mm which might be from xuejiufei@huawei.com are
