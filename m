@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
+ syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
  added to -mm tree
-Date: Thu, 19 Sep 2013 16:48:58 -0700
-Message-ID: <523b8d6a.bMF54CGE91oGFFow%akpm@linux-foundation.org>
+Date: Fri, 20 Sep 2013 13:32:27 -0700
+Message-ID: <523cb0db.iqxzuPDGvice/Y/e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58777 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36809 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752150Ab3ISXs7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Sep 2013 19:48:59 -0400
+	with ESMTP id S1754846Ab3ITUc2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Sep 2013 16:32:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, chuansheng.liu@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, penguin-kernel@i-love.sakura.ne.jp, geert@linux-m68k.org, ak@linux.intel.com
 
-Subject: + kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,chuansheng.liu@intel.com
+Subject: + syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch added to -mm tree
+To: ak@linux.intel.com,geert@linux-m68k.org,penguin-kernel@i-love.sakura.ne.jp,viro@ZenIV.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 19 Sep 2013 16:48:58 -0700
+Date: Fri, 20 Sep 2013 13:32:27 -0700
 
 
 The patch titled
-     Subject: kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix
+     Subject: syscalls.h: use gcc alias instead of assembler aliases for syscalls
 has been added to the -mm tree.  Its filename is
-     kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
+     syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,68 +45,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix
+From: Andi Kleen <ak@linux.intel.com>
+Subject: syscalls.h: use gcc alias instead of assembler aliases for syscalls
 
-fix comment layout
+Use standard gcc __attribute__((alias(foo))) to define the syscall aliases
+instead of custom assembler macros.
 
-Cc: Chuansheng Liu <chuansheng.liu@intel.com>
+This is far cleaner, and also fixes my LTO kernel build.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compat.h   |    4 ++--
+ include/linux/syscalls.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix kernel/reboot.c
---- a/kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix
-+++ a/kernel/reboot.c
-@@ -38,7 +38,7 @@ enum reboot_mode reboot_mode DEFAULT_REB
-  * been set on the command line).  This is needed so that we can
-  * suppress DMI scanning for reboot quirks.  Without it, it's
-  * impossible to override a faulty reboot quirk without recompiling.
--*/
-+ */
- int reboot_default = 1;
- int reboot_cpu;
- enum reboot_type reboot_type = BOOT_ACPI;
+diff -puN include/linux/compat.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls include/linux/compat.h
+--- a/include/linux/compat.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls
++++ a/include/linux/compat.h
+@@ -41,14 +41,14 @@
+ 	COMPAT_SYSCALL_DEFINEx(6, _##name, __VA_ARGS__)
+ 
+ #define COMPAT_SYSCALL_DEFINEx(x, name, ...)				\
+-	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__));\
++	asmlinkage long compat_sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))\
++		__attribute__((alias(__stringify(compat_SyS##name))));  \
+ 	static inline long C_SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__));\
+ 	asmlinkage long compat_SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__));\
+ 	asmlinkage long compat_SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__))\
+ 	{								\
+ 		return C_SYSC##name(__MAP(x,__SC_DELOUSE,__VA_ARGS__));	\
+ 	}								\
+-	SYSCALL_ALIAS(compat_sys##name, compat_SyS##name);		\
+ 	static inline long C_SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__))
+ 
+ #ifndef compat_user_stack_pointer
+diff -puN include/linux/syscalls.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls include/linux/syscalls.h
+--- a/include/linux/syscalls.h~syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls
++++ a/include/linux/syscalls.h
+@@ -184,7 +184,8 @@ extern struct trace_event_functions exit
+ 
+ #define __PROTECT(...) asmlinkage_protect(__VA_ARGS__)
+ #define __SYSCALL_DEFINEx(x, name, ...)					\
+-	asmlinkage long sys##name(__MAP(x,__SC_DECL,__VA_ARGS__));	\
++	asmlinkage long sys##name(__MAP(x,__SC_DECL,__VA_ARGS__))	\
++		__attribute__((alias(__stringify(SyS##name))));		\
+ 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__));	\
+ 	asmlinkage long SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__));	\
+ 	asmlinkage long SyS##name(__MAP(x,__SC_LONG,__VA_ARGS__))	\
+@@ -194,7 +195,6 @@ extern struct trace_event_functions exit
+ 		__PROTECT(x, ret,__MAP(x,__SC_ARGS,__VA_ARGS__));	\
+ 		return ret;						\
+ 	}								\
+-	SYSCALL_ALIAS(sys##name, SyS##name);				\
+ 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__))
+ 
+ asmlinkage long sys_time(time_t __user *tloc);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-watchdog-update-watchdog_tresh-properly-fix.patch
-revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-revert-memcg-track-all-children-over-limit-in-the-root.patch
-revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
-revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-mm-vmalloc-revert-mm-vmallocc-emit-the-failure-message-before-return-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-gcov-fsc-use-pr_warn.patch
+syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
 linux-next.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
