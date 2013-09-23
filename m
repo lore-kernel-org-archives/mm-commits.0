@@ -1,162 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit.patch removed
- from -mm tree
-Date: Mon, 23 Sep 2013 11:25:15 -0700
-Message-ID: <5240878b.DOHSVNRFeK+xoNiM%akpm@linux-foundation.org>
+Subject: +
+ drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix.patch
+ added to -mm tree
+Date: Mon, 23 Sep 2013 11:33:30 -0700
+Message-ID: <5240897a.cclODIJ3zg8MO+T9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54949 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753226Ab3IWSZQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 14:25:16 -0400
+	with ESMTP id S1752866Ab3IWSdb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 14:33:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jmoyer@redhat.com, axboe@kernel.dk, abhansali@stec-inc.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, jslaby@suse.cz, jeffm@suse.com, bskeggs@redhat.com, airlied@linux.ie, rdunlap@infradead.org
 
-Subject: [merged] drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit.patch removed from -mm tree
-To: akpm@linux-foundation.org,abhansali@stec-inc.com,axboe@kernel.dk,jmoyer@redhat.com,mm-commits@vger.kernel.org
+Subject: + drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix.patch added to -mm tree
+To: rdunlap@infradead.org,airlied@linux.ie,bskeggs@redhat.com,jeffm@suse.com,jslaby@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 23 Sep 2013 11:25:15 -0700
+Date: Mon, 23 Sep 2013 11:33:30 -0700
 
 
 The patch titled
-     Subject: drivers/block/skd_main.c: fix a few things, disable on 32-bit
-has been removed from the -mm tree.  Its filename was
-     drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit.patch
+     Subject: nouveau: fix build eror when VGA_SWITCHEROO is not enabled
+has been added to the -mm tree.  Its filename is
+     drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/block/skd_main.c: fix a few things, disable on 32-bit
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: nouveau: fix build eror when VGA_SWITCHEROO is not enabled
 
-Fix these (i386 allmodconfig):
+Fix nouveau build error on x86, when ACPI is enabled but VGA_SWITCHEROO is
+not enabled, by providing a stub function.
 
-drivers/block/skd_main.c:4559: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'unsigned int'
-drivers/block/skd_main.c:4614: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'unsigned int'
-drivers/block/skd_main.c:4614: warning: format '%lu' expects type 'long unsigned int', but argument 7 has type 'unsigned int'
-drivers/block/skd_main.c:4626: warning: format '%lu' expects type 'long unsigned int', but argument 6 has type 'unsigned int'
-drivers/block/skd_main.c:4626: warning: format '%lu' expects type 'long unsigned int', but argument 7 has type 'unsigned int'
-drivers/block/skd_main.c:4671: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'unsigned int'
-drivers/block/skd_main.c:4671: warning: format '%lu' expects type 'long unsigned int', but argument 7 has type 'unsigned int'
+drivers/built-in.o: In function `nouveau_pmops_runtime_suspend':
+nouveau_drm.c:(.text+0x3aac89): undefined reference to `nouveau_switcheroo_optimus_dsm'
 
-And what remains is these:
-
-drivers/block/skd_main.c: In function 'skd_reg_write64':
-drivers/block/skd_main.c:439: error: implicit declaration of function 'writeq'
-drivers/block/skd_main.c:441: error: implicit declaration of function 'readq'
-drivers/block/skd_main.c: In function 'skd_cons_skmsg':
-drivers/block/skd_main.c:4589: warning: cast from pointer to integer of different size
-drivers/block/skd_main.c:4592: warning: cast from pointer to integer of different size
-drivers/block/skd_main.c:4593: warning: cast to pointer from integer of different size
-
-Which is more than I'm prepared to address, so just disable the driver on
-32-bit builds.
-
-Cc: Akhil Bhansali <abhansali@stec-inc.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/Kconfig    |    1 +
- drivers/block/skd_main.c |    8 ++++----
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_acpi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/block/Kconfig~drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit drivers/block/Kconfig
---- a/drivers/block/Kconfig~drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit
-+++ a/drivers/block/Kconfig
-@@ -319,6 +319,7 @@ config BLK_DEV_NVME
- config BLK_DEV_SKD
- 	tristate "STEC S1120 Block Driver"
- 	depends on PCI
-+	depends on 64BIT
- 	---help---
- 	Saying Y or M here will enable support for the
- 	STEC, Inc. S1120 PCIe SSD.
-diff -puN drivers/block/skd_main.c~drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit drivers/block/skd_main.c
---- a/drivers/block/skd_main.c~drivers-block-skd_mainc-fix-a-few-things-disable-on-32-bit
-+++ a/drivers/block/skd_main.c
-@@ -4556,7 +4556,7 @@ static int skd_cons_skmsg(struct skd_dev
- 	int rc = 0;
- 	u32 i;
+diff -puN drivers/gpu/drm/nouveau/nouveau_acpi.c~drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix drivers/gpu/drm/nouveau/nouveau_acpi.c
+--- a/drivers/gpu/drm/nouveau/nouveau_acpi.c~drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix
++++ a/drivers/gpu/drm/nouveau/nouveau_acpi.c
+@@ -373,6 +373,7 @@ void nouveau_unregister_dsm_handler(void
+ #else
+ void nouveau_register_dsm_handler(void) {}
+ void nouveau_unregister_dsm_handler(void) {}
++void nouveau_switcheroo_optimus_dsm(void) {}
+ #endif
  
--	VPRINTK(skdev, "skmsg_table kzalloc, struct %lu, count %u total %lu\n",
-+	VPRINTK(skdev, "skmsg_table kzalloc, struct %u, count %u total %lu\n",
- 		sizeof(struct skd_fitmsg_context),
- 		skdev->num_fitmsg_context,
- 		(unsigned long) sizeof(struct skd_fitmsg_context) *
-@@ -4611,7 +4611,7 @@ static int skd_cons_skreq(struct skd_dev
- 	int rc = 0;
- 	u32 i;
- 
--	VPRINTK(skdev, "skreq_table kzalloc, struct %lu, count %u total %lu\n",
-+	VPRINTK(skdev, "skreq_table kzalloc, struct %u, count %u total %u\n",
- 		sizeof(struct skd_request_context),
- 		skdev->num_req_context,
- 		sizeof(struct skd_request_context) * skdev->num_req_context);
-@@ -4623,7 +4623,7 @@ static int skd_cons_skreq(struct skd_dev
- 		goto err_out;
- 	}
- 
--	VPRINTK(skdev, "alloc sg_table sg_per_req %u scatlist %lu total %lu\n",
-+	VPRINTK(skdev, "alloc sg_table sg_per_req %u scatlist %u total %u\n",
- 		skdev->sgs_per_request, sizeof(struct scatterlist),
- 		skdev->sgs_per_request * sizeof(struct scatterlist));
- 
-@@ -4668,7 +4668,7 @@ static int skd_cons_skspcl(struct skd_de
- 	int rc = 0;
- 	u32 i, nbytes;
- 
--	VPRINTK(skdev, "skspcl_table kzalloc, struct %lu, count %u total %lu\n",
-+	VPRINTK(skdev, "skspcl_table kzalloc, struct %u, count %u total %u\n",
- 		sizeof(struct skd_special_context),
- 		skdev->n_special,
- 		sizeof(struct skd_special_context) * skdev->n_special);
+ /* retrieve the ROM in 4k blocks */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 origin.patch
+include-linux-of_irqh-fix-warnings-when-config_of=n.patch
+drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix.patch
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-watchdog-update-watchdog_tresh-properly-fix.patch
-revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-revert-memcg-track-all-children-over-limit-in-the-root.patch
-revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
-revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-sound-soc-atmel-atmel-pcmc-fix-warning.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-mm-vmalloc-revert-mm-vmallocc-emit-the-failure-message-before-return-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-gcov-fsc-use-pr_warn.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+debugging-keep-track-of-page-owners-fix-2.patch
 
