@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int.patch added to -mm tree
-Date: Mon, 23 Sep 2013 15:46:16 -0700
-Message-ID: <5240c4b8.WWOvV5pxBJSdloCm%akpm@linux-foundation.org>
+Subject: + arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
+ added to -mm tree
+Date: Mon, 23 Sep 2013 15:55:13 -0700
+Message-ID: <5240c6d1.RdZqtGIgjqQ+0oxu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56441 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754462Ab3IWWqR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 18:46:17 -0400
+	with ESMTP id S1752650Ab3IWWzO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 18:55:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mingo@kernel.org, lizefan@huawei.com
+To: mm-commits@vger.kernel.org, xemul@parallels.com, tglx@linutronix.de, mingo@elte.hu, luto@amacapital.net, hpa@zytor.com, gorcunov@openvz.org, gorcunov@gmail.com
 
-Subject: + kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int.patch added to -mm tree
-To: lizefan@huawei.com,mingo@kernel.org
+Subject: + arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch added to -mm tree
+To: gorcunov@gmail.com,gorcunov@openvz.org,hpa@zytor.com,luto@amacapital.net,mingo@elte.hu,tglx@linutronix.de,xemul@parallels.com
 From: akpm@linux-foundation.org
-Date: Mon, 23 Sep 2013 15:46:16 -0700
+Date: Mon, 23 Sep 2013 15:55:13 -0700
 
 
 The patch titled
-     Subject: kernel/hung_task.c: change sysctl_hung_task_check_count to int
+     Subject: arch/x86: mnify pte_to_pgoff and pgoff_to_pte helpers
 has been added to the -mm tree.  Its filename is
-     kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int.patch
+     arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,72 +44,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Li Zefan <lizefan@huawei.com>
-Subject: kernel/hung_task.c: change sysctl_hung_task_check_count to int
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: arch/x86: mnify pte_to_pgoff and pgoff_to_pte helpers
 
-As sysctl_hung_task_check_count is unsigned long, when this value is
-assigned to max_count in check_hung_uninterruptible_tasks(), it's
-truncated to int type.
+Use unified pte_bitop helper to manipulate bits in pte/pgoff bitfield, and
+convert pte_to_pgoff/pgoff_to_pte to inlines.
 
-Therefore if we write 2^32 to sysctl.hung_task_check_count, hung task
-detection will be effectively disabled.
-
-Not a big deal, but still it's better to fix this inconsistency.
-
-Signed-off-by: Li Zefan <lizefan@huawei.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/sysctl.h |    2 +-
- kernel/hung_task.c           |    2 +-
- kernel/sysctl.c              |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/pgtable-2level.h |  100 ++++++++++++++----------
+ 1 file changed, 59 insertions(+), 41 deletions(-)
 
-diff -puN include/linux/sched/sysctl.h~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int include/linux/sched/sysctl.h
---- a/include/linux/sched/sysctl.h~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int
-+++ a/include/linux/sched/sysctl.h
-@@ -2,8 +2,8 @@
- #define _SCHED_SYSCTL_H
+diff -puN arch/x86/include/asm/pgtable-2level.h~arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers arch/x86/include/asm/pgtable-2level.h
+--- a/arch/x86/include/asm/pgtable-2level.h~arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers
++++ a/arch/x86/include/asm/pgtable-2level.h
+@@ -55,6 +55,13 @@ static inline pmd_t native_pmdp_get_and_
+ #define native_pmdp_get_and_clear(xp) native_local_pmdp_get_and_clear(xp)
+ #endif
  
- #ifdef CONFIG_DETECT_HUNG_TASK
-+extern int	     sysctl_hung_task_check_count;
- extern unsigned int  sysctl_hung_task_panic;
--extern unsigned long sysctl_hung_task_check_count;
- extern unsigned long sysctl_hung_task_timeout_secs;
- extern unsigned long sysctl_hung_task_warnings;
- extern int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
-diff -puN kernel/hung_task.c~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int kernel/hung_task.c
---- a/kernel/hung_task.c~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int
-+++ a/kernel/hung_task.c
-@@ -20,7 +20,7 @@
- /*
-  * The number of tasks checked:
-  */
--unsigned long __read_mostly sysctl_hung_task_check_count = PID_MAX_LIMIT;
-+int __read_mostly sysctl_hung_task_check_count = PID_MAX_LIMIT;
++/* Bit manipulation helper on pte/pgoff entry */
++static inline unsigned long pte_bitop(unsigned long value, unsigned int rightshift,
++				      unsigned long mask, unsigned int leftshift)
++{
++	return ((value >> rightshift) & mask) << leftshift;
++}
++
+ #ifdef CONFIG_MEM_SOFT_DIRTY
  
  /*
-  * Limit number of tasks checked in a batch.
-diff -puN kernel/sysctl.c~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int kernel/sysctl.c
---- a/kernel/sysctl.c~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int
-+++ a/kernel/sysctl.c
-@@ -962,9 +962,9 @@ static struct ctl_table kern_table[] = {
- 	{
- 		.procname	= "hung_task_check_count",
- 		.data		= &sysctl_hung_task_check_count,
--		.maxlen		= sizeof(unsigned long),
-+		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_doulongvec_minmax,
-+		.proc_handler	= proc_dointvec_minmax,
- 	},
- 	{
- 		.procname	= "hung_task_timeout_secs",
+@@ -71,31 +78,34 @@ static inline pmd_t native_pmdp_get_and_
+ #define PTE_FILE_BITS2		(PTE_FILE_SHIFT3 - PTE_FILE_SHIFT2 - 1)
+ #define PTE_FILE_BITS3		(PTE_FILE_SHIFT4 - PTE_FILE_SHIFT3 - 1)
+ 
+-#define pte_to_pgoff(pte)						\
+-	((((pte).pte_low >> (PTE_FILE_SHIFT1))				\
+-	  & ((1U << PTE_FILE_BITS1) - 1)))				\
+-	+ ((((pte).pte_low >> (PTE_FILE_SHIFT2))			\
+-	    & ((1U << PTE_FILE_BITS2) - 1))				\
+-	   << (PTE_FILE_BITS1))						\
+-	+ ((((pte).pte_low >> (PTE_FILE_SHIFT3))			\
+-	    & ((1U << PTE_FILE_BITS3) - 1))				\
+-	   << (PTE_FILE_BITS1 + PTE_FILE_BITS2))			\
+-	+ ((((pte).pte_low >> (PTE_FILE_SHIFT4)))			\
+-	    << (PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3))
+-
+-#define pgoff_to_pte(off)						\
+-	((pte_t) { .pte_low =						\
+-	 ((((off)) & ((1U << PTE_FILE_BITS1) - 1)) << PTE_FILE_SHIFT1)	\
+-	 + ((((off) >> PTE_FILE_BITS1)					\
+-	     & ((1U << PTE_FILE_BITS2) - 1))				\
+-	    << PTE_FILE_SHIFT2)						\
+-	 + ((((off) >> (PTE_FILE_BITS1 + PTE_FILE_BITS2))		\
+-	     & ((1U << PTE_FILE_BITS3) - 1))				\
+-	    << PTE_FILE_SHIFT3)						\
+-	 + ((((off) >>							\
+-	      (PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3)))	\
+-	    << PTE_FILE_SHIFT4)						\
+-	 + _PAGE_FILE })
++#define PTE_FILE_MASK1		((1U << PTE_FILE_BITS1) - 1)
++#define PTE_FILE_MASK2		((1U << PTE_FILE_BITS2) - 1)
++#define PTE_FILE_MASK3		((1U << PTE_FILE_BITS3) - 1)
++
++#define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
++#define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
++#define PTE_FILE_LSHIFT4	(PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3)
++
++static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
++{
++	return (pgoff_t)
++		(pte_bitop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		    +
++		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
++		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT3, PTE_FILE_MASK3,  PTE_FILE_LSHIFT3) +
++		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT4,           -1UL,  PTE_FILE_LSHIFT4));
++}
++
++static __always_inline pte_t pgoff_to_pte(pgoff_t off)
++{
++	return (pte_t){
++		.pte_low =
++			pte_bitop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
++			pte_bitop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
++			pte_bitop(off, PTE_FILE_LSHIFT3, PTE_FILE_MASK3,  PTE_FILE_SHIFT3) +
++			pte_bitop(off, PTE_FILE_LSHIFT4,           -1UL,  PTE_FILE_SHIFT4) +
++			_PAGE_FILE,
++	};
++}
+ 
+ #else /* CONFIG_MEM_SOFT_DIRTY */
+ 
+@@ -115,22 +125,30 @@ static inline pmd_t native_pmdp_get_and_
+ #define PTE_FILE_BITS1		(PTE_FILE_SHIFT2 - PTE_FILE_SHIFT1 - 1)
+ #define PTE_FILE_BITS2		(PTE_FILE_SHIFT3 - PTE_FILE_SHIFT2 - 1)
+ 
+-#define pte_to_pgoff(pte)						\
+-	((((pte).pte_low >> PTE_FILE_SHIFT1)				\
+-	  & ((1U << PTE_FILE_BITS1) - 1))				\
+-	 + ((((pte).pte_low >> PTE_FILE_SHIFT2)				\
+-	     & ((1U << PTE_FILE_BITS2) - 1)) << PTE_FILE_BITS1)		\
+-	 + (((pte).pte_low >> PTE_FILE_SHIFT3)				\
+-	    << (PTE_FILE_BITS1 + PTE_FILE_BITS2)))
+-
+-#define pgoff_to_pte(off)						\
+-	((pte_t) { .pte_low =						\
+-	 (((off) & ((1U << PTE_FILE_BITS1) - 1)) << PTE_FILE_SHIFT1)	\
+-	 + ((((off) >> PTE_FILE_BITS1) & ((1U << PTE_FILE_BITS2) - 1))	\
+-	    << PTE_FILE_SHIFT2)						\
+-	 + (((off) >> (PTE_FILE_BITS1 + PTE_FILE_BITS2))		\
+-	    << PTE_FILE_SHIFT3)						\
+-	 + _PAGE_FILE })
++#define PTE_FILE_MASK1		((1U << PTE_FILE_BITS1) - 1)
++#define PTE_FILE_MASK2		((1U << PTE_FILE_BITS2) - 1)
++
++#define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
++#define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
++
++static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
++{
++	return (pgoff_t)
++		(pte_bitop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		    +
++		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
++		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT3,           -1UL,  PTE_FILE_LSHIFT3));
++}
++
++static __always_inline pte_t pgoff_to_pte(pgoff_t off)
++{
++	return (pte_t){
++		.pte_low =
++			pte_bitop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
++			pte_bitop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
++			pte_bitop(off, PTE_FILE_LSHIFT3,           -1UL,  PTE_FILE_SHIFT3) +
++			_PAGE_FILE,
++	};
++}
+ 
+ #endif /* CONFIG_MEM_SOFT_DIRTY */
+ 
 _
 
-Patches currently in -mm which might be from lizefan@huawei.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int.patch
-linux-next.patch
+arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
+arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
+arch-x86-include-asm-pgtable-2levelh-clean-up-pte_to_pgoff-and-pgoff_to_pte-helpers-update.patch
 
