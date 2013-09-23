@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch added to -mm tree
-Date: Mon, 23 Sep 2013 15:16:34 -0700
-Message-ID: <5240bdc2.lTB54ZFj55UGz+tg%akpm@linux-foundation.org>
+ documentation-filesystems-vfattxt-fix-directory-entry-example.patch added
+ to -mm tree
+Date: Mon, 23 Sep 2013 15:18:00 -0700
+Message-ID: <5240be18.2L5uAh5Rxd8bz61L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56233 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56237 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753369Ab3IWWQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 18:16:37 -0400
+	with ESMTP id S1753080Ab3IWWSB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 18:18:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mgorman@suse.de, koverstreet@google.com, darrick.wong@oracle.com
+To: mm-commits@vger.kernel.org, hirofumi@mail.parknet.co.jp, luiorpe1@upv.es
 
-Subject: + mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch added to -mm tree
-To: darrick.wong@oracle.com,koverstreet@google.com,mgorman@suse.de,stable@vger.kernel.org
+Subject: + documentation-filesystems-vfattxt-fix-directory-entry-example.patch added to -mm tree
+To: luiorpe1@upv.es,hirofumi@mail.parknet.co.jp
 From: akpm@linux-foundation.org
-Date: Mon, 23 Sep 2013 15:16:34 -0700
+Date: Mon, 23 Sep 2013 15:18:00 -0700
 
 
 The patch titled
-     Subject: mm/bounce.c: wix a regression where MS_SNAP_STABLE (stable pages snapshotting) was ignored
+     Subject: Documentation/filesystems/vfat.txt: fix directory entry example
 has been added to the -mm tree.  Its filename is
-     mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch
+     documentation-filesystems-vfattxt-fix-directory-entry-example.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-filesystems-vfattxt-fix-directory-entry-example.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-filesystems-vfattxt-fix-directory-entry-example.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,42 +45,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: mm/bounce.c: wix a regression where MS_SNAP_STABLE (stable pages snapshotting) was ignored
+From: Luis Ortega Perez de Villar <luiorpe1@upv.es>
+Subject: Documentation/filesystems/vfat.txt: fix directory entry example
 
-The "force" parameter in __blk_queue_bounce was being ignored, which means
-that stable page snapshots are not always happening (on ext3).  This of
-course leads to DIF disks reporting checksum errors, so fix this
-regression.
+Slots can store up to 13 characters for the file name but one of the
+examples has one character too many.
 
-The regression was introduced in 6bc454d1 ("bounce: Refactor
-__blk_queue_bounce to not use bi_io_vec")
-
-Reported-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Kent Overstreet <koverstreet@google.com>
-Cc: <stable@vger.kernel.org>	[3.10+]
+Signed-off-by: Luis Ortega Perez de Villar <luiorpe1@upv.es>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bounce.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/filesystems/vfat.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/bounce.c~mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored mm/bounce.c
---- a/mm/bounce.c~mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored
-+++ a/mm/bounce.c
-@@ -204,6 +204,8 @@ static void __blk_queue_bounce(struct re
- 	struct bio_vec *to, *from;
- 	unsigned i;
+diff -puN Documentation/filesystems/vfat.txt~documentation-filesystems-vfattxt-fix-directory-entry-example Documentation/filesystems/vfat.txt
+--- a/Documentation/filesystems/vfat.txt~documentation-filesystems-vfattxt-fix-directory-entry-example
++++ a/Documentation/filesystems/vfat.txt
+@@ -307,7 +307,7 @@ the following:
  
-+	if (force)
-+		goto bounce;
- 	bio_for_each_segment(from, *bio_orig, i)
- 		if (page_to_pfn(from->bv_page) > queue_bounce_pfn(q))
- 			goto bounce;
+                 <proceeding files...>
+                 <slot #3, id = 0x43, characters = "h is long">
+-                <slot #2, id = 0x02, characters = "xtension which">
++                <slot #2, id = 0x02, characters = "xtension whic">
+                 <slot #1, id = 0x01, characters = "My Big File.E">
+                 <directory entry, name = "MYBIGFIL.EXT">
+ 
 _
 
-Patches currently in -mm which might be from darrick.wong@oracle.com are
+Patches currently in -mm which might be from luiorpe1@upv.es are
 
-mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch
+documentation-filesystems-vfattxt-fix-directory-entry-example.patch
 
