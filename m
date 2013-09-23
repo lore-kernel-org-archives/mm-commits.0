@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-kmodc-check-for-null-in-call_usermodehelper_exec.patch
- added to -mm tree
-Date: Mon, 23 Sep 2013 14:29:15 -0700
-Message-ID: <5240b2ab.P6Qqhcj+3WULbLZ0%akpm@linux-foundation.org>
+Subject: +
+ mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch added to -mm tree
+Date: Mon, 23 Sep 2013 15:16:34 -0700
+Message-ID: <5240bdc2.lTB54ZFj55UGz+tg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55897 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56233 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753032Ab3IWV3Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 17:29:16 -0400
+	with ESMTP id S1753369Ab3IWWQh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 18:16:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mgorman@suse.de, koverstreet@google.com, darrick.wong@oracle.com
 
-Subject: + kernel-kmodc-check-for-null-in-call_usermodehelper_exec.patch added to -mm tree
-To: penguin-kernel@I-love.SAKURA.ne.jp,oleg@redhat.com,stable@vger.kernel.org
+Subject: + mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch added to -mm tree
+To: darrick.wong@oracle.com,koverstreet@google.com,mgorman@suse.de,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 23 Sep 2013 14:29:15 -0700
+Date: Mon, 23 Sep 2013 15:16:34 -0700
 
 
 The patch titled
-     Subject: kernel/kmod.c: check for NULL in call_usermodehelper_exec()
+     Subject: mm/bounce.c: wix a regression where MS_SNAP_STABLE (stable pages snapshotting) was ignored
 has been added to the -mm tree.  Its filename is
-     kernel-kmodc-check-for-null-in-call_usermodehelper_exec.patch
+     mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-kmodc-check-for-null-in-call_usermodehelper_exec.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-kmodc-check-for-null-in-call_usermodehelper_exec.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,48 +44,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: kernel/kmod.c: check for NULL in call_usermodehelper_exec()
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: mm/bounce.c: wix a regression where MS_SNAP_STABLE (stable pages snapshotting) was ignored
 
-If /proc/sys/kernel/core_pattern contains only "|", NULL pointer
-dereference happens upon core dump because argv_split("") returns argv[0]
-== NULL.
+The "force" parameter in __blk_queue_bounce was being ignored, which means
+that stable page snapshots are not always happening (on ext3).  This of
+course leads to DIF disks reporting checksum errors, so fix this
+regression.
 
-This bug was once fixed by commit 264b83c0 ("usermodehelper: check
-subprocess_info->path != NULL") but was by error reintroduced by commit
-7f57cfa4 ("usermodehelper: kill the sub_info->path[0] check").
+The regression was introduced in 6bc454d1 ("bounce: Refactor
+__blk_queue_bounce to not use bi_io_vec")
 
-This bug seems to exist since 2.6.19 (the version which core dump to pipe
-was added).  Depending on kernel version and config, some side effect
-might happen immediately after this oops (e.g.  kernel panic with
-2.6.32-358.18.1.el6).
-
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@vger.kernel.org>
+Reported-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Kent Overstreet <koverstreet@google.com>
+Cc: <stable@vger.kernel.org>	[3.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/bounce.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/kmod.c~kernel-kmodc-check-for-null-in-call_usermodehelper_exec kernel/kmod.c
---- a/kernel/kmod.c~kernel-kmodc-check-for-null-in-call_usermodehelper_exec
-+++ a/kernel/kmod.c
-@@ -571,6 +571,10 @@ int call_usermodehelper_exec(struct subp
- 	DECLARE_COMPLETION_ONSTACK(done);
- 	int retval = 0;
+diff -puN mm/bounce.c~mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored mm/bounce.c
+--- a/mm/bounce.c~mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored
++++ a/mm/bounce.c
+@@ -204,6 +204,8 @@ static void __blk_queue_bounce(struct re
+ 	struct bio_vec *to, *from;
+ 	unsigned i;
  
-+	if (!sub_info->path) {
-+		call_usermodehelper_freeinfo(sub_info);
-+		return -ENOENT;
-+	}
- 	helper_lock();
- 	if (!khelper_wq || usermodehelper_disabled) {
- 		retval = -EBUSY;
++	if (force)
++		goto bounce;
+ 	bio_for_each_segment(from, *bio_orig, i)
+ 		if (page_to_pfn(from->bv_page) > queue_bounce_pfn(q))
+ 			goto bounce;
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from darrick.wong@oracle.com are
 
-kernel-kmodc-check-for-null-in-call_usermodehelper_exec.patch
+mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch
 
