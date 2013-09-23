@@ -1,79 +1,102 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch removed from -mm tree
-Date: Mon, 23 Sep 2013 16:18:50 -0700
-Message-ID: <5240cc5a.AcweeKdpeA2b9C73%akpm@linux-foundation.org>
+ mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch removed from -mm tree
+Date: Mon, 23 Sep 2013 16:18:51 -0700
+Message-ID: <5240cc5b.8oqfSMFl8PkSlYdx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56773 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56779 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753547Ab3IWXSv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 19:18:51 -0400
+	with ESMTP id S1753634Ab3IWXSx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 19:18:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, iamjoonsoo.kim@lge.com, liwanp@linux.vnet.ibm.com
 
-Subject: [to-be-updated] mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch removed from -mm tree
+Subject: [to-be-updated] mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch removed from -mm tree
 To: liwanp@linux.vnet.ibm.com,iamjoonsoo.kim@lge.com,kosaki.motohiro@jp.fujitsu.com,rientjes@google.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 23 Sep 2013 16:18:50 -0700
+Date: Mon, 23 Sep 2013 16:18:51 -0700
 
 
 The patch titled
-     Subject: mm/vmalloc: revert "mm/vmalloc.c: check VM_UNINITIALIZED flag in s_show instead of show_numa_info"
+     Subject: mm/vmalloc: fix show vmap_area information race with vmap_area tear down
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+     mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/vmalloc: revert "mm/vmalloc.c: check VM_UNINITIALIZED flag in s_show instead of show_numa_info"
+Subject: mm/vmalloc: fix show vmap_area information race with vmap_area tear down
 
-The VM_UNINITIALIZED/VM_UNLIST flag introduced by commit f5252e00 ("mm:
-avoid null pointer access in vm_struct via /proc/vmallocinfo") is used to
-avoid accessing the pages field with unallocated page when
-show_numa_info() is called.
+There is a race window between vmap_area tear down and show vmap_area
+information.
 
-This patch moves the check just before show_numa_info in order that some
-messages still can be dumped via /proc/vmallocinfo.  This patch reverts
-d157a558 ("mm/vmalloc.c: check VM_UNINITIALIZED flag in s_show instead of
-show_numa_info").
+	A                                                B
+
+remove_vm_area
+spin_lock(&vmap_area_lock);
+va->vm = NULL;
+va->flags &= ~VM_VM_AREA;
+spin_unlock(&vmap_area_lock);
+						spin_lock(&vmap_area_lock);
+						if (va->flags & (VM_LAZY_FREE | VM_LAZY_FREEZING))
+							return 0;
+						if (!(va->flags & VM_VM_AREA)) {
+							seq_printf(m, "0x%pK-0x%pK %7ld vm_map_ram\n",
+								(void *)va->va_start, (void *)va->va_end,
+								va->va_end - va->va_start);
+							return 0;
+						}
+free_unmap_vmap_area(va);
+	flush_cache_vunmap
+	free_unmap_vmap_area_noflush
+		unmap_vmap_area
+		free_vmap_area_noflush
+			va->flags |= VM_LAZY_FREE
+
+The assumption !VM_VM_AREA represents vm_map_ram allocation is introduced
+by commit: d4033afd ("mm, vmalloc: iterate vmap_area_list, instead of
+vmlist, in vmallocinfo()").  However, !VM_VM_AREA also represents vmap_area
+is being tear down in race window mentioned above.
+
+This patch fixes it by not dumping any information for !VM_VM_AREA case
+and also remove (VM_LAZY_FREE | VM_LAZY_FREEING) check since they are not
+possible for !VM_VM_AREA case.
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Suggested-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info
+diff -puN mm/vmalloc.c~mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down
 +++ a/mm/vmalloc.c
-@@ -2563,6 +2563,11 @@ static void show_numa_info(struct seq_fi
- 		if (!counters)
- 			return;
+@@ -2584,16 +2584,13 @@ static int s_show(struct seq_file *m, vo
+ 	struct vmap_area *va = p;
+ 	struct vm_struct *v;
  
-+		/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
-+		smp_rmb();
-+		if (v->flags & VM_UNINITIALIZED)
-+			return;
-+
- 		memset(counters, 0, nr_node_ids * sizeof(unsigned int));
+-	if (va->flags & (VM_LAZY_FREE | VM_LAZY_FREEING))
++	/*
++	 * s_show can encounter race with remove_vm_area, !VM_VM_AREA on
++	 * behalf of vmap area is being tear down or vm_map_ram allocation.
++	 */
++	if (!(va->flags & VM_VM_AREA))
+ 		return 0;
  
- 		for (nr = 0; nr < v->nr_pages; nr++)
-@@ -2591,11 +2596,6 @@ static int s_show(struct seq_file *m, vo
- 
- 	v = va->vm;
- 
--	/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
--	smp_rmb();
--	if (v->flags & VM_UNINITIALIZED)
+-	if (!(va->flags & VM_VM_AREA)) {
+-		seq_printf(m, "0x%pK-0x%pK %7ld vm_map_ram\n",
+-			(void *)va->va_start, (void *)va->va_end,
+-					va->va_end - va->va_start);
 -		return 0;
+-	}
