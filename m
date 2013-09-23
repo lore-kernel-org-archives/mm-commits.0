@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + init-do_mountsc-add-maj-min-syntax-comment.patch added to -mm
- tree
-Date: Mon, 23 Sep 2013 15:43:25 -0700
-Message-ID: <5240c40d.4VxMPjONKkpQwj/r%akpm@linux-foundation.org>
+Subject: + checkpatch-update-seq_foo-tests.patch added to -mm tree
+Date: Mon, 23 Sep 2013 15:44:20 -0700
+Message-ID: <5240c444.YxvtE8exIjzme9tx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56434 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56436 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482Ab3IWWn0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 18:43:26 -0400
+	with ESMTP id S1754395Ab3IWWoU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 18:44:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sebastian.capella@linaro.org
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + init-do_mountsc-add-maj-min-syntax-comment.patch added to -mm tree
-To: sebastian.capella@linaro.org
+Subject: + checkpatch-update-seq_foo-tests.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Mon, 23 Sep 2013 15:43:25 -0700
+Date: Mon, 23 Sep 2013 15:44:20 -0700
 
 
 The patch titled
-     Subject: init/do_mounts.c: add maj:min syntax comment
+     Subject: checkpatch: update seq_<foo> tests
 has been added to the -mm tree.  Its filename is
-     init-do_mountsc-add-maj-min-syntax-comment.patch
+     checkpatch-update-seq_foo-tests.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-do_mountsc-add-maj-min-syntax-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-update-seq_foo-tests.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-do_mountsc-add-maj-min-syntax-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-update-seq_foo-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,35 +43,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sebastian Capella <sebastian.capella@linaro.org>
-Subject: init/do_mounts.c: add maj:min syntax comment
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: update seq_<foo> tests
 
-The name_to_dev_t function has a comment block which lists the supported
-syntaxes for the device name.  Add a bullet for the <major>:<minor>
-syntax, which is already supported in the code
+seq_vprintf, seq_printf and seq_puts are logging functions and should be
+allowed to exceed the maximium line length.
 
-Signed-off-by: Sebastian Capella <sebastian.capella@linaro.org>
+Add maximum line length exceptions for these functions.
+
+Also, suggesting seq_printf conversions to seq_puts should be tested for
+arguments after the format.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    2 ++
- 1 file changed, 2 insertions(+)
+ scripts/checkpatch.pl |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN init/do_mounts.c~init-do_mountsc-add-maj-min-syntax-comment init/do_mounts.c
---- a/init/do_mounts.c~init-do_mountsc-add-maj-min-syntax-comment
-+++ a/init/do_mounts.c
-@@ -197,6 +197,8 @@ done:
-  *	   is a zero-filled hex representation of the 1-based partition number.
-  *	7) PARTUUID=<UUID>/PARTNROFF=<int> to select a partition in relation to
-  *	   a partition with a known unique id.
-+ *	8) <major>:<minor> major and minor number of the device separated by
-+ *	   a colon.
-  *
-  *	If name doesn't have fall into the categories above, we return (0,0).
-  *	block_class is used to check if something is a disk name. If the disk
+diff -puN scripts/checkpatch.pl~checkpatch-update-seq_foo-tests scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-update-seq_foo-tests
++++ a/scripts/checkpatch.pl
+@@ -323,7 +323,8 @@ our $logFunctions = qr{(?x:
+ 	(?:[a-z0-9]+_){1,2}(?:printk|emerg|alert|crit|err|warning|warn|notice|info|debug|dbg|vdbg|devel|cont|WARN)(?:_ratelimited|_once|)|
+ 	WARN(?:_RATELIMIT|_ONCE|)|
+ 	panic|
+-	MODULE_[A-Z_]+
++	MODULE_[A-Z_]+|
++	seq_vprintf|seq_printf|seq_puts
+ )};
+ 
+ our $signature_tags = qr{(?xi:
+@@ -3909,9 +3910,9 @@ sub string_find_replace {
+ 		}
+ 
+ # check for seq_printf uses that could be seq_puts
+-		if ($line =~ /\bseq_printf\s*\(/) {
++		if ($sline =~ /\bseq_printf\s*\(.*"\s*\)\s*;\s*$/) {
+ 			my $fmt = get_quoted_string($line, $rawline);
+-			if ($fmt !~ /[^\\]\%/) {
++			if ($fmt ne "" && $fmt !~ /[^\\]\%/) {
+ 				if (WARN("PREFER_SEQ_PUTS",
+ 					 "Prefer seq_puts to seq_printf\n" . $herecurr) &&
+ 				    $fix) {
 _
 
-Patches currently in -mm which might be from sebastian.capella@linaro.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-init-do_mountsc-add-maj-min-syntax-comment.patch
+origin.patch
+checkpatch-make-extern-in-h-prototypes-quieter.patch
+kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
+ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
+checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+checkpatch-update-seq_foo-tests.patch
+kernel-modulec-use-pr_foo.patch
+linux-next.patch
 
