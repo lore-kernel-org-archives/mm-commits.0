@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch added to -mm tree
-Date: Mon, 23 Sep 2013 15:20:05 -0700
-Message-ID: <5240be95.nFTjFNYqeISQa5Z8%akpm@linux-foundation.org>
+Subject: + init-do_mountsc-add-maj-min-syntax-comment.patch added to -mm
+ tree
+Date: Mon, 23 Sep 2013 15:43:25 -0700
+Message-ID: <5240c40d.4VxMPjONKkpQwj/r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56245 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56434 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753080Ab3IWWUG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 18:20:06 -0400
+	with ESMTP id S1752482Ab3IWWn0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Sep 2013 18:43:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@gmail.com, alonid@stratoscale.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, sebastian.capella@linaro.org
 
-Subject: + fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,alonid@stratoscale.com,fengguang.wu@gmail.com
+Subject: + init-do_mountsc-add-maj-min-syntax-comment.patch added to -mm tree
+To: sebastian.capella@linaro.org
 From: akpm@linux-foundation.org
-Date: Mon, 23 Sep 2013 15:20:05 -0700
+Date: Mon, 23 Sep 2013 15:43:25 -0700
 
 
 The patch titled
-     Subject: fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix
+     Subject: init/do_mounts.c: add maj:min syntax comment
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
+     init-do_mountsc-add-maj-min-syntax-comment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/init-do_mountsc-add-maj-min-syntax-comment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/init-do_mountsc-add-maj-min-syntax-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,73 +44,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix
+From: Sebastian Capella <sebastian.capella@linaro.org>
+Subject: init/do_mounts.c: add maj:min syntax comment
 
-fix sparse warning
+The name_to_dev_t function has a comment block which lists the supported
+syntaxes for the device name.  Add a bullet for the <major>:<minor>
+syntax, which is already supported in the code
 
-Cc: Dan Aloni <alonid@stratoscale.com>
-Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
+Signed-off-by: Sebastian Capella <sebastian.capella@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/do_mounts.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix
-+++ a/fs/binfmt_elf.c
-@@ -2050,7 +2050,7 @@ static int elf_core_dump(struct coredump
- 	struct vm_area_struct *vma, *gate_vma;
- 	struct elfhdr *elf = NULL;
- 	loff_t offset = 0, dataoff, foffset;
--	struct elf_note_info info = {0, };
-+	struct elf_note_info info = { };
- 	struct elf_phdr *phdr4note = NULL;
- 	struct elf_shdr *shdr4extnum = NULL;
- 	Elf_Half e_phnum;
+diff -puN init/do_mounts.c~init-do_mountsc-add-maj-min-syntax-comment init/do_mounts.c
+--- a/init/do_mounts.c~init-do_mountsc-add-maj-min-syntax-comment
++++ a/init/do_mounts.c
+@@ -197,6 +197,8 @@ done:
+  *	   is a zero-filled hex representation of the 1-based partition number.
+  *	7) PARTUUID=<UUID>/PARTNROFF=<int> to select a partition in relation to
+  *	   a partition with a known unique id.
++ *	8) <major>:<minor> major and minor number of the device separated by
++ *	   a colon.
+  *
+  *	If name doesn't have fall into the categories above, we return (0,0).
+  *	block_class is used to check if something is a disk name. If the disk
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sebastian.capella@linaro.org are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-watchdog-update-watchdog_tresh-properly-fix.patch
-revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-revert-memcg-track-all-children-over-limit-in-the-root.patch
-revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
-revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
-sound-soc-atmel-atmel-pcmc-fix-warning.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-mm-vmalloc-revert-mm-vmallocc-emit-the-failure-message-before-return-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-linux-next.patch
-linux-next-git-rejects.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+init-do_mountsc-add-maj-min-syntax-comment.patch
 
