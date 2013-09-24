@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch added
- to -mm tree
-Date: Tue, 24 Sep 2013 16:48:23 -0700
-Message-ID: <524224c7.BDxGeNvotxwOtnhI%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-88pm80xc-use-dev_get_platdata.patch added to
+ -mm tree
+Date: Tue, 24 Sep 2013 16:55:05 -0700
+Message-ID: <52422659.5HeVOVepNBWlQzfa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38197 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38219 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754169Ab3IXXsY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:48:24 -0400
+	with ESMTP id S1754735Ab3IXXzG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:55:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, ming.liu@windriver.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch added to -mm tree
-To: ming.liu@windriver.com,rientjes@google.com
+Subject: + drivers-rtc-rtc-88pm80xc-use-dev_get_platdata.patch added to -mm tree
+To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:48:23 -0700
+Date: Tue, 24 Sep 2013 16:55:05 -0700
 
 
 The patch titled
-     Subject: oom: avoid killing init if it assumed the oom killed thread's mm
+     Subject: drivers/rtc/rtc-88pm80x.c: use dev_get_platdata()
 has been added to the -mm tree.  Its filename is
-     oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
+     drivers-rtc-rtc-88pm80xc-use-dev_get_platdata.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-88pm80xc-use-dev_get_platdata.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-88pm80xc-use-dev_get_platdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,58 +44,125 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ming Liu <ming.liu@windriver.com>
-Subject: oom: avoid killing init if it assumed the oom killed thread's mm
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/rtc/rtc-88pm80x.c: use dev_get_platdata()
 
-After selecting a task to kill, the oom killer iterates all processes and
-kills all other user threads that share the same mm_struct in different
-thread groups.
+Use the wrapper function for retrieving the platform data instead of
+accessing dev->platform_data directly.  This is a cosmetic change to make
+the code simpler and enhance the readability.
 
-But in some extreme cases, the selected task happens to be a vfork child
-of init process sharing the same mm_struct with it, which causes kernel
-panic on init getting killed.  This panic is observed in a busybox shell
-that busybox itself is init, when a kthread keeps consuming memory.
-
-Signed-off-by: Ming Liu <ming.liu@windriver.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/rtc/rtc-88pm80x.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm mm/oom_kill.c
---- a/mm/oom_kill.c~oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm
-+++ a/mm/oom_kill.c
-@@ -479,17 +479,17 @@ void oom_kill_process(struct task_struct
- 	task_unlock(victim);
+diff -puN drivers/rtc/rtc-88pm80x.c~drivers-rtc-rtc-88pm80xc-use-dev_get_platdata drivers/rtc/rtc-88pm80x.c
+--- a/drivers/rtc/rtc-88pm80x.c~drivers-rtc-rtc-88pm80xc-use-dev_get_platdata
++++ a/drivers/rtc/rtc-88pm80x.c
+@@ -251,14 +251,15 @@ static SIMPLE_DEV_PM_OPS(pm80x_rtc_pm_op
+ static int pm80x_rtc_probe(struct platform_device *pdev)
+ {
+ 	struct pm80x_chip *chip = dev_get_drvdata(pdev->dev.parent);
+-	struct pm80x_platform_data *pm80x_pdata;
++	struct pm80x_platform_data *pm80x_pdata =
++				dev_get_platdata(pdev->dev.parent);
+ 	struct pm80x_rtc_pdata *pdata = NULL;
+ 	struct pm80x_rtc_info *info;
+ 	struct rtc_time tm;
+ 	unsigned long ticks = 0;
+ 	int ret;
  
- 	/*
--	 * Kill all user processes sharing victim->mm in other thread groups, if
--	 * any.  They don't get access to memory reserves, though, to avoid
--	 * depletion of all memory.  This prevents mm->mmap_sem livelock when an
--	 * oom killed thread cannot exit because it requires the semaphore and
--	 * its contended by another thread trying to allocate memory itself.
--	 * That thread will now get access to memory reserves since it has a
--	 * pending fatal signal.
-+	 * Kill all user processes except init sharing victim->mm in other
-+	 * thread groups, if any.  They don't get access to memory reserves,
-+	 * though, to avoid depletion of all memory.  This prevents mm->mmap_sem
-+	 * livelock when an oom killed thread cannot exit because it requires
-+	 * the semaphore and its contended by another thread trying to allocate
-+	 * memory itself. That thread will now get access to memory reserves
-+	 * since it has a pending fatal signal.
- 	 */
- 	for_each_process(p)
- 		if (p->mm == mm && !same_thread_group(p, victim) &&
--		    !(p->flags & PF_KTHREAD)) {
-+		    !(p->flags & PF_KTHREAD) && !is_global_init(p)) {
- 			if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
- 				continue;
+-	pdata = pdev->dev.platform_data;
++	pdata = dev_get_platdata(&pdev->dev);
+ 	if (pdata == NULL)
+ 		dev_warn(&pdev->dev, "No platform data!\n");
  
+@@ -326,8 +327,7 @@ static int pm80x_rtc_probe(struct platfo
+ 	regmap_update_bits(info->map, PM800_RTC_CONTROL, PM800_RTC1_USE_XO,
+ 			   PM800_RTC1_USE_XO);
+ 
+-	if (pdev->dev.parent->platform_data) {
+-		pm80x_pdata = pdev->dev.parent->platform_data;
++	if (pm80x_pdata) {
+ 		pdata = pm80x_pdata->rtc;
+ 		if (pdata)
+ 			info->rtc_dev->dev.platform_data = &pdata->rtc_wakeup;
 _
 
-Patches currently in -mm which might be from ming.liu@windriver.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
+drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
+backlight-lp855x_bl-support-new-lp8555-device.patch
+backlight-lm3630-apply-chip-revision.patch
+backlight-ld9040-staticize-local-variable-gamma_table.patch
+backlight-lm3639-dont-mix-different-enum-types.patch
+backlight-lp8788-staticize-default_bl_config.patch
+backlight-use-dev_get_platdata.patch
+backlight-88pm860x_bl-use-devm_backlight_device_register.patch
+backlight-aat2870-use-devm_backlight_device_register.patch
+backlight-adp5520-use-devm_backlight_device_register.patch
+backlight-adp8860-use-devm_backlight_device_register.patch
+backlight-adp8870-use-devm_backlight_device_register.patch
+backlight-as3711_bl-use-devm_backlight_device_register.patch
+backlight-atmel-pwm-bl-use-devm_backlight_device_register.patch
+backlight-bd6107-use-devm_backlight_device_register.patch
+backlight-da903x_bl-use-devm_backlight_device_register.patch
+backlight-da9052_bl-use-devm_backlight_device_register.patch
+backlight-ep93xx-use-devm_backlight_device_register.patch
+backlight-generic_bl-use-devm_backlight_device_register.patch
+backlight-gpio_backlight-use-devm_backlight_device_register.patch
+backlight-kb3886_bl-use-devm_backlight_device_register.patch
+backlight-lm3533_bl-use-devm_backlight_device_register.patch
+backlight-lp855x-use-devm_backlight_device_register.patch
+backlight-lv5207lp-use-devm_backlight_device_register.patch
+backlight-max8925_bl-use-devm_backlight_device_register.patch
+backlight-pandora_bl-use-devm_backlight_device_register.patch
+backlight-pcf50633-use-devm_backlight_device_register.patch
+backlight-tps65217_bl-use-devm_backlight_device_register.patch
+backlight-wm831x_bl-use-devm_backlight_device_register.patch
+backlight-hx8357-use-devm_lcd_device_register.patch
+backlight-ili922x-use-devm_lcd_device_register.patch
+backlight-ili9320-use-devm_lcd_device_register.patch
+backlight-lms283gf05-use-devm_lcd_device_register.patch
+backlight-lms501kf03-use-devm_lcd_device_register.patch
+backlight-ltv350qv-use-devm_lcd_device_register.patch
+backlight-platform_lcd-use-devm_lcd_device_register.patch
+backlight-tdo24m-use-devm_lcd_device_register.patch
+backlight-ams369fg06-use-devm_backlightlcd_device_register.patch
+backlight-ld9040-use-devm_backlightlcd_device_register.patch
+backlight-corgi_lcd-use-devm_backlightlcd_device_register.patch
+backlight-cr_bllcd-use-devm_backlightlcd_device_register.patch
+backlight-s6e63m0-use-devm_backlightlcd_device_register.patch
+drivers-rtc-rtc-ds1307c-release-irq-on-error.patch
+drivers-rtc-rtc-isl1208c-remove-redundant-checks.patch
+drivers-rtc-rtc-max6900c-remove-redundant-checks.patch
+drivers-rtc-rtc-vt8500c-fix-return-value.patch
+drivers-rtc-rtc-at91rm9200c-use-devm_-apis.patch
+drivers-rtc-rtc-isl1208c-use-devm_-apis.patch
+drivers-rtc-rtc-sirfsocc-use-devm_rtc_device_register.patch
+drivers-rtc-rtc-cmosc-remove-redundant-dev_set_drvdata.patch
+drivers-rtc-rtc-mrstc-remove-redundant-dev_set_drvdata.patch
+drivers-rtc-rtc-vr41xxc-fix-checkpatch-warnings.patch
+drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void.patch
+drivers-rtc-rtc-88pm80xc-use-dev_get_platdata.patch
+drivers-rtc-rtc-88pm860xc-use-dev_get_platdata.patch
+drivers-rtc-rtc-cmosc-use-dev_get_platdata.patch
+drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch
+drivers-rtc-rtc-ds1305c-use-dev_get_platdata.patch
+drivers-rtc-rtc-ds1307c-use-dev_get_platdata.patch
+drivers-rtc-rtc-ds2404c-use-dev_get_platdata.patch
+drivers-rtc-rtc-ep93xxc-use-dev_get_platdata.patch
+drivers-rtc-rtc-hid-sensor-timec-use-dev_get_platdata.patch
+drivers-rtc-rtc-m48t59c-use-dev_get_platdata.patch
+drivers-rtc-rtc-m48t86c-use-dev_get_platdata.patch
+drivers-rtc-rtc-pcf2123c-use-dev_get_platdata.patch
+drivers-rtc-rtc-rs5c348c-use-dev_get_platdata.patch
+drivers-rtc-rtc-shc-use-dev_get_platdata.patch
+drivers-rtc-rtc-v3020c-use-dev_get_platdata.patch
+drivers-char-xilinx_hwicap-xilinx_hwicapc-remove-unneeded-cast-of-void.patch
+w1-w1-gpio-use-dev_get_platdata.patch
+w1-ds1wm-use-dev_get_platdata.patch
+linux-next.patch
 
