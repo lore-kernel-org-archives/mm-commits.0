@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register.patch added to -mm tree
-Date: Tue, 24 Sep 2013 16:45:36 -0700
-Message-ID: <52422420.0a8UyRvAk94F9KFy%akpm@linux-foundation.org>
+ oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch added
+ to -mm tree
+Date: Tue, 24 Sep 2013 16:48:23 -0700
+Message-ID: <524224c7.BDxGeNvotxwOtnhI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38179 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38197 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754169Ab3IXXph (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:45:37 -0400
+	with ESMTP id S1754169Ab3IXXsY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:48:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, keescook@chromium.org, yongjun_wei@trendmicro.com.cn
+To: mm-commits@vger.kernel.org, rientjes@google.com, ming.liu@windriver.com
 
-Subject: + drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register.patch added to -mm tree
-To: yongjun_wei@trendmicro.com.cn,keescook@chromium.org
+Subject: + oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch added to -mm tree
+To: ming.liu@windriver.com,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:45:36 -0700
+Date: Tue, 24 Sep 2013 16:48:23 -0700
 
 
 The patch titled
-     Subject: drivers/message/i2o/driver.c: add missing destroy_workqueue() on error in i2o_driver_register()
+     Subject: oom: avoid killing init if it assumed the oom killed thread's mm
 has been added to the -mm tree.  Its filename is
-     drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register.patch
+     oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,57 +45,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: drivers/message/i2o/driver.c: add missing destroy_workqueue() on error in i2o_driver_register()
+From: Ming Liu <ming.liu@windriver.com>
+Subject: oom: avoid killing init if it assumed the oom killed thread's mm
 
-Add the missing destroy_workqueue() before return from
-i2o_driver_register() in the error handling case.
+After selecting a task to kill, the oom killer iterates all processes and
+kills all other user threads that share the same mm_struct in different
+thread groups.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Acked-by: Kees Cook <keescook@chromium.org>
+But in some extreme cases, the selected task happens to be a vfork child
+of init process sharing the same mm_struct with it, which causes kernel
+panic on init getting killed.  This panic is observed in a busybox shell
+that busybox itself is init, when a kthread keeps consuming memory.
+
+Signed-off-by: Ming Liu <ming.liu@windriver.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/driver.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/oom_kill.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/message/i2o/driver.c~drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register drivers/message/i2o/driver.c
---- a/drivers/message/i2o/driver.c~drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register
-+++ a/drivers/message/i2o/driver.c
-@@ -105,7 +105,8 @@ int i2o_driver_register(struct i2o_drive
- 			osm_err("too many drivers registered, increase "
- 				"max_drivers\n");
- 			spin_unlock_irqrestore(&i2o_drivers_lock, flags);
--			return -EFAULT;
-+			rc = -EFAULT;
-+			goto out;
- 		}
+diff -puN mm/oom_kill.c~oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm
++++ a/mm/oom_kill.c
+@@ -479,17 +479,17 @@ void oom_kill_process(struct task_struct
+ 	task_unlock(victim);
  
- 	drv->context = i;
-@@ -124,11 +125,14 @@ int i2o_driver_register(struct i2o_drive
- 	}
+ 	/*
+-	 * Kill all user processes sharing victim->mm in other thread groups, if
+-	 * any.  They don't get access to memory reserves, though, to avoid
+-	 * depletion of all memory.  This prevents mm->mmap_sem livelock when an
+-	 * oom killed thread cannot exit because it requires the semaphore and
+-	 * its contended by another thread trying to allocate memory itself.
+-	 * That thread will now get access to memory reserves since it has a
+-	 * pending fatal signal.
++	 * Kill all user processes except init sharing victim->mm in other
++	 * thread groups, if any.  They don't get access to memory reserves,
++	 * though, to avoid depletion of all memory.  This prevents mm->mmap_sem
++	 * livelock when an oom killed thread cannot exit because it requires
++	 * the semaphore and its contended by another thread trying to allocate
++	 * memory itself. That thread will now get access to memory reserves
++	 * since it has a pending fatal signal.
+ 	 */
+ 	for_each_process(p)
+ 		if (p->mm == mm && !same_thread_group(p, victim) &&
+-		    !(p->flags & PF_KTHREAD)) {
++		    !(p->flags & PF_KTHREAD) && !is_global_init(p)) {
+ 			if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
+ 				continue;
  
- 	rc = driver_register(&drv->driver);
--	if (rc) {
--		if (drv->event) {
--			destroy_workqueue(drv->event_queue);
--			drv->event_queue = NULL;
--		}
-+	if (rc)
-+		goto out;
-+
-+	return 0;
-+out:
-+	if (drv->event_queue) {
-+		destroy_workqueue(drv->event_queue);
-+		drv->event_queue = NULL;
- 	}
- 
- 	return rc;
 _
 
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+Patches currently in -mm which might be from ming.liu@windriver.com are
 
-drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register.patch
-linux-next.patch
+oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
 
