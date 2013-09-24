@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ltv350qv-use-devm_lcd_device_register.patch added to
+Subject: +
+ backlight-ams369fg06-use-devm_backlightlcd_device_register.patch added to
  -mm tree
-Date: Tue, 24 Sep 2013 16:12:30 -0700
-Message-ID: <52421c5e.W60gE1j41GiFDAeI%akpm@linux-foundation.org>
+Date: Tue, 24 Sep 2013 16:12:33 -0700
+Message-ID: <52421c61.+hLcax9j4ptdwGXo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37649 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37654 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508Ab3IXXMb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:31 -0400
+	with ESMTP id S1754508Ab3IXXMe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-ltv350qv-use-devm_lcd_device_register.patch added to -mm tree
+Subject: + backlight-ams369fg06-use-devm_backlightlcd_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:30 -0700
+Date: Tue, 24 Sep 2013 16:12:33 -0700
 
 
 The patch titled
-     Subject: backlight: ltv350qv: use devm_lcd_device_register()
+     Subject: backlight: ams369fg06: use devm_{backlight,lcd}_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-ltv350qv-use-devm_lcd_device_register.patch
+     backlight-ams369fg06-use-devm_backlightlcd_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-ltv350qv-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-ams369fg06-use-devm_backlightlcd_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-ltv350qv-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-ams369fg06-use-devm_backlightlcd_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,51 +46,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ltv350qv: use devm_lcd_device_register()
+Subject: backlight: ams369fg06: use devm_{backlight,lcd}_device_register()
 
-Use devm_lcd_device_register() to make cleanup paths simpler.
+Use devm_backlight_device_register() and devm_lcd_device_register() to
+make cleanup paths simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ltv350qv.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/video/backlight/ams369fg06.c |   22 +++++++---------------
+ 1 file changed, 7 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/backlight/ltv350qv.c~backlight-ltv350qv-use-devm_lcd_device_register drivers/video/backlight/ltv350qv.c
---- a/drivers/video/backlight/ltv350qv.c~backlight-ltv350qv-use-devm_lcd_device_register
-+++ a/drivers/video/backlight/ltv350qv.c
-@@ -242,7 +242,8 @@ static int ltv350qv_probe(struct spi_dev
- 	if (!lcd->buffer)
- 		return -ENOMEM;
+diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-devm_backlightlcd_device_register drivers/video/backlight/ams369fg06.c
+--- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-devm_backlightlcd_device_register
++++ a/drivers/video/backlight/ams369fg06.c
+@@ -477,8 +477,8 @@ static int ams369fg06_probe(struct spi_d
+ 		return -EINVAL;
+ 	}
  
--	ld = lcd_device_register("ltv350qv", &spi->dev, lcd, &ltv_ops);
-+	ld = devm_lcd_device_register(&spi->dev, "ltv350qv", &spi->dev, lcd,
-+					&ltv_ops);
+-	ld = lcd_device_register("ams369fg06", &spi->dev, lcd,
+-		&ams369fg06_lcd_ops);
++	ld = devm_lcd_device_register(&spi->dev, "ams369fg06", &spi->dev, lcd,
++					&ams369fg06_lcd_ops);
  	if (IS_ERR(ld))
  		return PTR_ERR(ld);
  
-@@ -250,15 +251,11 @@ static int ltv350qv_probe(struct spi_dev
+@@ -488,12 +488,11 @@ static int ams369fg06_probe(struct spi_d
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = MAX_BRIGHTNESS;
  
- 	ret = ltv350qv_power(lcd, FB_BLANK_UNBLANK);
- 	if (ret)
--		goto out_unregister;
-+		return ret;
+-	bd = backlight_device_register("ams369fg06-bl", &spi->dev, lcd,
+-		&ams369fg06_backlight_ops, &props);
+-	if (IS_ERR(bd)) {
+-		ret =  PTR_ERR(bd);
+-		goto out_lcd_unregister;
+-	}
++	bd = devm_backlight_device_register(&spi->dev, "ams369fg06-bl",
++					&spi->dev, lcd,
++					&ams369fg06_backlight_ops, &props);
++	if (IS_ERR(bd))
++		return PTR_ERR(bd);
  
- 	spi_set_drvdata(spi, lcd);
+ 	bd->props.brightness = DEFAULT_BRIGHTNESS;
+ 	lcd->bd = bd;
+@@ -516,10 +515,6 @@ static int ams369fg06_probe(struct spi_d
+ 	dev_info(&spi->dev, "ams369fg06 panel driver has been probed.\n");
  
  	return 0;
 -
--out_unregister:
+-out_lcd_unregister:
 -	lcd_device_unregister(ld);
 -	return ret;
  }
  
- static int ltv350qv_remove(struct spi_device *spi)
-@@ -266,8 +263,6 @@ static int ltv350qv_remove(struct spi_de
- 	struct ltv350qv *lcd = spi_get_drvdata(spi);
+ static int ams369fg06_remove(struct spi_device *spi)
+@@ -527,9 +522,6 @@ static int ams369fg06_remove(struct spi_
+ 	struct ams369fg06 *lcd = spi_get_drvdata(spi);
  
- 	ltv350qv_power(lcd, FB_BLANK_POWERDOWN);
+ 	ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
+-	backlight_device_unregister(lcd->bd);
 -	lcd_device_unregister(lcd->ld);
 -
  	return 0;
