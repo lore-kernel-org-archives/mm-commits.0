@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-bio-integrityc-remove-duplicate-code.patch added to -mm tree
-Date: Tue, 24 Sep 2013 16:22:41 -0700
-Message-ID: <52421ec1.DJSXx+06C2vOgRL/%akpm@linux-foundation.org>
+Subject: + printk-report-console-names-during-cut-over.patch added to -mm
+ tree
+Date: Tue, 24 Sep 2013 16:26:00 -0700
+Message-ID: <52421f88.YrVoeQpLEGOQRkjr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37847 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37857 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753920Ab3IXXWm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:22:42 -0400
+	with ESMTP id S1754117Ab3IXX0B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:26:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, martin.petersen@oracle.com, axboe@kernel.dk, guz.fnst@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, joe@perches.com, gregkh@linuxfoundation.org, fweisbec@gmail.com, keescook@chromium.org
 
-Subject: + fs-bio-integrityc-remove-duplicate-code.patch added to -mm tree
-To: guz.fnst@cn.fujitsu.com,axboe@kernel.dk,martin.petersen@oracle.com,viro@zeniv.linux.org.uk
+Subject: + printk-report-console-names-during-cut-over.patch added to -mm tree
+To: keescook@chromium.org,fweisbec@gmail.com,gregkh@linuxfoundation.org,joe@perches.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:22:41 -0700
+Date: Tue, 24 Sep 2013 16:26:00 -0700
 
 
 The patch titled
-     Subject: fs/bio-integrity.c: remove duplicate code
+     Subject: printk: report console names during cut-over
 has been added to the -mm tree.  Its filename is
-     fs-bio-integrityc-remove-duplicate-code.patch
+     printk-report-console-names-during-cut-over.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-bio-integrityc-remove-duplicate-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-report-console-names-during-cut-over.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-bio-integrityc-remove-duplicate-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-report-console-names-during-cut-over.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,138 +44,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: fs/bio-integrity.c: remove duplicate code
+From: Kees Cook <keescook@chromium.org>
+Subject: printk: report console names during cut-over
 
-Most code of function bio_integrity_verify and bio_integrity_generate is
-the same, so introduce a common function bio_integrity_generate_verify()
-to remove the reduplicate code.
+This reports the names of consoles as they're being disabled to help
+identify which is which during cut-over.  Helps answer the question "which
+boot console actually got activated?" once the regular console is running,
+mostly when debugging boot console failures.
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio-integrity.c |   86 +++++++++++++++++++------------------------
- 1 file changed, 38 insertions(+), 48 deletions(-)
+ kernel/printk/printk.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN fs/bio-integrity.c~fs-bio-integrityc-remove-duplicate-code fs/bio-integrity.c
---- a/fs/bio-integrity.c~fs-bio-integrityc-remove-duplicate-code
-+++ a/fs/bio-integrity.c
-@@ -287,24 +287,25 @@ int bio_integrity_get_tag(struct bio *bi
- EXPORT_SYMBOL(bio_integrity_get_tag);
- 
- /**
-- * bio_integrity_generate - Generate integrity metadata for a bio
-- * @bio:	bio to generate integrity metadata for
-- *
-- * Description: Generates integrity metadata for a bio by calling the
-- * block device's generation callback function.  The bio must have a
-- * bip attached with enough room to accommodate the generated
-- * integrity metadata.
-+ * bio_integrity_generate_verify - Generate/verify integrity metadata for a bio
-+ * @bio:	bio to generate/verify integrity metadata for
-+ * @operate:	operate number, 1 for generate, 0 for verify
-  */
--static void bio_integrity_generate(struct bio *bio)
-+static int bio_integrity_generate_verify(struct bio *bio, int operate)
- {
- 	struct blk_integrity *bi = bdev_get_integrity(bio->bi_bdev);
- 	struct blk_integrity_exchg bix;
- 	struct bio_vec *bv;
--	sector_t sector = bio->bi_sector;
--	unsigned int i, sectors, total;
-+	sector_t sector;
-+	unsigned int i, sectors, total, ret;
- 	void *prot_buf = bio->bi_integrity->bip_buf;
- 
--	total = 0;
-+	if (operate)
-+		sector = bio->bi_sector;
-+	else
-+		sector = bio->bi_integrity->bip_sector;
-+
-+	ret = total = 0;
- 	bix.disk_name = bio->bi_bdev->bd_disk->disk_name;
- 	bix.sector_size = bi->sector_size;
- 
-@@ -314,8 +315,15 @@ static void bio_integrity_generate(struc
- 		bix.data_size = bv->bv_len;
- 		bix.prot_buf = prot_buf;
- 		bix.sector = sector;
--
--		bi->generate_fn(&bix);
-+		if (operate) {
-+			bi->generate_fn(&bix);
-+		} else {
-+			ret = bi->verify_fn(&bix);
-+			if (ret) {
-+				kunmap_atomic(kaddr);
-+				return ret;
-+			}
-+		}
- 
- 		sectors = bv->bv_len / bi->sector_size;
- 		sector += sectors;
-@@ -325,6 +333,22 @@ static void bio_integrity_generate(struc
- 
- 		kunmap_atomic(kaddr);
+diff -puN kernel/printk/printk.c~printk-report-console-names-during-cut-over kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-report-console-names-during-cut-over
++++ a/kernel/printk/printk.c
+@@ -2358,21 +2358,18 @@ void register_console(struct console *ne
+ 	 * users know there might be something in the kernel's log buffer that
+ 	 * went to the bootconsole (that they do not see on the real console)
+ 	 */
++	printk(KERN_INFO "%sconsole [%s%d] enabled\n",
++		(newcon->flags & CON_BOOT) ? "boot" : "" ,
++		newcon->name, newcon->index);
+ 	if (bcon &&
+ 	    ((newcon->flags & (CON_CONSDEV | CON_BOOT)) == CON_CONSDEV) &&
+ 	    !keep_bootcon) {
+-		/* we need to iterate through twice, to make sure we print
+-		 * everything out, before we unregister the console(s)
++		/* We need to iterate through all boot consoles, to make
++		 * sure we print everything out, before we unregister them.
+ 		 */
+-		printk(KERN_INFO "console [%s%d] enabled, bootconsole disabled\n",
+-			newcon->name, newcon->index);
+ 		for_each_console(bcon)
+ 			if (bcon->flags & CON_BOOT)
+ 				unregister_console(bcon);
+-	} else {
+-		printk(KERN_INFO "%sconsole [%s%d] enabled\n",
+-			(newcon->flags & CON_BOOT) ? "boot" : "" ,
+-			newcon->name, newcon->index);
  	}
-+
-+	return ret;
-+}
-+
-+/**
-+ * bio_integrity_generate - Generate integrity metadata for a bio
-+ * @bio:	bio to generate integrity metadata for
-+ *
-+ * Description: Generates integrity metadata for a bio by calling the
-+ * block device's generation callback function.  The bio must have a
-+ * bip attached with enough room to accommodate the generated
-+ * integrity metadata.
-+ */
-+static void bio_integrity_generate(struct bio *bio)
-+{
-+	bio_integrity_generate_verify(bio, 1);
  }
+ EXPORT_SYMBOL(register_console);
+@@ -2382,6 +2379,10 @@ int unregister_console(struct console *c
+         struct console *a, *b;
+ 	int res;
  
- static inline unsigned short blk_integrity_tuple_size(struct blk_integrity *bi)
-@@ -439,41 +463,7 @@ EXPORT_SYMBOL(bio_integrity_prep);
-  */
- static int bio_integrity_verify(struct bio *bio)
- {
--	struct blk_integrity *bi = bdev_get_integrity(bio->bi_bdev);
--	struct blk_integrity_exchg bix;
--	struct bio_vec *bv;
--	sector_t sector = bio->bi_integrity->bip_sector;
--	unsigned int i, sectors, total, ret;
--	void *prot_buf = bio->bi_integrity->bip_buf;
--
--	ret = total = 0;
--	bix.disk_name = bio->bi_bdev->bd_disk->disk_name;
--	bix.sector_size = bi->sector_size;
--
--	bio_for_each_segment(bv, bio, i) {
--		void *kaddr = kmap_atomic(bv->bv_page);
--		bix.data_buf = kaddr + bv->bv_offset;
--		bix.data_size = bv->bv_len;
--		bix.prot_buf = prot_buf;
--		bix.sector = sector;
--
--		ret = bi->verify_fn(&bix);
--
--		if (ret) {
--			kunmap_atomic(kaddr);
--			return ret;
--		}
--
--		sectors = bv->bv_len / bi->sector_size;
--		sector += sectors;
--		prot_buf += sectors * bi->tuple_size;
--		total += sectors * bi->tuple_size;
--		BUG_ON(total > bio->bi_integrity->bip_size);
--
--		kunmap_atomic(kaddr);
--	}
++	printk(KERN_INFO "%sconsole [%s%d] disabled\n",
++		(console->flags & CON_BOOT) ? "boot" : "" ,
++		console->name, console->index);
++
+ 	res = _braille_unregister_console(console);
+ 	if (res)
+ 		return res;
+@@ -2421,8 +2422,6 @@ static int __init printk_late_init(void)
+ 
+ 	for_each_console(con) {
+ 		if (!keep_bootcon && con->flags & CON_BOOT) {
+-			printk(KERN_INFO "turn off boot console %s%d\n",
+-				con->name, con->index);
+ 			unregister_console(con);
+ 		}
+ 	}
+_
+
+Patches currently in -mm which might be from keescook@chromium.org are
+
+printk-report-console-names-during-cut-over.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+gcov-move-gcov-structs-definitions-to-a-gcc-version-specific-file.patch
+gcov-add-support-for-gcc-47-gcov-format.patch
+gcov-compile-specific-gcov-implementation-based-on-gcc-version.patch
+kernel-add-support-for-init_array-constructors.patch
+kernel-add-support-for-init_array-constructors-fix.patch
+kernel-gcov-fsc-use-pr_warn.patch
+linux-next.patch
+
