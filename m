@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-pandora_bl-use-devm_backlight_device_register.patch
+Subject: + backlight-pcf50633-use-devm_backlight_device_register.patch
  added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:21 -0700
-Message-ID: <52421c55.sc0fM91OpVo0wFgK%akpm@linux-foundation.org>
+Date: Tue, 24 Sep 2013 16:12:22 -0700
+Message-ID: <52421c56.ZSTNVcLo686lvdHI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37633 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37634 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754460Ab3IXXMW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:22 -0400
+	with ESMTP id S1754494Ab3IXXMX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-pandora_bl-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-pcf50633-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:21 -0700
+Date: Tue, 24 Sep 2013 16:12:22 -0700
 
 
 The patch titled
-     Subject: backlight: pandora_bl: use devm_backlight_device_register()
+     Subject: backlight: pcf50633: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-pandora_bl-use-devm_backlight_device_register.patch
+     backlight-pcf50633-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-pandora_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-pcf50633-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-pandora_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-pcf50633-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: pandora_bl: use devm_backlight_device_register()
+Subject: backlight: pcf50633: use devm_backlight_device_register()
 
 Use devm_backlight_device_register() to make cleanup paths simpler, and
 remove unnecessary remove().
@@ -54,44 +54,41 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/pandora_bl.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/video/backlight/pcf50633-backlight.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/backlight/pandora_bl.c~backlight-pandora_bl-use-devm_backlight_device_register drivers/video/backlight/pandora_bl.c
---- a/drivers/video/backlight/pandora_bl.c~backlight-pandora_bl-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/pandora_bl.c
-@@ -120,8 +120,8 @@ static int pandora_backlight_probe(struc
- 	memset(&props, 0, sizeof(props));
- 	props.max_brightness = MAX_USER_VALUE;
- 	props.type = BACKLIGHT_RAW;
--	bl = backlight_device_register(pdev->name, &pdev->dev,
--			NULL, &pandora_backlight_ops, &props);
-+	bl = devm_backlight_device_register(&pdev->dev, pdev->name, &pdev->dev,
-+					NULL, &pandora_backlight_ops, &props);
- 	if (IS_ERR(bl)) {
- 		dev_err(&pdev->dev, "failed to register backlight\n");
- 		return PTR_ERR(bl);
-@@ -145,20 +145,12 @@ static int pandora_backlight_probe(struc
+diff -puN drivers/video/backlight/pcf50633-backlight.c~backlight-pcf50633-use-devm_backlight_device_register drivers/video/backlight/pcf50633-backlight.c
+--- a/drivers/video/backlight/pcf50633-backlight.c~backlight-pcf50633-use-devm_backlight_device_register
++++ a/drivers/video/backlight/pcf50633-backlight.c
+@@ -126,7 +126,8 @@ static int pcf50633_bl_probe(struct plat
+ 
+ 	pcf_bl->pcf = dev_to_pcf50633(pdev->dev.parent);
+ 
+-	pcf_bl->bl = backlight_device_register(pdev->name, &pdev->dev, pcf_bl,
++	pcf_bl->bl = devm_backlight_device_register(&pdev->dev, pdev->name,
++						&pdev->dev, pcf_bl,
+ 						&pcf50633_bl_ops, &bl_props);
+ 
+ 	if (IS_ERR(pcf_bl->bl))
+@@ -147,18 +148,8 @@ static int pcf50633_bl_probe(struct plat
  	return 0;
  }
  
--static int pandora_backlight_remove(struct platform_device *pdev)
+-static int pcf50633_bl_remove(struct platform_device *pdev)
 -{
--	struct backlight_device *bl = platform_get_drvdata(pdev);
--	backlight_device_unregister(bl);
+-	struct pcf50633_bl *pcf_bl = platform_get_drvdata(pdev);
+-
+-	backlight_device_unregister(pcf_bl->bl);
+-
 -	return 0;
 -}
 -
- static struct platform_driver pandora_backlight_driver = {
- 	.driver		= {
- 		.name	= "pandora-backlight",
- 		.owner	= THIS_MODULE,
+ static struct platform_driver pcf50633_bl_driver = {
+ 	.probe =	pcf50633_bl_probe,
+-	.remove =	pcf50633_bl_remove,
+ 	.driver = {
+ 		.name = "pcf50633-backlight",
  	},
- 	.probe		= pandora_backlight_probe,
--	.remove		= pandora_backlight_remove,
- };
- 
- module_platform_driver(pandora_backlight_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
