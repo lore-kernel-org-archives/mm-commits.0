@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch added to -mm tree
-Date: Tue, 24 Sep 2013 16:55:08 -0700
-Message-ID: <5242265c.RJmESrgYJOUofklR%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-ds1305c-use-dev_get_platdata.patch added to -mm tree
+Date: Tue, 24 Sep 2013 16:55:09 -0700
+Message-ID: <5242265d.kvU2dOMIus1WllWE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38226 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38227 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754735Ab3IXXzJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:55:09 -0400
+	with ESMTP id S1754652Ab3IXXzK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:55:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch added to -mm tree
+Subject: + drivers-rtc-rtc-ds1305c-use-dev_get_platdata.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:55:08 -0700
+Date: Tue, 24 Sep 2013 16:55:09 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-da9055.c: use dev_get_platdata()
+     Subject: drivers/rtc/rtc-ds1305.c: use dev_get_platdata()
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch
+     drivers-rtc-rtc-ds1305c-use-dev_get_platdata.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-ds1305c-use-dev_get_platdata.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-ds1305c-use-dev_get_platdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +44,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-da9055.c: use dev_get_platdata()
+Subject: drivers/rtc/rtc-ds1305.c: use dev_get_platdata()
 
 Use the wrapper function for retrieving the platform data instead of
 accessing dev->platform_data directly.  This is a cosmetic change to make
@@ -54,21 +54,21 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-da9055.c |    2 +-
+ drivers/rtc/rtc-ds1305.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-da9055.c~drivers-rtc-rtc-da9055c-use-dev_get_platdata drivers/rtc/rtc-da9055.c
---- a/drivers/rtc/rtc-da9055.c~drivers-rtc-rtc-da9055c-use-dev_get_platdata
-+++ a/drivers/rtc/rtc-da9055.c
-@@ -278,7 +278,7 @@ static int da9055_rtc_probe(struct platf
- 		return -ENOMEM;
+diff -puN drivers/rtc/rtc-ds1305.c~drivers-rtc-rtc-ds1305c-use-dev_get_platdata drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~drivers-rtc-rtc-ds1305c-use-dev_get_platdata
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -606,7 +606,7 @@ static int ds1305_probe(struct spi_devic
+ 	struct ds1305			*ds1305;
+ 	int				status;
+ 	u8				addr, value;
+-	struct ds1305_platform_data	*pdata = spi->dev.platform_data;
++	struct ds1305_platform_data	*pdata = dev_get_platdata(&spi->dev);
+ 	bool				write_ctrl = false;
  
- 	rtc->da9055 = dev_get_drvdata(pdev->dev.parent);
--	pdata = rtc->da9055->dev->platform_data;
-+	pdata = dev_get_platdata(rtc->da9055->dev);
- 	platform_set_drvdata(pdev, rtc);
- 
- 	ret = da9055_rtc_device_init(rtc->da9055, pdata);
+ 	/* Sanity check board setup data.  This may be hooked up
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
