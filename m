@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lp855x-use-devm_backlight_device_register.patch added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:18 -0700
-Message-ID: <52421c52.bxi2hlTmKm0ts0QQ%akpm@linux-foundation.org>
+Subject: + backlight-wm831x_bl-use-devm_backlight_device_register.patch
+ added to -mm tree
+Date: Tue, 24 Sep 2013 16:12:24 -0700
+Message-ID: <52421c58.zMkfV5Mzd6HtqP8W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37627 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37638 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754431Ab3IXXMT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:19 -0400
+	with ESMTP id S1754494Ab3IXXMZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-lp855x-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-wm831x_bl-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:18 -0700
+Date: Tue, 24 Sep 2013 16:12:24 -0700
 
 
 The patch titled
-     Subject: backlight: lp855x: use devm_backlight_device_register()
+     Subject: backlight: wm831x_bl: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-lp855x-use-devm_backlight_device_register.patch
+     backlight-wm831x_bl-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lp855x-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-wm831x_bl-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lp855x-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-wm831x_bl-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,84 +45,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: lp855x: use devm_backlight_device_register()
+Subject: backlight: wm831x_bl: use devm_backlight_device_register()
 
-Use devm_backlight_device_register() to make cleanup paths simpler.  Also,
-unnecessary lp855x_backlight_unregister() is removed.
+Use devm_backlight_device_register() to make cleanup paths simpler, and
+remove unnecessary remove().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lp855x_bl.c |   20 ++++----------------
- 1 file changed, 4 insertions(+), 16 deletions(-)
+ drivers/video/backlight/wm831x_bl.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x-use-devm_backlight_device_register drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/lp855x_bl.c
-@@ -300,7 +300,7 @@ static int lp855x_backlight_register(str
- 
- 	props.brightness = pdata->initial_brightness;
- 
--	bl = backlight_device_register(name, lp->dev, lp,
-+	bl = devm_backlight_device_register(lp->dev, name, lp->dev, lp,
- 				       &lp855x_bl_ops, &props);
- 	if (IS_ERR(bl))
+diff -puN drivers/video/backlight/wm831x_bl.c~backlight-wm831x_bl-use-devm_backlight_device_register drivers/video/backlight/wm831x_bl.c
+--- a/drivers/video/backlight/wm831x_bl.c~backlight-wm831x_bl-use-devm_backlight_device_register
++++ a/drivers/video/backlight/wm831x_bl.c
+@@ -195,8 +195,8 @@ static int wm831x_backlight_probe(struct
+ 	memset(&props, 0, sizeof(props));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = max_isel;
+-	bl = backlight_device_register("wm831x", &pdev->dev, data,
+-				       &wm831x_backlight_ops, &props);
++	bl = devm_backlight_device_register(&pdev->dev, "wm831x", &pdev->dev,
++					data, &wm831x_backlight_ops, &props);
+ 	if (IS_ERR(bl)) {
+ 		dev_err(&pdev->dev, "failed to register backlight\n");
  		return PTR_ERR(bl);
-@@ -310,12 +310,6 @@ static int lp855x_backlight_register(str
+@@ -214,21 +214,12 @@ static int wm831x_backlight_probe(struct
  	return 0;
  }
  
--static void lp855x_backlight_unregister(struct lp855x *lp)
+-static int wm831x_backlight_remove(struct platform_device *pdev)
 -{
--	if (lp->bl)
--		backlight_device_unregister(lp->bl);
+-	struct backlight_device *bl = platform_get_drvdata(pdev);
+-
+-	backlight_device_unregister(bl);
+-	return 0;
 -}
 -
- static ssize_t lp855x_get_chip_id(struct device *dev,
- 				struct device_attribute *attr, char *buf)
- {
-@@ -439,29 +433,24 @@ static int lp855x_probe(struct i2c_clien
- 	ret = lp855x_configure(lp);
- 	if (ret) {
- 		dev_err(lp->dev, "device config err: %d", ret);
--		goto err_dev;
-+		return ret;
- 	}
+ static struct platform_driver wm831x_backlight_driver = {
+ 	.driver		= {
+ 		.name	= "wm831x-backlight",
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= wm831x_backlight_probe,
+-	.remove		= wm831x_backlight_remove,
+ };
  
- 	ret = lp855x_backlight_register(lp);
- 	if (ret) {
- 		dev_err(lp->dev,
- 			"failed to register backlight. err: %d\n", ret);
--		goto err_dev;
-+		return ret;
- 	}
- 
- 	ret = sysfs_create_group(&lp->dev->kobj, &lp855x_attr_group);
- 	if (ret) {
- 		dev_err(lp->dev, "failed to register sysfs. err: %d\n", ret);
--		goto err_sysfs;
-+		return ret;
- 	}
- 
- 	backlight_update_status(lp->bl);
- 	return 0;
--
--err_sysfs:
--	lp855x_backlight_unregister(lp);
--err_dev:
--	return ret;
- }
- 
- static int lp855x_remove(struct i2c_client *cl)
-@@ -471,7 +460,6 @@ static int lp855x_remove(struct i2c_clie
- 	lp->bl->props.brightness = 0;
- 	backlight_update_status(lp->bl);
- 	sysfs_remove_group(&lp->dev->kobj, &lp855x_attr_group);
--	lp855x_backlight_unregister(lp);
- 
- 	return 0;
- }
+ module_platform_driver(wm831x_backlight_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
