@@ -1,79 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
- removed from -mm tree
-Date: Tue, 24 Sep 2013 10:51:42 -0700
-Message-ID: <5241d12e.TfE9XHGwOp/huxMI%akpm@linux-foundation.org>
+Subject: +
+ kernel-kmodc-check-for-null-in-call_usermodehelper_exec-update.patch added
+ to -mm tree
+Date: Tue, 24 Sep 2013 13:54:16 -0700
+Message-ID: <5241fbf8.Jemn+wQdelcSGEie%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36806 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752829Ab3IXRvn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 13:51:43 -0400
+	with ESMTP id S1753881Ab3IXUyR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 16:54:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, robinmholt@linux.com, fei.li@intel.com, chuansheng.liu@intel.com
+To: mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, oleg@redhat.com, penguin-kernel@i-love.sakura.ne.jp
 
-Subject: [merged] kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch removed from -mm tree
-To: chuansheng.liu@intel.com,fei.li@intel.com,robinmholt@linux.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: + kernel-kmodc-check-for-null-in-call_usermodehelper_exec-update.patch added to -mm tree
+To: penguin-kernel@i-love.sakura.ne.jp,oleg@redhat.com,penguin-kernel@I-love.SAKURA.ne.jp
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 10:51:42 -0700
+Date: Tue, 24 Sep 2013 13:54:16 -0700
 
 
 The patch titled
-     Subject: kernel/reboot.c: re-enable the function of variable reboot_default
-has been removed from the -mm tree.  Its filename was
-     kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
+     Subject: kernel-kmodc-check-for-null-in-call_usermodehelper_exec-update
+has been added to the -mm tree.  Its filename is
+     kernel-kmodc-check-for-null-in-call_usermodehelper_exec-update.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-kmodc-check-for-null-in-call_usermodehelper_exec-update.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-kmodc-check-for-null-in-call_usermodehelper_exec-update.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Chuansheng Liu <chuansheng.liu@intel.com>
-Subject: kernel/reboot.c: re-enable the function of variable reboot_default
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Subject: kernel-kmodc-check-for-null-in-call_usermodehelper_exec-update
 
-1b3a5d02ee07 ("reboot: move arch/x86 reboot= handling to generic kernel")
-did some cleanup for reboot= command line, but it made the reboot_default
-inoperative.
+Switch to EINVAL.
 
-The default value of variable reboot_default should be 1, and if command
-line reboot= is not set, system will use the default reboot mode.
-
-Signed-off-by: Li Fei <fei.li@intel.com>
-Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
-Acked-by: Robin Holt <robinmholt@linux.com>
-Cc: <stable@vger.kernel.org>	[3.11.x]
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ kernel/kmod.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default kernel/reboot.c
---- a/kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default
-+++ a/kernel/reboot.c
-@@ -32,7 +32,14 @@ EXPORT_SYMBOL(cad_pid);
- #endif
- enum reboot_mode reboot_mode DEFAULT_REBOOT_MODE;
+diff -puN kernel/kmod.c~kernel-kmodc-check-for-null-in-call_usermodehelper_exec-update kernel/kmod.c
+--- a/kernel/kmod.c~kernel-kmodc-check-for-null-in-call_usermodehelper_exec-update
++++ a/kernel/kmod.c
+@@ -573,7 +573,7 @@ int call_usermodehelper_exec(struct subp
  
--int reboot_default;
-+/*
-+ * This variable is used privately to keep track of whether or not
-+ * reboot_type is still set to its default value (i.e., reboot= hasn't
-+ * been set on the command line).  This is needed so that we can
-+ * suppress DMI scanning for reboot quirks.  Without it, it's
-+ * impossible to override a faulty reboot quirk without recompiling.
-+*/
-+int reboot_default = 1;
- int reboot_cpu;
- enum reboot_type reboot_type = BOOT_ACPI;
- int reboot_force;
+ 	if (!sub_info->path) {
+ 		call_usermodehelper_freeinfo(sub_info);
+-		return -ENOENT;
++		return -EINVAL;
+ 	}
+ 	helper_lock();
+ 	if (!khelper_wq || usermodehelper_disabled) {
 _
 
-Patches currently in -mm which might be from chuansheng.liu@intel.com are
+Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
 
-linux-next.patch
-kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
+kernel-kmodc-check-for-null-in-call_usermodehelper_exec-update.patch
+syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
 
