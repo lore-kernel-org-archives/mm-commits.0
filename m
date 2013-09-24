@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-adp5520-use-devm_backlight_device_register.patch
+Subject: + backlight-adp8860-use-devm_backlight_device_register.patch
  added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:05 -0700
-Message-ID: <52421c45.wjs73jqz+/jwR1jY%akpm@linux-foundation.org>
+Date: Tue, 24 Sep 2013 16:12:06 -0700
+Message-ID: <52421c46.Ju8xBc+3htDAm9xy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37605 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754228Ab3IXXMG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:06 -0400
+	with ESMTP id S1753808Ab3IXXMH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-adp5520-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-adp8860-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:05 -0700
+Date: Tue, 24 Sep 2013 16:12:06 -0700
 
 
 The patch titled
-     Subject: backlight: adp5520: use devm_backlight_device_register()
+     Subject: backlight: adp8860: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-adp5520-use-devm_backlight_device_register.patch
+     backlight-adp8860-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-adp5520-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-adp8860-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-adp5520-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-adp8860-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: adp5520: use devm_backlight_device_register()
+Subject: backlight: adp8860: use devm_backlight_device_register()
 
 Use devm_backlight_device_register() to make cleanup paths simpler.
 
@@ -53,38 +53,47 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp5520_bl.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/video/backlight/adp8860_bl.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/backlight/adp5520_bl.c~backlight-adp5520-use-devm_backlight_device_register drivers/video/backlight/adp5520_bl.c
---- a/drivers/video/backlight/adp5520_bl.c~backlight-adp5520-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/adp5520_bl.c
-@@ -312,8 +312,9 @@ static int adp5520_bl_probe(struct platf
- 	memset(&props, 0, sizeof(struct backlight_properties));
- 	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = ADP5020_MAX_BRIGHTNESS;
--	bl = backlight_device_register(pdev->name, data->master, data,
--				       &adp5520_bl_ops, &props);
-+	bl = devm_backlight_device_register(&pdev->dev, pdev->name,
-+					data->master, data, &adp5520_bl_ops,
-+					&props);
+diff -puN drivers/video/backlight/adp8860_bl.c~backlight-adp8860-use-devm_backlight_device_register drivers/video/backlight/adp8860_bl.c
+--- a/drivers/video/backlight/adp8860_bl.c~backlight-adp8860-use-devm_backlight_device_register
++++ a/drivers/video/backlight/adp8860_bl.c
+@@ -711,8 +711,9 @@ static int adp8860_probe(struct i2c_clie
+ 
+ 	mutex_init(&data->lock);
+ 
+-	bl = backlight_device_register(dev_driver_string(&client->dev),
+-			&client->dev, data, &adp8860_bl_ops, &props);
++	bl = devm_backlight_device_register(&client->dev,
++				dev_driver_string(&client->dev),
++				&client->dev, data, &adp8860_bl_ops, &props);
  	if (IS_ERR(bl)) {
- 		dev_err(&pdev->dev, "failed to register backlight\n");
+ 		dev_err(&client->dev, "failed to register backlight\n");
  		return PTR_ERR(bl);
-@@ -326,7 +327,7 @@ static int adp5520_bl_probe(struct platf
+@@ -728,7 +729,7 @@ static int adp8860_probe(struct i2c_clie
  
  	if (ret) {
- 		dev_err(&pdev->dev, "failed to register sysfs\n");
--		backlight_device_unregister(bl);
+ 		dev_err(&client->dev, "failed to register sysfs\n");
+-		goto out1;
 +		return ret;
  	}
  
- 	platform_set_drvdata(pdev, bl);
-@@ -347,8 +348,6 @@ static int adp5520_bl_remove(struct plat
- 		sysfs_remove_group(&bl->dev.kobj,
- 				&adp5520_bl_attr_group);
- 
+ 	ret = adp8860_bl_setup(bl);
+@@ -751,8 +752,6 @@ out:
+ 	if (data->en_ambl_sens)
+ 		sysfs_remove_group(&data->bl->dev.kobj,
+ 			&adp8860_bl_attr_group);
+-out1:
 -	backlight_device_unregister(bl);
+ 
+ 	return ret;
+ }
+@@ -770,8 +769,6 @@ static int adp8860_remove(struct i2c_cli
+ 		sysfs_remove_group(&data->bl->dev.kobj,
+ 			&adp8860_bl_attr_group);
+ 
+-	backlight_device_unregister(data->bl);
 -
  	return 0;
  }
