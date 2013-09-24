@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- backlight-ams369fg06-use-devm_backlightlcd_device_register.patch added to
- -mm tree
-Date: Tue, 24 Sep 2013 16:12:33 -0700
-Message-ID: <52421c61.+hLcax9j4ptdwGXo%akpm@linux-foundation.org>
+Subject: + backlight-corgi_lcd-use-devm_backlightlcd_device_register.patch added to -mm tree
+Date: Tue, 24 Sep 2013 16:12:35 -0700
+Message-ID: <52421c63.KjWcbkJN6rYYM0lD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37654 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37658 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508Ab3IXXMe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:34 -0400
+	with ESMTP id S1754508Ab3IXXMg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-ams369fg06-use-devm_backlightlcd_device_register.patch added to -mm tree
+Subject: + backlight-corgi_lcd-use-devm_backlightlcd_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:33 -0700
+Date: Tue, 24 Sep 2013 16:12:35 -0700
 
 
 The patch titled
-     Subject: backlight: ams369fg06: use devm_{backlight,lcd}_device_register()
+     Subject: backlight: corgi_lcd: use devm_{backlight,lcd}_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-ams369fg06-use-devm_backlightlcd_device_register.patch
+     backlight-corgi_lcd-use-devm_backlightlcd_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-ams369fg06-use-devm_backlightlcd_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-corgi_lcd-use-devm_backlightlcd_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-ams369fg06-use-devm_backlightlcd_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-corgi_lcd-use-devm_backlightlcd_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,7 +44,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ams369fg06: use devm_{backlight,lcd}_device_register()
+Subject: backlight: corgi_lcd: use devm_{backlight,lcd}_device_register()
 
 Use devm_backlight_device_register() and devm_lcd_device_register() to
 make cleanup paths simpler.
@@ -55,58 +53,70 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |   22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
+ drivers/video/backlight/corgi_lcd.c |   28 ++++++++------------------
+ 1 file changed, 9 insertions(+), 19 deletions(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-devm_backlightlcd_device_register drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-devm_backlightlcd_device_register
-+++ a/drivers/video/backlight/ams369fg06.c
-@@ -477,8 +477,8 @@ static int ams369fg06_probe(struct spi_d
- 		return -EINVAL;
- 	}
+diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-devm_backlightlcd_device_register drivers/video/backlight/corgi_lcd.c
+--- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-devm_backlightlcd_device_register
++++ a/drivers/video/backlight/corgi_lcd.c
+@@ -550,8 +550,8 @@ static int corgi_lcd_probe(struct spi_de
  
--	ld = lcd_device_register("ams369fg06", &spi->dev, lcd,
--		&ams369fg06_lcd_ops);
-+	ld = devm_lcd_device_register(&spi->dev, "ams369fg06", &spi->dev, lcd,
-+					&ams369fg06_lcd_ops);
- 	if (IS_ERR(ld))
- 		return PTR_ERR(ld);
+ 	lcd->spi_dev = spi;
  
-@@ -488,12 +488,11 @@ static int ams369fg06_probe(struct spi_d
+-	lcd->lcd_dev = lcd_device_register("corgi_lcd", &spi->dev,
+-					lcd, &corgi_lcd_ops);
++	lcd->lcd_dev = devm_lcd_device_register(&spi->dev, "corgi_lcd",
++						&spi->dev, lcd, &corgi_lcd_ops);
+ 	if (IS_ERR(lcd->lcd_dev))
+ 		return PTR_ERR(lcd->lcd_dev);
+ 
+@@ -561,18 +561,18 @@ static int corgi_lcd_probe(struct spi_de
+ 	memset(&props, 0, sizeof(struct backlight_properties));
  	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = MAX_BRIGHTNESS;
- 
--	bd = backlight_device_register("ams369fg06-bl", &spi->dev, lcd,
--		&ams369fg06_backlight_ops, &props);
--	if (IS_ERR(bd)) {
--		ret =  PTR_ERR(bd);
--		goto out_lcd_unregister;
+ 	props.max_brightness = pdata->max_intensity;
+-	lcd->bl_dev = backlight_device_register("corgi_bl", &spi->dev, lcd,
+-						&corgi_bl_ops, &props);
+-	if (IS_ERR(lcd->bl_dev)) {
+-		ret = PTR_ERR(lcd->bl_dev);
+-		goto err_unregister_lcd;
 -	}
-+	bd = devm_backlight_device_register(&spi->dev, "ams369fg06-bl",
-+					&spi->dev, lcd,
-+					&ams369fg06_backlight_ops, &props);
-+	if (IS_ERR(bd))
-+		return PTR_ERR(bd);
++	lcd->bl_dev = devm_backlight_device_register(&spi->dev, "corgi_bl",
++						&spi->dev, lcd, &corgi_bl_ops,
++						&props);
++	if (IS_ERR(lcd->bl_dev))
++		return PTR_ERR(lcd->bl_dev);
++
+ 	lcd->bl_dev->props.brightness = pdata->default_intensity;
+ 	lcd->bl_dev->props.power = FB_BLANK_UNBLANK;
  
- 	bd->props.brightness = DEFAULT_BRIGHTNESS;
- 	lcd->bd = bd;
-@@ -516,10 +515,6 @@ static int ams369fg06_probe(struct spi_d
- 	dev_info(&spi->dev, "ams369fg06 panel driver has been probed.\n");
+ 	ret = setup_gpio_backlight(lcd, pdata);
+ 	if (ret)
+-		goto err_unregister_bl;
++		return ret;
  
+ 	lcd->kick_battery = pdata->kick_battery;
+ 
+@@ -583,12 +583,6 @@ static int corgi_lcd_probe(struct spi_de
+ 	lcd->limit_mask = pdata->limit_mask;
+ 	the_corgi_lcd = lcd;
  	return 0;
 -
--out_lcd_unregister:
--	lcd_device_unregister(ld);
+-err_unregister_bl:
+-	backlight_device_unregister(lcd->bl_dev);
+-err_unregister_lcd:
+-	lcd_device_unregister(lcd->lcd_dev);
 -	return ret;
  }
  
- static int ams369fg06_remove(struct spi_device *spi)
-@@ -527,9 +522,6 @@ static int ams369fg06_remove(struct spi_
- 	struct ams369fg06 *lcd = spi_get_drvdata(spi);
- 
- 	ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
--	backlight_device_unregister(lcd->bd);
--	lcd_device_unregister(lcd->ld);
+ static int corgi_lcd_remove(struct spi_device *spi)
+@@ -598,11 +592,7 @@ static int corgi_lcd_remove(struct spi_d
+ 	lcd->bl_dev->props.power = FB_BLANK_UNBLANK;
+ 	lcd->bl_dev->props.brightness = 0;
+ 	backlight_update_status(lcd->bl_dev);
+-	backlight_device_unregister(lcd->bl_dev);
+-
+ 	corgi_lcd_set_power(lcd->lcd_dev, FB_BLANK_POWERDOWN);
+-	lcd_device_unregister(lcd->lcd_dev);
 -
  	return 0;
  }
