@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-hx8357-use-devm_lcd_device_register.patch added to
+Subject: + backlight-ili922x-use-devm_lcd_device_register.patch added to
  -mm tree
-Date: Tue, 24 Sep 2013 16:12:25 -0700
-Message-ID: <52421c59.4xsK8CYiBzex8arY%akpm@linux-foundation.org>
+Date: Tue, 24 Sep 2013 16:12:26 -0700
+Message-ID: <52421c5a.PpNxhKX3VKl7nHcV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37640 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37642 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754502Ab3IXXM0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:26 -0400
+	with ESMTP id S1754508Ab3IXXM1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-hx8357-use-devm_lcd_device_register.patch added to -mm tree
+Subject: + backlight-ili922x-use-devm_lcd_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:25 -0700
+Date: Tue, 24 Sep 2013 16:12:26 -0700
 
 
 The patch titled
-     Subject: backlight: hx8357: use devm_lcd_device_register()
+     Subject: backlight: ili922x: use devm_lcd_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-hx8357-use-devm_lcd_device_register.patch
+     backlight-ili922x-use-devm_lcd_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-hx8357-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-ili922x-use-devm_lcd_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-hx8357-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-ili922x-use-devm_lcd_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,62 +45,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: hx8357: use devm_lcd_device_register()
+Subject: backlight: ili922x: use devm_lcd_device_register()
 
-Use devm_lcd_device_register() to make cleanup paths simpler, and remove
-unnecessary remove().
+Use devm_lcd_device_register() to make cleanup paths simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/hx8357.c |   18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+ drivers/video/backlight/ili922x.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/backlight/hx8357.c~backlight-hx8357-use-devm_lcd_device_register drivers/video/backlight/hx8357.c
---- a/drivers/video/backlight/hx8357.c~backlight-hx8357-use-devm_lcd_device_register
-+++ a/drivers/video/backlight/hx8357.c
-@@ -648,7 +648,8 @@ static int hx8357_probe(struct spi_devic
- 		lcd->use_im_pins = 0;
- 	}
+diff -puN drivers/video/backlight/ili922x.c~backlight-ili922x-use-devm_lcd_device_register drivers/video/backlight/ili922x.c
+--- a/drivers/video/backlight/ili922x.c~backlight-ili922x-use-devm_lcd_device_register
++++ a/drivers/video/backlight/ili922x.c
+@@ -513,8 +513,8 @@ static int ili922x_probe(struct spi_devi
  
--	lcdev = lcd_device_register("mxsfb", &spi->dev, lcd, &hx8357_ops);
-+	lcdev = devm_lcd_device_register(&spi->dev, "mxsfb", &spi->dev, lcd,
-+					&hx8357_ops);
- 	if (IS_ERR(lcdev)) {
- 		ret = PTR_ERR(lcdev);
- 		return ret;
-@@ -660,29 +661,16 @@ static int hx8357_probe(struct spi_devic
- 	ret = ((int (*)(struct lcd_device *))match->data)(lcdev);
- 	if (ret) {
- 		dev_err(&spi->dev, "Couldn't initialize panel\n");
--		goto init_error;
-+		return ret;
- 	}
+ 	ili->power = FB_BLANK_POWERDOWN;
  
- 	dev_info(&spi->dev, "Panel probed\n");
+-	lcd = lcd_device_register("ili922xlcd", &spi->dev, ili,
+-				  &ili922x_ops);
++	lcd = devm_lcd_device_register(&spi->dev, "ili922xlcd", &spi->dev, ili,
++					&ili922x_ops);
+ 	if (IS_ERR(lcd)) {
+ 		dev_err(&spi->dev, "cannot register LCD\n");
+ 		return PTR_ERR(lcd);
+@@ -530,10 +530,7 @@ static int ili922x_probe(struct spi_devi
  
+ static int ili922x_remove(struct spi_device *spi)
+ {
+-	struct ili922x *ili = spi_get_drvdata(spi);
+-
+ 	ili922x_poweroff(spi);
+-	lcd_device_unregister(ili->ld);
  	return 0;
--
--init_error:
--	lcd_device_unregister(lcdev);
--	return ret;
--}
--
--static int hx8357_remove(struct spi_device *spi)
--{
--	struct lcd_device *lcdev = spi_get_drvdata(spi);
--
--	lcd_device_unregister(lcdev);
--	return 0;
  }
  
- static struct spi_driver hx8357_driver = {
- 	.probe  = hx8357_probe,
--	.remove = hx8357_remove,
- 	.driver = {
- 		.name = "hx8357",
- 		.of_match_table = of_match_ptr(hx8357_dt_ids),
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
