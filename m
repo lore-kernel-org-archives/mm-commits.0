@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lv5207lp-use-devm_backlight_device_register.patch
+Subject: + backlight-max8925_bl-use-devm_backlight_device_register.patch
  added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:19 -0700
-Message-ID: <52421c53.bsTWafO6BAZavIkK%akpm@linux-foundation.org>
+Date: Tue, 24 Sep 2013 16:12:20 -0700
+Message-ID: <52421c54.u6JsanJQ4+6gdjYC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37629 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37631 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754431Ab3IXXMU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:20 -0400
+	with ESMTP id S1754431Ab3IXXMV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-lv5207lp-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-max8925_bl-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:19 -0700
+Date: Tue, 24 Sep 2013 16:12:20 -0700
 
 
 The patch titled
-     Subject: backlight: lv5207lp: use devm_backlight_device_register()
+     Subject: backlight: max8925_bl: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-lv5207lp-use-devm_backlight_device_register.patch
+     backlight-max8925_bl-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lv5207lp-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-max8925_bl-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lv5207lp-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-max8925_bl-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,41 +45,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: lv5207lp: use devm_backlight_device_register()
+Subject: backlight: max8925_bl: use devm_backlight_device_register()
 
-Use devm_backlight_device_register() to make cleanup paths simpler.
+Use devm_backlight_device_register() to make cleanup paths simpler, and
+remove unnecessary remove().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lv5207lp.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/video/backlight/max8925_bl.c |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/backlight/lv5207lp.c~backlight-lv5207lp-use-devm_backlight_device_register drivers/video/backlight/lv5207lp.c
---- a/drivers/video/backlight/lv5207lp.c~backlight-lv5207lp-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/lv5207lp.c
-@@ -124,9 +124,9 @@ static int lv5207lp_probe(struct i2c_cli
- 	props.brightness = clamp_t(unsigned int, pdata->def_value, 0,
- 				   props.max_brightness);
- 
--	backlight = backlight_device_register(dev_name(&client->dev),
--					      &lv->client->dev, lv,
--					      &lv5207lp_backlight_ops, &props);
-+	backlight = devm_backlight_device_register(&client->dev,
-+				dev_name(&client->dev), &lv->client->dev,
-+				lv, &lv5207lp_backlight_ops, &props);
- 	if (IS_ERR(backlight)) {
- 		dev_err(&client->dev, "failed to register backlight\n");
- 		return PTR_ERR(backlight);
-@@ -144,7 +144,6 @@ static int lv5207lp_remove(struct i2c_cl
- 
- 	backlight->props.brightness = 0;
- 	backlight_update_status(backlight);
--	backlight_device_unregister(backlight);
- 
+diff -puN drivers/video/backlight/max8925_bl.c~backlight-max8925_bl-use-devm_backlight_device_register drivers/video/backlight/max8925_bl.c
+--- a/drivers/video/backlight/max8925_bl.c~backlight-max8925_bl-use-devm_backlight_device_register
++++ a/drivers/video/backlight/max8925_bl.c
+@@ -163,7 +163,8 @@ static int max8925_backlight_probe(struc
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = MAX_BRIGHTNESS;
+-	bl = backlight_device_register("max8925-backlight", &pdev->dev, data,
++	bl = devm_backlight_device_register(&pdev->dev, "max8925-backlight",
++					&pdev->dev, data,
+ 					&max8925_backlight_ops, &props);
+ 	if (IS_ERR(bl)) {
+ 		dev_err(&pdev->dev, "failed to register backlight\n");
+@@ -188,20 +189,9 @@ static int max8925_backlight_probe(struc
+ 	}
+ 	ret = max8925_set_bits(chip->i2c, data->reg_mode_cntl, 0xfe, value);
+ 	if (ret < 0)
+-		goto out_brt;
++		return ret;
+ 	backlight_update_status(bl);
  	return 0;
+-out_brt:
+-	backlight_device_unregister(bl);
+-	return ret;
+-}
+-
+-static int max8925_backlight_remove(struct platform_device *pdev)
+-{
+-	struct backlight_device *bl = platform_get_drvdata(pdev);
+-
+-	backlight_device_unregister(bl);
+-	return 0;
  }
+ 
+ static struct platform_driver max8925_backlight_driver = {
+@@ -210,7 +200,6 @@ static struct platform_driver max8925_ba
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= max8925_backlight_probe,
+-	.remove		= max8925_backlight_remove,
+ };
+ 
+ module_platform_driver(max8925_backlight_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
