@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ep93xxc-use-dev_get_platdata.patch added to -mm tree
-Date: Tue, 24 Sep 2013 16:55:12 -0700
-Message-ID: <52422660.O9+zAiY5cBKnnMMX%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch added to -mm tree
+Date: Tue, 24 Sep 2013 16:55:08 -0700
+Message-ID: <5242265c.RJmESrgYJOUofklR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38233 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38226 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754652Ab3IXXzN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:55:13 -0400
+	with ESMTP id S1754735Ab3IXXzJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:55:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + drivers-rtc-rtc-ep93xxc-use-dev_get_platdata.patch added to -mm tree
+Subject: + drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:55:12 -0700
+Date: Tue, 24 Sep 2013 16:55:08 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ep93xx.c: use dev_get_platdata()
+     Subject: drivers/rtc/rtc-da9055.c: use dev_get_platdata()
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ep93xxc-use-dev_get_platdata.patch
+     drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-ep93xxc-use-dev_get_platdata.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-ep93xxc-use-dev_get_platdata.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +44,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-ep93xx.c: use dev_get_platdata()
+Subject: drivers/rtc/rtc-da9055.c: use dev_get_platdata()
 
 Use the wrapper function for retrieving the platform data instead of
 accessing dev->platform_data directly.  This is a cosmetic change to make
@@ -54,39 +54,21 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ep93xx.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-da9055.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ep93xx.c~drivers-rtc-rtc-ep93xxc-use-dev_get_platdata drivers/rtc/rtc-ep93xx.c
---- a/drivers/rtc/rtc-ep93xx.c~drivers-rtc-rtc-ep93xxc-use-dev_get_platdata
-+++ a/drivers/rtc/rtc-ep93xx.c
-@@ -42,7 +42,7 @@ struct ep93xx_rtc {
- static int ep93xx_rtc_get_swcomp(struct device *dev, unsigned short *preload,
- 				unsigned short *delete)
- {
--	struct ep93xx_rtc *ep93xx_rtc = dev->platform_data;
-+	struct ep93xx_rtc *ep93xx_rtc = dev_get_platdata(dev);
- 	unsigned long comp;
+diff -puN drivers/rtc/rtc-da9055.c~drivers-rtc-rtc-da9055c-use-dev_get_platdata drivers/rtc/rtc-da9055.c
+--- a/drivers/rtc/rtc-da9055.c~drivers-rtc-rtc-da9055c-use-dev_get_platdata
++++ a/drivers/rtc/rtc-da9055.c
+@@ -278,7 +278,7 @@ static int da9055_rtc_probe(struct platf
+ 		return -ENOMEM;
  
- 	comp = __raw_readl(ep93xx_rtc->mmio_base + EP93XX_RTC_SWCOMP);
-@@ -60,7 +60,7 @@ static int ep93xx_rtc_get_swcomp(struct
+ 	rtc->da9055 = dev_get_drvdata(pdev->dev.parent);
+-	pdata = rtc->da9055->dev->platform_data;
++	pdata = dev_get_platdata(rtc->da9055->dev);
+ 	platform_set_drvdata(pdev, rtc);
  
- static int ep93xx_rtc_read_time(struct device *dev, struct rtc_time *tm)
- {
--	struct ep93xx_rtc *ep93xx_rtc = dev->platform_data;
-+	struct ep93xx_rtc *ep93xx_rtc = dev_get_platdata(dev);
- 	unsigned long time;
- 
- 	 time = __raw_readl(ep93xx_rtc->mmio_base + EP93XX_RTC_DATA);
-@@ -71,7 +71,7 @@ static int ep93xx_rtc_read_time(struct d
- 
- static int ep93xx_rtc_set_mmss(struct device *dev, unsigned long secs)
- {
--	struct ep93xx_rtc *ep93xx_rtc = dev->platform_data;
-+	struct ep93xx_rtc *ep93xx_rtc = dev_get_platdata(dev);
- 
- 	__raw_writel(secs + 1, ep93xx_rtc->mmio_base + EP93XX_RTC_LOAD);
- 	return 0;
+ 	ret = da9055_rtc_device_init(rtc->da9055, pdata);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
