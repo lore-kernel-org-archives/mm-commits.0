@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ili9320-use-devm_lcd_device_register.patch added to
- -mm tree
-Date: Tue, 24 Sep 2013 16:12:27 -0700
-Message-ID: <52421c5b.ZYefsIg7ym+38SoT%akpm@linux-foundation.org>
+Subject: + backlight-lms501kf03-use-devm_lcd_device_register.patch added
+ to -mm tree
+Date: Tue, 24 Sep 2013 16:12:29 -0700
+Message-ID: <52421c5d.Pui/zqXUc7xdGJhY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37643 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37647 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754516Ab3IXXM2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:28 -0400
+	with ESMTP id S1754508Ab3IXXMa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-ili9320-use-devm_lcd_device_register.patch added to -mm tree
+Subject: + backlight-lms501kf03-use-devm_lcd_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:27 -0700
+Date: Tue, 24 Sep 2013 16:12:29 -0700
 
 
 The patch titled
-     Subject: backlight: ili9320: use devm_lcd_device_register()
+     Subject: backlight: lms501kf03: use devm_lcd_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-ili9320-use-devm_lcd_device_register.patch
+     backlight-lms501kf03-use-devm_lcd_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-ili9320-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lms501kf03-use-devm_lcd_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-ili9320-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lms501kf03-use-devm_lcd_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ili9320: use devm_lcd_device_register()
+Subject: backlight: lms501kf03: use devm_lcd_device_register()
 
 Use devm_lcd_device_register() to make cleanup paths simpler.
 
@@ -53,48 +53,32 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ili9320.c |   13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ drivers/video/backlight/lms501kf03.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/ili9320.c~backlight-ili9320-use-devm_lcd_device_register drivers/video/backlight/ili9320.c
---- a/drivers/video/backlight/ili9320.c~backlight-ili9320-use-devm_lcd_device_register
-+++ a/drivers/video/backlight/ili9320.c
-@@ -235,7 +235,8 @@ int ili9320_probe_spi(struct spi_device
- 
- 	ili9320_setup_spi(ili, spi);
- 
--	lcd = lcd_device_register("ili9320", dev, ili, &ili9320_ops);
-+	lcd = devm_lcd_device_register(&spi->dev, "ili9320", dev, ili,
-+					&ili9320_ops);
- 	if (IS_ERR(lcd)) {
- 		dev_err(dev, "failed to register lcd device\n");
- 		return PTR_ERR(lcd);
-@@ -248,24 +249,16 @@ int ili9320_probe_spi(struct spi_device
- 	ret = ili9320_power(ili, FB_BLANK_UNBLANK);
- 	if (ret != 0) {
- 		dev_err(dev, "failed to set lcd power state\n");
--		goto err_unregister;
-+		return ret;
+diff -puN drivers/video/backlight/lms501kf03.c~backlight-lms501kf03-use-devm_lcd_device_register drivers/video/backlight/lms501kf03.c
+--- a/drivers/video/backlight/lms501kf03.c~backlight-lms501kf03-use-devm_lcd_device_register
++++ a/drivers/video/backlight/lms501kf03.c
+@@ -350,8 +350,8 @@ static int lms501kf03_probe(struct spi_d
+ 		return -EINVAL;
  	}
  
- 	return 0;
--
-- err_unregister:
--	lcd_device_unregister(lcd);
--
--	return ret;
- }
- EXPORT_SYMBOL_GPL(ili9320_probe_spi);
+-	ld = lcd_device_register("lms501kf03", &spi->dev, lcd,
+-				&lms501kf03_lcd_ops);
++	ld = devm_lcd_device_register(&spi->dev, "lms501kf03", &spi->dev, lcd,
++					&lms501kf03_lcd_ops);
+ 	if (IS_ERR(ld))
+ 		return PTR_ERR(ld);
  
- int ili9320_remove(struct ili9320 *ili)
- {
- 	ili9320_power(ili, FB_BLANK_POWERDOWN);
--
--	lcd_device_unregister(ili->lcd);
+@@ -382,8 +382,6 @@ static int lms501kf03_remove(struct spi_
+ 	struct lms501kf03 *lcd = spi_get_drvdata(spi);
+ 
+ 	lms501kf03_power(lcd, FB_BLANK_POWERDOWN);
+-	lcd_device_unregister(lcd->ld);
 -
  	return 0;
  }
- EXPORT_SYMBOL_GPL(ili9320_remove);
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
