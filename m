@@ -1,116 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 24 Sep 2013 10:49:48 -0700
-Message-ID: <5241d0bc.pBKQVk0QST3+UExg%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
+ removed from -mm tree
+Date: Tue, 24 Sep 2013 10:51:42 -0700
+Message-ID: <5241d12e.TfE9XHGwOp/huxMI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35509 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35516 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750783Ab3IXRtt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 13:49:49 -0400
+	with ESMTP id S1752829Ab3IXRvn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 13:51:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, robinmholt@linux.com, fei.li@intel.com, chuansheng.liu@intel.com
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [merged] kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch removed from -mm tree
+To: chuansheng.liu@intel.com,fei.li@intel.com,robinmholt@linux.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 10:49:48 -0700
+Date: Tue, 24 Sep 2013 10:51:42 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: kernel/reboot.c: re-enable the function of variable reboot_default
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Chuansheng Liu <chuansheng.liu@intel.com>
+Subject: kernel/reboot.c: re-enable the function of variable reboot_default
 
+1b3a5d02ee07 ("reboot: move arch/x86 reboot= handling to generic kernel")
+did some cleanup for reboot= command line, but it made the reboot_default
+inoperative.
+
+The default value of variable reboot_default should be 1, and if command
+line reboot= is not set, system will use the default reboot mode.
+
+Signed-off-by: Li Fei <fei.li@intel.com>
+Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
+Acked-by: Robin Holt <robinmholt@linux.com>
+Cc: <stable@vger.kernel.org>	[3.11.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_display.c |    4 ----
- drivers/gpu/drm/i915/intel_dvo.c     |    7 -------
- 2 files changed, 11 deletions(-)
+ kernel/reboot.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_display.c
---- a/drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_display.c
-@@ -4933,11 +4933,7 @@ static int i9xx_crtc_mode_set(struct drm
- 		}
- 	}
+diff -puN kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default kernel/reboot.c
+--- a/kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default
++++ a/kernel/reboot.c
+@@ -32,7 +32,14 @@ EXPORT_SYMBOL(cad_pid);
+ #endif
+ enum reboot_mode reboot_mode DEFAULT_REBOOT_MODE;
  
--<<<<<<< HEAD
--	if (is_lvds && dev_priv->lvds_downclock_avail) {
--=======
- 	if (!is_dsi && is_lvds && dev_priv->lvds_downclock_avail) {
-->>>>>>> linux-next/akpm-base
- 		/*
- 		 * Ensure we match the reduced clock's P to the target clock.
- 		 * If the clocks don't match, we can't switch the display clock
-diff -puN drivers/gpu/drm/i915/intel_dvo.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_dvo.c
---- a/drivers/gpu/drm/i915/intel_dvo.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_dvo.c
-@@ -265,13 +265,6 @@ static bool intel_dvo_compute_config(str
- 		C(vtotal);
- 		C(clock);
- #undef C
--<<<<<<< HEAD
--
--		drm_mode_set_crtcinfo(adjusted_mode, 0);
--	}
--=======
-->>>>>>> linux-next/akpm-base
--
- 		drm_mode_set_crtcinfo(adjusted_mode, 0);
- 	}
- 
+-int reboot_default;
++/*
++ * This variable is used privately to keep track of whether or not
++ * reboot_type is still set to its default value (i.e., reboot= hasn't
++ * been set on the command line).  This is needed so that we can
++ * suppress DMI scanning for reboot quirks.  Without it, it's
++ * impossible to override a faulty reboot quirk without recompiling.
++*/
++int reboot_default = 1;
+ int reboot_cpu;
+ enum reboot_type reboot_type = BOOT_ACPI;
+ int reboot_force;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from chuansheng.liu@intel.com are
 
-origin.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-watchdog-update-watchdog_tresh-properly-fix.patch
-revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-revert-memcg-track-all-children-over-limit-in-the-root.patch
-revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
-revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
 kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
-sound-soc-atmel-atmel-pcmc-fix-warning.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
