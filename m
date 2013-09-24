@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lms283gf05-use-devm_lcd_device_register.patch added
- to -mm tree
-Date: Tue, 24 Sep 2013 16:12:28 -0700
-Message-ID: <52421c5c.etZxC2z8IYL/hZhI%akpm@linux-foundation.org>
+Subject: + backlight-ltv350qv-use-devm_lcd_device_register.patch added to
+ -mm tree
+Date: Tue, 24 Sep 2013 16:12:30 -0700
+Message-ID: <52421c5e.W60gE1j41GiFDAeI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37645 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37649 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508Ab3IXXM2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:28 -0400
+	with ESMTP id S1754508Ab3IXXMb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-lms283gf05-use-devm_lcd_device_register.patch added to -mm tree
+Subject: + backlight-ltv350qv-use-devm_lcd_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:28 -0700
+Date: Tue, 24 Sep 2013 16:12:30 -0700
 
 
 The patch titled
-     Subject: backlight: lms283gf05: use devm_lcd_device_register()
+     Subject: backlight: ltv350qv: use devm_lcd_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-lms283gf05-use-devm_lcd_device_register.patch
+     backlight-ltv350qv-use-devm_lcd_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lms283gf05-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-ltv350qv-use-devm_lcd_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lms283gf05-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-ltv350qv-use-devm_lcd_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,54 +45,56 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: lms283gf05: use devm_lcd_device_register()
+Subject: backlight: ltv350qv: use devm_lcd_device_register()
 
-Use devm_lcd_device_register() to make cleanup paths simpler, and remove
-unnecessary remove().
+Use devm_lcd_device_register() to make cleanup paths simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lms283gf05.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/video/backlight/ltv350qv.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-use-devm_lcd_device_register drivers/video/backlight/lms283gf05.c
---- a/drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-use-devm_lcd_device_register
-+++ a/drivers/video/backlight/lms283gf05.c
-@@ -173,7 +173,8 @@ static int lms283gf05_probe(struct spi_d
+diff -puN drivers/video/backlight/ltv350qv.c~backlight-ltv350qv-use-devm_lcd_device_register drivers/video/backlight/ltv350qv.c
+--- a/drivers/video/backlight/ltv350qv.c~backlight-ltv350qv-use-devm_lcd_device_register
++++ a/drivers/video/backlight/ltv350qv.c
+@@ -242,7 +242,8 @@ static int ltv350qv_probe(struct spi_dev
+ 	if (!lcd->buffer)
  		return -ENOMEM;
- 	}
  
--	ld = lcd_device_register("lms283gf05", &spi->dev, st, &lms_ops);
-+	ld = devm_lcd_device_register(&spi->dev, "lms283gf05", &spi->dev, st,
-+					&lms_ops);
+-	ld = lcd_device_register("ltv350qv", &spi->dev, lcd, &ltv_ops);
++	ld = devm_lcd_device_register(&spi->dev, "ltv350qv", &spi->dev, lcd,
++					&ltv_ops);
  	if (IS_ERR(ld))
  		return PTR_ERR(ld);
  
-@@ -190,22 +191,12 @@ static int lms283gf05_probe(struct spi_d
+@@ -250,15 +251,11 @@ static int ltv350qv_probe(struct spi_dev
+ 
+ 	ret = ltv350qv_power(lcd, FB_BLANK_UNBLANK);
+ 	if (ret)
+-		goto out_unregister;
++		return ret;
+ 
+ 	spi_set_drvdata(spi, lcd);
+ 
+ 	return 0;
+-
+-out_unregister:
+-	lcd_device_unregister(ld);
+-	return ret;
+ }
+ 
+ static int ltv350qv_remove(struct spi_device *spi)
+@@ -266,8 +263,6 @@ static int ltv350qv_remove(struct spi_de
+ 	struct ltv350qv *lcd = spi_get_drvdata(spi);
+ 
+ 	ltv350qv_power(lcd, FB_BLANK_POWERDOWN);
+-	lcd_device_unregister(lcd->ld);
+-
  	return 0;
  }
  
--static int lms283gf05_remove(struct spi_device *spi)
--{
--	struct lms283gf05_state *st = spi_get_drvdata(spi);
--
--	lcd_device_unregister(st->ld);
--
--	return 0;
--}
--
- static struct spi_driver lms283gf05_driver = {
- 	.driver = {
- 		.name	= "lms283gf05",
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe		= lms283gf05_probe,
--	.remove		= lms283gf05_remove,
- };
- 
- module_spi_driver(lms283gf05_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
