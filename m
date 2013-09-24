@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-generic_bl-use-devm_backlight_device_register.patch
- added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:14 -0700
-Message-ID: <52421c4e.ZTzOg+YDMwomUU7j%akpm@linux-foundation.org>
+Subject: +
+ backlight-gpio_backlight-use-devm_backlight_device_register.patch added to
+ -mm tree
+Date: Tue, 24 Sep 2013 16:12:15 -0700
+Message-ID: <52421c4f.MheD/tYUl107S2A9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37619 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37621 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754351Ab3IXXMP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:15 -0400
+	with ESMTP id S1754351Ab3IXXMQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-generic_bl-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-gpio_backlight-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:14 -0700
+Date: Tue, 24 Sep 2013 16:12:15 -0700
 
 
 The patch titled
-     Subject: backlight: generic_bl: use devm_backlight_device_register()
+     Subject: backlight: gpio_backlight: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-generic_bl-use-devm_backlight_device_register.patch
+     backlight-gpio_backlight-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-generic_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-gpio_backlight-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-generic_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-gpio_backlight-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,40 +46,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: generic_bl: use devm_backlight_device_register()
+Subject: backlight: gpio_backlight: use devm_backlight_device_register()
 
-Use devm_backlight_device_register() to make cleanup paths simpler.
+Use devm_backlight_device_register() to make cleanup paths simpler, and
+remove unnecessary remove().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/generic_bl.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/video/backlight/gpio_backlight.c |   14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/backlight/generic_bl.c~backlight-generic_bl-use-devm_backlight_device_register drivers/video/backlight/generic_bl.c
---- a/drivers/video/backlight/generic_bl.c~backlight-generic_bl-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/generic_bl.c
-@@ -93,8 +93,8 @@ static int genericbl_probe(struct platfo
- 	memset(&props, 0, sizeof(struct backlight_properties));
+diff -puN drivers/video/backlight/gpio_backlight.c~backlight-gpio_backlight-use-devm_backlight_device_register drivers/video/backlight/gpio_backlight.c
+--- a/drivers/video/backlight/gpio_backlight.c~backlight-gpio_backlight-use-devm_backlight_device_register
++++ a/drivers/video/backlight/gpio_backlight.c
+@@ -95,8 +95,9 @@ static int gpio_backlight_probe(struct p
+ 	memset(&props, 0, sizeof(props));
  	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = machinfo->max_intensity;
--	bd = backlight_device_register(name, &pdev->dev, NULL, &genericbl_ops,
--				       &props);
-+	bd = devm_backlight_device_register(&pdev->dev, name, &pdev->dev,
-+					NULL, &genericbl_ops, &props);
- 	if (IS_ERR(bd))
- 		return PTR_ERR(bd);
- 
-@@ -118,8 +118,6 @@ static int genericbl_remove(struct platf
- 	bd->props.brightness = 0;
- 	backlight_update_status(bd);
- 
--	backlight_device_unregister(bd);
--
- 	dev_info(&pdev->dev, "Generic Backlight Driver Unloaded\n");
+ 	props.max_brightness = 1;
+-	bl = backlight_device_register(dev_name(&pdev->dev), &pdev->dev, gbl,
+-				       &gpio_backlight_ops, &props);
++	bl = devm_backlight_device_register(&pdev->dev, dev_name(&pdev->dev),
++					&pdev->dev, gbl, &gpio_backlight_ops,
++					&props);
+ 	if (IS_ERR(bl)) {
+ 		dev_err(&pdev->dev, "failed to register backlight\n");
+ 		return PTR_ERR(bl);
+@@ -109,21 +110,12 @@ static int gpio_backlight_probe(struct p
  	return 0;
  }
+ 
+-static int gpio_backlight_remove(struct platform_device *pdev)
+-{
+-	struct backlight_device *bl = platform_get_drvdata(pdev);
+-
+-	backlight_device_unregister(bl);
+-	return 0;
+-}
+-
+ static struct platform_driver gpio_backlight_driver = {
+ 	.driver		= {
+ 		.name		= "gpio-backlight",
+ 		.owner		= THIS_MODULE,
+ 	},
+ 	.probe		= gpio_backlight_probe,
+-	.remove		= gpio_backlight_remove,
+ };
+ 
+ module_platform_driver(gpio_backlight_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
