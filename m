@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-da903x_bl-use-devm_backlight_device_register.patch
+Subject: + backlight-as3711_bl-use-devm_backlight_device_register.patch
  added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:11 -0700
-Message-ID: <52421c4b.BcqWWn1FSbTlorgq%akpm@linux-foundation.org>
+Date: Tue, 24 Sep 2013 16:12:08 -0700
+Message-ID: <52421c48.wy4quijDv9UrY7uF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37614 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37608 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306Ab3IXXMM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:12 -0400
+	with ESMTP id S1753808Ab3IXXMJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-da903x_bl-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-as3711_bl-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:11 -0700
+Date: Tue, 24 Sep 2013 16:12:08 -0700
 
 
 The patch titled
-     Subject: backlight: da903x_bl: use devm_backlight_device_register()
+     Subject: backlight: as3711_bl: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-da903x_bl-use-devm_backlight_device_register.patch
+     backlight-as3711_bl-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-da903x_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-as3711_bl-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-da903x_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-as3711_bl-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: da903x_bl: use devm_backlight_device_register()
+Subject: backlight: as3711_bl: use devm_backlight_device_register()
 
 Use devm_backlight_device_register() to make cleanup paths simpler, and
 remove unnecessary remove().
@@ -54,46 +54,78 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/da903x_bl.c |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ drivers/video/backlight/as3711_bl.c |   26 +++++---------------------
+ 1 file changed, 5 insertions(+), 21 deletions(-)
 
-diff -puN drivers/video/backlight/da903x_bl.c~backlight-da903x_bl-use-devm_backlight_device_register drivers/video/backlight/da903x_bl.c
---- a/drivers/video/backlight/da903x_bl.c~backlight-da903x_bl-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/da903x_bl.c
-@@ -144,8 +144,9 @@ static int da903x_backlight_probe(struct
- 	memset(&props, 0, sizeof(props));
- 	props.type = BACKLIGHT_RAW;
+diff -puN drivers/video/backlight/as3711_bl.c~backlight-as3711_bl-use-devm_backlight_device_register drivers/video/backlight/as3711_bl.c
+--- a/drivers/video/backlight/as3711_bl.c~backlight-as3711_bl-use-devm_backlight_device_register
++++ a/drivers/video/backlight/as3711_bl.c
+@@ -240,7 +240,8 @@ static int as3711_bl_register(struct pla
+ 	/* max tuning I = 31uA for voltage- and 38250uA for current-feedback */
  	props.max_brightness = max_brightness;
--	bl = backlight_device_register(pdev->name, data->da903x_dev, data,
--				       &da903x_backlight_ops, &props);
-+	bl = devm_backlight_device_register(&pdev->dev, pdev->name,
-+					data->da903x_dev, data,
-+					&da903x_backlight_ops, &props);
- 	if (IS_ERR(bl)) {
- 		dev_err(&pdev->dev, "failed to register backlight\n");
- 		return PTR_ERR(bl);
-@@ -158,21 +159,12 @@ static int da903x_backlight_probe(struct
- 	return 0;
- }
  
--static int da903x_backlight_remove(struct platform_device *pdev)
--{
--	struct backlight_device *bl = platform_get_drvdata(pdev);
+-	bl = backlight_device_register(su->type == AS3711_BL_SU1 ?
++	bl = devm_backlight_device_register(&pdev->dev,
++				       su->type == AS3711_BL_SU1 ?
+ 				       "as3711-su1" : "as3711-su2",
+ 				       &pdev->dev, su,
+ 				       &as3711_bl_ops, &props);
+@@ -432,8 +433,7 @@ static int as3711_backlight_probe(struct
+ 		case AS3711_SU2_LX_SD4:
+ 			break;
+ 		default:
+-			ret = -EINVAL;
+-			goto esu2;
++			return -EINVAL;
+ 		}
+ 
+ 		switch (pdata->su2_feedback) {
+@@ -447,8 +447,7 @@ static int as3711_backlight_probe(struct
+ 			max_brightness = min(pdata->su2_max_uA / 150, 255);
+ 			break;
+ 		default:
+-			ret = -EINVAL;
+-			goto esu2;
++			return -EINVAL;
+ 		}
+ 
+ 		ret = as3711_bl_init_su2(supply);
+@@ -457,26 +456,12 @@ static int as3711_backlight_probe(struct
+ 
+ 		ret = as3711_bl_register(pdev, max_brightness, su);
+ 		if (ret < 0)
+-			goto esu2;
++			return ret;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, supply);
+ 
+ 	return 0;
 -
--	backlight_device_unregister(bl);
--	return 0;
+-esu2:
+-	backlight_device_unregister(supply->su1.bl);
+-	return ret;
 -}
 -
- static struct platform_driver da903x_backlight_driver = {
- 	.driver		= {
- 		.name	= "da903x-backlight",
+-static int as3711_backlight_remove(struct platform_device *pdev)
+-{
+-	struct as3711_bl_supply *supply = platform_get_drvdata(pdev);
+-
+-	backlight_device_unregister(supply->su1.bl);
+-	backlight_device_unregister(supply->su2.bl);
+-
+-	return 0;
+ }
+ 
+ static struct platform_driver as3711_backlight_driver = {
+@@ -485,7 +470,6 @@ static struct platform_driver as3711_bac
  		.owner	= THIS_MODULE,
  	},
- 	.probe		= da903x_backlight_probe,
--	.remove		= da903x_backlight_remove,
+ 	.probe		= as3711_backlight_probe,
+-	.remove		= as3711_backlight_remove,
  };
  
- module_platform_driver(da903x_backlight_driver);
+ module_platform_driver(as3711_backlight_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
