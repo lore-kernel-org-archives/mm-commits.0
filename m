@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-tps65217_bl-use-devm_backlight_device_register.patch
+Subject: + backlight-lv5207lp-use-devm_backlight_device_register.patch
  added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:23 -0700
-Message-ID: <52421c57.d9j0vDbO0b1qR6j2%akpm@linux-foundation.org>
+Date: Tue, 24 Sep 2013 16:12:19 -0700
+Message-ID: <52421c53.bsTWafO6BAZavIkK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37636 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37629 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754494Ab3IXXMY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:24 -0400
+	with ESMTP id S1754431Ab3IXXMU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-tps65217_bl-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-lv5207lp-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:23 -0700
+Date: Tue, 24 Sep 2013 16:12:19 -0700
 
 
 The patch titled
-     Subject: backlight: tps65217_bl: use devm_backlight_device_register()
+     Subject: backlight: lv5207lp: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-tps65217_bl-use-devm_backlight_device_register.patch
+     backlight-lv5207lp-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-tps65217_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lv5207lp-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-tps65217_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lv5207lp-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,49 +45,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: tps65217_bl: use devm_backlight_device_register()
+Subject: backlight: lv5207lp: use devm_backlight_device_register()
 
-Use devm_backlight_device_register() to make cleanup paths simpler, and
-remove unnecessary remove().
+Use devm_backlight_device_register() to make cleanup paths simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/tps65217_bl.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/video/backlight/lv5207lp.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/tps65217_bl.c~backlight-tps65217_bl-use-devm_backlight_device_register drivers/video/backlight/tps65217_bl.c
---- a/drivers/video/backlight/tps65217_bl.c~backlight-tps65217_bl-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/tps65217_bl.c
-@@ -313,7 +313,7 @@ static int tps65217_bl_probe(struct plat
- 	bl_props.type = BACKLIGHT_RAW;
- 	bl_props.max_brightness = 100;
+diff -puN drivers/video/backlight/lv5207lp.c~backlight-lv5207lp-use-devm_backlight_device_register drivers/video/backlight/lv5207lp.c
+--- a/drivers/video/backlight/lv5207lp.c~backlight-lv5207lp-use-devm_backlight_device_register
++++ a/drivers/video/backlight/lv5207lp.c
+@@ -124,9 +124,9 @@ static int lv5207lp_probe(struct i2c_cli
+ 	props.brightness = clamp_t(unsigned int, pdata->def_value, 0,
+ 				   props.max_brightness);
  
--	tps65217_bl->bl = backlight_device_register(pdev->name,
-+	tps65217_bl->bl = devm_backlight_device_register(&pdev->dev, pdev->name,
- 						tps65217_bl->dev, tps65217_bl,
- 						&tps65217_bl_ops, &bl_props);
- 	if (IS_ERR(tps65217_bl->bl)) {
-@@ -329,18 +329,8 @@ static int tps65217_bl_probe(struct plat
+-	backlight = backlight_device_register(dev_name(&client->dev),
+-					      &lv->client->dev, lv,
+-					      &lv5207lp_backlight_ops, &props);
++	backlight = devm_backlight_device_register(&client->dev,
++				dev_name(&client->dev), &lv->client->dev,
++				lv, &lv5207lp_backlight_ops, &props);
+ 	if (IS_ERR(backlight)) {
+ 		dev_err(&client->dev, "failed to register backlight\n");
+ 		return PTR_ERR(backlight);
+@@ -144,7 +144,6 @@ static int lv5207lp_remove(struct i2c_cl
+ 
+ 	backlight->props.brightness = 0;
+ 	backlight_update_status(backlight);
+-	backlight_device_unregister(backlight);
+ 
  	return 0;
  }
- 
--static int tps65217_bl_remove(struct platform_device *pdev)
--{
--	struct tps65217_bl *tps65217_bl = platform_get_drvdata(pdev);
--
--	backlight_device_unregister(tps65217_bl->bl);
--
--	return 0;
--}
--
- static struct platform_driver tps65217_bl_driver = {
- 	.probe		= tps65217_bl_probe,
--	.remove		= tps65217_bl_remove,
- 	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= "tps65217-bl",
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
