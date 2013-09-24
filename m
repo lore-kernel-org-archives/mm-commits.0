@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ld9040-use-devm_backlightlcd_device_register.patch
+Subject: + backlight-cr_bllcd-use-devm_backlightlcd_device_register.patch
  added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:34 -0700
-Message-ID: <52421c62.s98993n+RaiJl920%akpm@linux-foundation.org>
+Date: Tue, 24 Sep 2013 16:12:36 -0700
+Message-ID: <52421c64.Tszjs7bcFBhna5rv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37656 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37660 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508Ab3IXXMf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:35 -0400
+	with ESMTP id S1754508Ab3IXXMh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-ld9040-use-devm_backlightlcd_device_register.patch added to -mm tree
+Subject: + backlight-cr_bllcd-use-devm_backlightlcd_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:34 -0700
+Date: Tue, 24 Sep 2013 16:12:36 -0700
 
 
 The patch titled
-     Subject: backlight: ld9040: use devm_{backlight,lcd}_device_register()
+     Subject: backlight: cr_bllcd: use devm_{backlight,lcd}_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-ld9040-use-devm_backlightlcd_device_register.patch
+     backlight-cr_bllcd-use-devm_backlightlcd_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-ld9040-use-devm_backlightlcd_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-cr_bllcd-use-devm_backlightlcd_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-ld9040-use-devm_backlightlcd_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-cr_bllcd-use-devm_backlightlcd_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ld9040: use devm_{backlight,lcd}_device_register()
+Subject: backlight: cr_bllcd: use devm_{backlight,lcd}_device_register()
 
 Use devm_backlight_device_register() and devm_lcd_device_register() to
 make cleanup paths simpler.
@@ -54,61 +54,52 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ld9040.c |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ drivers/video/backlight/cr_bllcd.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/backlight/ld9040.c~backlight-ld9040-use-devm_backlightlcd_device_register drivers/video/backlight/ld9040.c
---- a/drivers/video/backlight/ld9040.c~backlight-ld9040-use-devm_backlightlcd_device_register
-+++ a/drivers/video/backlight/ld9040.c
-@@ -716,7 +716,8 @@ static int ld9040_probe(struct spi_devic
- 		return ret;
+diff -puN drivers/video/backlight/cr_bllcd.c~backlight-cr_bllcd-use-devm_backlightlcd_device_register drivers/video/backlight/cr_bllcd.c
+--- a/drivers/video/backlight/cr_bllcd.c~backlight-cr_bllcd-use-devm_backlightlcd_device_register
++++ a/drivers/video/backlight/cr_bllcd.c
+@@ -195,16 +195,17 @@ static int cr_backlight_probe(struct pla
+ 
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+-	bdp = backlight_device_register("cr-backlight", &pdev->dev, NULL,
+-					&cr_backlight_ops, &props);
++	bdp = devm_backlight_device_register(&pdev->dev, "cr-backlight",
++					&pdev->dev, NULL, &cr_backlight_ops,
++					&props);
+ 	if (IS_ERR(bdp)) {
+ 		pci_dev_put(lpc_dev);
+ 		return PTR_ERR(bdp);
  	}
  
--	ld = lcd_device_register("ld9040", &spi->dev, lcd, &ld9040_lcd_ops);
-+	ld = devm_lcd_device_register(&spi->dev, "ld9040", &spi->dev, lcd,
-+					&ld9040_lcd_ops);
- 	if (IS_ERR(ld))
- 		return PTR_ERR(ld);
+-	ldp = lcd_device_register("cr-lcd", &pdev->dev, NULL, &cr_lcd_ops);
++	ldp = devm_lcd_device_register(&pdev->dev, "cr-lcd", &pdev->dev, NULL,
++					&cr_lcd_ops);
+ 	if (IS_ERR(ldp)) {
+-		backlight_device_unregister(bdp);
+ 		pci_dev_put(lpc_dev);
+ 		return PTR_ERR(ldp);
+ 	}
+@@ -215,8 +216,6 @@ static int cr_backlight_probe(struct pla
  
-@@ -726,12 +727,10 @@ static int ld9040_probe(struct spi_devic
- 	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = MAX_BRIGHTNESS;
+ 	crp = devm_kzalloc(&pdev->dev, sizeof(*crp), GFP_KERNEL);
+ 	if (!crp) {
+-		lcd_device_unregister(ldp);
+-		backlight_device_unregister(bdp);
+ 		pci_dev_put(lpc_dev);
+ 		return -ENOMEM;
+ 	}
+@@ -241,8 +240,6 @@ static int cr_backlight_remove(struct pl
+ 	crp->cr_backlight_device->props.max_brightness = 0;
+ 	cr_backlight_set_intensity(crp->cr_backlight_device);
+ 	cr_lcd_set_power(crp->cr_lcd_device, FB_BLANK_POWERDOWN);
+-	backlight_device_unregister(crp->cr_backlight_device);
+-	lcd_device_unregister(crp->cr_lcd_device);
+ 	pci_dev_put(lpc_dev);
  
--	bd = backlight_device_register("ld9040-bl", &spi->dev,
--		lcd, &ld9040_backlight_ops, &props);
--	if (IS_ERR(bd)) {
--		ret = PTR_ERR(bd);
--		goto out_unregister_lcd;
--	}
-+	bd = devm_backlight_device_register(&spi->dev, "ld9040-bl", &spi->dev,
-+					lcd, &ld9040_backlight_ops, &props);
-+	if (IS_ERR(bd))
-+		return PTR_ERR(bd);
- 
- 	bd->props.brightness = MAX_BRIGHTNESS;
- 	lcd->bd = bd;
-@@ -757,11 +756,6 @@ static int ld9040_probe(struct spi_devic
- 
- 	dev_info(&spi->dev, "ld9040 panel driver has been probed.\n");
  	return 0;
--
--out_unregister_lcd:
--	lcd_device_unregister(lcd->ld);
--
--	return ret;
- }
- 
- static int ld9040_remove(struct spi_device *spi)
-@@ -769,9 +763,6 @@ static int ld9040_remove(struct spi_devi
- 	struct ld9040 *lcd = spi_get_drvdata(spi);
- 
- 	ld9040_power(lcd, FB_BLANK_POWERDOWN);
--	backlight_device_unregister(lcd->bd);
--	lcd_device_unregister(lcd->ld);
--
- 	return 0;
- }
- 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
