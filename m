@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-bd6107-use-devm_backlight_device_register.patch added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:10 -0700
-Message-ID: <52421c4a.44kQIvnm6Mbvo+Hy%akpm@linux-foundation.org>
+Subject: + backlight-adp8870-use-devm_backlight_device_register.patch
+ added to -mm tree
+Date: Tue, 24 Sep 2013 16:12:07 -0700
+Message-ID: <52421c47.sKSdaNnHboC7roaL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37612 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753808Ab3IXXML (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:11 -0400
+	with ESMTP id S1754253Ab3IXXMI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-bd6107-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-adp8870-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:10 -0700
+Date: Tue, 24 Sep 2013 16:12:07 -0700
 
 
 The patch titled
-     Subject: backlight: bd6107: use devm_backlight_device_register()
+     Subject: backlight: adp8870: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-bd6107-use-devm_backlight_device_register.patch
+     backlight-adp8870-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-bd6107-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-adp8870-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-bd6107-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-adp8870-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: bd6107: use devm_backlight_device_register()
+Subject: backlight: adp8870: use devm_backlight_device_register()
 
 Use devm_backlight_device_register() to make cleanup paths simpler.
 
@@ -52,30 +53,51 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/bd6107.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/adp8870_bl.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/backlight/bd6107.c~backlight-bd6107-use-devm_backlight_device_register drivers/video/backlight/bd6107.c
---- a/drivers/video/backlight/bd6107.c~backlight-bd6107-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/bd6107.c
-@@ -166,7 +166,8 @@ static int bd6107_probe(struct i2c_clien
- 	props.brightness = clamp_t(unsigned int, pdata->def_value, 0,
- 				   props.max_brightness);
+diff -puN drivers/video/backlight/adp8870_bl.c~backlight-adp8870-use-devm_backlight_device_register drivers/video/backlight/adp8870_bl.c
+--- a/drivers/video/backlight/adp8870_bl.c~backlight-adp8870-use-devm_backlight_device_register
++++ a/drivers/video/backlight/adp8870_bl.c
+@@ -888,8 +888,9 @@ static int adp8870_probe(struct i2c_clie
+ 	memset(&props, 0, sizeof(props));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = props.brightness = ADP8870_MAX_BRIGHTNESS;
+-	bl = backlight_device_register(dev_driver_string(&client->dev),
+-			&client->dev, data, &adp8870_bl_ops, &props);
++	bl = devm_backlight_device_register(&client->dev,
++				dev_driver_string(&client->dev),
++				&client->dev, data, &adp8870_bl_ops, &props);
+ 	if (IS_ERR(bl)) {
+ 		dev_err(&client->dev, "failed to register backlight\n");
+ 		return PTR_ERR(bl);
+@@ -902,7 +903,7 @@ static int adp8870_probe(struct i2c_clie
+ 			&adp8870_bl_attr_group);
+ 		if (ret) {
+ 			dev_err(&client->dev, "failed to register sysfs\n");
+-			goto out1;
++			return ret;
+ 		}
+ 	}
  
--	backlight = backlight_device_register(dev_name(&client->dev),
-+	backlight = devm_backlight_device_register(&client->dev,
-+					      dev_name(&client->dev),
- 					      &bd->client->dev, bd,
- 					      &bd6107_backlight_ops, &props);
- 	if (IS_ERR(backlight)) {
-@@ -186,7 +187,6 @@ static int bd6107_remove(struct i2c_clie
+@@ -925,8 +926,6 @@ out:
+ 	if (data->pdata->en_ambl_sens)
+ 		sysfs_remove_group(&data->bl->dev.kobj,
+ 			&adp8870_bl_attr_group);
+-out1:
+-	backlight_device_unregister(bl);
  
- 	backlight->props.brightness = 0;
- 	backlight_update_status(backlight);
--	backlight_device_unregister(backlight);
+ 	return ret;
+ }
+@@ -944,8 +943,6 @@ static int adp8870_remove(struct i2c_cli
+ 		sysfs_remove_group(&data->bl->dev.kobj,
+ 			&adp8870_bl_attr_group);
  
+-	backlight_device_unregister(data->bl);
+-
  	return 0;
  }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
