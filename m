@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-da9052_bl-use-devm_backlight_device_register.patch
- added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:12 -0700
-Message-ID: <52421c4c.g1Nop+NJmJG9QNfs%akpm@linux-foundation.org>
+Subject: + backlight-ep93xx-use-devm_backlight_device_register.patch added to -mm tree
+Date: Tue, 24 Sep 2013 16:12:13 -0700
+Message-ID: <52421c4d.WND8lmhgghgCKwUu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37615 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37617 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306Ab3IXXMN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:13 -0400
+	with ESMTP id S1754325Ab3IXXMO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-da9052_bl-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-ep93xx-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:12 -0700
+Date: Tue, 24 Sep 2013 16:12:13 -0700
 
 
 The patch titled
-     Subject: backlight: da9052_bl: use devm_backlight_device_register()
+     Subject: backlight: ep93xx: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-da9052_bl-use-devm_backlight_device_register.patch
+     backlight-ep93xx-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-da9052_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-ep93xx-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-da9052_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-ep93xx-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,40 +44,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: da9052_bl: use devm_backlight_device_register()
+Subject: backlight: ep93xx: use devm_backlight_device_register()
 
-Use devm_backlight_device_register() to make cleanup paths simpler.
+Use devm_backlight_device_register() to make cleanup paths simpler, and
+remove unnecessary remove().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/da9052_bl.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/backlight/ep93xx_bl.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/backlight/da9052_bl.c~backlight-da9052_bl-use-devm_backlight_device_register drivers/video/backlight/da9052_bl.c
---- a/drivers/video/backlight/da9052_bl.c~backlight-da9052_bl-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/da9052_bl.c
-@@ -125,8 +125,9 @@ static int da9052_backlight_probe(struct
+diff -puN drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx-use-devm_backlight_device_register drivers/video/backlight/ep93xx_bl.c
+--- a/drivers/video/backlight/ep93xx_bl.c~backlight-ep93xx-use-devm_backlight_device_register
++++ a/drivers/video/backlight/ep93xx_bl.c
+@@ -92,8 +92,8 @@ static int ep93xxbl_probe(struct platfor
+ 	memset(&props, 0, sizeof(struct backlight_properties));
  	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = DA9052_MAX_BRIGHTNESS;
- 
--	bl = backlight_device_register(pdev->name, wleds->da9052->dev, wleds,
--				       &da9052_backlight_ops, &props);
-+	bl = devm_backlight_device_register(&pdev->dev, pdev->name,
-+					wleds->da9052->dev, wleds,
-+					&da9052_backlight_ops, &props);
- 	if (IS_ERR(bl)) {
- 		dev_err(&pdev->dev, "Failed to register backlight\n");
+ 	props.max_brightness = EP93XX_MAX_BRIGHT;
+-	bl = backlight_device_register(dev->name, &dev->dev, ep93xxbl,
+-				       &ep93xxbl_ops, &props);
++	bl = devm_backlight_device_register(&dev->dev, dev->name, &dev->dev,
++					ep93xxbl, &ep93xxbl_ops, &props);
+ 	if (IS_ERR(bl))
  		return PTR_ERR(bl);
-@@ -147,7 +148,6 @@ static int da9052_backlight_remove(struc
- 	wleds->brightness = 0;
- 	wleds->state = DA9052_WLEDS_OFF;
- 	da9052_adjust_wled_brightness(wleds);
--	backlight_device_unregister(bl);
  
+@@ -106,14 +106,6 @@ static int ep93xxbl_probe(struct platfor
  	return 0;
  }
+ 
+-static int ep93xxbl_remove(struct platform_device *dev)
+-{
+-	struct backlight_device *bl = platform_get_drvdata(dev);
+-
+-	backlight_device_unregister(bl);
+-	return 0;
+-}
+-
+ #ifdef CONFIG_PM_SLEEP
+ static int ep93xxbl_suspend(struct device *dev)
+ {
+@@ -140,7 +132,6 @@ static struct platform_driver ep93xxbl_d
+ 		.pm	= &ep93xxbl_pm_ops,
+ 	},
+ 	.probe		= ep93xxbl_probe,
+-	.remove		= ep93xxbl_remove,
+ };
+ 
+ module_platform_driver(ep93xxbl_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
