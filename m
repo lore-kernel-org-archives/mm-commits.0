@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
- added to -mm tree
-Date: Tue, 24 Sep 2013 15:54:07 -0700
-Message-ID: <5242180f.vgf03Hx08wt3QAbk%akpm@linux-foundation.org>
+ checkpatch-find-camelcase-definitions-of-struct-union-enum.patch added to
+ -mm tree
+Date: Tue, 24 Sep 2013 16:00:29 -0700
+Message-ID: <5242198d.MfaqraY3DxG4SIJS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37475 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37559 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753899Ab3IXWyI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 18:54:08 -0400
+	with ESMTP id S1753916Ab3IXXAa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:00:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, mgorman@suse.de, wpan@redhat.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch added to -mm tree
-To: wpan@redhat.com,mgorman@suse.de,rdunlap@infradead.org
+Subject: + checkpatch-find-camelcase-definitions-of-struct-union-enum.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 15:54:07 -0700
+Date: Tue, 24 Sep 2013 16:00:29 -0700
 
 
 The patch titled
-     Subject: Documentation/kernel-parameters.txt: replace kernelcore with Movable
+     Subject: checkpatch: find CamelCase definitions of struct/union/enum
 has been added to the -mm tree.  Its filename is
-     documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
+     checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,36 +45,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Weiping Pan <wpan@redhat.com>
-Subject: Documentation/kernel-parameters.txt: replace kernelcore with Movable
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: find CamelCase definitions of struct/union/enum
 
-Han Pingtian found a typo in Documentation/kernel-parameters.txt about
-"kernelcore=", that "kernelcore" should be replaced with "Movable" here.
+Checkpatch doesn't currently find CamelCase definitions of structs, unions
+or enums.
 
-Signed-off-by: Weiping Pan <wpan@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Add that ability.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~documentation-kernel-parameterstxt-replace-kernelcore-with-movable Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~documentation-kernel-parameterstxt-replace-kernelcore-with-movable
-+++ a/Documentation/kernel-parameters.txt
-@@ -1357,7 +1357,7 @@ bytes respectively. Such letter suffixes
- 			pages. In the event, a node is too small to have both
- 			kernelcore and Movable pages, kernelcore pages will
- 			take priority and other nodes will have a larger number
--			of kernelcore pages.  The Movable zone is used for the
-+			of Movable pages.  The Movable zone is used for the
- 			allocation of pages that may be reclaimed or moved
- 			by the page migration subsystem.  This means that
- 			HugeTLB pages may not be allocated from this zone.
+diff -puN scripts/checkpatch.pl~checkpatch-find-camelcase-definitions-of-struct-union-enum scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-find-camelcase-definitions-of-struct-union-enum
++++ a/scripts/checkpatch.pl
+@@ -443,8 +443,9 @@ sub seed_camelcase_file {
+ 		next if ($line !~ /(?:[A-Z][a-z]|[a-z][A-Z])/);
+ 		if ($line =~ /^[ \t]*(?:#[ \t]*define|typedef\s+$Type)\s+(\w*(?:[A-Z][a-z]|[a-z][A-Z])\w*)/) {
+ 			$camelcase{$1} = 1;
+-		}
+-	        elsif ($line =~ /^\s*$Declare\s+(\w*(?:[A-Z][a-z]|[a-z][A-Z])\w*)\s*[\(\[,;]/) {
++		} elsif ($line =~ /^\s*$Declare\s+(\w*(?:[A-Z][a-z]|[a-z][A-Z])\w*)\s*[\(\[,;]/) {
++			$camelcase{$1} = 1;
++		} elsif ($line =~ /^\s*(?:union|struct|enum)\s+(\w*(?:[A-Z][a-z]|[a-z][A-Z])\w*)\s*[;\{]/) {
+ 			$camelcase{$1} = 1;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from wpan@redhat.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
+checkpatch-make-extern-in-h-prototypes-quieter.patch
+kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
+ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
+checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+checkpatch-update-seq_foo-tests.patch
+checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
+kernel-modulec-use-pr_foo.patch
+linux-next.patch
 
