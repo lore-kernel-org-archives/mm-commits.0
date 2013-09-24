@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-tdo24m-use-devm_lcd_device_register.patch added to
- -mm tree
-Date: Tue, 24 Sep 2013 16:12:32 -0700
-Message-ID: <52421c60.9aHqx6bSsdmCX9I4%akpm@linux-foundation.org>
+Subject: + backlight-lms283gf05-use-devm_lcd_device_register.patch added
+ to -mm tree
+Date: Tue, 24 Sep 2013 16:12:28 -0700
+Message-ID: <52421c5c.etZxC2z8IYL/hZhI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37652 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37645 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508Ab3IXXMd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:33 -0400
+	with ESMTP id S1754508Ab3IXXM2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-tdo24m-use-devm_lcd_device_register.patch added to -mm tree
+Subject: + backlight-lms283gf05-use-devm_lcd_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:32 -0700
+Date: Tue, 24 Sep 2013 16:12:28 -0700
 
 
 The patch titled
-     Subject: backlight: tdo24m: use devm_lcd_device_register()
+     Subject: backlight: lms283gf05: use devm_lcd_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-tdo24m-use-devm_lcd_device_register.patch
+     backlight-lms283gf05-use-devm_lcd_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-tdo24m-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lms283gf05-use-devm_lcd_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-tdo24m-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lms283gf05-use-devm_lcd_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,54 +45,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: tdo24m: use devm_lcd_device_register()
+Subject: backlight: lms283gf05: use devm_lcd_device_register()
 
-Use devm_lcd_device_register() to make cleanup paths simpler.
+Use devm_lcd_device_register() to make cleanup paths simpler, and remove
+unnecessary remove().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/tdo24m.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/video/backlight/lms283gf05.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/backlight/tdo24m.c~backlight-tdo24m-use-devm_lcd_device_register drivers/video/backlight/tdo24m.c
---- a/drivers/video/backlight/tdo24m.c~backlight-tdo24m-use-devm_lcd_device_register
-+++ a/drivers/video/backlight/tdo24m.c
-@@ -385,21 +385,17 @@ static int tdo24m_probe(struct spi_devic
- 		return -EINVAL;
+diff -puN drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-use-devm_lcd_device_register drivers/video/backlight/lms283gf05.c
+--- a/drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-use-devm_lcd_device_register
++++ a/drivers/video/backlight/lms283gf05.c
+@@ -173,7 +173,8 @@ static int lms283gf05_probe(struct spi_d
+ 		return -ENOMEM;
  	}
  
--	lcd->lcd_dev = lcd_device_register("tdo24m", &spi->dev,
--					lcd, &tdo24m_ops);
-+	lcd->lcd_dev = devm_lcd_device_register(&spi->dev, "tdo24m", &spi->dev,
-+						lcd, &tdo24m_ops);
- 	if (IS_ERR(lcd->lcd_dev))
- 		return PTR_ERR(lcd->lcd_dev);
+-	ld = lcd_device_register("lms283gf05", &spi->dev, st, &lms_ops);
++	ld = devm_lcd_device_register(&spi->dev, "lms283gf05", &spi->dev, st,
++					&lms_ops);
+ 	if (IS_ERR(ld))
+ 		return PTR_ERR(ld);
  
- 	spi_set_drvdata(spi, lcd);
- 	err = tdo24m_power(lcd, FB_BLANK_UNBLANK);
- 	if (err)
--		goto out_unregister;
-+		return err;
- 
- 	return 0;
--
--out_unregister:
--	lcd_device_unregister(lcd->lcd_dev);
--	return err;
- }
- 
- static int tdo24m_remove(struct spi_device *spi)
-@@ -407,8 +403,6 @@ static int tdo24m_remove(struct spi_devi
- 	struct tdo24m *lcd = spi_get_drvdata(spi);
- 
- 	tdo24m_power(lcd, FB_BLANK_POWERDOWN);
--	lcd_device_unregister(lcd->lcd_dev);
--
+@@ -190,22 +191,12 @@ static int lms283gf05_probe(struct spi_d
  	return 0;
  }
  
+-static int lms283gf05_remove(struct spi_device *spi)
+-{
+-	struct lms283gf05_state *st = spi_get_drvdata(spi);
+-
+-	lcd_device_unregister(st->ld);
+-
+-	return 0;
+-}
+-
+ static struct spi_driver lms283gf05_driver = {
+ 	.driver = {
+ 		.name	= "lms283gf05",
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= lms283gf05_probe,
+-	.remove		= lms283gf05_remove,
+ };
+ 
+ module_spi_driver(lms283gf05_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
