@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-wm831x_bl-use-devm_backlight_device_register.patch
- added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:24 -0700
-Message-ID: <52421c58.zMkfV5Mzd6HtqP8W%akpm@linux-foundation.org>
+Subject: + backlight-hx8357-use-devm_lcd_device_register.patch added to
+ -mm tree
+Date: Tue, 24 Sep 2013 16:12:25 -0700
+Message-ID: <52421c59.4xsK8CYiBzex8arY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37640 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754494Ab3IXXMZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:25 -0400
+	with ESMTP id S1754502Ab3IXXM0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-wm831x_bl-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-hx8357-use-devm_lcd_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:24 -0700
+Date: Tue, 24 Sep 2013 16:12:25 -0700
 
 
 The patch titled
-     Subject: backlight: wm831x_bl: use devm_backlight_device_register()
+     Subject: backlight: hx8357: use devm_lcd_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-wm831x_bl-use-devm_backlight_device_register.patch
+     backlight-hx8357-use-devm_lcd_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-wm831x_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-hx8357-use-devm_lcd_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-wm831x_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-hx8357-use-devm_lcd_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,54 +45,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: wm831x_bl: use devm_backlight_device_register()
+Subject: backlight: hx8357: use devm_lcd_device_register()
 
-Use devm_backlight_device_register() to make cleanup paths simpler, and
-remove unnecessary remove().
+Use devm_lcd_device_register() to make cleanup paths simpler, and remove
+unnecessary remove().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/wm831x_bl.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/video/backlight/hx8357.c |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/backlight/wm831x_bl.c~backlight-wm831x_bl-use-devm_backlight_device_register drivers/video/backlight/wm831x_bl.c
---- a/drivers/video/backlight/wm831x_bl.c~backlight-wm831x_bl-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/wm831x_bl.c
-@@ -195,8 +195,8 @@ static int wm831x_backlight_probe(struct
- 	memset(&props, 0, sizeof(props));
- 	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = max_isel;
--	bl = backlight_device_register("wm831x", &pdev->dev, data,
--				       &wm831x_backlight_ops, &props);
-+	bl = devm_backlight_device_register(&pdev->dev, "wm831x", &pdev->dev,
-+					data, &wm831x_backlight_ops, &props);
- 	if (IS_ERR(bl)) {
- 		dev_err(&pdev->dev, "failed to register backlight\n");
- 		return PTR_ERR(bl);
-@@ -214,21 +214,12 @@ static int wm831x_backlight_probe(struct
- 	return 0;
- }
+diff -puN drivers/video/backlight/hx8357.c~backlight-hx8357-use-devm_lcd_device_register drivers/video/backlight/hx8357.c
+--- a/drivers/video/backlight/hx8357.c~backlight-hx8357-use-devm_lcd_device_register
++++ a/drivers/video/backlight/hx8357.c
+@@ -648,7 +648,8 @@ static int hx8357_probe(struct spi_devic
+ 		lcd->use_im_pins = 0;
+ 	}
  
--static int wm831x_backlight_remove(struct platform_device *pdev)
--{
--	struct backlight_device *bl = platform_get_drvdata(pdev);
+-	lcdev = lcd_device_register("mxsfb", &spi->dev, lcd, &hx8357_ops);
++	lcdev = devm_lcd_device_register(&spi->dev, "mxsfb", &spi->dev, lcd,
++					&hx8357_ops);
+ 	if (IS_ERR(lcdev)) {
+ 		ret = PTR_ERR(lcdev);
+ 		return ret;
+@@ -660,29 +661,16 @@ static int hx8357_probe(struct spi_devic
+ 	ret = ((int (*)(struct lcd_device *))match->data)(lcdev);
+ 	if (ret) {
+ 		dev_err(&spi->dev, "Couldn't initialize panel\n");
+-		goto init_error;
++		return ret;
+ 	}
+ 
+ 	dev_info(&spi->dev, "Panel probed\n");
+ 
+ 	return 0;
 -
--	backlight_device_unregister(bl);
--	return 0;
+-init_error:
+-	lcd_device_unregister(lcdev);
+-	return ret;
 -}
 -
- static struct platform_driver wm831x_backlight_driver = {
- 	.driver		= {
- 		.name	= "wm831x-backlight",
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe		= wm831x_backlight_probe,
--	.remove		= wm831x_backlight_remove,
- };
+-static int hx8357_remove(struct spi_device *spi)
+-{
+-	struct lcd_device *lcdev = spi_get_drvdata(spi);
+-
+-	lcd_device_unregister(lcdev);
+-	return 0;
+ }
  
- module_platform_driver(wm831x_backlight_driver);
+ static struct spi_driver hx8357_driver = {
+ 	.probe  = hx8357_probe,
+-	.remove = hx8357_remove,
+ 	.driver = {
+ 		.name = "hx8357",
+ 		.of_match_table = of_match_ptr(hx8357_dt_ids),
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
