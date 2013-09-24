@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-printk-printkc-convert-to-pr_foo.patch added to -mm tree
-Date: Tue, 24 Sep 2013 16:26:01 -0700
-Message-ID: <52421f89.V5ZXkzOlpETjo4NG%akpm@linux-foundation.org>
+Subject: + mm-arch-use-numa_no_node.patch added to -mm tree
+Date: Tue, 24 Sep 2013 16:41:35 -0700
+Message-ID: <5242232f.yQ8pRJ0DRUHgXVXD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37865 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38103 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576Ab3IXX0C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:26:02 -0400
+	with ESMTP id S1754652Ab3IXXlg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:41:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, keescook@chromium.org, joe@perches.com, gregkh@linuxfoundation.org, fweisbec@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, ralf@linux-mips.org, wujianguo@huawei.com
 
-Subject: + kernel-printk-printkc-convert-to-pr_foo.patch added to -mm tree
-To: akpm@linux-foundation.org,fweisbec@gmail.com,gregkh@linuxfoundation.org,joe@perches.com,keescook@chromium.org,tj@kernel.org
+Subject: + mm-arch-use-numa_no_node.patch added to -mm tree
+To: wujianguo@huawei.com,ralf@linux-mips.org
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:26:01 -0700
+Date: Tue, 24 Sep 2013 16:41:35 -0700
 
 
 The patch titled
-     Subject: kernel/printk/printk.c: convert to pr_foo()
+     Subject: mm/arch: use NUMA_NO_NODE
 has been added to the -mm tree.  Its filename is
-     kernel-printk-printkc-convert-to-pr_foo.patch
+     mm-arch-use-numa_no_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-printk-printkc-convert-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-arch-use-numa_no_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-printk-printkc-convert-to-pr_foo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-arch-use-numa_no_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,119 +43,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/printk/printk.c: convert to pr_foo()
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/arch: use NUMA_NO_NODE
 
-It was half-and-half.
+Use more appropriate NUMA_NO_NODE instead of -1 in all archs' module_alloc()
 
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/kernel/module.c    |    2 +-
+ arch/arm64/kernel/module.c  |    2 +-
+ arch/mips/kernel/module.c   |    2 +-
+ arch/parisc/kernel/module.c |    2 +-
+ arch/s390/kernel/module.c   |    2 +-
+ arch/sparc/kernel/module.c  |    2 +-
+ arch/x86/kernel/module.c    |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/printk/printk.c~kernel-printk-printkc-convert-to-pr_foo kernel/printk/printk.c
---- a/kernel/printk/printk.c~kernel-printk-printkc-convert-to-pr_foo
-+++ a/kernel/printk/printk.c
-@@ -791,7 +791,7 @@ static bool __read_mostly ignore_logleve
- static int __init ignore_loglevel_setup(char *str)
+diff -puN arch/arm/kernel/module.c~mm-arch-use-numa_no_node arch/arm/kernel/module.c
+--- a/arch/arm/kernel/module.c~mm-arch-use-numa_no_node
++++ a/arch/arm/kernel/module.c
+@@ -40,7 +40,7 @@
+ void *module_alloc(unsigned long size)
  {
- 	ignore_loglevel = 1;
--	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
-+	pr_info("debug: ignoring loglevel setting.\n");
- 
- 	return 0;
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				GFP_KERNEL, PAGE_KERNEL_EXEC, -1,
++				GFP_KERNEL, PAGE_KERNEL_EXEC, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
  }
-@@ -2193,7 +2193,7 @@ static int __read_mostly keep_bootcon;
- static int __init keep_bootcon_setup(char *str)
+ #endif
+diff -puN arch/arm64/kernel/module.c~mm-arch-use-numa_no_node arch/arm64/kernel/module.c
+--- a/arch/arm64/kernel/module.c~mm-arch-use-numa_no_node
++++ a/arch/arm64/kernel/module.c
+@@ -29,7 +29,7 @@
+ void *module_alloc(unsigned long size)
  {
- 	keep_bootcon = 1;
--	printk(KERN_INFO "debug: skip boot console de-registration.\n");
-+	pr_info("debug: skip boot console de-registration.\n");
- 
- 	return 0;
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				    GFP_KERNEL, PAGE_KERNEL_EXEC, -1,
++				    GFP_KERNEL, PAGE_KERNEL_EXEC, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
  }
-@@ -2241,7 +2241,7 @@ void register_console(struct console *ne
- 		/* find the last or real console */
- 		for_each_console(bcon) {
- 			if (!(bcon->flags & CON_BOOT)) {
--				printk(KERN_INFO "Too late to register bootconsole %s%d\n",
-+				pr_info("Too late to register bootconsole %s%d\n",
- 					newcon->name, newcon->index);
- 				return;
- 			}
-@@ -2358,7 +2358,7 @@ void register_console(struct console *ne
- 	 * users know there might be something in the kernel's log buffer that
- 	 * went to the bootconsole (that they do not see on the real console)
- 	 */
--	printk(KERN_INFO "%sconsole [%s%d] enabled\n",
-+	pr_info("%sconsole [%s%d] enabled\n",
- 		(newcon->flags & CON_BOOT) ? "boot" : "" ,
- 		newcon->name, newcon->index);
- 	if (bcon &&
-@@ -2379,7 +2379,7 @@ int unregister_console(struct console *c
-         struct console *a, *b;
- 	int res;
  
--	printk(KERN_INFO "%sconsole [%s%d] disabled\n",
-+	pr_info("%sconsole [%s%d] disabled\n",
- 		(console->flags & CON_BOOT) ? "boot" : "" ,
- 		console->name, console->index);
+diff -puN arch/mips/kernel/module.c~mm-arch-use-numa_no_node arch/mips/kernel/module.c
+--- a/arch/mips/kernel/module.c~mm-arch-use-numa_no_node
++++ a/arch/mips/kernel/module.c
+@@ -46,7 +46,7 @@ static DEFINE_SPINLOCK(dbe_lock);
+ void *module_alloc(unsigned long size)
+ {
+ 	return __vmalloc_node_range(size, 1, MODULE_START, MODULE_END,
+-				GFP_KERNEL, PAGE_KERNEL, -1,
++				GFP_KERNEL, PAGE_KERNEL, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ }
+ #endif
+diff -puN arch/parisc/kernel/module.c~mm-arch-use-numa_no_node arch/parisc/kernel/module.c
+--- a/arch/parisc/kernel/module.c~mm-arch-use-numa_no_node
++++ a/arch/parisc/kernel/module.c
+@@ -219,7 +219,7 @@ void *module_alloc(unsigned long size)
+ 	 * init_data correctly */
+ 	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
+ 				    GFP_KERNEL | __GFP_HIGHMEM,
+-				    PAGE_KERNEL_RWX, -1,
++				    PAGE_KERNEL_RWX, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
+ }
  
-@@ -2448,7 +2448,7 @@ static void wake_up_klogd_work_func(stru
+diff -puN arch/s390/kernel/module.c~mm-arch-use-numa_no_node arch/s390/kernel/module.c
+--- a/arch/s390/kernel/module.c~mm-arch-use-numa_no_node
++++ a/arch/s390/kernel/module.c
+@@ -50,7 +50,7 @@ void *module_alloc(unsigned long size)
+ 	if (PAGE_ALIGN(size) > MODULES_LEN)
+ 		return NULL;
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				    GFP_KERNEL, PAGE_KERNEL, -1,
++				    GFP_KERNEL, PAGE_KERNEL, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
+ }
+ #endif
+diff -puN arch/sparc/kernel/module.c~mm-arch-use-numa_no_node arch/sparc/kernel/module.c
+--- a/arch/sparc/kernel/module.c~mm-arch-use-numa_no_node
++++ a/arch/sparc/kernel/module.c
+@@ -29,7 +29,7 @@ static void *module_map(unsigned long si
+ 	if (PAGE_ALIGN(size) > MODULES_LEN)
+ 		return NULL;
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				GFP_KERNEL, PAGE_KERNEL, -1,
++				GFP_KERNEL, PAGE_KERNEL, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ }
+ #else
+diff -puN arch/x86/kernel/module.c~mm-arch-use-numa_no_node arch/x86/kernel/module.c
+--- a/arch/x86/kernel/module.c~mm-arch-use-numa_no_node
++++ a/arch/x86/kernel/module.c
+@@ -49,7 +49,7 @@ void *module_alloc(unsigned long size)
+ 		return NULL;
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+ 				GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL_EXEC,
+-				-1, __builtin_return_address(0));
++				NUMA_NO_NODE, __builtin_return_address(0));
+ }
  
- 	if (pending & PRINTK_PENDING_SCHED) {
- 		char *buf = __get_cpu_var(printk_sched_buf);
--		printk(KERN_WARNING "[sched_delayed] %s", buf);
-+		pr_warn("[sched_delayed] %s", buf);
- 	}
- 
- 	if (pending & PRINTK_PENDING_WAKEUP)
+ #ifdef CONFIG_X86_32
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wujianguo@huawei.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-watchdog-update-watchdog_tresh-properly.patch
-revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-revert-memcg-track-all-children-over-limit-in-the-root.patch
-revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
-revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
-sound-soc-atmel-atmel-pcmc-fix-warning.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
+mm-acpi-use-numa_no_node.patch
+x86-srat-use-numa_no_node.patch
+mm-vmalloc-use-numa_no_node.patch
+mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
+mm-arch-use-numa_no_node.patch
 linux-next.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
