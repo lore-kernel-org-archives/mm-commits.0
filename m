@@ -1,99 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
- removed from -mm tree
-Date: Tue, 24 Sep 2013 15:20:28 -0700
-Message-ID: <5242102c.8dJxu6ffr7O9Z2YY%akpm@linux-foundation.org>
+Subject: +
+ documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
+ added to -mm tree
+Date: Tue, 24 Sep 2013 15:54:07 -0700
+Message-ID: <5242180f.vgf03Hx08wt3QAbk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37336 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37475 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449Ab3IXWU3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 18:20:29 -0400
+	with ESMTP id S1753899Ab3IXWyI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 18:54:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, chuansheng.liu@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, mgorman@suse.de, wpan@redhat.com
 
-Subject: [folded-merged] kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,chuansheng.liu@intel.com,mm-commits@vger.kernel.org
+Subject: + documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch added to -mm tree
+To: wpan@redhat.com,mgorman@suse.de,rdunlap@infradead.org
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 15:20:28 -0700
+Date: Tue, 24 Sep 2013 15:54:07 -0700
 
 
 The patch titled
-     Subject: kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix
-has been removed from the -mm tree.  Its filename was
-     kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
+     Subject: Documentation/kernel-parameters.txt: replace kernelcore with Movable
+has been added to the -mm tree.  Its filename is
+     documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
 
-This patch was dropped because it was folded into kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix
+From: Weiping Pan <wpan@redhat.com>
+Subject: Documentation/kernel-parameters.txt: replace kernelcore with Movable
 
-fix comment layout
+Han Pingtian found a typo in Documentation/kernel-parameters.txt about
+"kernelcore=", that "kernelcore" should be replaced with "Movable" here.
 
-Cc: Chuansheng Liu <chuansheng.liu@intel.com>
+Signed-off-by: Weiping Pan <wpan@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    2 +-
+ Documentation/kernel-parameters.txt |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix kernel/reboot.c
---- a/kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix
-+++ a/kernel/reboot.c
-@@ -38,7 +38,7 @@ enum reboot_mode reboot_mode DEFAULT_REB
-  * been set on the command line).  This is needed so that we can
-  * suppress DMI scanning for reboot quirks.  Without it, it's
-  * impossible to override a faulty reboot quirk without recompiling.
--*/
-+ */
- int reboot_default = 1;
- int reboot_cpu;
- enum reboot_type reboot_type = BOOT_ACPI;
+diff -puN Documentation/kernel-parameters.txt~documentation-kernel-parameterstxt-replace-kernelcore-with-movable Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~documentation-kernel-parameterstxt-replace-kernelcore-with-movable
++++ a/Documentation/kernel-parameters.txt
+@@ -1357,7 +1357,7 @@ bytes respectively. Such letter suffixes
+ 			pages. In the event, a node is too small to have both
+ 			kernelcore and Movable pages, kernelcore pages will
+ 			take priority and other nodes will have a larger number
+-			of kernelcore pages.  The Movable zone is used for the
++			of Movable pages.  The Movable zone is used for the
+ 			allocation of pages that may be reclaimed or moved
+ 			by the page migration subsystem.  This means that
+ 			HugeTLB pages may not be allocated from this zone.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wpan@redhat.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-watchdog-update-watchdog_tresh-properly.patch
-revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-revert-memcg-track-all-children-over-limit-in-the-root.patch
-revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
-revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
-sound-soc-atmel-atmel-pcmc-fix-warning.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-linux-next.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
 
