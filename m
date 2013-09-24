@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-max8925_bl-use-devm_backlight_device_register.patch
- added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:20 -0700
-Message-ID: <52421c54.u6JsanJQ4+6gdjYC%akpm@linux-foundation.org>
+Subject: + backlight-lp855x-use-devm_backlight_device_register.patch added to -mm tree
+Date: Tue, 24 Sep 2013 16:12:18 -0700
+Message-ID: <52421c52.bxi2hlTmKm0ts0QQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37631 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37627 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754431Ab3IXXMV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:21 -0400
+	with ESMTP id S1754431Ab3IXXMT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-max8925_bl-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-lp855x-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:20 -0700
+Date: Tue, 24 Sep 2013 16:12:18 -0700
 
 
 The patch titled
-     Subject: backlight: max8925_bl: use devm_backlight_device_register()
+     Subject: backlight: lp855x: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-max8925_bl-use-devm_backlight_device_register.patch
+     backlight-lp855x-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-max8925_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lp855x-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-max8925_bl-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lp855x-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,61 +44,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: max8925_bl: use devm_backlight_device_register()
+Subject: backlight: lp855x: use devm_backlight_device_register()
 
-Use devm_backlight_device_register() to make cleanup paths simpler, and
-remove unnecessary remove().
+Use devm_backlight_device_register() to make cleanup paths simpler.  Also,
+unnecessary lp855x_backlight_unregister() is removed.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/max8925_bl.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ drivers/video/backlight/lp855x_bl.c |   20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN drivers/video/backlight/max8925_bl.c~backlight-max8925_bl-use-devm_backlight_device_register drivers/video/backlight/max8925_bl.c
---- a/drivers/video/backlight/max8925_bl.c~backlight-max8925_bl-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/max8925_bl.c
-@@ -163,7 +163,8 @@ static int max8925_backlight_probe(struc
- 	memset(&props, 0, sizeof(struct backlight_properties));
- 	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = MAX_BRIGHTNESS;
--	bl = backlight_device_register("max8925-backlight", &pdev->dev, data,
-+	bl = devm_backlight_device_register(&pdev->dev, "max8925-backlight",
-+					&pdev->dev, data,
- 					&max8925_backlight_ops, &props);
- 	if (IS_ERR(bl)) {
- 		dev_err(&pdev->dev, "failed to register backlight\n");
-@@ -188,20 +189,9 @@ static int max8925_backlight_probe(struc
- 	}
- 	ret = max8925_set_bits(chip->i2c, data->reg_mode_cntl, 0xfe, value);
- 	if (ret < 0)
--		goto out_brt;
-+		return ret;
- 	backlight_update_status(bl);
+diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x-use-devm_backlight_device_register drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x-use-devm_backlight_device_register
++++ a/drivers/video/backlight/lp855x_bl.c
+@@ -300,7 +300,7 @@ static int lp855x_backlight_register(str
+ 
+ 	props.brightness = pdata->initial_brightness;
+ 
+-	bl = backlight_device_register(name, lp->dev, lp,
++	bl = devm_backlight_device_register(lp->dev, name, lp->dev, lp,
+ 				       &lp855x_bl_ops, &props);
+ 	if (IS_ERR(bl))
+ 		return PTR_ERR(bl);
+@@ -310,12 +310,6 @@ static int lp855x_backlight_register(str
  	return 0;
--out_brt:
--	backlight_device_unregister(bl);
--	return ret;
--}
--
--static int max8925_backlight_remove(struct platform_device *pdev)
--{
--	struct backlight_device *bl = platform_get_drvdata(pdev);
--
--	backlight_device_unregister(bl);
--	return 0;
  }
  
- static struct platform_driver max8925_backlight_driver = {
-@@ -210,7 +200,6 @@ static struct platform_driver max8925_ba
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe		= max8925_backlight_probe,
--	.remove		= max8925_backlight_remove,
- };
+-static void lp855x_backlight_unregister(struct lp855x *lp)
+-{
+-	if (lp->bl)
+-		backlight_device_unregister(lp->bl);
+-}
+-
+ static ssize_t lp855x_get_chip_id(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+@@ -439,29 +433,24 @@ static int lp855x_probe(struct i2c_clien
+ 	ret = lp855x_configure(lp);
+ 	if (ret) {
+ 		dev_err(lp->dev, "device config err: %d", ret);
+-		goto err_dev;
++		return ret;
+ 	}
  
- module_platform_driver(max8925_backlight_driver);
+ 	ret = lp855x_backlight_register(lp);
+ 	if (ret) {
+ 		dev_err(lp->dev,
+ 			"failed to register backlight. err: %d\n", ret);
+-		goto err_dev;
++		return ret;
+ 	}
+ 
+ 	ret = sysfs_create_group(&lp->dev->kobj, &lp855x_attr_group);
+ 	if (ret) {
+ 		dev_err(lp->dev, "failed to register sysfs. err: %d\n", ret);
+-		goto err_sysfs;
++		return ret;
+ 	}
+ 
+ 	backlight_update_status(lp->bl);
+ 	return 0;
+-
+-err_sysfs:
+-	lp855x_backlight_unregister(lp);
+-err_dev:
+-	return ret;
+ }
+ 
+ static int lp855x_remove(struct i2c_client *cl)
+@@ -471,7 +460,6 @@ static int lp855x_remove(struct i2c_clie
+ 	lp->bl->props.brightness = 0;
+ 	backlight_update_status(lp->bl);
+ 	sysfs_remove_group(&lp->dev->kobj, &lp855x_attr_group);
+-	lp855x_backlight_unregister(lp);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
