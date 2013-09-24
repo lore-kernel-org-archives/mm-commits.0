@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-platform_lcd-use-devm_lcd_device_register.patch added to -mm tree
-Date: Tue, 24 Sep 2013 16:12:31 -0700
-Message-ID: <52421c5f.7HuUL/OVHoyreNA5%akpm@linux-foundation.org>
+Subject: + backlight-tdo24m-use-devm_lcd_device_register.patch added to
+ -mm tree
+Date: Tue, 24 Sep 2013 16:12:32 -0700
+Message-ID: <52421c60.9aHqx6bSsdmCX9I4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37651 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37652 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508Ab3IXXMc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:32 -0400
+	with ESMTP id S1754508Ab3IXXMd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:12:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-platform_lcd-use-devm_lcd_device_register.patch added to -mm tree
+Subject: + backlight-tdo24m-use-devm_lcd_device_register.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:12:31 -0700
+Date: Tue, 24 Sep 2013 16:12:32 -0700
 
 
 The patch titled
-     Subject: backlight: platform_lcd: use devm_lcd_device_register()
+     Subject: backlight: tdo24m: use devm_lcd_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-platform_lcd-use-devm_lcd_device_register.patch
+     backlight-tdo24m-use-devm_lcd_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-platform_lcd-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-tdo24m-use-devm_lcd_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-platform_lcd-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-tdo24m-use-devm_lcd_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,63 +45,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: platform_lcd: use devm_lcd_device_register()
+Subject: backlight: tdo24m: use devm_lcd_device_register()
 
-Use devm_lcd_device_register() to make cleanup paths simpler, and remove
-unnecessary remove().
+Use devm_lcd_device_register() to make cleanup paths simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/platform_lcd.c |   20 +++-----------------
- 1 file changed, 3 insertions(+), 17 deletions(-)
+ drivers/video/backlight/tdo24m.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/backlight/platform_lcd.c~backlight-platform_lcd-use-devm_lcd_device_register drivers/video/backlight/platform_lcd.c
---- a/drivers/video/backlight/platform_lcd.c~backlight-platform_lcd-use-devm_lcd_device_register
-+++ a/drivers/video/backlight/platform_lcd.c
-@@ -101,30 +101,17 @@ static int platform_lcd_probe(struct pla
- 
- 	plcd->us = dev;
- 	plcd->pdata = pdata;
--	plcd->lcd = lcd_device_register(dev_name(dev), dev,
--					plcd, &platform_lcd_ops);
-+	plcd->lcd = devm_lcd_device_register(&pdev->dev, dev_name(dev), dev,
-+						plcd, &platform_lcd_ops);
- 	if (IS_ERR(plcd->lcd)) {
- 		dev_err(dev, "cannot register lcd device\n");
--		err = PTR_ERR(plcd->lcd);
--		goto err;
-+		return PTR_ERR(plcd->lcd);
+diff -puN drivers/video/backlight/tdo24m.c~backlight-tdo24m-use-devm_lcd_device_register drivers/video/backlight/tdo24m.c
+--- a/drivers/video/backlight/tdo24m.c~backlight-tdo24m-use-devm_lcd_device_register
++++ a/drivers/video/backlight/tdo24m.c
+@@ -385,21 +385,17 @@ static int tdo24m_probe(struct spi_devic
+ 		return -EINVAL;
  	}
  
- 	platform_set_drvdata(pdev, plcd);
- 	platform_lcd_set_power(plcd->lcd, FB_BLANK_NORMAL);
+-	lcd->lcd_dev = lcd_device_register("tdo24m", &spi->dev,
+-					lcd, &tdo24m_ops);
++	lcd->lcd_dev = devm_lcd_device_register(&spi->dev, "tdo24m", &spi->dev,
++						lcd, &tdo24m_ops);
+ 	if (IS_ERR(lcd->lcd_dev))
+ 		return PTR_ERR(lcd->lcd_dev);
+ 
+ 	spi_set_drvdata(spi, lcd);
+ 	err = tdo24m_power(lcd, FB_BLANK_UNBLANK);
+ 	if (err)
+-		goto out_unregister;
++		return err;
  
  	return 0;
 -
-- err:
+-out_unregister:
+-	lcd_device_unregister(lcd->lcd_dev);
 -	return err;
--}
--
--static int platform_lcd_remove(struct platform_device *pdev)
--{
--	struct platform_lcd *plcd = platform_get_drvdata(pdev);
--
--	lcd_device_unregister(plcd->lcd);
--
--	return 0;
  }
  
- #ifdef CONFIG_PM_SLEEP
-@@ -168,7 +155,6 @@ static struct platform_driver platform_l
- 		.of_match_table = of_match_ptr(platform_lcd_of_match),
- 	},
- 	.probe		= platform_lcd_probe,
--	.remove		= platform_lcd_remove,
- };
+ static int tdo24m_remove(struct spi_device *spi)
+@@ -407,8 +403,6 @@ static int tdo24m_remove(struct spi_devi
+ 	struct tdo24m *lcd = spi_get_drvdata(spi);
  
- module_platform_driver(platform_lcd_driver);
+ 	tdo24m_power(lcd, FB_BLANK_POWERDOWN);
+-	lcd_device_unregister(lcd->lcd_dev);
+-
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
