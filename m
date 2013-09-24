@@ -1,70 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] watchdog-update-watchdog_tresh-properly-fix.patch removed from -mm tree
-Date: Tue, 24 Sep 2013 15:19:56 -0700
-Message-ID: <5242100c.D3YlqWNggQmZD8VI%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
+ removed from -mm tree
+Date: Tue, 24 Sep 2013 15:20:28 -0700
+Message-ID: <5242102c.8dJxu6ffr7O9Z2YY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37331 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37336 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753865Ab3IXWT5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 18:19:57 -0400
+	with ESMTP id S1753449Ab3IXWU3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 18:20:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@kernel.org, mhocko@suse.cz, fweisbec@gmail.com, dzickus@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, chuansheng.liu@intel.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] watchdog-update-watchdog_tresh-properly-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,dzickus@redhat.com,fweisbec@gmail.com,mhocko@suse.cz,mingo@kernel.org,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: [folded-merged] kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,chuansheng.liu@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 15:19:56 -0700
+Date: Tue, 24 Sep 2013 15:20:28 -0700
 
 
 The patch titled
-     Subject: watchdog-update-watchdog_tresh-properly-fix
+     Subject: kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix
 has been removed from the -mm tree.  Its filename was
-     watchdog-update-watchdog_tresh-properly-fix.patch
+     kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
 
-This patch was dropped because it was folded into watchdog-update-watchdog_tresh-properly.patch
+This patch was dropped because it was folded into kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: watchdog-update-watchdog_tresh-properly-fix
+Subject: kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix
 
-the UP version of __smp_call_function_single ended up in the wrong place
+fix comment layout
 
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chuansheng Liu <chuansheng.liu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/reboot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/smp.h~watchdog-update-watchdog_tresh-properly-fix include/linux/smp.h
---- a/include/linux/smp.h~watchdog-update-watchdog_tresh-properly-fix
-+++ a/include/linux/smp.h
-@@ -155,14 +155,14 @@ smp_call_function_any(const struct cpuma
- 
- static inline void kick_all_cpus_sync(void) {  }
- 
--#endif /* !SMP */
--
- static inline void __smp_call_function_single(int cpuid,
- 		struct call_single_data *data, int wait)
- {
- 	on_each_cpu(data->func, data->info, wait);
- }
- 
-+#endif /* !SMP */
-+
- /*
-  * smp_processor_id(): get the current CPU ID.
-  *
+diff -puN kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix kernel/reboot.c
+--- a/kernel/reboot.c~kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix
++++ a/kernel/reboot.c
+@@ -38,7 +38,7 @@ enum reboot_mode reboot_mode DEFAULT_REB
+  * been set on the command line).  This is needed so that we can
+  * suppress DMI scanning for reboot quirks.  Without it, it's
+  * impossible to override a faulty reboot quirk without recompiling.
+-*/
++ */
+ int reboot_default = 1;
+ int reboot_cpu;
+ enum reboot_type reboot_type = BOOT_ACPI;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +70,7 @@ revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
 revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
 revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
 revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-kernel-rebootc-re-enable-the-function-of-variable-reboot_default-fix.patch
+kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
 fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
 fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
 sound-soc-atmel-atmel-pcmc-fix-warning.patch
