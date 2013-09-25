@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lm3630-potential-null-deref-in-probe.patch added to
- -mm tree
-Date: Wed, 25 Sep 2013 14:24:19 -0700
-Message-ID: <52435483.0PPj41HpHyO3cR7w%akpm@linux-foundation.org>
+Subject: + mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
+ added to -mm tree
+Date: Wed, 25 Sep 2013 14:32:59 -0700
+Message-ID: <5243568b.4fhjy/61+p1eydzD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49629 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49668 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754918Ab3IYVYU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 17:24:20 -0400
+	with ESMTP id S1755183Ab3IYVdA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 17:33:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, kosaki.motohiro@jp.fujitsu.com, gang.chen@asianux.com, davej@redhat.com, rientjes@google.com
 
-Subject: + backlight-lm3630-potential-null-deref-in-probe.patch added to -mm tree
-To: dan.carpenter@oracle.com,jg1.han@samsung.com
+Subject: + mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch added to -mm tree
+To: rientjes@google.com,davej@redhat.com,gang.chen@asianux.com,kosaki.motohiro@jp.fujitsu.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 14:24:19 -0700
+Date: Wed, 25 Sep 2013 14:32:59 -0700
 
 
 The patch titled
-     Subject: drivers/video/backlight/lm3630a_bl.c: potential NULL deref in probe()
+     Subject: mm, mempolicy: make mpol_to_str robust and always succeed
 has been added to the -mm tree.  Its filename is
-     backlight-lm3630-potential-null-deref-in-probe.patch
+     mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lm3630-potential-null-deref-in-probe.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lm3630-potential-null-deref-in-probe.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,63 +44,201 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: drivers/video/backlight/lm3630a_bl.c: potential NULL deref in probe()
+From: David Rientjes <rientjes@google.com>
+Subject: mm, mempolicy: make mpol_to_str robust and always succeed
 
-We dereference "pdata" later in the function so we can't leave it as NULL.
+mpol_to_str() should not fail.  Currently, it either fails because the
+string buffer is too small or because a string hasn't been defined for a
+mempolicy mode.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+If a new mempolicy mode is introduced and no string is defined for it,
+just warn and return "unknown".
+
+If the buffer is too small, just truncate the string and return, the same
+behavior as snprintf().
+
+This also fixes a bug where there was no NULL-byte termination when doing
+*p++ = '=' and *p++ ':' and maxlen has been reached.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Chen Gang <gang.chen@asianux.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3630a_bl.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ fs/proc/task_mmu.c        |   14 ++++-----
+ include/linux/mempolicy.h |    5 +--
+ mm/mempolicy.c            |   54 +++++++++++-------------------------
+ 3 files changed, 25 insertions(+), 48 deletions(-)
 
-diff -puN drivers/video/backlight/lm3630a_bl.c~backlight-lm3630-potential-null-deref-in-probe drivers/video/backlight/lm3630a_bl.c
---- a/drivers/video/backlight/lm3630a_bl.c~backlight-lm3630-potential-null-deref-in-probe
-+++ a/drivers/video/backlight/lm3630a_bl.c
-@@ -389,22 +389,21 @@ static int lm3630a_probe(struct i2c_clie
+diff -puN fs/proc/task_mmu.c~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed
++++ a/fs/proc/task_mmu.c
+@@ -1385,8 +1385,8 @@ static int show_numa_map(struct seq_file
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct mm_walk walk = {};
+ 	struct mempolicy *pol;
+-	int n;
+-	char buffer[50];
++	char buffer[64];
++	int nid;
  
- 	i2c_set_clientdata(client, pchip);
- 	if (pdata == NULL) {
--		pchip->pdata = devm_kzalloc(pchip->dev,
--					    sizeof(struct
--						   lm3630a_platform_data),
--					    GFP_KERNEL);
--		if (pchip->pdata == NULL)
-+		pdata = devm_kzalloc(pchip->dev,
-+				     sizeof(struct lm3630a_platform_data),
-+				     GFP_KERNEL);
-+		if (pdata == NULL)
- 			return -ENOMEM;
- 		/* default values */
--		pchip->pdata->leda_ctrl = LM3630A_LEDA_ENABLE;
--		pchip->pdata->ledb_ctrl = LM3630A_LEDB_ENABLE;
--		pchip->pdata->leda_max_brt = LM3630A_MAX_BRIGHTNESS;
--		pchip->pdata->ledb_max_brt = LM3630A_MAX_BRIGHTNESS;
--		pchip->pdata->leda_init_brt = LM3630A_MAX_BRIGHTNESS;
--		pchip->pdata->ledb_init_brt = LM3630A_MAX_BRIGHTNESS;
--	} else {
--		pchip->pdata = pdata;
-+		pdata->leda_ctrl = LM3630A_LEDA_ENABLE;
-+		pdata->ledb_ctrl = LM3630A_LEDB_ENABLE;
-+		pdata->leda_max_brt = LM3630A_MAX_BRIGHTNESS;
-+		pdata->ledb_max_brt = LM3630A_MAX_BRIGHTNESS;
-+		pdata->leda_init_brt = LM3630A_MAX_BRIGHTNESS;
-+		pdata->ledb_init_brt = LM3630A_MAX_BRIGHTNESS;
- 	}
-+	pchip->pdata = pdata;
+ 	if (!mm)
+ 		return 0;
+@@ -1402,10 +1402,8 @@ static int show_numa_map(struct seq_file
+ 	walk.mm = mm;
+ 
+ 	pol = get_vma_policy(task, vma, vma->vm_start);
+-	n = mpol_to_str(buffer, sizeof(buffer), pol);
++	mpol_to_str(buffer, sizeof(buffer), pol);
+ 	mpol_cond_put(pol);
+-	if (n < 0)
+-		return n;
+ 
+ 	seq_printf(m, "%08lx %s", vma->vm_start, buffer);
+ 
+@@ -1458,9 +1456,9 @@ static int show_numa_map(struct seq_file
+ 	if (md->writeback)
+ 		seq_printf(m, " writeback=%lu", md->writeback);
+ 
+-	for_each_node_state(n, N_MEMORY)
+-		if (md->node[n])
+-			seq_printf(m, " N%d=%lu", n, md->node[n]);
++	for_each_node_state(nid, N_MEMORY)
++		if (md->node[nid])
++			seq_printf(m, " N%d=%lu", nid, md->node[nid]);
+ out:
+ 	seq_putc(m, '\n');
+ 
+diff -puN include/linux/mempolicy.h~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed
++++ a/include/linux/mempolicy.h
+@@ -168,7 +168,7 @@ int do_migrate_pages(struct mm_struct *m
+ extern int mpol_parse_str(char *str, struct mempolicy **mpol);
+ #endif
+ 
+-extern int mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol);
++extern void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol);
+ 
+ /* Check if a vma is migratable */
+ static inline int vma_migratable(struct vm_area_struct *vma)
+@@ -306,9 +306,8 @@ static inline int mpol_parse_str(char *s
+ }
+ #endif
+ 
+-static inline int mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
++static inline void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
+ {
+-	return 0;
+ }
+ 
+ static inline int mpol_misplaced(struct page *page, struct vm_area_struct *vma,
+diff -puN mm/mempolicy.c~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed
++++ a/mm/mempolicy.c
+@@ -2840,62 +2840,45 @@ out:
+  * @maxlen:  length of @buffer
+  * @pol:  pointer to mempolicy to be formatted
+  *
+- * Convert a mempolicy into a string.
+- * Returns the number of characters in buffer (if positive)
+- * or an error (negative)
++ * Convert @pol into a string.  If @buffer is too short, truncate the string.
++ * Recommend a @maxlen of at least 32 for the longest mode, "interleave", the
++ * longest flag, "relative", and to display at least a few node ids.
+  */
+-int mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
++void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
+ {
+ 	char *p = buffer;
+-	int l;
+-	nodemask_t nodes;
+-	unsigned short mode;
+-	unsigned short flags = pol ? pol->flags : 0;
+-
+-	/*
+-	 * Sanity check:  room for longest mode, flag and some nodes
+-	 */
+-	VM_BUG_ON(maxlen < strlen("interleave") + strlen("relative") + 16);
+-
+-	if (!pol || pol == &default_policy)
+-		mode = MPOL_DEFAULT;
+-	else
++	nodemask_t nodes = NODE_MASK_NONE;
++	unsigned short mode = MPOL_DEFAULT;
++	unsigned short flags = 0;
 +
- 	/* chip initialize */
- 	rval = lm3630a_chip_init(pchip);
- 	if (rval < 0) {
++	if (pol && pol != &default_policy) {
+ 		mode = pol->mode;
++		flags = pol->flags;
++	}
+ 
+ 	switch (mode) {
+ 	case MPOL_DEFAULT:
+-		nodes_clear(nodes);
+ 		break;
+-
+ 	case MPOL_PREFERRED:
+-		nodes_clear(nodes);
+ 		if (flags & MPOL_F_LOCAL)
+ 			mode = MPOL_LOCAL;
+ 		else
+ 			node_set(pol->v.preferred_node, nodes);
+ 		break;
+-
+ 	case MPOL_BIND:
+-		/* Fall through */
+ 	case MPOL_INTERLEAVE:
+ 		nodes = pol->v.nodes;
+ 		break;
+-
+ 	default:
+-		return -EINVAL;
++		WARN_ON_ONCE(1);
++		snprintf(p, maxlen, "unknown");
++		return;
+ 	}
+ 
+-	l = strlen(policy_modes[mode]);
+-	if (buffer + maxlen < p + l + 1)
+-		return -ENOSPC;
+-
+-	strcpy(p, policy_modes[mode]);
+-	p += l;
++	p += snprintf(p, maxlen, policy_modes[mode]);
+ 
+ 	if (flags & MPOL_MODE_FLAGS) {
+-		if (buffer + maxlen < p + 2)
+-			return -ENOSPC;
+-		*p++ = '=';
++		p += snprintf(p, buffer + maxlen - p, "=");
+ 
+ 		/*
+ 		 * Currently, the only defined flags are mutually exclusive
+@@ -2907,10 +2890,7 @@ int mpol_to_str(char *buffer, int maxlen
+ 	}
+ 
+ 	if (!nodes_empty(nodes)) {
+-		if (buffer + maxlen < p + 2)
+-			return -ENOSPC;
+-		*p++ = ':';
++		p += snprintf(p, buffer + maxlen - p, ":");
+ 	 	p += nodelist_scnprintf(p, buffer + maxlen - p, nodes);
+ 	}
+-	return p - buffer;
+ }
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-origin.patch
-backlight-lm3630-signedness-bug-in-lm3630a_chip_init.patch
-backlight-lm3630-potential-null-deref-in-probe.patch
-linux-next.patch
+mm-compactionc-periodically-schedule-when-freeing-pages.patch
+kthread-make-kthread_create-killable.patch
+mm-acpi-use-numa_no_node.patch
+x86-srat-use-numa_no_node.patch
+mm-vmalloc-use-numa_no_node.patch
+mm-add-a-helper-function-to-check-may-oom-condition.patch
+mm-arch-use-numa_no_node.patch
+mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
 
