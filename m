@@ -1,427 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch removed from -mm tree
-Date: Wed, 25 Sep 2013 12:06:10 -0700
-Message-ID: <52433422.yXKzPq8CzJSSYS7B%akpm@linux-foundation.org>
+Subject: [merged] cpqarray-fix-info-leak-in-ida_locked_ioctl.patch removed from -mm tree
+Date: Wed, 25 Sep 2013 12:06:16 -0700
+Message-ID: <52433428.PLThho1lUWKB+8D8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48647 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48657 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961Ab3IYTGL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:06:11 -0400
+	with ESMTP id S1751961Ab3IYTGQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:06:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, mhocko@suse.cz, hannes@cmpxchg.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mike.miller@hp.com, dan.carpenter@oracle.com
 
-Subject: [merged] revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch removed from -mm tree
-To: akpm@linux-foundation.org,hannes@cmpxchg.org,mhocko@suse.cz,torvalds@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [merged] cpqarray-fix-info-leak-in-ida_locked_ioctl.patch removed from -mm tree
+To: dan.carpenter@oracle.com,mike.miller@hp.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 12:06:10 -0700
+Date: Wed, 25 Sep 2013 12:06:16 -0700
 
 
 The patch titled
-     Subject: revert "memcg, vmscan: integrate soft reclaim tighter with zone shrinking code"
+     Subject: cpqarray: fix info leak in ida_locked_ioctl()
 has been removed from the -mm tree.  Its filename was
-     revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+     cpqarray-fix-info-leak-in-ida_locked_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "memcg, vmscan: integrate soft reclaim tighter with zone shrinking code"
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: cpqarray: fix info leak in ida_locked_ioctl()
 
-Revert
+The pciinfo struct has a two byte hole after ->dev_fn so stack information
+could be leaked to the user.
 
-: commit 3b38722efd9f66da63bbbd41520c2e6fa9db3d68
-: Author:     Michal Hocko <mhocko@suse.cz>
-: AuthorDate: Thu Sep 12 15:13:21 2013 -0700
-: Commit:     Linus Torvalds <torvalds@linux-foundation.org>
-: CommitDate: Thu Sep 12 15:38:00 2013 -0700
-: 
-:     memcg, vmscan: integrate soft reclaim tighter with zone shrinking code
+This was assigned CVE-2013-2147.
 
-I merged this prematurely - Michal and Johannes still disagree about the
-overall design direction and the future remains unclear.
-
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 +-
- mm/memcontrol.c            |  161 ++++++++++++++++++++++++++++++-----
- mm/vmscan.c                |   62 +++++--------
- 3 files changed, 174 insertions(+), 59 deletions(-)
+ drivers/block/cpqarray.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/memcontrol.h~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code
-+++ a/include/linux/memcontrol.h
-@@ -234,7 +234,9 @@ static inline void mem_cgroup_dec_page_s
- 	mem_cgroup_update_page_stat(page, idx, -1);
- }
+diff -puN drivers/block/cpqarray.c~cpqarray-fix-info-leak-in-ida_locked_ioctl drivers/block/cpqarray.c
+--- a/drivers/block/cpqarray.c~cpqarray-fix-info-leak-in-ida_locked_ioctl
++++ a/drivers/block/cpqarray.c
+@@ -1193,6 +1193,7 @@ out_passthru:
+ 		ida_pci_info_struct pciinfo;
  
--bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg);
-+unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
-+						gfp_t gfp_mask,
-+						unsigned long *total_scanned);
- 
- void __mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
- static inline void mem_cgroup_count_vm_event(struct mm_struct *mm,
-@@ -434,9 +436,11 @@ static inline void mem_cgroup_dec_page_s
- }
- 
- static inline
--bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg)
-+unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
-+					    gfp_t gfp_mask,
-+					    unsigned long *total_scanned)
- {
--	return false;
-+	return 0;
- }
- 
- static inline void mem_cgroup_split_huge_fixup(struct page *head)
-diff -puN mm/memcontrol.c~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code mm/memcontrol.c
---- a/mm/memcontrol.c~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code
-+++ a/mm/memcontrol.c
-@@ -1991,28 +1991,57 @@ static bool mem_cgroup_reclaimable(struc
- }
- #endif
- 
--/*
-- * A group is eligible for the soft limit reclaim if
-- * 	a) it is over its soft limit
-- *	b) any parent up the hierarchy is over its soft limit
-- */
--bool mem_cgroup_soft_reclaim_eligible(struct mem_cgroup *memcg)
-+static int mem_cgroup_soft_reclaim(struct mem_cgroup *root_memcg,
-+				   struct zone *zone,
-+				   gfp_t gfp_mask,
-+				   unsigned long *total_scanned)
- {
--	struct mem_cgroup *parent = memcg;
--
--	if (res_counter_soft_limit_excess(&memcg->res))
--		return true;
--
--	/*
--	 * If any parent up the hierarchy is over its soft limit then we
--	 * have to obey and reclaim from this group as well.
--	 */
--	while ((parent = parent_mem_cgroup(parent))) {
--		if (res_counter_soft_limit_excess(&parent->res))
--			return true;
-+	struct mem_cgroup *victim = NULL;
-+	int total = 0;
-+	int loop = 0;
-+	unsigned long excess;
-+	unsigned long nr_scanned;
-+	struct mem_cgroup_reclaim_cookie reclaim = {
-+		.zone = zone,
-+		.priority = 0,
-+	};
-+
-+	excess = res_counter_soft_limit_excess(&root_memcg->res) >> PAGE_SHIFT;
-+
-+	while (1) {
-+		victim = mem_cgroup_iter(root_memcg, victim, &reclaim);
-+		if (!victim) {
-+			loop++;
-+			if (loop >= 2) {
-+				/*
-+				 * If we have not been able to reclaim
-+				 * anything, it might because there are
-+				 * no reclaimable pages under this hierarchy
-+				 */
-+				if (!total)
-+					break;
-+				/*
-+				 * We want to do more targeted reclaim.
-+				 * excess >> 2 is not to excessive so as to
-+				 * reclaim too much, nor too less that we keep
-+				 * coming back to reclaim from this cgroup
-+				 */
-+				if (total >= (excess >> 2) ||
-+					(loop > MEM_CGROUP_MAX_RECLAIM_LOOPS))
-+					break;
-+			}
-+			continue;
-+		}
-+		if (!mem_cgroup_reclaimable(victim, false))
-+			continue;
-+		total += mem_cgroup_shrink_node_zone(victim, gfp_mask, false,
-+						     zone, &nr_scanned);
-+		*total_scanned += nr_scanned;
-+		if (!res_counter_soft_limit_excess(&root_memcg->res))
-+			break;
- 	}
--
--	return false;
-+	mem_cgroup_iter_break(root_memcg, victim);
-+	return total;
- }
- 
- static DEFINE_SPINLOCK(memcg_oom_lock);
-@@ -4761,6 +4790,98 @@ static int mem_cgroup_resize_memsw_limit
- 	return ret;
- }
- 
-+unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
-+					    gfp_t gfp_mask,
-+					    unsigned long *total_scanned)
-+{
-+	unsigned long nr_reclaimed = 0;
-+	struct mem_cgroup_per_zone *mz, *next_mz = NULL;
-+	unsigned long reclaimed;
-+	int loop = 0;
-+	struct mem_cgroup_tree_per_zone *mctz;
-+	unsigned long long excess;
-+	unsigned long nr_scanned;
-+
-+	if (order > 0)
-+		return 0;
-+
-+	mctz = soft_limit_tree_node_zone(zone_to_nid(zone), zone_idx(zone));
-+	/*
-+	 * This loop can run a while, specially if mem_cgroup's continuously
-+	 * keep exceeding their soft limit and putting the system under
-+	 * pressure
-+	 */
-+	do {
-+		if (next_mz)
-+			mz = next_mz;
-+		else
-+			mz = mem_cgroup_largest_soft_limit_node(mctz);
-+		if (!mz)
-+			break;
-+
-+		nr_scanned = 0;
-+		reclaimed = mem_cgroup_soft_reclaim(mz->memcg, zone,
-+						    gfp_mask, &nr_scanned);
-+		nr_reclaimed += reclaimed;
-+		*total_scanned += nr_scanned;
-+		spin_lock(&mctz->lock);
-+
-+		/*
-+		 * If we failed to reclaim anything from this memory cgroup
-+		 * it is time to move on to the next cgroup
-+		 */
-+		next_mz = NULL;
-+		if (!reclaimed) {
-+			do {
-+				/*
-+				 * Loop until we find yet another one.
-+				 *
-+				 * By the time we get the soft_limit lock
-+				 * again, someone might have aded the
-+				 * group back on the RB tree. Iterate to
-+				 * make sure we get a different mem.
-+				 * mem_cgroup_largest_soft_limit_node returns
-+				 * NULL if no other cgroup is present on
-+				 * the tree
-+				 */
-+				next_mz =
-+				__mem_cgroup_largest_soft_limit_node(mctz);
-+				if (next_mz == mz)
-+					css_put(&next_mz->memcg->css);
-+				else /* next_mz == NULL or other memcg */
-+					break;
-+			} while (1);
-+		}
-+		__mem_cgroup_remove_exceeded(mz->memcg, mz, mctz);
-+		excess = res_counter_soft_limit_excess(&mz->memcg->res);
-+		/*
-+		 * One school of thought says that we should not add
-+		 * back the node to the tree if reclaim returns 0.
-+		 * But our reclaim could return 0, simply because due
-+		 * to priority we are exposing a smaller subset of
-+		 * memory to reclaim from. Consider this as a longer
-+		 * term TODO.
-+		 */
-+		/* If excess == 0, no tree ops */
-+		__mem_cgroup_insert_exceeded(mz->memcg, mz, mctz, excess);
-+		spin_unlock(&mctz->lock);
-+		css_put(&mz->memcg->css);
-+		loop++;
-+		/*
-+		 * Could not reclaim anything and there are no more
-+		 * mem cgroups to try or we seem to be looping without
-+		 * reclaiming anything.
-+		 */
-+		if (!nr_reclaimed &&
-+			(next_mz == NULL ||
-+			loop > MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS))
-+			break;
-+	} while (!nr_reclaimed);
-+	if (next_mz)
-+		css_put(&next_mz->memcg->css);
-+	return nr_reclaimed;
-+}
-+
- /**
-  * mem_cgroup_force_empty_list - clears LRU of a group
-  * @memcg: group to clear
-diff -puN mm/vmscan.c~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code mm/vmscan.c
---- a/mm/vmscan.c~revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code
-+++ a/mm/vmscan.c
-@@ -139,21 +139,11 @@ static bool global_reclaim(struct scan_c
- {
- 	return !sc->target_mem_cgroup;
- }
--
--static bool mem_cgroup_should_soft_reclaim(struct scan_control *sc)
--{
--	return !mem_cgroup_disabled() && global_reclaim(sc);
--}
- #else
- static bool global_reclaim(struct scan_control *sc)
- {
- 	return true;
- }
--
--static bool mem_cgroup_should_soft_reclaim(struct scan_control *sc)
--{
--	return false;
--}
- #endif
- 
- unsigned long zone_reclaimable_pages(struct zone *zone)
-@@ -2174,8 +2164,7 @@ static inline bool should_continue_recla
- 	}
- }
- 
--static void
--__shrink_zone(struct zone *zone, struct scan_control *sc, bool soft_reclaim)
-+static void shrink_zone(struct zone *zone, struct scan_control *sc)
- {
- 	unsigned long nr_reclaimed, nr_scanned;
- 
-@@ -2194,12 +2183,6 @@ __shrink_zone(struct zone *zone, struct
- 		do {
- 			struct lruvec *lruvec;
- 
--			if (soft_reclaim &&
--			    !mem_cgroup_soft_reclaim_eligible(memcg)) {
--				memcg = mem_cgroup_iter(root, memcg, &reclaim);
--				continue;
--			}
--
- 			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
- 
- 			shrink_lruvec(lruvec, sc);
-@@ -2230,24 +2213,6 @@ __shrink_zone(struct zone *zone, struct
- 					 sc->nr_scanned - nr_scanned, sc));
- }
- 
--
--static void shrink_zone(struct zone *zone, struct scan_control *sc)
--{
--	bool do_soft_reclaim = mem_cgroup_should_soft_reclaim(sc);
--	unsigned long nr_scanned = sc->nr_scanned;
--
--	__shrink_zone(zone, sc, do_soft_reclaim);
--
--	/*
--	 * No group is over the soft limit or those that are do not have
--	 * pages in the zone we are reclaiming so we have to reclaim everybody
--	 */
--	if (do_soft_reclaim && (sc->nr_scanned == nr_scanned)) {
--		__shrink_zone(zone, sc, false);
--		return;
--	}
--}
--
- /* Returns true if compaction should go ahead for a high-order request */
- static inline bool compaction_ready(struct zone *zone, struct scan_control *sc)
- {
-@@ -2309,6 +2274,8 @@ static bool shrink_zones(struct zonelist
- {
- 	struct zoneref *z;
- 	struct zone *zone;
-+	unsigned long nr_soft_reclaimed;
-+	unsigned long nr_soft_scanned;
- 	bool aborted_reclaim = false;
- 
- 	/*
-@@ -2348,6 +2315,18 @@ static bool shrink_zones(struct zonelist
- 					continue;
- 				}
- 			}
-+			/*
-+			 * This steals pages from memory cgroups over softlimit
-+			 * and returns the number of reclaimed pages and
-+			 * scanned pages. This works for global memory pressure
-+			 * and balancing, not for a memcg's limit.
-+			 */
-+			nr_soft_scanned = 0;
-+			nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
-+						sc->order, sc->gfp_mask,
-+						&nr_soft_scanned);
-+			sc->nr_reclaimed += nr_soft_reclaimed;
-+			sc->nr_scanned += nr_soft_scanned;
- 			/* need some check for avoid more shrink_zone() */
- 		}
- 
-@@ -2941,6 +2920,8 @@ static unsigned long balance_pgdat(pg_da
- {
- 	int i;
- 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
-+	unsigned long nr_soft_reclaimed;
-+	unsigned long nr_soft_scanned;
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
- 		.priority = DEF_PRIORITY,
-@@ -3055,6 +3036,15 @@ static unsigned long balance_pgdat(pg_da
- 
- 			sc.nr_scanned = 0;
- 
-+			nr_soft_scanned = 0;
-+			/*
-+			 * Call soft limit reclaim before calling shrink_zone.
-+			 */
-+			nr_soft_reclaimed = mem_cgroup_soft_limit_reclaim(zone,
-+							order, sc.gfp_mask,
-+							&nr_soft_scanned);
-+			sc.nr_reclaimed += nr_soft_reclaimed;
-+
- 			/*
- 			 * There should be no need to raise the scanning
- 			 * priority if enough pages are already being scanned
+ 		if (!arg) return -EINVAL;
++		memset(&pciinfo, 0, sizeof(pciinfo));
+ 		pciinfo.bus = host->pci_dev->bus->number;
+ 		pciinfo.dev_fn = host->pci_dev->devfn;
+ 		pciinfo.board_id = host->board_id;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
-sound-soc-atmel-atmel-pcmc-fix-warning.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
