@@ -1,66 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-mach-bcm-related-email-address.patch
+Subject: [merged] cciss-fix-info-leak-in-cciss_ioctl32_passthru.patch
  removed from -mm tree
-Date: Wed, 25 Sep 2013 12:06:22 -0700
-Message-ID: <5243342e.yD1CF11ObR2k0lUV%akpm@linux-foundation.org>
+Date: Wed, 25 Sep 2013 12:06:18 -0700
+Message-ID: <5243342a.Zv9K0NPhq1up2XMA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48666 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48660 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961Ab3IYTGX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:06:23 -0400
+	with ESMTP id S1751961Ab3IYTGS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:06:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, swarren@wwwdotorg.org, olof@lixom.net, arnd@arndb.de, csd@broadcom.com
+To: mm-commits@vger.kernel.org, mike.miller@hp.com, dan.carpenter@oracle.com
 
-Subject: [merged] maintainers-update-mach-bcm-related-email-address.patch removed from -mm tree
-To: csd@broadcom.com,arnd@arndb.de,olof@lixom.net,swarren@wwwdotorg.org,mm-commits@vger.kernel.org
+Subject: [merged] cciss-fix-info-leak-in-cciss_ioctl32_passthru.patch removed from -mm tree
+To: dan.carpenter@oracle.com,mike.miller@hp.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 12:06:22 -0700
+Date: Wed, 25 Sep 2013 12:06:18 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: update mach-bcm related email address
+     Subject: cciss: fix info leak in cciss_ioctl32_passthru()
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-mach-bcm-related-email-address.patch
+     cciss-fix-info-leak-in-cciss_ioctl32_passthru.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Christian Daudt" <csd@broadcom.com>
-Subject: MAINTAINERS: update mach-bcm related email address
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: cciss: fix info leak in cciss_ioctl32_passthru()
 
-Update email address on mach-bcm + drivers for Broadcom mobile SoCs.
+The arg64 struct has a hole after ->buf_size which isn't cleared.  Or if
+any of the calls to copy_from_user() fail then that would cause an
+information leak as well.
 
-Signed-off-by: Christian Daudt <csd@broadcom.com>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
+This was assigned CVE-2013-2147.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/cciss.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-update-mach-bcm-related-email-address MAINTAINERS
---- a/MAINTAINERS~maintainers-update-mach-bcm-related-email-address
-+++ a/MAINTAINERS
-@@ -1812,7 +1812,8 @@ S:	Supported
- F:	drivers/net/ethernet/broadcom/bnx2x/
+diff -puN drivers/block/cciss.c~cciss-fix-info-leak-in-cciss_ioctl32_passthru drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-info-leak-in-cciss_ioctl32_passthru
++++ a/drivers/block/cciss.c
+@@ -1189,6 +1189,7 @@ static int cciss_ioctl32_passthru(struct
+ 	int err;
+ 	u32 cp;
  
- BROADCOM BCM281XX/BCM11XXX ARM ARCHITECTURE
--M:	Christian Daudt <csd@broadcom.com>
-+M:	Christian Daudt <bcm@fixthebug.org>
-+L:	bcm-kernel-feedback-list@broadcom.com
- T:	git git://git.github.com/broadcom/bcm11351
- S:	Maintained
- F:	arch/arm/mach-bcm/
++	memset(&arg64, 0, sizeof(arg64));
+ 	err = 0;
+ 	err |=
+ 	    copy_from_user(&arg64.LUN_info, &arg32->LUN_info,
 _
 
-Patches currently in -mm which might be from csd@broadcom.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
 linux-next.patch
