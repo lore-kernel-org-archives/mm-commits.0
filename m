@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-semc-synchronize-the-proc-interface.patch added to -mm tree
-Date: Wed, 25 Sep 2013 12:48:32 -0700
-Message-ID: <52433e10.wSgu9h6tER5Zz74u%akpm@linux-foundation.org>
+Subject: + drm-i915-fix-up-usage-of-shrink_stop.patch added to -mm tree
+Date: Wed, 25 Sep 2013 12:54:43 -0700
+Message-ID: <52433f83.5LqzrbTJnzTxuRVn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48969 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49075 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750992Ab3IYTsd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:48:33 -0400
+	with ESMTP id S1751315Ab3IYTyo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:54:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, efault@gmx.de, davidlohr.bueso@hp.com, manfred@colorfullife.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, hannes@cmpxchg.org, glommer@openvz.org, glommer@gmail.com, david@fromorbit.com, Knut_Petersen@t-online.de, daniel.vetter@ffwll.ch
 
-Subject: + ipc-semc-synchronize-the-proc-interface.patch added to -mm tree
-To: manfred@colorfullife.com,davidlohr.bueso@hp.com,efault@gmx.de,riel@redhat.com
+Subject: + drm-i915-fix-up-usage-of-shrink_stop.patch added to -mm tree
+To: daniel.vetter@ffwll.ch,Knut_Petersen@t-online.de,david@fromorbit.com,glommer@gmail.com,glommer@openvz.org,hannes@cmpxchg.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 12:48:32 -0700
+Date: Wed, 25 Sep 2013 12:54:43 -0700
 
 
 The patch titled
-     Subject: ipc/sem.c: synchronize the proc interface
+     Subject: drm/i915: Fix up usage of SHRINK_STOP
 has been added to the -mm tree.  Its filename is
-     ipc-semc-synchronize-the-proc-interface.patch
+     drm-i915-fix-up-usage-of-shrink_stop.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-synchronize-the-proc-interface.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drm-i915-fix-up-usage-of-shrink_stop.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-synchronize-the-proc-interface.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drm-i915-fix-up-usage-of-shrink_stop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,51 +43,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: synchronize the proc interface
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: drm/i915: Fix up usage of SHRINK_STOP
 
-The proc interface is not aware of sem_lock(), it calls ipc_lock_object()
-directly.  This means that simple semop() operations can run in parallel
-with the proc interface.  Right now, this is uncritical, because the
-implementation doesn't do anything that requires a proper synchronization.
+In
 
-But it is dangerous and therefore should be fixed.
+commit 81e49f811404f428a9d9a63295a0c267e802fa12
+Author: Glauber Costa <glommer@openvz.org>
+Date:   Wed Aug 28 10:18:13 2013 +1000
 
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: Mike Galbraith <efault@gmx.de>
+    i915: bail out earlier when shrinker cannot acquire mutex
+
+SHRINK_STOP was added to tell the core shrinker code to bail out and go to
+the next shrinker since the i915 shrinker couldn't acquire required locks.
+ But the SHRINK_STOP return code was added to the ->count_objects callback
+and not the ->scan_objects callback as it should have been, resulting in
+tons of dmesg noise like
+
+shrink_slab: i915_gem_inactive_scan+0x0/0x9c negative objects to delete nr=-xxxxxxxxx
+
+Fix discusssed with Dave Chinner.
+
+References: http://www.spinics.net/lists/intel-gfx/msg33597.html
+Reported-by: Knut Petersen <Knut_Petersen@t-online.de>
+Cc: Knut Petersen <Knut_Petersen@t-online.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Glauber Costa <glommer@openvz.org>
+Cc: Glauber Costa <glommer@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/gpu/drm/i915/i915_gem.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-synchronize-the-proc-interface ipc/sem.c
---- a/ipc/sem.c~ipc-semc-synchronize-the-proc-interface
-+++ a/ipc/sem.c
-@@ -2103,6 +2103,14 @@ static int sysvipc_sem_proc_show(struct
- 	struct sem_array *sma = it;
- 	time_t sem_otime;
+diff -puN drivers/gpu/drm/i915/i915_gem.c~drm-i915-fix-up-usage-of-shrink_stop drivers/gpu/drm/i915/i915_gem.c
+--- a/drivers/gpu/drm/i915/i915_gem.c~drm-i915-fix-up-usage-of-shrink_stop
++++ a/drivers/gpu/drm/i915/i915_gem.c
+@@ -4800,10 +4800,10 @@ i915_gem_inactive_count(struct shrinker
  
-+	/*
-+	 * The proc interface isn't aware of sem_lock(), it calls
-+	 * ipc_lock_object() directly (in sysvipc_find_ipc).
-+	 * In order to stay compatible with sem_lock(), we must wait until
-+	 * all simple semop() calls have left their critical regions.
-+	 */
-+	sem_wait_array(sma);
-+
- 	sem_otime = get_semotime(sma);
+ 	if (!mutex_trylock(&dev->struct_mutex)) {
+ 		if (!mutex_is_locked_by(&dev->struct_mutex, current))
+-			return SHRINK_STOP;
++			return 0;
  
- 	return seq_printf(s,
+ 		if (dev_priv->mm.shrinker_no_lock_stealing)
+-			return SHRINK_STOP;
++			return 0;
+ 
+ 		unlock = false;
+ 	}
+@@ -4901,10 +4901,10 @@ i915_gem_inactive_scan(struct shrinker *
+ 
+ 	if (!mutex_trylock(&dev->struct_mutex)) {
+ 		if (!mutex_is_locked_by(&dev->struct_mutex, current))
+-			return 0;
++			return SHRINK_STOP;
+ 
+ 		if (dev_priv->mm.shrinker_no_lock_stealing)
+-			return 0;
++			return SHRINK_STOP;
+ 
+ 		unlock = false;
+ 	}
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
 
-origin.patch
-ipc-semc-fix-race-in-sem_lock.patch
-ipc-semc-optimize-sem_lock.patch
-ipc-semc-synchronize-the-proc-interface.patch
-slab-leaks3-default-y.patch
+drm-i915-fix-up-usage-of-shrink_stop.patch
+drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress.patch
+linux-next.patch
 
