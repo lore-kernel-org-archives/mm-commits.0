@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
- added to -mm tree
-Date: Wed, 25 Sep 2013 14:32:59 -0700
-Message-ID: <5243568b.4fhjy/61+p1eydzD%akpm@linux-foundation.org>
+Subject: + include-asm-generic-vtimeh-avoid-zero-length-file.patch added
+ to -mm tree
+Date: Wed, 25 Sep 2013 14:43:32 -0700
+Message-ID: <52435904.MRaqgbkUU9760NVE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49668 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49802 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755183Ab3IYVdA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 17:33:00 -0400
+	with ESMTP id S1752857Ab3IYVnd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 17:43:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, kosaki.motohiro@jp.fujitsu.com, gang.chen@asianux.com, davej@redhat.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, hughd@google.com, fweisbec@gmail.com, akpm@linux-foundation.org
 
-Subject: + mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch added to -mm tree
-To: rientjes@google.com,davej@redhat.com,gang.chen@asianux.com,kosaki.motohiro@jp.fujitsu.com,riel@redhat.com
+Subject: + include-asm-generic-vtimeh-avoid-zero-length-file.patch added to -mm tree
+To: akpm@linux-foundation.org,fweisbec@gmail.com,hughd@google.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 14:32:59 -0700
+Date: Wed, 25 Sep 2013 14:43:32 -0700
 
 
 The patch titled
-     Subject: mm, mempolicy: make mpol_to_str robust and always succeed
+     Subject: include/asm-generic/vtime.h: avoid zero-length file
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
+     include-asm-generic-vtimeh-avoid-zero-length-file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-asm-generic-vtimeh-avoid-zero-length-file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-asm-generic-vtimeh-avoid-zero-length-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,201 +44,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, mempolicy: make mpol_to_str robust and always succeed
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include/asm-generic/vtime.h: avoid zero-length file
 
-mpol_to_str() should not fail.  Currently, it either fails because the
-string buffer is too small or because a string hasn't been defined for a
-mempolicy mode.
+patch(1) can't handle zero-length files - it appears to simply not create
+the file, so my powerpc build fails.
 
-If a new mempolicy mode is introduced and no string is defined for it,
-just warn and return "unknown".
+Put something in here to make life easier.
 
-If the buffer is too small, just truncate the string and return, the same
-behavior as snprintf().
-
-This also fixes a bug where there was no NULL-byte termination when doing
-*p++ = '=' and *p++ ':' and maxlen has been reached.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Chen Gang <gang.chen@asianux.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Dave Jones <davej@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c        |   14 ++++-----
- include/linux/mempolicy.h |    5 +--
- mm/mempolicy.c            |   54 +++++++++++-------------------------
- 3 files changed, 25 insertions(+), 48 deletions(-)
+ include/asm-generic/vtime.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/proc/task_mmu.c~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed
-+++ a/fs/proc/task_mmu.c
-@@ -1385,8 +1385,8 @@ static int show_numa_map(struct seq_file
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct mm_walk walk = {};
- 	struct mempolicy *pol;
--	int n;
--	char buffer[50];
-+	char buffer[64];
-+	int nid;
- 
- 	if (!mm)
- 		return 0;
-@@ -1402,10 +1402,8 @@ static int show_numa_map(struct seq_file
- 	walk.mm = mm;
- 
- 	pol = get_vma_policy(task, vma, vma->vm_start);
--	n = mpol_to_str(buffer, sizeof(buffer), pol);
-+	mpol_to_str(buffer, sizeof(buffer), pol);
- 	mpol_cond_put(pol);
--	if (n < 0)
--		return n;
- 
- 	seq_printf(m, "%08lx %s", vma->vm_start, buffer);
- 
-@@ -1458,9 +1456,9 @@ static int show_numa_map(struct seq_file
- 	if (md->writeback)
- 		seq_printf(m, " writeback=%lu", md->writeback);
- 
--	for_each_node_state(n, N_MEMORY)
--		if (md->node[n])
--			seq_printf(m, " N%d=%lu", n, md->node[n]);
-+	for_each_node_state(nid, N_MEMORY)
-+		if (md->node[nid])
-+			seq_printf(m, " N%d=%lu", nid, md->node[nid]);
- out:
- 	seq_putc(m, '\n');
- 
-diff -puN include/linux/mempolicy.h~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed
-+++ a/include/linux/mempolicy.h
-@@ -168,7 +168,7 @@ int do_migrate_pages(struct mm_struct *m
- extern int mpol_parse_str(char *str, struct mempolicy **mpol);
- #endif
- 
--extern int mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol);
-+extern void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol);
- 
- /* Check if a vma is migratable */
- static inline int vma_migratable(struct vm_area_struct *vma)
-@@ -306,9 +306,8 @@ static inline int mpol_parse_str(char *s
- }
- #endif
- 
--static inline int mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
-+static inline void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
- {
--	return 0;
- }
- 
- static inline int mpol_misplaced(struct page *page, struct vm_area_struct *vma,
-diff -puN mm/mempolicy.c~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-make-mpol_to_str-robust-and-always-succeed
-+++ a/mm/mempolicy.c
-@@ -2840,62 +2840,45 @@ out:
-  * @maxlen:  length of @buffer
-  * @pol:  pointer to mempolicy to be formatted
-  *
-- * Convert a mempolicy into a string.
-- * Returns the number of characters in buffer (if positive)
-- * or an error (negative)
-+ * Convert @pol into a string.  If @buffer is too short, truncate the string.
-+ * Recommend a @maxlen of at least 32 for the longest mode, "interleave", the
-+ * longest flag, "relative", and to display at least a few node ids.
-  */
--int mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
-+void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
- {
- 	char *p = buffer;
--	int l;
--	nodemask_t nodes;
--	unsigned short mode;
--	unsigned short flags = pol ? pol->flags : 0;
--
--	/*
--	 * Sanity check:  room for longest mode, flag and some nodes
--	 */
--	VM_BUG_ON(maxlen < strlen("interleave") + strlen("relative") + 16);
--
--	if (!pol || pol == &default_policy)
--		mode = MPOL_DEFAULT;
--	else
-+	nodemask_t nodes = NODE_MASK_NONE;
-+	unsigned short mode = MPOL_DEFAULT;
-+	unsigned short flags = 0;
-+
-+	if (pol && pol != &default_policy) {
- 		mode = pol->mode;
-+		flags = pol->flags;
-+	}
- 
- 	switch (mode) {
- 	case MPOL_DEFAULT:
--		nodes_clear(nodes);
- 		break;
--
- 	case MPOL_PREFERRED:
--		nodes_clear(nodes);
- 		if (flags & MPOL_F_LOCAL)
- 			mode = MPOL_LOCAL;
- 		else
- 			node_set(pol->v.preferred_node, nodes);
- 		break;
--
- 	case MPOL_BIND:
--		/* Fall through */
- 	case MPOL_INTERLEAVE:
- 		nodes = pol->v.nodes;
- 		break;
--
- 	default:
--		return -EINVAL;
-+		WARN_ON_ONCE(1);
-+		snprintf(p, maxlen, "unknown");
-+		return;
- 	}
- 
--	l = strlen(policy_modes[mode]);
--	if (buffer + maxlen < p + l + 1)
--		return -ENOSPC;
--
--	strcpy(p, policy_modes[mode]);
--	p += l;
-+	p += snprintf(p, maxlen, policy_modes[mode]);
- 
- 	if (flags & MPOL_MODE_FLAGS) {
--		if (buffer + maxlen < p + 2)
--			return -ENOSPC;
--		*p++ = '=';
-+		p += snprintf(p, buffer + maxlen - p, "=");
- 
- 		/*
- 		 * Currently, the only defined flags are mutually exclusive
-@@ -2907,10 +2890,7 @@ int mpol_to_str(char *buffer, int maxlen
- 	}
- 
- 	if (!nodes_empty(nodes)) {
--		if (buffer + maxlen < p + 2)
--			return -ENOSPC;
--		*p++ = ':';
-+		p += snprintf(p, buffer + maxlen - p, ":");
- 	 	p += nodelist_scnprintf(p, buffer + maxlen - p, nodes);
- 	}
--	return p - buffer;
- }
+diff -puN /dev/null include/asm-generic/vtime.h
+--- /dev/null
++++ a/include/asm-generic/vtime.h
+@@ -0,0 +1 @@
++/* no content, but patch(1) dislikes empty files */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-compactionc-periodically-schedule-when-freeing-pages.patch
-kthread-make-kthread_create-killable.patch
-mm-acpi-use-numa_no_node.patch
-x86-srat-use-numa_no_node.patch
-mm-vmalloc-use-numa_no_node.patch
-mm-add-a-helper-function-to-check-may-oom-condition.patch
-mm-arch-use-numa_no_node.patch
-mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
+fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
+include-asm-generic-vtimeh-avoid-zero-length-file.patch
+sound-soc-atmel-atmel-pcmc-fix-warning.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate.patch
+fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
+linux-next.patch
+linux-next-git-rejects.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
