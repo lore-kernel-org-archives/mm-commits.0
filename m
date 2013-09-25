@@ -1,87 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
- removed from -mm tree
-Date: Wed, 25 Sep 2013 12:47:17 -0700
-Message-ID: <52433dc5.JrSy0g777HR4FyBH%akpm@linux-foundation.org>
+Subject: + ipc-semc-synchronize-the-proc-interface.patch added to -mm tree
+Date: Wed, 25 Sep 2013 12:48:32 -0700
+Message-ID: <52433e10.wSgu9h6tER5Zz74u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48965 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48969 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961Ab3IYTrS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:47:18 -0400
+	with ESMTP id S1750992Ab3IYTsd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:48:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, ming.liu@windriver.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, efault@gmx.de, davidlohr.bueso@hp.com, manfred@colorfullife.com
 
-Subject: [to-be-updated] oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch removed from -mm tree
-To: ming.liu@windriver.com,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: + ipc-semc-synchronize-the-proc-interface.patch added to -mm tree
+To: manfred@colorfullife.com,davidlohr.bueso@hp.com,efault@gmx.de,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 12:47:17 -0700
+Date: Wed, 25 Sep 2013 12:48:32 -0700
 
 
 The patch titled
-     Subject: oom: avoid killing init if it assumed the oom killed thread's mm
-has been removed from the -mm tree.  Its filename was
-     oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
+     Subject: ipc/sem.c: synchronize the proc interface
+has been added to the -mm tree.  Its filename is
+     ipc-semc-synchronize-the-proc-interface.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-synchronize-the-proc-interface.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-synchronize-the-proc-interface.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Ming Liu <ming.liu@windriver.com>
-Subject: oom: avoid killing init if it assumed the oom killed thread's mm
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: synchronize the proc interface
 
-After selecting a task to kill, the oom killer iterates all processes and
-kills all other user threads that share the same mm_struct in different
-thread groups.
+The proc interface is not aware of sem_lock(), it calls ipc_lock_object()
+directly.  This means that simple semop() operations can run in parallel
+with the proc interface.  Right now, this is uncritical, because the
+implementation doesn't do anything that requires a proper synchronization.
 
-But in some extreme cases, the selected task happens to be a vfork child
-of init process sharing the same mm_struct with it, which causes kernel
-panic on init getting killed.  This panic is observed in a busybox shell
-that busybox itself is init, when a kthread keeps consuming memory.
+But it is dangerous and therefore should be fixed.
 
-Signed-off-by: Ming Liu <ming.liu@windriver.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ ipc/sem.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/oom_kill.c~oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm mm/oom_kill.c
---- a/mm/oom_kill.c~oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm
-+++ a/mm/oom_kill.c
-@@ -479,17 +479,17 @@ void oom_kill_process(struct task_struct
- 	task_unlock(victim);
+diff -puN ipc/sem.c~ipc-semc-synchronize-the-proc-interface ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-synchronize-the-proc-interface
++++ a/ipc/sem.c
+@@ -2103,6 +2103,14 @@ static int sysvipc_sem_proc_show(struct
+ 	struct sem_array *sma = it;
+ 	time_t sem_otime;
  
- 	/*
--	 * Kill all user processes sharing victim->mm in other thread groups, if
--	 * any.  They don't get access to memory reserves, though, to avoid
--	 * depletion of all memory.  This prevents mm->mmap_sem livelock when an
--	 * oom killed thread cannot exit because it requires the semaphore and
--	 * its contended by another thread trying to allocate memory itself.
--	 * That thread will now get access to memory reserves since it has a
--	 * pending fatal signal.
-+	 * Kill all user processes except init sharing victim->mm in other
-+	 * thread groups, if any.  They don't get access to memory reserves,
-+	 * though, to avoid depletion of all memory.  This prevents mm->mmap_sem
-+	 * livelock when an oom killed thread cannot exit because it requires
-+	 * the semaphore and its contended by another thread trying to allocate
-+	 * memory itself. That thread will now get access to memory reserves
-+	 * since it has a pending fatal signal.
- 	 */
- 	for_each_process(p)
- 		if (p->mm == mm && !same_thread_group(p, victim) &&
--		    !(p->flags & PF_KTHREAD)) {
-+		    !(p->flags & PF_KTHREAD) && !is_global_init(p)) {
- 			if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
- 				continue;
++	/*
++	 * The proc interface isn't aware of sem_lock(), it calls
++	 * ipc_lock_object() directly (in sysvipc_find_ipc).
++	 * In order to stay compatible with sem_lock(), we must wait until
++	 * all simple semop() calls have left their critical regions.
++	 */
++	sem_wait_array(sma);
++
+ 	sem_otime = get_semotime(sma);
  
+ 	return seq_printf(s,
 _
 
-Patches currently in -mm which might be from ming.liu@windriver.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
+origin.patch
+ipc-semc-fix-race-in-sem_lock.patch
+ipc-semc-optimize-sem_lock.patch
+ipc-semc-synchronize-the-proc-interface.patch
+slab-leaks3-default-y.patch
 
