@@ -1,131 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 25 Sep 2013 12:03:54 -0700
-Message-ID: <5243339a.rGinnLxZUMMjy44f%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-ocfs2-superc-use-a-bigger-nodestr-in-ocfs2_dismount_volume.patch removed from -mm tree
+Date: Wed, 25 Sep 2013 12:05:54 -0700
+Message-ID: <52433412.8c31DqVfX628vT5u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48599 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751515Ab3IYTDz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:03:55 -0400
+	with ESMTP id S1753333Ab3IYTFy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:05:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: + linux-next-git-rejects.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: [merged] fs-ocfs2-superc-use-a-bigger-nodestr-in-ocfs2_dismount_volume.patch removed from -mm tree
+To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 12:03:54 -0700
+Date: Wed, 25 Sep 2013 12:05:54 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: fs/ocfs2/super.c: use a bigger nodestr in ocfs2_dismount_volume
+has been removed from the -mm tree.  Its filename was
+     fs-ocfs2-superc-use-a-bigger-nodestr-in-ocfs2_dismount_volume.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: fs/ocfs2/super.c: use a bigger nodestr in ocfs2_dismount_volume
 
+While printing 32-bit node numbers, an 8-byte string is not enough. 
+Increase the size of the string to 12 chars.
+
+This got left out in 49fa8140e48 ("fs/ocfs2/super.c: Use bigger nodestr to
+accomodate 32-bit node numbers").
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/reboot.c |    4 ----
- mm/memcontrol.c |    4 ----
- 2 files changed, 8 deletions(-)
+ fs/ocfs2/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/reboot.c~linux-next-git-rejects kernel/reboot.c
---- a/kernel/reboot.c~linux-next-git-rejects
-+++ a/kernel/reboot.c
-@@ -38,11 +38,7 @@ enum reboot_mode reboot_mode DEFAULT_REB
-  * been set on the command line).  This is needed so that we can
-  * suppress DMI scanning for reboot quirks.  Without it, it's
-  * impossible to override a faulty reboot quirk without recompiling.
--<<<<<<< HEAD
-  */
--=======
--*/
-->>>>>>> linux-next/akpm-base
- int reboot_default = 1;
- int reboot_cpu;
- enum reboot_type reboot_type = BOOT_ACPI;
-diff -puN mm/memcontrol.c~linux-next-git-rejects mm/memcontrol.c
---- a/mm/memcontrol.c~linux-next-git-rejects
-+++ a/mm/memcontrol.c
-@@ -6216,12 +6216,8 @@ static void __mem_cgroup_free(struct mem
- 	int node;
- 	size_t size = memcg_size();
+diff -puN fs/ocfs2/super.c~fs-ocfs2-superc-use-a-bigger-nodestr-in-ocfs2_dismount_volume fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~fs-ocfs2-superc-use-a-bigger-nodestr-in-ocfs2_dismount_volume
++++ a/fs/ocfs2/super.c
+@@ -1924,7 +1924,7 @@ static void ocfs2_dismount_volume(struct
+ {
+ 	int tmp, hangup_needed = 0;
+ 	struct ocfs2_super *osb = NULL;
+-	char nodestr[8];
++	char nodestr[12];
  
--<<<<<<< HEAD
- 	mem_cgroup_remove_from_trees(memcg);
--	free_css_id(&mem_cgroup_subsys, &memcg->css);
- 
--=======
-->>>>>>> linux-next/akpm-base
- 	for_each_node(node)
- 		free_mem_cgroup_per_zone_info(memcg, node);
+ 	trace_ocfs2_dismount_volume(sb);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
 origin.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-watchdog-update-watchdog_tresh-properly.patch
-revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
-revert-memcg-track-all-children-over-limit-in-the-root.patch
-revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
-revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
-revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
-revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
-revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
-revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
-kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
-sound-soc-atmel-atmel-pcmc-fix-warning.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-linux-next-git-rejects.patch
+fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits.patch
 
