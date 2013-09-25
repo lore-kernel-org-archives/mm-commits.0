@@ -1,101 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int.patch removed
- from -mm tree
-Date: Wed, 25 Sep 2013 12:06:24 -0700
-Message-ID: <52433430.0dZA96QQbit2+17m%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
+ removed from -mm tree
+Date: Wed, 25 Sep 2013 12:47:17 -0700
+Message-ID: <52433dc5.JrSy0g777HR4FyBH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48671 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48965 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754919Ab3IYTGY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:06:24 -0400
+	with ESMTP id S1751961Ab3IYTrS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:47:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mingo@kernel.org, lizefan@huawei.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, ming.liu@windriver.com
 
-Subject: [merged] kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int.patch removed from -mm tree
-To: lizefan@huawei.com,mingo@kernel.org,mm-commits@vger.kernel.org
+Subject: [to-be-updated] oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch removed from -mm tree
+To: ming.liu@windriver.com,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 12:06:24 -0700
+Date: Wed, 25 Sep 2013 12:47:17 -0700
 
 
 The patch titled
-     Subject: kernel/hung_task.c: change sysctl_hung_task_check_count to int
+     Subject: oom: avoid killing init if it assumed the oom killed thread's mm
 has been removed from the -mm tree.  Its filename was
-     kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int.patch
+     oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Li Zefan <lizefan@huawei.com>
-Subject: kernel/hung_task.c: change sysctl_hung_task_check_count to int
+From: Ming Liu <ming.liu@windriver.com>
+Subject: oom: avoid killing init if it assumed the oom killed thread's mm
 
-As sysctl_hung_task_check_count is unsigned long, when this value is
-assigned to max_count in check_hung_uninterruptible_tasks(), it's
-truncated to int type.
+After selecting a task to kill, the oom killer iterates all processes and
+kills all other user threads that share the same mm_struct in different
+thread groups.
 
-Therefore if we write 2^32 to sysctl.hung_task_check_count, hung task
-detection will be effectively disabled.
+But in some extreme cases, the selected task happens to be a vfork child
+of init process sharing the same mm_struct with it, which causes kernel
+panic on init getting killed.  This panic is observed in a busybox shell
+that busybox itself is init, when a kthread keeps consuming memory.
 
-Not a big deal, but still it's better to fix this inconsistency.
-
-Signed-off-by: Li Zefan <lizefan@huawei.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Ming Liu <ming.liu@windriver.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/sysctl.h |    2 +-
- kernel/hung_task.c           |    2 +-
- kernel/sysctl.c              |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ mm/oom_kill.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/sched/sysctl.h~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int include/linux/sched/sysctl.h
---- a/include/linux/sched/sysctl.h~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int
-+++ a/include/linux/sched/sysctl.h
-@@ -2,8 +2,8 @@
- #define _SCHED_SYSCTL_H
+diff -puN mm/oom_kill.c~oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-avoid-killing-init-if-it-assumed-the-oom-killed-threads-mm
++++ a/mm/oom_kill.c
+@@ -479,17 +479,17 @@ void oom_kill_process(struct task_struct
+ 	task_unlock(victim);
  
- #ifdef CONFIG_DETECT_HUNG_TASK
-+extern int	     sysctl_hung_task_check_count;
- extern unsigned int  sysctl_hung_task_panic;
--extern unsigned long sysctl_hung_task_check_count;
- extern unsigned long sysctl_hung_task_timeout_secs;
- extern unsigned long sysctl_hung_task_warnings;
- extern int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
-diff -puN kernel/hung_task.c~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int kernel/hung_task.c
---- a/kernel/hung_task.c~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int
-+++ a/kernel/hung_task.c
-@@ -20,7 +20,7 @@
- /*
-  * The number of tasks checked:
-  */
--unsigned long __read_mostly sysctl_hung_task_check_count = PID_MAX_LIMIT;
-+int __read_mostly sysctl_hung_task_check_count = PID_MAX_LIMIT;
+ 	/*
+-	 * Kill all user processes sharing victim->mm in other thread groups, if
+-	 * any.  They don't get access to memory reserves, though, to avoid
+-	 * depletion of all memory.  This prevents mm->mmap_sem livelock when an
+-	 * oom killed thread cannot exit because it requires the semaphore and
+-	 * its contended by another thread trying to allocate memory itself.
+-	 * That thread will now get access to memory reserves since it has a
+-	 * pending fatal signal.
++	 * Kill all user processes except init sharing victim->mm in other
++	 * thread groups, if any.  They don't get access to memory reserves,
++	 * though, to avoid depletion of all memory.  This prevents mm->mmap_sem
++	 * livelock when an oom killed thread cannot exit because it requires
++	 * the semaphore and its contended by another thread trying to allocate
++	 * memory itself. That thread will now get access to memory reserves
++	 * since it has a pending fatal signal.
+ 	 */
+ 	for_each_process(p)
+ 		if (p->mm == mm && !same_thread_group(p, victim) &&
+-		    !(p->flags & PF_KTHREAD)) {
++		    !(p->flags & PF_KTHREAD) && !is_global_init(p)) {
+ 			if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
+ 				continue;
  
- /*
-  * Limit number of tasks checked in a batch.
-diff -puN kernel/sysctl.c~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int kernel/sysctl.c
---- a/kernel/sysctl.c~kernel-hung_taskc-change-sysctl_hung_task_check_count-to-int
-+++ a/kernel/sysctl.c
-@@ -962,9 +962,9 @@ static struct ctl_table kern_table[] = {
- 	{
- 		.procname	= "hung_task_check_count",
- 		.data		= &sysctl_hung_task_check_count,
--		.maxlen		= sizeof(unsigned long),
-+		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_doulongvec_minmax,
-+		.proc_handler	= proc_dointvec_minmax,
- 	},
- 	{
- 		.procname	= "hung_task_timeout_secs",
 _
 
-Patches currently in -mm which might be from lizefan@huawei.com are
+Patches currently in -mm which might be from ming.liu@windriver.com are
 
-linux-next.patch
 
