@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-v3020c-use-dev_get_platdata.patch added to -mm
- tree
-Date: Tue, 24 Sep 2013 16:55:19 -0700
-Message-ID: <52422667.xLijNOHezn/ssdSt%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 25 Sep 2013 12:03:54 -0700
+Message-ID: <5243339a.rGinnLxZUMMjy44f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48599 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754888Ab3IXXzU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Sep 2013 19:55:20 -0400
+	with ESMTP id S1751515Ab3IYTDz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 15:03:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + drivers-rtc-rtc-v3020c-use-dev_get_platdata.patch added to -mm tree
-To: jg1.han@samsung.com
+Subject: + linux-next-git-rejects.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Tue, 24 Sep 2013 16:55:19 -0700
+Date: Wed, 25 Sep 2013 12:03:54 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-v3020.c: use dev_get_platdata()
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-v3020c-use-dev_get_platdata.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-v3020c-use-dev_get_platdata.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-v3020c-use-dev_get_platdata.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,106 +43,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-v3020.c: use dev_get_platdata()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Use the wrapper function for retrieving the platform data instead of
-accessing dev->platform_data directly.  This is a cosmetic change to make
-the code simpler and enhance the readability.
-
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-v3020.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/reboot.c |    4 ----
+ mm/memcontrol.c |    4 ----
+ 2 files changed, 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-v3020.c~drivers-rtc-rtc-v3020c-use-dev_get_platdata drivers/rtc/rtc-v3020.c
---- a/drivers/rtc/rtc-v3020.c~drivers-rtc-rtc-v3020c-use-dev_get_platdata
-+++ a/drivers/rtc/rtc-v3020.c
-@@ -303,7 +303,7 @@ static const struct rtc_class_ops v3020_
+diff -puN kernel/reboot.c~linux-next-git-rejects kernel/reboot.c
+--- a/kernel/reboot.c~linux-next-git-rejects
++++ a/kernel/reboot.c
+@@ -38,11 +38,7 @@ enum reboot_mode reboot_mode DEFAULT_REB
+  * been set on the command line).  This is needed so that we can
+  * suppress DMI scanning for reboot quirks.  Without it, it's
+  * impossible to override a faulty reboot quirk without recompiling.
+-<<<<<<< HEAD
+  */
+-=======
+-*/
+->>>>>>> linux-next/akpm-base
+ int reboot_default = 1;
+ int reboot_cpu;
+ enum reboot_type reboot_type = BOOT_ACPI;
+diff -puN mm/memcontrol.c~linux-next-git-rejects mm/memcontrol.c
+--- a/mm/memcontrol.c~linux-next-git-rejects
++++ a/mm/memcontrol.c
+@@ -6216,12 +6216,8 @@ static void __mem_cgroup_free(struct mem
+ 	int node;
+ 	size_t size = memcg_size();
  
- static int rtc_probe(struct platform_device *pdev)
- {
--	struct v3020_platform_data *pdata = pdev->dev.platform_data;
-+	struct v3020_platform_data *pdata = dev_get_platdata(&pdev->dev);
- 	struct v3020 *chip;
- 	int retval = -EBUSY;
- 	int i;
+-<<<<<<< HEAD
+ 	mem_cgroup_remove_from_trees(memcg);
+-	free_css_id(&mem_cgroup_subsys, &memcg->css);
+ 
+-=======
+->>>>>>> linux-next/akpm-base
+ 	for_each_node(node)
+ 		free_mem_cgroup_per_zone_info(memcg, node);
+ 
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
-backlight-lp855x_bl-support-new-lp8555-device.patch
-backlight-lm3630-apply-chip-revision.patch
-backlight-ld9040-staticize-local-variable-gamma_table.patch
-backlight-lm3639-dont-mix-different-enum-types.patch
-backlight-lp8788-staticize-default_bl_config.patch
-backlight-use-dev_get_platdata.patch
-backlight-88pm860x_bl-use-devm_backlight_device_register.patch
-backlight-aat2870-use-devm_backlight_device_register.patch
-backlight-adp5520-use-devm_backlight_device_register.patch
-backlight-adp8860-use-devm_backlight_device_register.patch
-backlight-adp8870-use-devm_backlight_device_register.patch
-backlight-as3711_bl-use-devm_backlight_device_register.patch
-backlight-atmel-pwm-bl-use-devm_backlight_device_register.patch
-backlight-bd6107-use-devm_backlight_device_register.patch
-backlight-da903x_bl-use-devm_backlight_device_register.patch
-backlight-da9052_bl-use-devm_backlight_device_register.patch
-backlight-ep93xx-use-devm_backlight_device_register.patch
-backlight-generic_bl-use-devm_backlight_device_register.patch
-backlight-gpio_backlight-use-devm_backlight_device_register.patch
-backlight-kb3886_bl-use-devm_backlight_device_register.patch
-backlight-lm3533_bl-use-devm_backlight_device_register.patch
-backlight-lp855x-use-devm_backlight_device_register.patch
-backlight-lv5207lp-use-devm_backlight_device_register.patch
-backlight-max8925_bl-use-devm_backlight_device_register.patch
-backlight-pandora_bl-use-devm_backlight_device_register.patch
-backlight-pcf50633-use-devm_backlight_device_register.patch
-backlight-tps65217_bl-use-devm_backlight_device_register.patch
-backlight-wm831x_bl-use-devm_backlight_device_register.patch
-backlight-hx8357-use-devm_lcd_device_register.patch
-backlight-ili922x-use-devm_lcd_device_register.patch
-backlight-ili9320-use-devm_lcd_device_register.patch
-backlight-lms283gf05-use-devm_lcd_device_register.patch
-backlight-lms501kf03-use-devm_lcd_device_register.patch
-backlight-ltv350qv-use-devm_lcd_device_register.patch
-backlight-platform_lcd-use-devm_lcd_device_register.patch
-backlight-tdo24m-use-devm_lcd_device_register.patch
-backlight-ams369fg06-use-devm_backlightlcd_device_register.patch
-backlight-ld9040-use-devm_backlightlcd_device_register.patch
-backlight-corgi_lcd-use-devm_backlightlcd_device_register.patch
-backlight-cr_bllcd-use-devm_backlightlcd_device_register.patch
-backlight-s6e63m0-use-devm_backlightlcd_device_register.patch
-drivers-rtc-rtc-ds1307c-release-irq-on-error.patch
-drivers-rtc-rtc-isl1208c-remove-redundant-checks.patch
-drivers-rtc-rtc-max6900c-remove-redundant-checks.patch
-drivers-rtc-rtc-vt8500c-fix-return-value.patch
-drivers-rtc-rtc-at91rm9200c-use-devm_-apis.patch
-drivers-rtc-rtc-isl1208c-use-devm_-apis.patch
-drivers-rtc-rtc-sirfsocc-use-devm_rtc_device_register.patch
-drivers-rtc-rtc-cmosc-remove-redundant-dev_set_drvdata.patch
-drivers-rtc-rtc-mrstc-remove-redundant-dev_set_drvdata.patch
-drivers-rtc-rtc-vr41xxc-fix-checkpatch-warnings.patch
-drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void.patch
-drivers-rtc-rtc-88pm80xc-use-dev_get_platdata.patch
-drivers-rtc-rtc-88pm860xc-use-dev_get_platdata.patch
-drivers-rtc-rtc-cmosc-use-dev_get_platdata.patch
-drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch
-drivers-rtc-rtc-ds1305c-use-dev_get_platdata.patch
-drivers-rtc-rtc-ds1307c-use-dev_get_platdata.patch
-drivers-rtc-rtc-ds2404c-use-dev_get_platdata.patch
-drivers-rtc-rtc-ep93xxc-use-dev_get_platdata.patch
-drivers-rtc-rtc-hid-sensor-timec-use-dev_get_platdata.patch
-drivers-rtc-rtc-m48t59c-use-dev_get_platdata.patch
-drivers-rtc-rtc-m48t86c-use-dev_get_platdata.patch
-drivers-rtc-rtc-pcf2123c-use-dev_get_platdata.patch
-drivers-rtc-rtc-rs5c348c-use-dev_get_platdata.patch
-drivers-rtc-rtc-shc-use-dev_get_platdata.patch
-drivers-rtc-rtc-v3020c-use-dev_get_platdata.patch
-drivers-char-xilinx_hwicap-xilinx_hwicapc-remove-unneeded-cast-of-void.patch
-w1-w1-gpio-use-dev_get_platdata.patch
-w1-ds1wm-use-dev_get_platdata.patch
+origin.patch
 linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+watchdog-update-watchdog_tresh-properly.patch
+revert-memcg-vmscan-do-not-fall-into-reclaim-all-pass-too-quickly.patch
+revert-memcg-track-all-children-over-limit-in-the-root.patch
+revert-memcg-vmscan-do-not-attempt-soft-limit-reclaim-if-it-would-not-scan-anything.patch
+revert-memcg-track-children-in-soft-limit-excess-to-improve-soft-limit.patch
+revert-memcg-enhance-memcg-iterator-to-support-predicates.patch
+revert-vmscan-memcg-do-softlimit-reclaim-also-for-targeted-reclaim.patch
+revert-memcg-get-rid-of-soft-limit-tree-infrastructure.patch
+revert-memcg-vmscan-integrate-soft-reclaim-tighter-with-zone-shrinking-code.patch
+kernel-rebootc-re-enable-the-function-of-variable-reboot_default.patch
+fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
+fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
+sound-soc-atmel-atmel-pcmc-fix-warning.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate.patch
+fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+linux-next-git-rejects.patch
 
