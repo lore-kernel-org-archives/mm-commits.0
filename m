@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + revert-mm-vmallocc-emit-the-failure-message-before-return.patch added to -mm tree
-Date: Wed, 25 Sep 2013 17:40:53 -0700
-Message-ID: <52438295.JkRxsaSjxhzLlztP%akpm@linux-foundation.org>
+Subject: +
+ mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch added to -mm tree
+Date: Wed, 25 Sep 2013 17:40:52 -0700
+Message-ID: <52438294.ojDhrV2rsWM0gwDi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51708 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51702 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753228Ab3IZAky (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:40:54 -0400
+	with ESMTP id S1755018Ab3IZAkx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:40:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, rientjes@google.com, mitsuo.hayasaka.hu@hitachi.com, kosaki.motohiro@jp.fujitsu.com, iamjoonsoo.kim@lge.com, liwanp@linux.vnet.ibm.com
 
-Subject: + revert-mm-vmallocc-emit-the-failure-message-before-return.patch added to -mm tree
+Subject: + mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch added to -mm tree
 To: liwanp@linux.vnet.ibm.com,iamjoonsoo.kim@lge.com,kosaki.motohiro@jp.fujitsu.com,mitsuo.hayasaka.hu@hitachi.com,rientjes@google.com,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 17:40:53 -0700
+Date: Wed, 25 Sep 2013 17:40:52 -0700
 
 
 The patch titled
-     Subject: revert mm/vmalloc.c: emit the failure message before return
+     Subject: mm/vmalloc: revert "mm/vmalloc.c: check VM_UNINITIALIZED flag in s_show instead of show_numa_info"
 has been added to the -mm tree.  Its filename is
-     revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+     mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,36 +45,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: revert mm/vmalloc.c: emit the failure message before return
+Subject: mm/vmalloc: revert "mm/vmalloc.c: check VM_UNINITIALIZED flag in s_show instead of show_numa_info"
 
-Don't warn twice in __vmalloc_area_node and __vmalloc_node_range if
-__vmalloc_area_node allocation failure.  This patch reverts commit
-46c001a2 ("mm/vmalloc.c: emit the failure message before return").
+The VM_UNINITIALIZED/VM_UNLIST flag introduced by f5252e00 ("mm:
+avoid null pointer access in vm_struct via /proc/vmallocinfo") is used to
+avoid accessing the pages field with unallocated page when
+show_numa_info() is called.  This patch move the check just before
+show_numa_info in order that some messages still can be dumped via
+/proc/vmallocinfo.  This patch revert commit d157a558 ("mm/vmalloc.c: check
+VM_UNINITIALIZED flag in s_show instead of show_numa_info");
 
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmalloc.c~revert-mm-vmallocc-emit-the-failure-message-before-return mm/vmalloc.c
---- a/mm/vmalloc.c~revert-mm-vmallocc-emit-the-failure-message-before-return
+diff -puN mm/vmalloc.c~mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info
 +++ a/mm/vmalloc.c
-@@ -1635,7 +1635,7 @@ void *__vmalloc_node_range(unsigned long
+@@ -2562,6 +2562,11 @@ static void show_numa_info(struct seq_fi
+ 		if (!counters)
+ 			return;
  
- 	addr = __vmalloc_area_node(area, gfp_mask, prot, node);
- 	if (!addr)
--		goto fail;
-+		return NULL;
++		/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
++		smp_rmb();
++		if (v->flags & VM_UNINITIALIZED)
++			return;
++
+ 		memset(counters, 0, nr_node_ids * sizeof(unsigned int));
  
- 	/*
- 	 * In this function, newly allocated vm_struct has VM_UNINITIALIZED
+ 		for (nr = 0; nr < v->nr_pages; nr++)
+@@ -2587,11 +2592,6 @@ static int s_show(struct seq_file *m, vo
+ 
+ 	v = va->vm;
+ 
+-	/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
+-	smp_rmb();
+-	if (v->flags & VM_UNINITIALIZED)
+-		return 0;
+-
+ 	seq_printf(m, "0x%pK-0x%pK %7ld",
+ 		v->addr, v->addr + v->size, v->size);
+ 
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
