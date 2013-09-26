@@ -1,86 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-remove-obsolete-include-linux-kexech.patch added to -mm tree
-Date: Thu, 26 Sep 2013 14:50:48 -0700
-Message-ID: <5244ac38.rJVCEIWmDDusGM9q%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch removed from
+ -mm tree
+Date: Thu, 26 Sep 2013 15:07:40 -0700
+Message-ID: <5244b02c.3MvNXxsi+44RDuzc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34387 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34682 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753458Ab3IZVus (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 17:50:48 -0400
+	with ESMTP id S1753567Ab3IZWHl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 18:07:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, holt@sgi.com, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, tj@kernel.org, cl@linux-foundation.org, holzheu@linux.vnet.ibm.com
 
-Subject: + kernel-sysc-remove-obsolete-include-linux-kexech.patch added to -mm tree
-To: geert@linux-m68k.org,holt@sgi.com
+Subject: [alternative-merged] mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch removed from -mm tree
+To: holzheu@linux.vnet.ibm.com,cl@linux-foundation.org,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 26 Sep 2013 14:50:48 -0700
+Date: Thu, 26 Sep 2013 15:07:40 -0700
 
 
 The patch titled
-     Subject: kernel/sys.c: remove obsolete #include <linux/kexec.h>
-has been added to the -mm tree.  Its filename is
-     kernel-sysc-remove-obsolete-include-linux-kexech.patch
+     Subject: mm: fix bootmem error handling in pcpu_page_first_chunk()
+has been removed from the -mm tree.  Its filename was
+     mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-sysc-remove-obsolete-include-linux-kexech.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-sysc-remove-obsolete-include-linux-kexech.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: kernel/sys.c: remove obsolete #include <linux/kexec.h>
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: mm: fix bootmem error handling in pcpu_page_first_chunk()
 
-15d94b82565ebfb0 ("reboot: move shutdown/reboot related functions to
-kernel/reboot.c") moved all kexec-related functionality to
-kernel/reboot.c, so kernel/sys.c no longer needs to include
-<linux/kexec.h>.
+If memory allocation in pcpu_embed_first_chunk() fails, the allocated
+memory is not released correctly.  In the release loop also the
+non-allocated elements are released which leads to the following kernel
+BUG on systems with very little memory:
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Robin Holt <holt@sgi.com>
+[    0.000000] kernel BUG at mm/bootmem.c:307!
+[    0.000000] illegal operation: 0001 [#1] PREEMPT SMP DEBUG_PAGEALLOC
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 3.10.0 #22
+[    0.000000] task: 0000000000a20ae0 ti: 0000000000a08000 task.ti: 0000000000a08000
+[    0.000000] Krnl PSW : 0400000180000000 0000000000abda7a (__free+0x116/0x154)
+[    0.000000]            R:0 T:1 IO:0 EX:0 Key:0 M:0 W:0 P:0 AS:0 CC:0 PM:0 EA:3
+...
+[    0.000000]  [<0000000000abdce2>] mark_bootmem_node+0xde/0xf0
+[    0.000000]  [<0000000000abdd9c>] mark_bootmem+0xa8/0x118
+[    0.000000]  [<0000000000abcbba>] pcpu_embed_first_chunk+0xe7a/0xf0c
+[    0.000000]  [<0000000000abcc96>] setup_per_cpu_areas+0x4a/0x28c
+
+To fix the problem now only allocated elements are released.  This then
+leads to the correct kernel panic:
+
+[    0.000000] Kernel panic - not syncing: Failed to initialize percpu areas.
+...
+[    0.000000] Call Trace:
+[    0.000000] ([<000000000011307e>] show_trace+0x132/0x150)
+[    0.000000]  [<0000000000113160>] show_stack+0xc4/0xd4
+[    0.000000]  [<00000000007127dc>] dump_stack+0x74/0xd8
+[    0.000000]  [<00000000007123fe>] panic+0xea/0x264
+[    0.000000]  [<0000000000b14814>] setup_per_cpu_areas+0x5c/0x28c
+
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/percpu.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~kernel-sysc-remove-obsolete-include-linux-kexech kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-remove-obsolete-include-linux-kexech
-+++ a/kernel/sys.c
-@@ -16,7 +16,6 @@
- #include <linux/perf_event.h>
- #include <linux/resource.h>
- #include <linux/kernel.h>
--#include <linux/kexec.h>
- #include <linux/workqueue.h>
- #include <linux/capability.h>
- #include <linux/device.h>
+diff -puN mm/percpu.c~mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk mm/percpu.c
+--- a/mm/percpu.c~mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk
++++ a/mm/percpu.c
+@@ -1705,9 +1705,12 @@ int __init pcpu_embed_first_chunk(size_t
+ 	goto out_free;
+ 
+ out_free_areas:
+-	for (group = 0; group < ai->nr_groups; group++)
++	for (group = 0; group < ai->nr_groups; group++) {
++		if (!areas[group])
++			continue;
+ 		free_fn(areas[group],
+ 			ai->groups[group].nr_units * ai->unit_size);
++	}
+ out_free:
+ 	pcpu_free_alloc_info(ai);
+ 	if (areas)
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
-origin.patch
-genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-kconfig-fix-grammar-s-an-a.patch
-syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
-scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
-kernel-sysc-remove-obsolete-include-linux-kexech.patch
-inith-document-the-existence-of-__initconst.patch
 linux-next.patch
 
