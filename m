@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hwpoison-fix-miss-catch-transparent-huge-page.patch added to -mm tree
-Date: Thu, 26 Sep 2013 11:54:43 -0700
-Message-ID: <524482f3.2GIYrhg1xfBp0dIl%akpm@linux-foundation.org>
+Subject: + mm-hwpoison-fix-false-report-2nd-try-page-recovery.patch added
+ to -mm tree
+Date: Thu, 26 Sep 2013 11:54:44 -0700
+Message-ID: <524482f4.HpI7EVSn8x/5CWwe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60167 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60171 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754555Ab3IZSyp (ORCPT
+	with ESMTP id S1754557Ab3IZSyp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 14:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-hwpoison-fix-miss-catch-transparent-huge-page.patch added to -mm tree
+Subject: + mm-hwpoison-fix-false-report-2nd-try-page-recovery.patch added to -mm tree
 To: liwanp@linux.vnet.ibm.com,ak@linux.intel.com,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Thu, 26 Sep 2013 11:54:43 -0700
+Date: Thu, 26 Sep 2013 11:54:44 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: fix test for a transparent huge page
+     Subject: mm/hwpoison: fix false report on 2nd attempt at page recovery
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
+     mm-hwpoison-fix-false-report-2nd-try-page-recovery.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-false-report-2nd-try-page-recovery.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-false-report-2nd-try-page-recovery.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,45 +45,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: fix test for a transparent huge page
+Subject: mm/hwpoison: fix false report on 2nd attempt at page recovery
 
-PageTransHuge() can't guarantee the page is a transparent huge page since
-it returns true for both transparent huge and hugetlbfs pages.  This patch
-fixes it by checking the page is also !hugetlbfs page.
+If the page is poisoned by software injection w/ MF_COUNT_INCREASED flag,
+there is a false report during the 2nd attempt at page recovery which is
+not truthful.  This patch fixes it by reporting the first attempt to try
+free buddy page recovery if MF_COUNT_INCREASED is set.
 
 Before patch:
 
-[  121.571128] Injecting memory failure at pfn 23a200
-[  121.571141] MCE 0x23a200: huge page recovery: Delayed
-[  140.355100] MCE: Memory failure is now running on 0x23a200
+[  346.332041] Injecting memory failure at pfn 200010
+[  346.332189] MCE 0x200010: free buddy, 2nd try page recovery: Delayed
 
 After patch:
 
-[   94.290793] Injecting memory failure at pfn 23a000
-[   94.290800] MCE 0x23a000: huge page recovery: Delayed
-[  105.722303] MCE: Software-unpoisoned page 0x23a000
+[  297.742600] Injecting memory failure at pfn 200010
+[  297.742941] MCE 0x200010: free buddy page recovery: Delayed
 
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Acked-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-fix-miss-catch-transparent-huge-page mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-fix-miss-catch-transparent-huge-page
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-false-report-2nd-try-page-recovery mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-false-report-2nd-try-page-recovery
 +++ a/mm/memory-failure.c
-@@ -1349,7 +1349,7 @@ int unpoison_memory(unsigned long pfn)
- 	 * worked by memory_failure() and the page lock is not held yet.
- 	 * In such case, we yield to memory_failure() and make unpoison fail.
- 	 */
--	if (PageTransHuge(page)) {
-+	if (!PageHuge(page) && PageTransHuge(page)) {
- 		pr_info("MCE: Memory failure is now running on %#lx\n", pfn);
- 			return 0;
- 	}
+@@ -1114,8 +1114,10 @@ int memory_failure(unsigned long pfn, in
+ 			 * shake_page could have turned it free.
+ 			 */
+ 			if (is_free_buddy_page(p)) {
+-				action_result(pfn, "free buddy, 2nd try",
+-						DELAYED);
++				if (flags & MF_COUNT_INCREASED)
++					action_result(pfn, "free buddy", DELAYED);
++				else
++					action_result(pfn, "free buddy, 2nd try", DELAYED);
+ 				return 0;
+ 			}
+ 			action_result(pfn, "non LRU", IGNORED);
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
