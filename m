@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
- added to -mm tree
-Date: Thu, 26 Sep 2013 14:21:22 -0700
-Message-ID: <5244a552.R/7Rt1mIoDk1FjN3%akpm@linux-foundation.org>
+Subject: + mm-mempolicy-use-numa_no_node.patch added to -mm tree
+Date: Thu, 26 Sep 2013 14:22:12 -0700
+Message-ID: <5244a584.iozc7+rnLZisBz8P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33613 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33621 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753959Ab3IZVVX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 17:21:23 -0400
+	with ESMTP id S1753959Ab3IZVWM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 17:22:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, cl@linux-foundation.org, holzheu@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, wujianguo@huawei.com
 
-Subject: + mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch added to -mm tree
-To: holzheu@linux.vnet.ibm.com,cl@linux-foundation.org,tj@kernel.org
+Subject: + mm-mempolicy-use-numa_no_node.patch added to -mm tree
+To: wujianguo@huawei.com,kosaki.motohiro@jp.fujitsu.com,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 26 Sep 2013 14:21:22 -0700
+Date: Thu, 26 Sep 2013 14:22:12 -0700
 
 
 The patch titled
-     Subject: mm: fix bootmem error handling in pcpu_page_first_chunk()
+     Subject: mm/mempolicy: use NUMA_NO_NODE
 has been added to the -mm tree.  Its filename is
-     mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
+     mm-mempolicy-use-numa_no_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-use-numa_no_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-use-numa_no_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,69 +43,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Subject: mm: fix bootmem error handling in pcpu_page_first_chunk()
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/mempolicy: use NUMA_NO_NODE
 
-If memory allocation in pcpu_embed_first_chunk() fails, the allocated
-memory is not released correctly.  In the release loop also the
-non-allocated elements are released which leads to the following kernel
-BUG on systems with very little memory:
+Use more appropriate NUMA_NO_NODE instead of -1
 
-[    0.000000] kernel BUG at mm/bootmem.c:307!
-[    0.000000] illegal operation: 0001 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-[    0.000000] Modules linked in:
-[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 3.10.0 #22
-[    0.000000] task: 0000000000a20ae0 ti: 0000000000a08000 task.ti: 0000000000a08000
-[    0.000000] Krnl PSW : 0400000180000000 0000000000abda7a (__free+0x116/0x154)
-[    0.000000]            R:0 T:1 IO:0 EX:0 Key:0 M:0 W:0 P:0 AS:0 CC:0 PM:0 EA:3
-...
-[    0.000000]  [<0000000000abdce2>] mark_bootmem_node+0xde/0xf0
-[    0.000000]  [<0000000000abdd9c>] mark_bootmem+0xa8/0x118
-[    0.000000]  [<0000000000abcbba>] pcpu_embed_first_chunk+0xe7a/0xf0c
-[    0.000000]  [<0000000000abcc96>] setup_per_cpu_areas+0x4a/0x28c
-
-To fix the problem now only allocated elements are released.  This then
-leads to the correct kernel panic:
-
-[    0.000000] Kernel panic - not syncing: Failed to initialize percpu areas.
-...
-[    0.000000] Call Trace:
-[    0.000000] ([<000000000011307e>] show_trace+0x132/0x150)
-[    0.000000]  [<0000000000113160>] show_stack+0xc4/0xd4
-[    0.000000]  [<00000000007127dc>] dump_stack+0x74/0xd8
-[    0.000000]  [<00000000007123fe>] panic+0xea/0x264
-[    0.000000]  [<0000000000b14814>] setup_per_cpu_areas+0x5c/0x28c
-
-Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/percpu.c~mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk mm/percpu.c
---- a/mm/percpu.c~mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk
-+++ a/mm/percpu.c
-@@ -1705,9 +1705,12 @@ int __init pcpu_embed_first_chunk(size_t
- 	goto out_free;
+diff -puN mm/mempolicy.c~mm-mempolicy-use-numa_no_node mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-use-numa_no_node
++++ a/mm/mempolicy.c
+@@ -1125,7 +1125,7 @@ int do_migrate_pages(struct mm_struct *m
+ 	tmp = *from;
+ 	while (!nodes_empty(tmp)) {
+ 		int s,d;
+-		int source = -1;
++		int source = NUMA_NO_NODE;
+ 		int dest = 0;
  
- out_free_areas:
--	for (group = 0; group < ai->nr_groups; group++)
-+	for (group = 0; group < ai->nr_groups; group++) {
-+		if (!areas[group])
-+			continue;
- 		free_fn(areas[group],
- 			ai->groups[group].nr_units * ai->unit_size);
-+	}
- out_free:
- 	pcpu_free_alloc_info(ai);
- 	if (areas)
+ 		for_each_node_mask(s, tmp) {
+@@ -1160,7 +1160,7 @@ int do_migrate_pages(struct mm_struct *m
+ 			if (!node_isset(dest, tmp))
+ 				break;
+ 		}
+-		if (source == -1)
++		if (source == NUMA_NO_NODE)
+ 			break;
+ 
+ 		node_clear(source, tmp);
+@@ -1811,7 +1811,7 @@ static unsigned offset_il_node(struct me
+ 	unsigned nnodes = nodes_weight(pol->v.nodes);
+ 	unsigned target;
+ 	int c;
+-	int nid = -1;
++	int nid = NUMA_NO_NODE;
+ 
+ 	if (!nnodes)
+ 		return numa_node_id();
+@@ -1848,11 +1848,11 @@ static inline unsigned interleave_nid(st
+ 
+ /*
+  * Return the bit number of a random bit set in the nodemask.
+- * (returns -1 if nodemask is empty)
++ * (returns NUMA_NO_NODE if nodemask is empty)
+  */
+ int node_random(const nodemask_t *maskp)
+ {
+-	int w, bit = -1;
++	int w, bit = NUMA_NO_NODE;
+ 
+ 	w = nodes_weight(*maskp);
+ 	if (w)
 _
 
-Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
+Patches currently in -mm which might be from wujianguo@huawei.com are
 
-mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
+x86-srat-use-numa_no_node.patch
+mm-vmalloc-use-numa_no_node.patch
+mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
+mm-arch-use-numa_no_node.patch
+mm-mempolicy-use-numa_no_node.patch
 linux-next.patch
 
