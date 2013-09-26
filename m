@@ -1,126 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page.patch added to -mm tree
-Date: Thu, 26 Sep 2013 11:54:45 -0700
-Message-ID: <524482f5.mRxSCZ8ZxjakSlgg%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 26 Sep 2013 12:27:51 -0700
+Message-ID: <52448ab7.mB3GbIWcwi+lakSQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60175 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60396 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754560Ab3IZSyq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 14:54:46 -0400
+	with ESMTP id S1751677Ab3IZT1w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 15:27:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,ak@linux.intel.com,n-horiguchi@ah.jp.nec.com
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 26 Sep 2013 11:54:45 -0700
+Date: Thu, 26 Sep 2013 12:27:51 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: fix the lack of one reference count against poisoned page
-has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: fix the lack of one reference count against poisoned page
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The lack of one reference count against poisoned page for hwpoison_inject
-w/o hwpoison_filter enabled result in hwpoison detect -1 users still
-referenced the page, however, the number should be 0 except the poison
-handler held one after successfully unmap.  This patch fix it by hold one
-referenced count against poisoned page for hwpoison_inject w/ and w/o
-hwpoison_filter enabled.
-
-Before patch:
-
-[   71.902112] Injecting memory failure at pfn 224706
-[   71.902137] MCE 0x224706: dirty LRU page recovery: Failed
-[   71.902138] MCE 0x224706: dirty LRU page still referenced by -1 users
-
-After patch:
-
-[   94.710860] Injecting memory failure at pfn 215b68
-[   94.710885] MCE 0x215b68: dirty LRU page recovery: Recovered
-
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Andi Kleen <ak@linux.intel.com>
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hwpoison-inject.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/reboot.c |    4 ----
+ mm/memcontrol.c |    4 ----
+ 2 files changed, 8 deletions(-)
 
-diff -puN mm/hwpoison-inject.c~mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page mm/hwpoison-inject.c
---- a/mm/hwpoison-inject.c~mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page
-+++ a/mm/hwpoison-inject.c
-@@ -20,8 +20,6 @@ static int hwpoison_inject(void *data, u
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
+diff -puN kernel/reboot.c~linux-next-git-rejects kernel/reboot.c
+--- a/kernel/reboot.c~linux-next-git-rejects
++++ a/kernel/reboot.c
+@@ -38,11 +38,7 @@ enum reboot_mode reboot_mode DEFAULT_REB
+  * been set on the command line).  This is needed so that we can
+  * suppress DMI scanning for reboot quirks.  Without it, it's
+  * impossible to override a faulty reboot quirk without recompiling.
+-<<<<<<< HEAD
+  */
+-=======
+-*/
+->>>>>>> linux-next/akpm-base
+ int reboot_default = 1;
+ int reboot_cpu;
+ enum reboot_type reboot_type = BOOT_ACPI;
+diff -puN mm/memcontrol.c~linux-next-git-rejects mm/memcontrol.c
+--- a/mm/memcontrol.c~linux-next-git-rejects
++++ a/mm/memcontrol.c
+@@ -6216,12 +6216,8 @@ static void __mem_cgroup_free(struct mem
+ 	int node;
+ 	size_t size = memcg_size();
  
--	if (!hwpoison_filter_enable)
--		goto inject;
- 	if (!pfn_valid(pfn))
- 		return -ENXIO;
+-<<<<<<< HEAD
+ 	mem_cgroup_remove_from_trees(memcg);
+-	free_css_id(&mem_cgroup_subsys, &memcg->css);
  
-@@ -33,6 +31,9 @@ static int hwpoison_inject(void *data, u
- 	if (!get_page_unless_zero(hpage))
- 		return 0;
+-=======
+->>>>>>> linux-next/akpm-base
+ 	for_each_node(node)
+ 		free_mem_cgroup_per_zone_info(memcg, node);
  
-+	if (!hwpoison_filter_enable)
-+		goto inject;
-+
- 	if (!PageLRU(p) && !PageHuge(p))
- 		shake_page(p, 0);
- 	/*
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
-mm-compactionc-periodically-schedule-when-freeing-pages.patch
-mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch
-mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
-mm-hwpoison-fix-false-report-2nd-try-page-recovery.patch
-mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page.patch
-ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
-mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
-mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
-mm-vmalloc-dont-set-area-caller-twice.patch
-mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
-mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
-revert-mm-vmallocc-emit-the-failure-message-before-return.patch
-memblock-factor-out-of-top-down-allocation.patch
-memblock-introduce-bottom-up-allocation-mode.patch
-x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
-x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
-mem-hotplug-introduce-movablenode-boot-option.patch
-mm-thp-cleanup-mv-alloc_hugepage-to-better-place.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
+origin.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
+fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
+include-asm-generic-vtimeh-avoid-zero-length-file.patch
+mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists-fix.patch
+sound-soc-atmel-atmel-pcmc-fix-warning.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate.patch
+fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
+linux-next-rejects.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
