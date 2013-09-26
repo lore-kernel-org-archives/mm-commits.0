@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mlockc-prevent-walking-off-the-end-of-a-pagetable-in-no-pmd-configuration.patch added to -mm tree
-Date: Wed, 25 Sep 2013 16:27:57 -0700
-Message-ID: <5243717d.wJpjXZF42ZHTTNC7%akpm@linux-foundation.org>
+Subject: + x86-mm-factor-out-of-top-down-direct-mapping-setup.patch added
+ to -mm tree
+Date: Wed, 25 Sep 2013 17:05:24 -0700
+Message-ID: <52437a44.I/idP31T/AcGnKbW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51025 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51375 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751278Ab3IYX2A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 19:28:00 -0400
+	with ESMTP id S1751061Ab3IZAF0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:05:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, joern@logfs.org, hughd@google.com, hannes@cmpxchg.org, fengguang.wu@intel.com, bob.liu@oracle.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, tangchen@cn.fujitsu.com
 
-Subject: + mm-mlockc-prevent-walking-off-the-end-of-a-pagetable-in-no-pmd-configuration.patch added to -mm tree
-To: vbabka@suse.cz,bob.liu@oracle.com,fengguang.wu@intel.com,hannes@cmpxchg.org,hughd@google.com,joern@logfs.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,walken@google.com
+Subject: + x86-mm-factor-out-of-top-down-direct-mapping-setup.patch added to -mm tree
+To: tangchen@cn.fujitsu.com,hannes@cmpxchg.org,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,kamezawa.hiroyu@jp.fujitsu.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 16:27:57 -0700
+Date: Wed, 25 Sep 2013 17:05:24 -0700
 
 
 The patch titled
-     Subject: mm/mlock.c: prevent walking off the end of a pagetable in no-pmd configuration
+     Subject: x86/mm: factor out top-down direct mapping setup
 has been added to the -mm tree.  Its filename is
-     mm-mlockc-prevent-walking-off-the-end-of-a-pagetable-in-no-pmd-configuration.patch
+     x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlockc-prevent-walking-off-the-end-of-a-pagetable-in-no-pmd-configuration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlockc-prevent-walking-off-the-end-of-a-pagetable-in-no-pmd-configuration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,65 +44,145 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/mlock.c: prevent walking off the end of a pagetable in no-pmd configuration
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: x86/mm: factor out top-down direct mapping setup
 
-The function __munlock_pagevec_fill() introduced in 7a8010cd3 ("mm:
-munlock: manual pte walk in fast path instead of follow_page_mask()") uses
-pmd_addr_end() for restricting its operation within current page table. 
-This is insufficient on architectures/configurations where pmd is folded
-and pmd_addr_end() just returns the end of the full range to be walked. 
-In this case, it allows pte++ to walk off the end of a page table
-resulting in unpredictable behaviour.
+Create a new function memory_map_top_down to factor out of the top-down
+direct memory mapping pagetable setup.  This is also a preparation for the
+following patch, which will introduce the bottom-up memory mapping.  That
+said, we will put the two ways of pagetable setup into separate functions,
+and choose to use which way in init_mem_mapping, which makes the code more
+clear.
 
-This patch fixes the function by using pgd_addr_end() and pud_addr_end()
-before pmd_addr_end(), which will yield correct page table boundary on all
-configurations.  This is similar to what existing page walkers do when
-walking each level of the page table.
-
-Additionaly, the patch clarifies a comment for get_locked_pte() call in the
-function.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Reviewed-by: Bob Liu <bob.liu@oracle.com>
-Cc: Jörn Engel <joern@logfs.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jiang Liu <jiang.liu@huawei.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/x86/mm/init.c |   58 ++++++++++++++++++++++++++++---------------
+ 1 file changed, 38 insertions(+), 20 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlockc-prevent-walking-off-the-end-of-a-pagetable-in-no-pmd-configuration mm/mlock.c
---- a/mm/mlock.c~mm-mlockc-prevent-walking-off-the-end-of-a-pagetable-in-no-pmd-configuration
-+++ a/mm/mlock.c
-@@ -379,10 +379,14 @@ static unsigned long __munlock_pagevec_f
+diff -puN arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup
++++ a/arch/x86/mm/init.c
+@@ -401,27 +401,26 @@ static unsigned long __init init_range_m
  
- 	/*
- 	 * Initialize pte walk starting at the already pinned page where we
--	 * are sure that there is a pte.
-+	 * are sure that there is a pte, as it was pinned under the same
-+	 * mmap_sem write op.
+ /* (PUD_SHIFT-PMD_SHIFT)/2 */
+ #define STEP_SIZE_SHIFT 5
+-void __init init_mem_mapping(void)
++
++/**
++ * memory_map_top_down - Map [map_start, map_end) top down
++ * @map_start: start address of the target memory range
++ * @map_end: end address of the target memory range
++ *
++ * This function will setup direct mapping for memory range
++ * [map_start, map_end) in top-down.
++ */
++static void __init memory_map_top_down(unsigned long map_start,
++				       unsigned long map_end)
+ {
+-	unsigned long end, real_end, start, last_start;
++	unsigned long real_end, start, last_start;
+ 	unsigned long step_size;
+ 	unsigned long addr;
+ 	unsigned long mapped_ram_size = 0;
+ 	unsigned long new_mapped_ram_size;
+ 
+-	probe_page_size_mask();
+-
+-#ifdef CONFIG_X86_64
+-	end = max_pfn << PAGE_SHIFT;
+-#else
+-	end = max_low_pfn << PAGE_SHIFT;
+-#endif
+-
+-	/* the ISA range is always mapped regardless of memory holes */
+-	init_memory_mapping(0, ISA_END_ADDRESS);
+-
+ 	/* xen has big range in reserved near end of ram, skip it at first.*/
+-	addr = memblock_find_in_range(ISA_END_ADDRESS, end, PMD_SIZE, PMD_SIZE);
++	addr = memblock_find_in_range(map_start, map_end, PMD_SIZE, PMD_SIZE);
+ 	real_end = addr + PMD_SIZE;
+ 
+ 	/* step_size need to be small so pgt_buf from BRK could cover it */
+@@ -436,13 +435,13 @@ void __init init_mem_mapping(void)
+ 	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
+ 	 * for page table.
  	 */
- 	pte = get_locked_pte(vma->vm_mm, start,	&ptl);
--	end = min(end, pmd_addr_end(start, end));
-+	/* Make sure we do not cross the page table boundary */
-+	end = pgd_addr_end(start, end);
-+	end = pud_addr_end(start, end);
-+	end = pmd_addr_end(start, end);
+-	while (last_start > ISA_END_ADDRESS) {
++	while (last_start > map_start) {
+ 		if (last_start > step_size) {
+ 			start = round_down(last_start - 1, step_size);
+-			if (start < ISA_END_ADDRESS)
+-				start = ISA_END_ADDRESS;
++			if (start < map_start)
++				start = map_start;
+ 		} else
+-			start = ISA_END_ADDRESS;
++			start = map_start;
+ 		new_mapped_ram_size = init_range_memory_mapping(start,
+ 							last_start);
+ 		last_start = start;
+@@ -453,8 +452,27 @@ void __init init_mem_mapping(void)
+ 		mapped_ram_size += new_mapped_ram_size;
+ 	}
  
- 	/* The page next to the pinned page is the first we will try to get */
- 	start += PAGE_SIZE;
+-	if (real_end < end)
+-		init_range_memory_mapping(real_end, end);
++	if (real_end < map_end)
++		init_range_memory_mapping(real_end, map_end);
++}
++
++void __init init_mem_mapping(void)
++{
++	unsigned long end;
++
++	probe_page_size_mask();
++
++#ifdef CONFIG_X86_64
++	end = max_pfn << PAGE_SHIFT;
++#else
++	end = max_low_pfn << PAGE_SHIFT;
++#endif
++
++	/* the ISA range is always mapped regardless of memory holes */
++	init_memory_mapping(0, ISA_END_ADDRESS);
++
++	/* setup direct mapping for range [ISA_END_ADDRESS, end) in top-down*/
++	memory_map_top_down(ISA_END_ADDRESS, end);
+ 
+ #ifdef CONFIG_X86_64
+ 	if (max_pfn > max_low_pfn) {
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
-mm-mlockc-prevent-walking-off-the-end-of-a-pagetable-in-no-pmd-configuration.patch
+memblock-factor-out-of-top-down-allocation.patch
+memblock-introduce-bottom-up-allocation-mode.patch
+x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
+x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
+mem-hotplug-introduce-movablenode-boot-option.patch
 
