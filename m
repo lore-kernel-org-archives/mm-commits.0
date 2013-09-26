@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
- added to -mm tree
-Date: Wed, 25 Sep 2013 18:08:23 -0700
-Message-ID: <52438907.qBnCMwneM+owuz8s%akpm@linux-foundation.org>
+Subject: +
+ block-change-config-option-name-for-cmdline-partition-parsing.patch added
+ to -mm tree
+Date: Wed, 25 Sep 2013 18:09:24 -0700
+Message-ID: <52438944.7W1k/kCeADHy4g25%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51895 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827Ab3IZBIY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 21:08:24 -0400
+	with ESMTP id S1754791Ab3IZBJZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 21:09:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mel@csn.ul.ie, lliubbo@gmail.com, kirill.shutemov@linux.intel.com, isimatu.yasuaki@jp.fujitsu.com, davidoff@qedmf.net, bob.liu@oracle.com, aarcange@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, yongjun_wei@trendmicro.com.cn, caizhiyong@huawei.com, axboe@kernel.dk, paul.gortmaker@windriver.com
 
-Subject: + mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,aarcange@redhat.com,bob.liu@oracle.com,davidoff@qedmf.net,isimatu.yasuaki@jp.fujitsu.com,kirill.shutemov@linux.intel.com,lliubbo@gmail.com,mel@csn.ul.ie
+Subject: + block-change-config-option-name-for-cmdline-partition-parsing.patch added to -mm tree
+To: paul.gortmaker@windriver.com,axboe@kernel.dk,caizhiyong@huawei.com,yongjun_wei@trendmicro.com.cn
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 18:08:23 -0700
+Date: Wed, 25 Sep 2013 18:09:24 -0700
 
 
 The patch titled
-     Subject: mm-thp-khugepaged-add-policy-for-finding-target-node-fix
+     Subject: block: change config option name for cmdline partition parsing
 has been added to the -mm tree.  Its filename is
-     mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+     block-change-config-option-name-for-cmdline-partition-parsing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-change-config-option-name-for-cmdline-partition-parsing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-change-config-option-name-for-cmdline-partition-parsing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,76 +45,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-khugepaged-add-policy-for-finding-target-node-fix
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: block: change config option name for cmdline partition parsing
 
-make last_khugepaged_target_node local to khugepaged_find_target_node()
+Recently added bab55417b10c9 ("block: support embedded device command line
+partition") introduced CONFIG_CMDLINE_PARSER.  However, that name is too
+generic and sounds like it enables/disables generic kernel boot arg
+processing, when it really is block specific.
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrew Davidoff <davidoff@qedmf.net>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Bob Liu <lliubbo@gmail.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Before this option becomes a part of a full/final release, add the BLK_
+prefix to it so that it is clear in absence of any other context that it
+is block specific.
+
+In addition, fix up the following less critical items:
+ - help text was not really at all helpful.
+ - index file for Documentation was not updated
+ - add the new arg to Documentation/kernel-parameters.txt
+ - clarify wording in source comments
+
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Cai Zhiyong <caizhiyong@huawei.com>
+Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/block/00-INDEX              |    2 ++
+ Documentation/block/cmdline-partition.txt |    8 ++++----
+ Documentation/kernel-parameters.txt       |    4 ++++
+ block/Kconfig                             |    9 +++++++--
+ block/Makefile                            |    2 +-
+ block/partitions/Kconfig                  |    4 ++--
+ block/partitions/cmdline.c                |    8 ++++----
+ 7 files changed, 24 insertions(+), 13 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-khugepaged-add-policy-for-finding-target-node-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-khugepaged-add-policy-for-finding-target-node-fix
-+++ a/mm/huge_memory.c
-@@ -2133,10 +2133,11 @@ static void khugepaged_alloc_sleep(void)
- }
+diff -puN Documentation/block/00-INDEX~block-change-config-option-name-for-cmdline-partition-parsing Documentation/block/00-INDEX
+--- a/Documentation/block/00-INDEX~block-change-config-option-name-for-cmdline-partition-parsing
++++ a/Documentation/block/00-INDEX
+@@ -6,6 +6,8 @@ capability.txt
+ 	- Generic Block Device Capability (/sys/block/<device>/capability)
+ cfq-iosched.txt
+ 	- CFQ IO scheduler tunables
++cmdline-partition.txt
++	- how to specify block device partitions on kernel command line
+ data-integrity.txt
+ 	- Block data integrity
+ deadline-iosched.txt
+diff -puN Documentation/block/cmdline-partition.txt~block-change-config-option-name-for-cmdline-partition-parsing Documentation/block/cmdline-partition.txt
+--- a/Documentation/block/cmdline-partition.txt~block-change-config-option-name-for-cmdline-partition-parsing
++++ a/Documentation/block/cmdline-partition.txt
+@@ -1,9 +1,9 @@
+-Embedded device command line partition
++Embedded device command line partition parsing
+ =====================================================================
  
- static int khugepaged_node_load[MAX_NUMNODES];
+-Read block device partition table from command line.
+-The partition used for fixed block device (eMMC) embedded device.
+-It is no MBR, save storage space. Bootloader can be easily accessed
++Support for reading the block device partition table from the command line.
++It is typically used for fixed block (eMMC) embedded devices.
++It has no MBR, so saves storage space. Bootloader can be easily accessed
+ by absolute address of data on the block device.
+ Users can easily change the partition.
+ 
+diff -puN Documentation/kernel-parameters.txt~block-change-config-option-name-for-cmdline-partition-parsing Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~block-change-config-option-name-for-cmdline-partition-parsing
++++ a/Documentation/kernel-parameters.txt
+@@ -480,6 +480,10 @@ bytes respectively. Such letter suffixes
+ 			Format: <io>,<irq>,<mode>
+ 			See header of drivers/net/hamradio/baycom_ser_hdx.c.
+ 
++	blkdevparts=	Manual partition parsing of block device(s) for
++			embedded devices based on command line input.
++			See Documentation/block/cmdline-partition.txt
 +
- #ifdef CONFIG_NUMA
--static int last_khugepaged_target_node = NUMA_NO_NODE;
- static int khugepaged_find_target_node(void)
- {
-+	static int last_khugepaged_target_node = NUMA_NO_NODE;
- 	int nid, target_node = 0, max_value = 0;
+ 	boot_delay=	Milliseconds to delay each printk during boot.
+ 			Values larger than 10 seconds (10000) are changed to
+ 			no delay (0).
+diff -puN block/Kconfig~block-change-config-option-name-for-cmdline-partition-parsing block/Kconfig
+--- a/block/Kconfig~block-change-config-option-name-for-cmdline-partition-parsing
++++ a/block/Kconfig
+@@ -99,11 +99,16 @@ config BLK_DEV_THROTTLING
  
- 	/* find first node with max normal pages hit */
+ 	See Documentation/cgroups/blkio-controller.txt for more information.
+ 
+-config CMDLINE_PARSER
++config BLK_CMDLINE_PARSER
+ 	bool "Block device command line partition parser"
+ 	default n
+ 	---help---
+-	Parsing command line, get the partitions information.
++	Enabling this option allows you to specify the partition layout from
++	the kernel boot args.  This is typically of use for embedded devices
++	which don't otherwise have any standardized method for listing the
++	partitions on a block device.
++
++	See Documentation/block/cmdline-partition.txt for more information.
+ 
+ menu "Partition Types"
+ 
+diff -puN block/Makefile~block-change-config-option-name-for-cmdline-partition-parsing block/Makefile
+--- a/block/Makefile~block-change-config-option-name-for-cmdline-partition-parsing
++++ a/block/Makefile
+@@ -18,4 +18,4 @@ obj-$(CONFIG_IOSCHED_CFQ)	+= cfq-iosched
+ 
+ obj-$(CONFIG_BLOCK_COMPAT)	+= compat_ioctl.o
+ obj-$(CONFIG_BLK_DEV_INTEGRITY)	+= blk-integrity.o
+-obj-$(CONFIG_CMDLINE_PARSER)	+= cmdline-parser.o
++obj-$(CONFIG_BLK_CMDLINE_PARSER)	+= cmdline-parser.o
+diff -puN block/partitions/Kconfig~block-change-config-option-name-for-cmdline-partition-parsing block/partitions/Kconfig
+--- a/block/partitions/Kconfig~block-change-config-option-name-for-cmdline-partition-parsing
++++ a/block/partitions/Kconfig
+@@ -263,7 +263,7 @@ config SYSV68_PARTITION
+ 
+ config CMDLINE_PARTITION
+ 	bool "Command line partition support" if PARTITION_ADVANCED
+-	select CMDLINE_PARSER
++	select BLK_CMDLINE_PARSER
+ 	help
+-	  Say Y here if you would read the partitions table from bootargs.
++	  Say Y here if you want to read the partition table from bootargs.
+ 	  The format for the command line is just like mtdparts.
+diff -puN block/partitions/cmdline.c~block-change-config-option-name-for-cmdline-partition-parsing block/partitions/cmdline.c
+--- a/block/partitions/cmdline.c~block-change-config-option-name-for-cmdline-partition-parsing
++++ a/block/partitions/cmdline.c
+@@ -2,15 +2,15 @@
+  * Copyright (C) 2013 HUAWEI
+  * Author: Cai Zhiyong <caizhiyong@huawei.com>
+  *
+- * Read block device partition table from command line.
+- * The partition used for fixed block device (eMMC) embedded device.
+- * It is no MBR, save storage space. Bootloader can be easily accessed
++ * Read block device partition table from the command line.
++ * Typically used for fixed block (eMMC) embedded devices.
++ * It has no MBR, so saves storage space. Bootloader can be easily accessed
+  * by absolute address of data on the block device.
+  * Users can easily change the partition.
+  *
+  * The format for the command line is just like mtdparts.
+  *
+- * Verbose config please reference "Documentation/block/cmdline-partition.txt"
++ * For further information, see "Documentation/block/cmdline-partition.txt"
+  *
+  */
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from paul.gortmaker@windriver.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
-include-asm-generic-vtimeh-avoid-zero-length-file.patch
-mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists-fix.patch
-sound-soc-atmel-atmel-pcmc-fix-warning.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+block-change-config-option-name-for-cmdline-partition-parsing.patch
 
