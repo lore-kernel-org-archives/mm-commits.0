@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch added to -mm tree
-Date: Wed, 25 Sep 2013 17:40:52 -0700
-Message-ID: <52438294.ojDhrV2rsWM0gwDi%akpm@linux-foundation.org>
+Subject: + gcov-reuse-kbasename-helper.patch added to -mm tree
+Date: Wed, 25 Sep 2013 17:59:21 -0700
+Message-ID: <524386e9.2ErHYT0HqSiqro+k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51702 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51836 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755018Ab3IZAkx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:40:53 -0400
+	with ESMTP id S1752591Ab3IZA7W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:59:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, rientjes@google.com, mitsuo.hayasaka.hu@hitachi.com, kosaki.motohiro@jp.fujitsu.com, iamjoonsoo.kim@lge.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, peter.oberparleiter@de.ibm.com, jg1.han@samsung.com, andriy.shevchenko@linux.intel.com
 
-Subject: + mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,iamjoonsoo.kim@lge.com,kosaki.motohiro@jp.fujitsu.com,mitsuo.hayasaka.hu@hitachi.com,rientjes@google.com,zhangyanfei@cn.fujitsu.com
+Subject: + gcov-reuse-kbasename-helper.patch added to -mm tree
+To: andriy.shevchenko@linux.intel.com,jg1.han@samsung.com,peter.oberparleiter@de.ibm.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 17:40:52 -0700
+Date: Wed, 25 Sep 2013 17:59:21 -0700
 
 
 The patch titled
-     Subject: mm/vmalloc: revert "mm/vmalloc.c: check VM_UNINITIALIZED flag in s_show instead of show_numa_info"
+     Subject: gcov: reuse kbasename helper
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+     gcov-reuse-kbasename-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/gcov-reuse-kbasename-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-reuse-kbasename-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,75 +43,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/vmalloc: revert "mm/vmalloc.c: check VM_UNINITIALIZED flag in s_show instead of show_numa_info"
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: gcov: reuse kbasename helper
 
-The VM_UNINITIALIZED/VM_UNLIST flag introduced by f5252e00 ("mm:
-avoid null pointer access in vm_struct via /proc/vmallocinfo") is used to
-avoid accessing the pages field with unallocated page when
-show_numa_info() is called.  This patch move the check just before
-show_numa_info in order that some messages still can be dumped via
-/proc/vmallocinfo.  This patch revert commit d157a558 ("mm/vmalloc.c: check
-VM_UNINITIALIZED flag in s_show instead of show_numa_info");
+To get name of the file from a pathname let's use kbasename() helper.
 
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/gcov/fs.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info
-+++ a/mm/vmalloc.c
-@@ -2562,6 +2562,11 @@ static void show_numa_info(struct seq_fi
- 		if (!counters)
- 			return;
- 
-+		/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
-+		smp_rmb();
-+		if (v->flags & VM_UNINITIALIZED)
-+			return;
-+
- 		memset(counters, 0, nr_node_ids * sizeof(unsigned int));
- 
- 		for (nr = 0; nr < v->nr_pages; nr++)
-@@ -2587,11 +2592,6 @@ static int s_show(struct seq_file *m, vo
- 
- 	v = va->vm;
- 
--	/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
--	smp_rmb();
--	if (v->flags & VM_UNINITIALIZED)
--		return 0;
--
- 	seq_printf(m, "0x%pK-0x%pK %7ld",
- 		v->addr, v->addr + v->size, v->size);
- 
+diff -puN kernel/gcov/fs.c~gcov-reuse-kbasename-helper kernel/gcov/fs.c
+--- a/kernel/gcov/fs.c~gcov-reuse-kbasename-helper
++++ a/kernel/gcov/fs.c
+@@ -365,7 +365,7 @@ static const char *deskew(const char *ba
+  */
+ static void add_links(struct gcov_node *node, struct dentry *parent)
+ {
+-	char *basename;
++	const char *basename;
+ 	char *target;
+ 	int num;
+ 	int i;
+@@ -381,10 +381,9 @@ static void add_links(struct gcov_node *
+ 				&gcov_link[i]);
+ 		if (!target)
+ 			goto out_err;
+-		basename = strrchr(target, '/');
+-		if (!basename)
++		basename = kbasename(target);
++		if (basename == target)
+ 			goto out_err;
+-		basename++;
+ 		node->links[i] = debugfs_create_symlink(deskew(basename),
+ 							parent,	target);
+ 		if (!node->links[i])
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
-mm-compactionc-periodically-schedule-when-freeing-pages.patch
-ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
-mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
-mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
-mm-vmalloc-dont-set-area-caller-twice.patch
-mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
-mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
-revert-mm-vmallocc-emit-the-failure-message-before-return.patch
-memblock-factor-out-of-top-down-allocation.patch
-memblock-introduce-bottom-up-allocation-mode.patch
-x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
-x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
-mem-hotplug-introduce-movablenode-boot-option.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+gcov-reuse-kbasename-helper.patch
+linux-next.patch
 
