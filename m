@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-introduce-bottom-up-allocation-mode.patch added to -mm tree
-Date: Wed, 25 Sep 2013 17:05:22 -0700
-Message-ID: <52437a42.d+oOvsoMPpED+/gT%akpm@linux-foundation.org>
+Subject: +
+ x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch added to
+ -mm tree
+Date: Wed, 25 Sep 2013 17:05:26 -0700
+Message-ID: <52437a46.9rBcgwGEcJBJ+exG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51361 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51389 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750896Ab3IZAFY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:05:24 -0400
+	with ESMTP id S1751061Ab3IZAF2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, tangchen@cn.fujitsu.com
 
-Subject: + memblock-introduce-bottom-up-allocation-mode.patch added to -mm tree
+Subject: + x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch added to -mm tree
 To: tangchen@cn.fujitsu.com,hannes@cmpxchg.org,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,kamezawa.hiroyu@jp.fujitsu.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 17:05:22 -0700
+Date: Wed, 25 Sep 2013 17:05:26 -0700
 
 
 The patch titled
-     Subject: mm/memblock.c: introduce bottom-up allocation mode
+     Subject: x86/mem-hotplug: support initializing page tables in bottom-up mode
 has been added to the -mm tree.  Its filename is
-     memblock-introduce-bottom-up-allocation-mode.patch
+     x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memblock-introduce-bottom-up-allocation-mode.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-introduce-bottom-up-allocation-mode.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,29 +46,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mm/memblock.c: introduce bottom-up allocation mode
+Subject: x86/mem-hotplug: support initializing page tables in bottom-up mode
 
 The Linux kernel cannot migrate pages used by the kernel.  As a result,
 kernel pages cannot be hot-removed.  So we cannot allocate hotpluggable
 memory for the kernel.
-
-ACPI SRAT (System Resource Affinity Table) contains the memory hotplug
-info.  But before SRAT is parsed, memblock has already started to allocate
-memory for the kernel.  So we need to prevent memblock from doing this.
 
 In a memory hotplug system, any numa node the kernel resides in should be
 unhotpluggable.  And for a modern server, each node could have at least
 16GB memory.  So memory around the kernel image is highly likely
 unhotpluggable.
 
-So the basic idea is: Allocate memory from the end of the kernel image and
-to the higher memory.  Since memory allocation before SRAT is parsed won't
-be too much, it could highly likely be in the same node with kernel image.
+ACPI SRAT (System Resource Affinity Table) contains the memory hotplug
+info.  But before SRAT is parsed, memblock has already started to allocate
+memory for the kernel.  So we need to prevent memblock from doing this.
 
-The current memblock can only allocate memory top-down.  So this patch
-introduces a new bottom-up allocation mode to allocate memory bottom-up. 
-And later when we use this allocation direction to allocate memory, we
-will limit the start address above the kernel.
+So direct memory mapping page tables setup is the case. 
+init_mem_mapping() is called before SRAT is parsed.  To prevent page
+tables being allocated within hotpluggable memory, we will use bottom-up
+direction to allocate page tables from the end of kernel image to the
+higher memory.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -94,175 +93,90 @@ Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |   16 +++++++
- mm/memblock.c            |   81 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 95 insertions(+), 2 deletions(-)
+ arch/x86/mm/init.c |   64 +++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 62 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memblock.h~memblock-introduce-bottom-up-allocation-mode include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-introduce-bottom-up-allocation-mode
-+++ a/include/linux/memblock.h
-@@ -35,6 +35,7 @@ struct memblock_type {
- };
- 
- struct memblock {
-+	bool bottom_up;  /* is bottom up direction? */
- 	phys_addr_t current_limit;
- 	struct memblock_type memory;
- 	struct memblock_type reserved;
-@@ -148,6 +149,21 @@ phys_addr_t memblock_alloc_try_nid(phys_
- 
- phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align);
- 
-+#ifdef CONFIG_MOVABLE_NODE
-+static inline void memblock_set_bottom_up(bool enable)
-+{
-+	memblock.bottom_up = enable;
-+}
-+
-+static inline bool memblock_bottom_up(void)
-+{
-+	return memblock.bottom_up;
-+}
-+#else
-+static inline void memblock_set_bottom_up(bool enable) {}
-+static inline bool memblock_bottom_up(void) { return false; }
-+#endif
-+
- /* Flags for memblock_alloc_base() amd __memblock_alloc_base() */
- #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
- #define MEMBLOCK_ALLOC_ACCESSIBLE	0
-diff -puN mm/memblock.c~memblock-introduce-bottom-up-allocation-mode mm/memblock.c
---- a/mm/memblock.c~memblock-introduce-bottom-up-allocation-mode
-+++ a/mm/memblock.c
-@@ -20,6 +20,8 @@
- #include <linux/seq_file.h>
- #include <linux/memblock.h>
- 
-+#include <asm-generic/sections.h>
-+
- static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
- static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
- 
-@@ -32,6 +34,7 @@ struct memblock memblock __initdata_memb
- 	.reserved.cnt		= 1,	/* empty dummy entry */
- 	.reserved.max		= INIT_MEMBLOCK_REGIONS,
- 
-+	.bottom_up		= false,
- 	.current_limit		= MEMBLOCK_ALLOC_ANYWHERE,
- };
- 
-@@ -83,6 +86,38 @@ static long __init_memblock memblock_ove
+diff -puN arch/x86/mm/init.c~x86-mem-hotplug-support-initialize-page-tables-in-bottom-up arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~x86-mem-hotplug-support-initialize-page-tables-in-bottom-up
++++ a/arch/x86/mm/init.c
+@@ -456,6 +456,48 @@ static void __init memory_map_top_down(u
+ 		init_range_memory_mapping(real_end, map_end);
  }
  
- /**
-+ * __memblock_find_range - find free area utility
-+ * @start: start of candidate range
-+ * @end: end of candidate range, can be %MEMBLOCK_ALLOC_{ANYWHERE|ACCESSIBLE}
-+ * @size: size of free area to find
-+ * @align: alignment of free area to find
-+ * @nid: nid of the free area to find, %MAX_NUMNODES for any node
-+ *
-+ * Utility called from memblock_find_in_range_node(), find free area bottom-up.
-+ *
-+ * RETURNS:
-+ * Found address on success, 0 on failure.
-+ */
-+static phys_addr_t __init_memblock
-+__memblock_find_range(phys_addr_t start, phys_addr_t end, phys_addr_t size,
-+		      phys_addr_t align, int nid)
-+{
-+	phys_addr_t this_start, this_end, cand;
-+	u64 i;
-+
-+	for_each_free_mem_range(i, nid, &this_start, &this_end, NULL) {
-+		this_start = clamp(this_start, start, end);
-+		this_end = clamp(this_end, start, end);
-+
-+		cand = round_up(this_start, align);
-+		if (cand < this_end && this_end - cand >= size)
-+			return cand;
-+	}
-+
-+	return 0;
-+}
-+
 +/**
-  * __memblock_find_range_rev - find free area utility, in reverse order
-  * @start: start of candidate range
-  * @end: end of candidate range, can be %MEMBLOCK_ALLOC_{ANYWHERE|ACCESSIBLE}
-@@ -93,7 +128,7 @@ static long __init_memblock memblock_ove
-  * Utility called from memblock_find_in_range_node(), find free area top-down.
-  *
-  * RETURNS:
-- * Found address on success, %0 on failure.
-+ * Found address on success, 0 on failure.
-  */
- static phys_addr_t __init_memblock
- __memblock_find_range_rev(phys_addr_t start, phys_addr_t end,
-@@ -127,13 +162,24 @@ __memblock_find_range_rev(phys_addr_t st
-  *
-  * Find @size free area aligned to @align in the specified range and node.
-  *
-+ * When allocation direction is bottom-up, the @start should be greater
-+ * than the end of the kernel image. Otherwise, it will be trimmed. The
-+ * reason is that we want the bottom-up allocation just near the kernel
-+ * image so it is highly likely that the allocated memory and the kernel
-+ * will reside in the same node.
++ * memory_map_bottom_up - Map [map_start, map_end) bottom up
++ * @map_start: start address of the target memory range
++ * @map_end: end address of the target memory range
 + *
-+ * If bottom-up allocation failed, will try to allocate memory top-down.
-+ *
-  * RETURNS:
-- * Found address on success, %0 on failure.
-+ * Found address on success, 0 on failure.
-  */
- phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
- 					phys_addr_t end, phys_addr_t size,
- 					phys_addr_t align, int nid)
- {
-+	int ret;
-+	phys_addr_t kernel_end;
++ * This function will setup direct mapping for memory range
++ * [map_start, map_end) in bottom-up.
++ */
++static void __init memory_map_bottom_up(unsigned long map_start,
++					unsigned long map_end)
++{
++	unsigned long next, new_mapped_ram_size, start;
++	unsigned long mapped_ram_size = 0;
++	/* step_size need to be small so pgt_buf from BRK could cover it */
++	unsigned long step_size = PMD_SIZE;
 +
- 	/* pump up @end */
- 	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
- 		end = memblock.current_limit;
-@@ -141,6 +187,37 @@ phys_addr_t __init_memblock memblock_fin
- 	/* avoid allocating the first page */
- 	start = max_t(phys_addr_t, start, PAGE_SIZE);
- 	end = max(start, end);
-+	kernel_end = __pa_symbol(_end);
++	start = map_start;
++	min_pfn_mapped = start >> PAGE_SHIFT;
 +
 +	/*
-+	 * try bottom-up allocation only when bottom-up mode
-+	 * is set and @end is above the kernel image.
++	 * We start from the bottom (@map_start) and go to the top (@map_end).
++	 * The memblock_find_in_range() gets us a block of RAM from the
++	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
++	 * for page table.
 +	 */
-+	if (memblock_bottom_up() && end > kernel_end) {
-+		phys_addr_t bottom_up_start;
++	while (start < map_end) {
++		if (map_end - start > step_size) {
++			next = round_up(start + 1, step_size);
++			if (next > map_end)
++				next = map_end;
++		} else
++			next = map_end;
 +
-+		/* make sure we will allocate above the kernel */
-+		bottom_up_start = max(start, kernel_end);
++		new_mapped_ram_size = init_range_memory_mapping(start, next);
++		start = next;
 +
-+		/* ok, try bottom-up allocation first */
-+		ret = __memblock_find_range(bottom_up_start, end,
-+					    size, align, nid);
-+		if (ret)
-+			return ret;
++		if (new_mapped_ram_size > mapped_ram_size)
++			step_size <<= STEP_SIZE_SHIFT;
++		mapped_ram_size += new_mapped_ram_size;
++	}
++}
 +
+ void __init init_mem_mapping(void)
+ {
+ 	unsigned long end;
+@@ -471,8 +513,26 @@ void __init init_mem_mapping(void)
+ 	/* the ISA range is always mapped regardless of memory holes */
+ 	init_memory_mapping(0, ISA_END_ADDRESS);
+ 
+-	/* setup direct mapping for range [ISA_END_ADDRESS, end) in top-down*/
+-	memory_map_top_down(ISA_END_ADDRESS, end);
++	/*
++	 * If the allocation is in bottom-up direction, we setup direct mapping
++	 * in bottom-up, otherwise we setup direct mapping in top-down.
++	 */
++	if (memblock_bottom_up()) {
++		unsigned long kernel_end;
++
++		kernel_end = __pa_symbol(_end);
 +		/*
-+		 * we always limit bottom-up allocation above the kernel,
-+		 * but top-down allocation doesn't have the limit, so
-+		 * retrying top-down allocation may succeed when bottom-up
-+		 * allocation failed.
-+		 *
-+		 * bottom-up allocation is expected to be fail very rarely,
-+		 * so we use WARN_ONCE() here to see the stack trace if
-+		 * fail happens.
++		 * we need two separate calls here. This is because we want to
++		 * allocate page tables above the kernel. So we first map
++		 * [kernel_end, end) to make memory above the kernel be mapped
++		 * as soon as possible. And then use page tables allocated above
++		 * the kernel to map [ISA_END_ADDRESS, kernel_end).
 +		 */
-+		WARN_ONCE(1, "memblock: Failed to allocate memory in bottom up "
-+			"direction. Now try top down direction.\n");
++		memory_map_bottom_up(kernel_end, end);
++		memory_map_bottom_up(ISA_END_ADDRESS, kernel_end);
++	} else {
++		memory_map_top_down(ISA_END_ADDRESS, end);
 +	}
  
- 	return __memblock_find_range_rev(start, end, size, align, nid);
- }
+ #ifdef CONFIG_X86_64
+ 	if (max_pfn > max_low_pfn) {
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
