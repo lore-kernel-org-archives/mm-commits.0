@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata.patch
- added to -mm tree
-Date: Wed, 25 Sep 2013 17:08:08 -0700
-Message-ID: <52437ae8.BEUbafv2U8JceLCW%akpm@linux-foundation.org>
+Subject: + documentation-vm-zswaptxt-fix-typos.patch added to -mm tree
+Date: Wed, 25 Sep 2013 17:14:55 -0700
+Message-ID: <52437c7f.+5TqGweYgKJvE5kL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51494 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750853Ab3IZAIJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:08:09 -0400
+	with ESMTP id S1751827Ab3IZAO4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:14:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, mail@eworm.de
 
-Subject: + drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata.patch added to -mm tree
-To: sachin.kamat@linaro.org,jg1.han@samsung.com
+Subject: + documentation-vm-zswaptxt-fix-typos.patch added to -mm tree
+To: mail@eworm.de,sjenning@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 17:08:08 -0700
+Date: Wed, 25 Sep 2013 17:14:55 -0700
 
 
 The patch titled
-     Subject: drivers/video/backlight/tosa_lcd.c: remove redundant spi_set_drvdata
+     Subject: Documentation/vm/zswap.txt: fix typos
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata.patch
+     documentation-vm-zswaptxt-fix-typos.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-vm-zswaptxt-fix-typos.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-vm-zswaptxt-fix-typos.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,42 +43,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/backlight/tosa_lcd.c: remove redundant spi_set_drvdata
+From: Christian Hesse <mail@eworm.de>
+Subject: Documentation/vm/zswap.txt: fix typos
 
-Driver core sets driver data to NULL upon failure or remove.
-
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Christian Hesse <mail@eworm.de>
+Acked-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/tosa_lcd.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ Documentation/vm/zswap.txt |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/tosa_lcd.c~drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata drivers/video/backlight/tosa_lcd.c
---- a/drivers/video/backlight/tosa_lcd.c~drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata
-+++ a/drivers/video/backlight/tosa_lcd.c
-@@ -198,7 +198,7 @@ static int tosa_lcd_probe(struct spi_dev
- 	ret = devm_gpio_request_one(&spi->dev, TOSA_GPIO_TG_ON,
- 				GPIOF_OUT_INIT_LOW, "tg #pwr");
- 	if (ret < 0)
--		goto err_gpio_tg;
-+		return ret;
+diff -puN Documentation/vm/zswap.txt~documentation-vm-zswaptxt-fix-typos Documentation/vm/zswap.txt
+--- a/Documentation/vm/zswap.txt~documentation-vm-zswaptxt-fix-typos
++++ a/Documentation/vm/zswap.txt
+@@ -8,7 +8,7 @@ significant performance improvement if r
+ faster than reads from a swap device.
  
- 	mdelay(60);
+ NOTE: Zswap is a new feature as of v3.11 and interacts heavily with memory
+-reclaim.  This interaction has not be fully explored on the large set of
++reclaim.  This interaction has not been fully explored on the large set of
+ potential configurations and workloads that exist.  For this reason, zswap
+ is a work in progress and should be considered experimental.
  
-@@ -219,8 +219,6 @@ static int tosa_lcd_probe(struct spi_dev
+@@ -23,7 +23,7 @@ Some potential benefits:
+     drastically reducing life-shortening writes.
  
- err_register:
- 	tosa_lcd_tg_off(data);
--err_gpio_tg:
--	spi_set_drvdata(spi, NULL);
- 	return ret;
- }
+ Zswap evicts pages from compressed cache on an LRU basis to the backing swap
+-device when the compressed pool reaches it size limit.  This requirement had
++device when the compressed pool reaches its size limit.  This requirement had
+ been identified in prior community discussions.
  
-@@ -235,8 +233,6 @@ static int tosa_lcd_remove(struct spi_de
+ To enabled zswap, the "enabled" attribute must be set to 1 at boot time.  e.g.
+@@ -37,7 +37,7 @@ the backing swap device in the case that
  
- 	tosa_lcd_tg_off(data);
+ Zswap makes use of zbud for the managing the compressed memory pool.  Each
+ allocation in zbud is not directly accessible by address.  Rather, a handle is
+-return by the allocation routine and that handle must be mapped before being
++returned by the allocation routine and that handle must be mapped before being
+ accessed.  The compressed memory pool grows on demand and shrinks as compressed
+ pages are freed.  The pool is not preallocated.
  
--	spi_set_drvdata(spi, NULL);
+@@ -56,7 +56,7 @@ in the swap_map goes to 0) the swap code
+ via frontswap, to free the compressed entry.
+ 
+ Zswap seeks to be simple in its policies.  Sysfs attributes allow for one user
+-controlled policies:
++controlled policy:
+ * max_pool_percent - The maximum percentage of memory that the compressed
+     pool can occupy.
+ 
+_
+
+Patches currently in -mm which might be from mail@eworm.de are
+
+documentation-vm-zswaptxt-fix-typos.patch
+
