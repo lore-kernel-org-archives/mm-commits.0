@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch added to
+Subject: + memblock-factor-out-of-top-down-allocation-hack.patch added to
  -mm tree
-Date: Thu, 26 Sep 2013 15:15:04 -0700
-Message-ID: <5244b1e8.j/H21H44bWciH0R7%akpm@linux-foundation.org>
+Date: Thu, 26 Sep 2013 15:54:04 -0700
+Message-ID: <5244bb0c.IeJwWRdZ9+a2+Zkt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34700 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35560 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754163Ab3IZWPF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 18:15:05 -0400
+	with ESMTP id S1754142Ab3IZWyF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 18:54:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, tangchen@cn.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tangchen@cn.fujitsu.com, akpm@linux-foundation.org
 
-Subject: + x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,tangchen@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com
+Subject: + memblock-factor-out-of-top-down-allocation-hack.patch added to -mm tree
+To: akpm@linux-foundation.org,tangchen@cn.fujitsu.com,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Thu, 26 Sep 2013 15:15:04 -0700
+Date: Thu, 26 Sep 2013 15:54:04 -0700
 
 
 The patch titled
-     Subject: x86-mm-factor-out-of-top-down-direct-mapping-setup: fix for linux-next
+     Subject: memblock-factor-out-of-top-down-allocation-hack
 has been added to the -mm tree.  Its filename is
-     x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch
+     memblock-factor-out-of-top-down-allocation-hack.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memblock-factor-out-of-top-down-allocation-hack.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-factor-out-of-top-down-allocation-hack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,37 +45,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-mm-factor-out-of-top-down-direct-mapping-setup: fix for linux-next
+Subject: memblock-factor-out-of-top-down-allocation-hack
 
-Resolve x86-mm-factor-out-of-top-down-direct-mapping-setup versus next's
-
-commit 6979287a7df66a92d6f308338e972a406f9ef842
-Author: Yinghai Lu <yinghai@kernel.org>
-Date:   Fri Sep 6 19:07:09 2013 -0700
-
-    x86/mm: Add 'step_size' comments to init_mem_mapping()
+make it build on non-x86
 
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memblock.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix
-+++ a/arch/x86/mm/init.c
-@@ -509,7 +509,7 @@ static void __init memory_map_bottom_up(
- 		start = next;
- 
- 		if (new_mapped_ram_size > mapped_ram_size)
--			step_size <<= STEP_SIZE_SHIFT;
-+			step_size = get_new_step_size(step_size);
- 		mapped_ram_size += new_mapped_ram_size;
- 	}
- }
+diff -puN mm/memblock.c~memblock-factor-out-of-top-down-allocation-hack mm/memblock.c
+--- a/mm/memblock.c~memblock-factor-out-of-top-down-allocation-hack
++++ a/mm/memblock.c
+@@ -187,8 +187,11 @@ phys_addr_t __init_memblock memblock_fin
+ 	/* avoid allocating the first page */
+ 	start = max_t(phys_addr_t, start, PAGE_SIZE);
+ 	end = max(start, end);
++#ifdef CONFIG_X86
+ 	kernel_end = __pa_symbol(_end);
+-
++#else
++	kernel_end = __pa(RELOC_HIDE((unsigned long)(_end), 0));
++#endif
+ 	/*
+ 	 * try bottom-up allocation only when bottom-up mode
+ 	 * is set and @end is above the kernel image.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,6 +90,7 @@ kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
 makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
 mm-readaheadc-do_readhead-dont-check-for-readpage.patch
 mm.patch
+memblock-factor-out-of-top-down-allocation-hack.patch
 mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
 kernel-printk-printkc-convert-to-pr_foo.patch
 checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
