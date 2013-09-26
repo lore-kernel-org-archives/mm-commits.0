@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- block-change-config-option-name-for-cmdline-partition-parsing.patch added
+ mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch added
  to -mm tree
-Date: Wed, 25 Sep 2013 18:09:24 -0700
-Message-ID: <52438944.7W1k/kCeADHy4g25%akpm@linux-foundation.org>
+Date: Thu, 26 Sep 2013 11:54:42 -0700
+Message-ID: <524482f2.JaczmkAl9sKhy4AJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51895 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60162 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754791Ab3IZBJZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 21:09:25 -0400
+	with ESMTP id S1754549Ab3IZSyn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 14:54:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yongjun_wei@trendmicro.com.cn, caizhiyong@huawei.com, axboe@kernel.dk, paul.gortmaker@windriver.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, liwanp@linux.vnet.ibm.com
 
-Subject: + block-change-config-option-name-for-cmdline-partition-parsing.patch added to -mm tree
-To: paul.gortmaker@windriver.com,axboe@kernel.dk,caizhiyong@huawei.com,yongjun_wei@trendmicro.com.cn
+Subject: + mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,ak@linux.intel.com,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 18:09:24 -0700
+Date: Thu, 26 Sep 2013 11:54:42 -0700
 
 
 The patch titled
-     Subject: block: change config option name for cmdline partition parsing
+     Subject: mm/hwpoison: fix traversal of hugetlbfs pages to avoid printk flood
 has been added to the -mm tree.  Its filename is
-     block-change-config-option-name-for-cmdline-partition-parsing.patch
+     mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/block-change-config-option-name-for-cmdline-partition-parsing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/block-change-config-option-name-for-cmdline-partition-parsing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,153 +45,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: block: change config option name for cmdline partition parsing
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/hwpoison: fix traversal of hugetlbfs pages to avoid printk flood
 
-Recently added bab55417b10c9 ("block: support embedded device command line
-partition") introduced CONFIG_CMDLINE_PARSER.  However, that name is too
-generic and sounds like it enables/disables generic kernel boot arg
-processing, when it really is block specific.
+madvise_hwpoison won't check if the page is small page or huge page and
+traverses in small page granularity against the range unconditionally,
+which result in a printk flood "MCE xxx: already hardware poisoned" if the
+page is a huge page.  This patch fixes it by using
+compound_order(compound_head(page)) for huge page iterator.
 
-Before this option becomes a part of a full/final release, add the BLK_
-prefix to it so that it is clear in absence of any other context that it
-is block specific.
+Testcase:
 
-In addition, fix up the following less critical items:
- - help text was not really at all helpful.
- - index file for Documentation was not updated
- - add the new arg to Documentation/kernel-parameters.txt
- - clarify wording in source comments
+#define _GNU_SOURCE
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <errno.h>
 
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Cai Zhiyong <caizhiyong@huawei.com>
-Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+#define PAGES_TO_TEST 3
+#define PAGE_SIZE	4096 * 512
+
+int main(void)
+{
+	char *mem;
+	int i;
+
+	mem = mmap(NULL, PAGES_TO_TEST * PAGE_SIZE,
+			PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, 0, 0);
+
+	if (madvise(mem, PAGES_TO_TEST * PAGE_SIZE, MADV_HWPOISON) == -1)
+		return -1;
+
+	munmap(mem, PAGES_TO_TEST * PAGE_SIZE);
+
+	return 0;
+}
+
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/block/00-INDEX              |    2 ++
- Documentation/block/cmdline-partition.txt |    8 ++++----
- Documentation/kernel-parameters.txt       |    4 ++++
- block/Kconfig                             |    9 +++++++--
- block/Makefile                            |    2 +-
- block/partitions/Kconfig                  |    4 ++--
- block/partitions/cmdline.c                |    8 ++++----
- 7 files changed, 24 insertions(+), 13 deletions(-)
+ mm/madvise.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/block/00-INDEX~block-change-config-option-name-for-cmdline-partition-parsing Documentation/block/00-INDEX
---- a/Documentation/block/00-INDEX~block-change-config-option-name-for-cmdline-partition-parsing
-+++ a/Documentation/block/00-INDEX
-@@ -6,6 +6,8 @@ capability.txt
- 	- Generic Block Device Capability (/sys/block/<device>/capability)
- cfq-iosched.txt
- 	- CFQ IO scheduler tunables
-+cmdline-partition.txt
-+	- how to specify block device partitions on kernel command line
- data-integrity.txt
- 	- Block data integrity
- deadline-iosched.txt
-diff -puN Documentation/block/cmdline-partition.txt~block-change-config-option-name-for-cmdline-partition-parsing Documentation/block/cmdline-partition.txt
---- a/Documentation/block/cmdline-partition.txt~block-change-config-option-name-for-cmdline-partition-parsing
-+++ a/Documentation/block/cmdline-partition.txt
-@@ -1,9 +1,9 @@
--Embedded device command line partition
-+Embedded device command line partition parsing
- =====================================================================
- 
--Read block device partition table from command line.
--The partition used for fixed block device (eMMC) embedded device.
--It is no MBR, save storage space. Bootloader can be easily accessed
-+Support for reading the block device partition table from the command line.
-+It is typically used for fixed block (eMMC) embedded devices.
-+It has no MBR, so saves storage space. Bootloader can be easily accessed
- by absolute address of data on the block device.
- Users can easily change the partition.
- 
-diff -puN Documentation/kernel-parameters.txt~block-change-config-option-name-for-cmdline-partition-parsing Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~block-change-config-option-name-for-cmdline-partition-parsing
-+++ a/Documentation/kernel-parameters.txt
-@@ -480,6 +480,10 @@ bytes respectively. Such letter suffixes
- 			Format: <io>,<irq>,<mode>
- 			See header of drivers/net/hamradio/baycom_ser_hdx.c.
- 
-+	blkdevparts=	Manual partition parsing of block device(s) for
-+			embedded devices based on command line input.
-+			See Documentation/block/cmdline-partition.txt
-+
- 	boot_delay=	Milliseconds to delay each printk during boot.
- 			Values larger than 10 seconds (10000) are changed to
- 			no delay (0).
-diff -puN block/Kconfig~block-change-config-option-name-for-cmdline-partition-parsing block/Kconfig
---- a/block/Kconfig~block-change-config-option-name-for-cmdline-partition-parsing
-+++ a/block/Kconfig
-@@ -99,11 +99,16 @@ config BLK_DEV_THROTTLING
- 
- 	See Documentation/cgroups/blkio-controller.txt for more information.
- 
--config CMDLINE_PARSER
-+config BLK_CMDLINE_PARSER
- 	bool "Block device command line partition parser"
- 	default n
- 	---help---
--	Parsing command line, get the partitions information.
-+	Enabling this option allows you to specify the partition layout from
-+	the kernel boot args.  This is typically of use for embedded devices
-+	which don't otherwise have any standardized method for listing the
-+	partitions on a block device.
-+
-+	See Documentation/block/cmdline-partition.txt for more information.
- 
- menu "Partition Types"
- 
-diff -puN block/Makefile~block-change-config-option-name-for-cmdline-partition-parsing block/Makefile
---- a/block/Makefile~block-change-config-option-name-for-cmdline-partition-parsing
-+++ a/block/Makefile
-@@ -18,4 +18,4 @@ obj-$(CONFIG_IOSCHED_CFQ)	+= cfq-iosched
- 
- obj-$(CONFIG_BLOCK_COMPAT)	+= compat_ioctl.o
- obj-$(CONFIG_BLK_DEV_INTEGRITY)	+= blk-integrity.o
--obj-$(CONFIG_CMDLINE_PARSER)	+= cmdline-parser.o
-+obj-$(CONFIG_BLK_CMDLINE_PARSER)	+= cmdline-parser.o
-diff -puN block/partitions/Kconfig~block-change-config-option-name-for-cmdline-partition-parsing block/partitions/Kconfig
---- a/block/partitions/Kconfig~block-change-config-option-name-for-cmdline-partition-parsing
-+++ a/block/partitions/Kconfig
-@@ -263,7 +263,7 @@ config SYSV68_PARTITION
- 
- config CMDLINE_PARTITION
- 	bool "Command line partition support" if PARTITION_ADVANCED
--	select CMDLINE_PARSER
-+	select BLK_CMDLINE_PARSER
- 	help
--	  Say Y here if you would read the partitions table from bootargs.
-+	  Say Y here if you want to read the partition table from bootargs.
- 	  The format for the command line is just like mtdparts.
-diff -puN block/partitions/cmdline.c~block-change-config-option-name-for-cmdline-partition-parsing block/partitions/cmdline.c
---- a/block/partitions/cmdline.c~block-change-config-option-name-for-cmdline-partition-parsing
-+++ a/block/partitions/cmdline.c
-@@ -2,15 +2,15 @@
-  * Copyright (C) 2013 HUAWEI
-  * Author: Cai Zhiyong <caizhiyong@huawei.com>
-  *
-- * Read block device partition table from command line.
-- * The partition used for fixed block device (eMMC) embedded device.
-- * It is no MBR, save storage space. Bootloader can be easily accessed
-+ * Read block device partition table from the command line.
-+ * Typically used for fixed block (eMMC) embedded devices.
-+ * It has no MBR, so saves storage space. Bootloader can be easily accessed
-  * by absolute address of data on the block device.
-  * Users can easily change the partition.
-  *
-  * The format for the command line is just like mtdparts.
-  *
-- * Verbose config please reference "Documentation/block/cmdline-partition.txt"
-+ * For further information, see "Documentation/block/cmdline-partition.txt"
-  *
+diff -puN mm/madvise.c~mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood mm/madvise.c
+--- a/mm/madvise.c~mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood
++++ a/mm/madvise.c
+@@ -343,10 +343,11 @@ static long madvise_remove(struct vm_are
   */
+ static int madvise_hwpoison(int bhv, unsigned long start, unsigned long end)
+ {
++	struct page *p;
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+-	for (; start < end; start += PAGE_SIZE) {
+-		struct page *p;
++	for (; start < end; start += PAGE_SIZE <<
++				compound_order(compound_head(p))) {
+ 		int ret;
  
+ 		ret = get_user_pages_fast(start, 1, 0, &p);
 _
 
-Patches currently in -mm which might be from paul.gortmaker@windriver.com are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
-block-change-config-option-name-for-cmdline-partition-parsing.patch
+revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
+mm-compactionc-periodically-schedule-when-freeing-pages.patch
+mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch
+mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
+mm-hwpoison-fix-false-report-2nd-try-page-recovery.patch
+mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page.patch
+ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
+mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
+mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
+mm-vmalloc-dont-set-area-caller-twice.patch
+mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
+mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+memblock-factor-out-of-top-down-allocation.patch
+memblock-introduce-bottom-up-allocation-mode.patch
+x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
+x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
+mem-hotplug-introduce-movablenode-boot-option.patch
+mm-thp-cleanup-mv-alloc_hugepage-to-better-place.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
