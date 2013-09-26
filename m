@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-sx8c-use-module_pci_driver.patch added to -mm
- tree
-Date: Thu, 26 Sep 2013 14:44:22 -0700
-Message-ID: <5244aab6.LeSffJNmsMHVz+s5%akpm@linux-foundation.org>
+Subject: + drivers-block-sx8c-remove-unnecessary-pci_set_drvdata.patch
+ added to -mm tree
+Date: Thu, 26 Sep 2013 14:44:25 -0700
+Message-ID: <5244aab9.EyiDfq8ZQuWvzwcK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34280 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34283 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754207Ab3IZVoX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 17:44:23 -0400
+	with ESMTP id S1754367Ab3IZVo0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 17:44:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, axboe@kernel.dk, jg1.han@samsung.com
 
-Subject: + drivers-block-sx8c-use-module_pci_driver.patch added to -mm tree
+Subject: + drivers-block-sx8c-remove-unnecessary-pci_set_drvdata.patch added to -mm tree
 To: jg1.han@samsung.com,axboe@kernel.dk
 From: akpm@linux-foundation.org
-Date: Thu, 26 Sep 2013 14:44:22 -0700
+Date: Thu, 26 Sep 2013 14:44:25 -0700
 
 
 The patch titled
-     Subject: drivers/block/sx8.c: use module_pci_driver()
+     Subject: drivers/block/sx8.c: remove unnecessary pci_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     drivers-block-sx8c-use-module_pci_driver.patch
+     drivers-block-sx8c-remove-unnecessary-pci_set_drvdata.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-block-sx8c-use-module_pci_driver.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-block-sx8c-remove-unnecessary-pci_set_drvdata.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-block-sx8c-use-module_pci_driver.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-block-sx8c-remove-unnecessary-pci_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,40 +45,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/block/sx8.c: use module_pci_driver()
+Subject: drivers/block/sx8.c: remove unnecessary pci_set_drvdata()
 
-Use module_pci_driver() macro which makes the code smaller and simpler.
+The driver core clears the driver data to NULL after device_release or on
+probe failure.  Thus, it is not needed to manually clear the device driver
+data to NULL.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/sx8.c |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ drivers/block/sx8.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/block/sx8.c~drivers-block-sx8c-use-module_pci_driver drivers/block/sx8.c
---- a/drivers/block/sx8.c~drivers-block-sx8c-use-module_pci_driver
+diff -puN drivers/block/sx8.c~drivers-block-sx8c-remove-unnecessary-pci_set_drvdata drivers/block/sx8.c
+--- a/drivers/block/sx8.c~drivers-block-sx8c-remove-unnecessary-pci_set_drvdata
 +++ a/drivers/block/sx8.c
-@@ -1747,17 +1747,4 @@ static void carm_remove_one (struct pci_
- 	pci_set_drvdata(pdev, NULL);
+@@ -1744,7 +1744,6 @@ static void carm_remove_one (struct pci_
+ 	kfree(host);
+ 	pci_release_regions(pdev);
+ 	pci_disable_device(pdev);
+-	pci_set_drvdata(pdev, NULL);
  }
  
--static int __init carm_init(void)
--{
--	return pci_register_driver(&carm_driver);
--}
--
--static void __exit carm_exit(void)
--{
--	pci_unregister_driver(&carm_driver);
--}
--
--module_init(carm_init);
--module_exit(carm_exit);
--
--
-+module_pci_driver(carm_driver);
+ module_pci_driver(carm_driver);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -86,7 +77,7 @@ Patches currently in -mm which might be from jg1.han@samsung.com are
 kernel-params-fix-handling-of-signed-integer-types.patch
 drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
 drivers-block-sx8c-use-module_pci_driver.patch
-block-sx8-remove-unnecessary-pci_set_drvdata.patch
+drivers-block-sx8c-remove-unnecessary-pci_set_drvdata.patch
 backlight-lp855x_bl-support-new-lp8555-device.patch
 backlight-lm3630-apply-chip-revision.patch
 backlight-ld9040-staticize-local-variable-gamma_table.patch
