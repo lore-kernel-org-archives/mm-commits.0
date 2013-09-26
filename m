@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch added to -mm tree
-Date: Wed, 25 Sep 2013 17:38:17 -0700
-Message-ID: <524381f9.lUcuHcZeWjzWdc89%akpm@linux-foundation.org>
+Subject: +
+ mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch added to -mm tree
+Date: Wed, 25 Sep 2013 17:40:51 -0700
+Message-ID: <52438293.Jp/Qk1aPEB+aL+3F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51679 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51697 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961Ab3IZAiS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:38:18 -0400
+	with ESMTP id S1754993Ab3IZAkw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Sep 2013 20:40:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, dan.carpenter@oracle.com, younger.liu@huawei.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, rientjes@google.com, mitsuo.hayasaka.hu@hitachi.com, kosaki.motohiro@jp.fujitsu.com, iamjoonsoo.kim@lge.com, liwanp@linux.vnet.ibm.com
 
-Subject: + ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch added to -mm tree
-To: younger.liu@huawei.com,dan.carpenter@oracle.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,iamjoonsoo.kim@lge.com,kosaki.motohiro@jp.fujitsu.com,mitsuo.hayasaka.hu@hitachi.com,rientjes@google.com,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Wed, 25 Sep 2013 17:38:17 -0700
+Date: Wed, 25 Sep 2013 17:40:51 -0700
 
 
 The patch titled
-     Subject: ocfs2: add missing errno in ocfs2_ioctl_move_extents()
+     Subject: mm/vmalloc: fix show vmap_area information race with vmap_area tear down
 has been added to the -mm tree.  Its filename is
-     ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch
+     mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,61 +44,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Younger Liu <younger.liu@huawei.com>
-Subject: ocfs2: add missing errno in ocfs2_ioctl_move_extents()
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/vmalloc: fix show vmap_area information race with vmap_area tear down
 
-If the file is not regular or writeable, it should return errno(EPERM).
+There is a race window between vmap_area tear down and show vmap_area
+information.
 
-This patch is based on 85a258b70d ("ocfs2: fix error handling in
-ocfs2_ioctl_move_extents()").
+	A                                                B
 
-Signed-off-by: Younger Liu <younger.liu@huawei.com>
-Signed-off-by: Jie Liu <jeff.liu@oracle.com>
-Reviewed-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+remove_vm_area
+spin_lock(&vmap_area_lock);
+va->vm = NULL;
+va->flags &= ~VM_VM_AREA;
+spin_unlock(&vmap_area_lock);
+						spin_lock(&vmap_area_lock);
+						if (va->flags & (VM_LAZY_FREE | VM_LAZY_FREEZING))
+							return 0;
+						if (!(va->flags & VM_VM_AREA)) {
+							seq_printf(m, "0x%pK-0x%pK %7ld vm_map_ram\n",
+								(void *)va->va_start, (void *)va->va_end,
+								va->va_end - va->va_start);
+							return 0;
+						}
+free_unmap_vmap_area(va);
+	flush_cache_vunmap
+	free_unmap_vmap_area_noflush
+		unmap_vmap_area
+		free_vmap_area_noflush
+			va->flags |= VM_LAZY_FREE
+
+The assumption !VM_VM_AREA represents vm_map_ram allocation is introduced
+by d4033afd ("mm, vmalloc: iterate vmap_area_list, instead of vmlist, in
+vmallocinfo()").  However, !VM_VM_AREA also represents vmap_area is being
+tear down in race window mentioned above.  This patch fix it by don't dump
+any information for !VM_VM_AREA case and also remove (VM_LAZY_FREE |
+VM_LAZY_FREEING) check since they are not possible for !VM_VM_AREA case.
+
+Suggested-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/move_extents.c~ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents fs/ocfs2/move_extents.c
---- a/fs/ocfs2/move_extents.c~ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents
-+++ a/fs/ocfs2/move_extents.c
-@@ -1066,8 +1066,10 @@ int ocfs2_ioctl_move_extents(struct file
- 	if (status)
- 		return status;
+diff -puN mm/vmalloc.c~mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down
++++ a/mm/vmalloc.c
+@@ -2578,16 +2578,13 @@ static int s_show(struct seq_file *m, vo
+ 	struct vmap_area *va = p;
+ 	struct vm_struct *v;
  
--	if ((!S_ISREG(inode->i_mode)) || !(filp->f_mode & FMODE_WRITE))
-+	if ((!S_ISREG(inode->i_mode)) || !(filp->f_mode & FMODE_WRITE)) {
-+		status = -EPERM;
- 		goto out_drop;
-+	}
+-	if (va->flags & (VM_LAZY_FREE | VM_LAZY_FREEING))
++	/*
++	 * s_show can encounter race with remove_vm_area, !VM_VM_AREA on
++	 * behalf of vmap area is being tear down or vm_map_ram allocation.
++	 */
++	if (!(va->flags & VM_VM_AREA))
+ 		return 0;
  
- 	if (inode->i_flags & (S_IMMUTABLE|S_APPEND)) {
- 		status = -EPERM;
-@@ -1089,8 +1091,10 @@ int ocfs2_ioctl_move_extents(struct file
- 		goto out_free;
- 	}
+-	if (!(va->flags & VM_VM_AREA)) {
+-		seq_printf(m, "0x%pK-0x%pK %7ld vm_map_ram\n",
+-			(void *)va->va_start, (void *)va->va_end,
+-					va->va_end - va->va_start);
+-		return 0;
+-	}
+-
+ 	v = va->vm;
  
--	if (range.me_start > i_size_read(inode))
-+	if (range.me_start > i_size_read(inode)) {
-+		status = -EINVAL;
- 		goto out_free;
-+	}
- 
- 	if (range.me_start + range.me_len > i_size_read(inode))
- 			range.me_len = i_size_read(inode) - range.me_start;
+ 	/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
 _
 
-Patches currently in -mm which might be from younger.liu@huawei.com are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
-ocfs2-rollback-transaction-in-ocfs2_group_add.patch
-ocfs2-do-not-call-brelse-if-group_bh-is-not-initialized-in-ocfs2_group_add.patch
-ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch
-ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-ocfs2-update-inode-size-after-zeronig-the-hole.patch
+revert-mm-memory-hotplug-fix-lowmem-count-overflow-when-offline-pages.patch
+mm-compactionc-periodically-schedule-when-freeing-pages.patch
+ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
+mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
+mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
+mm-vmalloc-dont-set-area-caller-twice.patch
+mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
+mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+memblock-factor-out-of-top-down-allocation.patch
+memblock-introduce-bottom-up-allocation-mode.patch
+x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
+x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
+mem-hotplug-introduce-movablenode-boot-option.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
