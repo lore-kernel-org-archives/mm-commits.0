@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-test-for-defines-of-arch_has_foo.patch added to
- -mm tree
-Date: Thu, 26 Sep 2013 14:09:29 -0700
-Message-ID: <5244a289.Upkak25C1iMldJVC%akpm@linux-foundation.org>
+Subject: + mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
+ added to -mm tree
+Date: Thu, 26 Sep 2013 14:21:22 -0700
+Message-ID: <5244a552.R/7Rt1mIoDk1FjN3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33264 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33613 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753385Ab3IZVJ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 17:09:29 -0400
+	with ESMTP id S1753959Ab3IZVVX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 17:21:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, cl@linux-foundation.org, holzheu@linux.vnet.ibm.com
 
-Subject: + checkpatch-add-test-for-defines-of-arch_has_foo.patch added to -mm tree
-To: joe@perches.com,akpm@linux-foundation.org
+Subject: + mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch added to -mm tree
+To: holzheu@linux.vnet.ibm.com,cl@linux-foundation.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 26 Sep 2013 14:09:29 -0700
+Date: Thu, 26 Sep 2013 14:21:22 -0700
 
 
 The patch titled
-     Subject: checkpatch: add test for #defines of ARCH_HAS_<foo>
+     Subject: mm: fix bootmem error handling in pcpu_page_first_chunk()
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-test-for-defines-of-arch_has_foo.patch
+     mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-test-for-defines-of-arch_has_foo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-test-for-defines-of-arch_has_foo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,82 +44,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add test for #defines of ARCH_HAS_<foo>
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: mm: fix bootmem error handling in pcpu_page_first_chunk()
 
-Add a test for these #defines
+If memory allocation in pcpu_embed_first_chunk() fails, the allocated
+memory is not released correctly.  In the release loop also the
+non-allocated elements are released which leads to the following kernel
+BUG on systems with very little memory:
 
-Additionally, moved string_find_replace sub as it screws up subsequent
-formatting when placed inside another sub.
+[    0.000000] kernel BUG at mm/bootmem.c:307!
+[    0.000000] illegal operation: 0001 [#1] PREEMPT SMP DEBUG_PAGEALLOC
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 3.10.0 #22
+[    0.000000] task: 0000000000a20ae0 ti: 0000000000a08000 task.ti: 0000000000a08000
+[    0.000000] Krnl PSW : 0400000180000000 0000000000abda7a (__free+0x116/0x154)
+[    0.000000]            R:0 T:1 IO:0 EX:0 Key:0 M:0 W:0 P:0 AS:0 CC:0 PM:0 EA:3
+...
+[    0.000000]  [<0000000000abdce2>] mark_bootmem_node+0xde/0xf0
+[    0.000000]  [<0000000000abdd9c>] mark_bootmem+0xa8/0x118
+[    0.000000]  [<0000000000abcbba>] pcpu_embed_first_chunk+0xe7a/0xf0c
+[    0.000000]  [<0000000000abcc96>] setup_per_cpu_areas+0x4a/0x28c
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+To fix the problem now only allocated elements are released.  This then
+leads to the correct kernel panic:
+
+[    0.000000] Kernel panic - not syncing: Failed to initialize percpu areas.
+...
+[    0.000000] Call Trace:
+[    0.000000] ([<000000000011307e>] show_trace+0x132/0x150)
+[    0.000000]  [<0000000000113160>] show_stack+0xc4/0xd4
+[    0.000000]  [<00000000007127dc>] dump_stack+0x74/0xd8
+[    0.000000]  [<00000000007123fe>] panic+0xea/0x264
+[    0.000000]  [<0000000000b14814>] setup_per_cpu_areas+0x5c/0x28c
+
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ mm/percpu.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-defines-of-arch_has_foo scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-test-for-defines-of-arch_has_foo
-+++ a/scripts/checkpatch.pl
-@@ -1514,6 +1514,14 @@ sub rtrim {
- 	return $string;
- }
+diff -puN mm/percpu.c~mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk mm/percpu.c
+--- a/mm/percpu.c~mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk
++++ a/mm/percpu.c
+@@ -1705,9 +1705,12 @@ int __init pcpu_embed_first_chunk(size_t
+ 	goto out_free;
  
-+sub string_find_replace {
-+	my ($string, $find, $replace) = @_;
-+
-+	$string =~ s/$find/$replace/g;
-+
-+	return $string;
-+}
-+
- sub tabify {
- 	my ($leading) = @_;
- 
-@@ -3733,14 +3741,6 @@ sub process {
- 			}
- 		}
- 
--sub string_find_replace {
--	my ($string, $find, $replace) = @_;
--
--	$string =~ s/$find/$replace/g;
--
--	return $string;
--}
--
- # check for bad placement of section $InitAttribute (e.g.: __initdata)
- 		if ($line =~ /(\b$InitAttribute\b)/) {
- 			my $attr = $1;
-@@ -4198,6 +4198,12 @@ sub string_find_replace {
- 			     "usage of NR_CPUS is often wrong - consider using cpu_possible(), num_possible_cpus(), for_each_possible_cpu(), etc\n" . $herecurr);
- 		}
- 
-+# Use of __ARCH_HAS_<FOO> or ARCH_HAVE_<BAR> is wrong.
-+		if ($line =~ /\+\s*#\s*define\s+((?:__)?ARCH_(?:HAS|HAVE)\w*)\b/) {
-+			ERROR("DEFINE_ARCH_HAS",
-+			      "#define of '$1' is wrong - use Kconfig variables or standard guards instead\n" . $herecurr);
-+		}
-+
- # check for %L{u,d,i} in strings
- 		my $string;
- 		while ($line =~ /(?:^|")([X\t]*)(?:"|$)/g) {
+ out_free_areas:
+-	for (group = 0; group < ai->nr_groups; group++)
++	for (group = 0; group < ai->nr_groups; group++) {
++		if (!areas[group])
++			continue;
+ 		free_fn(areas[group],
+ 			ai->groups[group].nr_units * ai->unit_size);
++	}
+ out_free:
+ 	pcpu_free_alloc_info(ai);
+ 	if (areas)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
-origin.patch
-kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
-ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
-printk-report-console-names-during-cut-over.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-update-seq_foo-tests.patch
-checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-kernel-modulec-use-pr_foo.patch
+mm-fix-bootmem-error-handling-in-pcpu_page_first_chunk.patch
 linux-next.patch
 
