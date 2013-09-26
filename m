@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch added
- to -mm tree
-Date: Thu, 26 Sep 2013 11:54:42 -0700
-Message-ID: <524482f2.JaczmkAl9sKhy4AJ%akpm@linux-foundation.org>
+Subject: + mm-hwpoison-fix-miss-catch-transparent-huge-page.patch added to -mm tree
+Date: Thu, 26 Sep 2013 11:54:43 -0700
+Message-ID: <524482f3.2GIYrhg1xfBp0dIl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60162 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60167 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754549Ab3IZSyn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 14:54:43 -0400
+	with ESMTP id S1754555Ab3IZSyp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Sep 2013 14:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, liwanp@linux.vnet.ibm.com
 
-Subject: + mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch added to -mm tree
+Subject: + mm-hwpoison-fix-miss-catch-transparent-huge-page.patch added to -mm tree
 To: liwanp@linux.vnet.ibm.com,ak@linux.intel.com,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Thu, 26 Sep 2013 11:54:42 -0700
+Date: Thu, 26 Sep 2013 11:54:43 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: fix traversal of hugetlbfs pages to avoid printk flood
+     Subject: mm/hwpoison: fix test for a transparent huge page
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch
+     mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,43 +44,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: fix traversal of hugetlbfs pages to avoid printk flood
+Subject: mm/hwpoison: fix test for a transparent huge page
 
-madvise_hwpoison won't check if the page is small page or huge page and
-traverses in small page granularity against the range unconditionally,
-which result in a printk flood "MCE xxx: already hardware poisoned" if the
-page is a huge page.  This patch fixes it by using
-compound_order(compound_head(page)) for huge page iterator.
+PageTransHuge() can't guarantee the page is a transparent huge page since
+it returns true for both transparent huge and hugetlbfs pages.  This patch
+fixes it by checking the page is also !hugetlbfs page.
 
-Testcase:
+Before patch:
 
-#define _GNU_SOURCE
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/mman.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <errno.h>
+[  121.571128] Injecting memory failure at pfn 23a200
+[  121.571141] MCE 0x23a200: huge page recovery: Delayed
+[  140.355100] MCE: Memory failure is now running on 0x23a200
 
-#define PAGES_TO_TEST 3
-#define PAGE_SIZE	4096 * 512
+After patch:
 
-int main(void)
-{
-	char *mem;
-	int i;
-
-	mem = mmap(NULL, PAGES_TO_TEST * PAGE_SIZE,
-			PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, 0, 0);
-
-	if (madvise(mem, PAGES_TO_TEST * PAGE_SIZE, MADV_HWPOISON) == -1)
-		return -1;
-
-	munmap(mem, PAGES_TO_TEST * PAGE_SIZE);
-
-	return 0;
-}
+[   94.290793] Injecting memory failure at pfn 23a000
+[   94.290800] MCE 0x23a000: huge page recovery: Delayed
+[  105.722303] MCE: Software-unpoisoned page 0x23a000
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -90,26 +68,21 @@ Acked-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood mm/madvise.c
---- a/mm/madvise.c~mm-hwpoison-fix-traverse-hugetlbfs-page-to-avoid-printk-flood
-+++ a/mm/madvise.c
-@@ -343,10 +343,11 @@ static long madvise_remove(struct vm_are
-  */
- static int madvise_hwpoison(int bhv, unsigned long start, unsigned long end)
- {
-+	struct page *p;
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
--	for (; start < end; start += PAGE_SIZE) {
--		struct page *p;
-+	for (; start < end; start += PAGE_SIZE <<
-+				compound_order(compound_head(p))) {
- 		int ret;
- 
- 		ret = get_user_pages_fast(start, 1, 0, &p);
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-miss-catch-transparent-huge-page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-miss-catch-transparent-huge-page
++++ a/mm/memory-failure.c
+@@ -1349,7 +1349,7 @@ int unpoison_memory(unsigned long pfn)
+ 	 * worked by memory_failure() and the page lock is not held yet.
+ 	 * In such case, we yield to memory_failure() and make unpoison fail.
+ 	 */
+-	if (PageTransHuge(page)) {
++	if (!PageHuge(page) && PageTransHuge(page)) {
+ 		pr_info("MCE: Memory failure is now running on %#lx\n", pfn);
+ 			return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
