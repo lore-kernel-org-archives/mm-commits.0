@@ -1,62 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists-fix.patch
- removed from -mm tree
-Date: Mon, 30 Sep 2013 13:41:27 -0700
-Message-ID: <5249e1f7.Lp1cPC+BWrcNV+BY%akpm@linux-foundation.org>
+ ipc-semc-update-sem_otime-for-all-operations-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 30 Sep 2013 13:41:53 -0700
+Message-ID: <5249e211.Ik64wOnBARAHOnHm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42597 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756117Ab3I3Ul2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 16:41:28 -0400
+	with ESMTP id S1756219Ab3I3Uly (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 16:41:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, aquini@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, manfred@colorfullife.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,aquini@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] ipc-semc-update-sem_otime-for-all-operations-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,manfred@colorfullife.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 30 Sep 2013 13:41:27 -0700
+Date: Mon, 30 Sep 2013 13:41:53 -0700
 
 
 The patch titled
-     Subject: mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists-fix
+     Subject: ipc-semc-update-sem_otime-for-all-operations-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists-fix.patch
+     ipc-semc-update-sem_otime-for-all-operations-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists.patch
+This patch was dropped because it was folded into ipc-semc-update-sem_otime-for-all-operations.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists-fix
+Subject: ipc-semc-update-sem_otime-for-all-operations-checkpatch-fixes
 
-clarify awkward comment text
+WARNING: braces {} are not necessary for single statement blocks
+#90: FILE: ipc/sem.c:1862:
++	if (error <= 0) {
+ 		goto out_unlock_free;
+ 	}
 
-Cc: Rafael Aquini <aquini@redhat.com>
+total: 0 errors, 1 warnings, 62 lines checked
+
+./patches/ipc-semc-update-sem_otime-for-all-operations.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/balloon_compaction.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/sem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/balloon_compaction.h~mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists-fix include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists-fix
-+++ a/include/linux/balloon_compaction.h
-@@ -163,8 +163,8 @@ static inline bool balloon_page_movable(
-  *			   compaction/migration page lists.
-  *
-  * After a compaction thread isolates a balloon page for migration, it raises
-- * the page refcount to avoid concurrent compaction threads on re-isolating the
-- * same page. For that reason putback_movable_pages(), or other routines
-+ * the page refcount to prevent concurrent compaction threads from re-isolating
-+ * the same page. For that reason putback_movable_pages(), or other routines
-  * that need to identify isolated balloon pages on private pagelists, cannot
-  * rely on balloon_page_movable() to accomplish the task.
-  */
+diff -puN ipc/sem.c~ipc-semc-update-sem_otime-for-all-operations-checkpatch-fixes ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-update-sem_otime-for-all-operations-checkpatch-fixes
++++ a/ipc/sem.c
+@@ -1859,9 +1859,8 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 		else
+ 			set_semotime(sma, sops);
+ 	}
+-	if (error <= 0) {
++	if (error <= 0)
+ 		goto out_unlock_free;
+-	}
+ 
+ 	/* We need to sleep on this operation, so we put the current
+ 	 * task into the pending queue and go to sleep.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +78,7 @@ i-need-old-gcc.patch
 fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing.patch
 include-asm-generic-vtimeh-avoid-zero-length-file.patch
 mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists.patch
-ipc-semc-update-sem_otime-for-all-operations-checkpatch-fixes.patch
+ipc-semc-update-sem_otime-for-all-operations.patch
 kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
 makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
 mm-readaheadc-do_readhead-dont-check-for-readpage.patch
