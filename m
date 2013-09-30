@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-correct-missing-private-flag-clearing.patch added to -mm tree
-Date: Mon, 30 Sep 2013 14:36:30 -0700
-Message-ID: <5249eede.sWZlL9cslGcHeC5z%akpm@linux-foundation.org>
+Subject: + hpet-remove-useless-check-if-fixmem32-is-null.patch added to
+ -mm tree
+Date: Mon, 30 Sep 2013 14:47:40 -0700
+Message-ID: <5249f17c.wwRGTlvsIzYr1OW5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42981 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43028 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755415Ab3I3Vgb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 17:36:31 -0400
+	with ESMTP id S1755663Ab3I3Vrl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 17:47:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, dhillf@gmail.com, davidlohr.bueso@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, prarit@redhat.com, msw@amazon.com, clemens@ladisch.de, tomas.winkler@intel.com
 
-Subject: + mm-hugetlb-correct-missing-private-flag-clearing.patch added to -mm tree
-To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr.bueso@hp.com,dhillf@gmail.com,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,n-horiguchi@ah.jp.nec.com,riel@redhat.com
+Subject: + hpet-remove-useless-check-if-fixmem32-is-null.patch added to -mm tree
+To: tomas.winkler@intel.com,clemens@ladisch.de,msw@amazon.com,prarit@redhat.com,rdunlap@infradead.org
 From: akpm@linux-foundation.org
-Date: Mon, 30 Sep 2013 14:36:30 -0700
+Date: Mon, 30 Sep 2013 14:47:40 -0700
 
 
 The patch titled
-     Subject: mm/hugetlb.c: correct missing private flag clearing
+     Subject: drivers/char/hpet.c: remove useless check if fixmem32 is NULL
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-correct-missing-private-flag-clearing.patch
+     hpet-remove-useless-check-if-fixmem32-is-null.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-correct-missing-private-flag-clearing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hpet-remove-useless-check-if-fixmem32-is-null.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-correct-missing-private-flag-clearing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hpet-remove-useless-check-if-fixmem32-is-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,48 +44,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/hugetlb.c: correct missing private flag clearing
+From: Tomas Winkler <tomas.winkler@intel.com>
+Subject: drivers/char/hpet.c: remove useless check if fixmem32 is NULL
 
-We should clear the page's private flag when returing the page to the page
-allocator or the hugepage pool.  This patch fixes it.
+fixmem32 is assigned to address of res->data member so the address is
+always valid
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hillf Danton <dhillf@gmail.com>
+Actually since we are not checking for res != NULL static analyzing is
+complaining about referencing the pointer and consequent check for null. 
+The code snippet looks confusing also for human eyes.
+
+Signed-off-by: Tomas Winkler <tomas.winkler@intel.com>
+Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Matt Wilson <msw@amazon.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/hpet.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-correct-missing-private-flag-clearing mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-correct-missing-private-flag-clearing
-+++ a/mm/hugetlb.c
-@@ -653,6 +653,7 @@ static void free_huge_page(struct page *
- 	BUG_ON(page_count(page));
- 	BUG_ON(page_mapcount(page));
- 	restore_reserve = PagePrivate(page);
-+	ClearPagePrivate(page);
+diff -puN drivers/char/hpet.c~hpet-remove-useless-check-if-fixmem32-is-null drivers/char/hpet.c
+--- a/drivers/char/hpet.c~hpet-remove-useless-check-if-fixmem32-is-null
++++ a/drivers/char/hpet.c
+@@ -971,8 +971,6 @@ static acpi_status hpet_resources(struct
+ 		struct acpi_resource_fixed_memory32 *fixmem32;
  
- 	spin_lock(&hugetlb_lock);
- 	hugetlb_cgroup_uncharge_page(hstate_index(h),
+ 		fixmem32 = &res->data.fixed_memory32;
+-		if (!fixmem32)
+-			return AE_NO_MEMORY;
+ 
+ 		hdp->hd_phys_address = fixmem32->address;
+ 		hdp->hd_address = ioremap(fixmem32->address,
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from tomas.winkler@intel.com are
 
-mm-vmalloc-dont-set-area-caller-twice.patch
-mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
-mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
-revert-mm-vmallocc-emit-the-failure-message-before-return.patch
-mm-hugetlb-correct-missing-private-flag-clearing.patch
+hpet-remove-useless-check-if-fixmem32-is-null.patch
+hpet-allow-user-controlled-mmap-for-user-processes.patch
+linux-next.patch
 
