@@ -1,93 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch
- added to -mm tree
-Date: Mon, 30 Sep 2013 14:50:40 -0700
-Message-ID: <5249f230.S0QJfONg94FdhQ9x%akpm@linux-foundation.org>
+Subject: [merged] hpet-remove-useless-check-if-fixmem32-is-null.patch
+ removed from -mm tree
+Date: Mon, 30 Sep 2013 15:22:12 -0700
+Message-ID: <5249f994.Ubt7f/mLMUxdifCW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43052 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43333 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756386Ab3I3Vul (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 17:50:41 -0400
+	with ESMTP id S1755367Ab3I3WWN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 18:22:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, prarit@redhat.com, msw@amazon.com, clemens@ladisch.de, tomas.winkler@intel.com
 
-Subject: + drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch added to -mm tree
-To: sachin.kamat@linaro.org
+Subject: [merged] hpet-remove-useless-check-if-fixmem32-is-null.patch removed from -mm tree
+To: tomas.winkler@intel.com,clemens@ladisch.de,msw@amazon.com,prarit@redhat.com,rdunlap@infradead.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 30 Sep 2013 14:50:40 -0700
+Date: Mon, 30 Sep 2013 15:22:12 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-stmp3xxx.c: remove redundant of_match_ptr
-has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch
+     Subject: drivers/char/hpet.c: remove useless check if fixmem32 is NULL
+has been removed from the -mm tree.  Its filename was
+     hpet-remove-useless-check-if-fixmem32-is-null.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-stmp3xxx.c: remove redundant of_match_ptr
+From: Tomas Winkler <tomas.winkler@intel.com>
+Subject: drivers/char/hpet.c: remove useless check if fixmem32 is NULL
 
-The data structure of_match_ptr() protects is always compiled in.
-Hence of_match_ptr() is not needed.
+fixmem32 is assigned to address of res->data member so the address is
+always valid
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Actually since we are not checking for res != NULL static analyzing is
+complaining about referencing the pointer and consequent check for null. 
+The code snippet looks confusing also for human eyes.
+
+Signed-off-by: Tomas Winkler <tomas.winkler@intel.com>
+Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Matt Wilson <msw@amazon.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-stmp3xxx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/hpet.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-stmp3xxx.c~drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr drivers/rtc/rtc-stmp3xxx.c
---- a/drivers/rtc/rtc-stmp3xxx.c~drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr
-+++ a/drivers/rtc/rtc-stmp3xxx.c
-@@ -343,7 +343,7 @@ static struct platform_driver stmp3xxx_r
- 		.name	= "stmp3xxx-rtc",
- 		.owner	= THIS_MODULE,
- 		.pm	= &stmp3xxx_rtc_pm_ops,
--		.of_match_table = of_match_ptr(rtc_dt_ids),
-+		.of_match_table = rtc_dt_ids,
- 	},
- };
+diff -puN drivers/char/hpet.c~hpet-remove-useless-check-if-fixmem32-is-null drivers/char/hpet.c
+--- a/drivers/char/hpet.c~hpet-remove-useless-check-if-fixmem32-is-null
++++ a/drivers/char/hpet.c
+@@ -971,8 +971,6 @@ static acpi_status hpet_resources(struct
+ 		struct acpi_resource_fixed_memory32 *fixmem32;
  
+ 		fixmem32 = &res->data.fixed_memory32;
+-		if (!fixmem32)
+-			return AE_NO_MEMORY;
+ 
+ 		hdp->hd_phys_address = fixmem32->address;
+ 		hdp->hd_address = ioremap(fixmem32->address,
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from tomas.winkler@intel.com are
 
-drivers-rtc-rtc-ds1307c-release-irq-on-error.patch
-drivers-rtc-rtc-isl1208c-remove-redundant-checks.patch
-drivers-rtc-rtc-max6900c-remove-redundant-checks.patch
-drivers-rtc-rtc-vt8500c-fix-return-value.patch
-drivers-rtc-rtc-at91rm9200c-use-devm_-apis.patch
-drivers-rtc-rtc-isl1208c-use-devm_-apis.patch
-drivers-rtc-rtc-sirfsocc-use-devm_rtc_device_register.patch
-drivers-rtc-rtc-cmosc-remove-redundant-dev_set_drvdata.patch
-drivers-rtc-rtc-mrstc-remove-redundant-dev_set_drvdata.patch
-drivers-rtc-rtc-vr41xxc-fix-checkpatch-warnings.patch
-drivers-rtc-rtc-vt8500c-remove-redundant-of_match_ptr.patch
-drivers-rtc-rtc-omapc-remove-redundant-of_match_ptr.patch
-drivers-rtc-rtc-sirfsocc-remove-redundant-of_match_ptr.patch
-drivers-rtc-rtc-snvsc-remove-redundant-of_match_ptr.patch
-drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch
-drivers-pps-clients-pps-gpioc-remove-redundant-of_match_ptr.patch
+hpet-allow-user-controlled-mmap-for-user-processes.patch
 linux-next.patch
 
