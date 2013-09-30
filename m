@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-sirfsocc-remove-redundant-of_match_ptr.patch
+Subject: + drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch
  added to -mm tree
-Date: Mon, 30 Sep 2013 14:50:38 -0700
-Message-ID: <5249f22e.gme7gkwo5NVmVdYm%akpm@linux-foundation.org>
+Date: Mon, 30 Sep 2013 14:50:40 -0700
+Message-ID: <5249f230.S0QJfONg94FdhQ9x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43049 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43052 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756384Ab3I3Vuj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 17:50:39 -0400
+	with ESMTP id S1756386Ab3I3Vul (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 17:50:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + drivers-rtc-rtc-sirfsocc-remove-redundant-of_match_ptr.patch added to -mm tree
+Subject: + drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch added to -mm tree
 To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Mon, 30 Sep 2013 14:50:38 -0700
+Date: Mon, 30 Sep 2013 14:50:40 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-sirfsoc.c: remove redundant of_match_ptr
+     Subject: drivers/rtc/rtc-stmp3xxx.c: remove redundant of_match_ptr
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-sirfsocc-remove-redundant-of_match_ptr.patch
+     drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-sirfsocc-remove-redundant-of_match_ptr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-sirfsocc-remove-redundant-of_match_ptr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-sirfsoc.c: remove redundant of_match_ptr
+Subject: drivers/rtc/rtc-stmp3xxx.c: remove redundant of_match_ptr
 
 The data structure of_match_ptr() protects is always compiled in.
 Hence of_match_ptr() is not needed.
@@ -54,21 +54,21 @@ Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sirfsoc.c |    2 +-
+ drivers/rtc/rtc-stmp3xxx.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-remove-redundant-of_match_ptr drivers/rtc/rtc-sirfsoc.c
---- a/drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-remove-redundant-of_match_ptr
-+++ a/drivers/rtc/rtc-sirfsoc.c
-@@ -458,7 +458,7 @@ static struct platform_driver sirfsoc_rt
- #ifdef CONFIG_PM
- 		.pm = &sirfsoc_rtc_pm_ops,
- #endif
--		.of_match_table = of_match_ptr(sirfsoc_rtc_of_match),
-+		.of_match_table = sirfsoc_rtc_of_match,
+diff -puN drivers/rtc/rtc-stmp3xxx.c~drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr drivers/rtc/rtc-stmp3xxx.c
+--- a/drivers/rtc/rtc-stmp3xxx.c~drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr
++++ a/drivers/rtc/rtc-stmp3xxx.c
+@@ -343,7 +343,7 @@ static struct platform_driver stmp3xxx_r
+ 		.name	= "stmp3xxx-rtc",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= &stmp3xxx_rtc_pm_ops,
+-		.of_match_table = of_match_ptr(rtc_dt_ids),
++		.of_match_table = rtc_dt_ids,
  	},
- 	.probe = sirfsoc_rtc_probe,
- 	.remove = sirfsoc_rtc_remove,
+ };
+ 
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
