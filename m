@@ -1,110 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Mon, 30 Sep 2013 11:57:08 -0700
-Message-ID: <5249c984.n+AVOMFD2QQ5W/xH%akpm@linux-foundation.org>
+Subject: [merged] drm-i915-fix-up-usage-of-shrink_stop.patch removed from
+ -mm tree
+Date: Mon, 30 Sep 2013 11:57:26 -0700
+Message-ID: <5249c996.DVp9u2XZG1vbCoPt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41795 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41844 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755383Ab3I3S5J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 14:57:09 -0400
+	with ESMTP id S1755383Ab3I3S51 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 14:57:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, hannes@cmpxchg.org, glommer@openvz.org, glommer@gmail.com, dchinner@redhat.com, Knut_Petersen@t-online.de, daniel.vetter@ffwll.ch
 
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [merged] drm-i915-fix-up-usage-of-shrink_stop.patch removed from -mm tree
+To: daniel.vetter@ffwll.ch,Knut_Petersen@t-online.de,dchinner@redhat.com,glommer@gmail.com,glommer@openvz.org,hannes@cmpxchg.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 30 Sep 2013 11:57:07 -0700
+Date: Mon, 30 Sep 2013 11:57:26 -0700
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: drm/i915: Fix up usage of SHRINK_STOP
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     drm-i915-fix-up-usage-of-shrink_stop.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: drm/i915: Fix up usage of SHRINK_STOP
 
+In
+
+commit 81e49f811404f428a9d9a63295a0c267e802fa12
+Author: Glauber Costa <glommer@openvz.org>
+Date:   Wed Aug 28 10:18:13 2013 +1000
+
+    i915: bail out earlier when shrinker cannot acquire mutex
+
+SHRINK_STOP was added to tell the core shrinker code to bail out and go to
+the next shrinker since the i915 shrinker couldn't acquire required locks.
+ But the SHRINK_STOP return code was added to the ->count_objects callback
+and not the ->scan_objects callback as it should have been, resulting in
+tons of dmesg noise like
+
+shrink_slab: i915_gem_inactive_scan+0x0/0x9c negative objects to delete nr=-xxxxxxxxx
+
+Fix discusssed with Dave Chinner.
+
+References: http://www.spinics.net/lists/intel-gfx/msg33597.html
+Reported-by: Knut Petersen <Knut_Petersen@t-online.de>
+Cc: Knut Petersen <Knut_Petersen@t-online.de>
+Acked-by: Dave Chinner <dchinner@redhat.com>
+Cc: Glauber Costa <glommer@openvz.org>
+Cc: Glauber Costa <glommer@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/i915/i915_gem.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/mm/init.c~linux-next-rejects arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~linux-next-rejects
-+++ a/arch/x86/mm/init.c
-@@ -399,8 +399,24 @@ static unsigned long __init init_range_m
- 	return mapped_ram_size;
- }
+diff -puN drivers/gpu/drm/i915/i915_gem.c~drm-i915-fix-up-usage-of-shrink_stop drivers/gpu/drm/i915/i915_gem.c
+--- a/drivers/gpu/drm/i915/i915_gem.c~drm-i915-fix-up-usage-of-shrink_stop
++++ a/drivers/gpu/drm/i915/i915_gem.c
+@@ -4800,10 +4800,10 @@ i915_gem_inactive_count(struct shrinker
  
--/* (PUD_SHIFT-PMD_SHIFT)/2 */
--#define STEP_SIZE_SHIFT 5
-+static unsigned long __init get_new_step_size(unsigned long step_size)
-+{
-+	/*
-+	 * Explain why we shift by 5 and why we don't have to worry about
-+	 * 'step_size << 5' overflowing:
-+	 *
-+	 * initial mapped size is PMD_SIZE (2M).
-+	 * We can not set step_size to be PUD_SIZE (1G) yet.
-+	 * In worse case, when we cross the 1G boundary, and
-+	 * PG_LEVEL_2M is not set, we will need 1+1+512 pages (2M + 8k)
-+	 * to map 1G range with PTE. Use 5 as shift for now.
-+	 *
-+	 * Don't need to worry about overflow, on 32bit, when step_size
-+	 * is 0, round_down() returns 0 for start, and that turns it
-+	 * into 0x100000000ULL.
-+	 */
-+	return step_size << 5;
-+}
+ 	if (!mutex_trylock(&dev->struct_mutex)) {
+ 		if (!mutex_is_locked_by(&dev->struct_mutex, current))
+-			return SHRINK_STOP;
++			return 0;
  
- /**
-  * memory_map_top_down - Map [map_start, map_end) top down
+ 		if (dev_priv->mm.shrinker_no_lock_stealing)
+-			return SHRINK_STOP;
++			return 0;
+ 
+ 		unlock = false;
+ 	}
+@@ -4901,10 +4901,10 @@ i915_gem_inactive_scan(struct shrinker *
+ 
+ 	if (!mutex_trylock(&dev->struct_mutex)) {
+ 		if (!mutex_is_locked_by(&dev->struct_mutex, current))
+-			return 0;
++			return SHRINK_STOP;
+ 
+ 		if (dev_priv->mm.shrinker_no_lock_stealing)
+-			return 0;
++			return SHRINK_STOP;
+ 
+ 		unlock = false;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
 
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix.patch
-fs-binfmt_elfc-prevent-a-coredump-with-a-large-vm_map_count-from-oopsing-fix-fix.patch
-include-asm-generic-vtimeh-avoid-zero-length-file.patch
-mm-avoid-reinserting-isolated-balloon-pages-into-lru-lists-fix.patch
-ipc-semc-update-sem_otime-for-all-operations-checkpatch-fixes.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-memblock-factor-out-of-top-down-allocation-hack.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress.patch
 
