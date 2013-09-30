@@ -1,72 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata.patch
- removed from -mm tree
-Date: Mon, 30 Sep 2013 11:57:38 -0700
-Message-ID: <5249c9a2.s4fDBHoq0u7u9eji%akpm@linux-foundation.org>
+ drivers-pcmcia-yenta_socketc-convert-to-module_pci_driver.patch removed
+ from -mm tree
+Date: Mon, 30 Sep 2013 11:57:34 -0700
+Message-ID: <5249c99e.5YF08sopQ0/jrC2v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41879 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755758Ab3I3S5i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 14:57:38 -0400
+	with ESMTP id S1755758Ab3I3S5f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 14:57:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, wfp5p@virginia.edu, linux@dominikbrodowski.net, gregkh@linuxfoundation.org, eric.y.miao@gmail.com, bhelgaas@google.com, libo.chen@huawei.com
 
-Subject: [merged] drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata.patch removed from -mm tree
-To: sachin.kamat@linaro.org,jg1.han@samsung.com,mm-commits@vger.kernel.org
+Subject: [merged] drivers-pcmcia-yenta_socketc-convert-to-module_pci_driver.patch removed from -mm tree
+To: libo.chen@huawei.com,bhelgaas@google.com,eric.y.miao@gmail.com,gregkh@linuxfoundation.org,linux@dominikbrodowski.net,wfp5p@virginia.edu,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 30 Sep 2013 11:57:38 -0700
+Date: Mon, 30 Sep 2013 11:57:34 -0700
 
 
 The patch titled
-     Subject: drivers/video/backlight/tosa_lcd.c: remove redundant spi_set_drvdata
+     Subject: drivers/pcmcia/yenta_socket.c: convert to module_pci_driver
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata.patch
+     drivers-pcmcia-yenta_socketc-convert-to-module_pci_driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/backlight/tosa_lcd.c: remove redundant spi_set_drvdata
+From: Libo Chen <libo.chen@huawei.com>
+Subject: drivers/pcmcia/yenta_socket.c: convert to module_pci_driver
 
-Driver core sets driver data to NULL upon failure or remove.
+Use module_pci_driver instead of init/exit, make code clean.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Bill Pemberton <wfp5p@virginia.edu>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/tosa_lcd.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/pcmcia/yenta_socket.c |   16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
-diff -puN drivers/video/backlight/tosa_lcd.c~drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata drivers/video/backlight/tosa_lcd.c
---- a/drivers/video/backlight/tosa_lcd.c~drivers-video-backlight-tosa_lcdc-remove-redundant-spi_set_drvdata
-+++ a/drivers/video/backlight/tosa_lcd.c
-@@ -198,7 +198,7 @@ static int tosa_lcd_probe(struct spi_dev
- 	ret = devm_gpio_request_one(&spi->dev, TOSA_GPIO_TG_ON,
- 				GPIOF_OUT_INIT_LOW, "tg #pwr");
- 	if (ret < 0)
--		goto err_gpio_tg;
-+		return ret;
+diff -puN drivers/pcmcia/yenta_socket.c~drivers-pcmcia-yenta_socketc-convert-to-module_pci_driver drivers/pcmcia/yenta_socket.c
+--- a/drivers/pcmcia/yenta_socket.c~drivers-pcmcia-yenta_socketc-convert-to-module_pci_driver
++++ a/drivers/pcmcia/yenta_socket.c
+@@ -1439,20 +1439,6 @@ static struct pci_driver yenta_cardbus_d
+ 	.driver.pm	= YENTA_PM_OPS,
+ };
  
- 	mdelay(60);
- 
-@@ -219,8 +219,6 @@ static int tosa_lcd_probe(struct spi_dev
- 
- err_register:
- 	tosa_lcd_tg_off(data);
--err_gpio_tg:
--	spi_set_drvdata(spi, NULL);
- 	return ret;
- }
- 
-@@ -235,8 +233,6 @@ static int tosa_lcd_remove(struct spi_de
- 
- 	tosa_lcd_tg_off(data);
- 
--	spi_set_drvdata(spi, NULL);
+-
+-static int __init yenta_socket_init(void)
+-{
+-	return pci_register_driver(&yenta_cardbus_driver);
+-}
+-
+-
+-static void __exit yenta_socket_exit(void)
+-{
+-	pci_unregister_driver(&yenta_cardbus_driver);
+-}
+-
