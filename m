@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- hfsplus-implement-attributes-file-creation-functionality-v2.patch added to
- -mm tree
-Date: Mon, 30 Sep 2013 14:27:50 -0700
-Message-ID: <5249ecd6.UPflykTj+pmu6mA6%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-correct-missing-private-flag-clearing.patch added to -mm tree
+Date: Mon, 30 Sep 2013 14:36:30 -0700
+Message-ID: <5249eede.sWZlL9cslGcHeC5z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42981 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754855Ab3I3V1w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 17:27:52 -0400
+	with ESMTP id S1755415Ab3I3Vgb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Sep 2013 17:36:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, dhillf@gmail.com, davidlohr.bueso@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
 
-Subject: + hfsplus-implement-attributes-file-creation-functionality-v2.patch added to -mm tree
-To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk
+Subject: + mm-hugetlb-correct-missing-private-flag-clearing.patch added to -mm tree
+To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr.bueso@hp.com,dhillf@gmail.com,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,n-horiguchi@ah.jp.nec.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 30 Sep 2013 14:27:50 -0700
+Date: Mon, 30 Sep 2013 14:36:30 -0700
 
 
 The patch titled
-     Subject: hfsplus-implement-attributes-file-creation-functionality-v2
+     Subject: mm/hugetlb.c: correct missing private flag clearing
 has been added to the -mm tree.  Its filename is
-     hfsplus-implement-attributes-file-creation-functionality-v2.patch
+     mm-hugetlb-correct-missing-private-flag-clearing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-implement-attributes-file-creation-functionality-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-correct-missing-private-flag-clearing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-implement-attributes-file-creation-functionality-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-correct-missing-private-flag-clearing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,75 +43,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus-implement-attributes-file-creation-functionality-v2
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/hugetlb.c: correct missing private flag clearing
 
-* SETOFFSET macro was removed (Andrew Morton).
-* Record offsets logic was reworked in hfsplus_init_header_node() (Al Viro).
-* AttributesFile's header node's bitmap is initialized by memset() (Al Viro).
-* Logic of checking attributes tree state before AttributesFile
-  creation was reworked for HFSPLUS_CREATING_ATTR_TREE case (Andrew Morton).
-* Setting error code was added after read_mapping_page()
-  call in hfsplus_create_attributes_file() method (Andrew Morton).
+We should clear the page's private flag when returing the page to the page
+allocator or the hugepage pool.  This patch fixes it.
 
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/xattr.c |   22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/hfsplus/xattr.c~hfsplus-implement-attributes-file-creation-functionality-v2 fs/hfsplus/xattr.c
---- a/fs/hfsplus/xattr.c~hfsplus-implement-attributes-file-creation-functionality-v2
-+++ a/fs/hfsplus/xattr.c
-@@ -217,9 +217,21 @@ check_attr_tree_state_again:
- 			goto check_attr_tree_state_again;
- 		break;
- 	case HFSPLUS_CREATING_ATTR_TREE:
--		schedule_timeout_uninterruptible(HZ);
--		goto check_attr_tree_state_again;
--		break;
-+		/*
-+		 * This state means that another thread is in process
-+		 * of AttributesFile creation. Theoretically, it is
-+		 * possible to be here. But really __setxattr() method
-+		 * first of all calls hfs_find_init() for lookup in
-+		 * B-tree of CatalogFile. This method locks mutex of
-+		 * CatalogFile's B-tree. As a result, if some thread
-+		 * is inside AttributedFile creation operation then
-+		 * another threads will be waiting unlocking of
-+		 * CatalogFile's B-tree's mutex. However, if code will
-+		 * change then we will return error code (-EAGAIN) from
-+		 * here. Really, it means that first try to set of xattr
-+		 * fails with error but second attempt will have success.
-+		 */
-+		return -EAGAIN;
- 	case HFSPLUS_VALID_ATTR_TREE:
- 		return 0;
- 	case HFSPLUS_FAILED_ATTR_TREE:
-@@ -281,8 +293,10 @@ check_attr_tree_state_again:
- 		void *kaddr;
+diff -puN mm/hugetlb.c~mm-hugetlb-correct-missing-private-flag-clearing mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-correct-missing-private-flag-clearing
++++ a/mm/hugetlb.c
+@@ -653,6 +653,7 @@ static void free_huge_page(struct page *
+ 	BUG_ON(page_count(page));
+ 	BUG_ON(page_mapcount(page));
+ 	restore_reserve = PagePrivate(page);
++	ClearPagePrivate(page);
  
- 		page = read_mapping_page(mapping, index, NULL);
--		if (IS_ERR(page))
-+		if (IS_ERR(page)) {
-+			err = PTR_ERR(page);
- 			goto failed_header_node_init;
-+		}
- 
- 		kaddr = kmap_atomic(page);
- 		memcpy(kaddr, buf + written,
+ 	spin_lock(&hugetlb_lock);
+ 	hugetlb_cgroup_uncharge_page(hstate_index(h),
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-nilfs2-fix-issue-with-race-condition-of-competition-between-segments-for-dirty-blocks.patch
-hfsplus-add-metadata-files-clump-size-calculation-functionality.patch
-hfsplus-implement-attributes-files-header-node-initialization-code.patch
-hfsplus-implement-attributes-files-header-node-initialization-code-v2.patch
-hfsplus-implement-attributes-file-creation-functionality.patch
-hfsplus-implement-attributes-file-creation-functionality-v2.patch
+mm-vmalloc-dont-set-area-caller-twice.patch
+mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
+mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+mm-hugetlb-correct-missing-private-flag-clearing.patch
 
