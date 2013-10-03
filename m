@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscanc-dont-forget-to-free-shrinker-nr_deferred.patch added to -mm tree
-Date: Thu, 03 Oct 2013 15:02:34 -0700
-Message-ID: <524de97a.b646BOIEooHWM6b0%akpm@linux-foundation.org>
+Subject: +
+ drivers-video-backlight-lm3630a_blc-add-missing-destroy_workqueue-on-error-in-lm3630a_intr_config.patch added to -mm tree
+Date: Thu, 03 Oct 2013 15:15:43 -0700
+Message-ID: <524dec8f.kM8FjAWtlbjrTgxb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58513 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58611 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755496Ab3JCWCf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 18:02:35 -0400
+	with ESMTP id S1755453Ab3JCWPo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 18:15:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, hannes@cmpxchg.org, glommer@openvz.org, avagin@openvz.org
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com, yongjun_wei@trendmicro.com.cn
 
-Subject: + mm-vmscanc-dont-forget-to-free-shrinker-nr_deferred.patch added to -mm tree
-To: avagin@openvz.org,glommer@openvz.org,hannes@cmpxchg.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com
+Subject: + drivers-video-backlight-lm3630a_blc-add-missing-destroy_workqueue-on-error-in-lm3630a_intr_config.patch added to -mm tree
+To: yongjun_wei@trendmicro.com.cn,jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Thu, 03 Oct 2013 15:02:34 -0700
+Date: Thu, 03 Oct 2013 15:15:43 -0700
 
 
 The patch titled
-     Subject: mm/vmscan.c: don't forget to free shrinker->nr_deferred
+     Subject: drivers/video/backlight/lm3630a_bl.c: add missing destroy_workqueue() on error in lm3630a_intr_config()
 has been added to the -mm tree.  Its filename is
-     mm-vmscanc-dont-forget-to-free-shrinker-nr_deferred.patch
+     drivers-video-backlight-lm3630a_blc-add-missing-destroy_workqueue-on-error-in-lm3630a_intr_config.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscanc-dont-forget-to-free-shrinker-nr_deferred.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-video-backlight-lm3630a_blc-add-missing-destroy_workqueue-on-error-in-lm3630a_intr_config.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscanc-dont-forget-to-free-shrinker-nr_deferred.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-video-backlight-lm3630a_blc-add-missing-destroy_workqueue-on-error-in-lm3630a_intr_config.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,59 +44,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Vagin <avagin@openvz.org>
-Subject: mm/vmscan.c: don't forget to free shrinker->nr_deferred
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Subject: drivers/video/backlight/lm3630a_bl.c: add missing destroy_workqueue() on error in lm3630a_intr_config()
 
-This leak was added by 1d3d4437eae ("vmscan: per-node deferred work").
+Add the missing destroy_workqueue() before return from
+lm3630a_intr_config() in the error handling case.
 
-unreferenced object 0xffff88006ada3bd0 (size 8):
-  comm "criu", pid 14781, jiffies 4295238251 (age 105.641s)
-  hex dump (first 8 bytes):
-    00 00 00 00 00 00 00 00                          ........
-  backtrace:
-    [<ffffffff8170caee>] kmemleak_alloc+0x5e/0xc0
-    [<ffffffff811c0527>] __kmalloc+0x247/0x310
-    [<ffffffff8117848c>] register_shrinker+0x3c/0xa0
-    [<ffffffff811e115b>] sget+0x5ab/0x670
-    [<ffffffff812532f4>] proc_mount+0x54/0x170
-    [<ffffffff811e1893>] mount_fs+0x43/0x1b0
-    [<ffffffff81202dd2>] vfs_kern_mount+0x72/0x110
-    [<ffffffff81202e89>] kern_mount_data+0x19/0x30
-    [<ffffffff812530a0>] pid_ns_prepare_proc+0x20/0x40
-    [<ffffffff81083c56>] alloc_pid+0x466/0x4a0
-    [<ffffffff8105aeda>] copy_process+0xc6a/0x1860
-    [<ffffffff8105beab>] do_fork+0x8b/0x370
-    [<ffffffff8105c1a6>] SyS_clone+0x16/0x20
-    [<ffffffff8171f739>] stub_clone+0x69/0x90
-    [<ffffffffffffffff>] 0xffffffffffffffff
-
-Signed-off-by: Andrew Vagin <avagin@openvz.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Glauber Costa <glommer@openvz.org>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/backlight/lm3630a_bl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmscan.c~mm-vmscanc-dont-forget-to-free-shrinker-nr_deferred mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscanc-dont-forget-to-free-shrinker-nr_deferred
-+++ a/mm/vmscan.c
-@@ -211,6 +211,8 @@ void unregister_shrinker(struct shrinker
- 	down_write(&shrinker_rwsem);
- 	list_del(&shrinker->list);
- 	up_write(&shrinker_rwsem);
-+
-+	kfree(shrinker->nr_deferred);
- }
- EXPORT_SYMBOL(unregister_shrinker);
- 
+diff -puN drivers/video/backlight/lm3630a_bl.c~drivers-video-backlight-lm3630a_blc-add-missing-destroy_workqueue-on-error-in-lm3630a_intr_config drivers/video/backlight/lm3630a_bl.c
+--- a/drivers/video/backlight/lm3630a_bl.c~drivers-video-backlight-lm3630a_blc-add-missing-destroy_workqueue-on-error-in-lm3630a_intr_config
++++ a/drivers/video/backlight/lm3630a_bl.c
+@@ -154,6 +154,7 @@ static int lm3630a_intr_config(struct lm
+ 	    (pchip->irq, NULL, lm3630a_isr_func,
+ 	     IRQF_TRIGGER_FALLING | IRQF_ONESHOT, "lm3630a_irq", pchip)) {
+ 		dev_err(pchip->dev, "request threaded irq fail\n");
++		destroy_workqueue(pchip->irqthread);
+ 		return -ENOMEM;
+ 	}
+ 	return rval;
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
 
-mm-vmscanc-dont-forget-to-free-shrinker-nr_deferred.patch
+origin.patch
+drivers-video-backlight-lm3630a_blc-add-missing-destroy_workqueue-on-error-in-lm3630a_intr_config.patch
+drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register.patch
+linux-next.patch
 
