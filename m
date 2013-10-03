@@ -1,260 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memblock-factor-out-of-top-down-allocation.patch
- removed from -mm tree
-Date: Thu, 03 Oct 2013 11:59:13 -0700
-Message-ID: <524dbe81.I/YUmpbbwOxO8lGs%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ x86-mm-factor-out-of-top-down-direct-mapping-setup.patch removed from -mm
+ tree
+Date: Thu, 03 Oct 2013 11:59:18 -0700
+Message-ID: <524dbe86.CVZRyXOS3SjYY7bf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56423 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754397Ab3JCS7P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 14:59:15 -0400
+	with ESMTP id S1754397Ab3JCS7T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 14:59:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, tangchen@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, tangchen@cn.fujitsu.com
 
-Subject: [to-be-updated] memblock-factor-out-of-top-down-allocation.patch removed from -mm tree
-To: tangchen@cn.fujitsu.com,hannes@cmpxchg.org,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [to-be-updated] x86-mm-factor-out-of-top-down-direct-mapping-setup.patch removed from -mm tree
+To: tangchen@cn.fujitsu.com,hannes@cmpxchg.org,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,kamezawa.hiroyu@jp.fujitsu.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Oct 2013 11:59:13 -0700
+Date: Thu, 03 Oct 2013 11:59:18 -0700
 
 
 The patch titled
-     Subject: mm/memblock.c: factor out top-down allocation
+     Subject: x86/mm: factor out top-down direct mapping setup
 has been removed from the -mm tree.  Its filename was
-     memblock-factor-out-of-top-down-allocation.patch
+     x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mm/memblock.c: factor out top-down allocation
+Subject: x86/mm: factor out top-down direct mapping setup
 
-[Problem]
-
-The current Linux cannot migrate pages used by the kerenl because of the
-kernel direct mapping.  In Linux kernel space, va = pa + PAGE_OFFSET. 
-When the pa is changed, we cannot simply update the pagetable and keep the
-va unmodified.  So the kernel pages are not migratable.
-
-There are also some other issues will cause the kernel pages not
-migratable.  For example, the physical address may be cached somewhere and
-will be used.  It is not to update all the caches.
-
-When doing memory hotplug in Linux, we first migrate all the pages in one
-memory device somewhere else, and then remove the device.  But if pages
-are used by the kernel, they are not migratable.  As a result, memory used
-by the kernel cannot be hot-removed.
-
-Modifying the kernel direct mapping mechanism is too difficult to do.  And
-it may cause the kernel performance down and unstable.  So we use the
-following way to do memory hotplug.
-
-
-[What we are doing]
-
-In Linux, memory in one numa node is divided into several zones.  One of
-the zones is ZONE_MOVABLE, which the kernel won't use.
-
-In order to implement memory hotplug in Linux, we are going to arrange all
-hotpluggable memory in ZONE_MOVABLE so that the kernel won't use these
-memory.  To do this, we need ACPI's help.
-
-In ACPI, SRAT(System Resource Affinity Table) contains NUMA info.  The
-memory affinities in SRAT record every memory range in the system, and
-also, flags specifying if the memory range is hotpluggable.  (Please refer
-to ACPI spec 5.0 5.2.16)
-
-With the help of SRAT, we have to do the following two things to achieve our
-goal:
-
-1. When doing memory hot-add, allow the users arranging hotpluggable as
-   ZONE_MOVABLE.
-   (This has been done by the MOVABLE_NODE functionality in Linux.)
-
-2. when the system is booting, prevent bootmem allocator from allocating
-   hotpluggable memory for the kernel before the memory initialization
-   finishes.
-
-The problem 2 is the key problem we are going to solve. But before solving it,
-we need some preparation. Please see below.
-
-
-[Preparation]
-
-Bootloader has to load the kernel image into memory.  And this memory must
-be unhotpluggable.  We cannot prevent this anyway.  So in a memory hotplug
-system, we can assume any node the kernel resides in is not hotpluggable.
-
-Before SRAT is parsed, we don't know which memory ranges are hotpluggable.
- But memblock has already started to work.  In the current kernel,
-memblock allocates the following memory before SRAT is parsed:
-
-setup_arch()
- |->memblock_x86_fill()            /* memblock is ready */
- |......
- |->early_reserve_e820_mpc_new()   /* allocate memory under 1MB */
- |->reserve_real_mode()            /* allocate memory under 1MB */
- |->init_mem_mapping()             /* allocate page tables, about 2MB to map 1GB memory */
- |->dma_contiguous_reserve()       /* specified by user, should be low */
- |->setup_log_buf()                /* specified by user, several mega bytes */
- |->relocate_initrd()              /* could be large, but will be freed after boot, should reorder */
- |->acpi_initrd_override()         /* several mega bytes */
- |->reserve_crashkernel()          /* could be large, should reorder */
- |......
- |->initmem_init()                 /* Parse SRAT */
-
-According to Tejun's advice, before SRAT is parsed, we should try our best
-to allocate memory near the kernel image.  Since the whole node the kernel
-resides in won't be hotpluggable, and for a modern server, a node may have
-at least 16GB memory, allocating several mega bytes memory around the
-kernel image won't cross to hotpluggable memory.
-
-
-[About this patch-set]
-
-So this patch-set does the following:
-
-1. Make memblock be able to allocate memory bottom up.
-   1) Keep all the memblock APIs' prototype unmodified.
-   2) When the direction is bottom up, keep the start address greater than the 
-      end of kernel image.
-
-2. Improve init_mem_mapping() to support allocate pa ge tables in
-   bottom up direction.
-
-3. Introduce "movablenode" boot option to enable and disable this
-   functionality.
-
-PS: Reordering of relocate_initrd() has not been done yet. 
-acpi_initrd_override() needs to access initrd with virtual address.  So
-relocate_initrd() must be done before acpi_initrd_override().
-
-
-Create a new function __memblock_find_range_rev() to factor out of
-top-down allocation from memblock_find_in_range_node.  This is a
-preparation because we will introduce a new bottom-up allocation mode in
-the following patch.
+Create a new function memory_map_top_down to factor out of the top-down
+direct memory mapping pagetable setup.  This is also a preparation for the
+following patch, which will introduce the bottom-up memory mapping.  That
+said, we will put the two ways of pagetable setup into separate functions,
+and choose to use which way in init_mem_mapping, which makes the code more
+clear.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Renninger <trenn@suse.de>
 Cc: Toshi Kani <toshi.kani@hp.com>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <jiang.liu@huawei.com>
 Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   47 ++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 34 insertions(+), 13 deletions(-)
+ arch/x86/mm/init.c |   58 ++++++++++++++++++++++++++++---------------
+ 1 file changed, 38 insertions(+), 20 deletions(-)
 
-diff -puN mm/memblock.c~memblock-factor-out-of-top-down-allocation mm/memblock.c
---- a/mm/memblock.c~memblock-factor-out-of-top-down-allocation
-+++ a/mm/memblock.c
-@@ -83,33 +83,25 @@ static long __init_memblock memblock_ove
- }
+diff -puN arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup
++++ a/arch/x86/mm/init.c
+@@ -401,27 +401,26 @@ static unsigned long __init init_range_m
  
- /**
-- * memblock_find_in_range_node - find free area in given range and node
-+ * __memblock_find_range_rev - find free area utility, in reverse order
-  * @start: start of candidate range
-  * @end: end of candidate range, can be %MEMBLOCK_ALLOC_{ANYWHERE|ACCESSIBLE}
-  * @size: size of free area to find
-  * @align: alignment of free area to find
-  * @nid: nid of the free area to find, %MAX_NUMNODES for any node
-  *
-- * Find @size free area aligned to @align in the specified range and node.
-+ * Utility called from memblock_find_in_range_node(), find free area top-down.
-  *
-  * RETURNS:
-  * Found address on success, %0 on failure.
-  */
--phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
--					phys_addr_t end, phys_addr_t size,
--					phys_addr_t align, int nid)
-+static phys_addr_t __init_memblock
-+__memblock_find_range_rev(phys_addr_t start, phys_addr_t end,
-+			  phys_addr_t size, phys_addr_t align, int nid)
- {
- 	phys_addr_t this_start, this_end, cand;
- 	u64 i;
- 
--	/* pump up @end */
--	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
--		end = memblock.current_limit;
--
--	/* avoid allocating the first page */
--	start = max_t(phys_addr_t, start, PAGE_SIZE);
--	end = max(start, end);
--
- 	for_each_free_mem_range_reverse(i, nid, &this_start, &this_end, NULL) {
- 		this_start = clamp(this_start, start, end);
- 		this_end = clamp(this_end, start, end);
-@@ -121,10 +113,39 @@ phys_addr_t __init_memblock memblock_fin
- 		if (cand >= this_start)
- 			return cand;
- 	}
-+
- 	return 0;
- }
- 
- /**
-+ * memblock_find_in_range_node - find free area in given range and node
-+ * @start: start of candidate range
-+ * @end: end of candidate range, can be %MEMBLOCK_ALLOC_{ANYWHERE|ACCESSIBLE}
-+ * @size: size of free area to find
-+ * @align: alignment of free area to find
-+ * @nid: nid of the free area to find, %MAX_NUMNODES for any node
-+ *
-+ * Find @size free area aligned to @align in the specified range and node.
-+ *
-+ * RETURNS:
-+ * Found address on success, %0 on failure.
-+ */
-+phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
-+					phys_addr_t end, phys_addr_t size,
-+					phys_addr_t align, int nid)
-+{
-+	/* pump up @end */
-+	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
-+		end = memblock.current_limit;
-+
-+	/* avoid allocating the first page */
-+	start = max_t(phys_addr_t, start, PAGE_SIZE);
-+	end = max(start, end);
-+
-+	return __memblock_find_range_rev(start, end, size, align, nid);
-+}
+ /* (PUD_SHIFT-PMD_SHIFT)/2 */
+ #define STEP_SIZE_SHIFT 5
+-void __init init_mem_mapping(void)
 +
 +/**
-  * memblock_find_in_range - find free area in given range
-  * @start: start of candidate range
-  * @end: end of candidate range, can be %MEMBLOCK_ALLOC_{ANYWHERE|ACCESSIBLE}
++ * memory_map_top_down - Map [map_start, map_end) top down
++ * @map_start: start address of the target memory range
++ * @map_end: end address of the target memory range
++ *
++ * This function will setup direct mapping for memory range
++ * [map_start, map_end) in top-down.
++ */
++static void __init memory_map_top_down(unsigned long map_start,
++				       unsigned long map_end)
+ {
+-	unsigned long end, real_end, start, last_start;
++	unsigned long real_end, start, last_start;
+ 	unsigned long step_size;
+ 	unsigned long addr;
+ 	unsigned long mapped_ram_size = 0;
+ 	unsigned long new_mapped_ram_size;
+ 
+-	probe_page_size_mask();
+-
+-#ifdef CONFIG_X86_64
+-	end = max_pfn << PAGE_SHIFT;
+-#else
+-	end = max_low_pfn << PAGE_SHIFT;
+-#endif
+-
+-	/* the ISA range is always mapped regardless of memory holes */
+-	init_memory_mapping(0, ISA_END_ADDRESS);
+-
+ 	/* xen has big range in reserved near end of ram, skip it at first.*/
+-	addr = memblock_find_in_range(ISA_END_ADDRESS, end, PMD_SIZE, PMD_SIZE);
++	addr = memblock_find_in_range(map_start, map_end, PMD_SIZE, PMD_SIZE);
+ 	real_end = addr + PMD_SIZE;
+ 
+ 	/* step_size need to be small so pgt_buf from BRK could cover it */
+@@ -436,13 +435,13 @@ void __init init_mem_mapping(void)
+ 	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
+ 	 * for page table.
+ 	 */
+-	while (last_start > ISA_END_ADDRESS) {
++	while (last_start > map_start) {
+ 		if (last_start > step_size) {
+ 			start = round_down(last_start - 1, step_size);
+-			if (start < ISA_END_ADDRESS)
+-				start = ISA_END_ADDRESS;
++			if (start < map_start)
++				start = map_start;
+ 		} else
+-			start = ISA_END_ADDRESS;
++			start = map_start;
+ 		new_mapped_ram_size = init_range_memory_mapping(start,
+ 							last_start);
+ 		last_start = start;
+@@ -453,8 +452,27 @@ void __init init_mem_mapping(void)
+ 		mapped_ram_size += new_mapped_ram_size;
+ 	}
+ 
+-	if (real_end < end)
+-		init_range_memory_mapping(real_end, end);
++	if (real_end < map_end)
++		init_range_memory_mapping(real_end, map_end);
++}
++
++void __init init_mem_mapping(void)
++{
++	unsigned long end;
++
++	probe_page_size_mask();
++
++#ifdef CONFIG_X86_64
++	end = max_pfn << PAGE_SHIFT;
++#else
++	end = max_low_pfn << PAGE_SHIFT;
++#endif
++
++	/* the ISA range is always mapped regardless of memory holes */
++	init_memory_mapping(0, ISA_END_ADDRESS);
++
++	/* setup direct mapping for range [ISA_END_ADDRESS, end) in top-down*/
++	memory_map_top_down(ISA_END_ADDRESS, end);
+ 
+ #ifdef CONFIG_X86_64
+ 	if (max_pfn > max_low_pfn) {
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
-memblock-introduce-bottom-up-allocation-mode.patch
-x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
 x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
 x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
 mem-hotplug-introduce-movablenode-boot-option.patch
