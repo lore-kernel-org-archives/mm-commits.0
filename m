@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch added to -mm tree
-Date: Thu, 03 Oct 2013 12:35:58 -0700
-Message-ID: <524dc71e.xwasXMisCyQ8wFpi%akpm@linux-foundation.org>
+Subject: + ipc-update-locking-scheme-comments.patch added to -mm tree
+Date: Thu, 03 Oct 2013 12:36:40 -0700
+Message-ID: <524dc748.MtIQxKuTn+SeSrzN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56911 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56916 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754700Ab3JCTf7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 15:35:59 -0400
+	with ESMTP id S1754729Ab3JCTgk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 15:36:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, efault@gmx.de, davidlohr.bueso@hp.com, manfred@colorfullife.com
+To: mm-commits@vger.kernel.org, manfred@colorfullife.com, davidlohr@hp.com
 
-Subject: + ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch added to -mm tree
-To: manfred@colorfullife.com,davidlohr.bueso@hp.com,efault@gmx.de
+Subject: + ipc-update-locking-scheme-comments.patch added to -mm tree
+To: davidlohr@hp.com,manfred@colorfullife.com
 From: akpm@linux-foundation.org
-Date: Thu, 03 Oct 2013 12:35:58 -0700
+Date: Thu, 03 Oct 2013 12:36:40 -0700
 
 
 The patch titled
-     Subject: ipc/sem.c: synchronize semop and semctl with IPC_RMID
+     Subject: ipc: update locking scheme comments
 has been added to the -mm tree.  Its filename is
-     ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch
+     ipc-update-locking-scheme-comments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-update-locking-scheme-comments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-update-locking-scheme-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,160 +43,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: synchronize semop and semctl with IPC_RMID
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: ipc: update locking scheme comments
 
-After acquiring the semlock spinlock, operations must test that the array
-is still valid.
+The initial documentation was a bit incomplete, update accordingly.
 
-- semctl() and exit_sem() would walk stale linked lists (ugly, but should
-  be ok: all lists are empty)
-
-- semtimedop() would sleep forever - and if woken up due to a signal -
-  access memory after free.
-
-The patch also:
-- standardizes the tests for .deleted, so that all tests in one
-  function leave the function with the same approach.
-- unconditionally tests for .deleted immediately after every call to
-  sem_lock - even it it means that for semctl(GETALL), .deleted will be
-  tested twice.
-
-Both changes make the review simpler: After every sem_lock, there must be
-a test of .deleted, followed by a goto to the cleanup code (if the
-function uses "goto cleanup").
-
-The only exception is semctl_down(): If sem_ids().rwsem is locked, then
-the presence in ids->ipcs_idr is equivalent to !.deleted, thus no
-additional test is required.
-
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Mike Galbraith <efault@gmx.de>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Acked-by: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   42 +++++++++++++++++++++++++++++-------------
- 1 file changed, 29 insertions(+), 13 deletions(-)
+ ipc/util.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid ipc/sem.c
---- a/ipc/sem.c~ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid
-+++ a/ipc/sem.c
-@@ -1282,6 +1282,12 @@ static int semctl_setval(struct ipc_name
+diff -puN ipc/util.c~ipc-update-locking-scheme-comments ipc/util.c
+--- a/ipc/util.c~ipc-update-locking-scheme-comments
++++ a/ipc/util.c
+@@ -17,12 +17,21 @@
+  *            Pavel Emelianov <xemul@openvz.org>
+  *
+  * General sysv ipc locking scheme:
+- *  when doing ipc id lookups, take the ids->rwsem
+  *      rcu_read_lock()
+- *          obtain the ipc object (kern_ipc_perm)
+- *          perform security, capabilities, auditing and permission checks, etc.
+- *          acquire the ipc lock (kern_ipc_perm.lock) throught ipc_lock_object()
+- *             perform data updates (ie: SET, RMID, LOCK/UNLOCK commands)
++ *          obtain the ipc object (kern_ipc_perm) by looking up the id in an idr tree.
++ *          - perform initial checks (capabilities, auditing and permission, etc).
++ *          - perform read-only operations, such as STAT, INFO commands.
++ *          acquire the ipc lock (kern_ipc_perm.lock) through ipc_lock_object()
++ *             - perform data updates, such as SET, RMID commands and
++ *               mechanism-specific operations (semop/semtimedop, msgsnd/msgrcv, shmat/shmdt).
++ *          drop the ipc lock, through ipc_unlock_object().
++ *     rcu_read_unlock()
++ *
++ *  The ids->rwsem must be taken when:
++ *     - creating, removing and iterating the existing entries in ipc identifier sets.
++ *     - iterating through /proc/sysvipc/* files.
++ *
++ *  Note that sems have a special fast path that avoids kern_ipc_perm.lock - see sem_lock().
+  */
  
- 	sem_lock(sma, NULL, -1);
- 
-+	if (sma->sem_perm.deleted) {
-+		sem_unlock(sma, -1);
-+		rcu_read_unlock();
-+		return -EIDRM;
-+	}
-+
- 	curr = &sma->sem_base[semnum];
- 
- 	ipc_assert_locked_object(&sma->sem_perm);
-@@ -1336,12 +1342,14 @@ static int semctl_main(struct ipc_namesp
- 		int i;
- 
- 		sem_lock(sma, NULL, -1);
-+		if (sma->sem_perm.deleted) {
-+			err = -EIDRM;
-+			goto out_unlock;
-+		}
- 		if(nsems > SEMMSL_FAST) {
- 			if (!ipc_rcu_getref(sma)) {
--				sem_unlock(sma, -1);
--				rcu_read_unlock();
- 				err = -EIDRM;
--				goto out_free;
-+				goto out_unlock;
- 			}
- 			sem_unlock(sma, -1);
- 			rcu_read_unlock();
-@@ -1354,10 +1362,8 @@ static int semctl_main(struct ipc_namesp
- 			rcu_read_lock();
- 			sem_lock_and_putref(sma);
- 			if (sma->sem_perm.deleted) {
--				sem_unlock(sma, -1);
--				rcu_read_unlock();
- 				err = -EIDRM;
--				goto out_free;
-+				goto out_unlock;
- 			}
- 		}
- 		for (i = 0; i < sma->sem_nsems; i++)
-@@ -1375,8 +1381,8 @@ static int semctl_main(struct ipc_namesp
- 		struct sem_undo *un;
- 
- 		if (!ipc_rcu_getref(sma)) {
--			rcu_read_unlock();
--			return -EIDRM;
-+			err = -EIDRM;
-+			goto out_rcu_wakeup;
- 		}
- 		rcu_read_unlock();
- 
-@@ -1404,10 +1410,8 @@ static int semctl_main(struct ipc_namesp
- 		rcu_read_lock();
- 		sem_lock_and_putref(sma);
- 		if (sma->sem_perm.deleted) {
--			sem_unlock(sma, -1);
--			rcu_read_unlock();
- 			err = -EIDRM;
--			goto out_free;
-+			goto out_unlock;
- 		}
- 
- 		for (i = 0; i < nsems; i++)
-@@ -1431,6 +1435,10 @@ static int semctl_main(struct ipc_namesp
- 		goto out_rcu_wakeup;
- 
- 	sem_lock(sma, NULL, -1);
-+	if (sma->sem_perm.deleted) {
-+		err = -EIDRM;
-+		goto out_unlock;
-+	}
- 	curr = &sma->sem_base[semnum];
- 
- 	switch (cmd) {
-@@ -1836,6 +1844,10 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
- 	if (error)
- 		goto out_rcu_wakeup;
- 
-+	error = -EIDRM;
-+	locknum = sem_lock(sma, sops, nsops);
-+	if (sma->sem_perm.deleted)
-+		goto out_unlock_free;
- 	/*
- 	 * semid identifiers are not unique - find_alloc_undo may have
- 	 * allocated an undo structure, it was invalidated by an RMID
-@@ -1843,8 +1855,6 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
- 	 * This case can be detected checking un->semid. The existence of
- 	 * "un" itself is guaranteed by rcu.
- 	 */
--	error = -EIDRM;
--	locknum = sem_lock(sma, sops, nsops);
- 	if (un && un->semid == -1)
- 		goto out_unlock_free;
- 
-@@ -2057,6 +2067,12 @@ void exit_sem(struct task_struct *tsk)
- 		}
- 
- 		sem_lock(sma, NULL, -1);
-+		/* exit_sem raced with IPC_RMID, nothing to do */
-+		if (sma->sem_perm.deleted) {
-+			sem_unlock(sma, -1);
-+			rcu_read_unlock();
-+			continue;
-+		}
- 		un = __lookup_undo(ulp, semid);
- 		if (un == NULL) {
- 			/* exit_sem raced with IPC_RMID+semget() that created
+ #include <linux/mm.h>
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from davidlohr@hp.com are
 
 origin.patch
-ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch
-slab-leaks3-default-y.patch
+ipc-update-locking-scheme-comments.patch
 
