@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-update-locking-scheme-comments-fix.patch added to -mm tree
-Date: Thu, 03 Oct 2013 12:40:03 -0700
-Message-ID: <524dc813.WYKXziraitLVWwJh%akpm@linux-foundation.org>
+Subject: + scripts-tagssh-increase-identifier-list.patch added to -mm tree
+Date: Thu, 03 Oct 2013 13:20:43 -0700
+Message-ID: <524dd19b.wz7XBgU2o5MsQ9UF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56959 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57384 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754545Ab3JCTkE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 15:40:04 -0400
+	with ESMTP id S1754884Ab3JCUUn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 16:20:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, davidlohr@hp.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mmarek@suse.cz, tkhai@yandex.ru
 
-Subject: + ipc-update-locking-scheme-comments-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,davidlohr@hp.com
+Subject: + scripts-tagssh-increase-identifier-list.patch added to -mm tree
+To: tkhai@yandex.ru,mmarek@suse.cz
 From: akpm@linux-foundation.org
-Date: Thu, 03 Oct 2013 12:40:03 -0700
+Date: Thu, 03 Oct 2013 13:20:43 -0700
 
 
 The patch titled
-     Subject: ipc-update-locking-scheme-comments-fix
+     Subject: scripts/tags.sh: Increase identifier list
 has been added to the -mm tree.  Its filename is
-     ipc-update-locking-scheme-comments-fix.patch
+     scripts-tagssh-increase-identifier-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-update-locking-scheme-comments-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-tagssh-increase-identifier-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-update-locking-scheme-comments-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-tagssh-increase-identifier-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,93 +43,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-update-locking-scheme-comments-fix
+From: Kirill Tkhai <tkhai@yandex.ru>
+Subject: scripts/tags.sh: Increase identifier list
 
-make it more readable in 80 columns
+Add		__maybe_unused
+		__always_unused
+		__cacheline_aligned
+		__cacheline_aligned_in_smp
+		ACPI_EXPORT_SYMBOL
+to the list.
 
-Cc: Davidlohr Bueso <davidlohr@hp.com>
+Signed-off-by: Kirill Tkhai <tkhai@yandex.ru>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ scripts/tags.sh |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN ipc/util.c~ipc-update-locking-scheme-comments-fix ipc/util.c
---- a/ipc/util.c~ipc-update-locking-scheme-comments-fix
-+++ a/ipc/util.c
-@@ -17,21 +17,27 @@
-  *            Pavel Emelianov <xemul@openvz.org>
-  *
-  * General sysv ipc locking scheme:
-- *      rcu_read_lock()
-- *          obtain the ipc object (kern_ipc_perm) by looking up the id in an idr tree.
-- *          - perform initial checks (capabilities, auditing and permission, etc).
-- *          - perform read-only operations, such as STAT, INFO commands.
-- *          acquire the ipc lock (kern_ipc_perm.lock) through ipc_lock_object()
-- *             - perform data updates, such as SET, RMID commands and
-- *               mechanism-specific operations (semop/semtimedop, msgsnd/msgrcv, shmat/shmdt).
-- *          drop the ipc lock, through ipc_unlock_object().
-- *     rcu_read_unlock()
-+ *	rcu_read_lock()
-+ *          obtain the ipc object (kern_ipc_perm) by looking up the id in an idr
-+ *	    tree.
-+ *	    - perform initial checks (capabilities, auditing and permission,
-+ *	      etc).
-+ *	    - perform read-only operations, such as STAT, INFO commands.
-+ *	      acquire the ipc lock (kern_ipc_perm.lock) through
-+ *	      ipc_lock_object()
-+ *		- perform data updates, such as SET, RMID commands and
-+ *		  mechanism-specific operations (semop/semtimedop,
-+ *		  msgsnd/msgrcv, shmat/shmdt).
-+ *	    drop the ipc lock, through ipc_unlock_object().
-+ *	rcu_read_unlock()
-  *
-  *  The ids->rwsem must be taken when:
-- *     - creating, removing and iterating the existing entries in ipc identifier sets.
-- *     - iterating through /proc/sysvipc/* files.
-+ *	- creating, removing and iterating the existing entries in ipc
-+ *	  identifier sets.
-+ *	- iterating through /proc/sysvipc/* files.
-  *
-- *  Note that sems have a special fast path that avoids kern_ipc_perm.lock - see sem_lock().
-+ *  Note that sems have a special fast path that avoids kern_ipc_perm.lock -
-+ *  see sem_lock().
-  */
- 
- #include <linux/mm.h>
+diff -puN scripts/tags.sh~scripts-tagssh-increase-identifier-list scripts/tags.sh
+--- a/scripts/tags.sh~scripts-tagssh-increase-identifier-list
++++ a/scripts/tags.sh
+@@ -151,13 +151,14 @@ exuberant()
+ 	all_target_sources | xargs $1 -a                        \
+ 	-I __initdata,__exitdata,__initconst,__devinitdata	\
+ 	-I __devinitconst,__cpuinitdata,__initdata_memblock	\
+-	-I __refdata,__attribute				\
++	-I __refdata,__attribute,__maybe_unused,__always_unused \
+ 	-I __acquires,__releases,__deprecated			\
+ 	-I __read_mostly,__aligned,____cacheline_aligned        \
+ 	-I ____cacheline_aligned_in_smp                         \
++	-I __cacheline_aligned,__cacheline_aligned_in_smp	\
+ 	-I ____cacheline_internodealigned_in_smp                \
+ 	-I __used,__packed,__packed2__,__must_check,__must_hold	\
+-	-I EXPORT_SYMBOL,EXPORT_SYMBOL_GPL                      \
++	-I EXPORT_SYMBOL,EXPORT_SYMBOL_GPL,ACPI_EXPORT_SYMBOL   \
+ 	-I DEFINE_TRACE,EXPORT_TRACEPOINT_SYMBOL,EXPORT_TRACEPOINT_SYMBOL_GPL \
+ 	-I static,const						\
+ 	--extra=+f --c-kinds=+px                                \
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tkhai@yandex.ru are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ipc-update-locking-scheme-comments-fix.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
+scripts-tagssh-increase-identifier-list.patch
 linux-next.patch
-linux-next-git-rejects.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
