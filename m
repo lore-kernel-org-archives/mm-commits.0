@@ -1,99 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch removed
- from -mm tree
-Date: Thu, 03 Oct 2013 11:59:59 -0700
-Message-ID: <524dbeaf.lXUYXyxH3nPAp0uX%akpm@linux-foundation.org>
+Subject: + mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
+ added to -mm tree
+Date: Thu, 03 Oct 2013 12:33:33 -0700
+Message-ID: <524dc68d.70ZTIFmZuTbfywZL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56907 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754397Ab3JCTAA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 15:00:00 -0400
+	with ESMTP id S1754968Ab3JCTde (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 15:33:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, tangchen@cn.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, rientjes@google.com
 
-Subject: [obsolete] x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,tangchen@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: + mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch added to -mm tree
+To: rientjes@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Thu, 03 Oct 2013 11:59:59 -0700
+Date: Thu, 03 Oct 2013 12:33:33 -0700
 
 
 The patch titled
-     Subject: x86-mm-factor-out-of-top-down-direct-mapping-setup: fix for linux-next
-has been removed from the -mm tree.  Its filename was
-     x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch
+     Subject: mm, memcg: protect mem_cgroup_read_events for cpu hotplug
+has been added to the -mm tree.  Its filename is
+     mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-mm-factor-out-of-top-down-direct-mapping-setup: fix for linux-next
+From: David Rientjes <rientjes@google.com>
+Subject: mm, memcg: protect mem_cgroup_read_events for cpu hotplug
 
-Resolve x86-mm-factor-out-of-top-down-direct-mapping-setup versus next's
+for_each_online_cpu() needs the protection of {get,put}_online_cpus() so
+cpu_online_mask doesn't change during the iteration.
 
-commit 6979287a7df66a92d6f308338e972a406f9ef842
-Author: Yinghai Lu <yinghai@kernel.org>
-Date:   Fri Sep 6 19:07:09 2013 -0700
+cpu_hotplug.lock is held while a cpu is going down, it's a coarse lock
+that is used kernel-wide to synchronize cpu hotplug activity.  Memcg has a
+cpu hotplug notifier, called while there may not be any cpu hotplug
+refcounts, which drains per-cpu event counts to memcg->nocpu_base.events
+to maintain a cumulative event count as cpus disappear.  Without
+get_online_cpus() in mem_cgroup_read_events(), it's possible to account
+for the event count on a dying cpu twice, and this value may be
+significantly large.
 
-    x86/mm: Add 'step_size' comments to init_mem_mapping()
+In fact, all memcg->pcp_counter_lock use should be nested by 
+{get,put}_online_cpus().
 
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+This fixes that issue and ensures the reported statistics are not vastly
+over-reported during cpu hotplug.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix
-+++ a/arch/x86/mm/init.c
-@@ -493,7 +493,7 @@ static void __init memory_map_bottom_up(
- 		start = next;
+diff -puN mm/memcontrol.c~mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug
++++ a/mm/memcontrol.c
+@@ -866,6 +866,7 @@ static unsigned long mem_cgroup_read_eve
+ 	unsigned long val = 0;
+ 	int cpu;
  
- 		if (new_mapped_ram_size > mapped_ram_size)
--			step_size <<= STEP_SIZE_SHIFT;
-+			step_size = get_new_step_size(step_size);
- 		mapped_ram_size += new_mapped_ram_size;
- 	}
++	get_online_cpus();
+ 	for_each_online_cpu(cpu)
+ 		val += per_cpu(memcg->stat->events[idx], cpu);
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -873,6 +874,7 @@ static unsigned long mem_cgroup_read_eve
+ 	val += memcg->nocpu_base.events[idx];
+ 	spin_unlock(&memcg->pcp_counter_lock);
+ #endif
++	put_online_cpus();
+ 	return val;
  }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
+mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
+kthread-make-kthread_create-killable.patch
+x86-srat-use-numa_no_node.patch
+mm-vmalloc-use-numa_no_node.patch
+mm-add-a-helper-function-to-check-may-oom-condition.patch
+mm-arch-use-numa_no_node.patch
+mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
+mm-vmalloc-dont-set-area-caller-twice.patch
+mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
+mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+mm-mempolicy-use-numa_no_node.patch
 linux-next.patch
-linux-next-git-rejects.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
