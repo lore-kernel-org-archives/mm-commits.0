@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-optimize-epoll_ctl_del-using-rcu.patch added to -mm tree
-Date: Thu, 03 Oct 2013 14:52:09 -0700
-Message-ID: <524de709.7oEmfgaxaPCeMa4h%akpm@linux-foundation.org>
+Subject: +
+ epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch added to
+ -mm tree
+Date: Thu, 03 Oct 2013 14:52:13 -0700
+Message-ID: <524de70d.1mLEnxlQCq3g4bYG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58369 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755381Ab3JCVwK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 17:52:10 -0400
+	with ESMTP id S1755826Ab3JCVwO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 17:52:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, paulmck@us.ibm.com, nzimmer@sgi.com, normalperson@yhbt.net, nelhage@nelhage.com, davidel@xmailserver.org, jbaron@akamai.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, paulmck@us.ibm.com, nzimmer@sgi.com, normalperson@yhbt.net, nelhage@nelhage.com, jbaron@akamai.com, davidel@xmailserver.org, akpm@linux-foundation.org
 
-Subject: + epoll-optimize-epoll_ctl_del-using-rcu.patch added to -mm tree
-To: jbaron@akamai.com,davidel@xmailserver.org,nelhage@nelhage.com,normalperson@yhbt.net,nzimmer@sgi.com,paulmck@us.ibm.com,viro@zeniv.linux.org.uk
+Subject: + epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,davidel@xmailserver.org,jbaron@akamai.com,nelhage@nelhage.com,normalperson@yhbt.net,nzimmer@sgi.com,paulmck@us.ibm.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 03 Oct 2013 14:52:09 -0700
+Date: Thu, 03 Oct 2013 14:52:13 -0700
 
 
 The patch titled
-     Subject: epoll: optimize EPOLL_CTL_DEL using rcu
+     Subject: epoll-do-not-take-global-epmutex-for-simple-topologies-fix
 has been added to the -mm tree.  Its filename is
-     epoll-optimize-epoll_ctl_del-using-rcu.patch
+     epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/epoll-optimize-epoll_ctl_del-using-rcu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/epoll-optimize-epoll_ctl_del-using-rcu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,224 +45,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@akamai.com>
-Subject: epoll: optimize EPOLL_CTL_DEL using rcu
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: epoll-do-not-take-global-epmutex-for-simple-topologies-fix
 
-Nathan Zimmer found that once we get over 10+ cpus, the scalability of
-SPECjbb falls over due to the contention on the global 'epmutex', which is
-taken in on EPOLL_CTL_ADD and EPOLL_CTL_DEL operations.
+- use `bool' for boolean variables
+- remove unneeded/undesirable cast of void*
+- add missed ep_scan_ready_list() kerneldoc 
 
-Patch #1 removes the 'epmutex' lock completely from the EPOLL_CTL_DEL path
-by using rcu to guard against any concurrent traversals.
-
-Patch #2 remove the 'epmutex' lock from EPOLL_CTL_ADD operations for
-simple topologies.  IE when adding a link from an epoll file descriptor to
-a wakeup source, where the epoll file descriptor is not nested.
-
-
-This patch (of 2):
-
-Optimize EPOLL_CTL_DEL such that it does not require the 'epmutex' by
-converting the file->f_ep_links list into an rcu one.  In this way, we can
-traverse the epoll network on the add path in parallel with deletes. 
-Since deletes can't create loops or worse wakeup paths, this is safe.
-
-This patch in combination with the patch "epoll: Do not take global 'epmutex'
-for simple topologies", shows a dramatic performance improvement in
-scalability for SPECjbb.
-
-Signed-off-by: Jason Baron <jbaron@akamai.com>
-Tested-by: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Eric Wong <normalperson@yhbt.net>
-Cc: Nelson Elhage <nelhage@nelhage.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Eric Wong <normalperson@yhbt.net>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Nelson Elhage <nelhage@nelhage.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   65 +++++++++++++++++++++++++++++------------------
- 1 file changed, 41 insertions(+), 24 deletions(-)
+ fs/eventpoll.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-optimize-epoll_ctl_del-using-rcu fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-optimize-epoll_ctl_del-using-rcu
+diff -puN fs/eventpoll.c~epoll-do-not-take-global-epmutex-for-simple-topologies-fix fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-do-not-take-global-epmutex-for-simple-topologies-fix
 +++ a/fs/eventpoll.c
-@@ -42,6 +42,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/compat.h>
-+#include <linux/rculist.h>
- 
- /*
-  * LOCKING:
-@@ -134,8 +135,12 @@ struct nested_calls {
-  * of these on a server and we do not want this to take another cache line.
+@@ -589,13 +589,14 @@ static inline void ep_pm_stay_awake_rcu(
+  * @sproc: Pointer to the scan callback.
+  * @priv: Private opaque data passed to the @sproc callback.
+  * @depth: The current depth of recursive f_op->poll calls.
++ * @ep_locked: caller already holds ep->mtx
+  *
+  * Returns: The same integer error code returned by the @sproc callback.
   */
- struct epitem {
--	/* RB tree node used to link this structure to the eventpoll RB tree */
--	struct rb_node rbn;
-+	union {
-+		/* RB tree node links this structure to the eventpoll RB tree */
-+		struct rb_node rbn;
-+		/* Used to free the struct epitem */
-+		struct rcu_head rcu;
-+	};
+ static int ep_scan_ready_list(struct eventpoll *ep,
+ 			      int (*sproc)(struct eventpoll *,
+ 					   struct list_head *, void *),
+-			      void *priv, int depth, int ep_locked)
++			      void *priv, int depth, bool ep_locked)
+ {
+ 	int error, pwake = 0;
+ 	unsigned long flags;
+@@ -836,12 +837,12 @@ static void ep_ptable_queue_proc(struct
  
- 	/* List header used to link this structure to the eventpoll ready list */
- 	struct list_head rdllink;
-@@ -166,6 +171,9 @@ struct epitem {
- 
- 	/* The structure that describe the interested events and the source fd */
- 	struct epoll_event event;
-+
-+	/* The fllink is in use. Since rcu can't do 'list_del_init()' */
-+	int on_list;
+ struct readyevents_arg {
+ 	struct eventpoll *ep;
+-	int locked;
++	bool locked;
  };
  
- /*
-@@ -672,6 +680,12 @@ static int ep_scan_ready_list(struct eve
- 	return error;
- }
- 
-+static void epi_rcu_free(struct rcu_head *head)
-+{
-+	struct epitem *epi = container_of(head, struct epitem, rcu);
-+	kmem_cache_free(epi_cache, epi);
-+}
-+
- /*
-  * Removes a "struct epitem" from the eventpoll RB tree and deallocates
-  * all the associated resources. Must be called with "mtx" held.
-@@ -693,8 +707,10 @@ static int ep_remove(struct eventpoll *e
- 
- 	/* Remove the current item from the list of epoll hooks */
- 	spin_lock(&file->f_lock);
--	if (ep_is_linked(&epi->fllink))
--		list_del_init(&epi->fllink);
-+	if (epi->on_list) {
-+		list_del_rcu(&epi->fllink);
-+		epi->on_list = 0;
-+	}
- 	spin_unlock(&file->f_lock);
- 
- 	rb_erase(&epi->rbn, &ep->rbr);
-@@ -705,9 +721,14 @@ static int ep_remove(struct eventpoll *e
- 	spin_unlock_irqrestore(&ep->lock, flags);
- 
- 	wakeup_source_unregister(ep_wakeup_source(epi));
--
--	/* At this point it is safe to free the eventpoll item */
--	kmem_cache_free(epi_cache, epi);
-+	/*
-+	 * At this point it is safe to free the eventpoll item. Use the union
-+	 * field epi->rcu, since we are trying to minimize the size of
-+	 * 'struct epitem'. The 'rbn' field is no longer in use. Protected by
-+	 * ep->mtx. The rcu read side, reverse_path_check_proc(), does not make
-+	 * use of the rbn field.
-+	 */
-+	call_rcu(&epi->rcu, epi_rcu_free);
- 
- 	atomic_long_dec(&ep->user->epoll_watches);
- 
-@@ -873,7 +894,6 @@ static const struct file_operations even
-  */
- void eventpoll_release_file(struct file *file)
+ static int ep_poll_readyevents_proc(void *priv, void *cookie, int call_nests)
  {
--	struct list_head *lsthead = &file->f_ep_links;
- 	struct eventpoll *ep;
- 	struct epitem *epi;
+-	struct readyevents_arg *arg = (struct readyevents_arg *)priv;
++	struct readyevents_arg *arg = priv;
  
-@@ -891,17 +911,12 @@ void eventpoll_release_file(struct file
- 	 * Besides, ep_remove() acquires the lock, so we can't hold it here.
+ 	return ep_scan_ready_list(arg->ep, ep_read_events_proc, NULL,
+ 				  call_nests + 1, arg->locked);
+@@ -857,7 +858,7 @@ static unsigned int ep_eventpoll_poll(st
+ 	 * During ep_insert() we already hold the ep->mtx for the tfile.
+ 	 * Prevent re-aquisition.
  	 */
- 	mutex_lock(&epmutex);
--
--	while (!list_empty(lsthead)) {
--		epi = list_first_entry(lsthead, struct epitem, fllink);
--
-+	list_for_each_entry_rcu(epi, &file->f_ep_links, fllink) {
- 		ep = epi->ep;
--		list_del_init(&epi->fllink);
- 		mutex_lock_nested(&ep->mtx, 0);
- 		ep_remove(ep, epi);
- 		mutex_unlock(&ep->mtx);
- 	}
--
- 	mutex_unlock(&epmutex);
+-	arg.locked = ((wait && (wait->_qproc == ep_ptable_queue_proc)) ? 1 : 0);
++	arg.locked = wait && (wait->_qproc == ep_ptable_queue_proc);
+ 	arg.ep = ep;
+ 
+ 	/* Insert inside our poll wait queue */
+@@ -1563,7 +1564,7 @@ static int ep_send_events(struct eventpo
+ 	esed.maxevents = maxevents;
+ 	esed.events = events;
+ 
+-	return ep_scan_ready_list(ep, ep_send_events_proc, &esed, 0, 0);
++	return ep_scan_ready_list(ep, ep_send_events_proc, &esed, 0, false);
  }
  
-@@ -1139,7 +1154,9 @@ static int reverse_path_check_proc(void
- 	struct file *child_file;
- 	struct epitem *epi;
- 
--	list_for_each_entry(epi, &file->f_ep_links, fllink) {
-+	/* CTL_DEL can remove links here, but that can't increase our count */
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(epi, &file->f_ep_links, fllink) {
- 		child_file = epi->ep->file;
- 		if (is_file_epoll(child_file)) {
- 			if (list_empty(&child_file->f_ep_links)) {
-@@ -1161,6 +1178,7 @@ static int reverse_path_check_proc(void
- 				"file is not an ep!\n");
- 		}
- 	}
-+	rcu_read_unlock();
- 	return error;
- }
- 
-@@ -1255,6 +1273,7 @@ static int ep_insert(struct eventpoll *e
- 	epi->event = *event;
- 	epi->nwait = 0;
- 	epi->next = EP_UNACTIVE_PTR;
-+	epi->on_list = 0;
- 	if (epi->event.events & EPOLLWAKEUP) {
- 		error = ep_create_wakeup_source(epi);
- 		if (error)
-@@ -1287,7 +1306,8 @@ static int ep_insert(struct eventpoll *e
- 
- 	/* Add the current item to the list of active epoll hook for this file */
- 	spin_lock(&tfile->f_lock);
--	list_add_tail(&epi->fllink, &tfile->f_ep_links);
-+	list_add_tail_rcu(&epi->fllink, &tfile->f_ep_links);
-+	epi->on_list = 1;
- 	spin_unlock(&tfile->f_lock);
- 
- 	/*
-@@ -1328,8 +1348,8 @@ static int ep_insert(struct eventpoll *e
- 
- error_remove_epi:
- 	spin_lock(&tfile->f_lock);
--	if (ep_is_linked(&epi->fllink))
--		list_del_init(&epi->fllink);
-+	if (epi->on_list)
-+		list_del_rcu(&epi->fllink);
- 	spin_unlock(&tfile->f_lock);
- 
- 	rb_erase(&epi->rbn, &ep->rbr);
-@@ -1846,15 +1866,12 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	 * and hang them on the tfile_check_list, so we can check that we
- 	 * haven't created too many possible wakeup paths.
- 	 *
--	 * We need to hold the epmutex across both ep_insert and ep_remove
--	 * b/c we want to make sure we are looking at a coherent view of
--	 * epoll network.
-+	 * We need to hold the epmutex across ep_insert to prevent
-+	 * multple adds from creating loops in parallel.
- 	 */
--	if (op == EPOLL_CTL_ADD || op == EPOLL_CTL_DEL) {
-+	if (op == EPOLL_CTL_ADD) {
- 		mutex_lock(&epmutex);
- 		did_lock_epmutex = 1;
--	}
--	if (op == EPOLL_CTL_ADD) {
- 		if (is_file_epoll(tf.file)) {
- 			error = -ELOOP;
- 			if (ep_loop_check(ep, tf.file) != 0) {
+ static inline struct timespec ep_set_mstimeout(long ms)
 _
 
-Patches currently in -mm which might be from jbaron@akamai.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-epoll-optimize-epoll_ctl_del-using-rcu.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+ipc-update-locking-scheme-comments-fix.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+checkpatch-add-test-for-defines-of-arch_has_foo.patch
 epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate.patch
+fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
+linux-next.patch
+linux-next-git-rejects.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
