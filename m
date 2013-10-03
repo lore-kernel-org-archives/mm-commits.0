@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
- added to -mm tree
-Date: Thu, 03 Oct 2013 12:33:33 -0700
-Message-ID: <524dc68d.70ZTIFmZuTbfywZL%akpm@linux-foundation.org>
+Subject: + ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch added to -mm tree
+Date: Thu, 03 Oct 2013 12:35:58 -0700
+Message-ID: <524dc71e.xwasXMisCyQ8wFpi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56907 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56911 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754968Ab3JCTde (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 15:33:34 -0400
+	with ESMTP id S1754700Ab3JCTf7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 15:35:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, rientjes@google.com
+To: mm-commits@vger.kernel.org, efault@gmx.de, davidlohr.bueso@hp.com, manfred@colorfullife.com
 
-Subject: + mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch added to -mm tree
-To: rientjes@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
+Subject: + ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch added to -mm tree
+To: manfred@colorfullife.com,davidlohr.bueso@hp.com,efault@gmx.de
 From: akpm@linux-foundation.org
-Date: Thu, 03 Oct 2013 12:33:33 -0700
+Date: Thu, 03 Oct 2013 12:35:58 -0700
 
 
 The patch titled
-     Subject: mm, memcg: protect mem_cgroup_read_events for cpu hotplug
+     Subject: ipc/sem.c: synchronize semop and semctl with IPC_RMID
 has been added to the -mm tree.  Its filename is
-     mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
+     ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,72 +43,160 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, memcg: protect mem_cgroup_read_events for cpu hotplug
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: synchronize semop and semctl with IPC_RMID
 
-for_each_online_cpu() needs the protection of {get,put}_online_cpus() so
-cpu_online_mask doesn't change during the iteration.
+After acquiring the semlock spinlock, operations must test that the array
+is still valid.
 
-cpu_hotplug.lock is held while a cpu is going down, it's a coarse lock
-that is used kernel-wide to synchronize cpu hotplug activity.  Memcg has a
-cpu hotplug notifier, called while there may not be any cpu hotplug
-refcounts, which drains per-cpu event counts to memcg->nocpu_base.events
-to maintain a cumulative event count as cpus disappear.  Without
-get_online_cpus() in mem_cgroup_read_events(), it's possible to account
-for the event count on a dying cpu twice, and this value may be
-significantly large.
+- semctl() and exit_sem() would walk stale linked lists (ugly, but should
+  be ok: all lists are empty)
 
-In fact, all memcg->pcp_counter_lock use should be nested by 
-{get,put}_online_cpus().
+- semtimedop() would sleep forever - and if woken up due to a signal -
+  access memory after free.
 
-This fixes that issue and ensures the reported statistics are not vastly
-over-reported during cpu hotplug.
+The patch also:
+- standardizes the tests for .deleted, so that all tests in one
+  function leave the function with the same approach.
+- unconditionally tests for .deleted immediately after every call to
+  sem_lock - even it it means that for semctl(GETALL), .deleted will be
+  tested twice.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Both changes make the review simpler: After every sem_lock, there must be
+a test of .deleted, followed by a goto to the cleanup code (if the
+function uses "goto cleanup").
+
+The only exception is semctl_down(): If sem_ids().rwsem is locked, then
+the presence in ids->ipcs_idr is equivalent to !.deleted, thus no
+additional test is required.
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ ipc/sem.c |   42 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 13 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug
-+++ a/mm/memcontrol.c
-@@ -866,6 +866,7 @@ static unsigned long mem_cgroup_read_eve
- 	unsigned long val = 0;
- 	int cpu;
+diff -puN ipc/sem.c~ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid
++++ a/ipc/sem.c
+@@ -1282,6 +1282,12 @@ static int semctl_setval(struct ipc_name
  
-+	get_online_cpus();
- 	for_each_online_cpu(cpu)
- 		val += per_cpu(memcg->stat->events[idx], cpu);
- #ifdef CONFIG_HOTPLUG_CPU
-@@ -873,6 +874,7 @@ static unsigned long mem_cgroup_read_eve
- 	val += memcg->nocpu_base.events[idx];
- 	spin_unlock(&memcg->pcp_counter_lock);
- #endif
-+	put_online_cpus();
- 	return val;
- }
+ 	sem_lock(sma, NULL, -1);
  
++	if (sma->sem_perm.deleted) {
++		sem_unlock(sma, -1);
++		rcu_read_unlock();
++		return -EIDRM;
++	}
++
+ 	curr = &sma->sem_base[semnum];
+ 
+ 	ipc_assert_locked_object(&sma->sem_perm);
+@@ -1336,12 +1342,14 @@ static int semctl_main(struct ipc_namesp
+ 		int i;
+ 
+ 		sem_lock(sma, NULL, -1);
++		if (sma->sem_perm.deleted) {
++			err = -EIDRM;
++			goto out_unlock;
++		}
+ 		if(nsems > SEMMSL_FAST) {
+ 			if (!ipc_rcu_getref(sma)) {
+-				sem_unlock(sma, -1);
+-				rcu_read_unlock();
+ 				err = -EIDRM;
+-				goto out_free;
++				goto out_unlock;
+ 			}
+ 			sem_unlock(sma, -1);
+ 			rcu_read_unlock();
+@@ -1354,10 +1362,8 @@ static int semctl_main(struct ipc_namesp
+ 			rcu_read_lock();
+ 			sem_lock_and_putref(sma);
+ 			if (sma->sem_perm.deleted) {
+-				sem_unlock(sma, -1);
+-				rcu_read_unlock();
+ 				err = -EIDRM;
+-				goto out_free;
++				goto out_unlock;
+ 			}
+ 		}
+ 		for (i = 0; i < sma->sem_nsems; i++)
+@@ -1375,8 +1381,8 @@ static int semctl_main(struct ipc_namesp
+ 		struct sem_undo *un;
+ 
+ 		if (!ipc_rcu_getref(sma)) {
+-			rcu_read_unlock();
+-			return -EIDRM;
++			err = -EIDRM;
++			goto out_rcu_wakeup;
+ 		}
+ 		rcu_read_unlock();
+ 
+@@ -1404,10 +1410,8 @@ static int semctl_main(struct ipc_namesp
+ 		rcu_read_lock();
+ 		sem_lock_and_putref(sma);
+ 		if (sma->sem_perm.deleted) {
+-			sem_unlock(sma, -1);
+-			rcu_read_unlock();
+ 			err = -EIDRM;
+-			goto out_free;
++			goto out_unlock;
+ 		}
+ 
+ 		for (i = 0; i < nsems; i++)
+@@ -1431,6 +1435,10 @@ static int semctl_main(struct ipc_namesp
+ 		goto out_rcu_wakeup;
+ 
+ 	sem_lock(sma, NULL, -1);
++	if (sma->sem_perm.deleted) {
++		err = -EIDRM;
++		goto out_unlock;
++	}
+ 	curr = &sma->sem_base[semnum];
+ 
+ 	switch (cmd) {
+@@ -1836,6 +1844,10 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 	if (error)
+ 		goto out_rcu_wakeup;
+ 
++	error = -EIDRM;
++	locknum = sem_lock(sma, sops, nsops);
++	if (sma->sem_perm.deleted)
++		goto out_unlock_free;
+ 	/*
+ 	 * semid identifiers are not unique - find_alloc_undo may have
+ 	 * allocated an undo structure, it was invalidated by an RMID
+@@ -1843,8 +1855,6 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 	 * This case can be detected checking un->semid. The existence of
+ 	 * "un" itself is guaranteed by rcu.
+ 	 */
+-	error = -EIDRM;
+-	locknum = sem_lock(sma, sops, nsops);
+ 	if (un && un->semid == -1)
+ 		goto out_unlock_free;
+ 
+@@ -2057,6 +2067,12 @@ void exit_sem(struct task_struct *tsk)
+ 		}
+ 
+ 		sem_lock(sma, NULL, -1);
++		/* exit_sem raced with IPC_RMID, nothing to do */
++		if (sma->sem_perm.deleted) {
++			sem_unlock(sma, -1);
++			rcu_read_unlock();
++			continue;
++		}
+ 		un = __lookup_undo(ulp, semid);
+ 		if (un == NULL) {
+ 			/* exit_sem raced with IPC_RMID+semget() that created
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 origin.patch
-mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
-kthread-make-kthread_create-killable.patch
-x86-srat-use-numa_no_node.patch
-mm-vmalloc-use-numa_no_node.patch
-mm-add-a-helper-function-to-check-may-oom-condition.patch
-mm-arch-use-numa_no_node.patch
-mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
-mm-vmalloc-dont-set-area-caller-twice.patch
-mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
-mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
-revert-mm-vmallocc-emit-the-failure-message-before-return.patch
-mm-mempolicy-use-numa_no_node.patch
-linux-next.patch
+ipc-semc-synchronize-semop-and-semctl-with-ipc_rmid.patch
+slab-leaks3-default-y.patch
 
