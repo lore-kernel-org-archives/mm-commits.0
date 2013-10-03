@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-make-the-memory-barrier-test-noisier.patch added to
- -mm tree
-Date: Thu, 03 Oct 2013 15:49:43 -0700
-Message-ID: <524df487.JQQJcSIN9VpMIVVP%akpm@linux-foundation.org>
+Subject: + gcov-maintainers-add-an-entry-for-gcov.patch added to -mm tree
+Date: Thu, 03 Oct 2013 16:19:09 -0700
+Message-ID: <524dfb6d.u+lPf0+akUYk3OnR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58892 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59065 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755604Ab3JCWto (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 18:49:44 -0400
+	with ESMTP id S1751374Ab3JCXTJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 19:19:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oliver@neukum.org, joe@perches.com
+To: mm-commits@vger.kernel.org, oberpar@linux.vnet.ibm.com
 
-Subject: + checkpatch-make-the-memory-barrier-test-noisier.patch added to -mm tree
-To: joe@perches.com,oliver@neukum.org,paulmck@linux.vnet.ibm.com,peterz@infradead.org
+Subject: + gcov-maintainers-add-an-entry-for-gcov.patch added to -mm tree
+To: oberpar@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Thu, 03 Oct 2013 15:49:43 -0700
+Date: Thu, 03 Oct 2013 16:19:09 -0700
 
 
 The patch titled
-     Subject: checkpatch: make the memory barrier test noisier
+     Subject: gcov: MAINTAINERS: Add an entry for gcov
 has been added to the -mm tree.  Its filename is
-     checkpatch-make-the-memory-barrier-test-noisier.patch
+     gcov-maintainers-add-an-entry-for-gcov.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-make-the-memory-barrier-test-noisier.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/gcov-maintainers-add-an-entry-for-gcov.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-make-the-memory-barrier-test-noisier.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-maintainers-add-an-entry-for-gcov.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,62 +43,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: make the memory barrier test noisier
+From: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Subject: gcov: MAINTAINERS: Add an entry for gcov
 
-Peter Zijlstra prefers that comments be required near uses of memory
-barriers.
-
-Change the message level for memory barrier uses from a --strict test only
-to a normal WARN so it's always emitted.
-
-This might produce false positives around insertions of memory barriers
-when a comment is outside the patch context block.
-
-And checkpatch is still stupid, it only looks for existence of any
-comment, not at the comment content.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Acked-by: Peter Zijlstra <peterz@infradead.org>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Oliver Neukum <oliver@neukum.org>
+Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-make-the-memory-barrier-test-noisier scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-make-the-memory-barrier-test-noisier
-+++ a/scripts/checkpatch.pl
-@@ -3850,8 +3850,8 @@ sub process {
- # check for memory barriers without a comment.
- 		if ($line =~ /\b(mb|rmb|wmb|read_barrier_depends|smp_mb|smp_rmb|smp_wmb|smp_read_barrier_depends)\(/) {
- 			if (!ctx_has_comment($first_line, $linenr)) {
--				CHK("MEMORY_BARRIER",
--				    "memory barrier without comment\n" . $herecurr);
-+				WARN("MEMORY_BARRIER",
-+				     "memory barrier without comment\n" . $herecurr);
- 			}
- 		}
- # check of hardware specific defines
+diff -puN MAINTAINERS~gcov-maintainers-add-an-entry-for-gcov MAINTAINERS
+--- a/MAINTAINERS~gcov-maintainers-add-an-entry-for-gcov
++++ a/MAINTAINERS
+@@ -3624,6 +3624,12 @@ L:	linux-scsi@vger.kernel.org
+ S:	Odd Fixes (e.g., new signatures)
+ F:	drivers/scsi/fdomain.*
+ 
++GCOV BASED KERNEL PROFILING
++M:	Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
++S:	Maintained
++F:	kernel/gcov/
++F:	Documentation/gcov.txt
++
+ GDT SCSI DISK ARRAY CONTROLLER DRIVER
+ M:	Achim Leubner <achim_leubner@adaptec.com>
+ L:	linux-scsi@vger.kernel.org
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from oberpar@linux.vnet.ibm.com are
 
-origin.patch
-kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
-ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
-printk-report-console-names-during-cut-over.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-update-seq_foo-tests.patch
-checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-checkpatch-add-rules-to-check-init-attribute-and-const-defects.patch
-checkpatch-make-the-memory-barrier-test-noisier.patch
-kernel-modulec-use-pr_foo.patch
-linux-next.patch
+gcov-maintainers-add-an-entry-for-gcov.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-3.patch
 
