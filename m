@@ -1,64 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- memblock-factor-out-of-top-down-allocation-hack.patch removed from -mm tree
-Date: Thu, 03 Oct 2013 11:59:28 -0700
-Message-ID: <524dbe90.3LGgU/KO9z/RQYBd%akpm@linux-foundation.org>
+Subject: [obsolete]
+ x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch removed
+ from -mm tree
+Date: Thu, 03 Oct 2013 11:59:59 -0700
+Message-ID: <524dbeaf.lXUYXyxH3nPAp0uX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56510 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56512 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754397Ab3JCS72 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 14:59:28 -0400
+	with ESMTP id S1754397Ab3JCTAA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Oct 2013 15:00:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tangchen@cn.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, tangchen@cn.fujitsu.com, akpm@linux-foundation.org
 
-Subject: [to-be-updated] memblock-factor-out-of-top-down-allocation-hack.patch removed from -mm tree
-To: akpm@linux-foundation.org,tangchen@cn.fujitsu.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [obsolete] x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,tangchen@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Oct 2013 11:59:28 -0700
+Date: Thu, 03 Oct 2013 11:59:59 -0700
 
 
 The patch titled
-     Subject: memblock-factor-out-of-top-down-allocation-hack
+     Subject: x86-mm-factor-out-of-top-down-direct-mapping-setup: fix for linux-next
 has been removed from the -mm tree.  Its filename was
-     memblock-factor-out-of-top-down-allocation-hack.patch
+     x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memblock-factor-out-of-top-down-allocation-hack
+Subject: x86-mm-factor-out-of-top-down-direct-mapping-setup: fix for linux-next
 
-make it build on non-x86
+Resolve x86-mm-factor-out-of-top-down-direct-mapping-setup versus next's
+
+commit 6979287a7df66a92d6f308338e972a406f9ef842
+Author: Yinghai Lu <yinghai@kernel.org>
+Date:   Fri Sep 6 19:07:09 2013 -0700
+
+    x86/mm: Add 'step_size' comments to init_mem_mapping()
 
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/x86/mm/init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~memblock-factor-out-of-top-down-allocation-hack mm/memblock.c
---- a/mm/memblock.c~memblock-factor-out-of-top-down-allocation-hack
-+++ a/mm/memblock.c
-@@ -187,8 +187,11 @@ phys_addr_t __init_memblock memblock_fin
- 	/* avoid allocating the first page */
- 	start = max_t(phys_addr_t, start, PAGE_SIZE);
- 	end = max(start, end);
-+#ifdef CONFIG_X86
- 	kernel_end = __pa_symbol(_end);
--
-+#else
-+	kernel_end = __pa(RELOC_HIDE((unsigned long)(_end), 0));
-+#endif
- 	/*
- 	 * try bottom-up allocation only when bottom-up mode
- 	 * is set and @end is above the kernel image.
+diff -puN arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix
++++ a/arch/x86/mm/init.c
+@@ -493,7 +493,7 @@ static void __init memory_map_bottom_up(
+ 		start = next;
+ 
+ 		if (new_mapped_ram_size > mapped_ram_size)
+-			step_size <<= STEP_SIZE_SHIFT;
++			step_size = get_new_step_size(step_size);
+ 		mapped_ram_size += new_mapped_ram_size;
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +88,6 @@ kernel-modulec-use-pr_foo.patch
 kernel-gcov-fsc-use-pr_warn.patch
 linux-next.patch
 linux-next-git-rejects.patch
-x86-mm-factor-out-of-top-down-direct-mapping-setup-next-fix.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
