@@ -1,47 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-fix-memory-leak-in-memstick_check-error-path.patch
- added to -mm tree
-Date: Tue, 08 Oct 2013 13:59:32 -0700
-Message-ID: <52547234.3bxuCBT65BF3/YJw%akpm@linux-foundation.org>
+Subject: [nacked]
+ memstick-fix-memory-leak-in-memstick_check-error-path.patch removed from
+ -mm tree
+Date: Tue, 08 Oct 2013 15:01:52 -0700
+Message-ID: <525480d0.YC1qiA8ibze0jJoi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44339 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44638 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756548Ab3JHU7d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Oct 2013 16:59:33 -0400
+	with ESMTP id S1754715Ab3JHWBx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Oct 2013 18:01:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, oakad@yahoo.com, kay.sievers@vrfy.org, gregkh@linuxfoundation.org, catalin.marinas@arm.com, Larry.Finger@lwfinger.net
 
-Subject: + memstick-fix-memory-leak-in-memstick_check-error-path.patch added to -mm tree
-To: Larry.Finger@lwfinger.net,catalin.marinas@arm.com,gregkh@linuxfoundation.org,kay.sievers@vrfy.org,oakad@yahoo.com
+Subject: [nacked] memstick-fix-memory-leak-in-memstick_check-error-path.patch removed from -mm tree
+To: Larry.Finger@lwfinger.net,catalin.marinas@arm.com,gregkh@linuxfoundation.org,kay.sievers@vrfy.org,oakad@yahoo.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Oct 2013 13:59:32 -0700
+Date: Tue, 08 Oct 2013 15:01:52 -0700
 
 
 The patch titled
      Subject: memstick: fix memory leak in memstick_check() error path
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      memstick-fix-memory-leak-in-memstick_check-error-path.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memstick-fix-memory-leak-in-memstick_check-error-path.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memstick-fix-memory-leak-in-memstick_check-error-path.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Larry Finger <Larry.Finger@lwfinger.net>
@@ -105,6 +92,5 @@ _
 
 Patches currently in -mm which might be from Larry.Finger@lwfinger.net are
 
-memstick-fix-memory-leak-in-memstick_check-error-path.patch
 linux-next.patch
 
