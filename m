@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + page-typesc-support-kpf_softdirty-bit.patch added to -mm tree
-Date: Mon, 07 Oct 2013 17:51:37 -0700
-Message-ID: <52535719.9Om17hh/UbUt4nhQ%akpm@linux-foundation.org>
+Subject: + maintainers-remove-richard-purdie-as-backlight-maintainer.patch added to -mm tree
+Date: Mon, 07 Oct 2013 18:08:14 -0700
+Message-ID: <52535afe.IEbdONm33ZpIBeed%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35513 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35613 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752502Ab3JHAvi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Oct 2013 20:51:38 -0400
+	with ESMTP id S1752667Ab3JHBIP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Oct 2013 21:08:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, gorcunov@openvz.org, fengguang.wu@intel.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, rpurdie@rpsys.net, jg1.han@samsung.com
 
-Subject: + page-typesc-support-kpf_softdirty-bit.patch added to -mm tree
-To: n-horiguchi@ah.jp.nec.com,fengguang.wu@intel.com,gorcunov@openvz.org,xemul@parallels.com
+Subject: + maintainers-remove-richard-purdie-as-backlight-maintainer.patch added to -mm tree
+To: jg1.han@samsung.com,rpurdie@rpsys.net
 From: akpm@linux-foundation.org
-Date: Mon, 07 Oct 2013 17:51:37 -0700
+Date: Mon, 07 Oct 2013 18:08:14 -0700
 
 
 The patch titled
-     Subject: tools/vm/page-types.c: support KPF_SOFTDIRTY bit
+     Subject: MAINTAINERS: remove Richard Purdie as backlight maintainer
 has been added to the -mm tree.  Its filename is
-     page-typesc-support-kpf_softdirty-bit.patch
+     maintainers-remove-richard-purdie-as-backlight-maintainer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-typesc-support-kpf_softdirty-bit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-richard-purdie-as-backlight-maintainer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-typesc-support-kpf_softdirty-bit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-richard-purdie-as-backlight-maintainer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,178 +43,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: tools/vm/page-types.c: support KPF_SOFTDIRTY bit
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: MAINTAINERS: remove Richard Purdie as backlight maintainer
 
-Soft dirty bit allows us to track which pages are written since the last
-clear_ref (by "echo 4 > /proc/pid/clear_refs".) This is useful for
-userspace applications to know their memory footprints.
+Remove Richard Purdie as backlight subsystem maintainer,
 
-Note that the kernel exposes this flag via bit[55] of /proc/pid/pagemap,
-and the semantics is not a default one (scheduled to be the default in the
-near future.) However, it shifts to the new semantics at the first
-clear_ref, and the users of soft dirty bit always do it before utilizing
-the bit, so that's not a big deal.  Users must avoid relying on the bit in
-page-types before the first clear_ref.
+akpm: Richard is still responsive and is reviewing some of the patches,
+but appears to agree that listing him as the maintainer is no longer
+appropriate.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel-page-flags.h |    1 
- tools/vm/page-types.c             |   32 +++++++++++++++++-----------
- 2 files changed, 21 insertions(+), 12 deletions(-)
+ CREDITS     |    5 +++++
+ MAINTAINERS |    1 -
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kernel-page-flags.h~page-typesc-support-kpf_softdirty-bit include/linux/kernel-page-flags.h
---- a/include/linux/kernel-page-flags.h~page-typesc-support-kpf_softdirty-bit
-+++ a/include/linux/kernel-page-flags.h
-@@ -15,5 +15,6 @@
- #define KPF_OWNER_PRIVATE	37
- #define KPF_ARCH		38
- #define KPF_UNCACHED		39
-+#define KPF_SOFTDIRTY		40
+diff -puN CREDITS~maintainers-remove-richard-purdie-as-backlight-maintainer CREDITS
+--- a/CREDITS~maintainers-remove-richard-purdie-as-backlight-maintainer
++++ a/CREDITS
+@@ -2895,6 +2895,11 @@ S: Framewood Road
+ S: Wexham SL3 6PJ
+ S: United Kingdom
  
- #endif /* LINUX_KERNEL_PAGE_FLAGS_H */
-diff -puN tools/vm/page-types.c~page-typesc-support-kpf_softdirty-bit tools/vm/page-types.c
---- a/tools/vm/page-types.c~page-typesc-support-kpf_softdirty-bit
-+++ a/tools/vm/page-types.c
-@@ -59,12 +59,14 @@
- #define PM_PSHIFT_BITS      6
- #define PM_PSHIFT_OFFSET    (PM_STATUS_OFFSET - PM_PSHIFT_BITS)
- #define PM_PSHIFT_MASK      (((1LL << PM_PSHIFT_BITS) - 1) << PM_PSHIFT_OFFSET)
--#define PM_PSHIFT(x)        (((u64) (x) << PM_PSHIFT_OFFSET) & PM_PSHIFT_MASK)
-+#define __PM_PSHIFT(x)      (((uint64_t) (x) << PM_PSHIFT_OFFSET) & PM_PSHIFT_MASK)
- #define PM_PFRAME_MASK      ((1LL << PM_PSHIFT_OFFSET) - 1)
- #define PM_PFRAME(x)        ((x) & PM_PFRAME_MASK)
- 
-+#define __PM_SOFT_DIRTY      (1LL)
- #define PM_PRESENT          PM_STATUS(4LL)
- #define PM_SWAP             PM_STATUS(2LL)
-+#define PM_SOFT_DIRTY       __PM_PSHIFT(__PM_SOFT_DIRTY)
- 
- 
- /*
-@@ -83,6 +85,7 @@
- #define KPF_OWNER_PRIVATE	37
- #define KPF_ARCH		38
- #define KPF_UNCACHED		39
-+#define KPF_SOFTDIRTY		40
- 
- /* [48-] take some arbitrary free slots for expanding overloaded flags
-  * not part of kernel API
-@@ -132,6 +135,7 @@ static const char * const page_flag_name
- 	[KPF_OWNER_PRIVATE]	= "O:owner_private",
- 	[KPF_ARCH]		= "h:arch",
- 	[KPF_UNCACHED]		= "c:uncached",
-+	[KPF_SOFTDIRTY]		= "f:softdirty",
- 
- 	[KPF_READAHEAD]		= "I:readahead",
- 	[KPF_SLOB_FREE]		= "P:slob_free",
-@@ -417,7 +421,7 @@ static int bit_mask_ok(uint64_t flags)
- 	return 1;
- }
- 
--static uint64_t expand_overloaded_flags(uint64_t flags)
-+static uint64_t expand_overloaded_flags(uint64_t flags, uint64_t pme)
- {
- 	/* SLOB/SLUB overload several page flags */
- 	if (flags & BIT(SLAB)) {
-@@ -433,6 +437,9 @@ static uint64_t expand_overloaded_flags(
- 	if ((flags & (BIT(RECLAIM) | BIT(WRITEBACK))) == BIT(RECLAIM))
- 		flags ^= BIT(RECLAIM) | BIT(READAHEAD);
- 
-+	if (pme & PM_SOFT_DIRTY)
-+		flags |= BIT(SOFTDIRTY);
++N: Richard Purdie
++E: rpurdie@rpsys.net
++D: Backlight subsystem maintainer
++S: USA
 +
- 	return flags;
- }
+ N: Daniel Quinlan
+ E: quinlan@pathname.com
+ W: http://www.pathname.com/~quinlan/
+diff -puN MAINTAINERS~maintainers-remove-richard-purdie-as-backlight-maintainer MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-richard-purdie-as-backlight-maintainer
++++ a/MAINTAINERS
+@@ -1651,7 +1651,6 @@ S:	Maintained
+ F:	drivers/net/wireless/b43legacy/
  
-@@ -448,11 +455,11 @@ static uint64_t well_known_flags(uint64_
- 	return flags;
- }
- 
--static uint64_t kpageflags_flags(uint64_t flags)
-+static uint64_t kpageflags_flags(uint64_t flags, uint64_t pme)
- {
--	flags = expand_overloaded_flags(flags);
--
--	if (!opt_raw)
-+	if (opt_raw)
-+		flags = expand_overloaded_flags(flags, pme);
-+	else
- 		flags = well_known_flags(flags);
- 
- 	return flags;
-@@ -545,9 +552,9 @@ static size_t hash_slot(uint64_t flags)
- }
- 
- static void add_page(unsigned long voffset,
--		     unsigned long offset, uint64_t flags)
-+		     unsigned long offset, uint64_t flags, uint64_t pme)
- {
--	flags = kpageflags_flags(flags);
-+	flags = kpageflags_flags(flags, pme);
- 
- 	if (!bit_mask_ok(flags))
- 		return;
-@@ -569,7 +576,8 @@ static void add_page(unsigned long voffs
- #define KPAGEFLAGS_BATCH	(64 << 10)	/* 64k pages */
- static void walk_pfn(unsigned long voffset,
- 		     unsigned long index,
--		     unsigned long count)
-+		     unsigned long count,
-+		     uint64_t pme)
- {
- 	uint64_t buf[KPAGEFLAGS_BATCH];
- 	unsigned long batch;
-@@ -583,7 +591,7 @@ static void walk_pfn(unsigned long voffs
- 			break;
- 
- 		for (i = 0; i < pages; i++)
--			add_page(voffset + i, index + i, buf[i]);
-+			add_page(voffset + i, index + i, buf[i], pme);
- 
- 		index += pages;
- 		count -= pages;
-@@ -608,7 +616,7 @@ static void walk_vma(unsigned long index
- 		for (i = 0; i < pages; i++) {
- 			pfn = pagemap_pfn(buf[i]);
- 			if (pfn)
--				walk_pfn(index + i, pfn, 1);
-+				walk_pfn(index + i, pfn, 1, buf[i]);
- 		}
- 
- 		index += pages;
-@@ -659,7 +667,7 @@ static void walk_addr_ranges(void)
- 
- 	for (i = 0; i < nr_addr_ranges; i++)
- 		if (!opt_pid)
--			walk_pfn(0, opt_offset[i], opt_size[i]);
-+			walk_pfn(0, opt_offset[i], opt_size[i], 0);
- 		else
- 			walk_task(opt_offset[i], opt_size[i]);
- 
+ BACKLIGHT CLASS/SUBSYSTEM
+-M:	Richard Purdie <rpurdie@rpsys.net>
+ M:	Jingoo Han <jg1.han@samsung.com>
+ S:	Maintained
+ F:	drivers/video/backlight/
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-mm-hugetlb-correct-missing-private-flag-clearing.patch
-mm-remove-obsolete-comments-about-page-table-lock.patch
-mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-smaps-show-vm_softdirty-flag-in-vmflags-line.patch
-page-typesc-support-kpf_softdirty-bit.patch
+drivers-iommu-omap-iopgtableh-remove-unneeded-cast-of-void.patch
+drivers-block-sx8c-use-module_pci_driver.patch
+drivers-block-sx8c-remove-unnecessary-pci_set_drvdata.patch
+maintainers-remove-richard-purdie-as-backlight-maintainer.patch
+backlight-lp855x_bl-support-new-lp8555-device.patch
+backlight-lm3630-apply-chip-revision.patch
+backlight-lm3630-signedness-bug-in-lm3630a_chip_init.patch
+backlight-lm3630-potential-null-deref-in-probe.patch
+backlight-lm3630-apply-chip-revision-fix.patch
+backlight-ld9040-staticize-local-variable-gamma_table.patch
+backlight-lm3639-dont-mix-different-enum-types.patch
+backlight-lp8788-staticize-default_bl_config.patch
+backlight-use-dev_get_platdata.patch
+backlight-88pm860x_bl-use-devm_backlight_device_register.patch
+backlight-aat2870-use-devm_backlight_device_register.patch
+backlight-adp5520-use-devm_backlight_device_register.patch
+backlight-adp8860-use-devm_backlight_device_register.patch
+backlight-adp8870-use-devm_backlight_device_register.patch
+backlight-as3711_bl-use-devm_backlight_device_register.patch
+backlight-atmel-pwm-bl-use-devm_backlight_device_register.patch
+backlight-bd6107-use-devm_backlight_device_register.patch
+backlight-da903x_bl-use-devm_backlight_device_register.patch
+backlight-da9052_bl-use-devm_backlight_device_register.patch
+backlight-ep93xx-use-devm_backlight_device_register.patch
+backlight-generic_bl-use-devm_backlight_device_register.patch
+backlight-gpio_backlight-use-devm_backlight_device_register.patch
+backlight-kb3886_bl-use-devm_backlight_device_register.patch
+backlight-lm3533_bl-use-devm_backlight_device_register.patch
+backlight-lp855x-use-devm_backlight_device_register.patch
+backlight-lv5207lp-use-devm_backlight_device_register.patch
+backlight-max8925_bl-use-devm_backlight_device_register.patch
+backlight-pandora_bl-use-devm_backlight_device_register.patch
+backlight-pcf50633-use-devm_backlight_device_register.patch
+backlight-tps65217_bl-use-devm_backlight_device_register.patch
+backlight-wm831x_bl-use-devm_backlight_device_register.patch
+backlight-hx8357-use-devm_lcd_device_register.patch
+backlight-ili922x-use-devm_lcd_device_register.patch
+backlight-ili9320-use-devm_lcd_device_register.patch
+backlight-lms283gf05-use-devm_lcd_device_register.patch
+backlight-lms501kf03-use-devm_lcd_device_register.patch
+backlight-ltv350qv-use-devm_lcd_device_register.patch
+backlight-platform_lcd-use-devm_lcd_device_register.patch
+backlight-tdo24m-use-devm_lcd_device_register.patch
+backlight-ams369fg06-use-devm_backlightlcd_device_register.patch
+backlight-ld9040-use-devm_backlightlcd_device_register.patch
+backlight-corgi_lcd-use-devm_backlightlcd_device_register.patch
+backlight-cr_bllcd-use-devm_backlightlcd_device_register.patch
+backlight-s6e63m0-use-devm_backlightlcd_device_register.patch
+drivers-video-backlight-lm3630a_blc-add-missing-destroy_workqueue-on-error-in-lm3630a_intr_config.patch
+drivers-rtc-rtc-ds1307c-release-irq-on-error.patch
+drivers-rtc-rtc-isl1208c-remove-redundant-checks.patch
+drivers-rtc-rtc-max6900c-remove-redundant-checks.patch
+drivers-rtc-rtc-vt8500c-fix-return-value.patch
+drivers-rtc-rtc-at91rm9200c-use-devm_-apis.patch
+drivers-rtc-rtc-isl1208c-use-devm_-apis.patch
+drivers-rtc-rtc-sirfsocc-use-devm_rtc_device_register.patch
+drivers-rtc-rtc-cmosc-remove-redundant-dev_set_drvdata.patch
+drivers-rtc-rtc-mrstc-remove-redundant-dev_set_drvdata.patch
+drivers-rtc-rtc-vr41xxc-fix-checkpatch-warnings.patch
+drivers-rtc-rtc-sirfsocc-remove-unneeded-casts-of-void.patch
+drivers-rtc-rtc-88pm80xc-use-dev_get_platdata.patch
+drivers-rtc-rtc-88pm860xc-use-dev_get_platdata.patch
+drivers-rtc-rtc-cmosc-use-dev_get_platdata.patch
+drivers-rtc-rtc-da9055c-use-dev_get_platdata.patch
+drivers-rtc-rtc-ds1305c-use-dev_get_platdata.patch
+drivers-rtc-rtc-ds1307c-use-dev_get_platdata.patch
+drivers-rtc-rtc-ds2404c-use-dev_get_platdata.patch
+drivers-rtc-rtc-ep93xxc-use-dev_get_platdata.patch
+drivers-rtc-rtc-hid-sensor-timec-use-dev_get_platdata.patch
+drivers-rtc-rtc-m48t59c-use-dev_get_platdata.patch
+drivers-rtc-rtc-m48t86c-use-dev_get_platdata.patch
+drivers-rtc-rtc-pcf2123c-use-dev_get_platdata.patch
+drivers-rtc-rtc-rs5c348c-use-dev_get_platdata.patch
+drivers-rtc-rtc-shc-use-dev_get_platdata.patch
+drivers-rtc-rtc-v3020c-use-dev_get_platdata.patch
+gcov-reuse-kbasename-helper.patch
+w1-w1-gpio-use-dev_get_platdata.patch
+w1-ds1wm-use-dev_get_platdata.patch
+linux-next.patch
 
