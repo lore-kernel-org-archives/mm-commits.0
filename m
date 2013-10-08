@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + seq_file-introduce-seq_setwidth-and-seq_pad.patch added to -mm
- tree
-Date: Tue, 08 Oct 2013 13:30:38 -0700
-Message-ID: <52546b6e.o5J7PZ5wnya7eruc%akpm@linux-foundation.org>
+Subject: + vsprintf-ignore-%n-again.patch added to -mm tree
+Date: Tue, 08 Oct 2013 13:30:41 -0700
+Message-ID: <52546b71.lcZdZNYKBsr6BBZ+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44198 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753436Ab3JHUaj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Oct 2013 16:30:39 -0400
+	with ESMTP id S1755772Ab3JHUam (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Oct 2013 16:30:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, keescook@chromium.org, joe@perches.com, davem@davemloft.net, penguin-kernel@I-love.SAKURA.ne.jp
+To: mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, joe@perches.com, davem@davemloft.net, keescook@chromium.org
 
-Subject: + seq_file-introduce-seq_setwidth-and-seq_pad.patch added to -mm tree
-To: penguin-kernel@I-love.SAKURA.ne.jp,davem@davemloft.net,joe@perches.com,keescook@chromium.org
+Subject: + vsprintf-ignore-%n-again.patch added to -mm tree
+To: keescook@chromium.org,davem@davemloft.net,joe@perches.com,penguin-kernel@I-love.SAKURA.ne.jp
 From: akpm@linux-foundation.org
-Date: Tue, 08 Oct 2013 13:30:38 -0700
+Date: Tue, 08 Oct 2013 13:30:41 -0700
 
 
 The patch titled
-     Subject: seq_file: introduce seq_setwidth() and seq_pad()
+     Subject: vsprintf: ignore %n again
 has been added to the -mm tree.  Its filename is
-     seq_file-introduce-seq_setwidth-and-seq_pad.patch
+     vsprintf-ignore-%n-again.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/seq_file-introduce-seq_setwidth-and-seq_pad.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vsprintf-ignore-%n-again.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/seq_file-introduce-seq_setwidth-and-seq_pad.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vsprintf-ignore-%n-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,90 +43,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: seq_file: introduce seq_setwidth() and seq_pad()
+From: Kees Cook <keescook@chromium.org>
+Subject: vsprintf: ignore %n again
 
-There are several users who want to know bytes written by seq_*() for
-alignment purpose.  Currently they are using %n format for knowing it
-because seq_*() returns 0 on success.
+This ignores %n in printf again, as was originally documented. 
+Implementing %n poses a greater security risk than utility, so it should
+stay ignored.  To help anyone attempting to use %n, a warning will be
+emitted if it is encountered.
 
-This patch introduces seq_setwidth() and seq_pad() for allowing them to
-align without using %n format.
+Based on an earlier patch by Joe Perches.
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Cc: Joe Perches <joe@perches.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c            |   15 +++++++++++++++
- include/linux/seq_file.h |   15 +++++++++++++++
- 2 files changed, 30 insertions(+)
+ lib/vsprintf.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-introduce-seq_setwidth-and-seq_pad fs/seq_file.c
---- a/fs/seq_file.c~seq_file-introduce-seq_setwidth-and-seq_pad
-+++ a/fs/seq_file.c
-@@ -764,6 +764,21 @@ int seq_write(struct seq_file *seq, cons
- }
- EXPORT_SYMBOL(seq_write);
+diff -puN lib/vsprintf.c~vsprintf-ignore-%n-again lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-ignore-%n-again
++++ a/lib/vsprintf.c
+@@ -1685,18 +1685,16 @@ int vsnprintf(char *buf, size_t size, co
+ 			break;
  
-+/**
-+ * seq_pad - write padding spaces to buffer
-+ * @m: seq_file identifying the buffer to which data should be written
-+ * @c: the byte to append after padding if non-zero
-+ */
-+void seq_pad(struct seq_file *m, char c)
-+{
-+	int size = m->pad_until - m->count;
-+	if (size > 0)
-+		seq_printf(m, "%*s", size, "");
-+	if (c)
-+		seq_putc(m, c);
-+}
-+EXPORT_SYMBOL(seq_pad);
-+
- struct list_head *seq_list_start(struct list_head *head, loff_t pos)
- {
- 	struct list_head *lh;
-diff -puN include/linux/seq_file.h~seq_file-introduce-seq_setwidth-and-seq_pad include/linux/seq_file.h
---- a/include/linux/seq_file.h~seq_file-introduce-seq_setwidth-and-seq_pad
-+++ a/include/linux/seq_file.h
-@@ -20,6 +20,7 @@ struct seq_file {
- 	size_t size;
- 	size_t from;
- 	size_t count;
-+	size_t pad_until;
- 	loff_t index;
- 	loff_t read_pos;
- 	u64 version;
-@@ -79,6 +80,20 @@ static inline void seq_commit(struct seq
- 	}
- }
+ 		case FORMAT_TYPE_NRCHARS: {
+-			u8 qualifier = spec.qualifier;
++			/*
++			 * Since %n poses a greater security risk than
++			 * utility, ignore %n and skip its argument.
++			 */
++			void *skip_arg;
  
-+/**
-+ * seq_setwidth - set padding width
-+ * @m: the seq_file handle
-+ * @size: the max number of bytes to pad.
-+ *
-+ * Call seq_setwidth() for setting max width, then call seq_printf() etc. and
-+ * finally call seq_pad() to pad the remaining bytes.
-+ */
-+static inline void seq_setwidth(struct seq_file *m, size_t size)
-+{
-+	m->pad_until = m->count + size;
-+}
-+void seq_pad(struct seq_file *m, char c);
+-			if (qualifier == 'l') {
+-				long *ip = va_arg(args, long *);
+-				*ip = (str - buf);
+-			} else if (_tolower(qualifier) == 'z') {
+-				size_t *ip = va_arg(args, size_t *);
+-				*ip = (str - buf);
+-			} else {
+-				int *ip = va_arg(args, int *);
+-				*ip = (str - buf);
+-			}
++			WARN_ONCE(1, "Please remove ignored %%n in '%s'\n",
++					old_fmt);
 +
- char *mangle_path(char *s, const char *p, const char *esc);
- int seq_open(struct file *, const struct seq_operations *);
- ssize_t seq_read(struct file *, char __user *, size_t, loff_t *);
++			skip_arg = va_arg(args, void *);
+ 			break;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-kthread-make-kthread_create-killable.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+printk-report-console-names-during-cut-over.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
 seq_file-introduce-seq_setwidth-and-seq_pad.patch
 seq_file-remove-%n-usage-from-seq_file-users.patch
 vsprintf-ignore-%n-again.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register.patch
+gcov-move-gcov-structs-definitions-to-a-gcc-version-specific-file.patch
+gcov-add-support-for-gcc-47-gcov-format.patch
+gcov-compile-specific-gcov-implementation-based-on-gcc-version.patch
+kernel-add-support-for-init_array-constructors.patch
+kernel-add-support-for-init_array-constructors-fix.patch
+kernel-gcov-fsc-use-pr_warn.patch
+linux-next.patch
 
