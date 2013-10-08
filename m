@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + init-kconfig-add-option-to-disable-kernel-compression.patch
- added to -mm tree
-Date: Tue, 08 Oct 2013 12:30:25 -0700
-Message-ID: <52545d51.qlrN3yqplnd/wpxE%akpm@linux-foundation.org>
+Subject: +
+ mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state.patch added to -mm tree
+Date: Tue, 08 Oct 2013 12:48:02 -0700
+Message-ID: <52546172.JnXrVkdjtXHGv4YK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44008 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754715Ab3JHTa0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Oct 2013 15:30:26 -0400
+	with ESMTP id S1753436Ab3JHTsD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Oct 2013 15:48:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, christian.ruppert@abilis.com
+To: mm-commits@vger.kernel.org, xiaoguangrong@linux.vnet.ibm.com, xemul@parallels.com, sfr@canb.auug.org.au, peterz@infradead.org, n-horiguchi@ah.jp.nec.com, mtosatti@redhat.com, mpm@selenic.com, mel@csn.ul.ie, luto@amacapital.net, kosaki.motohiro@gmail.com, gorcunov@openvz.org, aneesh.kumar@linux.vnet.ibm.com, gorcunov@gmail.com
 
-Subject: + init-kconfig-add-option-to-disable-kernel-compression.patch added to -mm tree
-To: christian.ruppert@abilis.com
+Subject: + mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state.patch added to -mm tree
+To: gorcunov@gmail.com,aneesh.kumar@linux.vnet.ibm.com,gorcunov@openvz.org,kosaki.motohiro@gmail.com,luto@amacapital.net,mel@csn.ul.ie,mpm@selenic.com,mtosatti@redhat.com,n-horiguchi@ah.jp.nec.com,peterz@infradead.org,sfr@canb.auug.org.au,xemul@parallels.com,xiaoguangrong@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Tue, 08 Oct 2013 12:30:25 -0700
+Date: Tue, 08 Oct 2013 12:48:02 -0700
 
 
 The patch titled
-     Subject: init/Kconfig: add option to disable kernel compression
+     Subject: mm: migration: do not lose soft dirty bit if page is in migration state
 has been added to the -mm tree.  Its filename is
-     init-kconfig-add-option-to-disable-kernel-compression.patch
+     mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-kconfig-add-option-to-disable-kernel-compression.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-kconfig-add-option-to-disable-kernel-compression.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,50 +44,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christian Ruppert <christian.ruppert@abilis.com>
-Subject: init/Kconfig: add option to disable kernel compression
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: mm: migration: do not lose soft dirty bit if page is in migration state
 
-Until now, kernel compression can only be disabled by deselecting
-HAVE_<compression> in the architecture Kconfig. However, some
-users/platforms within the same architecture might want to use
-compression while others might want to disable it.
-This patch is a solution to the dilemma.
+If page migration is turned on in config and the page is migrating, we may
+lose the soft dirty bit.  If fork and mprotect are called on migrating
+pages (once migration is complete) pages do not obtain the soft dirty bit
+in the correspond pte entries.  Fix it adding an appropriate test on swap
+entries.
 
-Signed-off-by: Christian Ruppert <christian.ruppert@abilis.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/memory.c   |    2 ++
+ mm/migrate.c  |    2 ++
+ mm/mprotect.c |    7 +++++--
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN init/Kconfig~init-kconfig-add-option-to-disable-kernel-compression init/Kconfig
---- a/init/Kconfig~init-kconfig-add-option-to-disable-kernel-compression
-+++ a/init/Kconfig
-@@ -118,7 +118,6 @@ config HAVE_KERNEL_LZ4
- choice
- 	prompt "Kernel compression mode"
- 	default KERNEL_GZIP
--	depends on HAVE_KERNEL_GZIP || HAVE_KERNEL_BZIP2 || HAVE_KERNEL_LZMA || HAVE_KERNEL_XZ || HAVE_KERNEL_LZO || HAVE_KERNEL_LZ4
- 	help
- 	  The linux kernel is a kind of self-extracting executable.
- 	  Several compression algorithms are available, which differ
-@@ -137,6 +136,13 @@ choice
+diff -puN mm/memory.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state mm/memory.c
+--- a/mm/memory.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state
++++ a/mm/memory.c
+@@ -837,6 +837,8 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 					 */
+ 					make_migration_entry_read(&entry);
+ 					pte = swp_entry_to_pte(entry);
++					if (pte_swp_soft_dirty(*src_pte))
++						pte = pte_swp_mksoft_dirty(pte);
+ 					set_pte_at(src_mm, addr, src_pte, pte);
+ 				}
+ 			}
+diff -puN mm/migrate.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state mm/migrate.c
+--- a/mm/migrate.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state
++++ a/mm/migrate.c
+@@ -161,6 +161,8 @@ static int remove_migration_pte(struct p
  
- 	  If in doubt, select 'gzip'
+ 	get_page(new);
+ 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
++	if (pte_swp_soft_dirty(*ptep))
++		pte = pte_mksoft_dirty(pte);
+ 	if (is_write_migration_entry(entry))
+ 		pte = pte_mkwrite(pte);
+ #ifdef CONFIG_HUGETLB_PAGE
+diff -puN mm/mprotect.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state mm/mprotect.c
+--- a/mm/mprotect.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state
++++ a/mm/mprotect.c
+@@ -94,13 +94,16 @@ static unsigned long change_pte_range(st
+ 			swp_entry_t entry = pte_to_swp_entry(oldpte);
  
-+config KERNEL_UNCOMPRESSED
-+	bool "No compression"
-+	help
-+	  No compression at all. The kernel is huge but the compression and
-+	  decompression times are zero.
-+	  This is usually not what you want.
-+
- config KERNEL_GZIP
- 	bool "Gzip"
- 	depends on HAVE_KERNEL_GZIP
+ 			if (is_write_migration_entry(entry)) {
++				pte_t newpte;
+ 				/*
+ 				 * A protection check is difficult so
+ 				 * just be safe and disable write
+ 				 */
+ 				make_migration_entry_read(&entry);
+-				set_pte_at(mm, addr, pte,
+-					swp_entry_to_pte(entry));
++				newpte = swp_entry_to_pte(entry);
++				if (pte_swp_soft_dirty(oldpte))
++					newpte = pte_swp_mksoft_dirty(newpte);
++				set_pte_at(mm, addr, pte, newpte);
+ 			}
+ 			pages++;
+ 		}
 _
 
-Patches currently in -mm which might be from christian.ruppert@abilis.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-init-kconfig-add-option-to-disable-kernel-compression.patch
+mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state.patch
+mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages.patch
+arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
 
