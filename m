@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- lib-digsigc-use-err_cast-inlined-function-instead-of-err_ptrptr_err.patch
- added to -mm tree
-Date: Mon, 07 Oct 2013 18:11:06 -0700
-Message-ID: <52535baa.g/wFT7BoJjim7HsL%akpm@linux-foundation.org>
+ maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch added
+ to -mm tree
+Date: Tue, 08 Oct 2013 12:17:43 -0700
+Message-ID: <52545a57./BMWF0YeOH4A1MBT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43886 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751534Ab3JHBLH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Oct 2013 21:11:07 -0400
+	with ESMTP id S1751948Ab3JHTRo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Oct 2013 15:17:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, james.l.morris@oracle.com, duanj.fnst@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, rpurdie@rpsys.net, jg1.han@samsung.com, akpm@linux-foundation.org
 
-Subject: + lib-digsigc-use-err_cast-inlined-function-instead-of-err_ptrptr_err.patch added to -mm tree
-To: duanj.fnst@cn.fujitsu.com,james.l.morris@oracle.com
+Subject: + maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,jg1.han@samsung.com,rpurdie@rpsys.net
 From: akpm@linux-foundation.org
-Date: Mon, 07 Oct 2013 18:11:06 -0700
+Date: Tue, 08 Oct 2013 12:17:43 -0700
 
 
 The patch titled
-     Subject: lib/digsig.c: use ERR_CAST inlined function instead of ERR_PTR(PTR_ERR(...))
+     Subject: maintainers-remove-richard-purdie-as-backlight-maintainer-fix
 has been added to the -mm tree.  Its filename is
-     lib-digsigc-use-err_cast-inlined-function-instead-of-err_ptrptr_err.patch
+     maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-digsigc-use-err_cast-inlined-function-instead-of-err_ptrptr_err.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-digsigc-use-err_cast-inlined-function-instead-of-err_ptrptr_err.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,33 +45,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Duan Jiong <duanj.fnst@cn.fujitsu.com>
-Subject: lib/digsig.c: use ERR_CAST inlined function instead of ERR_PTR(PTR_ERR(...))
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: maintainers-remove-richard-purdie-as-backlight-maintainer-fix
 
-Signed-off-by: Duan Jiong <duanj.fnst@cn.fujitsu.com>
-Cc: James Morris <james.l.morris@oracle.com>
+s/USA/UK/
+
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/digsig.c |    2 +-
+ CREDITS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/digsig.c~lib-digsigc-use-err_cast-inlined-function-instead-of-err_ptrptr_err lib/digsig.c
---- a/lib/digsig.c~lib-digsigc-use-err_cast-inlined-function-instead-of-err_ptrptr_err
-+++ a/lib/digsig.c
-@@ -209,7 +209,7 @@ int digsig_verify(struct key *keyring, c
- 		kref = keyring_search(make_key_ref(keyring, 1UL),
- 						&key_type_user, name);
- 		if (IS_ERR(kref))
--			key = ERR_PTR(PTR_ERR(kref));
-+			key = ERR_CAST(kref);
- 		else
- 			key = key_ref_to_ptr(kref);
- 	} else {
+diff -puN CREDITS~maintainers-remove-richard-purdie-as-backlight-maintainer-fix CREDITS
+--- a/CREDITS~maintainers-remove-richard-purdie-as-backlight-maintainer-fix
++++ a/CREDITS
+@@ -2898,7 +2898,7 @@ S: United Kingdom
+ N: Richard Purdie
+ E: rpurdie@rpsys.net
+ D: Backlight subsystem maintainer
+-S: USA
++S: United Kingdom
+ 
+ N: Daniel Quinlan
+ E: quinlan@pathname.com
 _
 
-Patches currently in -mm which might be from duanj.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-digsigc-use-err_cast-inlined-function-instead-of-err_ptrptr_err.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+ipc-update-locking-scheme-comments-fix.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+checkpatch-add-test-for-defines-of-arch_has_foo.patch
+epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+fat-additions-to-support-fat_fallocate.patch
+fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
 linux-next.patch
+linux-next-git-rejects.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
