@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch added to
- -mm tree
-Date: Mon, 07 Oct 2013 17:27:53 -0700
-Message-ID: <52535189.dbA8uiFj39PuJpJk%akpm@linux-foundation.org>
+Subject: + smaps-show-vm_softdirty-flag-in-vmflags-line.patch added to -mm tree
+Date: Mon, 07 Oct 2013 17:51:36 -0700
+Message-ID: <52535718.A+lP5T9OYwAQa5UN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35399 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35507 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751511Ab3JHA1y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Oct 2013 20:27:54 -0400
+	with ESMTP id S1752438Ab3JHAvh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Oct 2013 20:51:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, xemul@parallels.com, gorcunov@openvz.org, fengguang.wu@intel.com, n-horiguchi@ah.jp.nec.com
 
-Subject: + kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch added to -mm tree
-To: gang.chen@asianux.com
+Subject: + smaps-show-vm_softdirty-flag-in-vmflags-line.patch added to -mm tree
+To: n-horiguchi@ah.jp.nec.com,fengguang.wu@intel.com,gorcunov@openvz.org,xemul@parallels.com
 From: akpm@linux-foundation.org
-Date: Mon, 07 Oct 2013 17:27:53 -0700
+Date: Mon, 07 Oct 2013 17:51:36 -0700
 
 
 The patch titled
-     Subject: kernel/panic.c: reduce 1 byte usage for print tainted buffer
+     Subject: /proc/pid/smaps: show VM_SOFTDIRTY flag in VmFlags line
 has been added to the -mm tree.  Its filename is
-     kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch
+     smaps-show-vm_softdirty-flag-in-vmflags-line.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/smaps-show-vm_softdirty-flag-in-vmflags-line.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/smaps-show-vm_softdirty-flag-in-vmflags-line.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,46 +43,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: kernel/panic.c: reduce 1 byte usage for print tainted buffer
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: /proc/pid/smaps: show VM_SOFTDIRTY flag in VmFlags line
 
-sizeof("Tainted: ") already counts '\0', and after first sprintf(), 's'
-will start from the current string end (its' value is '\0').
+This flag shows that the VMA is "newly created" and thus represents
+"dirty" in the task's VM.
 
-So need not add additional 1 byte for maximized usage of 'buf' in
-print_tainted().
+You can clear it by "echo 4 > /proc/pid/clear_refs."
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/panic.c~kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer kernel/panic.c
---- a/kernel/panic.c~kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer
-+++ a/kernel/panic.c
-@@ -233,7 +233,7 @@ static const struct tnt tnts[] = {
-  */
- const char *print_tainted(void)
- {
--	static char buf[ARRAY_SIZE(tnts) + sizeof("Tainted: ") + 1];
-+	static char buf[ARRAY_SIZE(tnts) + sizeof("Tainted: ")];
- 
- 	if (tainted_mask) {
- 		char *s;
+diff -puN fs/proc/task_mmu.c~smaps-show-vm_softdirty-flag-in-vmflags-line fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~smaps-show-vm_softdirty-flag-in-vmflags-line
++++ a/fs/proc/task_mmu.c
+@@ -562,6 +562,9 @@ static void show_smap_vma_flags(struct s
+ 		[ilog2(VM_NONLINEAR)]	= "nl",
+ 		[ilog2(VM_ARCH_1)]	= "ar",
+ 		[ilog2(VM_DONTDUMP)]	= "dd",
++#ifdef CONFIG_MEM_SOFT_DIRTY
++		[ilog2(VM_SOFTDIRTY)]	= "sd",
++#endif
+ 		[ilog2(VM_MIXEDMAP)]	= "mm",
+ 		[ilog2(VM_HUGEPAGE)]	= "hg",
+ 		[ilog2(VM_NOHUGEPAGE)]	= "nh",
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-origin.patch
-sh64-kernel-use-usp-instead-of-fn.patch
-sh64-kernel-remove-useless-variable-regs.patch
-mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
-mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
-kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch
-kernel-sysctlc-check-return-value-after-call-proc_put_char-in-__do_proc_doulongvec_minmax.patch
-kernel-taskstatsc-add-nla_nest_cancel-for-failure-processing-between-nla_nest_start-and-nla_nest_end.patch
-kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch
-linux-next.patch
+mm-hugetlb-correct-missing-private-flag-clearing.patch
+mm-remove-obsolete-comments-about-page-table-lock.patch
+mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+smaps-show-vm_softdirty-flag-in-vmflags-line.patch
+page-typesc-support-kpf_softdirty-bit.patch
 
