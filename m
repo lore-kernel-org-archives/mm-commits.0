@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + vsprintf-ignore-%n-again.patch added to -mm tree
-Date: Tue, 08 Oct 2013 13:30:41 -0700
-Message-ID: <52546b71.lcZdZNYKBsr6BBZ+%akpm@linux-foundation.org>
+Subject: + smaps-show-vm_softdirty-flag-in-vmflags-line-fix.patch added to -mm tree
+Date: Tue, 08 Oct 2013 13:39:43 -0700
+Message-ID: <52546d8f.io0GmgFDgbzw1isZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44198 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44233 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755772Ab3JHUam (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Oct 2013 16:30:42 -0400
+	with ESMTP id S1754714Ab3JHUjo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Oct 2013 16:39:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, joe@perches.com, davem@davemloft.net, keescook@chromium.org
+To: mm-commits@vger.kernel.org, xemul@parallels.com, gorcunov@openvz.org, fengguang.wu@intel.com, n-horiguchi@ah.jp.nec.com
 
-Subject: + vsprintf-ignore-%n-again.patch added to -mm tree
-To: keescook@chromium.org,davem@davemloft.net,joe@perches.com,penguin-kernel@I-love.SAKURA.ne.jp
+Subject: + smaps-show-vm_softdirty-flag-in-vmflags-line-fix.patch added to -mm tree
+To: n-horiguchi@ah.jp.nec.com,fengguang.wu@intel.com,gorcunov@openvz.org,xemul@parallels.com
 From: akpm@linux-foundation.org
-Date: Tue, 08 Oct 2013 13:30:41 -0700
+Date: Tue, 08 Oct 2013 13:39:43 -0700
 
 
 The patch titled
-     Subject: vsprintf: ignore %n again
+     Subject: smaps-show-vm_softdirty-flag-in-vmflags-line-fix
 has been added to the -mm tree.  Its filename is
-     vsprintf-ignore-%n-again.patch
+     smaps-show-vm_softdirty-flag-in-vmflags-line-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vsprintf-ignore-%n-again.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/smaps-show-vm_softdirty-flag-in-vmflags-line-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vsprintf-ignore-%n-again.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/smaps-show-vm_softdirty-flag-in-vmflags-line-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,61 +43,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: vsprintf: ignore %n again
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: smaps-show-vm_softdirty-flag-in-vmflags-line-fix
 
-This ignores %n in printf again, as was originally documented. 
-Implementing %n poses a greater security risk than utility, so it should
-stay ignored.  To help anyone attempting to use %n, a warning will be
-emitted if it is encountered.
-
-Based on an earlier patch by Joe Perches.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: David Miller <davem@davemloft.net>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ Documentation/filesystems/proc.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/vsprintf.c~vsprintf-ignore-%n-again lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-ignore-%n-again
-+++ a/lib/vsprintf.c
-@@ -1685,18 +1685,16 @@ int vsnprintf(char *buf, size_t size, co
- 			break;
- 
- 		case FORMAT_TYPE_NRCHARS: {
--			u8 qualifier = spec.qualifier;
-+			/*
-+			 * Since %n poses a greater security risk than
-+			 * utility, ignore %n and skip its argument.
-+			 */
-+			void *skip_arg;
- 
--			if (qualifier == 'l') {
--				long *ip = va_arg(args, long *);
--				*ip = (str - buf);
--			} else if (_tolower(qualifier) == 'z') {
--				size_t *ip = va_arg(args, size_t *);
--				*ip = (str - buf);
--			} else {
--				int *ip = va_arg(args, int *);
--				*ip = (str - buf);
--			}
-+			WARN_ONCE(1, "Please remove ignored %%n in '%s'\n",
-+					old_fmt);
-+
-+			skip_arg = va_arg(args, void *);
- 			break;
- 		}
- 
+diff -puN Documentation/filesystems/proc.txt~smaps-show-vm_softdirty-flag-in-vmflags-line-fix Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~smaps-show-vm_softdirty-flag-in-vmflags-line-fix
++++ a/Documentation/filesystems/proc.txt
+@@ -460,6 +460,7 @@ manner. The codes are the following:
+     nl  - non-linear mapping
+     ar  - architecture specific flag
+     dd  - do not include area into core dump
++    sd  - soft-dirty flag
+     mm  - mixed map area
+     hg  - huge page advise flag
+     nh  - no-huge page advise flag
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
+mm-hugetlb-correct-missing-private-flag-clearing.patch
+mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state.patch
+mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages.patch
+mm-remove-obsolete-comments-about-page-table-lock.patch
+mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
 mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
 mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
 mm-convert-mm-nr_ptes-to-atomic_long_t.patch
@@ -109,18 +87,7 @@ mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
 mm-convert-the-rest-to-new-page-table-lock-api.patch
 mm-implement-split-page-table-lock-for-pmd-level.patch
 x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-printk-report-console-names-during-cut-over.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-seq_file-introduce-seq_setwidth-and-seq_pad.patch
-seq_file-remove-%n-usage-from-seq_file-users.patch
-vsprintf-ignore-%n-again.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register.patch
-gcov-move-gcov-structs-definitions-to-a-gcc-version-specific-file.patch
-gcov-add-support-for-gcc-47-gcov-format.patch
-gcov-compile-specific-gcov-implementation-based-on-gcc-version.patch
-kernel-add-support-for-init_array-constructors.patch
-kernel-add-support-for-init_array-constructors-fix.patch
-kernel-gcov-fsc-use-pr_warn.patch
-linux-next.patch
+smaps-show-vm_softdirty-flag-in-vmflags-line.patch
+smaps-show-vm_softdirty-flag-in-vmflags-line-fix.patch
+page-typesc-support-kpf_softdirty-bit.patch
 
