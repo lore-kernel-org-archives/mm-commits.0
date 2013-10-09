@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + devpts-plug-the-memory-leak-in-kill_sb.patch added to -mm tree
-Date: Wed, 09 Oct 2013 15:09:00 -0700
-Message-ID: <5255d3fc.fUqr2frdFPSBMCQV%akpm@linux-foundation.org>
+Subject: +
+ drivers-rtc-rtc-pl03xc-remove-unnecessary-amba_set_drvdata.patch added to
+ -mm tree
+Date: Wed, 09 Oct 2013 15:57:41 -0700
+Message-ID: <5255df65.aPUCaSk+4Me9WSEf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55475 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56604 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899Ab3JIWJB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Oct 2013 18:09:01 -0400
+	with ESMTP id S1752343Ab3JIW5m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Oct 2013 18:57:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sukadev@linux.vnet.ibm.com, stable@vger.kernel.org, ihadzic@research.bell-labs.com
+To: mm-commits@vger.kernel.org, linus.walleij@linaro.org, michal.simek@xilinx.com
 
-Subject: + devpts-plug-the-memory-leak-in-kill_sb.patch added to -mm tree
-To: ihadzic@research.bell-labs.com,stable@vger.kernel.org,sukadev@linux.vnet.ibm.com
+Subject: + drivers-rtc-rtc-pl03xc-remove-unnecessary-amba_set_drvdata.patch added to -mm tree
+To: michal.simek@xilinx.com,linus.walleij@linaro.org
 From: akpm@linux-foundation.org
-Date: Wed, 09 Oct 2013 15:09:00 -0700
+Date: Wed, 09 Oct 2013 15:57:41 -0700
 
 
 The patch titled
-     Subject: devpts: plug the memory leak in kill_sb
+     Subject: drivers/rtc/rtc-pl03x.c: remove unnecessary amba_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     devpts-plug-the-memory-leak-in-kill_sb.patch
+     drivers-rtc-rtc-pl03xc-remove-unnecessary-amba_set_drvdata.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/devpts-plug-the-memory-leak-in-kill_sb.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-pl03xc-remove-unnecessary-amba_set_drvdata.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/devpts-plug-the-memory-leak-in-kill_sb.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-pl03xc-remove-unnecessary-amba_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,41 +45,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ilija Hadzic <ihadzic@research.bell-labs.com>
-Subject: devpts: plug the memory leak in kill_sb
+From: Michal Simek <michal.simek@xilinx.com>
+Subject: drivers/rtc/rtc-pl03x.c: remove unnecessary amba_set_drvdata()
 
-When devpts is unmounted, there may be a no-longer-used IDR tree hanging
-off the superblock we are about to kill.  This needs to be cleaned up
-before destroying the SB.
+Driver core clears the driver data to NULL after device_release or on
+probe failure, so just remove it from here.
 
-The leak is usually not a big deal because unmounting devpts is typically
-done when shutting down the whole machine.  However, shutting down an LXC
-container instead of a physical machine exposes the problem (the garbage
-is detectable with kmemleak).
+The relevant driver core change was 0998d063100128 ("device-core: Ensure
+drvdata = NULL when no driver is bound").
 
-Signed-off-by: Ilija Hadzic <ihadzic@research.bell-labs.com>
-Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-pl030.c |    2 --
+ drivers/rtc/rtc-pl031.c |    2 --
+ 2 files changed, 4 deletions(-)
 
-diff -puN fs/devpts/inode.c~devpts-plug-the-memory-leak-in-kill_sb fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-plug-the-memory-leak-in-kill_sb
-+++ a/fs/devpts/inode.c
-@@ -498,6 +498,7 @@ static void devpts_kill_sb(struct super_
+diff -puN drivers/rtc/rtc-pl030.c~drivers-rtc-rtc-pl03xc-remove-unnecessary-amba_set_drvdata drivers/rtc/rtc-pl030.c
+--- a/drivers/rtc/rtc-pl030.c~drivers-rtc-rtc-pl03xc-remove-unnecessary-amba_set_drvdata
++++ a/drivers/rtc/rtc-pl030.c
+@@ -153,8 +153,6 @@ static int pl030_remove(struct amba_devi
  {
- 	struct pts_fs_info *fsi = DEVPTS_SB(sb);
+ 	struct pl030_rtc *rtc = amba_get_drvdata(dev);
  
-+	ida_destroy(&fsi->allocated_ptys);
- 	kfree(fsi);
- 	kill_litter_super(sb);
- }
+-	amba_set_drvdata(dev, NULL);
+-
+ 	writel(0, rtc->base + RTC_CR);
+ 
+ 	free_irq(dev->irq[0], rtc);
+diff -puN drivers/rtc/rtc-pl031.c~drivers-rtc-rtc-pl03xc-remove-unnecessary-amba_set_drvdata drivers/rtc/rtc-pl031.c
+--- a/drivers/rtc/rtc-pl031.c~drivers-rtc-rtc-pl03xc-remove-unnecessary-amba_set_drvdata
++++ a/drivers/rtc/rtc-pl031.c
+@@ -305,7 +305,6 @@ static int pl031_remove(struct amba_devi
+ {
+ 	struct pl031_local *ldata = dev_get_drvdata(&adev->dev);
+ 
+-	amba_set_drvdata(adev, NULL);
+ 	free_irq(adev->irq[0], ldata);
+ 	rtc_device_unregister(ldata->rtc);
+ 	iounmap(ldata->base);
+@@ -392,7 +391,6 @@ out_no_irq:
+ 	rtc_device_unregister(ldata->rtc);
+ out_no_rtc:
+ 	iounmap(ldata->base);
+-	amba_set_drvdata(adev, NULL);
+ out_no_remap:
+ 	kfree(ldata);
+ out:
 _
 
-Patches currently in -mm which might be from ihadzic@research.bell-labs.com are
+Patches currently in -mm which might be from michal.simek@xilinx.com are
 
-devpts-plug-the-memory-leak-in-kill_sb.patch
+drivers-rtc-rtc-pl03xc-remove-unnecessary-amba_set_drvdata.patch
+linux-next.patch
 
