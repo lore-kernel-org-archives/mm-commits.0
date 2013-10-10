@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + metag-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:19 -0700
-Message-ID: <52571473.z7Ttp/5myD6xTdVu%akpm@linux-foundation.org>
+Subject: + ia64-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:16 -0700
+Message-ID: <52571470./px4f/CMtx9frbme%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37713 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37706 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755876Ab3JJU4U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:20 -0400
+	with ESMTP id S1756345Ab3JJU4R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, james.hogan@imgtec.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, tony.luck@intel.com, fenghua.yu@intel.com, kirill.shutemov@linux.intel.com
 
-Subject: + metag-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,james.hogan@imgtec.com
+Subject: + ia64-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,fenghua.yu@intel.com,tony.luck@intel.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:19 -0700
+Date: Thu, 10 Oct 2013 13:56:16 -0700
 
 
 The patch titled
-     Subject: metag: handle pgtable_page_ctor() fail
+     Subject: ia64: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     metag-handle-pgtable_page_ctor-fail.patch
+     ia64-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/metag-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ia64-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/metag-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,32 +44,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: metag: handle pgtable_page_ctor() fail
+Subject: ia64: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/metag/include/asm/pgalloc.h |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/ia64/include/asm/pgalloc.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/metag/include/asm/pgalloc.h~metag-handle-pgtable_page_ctor-fail arch/metag/include/asm/pgalloc.h
---- a/arch/metag/include/asm/pgalloc.h~metag-handle-pgtable_page_ctor-fail
-+++ a/arch/metag/include/asm/pgalloc.h
-@@ -52,8 +52,12 @@ static inline pgtable_t pte_alloc_one(st
- {
- 	struct page *pte;
- 	pte = alloc_pages(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO, 0);
--	if (pte)
--		pgtable_page_ctor(pte);
-+	if (!pte)
-+		return NULL;
-+	if (!pgtable_page_ctor(pte)) {
-+		__free_page(pte);
+diff -puN arch/ia64/include/asm/pgalloc.h~ia64-handle-pgtable_page_ctor-fail arch/ia64/include/asm/pgalloc.h
+--- a/arch/ia64/include/asm/pgalloc.h~ia64-handle-pgtable_page_ctor-fail
++++ a/arch/ia64/include/asm/pgalloc.h
+@@ -91,7 +91,10 @@ static inline pgtable_t pte_alloc_one(st
+ 	if (!pg)
+ 		return NULL;
+ 	page = virt_to_page(pg);
+-	pgtable_page_ctor(page);
++	if (!pgtable_page_ctor(page)) {
++		quicklist_free(0, NULL, pg);
 +		return NULL;
 +	}
- 	return pte;
+ 	return page;
  }
  
 _
