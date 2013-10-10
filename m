@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mips-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:20 -0700
-Message-ID: <52571474.aZb15NdN/JU2m6Yh%akpm@linux-foundation.org>
+Subject: + um-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:28 -0700
+Message-ID: <5257147c.f5iOq/QCfqMoCCak%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37714 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37733 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755363Ab3JJU4V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:21 -0400
+	with ESMTP id S1757082Ab3JJU43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ralf@linux-mips.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, richard@nod.at, jdike@addtoit.com, kirill.shutemov@linux.intel.com
 
-Subject: + mips-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,ralf@linux-mips.org
+Subject: + um-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,jdike@addtoit.com,richard@nod.at
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:20 -0700
+Date: Thu, 10 Oct 2013 13:56:28 -0700
 
 
 The patch titled
-     Subject: mips: handle pgtable_page_ctor() fail
+     Subject: um: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     mips-handle-pgtable_page_ctor-fail.patch
+     um-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mips-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/um-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mips-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/um-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,35 +44,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mips: handle pgtable_page_ctor() fail
+Subject: um: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgalloc.h |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/um/kernel/mem.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/include/asm/pgalloc.h~mips-handle-pgtable_page_ctor-fail arch/mips/include/asm/pgalloc.h
---- a/arch/mips/include/asm/pgalloc.h~mips-handle-pgtable_page_ctor-fail
-+++ a/arch/mips/include/asm/pgalloc.h
-@@ -80,9 +80,12 @@ static inline struct page *pte_alloc_one
+diff -puN arch/um/kernel/mem.c~um-handle-pgtable_page_ctor-fail arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~um-handle-pgtable_page_ctor-fail
++++ a/arch/um/kernel/mem.c
+@@ -279,8 +279,12 @@ pgtable_t pte_alloc_one(struct mm_struct
  	struct page *pte;
  
- 	pte = alloc_pages(GFP_KERNEL | __GFP_REPEAT, PTE_ORDER);
--	if (pte) {
--		clear_highpage(pte);
+ 	pte = alloc_page(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO);
+-	if (pte)
 -		pgtable_page_ctor(pte);
 +	if (!pte)
 +		return NULL;
-+	clear_highpage(pte);
 +	if (!pgtable_page_ctor(pte)) {
 +		__free_page(pte);
 +		return NULL;
- 	}
++	}
  	return pte;
  }
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
