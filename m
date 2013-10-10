@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + arc-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:09 -0700
-Message-ID: <52571469.+cUjWlIUClQ/YOBP%akpm@linux-foundation.org>
+Subject: + microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:05 -0700
+Message-ID: <52571465.ylbcUYHeUv5XHPL5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37689 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37676 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756904Ab3JJU4K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:10 -0400
+	with ESMTP id S1756107Ab3JJU4G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgupta@synopsys.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, monstr@monstr.eu, kirill.shutemov@linux.intel.com
 
-Subject: + arc-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,vgupta@synopsys.com
+Subject: + microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,monstr@monstr.eu
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:09 -0700
+Date: Thu, 10 Oct 2013 13:56:05 -0700
 
 
 The patch titled
-     Subject: arc: handle pgtable_page_ctor() fail
+     Subject: microblaze: add missing pgtable_page_ctor/dtor calls
 has been added to the -mm tree.  Its filename is
-     arc-handle-pgtable_page_ctor-fail.patch
+     microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arc-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arc-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,39 +44,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: arc: handle pgtable_page_ctor() fail
+Subject: microblaze: add missing pgtable_page_ctor/dtor calls
+
+It will fix NR_PAGETABLE accounting.  It's also required if the arch is
+going ever support split ptl.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/pgalloc.h |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ arch/microblaze/include/asm/pgalloc.h |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN arch/arc/include/asm/pgalloc.h~arc-handle-pgtable_page_ctor-fail arch/arc/include/asm/pgalloc.h
---- a/arch/arc/include/asm/pgalloc.h~arc-handle-pgtable_page_ctor-fail
-+++ a/arch/arc/include/asm/pgalloc.h
-@@ -105,11 +105,16 @@ static inline pgtable_t
- pte_alloc_one(struct mm_struct *mm, unsigned long address)
+diff -puN arch/microblaze/include/asm/pgalloc.h~microblaze-add-missing-pgtable_page_ctor-dtor-calls arch/microblaze/include/asm/pgalloc.h
+--- a/arch/microblaze/include/asm/pgalloc.h~microblaze-add-missing-pgtable_page_ctor-dtor-calls
++++ a/arch/microblaze/include/asm/pgalloc.h
+@@ -122,8 +122,13 @@ static inline struct page *pte_alloc_one
+ #endif
+ 
+ 	ptepage = alloc_pages(flags, 0);
+-	if (ptepage)
+-		clear_highpage(ptepage);
++	if (!ptepage)
++		return NULL;
++	clear_highpage(ptepage);
++	if (!pgtable_page_ctor(ptepage)) {
++		__free_page(ptepage);
++		return NULL;
++	}
+ 	return ptepage;
+ }
+ 
+@@ -158,8 +163,9 @@ extern inline void pte_free_slow(struct
+ 	__free_page(ptepage);
+ }
+ 
+-extern inline void pte_free(struct mm_struct *mm, struct page *ptepage)
++static inline void pte_free(struct mm_struct *mm, struct page *ptepage)
  {
- 	pgtable_t pte_pg;
-+	struct page *page;
++	pgtable_page_dtor(ptepage);
+ 	__free_page(ptepage);
+ }
  
- 	pte_pg = __get_free_pages(GFP_KERNEL | __GFP_REPEAT, __get_order_pte());
--	if (pte_pg) {
--		memzero((void *)pte_pg, PTRS_PER_PTE * 4);
--		pgtable_page_ctor(virt_to_page(pte_pg));
-+	if (!pte_pg)
-+		return 0;
-+	memzero((void *)pte_pg, PTRS_PER_PTE * 4);
-+	page = virt_to_page(pte_pg);
-+	if (!pgtable_page_ctor(page)) {
-+		__free_page(page);
-+		return 0;
- 	}
- 
- 	return pte_pg;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
