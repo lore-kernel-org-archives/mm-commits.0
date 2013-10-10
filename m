@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + s390-mmap-randomize-mmap-base-for-bottom-up-direction.patch
- added to -mm tree
-Date: Thu, 10 Oct 2013 15:48:12 -0700
-Message-ID: <52572eac.icrkybkkePKBFAaH%akpm@linux-foundation.org>
+Subject: +
+ kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str.patch added to -mm tree
+Date: Thu, 10 Oct 2013 15:50:17 -0700
+Message-ID: <52572f29.pnFEbSYQ5xV2YpFH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38792 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38794 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756098Ab3JJWsN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 18:48:13 -0400
+	with ESMTP id S1752124Ab3JJWuS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 18:50:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, will.deacon@arm.com, walken@google.com, sinaelgl@gmail.com, schwidefsky@de.ibm.com, cmetcalf@tilera.com, catalin.marinas@arm.com, heiko.carstens@de.ibm.com
+To: mm-commits@vger.kernel.org, gang.chen@asianux.com
 
-Subject: + s390-mmap-randomize-mmap-base-for-bottom-up-direction.patch added to -mm tree
-To: heiko.carstens@de.ibm.com,catalin.marinas@arm.com,cmetcalf@tilera.com,schwidefsky@de.ibm.com,sinaelgl@gmail.com,walken@google.com,will.deacon@arm.com
+Subject: + kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str.patch added to -mm tree
+To: gang.chen@asianux.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 15:48:12 -0700
+Date: Thu, 10 Oct 2013 15:50:17 -0700
 
 
 The patch titled
-     Subject: s390/mmap: randomize mmap base for bottom up direction
+     Subject: kernel/kexec.c: use vscnprintf() instead of vsnprintf() in vmcoreinfo_append_str()
 has been added to the -mm tree.  Its filename is
-     s390-mmap-randomize-mmap-base-for-bottom-up-direction.patch
+     kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-mmap-randomize-mmap-base-for-bottom-up-direction.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-mmap-randomize-mmap-base-for-bottom-up-direction.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,68 +44,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: s390/mmap: randomize mmap base for bottom up direction
+From: Chen Gang <gang.chen@asianux.com>
+Subject: kernel/kexec.c: use vscnprintf() instead of vsnprintf() in vmcoreinfo_append_str()
 
-Implement mmap base randomization for the bottom up direction, so ASLR
-works for both mmap layouts on s390.  See also df54d6fa54 ("x86
-get_unmapped_area(): use proper mmap base for bottom-up direction").
+vsnprintf() may let 'r' larger than sizeof(buf), in this case, if 'r' is
+also less than "vmcoreinfo_max_size - vmcoreinfo_size" (left size of
+destination buffer), next memcpy() will read the unexpected addresses.
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Radu Caragea <sinaelgl@gmail.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/mmap.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ kernel/kexec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/s390/mm/mmap.c~s390-mmap-randomize-mmap-base-for-bottom-up-direction arch/s390/mm/mmap.c
---- a/arch/s390/mm/mmap.c~s390-mmap-randomize-mmap-base-for-bottom-up-direction
-+++ a/arch/s390/mm/mmap.c
-@@ -64,6 +64,11 @@ static unsigned long mmap_rnd(void)
- 	return (get_random_int() & 0x7ffUL) << PAGE_SHIFT;
- }
+diff -puN kernel/kexec.c~kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str kernel/kexec.c
+--- a/kernel/kexec.c~kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str
++++ a/kernel/kexec.c
+@@ -1533,7 +1533,7 @@ void vmcoreinfo_append_str(const char *f
+ 	size_t r;
  
-+static unsigned long mmap_base_legacy(void)
-+{
-+	return TASK_UNMAPPED_BASE + mmap_rnd();
-+}
-+
- static inline unsigned long mmap_base(void)
- {
- 	unsigned long gap = rlimit(RLIMIT_STACK);
-@@ -89,7 +94,7 @@ void arch_pick_mmap_layout(struct mm_str
- 	 * bit is set, or if the expected stack growth is unlimited:
- 	 */
- 	if (mmap_is_legacy()) {
--		mm->mmap_base = TASK_UNMAPPED_BASE;
-+		mm->mmap_base = mmap_base_legacy();
- 		mm->get_unmapped_area = arch_get_unmapped_area;
- 	} else {
- 		mm->mmap_base = mmap_base();
-@@ -172,7 +177,7 @@ void arch_pick_mmap_layout(struct mm_str
- 	 * bit is set, or if the expected stack growth is unlimited:
- 	 */
- 	if (mmap_is_legacy()) {
--		mm->mmap_base = TASK_UNMAPPED_BASE;
-+		mm->mmap_base = mmap_base_legacy();
- 		mm->get_unmapped_area = s390_get_unmapped_area;
- 	} else {
- 		mm->mmap_base = mmap_base();
+ 	va_start(args, fmt);
+-	r = vsnprintf(buf, sizeof(buf), fmt, args);
++	r = vscnprintf(buf, sizeof(buf), fmt, args);
+ 	va_end(args);
+ 
+ 	r = min(r, vmcoreinfo_max_size - vmcoreinfo_size);
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from gang.chen@asianux.com are
 
 origin.patch
-x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
-s390-handle-pgtable_page_ctor-fail.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
-mmap-arch_get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
-s390-mmap-randomize-mmap-base-for-bottom-up-direction.patch
+sh64-kernel-use-usp-instead-of-fn.patch
+sh64-kernel-remove-useless-variable-regs.patch
+mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
+mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
+kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch
+kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str.patch
+kernel-sysctlc-check-return-value-after-call-proc_put_char-in-__do_proc_doulongvec_minmax.patch
+kernel-taskstatsc-add-nla_nest_cancel-for-failure-processing-between-nla_nest_start-and-nla_nest_end.patch
+kernel-taskstatsc-return-enomem-when-alloc-memory-fails-in-add_del_listener.patch
+kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch
 linux-next.patch
+kernel-sysctl_binaryc-use-scnprintf-instead-of-snprintf.patch
 
