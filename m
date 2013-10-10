@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:26 -0700
-Message-ID: <5257147a.oLHXKKdr8y8TMrwo%akpm@linux-foundation.org>
+Subject: + powerpc-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:22 -0700
+Message-ID: <52571476.6MYMdoNS+uNsAhWo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37729 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37721 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757082Ab3JJU41 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:27 -0400
+	with ESMTP id S1757082Ab3JJU4X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, davem@davemloft.net, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, paulus@samba.org, benh@kernel.crashing.org, kirill.shutemov@linux.intel.com
 
-Subject: + sparc-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,davem@davemloft.net
+Subject: + powerpc-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,benh@kernel.crashing.org,paulus@samba.org
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:26 -0700
+Date: Thu, 10 Oct 2013 13:56:22 -0700
 
 
 The patch titled
-     Subject: sparc: handle pgtable_page_ctor() fail
+     Subject: powerpc: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     sparc-handle-pgtable_page_ctor-fail.patch
+     powerpc-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,52 +44,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: sparc: handle pgtable_page_ctor() fail
+Subject: powerpc: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/init_64.c |   11 ++++++-----
- arch/sparc/mm/srmmu.c   |    5 ++++-
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ arch/powerpc/include/asm/pgalloc-64.h |    5 ++++-
+ arch/powerpc/mm/pgtable_32.c          |    5 ++++-
+ arch/powerpc/mm/pgtable_64.c          |    7 ++++---
+ 3 files changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN arch/sparc/mm/init_64.c~sparc-handle-pgtable_page_ctor-fail arch/sparc/mm/init_64.c
---- a/arch/sparc/mm/init_64.c~sparc-handle-pgtable_page_ctor-fail
-+++ a/arch/sparc/mm/init_64.c
-@@ -2519,12 +2519,13 @@ pgtable_t pte_alloc_one(struct mm_struct
- 		return pte;
- 
- 	page = __alloc_for_cache(mm);
--	if (page) {
--		pgtable_page_ctor(page);
--		pte = (pte_t *) page_address(page);
-+	if (!page)
-+		return NULL;
-+	if (!pgtable_page_ctor(page)) {
-+		free_hot_cold_page(page, 0);
-+		return NULL;
- 	}
--
--	return pte;
-+	return (pte_t *) page_address(page);
- }
- 
- void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
-diff -puN arch/sparc/mm/srmmu.c~sparc-handle-pgtable_page_ctor-fail arch/sparc/mm/srmmu.c
---- a/arch/sparc/mm/srmmu.c~sparc-handle-pgtable_page_ctor-fail
-+++ a/arch/sparc/mm/srmmu.c
-@@ -345,7 +345,10 @@ pgtable_t pte_alloc_one(struct mm_struct
- 	if ((pte = (unsigned long)pte_alloc_one_kernel(mm, address)) == 0)
+diff -puN arch/powerpc/include/asm/pgalloc-64.h~powerpc-handle-pgtable_page_ctor-fail arch/powerpc/include/asm/pgalloc-64.h
+--- a/arch/powerpc/include/asm/pgalloc-64.h~powerpc-handle-pgtable_page_ctor-fail
++++ a/arch/powerpc/include/asm/pgalloc-64.h
+@@ -91,7 +91,10 @@ static inline pgtable_t pte_alloc_one(st
+ 	if (!pte)
  		return NULL;
- 	page = pfn_to_page(__nocache_pa(pte) >> PAGE_SHIFT);
+ 	page = virt_to_page(pte);
 -	pgtable_page_ctor(page);
 +	if (!pgtable_page_ctor(page)) {
 +		__free_page(page);
 +		return NULL;
 +	}
  	return page;
+ }
+ 
+diff -puN arch/powerpc/mm/pgtable_32.c~powerpc-handle-pgtable_page_ctor-fail arch/powerpc/mm/pgtable_32.c
+--- a/arch/powerpc/mm/pgtable_32.c~powerpc-handle-pgtable_page_ctor-fail
++++ a/arch/powerpc/mm/pgtable_32.c
+@@ -121,7 +121,10 @@ pgtable_t pte_alloc_one(struct mm_struct
+ 	ptepage = alloc_pages(flags, 0);
+ 	if (!ptepage)
+ 		return NULL;
+-	pgtable_page_ctor(ptepage);
++	if (!pgtable_page_ctor(ptepage)) {
++		__free_page(ptepage);
++		return NULL;
++	}
+ 	return ptepage;
+ }
+ 
+diff -puN arch/powerpc/mm/pgtable_64.c~powerpc-handle-pgtable_page_ctor-fail arch/powerpc/mm/pgtable_64.c
+--- a/arch/powerpc/mm/pgtable_64.c~powerpc-handle-pgtable_page_ctor-fail
++++ a/arch/powerpc/mm/pgtable_64.c
+@@ -378,6 +378,10 @@ static pte_t *__alloc_for_cache(struct m
+ 				       __GFP_REPEAT | __GFP_ZERO);
+ 	if (!page)
+ 		return NULL;
++	if (!kernel && !pgtable_page_ctor(page)) {
++		__free_page(page);
++		return NULL;
++	}
+ 
+ 	ret = page_address(page);
+ 	spin_lock(&mm->page_table_lock);
+@@ -392,9 +396,6 @@ static pte_t *__alloc_for_cache(struct m
+ 	}
+ 	spin_unlock(&mm->page_table_lock);
+ 
+-	if (!kernel)
+-		pgtable_page_ctor(page);
+-
+ 	return (pte_t *)ret;
  }
  
 _
