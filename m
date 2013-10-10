@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + openrisc-add-missing-pgtable_page_ctor-dtor-calls.patch added
- to -mm tree
-Date: Thu, 10 Oct 2013 13:56:07 -0700
-Message-ID: <52571467.0K2nnYaXg6US/+Rx%akpm@linux-foundation.org>
+Subject: + arm64-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:11 -0700
+Message-ID: <5257146b.JruPu+dET7NaalaQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37684 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756904Ab3JJU4I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:08 -0400
+	with ESMTP id S1756471Ab3JJU4M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jonas@southpole.se, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, kirill.shutemov@linux.intel.com
 
-Subject: + openrisc-add-missing-pgtable_page_ctor-dtor-calls.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,jonas@southpole.se
+Subject: + arm64-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,catalin.marinas@arm.com,will.deacon@arm.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:07 -0700
+Date: Thu, 10 Oct 2013 13:56:11 -0700
 
 
 The patch titled
-     Subject: openrisc: add missing pgtable_page_ctor/dtor calls
+     Subject: arm64: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     openrisc-add-missing-pgtable_page_ctor-dtor-calls.patch
+     arm64-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/openrisc-add-missing-pgtable_page_ctor-dtor-calls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/openrisc-add-missing-pgtable_page_ctor-dtor-calls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,44 +44,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: openrisc: add missing pgtable_page_ctor/dtor calls
-
-It will fix NR_PAGETABLE accounting.  It's also required if the arch is
-going ever support split ptl.
+Subject: arm64: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/include/asm/pgalloc.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/arm64/include/asm/pgalloc.h |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/openrisc/include/asm/pgalloc.h~openrisc-add-missing-pgtable_page_ctor-dtor-calls arch/openrisc/include/asm/pgalloc.h
---- a/arch/openrisc/include/asm/pgalloc.h~openrisc-add-missing-pgtable_page_ctor-dtor-calls
-+++ a/arch/openrisc/include/asm/pgalloc.h
-@@ -78,8 +78,13 @@ static inline struct page *pte_alloc_one
- {
+diff -puN arch/arm64/include/asm/pgalloc.h~arm64-handle-pgtable_page_ctor-fail arch/arm64/include/asm/pgalloc.h
+--- a/arch/arm64/include/asm/pgalloc.h~arm64-handle-pgtable_page_ctor-fail
++++ a/arch/arm64/include/asm/pgalloc.h
+@@ -63,9 +63,12 @@ pte_alloc_one(struct mm_struct *mm, unsi
  	struct page *pte;
- 	pte = alloc_pages(GFP_KERNEL|__GFP_REPEAT, 0);
+ 
+ 	pte = alloc_pages(PGALLOC_GFP, 0);
 -	if (pte)
--		clear_page(page_address(pte));
+-		pgtable_page_ctor(pte);
+-
 +	if (!pte)
 +		return NULL;
-+	clear_page(page_address(pte));
 +	if (!pgtable_page_ctor(pte)) {
 +		__free_page(pte);
 +		return NULL;
 +	}
  	return pte;
- }
- 
-@@ -90,6 +95,7 @@ static inline void pte_free_kernel(struc
- 
- static inline void pte_free(struct mm_struct *mm, struct page *pte)
- {
-+	pgtable_page_dtor(pte);
- 	__free_page(pte);
  }
  
 _
