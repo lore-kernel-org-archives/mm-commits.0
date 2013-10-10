@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + um-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:28 -0700
-Message-ID: <5257147c.f5iOq/QCfqMoCCak%akpm@linux-foundation.org>
+Subject: + tile-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:27 -0700
+Message-ID: <5257147b.nVJ/bUz0ONkFlvBq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37733 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37731 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757082Ab3JJU43 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:29 -0400
+	with ESMTP id S1757082Ab3JJU42 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, richard@nod.at, jdike@addtoit.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, cmetcalf@tilera.com, kirill.shutemov@linux.intel.com
 
-Subject: + um-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,jdike@addtoit.com,richard@nod.at
+Subject: + tile-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,cmetcalf@tilera.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:28 -0700
+Date: Thu, 10 Oct 2013 13:56:27 -0700
 
 
 The patch titled
-     Subject: um: handle pgtable_page_ctor() fail
+     Subject: tile: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     um-handle-pgtable_page_ctor-fail.patch
+     tile-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/um-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tile-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/um-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tile-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,33 +44,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: um: handle pgtable_page_ctor() fail
+Subject: tile: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
+Acked-by: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/mem.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/tile/mm/pgtable.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/kernel/mem.c~um-handle-pgtable_page_ctor-fail arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~um-handle-pgtable_page_ctor-fail
-+++ a/arch/um/kernel/mem.c
-@@ -279,8 +279,12 @@ pgtable_t pte_alloc_one(struct mm_struct
- 	struct page *pte;
+diff -puN arch/tile/mm/pgtable.c~tile-handle-pgtable_page_ctor-fail arch/tile/mm/pgtable.c
+--- a/arch/tile/mm/pgtable.c~tile-handle-pgtable_page_ctor-fail
++++ a/arch/tile/mm/pgtable.c
+@@ -241,6 +241,11 @@ struct page *pgtable_alloc_one(struct mm
+ 	if (p == NULL)
+ 		return NULL;
  
- 	pte = alloc_page(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO);
--	if (pte)
--		pgtable_page_ctor(pte);
-+	if (!pte)
-+		return NULL;
-+	if (!pgtable_page_ctor(pte)) {
-+		__free_page(pte);
++	if (!pgtable_page_ctor(p)) {
++		__free_pages(p, L2_USER_PGTABLE_ORDER);
 +		return NULL;
 +	}
- 	return pte;
++
+ 	/*
+ 	 * Make every page have a page_count() of one, not just the first.
+ 	 * We don't use __GFP_COMP since it doesn't look like it works
+@@ -251,7 +256,6 @@ struct page *pgtable_alloc_one(struct mm
+ 		inc_zone_page_state(p+i, NR_PAGETABLE);
+ 	}
+ 
+-	pgtable_page_ctor(p);
+ 	return p;
  }
  
 _
