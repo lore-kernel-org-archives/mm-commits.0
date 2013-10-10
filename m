@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + x86-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:30 -0700
-Message-ID: <5257147e.mianm9B++S6uBtlk%akpm@linux-foundation.org>
+Subject: + unicore32-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:29 -0700
+Message-ID: <5257147d.y7vZAFyYD6q4ZMKQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37736 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757082Ab3JJU4b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:31 -0400
+	with ESMTP id S1757082Ab3JJU4a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, gxt@mprc.pku.edu.cn, kirill.shutemov@linux.intel.com
 
-Subject: + x86-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,hpa@zytor.com,mingo@redhat.com,tglx@linutronix.de
+Subject: + unicore32-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,gxt@mprc.pku.edu.cn
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:30 -0700
+Date: Thu, 10 Oct 2013 13:56:29 -0700
 
 
 The patch titled
-     Subject: x86: handle pgtable_page_ctor() fail
+     Subject: unicore32: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     x86-handle-pgtable_page_ctor-fail.patch
+     unicore32-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/unicore32-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/unicore32-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,36 +44,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: x86: handle pgtable_page_ctor() fail
+Subject: unicore32: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pgtable.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/unicore32/include/asm/pgalloc.h |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/mm/pgtable.c~x86-handle-pgtable_page_ctor-fail arch/x86/mm/pgtable.c
---- a/arch/x86/mm/pgtable.c~x86-handle-pgtable_page_ctor-fail
-+++ a/arch/x86/mm/pgtable.c
-@@ -25,8 +25,12 @@ pgtable_t pte_alloc_one(struct mm_struct
+diff -puN arch/unicore32/include/asm/pgalloc.h~unicore32-handle-pgtable_page_ctor-fail arch/unicore32/include/asm/pgalloc.h
+--- a/arch/unicore32/include/asm/pgalloc.h~unicore32-handle-pgtable_page_ctor-fail
++++ a/arch/unicore32/include/asm/pgalloc.h
+@@ -51,12 +51,14 @@ pte_alloc_one(struct mm_struct *mm, unsi
  	struct page *pte;
  
- 	pte = alloc_pages(__userpte_alloc_gfp, 0);
--	if (pte)
+ 	pte = alloc_pages(PGALLOC_GFP, 0);
+-	if (pte) {
+-		if (!PageHighMem(pte)) {
+-			void *page = page_address(pte);
+-			clean_dcache_area(page, PTRS_PER_PTE * sizeof(pte_t));
+-		}
 -		pgtable_page_ctor(pte);
 +	if (!pte)
 +		return NULL;
++	if (!PageHighMem(pte)) {
++		void *page = page_address(pte);
++		clean_dcache_area(page, PTRS_PER_PTE * sizeof(pte_t));
++	}
 +	if (!pgtable_page_ctor(pte)) {
 +		__free_page(pte);
-+		return NULL;
-+	}
- 	return pte;
- }
+ 	}
  
+ 	return pte;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
