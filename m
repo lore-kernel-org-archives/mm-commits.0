@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:31 -0700
-Message-ID: <5257147f.aeqgG70PnpILqAT0%akpm@linux-foundation.org>
+Subject: + iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:32 -0700
+Message-ID: <52571480.BvopTGJvZjwyHp4k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37741 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37747 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757082Ab3JJU4c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:32 -0400
+	with ESMTP id S1757082Ab3JJU4d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jcmvbkbc@gmail.com, chris@zankel.net, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, will.deacon@arm.com, rob.herring@calxeda.com, grant.likely@linaro.org, kirill.shutemov@linux.intel.com
 
-Subject: + xtensa-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,chris@zankel.net,jcmvbkbc@gmail.com
+Subject: + iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,grant.likely@linaro.org,rob.herring@calxeda.com,will.deacon@arm.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:31 -0700
+Date: Thu, 10 Oct 2013 13:56:32 -0700
 
 
 The patch titled
-     Subject: xtensa: handle pgtable_page_ctor() fail
+     Subject: iommu/arm-smmu: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     xtensa-handle-pgtable_page_ctor-fail.patch
+     iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xtensa-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xtensa-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,32 +44,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: xtensa: handle pgtable_page_ctor() fail
+Subject: iommu/arm-smmu: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <rob.herring@calxeda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/pgalloc.h |    5 ++++-
+ drivers/iommu/arm-smmu.c |    5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/xtensa/include/asm/pgalloc.h~xtensa-handle-pgtable_page_ctor-fail arch/xtensa/include/asm/pgalloc.h
---- a/arch/xtensa/include/asm/pgalloc.h~xtensa-handle-pgtable_page_ctor-fail
-+++ a/arch/xtensa/include/asm/pgalloc.h
-@@ -58,7 +58,10 @@ static inline pgtable_t pte_alloc_one(st
- 	if (!pte)
- 		return NULL;
- 	page = virt_to_page(pte);
--	pgtable_page_ctor(page);
-+	if (!pgtable_page_ctor(page)) {
-+		kmem_cache_free(pgtable_cache, pte);
-+		return NULL;
-+	}
- 	return page;
- }
+diff -puN drivers/iommu/arm-smmu.c~iommu-arm-smmu-handle-pgtable_page_ctor-fail drivers/iommu/arm-smmu.c
+--- a/drivers/iommu/arm-smmu.c~iommu-arm-smmu-handle-pgtable_page_ctor-fail
++++ a/drivers/iommu/arm-smmu.c
+@@ -1212,7 +1212,10 @@ static int arm_smmu_alloc_init_pte(struc
  
+ 		arm_smmu_flush_pgtable(smmu, page_address(table),
+ 				       ARM_SMMU_PTE_HWTABLE_SIZE);
+-		pgtable_page_ctor(table);
++		if (!pgtable_page_ctor(table)) {
++			__free_page(table);
++			return -ENOMEM;
++		}
+ 		pmd_populate(NULL, pmd, table);
+ 		arm_smmu_flush_pgtable(smmu, pmd, sizeof(*pmd));
+ 	}
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
