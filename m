@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + cris-fix-potential-null-pointer-dereference.patch added to -mm
- tree
-Date: Thu, 10 Oct 2013 13:56:01 -0700
-Message-ID: <52571461.a26BQSn24DUQCdkO%akpm@linux-foundation.org>
+Subject: + mm-allow-pgtable_page_ctor-to-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:04 -0700
+Message-ID: <52571464.MeY1uNKN94CzN3Ym%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37650 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37674 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756176Ab3JJU4D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:03 -0400
+	with ESMTP id S1756904Ab3JJU4F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, starvik@axis.com, jesper.nilsson@axis.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
 
-Subject: + cris-fix-potential-null-pointer-dereference.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,jesper.nilsson@axis.com,starvik@axis.com
+Subject: + mm-allow-pgtable_page_ctor-to-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:01 -0700
+Date: Thu, 10 Oct 2013 13:56:04 -0700
 
 
 The patch titled
-     Subject: cris: fix potential NULL-pointer dereference
+     Subject: mm: allow pgtable_page_ctor() to fail
 has been added to the -mm tree.  Its filename is
-     cris-fix-potential-null-pointer-dereference.patch
+     mm-allow-pgtable_page_ctor-to-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cris-fix-potential-null-pointer-dereference.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-allow-pgtable_page_ctor-to-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cris-fix-potential-null-pointer-dereference.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-allow-pgtable_page_ctor-to-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,31 +44,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: cris: fix potential NULL-pointer dereference
+Subject: mm: allow pgtable_page_ctor() to fail
 
-Add missing check for memory allocation fail.
+Change pgtable_page_ctor() return type from void to bool.  Returns true,
+if initialization is successful and false otherwise.
+
+Current implementation never fails, but it will change later.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/include/asm/pgalloc.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mm.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/cris/include/asm/pgalloc.h~cris-fix-potential-null-pointer-dereference arch/cris/include/asm/pgalloc.h
---- a/arch/cris/include/asm/pgalloc.h~cris-fix-potential-null-pointer-dereference
-+++ a/arch/cris/include/asm/pgalloc.h
-@@ -32,6 +32,8 @@ static inline pgtable_t pte_alloc_one(st
+diff -puN include/linux/mm.h~mm-allow-pgtable_page_ctor-to-fail include/linux/mm.h
+--- a/include/linux/mm.h~mm-allow-pgtable_page_ctor-to-fail
++++ a/include/linux/mm.h
+@@ -1254,10 +1254,11 @@ static inline pmd_t *pmd_alloc(struct mm
+ #define pte_lockptr(mm, pmd)	({(void)(pmd); &(mm)->page_table_lock;})
+ #endif /* USE_SPLIT_PTE_PTLOCKS */
+ 
+-static inline void pgtable_page_ctor(struct page *page)
++static inline bool pgtable_page_ctor(struct page *page)
  {
- 	struct page *pte;
- 	pte = alloc_pages(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO, 0);
-+	if (!pte)
-+		return NULL;
- 	pgtable_page_ctor(pte);
- 	return pte;
+ 	pte_lock_init(page);
+ 	inc_zone_page_state(page, NR_PAGETABLE);
++	return true;
  }
+ 
+ static inline void pgtable_page_dtor(struct page *page)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
