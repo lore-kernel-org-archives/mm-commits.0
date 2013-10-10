@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + hexagon-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:15 -0700
-Message-ID: <5257146f.B2StVBaT0xyx296l%akpm@linux-foundation.org>
+Subject: + metag-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:19 -0700
+Message-ID: <52571473.z7Ttp/5myD6xTdVu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37705 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37713 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756557Ab3JJU4Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:16 -0400
+	with ESMTP id S1755876Ab3JJU4U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rkuo@codeaurora.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, james.hogan@imgtec.com, kirill.shutemov@linux.intel.com
 
-Subject: + hexagon-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,rkuo@codeaurora.org
+Subject: + metag-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,james.hogan@imgtec.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:15 -0700
+Date: Thu, 10 Oct 2013 13:56:19 -0700
 
 
 The patch titled
-     Subject: hexagon: handle pgtable_page_ctor() fail
+     Subject: metag: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     hexagon-handle-pgtable_page_ctor-fail.patch
+     metag-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hexagon-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/metag-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hexagon-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/metag-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,27 +44,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: hexagon: handle pgtable_page_ctor() fail
+Subject: metag: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/include/asm/pgalloc.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ arch/metag/include/asm/pgalloc.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/hexagon/include/asm/pgalloc.h~hexagon-handle-pgtable_page_ctor-fail arch/hexagon/include/asm/pgalloc.h
---- a/arch/hexagon/include/asm/pgalloc.h~hexagon-handle-pgtable_page_ctor-fail
-+++ a/arch/hexagon/include/asm/pgalloc.h
-@@ -65,10 +65,12 @@ static inline struct page *pte_alloc_one
+diff -puN arch/metag/include/asm/pgalloc.h~metag-handle-pgtable_page_ctor-fail arch/metag/include/asm/pgalloc.h
+--- a/arch/metag/include/asm/pgalloc.h~metag-handle-pgtable_page_ctor-fail
++++ a/arch/metag/include/asm/pgalloc.h
+@@ -52,8 +52,12 @@ static inline pgtable_t pte_alloc_one(st
+ {
  	struct page *pte;
- 
- 	pte = alloc_page(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO);
--
+ 	pte = alloc_pages(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO, 0);
 -	if (pte)
 -		pgtable_page_ctor(pte);
--
 +	if (!pte)
 +		return NULL;
 +	if (!pgtable_page_ctor(pte)) {
