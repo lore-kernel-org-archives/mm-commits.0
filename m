@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:17 -0700
-Message-ID: <52571471.JGXp9GfvsWxVFZDL%akpm@linux-foundation.org>
+Subject: + score-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:24 -0700
+Message-ID: <52571478.HRj8W2HnRiXOGTuD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37709 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37724 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756904Ab3JJU4S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:18 -0400
+	with ESMTP id S1757082Ab3JJU4Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, takata@linux-m32r.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, liqin.chen@sunplusct.com, lennox.wu@gmail.com, kirill.shutemov@linux.intel.com
 
-Subject: + m32r-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,takata@linux-m32r.org
+Subject: + score-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,lennox.wu@gmail.com,liqin.chen@sunplusct.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:17 -0700
+Date: Thu, 10 Oct 2013 13:56:24 -0700
 
 
 The patch titled
-     Subject: m32r: handle pgtable_page_ctor() fail
+     Subject: score: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     m32r-handle-pgtable_page_ctor-fail.patch
+     score-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m32r-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/score-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/score-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,31 +44,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: m32r: handle pgtable_page_ctor() fail
+Subject: score: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/asm/pgalloc.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/score/include/asm/pgalloc.h |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/m32r/include/asm/pgalloc.h~m32r-handle-pgtable_page_ctor-fail arch/m32r/include/asm/pgalloc.h
---- a/arch/m32r/include/asm/pgalloc.h~m32r-handle-pgtable_page_ctor-fail
-+++ a/arch/m32r/include/asm/pgalloc.h
-@@ -45,7 +45,10 @@ static __inline__ pgtable_t pte_alloc_on
+diff -puN arch/score/include/asm/pgalloc.h~score-handle-pgtable_page_ctor-fail arch/score/include/asm/pgalloc.h
+--- a/arch/score/include/asm/pgalloc.h~score-handle-pgtable_page_ctor-fail
++++ a/arch/score/include/asm/pgalloc.h
+@@ -54,9 +54,12 @@ static inline struct page *pte_alloc_one
+ 	struct page *pte;
  
- 	if (!pte)
- 		return NULL;
--	pgtable_page_ctor(pte);
+ 	pte = alloc_pages(GFP_KERNEL | __GFP_REPEAT, PTE_ORDER);
+-	if (pte) {
+-		clear_highpage(pte);
+-		pgtable_page_ctor(pte);
++	if (!pte)
++		return NULL;
++	clear_highpage(pte);
 +	if (!pgtable_page_ctor(pte)) {
 +		__free_page(pte);
 +		return NULL;
-+	}
+ 	}
  	return pte;
  }
- 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
