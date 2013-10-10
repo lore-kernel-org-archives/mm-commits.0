@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:21 -0700
-Message-ID: <52571475.BWcW3JtZecrUe42S%akpm@linux-foundation.org>
+Subject: + sh-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:25 -0700
+Message-ID: <52571479.7khiLd3lHEmTcyEO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37717 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37726 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757079Ab3JJU4W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:22 -0400
+	with ESMTP id S1757082Ab3JJU4Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jejb@parisc-linux.org, deller@gmx.de, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, lethal@linux-sh.org, kirill.shutemov@linux.intel.com
 
-Subject: + parisc-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,deller@gmx.de,jejb@parisc-linux.org
+Subject: + sh-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,lethal@linux-sh.org
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:21 -0700
+Date: Thu, 10 Oct 2013 13:56:25 -0700
 
 
 The patch titled
-     Subject: parisc: handle pgtable_page_ctor() fail
+     Subject: sh: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     parisc-handle-pgtable_page_ctor-fail.patch
+     sh-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/parisc-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/parisc-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,30 +44,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: parisc: handle pgtable_page_ctor() fail
+Subject: sh: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/pgalloc.h |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/sh/include/asm/pgalloc.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/parisc/include/asm/pgalloc.h~parisc-handle-pgtable_page_ctor-fail arch/parisc/include/asm/pgalloc.h
---- a/arch/parisc/include/asm/pgalloc.h~parisc-handle-pgtable_page_ctor-fail
-+++ a/arch/parisc/include/asm/pgalloc.h
-@@ -121,8 +121,12 @@ static inline pgtable_t
- pte_alloc_one(struct mm_struct *mm, unsigned long address)
- {
- 	struct page *page = alloc_page(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO);
--	if (page)
--		pgtable_page_ctor(page);
-+	if (!page)
-+		return NULL;
+diff -puN arch/sh/include/asm/pgalloc.h~sh-handle-pgtable_page_ctor-fail arch/sh/include/asm/pgalloc.h
+--- a/arch/sh/include/asm/pgalloc.h~sh-handle-pgtable_page_ctor-fail
++++ a/arch/sh/include/asm/pgalloc.h
+@@ -47,7 +47,10 @@ static inline pgtable_t pte_alloc_one(st
+ 	if (!pg)
+ 		return NULL;
+ 	page = virt_to_page(pg);
+-	pgtable_page_ctor(page);
 +	if (!pgtable_page_ctor(page)) {
-+		__free_page(page);
++		quicklist_free(QUICK_PT, NULL, pg);
 +		return NULL;
 +	}
  	return page;
