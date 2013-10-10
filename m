@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:12 -0700
-Message-ID: <5257146c.XlEWI/+cd/SQyqKY%akpm@linux-foundation.org>
+Subject: + hexagon-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:15 -0700
+Message-ID: <5257146f.B2StVBaT0xyx296l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37705 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755994Ab3JJU4O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:14 -0400
+	with ESMTP id S1756557Ab3JJU4Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hskinnemoen@gmail.com, egtvedt@samfundet.no, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, rkuo@codeaurora.org, kirill.shutemov@linux.intel.com
 
-Subject: + avr32-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,egtvedt@samfundet.no,hskinnemoen@gmail.com
+Subject: + hexagon-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,rkuo@codeaurora.org
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:12 -0700
+Date: Thu, 10 Oct 2013 13:56:15 -0700
 
 
 The patch titled
-     Subject: avr32: handle pgtable_page_ctor() fail
+     Subject: hexagon: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     avr32-handle-pgtable_page_ctor-fail.patch
+     hexagon-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/avr32-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hexagon-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/avr32-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hexagon-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,32 +44,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: avr32: handle pgtable_page_ctor() fail
+Subject: hexagon: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
-Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Richard Kuo <rkuo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/include/asm/pgalloc.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/hexagon/include/asm/pgalloc.h |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/avr32/include/asm/pgalloc.h~avr32-handle-pgtable_page_ctor-fail arch/avr32/include/asm/pgalloc.h
---- a/arch/avr32/include/asm/pgalloc.h~avr32-handle-pgtable_page_ctor-fail
-+++ a/arch/avr32/include/asm/pgalloc.h
-@@ -68,7 +68,10 @@ static inline pgtable_t pte_alloc_one(st
- 		return NULL;
+diff -puN arch/hexagon/include/asm/pgalloc.h~hexagon-handle-pgtable_page_ctor-fail arch/hexagon/include/asm/pgalloc.h
+--- a/arch/hexagon/include/asm/pgalloc.h~hexagon-handle-pgtable_page_ctor-fail
++++ a/arch/hexagon/include/asm/pgalloc.h
+@@ -65,10 +65,12 @@ static inline struct page *pte_alloc_one
+ 	struct page *pte;
  
- 	page = virt_to_page(pg);
--	pgtable_page_ctor(page);
-+	if (!pgtable_page_ctor(page)) {
-+		quicklist_free(QUICK_PT, NULL, pg);
+ 	pte = alloc_page(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO);
+-
+-	if (pte)
+-		pgtable_page_ctor(pte);
+-
++	if (!pte)
++		return NULL;
++	if (!pgtable_page_ctor(pte)) {
++		__free_page(pte);
 +		return NULL;
 +	}
- 
- 	return page;
+ 	return pte;
  }
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
