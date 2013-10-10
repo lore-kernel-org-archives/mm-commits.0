@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:16 -0700
-Message-ID: <52571470./px4f/CMtx9frbme%akpm@linux-foundation.org>
+Subject: + sparc-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:26 -0700
+Message-ID: <5257147a.oLHXKKdr8y8TMrwo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37706 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37729 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756345Ab3JJU4R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:17 -0400
+	with ESMTP id S1757082Ab3JJU41 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, fenghua.yu@intel.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, davem@davemloft.net, kirill.shutemov@linux.intel.com
 
-Subject: + ia64-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,fenghua.yu@intel.com,tony.luck@intel.com
+Subject: + sparc-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,davem@davemloft.net
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:16 -0700
+Date: Thu, 10 Oct 2013 13:56:26 -0700
 
 
 The patch titled
-     Subject: ia64: handle pgtable_page_ctor() fail
+     Subject: sparc: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     ia64-handle-pgtable_page_ctor-fail.patch
+     sparc-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ia64-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sparc-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,27 +44,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: ia64: handle pgtable_page_ctor() fail
+Subject: sparc: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/pgalloc.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/sparc/mm/init_64.c |   11 ++++++-----
+ arch/sparc/mm/srmmu.c   |    5 ++++-
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN arch/ia64/include/asm/pgalloc.h~ia64-handle-pgtable_page_ctor-fail arch/ia64/include/asm/pgalloc.h
---- a/arch/ia64/include/asm/pgalloc.h~ia64-handle-pgtable_page_ctor-fail
-+++ a/arch/ia64/include/asm/pgalloc.h
-@@ -91,7 +91,10 @@ static inline pgtable_t pte_alloc_one(st
- 	if (!pg)
+diff -puN arch/sparc/mm/init_64.c~sparc-handle-pgtable_page_ctor-fail arch/sparc/mm/init_64.c
+--- a/arch/sparc/mm/init_64.c~sparc-handle-pgtable_page_ctor-fail
++++ a/arch/sparc/mm/init_64.c
+@@ -2519,12 +2519,13 @@ pgtable_t pte_alloc_one(struct mm_struct
+ 		return pte;
+ 
+ 	page = __alloc_for_cache(mm);
+-	if (page) {
+-		pgtable_page_ctor(page);
+-		pte = (pte_t *) page_address(page);
++	if (!page)
++		return NULL;
++	if (!pgtable_page_ctor(page)) {
++		free_hot_cold_page(page, 0);
++		return NULL;
+ 	}
+-
+-	return pte;
++	return (pte_t *) page_address(page);
+ }
+ 
+ void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
+diff -puN arch/sparc/mm/srmmu.c~sparc-handle-pgtable_page_ctor-fail arch/sparc/mm/srmmu.c
+--- a/arch/sparc/mm/srmmu.c~sparc-handle-pgtable_page_ctor-fail
++++ a/arch/sparc/mm/srmmu.c
+@@ -345,7 +345,10 @@ pgtable_t pte_alloc_one(struct mm_struct
+ 	if ((pte = (unsigned long)pte_alloc_one_kernel(mm, address)) == 0)
  		return NULL;
- 	page = virt_to_page(pg);
+ 	page = pfn_to_page(__nocache_pa(pte) >> PAGE_SHIFT);
 -	pgtable_page_ctor(page);
 +	if (!pgtable_page_ctor(page)) {
-+		quicklist_free(0, NULL, pg);
++		__free_page(page);
 +		return NULL;
 +	}
  	return page;
