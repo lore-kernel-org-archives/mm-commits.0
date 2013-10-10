@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + s390-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:23 -0700
-Message-ID: <52571477.qpl0I+z0DQH/eujP%akpm@linux-foundation.org>
+Subject: + parisc-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:21 -0700
+Message-ID: <52571475.BWcW3JtZecrUe42S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37722 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757082Ab3JJU4Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:24 -0400
+	with ESMTP id S1757079Ab3JJU4W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, jejb@parisc-linux.org, deller@gmx.de, kirill.shutemov@linux.intel.com
 
-Subject: + s390-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,heiko.carstens@de.ibm.com,schwidefsky@de.ibm.com
+Subject: + parisc-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,deller@gmx.de,jejb@parisc-linux.org
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:23 -0700
+Date: Thu, 10 Oct 2013 13:56:21 -0700
 
 
 The patch titled
-     Subject: s390: handle pgtable_page_ctor() fail
+     Subject: parisc: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     s390-handle-pgtable_page_ctor-fail.patch
+     parisc-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/parisc-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/parisc-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,45 +44,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: s390: handle pgtable_page_ctor() fail
+Subject: parisc: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/pgtable.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ arch/parisc/include/asm/pgalloc.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/s390/mm/pgtable.c~s390-handle-pgtable_page_ctor-fail arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~s390-handle-pgtable_page_ctor-fail
-+++ a/arch/s390/mm/pgtable.c
-@@ -754,7 +754,11 @@ static inline unsigned long *page_table_
- 		__free_page(page);
- 		return NULL;
- 	}
--	pgtable_page_ctor(page);
+diff -puN arch/parisc/include/asm/pgalloc.h~parisc-handle-pgtable_page_ctor-fail arch/parisc/include/asm/pgalloc.h
+--- a/arch/parisc/include/asm/pgalloc.h~parisc-handle-pgtable_page_ctor-fail
++++ a/arch/parisc/include/asm/pgalloc.h
+@@ -121,8 +121,12 @@ static inline pgtable_t
+ pte_alloc_one(struct mm_struct *mm, unsigned long address)
+ {
+ 	struct page *page = alloc_page(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO);
+-	if (page)
+-		pgtable_page_ctor(page);
++	if (!page)
++		return NULL;
 +	if (!pgtable_page_ctor(page)) {
-+		kfree(mp);
 +		__free_page(page);
 +		return NULL;
 +	}
- 	mp->vmaddr = vmaddr & PMD_MASK;
- 	INIT_LIST_HEAD(&mp->mapper);
- 	page->index = (unsigned long) mp;
-@@ -884,7 +888,10 @@ unsigned long *page_table_alloc(struct m
- 		page = alloc_page(GFP_KERNEL|__GFP_REPEAT);
- 		if (!page)
- 			return NULL;
--		pgtable_page_ctor(page);
-+		if (!pgtable_page_ctor(page)) {
-+			__free_page(page);
-+			return NULL;
-+		}
- 		atomic_set(&page->_mapcount, 1);
- 		table = (unsigned long *) page_to_phys(page);
- 		clear_table(table, _PAGE_INVALID, PAGE_SIZE);
+ 	return page;
+ }
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
