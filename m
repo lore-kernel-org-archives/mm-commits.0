@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:05 -0700
-Message-ID: <52571465.ylbcUYHeUv5XHPL5%akpm@linux-foundation.org>
+Subject: + arm-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:10 -0700
+Message-ID: <5257146a.JSX9BNkXEdJPpnEl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37676 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37691 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756107Ab3JJU4G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:06 -0400
+	with ESMTP id S1757013Ab3JJU4L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, monstr@monstr.eu, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, linux@arm.linux.org.uk, kirill.shutemov@linux.intel.com
 
-Subject: + microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,monstr@monstr.eu
+Subject: + arm-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,linux@arm.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:05 -0700
+Date: Thu, 10 Oct 2013 13:56:10 -0700
 
 
 The patch titled
-     Subject: microblaze: add missing pgtable_page_ctor/dtor calls
+     Subject: arm: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
+     arm-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,47 +44,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: microblaze: add missing pgtable_page_ctor/dtor calls
-
-It will fix NR_PAGETABLE accounting.  It's also required if the arch is
-going ever support split ptl.
+Subject: arm: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Simek <monstr@monstr.eu>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/include/asm/pgalloc.h |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ arch/arm/include/asm/pgalloc.h |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN arch/microblaze/include/asm/pgalloc.h~microblaze-add-missing-pgtable_page_ctor-dtor-calls arch/microblaze/include/asm/pgalloc.h
---- a/arch/microblaze/include/asm/pgalloc.h~microblaze-add-missing-pgtable_page_ctor-dtor-calls
-+++ a/arch/microblaze/include/asm/pgalloc.h
-@@ -122,8 +122,13 @@ static inline struct page *pte_alloc_one
+diff -puN arch/arm/include/asm/pgalloc.h~arm-handle-pgtable_page_ctor-fail arch/arm/include/asm/pgalloc.h
+--- a/arch/arm/include/asm/pgalloc.h~arm-handle-pgtable_page_ctor-fail
++++ a/arch/arm/include/asm/pgalloc.h
+@@ -102,12 +102,14 @@ pte_alloc_one(struct mm_struct *mm, unsi
+ #else
+ 	pte = alloc_pages(PGALLOC_GFP, 0);
  #endif
- 
- 	ptepage = alloc_pages(flags, 0);
--	if (ptepage)
--		clear_highpage(ptepage);
-+	if (!ptepage)
+-	if (pte) {
+-		if (!PageHighMem(pte))
+-			clean_pte_table(page_address(pte));
+-		pgtable_page_ctor(pte);
++	if (!pte)
 +		return NULL;
-+	clear_highpage(ptepage);
-+	if (!pgtable_page_ctor(ptepage)) {
-+		__free_page(ptepage);
++	if (!PageHighMem(pte))
++		clean_pte_table(page_address(pte));
++	if (!pgtable_page_ctor(pte)) {
++		__free_page(pte);
 +		return NULL;
-+	}
- 	return ptepage;
- }
- 
-@@ -158,8 +163,9 @@ extern inline void pte_free_slow(struct
- 	__free_page(ptepage);
- }
- 
--extern inline void pte_free(struct mm_struct *mm, struct page *ptepage)
-+static inline void pte_free(struct mm_struct *mm, struct page *ptepage)
- {
-+	pgtable_page_dtor(ptepage);
- 	__free_page(ptepage);
+ 	}
+-
+ 	return pte;
  }
  
 _
