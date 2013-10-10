@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 10 Oct 2013 12:53:49 -0700
-Message-ID: <525705cd.aNB5LgTzVKQgIVt1%akpm@linux-foundation.org>
+Subject: + writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.patch added to -mm tree
+Date: Thu, 10 Oct 2013 12:59:49 -0700
+Message-ID: <52570735.ec13z5H4ptbm6sPE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36687 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36709 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755789Ab3JJTxu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 15:53:50 -0400
+	with ESMTP id S1755783Ab3JJT7u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 15:59:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, weijie.yang@samsung.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, dchinner@redhat.com, jack@suse.cz
 
-Subject: + mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,weijie.yang@samsung.com
+Subject: + writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.patch added to -mm tree
+To: jack@suse.cz,dchinner@redhat.com,fengguang.wu@intel.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 12:53:49 -0700
+Date: Thu, 10 Oct 2013 12:59:49 -0700
 
 
 The patch titled
-     Subject: mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes
+     Subject: writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.txt
 has been added to the -mm tree.  Its filename is
-     mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
+     writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,94 +43,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes
+From: Jan Kara <jack@suse.cz>
+Subject: writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.txt
 
-WARNING: line over 80 characters
-#75: FILE: mm/zswap.c:272:
-+static struct zswap_entry *zswap_entry_find_get(struct rb_root *root, pgoff_t offset)
+On Wed 09-10-13 14:21:25, Andrew Morton wrote:
+> On Wed, 9 Oct 2013 17:03:25 +0200 Jan Kara <jack@suse.cz> wrote:
+>
+> > From: Jan Kara <jack@suse.cz>
+> > Date: Wed, 9 Oct 2013 15:41:50 +0200
+> > Subject: [PATCH] writeback: Use older_than_this_is_set instead of magic
+> >  older_than_this == 0
+> >
+> > Currently we use 0 as a special value of work->older_than_this to
+> > indicate that wb_writeback() should set work->older_that_this to current
+> > time. This works but it is a bit magic. So use a special flag in
+> > work_struct for that.
+>
+> OK.
+>
+> > -	if (!work->older_than_this)
+> > +	if (!work->older_than_this_is_set)
+> > 		work->older_than_this = jiffies;
+>
+> It would be logical although presumably unneeded to set
+> older_than_this_is_set here?
+  Yes. Updated.
 
-WARNING: line over 80 characters
-#106: FILE: mm/zswap.c:427:
-+ * Returns ZSWAP_SWAPCACHE_NEW if the new page needs to be populated, page is locked
+> > Also fixup writeback from workqueue rescuer to include all inodes.
+>
+> There's nothing in the patch which matches this sentence?
+  The sentence is about the hunk below. writeback_inodes_wb() is special in
+that it directly calls queue_io() (everything else goes through
+wb_writeback()) and my previous patch thus resulted in using 0 as an
+older_than_this value => likely we wouldn't queue any inodes for writeback.
 
-total: 0 errors, 2 warnings, 222 lines checked
+I've added WARN_ON_ONCE into move_expired_inodes() to increase a chance of
+catching such mistakes in future (although in this particular case it
+wouldn't really help because writeback_inodes_wb() gets hardly ever
+called).
 
-./patches/mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Weijie Yang <weijie.yang@samsung.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/fs-writeback.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes mm/zswap.c
---- a/mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes
-+++ a/mm/zswap.c
-@@ -269,7 +269,8 @@ static struct zswap_entry *zswap_rb_sear
- 	return NULL;
- }
+diff -puN fs/fs-writeback.c~writeback-do-not-sync-data-dirtied-after-sync-start-fix-2 fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-do-not-sync-data-dirtied-after-sync-start-fix-2
++++ a/fs/fs-writeback.c
+@@ -251,6 +251,7 @@ static int move_expired_inodes(struct li
+ 	int do_sb_sort = 0;
+ 	int moved = 0;
  
--static struct zswap_entry *zswap_entry_find_get(struct rb_root *root, pgoff_t offset)
-+static struct zswap_entry *zswap_entry_find_get(struct rb_root *root,
-+						pgoff_t offset)
- {
- 	struct zswap_entry *entry = NULL;
++	WARN_ON_ONCE(!work->older_than_this_is_set);
+ 	while (!list_empty(delaying_queue)) {
+ 		inode = wb_inode(delaying_queue->prev);
+ 		if (inode_dirtied_after(inode, work->older_than_this))
+@@ -800,8 +801,10 @@ static long wb_writeback(struct bdi_writ
+ 	struct inode *inode;
+ 	long progress;
  
-@@ -424,7 +425,8 @@ enum zswap_get_swap_ret {
-  *
-  * If success, the swap cache page is returned in retpage
-  * Returns ZSWAP_SWAPCACHE_EXIST if page was already in the swap cache
-- * Returns ZSWAP_SWAPCACHE_NEW if the new page needs to be populated, page is locked
-+ * Returns ZSWAP_SWAPCACHE_NEW if the new page needs to be populated, page is
-+ * locked
-  * Returns ZSWAP_SWAPCACHE_FAIL on error
-  */
- static int zswap_get_swap_cache_page(swp_entry_t entry,
+-	if (!work->older_than_this_is_set)
++	if (!work->older_than_this_is_set) {
+ 		work->older_than_this = jiffies;
++		work->older_than_this_is_set = 1;
++	}
+ 
+ 	spin_lock(&wb->list_lock);
+ 	for (;;) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ipc-update-locking-scheme-comments-fix.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
-mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
-fat-additions-to-support-fat_fallocate.patch
-fat-additions-to-support-fat_fallocate-v6-checkpatch-fixes.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
+ocfs2-dont-spam-on-edquot.patch
+writeback-do-not-sync-data-dirtied-after-sync-start.patch
+writeback-do-not-sync-data-dirtied-after-sync-start-fix.patch
+writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.patch
 linux-next.patch
-linux-next-git-rejects.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
