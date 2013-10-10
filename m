@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:08 -0700
-Message-ID: <52571468.x1ccTwWMG+JziDCo%akpm@linux-foundation.org>
+Subject: + cris-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:13 -0700
+Message-ID: <5257146d.fTAQFFxY0ntppXOh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37687 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37699 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756770Ab3JJU4J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:09 -0400
+	with ESMTP id S1756345Ab3JJU4O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rth@twiddle.net, mattst88@gmail.com, ink@jurassic.park.msu.ru, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, starvik@axis.com, jesper.nilsson@axis.com, kirill.shutemov@linux.intel.com
 
-Subject: + alpha-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,ink@jurassic.park.msu.ru,mattst88@gmail.com,rth@twiddle.net
+Subject: + cris-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,jesper.nilsson@axis.com,starvik@axis.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:08 -0700
+Date: Thu, 10 Oct 2013 13:56:13 -0700
 
 
 The patch titled
-     Subject: alpha: handle pgtable_page_ctor() fail
+     Subject: cris: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     alpha-handle-pgtable_page_ctor-fail.patch
+     cris-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/alpha-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cris-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/alpha-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cris-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,31 +44,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: alpha: handle pgtable_page_ctor() fail
+Subject: cris: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/pgalloc.h |    5 ++++-
+ arch/cris/include/asm/pgalloc.h |    5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/pgalloc.h~alpha-handle-pgtable_page_ctor-fail arch/alpha/include/asm/pgalloc.h
---- a/arch/alpha/include/asm/pgalloc.h~alpha-handle-pgtable_page_ctor-fail
-+++ a/arch/alpha/include/asm/pgalloc.h
-@@ -72,7 +72,10 @@ pte_alloc_one(struct mm_struct *mm, unsi
+diff -puN arch/cris/include/asm/pgalloc.h~cris-handle-pgtable_page_ctor-fail arch/cris/include/asm/pgalloc.h
+--- a/arch/cris/include/asm/pgalloc.h~cris-handle-pgtable_page_ctor-fail
++++ a/arch/cris/include/asm/pgalloc.h
+@@ -34,7 +34,10 @@ static inline pgtable_t pte_alloc_one(st
+ 	pte = alloc_pages(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO, 0);
  	if (!pte)
  		return NULL;
- 	page = virt_to_page(pte);
--	pgtable_page_ctor(page);
-+	if (!pgtable_page_ctor(page)) {
-+		__free_page(page);
+-	pgtable_page_ctor(pte);
++	if (!pgtable_page_ctor(pte)) {
++		__free_page(pte);
 +		return NULL;
 +	}
- 	return page;
+ 	return pte;
  }
  
 _
