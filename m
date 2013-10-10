@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + makefile-export-initial-ramdisk-compression-config-option.patch added to -mm tree
-Date: Thu, 10 Oct 2013 14:30:03 -0700
-Message-ID: <52571c5b.98eFS30UuzmLq62z%akpm@linux-foundation.org>
+Subject: + sh-move-fpu_counter-into-arch-specific-thread_struct.patch
+ added to -mm tree
+Date: Thu, 10 Oct 2013 14:40:12 -0700
+Message-ID: <52571ebc.aAADL7fKYumbp8By%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38311 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38347 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756184Ab3JJVaE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 17:30:04 -0400
+	with ESMTP id S1755438Ab3JJVkN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 17:40:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ppandit@redhat.com
+To: mm-commits@vger.kernel.org, vgupta@synopsys.com, paul.mundt@gmail.com, mingo@kernel.org, Vineet.Gupta1@synopsys.com
 
-Subject: + makefile-export-initial-ramdisk-compression-config-option.patch added to -mm tree
-To: ppandit@redhat.com
+Subject: + sh-move-fpu_counter-into-arch-specific-thread_struct.patch added to -mm tree
+To: Vineet.Gupta1@synopsys.com,mingo@kernel.org,paul.mundt@gmail.com,vgupta@synopsys.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 14:30:03 -0700
+Date: Thu, 10 Oct 2013 14:40:12 -0700
 
 
 The patch titled
-     Subject: ./Makefile: export initial ramdisk compression config option
+     Subject: sh: move fpu_counter into ARCH specific thread_struct
 has been added to the -mm tree.  Its filename is
-     makefile-export-initial-ramdisk-compression-config-option.patch
+     sh-move-fpu_counter-into-arch-specific-thread_struct.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/makefile-export-initial-ramdisk-compression-config-option.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-move-fpu_counter-into-arch-specific-thread_struct.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/makefile-export-initial-ramdisk-compression-config-option.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-move-fpu_counter-into-arch-specific-thread_struct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,83 +44,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: P J P <ppandit@redhat.com>
-Subject: ./Makefile: export initial ramdisk compression config option
+From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Subject: sh: move fpu_counter into ARCH specific thread_struct
 
-Make menuconfig allows one to choose compression format of an initial
-ramdisk image.  But this choice does not result in duly compressed ramdisk
-image.  Because - $ make install - does not pass on the selected
-compression choice to the dracut(8) tool, which creates the initramfs
-file.  dracut(8) generates the image with the default compression, ie. 
-gzip(1).
+Only a couple of arches (sh/x86) use fpu_counter in task_struct so it can
+be moved out into ARCH specific thread_struct, reducing the size of
+task_struct for other arches.
 
-This patch exports the selected compression option to a sub-shell
-environment, so that it could be used by dracut(8) tool to generate
-appropriately compressed initramfs images.
+Compile tested sh defconfig + sh4-linux-gcc (4.6.3)
 
-There isn't a straightforward way to pass on options to dracut(8) via
-positional parameters.  Because it is indirectly invoked at the end of a $
-make install sequence.
-
- # make install
-   -> arch/$arch/boot/Makefile
-    -> arch/$arch/boot/install.sh
-     -> /sbing/installkernel ...
-      -> /sbin/new-kernel-pkg ...
-       -> /sbin/dracut ...
-
-Signed-off-by: P J P <ppandit@redhat.com>
+Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
+Cc: Paul Mundt <paul.mundt@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile            |   16 ++++++++++++++++
- init/do_mounts_rd.c |    5 +++++
- 2 files changed, 21 insertions(+)
+ arch/sh/include/asm/fpu.h          |    2 +-
+ arch/sh/include/asm/processor_32.h |   10 ++++++++++
+ arch/sh/include/asm/processor_64.h |   10 ++++++++++
+ arch/sh/kernel/cpu/fpu.c           |    2 +-
+ arch/sh/kernel/process_32.c        |    6 +++---
+ 5 files changed, 25 insertions(+), 5 deletions(-)
 
-diff -puN Makefile~makefile-export-initial-ramdisk-compression-config-option Makefile
---- a/Makefile~makefile-export-initial-ramdisk-compression-config-option
-+++ a/Makefile
-@@ -726,6 +726,22 @@ mod_strip_cmd = true
- endif # INSTALL_MOD_STRIP
- export mod_strip_cmd
+diff -puN arch/sh/include/asm/fpu.h~sh-move-fpu_counter-into-arch-specific-thread_struct arch/sh/include/asm/fpu.h
+--- a/arch/sh/include/asm/fpu.h~sh-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/sh/include/asm/fpu.h
+@@ -46,7 +46,7 @@ static inline void __unlazy_fpu(struct t
+ 		save_fpu(tsk);
+ 		release_fpu(regs);
+ 	} else
+-		tsk->fpu_counter = 0;
++		tsk->thread.fpu_counter = 0;
+ }
  
-+# Select initial ramdisk compression format, default is gzip(1).
-+# This shall be used by the dracut(8) tool while creating an initramfs image.
-+#
-+INITRD_COMPRESS=gzip
-+ifeq ($(CONFIG_RD_BZIP2), y)
-+        INITRD_COMPRESS=bzip2
-+else ifeq ($(CONFIG_RD_LZMA), y)
-+        INITRD_COMPRESS=lzma
-+else ifeq ($(CONFIG_RD_XZ), y)
-+        INITRD_COMPRESS=xz
-+else ifeq ($(CONFIG_RD_LZO), y)
-+        INITRD_COMPRESS=lzo
-+else ifeq ($(CONFIG_RD_LZ4), y)
-+        INITRD_COMPRESS=lz4
-+endif
-+export INITRD_COMPRESS
+ static inline void unlazy_fpu(struct task_struct *tsk, struct pt_regs *regs)
+diff -puN arch/sh/include/asm/processor_32.h~sh-move-fpu_counter-into-arch-specific-thread_struct arch/sh/include/asm/processor_32.h
+--- a/arch/sh/include/asm/processor_32.h~sh-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/sh/include/asm/processor_32.h
+@@ -111,6 +111,16 @@ struct thread_struct {
  
- ifdef CONFIG_MODULE_SIG_ALL
- MODSECKEY = ./signing_key.priv
-diff -puN init/do_mounts_rd.c~makefile-export-initial-ramdisk-compression-config-option init/do_mounts_rd.c
---- a/init/do_mounts_rd.c~makefile-export-initial-ramdisk-compression-config-option
-+++ a/init/do_mounts_rd.c
-@@ -57,6 +57,11 @@ static int __init crd_load(int in_fd, in
-  *	cramfs
-  *	squashfs
-  *	gzip
-+ *	bzip2
-+ *	lzma
-+ *	xz
-+ *	lzo
-+ *	lz4
-  */
- static int __init
- identify_ramdisk_image(int fd, int start_block, decompress_fn *decompressor)
+ 	/* Extended processor state */
+ 	union thread_xstate *xstate;
++
++	/*
++	 * fpu_counter contains the number of consecutive context switches
++	 * that the FPU is used. If this is over a threshold, the lazy fpu
++	 * saving becomes unlazy to save the trap. This is an unsigned char
++	 * so that after 256 times the counter wraps and the behavior turns
++	 * lazy again; this to deal with bursty apps that only use FPU for
++	 * a short time
++	 */
++	unsigned char fpu_counter;
+ };
+ 
+ #define INIT_THREAD  {						\
+diff -puN arch/sh/include/asm/processor_64.h~sh-move-fpu_counter-into-arch-specific-thread_struct arch/sh/include/asm/processor_64.h
+--- a/arch/sh/include/asm/processor_64.h~sh-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/sh/include/asm/processor_64.h
+@@ -126,6 +126,16 @@ struct thread_struct {
+ 
+ 	/* floating point info */
+ 	union thread_xstate *xstate;
++
++	/*
++	 * fpu_counter contains the number of consecutive context switches
++	 * that the FPU is used. If this is over a threshold, the lazy fpu
++	 * saving becomes unlazy to save the trap. This is an unsigned char
++	 * so that after 256 times the counter wraps and the behavior turns
++	 * lazy again; this to deal with bursty apps that only use FPU for
++	 * a short time
++	 */
++	unsigned char fpu_counter;
+ };
+ 
+ #define INIT_MMAP \
+diff -puN arch/sh/kernel/cpu/fpu.c~sh-move-fpu_counter-into-arch-specific-thread_struct arch/sh/kernel/cpu/fpu.c
+--- a/arch/sh/kernel/cpu/fpu.c~sh-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/sh/kernel/cpu/fpu.c
+@@ -44,7 +44,7 @@ void __fpu_state_restore(void)
+ 	restore_fpu(tsk);
+ 
+ 	task_thread_info(tsk)->status |= TS_USEDFPU;
+-	tsk->fpu_counter++;
++	tsk->thread.fpu_counter++;
+ }
+ 
+ void fpu_state_restore(struct pt_regs *regs)
+diff -puN arch/sh/kernel/process_32.c~sh-move-fpu_counter-into-arch-specific-thread_struct arch/sh/kernel/process_32.c
+--- a/arch/sh/kernel/process_32.c~sh-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/sh/kernel/process_32.c
+@@ -156,7 +156,7 @@ int copy_thread(unsigned long clone_flag
+ #endif
+ 		ti->addr_limit = KERNEL_DS;
+ 		ti->status &= ~TS_USEDFPU;
+-		p->fpu_counter = 0;
++		p->thread.fpu_counter = 0;
+ 		return 0;
+ 	}
+ 	*childregs = *current_pt_regs();
+@@ -189,7 +189,7 @@ __switch_to(struct task_struct *prev, st
+ 	unlazy_fpu(prev, task_pt_regs(prev));
+ 
+ 	/* we're going to use this soon, after a few expensive things */
+-	if (next->fpu_counter > 5)
++	if (next->thread.fpu_counter > 5)
+ 		prefetch(next_t->xstate);
+ 
+ #ifdef CONFIG_MMU
+@@ -207,7 +207,7 @@ __switch_to(struct task_struct *prev, st
+ 	 * restore of the math state immediately to avoid the trap; the
+ 	 * chances of needing FPU soon are obviously high now
+ 	 */
+-	if (next->fpu_counter > 5)
++	if (next->thread.fpu_counter > 5)
+ 		__fpu_state_restore();
+ 
+ 	return prev;
 _
 
-Patches currently in -mm which might be from ppandit@redhat.com are
+Patches currently in -mm which might be from Vineet.Gupta1@synopsys.com are
 
-makefile-export-initial-ramdisk-compression-config-option.patch
+sh-move-fpu_counter-into-arch-specific-thread_struct.patch
+x86-move-fpu_counter-into-arch-specific-thread_struct.patch
+sched-remove-arch-specific-fpu_counter-from-task_struct.patch
 
