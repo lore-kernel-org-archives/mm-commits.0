@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch added to
- -mm tree
-Date: Thu, 10 Oct 2013 15:56:47 -0700
-Message-ID: <525730af.GStqOzUU2IE7OS24%akpm@linux-foundation.org>
+Subject: + drivers-base-devresc-add-devm_kmalloc.patch added to -mm tree
+Date: Thu, 10 Oct 2013 16:07:56 -0700
+Message-ID: <5257334c.PIdf/ay1z0TPaJXG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38901 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755421Ab3JJW4s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 18:56:48 -0400
+	with ESMTP id S1751870Ab3JJXH5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 19:07:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rmk+kernel@arm.linux.org.uk, joe@perches.com, a.zummo@towertech.it, sangjung.woo@samsung.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, joe@perches.com, greg@kroah.com, akpm@linux-foundation.org
 
-Subject: + drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch added to -mm tree
-To: sangjung.woo@samsung.com,a.zummo@towertech.it,joe@perches.com,rmk+kernel@arm.linux.org.uk
+Subject: + drivers-base-devresc-add-devm_kmalloc.patch added to -mm tree
+To: akpm@linux-foundation.org,greg@kroah.com,joe@perches.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 15:56:47 -0700
+Date: Thu, 10 Oct 2013 16:07:56 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pl030.c: use devm_kzalloc() instead of kmalloc()
+     Subject: drivers/base/devres.c: add devm_kmalloc()
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch
+     drivers-base-devresc-add-devm_kmalloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-devresc-add-devm_kmalloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-devresc-add-devm_kmalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,64 +43,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sangjung Woo <sangjung.woo@samsung.com>
-Subject: drivers/rtc/rtc-pl030.c: use devm_kzalloc() instead of kmalloc()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/base/devres.c: add devm_kmalloc()
 
-In order to be free automatically and make the cleanup paths more simple,
-use devm_kzalloc() instead of kmalloc().
+The interface provides only devm_kzalloc(), but devm_kmalloc() is easy.
 
-Signed-off-by: Sangjung Woo <sangjung.woo@samsung.com>
 Cc: Joe Perches <joe@perches.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pl030.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/base/devres.c  |   16 ++++++++++++++--
+ include/linux/device.h |    3 ++-
+ 2 files changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-pl030.c~drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc drivers/rtc/rtc-pl030.c
---- a/drivers/rtc/rtc-pl030.c~drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc
-+++ a/drivers/rtc/rtc-pl030.c
-@@ -106,7 +106,7 @@ static int pl030_probe(struct amba_devic
- 	if (ret)
- 		goto err_req;
+diff -puN drivers/base/devres.c~drivers-base-devresc-add-devm_kmalloc drivers/base/devres.c
+--- a/drivers/base/devres.c~drivers-base-devresc-add-devm_kmalloc
++++ a/drivers/base/devres.c
+@@ -91,7 +91,8 @@ static __always_inline struct devres * a
+ 	if (unlikely(!dr))
+ 		return NULL;
  
--	rtc = kmalloc(sizeof(*rtc), GFP_KERNEL);
-+	rtc = devm_kzalloc(&dev->dev, sizeof(*rtc), GFP_KERNEL);
- 	if (!rtc) {
- 		ret = -ENOMEM;
- 		goto err_rtc;
-@@ -115,7 +115,7 @@ static int pl030_probe(struct amba_devic
- 	rtc->base = ioremap(dev->res.start, resource_size(&dev->res));
- 	if (!rtc->base) {
- 		ret = -ENOMEM;
--		goto err_map;
-+		goto err_rtc;
- 	}
+-	memset(dr, 0, tot_size);
++	if (gfp & __GFP_ZERO)
++		memset(dr, 0, tot_size);
+ 	INIT_LIST_HEAD(&dr->node.entry);
+ 	dr->node.release = release;
+ 	return dr;
+@@ -770,7 +771,7 @@ static int devm_kzalloc_match(struct dev
+  * RETURNS:
+  * Pointer to allocated memory on success, NULL on failure.
+  */
+-void * devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
++static void *__devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
+ {
+ 	struct devres *dr;
  
- 	__raw_writel(0, rtc->base + RTC_CR);
-@@ -141,8 +141,6 @@ static int pl030_probe(struct amba_devic
- 	free_irq(dev->irq[0], rtc);
-  err_irq:
- 	iounmap(rtc->base);
-- err_map:
--	kfree(rtc);
-  err_rtc:
- 	amba_release_regions(dev);
-  err_req:
-@@ -158,7 +156,6 @@ static int pl030_remove(struct amba_devi
- 	free_irq(dev->irq[0], rtc);
- 	rtc_device_unregister(rtc->rtc);
- 	iounmap(rtc->base);
--	kfree(rtc);
- 	amba_release_regions(dev);
+@@ -783,8 +784,19 @@ void * devm_kzalloc(struct device *dev,
+ 	devres_add(dev, dr->data);
+ 	return dr->data;
+ }
++
++void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
++{
++	return __devm_kzalloc(dev, size, gfp | __GFP_ZERO);
++}
+ EXPORT_SYMBOL_GPL(devm_kzalloc);
  
- 	return 0;
++void *devm_kmalloc(struct device *dev, size_t size, gfp_t gfp)
++{
++	return __devm_kzalloc(dev, size, gfp);
++}
++EXPORT_SYMBOL_GPL(devm_kmalloc);
++
+ /**
+  * devm_kfree - Resource-managed kfree
+  * @dev: Device this memory belongs to
+diff -puN include/linux/device.h~drivers-base-devresc-add-devm_kmalloc include/linux/device.h
+--- a/include/linux/device.h~drivers-base-devresc-add-devm_kmalloc
++++ a/include/linux/device.h
+@@ -602,8 +602,9 @@ extern void devres_close_group(struct de
+ extern void devres_remove_group(struct device *dev, void *id);
+ extern int devres_release_group(struct device *dev, void *id);
+ 
+-/* managed kzalloc/kfree for device drivers, no kmalloc, always use kzalloc */
++/* managed kmalloc/kzalloc/kfree for device drivers */
+ extern void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp);
++extern void *devm_kmalloc(struct device *dev, size_t size, gfp_t gfp);
+ extern void devm_kfree(struct device *dev, void *p);
+ 
+ void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res);
 _
 
-Patches currently in -mm which might be from sangjung.woo@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-pr_debug.patch
-drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+ipc-update-locking-scheme-comments-fix.patch
+mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
+mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix.patch
+drivers-base-devresc-add-devm_kmalloc.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+checkpatch-add-test-for-defines-of-arch_has_foo.patch
+epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
+linux-next.patch
+linux-next-git-rejects.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
