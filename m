@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + tile-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:27 -0700
-Message-ID: <5257147b.nVJ/bUz0ONkFlvBq%akpm@linux-foundation.org>
+Subject: + m68k-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:18 -0700
+Message-ID: <52571472.ev6zkYJse4YuTG8t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37731 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37711 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757082Ab3JJU42 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:28 -0400
+	with ESMTP id S1755363Ab3JJU4T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, cmetcalf@tilera.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, geert@linux-m68k.org, kirill.shutemov@linux.intel.com
 
-Subject: + tile-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,cmetcalf@tilera.com
+Subject: + m68k-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,geert@linux-m68k.org
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:27 -0700
+Date: Thu, 10 Oct 2013 13:56:18 -0700
 
 
 The patch titled
-     Subject: tile: handle pgtable_page_ctor() fail
+     Subject: m68k: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     tile-handle-pgtable_page_ctor-fail.patch
+     m68k-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tile-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m68k-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tile-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,39 +44,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: tile: handle pgtable_page_ctor() fail
+Subject: m68k: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/mm/pgtable.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/m68k/include/asm/motorola_pgalloc.h |    5 ++++-
+ arch/m68k/include/asm/sun3_pgalloc.h     |    5 ++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN arch/tile/mm/pgtable.c~tile-handle-pgtable_page_ctor-fail arch/tile/mm/pgtable.c
---- a/arch/tile/mm/pgtable.c~tile-handle-pgtable_page_ctor-fail
-+++ a/arch/tile/mm/pgtable.c
-@@ -241,6 +241,11 @@ struct page *pgtable_alloc_one(struct mm
- 	if (p == NULL)
- 		return NULL;
- 
-+	if (!pgtable_page_ctor(p)) {
-+		__free_pages(p, L2_USER_PGTABLE_ORDER);
+diff -puN arch/m68k/include/asm/motorola_pgalloc.h~m68k-handle-pgtable_page_ctor-fail arch/m68k/include/asm/motorola_pgalloc.h
+--- a/arch/m68k/include/asm/motorola_pgalloc.h~m68k-handle-pgtable_page_ctor-fail
++++ a/arch/m68k/include/asm/motorola_pgalloc.h
+@@ -40,7 +40,10 @@ static inline pgtable_t pte_alloc_one(st
+ 	flush_tlb_kernel_page(pte);
+ 	nocache_page(pte);
+ 	kunmap(page);
+-	pgtable_page_ctor(page);
++	if (!pgtable_page_ctor(page)) {
++		__free_page(page);
 +		return NULL;
 +	}
-+
- 	/*
- 	 * Make every page have a page_count() of one, not just the first.
- 	 * We don't use __GFP_COMP since it doesn't look like it works
-@@ -251,7 +256,6 @@ struct page *pgtable_alloc_one(struct mm
- 		inc_zone_page_state(p+i, NR_PAGETABLE);
- 	}
- 
--	pgtable_page_ctor(p);
- 	return p;
+ 	return page;
  }
  
+diff -puN arch/m68k/include/asm/sun3_pgalloc.h~m68k-handle-pgtable_page_ctor-fail arch/m68k/include/asm/sun3_pgalloc.h
+--- a/arch/m68k/include/asm/sun3_pgalloc.h~m68k-handle-pgtable_page_ctor-fail
++++ a/arch/m68k/include/asm/sun3_pgalloc.h
+@@ -59,7 +59,10 @@ static inline pgtable_t pte_alloc_one(st
+ 		return NULL;
+ 
+ 	clear_highpage(page);
+-	pgtable_page_ctor(page);
++	if (!pgtable_page_ctor(page)) {
++		__free_page(page);
++		return NULL;
++	}
+ 	return page;
+ 
+ }
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
