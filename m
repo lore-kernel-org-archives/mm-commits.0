@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + frv-handle-pgtable_page_ctor-fail.patch added to -mm tree
-Date: Thu, 10 Oct 2013 13:56:14 -0700
-Message-ID: <5257146e.pXi1KpoxloXW2PYd%akpm@linux-foundation.org>
+Subject: + avr32-handle-pgtable_page_ctor-fail.patch added to -mm tree
+Date: Thu, 10 Oct 2013 13:56:12 -0700
+Message-ID: <5257146c.XlEWI/+cd/SQyqKY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37703 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37696 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755813Ab3JJU4P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:15 -0400
+	with ESMTP id S1755994Ab3JJU4O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dhowells@redhat.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, hskinnemoen@gmail.com, egtvedt@samfundet.no, kirill.shutemov@linux.intel.com
 
-Subject: + frv-handle-pgtable_page_ctor-fail.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,dhowells@redhat.com
+Subject: + avr32-handle-pgtable_page_ctor-fail.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,egtvedt@samfundet.no,hskinnemoen@gmail.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:14 -0700
+Date: Thu, 10 Oct 2013 13:56:12 -0700
 
 
 The patch titled
-     Subject: frv: handle pgtable_page_ctor() fail
+     Subject: avr32: handle pgtable_page_ctor() fail
 has been added to the -mm tree.  Its filename is
-     frv-handle-pgtable_page_ctor-fail.patch
+     avr32-handle-pgtable_page_ctor-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/frv-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/avr32-handle-pgtable_page_ctor-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/frv-handle-pgtable_page_ctor-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/avr32-handle-pgtable_page_ctor-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,39 +44,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: frv: handle pgtable_page_ctor() fail
+Subject: avr32: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
+Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/pgalloc.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/avr32/include/asm/pgalloc.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/frv/mm/pgalloc.c~frv-handle-pgtable_page_ctor-fail arch/frv/mm/pgalloc.c
---- a/arch/frv/mm/pgalloc.c~frv-handle-pgtable_page_ctor-fail
-+++ a/arch/frv/mm/pgalloc.c
-@@ -37,11 +37,15 @@ pgtable_t pte_alloc_one(struct mm_struct
- #else
- 	page = alloc_pages(GFP_KERNEL|__GFP_REPEAT, 0);
- #endif
--	if (page) {
--		clear_highpage(page);
--		pgtable_page_ctor(page);
--		flush_dcache_page(page);
-+	if (!page)
-+		return NULL;
-+
-+	clear_highpage(page);
+diff -puN arch/avr32/include/asm/pgalloc.h~avr32-handle-pgtable_page_ctor-fail arch/avr32/include/asm/pgalloc.h
+--- a/arch/avr32/include/asm/pgalloc.h~avr32-handle-pgtable_page_ctor-fail
++++ a/arch/avr32/include/asm/pgalloc.h
+@@ -68,7 +68,10 @@ static inline pgtable_t pte_alloc_one(st
+ 		return NULL;
+ 
+ 	page = virt_to_page(pg);
+-	pgtable_page_ctor(page);
 +	if (!pgtable_page_ctor(page)) {
-+		__free_page(page);
++		quicklist_free(QUICK_PT, NULL, pg);
 +		return NULL;
- 	}
-+	flush_dcache_page(page);
++	}
+ 
  	return page;
  }
- 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
