@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-fix-potential-null-pointer-dereference.patch added to
- -mm tree
-Date: Thu, 10 Oct 2013 13:56:03 -0700
-Message-ID: <52571463.3OUvr4JstzdIaMS2%akpm@linux-foundation.org>
+Subject: + cris-fix-potential-null-pointer-dereference.patch added to -mm
+ tree
+Date: Thu, 10 Oct 2013 13:56:01 -0700
+Message-ID: <52571461.a26BQSn24DUQCdkO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37650 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756825Ab3JJU4E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:04 -0400
+	with ESMTP id S1756176Ab3JJU4D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Oct 2013 16:56:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jcmvbkbc@gmail.com, chris@zankel.net, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, starvik@axis.com, jesper.nilsson@axis.com, kirill.shutemov@linux.intel.com
 
-Subject: + xtensa-fix-potential-null-pointer-dereference.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,chris@zankel.net,jcmvbkbc@gmail.com
+Subject: + cris-fix-potential-null-pointer-dereference.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,jesper.nilsson@axis.com,starvik@axis.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Oct 2013 13:56:03 -0700
+Date: Thu, 10 Oct 2013 13:56:01 -0700
 
 
 The patch titled
-     Subject: xtensa: fix potential NULL-pointer dereference
+     Subject: cris: fix potential NULL-pointer dereference
 has been added to the -mm tree.  Its filename is
-     xtensa-fix-potential-null-pointer-dereference.patch
+     cris-fix-potential-null-pointer-dereference.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xtensa-fix-potential-null-pointer-dereference.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cris-fix-potential-null-pointer-dereference.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xtensa-fix-potential-null-pointer-dereference.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cris-fix-potential-null-pointer-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,36 +45,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: xtensa: fix potential NULL-pointer dereference
+Subject: cris: fix potential NULL-pointer dereference
 
 Add missing check for memory allocation fail.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/pgalloc.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/cris/include/asm/pgalloc.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/xtensa/include/asm/pgalloc.h~xtensa-fix-potential-null-pointer-dereference arch/xtensa/include/asm/pgalloc.h
---- a/arch/xtensa/include/asm/pgalloc.h~xtensa-fix-potential-null-pointer-dereference
-+++ a/arch/xtensa/include/asm/pgalloc.h
-@@ -51,9 +51,13 @@ static inline pte_t *pte_alloc_one_kerne
- static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
- 					unsigned long addr)
+diff -puN arch/cris/include/asm/pgalloc.h~cris-fix-potential-null-pointer-dereference arch/cris/include/asm/pgalloc.h
+--- a/arch/cris/include/asm/pgalloc.h~cris-fix-potential-null-pointer-dereference
++++ a/arch/cris/include/asm/pgalloc.h
+@@ -32,6 +32,8 @@ static inline pgtable_t pte_alloc_one(st
  {
-+	pte_t *pte;
- 	struct page *page;
- 
--	page = virt_to_page(pte_alloc_one_kernel(mm, addr));
-+	pte = pte_alloc_one_kernel(mm, addr);
+ 	struct page *pte;
+ 	pte = alloc_pages(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO, 0);
 +	if (!pte)
 +		return NULL;
-+	page = virt_to_page(pte);
- 	pgtable_page_ctor(page);
- 	return page;
+ 	pgtable_page_ctor(pte);
+ 	return pte;
  }
 _
 
