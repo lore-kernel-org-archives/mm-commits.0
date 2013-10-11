@@ -1,143 +1,310 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-base-devresc-add-devm_kmalloc.patch
- removed from -mm tree
-Date: Fri, 11 Oct 2013 13:27:28 -0700
-Message-ID: <52585f30.Z6/3eXD9d1x2nPrb%akpm@linux-foundation.org>
+Subject: + memblock-introduce-bottom-up-allocation-mode.patch added to -mm tree
+Date: Fri, 11 Oct 2013 13:39:08 -0700
+Message-ID: <525861ec.THyeI50gOH/qErDD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46955 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47090 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932627Ab3JKU13 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Oct 2013 16:27:29 -0400
+	with ESMTP id S932875Ab3JKUjK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Oct 2013 16:39:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, joe@perches.com, greg@kroah.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, riel@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, laijs@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, tangchen@cn.fujitsu.com
 
-Subject: [alternative-merged] drivers-base-devresc-add-devm_kmalloc.patch removed from -mm tree
-To: akpm@linux-foundation.org,greg@kroah.com,joe@perches.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: + memblock-introduce-bottom-up-allocation-mode.patch added to -mm tree
+To: tangchen@cn.fujitsu.com,hannes@cmpxchg.org,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,kamezawa.hiroyu@jp.fujitsu.com,laijs@cn.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,riel@redhat.com,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Fri, 11 Oct 2013 13:27:28 -0700
+Date: Fri, 11 Oct 2013 13:39:08 -0700
 
 
 The patch titled
-     Subject: drivers/base/devres.c: add devm_kmalloc()
-has been removed from the -mm tree.  Its filename was
-     drivers-base-devresc-add-devm_kmalloc.patch
+     Subject: mm/memblock.c: introduce bottom-up allocation mode
+has been added to the -mm tree.  Its filename is
+     memblock-introduce-bottom-up-allocation-mode.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memblock-introduce-bottom-up-allocation-mode.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-introduce-bottom-up-allocation-mode.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/base/devres.c: add devm_kmalloc()
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: mm/memblock.c: introduce bottom-up allocation mode
 
-The interface provides only devm_kzalloc(), but devm_kmalloc() is easy.
+The Linux kernel cannot migrate pages used by the kernel.  As a result,
+kernel pages cannot be hot-removed.  So we cannot allocate hotpluggable
+memory for the kernel.
 
-Cc: Joe Perches <joe@perches.com>
+ACPI SRAT (System Resource Affinity Table) contains the memory hotplug
+info.  But before SRAT is parsed, memblock has already started to allocate
+memory for the kernel.  So we need to prevent memblock from doing this.
+
+In a memory hotplug system, any numa node the kernel resides in should be
+unhotpluggable.  And for a modern server, each node could have at least
+16GB memory.  So memory around the kernel image is highly likely
+unhotpluggable.
+
+So the basic idea is: Allocate memory from the end of the kernel image and
+to the higher memory.  Since memory allocation before SRAT is parsed won't
+be too much, it could highly likely be in the same node with kernel image.
+
+The current memblock can only allocate memory top-down.  So this patch
+introduces a new bottom-up allocation mode to allocate memory bottom-up. 
+And later when we use this allocation direction to allocate memory, we
+will limit the start address above the kernel.
+
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/devres.c  |   16 ++++++++++++++--
- include/linux/device.h |    3 ++-
- 2 files changed, 16 insertions(+), 3 deletions(-)
+ include/linux/memblock.h |   24 ++++++++++
+ include/linux/mm.h       |    4 +
+ mm/memblock.c            |   83 +++++++++++++++++++++++++++++++++++--
+ 3 files changed, 108 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/devres.c~drivers-base-devresc-add-devm_kmalloc drivers/base/devres.c
---- a/drivers/base/devres.c~drivers-base-devresc-add-devm_kmalloc
-+++ a/drivers/base/devres.c
-@@ -91,7 +91,8 @@ static __always_inline struct devres * a
- 	if (unlikely(!dr))
- 		return NULL;
+diff -puN include/linux/memblock.h~memblock-introduce-bottom-up-allocation-mode include/linux/memblock.h
+--- a/include/linux/memblock.h~memblock-introduce-bottom-up-allocation-mode
++++ a/include/linux/memblock.h
+@@ -35,6 +35,7 @@ struct memblock_type {
+ };
  
--	memset(dr, 0, tot_size);
-+	if (gfp & __GFP_ZERO)
-+		memset(dr, 0, tot_size);
- 	INIT_LIST_HEAD(&dr->node.entry);
- 	dr->node.release = release;
- 	return dr;
-@@ -770,7 +771,7 @@ static int devm_kzalloc_match(struct dev
-  * RETURNS:
-  * Pointer to allocated memory on success, NULL on failure.
-  */
--void * devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
-+static void *__devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
- {
- 	struct devres *dr;
+ struct memblock {
++	bool bottom_up;  /* is bottom up direction? */
+ 	phys_addr_t current_limit;
+ 	struct memblock_type memory;
+ 	struct memblock_type reserved;
+@@ -148,6 +149,29 @@ phys_addr_t memblock_alloc_try_nid(phys_
  
-@@ -783,8 +784,19 @@ void * devm_kzalloc(struct device *dev,
- 	devres_add(dev, dr->data);
- 	return dr->data;
- }
+ phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align);
+ 
++#ifdef CONFIG_MOVABLE_NODE
++/*
++ * Set the allocation direction to bottom-up or top-down.
++ */
++static inline void memblock_set_bottom_up(bool enable)
++{
++	memblock.bottom_up = enable;
++}
 +
-+void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
++/*
++ * Check if the allocation direction is bottom-up or not.
++ * if this is true, that said, memblock will allocate memory
++ * in bottom-up direction.
++ */
++static inline bool memblock_bottom_up(void)
 +{
-+	return __devm_kzalloc(dev, size, gfp | __GFP_ZERO);
++	return memblock.bottom_up;
 +}
- EXPORT_SYMBOL_GPL(devm_kzalloc);
++#else
++static inline void memblock_set_bottom_up(bool enable) {}
++static inline bool memblock_bottom_up(void) { return false; }
++#endif
++
+ /* Flags for memblock_alloc_base() amd __memblock_alloc_base() */
+ #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
+ #define MEMBLOCK_ALLOC_ACCESSIBLE	0
+diff -puN include/linux/mm.h~memblock-introduce-bottom-up-allocation-mode include/linux/mm.h
+--- a/include/linux/mm.h~memblock-introduce-bottom-up-allocation-mode
++++ a/include/linux/mm.h
+@@ -50,6 +50,10 @@ extern int sysctl_legacy_va_layout;
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
  
-+void *devm_kmalloc(struct device *dev, size_t size, gfp_t gfp)
++#ifndef __pa_symbol
++#define __pa_symbol(x)  __pa(RELOC_HIDE((unsigned long)(x), 0))
++#endif
++
+ extern unsigned long sysctl_user_reserve_kbytes;
+ extern unsigned long sysctl_admin_reserve_kbytes;
+ 
+diff -puN mm/memblock.c~memblock-introduce-bottom-up-allocation-mode mm/memblock.c
+--- a/mm/memblock.c~memblock-introduce-bottom-up-allocation-mode
++++ a/mm/memblock.c
+@@ -20,6 +20,8 @@
+ #include <linux/seq_file.h>
+ #include <linux/memblock.h>
+ 
++#include <asm-generic/sections.h>
++
+ static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
+ static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
+ 
+@@ -32,6 +34,7 @@ struct memblock memblock __initdata_memb
+ 	.reserved.cnt		= 1,	/* empty dummy entry */
+ 	.reserved.max		= INIT_MEMBLOCK_REGIONS,
+ 
++	.bottom_up		= false,
+ 	.current_limit		= MEMBLOCK_ALLOC_ANYWHERE,
+ };
+ 
+@@ -82,6 +85,38 @@ static long __init_memblock memblock_ove
+ 	return (i < type->cnt) ? i : -1;
+ }
+ 
++/*
++ * __memblock_find_range_bottom_up - find free area utility in bottom-up
++ * @start: start of candidate range
++ * @end: end of candidate range, can be %MEMBLOCK_ALLOC_{ANYWHERE|ACCESSIBLE}
++ * @size: size of free area to find
++ * @align: alignment of free area to find
++ * @nid: nid of the free area to find, %MAX_NUMNODES for any node
++ *
++ * Utility called from memblock_find_in_range_node(), find free area bottom-up.
++ *
++ * RETURNS:
++ * Found address on success, 0 on failure.
++ */
++static phys_addr_t __init_memblock
++__memblock_find_range_bottom_up(phys_addr_t start, phys_addr_t end,
++				phys_addr_t size, phys_addr_t align, int nid)
 +{
-+	return __devm_kzalloc(dev, size, gfp);
++	phys_addr_t this_start, this_end, cand;
++	u64 i;
++
++	for_each_free_mem_range(i, nid, &this_start, &this_end, NULL) {
++		this_start = clamp(this_start, start, end);
++		this_end = clamp(this_end, start, end);
++
++		cand = round_up(this_start, align);
++		if (cand < this_end && this_end - cand >= size)
++			return cand;
++	}
++
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(devm_kmalloc);
 +
  /**
-  * devm_kfree - Resource-managed kfree
-  * @dev: Device this memory belongs to
-diff -puN include/linux/device.h~drivers-base-devresc-add-devm_kmalloc include/linux/device.h
---- a/include/linux/device.h~drivers-base-devresc-add-devm_kmalloc
-+++ a/include/linux/device.h
-@@ -602,8 +602,9 @@ extern void devres_close_group(struct de
- extern void devres_remove_group(struct device *dev, void *id);
- extern int devres_release_group(struct device *dev, void *id);
+  * __memblock_find_range_top_down - find free area utility, in top-down
+  * @start: start of candidate range
+@@ -93,7 +128,7 @@ static long __init_memblock memblock_ove
+  * Utility called from memblock_find_in_range_node(), find free area top-down.
+  *
+  * RETURNS:
+- * Found address on success, %0 on failure.
++ * Found address on success, 0 on failure.
+  */
+ static phys_addr_t __init_memblock
+ __memblock_find_range_top_down(phys_addr_t start, phys_addr_t end,
+@@ -127,13 +162,24 @@ __memblock_find_range_top_down(phys_addr
+  *
+  * Find @size free area aligned to @align in the specified range and node.
+  *
++ * When allocation direction is bottom-up, the @start should be greater
++ * than the end of the kernel image. Otherwise, it will be trimmed. The
++ * reason is that we want the bottom-up allocation just near the kernel
++ * image so it is highly likely that the allocated memory and the kernel
++ * will reside in the same node.
++ *
++ * If bottom-up allocation failed, will try to allocate memory top-down.
++ *
+  * RETURNS:
+- * Found address on success, %0 on failure.
++ * Found address on success, 0 on failure.
+  */
+ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
+ 					phys_addr_t end, phys_addr_t size,
+ 					phys_addr_t align, int nid)
+ {
++	int ret;
++	phys_addr_t kernel_end;
++
+ 	/* pump up @end */
+ 	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
+ 		end = memblock.current_limit;
+@@ -141,6 +187,37 @@ phys_addr_t __init_memblock memblock_fin
+ 	/* avoid allocating the first page */
+ 	start = max_t(phys_addr_t, start, PAGE_SIZE);
+ 	end = max(start, end);
++	kernel_end = __pa_symbol(_end);
++
++	/*
++	 * try bottom-up allocation only when bottom-up mode
++	 * is set and @end is above the kernel image.
++	 */
++	if (memblock_bottom_up() && end > kernel_end) {
++		phys_addr_t bottom_up_start;
++
++		/* make sure we will allocate above the kernel */
++		bottom_up_start = max(start, kernel_end);
++
++		/* ok, try bottom-up allocation first */
++		ret = __memblock_find_range_bottom_up(bottom_up_start, end,
++						      size, align, nid);
++		if (ret)
++			return ret;
++
++		/*
++		 * we always limit bottom-up allocation above the kernel,
++		 * but top-down allocation doesn't have the limit, so
++		 * retrying top-down allocation may succeed when bottom-up
++		 * allocation failed.
++		 *
++		 * bottom-up allocation is expected to be fail very rarely,
++		 * so we use WARN_ONCE() here to see the stack trace if
++		 * fail happens.
++		 */
++		WARN_ONCE(1, "memblock: bottom-up allocation failed, "
++			     "memory hotunplug may be affected\n");
++	}
  
--/* managed kzalloc/kfree for device drivers, no kmalloc, always use kzalloc */
-+/* managed kmalloc/kzalloc/kfree for device drivers */
- extern void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp);
-+extern void *devm_kmalloc(struct device *dev, size_t size, gfp_t gfp);
- extern void devm_kfree(struct device *dev, void *p);
- 
- void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res);
+ 	return __memblock_find_range_top_down(start, end, size, align, nid);
+ }
+@@ -155,7 +232,7 @@ phys_addr_t __init_memblock memblock_fin
+  * Find @size free area aligned to @align in the specified range.
+  *
+  * RETURNS:
+- * Found address on success, %0 on failure.
++ * Found address on success, 0 on failure.
+  */
+ phys_addr_t __init_memblock memblock_find_in_range(phys_addr_t start,
+ 					phys_addr_t end, phys_addr_t size,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ipc-update-locking-scheme-comments-fix.patch
-mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
-mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
+mm-sparsemem-use-pages_per_section-to-remove-redundant-nr_pages-parameter.patch
+mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap.patch
+mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap-v2.patch
+memblock-factor-out-of-top-down-allocation.patch
+memblock-introduce-bottom-up-allocation-mode.patch
+x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
+x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
+mem-hotplug-introduce-movable_node-boot-option.patch
 linux-next.patch
-linux-next-git-rejects.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
