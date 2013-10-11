@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page-writebackc-fix-bdi-max-pause-calculation.patch added to -mm tree
-Date: Fri, 11 Oct 2013 11:53:10 -0700
-Message-ID: <52584916.HqtGdzJq89jlfUHb%akpm@linux-foundation.org>
+Subject: + swap-fix-set_blocksize-race-during-swapon-swapoff.patch added
+ to -mm tree
+Date: Fri, 11 Oct 2013 11:56:05 -0700
+Message-ID: <525849c5.5RHOV5b5ui9qDn40%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44653 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751846Ab3JKSxL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Oct 2013 14:53:11 -0400
+	with ESMTP id S1755543Ab3JKS4G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Oct 2013 14:56:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, toralf.foerster@gmx.de, stable@vger.kernel.org, fengguang.wu@intel.com
+To: mm-commits@vger.kernel.org, weijie.yang.kh@gmail.com, shli@fusionio.com, minchan@kernel.org, konrad.wilk@oracle.com, bob.liu@oracle.com, k.kozlowski@samsung.com
 
-Subject: + mm-page-writebackc-fix-bdi-max-pause-calculation.patch added to -mm tree
-To: fengguang.wu@intel.com,stable@vger.kernel.org,toralf.foerster@gmx.de
+Subject: + swap-fix-set_blocksize-race-during-swapon-swapoff.patch added to -mm tree
+To: k.kozlowski@samsung.com,bob.liu@oracle.com,konrad.wilk@oracle.com,minchan@kernel.org,shli@fusionio.com,weijie.yang.kh@gmail.com
 From: akpm@linux-foundation.org
-Date: Fri, 11 Oct 2013 11:53:10 -0700
+Date: Fri, 11 Oct 2013 11:56:05 -0700
 
 
 The patch titled
-     Subject: mm/page-writeback.c: fix bdi max pause calculation
+     Subject: swap: fix set_blocksize race during swapon/swapoff
 has been added to the -mm tree.  Its filename is
-     mm-page-writebackc-fix-bdi-max-pause-calculation.patch
+     swap-fix-set_blocksize-race-during-swapon-swapoff.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-writebackc-fix-bdi-max-pause-calculation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap-fix-set_blocksize-race-during-swapon-swapoff.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writebackc-fix-bdi-max-pause-calculation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap-fix-set_blocksize-race-during-swapon-swapoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,63 +44,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: mm/page-writeback.c: fix bdi max pause calculation
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: swap: fix set_blocksize race during swapon/swapoff
 
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Reported-by: Toralf Förster <toralf.foerster@gmx.de>
-Tested-by: Toralf Förster <toralf.foerster@gmx.de>
-Cc: <stable@vger.kernel.org>
+Swapoff used old_block_size from swap_info which could be overwritten by
+concurrent swapon.
+
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Reported-by: Weijie Yang <weijie.yang.kh@gmail.com>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/swapfile.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-page-writebackc-fix-bdi-max-pause-calculation mm/page-writeback.c
---- a/mm/page-writeback.c~mm-page-writebackc-fix-bdi-max-pause-calculation
-+++ a/mm/page-writeback.c
-@@ -1210,11 +1210,11 @@ static unsigned long dirty_poll_interval
- 	return 1;
- }
+diff -puN mm/swapfile.c~swap-fix-set_blocksize-race-during-swapon-swapoff mm/swapfile.c
+--- a/mm/swapfile.c~swap-fix-set_blocksize-race-during-swapon-swapoff
++++ a/mm/swapfile.c
+@@ -1824,6 +1824,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	struct filename *pathname;
+ 	int i, type, prev;
+ 	int err;
++	unsigned int old_block_size;
  
--static long bdi_max_pause(struct backing_dev_info *bdi,
--			  unsigned long bdi_dirty)
-+static unsigned long bdi_max_pause(struct backing_dev_info *bdi,
-+				   unsigned long bdi_dirty)
- {
--	long bw = bdi->avg_write_bandwidth;
--	long t;
-+	unsigned long bw = bdi->avg_write_bandwidth;
-+	unsigned long t;
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+@@ -1914,6 +1915,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	}
  
- 	/*
- 	 * Limit pause time for small memory systems. If sleeping for too long
-@@ -1226,7 +1226,7 @@ static long bdi_max_pause(struct backing
- 	t = bdi_dirty / (1 + bw / roundup_pow_of_two(1 + HZ / 8));
- 	t++;
- 
--	return min_t(long, t, MAX_PAUSE);
-+	return min_t(unsigned long, t, MAX_PAUSE);
- }
- 
- static long bdi_min_pause(struct backing_dev_info *bdi,
+ 	swap_file = p->swap_file;
++	old_block_size = p->old_block_size;
+ 	p->swap_file = NULL;
+ 	p->max = 0;
+ 	swap_map = p->swap_map;
+@@ -1938,7 +1940,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	inode = mapping->host;
+ 	if (S_ISBLK(inode->i_mode)) {
+ 		struct block_device *bdev = I_BDEV(inode);
+-		set_blocksize(bdev, p->old_block_size);
++		set_blocksize(bdev, old_block_size);
+ 		blkdev_put(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
+ 	} else {
+ 		mutex_lock(&inode->i_mutex);
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
-origin.patch
-mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
-smaps-show-vm_softdirty-flag-in-vmflags-line.patch
-smaps-show-vm_softdirty-flag-in-vmflags-line-fix.patch
-page-typesc-support-kpf_softdirty-bit.patch
-writeback-do-not-sync-data-dirtied-after-sync-start.patch
-writeback-do-not-sync-data-dirtied-after-sync-start-fix.patch
-writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.patch
-mm-page-writebackc-fix-bdi-max-pause-calculation.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-linux-next.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
+frontswap-enable-call-to-invalidate-area-on-swapoff.patch
+swap-fix-set_blocksize-race-during-swapon-swapoff.patch
 
