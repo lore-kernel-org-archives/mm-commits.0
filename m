@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
- added to -mm tree
-Date: Fri, 11 Oct 2013 14:26:45 -0700
-Message-ID: <52586d15.mMg++K5NqLwM+l35%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Fri, 11 Oct 2013 14:26:44 -0700
+Message-ID: <52586d14.YvnDGwymLeSx23Jm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47373 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753372Ab3JKV0q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Oct 2013 17:26:46 -0400
+	with ESMTP id S1753372Ab3JKV0p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Oct 2013 17:26:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch added to -mm tree
+Subject: + linux-next-rejects.patch added to -mm tree
 To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Fri, 11 Oct 2013 14:26:45 -0700
+Date: Fri, 11 Oct 2013 14:26:44 -0700
 
 
 The patch titled
-     Subject: x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
+     linux-next-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,26 +44,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix
+Subject: linux-next-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/init.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/init.c~x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix
+diff -puN arch/x86/mm/init.c~linux-next-rejects arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~linux-next-rejects
 +++ a/arch/x86/mm/init.c
-@@ -514,7 +514,7 @@ static void __init memory_map_bottom_up(
- 		start = next;
- 
- 		if (new_mapped_ram_size > mapped_ram_size)
--			step_size <<= STEP_SIZE_SHIFT;
-+			step_size = get_new_step_size(step_size);
- 		mapped_ram_size += new_mapped_ram_size;
- 	}
+@@ -399,8 +399,24 @@ static unsigned long __init init_range_m
+ 	return mapped_ram_size;
  }
+ 
+-/* (PUD_SHIFT-PMD_SHIFT)/2 */
+-#define STEP_SIZE_SHIFT 5
++static unsigned long __init get_new_step_size(unsigned long step_size)
++{
++	/*
++	 * Explain why we shift by 5 and why we don't have to worry about
++	 * 'step_size << 5' overflowing:
++	 *
++	 * initial mapped size is PMD_SIZE (2M).
++	 * We can not set step_size to be PUD_SIZE (1G) yet.
++	 * In worse case, when we cross the 1G boundary, and
++	 * PG_LEVEL_2M is not set, we will need 1+1+512 pages (2M + 8k)
++	 * to map 1G range with PTE. Use 5 as shift for now.
++	 *
++	 * Don't need to worry about overflow, on 32bit, when step_size
++	 * is 0, round_down() returns 0 for start, and that turns it
++	 * into 0x100000000ULL.
++	 */
++	return step_size << 5;
++}
+ 
+ /**
+  * memory_map_top_down - Map [map_start, map_end) top down
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
