@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-buffer-move-allocation-failure-loop-into-the-allocator.patch added to -mm tree
-Date: Fri, 11 Oct 2013 13:52:35 -0700
-Message-ID: <52586513.Hf+233v9ILKAMWot%akpm@linux-foundation.org>
+Subject: + jump_label-unlikelyx-0.patch added to -mm tree
+Date: Fri, 11 Oct 2013 13:57:08 -0700
+Message-ID: <52586624.gxkCNPUlX6RlRZt2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47219 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47249 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753149Ab3JKUwg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Oct 2013 16:52:36 -0400
+	with ESMTP id S1755857Ab3JKU5J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Oct 2013 16:57:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@kernel.org, mhocko@suse.cz, azurit@pobox.sk, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, raghavendra.kt@linux.vnet.ibm.com, mingo@kernel.org, konrad.wilk@oracle.com, hpa@linux.intel.com, roel.kluin@gmail.com
 
-Subject: + fs-buffer-move-allocation-failure-loop-into-the-allocator.patch added to -mm tree
-To: hannes@cmpxchg.org,azurit@pobox.sk,mhocko@suse.cz,stable@kernel.org
+Subject: + jump_label-unlikelyx-0.patch added to -mm tree
+To: roel.kluin@gmail.com,hpa@linux.intel.com,konrad.wilk@oracle.com,mingo@kernel.org,raghavendra.kt@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Fri, 11 Oct 2013 13:52:35 -0700
+Date: Fri, 11 Oct 2013 13:57:08 -0700
 
 
 The patch titled
-     Subject: fs: buffer: move allocation failure loop into the allocator
+     Subject: jump_label: unlikely(x) > 0
 has been added to the -mm tree.  Its filename is
-     fs-buffer-move-allocation-failure-loop-into-the-allocator.patch
+     jump_label-unlikelyx-0.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-buffer-move-allocation-failure-loop-into-the-allocator.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/jump_label-unlikelyx-0.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-buffer-move-allocation-failure-loop-into-the-allocator.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/jump_label-unlikelyx-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,104 +43,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: fs: buffer: move allocation failure loop into the allocator
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: jump_label: unlikely(x) > 0
 
-Buffer allocation has a very crude indefinite loop around waking the
-flusher threads and performing global NOFS direct reclaim because it can
-not handle allocation failures.
+untested, but wasn't this intended instead?
+--------------
+if (unlikely(x) > 0) doesn't seem to help branch prediction
 
-The most immediate problem with this is that the allocation may fail due
-to a memory cgroup limit, where flushers + direct reclaim might not make
-any progress towards resolving the situation at all.  Because unlike the
-global case, a memory cgroup may not have any cache at all, only anonymous
-pages but no swap.  This situation will lead to a reclaim livelock with
-insane IO from waking the flushers and thrashing unrelated filesystem
-cache in a tight loop.
-
-Use __GFP_NOFAIL allocations for buffers for now.  This makes sure that
-any looping happens in the page allocator, which knows how to orchestrate
-kswapd, direct reclaim, and the flushers sensibly.  It also allows memory
-cgroups to detect allocations that can't handle failure and will allow
-them to ultimately bypass the limit if reclaim can not make progress.
-
-Reported-by: azurIt <azurit@pobox.sk>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: <stable@kernel.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+index a507907..cf08540 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c     |   14 ++++++++++++--
- mm/memcontrol.c |    2 ++
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ include/linux/jump_label.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/buffer.c~fs-buffer-move-allocation-failure-loop-into-the-allocator fs/buffer.c
---- a/fs/buffer.c~fs-buffer-move-allocation-failure-loop-into-the-allocator
-+++ a/fs/buffer.c
-@@ -1005,9 +1005,19 @@ grow_dev_page(struct block_device *bdev,
- 	struct buffer_head *bh;
- 	sector_t end_block;
- 	int ret = 0;		/* Will call free_more_memory() */
-+	gfp_t gfp_mask;
+diff -puN include/linux/jump_label.h~jump_label-unlikelyx-0 include/linux/jump_label.h
+--- a/include/linux/jump_label.h~jump_label-unlikelyx-0
++++ a/include/linux/jump_label.h
+@@ -132,14 +132,14 @@ static __always_inline void jump_label_i
  
--	page = find_or_create_page(inode->i_mapping, index,
--		(mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS)|__GFP_MOVABLE);
-+	gfp_mask = mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS;
-+	gfp_mask |= __GFP_MOVABLE;
-+	/*
-+	 * XXX: __getblk_slow() can not really deal with failure and
-+	 * will endlessly loop on improvised global reclaim.  Prefer
-+	 * looping in the allocator rather than here, at least that
-+	 * code knows what it's doing.
-+	 */
-+	gfp_mask |= __GFP_NOFAIL;
-+
-+	page = find_or_create_page(inode->i_mapping, index, gfp_mask);
- 	if (!page)
- 		return ret;
+ static __always_inline bool static_key_false(struct static_key *key)
+ {
+-	if (unlikely(atomic_read(&key->enabled)) > 0)
++	if (unlikely(atomic_read(&key->enabled) > 0))
+ 		return true;
+ 	return false;
+ }
  
-diff -puN mm/memcontrol.c~fs-buffer-move-allocation-failure-loop-into-the-allocator mm/memcontrol.c
---- a/mm/memcontrol.c~fs-buffer-move-allocation-failure-loop-into-the-allocator
-+++ a/mm/memcontrol.c
-@@ -2766,6 +2766,8 @@ done:
- 	return 0;
- nomem:
- 	*ptr = NULL;
-+	if (gfp_mask & __GFP_NOFAIL)
-+		return 0;
- 	return -ENOMEM;
- bypass:
- 	*ptr = root_mem_cgroup;
+ static __always_inline bool static_key_true(struct static_key *key)
+ {
+-	if (likely(atomic_read(&key->enabled)) > 0)
++	if (likely(atomic_read(&key->enabled) > 0))
+ 		return true;
+ 	return false;
+ }
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
-mm-vmscanc-dont-forget-to-free-shrinker-nr_deferred.patch
-mm-memcg-handle-non-error-oom-situations-more-gracefully.patch
-fs-buffer-move-allocation-failure-loop-into-the-allocator.patch
-mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch
-memcg-refactor-mem_control_numa_stat_show.patch
-memcg-support-hierarchical-memorynuma_stats.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-memblock-factor-out-of-top-down-allocation.patch
-memblock-introduce-bottom-up-allocation-mode.patch
-x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
-x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
-mem-hotplug-introduce-movable_node-boot-option.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-linux-next.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+jump_label-unlikelyx-0.patch
 
