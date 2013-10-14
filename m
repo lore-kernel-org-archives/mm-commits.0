@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + percpu_refcount-export-symbols.patch added to -mm tree
-Date: Mon, 14 Oct 2013 11:23:20 -0700
-Message-ID: <525c3698.MFQZukCWn63ramcb%akpm@linux-foundation.org>
+Subject: + writeback-fix-negative-bdi-max-pause.patch added to -mm tree
+Date: Mon, 14 Oct 2013 12:14:48 -0700
+Message-ID: <525c42a8.Hx9uV5y/aiSdaHUj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42149 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42476 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756177Ab3JNSXU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Oct 2013 14:23:20 -0400
+	with ESMTP id S1755590Ab3JNTOt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Oct 2013 15:14:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, m@bjorling.me
+To: mm-commits@vger.kernel.org, toralf.foerster@gmx.de, stable@vger.kernel.org, richard@nod.at, jack@suse.cz, geert@linux-m68k.org, fengguang.wu@intel.com
 
-Subject: + percpu_refcount-export-symbols.patch added to -mm tree
-To: m@bjorling.me,tj@kernel.org
+Subject: + writeback-fix-negative-bdi-max-pause.patch added to -mm tree
+To: fengguang.wu@intel.com,geert@linux-m68k.org,jack@suse.cz,richard@nod.at,stable@vger.kernel.org,toralf.foerster@gmx.de
 From: akpm@linux-foundation.org
-Date: Mon, 14 Oct 2013 11:23:20 -0700
+Date: Mon, 14 Oct 2013 12:14:48 -0700
 
 
 The patch titled
-     Subject: percpu_refcount: export symbols
+     Subject: writeback: fix negative bdi max pause
 has been added to the -mm tree.  Its filename is
-     percpu_refcount-export-symbols.patch
+     writeback-fix-negative-bdi-max-pause.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/percpu_refcount-export-symbols.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/writeback-fix-negative-bdi-max-pause.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/percpu_refcount-export-symbols.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/writeback-fix-negative-bdi-max-pause.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,46 +43,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matias Bjorling <m@bjorling.me>
-Subject: percpu_refcount: export symbols
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: writeback: fix negative bdi max pause
 
-Export the interface to be used within modules.
+Toralf runs trinity on UML/i386.  After some time it hangs and the last
+message line is
 
-Signed-off-by: Matias Bjorling <m@bjorling.me>
-Acked-by: Tejun Heo <tj@kernel.org>
+	BUG: soft lockup - CPU#0 stuck for 22s! [trinity-child0:1521]
+
+It's found that pages_dirtied becomes very large.  More than 1000000000
+pages in this case:
+
+	period = HZ * pages_dirtied / task_ratelimit;
+	BUG_ON(pages_dirtied > 2000000000);
+	BUG_ON(pages_dirtied > 1000000000);      <---------
+
+UML debug printf shows that we got negative pause here:
+
+	ick: pause : -984
+	ick: pages_dirtied : 0
+	ick: task_ratelimit: 0
+
+	 pause:
+	+       if (pause < 0)  {
+	+               extern int printf(char *, ...);
+	+               printf("ick : pause : %li\n", pause);
+	+               printf("ick: pages_dirtied : %lu\n", pages_dirtied);
+	+               printf("ick: task_ratelimit: %lu\n", task_ratelimit);
+	+               BUG_ON(1);
+	+       }
+	        trace_balance_dirty_pages(bdi,
+
+Since pause is bounded by [min_pause, max_pause] where min_pause is also
+bounded by max_pause.  It's suspected and demonstrated that the max_pause
+calculation goes wrong:
+
+	ick: pause : -717
+	ick: min_pause : -177
+	ick: max_pause : -717
+	ick: pages_dirtied : 14
+	ick: task_ratelimit: 0
+
+The problem lies in the two "long = unsigned long" assignments in
+bdi_max_pause() which might go negative if the highest bit is 1, and the
+min_t(long, ...) check failed to protect it falling under 0.  Fix all of
+them by using "unsigned long" throughout the function.
+
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Reported-by: Toralf Förster <toralf.foerster@gmx.de>
+Tested-by: Toralf Förster <toralf.foerster@gmx.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu-refcount.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page-writeback.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN lib/percpu-refcount.c~percpu_refcount-export-symbols lib/percpu-refcount.c
---- a/lib/percpu-refcount.c~percpu_refcount-export-symbols
-+++ a/lib/percpu-refcount.c
-@@ -53,6 +53,7 @@ int percpu_ref_init(struct percpu_ref *r
- 	ref->release = release;
- 	return 0;
+diff -puN mm/page-writeback.c~writeback-fix-negative-bdi-max-pause mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-fix-negative-bdi-max-pause
++++ a/mm/page-writeback.c
+@@ -1210,11 +1210,11 @@ static unsigned long dirty_poll_interval
+ 	return 1;
  }
-+EXPORT_SYMBOL_GPL(percpu_ref_init);
  
- /**
-  * percpu_ref_cancel_init - cancel percpu_ref_init()
-@@ -84,6 +85,7 @@ void percpu_ref_cancel_init(struct percp
- 		free_percpu(ref->pcpu_count);
- 	}
- }
-+EXPORT_SYMBOL_GPL(percpu_ref_cancel_init);
- 
- static void percpu_ref_kill_rcu(struct rcu_head *rcu)
+-static long bdi_max_pause(struct backing_dev_info *bdi,
+-			  unsigned long bdi_dirty)
++static unsigned long bdi_max_pause(struct backing_dev_info *bdi,
++				   unsigned long bdi_dirty)
  {
-@@ -156,3 +158,4 @@ void percpu_ref_kill_and_confirm(struct
+-	long bw = bdi->avg_write_bandwidth;
+-	long t;
++	unsigned long bw = bdi->avg_write_bandwidth;
++	unsigned long t;
  
- 	call_rcu_sched(&ref->rcu, percpu_ref_kill_rcu);
+ 	/*
+ 	 * Limit pause time for small memory systems. If sleeping for too long
+@@ -1226,7 +1226,7 @@ static long bdi_max_pause(struct backing
+ 	t = bdi_dirty / (1 + bw / roundup_pow_of_two(1 + HZ / 8));
+ 	t++;
+ 
+-	return min_t(long, t, MAX_PAUSE);
++	return min_t(unsigned long, t, MAX_PAUSE);
  }
-+EXPORT_SYMBOL_GPL(percpu_ref_kill_and_confirm);
+ 
+ static long bdi_min_pause(struct backing_dev_info *bdi,
 _
 
-Patches currently in -mm which might be from m@bjorling.me are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-percpu_refcount-export-symbols.patch
+writeback-fix-negative-bdi-max-pause.patch
+mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
+smaps-show-vm_softdirty-flag-in-vmflags-line.patch
+smaps-show-vm_softdirty-flag-in-vmflags-line-fix.patch
+page-typesc-support-kpf_softdirty-bit.patch
+writeback-do-not-sync-data-dirtied-after-sync-start.patch
+writeback-do-not-sync-data-dirtied-after-sync-start-fix.patch
+writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.patch
+mm-page-writebackc-fix-bdi-max-pause-calculation.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+linux-next.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
 
