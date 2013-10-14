@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch added to -mm tree
-Date: Mon, 14 Oct 2013 15:32:16 -0700
-Message-ID: <525c70f0.g2HVfiLc9qQF/10m%akpm@linux-foundation.org>
+ swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch added to -mm tree
+Date: Mon, 14 Oct 2013 15:46:22 -0700
+Message-ID: <525c743e.+GbNWndxMpGTQ1tI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44195 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44306 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757399Ab3JNWcR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Oct 2013 18:32:17 -0400
+	with ESMTP id S1757063Ab3JNWqX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Oct 2013 18:46:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, weijie.yang.kh@gmail.com, shli@fusionio.com, minchan@kernel.org, konrad.wilk@oracle.com, hughd@google.com, bob.liu@oracle.com, k.kozlowski@samsung.com
 
-Subject: + mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,kirill.shutemov@linux.intel.com
+Subject: + swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch added to -mm tree
+To: k.kozlowski@samsung.com,bob.liu@oracle.com,hughd@google.com,konrad.wilk@oracle.com,minchan@kernel.org,shli@fusionio.com,weijie.yang.kh@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 14 Oct 2013 15:32:16 -0700
+Date: Mon, 14 Oct 2013 15:46:22 -0700
 
 
 The patch titled
-     Subject: mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix
+     Subject: swap: fix setting PAGE_SIZE blocksize during swapoff/swapon race
 has been added to the -mm tree.  Its filename is
-     mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
+     swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,69 +44,162 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: swap: fix setting PAGE_SIZE blocksize during swapoff/swapon race
 
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Fix race between swapoff and swapon resulting in setting blocksize of
+PAGE_SIZE for block devices during swapoff.
+
+The swapon modifies swap_info->old_block_size before acquiring
+swapon_mutex.  It reads block_size of bdev, stores it under
+swap_info->old_block_size and sets new block_size to PAGE_SIZE.
+
+On the other hand the swapoff sets the device's block_size to
+old_block_size after releasing swapon_mutex.
+
+This patch locks the swapon_mutex much earlier during swapon. It also
+releases the swapon_mutex later during swapoff.
+
+The effect of race can be triggered by following scenario:
+ - One block swap device with block size of 512
+ - thread 1: Swapon is called, swap is activated,
+   p->old_block_size = block_size(p->bdev); /512/
+   block_size(p->bdev) = PAGE_SIZE;
+   Thread ends.
+
+ - thread 2: Swapoff is called and it goes just after releasing the
+   swapon_mutex. The swap is now fully disabled except of setting the
+   block size to old value. The p->bdev->block_size is still equal to
+   PAGE_SIZE.
+
+ - thread 3: New swapon is called. This swap is disabled so without
+   acquiring the swapon_mutex:
+   - p->old_block_size = block_size(p->bdev); /PAGE_SIZE (!!!)/
+   - block_size(p->bdev) = PAGE_SIZE;
+   Swap is activated and thread ends.
+
+ - thread 2: resumes work and sets blocksize to old value:
+   - set_blocksize(bdev, p->old_block_size)
+   But now the p->old_block_size is equal to PAGE_SIZE.
+
+The patch swap-fix-set_blocksize-race-during-swapon-swapoff does not fix
+this particular issue.  It reduces the possibility of races as the swapon
+must overwrite p->old_block_size before acquiring swapon_mutex in swapoff.
+
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Weijie Yang <weijie.yang.kh@gmail.com>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/split_page_table_lock |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/vm/split_page_table_lock~mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix Documentation/vm/split_page_table_lock
---- a/Documentation/vm/split_page_table_lock~mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix
-+++ a/Documentation/vm/split_page_table_lock
-@@ -54,7 +54,7 @@ everything required is done by pgtable_p
- which must be called on PTE table allocation / freeing.
+diff -puN mm/swapfile.c~swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race mm/swapfile.c
+--- a/mm/swapfile.c~swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race
++++ a/mm/swapfile.c
+@@ -1928,7 +1928,6 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	spin_unlock(&swap_lock);
+ 	frontswap_invalidate_area(type);
+ 	frontswap_map_set(p, NULL);
+-	mutex_unlock(&swapon_mutex);
+ 	free_percpu(p->percpu_cluster);
+ 	p->percpu_cluster = NULL;
+ 	vfree(swap_map);
+@@ -1948,6 +1947,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 		mutex_unlock(&inode->i_mutex);
+ 	}
+ 	filp_close(swap_file, NULL);
++	mutex_unlock(&swapon_mutex);
+ 	err = 0;
+ 	atomic_inc(&proc_poll_event);
+ 	wake_up_interruptible(&proc_poll_wait);
+@@ -2404,37 +2404,38 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		}
+ 	}
  
- Make sure the architecture doesn't use slab allocator for page table
--allacation: slab uses page->slab_cache and page->first_page for its pages.
-+allocation: slab uses page->slab_cache and page->first_page for its pages.
- These fields share storage with page->ptl.
++	mutex_lock(&swapon_mutex);
+ 	inode = mapping->host;
+ 	/* If S_ISREG(inode->i_mode) will do mutex_lock(&inode->i_mutex); */
+ 	error = claim_swapfile(p, inode);
+ 	if (unlikely(error))
+-		goto bad_swap;
++		goto bad_swap_wmutex;
  
- PMD split lock only makes sense if you have more than two page table
+ 	/*
+ 	 * Read the swap header.
+ 	 */
+ 	if (!mapping->a_ops->readpage) {
+ 		error = -EINVAL;
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 	}
+ 	page = read_mapping_page(mapping, 0, swap_file);
+ 	if (IS_ERR(page)) {
+ 		error = PTR_ERR(page);
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 	}
+ 	swap_header = kmap(page);
+ 
+ 	maxpages = read_swap_header(p, swap_header, inode);
+ 	if (unlikely(!maxpages)) {
+ 		error = -EINVAL;
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 	}
+ 
+ 	/* OK, set up the swap map and apply the bad block list */
+ 	swap_map = vzalloc(maxpages);
+ 	if (!swap_map) {
+ 		error = -ENOMEM;
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 	}
+ 	if (p->bdev && blk_queue_nonrot(bdev_get_queue(p->bdev))) {
+ 		p->flags |= SWP_SOLIDSTATE;
+@@ -2464,13 +2465,13 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 
+ 	error = swap_cgroup_swapon(p->type, maxpages);
+ 	if (error)
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 
+ 	nr_extents = setup_swap_map_and_extents(p, swap_header, swap_map,
+ 		cluster_info, maxpages, &span);
+ 	if (unlikely(nr_extents < 0)) {
+ 		error = nr_extents;
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 	}
+ 	/* frontswap enabled? set up bit-per-page map for frontswap */
+ 	if (frontswap_enabled)
+@@ -2506,7 +2507,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		}
+ 	}
+ 
+-	mutex_lock(&swapon_mutex);
+ 	prio = -1;
+ 	if (swap_flags & SWAP_FLAG_PREFER)
+ 		prio =
+@@ -2531,6 +2531,8 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		inode->i_flags |= S_SWAPFILE;
+ 	error = 0;
+ 	goto out;
++bad_swap_wmutex:
++	mutex_unlock(&swapon_mutex);
+ bad_swap:
+ 	free_percpu(p->percpu_cluster);
+ 	p->percpu_cluster = NULL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ipc-update-locking-scheme-comments-fix.patch
-mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
-mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-linux-next.patch
-linux-next-git-rejects.patch
-linux-next-rejects.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+frontswap-enable-call-to-invalidate-area-on-swapoff.patch
+swap-fix-set_blocksize-race-during-swapon-swapoff.patch
+swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
 
