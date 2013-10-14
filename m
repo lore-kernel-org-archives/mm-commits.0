@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-improve-no-structured-comments-found-error.patch
- added to -mm tree
-Date: Mon, 14 Oct 2013 15:47:50 -0700
-Message-ID: <525c7496.MsOwYW+3XywNohUi%akpm@linux-foundation.org>
+Subject: + xtensa-use-buddy-allocator-for-pte-table.patch added to -mm
+ tree
+Date: Mon, 14 Oct 2013 15:50:02 -0700
+Message-ID: <525c751a.yVvEsVTn48+hyKaZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44309 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44315 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757255Ab3JNWrv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Oct 2013 18:47:51 -0400
+	with ESMTP id S932139Ab3JNWuI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Oct 2013 18:50:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rob@landley.net, rdunlap@infradead.org, johannes.berg@intel.com
+To: mm-commits@vger.kernel.org, jcmvbkbc@gmail.com, chris@zankel.net, kirill.shutemov@linux.intel.com
 
-Subject: + kernel-doc-improve-no-structured-comments-found-error.patch added to -mm tree
-To: johannes.berg@intel.com,rdunlap@infradead.org,rob@landley.net
+Subject: + xtensa-use-buddy-allocator-for-pte-table.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,chris@zankel.net,jcmvbkbc@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 14 Oct 2013 15:47:50 -0700
+Date: Mon, 14 Oct 2013 15:50:02 -0700
 
 
 The patch titled
-     Subject: kernel-doc: improve "no structured comments found" error
+     Subject: Re: xtensa: use buddy allocator for PTE table
 has been added to the -mm tree.  Its filename is
-     kernel-doc-improve-no-structured-comments-found-error.patch
+     xtensa-use-buddy-allocator-for-pte-table.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-doc-improve-no-structured-comments-found-error.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/xtensa-use-buddy-allocator-for-pte-table.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-doc-improve-no-structured-comments-found-error.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/xtensa-use-buddy-allocator-for-pte-table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,108 +44,180 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Berg <johannes.berg@intel.com>
-Subject: kernel-doc: improve "no structured comments found" error
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: Re: xtensa: use buddy allocator for PTE table
 
-When using '!Ffile function' in a docbook template, and the function no
-longer exists, you get a "no structured comments found" error from the
-kernel-doc processing script.  It's useful to know which functions it was
-looking for, so print them out in this case.  Also do the same for '!Pfile
-doc-section'
+At the moment xtensa uses slab allocator for PTE table.  It doesn't work
+with enabled split page table lock: slab uses page->slab_cache and
+page->first_page for its pages.  These fields share stroage with
+page->ptl.
 
-The same error also happens when using '!Efile' when some exported
-functions aren't documented (in the same file.) There's a very large
-number of such functions though, so don't print the message in this case
--- right now it would give ~850 messages.
-
-Signed-off-by: Johannes Berg <johannes.berg@intel.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/docproc.c  |   14 +++++++++-----
- scripts/kernel-doc |    6 ++++++
- 2 files changed, 15 insertions(+), 5 deletions(-)
+ arch/xtensa/include/asm/pgalloc.h |   20 ++++++++++++--------
+ arch/xtensa/include/asm/pgtable.h |    3 +--
+ arch/xtensa/mm/mmu.c              |   20 --------------------
+ 3 files changed, 13 insertions(+), 30 deletions(-)
 
-diff -puN scripts/docproc.c~kernel-doc-improve-no-structured-comments-found-error scripts/docproc.c
---- a/scripts/docproc.c~kernel-doc-improve-no-structured-comments-found-error
-+++ a/scripts/docproc.c
-@@ -72,6 +72,7 @@ FILELINE * docsection;
- #define FUNCTION      "-function"
- #define NOFUNCTION    "-nofunction"
- #define NODOCSECTIONS "-no-doc-sections"
-+#define SHOWNOTFOUND  "-show-not-found"
+diff -puN arch/xtensa/include/asm/pgalloc.h~xtensa-use-buddy-allocator-for-pte-table arch/xtensa/include/asm/pgalloc.h
+--- a/arch/xtensa/include/asm/pgalloc.h~xtensa-use-buddy-allocator-for-pte-table
++++ a/arch/xtensa/include/asm/pgalloc.h
+@@ -38,14 +38,18 @@ static inline void pgd_free(struct mm_st
+ 	free_page((unsigned long)pgd);
+ }
  
- static char *srctree, *kernsrctree;
- 
-@@ -294,6 +295,7 @@ static void singfunc(char * filename, ch
-         int startofsym = 1;
- 	vec[idx++] = KERNELDOC;
- 	vec[idx++] = DOCBOOK;
-+	vec[idx++] = SHOWNOTFOUND;
- 
-         /* Split line up in individual parameters preceded by FUNCTION */
-         for (i=0; line[i]; i++) {
-@@ -325,7 +327,8 @@ static void singfunc(char * filename, ch
-  */
- static void docsect(char *filename, char *line)
+-/* Use a slab cache for the pte pages (see also sparc64 implementation) */
+-
+-extern struct kmem_cache *pgtable_cache;
+-
+ static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
+ 					 unsigned long address)
  {
--	char *vec[6]; /* kerneldoc -docbook -function "section" file NULL */
-+	/* kerneldoc -docbook -show-not-found -function "section" file NULL */
-+	char *vec[7];
- 	char *s;
- 
- 	for (s = line; *s; s++)
-@@ -341,10 +344,11 @@ static void docsect(char *filename, char
- 
- 	vec[0] = KERNELDOC;
- 	vec[1] = DOCBOOK;
--	vec[2] = FUNCTION;
--	vec[3] = line;
--	vec[4] = filename;
--	vec[5] = NULL;
-+	vec[2] = SHOWNOTFOUND;
-+	vec[3] = FUNCTION;
-+	vec[4] = line;
-+	vec[5] = filename;
-+	vec[6] = NULL;
- 	exec_kernel_doc(vec);
+-	return kmem_cache_alloc(pgtable_cache, GFP_KERNEL|__GFP_REPEAT);
++	pte_t *ptep;
++	int i;
++
++	ptep = (pte_t *)__get_free_page(GFP_KERNEL|__GFP_REPEAT);
++	if (!ptep)
++		return NULL;
++	for (i = 0; i < 1024; i++)
++		pte_clear(NULL, 0, ptep + i);
++	return ptep;
  }
  
-diff -puN scripts/kernel-doc~kernel-doc-improve-no-structured-comments-found-error scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-improve-no-structured-comments-found-error
-+++ a/scripts/kernel-doc
-@@ -257,6 +257,7 @@ my $man_date = ('January', 'February', '
- 		'July', 'August', 'September', 'October',
- 		'November', 'December')[(localtime)[4]] .
-   " " . ((localtime)[5]+1900);
-+my $show_not_found = 0;
+ static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
+@@ -59,7 +63,7 @@ static inline pgtable_t pte_alloc_one(st
+ 		return NULL;
+ 	page = virt_to_page(pte);
+ 	if (!pgtable_page_ctor(page)) {
+-		kmem_cache_free(pgtable_cache, pte);
++		__free_page(page);
+ 		return NULL;
+ 	}
+ 	return page;
+@@ -67,13 +71,13 @@ static inline pgtable_t pte_alloc_one(st
  
- # Essentially these are globals.
- # They probably want to be tidied up, made more localised or something.
-@@ -369,6 +370,8 @@ while ($ARGV[0] =~ m/^-(.*)/) {
- 	usage();
-     } elsif ($cmd eq '-no-doc-sections') {
- 	    $no_doc_sections = 1;
-+    } elsif ($cmd eq '-show-not-found') {
-+	$show_not_found = 1;
-     }
+ static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
+ {
+-	kmem_cache_free(pgtable_cache, pte);
++	free_page((unsigned long)pte);
  }
  
-@@ -2536,6 +2539,9 @@ sub process_file($) {
-     }
-     if ($initial_section_counter == $section_counter) {
- 	print STDERR "Warning(${file}): no structured comments found\n";
-+	if (($function_only == 1) && ($show_not_found == 1)) {
-+	    print STDERR "    Was looking for '$_'.\n" for keys %function_table;
-+	}
- 	if ($output_mode eq "xml") {
- 	    # The template wants at least one RefEntry here; make one.
- 	    print "<refentry>\n";
+ static inline void pte_free(struct mm_struct *mm, pgtable_t pte)
+ {
+ 	pgtable_page_dtor(pte);
+-	kmem_cache_free(pgtable_cache, page_address(pte));
++	__free_page(pte);
+ }
+ #define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+diff -puN arch/xtensa/include/asm/pgtable.h~xtensa-use-buddy-allocator-for-pte-table arch/xtensa/include/asm/pgtable.h
+--- a/arch/xtensa/include/asm/pgtable.h~xtensa-use-buddy-allocator-for-pte-table
++++ a/arch/xtensa/include/asm/pgtable.h
+@@ -220,12 +220,11 @@ extern unsigned long empty_zero_page[102
+ #ifdef CONFIG_MMU
+ extern pgd_t swapper_pg_dir[PAGE_SIZE/sizeof(pgd_t)];
+ extern void paging_init(void);
+-extern void pgtable_cache_init(void);
+ #else
+ # define swapper_pg_dir NULL
+ static inline void paging_init(void) { }
+-static inline void pgtable_cache_init(void) { }
+ #endif
++static inline void pgtable_cache_init(void) { }
+ 
+ /*
+  * The pmd contains the kernel virtual address of the pte page.
+diff -puN arch/xtensa/mm/mmu.c~xtensa-use-buddy-allocator-for-pte-table arch/xtensa/mm/mmu.c
+--- a/arch/xtensa/mm/mmu.c~xtensa-use-buddy-allocator-for-pte-table
++++ a/arch/xtensa/mm/mmu.c
+@@ -50,23 +50,3 @@ void __init init_mmu(void)
+ 	 */
+ 	set_ptevaddr_register(PGTABLE_START);
+ }
+-
+-struct kmem_cache *pgtable_cache __read_mostly;
+-
+-static void pgd_ctor(void *addr)
+-{
+-	pte_t *ptep = (pte_t *)addr;
+-	int i;
+-
+-	for (i = 0; i < 1024; i++, ptep++)
+-		pte_clear(NULL, 0, ptep);
+-
+-}
+-
+-void __init pgtable_cache_init(void)
+-{
+-	pgtable_cache = kmem_cache_create("pgd",
+-			PAGE_SIZE, PAGE_SIZE,
+-			SLAB_HWCACHE_ALIGN,
+-			pgd_ctor);
+-}
 _
 
-Patches currently in -mm which might be from johannes.berg@intel.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-kernel-doc-improve-no-structured-comments-found-error.patch
+mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
+mm-thp-cleanup-mv-alloc_hugepage-to-better-place.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
+x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
+cris-fix-potential-null-pointer-dereference.patch
+m32r-fix-potential-null-pointer-dereference.patch
+xtensa-fix-potential-null-pointer-dereference.patch
+mm-allow-pgtable_page_ctor-to-fail.patch
+microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
+mn10300-add-missing-pgtable_page_ctor-dtor-calls.patch
+openrisc-add-missing-pgtable_page_ctor-dtor-calls.patch
+alpha-handle-pgtable_page_ctor-fail.patch
+arc-handle-pgtable_page_ctor-fail.patch
+arm-handle-pgtable_page_ctor-fail.patch
+arm64-handle-pgtable_page_ctor-fail.patch
+avr32-handle-pgtable_page_ctor-fail.patch
+cris-handle-pgtable_page_ctor-fail.patch
+frv-handle-pgtable_page_ctor-fail.patch
+hexagon-handle-pgtable_page_ctor-fail.patch
+ia64-handle-pgtable_page_ctor-fail.patch
+m32r-handle-pgtable_page_ctor-fail.patch
+m68k-handle-pgtable_page_ctor-fail.patch
+metag-handle-pgtable_page_ctor-fail.patch
+mips-handle-pgtable_page_ctor-fail.patch
+parisc-handle-pgtable_page_ctor-fail.patch
+powerpc-handle-pgtable_page_ctor-fail.patch
+s390-handle-pgtable_page_ctor-fail.patch
+score-handle-pgtable_page_ctor-fail.patch
+sh-handle-pgtable_page_ctor-fail.patch
+sparc-handle-pgtable_page_ctor-fail.patch
+tile-handle-pgtable_page_ctor-fail.patch
+um-handle-pgtable_page_ctor-fail.patch
+unicore32-handle-pgtable_page_ctor-fail.patch
+x86-handle-pgtable_page_ctor-fail.patch
+xtensa-handle-pgtable_page_ctor-fail.patch
+iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch
+xtensa-use-buddy-allocator-for-pte-table.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
+thp-mm-locking-tail-page-is-a-bug.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
