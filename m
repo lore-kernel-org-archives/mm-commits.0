@@ -1,92 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-page-writebackc-fix-bdi-max-pause-calculation.patch removed from -mm
- tree
-Date: Mon, 14 Oct 2013 12:15:14 -0700
-Message-ID: <525c42c2.9whpupN2b3KDHPgW%akpm@linux-foundation.org>
+Subject: +
+ procfs-fix-unintended-truncation-of-returned-mapped-address.patch added to
+ -mm tree
+Date: Mon, 14 Oct 2013 14:51:46 -0700
+Message-ID: <525c6772.sf9enB1OMLsWRDvq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43615 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755770Ab3JNTPR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Oct 2013 15:15:17 -0400
+	with ESMTP id S1757189Ab3JNVvr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Oct 2013 17:51:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, toralf.foerster@gmx.de, stable@vger.kernel.org, fengguang.wu@intel.com
+To: mm-commits@vger.kernel.org, davem@davemloft.net, adobriyan@gmail.com, d.hatayama@jp.fujitsu.com
 
-Subject: [to-be-updated] mm-page-writebackc-fix-bdi-max-pause-calculation.patch removed from -mm tree
-To: fengguang.wu@intel.com,stable@vger.kernel.org,toralf.foerster@gmx.de,mm-commits@vger.kernel.org
+Subject: + procfs-fix-unintended-truncation-of-returned-mapped-address.patch added to -mm tree
+To: d.hatayama@jp.fujitsu.com,adobriyan@gmail.com,davem@davemloft.net
 From: akpm@linux-foundation.org
-Date: Mon, 14 Oct 2013 12:15:14 -0700
+Date: Mon, 14 Oct 2013 14:51:46 -0700
 
 
 The patch titled
-     Subject: mm/page-writeback.c: fix bdi max pause calculation
-has been removed from the -mm tree.  Its filename was
-     mm-page-writebackc-fix-bdi-max-pause-calculation.patch
+     Subject: procfs: fix unintended truncation of returned mapped address
+has been added to the -mm tree.  Its filename is
+     procfs-fix-unintended-truncation-of-returned-mapped-address.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/procfs-fix-unintended-truncation-of-returned-mapped-address.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-fix-unintended-truncation-of-returned-mapped-address.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: mm/page-writeback.c: fix bdi max pause calculation
+From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Subject: procfs: fix unintended truncation of returned mapped address
 
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Reported-by: Toralf Förster <toralf.foerster@gmx.de>
-Tested-by: Toralf Förster <toralf.foerster@gmx.de>
-Cc: <stable@vger.kernel.org>
+Currently, proc_reg_get_unmapped_area truncates upper 32-bit of the mapped
+virtual address returned from get_unmapped_area method in pde->proc_fops
+due to the variable rv of signed integer on x86_64.  This is too small to
+have vitual address of unsigned long on x86_64 since on x86_64, signed
+integer is of 4 bytes while unsigned long is of 8 bytes.  To fix this
+issue, use unsigned long instead.
+
+Fixes a regression added in c4fe24485729 ("sparc: fix PCI device proc file
+mmap(2)").
+
+Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/proc/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-page-writebackc-fix-bdi-max-pause-calculation mm/page-writeback.c
---- a/mm/page-writeback.c~mm-page-writebackc-fix-bdi-max-pause-calculation
-+++ a/mm/page-writeback.c
-@@ -1210,11 +1210,11 @@ static unsigned long dirty_poll_interval
- 	return 1;
- }
- 
--static long bdi_max_pause(struct backing_dev_info *bdi,
--			  unsigned long bdi_dirty)
-+static unsigned long bdi_max_pause(struct backing_dev_info *bdi,
-+				   unsigned long bdi_dirty)
+diff -puN fs/proc/inode.c~procfs-fix-unintended-truncation-of-returned-mapped-address fs/proc/inode.c
+--- a/fs/proc/inode.c~procfs-fix-unintended-truncation-of-returned-mapped-address
++++ a/fs/proc/inode.c
+@@ -288,7 +288,7 @@ static int proc_reg_mmap(struct file *fi
+ static unsigned long proc_reg_get_unmapped_area(struct file *file, unsigned long orig_addr, unsigned long len, unsigned long pgoff, unsigned long flags)
  {
--	long bw = bdi->avg_write_bandwidth;
--	long t;
-+	unsigned long bw = bdi->avg_write_bandwidth;
-+	unsigned long t;
- 
- 	/*
- 	 * Limit pause time for small memory systems. If sleeping for too long
-@@ -1226,7 +1226,7 @@ static long bdi_max_pause(struct backing
- 	t = bdi_dirty / (1 + bw / roundup_pow_of_two(1 + HZ / 8));
- 	t++;
- 
--	return min_t(long, t, MAX_PAUSE);
-+	return min_t(unsigned long, t, MAX_PAUSE);
- }
- 
- static long bdi_min_pause(struct backing_dev_info *bdi,
+ 	struct proc_dir_entry *pde = PDE(file_inode(file));
+-	int rv = -EIO;
++	unsigned long rv = -EIO;
+ 	unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
+ 	if (use_pde(pde)) {
+ 		get_unmapped_area = pde->proc_fops->get_unmapped_area;
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
 
-writeback-fix-negative-bdi-max-pause.patch
-mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
-smaps-show-vm_softdirty-flag-in-vmflags-line.patch
-smaps-show-vm_softdirty-flag-in-vmflags-line-fix.patch
-page-typesc-support-kpf_softdirty-bit.patch
-writeback-do-not-sync-data-dirtied-after-sync-start.patch
-writeback-do-not-sync-data-dirtied-after-sync-start-fix.patch
-writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-linux-next.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
+procfs-fix-unintended-truncation-of-returned-mapped-address.patch
 
