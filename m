@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch added
- to -mm tree
-Date: Tue, 15 Oct 2013 15:01:37 -0700
-Message-ID: <525dbb41.HB5jm4dKT6L4TVbM%akpm@linux-foundation.org>
+Subject: + sched-replace-init_completion-with-reinit_completion.patch
+ added to -mm tree
+Date: Tue, 15 Oct 2013 15:25:37 -0700
+Message-ID: <525dc0e1.oKywJQFtofNI3K/q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54600 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54945 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932802Ab3JOWBi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:01:38 -0400
+	with ESMTP id S932802Ab3JOWZi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:25:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ccross@android.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mingo@kernel.org, linus.walleij@linaro.org, wsa@the-dreams.de
 
-Subject: + mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,ccross@android.com
+Subject: + sched-replace-init_completion-with-reinit_completion.patch added to -mm tree
+To: wsa@the-dreams.de,linus.walleij@linaro.org,mingo@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 15:01:37 -0700
+Date: Tue, 15 Oct 2013 15:25:37 -0700
 
 
 The patch titled
-     Subject: mm-add-a-field-to-store-names-for-private-anonymous-memory-fix
+     Subject: sched: replace INIT_COMPLETION with reinit_completion
 has been added to the -mm tree.  Its filename is
-     mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
+     sched-replace-init_completion-with-reinit_completion.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sched-replace-init_completion-with-reinit_completion.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sched-replace-init_completion-with-reinit_completion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,69 +44,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-a-field-to-store-names-for-private-anonymous-memory-fix
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: sched: replace INIT_COMPLETION with reinit_completion
 
-Cc: Colin Cross <ccross@android.com>
+For the casual device driver writer, it is hard to remember when to use
+init_completion (to init a completion structure) or INIT_COMPLETION (to
+*reinit* a completion structure).  Furthermore, while all other completion
+functions exepct a pointer as a parameter, INIT_COMPLETION does not.  To
+make it easier to remember which function to use and to make code more
+readable, introduce a new inline function with the proper name and
+consistent argument type.  Update the kernel-doc for init_completion while
+we are here.
+
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+Acked-by: Linus Walleij <linus.walleij@linaro.org> (personally at LCE13)
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/completion.h |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-add-a-field-to-store-names-for-private-anonymous-memory-fix mm/mempolicy.c
---- a/mm/mempolicy.c~mm-add-a-field-to-store-names-for-private-anonymous-memory-fix
-+++ a/mm/mempolicy.c
-@@ -767,7 +767,7 @@ static int mbind_range(struct mm_struct
- 			((vmstart - vma->vm_start) >> PAGE_SHIFT);
- 		prev = vma_merge(mm, prev, vmstart, vmend, vma->vm_flags,
- 				  vma->anon_vma, vma->vm_file, pgoff,
--				  new_pol, vma_anon_name(name));
-+				  new_pol, vma_anon_name(vma));
- 		if (prev) {
- 			vma = prev;
- 			next = vma->vm_next;
+diff -puN include/linux/completion.h~sched-replace-init_completion-with-reinit_completion include/linux/completion.h
+--- a/include/linux/completion.h~sched-replace-init_completion-with-reinit_completion
++++ a/include/linux/completion.h
+@@ -19,8 +19,8 @@
+  *
+  * See also:  complete(), wait_for_completion() (and friends _timeout,
+  * _interruptible, _interruptible_timeout, and _killable), init_completion(),
+- * and macros DECLARE_COMPLETION(), DECLARE_COMPLETION_ONSTACK(), and
+- * INIT_COMPLETION().
++ * reinit_completion(), and macros DECLARE_COMPLETION(),
++ * DECLARE_COMPLETION_ONSTACK().
+  */
+ struct completion {
+ 	unsigned int done;
+@@ -65,7 +65,7 @@ struct completion {
+ 
+ /**
+  * init_completion - Initialize a dynamically allocated completion
+- * @x:  completion structure that is to be initialized
++ * @x:  pointer to completion structure that is to be initialized
+  *
+  * This inline function will initialize a dynamically created completion
+  * structure.
+@@ -76,6 +76,18 @@ static inline void init_completion(struc
+ 	init_waitqueue_head(&x->wait);
+ }
+ 
++/**
++ * reinit_completion - reinitialize a completion structure
++ * @x:  pointer to completion structure that is to be reinitialized
++ *
++ * This inline function should be used to reinitialize a completion structure so it can
++ * be reused. This is especially important after complete_all() is used.
++ */
++static inline void reinit_completion(struct completion *x)
++{
++	x->done = 0;
++}
++
+ extern void wait_for_completion(struct completion *);
+ extern void wait_for_completion_io(struct completion *);
+ extern int wait_for_completion_interruptible(struct completion *x);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wsa@the-dreams.de are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ipc-update-locking-scheme-comments-fix.patch
-mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
-mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
-mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-linux-next.patch
-linux-next-git-rejects.patch
-linux-next-rejects.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+sched-replace-init_completion-with-reinit_completion.patch
+tree-wide-use-reinit_completion-instead-of-init_completion.patch
+sched-remove-init_completion.patch
 
