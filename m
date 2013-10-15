@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
  mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 15 Oct 2013 15:31:12 -0700
-Message-ID: <525dc230.WmCP4PgXtpeDajJs%akpm@linux-foundation.org>
+Date: Tue, 15 Oct 2013 15:32:53 -0700
+Message-ID: <525dc295.sjxvkeTXGZd/YSEQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54993 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933667Ab3JOWbN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:31:13 -0400
+	with ESMTP id S933522Ab3JOWcy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:32:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, weijie.yang@samsung.com, akpm@linux-foundation.org
@@ -19,7 +19,7 @@ To: mm-commits@vger.kernel.org, weijie.yang@samsung.com, akpm@linux-foundation.o
 Subject: [folded-merged] mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch removed from -mm tree
 To: akpm@linux-foundation.org,weijie.yang@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 15:31:12 -0700
+Date: Tue, 15 Oct 2013 15:32:53 -0700
 
 
 The patch titled
@@ -27,7 +27,7 @@ The patch titled
 has been removed from the -mm tree.  Its filename was
      mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-zswap-bugfix-memory-leak-when-re-swapon.patch
+This patch was dropped because it was folded into mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -73,6 +73,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 ipc-update-locking-scheme-comments-fix.patch
 mm-zswap-bugfix-memory-leak-when-re-swapon.patch
+mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch
 mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix.patch
 kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
 makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
