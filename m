@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + vsprintf-check-real-user-group-id-for-%pk.patch added to -mm
- tree
-Date: Tue, 15 Oct 2013 13:51:20 -0700
-Message-ID: <525daac8.j9l7QV+/89gtz9ya%akpm@linux-foundation.org>
+Subject: + mm-rearrange-madvise-code-to-allow-for-reuse.patch added to -mm tree
+Date: Tue, 15 Oct 2013 14:28:45 -0700
+Message-ID: <525db38d.Ixeabylq2aRAJm0e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53691 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933667Ab3JOUvV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 16:51:21 -0400
+	with ESMTP id S932555Ab3JOV2r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 17:28:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, keescook@chromium.org, joe@perches.com, ebiederm@xmission.com, rmallon@gmail.com
+To: mm-commits@vger.kernel.org, walken@google.com, viro@zeniv.linux.org.uk, tangchen@cn.fujitsu.com, shli@fusionio.com, serge.hallyn@ubuntu.com, sasha.levin@oracle.com, rob@landley.net, rientjes@google.com, riel@redhat.com, peterz@infradead.org, penberg@kernel.org, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, keescook@chromium.org, john.stultz@linaro.org, jan.glauber@gmail.com, hughd@google.com, holt@sgi.com, hannes@cmpxchg.org, gorcunov@openvz.org, ebiederm@xmission.com, dave.hansen@intel.com, ccross@android.com
 
-Subject: + vsprintf-check-real-user-group-id-for-%pk.patch added to -mm tree
-To: rmallon@gmail.com,ebiederm@xmission.com,joe@perches.com,keescook@chromium.org,stable@vger.kernel.org,viro@zeniv.linux.org.uk
+Subject: + mm-rearrange-madvise-code-to-allow-for-reuse.patch added to -mm tree
+To: ccross@android.com,dave.hansen@intel.com,ebiederm@xmission.com,gorcunov@openvz.org,hannes@cmpxchg.org,holt@sgi.com,hughd@google.com,jan.glauber@gmail.com,john.stultz@linaro.org,keescook@chromium.org,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,penberg@kernel.org,peterz@infradead.org,riel@redhat.com,rientjes@google.com,rob@landley.net,sasha.levin@oracle.com,serge.hallyn@ubuntu.com,shli@fusionio.com,tangchen@cn.fujitsu.com,viro@zeniv.linux.org.uk,walken@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 13:51:20 -0700
+Date: Tue, 15 Oct 2013 14:28:45 -0700
 
 
 The patch titled
-     Subject: vsprintf: check real user/group id for %pK
+     Subject: mm: rearrange madvise code to allow for reuse
 has been added to the -mm tree.  Its filename is
-     vsprintf-check-real-user-group-id-for-%pk.patch
+     mm-rearrange-madvise-code-to-allow-for-reuse.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vsprintf-check-real-user-group-id-for-%pk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rearrange-madvise-code-to-allow-for-reuse.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vsprintf-check-real-user-group-id-for-%pk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rearrange-madvise-code-to-allow-for-reuse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,145 +43,404 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryan Mallon <rmallon@gmail.com>
-Subject: vsprintf: check real user/group id for %pK
+From: Colin Cross <ccross@android.com>
+Subject: mm: rearrange madvise code to allow for reuse
 
-Some setuid binaries will allow reading of files which have read
-permission by the real user id.  This is problematic with files which use
-%pK because the file access permission is checked at open() time, but the
-kptr_restrict setting is checked at read() time.  If a setuid binary opens
-a %pK file as an unprivileged user, and then elevates permissions before
-reading the file, then kernel pointer values may be leaked.
+Refactor the madvise syscall to allow for parts of it to be reused by a
+prctl syscall that affects vmas.
 
-This happens for example with the setuid pppd application on Ubuntu 12.04:
+Move the code that walks vmas in a virtual address range into a function
+that takes a function pointer as a parameter.  The only caller for now is
+sys_madvise, which uses it to call madvise_vma_behavior on each vma, but
+the next patch will add an additional caller.
 
-  $ head -1 /proc/kallsyms
-  00000000 T startup_32
+Move handling all vma behaviors inside madvise_behavior, and rename it to
+madvise_vma_behavior.
 
-  $ pppd file /proc/kallsyms
-  pppd: In file /proc/kallsyms: unrecognized option 'c1000000'
+Move the code that updates the flags on a vma, including splitting or
+merging the vma as necessary, into a new function called
+madvise_update_vma.  The next patch will add support for updating a new
+anon_name field as well.
 
-This will only leak the pointer value from the first line, but other
-setuid binaries may leak more information.
-
-Fix this by adding a check that in addition to the current process having
-CAP_SYSLOG, that effective user and group ids are equal to the real ids. 
-If a setuid binary reads the contents of a file which uses %pK then the
-pointer values will be printed as NULL if the real user is unprivileged.
-
-Update the sysctl documentation to reflect the changes, and also correct
-the documentation to state the kptr_restrict=0 is the default.
-
-This is a only temporary solution to the issue.  The correct solution is
-to do the permission check at open() time on files, and to replace %pK
-with a function which checks the open() time permission.  %pK uses in
-printk should be removed since no sane permission check can be done, and
-instead protected by using dmesg_restrict.
-
-Signed-off-by: Ryan Mallon <rmallon@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Colin Cross <ccross@android.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: <stable@vger.kernel.org>
+Cc: Jan Glauber <jan.glauber@gmail.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Rob Landley <rob@landley.net>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Serge E. Hallyn" <serge.hallyn@ubuntu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   25 ++++++++++++++++------
- lib/vsprintf.c                  |   33 +++++++++++++++++++++++++++---
- 2 files changed, 48 insertions(+), 10 deletions(-)
+ mm/madvise.c |  272 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 151 insertions(+), 121 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~vsprintf-check-real-user-group-id-for-%pk Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~vsprintf-check-real-user-group-id-for-%pk
-+++ a/Documentation/sysctl/kernel.txt
-@@ -290,13 +290,24 @@ Default value is "/sbin/hotplug".
- kptr_restrict:
+diff -puN mm/madvise.c~mm-rearrange-madvise-code-to-allow-for-reuse mm/madvise.c
+--- a/mm/madvise.c~mm-rearrange-madvise-code-to-allow-for-reuse
++++ a/mm/madvise.c
+@@ -39,65 +39,20 @@ static int madvise_need_mmap_write(int b
+ }
  
- This toggle indicates whether restrictions are placed on
--exposing kernel addresses via /proc and other interfaces.  When
--kptr_restrict is set to (0), there are no restrictions.  When
--kptr_restrict is set to (1), the default, kernel pointers
--printed using the %pK format specifier will be replaced with 0's
--unless the user has CAP_SYSLOG.  When kptr_restrict is set to
--(2), kernel pointers printed using %pK will be replaced with 0's
--regardless of privileges.
-+exposing kernel addresses via /proc and other interfaces.
-+
-+When kptr_restrict is set to (0), the default, there are no restrictions.
-+
-+When kptr_restrict is set to (1), kernel pointers printed using the %pK
-+format specifier will be replaced with 0's unless the user has CAP_SYSLOG
-+and effective user and group ids are equal to the real ids. This is
-+because %pK checks are done at read() time rather than open() time, so
-+if permissions are elevated between the open() and the read() (e.g via
-+a setuid binary) then %pK will not leak kernel pointers to unprivileged
-+users. Note, this is a temporary solution only. The correct long-term
-+solution is to do the permission checks at open() time. Consider removing
-+world read permissions from files that use %pK, and using dmesg_restrict
-+to protect against uses of %pK in dmesg(8) if leaking kernel pointer
-+values to unprivileged users is a concern.
-+
-+When kptr_restrict is set to (2), kernel pointers printed using
-+%pK will be replaced with 0's regardless of privileges.
+ /*
+- * We can potentially split a vm area into separate
+- * areas, each area with its own behavior.
++ * Update the vm_flags on regiion of a vma, splitting it or merging it as
++ * necessary.  Must be called with mmap_sem held for writing;
+  */
+-static long madvise_behavior(struct vm_area_struct *vma,
+-		     struct vm_area_struct **prev,
+-		     unsigned long start, unsigned long end, int behavior)
++static int madvise_update_vma(struct vm_area_struct *vma,
++		     struct vm_area_struct **prev, unsigned long start,
++		     unsigned long end, unsigned long new_flags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+-	int error = 0;
+ 	pgoff_t pgoff;
+-	unsigned long new_flags = vma->vm_flags;
+-
+-	switch (behavior) {
+-	case MADV_NORMAL:
+-		new_flags = new_flags & ~VM_RAND_READ & ~VM_SEQ_READ;
+-		break;
+-	case MADV_SEQUENTIAL:
+-		new_flags = (new_flags & ~VM_RAND_READ) | VM_SEQ_READ;
+-		break;
+-	case MADV_RANDOM:
+-		new_flags = (new_flags & ~VM_SEQ_READ) | VM_RAND_READ;
+-		break;
+-	case MADV_DONTFORK:
+-		new_flags |= VM_DONTCOPY;
+-		break;
+-	case MADV_DOFORK:
+-		if (vma->vm_flags & VM_IO) {
+-			error = -EINVAL;
+-			goto out;
+-		}
+-		new_flags &= ~VM_DONTCOPY;
+-		break;
+-	case MADV_DONTDUMP:
+-		new_flags |= VM_DONTDUMP;
+-		break;
+-	case MADV_DODUMP:
+-		if (new_flags & VM_SPECIAL) {
+-			error = -EINVAL;
+-			goto out;
+-		}
+-		new_flags &= ~VM_DONTDUMP;
+-		break;
+-	case MADV_MERGEABLE:
+-	case MADV_UNMERGEABLE:
+-		error = ksm_madvise(vma, start, end, behavior, &new_flags);
+-		if (error)
+-			goto out;
+-		break;
+-	case MADV_HUGEPAGE:
+-	case MADV_NOHUGEPAGE:
+-		error = hugepage_madvise(vma, &new_flags, behavior);
+-		if (error)
+-			goto out;
+-		break;
+-	}
++	int error;
  
- ==============================================================
+ 	if (new_flags == vma->vm_flags) {
+ 		*prev = vma;
+-		goto out;
++		return 0;
+ 	}
  
-diff -puN lib/vsprintf.c~vsprintf-check-real-user-group-id-for-%pk lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-check-real-user-group-id-for-%pk
-+++ a/lib/vsprintf.c
-@@ -27,6 +27,7 @@
- #include <linux/uaccess.h>
- #include <linux/ioport.h>
- #include <linux/dcache.h>
-+#include <linux/cred.h>
- #include <net/addrconf.h>
+ 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+@@ -113,13 +68,13 @@ static long madvise_behavior(struct vm_a
+ 	if (start != vma->vm_start) {
+ 		error = split_vma(mm, vma, start, 1);
+ 		if (error)
+-			goto out;
++			return error;
+ 	}
  
- #include <asm/page.h>		/* for PAGE_SIZE */
-@@ -1312,11 +1313,37 @@ char *pointer(const char *fmt, char *buf
- 				spec.field_width = default_width;
- 			return string(buf, end, "pK-error", spec);
- 		}
--		if (!((kptr_restrict == 0) ||
--		      (kptr_restrict == 1 &&
--		       has_capability_noaudit(current, CAP_SYSLOG))))
+ 	if (end != vma->vm_end) {
+ 		error = split_vma(mm, vma, end, 0);
+ 		if (error)
+-			goto out;
++			return error;
+ 	}
+ 
+ success:
+@@ -128,10 +83,7 @@ success:
+ 	 */
+ 	vma->vm_flags = new_flags;
+ 
+-out:
+-	if (error == -ENOMEM)
+-		error = -EAGAIN;
+-	return error;
++	return 0;
+ }
+ 
+ #ifdef CONFIG_SWAP
+@@ -337,6 +289,77 @@ static long madvise_remove(struct vm_are
+ 	return error;
+ }
+ 
++/*
++ * Apply an madvise behavior to a region of a vma.  madvise_update_vma
++ * will handle splitting a vm area into separate areas, each area with its own
++ * behavior.
++ */
++static int madvise_vma_behavior(struct vm_area_struct *vma,
++		     struct vm_area_struct **prev,
++		     unsigned long start, unsigned long end,
++		     unsigned long behavior)
++{
++	int error = 0;
++	unsigned long new_flags = vma->vm_flags;
 +
-+		switch (kptr_restrict) {
-+		case 0:
-+			/* Always print %pK values */
-+			break;
-+		case 1: {
-+			/*
-+			 * Only print the real pointer value if the current
-+			 * process has CAP_SYSLOG and is running with the
-+			 * same credentials it started with. This is because
-+			 * access to files is checked at open() time, but %pK
-+			 * checks permission at read() time. We don't want to
-+			 * leak pointer values if a binary opens a file using
-+			 * %pK and then elevates privileges before reading it.
-+			 */
-+			const struct cred *cred = current_cred();
-+
-+			if (!has_capability_noaudit(current, CAP_SYSLOG) ||
-+			    !uid_eq(cred->euid, cred->uid) ||
-+			    !gid_eq(cred->egid, cred->gid))
-+				ptr = NULL;
-+			break;
++	switch (behavior) {
++	case MADV_REMOVE:
++		return madvise_remove(vma, prev, start, end);
++	case MADV_WILLNEED:
++		return madvise_willneed(vma, prev, start, end);
++	case MADV_DONTNEED:
++		return madvise_dontneed(vma, prev, start, end);
++	case MADV_NORMAL:
++		new_flags = new_flags & ~VM_RAND_READ & ~VM_SEQ_READ;
++		break;
++	case MADV_SEQUENTIAL:
++		new_flags = (new_flags & ~VM_RAND_READ) | VM_SEQ_READ;
++		break;
++	case MADV_RANDOM:
++		new_flags = (new_flags & ~VM_SEQ_READ) | VM_RAND_READ;
++		break;
++	case MADV_DONTFORK:
++		new_flags |= VM_DONTCOPY;
++		break;
++	case MADV_DOFORK:
++		if (vma->vm_flags & VM_IO) {
++			error = -EINVAL;
++			goto out;
 +		}
-+		case 2:
-+		default:
-+			/* Always print 0's for %pK */
- 			ptr = NULL;
-+			break;
++		new_flags &= ~VM_DONTCOPY;
++		break;
++	case MADV_DONTDUMP:
++		new_flags |= VM_DONTDUMP;
++		break;
++	case MADV_DODUMP:
++		if (new_flags & VM_SPECIAL) {
++			error = -EINVAL;
++			goto out;
 +		}
- 		break;
++		new_flags &= ~VM_DONTDUMP;
++		break;
++	case MADV_MERGEABLE:
++	case MADV_UNMERGEABLE:
++		error = ksm_madvise(vma, start, end, behavior, &new_flags);
++		if (error)
++			goto out;
++		break;
++	case MADV_HUGEPAGE:
++	case MADV_NOHUGEPAGE:
++		error = hugepage_madvise(vma, &new_flags, behavior);
++		if (error)
++			goto out;
++		break;
++	}
 +
- 	case 'N':
- 		switch (fmt[1]) {
- 		case 'F':
++	error = madvise_update_vma(vma, prev, start, end, new_flags);
++
++out:
++	if (error == -ENOMEM)
++		error = -EAGAIN;
++	return error;
++}
++
+ #ifdef CONFIG_MEMORY_FAILURE
+ /*
+  * Error injection support for memory error handling.
+@@ -375,22 +398,6 @@ static int madvise_hwpoison(int bhv, uns
+ }
+ #endif
+ 
+-static long
+-madvise_vma(struct vm_area_struct *vma, struct vm_area_struct **prev,
+-		unsigned long start, unsigned long end, int behavior)
+-{
+-	switch (behavior) {
+-	case MADV_REMOVE:
+-		return madvise_remove(vma, prev, start, end);
+-	case MADV_WILLNEED:
+-		return madvise_willneed(vma, prev, start, end);
+-	case MADV_DONTNEED:
+-		return madvise_dontneed(vma, prev, start, end);
+-	default:
+-		return madvise_behavior(vma, prev, start, end, behavior);
+-	}
+-}
+-
+ static int
+ madvise_behavior_valid(int behavior)
+ {
+@@ -421,6 +428,73 @@ madvise_behavior_valid(int behavior)
+ }
+ 
+ /*
++ * Walk the vmas in range [start,end), and call the visit function on each one.
++ * The visit function will get start and end parameters that cover the overlap
++ * between the current vma and the original range.  Any unmapped regions in the
++ * original range will result in this function returning -ENOMEM while still
++ * calling the visit function on all of the existing vmas in the range.
++ * Must be called with the mmap_sem held for reading or writing.
++ */
++static
++int madvise_walk_vmas(unsigned long start, unsigned long end,
++		unsigned long arg,
++		int (*visit)(struct vm_area_struct *vma,
++			struct vm_area_struct **prev, unsigned long start,
++			unsigned long end, unsigned long arg))
++{
++	struct vm_area_struct *vma;
++	struct vm_area_struct *prev;
++	unsigned long tmp;
++	int unmapped_error = 0;
++
++	/*
++	 * If the interval [start,end) covers some unmapped address
++	 * ranges, just ignore them, but return -ENOMEM at the end.
++	 * - different from the way of handling in mlock etc.
++	 */
++	vma = find_vma_prev(current->mm, start, &prev);
++	if (vma && start > vma->vm_start)
++		prev = vma;
++
++	for (;;) {
++		int error;
++
++		/* Still start < end. */
++		if (!vma)
++			return -ENOMEM;
++
++		/* Here start < (end|vma->vm_end). */
++		if (start < vma->vm_start) {
++			unmapped_error = -ENOMEM;
++			start = vma->vm_start;
++			if (start >= end)
++				break;
++		}
++
++		/* Here vma->vm_start <= start < (end|vma->vm_end) */
++		tmp = vma->vm_end;
++		if (end < tmp)
++			tmp = end;
++
++		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
++		error = visit(vma, &prev, start, tmp, arg);
++		if (error)
++			return error;
++		start = tmp;
++		if (prev && start < prev->vm_end)
++			start = prev->vm_end;
++		if (start >= end)
++			break;
++		if (prev)
++			vma = prev->vm_next;
++		else	/* madvise_remove dropped mmap_sem */
++			vma = find_vma(current->mm, start);
++	}
++
++	return unmapped_error;
++}
++
++/*
+  * The madvise(2) system call.
+  *
+  * Applications can use madvise() to advise the kernel how it should
+@@ -464,9 +538,7 @@ madvise_behavior_valid(int behavior)
+  */
+ SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
+ {
+-	unsigned long end, tmp;
+-	struct vm_area_struct *vma, *prev;
+-	int unmapped_error = 0;
++	unsigned long end;
+ 	int error = -EINVAL;
+ 	int write;
+ 	size_t len;
+@@ -501,52 +573,10 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 	else
+ 		down_read(&current->mm->mmap_sem);
+ 
+-	/*
+-	 * If the interval [start,end) covers some unmapped address
+-	 * ranges, just ignore them, but return -ENOMEM at the end.
+-	 * - different from the way of handling in mlock etc.
+-	 */
+-	vma = find_vma_prev(current->mm, start, &prev);
+-	if (vma && start > vma->vm_start)
+-		prev = vma;
+-
+ 	blk_start_plug(&plug);
+-	for (;;) {
+-		/* Still start < end. */
+-		error = -ENOMEM;
+-		if (!vma)
+-			goto out;
+-
+-		/* Here start < (end|vma->vm_end). */
+-		if (start < vma->vm_start) {
+-			unmapped_error = -ENOMEM;
+-			start = vma->vm_start;
+-			if (start >= end)
+-				goto out;
+-		}
+-
+-		/* Here vma->vm_start <= start < (end|vma->vm_end) */
+-		tmp = vma->vm_end;
+-		if (end < tmp)
+-			tmp = end;
+-
+-		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
+-		error = madvise_vma(vma, &prev, start, tmp, behavior);
+-		if (error)
+-			goto out;
+-		start = tmp;
+-		if (prev && start < prev->vm_end)
+-			start = prev->vm_end;
+-		error = unmapped_error;
+-		if (start >= end)
+-			goto out;
+-		if (prev)
+-			vma = prev->vm_next;
+-		else	/* madvise_remove dropped mmap_sem */
+-			vma = find_vma(current->mm, start);
+-	}
+-out:
++	error = madvise_walk_vmas(start, end, behavior, madvise_vma_behavior);
+ 	blk_finish_plug(&plug);
++
+ 	if (write)
+ 		up_write(&current->mm->mmap_sem);
+ 	else
 _
 
-Patches currently in -mm which might be from rmallon@gmail.com are
+Patches currently in -mm which might be from ccross@android.com are
 
-vsprintf-check-real-user-group-id-for-%pk.patch
-linux-next.patch
+mm-rearrange-madvise-code-to-allow-for-reuse.patch
+mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
 
