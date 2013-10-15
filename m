@@ -1,112 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 15 Oct 2013 15:32:53 -0700
-Message-ID: <525dc295.sjxvkeTXGZd/YSEQ%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch removed from -mm tree
+Date: Tue, 15 Oct 2013 15:33:16 -0700
+Message-ID: <525dc2ac.ZZM4NProkzWnQ9Y4%akpm__46867.1307120987$1381876410$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54993 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54995 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933522Ab3JOWcy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:32:54 -0400
+	with ESMTP id S933522Ab3JOWdR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, weijie.yang@samsung.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, sjenning@linux.vnet.ibm.com, minchan@kernel.org, bob.liu@oracle.com, weijie.yang@samsung.com
 
-Subject: [folded-merged] mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,weijie.yang@samsung.com,mm-commits@vger.kernel.org
+Subject: [to-be-updated] mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch removed from -mm tree
+To: weijie.yang@samsung.com,bob.liu@oracle.com,minchan@kernel.org,sjenning@linux.vnet.ibm.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 15:32:53 -0700
+Date: Tue, 15 Oct 2013 15:33:16 -0700
 
 
 The patch titled
-     Subject: mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes
+     Subject: mm/zswap: bugfix: memory leak when invalidate and reclaim occur concurrently
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
+     mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch
 
-This patch was dropped because it was folded into mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: mm/zswap: bugfix: memory leak when invalidate and reclaim occur concurrently
 
-WARNING: please, no space before tabs
-#53: FILE: mm/zswap.c:406:
-+ * ^Ipage is locked$
+Consider the following scenario:
+thread 0: reclaim entry x (get refcount, but not call zswap_get_swap_cache_page)
+thread 1: call zswap_frontswap_invalidate_page to invalidate entry x.
+	finished, entry x and its zbud is not freed as its refcount != 0
+	now, the swap_map[x] = 0
+thread 0: now call zswap_get_swap_cache_page
+	swapcache_prepare return -ENOENT because entry x is not used any more
+	zswap_get_swap_cache_page return ZSWAP_SWAPCACHE_NOMEM
+	zswap_writeback_entry do nothing except put refcount
+Now, the memory of zswap_entry x and its zpage leak.
 
-total: 0 errors, 1 warnings, 55 lines checked
+Modify:
+ - check the refcount in fail path, free memory if it is not referenced.
 
-./patches/mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch has style problems, please review.
+ - use ZSWAP_SWAPCACHE_FAIL instead of ZSWAP_SWAPCACHE_NOMEM as the fail path
+   can be not only caused by nomem but also by invalidate.
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Weijie Yang <weijie.yang@samsung.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Reviewed-by: Bob Liu <bob.liu@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
+Acked-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zswap.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes mm/zswap.c
---- a/mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes
+diff -puN mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently mm/zswap.c
+--- a/mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently
 +++ a/mm/zswap.c
-@@ -403,7 +403,7 @@ enum zswap_get_swap_ret {
+@@ -387,7 +387,7 @@ static void zswap_free_entry(struct zswa
+ enum zswap_get_swap_ret {
+ 	ZSWAP_SWAPCACHE_NEW,
+ 	ZSWAP_SWAPCACHE_EXIST,
+-	ZSWAP_SWAPCACHE_NOMEM
++	ZSWAP_SWAPCACHE_FAIL,
+ };
+ 
+ /*
+@@ -401,9 +401,10 @@ enum zswap_get_swap_ret {
+  * added to the swap cache, and returned in retpage.
+  *
   * If success, the swap cache page is returned in retpage
-  * Returns ZSWAP_SWAPCACHE_EXIST if page was already in the swap cache
-  * Returns ZSWAP_SWAPCACHE_NEW if the new page needs to be populated,
-- * 	page is locked
+- * Returns 0 if page was already in the swap cache, page is not locked
+- * Returns 1 if the new page needs to be populated, page is locked
+- * Returns <0 on error
++ * Returns ZSWAP_SWAPCACHE_EXIST if page was already in the swap cache
++ * Returns ZSWAP_SWAPCACHE_NEW if the new page needs to be populated,
 + *	page is locked
-  * Returns ZSWAP_SWAPCACHE_FAIL on error
++ * Returns ZSWAP_SWAPCACHE_FAIL on error
   */
  static int zswap_get_swap_cache_page(swp_entry_t entry,
+ 				struct page **retpage)
+@@ -475,7 +476,7 @@ static int zswap_get_swap_cache_page(swp
+ 	if (new_page)
+ 		page_cache_release(new_page);
+ 	if (!found_page)
+-		return ZSWAP_SWAPCACHE_NOMEM;
++		return ZSWAP_SWAPCACHE_FAIL;
+ 	*retpage = found_page;
+ 	return ZSWAP_SWAPCACHE_EXIST;
+ }
+@@ -529,11 +530,11 @@ static int zswap_writeback_entry(struct
+ 
+ 	/* try to allocate swap cache page */
+ 	switch (zswap_get_swap_cache_page(swpentry, &page)) {
+-	case ZSWAP_SWAPCACHE_NOMEM: /* no memory */
++	case ZSWAP_SWAPCACHE_FAIL: /* no memory or invalidate happened */
+ 		ret = -ENOMEM;
+ 		goto fail;
+ 
+-	case ZSWAP_SWAPCACHE_EXIST: /* page is unlocked */
++	case ZSWAP_SWAPCACHE_EXIST:
+ 		/* page is already in the swap cache, ignore for now */
+ 		page_cache_release(page);
+ 		ret = -EEXIST;
+@@ -591,7 +592,12 @@ static int zswap_writeback_entry(struct
+ 
+ fail:
+ 	spin_lock(&tree->lock);
+-	zswap_entry_put(entry);
++	refcount = zswap_entry_put(entry);
++	if (refcount <= 0) {
++		/* invalidate happened, consider writeback as success */
++		zswap_free_entry(tree, entry);
++		ret = 0;
++	}
+ 	spin_unlock(&tree->lock);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ipc-update-locking-scheme-comments-fix.patch
 mm-zswap-bugfix-memory-leak-when-re-swapon.patch
-mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch
-mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
-mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-linux-next.patch
-linux-next-git-rejects.patch
-linux-next-rejects.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-zswap-avoid-unnecessary-page-scanning.patch
 
