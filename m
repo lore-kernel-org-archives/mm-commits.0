@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-set-n_cpu-to-node_states-during-boot.patch added to -mm tree
-Date: Tue, 15 Oct 2013 14:44:05 -0700
-Message-ID: <525db725.RosR8ZveGFOUfUR5%akpm@linux-foundation.org>
+Subject: + mm-clear-n_cpu-from-node_states-at-cpu-offline.patch added to
+ -mm tree
+Date: Tue, 15 Oct 2013 14:44:06 -0700
+Message-ID: <525db726.t551k1JqSnqrJrQN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54317 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932802Ab3JOVoG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 17:44:06 -0400
+	with ESMTP id S933815Ab3JOVoH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 17:44:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, cl@linux.com, toshi.kani@hp.com
 
-Subject: + mm-set-n_cpu-to-node_states-during-boot.patch added to -mm tree
+Subject: + mm-clear-n_cpu-from-node_states-at-cpu-offline.patch added to -mm tree
 To: toshi.kani@hp.com,cl@linux.com,isimatu.yasuaki@jp.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 14:44:05 -0700
+Date: Tue, 15 Oct 2013 14:44:06 -0700
 
 
 The patch titled
-     Subject: mm: set N_CPU to node_states during boot
+     Subject: mm: clear N_CPU from node_states at CPU offline
 has been added to the -mm tree.  Its filename is
-     mm-set-n_cpu-to-node_states-during-boot.patch
+     mm-clear-n_cpu-from-node_states-at-cpu-offline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-set-n_cpu-to-node_states-during-boot.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-clear-n_cpu-from-node_states-at-cpu-offline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-set-n_cpu-to-node_states-during-boot.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clear-n_cpu-from-node_states-at-cpu-offline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,25 +45,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm: set N_CPU to node_states during boot
+Subject: mm: clear N_CPU from node_states at CPU offline
 
-After a system booted, N_CPU is not set to any node as has_cpu shows an
-empty line.
+vmstat_cpuup_callback() is a CPU notifier callback, which marks N_CPU to a
+node at CPU online event.  However, it does not update this N_CPU info at
+CPU offline event.
 
-  # cat /sys/devices/system/node/has_cpu
-  (show-empty-line)
-
-setup_vmstat() registers its CPU notifier callback,
-vmstat_cpuup_callback(), which marks N_CPU to a node when a CPU is put
-into online.  However, setup_vmstat() is called after all CPUs are
-launched in the boot sequence.
-
-Changed setup_vmstat() to mark N_CPU to the nodes with online CPUs at
-boot, which is consistent with other operations in
-vmstat_cpuup_callback(), i.e.  start_cpu_timer() and
-refresh_zone_stat_thresholds().
-
-Also added get_online_cpus() to protect the for_each_online_cpu() loop.
+Changed vmstat_cpuup_callback() to clear N_CPU when the last CPU in the
+node is put into offline, i.e.  the node no longer has any online CPU.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 Acked-by: Christoph Lameter <cl@linux.com>
@@ -70,26 +60,41 @@ Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/vmstat.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN mm/vmstat.c~mm-set-n_cpu-to-node_states-during-boot mm/vmstat.c
---- a/mm/vmstat.c~mm-set-n_cpu-to-node_states-during-boot
+diff -puN mm/vmstat.c~mm-clear-n_cpu-from-node_states-at-cpu-offline mm/vmstat.c
+--- a/mm/vmstat.c~mm-clear-n_cpu-from-node_states-at-cpu-offline
 +++ a/mm/vmstat.c
-@@ -1276,8 +1276,12 @@ static int __init setup_vmstat(void)
+@@ -1229,6 +1229,20 @@ static void start_cpu_timer(int cpu)
+ 	schedule_delayed_work_on(cpu, work, __round_jiffies_relative(HZ, cpu));
+ }
  
- 	register_cpu_notifier(&vmstat_notifier);
- 
--	for_each_online_cpu(cpu)
++static void vmstat_cpu_dead(int node)
++{
++	int cpu;
++
 +	get_online_cpus();
-+	for_each_online_cpu(cpu) {
- 		start_cpu_timer(cpu);
-+		node_set_state(cpu_to_node(cpu), N_CPU);
-+	}
++	for_each_online_cpu(cpu)
++		if (cpu_to_node(cpu) == node)
++			goto end;
++
++	node_clear_state(node, N_CPU);
++end:
 +	put_online_cpus();
- #endif
- #ifdef CONFIG_PROC_FS
- 	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
++}
++
+ /*
+  * Use the cpu notifier to insure that the thresholds are recalculated
+  * when necessary.
+@@ -1258,6 +1272,7 @@ static int vmstat_cpuup_callback(struct
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
+ 		refresh_zone_stat_thresholds();
++		vmstat_cpu_dead(cpu_to_node(cpu));
+ 		break;
+ 	default:
+ 		break;
 _
 
 Patches currently in -mm which might be from toshi.kani@hp.com are
