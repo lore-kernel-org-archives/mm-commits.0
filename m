@@ -1,94 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch removed from -mm tree
-Date: Tue, 15 Oct 2013 15:27:26 -0700
-Message-ID: <525dc14e.IYI+xbe7hM/puw+Z%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch removed from -mm tree
+Date: Tue, 15 Oct 2013 15:31:11 -0700
+Message-ID: <525dc22f.wQGorQur3PhlbodU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54961 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54968 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933519Ab3JOW12 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:27:28 -0400
+	with ESMTP id S933685Ab3JOWbO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:31:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, sjenning@linux.vnet.ibm.com, minchan@kernel.org, bob.liu@oracle.com, weijie.yang@samsung.com
 
-Subject: [to-be-updated] mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch removed from -mm tree
-To: gang.chen@asianux.com,fengguang.wu@intel.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch removed from -mm tree
+To: weijie.yang@samsung.com,bob.liu@oracle.com,minchan@kernel.org,sjenning@linux.vnet.ibm.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 15:27:26 -0700
+Date: Tue, 15 Oct 2013 15:31:11 -0700
 
 
 The patch titled
-     Subject: mm/readahead.c: return the value which force_page_cache_readahead() returns
+     Subject: mm/zswap: bugfix: memory leak when invalidate and reclaim occur concurrently
 has been removed from the -mm tree.  Its filename was
-     mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
+     mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into mm-zswap-bugfix-memory-leak-when-re-swapon.patch
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: mm/readahead.c: return the value which force_page_cache_readahead() returns
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: mm/zswap: bugfix: memory leak when invalidate and reclaim occur concurrently
 
-force_page_cache_readahead() may fail, so let the related upper system
-calls know about it by its return value.
+Consider the following scenario:
+thread 0: reclaim entry x (get refcount, but not call zswap_get_swap_cache_page)
+thread 1: call zswap_frontswap_invalidate_page to invalidate entry x.
+	finished, entry x and its zbud is not freed as its refcount != 0
+	now, the swap_map[x] = 0
+thread 0: now call zswap_get_swap_cache_page
+	swapcache_prepare return -ENOENT because entry x is not used any more
+	zswap_get_swap_cache_page return ZSWAP_SWAPCACHE_NOMEM
+	zswap_writeback_entry do nothing except put refcount
+Now, the memory of zswap_entry x and its zpage leak.
 
-For system call fadvise64_64(), ignore return value because fadvise()
-shall return success even if filesystem can't retrieve a hint.
+Modify:
+ - check the refcount in fail path, free memory if it is not referenced.
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+ - use ZSWAP_SWAPCACHE_FAIL instead of ZSWAP_SWAPCACHE_NOMEM as the fail path
+   can be not only caused by nomem but also by invalidate.
+
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Reviewed-by: Bob Liu <bob.liu@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
+Acked-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c   |    4 ++--
- mm/readahead.c |    3 +--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ mm/zswap.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN mm/madvise.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns mm/madvise.c
---- a/mm/madvise.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns
-+++ a/mm/madvise.c
-@@ -247,8 +247,8 @@ static long madvise_willneed(struct vm_a
- 		end = vma->vm_end;
- 	end = ((end - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
- 
--	force_page_cache_readahead(file->f_mapping, file, start, end - start);
--	return 0;
-+	return force_page_cache_readahead(file->f_mapping, file,
-+					start, end - start);
- }
+diff -puN mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently mm/zswap.c
+--- a/mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently
++++ a/mm/zswap.c
+@@ -387,7 +387,7 @@ static void zswap_free_entry(struct zswa
+ enum zswap_get_swap_ret {
+ 	ZSWAP_SWAPCACHE_NEW,
+ 	ZSWAP_SWAPCACHE_EXIST,
+-	ZSWAP_SWAPCACHE_NOMEM
++	ZSWAP_SWAPCACHE_FAIL,
+ };
  
  /*
-diff -puN mm/readahead.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns mm/readahead.c
---- a/mm/readahead.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns
-+++ a/mm/readahead.c
-@@ -572,8 +572,7 @@ do_readahead(struct address_space *mappi
- 	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
- 		return -EINVAL;
- 
--	force_page_cache_readahead(mapping, filp, index, nr);
--	return 0;
-+	return force_page_cache_readahead(mapping, filp, index, nr);
+@@ -401,9 +401,10 @@ enum zswap_get_swap_ret {
+  * added to the swap cache, and returned in retpage.
+  *
+  * If success, the swap cache page is returned in retpage
+- * Returns 0 if page was already in the swap cache, page is not locked
+- * Returns 1 if the new page needs to be populated, page is locked
+- * Returns <0 on error
++ * Returns ZSWAP_SWAPCACHE_EXIST if page was already in the swap cache
++ * Returns ZSWAP_SWAPCACHE_NEW if the new page needs to be populated,
++ * 	page is locked
++ * Returns ZSWAP_SWAPCACHE_FAIL on error
+  */
+ static int zswap_get_swap_cache_page(swp_entry_t entry,
+ 				struct page **retpage)
+@@ -475,7 +476,7 @@ static int zswap_get_swap_cache_page(swp
+ 	if (new_page)
+ 		page_cache_release(new_page);
+ 	if (!found_page)
+-		return ZSWAP_SWAPCACHE_NOMEM;
++		return ZSWAP_SWAPCACHE_FAIL;
+ 	*retpage = found_page;
+ 	return ZSWAP_SWAPCACHE_EXIST;
  }
+@@ -529,11 +530,11 @@ static int zswap_writeback_entry(struct
  
- SYSCALL_DEFINE3(readahead, int, fd, loff_t, offset, size_t, count)
+ 	/* try to allocate swap cache page */
+ 	switch (zswap_get_swap_cache_page(swpentry, &page)) {
+-	case ZSWAP_SWAPCACHE_NOMEM: /* no memory */
++	case ZSWAP_SWAPCACHE_FAIL: /* no memory or invalidate happened */
+ 		ret = -ENOMEM;
+ 		goto fail;
+ 
+-	case ZSWAP_SWAPCACHE_EXIST: /* page is unlocked */
++	case ZSWAP_SWAPCACHE_EXIST:
+ 		/* page is already in the swap cache, ignore for now */
+ 		page_cache_release(page);
+ 		ret = -EEXIST;
+@@ -591,7 +592,12 @@ static int zswap_writeback_entry(struct
+ 
+ fail:
+ 	spin_lock(&tree->lock);
+-	zswap_entry_put(entry);
++	refcount = zswap_entry_put(entry);
++	if (refcount <= 0) {
++		/* invalidate happened, consider writeback as success */
++		zswap_free_entry(tree, entry);
++		ret = 0;
++	}
+ 	spin_unlock(&tree->lock);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
-mm-revert-mremap-pud_free-anti-fix.patch
-sh64-kernel-use-usp-instead-of-fn.patch
-sh64-kernel-remove-useless-variable-regs.patch
-mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
-kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch
-kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str.patch
-kernel-sysctlc-check-return-value-after-call-proc_put_char-in-__do_proc_doulongvec_minmax.patch
-kernel-sysctl_binaryc-use-scnprintf-instead-of-snprintf.patch
-kernel-taskstatsc-add-nla_nest_cancel-for-failure-processing-between-nla_nest_start-and-nla_nest_end.patch
-kernel-taskstatsc-return-enomem-when-alloc-memory-fails-in-add_del_listener.patch
-kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch
-linux-next.patch
+mm-zswap-bugfix-memory-leak-when-re-swapon.patch
+mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently-checkpatch-fixes.patch
+mm-zswap-avoid-unnecessary-page-scanning.patch
 
