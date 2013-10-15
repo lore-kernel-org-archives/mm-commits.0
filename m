@@ -1,115 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + mm-revert-mremap-pud_free-anti-fix.patch added to -mm tree
-Date: Tue, 15 Oct 2013 15:26:45 -0700
-Message-ID: <525dc125.UA51RcceM3fdsxGw%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch removed from -mm tree
+Date: Tue, 15 Oct 2013 15:27:26 -0700
+Message-ID: <525dc14e.IYI+xbe7hM/puw+Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54957 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54961 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933519Ab3JOW0q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:26:46 -0400
+	with ESMTP id S933519Ab3JOW12 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:27:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gang.chen@asianux.com, hughd@google.com
+To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, gang.chen@asianux.com
 
-Subject: + mm-revert-mremap-pud_free-anti-fix.patch added to -mm tree
-To: hughd@google.com,gang.chen@asianux.com
+Subject: [to-be-updated] mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch removed from -mm tree
+To: gang.chen@asianux.com,fengguang.wu@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 15:26:45 -0700
+Date: Tue, 15 Oct 2013 15:27:26 -0700
 
 
 The patch titled
-     Subject: mm: revert mremap pud_free anti-fix
-has been added to the -mm tree.  Its filename is
-     mm-revert-mremap-pud_free-anti-fix.patch
+     Subject: mm/readahead.c: return the value which force_page_cache_readahead() returns
+has been removed from the -mm tree.  Its filename was
+     mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-revert-mremap-pud_free-anti-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-revert-mremap-pud_free-anti-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: revert mremap pud_free anti-fix
+From: Chen Gang <gang.chen@asianux.com>
+Subject: mm/readahead.c: return the value which force_page_cache_readahead() returns
 
-Revert 1ecfd533f4c5 ("mm/mremap.c: call pud_free() after fail calling
-pmd_alloc()").  The original code was correct: pud_alloc(), pmd_alloc(),
-pte_alloc_map() ensure that the pud, pmd, pt is already allocated, and
-seldom do they need to allocate; on failure, upper levels are freed if
-appropriate by the subsequent do_munmap().  Whereas 1ecfd533f4c5 did an
-unconditional pud_free() of a most-likely still-in-use pud: saved only by
-the near-impossiblity of pmd_alloc() failing.
+force_page_cache_readahead() may fail, so let the related upper system
+calls know about it by its return value.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Chen Gang <gang.chen@asianux.com>
+For system call fadvise64_64(), ignore return value because fadvise()
+shall return success even if filesystem can't retrieve a hint.
+
+Signed-off-by: Chen Gang <gang.chen@asianux.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/madvise.c   |    4 ++--
+ mm/readahead.c |    3 +--
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/mremap.c~mm-revert-mremap-pud_free-anti-fix mm/mremap.c
---- a/mm/mremap.c~mm-revert-mremap-pud_free-anti-fix
-+++ a/mm/mremap.c
-@@ -25,7 +25,6 @@
- #include <asm/uaccess.h>
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
--#include <asm/pgalloc.h>
+diff -puN mm/madvise.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns mm/madvise.c
+--- a/mm/madvise.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns
++++ a/mm/madvise.c
+@@ -247,8 +247,8 @@ static long madvise_willneed(struct vm_a
+ 		end = vma->vm_end;
+ 	end = ((end - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
  
- #include "internal.h"
+-	force_page_cache_readahead(file->f_mapping, file, start, end - start);
+-	return 0;
++	return force_page_cache_readahead(file->f_mapping, file,
++					start, end - start);
+ }
  
-@@ -63,10 +62,8 @@ static pmd_t *alloc_new_pmd(struct mm_st
- 		return NULL;
+ /*
+diff -puN mm/readahead.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns mm/readahead.c
+--- a/mm/readahead.c~mm-readaheadc-return-the-value-which-force_page_cache_readahead-returns
++++ a/mm/readahead.c
+@@ -572,8 +572,7 @@ do_readahead(struct address_space *mappi
+ 	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
+ 		return -EINVAL;
  
- 	pmd = pmd_alloc(mm, pud, addr);
--	if (!pmd) {
--		pud_free(mm, pud);
-+	if (!pmd)
- 		return NULL;
--	}
+-	force_page_cache_readahead(mapping, filp, index, nr);
+-	return 0;
++	return force_page_cache_readahead(mapping, filp, index, nr);
+ }
  
- 	VM_BUG_ON(pmd_trans_huge(*pmd));
- 
+ SYSCALL_DEFINE3(readahead, int, fd, loff_t, offset, size_t, count)
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from gang.chen@asianux.com are
 
-mm-hugetlb-correct-missing-private-flag-clearing.patch
-mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages.patch
-swap-fix-set_blocksize-race-during-swapon-swapoff.patch
-mm-fix-bug-in-__split_huge_page_pmd.patch
 mm-revert-mremap-pud_free-anti-fix.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
-mm-rearrange-madvise-code-to-allow-for-reuse.patch
-mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+sh64-kernel-use-usp-instead-of-fn.patch
+sh64-kernel-remove-useless-variable-regs.patch
+mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
+kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch
+kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str.patch
+kernel-sysctlc-check-return-value-after-call-proc_put_char-in-__do_proc_doulongvec_minmax.patch
+kernel-sysctl_binaryc-use-scnprintf-instead-of-snprintf.patch
+kernel-taskstatsc-add-nla_nest_cancel-for-failure-processing-between-nla_nest_start-and-nla_nest_end.patch
+kernel-taskstatsc-return-enomem-when-alloc-memory-fails-in-add_del_listener.patch
+kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch
 linux-next.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
