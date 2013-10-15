@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-bug-in-__split_huge_page_pmd.patch added to -mm tree
-Date: Tue, 15 Oct 2013 12:59:18 -0700
-Message-ID: <525d9e96.LWMZ6NCoA/e+Qfmz%akpm__20044.743436347$1381867171$gmane$org@linux-foundation.org>
+Subject: + vsprintf-check-real-user-group-id-for-%pk.patch added to -mm
+ tree
+Date: Tue, 15 Oct 2013 13:51:20 -0700
+Message-ID: <525daac8.j9l7QV+/89gtz9ya%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53691 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933444Ab3JOT7T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 15:59:19 -0400
+	with ESMTP id S933667Ab3JOUvV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 16:51:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com, aarcange@redhat.com, hughd@google.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, keescook@chromium.org, joe@perches.com, ebiederm@xmission.com, rmallon@gmail.com
 
-Subject: + mm-fix-bug-in-__split_huge_page_pmd.patch added to -mm tree
-To: hughd@google.com,aarcange@redhat.com,kirill.shutemov@linux.intel.com,n-horiguchi@ah.jp.nec.com,rientjes@google.com,stable@vger.kernel.org
+Subject: + vsprintf-check-real-user-group-id-for-%pk.patch added to -mm tree
+To: rmallon@gmail.com,ebiederm@xmission.com,joe@perches.com,keescook@chromium.org,stable@vger.kernel.org,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 12:59:18 -0700
+Date: Tue, 15 Oct 2013 13:51:20 -0700
 
 
 The patch titled
-     Subject: mm: fix BUG in __split_huge_page_pmd
+     Subject: vsprintf: check real user/group id for %pK
 has been added to the -mm tree.  Its filename is
-     mm-fix-bug-in-__split_huge_page_pmd.patch
+     vsprintf-check-real-user-group-id-for-%pk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-bug-in-__split_huge_page_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vsprintf-check-real-user-group-id-for-%pk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-bug-in-__split_huge_page_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vsprintf-check-real-user-group-id-for-%pk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,79 +44,145 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix BUG in __split_huge_page_pmd
+From: Ryan Mallon <rmallon@gmail.com>
+Subject: vsprintf: check real user/group id for %pK
 
-Occasionally we hit the BUG_ON(pmd_trans_huge(*pmd)) at the end of
-__split_huge_page_pmd(): seen when doing madvise(,,MADV_DONTNEED).
+Some setuid binaries will allow reading of files which have read
+permission by the real user id.  This is problematic with files which use
+%pK because the file access permission is checked at open() time, but the
+kptr_restrict setting is checked at read() time.  If a setuid binary opens
+a %pK file as an unprivileged user, and then elevates permissions before
+reading the file, then kernel pointer values may be leaked.
 
-It's invalid: we don't always have down_write of mmap_sem there: a racing
-do_huge_pmd_wp_page() might have copied-on-write to another huge page
-before our split_huge_page() got the anon_vma lock.
+This happens for example with the setuid pppd application on Ubuntu 12.04:
 
-Forget the BUG_ON, just go back and try again if this happens.
+  $ head -1 /proc/kallsyms
+  00000000 T startup_32
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: David Rientjes <rientjes@google.com>
+  $ pppd file /proc/kallsyms
+  pppd: In file /proc/kallsyms: unrecognized option 'c1000000'
+
+This will only leak the pointer value from the first line, but other
+setuid binaries may leak more information.
+
+Fix this by adding a check that in addition to the current process having
+CAP_SYSLOG, that effective user and group ids are equal to the real ids. 
+If a setuid binary reads the contents of a file which uses %pK then the
+pointer values will be printed as NULL if the real user is unprivileged.
+
+Update the sysctl documentation to reflect the changes, and also correct
+the documentation to state the kptr_restrict=0 is the default.
+
+This is a only temporary solution to the issue.  The correct solution is
+to do the permission check at open() time on files, and to replace %pK
+with a function which checks the open() time permission.  %pK uses in
+printk should be removed since no sane permission check can be done, and
+instead protected by using dmesg_restrict.
+
+Signed-off-by: Ryan Mallon <rmallon@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Joe Perches <joe@perches.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ Documentation/sysctl/kernel.txt |   25 ++++++++++++++++------
+ lib/vsprintf.c                  |   33 +++++++++++++++++++++++++++---
+ 2 files changed, 48 insertions(+), 10 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-fix-bug-in-__split_huge_page_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~mm-fix-bug-in-__split_huge_page_pmd
-+++ a/mm/huge_memory.c
-@@ -2697,6 +2697,7 @@ void __split_huge_page_pmd(struct vm_are
+diff -puN Documentation/sysctl/kernel.txt~vsprintf-check-real-user-group-id-for-%pk Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~vsprintf-check-real-user-group-id-for-%pk
++++ a/Documentation/sysctl/kernel.txt
+@@ -290,13 +290,24 @@ Default value is "/sbin/hotplug".
+ kptr_restrict:
  
- 	mmun_start = haddr;
- 	mmun_end   = haddr + HPAGE_PMD_SIZE;
-+again:
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	spin_lock(&mm->page_table_lock);
- 	if (unlikely(!pmd_trans_huge(*pmd))) {
-@@ -2719,7 +2720,14 @@ void __split_huge_page_pmd(struct vm_are
- 	split_huge_page(page);
- 
- 	put_page(page);
--	BUG_ON(pmd_trans_huge(*pmd));
+ This toggle indicates whether restrictions are placed on
+-exposing kernel addresses via /proc and other interfaces.  When
+-kptr_restrict is set to (0), there are no restrictions.  When
+-kptr_restrict is set to (1), the default, kernel pointers
+-printed using the %pK format specifier will be replaced with 0's
+-unless the user has CAP_SYSLOG.  When kptr_restrict is set to
+-(2), kernel pointers printed using %pK will be replaced with 0's
+-regardless of privileges.
++exposing kernel addresses via /proc and other interfaces.
 +
-+	/*
-+	 * We don't always have down_write of mmap_sem here: a racing
-+	 * do_huge_pmd_wp_page() might have copied-on-write to another
-+	 * huge page before our split_huge_page() got the anon_vma lock.
-+	 */
-+	if (unlikely(pmd_trans_huge(*pmd)))
-+		goto again;
- }
++When kptr_restrict is set to (0), the default, there are no restrictions.
++
++When kptr_restrict is set to (1), kernel pointers printed using the %pK
++format specifier will be replaced with 0's unless the user has CAP_SYSLOG
++and effective user and group ids are equal to the real ids. This is
++because %pK checks are done at read() time rather than open() time, so
++if permissions are elevated between the open() and the read() (e.g via
++a setuid binary) then %pK will not leak kernel pointers to unprivileged
++users. Note, this is a temporary solution only. The correct long-term
++solution is to do the permission checks at open() time. Consider removing
++world read permissions from files that use %pK, and using dmesg_restrict
++to protect against uses of %pK in dmesg(8) if leaking kernel pointer
++values to unprivileged users is a concern.
++
++When kptr_restrict is set to (2), kernel pointers printed using
++%pK will be replaced with 0's regardless of privileges.
  
- void split_huge_page_pmd_mm(struct mm_struct *mm, unsigned long address,
+ ==============================================================
+ 
+diff -puN lib/vsprintf.c~vsprintf-check-real-user-group-id-for-%pk lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-check-real-user-group-id-for-%pk
++++ a/lib/vsprintf.c
+@@ -27,6 +27,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/ioport.h>
+ #include <linux/dcache.h>
++#include <linux/cred.h>
+ #include <net/addrconf.h>
+ 
+ #include <asm/page.h>		/* for PAGE_SIZE */
+@@ -1312,11 +1313,37 @@ char *pointer(const char *fmt, char *buf
+ 				spec.field_width = default_width;
+ 			return string(buf, end, "pK-error", spec);
+ 		}
+-		if (!((kptr_restrict == 0) ||
+-		      (kptr_restrict == 1 &&
+-		       has_capability_noaudit(current, CAP_SYSLOG))))
++
++		switch (kptr_restrict) {
++		case 0:
++			/* Always print %pK values */
++			break;
++		case 1: {
++			/*
++			 * Only print the real pointer value if the current
++			 * process has CAP_SYSLOG and is running with the
++			 * same credentials it started with. This is because
++			 * access to files is checked at open() time, but %pK
++			 * checks permission at read() time. We don't want to
++			 * leak pointer values if a binary opens a file using
++			 * %pK and then elevates privileges before reading it.
++			 */
++			const struct cred *cred = current_cred();
++
++			if (!has_capability_noaudit(current, CAP_SYSLOG) ||
++			    !uid_eq(cred->euid, cred->uid) ||
++			    !gid_eq(cred->egid, cred->gid))
++				ptr = NULL;
++			break;
++		}
++		case 2:
++		default:
++			/* Always print 0's for %pK */
+ 			ptr = NULL;
++			break;
++		}
+ 		break;
++
+ 	case 'N':
+ 		switch (fmt[1]) {
+ 		case 'F':
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from rmallon@gmail.com are
 
-mm-hugetlb-correct-missing-private-flag-clearing.patch
-mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages.patch
-swap-fix-set_blocksize-race-during-swapon-swapoff.patch
-mm-fix-bug-in-__split_huge_page_pmd.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+vsprintf-check-real-user-group-id-for-%pk.patch
 linux-next.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
