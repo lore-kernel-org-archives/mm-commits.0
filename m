@@ -1,576 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-add-a-field-to-store-names-for-private-anonymous-memory.patch added to
- -mm tree
-Date: Tue, 15 Oct 2013 14:28:48 -0700
-Message-ID: <525db390.vOR8XcQO4cF+wr0M%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-vmstatc-set-n_cpu-to-node_states-during-boot.patch removed from -mm tree
+Date: Tue, 15 Oct 2013 14:39:47 -0700
+Message-ID: <525db623.bY6dFY8YbT3CmGu9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54249 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54286 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932555Ab3JOV2t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 17:28:49 -0400
+	with ESMTP id S933181Ab3JOVjs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 17:39:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, viro@zeniv.linux.org.uk, tangchen@cn.fujitsu.com, shli@fusionio.com, serge.hallyn@ubuntu.com, sasha.levin@oracle.com, rob@landley.net, rientjes@google.com, riel@redhat.com, peterz@infradead.org, penberg@kernel.org, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, keescook@chromium.org, john.stultz@linaro.org, jan.glauber@gmail.com, hughd@google.com, holt@sgi.com, hannes@cmpxchg.org, gorcunov@openvz.org, ebiederm@xmission.com, dave.hansen@intel.com, ccross@android.com
+To: mm-commits@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, cl@linux-foundation.org, toshi.kani@hp.com
 
-Subject: + mm-add-a-field-to-store-names-for-private-anonymous-memory.patch added to -mm tree
-To: ccross@android.com,dave.hansen@intel.com,ebiederm@xmission.com,gorcunov@openvz.org,hannes@cmpxchg.org,holt@sgi.com,hughd@google.com,jan.glauber@gmail.com,john.stultz@linaro.org,keescook@chromium.org,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,penberg@kernel.org,peterz@infradead.org,riel@redhat.com,rientjes@google.com,rob@landley.net,sasha.levin@oracle.com,serge.hallyn@ubuntu.com,shli@fusionio.com,tangchen@cn.fujitsu.com,viro@zeniv.linux.org.uk,walken@google.com
+Subject: [to-be-updated] mm-vmstatc-set-n_cpu-to-node_states-during-boot.patch removed from -mm tree
+To: toshi.kani@hp.com,cl@linux-foundation.org,isimatu.yasuaki@jp.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 14:28:48 -0700
+Date: Tue, 15 Oct 2013 14:39:47 -0700
 
 
 The patch titled
-     Subject: mm: add a field to store names for private anonymous memory
-has been added to the -mm tree.  Its filename is
-     mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
+     Subject: mm/vmstat.c: set N_CPU to node_states during boot
+has been removed from the -mm tree.  Its filename was
+     mm-vmstatc-set-n_cpu-to-node_states-during-boot.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Colin Cross <ccross@android.com>
-Subject: mm: add a field to store names for private anonymous memory
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: mm/vmstat.c: set N_CPU to node_states during boot
 
-In many userspace applications, and especially in VM based applications
-like Android uses heavily, there are multiple different allocators in use.
- At a minimum there is libc malloc and the stack, and in many cases there
-are libc malloc, the stack, direct syscalls to mmap anonymous memory, and
-multiple VM heaps (one for small objects, one for big objects, etc.). 
-Each of these layers usually has its own tools to inspect its usage;
-malloc by compiling a debug version, the VM through heap inspection tools,
-and for direct syscalls there is usually no way to track them.
+After a system booted, N_CPU is not set to any node as has_cpu shows an
+empty line.
 
-On Android we heavily use a set of tools that use an extended version of
-the logic covered in Documentation/vm/pagemap.txt to walk all pages mapped
-in userspace and slice their usage by process, shared (COW) vs.  unique
-mappings, backing, etc.  This can account for real physical memory usage
-even in cases like fork without exec (which Android uses heavily to share
-as many private COW pages as possible between processes), Kernel SamePage
-Merging, and clean zero pages.  It produces a measurement of the pages
-that only exist in that process (USS, for unique), and a measurement of
-the physical memory usage of that process with the cost of shared pages
-being evenly split between processes that share them (PSS).
+  # cat /sys/devices/system/node/has_cpu
+  (show-empty-line)
 
-If all anonymous memory is indistinguishable then figuring out the real
-physical memory usage (PSS) of each heap requires either a pagemap walking
-tool that can understand the heap debugging of every layer, or for every
-layer's heap debugging tools to implement the pagemap walking logic, in
-which case it is hard to get a consistent view of memory across the whole
-system.
+setup_vmstat() registers its CPU notifier callback,
+vmstat_cpuup_callback(), which marks N_CPU to a node when a CPU is put
+into online.  However, setup_vmstat() is called after all CPUs are
+launched in the boot sequence.
 
-This patch adds a field to /proc/pid/maps and /proc/pid/smaps to show a
-userspace-provided name for anonymous vmas.  The names of named anonymous
-vmas are shown in /proc/pid/maps and /proc/pid/smaps as [anon:<name>].
+Change setup_vmstat() to mark N_CPU to the nodes with online
+CPUs at boot.
 
-Userspace can set the name for a region of memory by calling
-prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, start, len, (unsigned long)name);
-Setting the name to NULL clears it.
-
-The name is stored in a user pointer in the shared union in vm_area_struct
-that points to a null terminated string inside the user process.  vmas
-that point to the same address and are otherwise mergeable will be merged,
-but vmas that point to equivalent strings at different addresses will not
-be merged.
-
-The idea to store a userspace pointer to reduce the complexity within mm
-(at the expense of the complexity of reading /proc/pid/mem) came from Dave
-Hansen.  This results in no runtime overhead in the mm subsystem other
-than comparing the anon_name pointers when considering vma merging.  The
-pointer is stored in a union with fields that are only used on file-backed
-mappings, so it does not increase memory usage.
-
-Signed-off-by: Colin Cross <ccross@android.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Jan Glauber <jan.glauber@gmail.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Serge E. Hallyn" <serge.hallyn@ubuntu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Shaohua Li <shli@fusionio.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 
- fs/proc/task_mmu.c                 |   22 ++++++++++
- include/linux/mm.h                 |    5 +-
- include/linux/mm_types.h           |   15 +++++++
- include/uapi/linux/prctl.h         |    3 +
- kernel/sys.c                       |   24 +++++++++++
- mm/madvise.c                       |   55 +++++++++++++++++++++++++--
- mm/mempolicy.c                     |    2 
- mm/mlock.c                         |    3 -
- mm/mmap.c                          |   44 ++++++++++++---------
- mm/mprotect.c                      |    3 -
- 11 files changed, 152 insertions(+), 26 deletions(-)
+ mm/vmstat.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-add-a-field-to-store-names-for-private-anonymous-memory Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/Documentation/filesystems/proc.txt
-@@ -369,6 +369,8 @@ is not associated with a file:
-  [stack:1001]             = the stack of the thread with tid 1001
-  [vdso]                   = the "virtual dynamic shared object",
-                             the kernel system call handler
-+ [anon:<name>]            = an anonymous mapping that has been
-+                            named by userspace
+diff -puN mm/vmstat.c~mm-vmstatc-set-n_cpu-to-node_states-during-boot mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstatc-set-n_cpu-to-node_states-during-boot
++++ a/mm/vmstat.c
+@@ -1276,8 +1276,10 @@ static int __init setup_vmstat(void)
  
-  or if empty, the mapping is anonymous.
+ 	register_cpu_notifier(&vmstat_notifier);
  
-diff -puN fs/proc/task_mmu.c~mm-add-a-field-to-store-names-for-private-anonymous-memory fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/fs/proc/task_mmu.c
-@@ -92,6 +92,22 @@ static void pad_len_spaces(struct seq_fi
- 	seq_printf(m, "%*c", len, ' ');
- }
- 
-+static void seq_print_vma_name(struct seq_file *m, struct vm_area_struct *vma)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	char anon_name[NAME_MAX + 1];
-+	unsigned long addr;
-+	int n;
-+
-+	n = access_remote_vm(mm, (unsigned long)vma_anon_name(vma),
-+				anon_name, NAME_MAX, 0);
-+	if (n > 0) {
-+		seq_puts(m, "[anon:");
-+		seq_write(m, anon_name, strnlen(anon_name, n));
-+		seq_putc(m, ']');
+-	for_each_online_cpu(cpu)
++	for_each_online_cpu(cpu) {
+ 		start_cpu_timer(cpu);
++		node_set_state(cpu_to_node(cpu), N_CPU);
 +	}
-+}
-+
- #ifdef CONFIG_NUMA
- /*
-  * These functions are for numa_maps but called in generic **maps seq_file
-@@ -337,6 +353,12 @@ show_map_vma(struct seq_file *m, struct
- 				pad_len_spaces(m, len);
- 				seq_printf(m, "[stack:%d]", tid);
- 			}
-+			goto done;
-+		}
-+
-+		if (vma_anon_name(vma)) {
-+			pad_len_spaces(m, len);
-+			seq_print_vma_name(m, vma);
- 		}
- 	}
- 
-diff -puN include/linux/mm.h~mm-add-a-field-to-store-names-for-private-anonymous-memory include/linux/mm.h
---- a/include/linux/mm.h~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/include/linux/mm.h
-@@ -1585,7 +1585,7 @@ extern int vma_adjust(struct vm_area_str
- extern struct vm_area_struct *vma_merge(struct mm_struct *,
- 	struct vm_area_struct *prev, unsigned long addr, unsigned long end,
- 	unsigned long vm_flags, struct anon_vma *, struct file *, pgoff_t,
--	struct mempolicy *);
-+	struct mempolicy *, const char __user *);
- extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
- extern int split_vma(struct mm_struct *,
- 	struct vm_area_struct *, unsigned long addr, int new_below);
-@@ -1929,5 +1929,8 @@ void __init setup_nr_node_ids(void);
- static inline void setup_nr_node_ids(void) {}
  #endif
- 
-+int madvise_set_anon_name(unsigned long start, unsigned long len_in,
-+				unsigned long name_addr);
-+
- #endif /* __KERNEL__ */
- #endif /* _LINUX_MM_H */
-diff -puN include/linux/mm_types.h~mm-add-a-field-to-store-names-for-private-anonymous-memory include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/include/linux/mm_types.h
-@@ -263,6 +263,10 @@ struct vm_area_struct {
- 	 * For areas with an address space and backing store,
- 	 * linkage into the address_space->i_mmap interval tree, or
- 	 * linkage of vma in the address_space->i_mmap_nonlinear list.
-+	 *
-+	 * For private anonymous mappings, a pointer to a null terminated string
-+	 * in the user process containing the name given to the vma, or NULL
-+	 * if unnamed.
- 	 */
- 	union {
- 		struct {
-@@ -270,6 +274,7 @@ struct vm_area_struct {
- 			unsigned long rb_subtree_last;
- 		} linear;
- 		struct list_head nonlinear;
-+		const char __user *anon_name;
- 	} shared;
- 
- 	/*
-@@ -463,4 +468,14 @@ static inline cpumask_t *mm_cpumask(stru
- 	return mm->cpu_vm_mask_var;
- }
- 
-+
-+/* Return the name for an anonymous mapping or NULL for a file-backed mapping */
-+static inline const char __user *vma_anon_name(struct vm_area_struct *vma)
-+{
-+	if (vma->vm_file)
-+		return NULL;
-+
-+	return vma->shared.anon_name;
-+}
-+
- #endif /* _LINUX_MM_TYPES_H */
-diff -puN include/uapi/linux/prctl.h~mm-add-a-field-to-store-names-for-private-anonymous-memory include/uapi/linux/prctl.h
---- a/include/uapi/linux/prctl.h~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/include/uapi/linux/prctl.h
-@@ -149,4 +149,7 @@
- 
- #define PR_GET_TID_ADDRESS	40
- 
-+#define PR_SET_VMA		0x53564d41
-+# define PR_SET_VMA_ANON_NAME		0
-+
- #endif /* _LINUX_PRCTL_H */
-diff -puN kernel/sys.c~mm-add-a-field-to-store-names-for-private-anonymous-memory kernel/sys.c
---- a/kernel/sys.c~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/kernel/sys.c
-@@ -1836,6 +1836,27 @@ static int prctl_get_tid_address(struct
- }
- #endif
- 
-+static int prctl_set_vma(unsigned long opt, unsigned long addr,
-+		unsigned long len, unsigned long arg)
-+{
-+	struct mm_struct *mm = current->mm;
-+	int error;
-+
-+	down_write(&mm->mmap_sem);
-+
-+	switch (opt) {
-+	case PR_SET_VMA_ANON_NAME:
-+		error = madvise_set_anon_name(addr, len, arg);
-+		break;
-+	default:
-+		error = -EINVAL;
-+	}
-+
-+	up_write(&mm->mmap_sem);
-+
-+	return error;
-+}
-+
- SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
- 		unsigned long, arg4, unsigned long, arg5)
- {
-@@ -1999,6 +2020,9 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 		if (arg2 || arg3 || arg4 || arg5)
- 			return -EINVAL;
- 		return current->no_new_privs ? 1 : 0;
-+	case PR_SET_VMA:
-+		error = prctl_set_vma(arg2, arg3, arg4, arg5);
-+		break;
- 	default:
- 		error = -EINVAL;
- 		break;
-diff -puN mm/madvise.c~mm-add-a-field-to-store-names-for-private-anonymous-memory mm/madvise.c
---- a/mm/madvise.c~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/mm/madvise.c
-@@ -44,20 +44,22 @@ static int madvise_need_mmap_write(int b
-  */
- static int madvise_update_vma(struct vm_area_struct *vma,
- 		     struct vm_area_struct **prev, unsigned long start,
--		     unsigned long end, unsigned long new_flags)
-+		     unsigned long end, unsigned long new_flags,
-+		     const char __user *new_anon_name)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	pgoff_t pgoff;
- 	int error;
- 
--	if (new_flags == vma->vm_flags) {
-+	if (new_flags == vma->vm_flags && new_anon_name == vma_anon_name(vma)) {
- 		*prev = vma;
- 		return 0;
- 	}
- 
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*prev = vma_merge(mm, *prev, start, end, new_flags, vma->anon_vma,
--				vma->vm_file, pgoff, vma_policy(vma));
-+				vma->vm_file, pgoff, vma_policy(vma),
-+				new_anon_name);
- 	if (*prev) {
- 		vma = *prev;
- 		goto success;
-@@ -82,10 +84,30 @@ success:
- 	 * vm_flags is protected by the mmap_sem held in write mode.
- 	 */
- 	vma->vm_flags = new_flags;
-+	if (!vma->vm_file)
-+		vma->shared.anon_name = new_anon_name;
- 
- 	return 0;
- }
- 
-+static int madvise_vma_anon_name(struct vm_area_struct *vma,
-+		     struct vm_area_struct **prev,
-+		     unsigned long start, unsigned long end,
-+		     unsigned long name_addr)
-+{
-+	int error;
-+
-+	/* Only anonymous mappings can be named */
-+	if (vma->vm_file)
-+		return -EINVAL;
-+
-+	error = madvise_update_vma(vma, prev, start, end, vma->vm_flags,
-+			(const char __user *)name_addr);
-+	if (error == -ENOMEM)
-+		error = -EAGAIN;
-+	return error;
-+}
-+
- #ifdef CONFIG_SWAP
- static int swapin_walk_pmd_entry(pmd_t *pmd, unsigned long start,
- 	unsigned long end, struct mm_walk *walk)
-@@ -352,7 +374,8 @@ static int madvise_vma_behavior(struct v
- 		break;
- 	}
- 
--	error = madvise_update_vma(vma, prev, start, end, new_flags);
-+	error = madvise_update_vma(vma, prev, start, end, new_flags,
-+				vma_anon_name(vma));
- 
- out:
- 	if (error == -ENOMEM)
-@@ -494,6 +517,30 @@ int madvise_walk_vmas(unsigned long star
- 	return unmapped_error;
- }
- 
-+int madvise_set_anon_name(unsigned long start, unsigned long len_in,
-+		unsigned long name_addr)
-+{
-+	unsigned long end;
-+	unsigned long len;
-+
-+	if (start & ~PAGE_MASK)
-+		return -EINVAL;
-+	len = (len_in + ~PAGE_MASK) & PAGE_MASK;
-+
-+	/* Check to see whether len was rounded up from small -ve to zero */
-+	if (len_in && !len)
-+		return -EINVAL;
-+
-+	end = start + len;
-+	if (end < start)
-+		return -EINVAL;
-+
-+	if (end == start)
-+		return 0;
-+
-+	return madvise_walk_vmas(start, end, name_addr, madvise_vma_anon_name);
-+}
-+
- /*
-  * The madvise(2) system call.
-  *
-diff -puN mm/mempolicy.c~mm-add-a-field-to-store-names-for-private-anonymous-memory mm/mempolicy.c
---- a/mm/mempolicy.c~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/mm/mempolicy.c
-@@ -767,7 +767,7 @@ static int mbind_range(struct mm_struct
- 			((vmstart - vma->vm_start) >> PAGE_SHIFT);
- 		prev = vma_merge(mm, prev, vmstart, vmend, vma->vm_flags,
- 				  vma->anon_vma, vma->vm_file, pgoff,
--				  new_pol);
-+				  new_pol, vma_anon_name(name));
- 		if (prev) {
- 			vma = prev;
- 			next = vma->vm_next;
-diff -puN mm/mlock.c~mm-add-a-field-to-store-names-for-private-anonymous-memory mm/mlock.c
---- a/mm/mlock.c~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/mm/mlock.c
-@@ -521,7 +521,8 @@ static int mlock_fixup(struct vm_area_st
- 
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*prev = vma_merge(mm, *prev, start, end, newflags, vma->anon_vma,
--			  vma->vm_file, pgoff, vma_policy(vma));
-+			  vma->vm_file, pgoff, vma_policy(vma),
-+			  vma_anon_name(vma));
- 	if (*prev) {
- 		vma = *prev;
- 		goto success;
-diff -puN mm/mmap.c~mm-add-a-field-to-store-names-for-private-anonymous-memory mm/mmap.c
---- a/mm/mmap.c~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/mm/mmap.c
-@@ -893,7 +893,8 @@ again:			remove_next = 1 + (end > next->
-  * per-vma resources, so we don't attempt to merge those.
-  */
- static inline int is_mergeable_vma(struct vm_area_struct *vma,
--			struct file *file, unsigned long vm_flags)
-+			struct file *file, unsigned long vm_flags,
-+			const char __user *anon_name)
- {
- 	if (vma->vm_flags ^ vm_flags)
- 		return 0;
-@@ -901,6 +902,8 @@ static inline int is_mergeable_vma(struc
- 		return 0;
- 	if (vma->vm_ops && vma->vm_ops->close)
- 		return 0;
-+	if (vma_anon_name(vma) != anon_name)
-+		return 0;
- 	return 1;
- }
- 
-@@ -931,9 +934,10 @@ static inline int is_mergeable_anon_vma(
-  */
- static int
- can_vma_merge_before(struct vm_area_struct *vma, unsigned long vm_flags,
--	struct anon_vma *anon_vma, struct file *file, pgoff_t vm_pgoff)
-+	struct anon_vma *anon_vma, struct file *file, pgoff_t vm_pgoff,
-+	const char __user *anon_name)
- {
--	if (is_mergeable_vma(vma, file, vm_flags) &&
-+	if (is_mergeable_vma(vma, file, vm_flags, anon_name) &&
- 	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
- 		if (vma->vm_pgoff == vm_pgoff)
- 			return 1;
-@@ -950,9 +954,10 @@ can_vma_merge_before(struct vm_area_stru
-  */
- static int
- can_vma_merge_after(struct vm_area_struct *vma, unsigned long vm_flags,
--	struct anon_vma *anon_vma, struct file *file, pgoff_t vm_pgoff)
-+	struct anon_vma *anon_vma, struct file *file, pgoff_t vm_pgoff,
-+	const char __user *anon_name)
- {
--	if (is_mergeable_vma(vma, file, vm_flags) &&
-+	if (is_mergeable_vma(vma, file, vm_flags, anon_name) &&
- 	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
- 		pgoff_t vm_pglen;
- 		vm_pglen = vma_pages(vma);
-@@ -963,9 +968,9 @@ can_vma_merge_after(struct vm_area_struc
- }
- 
- /*
-- * Given a mapping request (addr,end,vm_flags,file,pgoff), figure out
-- * whether that can be merged with its predecessor or its successor.
-- * Or both (it neatly fills a hole).
-+ * Given a mapping request (addr,end,vm_flags,file,pgoff,anon_name),
-+ * figure out whether that can be merged with its predecessor or its
-+ * successor.  Or both (it neatly fills a hole).
-  *
-  * In most cases - when called for mmap, brk or mremap - [addr,end) is
-  * certain not to be mapped by the time vma_merge is called; but when
-@@ -995,7 +1000,8 @@ struct vm_area_struct *vma_merge(struct
- 			struct vm_area_struct *prev, unsigned long addr,
- 			unsigned long end, unsigned long vm_flags,
- 		     	struct anon_vma *anon_vma, struct file *file,
--			pgoff_t pgoff, struct mempolicy *policy)
-+			pgoff_t pgoff, struct mempolicy *policy,
-+			const char __user *anon_name)
- {
- 	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
- 	struct vm_area_struct *area, *next;
-@@ -1021,15 +1027,15 @@ struct vm_area_struct *vma_merge(struct
- 	 */
- 	if (prev && prev->vm_end == addr &&
-   			mpol_equal(vma_policy(prev), policy) &&
--			can_vma_merge_after(prev, vm_flags,
--						anon_vma, file, pgoff)) {
-+			can_vma_merge_after(prev, vm_flags, anon_vma,
-+						file, pgoff, anon_name)) {
- 		/*
- 		 * OK, it can.  Can we now merge in the successor as well?
- 		 */
- 		if (next && end == next->vm_start &&
- 				mpol_equal(policy, vma_policy(next)) &&
--				can_vma_merge_before(next, vm_flags,
--					anon_vma, file, pgoff+pglen) &&
-+				can_vma_merge_before(next, vm_flags, anon_vma,
-+						file, pgoff+pglen, anon_name) &&
- 				is_mergeable_anon_vma(prev->anon_vma,
- 						      next->anon_vma, NULL)) {
- 							/* cases 1, 6 */
-@@ -1049,8 +1055,8 @@ struct vm_area_struct *vma_merge(struct
- 	 */
- 	if (next && end == next->vm_start &&
-  			mpol_equal(policy, vma_policy(next)) &&
--			can_vma_merge_before(next, vm_flags,
--					anon_vma, file, pgoff+pglen)) {
-+			can_vma_merge_before(next, vm_flags, anon_vma,
-+					file, pgoff+pglen, anon_name)) {
- 		if (prev && addr < prev->vm_end)	/* case 4 */
- 			err = vma_adjust(prev, prev->vm_start,
- 				addr, prev->vm_pgoff, NULL);
-@@ -1522,7 +1528,8 @@ munmap_back:
- 	/*
- 	 * Can we just expand an old mapping?
- 	 */
--	vma = vma_merge(mm, prev, addr, addr + len, vm_flags, NULL, file, pgoff, NULL);
-+	vma = vma_merge(mm, prev, addr, addr + len, vm_flags, NULL, file, pgoff,
-+			NULL, NULL);
- 	if (vma)
- 		goto out;
- 
-@@ -2634,7 +2641,7 @@ static unsigned long do_brk(unsigned lon
- 
- 	/* Can we just expand an old private anonymous mapping? */
- 	vma = vma_merge(mm, prev, addr, addr + len, flags,
--					NULL, NULL, pgoff, NULL);
-+					NULL, NULL, pgoff, NULL, NULL);
- 	if (vma)
- 		goto out;
- 
-@@ -2793,7 +2800,8 @@ struct vm_area_struct *copy_vma(struct v
- 	if (find_vma_links(mm, addr, addr + len, &prev, &rb_link, &rb_parent))
- 		return NULL;	/* should never get here */
- 	new_vma = vma_merge(mm, prev, addr, addr + len, vma->vm_flags,
--			vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma));
-+			vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
-+			vma_anon_name(vma));
- 	if (new_vma) {
- 		/*
- 		 * Source vma may have been merged into new_vma
-diff -puN mm/mprotect.c~mm-add-a-field-to-store-names-for-private-anonymous-memory mm/mprotect.c
---- a/mm/mprotect.c~mm-add-a-field-to-store-names-for-private-anonymous-memory
-+++ a/mm/mprotect.c
-@@ -274,7 +274,8 @@ mprotect_fixup(struct vm_area_struct *vm
- 	 */
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*pprev = vma_merge(mm, *pprev, start, end, newflags,
--			vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma));
-+			vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
-+			vma_anon_name(vma));
- 	if (*pprev) {
- 		vma = *pprev;
- 		goto success;
+ #ifdef CONFIG_PROC_FS
+ 	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
 _
 
-Patches currently in -mm which might be from ccross@android.com are
+Patches currently in -mm which might be from toshi.kani@hp.com are
 
-mm-rearrange-madvise-code-to-allow-for-reuse.patch
-mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
+cpu-mem-hotplug-add-try_online_node-for-cpu_up.patch
+mm-sparsemem-use-pages_per_section-to-remove-redundant-nr_pages-parameter.patch
+mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap.patch
+mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap-v2.patch
+memblock-factor-out-of-top-down-allocation.patch
+memblock-introduce-bottom-up-allocation-mode.patch
+x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
+x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
+mem-hotplug-introduce-movable_node-boot-option.patch
+linux-next.patch
 
