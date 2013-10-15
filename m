@@ -1,134 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch removed from -mm tree
-Date: Tue, 15 Oct 2013 15:33:16 -0700
-Message-ID: <525dc2ac.ZZM4NProkzWnQ9Y4%akpm__46867.1307120987$1381876410$gmane$org@linux-foundation.org>
+Subject: +
+ initramfs-read-config_rd_-variables-for-initramfs-compression.patch added
+ to -mm tree
+Date: Tue, 15 Oct 2013 15:41:17 -0700
+Message-ID: <525dc48d.1O1OpYnupaRyP5l7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54995 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55190 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933522Ab3JOWdR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:33:17 -0400
+	with ESMTP id S933634Ab3JOWlS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:41:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, sjenning@linux.vnet.ibm.com, minchan@kernel.org, bob.liu@oracle.com, weijie.yang@samsung.com
+To: mm-commits@vger.kernel.org, prasad@redhat.com, ppandit@redhat.com
 
-Subject: [to-be-updated] mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch removed from -mm tree
-To: weijie.yang@samsung.com,bob.liu@oracle.com,minchan@kernel.org,sjenning@linux.vnet.ibm.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: + initramfs-read-config_rd_-variables-for-initramfs-compression.patch added to -mm tree
+To: ppandit@redhat.com,prasad@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 15:33:16 -0700
+Date: Tue, 15 Oct 2013 15:41:17 -0700
 
 
 The patch titled
-     Subject: mm/zswap: bugfix: memory leak when invalidate and reclaim occur concurrently
-has been removed from the -mm tree.  Its filename was
-     mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently.patch
+     Subject: initramfs: read CONFIG_RD_ variables for initramfs compression
+has been added to the -mm tree.  Its filename is
+     initramfs-read-config_rd_-variables-for-initramfs-compression.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-read-config_rd_-variables-for-initramfs-compression.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-read-config_rd_-variables-for-initramfs-compression.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Weijie Yang <weijie.yang@samsung.com>
-Subject: mm/zswap: bugfix: memory leak when invalidate and reclaim occur concurrently
+From: P J P <ppandit@redhat.com>
+Subject: initramfs: read CONFIG_RD_ variables for initramfs compression
 
-Consider the following scenario:
-thread 0: reclaim entry x (get refcount, but not call zswap_get_swap_cache_page)
-thread 1: call zswap_frontswap_invalidate_page to invalidate entry x.
-	finished, entry x and its zbud is not freed as its refcount != 0
-	now, the swap_map[x] = 0
-thread 0: now call zswap_get_swap_cache_page
-	swapcache_prepare return -ENOENT because entry x is not used any more
-	zswap_get_swap_cache_page return ZSWAP_SWAPCACHE_NOMEM
-	zswap_writeback_entry do nothing except put refcount
-Now, the memory of zswap_entry x and its zpage leak.
+When expert configuration option(CONFIG_EXPERT) is enabled, menuconfig
+offers a choice of compression algorithm to compress initial ramfs image;
+This choice is stored into CONFIG_RD_* variables.  But usr/Makefile uses
+earlier INITRAMFS_COMPRESSION_* macros to build initial ramfs file.  Since
+none of them is defined, resulting 'initramfs_data.cpio' file remains
+un-compressed.
 
-Modify:
- - check the refcount in fail path, free memory if it is not referenced.
+This patch updates the Makefile to use CONFIG_RD_* variables and adds
+support for LZ4 compression algorithm.
 
- - use ZSWAP_SWAPCACHE_FAIL instead of ZSWAP_SWAPCACHE_NOMEM as the fail path
-   can be not only caused by nomem but also by invalidate.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
-Reviewed-by: Bob Liu <bob.liu@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
-Acked-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Signed-off-by: P J P <prasad@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ scripts/gen_initramfs_list.sh |    1 +
+ usr/Makefile                  |   19 ++++++++++++-------
+ 2 files changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently mm/zswap.c
---- a/mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrently
-+++ a/mm/zswap.c
-@@ -387,7 +387,7 @@ static void zswap_free_entry(struct zswa
- enum zswap_get_swap_ret {
- 	ZSWAP_SWAPCACHE_NEW,
- 	ZSWAP_SWAPCACHE_EXIST,
--	ZSWAP_SWAPCACHE_NOMEM
-+	ZSWAP_SWAPCACHE_FAIL,
- };
+diff -puN scripts/gen_initramfs_list.sh~initramfs-read-config_rd_-variables-for-initramfs-compression scripts/gen_initramfs_list.sh
+--- a/scripts/gen_initramfs_list.sh~initramfs-read-config_rd_-variables-for-initramfs-compression
++++ a/scripts/gen_initramfs_list.sh
+@@ -246,6 +246,7 @@ case "$arg" in
+ 		echo "$output_file" | grep -q "\.xz$" && \
+ 				compr="xz --check=crc32 --lzma2=dict=1MiB"
+ 		echo "$output_file" | grep -q "\.lzo$" && compr="lzop -9 -f"
++		echo "$output_file" | grep -q "\.lz4$" && compr="lz4 -9 -f"
+ 		echo "$output_file" | grep -q "\.cpio$" && compr="cat"
+ 		shift
+ 		;;
+diff -puN usr/Makefile~initramfs-read-config_rd_-variables-for-initramfs-compression usr/Makefile
+--- a/usr/Makefile~initramfs-read-config_rd_-variables-for-initramfs-compression
++++ a/usr/Makefile
+@@ -7,19 +7,22 @@ PHONY += klibcdirs
  
- /*
-@@ -401,9 +401,10 @@ enum zswap_get_swap_ret {
-  * added to the swap cache, and returned in retpage.
-  *
-  * If success, the swap cache page is returned in retpage
-- * Returns 0 if page was already in the swap cache, page is not locked
-- * Returns 1 if the new page needs to be populated, page is locked
-- * Returns <0 on error
-+ * Returns ZSWAP_SWAPCACHE_EXIST if page was already in the swap cache
-+ * Returns ZSWAP_SWAPCACHE_NEW if the new page needs to be populated,
-+ *	page is locked
-+ * Returns ZSWAP_SWAPCACHE_FAIL on error
-  */
- static int zswap_get_swap_cache_page(swp_entry_t entry,
- 				struct page **retpage)
-@@ -475,7 +476,7 @@ static int zswap_get_swap_cache_page(swp
- 	if (new_page)
- 		page_cache_release(new_page);
- 	if (!found_page)
--		return ZSWAP_SWAPCACHE_NOMEM;
-+		return ZSWAP_SWAPCACHE_FAIL;
- 	*retpage = found_page;
- 	return ZSWAP_SWAPCACHE_EXIST;
- }
-@@ -529,11 +530,11 @@ static int zswap_writeback_entry(struct
  
- 	/* try to allocate swap cache page */
- 	switch (zswap_get_swap_cache_page(swpentry, &page)) {
--	case ZSWAP_SWAPCACHE_NOMEM: /* no memory */
-+	case ZSWAP_SWAPCACHE_FAIL: /* no memory or invalidate happened */
- 		ret = -ENOMEM;
- 		goto fail;
+ # Gzip
+-suffix_$(CONFIG_INITRAMFS_COMPRESSION_GZIP)   = .gz
++suffix_$(CONFIG_RD_GZIP)   = .gz
  
--	case ZSWAP_SWAPCACHE_EXIST: /* page is unlocked */
-+	case ZSWAP_SWAPCACHE_EXIST:
- 		/* page is already in the swap cache, ignore for now */
- 		page_cache_release(page);
- 		ret = -EEXIST;
-@@ -591,7 +592,12 @@ static int zswap_writeback_entry(struct
+ # Bzip2
+-suffix_$(CONFIG_INITRAMFS_COMPRESSION_BZIP2)  = .bz2
++suffix_$(CONFIG_RD_BZIP2)  = .bz2
  
- fail:
- 	spin_lock(&tree->lock);
--	zswap_entry_put(entry);
-+	refcount = zswap_entry_put(entry);
-+	if (refcount <= 0) {
-+		/* invalidate happened, consider writeback as success */
-+		zswap_free_entry(tree, entry);
-+		ret = 0;
-+	}
- 	spin_unlock(&tree->lock);
- 	return ret;
- }
-_
-
-Patches currently in -mm which might be from weijie.yang@samsung.com are
-
-mm-zswap-bugfix-memory-leak-when-re-swapon.patch
-mm-zswap-avoid-unnecessary-page-scanning.patch
-
+ # Lzma
+-suffix_$(CONFIG_INITRAMFS_COMPRESSION_LZMA)   = .lzma
++suffix_$(CONFIG_RD_LZMA)   = .lzma
+ 
+ # XZ
+-suffix_$(CONFIG_INITRAMFS_COMPRESSION_XZ)     = .xz
++suffix_$(CONFIG_RD_XZ)     = .xz
+ 
+ # Lzo
+-suffix_$(CONFIG_INITRAMFS_COMPRESSION_LZO)   = .lzo
++suffix_$(CONFIG_RD_LZO)    = .lzo
++
++# Lz4
++suffix_$(CONFIG_RD_LZ4)    = .lz4
+ 
+ AFLAGS_initramfs_data.o += -DINITRAMFS_IMAGE="usr/initramfs_data.cpio$(suffix_y)"
+ 
+@@ -53,7 +56,10 @@ endif
+ quiet_cmd_initfs = GEN     $@
+       cmd_initfs = $(initramfs) -o $@ $(ramfs-args) $(ramfs-input)
+ 
+-targets := initramfs_data.cpio.gz initramfs_data.cpio.bz2 initramfs_data.cpio.lzma initramfs_data.cpio.xz initramfs_data.cpio.lzo initramfs_data.cpio
++targets := initramfs_data.cpio.gz initramfs_data.cpio.bz2 \
++	initramfs_data.cpio.lzma initramfs_data.cpio.xz \
++	initramfs_data.cpio.lzo initramfs_data.cpio.lz4 \
++	initramfs_data.cpio
+ # do not try to update files included in initramfs
+ $(deps_initramfs): ;
+ 
+@@ -66,4 +72,3 @@ $(deps_initramfs): klibcdirs
+ $(obj)/initramfs_data.cpio$(suffix_y): $(obj)/gen_init_cpio $(deps_initramfs) klibcdirs
+ 	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/.initramfs_data.cpio.d
+ 	$(call if_changed,initfs)
