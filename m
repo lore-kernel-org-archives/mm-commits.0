@@ -1,90 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] ipc-update-locking-scheme-comments-fix.patch
- removed from -mm tree
-Date: Wed, 16 Oct 2013 13:43:41 -0700
-Message-ID: <525efa7d.9rR3NHmrFDHu8jcH%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix.patch removed from -mm tree
+Date: Wed, 16 Oct 2013 13:44:07 -0700
+Message-ID: <525efa97.h7/jaze0lZcgeLtR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37281 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37340 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932603Ab3JPUnm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Oct 2013 16:43:42 -0400
+	with ESMTP id S932603Ab3JPUoH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Oct 2013 16:44:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, davidlohr@hp.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, aarcange@redhat.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] ipc-update-locking-scheme-comments-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,davidlohr@hp.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,aarcange@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 16 Oct 2013 13:43:41 -0700
+Date: Wed, 16 Oct 2013 13:44:07 -0700
 
 
 The patch titled
-     Subject: ipc-update-locking-scheme-comments-fix
+     Subject: mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix
 has been removed from the -mm tree.  Its filename was
-     ipc-update-locking-scheme-comments-fix.patch
+     mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix.patch
 
-This patch was dropped because it was folded into ipc-update-locking-scheme-comments.patch
+This patch was dropped because it was folded into mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-update-locking-scheme-comments-fix
+Subject: mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix
 
-make it more readable in 80 columns
+tweak comment layout and grammar
 
-Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ mm/hugetlb.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN ipc/util.c~ipc-update-locking-scheme-comments-fix ipc/util.c
---- a/ipc/util.c~ipc-update-locking-scheme-comments-fix
-+++ a/ipc/util.c
-@@ -17,21 +17,27 @@
-  *            Pavel Emelianov <xemul@openvz.org>
-  *
-  * General sysv ipc locking scheme:
-- *      rcu_read_lock()
-- *          obtain the ipc object (kern_ipc_perm) by looking up the id in an idr tree.
-- *          - perform initial checks (capabilities, auditing and permission, etc).
-- *          - perform read-only operations, such as STAT, INFO commands.
-- *          acquire the ipc lock (kern_ipc_perm.lock) through ipc_lock_object()
-- *             - perform data updates, such as SET, RMID commands and
-- *               mechanism-specific operations (semop/semtimedop, msgsnd/msgrcv, shmat/shmdt).
-- *          drop the ipc lock, through ipc_unlock_object().
-- *     rcu_read_unlock()
-+ *	rcu_read_lock()
-+ *          obtain the ipc object (kern_ipc_perm) by looking up the id in an idr
-+ *	    tree.
-+ *	    - perform initial checks (capabilities, auditing and permission,
-+ *	      etc).
-+ *	    - perform read-only operations, such as STAT, INFO commands.
-+ *	      acquire the ipc lock (kern_ipc_perm.lock) through
-+ *	      ipc_lock_object()
-+ *		- perform data updates, such as SET, RMID commands and
-+ *		  mechanism-specific operations (semop/semtimedop,
-+ *		  msgsnd/msgrcv, shmat/shmdt).
-+ *	    drop the ipc lock, through ipc_unlock_object().
-+ *	rcu_read_unlock()
-  *
-  *  The ids->rwsem must be taken when:
-- *     - creating, removing and iterating the existing entries in ipc identifier sets.
-- *     - iterating through /proc/sysvipc/* files.
-+ *	- creating, removing and iterating the existing entries in ipc
-+ *	  identifier sets.
-+ *	- iterating through /proc/sysvipc/* files.
-  *
-- *  Note that sems have a special fast path that avoids kern_ipc_perm.lock - see sem_lock().
-+ *  Note that sems have a special fast path that avoids kern_ipc_perm.lock -
-+ *  see sem_lock().
-  */
- 
- #include <linux/mm.h>
+diff -puN mm/hugetlb.c~mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix
++++ a/mm/hugetlb.c
+@@ -701,17 +701,15 @@ static void prep_compound_gigantic_page(
+ 		__SetPageTail(p);
+ 		/*
+ 		 * For gigantic hugepages allocated through bootmem at
+-		 * boot, it's safer to be consistent with the
+-		 * not-gigantic hugepages and to clear the PG_reserved
+-		 * bit from all tail pages too. Otherwse drivers using
+-		 * get_user_pages() to access tail pages, may get the
+-		 * reference counting wrong if they see the
+-		 * PG_reserved bitflag set on a tail page (despite the
+-		 * head page didn't have PG_reserved set). Enforcing
+-		 * this consistency between head and tail pages,
+-		 * allows drivers to optimize away a check on the head
+-		 * page when they need know if put_page is needed after
+-		 * get_user_pages() or not.
++		 * boot, it's safer to be consistent with the not-gigantic
++		 * hugepages and clear the PG_reserved bit from all tail pages
++		 * too.  Otherwse drivers using get_user_pages() to access tail
++		 * pages may get the reference counting wrong if they see
++		 * PG_reserved set on a tail page (despite the head page not
++		 * having PG_reserved set).  Enforcing this consistency between
++		 * head and tail pages allows drivers to optimize away a check
++		 * on the head page when they need know if put_page() is needed
++		 * after get_user_pages().
+ 		 */
+ 		__ClearPageReserved(p);
+ 		set_page_count(p, 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +80,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 ipc-update-locking-scheme-comments.patch
 mm-zswap-bugfix-memory-leak-when-re-swapon.patch
-mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages-fix.patch
+mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages.patch
 kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
 makefile-enable-werror=implicit-int-and-werror=strict-prototypes-by-default.patch
 mm-readaheadc-do_readhead-dont-check-for-readpage.patch
