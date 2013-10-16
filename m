@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- initramfs-read-config_rd_-variables-for-initramfs-compression.patch added
- to -mm tree
-Date: Tue, 15 Oct 2013 15:41:17 -0700
-Message-ID: <525dc48d.1O1OpYnupaRyP5l7%akpm@linux-foundation.org>
+Subject: + m68k-handle-pgtable_page_ctor-fail-fix.patch added to -mm tree
+Date: Wed, 16 Oct 2013 12:29:14 -0700
+Message-ID: <525ee90a.3BWELBwSLpIfmSLG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36723 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933634Ab3JOWlS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Oct 2013 18:41:18 -0400
+	with ESMTP id S1759708Ab3JPT3P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Oct 2013 15:29:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, prasad@redhat.com, ppandit@redhat.com
+To: mm-commits@vger.kernel.org, geert@linux-m68k.org, kirill.shutemov@linux.intel.com
 
-Subject: + initramfs-read-config_rd_-variables-for-initramfs-compression.patch added to -mm tree
-To: ppandit@redhat.com,prasad@redhat.com
+Subject: + m68k-handle-pgtable_page_ctor-fail-fix.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,geert@linux-m68k.org
 From: akpm@linux-foundation.org
-Date: Tue, 15 Oct 2013 15:41:17 -0700
+Date: Wed, 16 Oct 2013 12:29:14 -0700
 
 
 The patch titled
-     Subject: initramfs: read CONFIG_RD_ variables for initramfs compression
+     Subject: m68k-handle-pgtable_page_ctor-fail-fix
 has been added to the -mm tree.  Its filename is
-     initramfs-read-config_rd_-variables-for-initramfs-compression.patch
+     m68k-handle-pgtable_page_ctor-fail-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-read-config_rd_-variables-for-initramfs-compression.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m68k-handle-pgtable_page_ctor-fail-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-read-config_rd_-variables-for-initramfs-compression.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-handle-pgtable_page_ctor-fail-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,82 +43,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: P J P <ppandit@redhat.com>
-Subject: initramfs: read CONFIG_RD_ variables for initramfs compression
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: m68k-handle-pgtable_page_ctor-fail-fix
 
-When expert configuration option(CONFIG_EXPERT) is enabled, menuconfig
-offers a choice of compression algorithm to compress initial ramfs image;
-This choice is stored into CONFIG_RD_* variables.  But usr/Makefile uses
-earlier INITRAMFS_COMPRESSION_* macros to build initial ramfs file.  Since
-none of them is defined, resulting 'initramfs_data.cpio' file remains
-un-compressed.
-
-This patch updates the Makefile to use CONFIG_RD_* variables and adds
-support for LZ4 compression algorithm.
-
-Signed-off-by: P J P <prasad@redhat.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gen_initramfs_list.sh |    1 +
- usr/Makefile                  |   19 ++++++++++++-------
- 2 files changed, 13 insertions(+), 7 deletions(-)
+ arch/m68k/include/asm/motorola_pgalloc.h |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN scripts/gen_initramfs_list.sh~initramfs-read-config_rd_-variables-for-initramfs-compression scripts/gen_initramfs_list.sh
---- a/scripts/gen_initramfs_list.sh~initramfs-read-config_rd_-variables-for-initramfs-compression
-+++ a/scripts/gen_initramfs_list.sh
-@@ -246,6 +246,7 @@ case "$arg" in
- 		echo "$output_file" | grep -q "\.xz$" && \
- 				compr="xz --check=crc32 --lzma2=dict=1MiB"
- 		echo "$output_file" | grep -q "\.lzo$" && compr="lzop -9 -f"
-+		echo "$output_file" | grep -q "\.lz4$" && compr="lz4 -9 -f"
- 		echo "$output_file" | grep -q "\.cpio$" && compr="cat"
- 		shift
- 		;;
-diff -puN usr/Makefile~initramfs-read-config_rd_-variables-for-initramfs-compression usr/Makefile
---- a/usr/Makefile~initramfs-read-config_rd_-variables-for-initramfs-compression
-+++ a/usr/Makefile
-@@ -7,19 +7,22 @@ PHONY += klibcdirs
+diff -puN arch/m68k/include/asm/motorola_pgalloc.h~m68k-handle-pgtable_page_ctor-fail-fix arch/m68k/include/asm/motorola_pgalloc.h
+--- a/arch/m68k/include/asm/motorola_pgalloc.h~m68k-handle-pgtable_page_ctor-fail-fix
++++ a/arch/m68k/include/asm/motorola_pgalloc.h
+@@ -29,21 +29,22 @@ static inline void pte_free_kernel(struc
  
+ static inline pgtable_t pte_alloc_one(struct mm_struct *mm, unsigned long address)
+ {
+-	struct page *page = alloc_pages(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO, 0);
++	struct page *page;
+ 	pte_t *pte;
  
- # Gzip
--suffix_$(CONFIG_INITRAMFS_COMPRESSION_GZIP)   = .gz
-+suffix_$(CONFIG_RD_GZIP)   = .gz
++	page = alloc_pages(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO, 0);
+ 	if(!page)
+ 		return NULL;
++	if (!pgtable_page_ctor(page)) {
++		__free_page(page);
++		return NULL;
++	}
  
- # Bzip2
--suffix_$(CONFIG_INITRAMFS_COMPRESSION_BZIP2)  = .bz2
-+suffix_$(CONFIG_RD_BZIP2)  = .bz2
+ 	pte = kmap(page);
+ 	__flush_page_to_ram(pte);
+ 	flush_tlb_kernel_page(pte);
+ 	nocache_page(pte);
+ 	kunmap(page);
+-	if (!pgtable_page_ctor(page)) {
+-		__free_page(page);
+-		return NULL;
+-	}
+ 	return page;
+ }
  
- # Lzma
--suffix_$(CONFIG_INITRAMFS_COMPRESSION_LZMA)   = .lzma
-+suffix_$(CONFIG_RD_LZMA)   = .lzma
- 
- # XZ
--suffix_$(CONFIG_INITRAMFS_COMPRESSION_XZ)     = .xz
-+suffix_$(CONFIG_RD_XZ)     = .xz
- 
- # Lzo
--suffix_$(CONFIG_INITRAMFS_COMPRESSION_LZO)   = .lzo
-+suffix_$(CONFIG_RD_LZO)    = .lzo
-+
-+# Lz4
-+suffix_$(CONFIG_RD_LZ4)    = .lz4
- 
- AFLAGS_initramfs_data.o += -DINITRAMFS_IMAGE="usr/initramfs_data.cpio$(suffix_y)"
- 
-@@ -53,7 +56,10 @@ endif
- quiet_cmd_initfs = GEN     $@
-       cmd_initfs = $(initramfs) -o $@ $(ramfs-args) $(ramfs-input)
- 
--targets := initramfs_data.cpio.gz initramfs_data.cpio.bz2 initramfs_data.cpio.lzma initramfs_data.cpio.xz initramfs_data.cpio.lzo initramfs_data.cpio
-+targets := initramfs_data.cpio.gz initramfs_data.cpio.bz2 \
-+	initramfs_data.cpio.lzma initramfs_data.cpio.xz \
-+	initramfs_data.cpio.lzo initramfs_data.cpio.lz4 \
-+	initramfs_data.cpio
- # do not try to update files included in initramfs
- $(deps_initramfs): ;
- 
-@@ -66,4 +72,3 @@ $(deps_initramfs): klibcdirs
- $(obj)/initramfs_data.cpio$(suffix_y): $(obj)/gen_init_cpio $(deps_initramfs) klibcdirs
- 	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/.initramfs_data.cpio.d
- 	$(call if_changed,initfs)
+_
+
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+
+mm-fix-bug-in-__split_huge_page_pmd.patch
+mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
+mm-thp-cleanup-mv-alloc_hugepage-to-better-place.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
+x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
+cris-fix-potential-null-pointer-dereference.patch
+m32r-fix-potential-null-pointer-dereference.patch
+xtensa-fix-potential-null-pointer-dereference.patch
+mm-allow-pgtable_page_ctor-to-fail.patch
+microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
+mn10300-add-missing-pgtable_page_ctor-dtor-calls.patch
+openrisc-add-missing-pgtable_page_ctor-dtor-calls.patch
+alpha-handle-pgtable_page_ctor-fail.patch
+arc-handle-pgtable_page_ctor-fail.patch
+arm-handle-pgtable_page_ctor-fail.patch
+arm64-handle-pgtable_page_ctor-fail.patch
+avr32-handle-pgtable_page_ctor-fail.patch
+cris-handle-pgtable_page_ctor-fail.patch
+frv-handle-pgtable_page_ctor-fail.patch
+hexagon-handle-pgtable_page_ctor-fail.patch
+ia64-handle-pgtable_page_ctor-fail.patch
+m32r-handle-pgtable_page_ctor-fail.patch
+m68k-handle-pgtable_page_ctor-fail.patch
+m68k-handle-pgtable_page_ctor-fail-fix.patch
+metag-handle-pgtable_page_ctor-fail.patch
+mips-handle-pgtable_page_ctor-fail.patch
+parisc-handle-pgtable_page_ctor-fail.patch
+powerpc-handle-pgtable_page_ctor-fail.patch
+s390-handle-pgtable_page_ctor-fail.patch
+score-handle-pgtable_page_ctor-fail.patch
+sh-handle-pgtable_page_ctor-fail.patch
+sparc-handle-pgtable_page_ctor-fail.patch
+tile-handle-pgtable_page_ctor-fail.patch
+um-handle-pgtable_page_ctor-fail.patch
+unicore32-handle-pgtable_page_ctor-fail.patch
+x86-handle-pgtable_page_ctor-fail.patch
+xtensa-handle-pgtable_page_ctor-fail.patch
+iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch
+xtensa-use-buddy-allocator-for-pte-table.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
+thp-mm-locking-tail-page-is-a-bug.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+
