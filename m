@@ -1,87 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page.patch removed from -mm tree
-Date: Thu, 17 Oct 2013 11:12:45 -0700
-Message-ID: <5260289d.AjzN4QbzBCnVzcDX%akpm@linux-foundation.org>
+Subject: [merged] mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
+ removed from -mm tree
+Date: Thu, 17 Oct 2013 11:12:41 -0700
+Message-ID: <52602899.f2Z6uetpKRfamanE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44259 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44250 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758657Ab3JQSMq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:46 -0400
+	with ESMTP id S1758657Ab3JQSMm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, liwanp@linux.vnet.ibm.com
 
-Subject: [merged] mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page.patch removed from -mm tree
+Subject: [merged] mm-hwpoison-fix-miss-catch-transparent-huge-page.patch removed from -mm tree
 To: liwanp@linux.vnet.ibm.com,ak@linux.intel.com,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:12:45 -0700
+Date: Thu, 17 Oct 2013 11:12:41 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: fix the lack of one reference count against poisoned page
+     Subject: mm/hwpoison: fix test for a transparent huge page
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page.patch
+     mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: fix the lack of one reference count against poisoned page
+Subject: mm/hwpoison: fix test for a transparent huge page
 
-The lack of one reference count against poisoned page for hwpoison_inject
-w/o hwpoison_filter enabled result in hwpoison detect -1 users still
-referenced the page, however, the number should be 0 except the poison
-handler held one after successfully unmap.  This patch fix it by hold one
-referenced count against poisoned page for hwpoison_inject w/ and w/o
-hwpoison_filter enabled.
+PageTransHuge() can't guarantee the page is a transparent huge page since
+it returns true for both transparent huge and hugetlbfs pages.  This patch
+fixes it by checking the page is also !hugetlbfs page.
 
 Before patch:
 
-[   71.902112] Injecting memory failure at pfn 224706
-[   71.902137] MCE 0x224706: dirty LRU page recovery: Failed
-[   71.902138] MCE 0x224706: dirty LRU page still referenced by -1 users
+[  121.571128] Injecting memory failure at pfn 23a200
+[  121.571141] MCE 0x23a200: huge page recovery: Delayed
+[  140.355100] MCE: Memory failure is now running on 0x23a200
 
 After patch:
 
-[   94.710860] Injecting memory failure at pfn 215b68
-[   94.710885] MCE 0x215b68: dirty LRU page recovery: Recovered
+[   94.290793] Injecting memory failure at pfn 23a000
+[   94.290800] MCE 0x23a000: huge page recovery: Delayed
+[  105.722303] MCE: Software-unpoisoned page 0x23a000
 
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Acked-by: Andi Kleen <ak@linux.intel.com>
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hwpoison-inject.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hwpoison-inject.c~mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page mm/hwpoison-inject.c
---- a/mm/hwpoison-inject.c~mm-hwpoison-fix-the-lack-of-one-reference-count-against-poisoned-page
-+++ a/mm/hwpoison-inject.c
-@@ -20,8 +20,6 @@ static int hwpoison_inject(void *data, u
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	if (!hwpoison_filter_enable)
--		goto inject;
- 	if (!pfn_valid(pfn))
- 		return -ENXIO;
- 
-@@ -33,6 +31,9 @@ static int hwpoison_inject(void *data, u
- 	if (!get_page_unless_zero(hpage))
- 		return 0;
- 
-+	if (!hwpoison_filter_enable)
-+		goto inject;
-+
- 	if (!PageLRU(p) && !PageHuge(p))
- 		shake_page(p, 0);
- 	/*
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-miss-catch-transparent-huge-page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-miss-catch-transparent-huge-page
++++ a/mm/memory-failure.c
+@@ -1349,7 +1349,7 @@ int unpoison_memory(unsigned long pfn)
+ 	 * worked by memory_failure() and the page lock is not held yet.
+ 	 * In such case, we yield to memory_failure() and make unpoison fail.
+ 	 */
+-	if (PageTransHuge(page)) {
++	if (!PageHuge(page) && PageTransHuge(page)) {
+ 		pr_info("MCE: Memory failure is now running on %#lx\n", pfn);
+ 			return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
