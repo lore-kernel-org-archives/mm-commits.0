@@ -1,65 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
- removed from -mm tree
-Date: Thu, 17 Oct 2013 11:12:23 -0700
-Message-ID: <52602887.J1UTRTQ+aq+sxLQk%akpm@linux-foundation.org>
+Subject: [merged] ipc-semc-synchronize-the-proc-interface.patch removed
+ from -mm tree
+Date: Thu, 17 Oct 2013 11:12:17 -0700
+Message-ID: <52602881.1WK0Z3IF8onrEZo1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44201 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44190 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758524Ab3JQSMX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:23 -0400
+	with ESMTP id S1758210Ab3JQSMS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, mgorman@suse.de, wpan@redhat.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, efault@gmx.de, davidlohr.bueso@hp.com, manfred@colorfullife.com
 
-Subject: [merged] documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch removed from -mm tree
-To: wpan@redhat.com,mgorman@suse.de,rdunlap@infradead.org,mm-commits@vger.kernel.org
+Subject: [merged] ipc-semc-synchronize-the-proc-interface.patch removed from -mm tree
+To: manfred@colorfullife.com,davidlohr.bueso@hp.com,efault@gmx.de,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:12:23 -0700
+Date: Thu, 17 Oct 2013 11:12:17 -0700
 
 
 The patch titled
-     Subject: Documentation/kernel-parameters.txt: replace kernelcore with Movable
+     Subject: ipc/sem.c: synchronize the proc interface
 has been removed from the -mm tree.  Its filename was
-     documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
+     ipc-semc-synchronize-the-proc-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Weiping Pan <wpan@redhat.com>
-Subject: Documentation/kernel-parameters.txt: replace kernelcore with Movable
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: synchronize the proc interface
 
-Han Pingtian found a typo in Documentation/kernel-parameters.txt about
-"kernelcore=", that "kernelcore" should be replaced with "Movable" here.
+The proc interface is not aware of sem_lock(), it calls ipc_lock_object()
+directly.  This means that simple semop() operations can run in parallel
+with the proc interface.  Right now, this is uncritical, because the
+implementation doesn't do anything that requires a proper synchronization.
 
-Signed-off-by: Weiping Pan <wpan@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+But it is dangerous and therefore should be fixed.
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/sem.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~documentation-kernel-parameterstxt-replace-kernelcore-with-movable Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~documentation-kernel-parameterstxt-replace-kernelcore-with-movable
-+++ a/Documentation/kernel-parameters.txt
-@@ -1357,7 +1357,7 @@ bytes respectively. Such letter suffixes
- 			pages. In the event, a node is too small to have both
- 			kernelcore and Movable pages, kernelcore pages will
- 			take priority and other nodes will have a larger number
--			of kernelcore pages.  The Movable zone is used for the
-+			of Movable pages.  The Movable zone is used for the
- 			allocation of pages that may be reclaimed or moved
- 			by the page migration subsystem.  This means that
- 			HugeTLB pages may not be allocated from this zone.
+diff -puN ipc/sem.c~ipc-semc-synchronize-the-proc-interface ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-synchronize-the-proc-interface
++++ a/ipc/sem.c
+@@ -2103,6 +2103,14 @@ static int sysvipc_sem_proc_show(struct
+ 	struct sem_array *sma = it;
+ 	time_t sem_otime;
+ 
++	/*
++	 * The proc interface isn't aware of sem_lock(), it calls
++	 * ipc_lock_object() directly (in sysvipc_find_ipc).
++	 * In order to stay compatible with sem_lock(), we must wait until
++	 * all simple semop() calls have left their critical regions.
++	 */
++	sem_wait_array(sma);
++
+ 	sem_otime = get_semotime(sma);
+ 
+ 	return seq_printf(s,
 _
 
-Patches currently in -mm which might be from wpan@redhat.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
+origin.patch
+slab-leaks3-default-y.patch
 
