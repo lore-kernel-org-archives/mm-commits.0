@@ -1,89 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-update-locking-scheme-comments.patch removed from
- -mm tree
-Date: Thu, 17 Oct 2013 11:12:55 -0700
-Message-ID: <526028a7.I6d5il5T3MtybFKl%akpm@linux-foundation.org>
+Subject: [merged] gcov-maintainers-add-an-entry-for-gcov.patch removed
+ from -mm tree
+Date: Thu, 17 Oct 2013 11:13:03 -0700
+Message-ID: <526028af.XUgnvJUn9nf4oH7g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44280 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44308 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758709Ab3JQSMz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:55 -0400
+	with ESMTP id S1758709Ab3JQSND (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, manfred@colorfullife.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, oberpar@linux.vnet.ibm.com
 
-Subject: [merged] ipc-update-locking-scheme-comments.patch removed from -mm tree
-To: davidlohr@hp.com,manfred@colorfullife.com,mm-commits@vger.kernel.org
+Subject: [merged] gcov-maintainers-add-an-entry-for-gcov.patch removed from -mm tree
+To: oberpar@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:12:55 -0700
+Date: Thu, 17 Oct 2013 11:13:03 -0700
 
 
 The patch titled
-     Subject: ipc: update locking scheme comments
+     Subject: gcov: MAINTAINERS: Add an entry for gcov
 has been removed from the -mm tree.  Its filename was
-     ipc-update-locking-scheme-comments.patch
+     gcov-maintainers-add-an-entry-for-gcov.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipc: update locking scheme comments
+From: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Subject: gcov: MAINTAINERS: Add an entry for gcov
 
-The initial documentation was a bit incomplete, update accordingly.
-
-[akpm@linux-foundation.org: make it more readable in 80 columns]
-Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Acked-by: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   27 +++++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN ipc/util.c~ipc-update-locking-scheme-comments ipc/util.c
---- a/ipc/util.c~ipc-update-locking-scheme-comments
-+++ a/ipc/util.c
-@@ -17,12 +17,27 @@
-  *            Pavel Emelianov <xemul@openvz.org>
-  *
-  * General sysv ipc locking scheme:
-- *  when doing ipc id lookups, take the ids->rwsem
-- *      rcu_read_lock()
-- *          obtain the ipc object (kern_ipc_perm)
-- *          perform security, capabilities, auditing and permission checks, etc.
-- *          acquire the ipc lock (kern_ipc_perm.lock) throught ipc_lock_object()
-- *             perform data updates (ie: SET, RMID, LOCK/UNLOCK commands)
-+ *	rcu_read_lock()
-+ *          obtain the ipc object (kern_ipc_perm) by looking up the id in an idr
-+ *	    tree.
-+ *	    - perform initial checks (capabilities, auditing and permission,
-+ *	      etc).
-+ *	    - perform read-only operations, such as STAT, INFO commands.
-+ *	      acquire the ipc lock (kern_ipc_perm.lock) through
-+ *	      ipc_lock_object()
-+ *		- perform data updates, such as SET, RMID commands and
-+ *		  mechanism-specific operations (semop/semtimedop,
-+ *		  msgsnd/msgrcv, shmat/shmdt).
-+ *	    drop the ipc lock, through ipc_unlock_object().
-+ *	rcu_read_unlock()
-+ *
-+ *  The ids->rwsem must be taken when:
-+ *	- creating, removing and iterating the existing entries in ipc
-+ *	  identifier sets.
-+ *	- iterating through /proc/sysvipc/* files.
-+ *
-+ *  Note that sems have a special fast path that avoids kern_ipc_perm.lock -
-+ *  see sem_lock().
-  */
+diff -puN MAINTAINERS~gcov-maintainers-add-an-entry-for-gcov MAINTAINERS
+--- a/MAINTAINERS~gcov-maintainers-add-an-entry-for-gcov
++++ a/MAINTAINERS
+@@ -3624,6 +3624,12 @@ L:	linux-scsi@vger.kernel.org
+ S:	Odd Fixes (e.g., new signatures)
+ F:	drivers/scsi/fdomain.*
  
- #include <linux/mm.h>
++GCOV BASED KERNEL PROFILING
++M:	Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
++S:	Maintained
++F:	kernel/gcov/
++F:	Documentation/gcov.txt
++
+ GDT SCSI DISK ARRAY CONTROLLER DRIVER
+ M:	Achim Leubner <achim_leubner@adaptec.com>
+ L:	linux-scsi@vger.kernel.org
 _
 
-Patches currently in -mm which might be from davidlohr@hp.com are
+Patches currently in -mm which might be from oberpar@linux.vnet.ibm.com are
 
 origin.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-3.patch
 
