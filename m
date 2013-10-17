@@ -1,84 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- procfs-call-default-get_unmapped_area-on-mmu-present-architectures.patch
- removed from -mm tree
-Date: Thu, 17 Oct 2013 11:13:27 -0700
-Message-ID: <526028c7.M2VBLTGsb9r2PNHE%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-bug-in-__split_huge_page_pmd.patch removed from
+ -mm tree
+Date: Thu, 17 Oct 2013 11:13:31 -0700
+Message-ID: <526028cb.rF/sNPzZ2uar3CJb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44384 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44399 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758604Ab3JQSN2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:28 -0400
+	with ESMTP id S1759516Ab3JQSNc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, holzheu@linux.vnet.ibm.com, davem@davemloft.net, adobriyan@gmail.com, d.hatayama@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com, aarcange@redhat.com, hughd@google.com
 
-Subject: [merged] procfs-call-default-get_unmapped_area-on-mmu-present-architectures.patch removed from -mm tree
-To: d.hatayama@jp.fujitsu.com,adobriyan@gmail.com,davem@davemloft.net,holzheu@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-fix-bug-in-__split_huge_page_pmd.patch removed from -mm tree
+To: hughd@google.com,aarcange@redhat.com,kirill.shutemov@linux.intel.com,n-horiguchi@ah.jp.nec.com,rientjes@google.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:13:27 -0700
+Date: Thu, 17 Oct 2013 11:13:31 -0700
 
 
 The patch titled
-     Subject: procfs: call default get_unmapped_area on MMU-present architectures
+     Subject: mm: fix BUG in __split_huge_page_pmd
 has been removed from the -mm tree.  Its filename was
-     procfs-call-default-get_unmapped_area-on-mmu-present-architectures.patch
+     mm-fix-bug-in-__split_huge_page_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: procfs: call default get_unmapped_area on MMU-present architectures
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix BUG in __split_huge_page_pmd
 
-c4fe24485729f ("sparc: fix PCI device proc file mmap(2)") added
-proc_reg_get_unmapped_area in proc_reg_file_ops and
-proc_reg_file_ops_no_compat, by which now mmap always returns EIO if
-get_unmapped_area method is not defined for the target procfs file, which
-causes regression of mmap on /proc/vmcore.
+Occasionally we hit the BUG_ON(pmd_trans_huge(*pmd)) at the end of
+__split_huge_page_pmd(): seen when doing madvise(,,MADV_DONTNEED).
 
-To address this issue, like get_unmapped_area(), call default
-current->mm->get_unmapped_area on MMU-present architectures if
-pde->proc_fops->get_unmapped_area, i.e.  the one in actual file operation
-in the procfs file, is not defined.
+It's invalid: we don't always have down_write of mmap_sem there: a racing
+do_huge_pmd_wp_page() might have copied-on-write to another huge page
+before our split_huge_page() got the anon_vma lock.
 
-Reported-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David S. Miller <davem@davemloft.net>
-Tested-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Forget the BUG_ON, just go back and try again if this happens.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/inode.c~procfs-call-default-get_unmapped_area-on-mmu-present-architectures fs/proc/inode.c
---- a/fs/proc/inode.c~procfs-call-default-get_unmapped_area-on-mmu-present-architectures
-+++ a/fs/proc/inode.c
-@@ -289,9 +289,13 @@ static unsigned long proc_reg_get_unmapp
- {
- 	struct proc_dir_entry *pde = PDE(file_inode(file));
- 	unsigned long rv = -EIO;
--	unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
-+	unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long) = NULL;
- 	if (use_pde(pde)) {
--		get_unmapped_area = pde->proc_fops->get_unmapped_area;
-+#ifdef CONFIG_MMU
-+		get_unmapped_area = current->mm->get_unmapped_area;
-+#endif
-+		if (pde->proc_fops->get_unmapped_area)
-+			get_unmapped_area = pde->proc_fops->get_unmapped_area;
- 		if (get_unmapped_area)
- 			rv = get_unmapped_area(file, orig_addr, len, pgoff, flags);
- 		unuse_pde(pde);
+diff -puN mm/huge_memory.c~mm-fix-bug-in-__split_huge_page_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-fix-bug-in-__split_huge_page_pmd
++++ a/mm/huge_memory.c
+@@ -2697,6 +2697,7 @@ void __split_huge_page_pmd(struct vm_are
+ 
+ 	mmun_start = haddr;
+ 	mmun_end   = haddr + HPAGE_PMD_SIZE;
++again:
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	spin_lock(&mm->page_table_lock);
+ 	if (unlikely(!pmd_trans_huge(*pmd))) {
+@@ -2719,7 +2720,14 @@ void __split_huge_page_pmd(struct vm_are
+ 	split_huge_page(page);
+ 
+ 	put_page(page);
+-	BUG_ON(pmd_trans_huge(*pmd));
++
++	/*
++	 * We don't always have down_write of mmap_sem here: a racing
++	 * do_huge_pmd_wp_page() might have copied-on-write to another
++	 * huge page before our split_huge_page() got the anon_vma lock.
++	 */
++	if (unlikely(pmd_trans_huge(*pmd)))
++		goto again;
+ }
+ 
+ void split_huge_page_pmd_mm(struct mm_struct *mm, unsigned long address,
 _
 
-Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
-procfs-clean-up-proc_reg_get_unmapped_area-for-80-column-limit.patch
+linux-next.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
+mm-rearrange-madvise-code-to-allow-for-reuse.patch
+mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
