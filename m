@@ -1,104 +1,115 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch removed from
- -mm tree
-Date: Thu, 17 Oct 2013 11:12:53 -0700
-Message-ID: <526028a5.rBt2+WwRWclxV6Dt%akpm@linux-foundation.org>
+ mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state.patch removed from -mm tree
+Date: Thu, 17 Oct 2013 11:13:05 -0700
+Message-ID: <526028b1.7QyX6VdbzZ3J71eC%akpm__8659.97112491659$1382033605$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44276 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44313 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758741Ab3JQSMy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:54 -0400
+	with ESMTP id S1758877Ab3JQSNG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, rientjes@google.com
+To: mm-commits@vger.kernel.org, xiaoguangrong@linux.vnet.ibm.com, xemul@parallels.com, stable@vger.kernel.org, sfr@canb.auug.org.au, peterz@infradead.org, n-horiguchi@ah.jp.nec.com, mtosatti@redhat.com, mpm@selenic.com, mel@csn.ul.ie, luto@amacapital.net, kosaki.motohiro@gmail.com, gorcunov@openvz.org, aneesh.kumar@linux.vnet.ibm.com, gorcunov@gmail.com
 
-Subject: [merged] mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch removed from -mm tree
-To: rientjes@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state.patch removed from -mm tree
+To: gorcunov@gmail.com,aneesh.kumar@linux.vnet.ibm.com,gorcunov@openvz.org,kosaki.motohiro@gmail.com,luto@amacapital.net,mel@csn.ul.ie,mpm@selenic.com,mtosatti@redhat.com,n-horiguchi@ah.jp.nec.com,peterz@infradead.org,sfr@canb.auug.org.au,stable@vger.kernel.org,xemul@parallels.com,xiaoguangrong@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:12:53 -0700
+Date: Thu, 17 Oct 2013 11:13:05 -0700
 
 
 The patch titled
-     Subject: mm, memcg: protect mem_cgroup_read_events for cpu hotplug
+     Subject: mm: migration: do not lose soft dirty bit if page is in migration state
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
+     mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, memcg: protect mem_cgroup_read_events for cpu hotplug
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: mm: migration: do not lose soft dirty bit if page is in migration state
 
-for_each_online_cpu() needs the protection of {get,put}_online_cpus() so
-cpu_online_mask doesn't change during the iteration.
+If page migration is turned on in config and the page is migrating, we may
+lose the soft dirty bit.  If fork and mprotect are called on migrating
+pages (once migration is complete) pages do not obtain the soft dirty bit
+in the correspond pte entries.  Fix it adding an appropriate test on swap
+entries.
 
-cpu_hotplug.lock is held while a cpu is going down, it's a coarse lock
-that is used kernel-wide to synchronize cpu hotplug activity.  Memcg has a
-cpu hotplug notifier, called while there may not be any cpu hotplug
-refcounts, which drains per-cpu event counts to memcg->nocpu_base.events
-to maintain a cumulative event count as cpus disappear.  Without
-get_online_cpus() in mem_cgroup_read_events(), it's possible to account
-for the event count on a dying cpu twice, and this value may be
-significantly large.
-
-In fact, all memcg->pcp_counter_lock use should be nested by 
-{get,put}_online_cpus().
-
-This fixes that issue and ensures the reported statistics are not vastly
-over-reported during cpu hotplug.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory.c   |    2 ++
+ mm/migrate.c  |    2 ++
+ mm/mprotect.c |    7 +++++--
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug
-+++ a/mm/memcontrol.c
-@@ -866,6 +866,7 @@ static unsigned long mem_cgroup_read_eve
- 	unsigned long val = 0;
- 	int cpu;
+diff -puN mm/memory.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state mm/memory.c
+--- a/mm/memory.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state
++++ a/mm/memory.c
+@@ -837,6 +837,8 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 					 */
+ 					make_migration_entry_read(&entry);
+ 					pte = swp_entry_to_pte(entry);
++					if (pte_swp_soft_dirty(*src_pte))
++						pte = pte_swp_mksoft_dirty(pte);
+ 					set_pte_at(src_mm, addr, src_pte, pte);
+ 				}
+ 			}
+diff -puN mm/migrate.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state mm/migrate.c
+--- a/mm/migrate.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state
++++ a/mm/migrate.c
+@@ -161,6 +161,8 @@ static int remove_migration_pte(struct p
  
-+	get_online_cpus();
- 	for_each_online_cpu(cpu)
- 		val += per_cpu(memcg->stat->events[idx], cpu);
- #ifdef CONFIG_HOTPLUG_CPU
-@@ -873,6 +874,7 @@ static unsigned long mem_cgroup_read_eve
- 	val += memcg->nocpu_base.events[idx];
- 	spin_unlock(&memcg->pcp_counter_lock);
- #endif
-+	put_online_cpus();
- 	return val;
- }
+ 	get_page(new);
+ 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
++	if (pte_swp_soft_dirty(*ptep))
++		pte = pte_mksoft_dirty(pte);
+ 	if (is_write_migration_entry(entry))
+ 		pte = pte_mkwrite(pte);
+ #ifdef CONFIG_HUGETLB_PAGE
+diff -puN mm/mprotect.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state mm/mprotect.c
+--- a/mm/mprotect.c~mm-migration-do-not-lose-soft-dirty-bit-if-page-is-in-migration-state
++++ a/mm/mprotect.c
+@@ -94,13 +94,16 @@ static unsigned long change_pte_range(st
+ 			swp_entry_t entry = pte_to_swp_entry(oldpte);
  
+ 			if (is_write_migration_entry(entry)) {
++				pte_t newpte;
+ 				/*
+ 				 * A protection check is difficult so
+ 				 * just be safe and disable write
+ 				 */
+ 				make_migration_entry_read(&entry);
+-				set_pte_at(mm, addr, pte,
+-					swp_entry_to_pte(entry));
++				newpte = swp_entry_to_pte(entry);
++				if (pte_swp_soft_dirty(oldpte))
++					newpte = pte_swp_mksoft_dirty(newpte);
++				set_pte_at(mm, addr, pte, newpte);
+ 			}
+ 			pages++;
+ 		}
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-linux-next.patch
-kthread-make-kthread_create-killable.patch
-x86-srat-use-numa_no_node.patch
-mm-vmalloc-use-numa_no_node.patch
-mm-add-a-helper-function-to-check-may-oom-condition.patch
-mm-arch-use-numa_no_node.patch
-mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
-mm-vmalloc-dont-set-area-caller-twice.patch
-mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
-mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
-revert-mm-vmallocc-emit-the-failure-message-before-return.patch
-mm-mempolicy-use-numa_no_node.patch
-mm-rearrange-madvise-code-to-allow-for-reuse.patch
-mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
+arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
 
