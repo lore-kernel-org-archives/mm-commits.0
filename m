@@ -1,77 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-semc-synchronize-the-proc-interface.patch removed
- from -mm tree
-Date: Thu, 17 Oct 2013 11:12:17 -0700
-Message-ID: <52602881.1WK0Z3IF8onrEZo1%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-kmodc-check-for-null-in-call_usermodehelper_exec.patch removed from
+ -mm tree
+Date: Thu, 17 Oct 2013 11:12:19 -0700
+Message-ID: <52602883.CVUhmy6toEphxESS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44194 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758210Ab3JQSMS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:18 -0400
+	with ESMTP id S1758270Ab3JQSMU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, efault@gmx.de, davidlohr.bueso@hp.com, manfred@colorfullife.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp
 
-Subject: [merged] ipc-semc-synchronize-the-proc-interface.patch removed from -mm tree
-To: manfred@colorfullife.com,davidlohr.bueso@hp.com,efault@gmx.de,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] kernel-kmodc-check-for-null-in-call_usermodehelper_exec.patch removed from -mm tree
+To: penguin-kernel@I-love.SAKURA.ne.jp,oleg@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:12:17 -0700
+Date: Thu, 17 Oct 2013 11:12:19 -0700
 
 
 The patch titled
-     Subject: ipc/sem.c: synchronize the proc interface
+     Subject: kernel/kmod.c: check for NULL in call_usermodehelper_exec()
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-synchronize-the-proc-interface.patch
+     kernel-kmodc-check-for-null-in-call_usermodehelper_exec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: synchronize the proc interface
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: kernel/kmod.c: check for NULL in call_usermodehelper_exec()
 
-The proc interface is not aware of sem_lock(), it calls ipc_lock_object()
-directly.  This means that simple semop() operations can run in parallel
-with the proc interface.  Right now, this is uncritical, because the
-implementation doesn't do anything that requires a proper synchronization.
+If /proc/sys/kernel/core_pattern contains only "|", NULL pointer
+dereference happens upon core dump because argv_split("") returns argv[0]
+== NULL.
 
-But it is dangerous and therefore should be fixed.
+This bug was once fixed by commit 264b83c0 ("usermodehelper: check
+subprocess_info->path != NULL") but was by error reintroduced by commit
+7f57cfa4 ("usermodehelper: kill the sub_info->path[0] check").
 
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: Mike Galbraith <efault@gmx.de>
-Cc: Rik van Riel <riel@redhat.com>
+This bug seems to exist since 2.6.19 (the version which core dump to pipe
+was added).  Depending on kernel version and config, some side effect
+might happen immediately after this oops (e.g.  kernel panic with
+2.6.32-358.18.1.el6).
+
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ kernel/kmod.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN ipc/sem.c~ipc-semc-synchronize-the-proc-interface ipc/sem.c
---- a/ipc/sem.c~ipc-semc-synchronize-the-proc-interface
-+++ a/ipc/sem.c
-@@ -2103,6 +2103,14 @@ static int sysvipc_sem_proc_show(struct
- 	struct sem_array *sma = it;
- 	time_t sem_otime;
+diff -puN kernel/kmod.c~kernel-kmodc-check-for-null-in-call_usermodehelper_exec kernel/kmod.c
+--- a/kernel/kmod.c~kernel-kmodc-check-for-null-in-call_usermodehelper_exec
++++ a/kernel/kmod.c
+@@ -571,6 +571,10 @@ int call_usermodehelper_exec(struct subp
+ 	DECLARE_COMPLETION_ONSTACK(done);
+ 	int retval = 0;
  
-+	/*
-+	 * The proc interface isn't aware of sem_lock(), it calls
-+	 * ipc_lock_object() directly (in sysvipc_find_ipc).
-+	 * In order to stay compatible with sem_lock(), we must wait until
-+	 * all simple semop() calls have left their critical regions.
-+	 */
-+	sem_wait_array(sma);
-+
- 	sem_otime = get_semotime(sma);
- 
- 	return seq_printf(s,
++	if (!sub_info->path) {
++		call_usermodehelper_freeinfo(sub_info);
++		return -EINVAL;
++	}
+ 	helper_lock();
+ 	if (!khelper_wq || usermodehelper_disabled) {
+ 		retval = -EBUSY;
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-origin.patch
-slab-leaks3-default-y.patch
+kthread-make-kthread_create-killable.patch
+seq_file-introduce-seq_setwidth-and-seq_pad.patch
+seq_file-remove-%n-usage-from-seq_file-users.patch
+vsprintf-ignore-%n-again.patch
 
