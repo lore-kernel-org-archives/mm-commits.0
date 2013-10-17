@@ -1,81 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-correct-missing-private-flag-clearing.patch
- removed from -mm tree
-Date: Thu, 17 Oct 2013 11:13:01 -0700
-Message-ID: <526028ad.LRNdKB4s70uBHjnm%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch removed from
+ -mm tree
+Date: Thu, 17 Oct 2013 11:12:53 -0700
+Message-ID: <526028a5.rBt2+WwRWclxV6Dt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44303 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44276 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758709Ab3JQSNC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:02 -0400
+	with ESMTP id S1758741Ab3JQSMy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mhocko@suse.cz, mgorman@suse.de, liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, dhillf@gmail.com, davidlohr.bueso@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, rientjes@google.com
 
-Subject: [merged] mm-hugetlb-correct-missing-private-flag-clearing.patch removed from -mm tree
-To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr.bueso@hp.com,dhillf@gmail.com,hughd@google.com,kamezawa.hiroyu@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mhocko@suse.cz,n-horiguchi@ah.jp.nec.com,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch removed from -mm tree
+To: rientjes@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:13:01 -0700
+Date: Thu, 17 Oct 2013 11:12:53 -0700
 
 
 The patch titled
-     Subject: mm/hugetlb.c: correct missing private flag clearing
+     Subject: mm, memcg: protect mem_cgroup_read_events for cpu hotplug
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-correct-missing-private-flag-clearing.patch
+     mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/hugetlb.c: correct missing private flag clearing
+From: David Rientjes <rientjes@google.com>
+Subject: mm, memcg: protect mem_cgroup_read_events for cpu hotplug
 
-We should clear the page's private flag when returing the page to the
-hugepage pool.  Otherwise, marked hugepage can be allocated to the user
-who tries to allocate the non-reserved hugepage.  If this user fail to map
-this hugepage, he would try to return the page to the hugepage pool. 
-Since this page has a private flag, resv_huge_pages would mistakenly
-increase.  This patch fixes this situation.
+for_each_online_cpu() needs the protection of {get,put}_online_cpus() so
+cpu_online_mask doesn't change during the iteration.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
+cpu_hotplug.lock is held while a cpu is going down, it's a coarse lock
+that is used kernel-wide to synchronize cpu hotplug activity.  Memcg has a
+cpu hotplug notifier, called while there may not be any cpu hotplug
+refcounts, which drains per-cpu event counts to memcg->nocpu_base.events
+to maintain a cumulative event count as cpus disappear.  Without
+get_online_cpus() in mem_cgroup_read_events(), it's possible to account
+for the event count on a dying cpu twice, and this value may be
+significantly large.
+
+In fact, all memcg->pcp_counter_lock use should be nested by 
+{get,put}_online_cpus().
+
+This fixes that issue and ensures the reported statistics are not vastly
+over-reported during cpu hotplug.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hillf Danton <dhillf@gmail.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-correct-missing-private-flag-clearing mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-correct-missing-private-flag-clearing
-+++ a/mm/hugetlb.c
-@@ -653,6 +653,7 @@ static void free_huge_page(struct page *
- 	BUG_ON(page_count(page));
- 	BUG_ON(page_mapcount(page));
- 	restore_reserve = PagePrivate(page);
-+	ClearPagePrivate(page);
+diff -puN mm/memcontrol.c~mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-protect-mem_cgroup_read_events-for-cpu-hotplug
++++ a/mm/memcontrol.c
+@@ -866,6 +866,7 @@ static unsigned long mem_cgroup_read_eve
+ 	unsigned long val = 0;
+ 	int cpu;
  
- 	spin_lock(&hugetlb_lock);
- 	hugetlb_cgroup_uncharge_page(hstate_index(h),
++	get_online_cpus();
+ 	for_each_online_cpu(cpu)
+ 		val += per_cpu(memcg->stat->events[idx], cpu);
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -873,6 +874,7 @@ static unsigned long mem_cgroup_read_eve
+ 	val += memcg->nocpu_base.events[idx];
+ 	spin_unlock(&memcg->pcp_counter_lock);
+ #endif
++	put_online_cpus();
+ 	return val;
+ }
+ 
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
+linux-next.patch
+kthread-make-kthread_create-killable.patch
+x86-srat-use-numa_no_node.patch
+mm-vmalloc-use-numa_no_node.patch
+mm-add-a-helper-function-to-check-may-oom-condition.patch
+mm-arch-use-numa_no_node.patch
+mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
 mm-vmalloc-dont-set-area-caller-twice.patch
 mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
 mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
 revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+mm-mempolicy-use-numa_no_node.patch
+mm-rearrange-madvise-code-to-allow-for-reuse.patch
+mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
 
