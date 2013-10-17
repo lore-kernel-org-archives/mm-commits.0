@@ -1,70 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch removed from -mm tree
-Date: Thu, 17 Oct 2013 11:12:21 -0700
-Message-ID: <52602885.TNBLOhJKMw/ap3H7%akpm@linux-foundation.org>
+ arch-parisc-mm-faultc-fix-uninitialized-variable-usage.patch removed from
+ -mm tree
+Date: Thu, 17 Oct 2013 11:12:29 -0700
+Message-ID: <5260288d.QKdowSt056xp1dXt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44197 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44217 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758395Ab3JQSMW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:22 -0400
+	with ESMTP id S1758540Ab3JQSMa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mgorman@suse.de, koverstreet@google.com, darrick.wong@oracle.com
+To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, mhocko@suse.cz, jejb@parisc-linux.org, hannes@cmpxchg.org, deller@gmx.de, felipensp@gmail.com
 
-Subject: [merged] mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch removed from -mm tree
-To: darrick.wong@oracle.com,koverstreet@google.com,mgorman@suse.de,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] arch-parisc-mm-faultc-fix-uninitialized-variable-usage.patch removed from -mm tree
+To: felipensp@gmail.com,deller@gmx.de,hannes@cmpxchg.org,jejb@parisc-linux.org,mhocko@suse.cz,torvalds@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:12:21 -0700
+Date: Thu, 17 Oct 2013 11:12:29 -0700
 
 
 The patch titled
-     Subject: mm/bounce.c: fix a regression where MS_SNAP_STABLE (stable pages snapshotting) was ignored
+     Subject: arch/parisc/mm/fault.c: fix uninitialized variable usage
 has been removed from the -mm tree.  Its filename was
-     mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored.patch
+     arch-parisc-mm-faultc-fix-uninitialized-variable-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: mm/bounce.c: fix a regression where MS_SNAP_STABLE (stable pages snapshotting) was ignored
+From: Felipe Pena <felipensp@gmail.com>
+Subject: arch/parisc/mm/fault.c: fix uninitialized variable usage
 
-The "force" parameter in __blk_queue_bounce was being ignored, which means
-that stable page snapshots are not always happening (on ext3).  This of
-course leads to DIF disks reporting checksum errors, so fix this
-regression.
+The FAULT_FLAG_WRITE flag has been set based on uninitialized variable.
 
-The regression was introduced in 6bc454d1 ("bounce: Refactor
-__blk_queue_bounce to not use bi_io_vec")
+Fixes regression added by 
 
-Reported-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Kent Overstreet <koverstreet@google.com>
-Cc: <stable@vger.kernel.org>	[3.10+]
+: commit 759496ba6407c6994d6a5ce3a5e74937d7816208
+: Author:     Johannes Weiner <hannes@cmpxchg.org>
+: AuthorDate: Thu Sep 12 15:13:39 2013 -0700
+: Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+: CommitDate: Thu Sep 12 15:38:01 2013 -0700
+: 
+:     arch: mm: pass userspace fault flag to generic fault handler
+
+Signed-off-by: Felipe Pena <felipensp@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bounce.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/parisc/mm/fault.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/bounce.c~mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored mm/bounce.c
---- a/mm/bounce.c~mm-bouncec-wix-a-regression-where-ms_snap_stable-stable-pages-snapshotting-was-ignored
-+++ a/mm/bounce.c
-@@ -204,6 +204,8 @@ static void __blk_queue_bounce(struct re
- 	struct bio_vec *to, *from;
- 	unsigned i;
+diff -puN arch/parisc/mm/fault.c~arch-parisc-mm-faultc-fix-uninitialized-variable-usage arch/parisc/mm/fault.c
+--- a/arch/parisc/mm/fault.c~arch-parisc-mm-faultc-fix-uninitialized-variable-usage
++++ a/arch/parisc/mm/fault.c
+@@ -182,6 +182,9 @@ void do_page_fault(struct pt_regs *regs,
  
-+	if (force)
-+		goto bounce;
- 	bio_for_each_segment(from, *bio_orig, i)
- 		if (page_to_pfn(from->bv_page) > queue_bounce_pfn(q))
- 			goto bounce;
-_
-
-Patches currently in -mm which might be from darrick.wong@oracle.com are
-
-
+ 	if (user_mode(regs))
+ 		flags |= FAULT_FLAG_USER;
++
++	acc_type = parisc_acctyp(code, regs->iir);
++
+ 	if (acc_type & VM_WRITE)
+ 		flags |= FAULT_FLAG_WRITE;
+ retry:
+@@ -196,8 +199,6 @@ retry:
+ 
+ good_area:
+ 
+-	acc_type = parisc_acctyp(code,regs->iir);
