@@ -1,118 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-semc-update-sem_otime-for-all-operations.patch
- removed from -mm tree
-Date: Thu, 17 Oct 2013 11:12:47 -0700
-Message-ID: <5260289f.NN1hHYvgBPsbz82+%akpm@linux-foundation.org>
+Subject: [merged]
+ pidns-fix-free_pid-to-handle-the-first-fork-failure.patch removed from -mm
+ tree
+Date: Thu, 17 Oct 2013 11:12:51 -0700
+Message-ID: <526028a3.RgSPE62jDLewocVP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44272 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758709Ab3JQSMs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:48 -0400
+	with ESMTP id S1758709Ab3JQSMw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jiakernel@gmail.com, efault@gmx.de, davidlohr.bueso@hp.com, manfred@colorfullife.com
+To: mm-commits@vger.kernel.org, serge@hallyn.com, ebiederm@xmission.com, oleg@redhat.com
 
-Subject: [merged] ipc-semc-update-sem_otime-for-all-operations.patch removed from -mm tree
-To: manfred@colorfullife.com,davidlohr.bueso@hp.com,efault@gmx.de,jiakernel@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] pidns-fix-free_pid-to-handle-the-first-fork-failure.patch removed from -mm tree
+To: oleg@redhat.com,ebiederm@xmission.com,serge@hallyn.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:12:47 -0700
+Date: Thu, 17 Oct 2013 11:12:51 -0700
 
 
 The patch titled
-     Subject: ipc/sem.c: update sem_otime for all operations
+     Subject: pidns: fix free_pid() to handle the first fork failure
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-update-sem_otime-for-all-operations.patch
+     pidns-fix-free_pid-to-handle-the-first-fork-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: update sem_otime for all operations
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: pidns: fix free_pid() to handle the first fork failure
 
-In 0a2b9d4c ("ipc/sem.c: move wake_up_process out of the spinlock
-section"), the update of semaphore's sem_otime(last semop time) was moved
-to one central position (do_smart_update).
+"case 0" in free_pid() assumes that disable_pid_allocation() should clear
+PIDNS_HASH_ADDING before the last pid goes away.  However this doesn't
+happen if the 1st fork() fails to create the child reaper which should
+call disable_pid_allocation().
 
-But: Since do_smart_update() is only called for operations that modify the
-array, this means that wait-for-zero semops do not update sem_otime
-anymore.
-
-The fix is simple:
-Non-alter operations must update sem_otime.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Reported-by: Jia He <jiakernel@gmail.com>
-Tested-by: Jia He <jiakernel@gmail.com>
-Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: Mike Galbraith <efault@gmx.de>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   42 +++++++++++++++++++++++++++++-------------
- 1 file changed, 29 insertions(+), 13 deletions(-)
+ kernel/pid.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN ipc/sem.c~ipc-semc-update-sem_otime-for-all-operations ipc/sem.c
---- a/ipc/sem.c~ipc-semc-update-sem_otime-for-all-operations
-+++ a/ipc/sem.c
-@@ -918,6 +918,24 @@ again:
- }
- 
- /**
-+ * set_semotime(sma, sops) - set sem_otime
-+ * @sma: semaphore array
-+ * @sops: operations that modified the array, may be NULL
-+ *
-+ * sem_otime is replicated to avoid cache line trashing.
-+ * This function sets one instance to the current time.
-+ */
-+static void set_semotime(struct sem_array *sma, struct sembuf *sops)
-+{
-+	if (sops == NULL) {
-+		sma->sem_base[0].sem_otime = get_seconds();
-+	} else {
-+		sma->sem_base[sops[0].sem_num].sem_otime =
-+							get_seconds();
-+	}
-+}
-+
-+/**
-  * do_smart_update(sma, sops, nsops, otime, pt) - optimized update_queue
-  * @sma: semaphore array
-  * @sops: operations that were performed
-@@ -967,17 +985,10 @@ static void do_smart_update(struct sem_a
- 			}
- 		}
- 	}
--	if (otime) {
--		if (sops == NULL) {
--			sma->sem_base[0].sem_otime = get_seconds();
--		} else {
--			sma->sem_base[sops[0].sem_num].sem_otime =
--								get_seconds();
--		}
--	}
-+	if (otime)
-+		set_semotime(sma, sops);
- }
- 
--
- /* The following counts are associated to each semaphore:
-  *   semncnt        number of tasks waiting on semval being nonzero
-  *   semzcnt        number of tasks waiting on semval being zero
-@@ -1839,12 +1850,17 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
- 
- 	error = perform_atomic_semop(sma, sops, nsops, un,
- 					task_tgid_vnr(current));
--	if (error <= 0) {
--		if (alter && error == 0)
-+	if (error == 0) {
-+		/* If the operation was successful, then do
-+		 * the required updates.
-+		 */
-+		if (alter)
- 			do_smart_update(sma, sops, nsops, 1, &tasks);
+diff -puN kernel/pid.c~pidns-fix-free_pid-to-handle-the-first-fork-failure kernel/pid.c
+--- a/kernel/pid.c~pidns-fix-free_pid-to-handle-the-first-fork-failure
++++ a/kernel/pid.c
+@@ -273,6 +273,11 @@ void free_pid(struct pid *pid)
+ 			 */
+ 			wake_up_process(ns->child_reaper);
+ 			break;
++		case PIDNS_HASH_ADDING:
++			/* Handle a fork failure of the first process */
++			WARN_ON(ns->child_reaper);
++			ns->nr_hashed = 0;
++			/* fall through */
+ 		case 0:
+ 			schedule_work(&ns->proc_work);
+ 			break;
+_
+
+Patches currently in -mm which might be from oleg@redhat.com are
+
+linux-next.patch
+kthread-make-kthread_create-killable.patch
+anon_inodefs-forbid-open-via-proc.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+mm-rearrange-madvise-code-to-allow-for-reuse.patch
+mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+
