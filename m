@@ -1,131 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-buffer-move-allocation-failure-loop-into-the-allocator.patch removed
- from -mm tree
-Date: Thu, 17 Oct 2013 11:13:19 -0700
-Message-ID: <526028bf.VXNqOMIUeIM/8+nL%akpm@linux-foundation.org>
+ mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages.patch
+ removed from -mm tree
+Date: Thu, 17 Oct 2013 11:13:07 -0700
+Message-ID: <526028b3.IaSEJJBg7wqWbyFS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44365 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44336 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759356Ab3JQSNU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:20 -0400
+	with ESMTP id S1758877Ab3JQSNI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@kernel.org, mhocko@suse.cz, azurit@pobox.sk, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, xiaoguangrong@linux.vnet.ibm.com, xemul@parallels.com, stable@vger.kernel.org, sfr@canb.auug.org.au, peterz@infradead.org, n-horiguchi@ah.jp.nec.com, mtosatti@redhat.com, mpm@selenic.com, mel@csn.ul.ie, luto@amacapital.net, kosaki.motohiro@gmail.com, gorcunov@openvz.org, aneesh.kumar@linux.vnet.ibm.com, gorcunov@gmail.com
 
-Subject: [merged] fs-buffer-move-allocation-failure-loop-into-the-allocator.patch removed from -mm tree
-To: hannes@cmpxchg.org,azurit@pobox.sk,mhocko@suse.cz,stable@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages.patch removed from -mm tree
+To: gorcunov@gmail.com,aneesh.kumar@linux.vnet.ibm.com,gorcunov@openvz.org,kosaki.motohiro@gmail.com,luto@amacapital.net,mel@csn.ul.ie,mpm@selenic.com,mtosatti@redhat.com,n-horiguchi@ah.jp.nec.com,peterz@infradead.org,sfr@canb.auug.org.au,stable@vger.kernel.org,xemul@parallels.com,xiaoguangrong@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:13:19 -0700
+Date: Thu, 17 Oct 2013 11:13:07 -0700
 
 
 The patch titled
-     Subject: fs: buffer: move allocation failure loop into the allocator
+     Subject: mm: /proc/pid/pagemap: inspect _PAGE_SOFT_DIRTY only on present pages
 has been removed from the -mm tree.  Its filename was
-     fs-buffer-move-allocation-failure-loop-into-the-allocator.patch
+     mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: fs: buffer: move allocation failure loop into the allocator
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: mm: /proc/pid/pagemap: inspect _PAGE_SOFT_DIRTY only on present pages
 
-Buffer allocation has a very crude indefinite loop around waking the
-flusher threads and performing global NOFS direct reclaim because it can
-not handle allocation failures.
+If a page we are inspecting is in swap we may occasionally report it as
+having soft dirty bit (even if it is clean).  The pte_soft_dirty helper
+should be called on present pte only.
 
-The most immediate problem with this is that the allocation may fail due
-to a memory cgroup limit, where flushers + direct reclaim might not make
-any progress towards resolving the situation at all.  Because unlike the
-global case, a memory cgroup may not have any cache at all, only anonymous
-pages but no swap.  This situation will lead to a reclaim livelock with
-insane IO from waking the flushers and thrashing unrelated filesystem
-cache in a tight loop.
-
-Use __GFP_NOFAIL allocations for buffers for now.  This makes sure that
-any looping happens in the page allocator, which knows how to orchestrate
-kswapd, direct reclaim, and the flushers sensibly.  It also allows memory
-cgroups to detect allocations that can't handle failure and will allow
-them to ultimately bypass the limit if reclaim can not make progress.
-
-Reported-by: azurIt <azurit@pobox.sk>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: <stable@kernel.org>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c     |   14 ++++++++++++--
- mm/memcontrol.c |    2 ++
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ fs/proc/task_mmu.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~fs-buffer-move-allocation-failure-loop-into-the-allocator fs/buffer.c
---- a/fs/buffer.c~fs-buffer-move-allocation-failure-loop-into-the-allocator
-+++ a/fs/buffer.c
-@@ -1005,9 +1005,19 @@ grow_dev_page(struct block_device *bdev,
- 	struct buffer_head *bh;
- 	sector_t end_block;
- 	int ret = 0;		/* Will call free_more_memory() */
-+	gfp_t gfp_mask;
+diff -puN fs/proc/task_mmu.c~mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages
++++ a/fs/proc/task_mmu.c
+@@ -941,6 +941,8 @@ static void pte_to_pagemap_entry(pagemap
+ 		frame = pte_pfn(pte);
+ 		flags = PM_PRESENT;
+ 		page = vm_normal_page(vma, addr, pte);
++		if (pte_soft_dirty(pte))
++			flags2 |= __PM_SOFT_DIRTY;
+ 	} else if (is_swap_pte(pte)) {
+ 		swp_entry_t entry;
+ 		if (pte_swp_soft_dirty(pte))
+@@ -960,7 +962,7 @@ static void pte_to_pagemap_entry(pagemap
  
--	page = find_or_create_page(inode->i_mapping, index,
--		(mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS)|__GFP_MOVABLE);
-+	gfp_mask = mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS;
-+	gfp_mask |= __GFP_MOVABLE;
-+	/*
-+	 * XXX: __getblk_slow() can not really deal with failure and
-+	 * will endlessly loop on improvised global reclaim.  Prefer
-+	 * looping in the allocator rather than here, at least that
-+	 * code knows what it's doing.
-+	 */
-+	gfp_mask |= __GFP_NOFAIL;
-+
-+	page = find_or_create_page(inode->i_mapping, index, gfp_mask);
- 	if (!page)
- 		return ret;
+ 	if (page && !PageAnon(page))
+ 		flags |= PM_FILE;
+-	if ((vma->vm_flags & VM_SOFTDIRTY) || pte_soft_dirty(pte))
++	if ((vma->vm_flags & VM_SOFTDIRTY))
+ 		flags2 |= __PM_SOFT_DIRTY;
  
-diff -puN mm/memcontrol.c~fs-buffer-move-allocation-failure-loop-into-the-allocator mm/memcontrol.c
---- a/mm/memcontrol.c~fs-buffer-move-allocation-failure-loop-into-the-allocator
-+++ a/mm/memcontrol.c
-@@ -2766,6 +2766,8 @@ done:
- 	return 0;
- nomem:
- 	*ptr = NULL;
-+	if (gfp_mask & __GFP_NOFAIL)
-+		return 0;
- 	return -ENOMEM;
- bypass:
- 	*ptr = root_mem_cgroup;
+ 	*pme = make_pme(PM_PFRAME(frame) | PM_STATUS2(pm->v2, flags2) | flags);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-linux-next.patch
-mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch
-memcg-refactor-mem_control_numa_stat_show.patch
-memcg-support-hierarchical-memorynuma_stats.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-memblock-factor-out-of-top-down-allocation.patch
-memblock-introduce-bottom-up-allocation-mode.patch
-x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
-mem-hotplug-introduce-movable_node-boot-option.patch
-mm-rearrange-madvise-code-to-allow-for-reuse.patch
-mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
 
