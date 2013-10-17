@@ -1,87 +1,125 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages.patch
- removed from -mm tree
-Date: Thu, 17 Oct 2013 11:13:07 -0700
-Message-ID: <526028b3.IaSEJJBg7wqWbyFS%akpm@linux-foundation.org>
+ mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages.patch removed from -mm tree
+Date: Thu, 17 Oct 2013 11:13:11 -0700
+Message-ID: <526028b7.KEiBSmGBoMOdqe3m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44336 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44347 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758877Ab3JQSNI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:08 -0400
+	with ESMTP id S1759117Ab3JQSNM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xiaoguangrong@linux.vnet.ibm.com, xemul@parallels.com, stable@vger.kernel.org, sfr@canb.auug.org.au, peterz@infradead.org, n-horiguchi@ah.jp.nec.com, mtosatti@redhat.com, mpm@selenic.com, mel@csn.ul.ie, luto@amacapital.net, kosaki.motohiro@gmail.com, gorcunov@openvz.org, aneesh.kumar@linux.vnet.ibm.com, gorcunov@gmail.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, hughd@google.com, gleb@redhat.com, aquini@redhat.com, ajs124.ajs124@gmail.com, aarcange@redhat.com
 
-Subject: [merged] mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages.patch removed from -mm tree
-To: gorcunov@gmail.com,aneesh.kumar@linux.vnet.ibm.com,gorcunov@openvz.org,kosaki.motohiro@gmail.com,luto@amacapital.net,mel@csn.ul.ie,mpm@selenic.com,mtosatti@redhat.com,n-horiguchi@ah.jp.nec.com,peterz@infradead.org,sfr@canb.auug.org.au,stable@vger.kernel.org,xemul@parallels.com,xiaoguangrong@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages.patch removed from -mm tree
+To: aarcange@redhat.com,ajs124.ajs124@gmail.com,aquini@redhat.com,gleb@redhat.com,hughd@google.com,mgorman@suse.de,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:13:07 -0700
+Date: Thu, 17 Oct 2013 11:13:11 -0700
 
 
 The patch titled
-     Subject: mm: /proc/pid/pagemap: inspect _PAGE_SOFT_DIRTY only on present pages
+     Subject: mm: hugetlb: initialize PG_reserved for tail pages of gigantic compound pages
 has been removed from the -mm tree.  Its filename was
-     mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages.patch
+     mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: mm: /proc/pid/pagemap: inspect _PAGE_SOFT_DIRTY only on present pages
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: hugetlb: initialize PG_reserved for tail pages of gigantic compound pages
 
-If a page we are inspecting is in swap we may occasionally report it as
-having soft dirty bit (even if it is clean).  The pte_soft_dirty helper
-should be called on present pte only.
+11feeb498086 ("kvm: optimize away THP checks in kvm_is_mmio_pfn()")
+introduced a memory leak when KVM is run on gigantic compound pages.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: <stable@vger.kernel.org>
+11feeb498086 depends on the assumption that PG_reserved is identical for
+all head and tail pages of a compound page.  So that if get_user_pages
+returns a tail page, we don't need to check the head page in order to know
+if we deal with a reserved page that requires different refcounting.
+
+The assumption that PG_reserved is the same for head and tail pages is
+certainly correct for THP and regular hugepages, but gigantic hugepages
+allocated through bootmem don't clear the PG_reserved on the tail pages
+(the clearing of PG_reserved is done later only if the gigantic hugepage
+is freed).
+
+This patch corrects the gigantic compound page initialization so that we
+can retain the optimization in 11feeb498086.  The cacheline was already
+modified in order to set PG_tail so this won't affect the boot time of
+large memory systems.
+
+[akpm@linux-foundation.org: tweak comment layout and grammar]
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: andy123 <ajs124.ajs124@gmail.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Gleb Natapov <gleb@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-proc-pid-pagemap-inspect-_page_soft_dirty-only-on-present-pages
-+++ a/fs/proc/task_mmu.c
-@@ -941,6 +941,8 @@ static void pte_to_pagemap_entry(pagemap
- 		frame = pte_pfn(pte);
- 		flags = PM_PRESENT;
- 		page = vm_normal_page(vma, addr, pte);
-+		if (pte_soft_dirty(pte))
-+			flags2 |= __PM_SOFT_DIRTY;
- 	} else if (is_swap_pte(pte)) {
- 		swp_entry_t entry;
- 		if (pte_swp_soft_dirty(pte))
-@@ -960,7 +962,7 @@ static void pte_to_pagemap_entry(pagemap
- 
- 	if (page && !PageAnon(page))
- 		flags |= PM_FILE;
--	if ((vma->vm_flags & VM_SOFTDIRTY) || pte_soft_dirty(pte))
-+	if ((vma->vm_flags & VM_SOFTDIRTY))
- 		flags2 |= __PM_SOFT_DIRTY;
- 
- 	*pme = make_pme(PM_PFRAME(frame) | PM_STATUS2(pm->v2, flags2) | flags);
+diff -puN mm/hugetlb.c~mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-initialize-pg_reserved-for-tail-pages-of-gigantig-compound-pages
++++ a/mm/hugetlb.c
+@@ -696,8 +696,22 @@ static void prep_compound_gigantic_page(
+ 	/* we rely on prep_new_huge_page to set the destructor */
+ 	set_compound_order(page, order);
+ 	__SetPageHead(page);
++	__ClearPageReserved(page);
+ 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
+ 		__SetPageTail(p);
++		/*
++		 * For gigantic hugepages allocated through bootmem at
++		 * boot, it's safer to be consistent with the not-gigantic
++		 * hugepages and clear the PG_reserved bit from all tail pages
++		 * too.  Otherwse drivers using get_user_pages() to access tail
++		 * pages may get the reference counting wrong if they see
++		 * PG_reserved set on a tail page (despite the head page not
++		 * having PG_reserved set).  Enforcing this consistency between
++		 * head and tail pages allows drivers to optimize away a check
++		 * on the head page when they need know if put_page() is needed
++		 * after get_user_pages().
++		 */
++		__ClearPageReserved(p);
+ 		set_page_count(p, 0);
+ 		p->first_page = page;
+ 	}
+@@ -1330,9 +1344,9 @@ static void __init gather_bootmem_preall
+ #else
+ 		page = virt_to_page(m);
+ #endif
+-		__ClearPageReserved(page);
+ 		WARN_ON(page_count(page) != 1);
+ 		prep_compound_huge_page(page, h->order);
++		WARN_ON(PageReserved(page));
+ 		prep_new_huge_page(h, page, page_to_nid(page));
+ 		/*
+ 		 * If we had gigantic hugepages allocated at boot time, we need
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
-arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
+mm-thp-cleanup-mv-alloc_hugepage-to-better-place.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
 
