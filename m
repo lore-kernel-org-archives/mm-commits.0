@@ -1,95 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
+Subject: [merged] ipc-semc-update-sem_otime-for-all-operations.patch
  removed from -mm tree
-Date: Thu, 17 Oct 2013 11:12:41 -0700
-Message-ID: <52602899.f2Z6uetpKRfamanE%akpm@linux-foundation.org>
+Date: Thu, 17 Oct 2013 11:12:47 -0700
+Message-ID: <5260289f.NN1hHYvgBPsbz82+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44250 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44262 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758657Ab3JQSMm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:42 -0400
+	with ESMTP id S1758709Ab3JQSMs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, jiakernel@gmail.com, efault@gmx.de, davidlohr.bueso@hp.com, manfred@colorfullife.com
 
-Subject: [merged] mm-hwpoison-fix-miss-catch-transparent-huge-page.patch removed from -mm tree
-To: liwanp@linux.vnet.ibm.com,ak@linux.intel.com,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
+Subject: [merged] ipc-semc-update-sem_otime-for-all-operations.patch removed from -mm tree
+To: manfred@colorfullife.com,davidlohr.bueso@hp.com,efault@gmx.de,jiakernel@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:12:41 -0700
+Date: Thu, 17 Oct 2013 11:12:47 -0700
 
 
 The patch titled
-     Subject: mm/hwpoison: fix test for a transparent huge page
+     Subject: ipc/sem.c: update sem_otime for all operations
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-fix-miss-catch-transparent-huge-page.patch
+     ipc-semc-update-sem_otime-for-all-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/hwpoison: fix test for a transparent huge page
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: update sem_otime for all operations
 
-PageTransHuge() can't guarantee the page is a transparent huge page since
-it returns true for both transparent huge and hugetlbfs pages.  This patch
-fixes it by checking the page is also !hugetlbfs page.
+In 0a2b9d4c ("ipc/sem.c: move wake_up_process out of the spinlock
+section"), the update of semaphore's sem_otime(last semop time) was moved
+to one central position (do_smart_update).
 
-Before patch:
+But: Since do_smart_update() is only called for operations that modify the
+array, this means that wait-for-zero semops do not update sem_otime
+anymore.
 
-[  121.571128] Injecting memory failure at pfn 23a200
-[  121.571141] MCE 0x23a200: huge page recovery: Delayed
-[  140.355100] MCE: Memory failure is now running on 0x23a200
+The fix is simple:
+Non-alter operations must update sem_otime.
 
-After patch:
-
-[   94.290793] Injecting memory failure at pfn 23a000
-[   94.290800] MCE 0x23a000: huge page recovery: Delayed
-[  105.722303] MCE: Software-unpoisoned page 0x23a000
-
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Andi Kleen <ak@linux.intel.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Reported-by: Jia He <jiakernel@gmail.com>
+Tested-by: Jia He <jiakernel@gmail.com>
+Cc: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Cc: Mike Galbraith <efault@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/sem.c |   42 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 13 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-fix-miss-catch-transparent-huge-page mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-fix-miss-catch-transparent-huge-page
-+++ a/mm/memory-failure.c
-@@ -1349,7 +1349,7 @@ int unpoison_memory(unsigned long pfn)
- 	 * worked by memory_failure() and the page lock is not held yet.
- 	 * In such case, we yield to memory_failure() and make unpoison fail.
- 	 */
--	if (PageTransHuge(page)) {
-+	if (!PageHuge(page) && PageTransHuge(page)) {
- 		pr_info("MCE: Memory failure is now running on %#lx\n", pfn);
- 			return 0;
+diff -puN ipc/sem.c~ipc-semc-update-sem_otime-for-all-operations ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-update-sem_otime-for-all-operations
++++ a/ipc/sem.c
+@@ -918,6 +918,24 @@ again:
+ }
+ 
+ /**
++ * set_semotime(sma, sops) - set sem_otime
++ * @sma: semaphore array
++ * @sops: operations that modified the array, may be NULL
++ *
++ * sem_otime is replicated to avoid cache line trashing.
++ * This function sets one instance to the current time.
++ */
++static void set_semotime(struct sem_array *sma, struct sembuf *sops)
++{
++	if (sops == NULL) {
++		sma->sem_base[0].sem_otime = get_seconds();
++	} else {
++		sma->sem_base[sops[0].sem_num].sem_otime =
++							get_seconds();
++	}
++}
++
++/**
+  * do_smart_update(sma, sops, nsops, otime, pt) - optimized update_queue
+  * @sma: semaphore array
+  * @sops: operations that were performed
+@@ -967,17 +985,10 @@ static void do_smart_update(struct sem_a
+ 			}
+ 		}
  	}
-_
-
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
-
-origin.patch
-ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
-mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
-mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch
-mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
-mm-vmalloc-dont-set-area-caller-twice.patch
-mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
-mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
-revert-mm-vmallocc-emit-the-failure-message-before-return.patch
-mm-thp-cleanup-mv-alloc_hugepage-to-better-place.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node.patch
-mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap.patch
-memblock-factor-out-of-top-down-allocation.patch
-memblock-introduce-bottom-up-allocation-mode.patch
-x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
-mem-hotplug-introduce-movable_node-boot-option.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-
+-	if (otime) {
+-		if (sops == NULL) {
+-			sma->sem_base[0].sem_otime = get_seconds();
+-		} else {
+-			sma->sem_base[sops[0].sem_num].sem_otime =
+-								get_seconds();
+-		}
+-	}
++	if (otime)
++		set_semotime(sma, sops);
+ }
+ 
+-
+ /* The following counts are associated to each semaphore:
+  *   semncnt        number of tasks waiting on semval being nonzero
+  *   semzcnt        number of tasks waiting on semval being zero
+@@ -1839,12 +1850,17 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 
+ 	error = perform_atomic_semop(sma, sops, nsops, un,
+ 					task_tgid_vnr(current));
+-	if (error <= 0) {
+-		if (alter && error == 0)
++	if (error == 0) {
++		/* If the operation was successful, then do
++		 * the required updates.
++		 */
++		if (alter)
+ 			do_smart_update(sma, sops, nsops, 1, &tasks);
