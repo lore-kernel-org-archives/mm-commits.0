@@ -1,112 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] swap-fix-set_blocksize-race-during-swapon-swapoff.patch
- removed from -mm tree
-Date: Thu, 17 Oct 2013 11:13:29 -0700
-Message-ID: <526028c9.D6AJEInUE4ssgNzJ%akpm@linux-foundation.org>
+Subject: [merged] mm-revert-mremap-pud_free-anti-fix.patch removed from
+ -mm tree
+Date: Thu, 17 Oct 2013 11:13:33 -0700
+Message-ID: <526028cd.IHj6pOJ7aWLHK/97%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44401 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758604Ab3JQSNa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:30 -0400
+	with ESMTP id S1759631Ab3JQSNd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:13:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, weijie.yang.kh@gmail.com, shli@fusionio.com, minchan@kernel.org, konrad.wilk@oracle.com, hughd@google.com, bob.liu@oracle.com, k.kozlowski@samsung.com
+To: mm-commits@vger.kernel.org, gang.chen@asianux.com, hughd@google.com
 
-Subject: [merged] swap-fix-set_blocksize-race-during-swapon-swapoff.patch removed from -mm tree
-To: k.kozlowski@samsung.com,bob.liu@oracle.com,hughd@google.com,konrad.wilk@oracle.com,minchan@kernel.org,shli@fusionio.com,weijie.yang.kh@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-revert-mremap-pud_free-anti-fix.patch removed from -mm tree
+To: hughd@google.com,gang.chen@asianux.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:13:29 -0700
+Date: Thu, 17 Oct 2013 11:13:33 -0700
 
 
 The patch titled
-     Subject: swap: fix set_blocksize race during swapon/swapoff
+     Subject: mm: revert mremap pud_free anti-fix
 has been removed from the -mm tree.  Its filename was
-     swap-fix-set_blocksize-race-during-swapon-swapoff.patch
+     mm-revert-mremap-pud_free-anti-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: swap: fix set_blocksize race during swapon/swapoff
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: revert mremap pud_free anti-fix
 
-Fix race between swapoff and swapon.  Swapoff used old_block_size from
-swap_info outside of swapon_mutex so it could be overwritten by concurrent
-swapon.
+Revert 1ecfd533f4c5 ("mm/mremap.c: call pud_free() after fail calling
+pmd_alloc()").  The original code was correct: pud_alloc(), pmd_alloc(),
+pte_alloc_map() ensure that the pud, pmd, pt is already allocated, and
+seldom do they need to allocate; on failure, upper levels are freed if
+appropriate by the subsequent do_munmap().  Whereas 1ecfd533f4c5 did an
+unconditional pud_free() of a most-likely still-in-use pud: saved only by
+the near-impossiblity of pmd_alloc() failing.
 
-The race has visible effect only if more than one swap block device exists
-with different block sizes (e.g.  /dev/sda1 with block size 4096 and
-/dev/sdb1 with 512).  In such case it leads to setting the blocksize of
-swapped off device with wrong blocksize.
-
-The bug can be triggered with multiple concurrent swapoff and swapon:
-0. Swap for some device is on.
-1. swapoff:
-First the swapoff is called on this device and "struct swap_info_struct
-*p" is assigned. This is done under swap_lock however this lock is
-released for the call try_to_unuse().
-
-2. swapon:
-After the assignment above (and before acquiring swapon_mutex &
-swap_lock by swapoff) the swapon is called on the same device.
-The p->old_block_size is assigned to the value of block_size the device.
-This block size should be the same as previous but sometimes it is not.
-The swapon ends successfully.
-
-3. swapoff:
-Swapoff resumes, grabs the locks and mutex and continues to disable this
-swap device. Now it sets the block size to value taken from swap_info
-which was overwritten by swapon in 2.
-
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Reported-by: Weijie Yang <weijie.yang.kh@gmail.com>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Shaohua Li <shli@fusionio.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Acked-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Chen Gang <gang.chen@asianux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/mremap.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/swapfile.c~swap-fix-set_blocksize-race-during-swapon-swapoff mm/swapfile.c
---- a/mm/swapfile.c~swap-fix-set_blocksize-race-during-swapon-swapoff
-+++ a/mm/swapfile.c
-@@ -1824,6 +1824,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	struct filename *pathname;
- 	int i, type, prev;
- 	int err;
-+	unsigned int old_block_size;
+diff -puN mm/mremap.c~mm-revert-mremap-pud_free-anti-fix mm/mremap.c
+--- a/mm/mremap.c~mm-revert-mremap-pud_free-anti-fix
++++ a/mm/mremap.c
+@@ -25,7 +25,6 @@
+ #include <asm/uaccess.h>
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+-#include <asm/pgalloc.h>
  
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
-@@ -1914,6 +1915,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	}
+ #include "internal.h"
  
- 	swap_file = p->swap_file;
-+	old_block_size = p->old_block_size;
- 	p->swap_file = NULL;
- 	p->max = 0;
- 	swap_map = p->swap_map;
-@@ -1938,7 +1940,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	inode = mapping->host;
- 	if (S_ISBLK(inode->i_mode)) {
- 		struct block_device *bdev = I_BDEV(inode);
--		set_blocksize(bdev, p->old_block_size);
-+		set_blocksize(bdev, old_block_size);
- 		blkdev_put(bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
- 	} else {
- 		mutex_lock(&inode->i_mutex);
+@@ -63,10 +62,8 @@ static pmd_t *alloc_new_pmd(struct mm_st
+ 		return NULL;
+ 
+ 	pmd = pmd_alloc(mm, pud, addr);
+-	if (!pmd) {
+-		pud_free(mm, pud);
++	if (!pmd)
+ 		return NULL;
+-	}
+ 
+ 	VM_BUG_ON(pmd_trans_huge(*pmd));
+ 
 _
 
-Patches currently in -mm which might be from k.kozlowski@samsung.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
-frontswap-enable-call-to-invalidate-area-on-swapoff.patch
+linux-next.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
 swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
+mm-rearrange-madvise-code-to-allow-for-reuse.patch
+mm-add-a-field-to-store-names-for-private-anonymous-memory.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 
