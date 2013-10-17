@@ -1,85 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-semc-optimize-sem_lock.patch removed from -mm tree
-Date: Thu, 17 Oct 2013 11:12:15 -0700
-Message-ID: <5260287f.UhyY74EDkBESU5tk%akpm@linux-foundation.org>
+Subject: [merged]
+ documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
+ removed from -mm tree
+Date: Thu, 17 Oct 2013 11:12:23 -0700
+Message-ID: <52602887.J1UTRTQ+aq+sxLQk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44185 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44201 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758210Ab3JQSMQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:16 -0400
+	with ESMTP id S1758524Ab3JQSMX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Oct 2013 14:12:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, davidlohr@hp.com, bitbucket@online.de, manfred@colorfullife.com
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, mgorman@suse.de, wpan@redhat.com
 
-Subject: [merged] ipc-semc-optimize-sem_lock.patch removed from -mm tree
-To: manfred@colorfullife.com,bitbucket@online.de,davidlohr@hp.com,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch removed from -mm tree
+To: wpan@redhat.com,mgorman@suse.de,rdunlap@infradead.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 17 Oct 2013 11:12:15 -0700
+Date: Thu, 17 Oct 2013 11:12:23 -0700
 
 
 The patch titled
-     Subject: ipc/sem.c: optimize sem_lock()
+     Subject: Documentation/kernel-parameters.txt: replace kernelcore with Movable
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-optimize-sem_lock.patch
+     documentation-kernel-parameterstxt-replace-kernelcore-with-movable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: optimize sem_lock()
+From: Weiping Pan <wpan@redhat.com>
+Subject: Documentation/kernel-parameters.txt: replace kernelcore with Movable
 
-Operations that need access to the whole array must guarantee that there
-are no simple operations ongoing.  Right now this is achieved by
-spin_unlock_wait(sem->lock) on all semaphores.
+Han Pingtian found a typo in Documentation/kernel-parameters.txt about
+"kernelcore=", that "kernelcore" should be replaced with "Movable" here.
 
-If complex_count is nonzero, then this spin_unlock_wait() is not
-necessary, because it was already performed in the past by the thread that
-increased complex_count and even though sem_perm.lock was dropped
-inbetween, no simple operation could have started, because simple
-operations cannot start when complex_count is non-zero.
-
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Mike Galbraith <bitbucket@online.de>
-Cc: Rik van Riel <riel@redhat.com>
-Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
+Signed-off-by: Weiping Pan <wpan@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ Documentation/kernel-parameters.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~ipc-semc-optimize-sem_lock ipc/sem.c
---- a/ipc/sem.c~ipc-semc-optimize-sem_lock
-+++ a/ipc/sem.c
-@@ -257,12 +257,20 @@ static void sem_rcu_free(struct rcu_head
-  * Caller must own sem_perm.lock.
-  * New simple ops cannot start, because simple ops first check
-  * that sem_perm.lock is free.
-+ * that a) sem_perm.lock is free and b) complex_count is 0.
-  */
- static void sem_wait_array(struct sem_array *sma)
- {
- 	int i;
- 	struct sem *sem;
- 
-+	if (sma->complex_count)  {
-+		/* The thread that increased sma->complex_count waited on
-+		 * all sem->lock locks. Thus we don't need to wait again.
-+		 */
-+		return;
-+	}
-+
- 	for (i = 0; i < sma->sem_nsems; i++) {
- 		sem = sma->sem_base + i;
- 		spin_unlock_wait(&sem->lock);
+diff -puN Documentation/kernel-parameters.txt~documentation-kernel-parameterstxt-replace-kernelcore-with-movable Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~documentation-kernel-parameterstxt-replace-kernelcore-with-movable
++++ a/Documentation/kernel-parameters.txt
+@@ -1357,7 +1357,7 @@ bytes respectively. Such letter suffixes
+ 			pages. In the event, a node is too small to have both
+ 			kernelcore and Movable pages, kernelcore pages will
+ 			take priority and other nodes will have a larger number
+-			of kernelcore pages.  The Movable zone is used for the
++			of Movable pages.  The Movable zone is used for the
+ 			allocation of pages that may be reclaimed or moved
+ 			by the page migration subsystem.  This means that
+ 			HugeTLB pages may not be allocated from this zone.
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from wpan@redhat.com are
 
-origin.patch
-slab-leaks3-default-y.patch
 
