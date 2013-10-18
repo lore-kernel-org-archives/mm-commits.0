@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + init-make-init-failures-more-explicit.patch added to -mm tree
-Date: Fri, 18 Oct 2013 13:22:18 -0700
-Message-ID: <5261987a.bIzHXVq5z4cuS+1D%akpm@linux-foundation.org>
+Subject: + mm-pagewalkc-fix-walk_page_range-access-of-wrong-ptes.patch
+ added to -mm tree
+Date: Fri, 18 Oct 2013 13:25:28 -0700
+Message-ID: <52619938.k3VWdq0Ji5nDufuO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55239 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55293 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752958Ab3JRUWT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Oct 2013 16:22:19 -0400
+	with ESMTP id S1751425Ab3JRUZ3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Oct 2013 16:25:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, geert@linux-m68k.org, Janne.Karhunen@gmail.com, michael.opdenacker@free-electrons.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, shuox.liu@intel.com, n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com, linx.z.chen@intel.com
 
-Subject: + init-make-init-failures-more-explicit.patch added to -mm tree
-To: michael.opdenacker@free-electrons.com,Janne.Karhunen@gmail.com,geert@linux-m68k.org
+Subject: + mm-pagewalkc-fix-walk_page_range-access-of-wrong-ptes.patch added to -mm tree
+To: linx.z.chen@intel.com,kirill.shutemov@linux.intel.com,n-horiguchi@ah.jp.nec.com,shuox.liu@intel.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 18 Oct 2013 13:22:18 -0700
+Date: Fri, 18 Oct 2013 13:25:28 -0700
 
 
 The patch titled
-     Subject: init: make init failures more explicit
+     Subject: mm/pagewalk.c: fix walk_page_range() access of wrong PTEs
 has been added to the -mm tree.  Its filename is
-     init-make-init-failures-more-explicit.patch
+     mm-pagewalkc-fix-walk_page_range-access-of-wrong-ptes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-make-init-failures-more-explicit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagewalkc-fix-walk_page_range-access-of-wrong-ptes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-make-init-failures-more-explicit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagewalkc-fix-walk_page_range-access-of-wrong-ptes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,118 +44,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: init: make init failures more explicit
+From: Chen LinX <linx.z.chen@intel.com>
+Subject: mm/pagewalk.c: fix walk_page_range() access of wrong PTEs
 
-This patch proposes to make init failures more explicit.
+When walk_page_range walk a memory map's page tables, it'll skip VM_PFNMAP
+area, then variable 'next' will to assign to vma->vm_end, it maybe larger
+than 'end'.  In next loop, 'addr' will be larger than 'next'.  Then in
+/proc/XXXX/pagemap file reading procedure, the 'addr' will growing forever
+in pagemap_pte_range, pte_to_pagemap_entry will access wrong pte.
 
-Before this, the "No init found" message didn't help much.  It could
-sometimes be misleading and actually mean "No *working* init found".
+[   93.387934] BUG: Bad page map in process procrank  pte:8437526f pmd:785de067
+[   93.387936] addr:9108d000 vm_flags:00200073 anon_vma:f0d99020 mapping:  (null) index:9108d
+[   93.387938] CPU: 1 PID: 4974 Comm: procrank Tainted: G    B   W  O 3.10.1+ #1
+[   93.387942]  f0d983c8 f0d983c8 e8271e48 c281ef4b e8271e84 c20ee794 c2a3f150 9108d000
+[   93.387946]  00200073 f0d99020 00000000 0009108d e8342d90 8437526f 0009108d 00000000
+[   93.387950]  00000000 00084375 fffa4234 e8271e98 c20ef836 00000000 e8271f28 f0d983c8
+[   93.387951] Call Trace:
+[   93.387953]  [<c281ef4b>] dump_stack+0x16/0x18
+[   93.387956]  [<c20ee794>] print_bad_pte+0x114/0x1b0
+[   93.387959]  [<c20ef836>] vm_normal_page+0x56/0x60
+[   93.387961]  [<c21594ba>] pagemap_pte_range+0x17a/0x1d0
+[   93.387963]  [<c2159340>] ? m_next+0x70/0x70
+[   93.387966]  [<c20fc60e>] walk_page_range+0x19e/0x2c0
+[   93.387969]  [<c20432c4>] ? ptrace_may_access+0x24/0x40
+[   93.387971]  [<c2159a4e>] pagemap_read+0x16e/0x200
+[   93.387973]  [<c2159340>] ? m_next+0x70/0x70
+[   93.387976]  [<c2158be0>] ? quota_send_warning+0x1f0/0x1f0
+[   93.387979]  [<c2158c30>] ? pagemap_pte_hole+0x50/0x50
+[   93.387981]  [<c21598e0>] ? clear_refs_pte_range+0xc0/0xc0
+[   93.387984]  [<c210c534>] vfs_read+0x84/0x150
+[   93.387986]  [<c21598e0>] ? clear_refs_pte_range+0xc0/0xc0
+[   93.387988]  [<c210c77a>] SyS_read+0x4a/0x80
+[   93.387991]  [<c28267c8>] syscall_call+0x7/0xb
+[   93.387996]  [<c2820000>] ? e1000_regdump+0x6f/0x37c
+[  102.866190]  [<c259fcd3>] ? cpuidle_idle_call+0x93/0x1b0
+[  102.872124]  [<c28297fa>] ? atomic_notifier_call_chain+0x1a/0x20
+[  102.878834]  [<c2008478>] ? arch_cpu_idle+0x8/0x20
+[  102.884183]  [<c207950d>] ? cpu_startup_entry+0x4d/0x1b0
+[  102.890116]  [<c280ecbd>] ? rest_init+0x5d/0x60
+[  102.895174]  [<c2b989f8>] ? start_kernel+0x31b/0x321
+[  102.900717]  [<c2b98512>] ? repair_env_string+0x51/0x51
+[  102.906551]  [<c2b98356>] ? i386_start_kernel+0x12c/0x12f
 
-This message could hide many different issues:
-- no init program candidates found at all
-- some init program candidates exist but can't be executed
-  (missing execute permissions, failed to load shared libraries,
-  executable compiled for an unknown architecture...)
-
-This patch notifies the kernel user when a candidate init program is found
-but can't be executed.  In each failure situation, the error code is
-displayed, to quickly find the root cause.  "No init found" is also
-replaced by "No working init found", which is more correct.
-
-This will help embedded Linux developers (especially the newcomers),
-regularly making and debugging new root filesystems.
-
-Credits to Geert Uytterhoeven and Janne Karhunen for their improvement
-suggestions.
-
-Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Tested-by: Janne Karhunen <Janne.Karhunen@gmail.com>
+Signed-off-by: Liu ShuoX <shuox.liu@intel.com>
+Signed-off-by: Chen LinX <linx.z.chen@intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>	[3.10.x+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   39 +++++++++++++++++++++++++++++----------
- 1 file changed, 29 insertions(+), 10 deletions(-)
+ mm/pagewalk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/main.c~init-make-init-failures-more-explicit init/main.c
---- a/init/main.c~init-make-init-failures-more-explicit
-+++ a/init/main.c
-@@ -811,10 +811,26 @@ static int run_init_process(const char *
- 		(const char __user *const __user *)envp_init);
+diff -puN mm/pagewalk.c~mm-pagewalkc-fix-walk_page_range-access-of-wrong-ptes mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-pagewalkc-fix-walk_page_range-access-of-wrong-ptes
++++ a/mm/pagewalk.c
+@@ -242,7 +242,7 @@ int walk_page_range(unsigned long addr,
+ 		if (err)
+ 			break;
+ 		pgd++;
+-	} while (addr = next, addr != end);
++	} while (addr = next, addr < end);
+ 
+ 	return err;
  }
- 
-+static int try_to_run_init_process(const char *init_filename)
-+{
-+	int ret;
-+
-+	ret = run_init_process(init_filename);
-+
-+	if (ret && ret != -ENOENT) {
-+		pr_err("Starting init: %s exists but couldn't execute it (error %d)\n",
-+		       init_filename, ret);
-+	}
-+
-+	return ret;
-+}
-+
- static noinline void __init kernel_init_freeable(void);
- 
- static int __ref kernel_init(void *unused)
- {
-+	int ret;
-+
- 	kernel_init_freeable();
- 	/* need to finish all async __init code before freeing the memory */
- 	async_synchronize_full();
-@@ -826,9 +842,11 @@ static int __ref kernel_init(void *unuse
- 	flush_delayed_fput();
- 
- 	if (ramdisk_execute_command) {
--		if (!run_init_process(ramdisk_execute_command))
-+		ret = run_init_process(ramdisk_execute_command);
-+		if (!ret)
- 			return 0;
--		pr_err("Failed to execute %s\n", ramdisk_execute_command);
-+		pr_err("Failed to execute %s (error %d)\n",
-+		       ramdisk_execute_command, ret);
- 	}
- 
- 	/*
-@@ -838,18 +856,19 @@ static int __ref kernel_init(void *unuse
- 	 * trying to recover a really broken machine.
- 	 */
- 	if (execute_command) {
--		if (!run_init_process(execute_command))
-+		ret = run_init_process(execute_command);
-+		if (!ret)
- 			return 0;
--		pr_err("Failed to execute %s.  Attempting defaults...\n",
--			execute_command);
-+		pr_err("Failed to execute %s (error %d).  Attempting defaults...\n",
-+			execute_command, ret);
- 	}
--	if (!run_init_process("/sbin/init") ||
--	    !run_init_process("/etc/init") ||
--	    !run_init_process("/bin/init") ||
--	    !run_init_process("/bin/sh"))
-+	if (!try_to_run_init_process("/sbin/init") ||
-+	    !try_to_run_init_process("/etc/init") ||
-+	    !try_to_run_init_process("/bin/init") ||
-+	    !try_to_run_init_process("/bin/sh"))
- 		return 0;
- 
--	panic("No init found.  Try passing init= option to kernel. "
-+	panic("No working init found.  Try passing init= option to kernel. "
- 	      "See Linux Documentation/init.txt for guidance.");
- }
- 
 _
 
-Patches currently in -mm which might be from michael.opdenacker@free-electrons.com are
+Patches currently in -mm which might be from linx.z.chen@intel.com are
 
-drivers-cdrom-gdromc-remove-deprecated-irqf_disabled.patch
-cramfs-mark-as-obsolete.patch
-init-make-init-failures-more-explicit.patch
-linux-next.patch
+mm-pagewalkc-fix-walk_page_range-access-of-wrong-ptes.patch
 
