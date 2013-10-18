@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + framework-for-version-lvb.patch added to -mm tree
-Date: Fri, 18 Oct 2013 13:03:09 -0700
-Message-ID: <526193fd.sYW9uVc6e0hhzG5S%akpm@linux-foundation.org>
+Subject: + init-make-init-failures-more-explicit.patch added to -mm tree
+Date: Fri, 18 Oct 2013 13:22:18 -0700
+Message-ID: <5261987a.bIzHXVq5z4cuS+1D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54807 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55239 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753826Ab3JRUDK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Oct 2013 16:03:10 -0400
+	with ESMTP id S1752958Ab3JRUWT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Oct 2013 16:22:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
+To: mm-commits@vger.kernel.org, geert@linux-m68k.org, Janne.Karhunen@gmail.com, michael.opdenacker@free-electrons.com
 
-Subject: + framework-for-version-lvb.patch added to -mm tree
-To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
+Subject: + init-make-init-failures-more-explicit.patch added to -mm tree
+To: michael.opdenacker@free-electrons.com,Janne.Karhunen@gmail.com,geert@linux-m68k.org
 From: akpm@linux-foundation.org
-Date: Fri, 18 Oct 2013 13:03:09 -0700
+Date: Fri, 18 Oct 2013 13:22:18 -0700
 
 
 The patch titled
-     Subject: ocfs2: framework for version LVB
+     Subject: init: make init failures more explicit
 has been added to the -mm tree.  Its filename is
-     framework-for-version-lvb.patch
+     init-make-init-failures-more-explicit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/framework-for-version-lvb.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/init-make-init-failures-more-explicit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/framework-for-version-lvb.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/init-make-init-failures-more-explicit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,149 +43,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: ocfs2: framework for version LVB
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: init: make init failures more explicit
 
-Use the native DLM locks for version control negotiation.  Most of the
-framework is taken from gfs2/lock_dlm.c
+This patch proposes to make init failures more explicit.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Before this, the "No init found" message didn't help much.  It could
+sometimes be misleading and actually mean "No *working* init found".
+
+This message could hide many different issues:
+- no init program candidates found at all
+- some init program candidates exist but can't be executed
+  (missing execute permissions, failed to load shared libraries,
+  executable compiled for an unknown architecture...)
+
+This patch notifies the kernel user when a candidate init program is found
+but can't be executed.  In each failure situation, the error code is
+displayed, to quickly find the root cause.  "No init found" is also
+replaced by "No working init found", which is more correct.
+
+This will help embedded Linux developers (especially the newcomers),
+regularly making and debugging new root filesystems.
+
+Credits to Geert Uytterhoeven and Janne Karhunen for their improvement
+suggestions.
+
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Tested-by: Janne Karhunen <Janne.Karhunen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_user.c |  102 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 102 insertions(+)
+ init/main.c |   39 +++++++++++++++++++++++++++++----------
+ 1 file changed, 29 insertions(+), 10 deletions(-)
 
-diff -puN fs/ocfs2/stack_user.c~framework-for-version-lvb fs/ocfs2/stack_user.c
---- a/fs/ocfs2/stack_user.c~framework-for-version-lvb
-+++ a/fs/ocfs2/stack_user.c
-@@ -118,6 +118,9 @@ struct ocfs2_live_connection {
- 	enum ocfs2_connection_type	oc_type;
- 	atomic_t                        oc_this_node;
- 	int                             oc_our_slot;
-+	struct dlm_lksb                 oc_version_lksb;
-+	char                            oc_lvb[DLM_LVB_LEN];
-+	struct completion               oc_sync_wait;
- };
- 
- struct ocfs2_control_private {
-@@ -796,6 +799,105 @@ static int fs_protocol_compare(struct oc
- 	return 0;
+diff -puN init/main.c~init-make-init-failures-more-explicit init/main.c
+--- a/init/main.c~init-make-init-failures-more-explicit
++++ a/init/main.c
+@@ -811,10 +811,26 @@ static int run_init_process(const char *
+ 		(const char __user *const __user *)envp_init);
  }
  
-+static int lvb_to_version(char *lvb, struct ocfs2_protocol_version *ver)
++static int try_to_run_init_process(const char *init_filename)
 +{
-+	struct ocfs2_protocol_version pv;
-+	struct ocfs2_protocol_version *max =
-+		&ocfs2_user_plugin.sp_max_proto;
++	int ret;
 +
-+	memcpy(&pv, lvb, sizeof(struct ocfs2_protocol_version));
-+	if ((pv.pv_major == LONG_MIN) || (pv.pv_major == LONG_MAX) ||
-+	    (pv.pv_major > (u8)-1) || (pv.pv_major < 1))
-+		return -ERANGE;
-+	if ((pv.pv_minor == LONG_MIN) || (pv.pv_minor == LONG_MAX) ||
-+	    (pv.pv_minor > (u8)-1) || (pv.pv_minor < 0))
-+		return -ERANGE;
-+	if ((pv.pv_major != max->pv_major) ||
-+	    (pv.pv_minor > max->pv_minor))
-+		return -EINVAL;
-+	ver->pv_major = pv.pv_major;
-+	ver->pv_minor = pv.pv_minor;
-+	return 0;
-+}
++	ret = run_init_process(init_filename);
 +
-+static void version_to_lvb(struct ocfs2_protocol_version *ver, char *lvb)
-+{
-+	memcpy(lvb, ver, sizeof(struct ocfs2_protocol_version));
-+}
-+
-+static void sync_wait_cb(void *arg)
-+{
-+	struct ocfs2_cluster_connection *conn = arg;
-+	struct ocfs2_live_connection *lc = conn->cc_private;
-+	complete(&lc->oc_sync_wait);
-+}
-+
-+static int sync_unlock(struct ocfs2_cluster_connection *conn,
-+		struct dlm_lksb *lksb, char *name)
-+{
-+	int error;
-+	struct ocfs2_live_connection *lc = conn->cc_private;
-+
-+	error = dlm_unlock(conn->cc_lockspace, lksb->sb_lkid, 0, lksb, conn);
-+	if (error) {
-+		printk(KERN_ERR "%s lkid %x error %d\n",
-+				name, lksb->sb_lkid, error);
-+		return error;
++	if (ret && ret != -ENOENT) {
++		pr_err("Starting init: %s exists but couldn't execute it (error %d)\n",
++		       init_filename, ret);
 +	}
 +
-+	wait_for_completion(&lc->oc_sync_wait);
-+
-+	if (lksb->sb_status != -DLM_EUNLOCK) {
-+		printk(KERN_ERR "%s lkid %x status %d\n",
-+				name, lksb->sb_lkid, lksb->sb_status);
-+		return -1;
-+	}
-+	return 0;
++	return ret;
 +}
 +
-+static int sync_lock(struct ocfs2_cluster_connection *conn,
-+		int mode, uint32_t flags,
-+		struct dlm_lksb *lksb, char *name)
-+{
-+	int error, status;
-+	struct ocfs2_live_connection *lc = conn->cc_private;
-+
-+	error = dlm_lock(conn->cc_lockspace, mode, lksb, flags,
-+			name, strlen(name),
-+			0, sync_wait_cb, conn, NULL);
-+	if (error) {
-+		printk(KERN_ERR "%s lkid %x flags %x mode %d error %d\n",
-+				name, lksb->sb_lkid, flags, mode, error);
-+		return error;
-+	}
-+
-+	wait_for_completion(&lc->oc_sync_wait);
-+
-+	status = lksb->sb_status;
-+
-+	if (status && status != -EAGAIN) {
-+		printk(KERN_ERR "%s lkid %x flags %x mode %d status %d\n",
-+				name, lksb->sb_lkid, flags, mode, status);
-+	}
-+
-+	return status;
-+}
-+
-+
-+static int version_lock(struct ocfs2_cluster_connection *conn, int mode,
-+		int flags)
-+{
-+	struct ocfs2_live_connection *lc = conn->cc_private;
-+	return sync_lock(conn, mode, flags,
-+			&lc->oc_version_lksb, "version_lock");
-+}
-+
-+static int version_unlock(struct ocfs2_cluster_connection *conn)
-+{
-+	struct ocfs2_live_connection *lc = conn->cc_private;
-+	return sync_unlock(conn, &lc->oc_version_lksb, "version_lock");
-+}
-+
- static void user_recover_prep(void *arg)
+ static noinline void __init kernel_init_freeable(void);
+ 
+ static int __ref kernel_init(void *unused)
  {
++	int ret;
++
+ 	kernel_init_freeable();
+ 	/* need to finish all async __init code before freeing the memory */
+ 	async_synchronize_full();
+@@ -826,9 +842,11 @@ static int __ref kernel_init(void *unuse
+ 	flush_delayed_fput();
+ 
+ 	if (ramdisk_execute_command) {
+-		if (!run_init_process(ramdisk_execute_command))
++		ret = run_init_process(ramdisk_execute_command);
++		if (!ret)
+ 			return 0;
+-		pr_err("Failed to execute %s\n", ramdisk_execute_command);
++		pr_err("Failed to execute %s (error %d)\n",
++		       ramdisk_execute_command, ret);
+ 	}
+ 
+ 	/*
+@@ -838,18 +856,19 @@ static int __ref kernel_init(void *unuse
+ 	 * trying to recover a really broken machine.
+ 	 */
+ 	if (execute_command) {
+-		if (!run_init_process(execute_command))
++		ret = run_init_process(execute_command);
++		if (!ret)
+ 			return 0;
+-		pr_err("Failed to execute %s.  Attempting defaults...\n",
+-			execute_command);
++		pr_err("Failed to execute %s (error %d).  Attempting defaults...\n",
++			execute_command, ret);
+ 	}
+-	if (!run_init_process("/sbin/init") ||
+-	    !run_init_process("/etc/init") ||
+-	    !run_init_process("/bin/init") ||
+-	    !run_init_process("/bin/sh"))
++	if (!try_to_run_init_process("/sbin/init") ||
++	    !try_to_run_init_process("/etc/init") ||
++	    !try_to_run_init_process("/bin/init") ||
++	    !try_to_run_init_process("/bin/sh"))
+ 		return 0;
+ 
+-	panic("No init found.  Try passing init= option to kernel. "
++	panic("No working init found.  Try passing init= option to kernel. "
+ 	      "See Linux Documentation/init.txt for guidance.");
  }
+ 
 _
 
-Patches currently in -mm which might be from rgoldwyn@suse.de are
+Patches currently in -mm which might be from michael.opdenacker@free-electrons.com are
 
-fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits.patch
-add-clustername-to-cluster-connection.patch
-add-dlm-recovery-callbacks.patch
-shift-allocation-ocfs2_live_connection-to-user_connect.patch
-pass-ocfs2_cluster_connection-to-ocfs2_this_node.patch
-framework-for-version-lvb.patch
-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
+drivers-cdrom-gdromc-remove-deprecated-irqf_disabled.patch
+cramfs-mark-as-obsolete.patch
+init-make-init-failures-more-explicit.patch
+linux-next.patch
 
