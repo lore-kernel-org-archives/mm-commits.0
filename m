@@ -1,104 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Tue, 29 Oct 2013 12:44:40 -0700
-Message-ID: <52701028.71fyWLI3OpYUltC8%akpm@linux-foundation.org>
+Subject: +
+ tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch added
+ to -mm tree
+Date: Tue, 29 Oct 2013 13:15:14 -0700
+Message-ID: <52701752.qTf3fzuGJAfH0Hoy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38227 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38371 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561Ab3J2Tol (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Oct 2013 15:44:41 -0400
+	with ESMTP id S1752803Ab3J2UPP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Oct 2013 16:15:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, wsa@the-dreams.de, akpm@linux-foundation.org
 
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: + tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,wsa@the-dreams.de
 From: akpm@linux-foundation.org
-Date: Tue, 29 Oct 2013 12:44:39 -0700
+Date: Tue, 29 Oct 2013 13:15:14 -0700
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     Subject: tree-wide-use-reinit_completion-instead-of-init_completion-fix
+has been added to the -mm tree.  Its filename is
+     tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: tree-wide-use-reinit_completion-instead-of-init_completion-fix
 
+Cc: Wolfram Sang <wsa@the-dreams.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c                    |   20 ++++++++++++++++++--
- drivers/net/wireless/ath/ath10k/htc.c |    8 ++++----
- 2 files changed, 22 insertions(+), 6 deletions(-)
+ drivers/misc/mic/card/mic_virtio.c |    2 +-
+ drivers/misc/mic/host/mic_boot.c   |    2 +-
+ drivers/spi/spi.c                  |    2 +-
+ sound/firewire/dice.c              |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/mm/init.c~linux-next-rejects arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~linux-next-rejects
-+++ a/arch/x86/mm/init.c
-@@ -399,8 +399,24 @@ static unsigned long __init init_range_m
- 	return mapped_ram_size;
- }
+diff -puN drivers/misc/mic/card/mic_virtio.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix drivers/misc/mic/card/mic_virtio.c
+--- a/drivers/misc/mic/card/mic_virtio.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix
++++ a/drivers/misc/mic/card/mic_virtio.c
+@@ -493,7 +493,7 @@ static int mic_remove_device(struct mic_
+ 			ioread8(&dc->config_change), ioread8(&d->type), mvdev);
  
--/* (PUD_SHIFT-PMD_SHIFT)/2 */
--#define STEP_SIZE_SHIFT 5
-+static unsigned long __init get_new_step_size(unsigned long step_size)
-+{
-+	/*
-+	 * Explain why we shift by 5 and why we don't have to worry about
-+	 * 'step_size << 5' overflowing:
-+	 *
-+	 * initial mapped size is PMD_SIZE (2M).
-+	 * We can not set step_size to be PUD_SIZE (1G) yet.
-+	 * In worse case, when we cross the 1G boundary, and
-+	 * PG_LEVEL_2M is not set, we will need 1+1+512 pages (2M + 8k)
-+	 * to map 1G range with PTE. Use 5 as shift for now.
-+	 *
-+	 * Don't need to worry about overflow, on 32bit, when step_size
-+	 * is 0, round_down() returns 0 for start, and that turns it
-+	 * into 0x100000000ULL.
-+	 */
-+	return step_size << 5;
-+}
+ 		status = ioread8(&d->status);
+-		INIT_COMPLETION(mvdev->reset_done);
++		reinit_completion(&mvdev->reset_done);
+ 		unregister_virtio_device(&mvdev->vdev);
+ 		mic_free_card_irq(mvdev->virtio_cookie, mvdev);
+ 		if (status & VIRTIO_CONFIG_S_DRIVER_OK)
+diff -puN drivers/misc/mic/host/mic_boot.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix drivers/misc/mic/host/mic_boot.c
+--- a/drivers/misc/mic/host/mic_boot.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix
++++ a/drivers/misc/mic/host/mic_boot.c
+@@ -37,7 +37,7 @@ static void mic_reset(struct mic_device
  
- /**
-  * memory_map_top_down - Map [map_start, map_end) top down
-diff -puN drivers/net/wireless/ath/ath10k/htc.c~linux-next-rejects drivers/net/wireless/ath/ath10k/htc.c
---- a/drivers/net/wireless/ath/ath10k/htc.c~linux-next-rejects
-+++ a/drivers/net/wireless/ath/ath10k/htc.c
-@@ -772,16 +772,16 @@ int ath10k_htc_connect_service(struct at
+ #define MIC_RESET_TO (45)
  
- 	flags |= SM(tx_alloc, ATH10K_HTC_CONN_FLAGS_RECV_ALLOC);
+-	INIT_COMPLETION(mdev->reset_wait);
++	reinit_completion(&mdev->reset_wait);
+ 	mdev->ops->reset_fw_ready(mdev);
+ 	mdev->ops->reset(mdev);
  
--	req_msg = &msg->connect_service;
--	req_msg->flags = __cpu_to_le16(flags);
--	req_msg->service_id = __cpu_to_le16(conn_req->service_id);
--
- 	/* Only enable credit flow control for WMI ctrl service */
- 	if (conn_req->service_id != ATH10K_HTC_SVC_ID_WMI_CONTROL) {
- 		flags |= ATH10K_HTC_CONN_FLAGS_DISABLE_CREDIT_FLOW_CTRL;
- 		disable_credit_flow_ctrl = true;
- 	}
+diff -puN drivers/spi/spi.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix drivers/spi/spi.c
+--- a/drivers/spi/spi.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix
++++ a/drivers/spi/spi.c
+@@ -571,7 +571,7 @@ static int spi_transfer_one_message(stru
+ 	list_for_each_entry(xfer, &msg->transfers, transfer_list) {
+ 		trace_spi_transfer_start(msg, xfer);
  
-+	req_msg = &msg->connect_service;
-+	req_msg->flags = __cpu_to_le16(flags);
-+	req_msg->service_id = __cpu_to_le16(conn_req->service_id);
-+
- 	reinit_completion(&htc->ctl_resp);
+-		INIT_COMPLETION(master->xfer_completion);
++		reinit_completion(&master->xfer_completion);
  
- 	status = ath10k_htc_send(htc, ATH10K_HTC_EP_0, skb);
+ 		ret = master->transfer_one(master, msg->spi, xfer);
+ 		if (ret < 0) {
+diff -puN sound/firewire/dice.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix sound/firewire/dice.c
+--- a/sound/firewire/dice.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix
++++ a/sound/firewire/dice.c
+@@ -543,7 +543,7 @@ static int dice_change_rate(struct dice
+ 	__be32 value;
+ 	int err;
+ 
+-	INIT_COMPLETION(dice->clock_accepted);
++	reinit_completion(&dice->clock_accepted);
+ 
+ 	value = cpu_to_be32(clock_rate | CLOCK_SOURCE_ARX1);
+ 	err = snd_fw_transaction(dice->unit, TCODE_WRITE_QUADLET_REQUEST,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-linux-next.patch
-linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
@@ -106,9 +117,6 @@ mm-readaheadc-do_readhead-dont-check-for-readpage.patch
 posix_acl-uninlining.patch
 mm.patch
 mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
 mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
 kernel-printk-printkc-convert-to-pr_foo.patch
 maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
@@ -122,8 +130,14 @@ gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
 gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
 kernel-modulec-use-pr_foo.patch
 kernel-gcov-fsc-use-pr_warn.patch
+linux-next.patch
+linux-next-git-rejects.patch
 x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
+tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 journal_add_journal_head-debug.patch
