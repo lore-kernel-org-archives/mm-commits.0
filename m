@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting.patch added to -mm tree
-Date: Tue, 29 Oct 2013 14:01:37 -0700
-Message-ID: <52702231.SSUlDeKdymjtTF73%akpm@linux-foundation.org>
+Subject: + mm-fix-page_group_by_mobility_disabled-breakage.patch added to
+ -mm tree
+Date: Tue, 29 Oct 2013 14:08:06 -0700
+Message-ID: <527023b6.AuEgsSPD/D/r3shb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888Ab3J2VBi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Oct 2013 17:01:38 -0400
+	with ESMTP id S1751517Ab3J2VIH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Oct 2013 17:08:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, hannes@cmpxchg.org, gthelen@google.com
+To: mm-commits@vger.kernel.org, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com
 
-Subject: + memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting.patch added to -mm tree
-To: gthelen@google.com,hannes@cmpxchg.org,tj@kernel.org
+Subject: + mm-fix-page_group_by_mobility_disabled-breakage.patch added to -mm tree
+To: kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de
 From: akpm@linux-foundation.org
-Date: Tue, 29 Oct 2013 14:01:37 -0700
+Date: Tue, 29 Oct 2013 14:08:06 -0700
 
 
 The patch titled
-     Subject: memcg: use __this_cpu_sub() to dec stats to avoid incorrect subtrahend casting
+     Subject: mm: fix page_group_by_mobility_disabled breakage
 has been added to the -mm tree.  Its filename is
-     memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting.patch
+     mm-fix-page_group_by_mobility_disabled-breakage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-page_group_by_mobility_disabled-breakage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-page_group_by_mobility_disabled-breakage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,83 +44,31 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: memcg: use __this_cpu_sub() to dec stats to avoid incorrect subtrahend casting
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: fix page_group_by_mobility_disabled breakage
 
-As of v3.11-9444-g3ea67d0 ("memcg: add per cgroup writeback pages
-accounting") memcg counter errors are possible when moving charged memory
-to a different memcg.  Charge movement occurs when processing writes to
-memory.force_empty, moving tasks to a memcg with
-memcg.move_charge_at_immigrate=1, or memcg deletion.  An example showing
-error after memory.force_empty:
+Currently, set_pageblock_migratetype() screws up MIGRATE_CMA and
+MIGRATE_ISOLATE if page_group_by_mobility_disabled is true.  It rewrites
+the argument to MIGRATE_UNMOVABLE and we lost these attribute.
 
-  $ cd /sys/fs/cgroup/memory
-  $ mkdir x
-  $ rm /data/tmp/file
-  $ (echo $BASHPID >> x/tasks && exec mmap_writer /data/tmp/file 1M) &
-  [1] 13600
-  $ grep ^mapped x/memory.stat
-  mapped_file 1048576
-  $ echo 13600 > tasks
-  $ echo 1 > x/memory.force_empty
-  $ grep ^mapped x/memory.stat
-  mapped_file 4503599627370496
+The problem was introduced by 49255c619f ("page allocator: move check for
+disabled anti-fragmentation out of fastpath").  So a 4 year old issue may
+mean that nobody uses page_group_by_mobility_disabled.
 
-mapped_file should end with 0.
-  4503599627370496 == 0x10,0000,0000,0000 == 0x100,0000,0000 pages
-  1048576          == 0x10,0000           == 0x100 pages
+But anyway, this patch fixes the problem.
 
-This issue only affects the source memcg on 64 bit machines; the
-destination memcg counters are correct.  So the rmdir case is not too
-important because such counters are soon disappearing with the entire
-memcg.  But the memcg.force_empty and memory.move_charge_at_immigrate=1
-cases are larger problems as the bogus counters are visible for the
-(possibly long) remaining life of the source memcg.
-
-The problem is due to memcg use of __this_cpu_from(.., -nr_pages), which
-is subtly wrong because it subtracts the unsigned int nr_pages (either -1
-or -512 for THP) from a signed long percpu counter.  When nr_pages=-1,
--nr_pages=0xffffffff.  On 64 bit machines stat->count[idx] is signed 64
-bit.  So memcg's attempt to simply decrement a count (e.g.  from 1 to 0)
-boils down to:
-
-  long count = 1
-  unsigned int nr_pages = 1
-  count += -nr_pages  /* -nr_pages == 0xffff,ffff */
-  count is now 0x1,0000,0000 instead of 0
-
-The fix is to subtract the unsigned page count rather than adding its
-negation.  This only works once "percpu: fix this_cpu_sub() subtrahend
-casting for unsigneds" is applied to fix this_cpu_sub().
-
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting
-+++ a/mm/memcontrol.c
-@@ -3774,7 +3774,7 @@ void mem_cgroup_move_account_page_stat(s
- 	/* Update stat data for mem_cgroup */
- 	preempt_disable();
- 	WARN_ON_ONCE(from->stat->count[idx] < nr_pages);
--	__this_cpu_add(from->stat->count[idx], -nr_pages);
-+	__this_cpu_sub(from->stat->count[idx], nr_pages);
- 	__this_cpu_add(to->stat->count[idx], nr_pages);
- 	preempt_enable();
- }
-_
-
-Patches currently in -mm which might be from gthelen@google.com are
-
-percpu-fix-this_cpu_sub-subtrahend-casting-for-unsigneds.patch
-memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting.patch
-memcg-refactor-mem_control_numa_stat_show.patch
-memcg-support-hierarchical-memorynuma_stats.patch
-percpu-add-test-module-for-various-percpu-operations.patch
-
+diff -puN mm/page_alloc.c~mm-fix-page_group_by_mobility_disabled-breakage mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-page_group_by_mobility_disabled-breakage
++++ a/mm/page_alloc.c
+@@ -234,8 +234,8 @@ int page_group_by_mobility_disabled __re
+ 
+ void set_pageblock_migratetype(struct page *page, int migratetype)
+ {
