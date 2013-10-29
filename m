@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + seq_file-remove-%n-usage-from-seq_file-users-fix.patch added to -mm tree
-Date: Tue, 29 Oct 2013 14:42:14 -0700
-Message-ID: <52702bb6.JgWyoLFFTNNuI7yH%akpm@linux-foundation.org>
+Subject: +
+ mm-add-a-field-to-store-names-for-private-anonymous-memory-fix-fix-2.patch
+ added to -mm tree
+Date: Tue, 29 Oct 2013 14:49:21 -0700
+Message-ID: <52702d61.5vnFiy0HSsS2A0CO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39045 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39101 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906Ab3J2VmP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Oct 2013 17:42:15 -0400
+	with ESMTP id S1751380Ab3J2VtW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Oct 2013 17:49:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, ccross@android.com, akpm@linux-foundation.org
 
-Subject: + seq_file-remove-%n-usage-from-seq_file-users-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,penguin-kernel@I-love.SAKURA.ne.jp
+Subject: + mm-add-a-field-to-store-names-for-private-anonymous-memory-fix-fix-2.patch added to -mm tree
+To: akpm@linux-foundation.org,ccross@android.com
 From: akpm@linux-foundation.org
-Date: Tue, 29 Oct 2013 14:42:14 -0700
+Date: Tue, 29 Oct 2013 14:49:21 -0700
 
 
 The patch titled
-     Subject: seq_file-remove-%n-usage-from-seq_file-users-fix
+     Subject: mm-add-a-field-to-store-names-for-private-anonymous-memory-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     seq_file-remove-%n-usage-from-seq_file-users-fix.patch
+     mm-add-a-field-to-store-names-for-private-anonymous-memory-fix-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/seq_file-remove-%n-usage-from-seq_file-users-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-a-field-to-store-names-for-private-anonymous-memory-fix-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/seq_file-remove-%n-usage-from-seq_file-users-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-a-field-to-store-names-for-private-anonymous-memory-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,29 +46,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: seq_file-remove-%n-usage-from-seq_file-users-fix
+Subject: mm-add-a-field-to-store-names-for-private-anonymous-memory-fix-fix-2
 
-fix for linux-next changes
+remove unused local
 
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Colin Cross <ccross@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~seq_file-remove-%n-usage-from-seq_file-users-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~seq_file-remove-%n-usage-from-seq_file-users-fix
+diff -puN fs/proc/task_mmu.c~mm-add-a-field-to-store-names-for-private-anonymous-memory-fix-fix-2 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-add-a-field-to-store-names-for-private-anonymous-memory-fix-fix-2
 +++ a/fs/proc/task_mmu.c
-@@ -349,7 +349,7 @@ show_map_vma(struct seq_file *m, struct
- 		}
+@@ -95,7 +95,6 @@ static void seq_print_vma_name(struct se
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	char anon_name[NAME_MAX + 1];
+-	unsigned long addr;
+ 	int n;
  
- 		if (vma_anon_name(vma)) {
--			pad_len_spaces(m, len);
-+			seq_pad(m, ' ');
- 			seq_print_vma_name(m, vma);
- 		}
- 	}
+ 	n = access_remote_vm(mm, (unsigned long)vma_anon_name(vma),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +80,7 @@ posix_acl-uninlining.patch
 mm.patch
 mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
 mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
+mm-add-a-field-to-store-names-for-private-anonymous-memory-fix-fix-2.patch
 kernel-printk-printkc-convert-to-pr_foo.patch
 maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
 checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
