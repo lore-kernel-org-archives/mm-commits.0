@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-find-clarify-and-extend-documentation.patch added to -mm tree
-Date: Wed, 30 Oct 2013 15:51:21 -0700
-Message-ID: <52718d69.4P/kMoJtetZPkSRF%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-fix-possible-double-free-in-ocfs2_write_begin_nolock.patch added to
+ -mm tree
+Date: Wed, 30 Oct 2013 15:52:36 -0700
+Message-ID: <52718db4.Gm1PxxiSTR9ilgG8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49687 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753068Ab3J3WvV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 18:51:21 -0400
+	with ESMTP id S1753292Ab3J3Wwh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 18:52:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, arnd@arndb.de, cody@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, xuejiufei@huawei.com
 
-Subject: + bitops-find-clarify-and-extend-documentation.patch added to -mm tree
-To: cody@linux.vnet.ibm.com,arnd@arndb.de
+Subject: + ocfs2-fix-possible-double-free-in-ocfs2_write_begin_nolock.patch added to -mm tree
+To: xuejiufei@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Wed, 30 Oct 2013 15:51:21 -0700
+Date: Wed, 30 Oct 2013 15:52:36 -0700
 
 
 The patch titled
-     Subject: bitops/find: clarify and extend documentation
+     Subject: ocfs2: fix possible double free in ocfs2_write_begin_nolock
 has been added to the -mm tree.  Its filename is
-     bitops-find-clarify-and-extend-documentation.patch
+     ocfs2-fix-possible-double-free-in-ocfs2_write_begin_nolock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitops-find-clarify-and-extend-documentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-possible-double-free-in-ocfs2_write_begin_nolock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitops-find-clarify-and-extend-documentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-possible-double-free-in-ocfs2_write_begin_nolock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,71 +45,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: bitops/find: clarify and extend documentation
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: fix possible double free in ocfs2_write_begin_nolock
 
-Add return value documentation and clarify the units of the @size
-parameter.
+When ocfs2_write_cluster_by_desc() failed in ocfs2_write_begin_nolock()
+because of ENOSPC, it goes to out_quota, freeing data_ac(meta_ac).  Then
+it calls ocfs2_try_to_free_truncate_log() to free space.  If enough space
+freed, it will try to write again.  Unfortunately, some error happenes
+before ocfs2_lock_allocators(), it goes to out and free data_ac(meta_ac)
+again.
 
-Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Cody P Schafer <cody@linux.vnet.ibm.com>
+Signed-off-by: joyce <xuejiufei@huawei.com>
+Reviewed-by: Jie Liu <jeff.liu@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/find.h |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ fs/ocfs2/aops.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/bitops/find.h~bitops-find-clarify-and-extend-documentation include/asm-generic/bitops/find.h
---- a/include/asm-generic/bitops/find.h~bitops-find-clarify-and-extend-documentation
-+++ a/include/asm-generic/bitops/find.h
-@@ -7,6 +7,9 @@
-  * @addr: The address to base the search on
-  * @offset: The bitnumber to start searching at
-  * @size: The bitmap size in bits
-+ *
-+ * Returns the bit number for the next set bit
-+ * If no bits are set, returns @size.
-  */
- extern unsigned long find_next_bit(const unsigned long *addr, unsigned long
- 		size, unsigned long offset);
-@@ -18,6 +21,9 @@ extern unsigned long find_next_bit(const
-  * @addr: The address to base the search on
-  * @offset: The bitnumber to start searching at
-  * @size: The bitmap size in bits
-+ *
-+ * Returns the bit number of the next zero bit
-+ * If no bits are zero, returns @size.
-  */
- extern unsigned long find_next_zero_bit(const unsigned long *addr, unsigned
- 		long size, unsigned long offset);
-@@ -28,9 +34,10 @@ extern unsigned long find_next_zero_bit(
- /**
-  * find_first_bit - find the first set bit in a memory region
-  * @addr: The address to start the search at
-- * @size: The maximum size to search
-+ * @size: The maximum number of bits to search
-  *
-  * Returns the bit number of the first set bit.
-+ * If no bits are set, returns @size.
-  */
- extern unsigned long find_first_bit(const unsigned long *addr,
- 				    unsigned long size);
-@@ -38,9 +45,10 @@ extern unsigned long find_first_bit(cons
- /**
-  * find_first_zero_bit - find the first cleared bit in a memory region
-  * @addr: The address to start the search at
-- * @size: The maximum size to search
-+ * @size: The maximum number of bits to search
-  *
-  * Returns the bit number of the first cleared bit.
-+ * If no bits are zero, returns @size.
-  */
- extern unsigned long find_first_zero_bit(const unsigned long *addr,
- 					 unsigned long size);
+diff -puN fs/ocfs2/aops.c~ocfs2-fix-possible-double-free-in-ocfs2_write_begin_nolock fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-fix-possible-double-free-in-ocfs2_write_begin_nolock
++++ a/fs/ocfs2/aops.c
+@@ -1898,10 +1898,14 @@ out_commit:
+ out:
+ 	ocfs2_free_write_ctxt(wc);
+ 
+-	if (data_ac)
++	if (data_ac) {
+ 		ocfs2_free_alloc_context(data_ac);
+-	if (meta_ac)
++		data_ac = NULL;
++	}
++	if (meta_ac) {
+ 		ocfs2_free_alloc_context(meta_ac);
++		meta_ac = NULL;
++	}
+ 
+ 	if (ret == -ENOSPC && try_free) {
+ 		/*
 _
 
-Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-bitops-find-clarify-and-extend-documentation.patch
+ocfs2-skip-locks-in-the-blocked-list.patch
+ocfs2-delay-migration-when-the-lockres-is-in-migration-state.patch
+ocfs2-fix-possible-double-free-in-ocfs2_write_begin_nolock.patch
 
