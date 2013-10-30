@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-lockdep-annotation-for-memcg-oom-lock.patch added to
- -mm tree
-Date: Wed, 30 Oct 2013 15:12:48 -0700
-Message-ID: <52718460.4+rPcYBdFtC2v3uh%akpm@linux-foundation.org>
+Subject: +
+ drivers-memstick-core-mspro_blockc-fix-attributes-array-allocation.patch
+ added to -mm tree
+Date: Wed, 30 Oct 2013 15:34:46 -0700
+Message-ID: <52718986.to3TGDqy0tF4AdxJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49217 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751642Ab3J3WMt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 18:12:49 -0400
+	with ESMTP id S1751520Ab3J3Wer (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 18:34:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tj@kernel.org, oakad@yahoo.com, maximlevitsky@gmail.com, mina86@mina86.com
 
-Subject: + mm-memcg-lockdep-annotation-for-memcg-oom-lock.patch added to -mm tree
-To: hannes@cmpxchg.org,mhocko@suse.cz
+Subject: + drivers-memstick-core-mspro_blockc-fix-attributes-array-allocation.patch added to -mm tree
+To: mina86@mina86.com,maximlevitsky@gmail.com,oakad@yahoo.com,tj@kernel.org,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 30 Oct 2013 15:12:48 -0700
+Date: Wed, 30 Oct 2013 15:34:46 -0700
 
 
 The patch titled
-     Subject: mm: memcg: lockdep annotation for memcg OOM lock
+     Subject: drivers/memstick/core/mspro_block.c: fix attributes array allocation
 has been added to the -mm tree.  Its filename is
-     mm-memcg-lockdep-annotation-for-memcg-oom-lock.patch
+     drivers-memstick-core-mspro_blockc-fix-attributes-array-allocation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-lockdep-annotation-for-memcg-oom-lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-memstick-core-mspro_blockc-fix-attributes-array-allocation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-lockdep-annotation-for-memcg-oom-lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-memstick-core-mspro_blockc-fix-attributes-array-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,93 +45,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: lockdep annotation for memcg OOM lock
+From: Michal Nazarewicz <mina86@mina86.com>
+Subject: drivers/memstick/core/mspro_block.c: fix attributes array allocation
 
-The memcg OOM lock is a mutex-type lock that is open-coded due to memcg's
-special needs.  Add annotations for lockdep coverage.
+attrs field of attribute_group structure is a pointer to a pointer (as in
+an array of pointers) rather than pointer to attribute struct (as in an
+array of structures), so when allocating size of the pointer sholud be
+used instead of the structure it is pointing to.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+While at it, also change the call to use kcalloc rather than kzalloc.
+
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/memstick/core/mspro_block.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-lockdep-annotation-for-memcg-oom-lock mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-lockdep-annotation-for-memcg-oom-lock
-+++ a/mm/memcontrol.c
-@@ -54,6 +54,7 @@
- #include <linux/page_cgroup.h>
- #include <linux/cpu.h>
- #include <linux/oom.h>
-+#include <linux/lockdep.h>
- #include "internal.h"
- #include <net/sock.h>
- #include <net/ip.h>
-@@ -2046,6 +2047,12 @@ static int mem_cgroup_soft_reclaim(struc
- 	return total;
- }
+diff -puN drivers/memstick/core/mspro_block.c~drivers-memstick-core-mspro_blockc-fix-attributes-array-allocation drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~drivers-memstick-core-mspro_blockc-fix-attributes-array-allocation
++++ a/drivers/memstick/core/mspro_block.c
+@@ -1023,8 +1023,8 @@ static int mspro_block_read_attributes(s
+ 	} else
+ 		attr_count = attr->count;
  
-+#ifdef CONFIG_LOCKDEP
-+static struct lockdep_map memcg_oom_lock_dep_map = {
-+	.name = "memcg_oom_lock",
-+};
-+#endif
-+
- static DEFINE_SPINLOCK(memcg_oom_lock);
- 
- /*
-@@ -2083,7 +2090,8 @@ static bool mem_cgroup_oom_trylock(struc
- 			}
- 			iter->oom_lock = false;
- 		}
--	}
-+	} else
-+		mutex_acquire(&memcg_oom_lock_dep_map, 0, 1, _RET_IP_);
- 
- 	spin_unlock(&memcg_oom_lock);
- 
-@@ -2095,6 +2103,7 @@ static void mem_cgroup_oom_unlock(struct
- 	struct mem_cgroup *iter;
- 
- 	spin_lock(&memcg_oom_lock);
-+	mutex_release(&memcg_oom_lock_dep_map, 1, _RET_IP_);
- 	for_each_mem_cgroup_tree(iter, memcg)
- 		iter->oom_lock = false;
- 	spin_unlock(&memcg_oom_lock);
+-	msb->attr_group.attrs = kzalloc((attr_count + 1)
+-					* sizeof(struct attribute),
++	msb->attr_group.attrs = kcalloc(attr_count + 1,
++					sizeof(*msb->attr_group.attrs),
+ 					GFP_KERNEL);
+ 	if (!msb->attr_group.attrs) {
+ 		rc = -ENOMEM;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mina86@mina86.com are
 
-percpu-fix-this_cpu_sub-subtrahend-casting-for-unsigneds.patch
-memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting.patch
-mm-memcg-use-proper-memcg-in-limit-bypass.patch
-mm-memcg-lockdep-annotation-for-memcg-oom-lock.patch
-mm-memcg-fix-test-for-child-groups.patch
-mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch
-memcg-refactor-mem_control_numa_stat_show.patch
-memcg-support-hierarchical-memorynuma_stats.patch
 memblock-factor-out-of-top-down-allocation.patch
 memblock-introduce-bottom-up-allocation-mode.patch
 x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
 x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
 x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
 mem-hotplug-introduce-movable_node-boot-option.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-percpu-add-test-module-for-various-percpu-operations.patch
+drivers-memstick-core-mspro_blockc-fix-attributes-array-allocation.patch
 linux-next.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
 
