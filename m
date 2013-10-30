@@ -1,138 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: +
- printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch added to -mm tree
-Date: Wed, 30 Oct 2013 16:02:44 -0700
-Message-ID: <52719014.yhx7vsbBomWYFoLK%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 30 Oct 2013 16:03:57 -0700
+Message-ID: <5271905d.9YMh08caA+3lVtAl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49845 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49855 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752247Ab3J3XCp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 19:02:45 -0400
+	with ESMTP id S1751396Ab3J3XD5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 19:03:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, krzysiek@podlesie.net, jbaron@akamai.com, gregkh@linuxfoundation.org, balbi@ti.com, joe@perches.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch added to -mm tree
-To: joe@perches.com,balbi@ti.com,gregkh@linuxfoundation.org,jbaron@akamai.com,krzysiek@podlesie.net
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 30 Oct 2013 16:02:44 -0700
+Date: Wed, 30 Oct 2013 16:03:57 -0700
 
 
 The patch titled
-     Subject: printk: pr_debug_ratelimited: check state first to reduce "callbacks suppressed" messages
-has been added to the -mm tree.  Its filename is
-     printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk: pr_debug_ratelimited: check state first to reduce "callbacks suppressed" messages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-pr_debug_ratelimited should be coded similarly to dev_dbg_ratelimited to
-reduce the "callbacks suppressed" messages.
-
-Add #include <linux/dynamic_debug.h> to printk.h.  Unfortunately, this new
-#include must be after the prototype/declaration of function printk.
-
-It may be better to split out these _ratelimited declarations into a
-separate file one day.
-
-Any use of these pr_<foo>_ratelimited functions must also have another
-specific #include <ratelimited.h>.  Most users have this done indirectly
-via #include <linux/kernel.h>
-
-printk.h may not #include <linux/ratelimit.h> as it causes circular
-dependencies and compilation failures.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: Krzysztof Mazur <krzysiek@podlesie.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ tools/perf/builtin-record.c |    9 ---------
+ tools/perf/builtin-top.c    |    9 ---------
+ tools/perf/util/hist.h      |    3 ---
+ 3 files changed, 21 deletions(-)
 
-diff -puN include/linux/printk.h~printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages include/linux/printk.h
---- a/include/linux/printk.h~printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages
-+++ a/include/linux/printk.h
-@@ -233,6 +233,8 @@ extern asmlinkage void dump_stack(void)
- 	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
- #endif
+diff -puN tools/perf/builtin-record.c~linux-next-git-rejects tools/perf/builtin-record.c
+--- a/tools/perf/builtin-record.c~linux-next-git-rejects
++++ a/tools/perf/builtin-record.c
+@@ -721,15 +721,11 @@ int record_parse_callchain(const char *a
+ 				ret = get_stack_size(tok, &size);
+ 				opts->stack_dump_size = size;
+ 			}
+-<<<<<<< HEAD
+-#endif /* LIBUNWIND_SUPPORT */
+-=======
  
-+#include <linux/dynamic_debug.h>
-+
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(CONFIG_DYNAMIC_DEBUG)
- /* dynamic_pr_debug() uses pr_fmt() internally so we don't need it here */
-@@ -343,7 +345,19 @@ extern asmlinkage void dump_stack(void)
- #endif
+ 			if (!ret)
+ 				pr_debug("callchain: stack dump size %d\n",
+ 					 opts->stack_dump_size);
+ #endif /* HAVE_LIBUNWIND_SUPPORT */
+->>>>>>> linux-next/akpm-base
+ 		} else {
+ 			pr_err("callchain: Unknown --call-graph option "
+ 			       "value: %s\n", arg);
+@@ -815,13 +811,8 @@ static struct perf_record record = {
  
- /* If you are writing a driver, please use dev_dbg instead */
--#if defined(DEBUG)
-+#if defined(CONFIG_DYNAMIC_DEBUG)
-+/* descriptor check is first to prevent flooding with "callbacks suppressed" */
-+#define pr_debug_ratelimited(fmt, ...)					\
-+do {									\
-+	static DEFINE_RATELIMIT_STATE(_rs,				\
-+				      DEFAULT_RATELIMIT_INTERVAL,	\
-+				      DEFAULT_RATELIMIT_BURST);		\
-+	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
-+	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
-+	    __ratelimit(&_rs))						\
-+		__dynamic_pr_debug(&descriptor, fmt, ##__VA_ARGS__);	\
-+} while (0)
-+#elif defined(DEBUG)
- #define pr_debug_ratelimited(fmt, ...)					\
- 	printk_ratelimited(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+ #define CALLCHAIN_HELP "setup and enables call-graph (stack chain/backtrace) recording: "
+ 
+-<<<<<<< HEAD
+-#ifdef LIBUNWIND_SUPPORT
+-const char record_callchain_help[] = CALLCHAIN_HELP "fp dwarf";
+-=======
+ #ifdef HAVE_LIBUNWIND_SUPPORT
+ const char record_callchain_help[] = CALLCHAIN_HELP "[fp] dwarf";
+->>>>>>> linux-next/akpm-base
  #else
+ const char record_callchain_help[] = CALLCHAIN_HELP "fp";
+ #endif
+diff -puN tools/perf/builtin-top.c~linux-next-git-rejects tools/perf/builtin-top.c
+--- a/tools/perf/builtin-top.c~linux-next-git-rejects
++++ a/tools/perf/builtin-top.c
+@@ -1110,21 +1110,12 @@ int cmd_top(int argc, const char **argv,
+ 		   " abort, in_tx, transaction"),
+ 	OPT_BOOLEAN('n', "show-nr-samples", &symbol_conf.show_nr_samples,
+ 		    "Show a column with the number of samples"),
+-<<<<<<< HEAD
+-	OPT_CALLBACK_NOOPT('G', NULL, &top.record_opts,
+-			   NULL, "enables call-graph recording",
+-			   &callchain_opt),
+-	OPT_CALLBACK(0, "call-graph", &top.record_opts,
+-		     "mode[,dump_size]", record_callchain_help,
+-		     &parse_callchain_opt),
+-=======
+ 	OPT_CALLBACK_DEFAULT('G', "call-graph", &top.record_opts,
+ 			     "mode[,dump_size]", record_callchain_help,
+ 			     &parse_callchain_opt, "fp"),
+ 	OPT_INTEGER(0, "max-stack", &top.max_stack,
+ 		    "Set the maximum stack depth when parsing the callchain. "
+ 		    "Default: " __stringify(PERF_MAX_STACK_DEPTH)),
+->>>>>>> linux-next/akpm-base
+ 	OPT_CALLBACK(0, "ignore-callees", NULL, "regex",
+ 		   "ignore callees of these functions in call graphs",
+ 		   report_parse_ignore_callees_opt),
+diff -puN tools/perf/util/hist.h~linux-next-git-rejects tools/perf/util/hist.h
+--- a/tools/perf/util/hist.h~linux-next-git-rejects
++++ a/tools/perf/util/hist.h
+@@ -5,11 +5,8 @@
+ #include <pthread.h>
+ #include "callchain.h"
+ #include "header.h"
+-<<<<<<< HEAD
+ #include "color.h"
+-=======
+ #include "ui/progress.h"
+->>>>>>> linux-next/akpm-base
+ 
+ extern struct callchain_param callchain_param;
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
-ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
-printk-report-console-names-during-cut-over.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix-fix.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
 kernel-printk-printkc-convert-to-pr_foo.patch
-vsprintf-check-real-user-group-id-for-%pk.patch
-printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch
-get_maintainerpl-incomplete-output.patch
-checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
+maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
 checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-update-seq_foo-tests.patch
-checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
 checkpatch-add-test-for-defines-of-arch_has_foo.patch
-checkpatch-add-rules-to-check-init-attribute-and-const-defects.patch
-checkpatch-make-the-memory-barrier-test-noisier.patch
-checkpatchpl-check-for-the-fsf-mailing-address.patch
-checkpatch-add-check-for-sscanf-without-return-use.patch
-checkpatch-add-check-for-sscanf-without-return-use-v2.patch
-drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-pr_debug.patch
-drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch
+epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
 kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
 linux-next.patch
-seq_file-introduce-seq_setwidth-and-seq_pad.patch
-seq_file-remove-%n-usage-from-seq_file-users.patch
-vsprintf-ignore-%n-again.patch
+linux-next-rejects.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
+net-netfilter-ipset-ip_set_hash_netnetc-fix-build-with-older-gcc.patch
+net-netfilter-ipset-ip_set_hash_netportnetc-fix-build-with-older-gccs.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
+seq_file-remove-%n-usage-from-seq_file-users-fix.patch
+tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
