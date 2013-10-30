@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
- added to -mm tree
-Date: Wed, 30 Oct 2013 15:50:34 -0700
-Message-ID: <52718d3a.rrtU2DYDDrPqEMNt%akpm@linux-foundation.org>
+Subject: + bitops-find-clarify-and-extend-documentation.patch added to -mm tree
+Date: Wed, 30 Oct 2013 15:51:21 -0700
+Message-ID: <52718d69.4P/kMoJtetZPkSRF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49684 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49687 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751848Ab3J3Wue (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 18:50:34 -0400
+	with ESMTP id S1753068Ab3J3WvV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 18:51:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, arnd@arndb.de, cody@linux.vnet.ibm.com
 
-Subject: + mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch added to -mm tree
-To: kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de
+Subject: + bitops-find-clarify-and-extend-documentation.patch added to -mm tree
+To: cody@linux.vnet.ibm.com,arnd@arndb.de
 From: akpm@linux-foundation.org
-Date: Wed, 30 Oct 2013 15:50:34 -0700
+Date: Wed, 30 Oct 2013 15:51:21 -0700
 
 
 The patch titled
-     Subject: mm: get rid of unnecessary overhead of trace_mm_page_alloc_extfrag()
+     Subject: bitops/find: clarify and extend documentation
 has been added to the -mm tree.  Its filename is
-     mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
+     bitops-find-clarify-and-extend-documentation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bitops-find-clarify-and-extend-documentation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitops-find-clarify-and-extend-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,81 +43,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: mm: get rid of unnecessary overhead of trace_mm_page_alloc_extfrag()
+From: Cody P Schafer <cody@linux.vnet.ibm.com>
+Subject: bitops/find: clarify and extend documentation
 
-In general, every tracepoint should be zero overhead if it is disabled. 
-However, trace_mm_page_alloc_extfrag() is one of exception.  It evaluate
-"new_type == start_migratetype" even if tracepoint is disabled.
+Add return value documentation and clarify the units of the @size
+parameter.
 
-However, the code can be moved into tracepoint's TP_fast_assign() and
-TP_fast_assign exist exactly such purpose.  This patch does it.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Cody P Schafer <cody@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/kmem.h |   10 ++++------
- mm/page_alloc.c             |    5 ++---
- 2 files changed, 6 insertions(+), 9 deletions(-)
+ include/asm-generic/bitops/find.h |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN include/trace/events/kmem.h~mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag include/trace/events/kmem.h
---- a/include/trace/events/kmem.h~mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag
-+++ a/include/trace/events/kmem.h
-@@ -267,14 +267,12 @@ DEFINE_EVENT_PRINT(mm_page, mm_page_pcpu
- TRACE_EVENT(mm_page_alloc_extfrag,
- 
- 	TP_PROTO(struct page *page,
--			int alloc_order, int fallback_order,
--			int alloc_migratetype, int fallback_migratetype,
--			int change_ownership),
-+		int alloc_order, int fallback_order,
-+		int alloc_migratetype, int fallback_migratetype, int new_migratetype),
- 
- 	TP_ARGS(page,
- 		alloc_order, fallback_order,
--		alloc_migratetype, fallback_migratetype,
--		change_ownership),
-+		alloc_migratetype, fallback_migratetype, new_migratetype),
- 
- 	TP_STRUCT__entry(
- 		__field(	struct page *,	page			)
-@@ -291,7 +289,7 @@ TRACE_EVENT(mm_page_alloc_extfrag,
- 		__entry->fallback_order		= fallback_order;
- 		__entry->alloc_migratetype	= alloc_migratetype;
- 		__entry->fallback_migratetype	= fallback_migratetype;
--		__entry->change_ownership	= change_ownership;
-+		__entry->change_ownership	= (new_migratetype == alloc_migratetype);
- 	),
- 
- 	TP_printk("page=%p pfn=%lu alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d fragmenting=%d change_ownership=%d",
-diff -puN mm/page_alloc.c~mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag mm/page_alloc.c
---- a/mm/page_alloc.c~mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag
-+++ a/mm/page_alloc.c
-@@ -1103,9 +1103,8 @@ __rmqueue_fallback(struct zone *zone, in
- 			       is_migrate_cma(migratetype)
- 			     ? migratetype : start_migratetype);
- 
--			trace_mm_page_alloc_extfrag(page, order,
--				current_order, start_migratetype, migratetype,
--				new_type == start_migratetype);
-+			trace_mm_page_alloc_extfrag(page, order, current_order,
-+				start_migratetype, migratetype, new_type);
- 
- 			return page;
- 		}
+diff -puN include/asm-generic/bitops/find.h~bitops-find-clarify-and-extend-documentation include/asm-generic/bitops/find.h
+--- a/include/asm-generic/bitops/find.h~bitops-find-clarify-and-extend-documentation
++++ a/include/asm-generic/bitops/find.h
+@@ -7,6 +7,9 @@
+  * @addr: The address to base the search on
+  * @offset: The bitnumber to start searching at
+  * @size: The bitmap size in bits
++ *
++ * Returns the bit number for the next set bit
++ * If no bits are set, returns @size.
+  */
+ extern unsigned long find_next_bit(const unsigned long *addr, unsigned long
+ 		size, unsigned long offset);
+@@ -18,6 +21,9 @@ extern unsigned long find_next_bit(const
+  * @addr: The address to base the search on
+  * @offset: The bitnumber to start searching at
+  * @size: The bitmap size in bits
++ *
++ * Returns the bit number of the next zero bit
++ * If no bits are zero, returns @size.
+  */
+ extern unsigned long find_next_zero_bit(const unsigned long *addr, unsigned
+ 		long size, unsigned long offset);
+@@ -28,9 +34,10 @@ extern unsigned long find_next_zero_bit(
+ /**
+  * find_first_bit - find the first set bit in a memory region
+  * @addr: The address to start the search at
+- * @size: The maximum size to search
++ * @size: The maximum number of bits to search
+  *
+  * Returns the bit number of the first set bit.
++ * If no bits are set, returns @size.
+  */
+ extern unsigned long find_first_bit(const unsigned long *addr,
+ 				    unsigned long size);
+@@ -38,9 +45,10 @@ extern unsigned long find_first_bit(cons
+ /**
+  * find_first_zero_bit - find the first cleared bit in a memory region
+  * @addr: The address to start the search at
+- * @size: The maximum size to search
++ * @size: The maximum number of bits to search
+  *
+  * Returns the bit number of the first cleared bit.
++ * If no bits are zero, returns @size.
+  */
+ extern unsigned long find_first_zero_bit(const unsigned long *addr,
+ 					 unsigned long size);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
 
-mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
-mm-vmalloc-dont-set-area-caller-twice.patch
-mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
-mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
-revert-mm-vmallocc-emit-the-failure-message-before-return.patch
-mm-mempolicy-use-numa_no_node.patch
-mm-fix-page_group_by_mobility_disabled-breakage.patch
-mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
-linux-next.patch
+bitops-find-clarify-and-extend-documentation.patch
 
