@@ -1,97 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] seq_file-remove-%n-usage-from-seq_file-users-fix.patch removed from -mm tree
-Date: Wed, 30 Oct 2013 16:07:04 -0700
-Message-ID: <52719118.ccU5+48AT8cNSfdx%akpm@linux-foundation.org>
+Subject: +
+ initramfs-read-config_rd_-variables-for-initramfs-compression.patch added
+ to -mm tree
+Date: Wed, 30 Oct 2013 16:08:31 -0700
+Message-ID: <5271916f.RlUqjSu/g1gcCKzr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49860 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49863 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751459Ab3J3XHG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 19:07:06 -0400
+	with ESMTP id S1751459Ab3J3XIb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 19:08:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, prasad@redhat.com, ppandit@redhat.com
 
-Subject: [obsolete] seq_file-remove-%n-usage-from-seq_file-users-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,penguin-kernel@I-love.SAKURA.ne.jp,mm-commits@vger.kernel.org
+Subject: + initramfs-read-config_rd_-variables-for-initramfs-compression.patch added to -mm tree
+To: ppandit@redhat.com,prasad@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 30 Oct 2013 16:07:04 -0700
+Date: Wed, 30 Oct 2013 16:08:31 -0700
 
 
 The patch titled
-     Subject: seq_file-remove-%n-usage-from-seq_file-users-fix
-has been removed from the -mm tree.  Its filename was
-     seq_file-remove-%n-usage-from-seq_file-users-fix.patch
+     Subject: initramfs: read CONFIG_RD_ variables for initramfs compression
+has been added to the -mm tree.  Its filename is
+     initramfs-read-config_rd_-variables-for-initramfs-compression.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-read-config_rd_-variables-for-initramfs-compression.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-read-config_rd_-variables-for-initramfs-compression.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: seq_file-remove-%n-usage-from-seq_file-users-fix
+From: P J P <ppandit@redhat.com>
+Subject: initramfs: read CONFIG_RD_ variables for initramfs compression
 
-fix for linux-next changes
+When expert configuration option(CONFIG_EXPERT) is enabled, menuconfig
+offers a choice of compression algorithm to compress initial ramfs image;
+This choice is stored into CONFIG_RD_* variables.  But usr/Makefile uses
+earlier INITRAMFS_COMPRESSION_* macros to build initial ramfs file.  Since
+none of them is defined, resulting 'initramfs_data.cpio' file remains
+un-compressed.
 
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+This patch updates the Makefile to use CONFIG_RD_* variables and adds
+support for LZ4 compression algorithm.
+
+Signed-off-by: P J P <prasad@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gen_initramfs_list.sh |    1 +
+ usr/Makefile                  |   19 ++++++++++++-------
+ 2 files changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~seq_file-remove-%n-usage-from-seq_file-users-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~seq_file-remove-%n-usage-from-seq_file-users-fix
-+++ a/fs/proc/task_mmu.c
-@@ -349,7 +349,7 @@ show_map_vma(struct seq_file *m, struct
- 		}
+diff -puN scripts/gen_initramfs_list.sh~initramfs-read-config_rd_-variables-for-initramfs-compression scripts/gen_initramfs_list.sh
+--- a/scripts/gen_initramfs_list.sh~initramfs-read-config_rd_-variables-for-initramfs-compression
++++ a/scripts/gen_initramfs_list.sh
+@@ -246,6 +246,7 @@ case "$arg" in
+ 		echo "$output_file" | grep -q "\.xz$" && \
+ 				compr="xz --check=crc32 --lzma2=dict=1MiB"
+ 		echo "$output_file" | grep -q "\.lzo$" && compr="lzop -9 -f"
++		echo "$output_file" | grep -q "\.lz4$" && compr="lz4 -9 -f"
+ 		echo "$output_file" | grep -q "\.cpio$" && compr="cat"
+ 		shift
+ 		;;
+diff -puN usr/Makefile~initramfs-read-config_rd_-variables-for-initramfs-compression usr/Makefile
+--- a/usr/Makefile~initramfs-read-config_rd_-variables-for-initramfs-compression
++++ a/usr/Makefile
+@@ -7,19 +7,22 @@ PHONY += klibcdirs
  
- 		if (vma_anon_name(vma)) {
--			pad_len_spaces(m, len);
-+			seq_pad(m, ' ');
- 			seq_print_vma_name(m, vma);
- 		}
- 	}
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix-fix.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-linux-next.patch
-linux-next-rejects.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
-net-netfilter-ipset-ip_set_hash_netnetc-fix-build-with-older-gcc.patch
-net-netfilter-ipset-ip_set_hash_netportnetc-fix-build-with-older-gccs.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
-tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+ 
+ # Gzip
+-suffix_$(CONFIG_INITRAMFS_COMPRESSION_GZIP)   = .gz
++suffix_$(CONFIG_RD_GZIP)   = .gz
+ 
+ # Bzip2
+-suffix_$(CONFIG_INITRAMFS_COMPRESSION_BZIP2)  = .bz2
++suffix_$(CONFIG_RD_BZIP2)  = .bz2
+ 
+ # Lzma
+-suffix_$(CONFIG_INITRAMFS_COMPRESSION_LZMA)   = .lzma
++suffix_$(CONFIG_RD_LZMA)   = .lzma
+ 
+ # XZ
+-suffix_$(CONFIG_INITRAMFS_COMPRESSION_XZ)     = .xz
++suffix_$(CONFIG_RD_XZ)     = .xz
+ 
+ # Lzo
+-suffix_$(CONFIG_INITRAMFS_COMPRESSION_LZO)   = .lzo
++suffix_$(CONFIG_RD_LZO)    = .lzo
++
++# Lz4
++suffix_$(CONFIG_RD_LZ4)    = .lz4
+ 
+ AFLAGS_initramfs_data.o += -DINITRAMFS_IMAGE="usr/initramfs_data.cpio$(suffix_y)"
+ 
+@@ -53,7 +56,10 @@ endif
+ quiet_cmd_initfs = GEN     $@
+       cmd_initfs = $(initramfs) -o $@ $(ramfs-args) $(ramfs-input)
+ 
+-targets := initramfs_data.cpio.gz initramfs_data.cpio.bz2 initramfs_data.cpio.lzma initramfs_data.cpio.xz initramfs_data.cpio.lzo initramfs_data.cpio
++targets := initramfs_data.cpio.gz initramfs_data.cpio.bz2 \
++	initramfs_data.cpio.lzma initramfs_data.cpio.xz \
++	initramfs_data.cpio.lzo initramfs_data.cpio.lz4 \
++	initramfs_data.cpio
+ # do not try to update files included in initramfs
+ $(deps_initramfs): ;
+ 
+@@ -66,4 +72,3 @@ $(deps_initramfs): klibcdirs
+ $(obj)/initramfs_data.cpio$(suffix_y): $(obj)/gen_init_cpio $(deps_initramfs) klibcdirs
+ 	$(Q)$(initramfs) -l $(ramfs-input) > $(obj)/.initramfs_data.cpio.d
+ 	$(call if_changed,initfs)
