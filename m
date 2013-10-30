@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767.patch added
- to -mm tree
-Date: Wed, 30 Oct 2013 15:38:23 -0700
-Message-ID: <52718a5f.PLFqsKuDYV/BuIkB%akpm@linux-foundation.org>
+Subject: +
+ mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
+ added to -mm tree
+Date: Wed, 30 Oct 2013 15:50:34 -0700
+Message-ID: <52718d3a.rrtU2DYDDrPqEMNt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49333 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49684 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751520Ab3J3WiY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 18:38:24 -0400
+	with ESMTP id S1751848Ab3J3Wue (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Oct 2013 18:50:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tbroch@chromium.org, sachin.kamat@linaro.org, lee.jones@linaro.org, sbkim73@samsung.com
+To: mm-commits@vger.kernel.org, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com
 
-Subject: + rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767.patch added to -mm tree
-To: sbkim73@samsung.com,lee.jones@linaro.org,sachin.kamat@linaro.org,tbroch@chromium.org
+Subject: + mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch added to -mm tree
+To: kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de
 From: akpm@linux-foundation.org
-Date: Wed, 30 Oct 2013 15:38:23 -0700
+Date: Wed, 30 Oct 2013 15:50:34 -0700
 
 
 The patch titled
-     Subject: rtc: s5m-rtc: add real-time clock driver for s5m8767
+     Subject: mm: get rid of unnecessary overhead of trace_mm_page_alloc_extfrag()
 has been added to the -mm tree.  Its filename is
-     rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767.patch
+     mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,738 +45,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sangbeom Kim <sbkim73@samsung.com>
-Subject: rtc: s5m-rtc: add real-time clock driver for s5m8767
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: get rid of unnecessary overhead of trace_mm_page_alloc_extfrag()
 
-Add real-time clock driver for s5m8767.
+In general, every tracepoint should be zero overhead if it is disabled. 
+However, trace_mm_page_alloc_extfrag() is one of exception.  It evaluate
+"new_type == start_migratetype" even if tracepoint is disabled.
 
-Signed-off-by: Sangbeom Kim <sbkim73@samsung.com>
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Todd Broch <tbroch@chromium.org>
-Acked-by: Lee Jones <lee.jones@linaro.org>	[mfd parts]
+However, the code can be moved into tracepoint's TP_fast_assign() and
+TP_fast_assign exist exactly such purpose.  This patch does it.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig              |   10 
- drivers/rtc/Makefile             |    1 
- drivers/rtc/rtc-s5m.c            |  635 +++++++++++++++++++++++++++++
- include/linux/mfd/samsung/core.h |    1 
- include/linux/mfd/samsung/rtc.h  |   11 
- 5 files changed, 658 insertions(+)
+ include/trace/events/kmem.h |   10 ++++------
+ mm/page_alloc.c             |    5 ++---
+ 2 files changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767
-+++ a/drivers/rtc/Kconfig
-@@ -497,6 +497,16 @@ config RTC_DRV_RV3029C2
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-rv3029c2.
+diff -puN include/trace/events/kmem.h~mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag include/trace/events/kmem.h
+--- a/include/trace/events/kmem.h~mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag
++++ a/include/trace/events/kmem.h
+@@ -267,14 +267,12 @@ DEFINE_EVENT_PRINT(mm_page, mm_page_pcpu
+ TRACE_EVENT(mm_page_alloc_extfrag,
  
-+config RTC_DRV_S5M
-+	tristate "Samsung S5M series"
-+	depends on MFD_SEC_CORE
-+	help
-+	  If you say yes here you will get support for the
-+	  RTC of Samsung S5M PMIC series.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-s5m.
-+
- endif # I2C
+ 	TP_PROTO(struct page *page,
+-			int alloc_order, int fallback_order,
+-			int alloc_migratetype, int fallback_migratetype,
+-			int change_ownership),
++		int alloc_order, int fallback_order,
++		int alloc_migratetype, int fallback_migratetype, int new_migratetype),
  
- comment "SPI RTC drivers"
-diff -puN drivers/rtc/Makefile~rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767 drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767
-+++ a/drivers/rtc/Makefile
-@@ -107,6 +107,7 @@ obj-$(CONFIG_RTC_DRV_RX8025)	+= rtc-rx80
- obj-$(CONFIG_RTC_DRV_RX8581)	+= rtc-rx8581.o
- obj-$(CONFIG_RTC_DRV_S35390A)	+= rtc-s35390a.o
- obj-$(CONFIG_RTC_DRV_S3C)	+= rtc-s3c.o
-+obj-$(CONFIG_RTC_DRV_S5M)	+= rtc-s5m.o
- obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
- obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
- obj-$(CONFIG_RTC_DRV_SNVS)	+= rtc-snvs.o
-diff -puN /dev/null drivers/rtc/rtc-s5m.c
---- /dev/null
-+++ a/drivers/rtc/rtc-s5m.c
-@@ -0,0 +1,635 @@
-+/*
-+ * Copyright (c) 2013 Samsung Electronics Co., Ltd
-+ *	http://www.samsung.com
-+ *
-+ *  Copyright (C) 2013 Google, Inc
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/slab.h>
-+#include <linux/bcd.h>
-+#include <linux/bitops.h>
-+#include <linux/regmap.h>
-+#include <linux/rtc.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/mfd/samsung/core.h>
-+#include <linux/mfd/samsung/irq.h>
-+#include <linux/mfd/samsung/rtc.h>
-+
-+struct s5m_rtc_info {
-+	struct device *dev;
-+	struct sec_pmic_dev *s5m87xx;
-+	struct regmap *rtc;
-+	struct rtc_device *rtc_dev;
-+	int irq;
-+	int device_type;
-+	int rtc_24hr_mode;
-+	bool wtsr_smpl;
-+};
-+
-+static void s5m8767_data_to_tm(u8 *data, struct rtc_time *tm,
-+			       int rtc_24hr_mode)
-+{
-+	tm->tm_sec = data[RTC_SEC] & 0x7f;
-+	tm->tm_min = data[RTC_MIN] & 0x7f;
-+	if (rtc_24hr_mode) {
-+		tm->tm_hour = data[RTC_HOUR] & 0x1f;
-+	} else {
-+		tm->tm_hour = data[RTC_HOUR] & 0x0f;
-+		if (data[RTC_HOUR] & HOUR_PM_MASK)
-+			tm->tm_hour += 12;
-+	}
-+
-+	tm->tm_wday = ffs(data[RTC_WEEKDAY] & 0x7f);
-+	tm->tm_mday = data[RTC_DATE] & 0x1f;
-+	tm->tm_mon = (data[RTC_MONTH] & 0x0f) - 1;
-+	tm->tm_year = (data[RTC_YEAR1] & 0x7f) + 100;
-+	tm->tm_yday = 0;
-+	tm->tm_isdst = 0;
-+}
-+
-+static int s5m8767_tm_to_data(struct rtc_time *tm, u8 *data)
-+{
-+	data[RTC_SEC] = tm->tm_sec;
-+	data[RTC_MIN] = tm->tm_min;
-+
-+	if (tm->tm_hour >= 12)
-+		data[RTC_HOUR] = tm->tm_hour | HOUR_PM_MASK;
-+	else
-+		data[RTC_HOUR] = tm->tm_hour & ~HOUR_PM_MASK;
-+
-+	data[RTC_WEEKDAY] = 1 << tm->tm_wday;
-+	data[RTC_DATE] = tm->tm_mday;
-+	data[RTC_MONTH] = tm->tm_mon + 1;
-+	data[RTC_YEAR1] = tm->tm_year > 100 ? (tm->tm_year - 100) : 0;
-+
-+	if (tm->tm_year < 100) {
-+		pr_err("s5m8767 RTC cannot handle the year %d.\n",
-+		       1900 + tm->tm_year);
-+		return -EINVAL;
-+	} else {
-+		return 0;
-+	}
-+}
-+
-+static inline int s5m8767_rtc_set_time_reg(struct s5m_rtc_info *info)
-+{
-+	int ret;
-+	unsigned int data;
-+
-+	ret = regmap_read(info->rtc, SEC_RTC_UDR_CON, &data);
-+	if (ret < 0) {
-+		dev_err(info->dev, "failed to read update reg(%d)\n", ret);
-+		return ret;
-+	}
-+
-+	data |= RTC_TIME_EN_MASK;
-+	data |= RTC_UDR_MASK;
-+
-+	ret = regmap_write(info->rtc, SEC_RTC_UDR_CON, data);
-+	if (ret < 0) {
-+		dev_err(info->dev, "failed to write update reg(%d)\n", ret);
-+		return ret;
-+	}
-+
-+	do {
-+		ret = regmap_read(info->rtc, SEC_RTC_UDR_CON, &data);
-+	} while ((data & RTC_UDR_MASK) && !ret);
-+
-+	return ret;
-+}
-+
-+static inline int s5m8767_rtc_set_alarm_reg(struct s5m_rtc_info *info)
-+{
-+	int ret;
-+	unsigned int data;
-+
-+	ret = regmap_read(info->rtc, SEC_RTC_UDR_CON, &data);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to read update reg(%d)\n",
-+			__func__, ret);
-+		return ret;
-+	}
-+
-+	data &= ~RTC_TIME_EN_MASK;
-+	data |= RTC_UDR_MASK;
-+
-+	ret = regmap_write(info->rtc, SEC_RTC_UDR_CON, data);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to write update reg(%d)\n",
-+			__func__, ret);
-+		return ret;
-+	}
-+
-+	do {
-+		ret = regmap_read(info->rtc, SEC_RTC_UDR_CON, &data);
-+	} while ((data & RTC_UDR_MASK) && !ret);
-+
-+	return ret;
-+}
-+
-+static void s5m8763_data_to_tm(u8 *data, struct rtc_time *tm)
-+{
-+	tm->tm_sec = bcd2bin(data[RTC_SEC]);
-+	tm->tm_min = bcd2bin(data[RTC_MIN]);
-+
-+	if (data[RTC_HOUR] & HOUR_12) {
-+		tm->tm_hour = bcd2bin(data[RTC_HOUR] & 0x1f);
-+		if (data[RTC_HOUR] & HOUR_PM)
-+			tm->tm_hour += 12;
-+	} else {
-+		tm->tm_hour = bcd2bin(data[RTC_HOUR] & 0x3f);
-+	}
-+
-+	tm->tm_wday = data[RTC_WEEKDAY] & 0x07;
-+	tm->tm_mday = bcd2bin(data[RTC_DATE]);
-+	tm->tm_mon = bcd2bin(data[RTC_MONTH]);
-+	tm->tm_year = bcd2bin(data[RTC_YEAR1]) + bcd2bin(data[RTC_YEAR2]) * 100;
-+	tm->tm_year -= 1900;
-+}
-+
-+static void s5m8763_tm_to_data(struct rtc_time *tm, u8 *data)
-+{
-+	data[RTC_SEC] = bin2bcd(tm->tm_sec);
-+	data[RTC_MIN] = bin2bcd(tm->tm_min);
-+	data[RTC_HOUR] = bin2bcd(tm->tm_hour);
-+	data[RTC_WEEKDAY] = tm->tm_wday;
-+	data[RTC_DATE] = bin2bcd(tm->tm_mday);
-+	data[RTC_MONTH] = bin2bcd(tm->tm_mon);
-+	data[RTC_YEAR1] = bin2bcd(tm->tm_year % 100);
-+	data[RTC_YEAR2] = bin2bcd((tm->tm_year + 1900) / 100);
-+}
-+
-+static int s5m_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct s5m_rtc_info *info = dev_get_drvdata(dev);
-+	u8 data[8];
-+	int ret;
-+
-+	ret = regmap_bulk_read(info->rtc, SEC_RTC_SEC, data, 8);
-+	if (ret < 0)
-+		return ret;
-+
-+	switch (info->device_type) {
-+	case S5M8763X:
-+		s5m8763_data_to_tm(data, tm);
-+		break;
-+
-+	case S5M8767X:
-+		s5m8767_data_to_tm(data, tm, info->rtc_24hr_mode);
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	dev_dbg(dev, "%s: %d/%d/%d %d:%d:%d(%d)\n", __func__,
-+		1900 + tm->tm_year, 1 + tm->tm_mon, tm->tm_mday,
-+		tm->tm_hour, tm->tm_min, tm->tm_sec, tm->tm_wday);
-+
-+	return rtc_valid_tm(tm);
-+}
-+
-+static int s5m_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct s5m_rtc_info *info = dev_get_drvdata(dev);
-+	u8 data[8];
-+	int ret = 0;
-+
-+	switch (info->device_type) {
-+	case S5M8763X:
-+		s5m8763_tm_to_data(tm, data);
-+		break;
-+	case S5M8767X:
-+		ret = s5m8767_tm_to_data(tm, data);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(dev, "%s: %d/%d/%d %d:%d:%d(%d)\n", __func__,
-+		1900 + tm->tm_year, 1 + tm->tm_mon, tm->tm_mday,
-+		tm->tm_hour, tm->tm_min, tm->tm_sec, tm->tm_wday);
-+
-+	ret = regmap_raw_write(info->rtc, SEC_RTC_SEC, data, 8);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = s5m8767_rtc_set_time_reg(info);
-+
-+	return ret;
-+}
-+
-+static int s5m_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct s5m_rtc_info *info = dev_get_drvdata(dev);
-+	u8 data[8];
-+	unsigned int val;
-+	int ret, i;
-+
-+	ret = regmap_bulk_read(info->rtc, SEC_ALARM0_SEC, data, 8);
-+	if (ret < 0)
-+		return ret;
-+
-+	switch (info->device_type) {
-+	case S5M8763X:
-+		s5m8763_data_to_tm(data, &alrm->time);
-+		ret = regmap_read(info->rtc, SEC_ALARM0_CONF, &val);
-+		if (ret < 0)
-+			return ret;
-+
-+		alrm->enabled = !!val;
-+
-+		ret = regmap_read(info->rtc, SEC_RTC_STATUS, &val);
-+		if (ret < 0)
-+			return ret;
-+
-+		break;
-+
-+	case S5M8767X:
-+		s5m8767_data_to_tm(data, &alrm->time, info->rtc_24hr_mode);
-+		dev_dbg(dev, "%s: %d/%d/%d %d:%d:%d(%d)\n", __func__,
-+			1900 + alrm->time.tm_year, 1 + alrm->time.tm_mon,
-+			alrm->time.tm_mday, alrm->time.tm_hour,
-+			alrm->time.tm_min, alrm->time.tm_sec,
-+			alrm->time.tm_wday);
-+
-+		alrm->enabled = 0;
-+		for (i = 0; i < 7; i++) {
-+			if (data[i] & ALARM_ENABLE_MASK) {
-+				alrm->enabled = 1;
-+				break;
-+			}
-+		}
-+
-+		alrm->pending = 0;
-+		ret = regmap_read(info->rtc, SEC_RTC_STATUS, &val);
-+		if (ret < 0)
-+			return ret;
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (val & ALARM0_STATUS)
-+		alrm->pending = 1;
-+	else
-+		alrm->pending = 0;
-+
-+	return 0;
-+}
-+
-+static int s5m_rtc_stop_alarm(struct s5m_rtc_info *info)
-+{
-+	u8 data[8];
-+	int ret, i;
-+	struct rtc_time tm;
-+
-+	ret = regmap_bulk_read(info->rtc, SEC_ALARM0_SEC, data, 8);
-+	if (ret < 0)
-+		return ret;
-+
-+	s5m8767_data_to_tm(data, &tm, info->rtc_24hr_mode);
-+	dev_dbg(info->dev, "%s: %d/%d/%d %d:%d:%d(%d)\n", __func__,
-+		1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
-+		tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_wday);
-+
-+	switch (info->device_type) {
-+	case S5M8763X:
-+		ret = regmap_write(info->rtc, SEC_ALARM0_CONF, 0);
-+		break;
-+
-+	case S5M8767X:
-+		for (i = 0; i < 7; i++)
-+			data[i] &= ~ALARM_ENABLE_MASK;
-+
-+		ret = regmap_raw_write(info->rtc, SEC_ALARM0_SEC, data, 8);
-+		if (ret < 0)
-+			return ret;
-+
-+		ret = s5m8767_rtc_set_alarm_reg(info);
-+
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static int s5m_rtc_start_alarm(struct s5m_rtc_info *info)
-+{
-+	int ret;
-+	u8 data[8];
-+	u8 alarm0_conf;
-+	struct rtc_time tm;
-+
-+	ret = regmap_bulk_read(info->rtc, SEC_ALARM0_SEC, data, 8);
-+	if (ret < 0)
-+		return ret;
-+
-+	s5m8767_data_to_tm(data, &tm, info->rtc_24hr_mode);
-+	dev_dbg(info->dev, "%s: %d/%d/%d %d:%d:%d(%d)\n", __func__,
-+		1900 + tm.tm_year, 1 + tm.tm_mon, tm.tm_mday,
-+		tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_wday);
-+
-+	switch (info->device_type) {
-+	case S5M8763X:
-+		alarm0_conf = 0x77;
-+		ret = regmap_write(info->rtc, SEC_ALARM0_CONF, alarm0_conf);
-+		break;
-+
-+	case S5M8767X:
-+		data[RTC_SEC] |= ALARM_ENABLE_MASK;
-+		data[RTC_MIN] |= ALARM_ENABLE_MASK;
-+		data[RTC_HOUR] |= ALARM_ENABLE_MASK;
-+		data[RTC_WEEKDAY] &= ~ALARM_ENABLE_MASK;
-+		if (data[RTC_DATE] & 0x1f)
-+			data[RTC_DATE] |= ALARM_ENABLE_MASK;
-+		if (data[RTC_MONTH] & 0xf)
-+			data[RTC_MONTH] |= ALARM_ENABLE_MASK;
-+		if (data[RTC_YEAR1] & 0x7f)
-+			data[RTC_YEAR1] |= ALARM_ENABLE_MASK;
-+
-+		ret = regmap_raw_write(info->rtc, SEC_ALARM0_SEC, data, 8);
-+		if (ret < 0)
-+			return ret;
-+		ret = s5m8767_rtc_set_alarm_reg(info);
-+
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return ret;
-+}
-+
-+static int s5m_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct s5m_rtc_info *info = dev_get_drvdata(dev);
-+	u8 data[8];
-+	int ret;
-+
-+	switch (info->device_type) {
-+	case S5M8763X:
-+		s5m8763_tm_to_data(&alrm->time, data);
-+		break;
-+
-+	case S5M8767X:
-+		s5m8767_tm_to_data(&alrm->time, data);
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	dev_dbg(dev, "%s: %d/%d/%d %d:%d:%d(%d)\n", __func__,
-+		1900 + alrm->time.tm_year, 1 + alrm->time.tm_mon,
-+		alrm->time.tm_mday, alrm->time.tm_hour, alrm->time.tm_min,
-+		alrm->time.tm_sec, alrm->time.tm_wday);
-+
-+	ret = s5m_rtc_stop_alarm(info);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = regmap_raw_write(info->rtc, SEC_ALARM0_SEC, data, 8);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = s5m8767_rtc_set_alarm_reg(info);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (alrm->enabled)
-+		ret = s5m_rtc_start_alarm(info);
-+
-+	return ret;
-+}
-+
-+static int s5m_rtc_alarm_irq_enable(struct device *dev,
-+				    unsigned int enabled)
-+{
-+	struct s5m_rtc_info *info = dev_get_drvdata(dev);
-+
-+	if (enabled)
-+		return s5m_rtc_start_alarm(info);
-+	else
-+		return s5m_rtc_stop_alarm(info);
-+}
-+
-+static irqreturn_t s5m_rtc_alarm_irq(int irq, void *data)
-+{
-+	struct s5m_rtc_info *info = data;
-+
-+	rtc_update_irq(info->rtc_dev, 1, RTC_IRQF | RTC_AF);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static const struct rtc_class_ops s5m_rtc_ops = {
-+	.read_time = s5m_rtc_read_time,
-+	.set_time = s5m_rtc_set_time,
-+	.read_alarm = s5m_rtc_read_alarm,
-+	.set_alarm = s5m_rtc_set_alarm,
-+	.alarm_irq_enable = s5m_rtc_alarm_irq_enable,
-+};
-+
-+static void s5m_rtc_enable_wtsr(struct s5m_rtc_info *info, bool enable)
-+{
-+	int ret;
-+	ret = regmap_update_bits(info->rtc, SEC_WTSR_SMPL_CNTL,
-+				 WTSR_ENABLE_MASK,
-+				 enable ? WTSR_ENABLE_MASK : 0);
-+	if (ret < 0)
-+		dev_err(info->dev, "%s: fail to update WTSR reg(%d)\n",
-+			__func__, ret);
-+}
-+
-+static void s5m_rtc_enable_smpl(struct s5m_rtc_info *info, bool enable)
-+{
-+	int ret;
-+	ret = regmap_update_bits(info->rtc, SEC_WTSR_SMPL_CNTL,
-+				 SMPL_ENABLE_MASK,
-+				 enable ? SMPL_ENABLE_MASK : 0);
-+	if (ret < 0)
-+		dev_err(info->dev, "%s: fail to update SMPL reg(%d)\n",
-+			__func__, ret);
-+}
-+
-+static int s5m8767_rtc_init_reg(struct s5m_rtc_info *info)
-+{
-+	u8 data[2];
-+	unsigned int tp_read;
-+	int ret;
-+	struct rtc_time tm;
-+
-+	ret = regmap_read(info->rtc, SEC_RTC_UDR_CON, &tp_read);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to read control reg(%d)\n",
-+			__func__, ret);
-+		return ret;
-+	}
-+
-+	/* Set RTC control register : Binary mode, 24hour mode */
-+	data[0] = (1 << BCD_EN_SHIFT) | (1 << MODEL24_SHIFT);
-+	data[1] = (0 << BCD_EN_SHIFT) | (1 << MODEL24_SHIFT);
-+
-+	info->rtc_24hr_mode = 1;
-+	ret = regmap_raw_write(info->rtc, SEC_ALARM0_CONF, data, 2);
-+	if (ret < 0) {
-+		dev_err(info->dev, "%s: fail to write controlm reg(%d)\n",
-+			__func__, ret);
-+		return ret;
-+	}
-+
-+	/* In first boot time, Set rtc time to 1/1/2012 00:00:00(SUN) */
-+	if ((tp_read & RTC_TCON_MASK) == 0) {
-+		dev_dbg(info->dev, "rtc init\n");
-+		tm.tm_sec = 0;
-+		tm.tm_min = 0;
-+		tm.tm_hour = 0;
-+		tm.tm_wday = 0;
-+		tm.tm_mday = 1;
-+		tm.tm_mon = 0;
-+		tm.tm_year = 112;
-+		tm.tm_yday = 0;
-+		tm.tm_isdst = 0;
-+		ret = s5m_rtc_set_time(info->dev, &tm);
-+	}
-+
-+	ret = regmap_update_bits(info->rtc, SEC_RTC_UDR_CON,
-+				 RTC_TCON_MASK, tp_read | RTC_TCON_MASK);
-+	if (ret < 0)
-+		dev_err(info->dev, "%s: fail to update TCON reg(%d)\n",
-+			__func__, ret);
-+
-+	return ret;
-+}
-+
-+static int s5m_rtc_probe(struct platform_device *pdev)
-+{
-+	struct sec_pmic_dev *s5m87xx = dev_get_drvdata(pdev->dev.parent);
-+	struct sec_platform_data *pdata = s5m87xx->pdata;
-+	struct s5m_rtc_info *info;
-+	int ret;
-+
-+	if (!pdata) {
-+		dev_err(pdev->dev.parent, "Platform data not supplied\n");
-+		return -ENODEV;
-+	}
-+
-+	info = devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
-+	if (!info)
-+		return -ENOMEM;
-+
-+	info->dev = &pdev->dev;
-+	info->s5m87xx = s5m87xx;
-+	info->rtc = s5m87xx->rtc;
-+	info->device_type = s5m87xx->device_type;
-+	info->wtsr_smpl = s5m87xx->wtsr_smpl;
-+
-+	switch (pdata->device_type) {
-+	case S5M8763X:
-+		info->irq = s5m87xx->irq_base + S5M8763_IRQ_ALARM0;
-+		break;
-+
-+	case S5M8767X:
-+		info->irq = s5m87xx->irq_base + S5M8767_IRQ_RTCA1;
-+		break;
-+
-+	default:
-+		ret = -EINVAL;
-+		dev_err(&pdev->dev, "Unsupported device type: %d\n", ret);
-+		return ret;
-+	}
-+
-+	platform_set_drvdata(pdev, info);
-+
-+	ret = s5m8767_rtc_init_reg(info);
-+
-+	if (info->wtsr_smpl) {
-+		s5m_rtc_enable_wtsr(info, true);
-+		s5m_rtc_enable_smpl(info, true);
-+	}
-+
-+	device_init_wakeup(&pdev->dev, 1);
-+
-+	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "s5m-rtc",
-+						 &s5m_rtc_ops, THIS_MODULE);
-+
-+	if (IS_ERR(info->rtc_dev))
-+		return PTR_ERR(info->rtc_dev);
-+
-+	ret = devm_request_threaded_irq(&pdev->dev, info->irq, NULL,
-+					s5m_rtc_alarm_irq, 0, "rtc-alarm0",
-+					info);
-+	if (ret < 0)
-+		dev_err(&pdev->dev, "Failed to request alarm IRQ: %d: %d\n",
-+			info->irq, ret);
-+
-+	return ret;
-+}
-+
-+static void s5m_rtc_shutdown(struct platform_device *pdev)
-+{
-+	struct s5m_rtc_info *info = platform_get_drvdata(pdev);
-+	int i;
-+	unsigned int val = 0;
-+	if (info->wtsr_smpl) {
-+		for (i = 0; i < 3; i++) {
-+			s5m_rtc_enable_wtsr(info, false);
-+			regmap_read(info->rtc, SEC_WTSR_SMPL_CNTL, &val);
-+			pr_debug("%s: WTSR_SMPL reg(0x%02x)\n", __func__, val);
-+			if (val & WTSR_ENABLE_MASK)
-+				pr_emerg("%s: fail to disable WTSR\n",
-+					 __func__);
-+			else {
-+				pr_info("%s: success to disable WTSR\n",
-+					__func__);
-+				break;
-+			}
-+		}
-+	}
-+	/* Disable SMPL when power off */
-+	s5m_rtc_enable_smpl(info, false);
-+}
-+
-+static const struct platform_device_id s5m_rtc_id[] = {
-+	{ "s5m-rtc", 0 },
-+};
-+
-+static struct platform_driver s5m_rtc_driver = {
-+	.driver		= {
-+		.name	= "s5m-rtc",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= s5m_rtc_probe,
-+	.shutdown	= s5m_rtc_shutdown,
-+	.id_table	= s5m_rtc_id,
-+};
-+
-+module_platform_driver(s5m_rtc_driver);
-+
-+/* Module information */
-+MODULE_AUTHOR("Sangbeom Kim <sbkim73@samsung.com>");
-+MODULE_DESCRIPTION("Samsung S5M RTC driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:s5m-rtc");
-diff -puN include/linux/mfd/samsung/core.h~rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767 include/linux/mfd/samsung/core.h
---- a/include/linux/mfd/samsung/core.h~rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767
-+++ a/include/linux/mfd/samsung/core.h
-@@ -51,6 +51,7 @@ struct sec_pmic_dev {
- 	int ono;
- 	int type;
- 	bool wakeup;
-+	bool wtsr_smpl;
- };
+ 	TP_ARGS(page,
+ 		alloc_order, fallback_order,
+-		alloc_migratetype, fallback_migratetype,
+-		change_ownership),
++		alloc_migratetype, fallback_migratetype, new_migratetype),
  
- int sec_irq_init(struct sec_pmic_dev *sec_pmic);
-diff -puN include/linux/mfd/samsung/rtc.h~rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767 include/linux/mfd/samsung/rtc.h
---- a/include/linux/mfd/samsung/rtc.h~rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767
-+++ a/include/linux/mfd/samsung/rtc.h
-@@ -62,6 +62,11 @@ enum sec_rtc_reg {
- /* RTC Update Register1 */
- #define RTC_UDR_SHIFT		0
- #define RTC_UDR_MASK		(1 << RTC_UDR_SHIFT)
-+#define RTC_TCON_SHIFT		1
-+#define RTC_TCON_MASK		(1 << RTC_TCON_SHIFT)
-+#define RTC_TIME_EN_SHIFT	3
-+#define RTC_TIME_EN_MASK	(1 << RTC_TIME_EN_SHIFT)
-+
- /* RTC Hour register */
- #define HOUR_PM_SHIFT		6
- #define HOUR_PM_MASK		(1 << HOUR_PM_SHIFT)
-@@ -69,6 +74,12 @@ enum sec_rtc_reg {
- #define ALARM_ENABLE_SHIFT	7
- #define ALARM_ENABLE_MASK	(1 << ALARM_ENABLE_SHIFT)
+ 	TP_STRUCT__entry(
+ 		__field(	struct page *,	page			)
+@@ -291,7 +289,7 @@ TRACE_EVENT(mm_page_alloc_extfrag,
+ 		__entry->fallback_order		= fallback_order;
+ 		__entry->alloc_migratetype	= alloc_migratetype;
+ 		__entry->fallback_migratetype	= fallback_migratetype;
+-		__entry->change_ownership	= change_ownership;
++		__entry->change_ownership	= (new_migratetype == alloc_migratetype);
+ 	),
  
-+#define SMPL_ENABLE_SHIFT	7
-+#define SMPL_ENABLE_MASK	(1 << SMPL_ENABLE_SHIFT)
-+
-+#define WTSR_ENABLE_SHIFT	6
-+#define WTSR_ENABLE_MASK	(1 << WTSR_ENABLE_SHIFT)
-+
- enum {
- 	RTC_SEC = 0,
- 	RTC_MIN,
+ 	TP_printk("page=%p pfn=%lu alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d fragmenting=%d change_ownership=%d",
+diff -puN mm/page_alloc.c~mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag
++++ a/mm/page_alloc.c
+@@ -1103,9 +1103,8 @@ __rmqueue_fallback(struct zone *zone, in
+ 			       is_migrate_cma(migratetype)
+ 			     ? migratetype : start_migratetype);
+ 
+-			trace_mm_page_alloc_extfrag(page, order,
+-				current_order, start_migratetype, migratetype,
+-				new_type == start_migratetype);
++			trace_mm_page_alloc_extfrag(page, order, current_order,
++				start_migratetype, migratetype, new_type);
+ 
+ 			return page;
+ 		}
 _
 
-Patches currently in -mm which might be from sbkim73@samsung.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767.patch
+mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
+mm-vmalloc-dont-set-area-caller-twice.patch
+mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
+mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+mm-mempolicy-use-numa_no_node.patch
+mm-fix-page_group_by_mobility_disabled-breakage.patch
+mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
 linux-next.patch
 
