@@ -1,195 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] devres-add-kernel-standard-devm_kalloc-functions.patch
- removed from -mm tree
-Date: Thu, 31 Oct 2013 10:59:47 -0700
-Message-ID: <52729a93.eumO/BGSVob0y0LC%akpm@linux-foundation.org>
+Subject: [merged]
+ printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch removed from -mm tree
+Date: Thu, 31 Oct 2013 11:00:09 -0700
+Message-ID: <52729aa9.Mz8eIlsPHd9xRxnG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59483 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576Ab3JaR7s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Oct 2013 13:59:48 -0400
+	with ESMTP id S1754390Ab3JaSAK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Oct 2013 14:00:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, sangjung.woo@samsung.com, gregkh@linuxfoundation.org, joe@perches.com
+To: mm-commits@vger.kernel.org, krzysiek@podlesie.net, jbaron@akamai.com, gregkh@linuxfoundation.org, balbi@ti.com, joe@perches.com
 
-Subject: [merged] devres-add-kernel-standard-devm_kalloc-functions.patch removed from -mm tree
-To: joe@perches.com,gregkh@linuxfoundation.org,sangjung.woo@samsung.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch removed from -mm tree
+To: joe@perches.com,balbi@ti.com,gregkh@linuxfoundation.org,jbaron@akamai.com,krzysiek@podlesie.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 31 Oct 2013 10:59:47 -0700
+Date: Thu, 31 Oct 2013 11:00:09 -0700
 
 
 The patch titled
-     Subject: devres: add kernel standard devm_k.alloc functions
+     Subject: printk: pr_debug_ratelimited: check state first to reduce "callbacks suppressed" messages
 has been removed from the -mm tree.  Its filename was
-     devres-add-kernel-standard-devm_kalloc-functions.patch
+     printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: devres: add kernel standard devm_k.alloc functions
+Subject: printk: pr_debug_ratelimited: check state first to reduce "callbacks suppressed" messages
 
-Currently, devm_ managed memory only supports kzalloc.
+pr_debug_ratelimited should be coded similarly to dev_dbg_ratelimited to
+reduce the "callbacks suppressed" messages.
 
-Convert the devm_kzalloc implementation to devm_kmalloc and remove the
-complete memset to 0 but still set the initial struct devres header and
-whatever padding before data to 0.
+Add #include <linux/dynamic_debug.h> to printk.h.  Unfortunately, this new
+#include must be after the prototype/declaration of function printk.
 
-Add the other normal alloc variants as static inlines with __GFP_ZERO
-added to the gfp flag where appropriate:
+It may be better to split out these _ratelimited declarations into a
+separate file one day.
 
-	devm_kzalloc
-	devm_kcalloc
-	devm_kmalloc_array
+Any use of these pr_<foo>_ratelimited functions must also have another
+specific #include <ratelimited.h>.  Most users have this done indirectly
+via #include <linux/kernel.h>
 
-Add gfp.h to device.h for the newly added static inlines.
-
-akpm: the current API forces us to replace kmalloc() with kzalloc() when
-performing devm_ conversions.  This adds a relatively minor overhead. 
-More significantly, it will defeat kmemcheck used-uninitialized checking,
-and for a particular driver, losing used-uninitialised checking for their
-core controlling data structures will significantly degrade kmemcheck
-usefulness.
+printk.h may not #include <linux/ratelimit.h> as it causes circular
+dependencies and compilation failures.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Sangjung Woo <sangjung.woo@samsung.com>
+Tested-by: Krzysztof Mazur <krzysiek@podlesie.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/devres.c  |   27 ++++++++++++++++-----------
- include/linux/device.h |   21 +++++++++++++++++++--
- 2 files changed, 35 insertions(+), 13 deletions(-)
+ include/linux/printk.h |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/devres.c~devres-add-kernel-standard-devm_kalloc-functions drivers/base/devres.c
---- a/drivers/base/devres.c~devres-add-kernel-standard-devm_kalloc-functions
-+++ a/drivers/base/devres.c
-@@ -91,7 +91,8 @@ static __always_inline struct devres * a
- 	if (unlikely(!dr))
- 		return NULL;
+diff -puN include/linux/printk.h~printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages include/linux/printk.h
+--- a/include/linux/printk.h~printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages
++++ a/include/linux/printk.h
+@@ -233,6 +233,8 @@ extern asmlinkage void dump_stack(void)
+ 	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+ #endif
  
--	memset(dr, 0, tot_size);
-+	memset(dr, 0, offsetof(struct devres, data));
++#include <linux/dynamic_debug.h>
 +
- 	INIT_LIST_HEAD(&dr->node.entry);
- 	dr->node.release = release;
- 	return dr;
-@@ -745,58 +746,62 @@ void devm_remove_action(struct device *d
- EXPORT_SYMBOL_GPL(devm_remove_action);
+ /* If you are writing a driver, please use dev_dbg instead */
+ #if defined(CONFIG_DYNAMIC_DEBUG)
+ /* dynamic_pr_debug() uses pr_fmt() internally so we don't need it here */
+@@ -343,7 +345,19 @@ extern asmlinkage void dump_stack(void)
+ #endif
  
- /*
-- * Managed kzalloc/kfree
-+ * Managed kmalloc/kfree
-  */
--static void devm_kzalloc_release(struct device *dev, void *res)
-+static void devm_kmalloc_release(struct device *dev, void *res)
- {
- 	/* noop */
- }
- 
--static int devm_kzalloc_match(struct device *dev, void *res, void *data)
-+static int devm_kmalloc_match(struct device *dev, void *res, void *data)
- {
- 	return res == data;
- }
- 
- /**
-- * devm_kzalloc - Resource-managed kzalloc
-+ * devm_kmalloc - Resource-managed kmalloc
-  * @dev: Device to allocate memory for
-  * @size: Allocation size
-  * @gfp: Allocation gfp flags
-  *
-- * Managed kzalloc.  Memory allocated with this function is
-+ * Managed kmalloc.  Memory allocated with this function is
-  * automatically freed on driver detach.  Like all other devres
-  * resources, guaranteed alignment is unsigned long long.
-  *
-  * RETURNS:
-  * Pointer to allocated memory on success, NULL on failure.
-  */
--void * devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
-+void * devm_kmalloc(struct device *dev, size_t size, gfp_t gfp)
- {
- 	struct devres *dr;
- 
- 	/* use raw alloc_dr for kmalloc caller tracing */
--	dr = alloc_dr(devm_kzalloc_release, size, gfp);
-+	dr = alloc_dr(devm_kmalloc_release, size, gfp);
- 	if (unlikely(!dr))
- 		return NULL;
- 
-+	/*
-+	 * This is named devm_kzalloc_release for historical reasons
-+	 * The initial implementation did not support kmalloc, only kzalloc
-+	 */
- 	set_node_dbginfo(&dr->node, "devm_kzalloc_release", size);
- 	devres_add(dev, dr->data);
- 	return dr->data;
- }
--EXPORT_SYMBOL_GPL(devm_kzalloc);
-+EXPORT_SYMBOL_GPL(devm_kmalloc);
- 
- /**
-  * devm_kfree - Resource-managed kfree
-  * @dev: Device this memory belongs to
-  * @p: Memory to free
-  *
-- * Free memory allocated with devm_kzalloc().
-+ * Free memory allocated with devm_kmalloc().
-  */
- void devm_kfree(struct device *dev, void *p)
- {
- 	int rc;
- 
--	rc = devres_destroy(dev, devm_kzalloc_release, devm_kzalloc_match, p);
-+	rc = devres_destroy(dev, devm_kmalloc_release, devm_kmalloc_match, p);
- 	WARN_ON(rc);
- }
- EXPORT_SYMBOL_GPL(devm_kfree);
-diff -puN include/linux/device.h~devres-add-kernel-standard-devm_kalloc-functions include/linux/device.h
---- a/include/linux/device.h~devres-add-kernel-standard-devm_kalloc-functions
-+++ a/include/linux/device.h
-@@ -26,6 +26,7 @@
- #include <linux/atomic.h>
- #include <linux/ratelimit.h>
- #include <linux/uidgid.h>
-+#include <linux/gfp.h>
- #include <asm/device.h>
- 
- struct device;
-@@ -602,8 +603,24 @@ extern void devres_close_group(struct de
- extern void devres_remove_group(struct device *dev, void *id);
- extern int devres_release_group(struct device *dev, void *id);
- 
--/* managed kzalloc/kfree for device drivers, no kmalloc, always use kzalloc */
--extern void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp);
-+/* managed devm_k.alloc/kfree for device drivers */
-+extern void *devm_kmalloc(struct device *dev, size_t size, gfp_t gfp);
-+static inline void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
-+{
-+	return devm_kmalloc(dev, size, gfp | __GFP_ZERO);
-+}
-+static inline void *devm_kmalloc_array(struct device *dev,
-+				       size_t n, size_t size, gfp_t flags)
-+{
-+	if (size != 0 && n > SIZE_MAX / size)
-+		return NULL;
-+	return devm_kmalloc(dev, n * size, flags);
-+}
-+static inline void *devm_kcalloc(struct device *dev,
-+				 size_t n, size_t size, gfp_t flags)
-+{
-+	return devm_kmalloc_array(dev, n, size, flags | __GFP_ZERO);
-+}
- extern void devm_kfree(struct device *dev, void *p);
- 
- void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res);
+ /* If you are writing a driver, please use dev_dbg instead */
+-#if defined(DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG)
++/* descriptor check is first to prevent flooding with "callbacks suppressed" */
++#define pr_debug_ratelimited(fmt, ...)					\
++do {									\
++	static DEFINE_RATELIMIT_STATE(_rs,				\
++				      DEFAULT_RATELIMIT_INTERVAL,	\
++				      DEFAULT_RATELIMIT_BURST);		\
++	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
++	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
++	    __ratelimit(&_rs))						\
++		__dynamic_pr_debug(&descriptor, fmt, ##__VA_ARGS__);	\
++} while (0)
++#elif defined(DEBUG)
+ #define pr_debug_ratelimited(fmt, ...)					\
+ 	printk_ratelimited(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+ #else
 _
 
 Patches currently in -mm which might be from joe@perches.com are
