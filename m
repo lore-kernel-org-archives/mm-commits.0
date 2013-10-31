@@ -1,123 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch removed from -mm tree
-Date: Thu, 31 Oct 2013 11:00:09 -0700
-Message-ID: <52729aa9.Mz8eIlsPHd9xRxnG%akpm@linux-foundation.org>
+ memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting.patch removed from -mm tree
+Date: Thu, 31 Oct 2013 11:00:07 -0700
+Message-ID: <52729aa7.fFxZIcnwVXPaI+8e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59483 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59479 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754390Ab3JaSAK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Oct 2013 14:00:10 -0400
+	with ESMTP id S1754390Ab3JaSAI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Oct 2013 14:00:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, krzysiek@podlesie.net, jbaron@akamai.com, gregkh@linuxfoundation.org, balbi@ti.com, joe@perches.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, hannes@cmpxchg.org, gthelen@google.com
 
-Subject: [merged] printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch removed from -mm tree
-To: joe@perches.com,balbi@ti.com,gregkh@linuxfoundation.org,jbaron@akamai.com,krzysiek@podlesie.net,mm-commits@vger.kernel.org
+Subject: [merged] memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting.patch removed from -mm tree
+To: gthelen@google.com,hannes@cmpxchg.org,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 31 Oct 2013 11:00:09 -0700
+Date: Thu, 31 Oct 2013 11:00:07 -0700
 
 
 The patch titled
-     Subject: printk: pr_debug_ratelimited: check state first to reduce "callbacks suppressed" messages
+     Subject: memcg: use __this_cpu_sub() to dec stats to avoid incorrect subtrahend casting
 has been removed from the -mm tree.  Its filename was
-     printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages.patch
+     memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk: pr_debug_ratelimited: check state first to reduce "callbacks suppressed" messages
+From: Greg Thelen <gthelen@google.com>
+Subject: memcg: use __this_cpu_sub() to dec stats to avoid incorrect subtrahend casting
 
-pr_debug_ratelimited should be coded similarly to dev_dbg_ratelimited to
-reduce the "callbacks suppressed" messages.
+As of v3.11-9444-g3ea67d0 ("memcg: add per cgroup writeback pages
+accounting") memcg counter errors are possible when moving charged memory
+to a different memcg.  Charge movement occurs when processing writes to
+memory.force_empty, moving tasks to a memcg with
+memcg.move_charge_at_immigrate=1, or memcg deletion.  An example showing
+error after memory.force_empty:
 
-Add #include <linux/dynamic_debug.h> to printk.h.  Unfortunately, this new
-#include must be after the prototype/declaration of function printk.
+  $ cd /sys/fs/cgroup/memory
+  $ mkdir x
+  $ rm /data/tmp/file
+  $ (echo $BASHPID >> x/tasks && exec mmap_writer /data/tmp/file 1M) &
+  [1] 13600
+  $ grep ^mapped x/memory.stat
+  mapped_file 1048576
+  $ echo 13600 > tasks
+  $ echo 1 > x/memory.force_empty
+  $ grep ^mapped x/memory.stat
+  mapped_file 4503599627370496
 
-It may be better to split out these _ratelimited declarations into a
-separate file one day.
+mapped_file should end with 0.
+  4503599627370496 == 0x10,0000,0000,0000 == 0x100,0000,0000 pages
+  1048576          == 0x10,0000           == 0x100 pages
 
-Any use of these pr_<foo>_ratelimited functions must also have another
-specific #include <ratelimited.h>.  Most users have this done indirectly
-via #include <linux/kernel.h>
+This issue only affects the source memcg on 64 bit machines; the
+destination memcg counters are correct.  So the rmdir case is not too
+important because such counters are soon disappearing with the entire
+memcg.  But the memcg.force_empty and memory.move_charge_at_immigrate=1
+cases are larger problems as the bogus counters are visible for the
+(possibly long) remaining life of the source memcg.
 
-printk.h may not #include <linux/ratelimit.h> as it causes circular
-dependencies and compilation failures.
+The problem is due to memcg use of __this_cpu_from(.., -nr_pages), which
+is subtly wrong because it subtracts the unsigned int nr_pages (either -1
+or -512 for THP) from a signed long percpu counter.  When nr_pages=-1,
+-nr_pages=0xffffffff.  On 64 bit machines stat->count[idx] is signed 64
+bit.  So memcg's attempt to simply decrement a count (e.g.  from 1 to 0)
+boils down to:
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: Krzysztof Mazur <krzysiek@podlesie.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Felipe Balbi <balbi@ti.com>
+  long count = 1
+  unsigned int nr_pages = 1
+  count += -nr_pages  /* -nr_pages == 0xffff,ffff */
+  count is now 0x1,0000,0000 instead of 0
+
+The fix is to subtract the unsigned page count rather than adding its
+negation.  This only works once "percpu: fix this_cpu_sub() subtrahend
+casting for unsigneds" is applied to fix this_cpu_sub().
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/printk.h~printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages include/linux/printk.h
---- a/include/linux/printk.h~printk-pr_debug_ratelimited-check-state-first-to-reduce-callbacks-suppressed-messages
-+++ a/include/linux/printk.h
-@@ -233,6 +233,8 @@ extern asmlinkage void dump_stack(void)
- 	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
- #endif
- 
-+#include <linux/dynamic_debug.h>
-+
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(CONFIG_DYNAMIC_DEBUG)
- /* dynamic_pr_debug() uses pr_fmt() internally so we don't need it here */
-@@ -343,7 +345,19 @@ extern asmlinkage void dump_stack(void)
- #endif
- 
- /* If you are writing a driver, please use dev_dbg instead */
--#if defined(DEBUG)
-+#if defined(CONFIG_DYNAMIC_DEBUG)
-+/* descriptor check is first to prevent flooding with "callbacks suppressed" */
-+#define pr_debug_ratelimited(fmt, ...)					\
-+do {									\
-+	static DEFINE_RATELIMIT_STATE(_rs,				\
-+				      DEFAULT_RATELIMIT_INTERVAL,	\
-+				      DEFAULT_RATELIMIT_BURST);		\
-+	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
-+	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT) &&	\
-+	    __ratelimit(&_rs))						\
-+		__dynamic_pr_debug(&descriptor, fmt, ##__VA_ARGS__);	\
-+} while (0)
-+#elif defined(DEBUG)
- #define pr_debug_ratelimited(fmt, ...)					\
- 	printk_ratelimited(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
- #else
+diff -puN mm/memcontrol.c~memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-__this_cpu_sub-to-dec-stats-to-avoid-incorrect-subtrahend-casting
++++ a/mm/memcontrol.c
+@@ -3774,7 +3774,7 @@ void mem_cgroup_move_account_page_stat(s
+ 	/* Update stat data for mem_cgroup */
+ 	preempt_disable();
+ 	WARN_ON_ONCE(from->stat->count[idx] < nr_pages);
+-	__this_cpu_add(from->stat->count[idx], -nr_pages);
++	__this_cpu_sub(from->stat->count[idx], nr_pages);
+ 	__this_cpu_add(to->stat->count[idx], nr_pages);
+ 	preempt_enable();
+ }
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
-kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
-ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
-printk-report-console-names-during-cut-over.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-vsprintf-check-real-user-group-id-for-%pk.patch
-get_maintainerpl-incomplete-output.patch
-checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-update-seq_foo-tests.patch
-checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-checkpatch-add-rules-to-check-init-attribute-and-const-defects.patch
-checkpatch-make-the-memory-barrier-test-noisier.patch
-checkpatchpl-check-for-the-fsf-mailing-address.patch
-checkpatch-add-check-for-sscanf-without-return-use.patch
-checkpatch-add-check-for-sscanf-without-return-use-v2.patch
-drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-pr_debug.patch
-drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch
-kernel-modulec-use-pr_foo.patch
-linux-next.patch
-seq_file-introduce-seq_setwidth-and-seq_pad.patch
-seq_file-remove-%n-usage-from-seq_file-users.patch
-vsprintf-ignore-%n-again.patch
+origin.patch
+memcg-refactor-mem_control_numa_stat_show.patch
+memcg-support-hierarchical-memorynuma_stats.patch
+percpu-add-test-module-for-various-percpu-operations.patch
 
