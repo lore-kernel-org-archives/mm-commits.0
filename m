@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner.patch
+Subject: + kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch
  added to -mm tree
-Date: Thu, 31 Oct 2013 14:20:33 -0700
-Message-ID: <5272c9a1.OytKyvcY1mSZMmfy%akpm@linux-foundation.org>
+Date: Thu, 31 Oct 2013 14:24:24 -0700
+Message-ID: <5272ca88.BKzpLtvuGEbgMWu7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33663 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33697 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755691Ab3JaVUe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Oct 2013 17:20:34 -0400
+	with ESMTP id S1751940Ab3JaVYZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Oct 2013 17:24:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, dyoung@redhat.com
 
-Subject: + scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner.patch added to -mm tree
-To: josh@joshtriplett.org
+Subject: + kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch added to -mm tree
+To: dyoung@redhat.com
 From: akpm@linux-foundation.org
-Date: Thu, 31 Oct 2013 14:20:33 -0700
+Date: Thu, 31 Oct 2013 14:24:24 -0700
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: ignore changes in the size of linux_banner
+     Subject: kernel/printk/printk.c: enable boot delay for earlyprintk
 has been added to the -mm tree.  Its filename is
-     scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner.patch
+     kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,38 +44,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: scripts/bloat-o-meter: ignore changes in the size of linux_banner
+From: Dave Young <dyoung@redhat.com>
+Subject: kernel/printk/printk.c: enable boot delay for earlyprintk
 
-linux_banner can change size due to changes in the compiler, build number,
-or the user@host the system was compiled on; ignore size changes in
-linux_banner entirely.
+boot_delay does not work for earlyprintk because the kernel cmdline
+parsing is late.
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Change to use early_param so early kernel messages can also be delayed.
+
+Signed-off-by: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/printk/printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner
-+++ a/scripts/bloat-o-meter
-@@ -20,6 +20,7 @@ def getsizes(file):
-         if type in "tTdDbBrR":
-             # strip generated symbols
-             if name[:6] == "__mod_": continue
-+            if name == "linux_banner": continue
-             # function names begin with '.' on 64-bit powerpc
-             if "." in name[1:]: name = "static." + name.split(".")[0]
-             sym[name] = sym.get(name, 0) + int(size, 16)
+diff -puN kernel/printk/printk.c~kernel-printk-printkc-enable-boot-delay-for-earlyprintk kernel/printk/printk.c
+--- a/kernel/printk/printk.c~kernel-printk-printkc-enable-boot-delay-for-earlyprintk
++++ a/kernel/printk/printk.c
+@@ -822,7 +822,7 @@ static int __init boot_delay_setup(char
+ 		boot_delay, preset_lpj, lpj, HZ, loops_per_msec);
+ 	return 1;
+ }
+-__setup("boot_delay=", boot_delay_setup);
++early_param("boot_delay", boot_delay_setup);
+ 
+ static void boot_delay_msec(int level)
+ {
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from dyoung@redhat.com are
 
-checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
-checkpatchpl-check-for-the-fsf-mailing-address.patch
-scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner.patch
-scripts-bloat-o-meter-use-startswith-rather-than-fragile-slicing.patch
-linux-next.patch
+kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch
 
