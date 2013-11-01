@@ -1,110 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-scatterlistc-dont-flush_kernel_dcache_page-on-slab-page.patch added to
- -mm tree
-Date: Thu, 31 Oct 2013 15:27:54 -0700
-Message-ID: <5272d96a.qnNitb/2+dabAgxm%akpm__9980.63896918229$1383258488$gmane$org@linux-foundation.org>
+Subject: [merged] mm-memcg-use-proper-memcg-in-limit-bypass.patch removed
+ from -mm tree
+Date: Fri, 01 Nov 2013 12:11:15 -0700
+Message-ID: <5273fcd3.4qlfvKFiOlW5jN2r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53023 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753979Ab3JaW1z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Oct 2013 18:27:55 -0400
+	with ESMTP id S1752511Ab3KATLQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 15:11:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, will.deacon@arm.com, tj@kernel.org, stable@vger.kernel.org, linux@arm.linux.org.uk, gmbnomis@gmail.com, fujita.tomonori@lab.ntt.co.jp, catalin.marinas@arm.com, axboe@kernel.dk, aaro.koskinen@iki.fi, JBottomley@parallels.com, ming.lei@canonical.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org
 
-Subject: + lib-scatterlistc-dont-flush_kernel_dcache_page-on-slab-page.patch added to -mm tree
-To: ming.lei@canonical.com,JBottomley@parallels.com,aaro.koskinen@iki.fi,axboe@kernel.dk,catalin.marinas@arm.com,fujita.tomonori@lab.ntt.co.jp,gmbnomis@gmail.com,linux@arm.linux.org.uk,stable@vger.kernel.org,tj@kernel.org,will.deacon@arm.com
+Subject: [merged] mm-memcg-use-proper-memcg-in-limit-bypass.patch removed from -mm tree
+To: hannes@cmpxchg.org,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 31 Oct 2013 15:27:54 -0700
+Date: Fri, 01 Nov 2013 12:11:15 -0700
 
 
 The patch titled
-     Subject: lib/scatterlist.c: don't flush_kernel_dcache_page on slab page
-has been added to the -mm tree.  Its filename is
-     lib-scatterlistc-dont-flush_kernel_dcache_page-on-slab-page.patch
+     Subject: mm: memcg: use proper memcg in limit bypass
+has been removed from the -mm tree.  Its filename was
+     mm-memcg-use-proper-memcg-in-limit-bypass.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-scatterlistc-dont-flush_kernel_dcache_page-on-slab-page.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-scatterlistc-dont-flush_kernel_dcache_page-on-slab-page.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ming Lei <ming.lei@canonical.com>
-Subject: lib/scatterlist.c: don't flush_kernel_dcache_page on slab page
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcg: use proper memcg in limit bypass
 
-b1adaf65ba03 ("[SCSI] block: add sg buffer copy helper functions")
-introduces two sg buffer copy helpers, and calls
-flush_kernel_dcache_page() on pages in SG list after these pages are
-written to.
+84235de ("fs: buffer: move allocation failure loop into the allocator")
+allowed __GFP_NOFAIL allocations to bypass the limit if they fail to
+reclaim enough memory for the charge.  Because the main test case was on a
+3.2-based system, this patch missed the fact that on newer kernels the
+charge function needs to return root_mem_cgroup when bypassing the limit,
+and not NULL.  This will corrupt whatever memory is at NULL + percpu
+pointer offset.  Fix this quickly before problems are reported.
 
-Unfortunately, the commit may introduce a potential bug:
-
-	- Before sending some SCSI commands, kmalloc() buffer may be
-	passed to block layper, so flush_kernel_dcache_page() can
-	see a slab page finally
-
-	- According to cachetlb.txt, flush_kernel_dcache_page() is
-	only called on "a user page", which surely can't be a slab page.
-
-	- ARCH's implementation of flush_kernel_dcache_page() may
-	use page mapping information to do optimization so page_mapping()
-	will see the slab page, then VM_BUG_ON() is triggered.
-
-Aaro Koskinen reported the bug on ARM/kirkwood when DEBUG_VM is enabled,
-and this patch fixes the bug by adding test of '!PageSlab(miter->page)'
-before calling flush_kernel_dcache_page().
-
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
-Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Tested-by: Simon Baatz <gmbnomis@gmail.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/scatterlist.c~lib-scatterlistc-dont-flush_kernel_dcache_page-on-slab-page lib/scatterlist.c
---- a/lib/scatterlist.c~lib-scatterlistc-dont-flush_kernel_dcache_page-on-slab-page
-+++ a/lib/scatterlist.c
-@@ -577,7 +577,8 @@ void sg_miter_stop(struct sg_mapping_ite
- 		miter->__offset += miter->consumed;
- 		miter->__remaining -= miter->consumed;
- 
--		if (miter->__flags & SG_MITER_TO_SG)
-+		if ((miter->__flags & SG_MITER_TO_SG) &&
-+		    !PageSlab(miter->page))
- 			flush_kernel_dcache_page(miter->page);
- 
- 		if (miter->__flags & SG_MITER_ATOMIC) {
+diff -puN mm/memcontrol.c~mm-memcg-use-proper-memcg-in-limit-bypass mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-use-proper-memcg-in-limit-bypass
++++ a/mm/memcontrol.c
+@@ -2765,10 +2765,10 @@ done:
+ 	*ptr = memcg;
+ 	return 0;
+ nomem:
+-	*ptr = NULL;
+-	if (gfp_mask & __GFP_NOFAIL)
+-		return 0;
+-	return -ENOMEM;
++	if (!(gfp_mask & __GFP_NOFAIL)) {
++		*ptr = NULL;
++		return -ENOMEM;
++	}
+ bypass:
+ 	*ptr = root_mem_cgroup;
+ 	return -EINTR;
 _
 
-Patches currently in -mm which might be from ming.lei@canonical.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-lib-scatterlistc-dont-flush_kernel_dcache_page-on-slab-page.patch
+origin.patch
+mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch
+memcg-refactor-mem_control_numa_stat_show.patch
+memcg-support-hierarchical-memorynuma_stats.patch
+memblock-factor-out-of-top-down-allocation.patch
+memblock-introduce-bottom-up-allocation-mode.patch
+x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
+x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
+mem-hotplug-introduce-movable_node-boot-option.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+percpu-add-test-module-for-various-percpu-operations.patch
 linux-next.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
 
