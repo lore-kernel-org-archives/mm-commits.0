@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx.patch added to
- -mm tree
-Date: Fri, 01 Nov 2013 13:12:17 -0700
-Message-ID: <52740b21.K3hHeX+M4OfdZOKh%akpm@linux-foundation.org>
+Subject: + memcg-kmem-use-cache_from_memcg_idx-instead-of-hard-code.patch
+ added to -mm tree
+Date: Fri, 01 Nov 2013 13:12:18 -0700
+Message-ID: <52740b22.q9GuKSv0tQs8WMpB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53633 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53642 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223Ab3KAUMS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 16:12:18 -0400
+	with ESMTP id S1753223Ab3KAUMT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 16:12:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, glommer@parallels.com, h.huangqiang@huawei.com
 
-Subject: + memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx.patch added to -mm tree
+Subject: + memcg-kmem-use-cache_from_memcg_idx-instead-of-hard-code.patch added to -mm tree
 To: h.huangqiang@huawei.com,glommer@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz,penberg@kernel.org,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 13:12:17 -0700
+Date: Fri, 01 Nov 2013 13:12:18 -0700
 
 
 The patch titled
-     Subject: memcg, kmem: rename cache_from_memcg to cache_from_memcg_idx
+     Subject: memcg, kmem: use cache_from_memcg_idx instead of hard code
 has been added to the -mm tree.  Its filename is
-     memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx.patch
+     memcg-kmem-use-cache_from_memcg_idx-instead-of-hard-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-kmem-use-cache_from_memcg_idx-instead-of-hard-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-kmem-use-cache_from_memcg_idx-instead-of-hard-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,10 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Qiang Huang <h.huangqiang@huawei.com>
-Subject: memcg, kmem: rename cache_from_memcg to cache_from_memcg_idx
-
-We can't see the relationship with memcg from the parameters,
-so the name with memcg_idx would be more reasonable.
+Subject: memcg, kmem: use cache_from_memcg_idx instead of hard code
 
 Signed-off-by: Qiang Huang <h.huangqiang@huawei.com>
 Reviewed-by: Pekka Enberg <penberg@kernel.org>
@@ -60,71 +56,52 @@ Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c        |    2 +-
- mm/slab.h        |    6 ++++--
- mm/slab_common.c |    2 +-
- mm/slub.c        |    2 +-
- 4 files changed, 7 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/slab.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx mm/slab.c
---- a/mm/slab.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx
-+++ a/mm/slab.c
-@@ -3982,7 +3982,7 @@ static int do_tune_cpucache(struct kmem_
+diff -puN mm/memcontrol.c~memcg-kmem-use-cache_from_memcg_idx-instead-of-hard-code mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-kmem-use-cache_from_memcg_idx-instead-of-hard-code
++++ a/mm/memcontrol.c
+@@ -2956,7 +2956,7 @@ static struct kmem_cache *memcg_params_t
  
- 	VM_BUG_ON(!mutex_is_locked(&slab_mutex));
- 	for_each_memcg_cache_index(i) {
--		c = cache_from_memcg(cachep, i);
-+		c = cache_from_memcg_idx(cachep, i);
- 		if (c)
- 			/* return value determined by the parent cache only */
- 			__do_tune_cpucache(c, limit, batchcount, shared, gfp);
-diff -puN mm/slab.h~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx mm/slab.h
---- a/mm/slab.h~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx
-+++ a/mm/slab.h
-@@ -160,7 +160,8 @@ static inline const char *cache_name(str
- 	return s->name;
+ 	VM_BUG_ON(p->is_root_cache);
+ 	cachep = p->root_cache;
+-	return cachep->memcg_params->memcg_caches[memcg_cache_id(p->memcg)];
++	return cache_from_memcg_idx(cachep, memcg_cache_id(p->memcg));
  }
  
--static inline struct kmem_cache *cache_from_memcg(struct kmem_cache *s, int idx)
-+static inline struct kmem_cache *
-+cache_from_memcg_idx(struct kmem_cache *s, int idx)
- {
- 	if (!s->memcg_params)
- 		return NULL;
-@@ -204,7 +205,8 @@ static inline const char *cache_name(str
- 	return s->name;
- }
+ #ifdef CONFIG_SLABINFO
+@@ -3393,7 +3393,7 @@ static struct kmem_cache *memcg_create_k
+ 	idx = memcg_cache_id(memcg);
  
--static inline struct kmem_cache *cache_from_memcg(struct kmem_cache *s, int idx)
-+static inline struct kmem_cache *
-+cache_from_memcg_idx(struct kmem_cache *s, int idx)
- {
- 	return NULL;
- }
-diff -puN mm/slab_common.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx mm/slab_common.c
---- a/mm/slab_common.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx
-+++ a/mm/slab_common.c
-@@ -571,7 +571,7 @@ memcg_accumulate_slabinfo(struct kmem_ca
- 		return;
- 
- 	for_each_memcg_cache_index(i) {
--		c = cache_from_memcg(s, i);
+ 	mutex_lock(&memcg_cache_mutex);
+-	new_cachep = cachep->memcg_params->memcg_caches[idx];
++	new_cachep = cache_from_memcg_idx(cachep, idx);
+ 	if (new_cachep) {
+ 		css_put(&memcg->css);
+ 		goto out;
+@@ -3439,8 +3439,8 @@ void kmem_cache_destroy_memcg_children(s
+ 	 * we'll take the set_limit_mutex to protect ourselves against this.
+ 	 */
+ 	mutex_lock(&set_limit_mutex);
+-	for (i = 0; i < memcg_limited_groups_array_size; i++) {
+-		c = s->memcg_params->memcg_caches[i];
++	for_each_memcg_cache_index(i) {
 +		c = cache_from_memcg_idx(s, i);
  		if (!c)
  			continue;
  
-diff -puN mm/slub.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx mm/slub.c
---- a/mm/slub.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx
-+++ a/mm/slub.c
-@@ -4983,7 +4983,7 @@ static ssize_t slab_attr_store(struct ko
- 		 * through the descendants with best-effort propagation.
- 		 */
- 		for_each_memcg_cache_index(i) {
--			struct kmem_cache *c = cache_from_memcg(s, i);
-+			struct kmem_cache *c = cache_from_memcg_idx(s, i);
- 			if (c)
- 				attribute->store(c, buf, len);
- 		}
+@@ -3573,8 +3573,8 @@ struct kmem_cache *__memcg_kmem_get_cach
+ 	 * code updating memcg_caches will issue a write barrier to match this.
+ 	 */
+ 	read_barrier_depends();
+-	if (likely(cachep->memcg_params->memcg_caches[idx])) {
+-		cachep = cachep->memcg_params->memcg_caches[idx];
++	if (likely(cache_from_memcg_idx(cachep, idx))) {
++		cachep = cache_from_memcg_idx(cachep, idx);
+ 		goto out;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from h.huangqiang@huawei.com are
