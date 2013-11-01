@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-video-backlight-hx8357c-remove-redundant-of_match_ptr.patch added
- to -mm tree
-Date: Fri, 01 Nov 2013 14:59:57 -0700
-Message-ID: <5274245d.+luoqJkU9Ctxa1cI%akpm@linux-foundation.org>
+Subject: + lglock-map-to-spinlock-when-config_smp.patch added to -mm tree
+Date: Fri, 01 Nov 2013 15:33:06 -0700
+Message-ID: <52742c22.qDxorqiMID/wNP7D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55795 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859Ab3KAV76 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 17:59:58 -0400
+	with ESMTP id S1755395Ab3KAWdH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 18:33:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, maxime.ripard@free-electrons.com, jg1.han@samsung.com, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, npiggin@kernel.dk, mmarek@suse.cz, hpa@zytor.com, dhowells@redhat.com, josh@joshtriplett.org
 
-Subject: + drivers-video-backlight-hx8357c-remove-redundant-of_match_ptr.patch added to -mm tree
-To: sachin.kamat@linaro.org,jg1.han@samsung.com,maxime.ripard@free-electrons.com
+Subject: + lglock-map-to-spinlock-when-config_smp.patch added to -mm tree
+To: josh@joshtriplett.org,dhowells@redhat.com,hpa@zytor.com,mmarek@suse.cz,npiggin@kernel.dk,rusty@rustcorp.com.au,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 14:59:57 -0700
+Date: Fri, 01 Nov 2013 15:33:06 -0700
 
 
 The patch titled
-     Subject: drivers/video/backlight/hx8357.c: remove redundant of_match_ptr
+     Subject: lglock: map to spinlock when !CONFIG_SMP
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-hx8357c-remove-redundant-of_match_ptr.patch
+     lglock-map-to-spinlock-when-config_smp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-video-backlight-hx8357c-remove-redundant-of_match_ptr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lglock-map-to-spinlock-when-config_smp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-video-backlight-hx8357c-remove-redundant-of_match_ptr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lglock-map-to-spinlock-when-config_smp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,53 +43,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/backlight/hx8357.c: remove redundant of_match_ptr
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: lglock: map to spinlock when !CONFIG_SMP
 
-'hx8357_dt_ids' is always compiled in.  Hence of_match_ptr is not needed.
+When the system has only one CPU, lglock is effectively a spinlock; map it
+directly to spinlock to eliminate the indirection and duplicate code.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+In addition to removing overhead, this drops 1.6k of code with a defconfig
+modified to have !CONFIG_SMP, and 1.1k with a minimal config.
+
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Howells <dhowells@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/hx8357.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/lglock.h |   16 ++++++++++++++++
+ kernel/Makefile        |    4 ++--
+ 2 files changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/hx8357.c~drivers-video-backlight-hx8357c-remove-redundant-of_match_ptr drivers/video/backlight/hx8357.c
---- a/drivers/video/backlight/hx8357.c~drivers-video-backlight-hx8357c-remove-redundant-of_match_ptr
-+++ a/drivers/video/backlight/hx8357.c
-@@ -673,7 +673,7 @@ static struct spi_driver hx8357_driver =
- 	.probe  = hx8357_probe,
- 	.driver = {
- 		.name = "hx8357",
--		.of_match_table = of_match_ptr(hx8357_dt_ids),
-+		.of_match_table = hx8357_dt_ids,
- 	},
- };
+diff -puN include/linux/lglock.h~lglock-map-to-spinlock-when-config_smp include/linux/lglock.h
+--- a/include/linux/lglock.h~lglock-map-to-spinlock-when-config_smp
++++ a/include/linux/lglock.h
+@@ -35,6 +35,8 @@
+ #define DEFINE_BRLOCK(name)		DEFINE_LGLOCK(name)
+ #define DEFINE_STATIC_BRLOCK(name)	DEFINE_STATIC_LGLOCK(name)
  
++#ifdef CONFIG_SMP
++
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ #define LOCKDEP_INIT_MAP lockdep_init_map
+ #else
+@@ -67,4 +69,18 @@ void lg_local_unlock_cpu(struct lglock *
+ void lg_global_lock(struct lglock *lg);
+ void lg_global_unlock(struct lglock *lg);
+ 
++#else
++/* When !CONFIG_SMP, map lglock to spinlock */
++#define lglock spinlock
++#define DEFINE_LGLOCK(name) DEFINE_SPINLOCK(name)
++#define DEFINE_STATIC_LGLOCK(name) static DEFINE_SPINLOCK(name)
++#define lg_lock_init(lg, name) spin_lock_init(lg)
++#define lg_local_lock spin_lock
++#define lg_local_unlock spin_unlock
++#define lg_local_lock_cpu(lg, cpu) spin_lock(lg)
++#define lg_local_unlock_cpu(lg, cpu) spin_unlock(lg)
++#define lg_global_lock spin_lock
++#define lg_global_unlock spin_unlock
++#endif
++
+ #endif
+diff -puN kernel/Makefile~lglock-map-to-spinlock-when-config_smp kernel/Makefile
+--- a/kernel/Makefile~lglock-map-to-spinlock-when-config_smp
++++ a/kernel/Makefile
+@@ -10,7 +10,7 @@ obj-y     = fork.o exec_domain.o panic.o
+ 	    kthread.o wait.o sys_ni.o posix-cpu-timers.o mutex.o \
+ 	    hrtimer.o rwsem.o nsproxy.o srcu.o semaphore.o \
+ 	    notifier.o ksysfs.o cred.o reboot.o \
+-	    async.o range.o groups.o lglock.o smpboot.o
++	    async.o range.o groups.o smpboot.o
+ 
+ ifdef CONFIG_FUNCTION_TRACER
+ # Do not trace debug files and internal ftrace files
+@@ -50,7 +50,7 @@ obj-$(CONFIG_SMP) += smp.o
+ ifneq ($(CONFIG_SMP),y)
+ obj-y += up.o
+ endif
+-obj-$(CONFIG_SMP) += spinlock.o
++obj-$(CONFIG_SMP) += lglock.o spinlock.o
+ obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock.o
+ obj-$(CONFIG_PROVE_LOCKING) += spinlock.o
+ obj-$(CONFIG_UID16) += uid16.o
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
-drivers-video-backlight-hx8357c-remove-redundant-of_match_ptr.patch
-drivers-rtc-rtc-ds1307c-release-irq-on-error.patch
-drivers-rtc-rtc-isl1208c-remove-redundant-checks.patch
-drivers-rtc-rtc-max6900c-remove-redundant-checks.patch
-drivers-rtc-rtc-vt8500c-fix-return-value.patch
-drivers-rtc-rtc-at91rm9200c-use-devm_-apis.patch
-drivers-rtc-rtc-isl1208c-use-devm_-apis.patch
-drivers-rtc-rtc-sirfsocc-use-devm_rtc_device_register.patch
-drivers-rtc-rtc-cmosc-remove-redundant-dev_set_drvdata.patch
-drivers-rtc-rtc-mrstc-remove-redundant-dev_set_drvdata.patch
-drivers-rtc-rtc-vr41xxc-fix-checkpatch-warnings.patch
-drivers-rtc-rtc-vt8500c-remove-redundant-of_match_ptr.patch
-drivers-rtc-rtc-omapc-remove-redundant-of_match_ptr.patch
-drivers-rtc-rtc-sirfsocc-remove-redundant-of_match_ptr.patch
-drivers-rtc-rtc-snvsc-remove-redundant-of_match_ptr.patch
-drivers-rtc-rtc-stmp3xxxc-remove-redundant-of_match_ptr.patch
-rtc-s5m-rtc-add-real-time-clock-driver-for-s5m8767.patch
-drivers-pps-clients-pps-gpioc-remove-redundant-of_match_ptr.patch
+lglock-map-to-spinlock-when-config_smp.patch
+checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
+checkpatchpl-check-for-the-fsf-mailing-address.patch
+documentation-abi-document-the-non-abi-status-of-kconfig-and-symbols.patch
+scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner.patch
+scripts-bloat-o-meter-use-startswith-rather-than-fragile-slicing.patch
 linux-next.patch
 
