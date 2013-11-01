@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zswap-refoctor-the-get-put-routines.patch added to -mm tree
-Date: Fri, 01 Nov 2013 14:46:44 -0700
-Message-ID: <52742144.zATJISNCbG6y6p4/%akpm@linux-foundation.org>
+Subject: +
+ revert-softirq-add-support-for-triggering-softirq-work-on-softirqs.patch
+ added to -mm tree
+Date: Fri, 01 Nov 2013 14:58:14 -0700
+Message-ID: <527423f6.bqpp6GY249rNC1V5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54732 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54811 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754732Ab3KAVqp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 17:46:45 -0400
+	with ESMTP id S1752054Ab3KAV6P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 17:58:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sjennings@variantweb.net, minchan@kernel.org, bob.liu@oracle.com, weijie.yang@samsung.com
+To: mm-commits@vger.kernel.org, jack@suse.cz, hch@lst.de, axboe@kernel.dk, hch@infradead.org
 
-Subject: + mm-zswap-refoctor-the-get-put-routines.patch added to -mm tree
-To: weijie.yang@samsung.com,bob.liu@oracle.com,minchan@kernel.org,sjennings@variantweb.net
+Subject: + revert-softirq-add-support-for-triggering-softirq-work-on-softirqs.patch added to -mm tree
+To: hch@infradead.org,axboe@kernel.dk,hch@lst.de,jack@suse.cz
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 14:46:44 -0700
+Date: Fri, 01 Nov 2013 14:58:14 -0700
 
 
 The patch titled
-     Subject: mm/zswap: refoctor the get/put routines
+     Subject: revert "softirq: Add support for triggering softirq work on softirqs"
 has been added to the -mm tree.  Its filename is
-     mm-zswap-refoctor-the-get-put-routines.patch
+     revert-softirq-add-support-for-triggering-softirq-work-on-softirqs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-refoctor-the-get-put-routines.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-softirq-add-support-for-triggering-softirq-work-on-softirqs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-refoctor-the-get-put-routines.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-softirq-add-support-for-triggering-softirq-work-on-softirqs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,347 +45,222 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Weijie Yang <weijie.yang@samsung.com>
-Subject: mm/zswap: refoctor the get/put routines
+From: Christoph Hellwig <hch@infradead.org>
+Subject: revert "softirq: Add support for triggering softirq work on softirqs"
 
-The refcount routine was not fit the kernel get/put semantic exactly,
-There were too many judgement statements on refcount and it could be
-minus.
+This commit was incomplete in that code to remove items from the per-cpu
+lists was missing and never acquired a user in the 5 years it has been in
+the tree.  We're going to implement what it seems to try to archive in a
+simpler way, and this code is in the way of doing so.
 
-This patch does the following:
-
-- move refcount judgement to zswap_entry_put() to hide resource free function.
-
-- add a new function zswap_entry_find_get(), so that callers can use easily
-in the following pattern:
-
-   zswap_entry_find_get
-   .../* do something */
-   zswap_entry_put
-
-- to eliminate compile error, move some functions declaration
-
-This patch is based on Minchan Kim <minchan@kernel.org> 's idea and suggestion.
-
-Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
-Cc: Seth Jennings <sjennings@variantweb.net>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Bob Liu <bob.liu@oracle.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |  182 ++++++++++++++++++++++++---------------------------
- 1 file changed, 88 insertions(+), 94 deletions(-)
+ include/linux/interrupt.h |   22 ------
+ kernel/softirq.c          |  131 ------------------------------------
+ 2 files changed, 153 deletions(-)
 
-diff -puN mm/zswap.c~mm-zswap-refoctor-the-get-put-routines mm/zswap.c
---- a/mm/zswap.c~mm-zswap-refoctor-the-get-put-routines
-+++ a/mm/zswap.c
-@@ -217,6 +217,7 @@ static struct zswap_entry *zswap_entry_c
- 	if (!entry)
- 		return NULL;
- 	entry->refcount = 1;
-+	RB_CLEAR_NODE(&entry->rbnode);
- 	return entry;
- }
+diff -puN include/linux/interrupt.h~revert-softirq-add-support-for-triggering-softirq-work-on-softirqs include/linux/interrupt.h
+--- a/include/linux/interrupt.h~revert-softirq-add-support-for-triggering-softirq-work-on-softirqs
++++ a/include/linux/interrupt.h
+@@ -11,8 +11,6 @@
+ #include <linux/irqnr.h>
+ #include <linux/hardirq.h>
+ #include <linux/irqflags.h>
+-#include <linux/smp.h>
+-#include <linux/percpu.h>
+ #include <linux/hrtimer.h>
+ #include <linux/kref.h>
+ #include <linux/workqueue.h>
+@@ -392,15 +390,6 @@ extern void __raise_softirq_irqoff(unsig
+ extern void raise_softirq_irqoff(unsigned int nr);
+ extern void raise_softirq(unsigned int nr);
  
-@@ -225,19 +226,6 @@ static void zswap_entry_cache_free(struc
- 	kmem_cache_free(zswap_entry_cache, entry);
- }
- 
--/* caller must hold the tree lock */
--static void zswap_entry_get(struct zswap_entry *entry)
--{
--	entry->refcount++;
--}
+-/* This is the worklist that queues up per-cpu softirq work.
+- *
+- * send_remote_sendirq() adds work to these lists, and
+- * the softirq handler itself dequeues from them.  The queues
+- * are protected by disabling local cpu interrupts and they must
+- * only be accessed by the local cpu that they are for.
+- */
+-DECLARE_PER_CPU(struct list_head [NR_SOFTIRQS], softirq_work_list);
 -
--/* caller must hold the tree lock */
--static int zswap_entry_put(struct zswap_entry *entry)
--{
--	entry->refcount--;
--	return entry->refcount;
--}
--
- /*********************************
- * rbtree functions
- **********************************/
-@@ -285,6 +273,61 @@ static int zswap_rb_insert(struct rb_roo
- 	return 0;
+ DECLARE_PER_CPU(struct task_struct *, ksoftirqd);
+ 
+ static inline struct task_struct *this_cpu_ksoftirqd(void)
+@@ -408,17 +397,6 @@ static inline struct task_struct *this_c
+ 	return this_cpu_read(ksoftirqd);
  }
  
-+static void zswap_rb_erase(struct rb_root *root, struct zswap_entry *entry)
-+{
-+	if (!RB_EMPTY_NODE(&entry->rbnode)) {
-+		rb_erase(&entry->rbnode, root);
-+		RB_CLEAR_NODE(&entry->rbnode);
-+	}
-+}
-+
-+/*
-+ * Carries out the common pattern of freeing and entry's zsmalloc allocation,
-+ * freeing the entry itself, and decrementing the number of stored pages.
-+ */
-+static void zswap_free_entry(struct zswap_tree *tree,
-+			struct zswap_entry *entry)
-+{
-+	zbud_free(tree->pool, entry->handle);
-+	zswap_entry_cache_free(entry);
-+	atomic_dec(&zswap_stored_pages);
-+	zswap_pool_pages = zbud_get_pool_size(tree->pool);
-+}
-+
-+/* caller must hold the tree lock */
-+static void zswap_entry_get(struct zswap_entry *entry)
-+{
-+	entry->refcount++;
-+}
-+
-+/* caller must hold the tree lock
-+* remove from the tree and free it, if nobody reference the entry
-+*/
-+static void zswap_entry_put(struct zswap_tree *tree,
-+			struct zswap_entry *entry)
-+{
-+	int refcount = --entry->refcount;
-+
-+	BUG_ON(refcount < 0);
-+	if (refcount == 0) {
-+		zswap_rb_erase(&tree->rbroot, entry);
-+		zswap_free_entry(tree, entry);
-+	}
-+}
-+
-+/* caller must hold the tree lock */
-+static struct zswap_entry *zswap_entry_find_get(struct rb_root *root,
-+				pgoff_t offset)
-+{
-+	struct zswap_entry *entry = NULL;
-+
-+	entry = zswap_rb_search(root, offset);
-+	if (entry)
-+		zswap_entry_get(entry);
-+
-+	return entry;
-+}
-+
- /*********************************
- * per-cpu code
- **********************************/
-@@ -368,18 +411,6 @@ static bool zswap_is_full(void)
- 		zswap_pool_pages);
+-/* Try to send a softirq to a remote cpu.  If this cannot be done, the
+- * work will be queued to the local cpu.
+- */
+-extern void send_remote_softirq(struct call_single_data *cp, int cpu, int softirq);
+-
+-/* Like send_remote_softirq(), but the caller must disable local cpu interrupts
+- * and compute the current cpu, passed in as 'this_cpu'.
+- */
+-extern void __send_remote_softirq(struct call_single_data *cp, int cpu,
+-				  int this_cpu, int softirq);
+-
+ /* Tasklets --- multithreaded analogue of BHs.
+ 
+    Main feature differing them of generic softirqs: tasklet
+diff -puN kernel/softirq.c~revert-softirq-add-support-for-triggering-softirq-work-on-softirqs kernel/softirq.c
+--- a/kernel/softirq.c~revert-softirq-add-support-for-triggering-softirq-work-on-softirqs
++++ a/kernel/softirq.c
+@@ -6,8 +6,6 @@
+  *	Distribute under GPLv2.
+  *
+  *	Rewritten. Old one was good in 2.2, but in 2.3 it was immoral. --ANK (990903)
+- *
+- *	Remote softirq infrastructure is by Jens Axboe.
+  */
+ 
+ #include <linux/export.h>
+@@ -627,146 +625,17 @@ void tasklet_hrtimer_init(struct tasklet
  }
+ EXPORT_SYMBOL_GPL(tasklet_hrtimer_init);
  
 -/*
-- * Carries out the common pattern of freeing and entry's zsmalloc allocation,
-- * freeing the entry itself, and decrementing the number of stored pages.
+- * Remote softirq bits
 - */
--static void zswap_free_entry(struct zswap_tree *tree, struct zswap_entry *entry)
+-
+-DEFINE_PER_CPU(struct list_head [NR_SOFTIRQS], softirq_work_list);
+-EXPORT_PER_CPU_SYMBOL(softirq_work_list);
+-
+-static void __local_trigger(struct call_single_data *cp, int softirq)
 -{
--	zbud_free(tree->pool, entry->handle);
--	zswap_entry_cache_free(entry);
--	atomic_dec(&zswap_stored_pages);
--	zswap_pool_pages = zbud_get_pool_size(tree->pool);
+-	struct list_head *head = &__get_cpu_var(softirq_work_list[softirq]);
+-
+-	list_add_tail(&cp->list, head);
+-
+-	/* Trigger the softirq only if the list was previously empty.  */
+-	if (head->next == &cp->list)
+-		raise_softirq_irqoff(softirq);
 -}
 -
- /*********************************
- * writeback code
- **********************************/
-@@ -503,7 +534,7 @@ static int zswap_writeback_entry(struct
- 	struct page *page;
- 	u8 *src, *dst;
- 	unsigned int dlen;
--	int ret, refcount;
-+	int ret;
- 	struct writeback_control wbc = {
- 		.sync_mode = WB_SYNC_NONE,
- 	};
-@@ -518,13 +549,12 @@ static int zswap_writeback_entry(struct
- 
- 	/* find and ref zswap entry */
- 	spin_lock(&tree->lock);
--	entry = zswap_rb_search(&tree->rbroot, offset);
-+	entry = zswap_entry_find_get(&tree->rbroot, offset);
- 	if (!entry) {
- 		/* entry was invalidated */
- 		spin_unlock(&tree->lock);
- 		return 0;
- 	}
--	zswap_entry_get(entry);
- 	spin_unlock(&tree->lock);
- 	BUG_ON(offset != entry->offset);
- 
-@@ -566,42 +596,35 @@ static int zswap_writeback_entry(struct
- 	zswap_written_back_pages++;
- 
- 	spin_lock(&tree->lock);
+-#ifdef CONFIG_USE_GENERIC_SMP_HELPERS
+-static void remote_softirq_receive(void *data)
+-{
+-	struct call_single_data *cp = data;
+-	unsigned long flags;
+-	int softirq;
 -
- 	/* drop local reference */
--	zswap_entry_put(entry);
--	/* drop the initial reference from entry creation */
--	refcount = zswap_entry_put(entry);
-+	zswap_entry_put(tree, entry);
- 
- 	/*
--	 * There are three possible values for refcount here:
--	 * (1) refcount is 1, load is in progress, unlink from rbtree,
--	 *     load will free
--	 * (2) refcount is 0, (normal case) entry is valid,
--	 *     remove from rbtree and free entry
--	 * (3) refcount is -1, invalidate happened during writeback,
--	 *     free entry
--	 */
--	if (refcount >= 0) {
--		/* no invalidate yet, remove from rbtree */
--		rb_erase(&entry->rbnode, &tree->rbroot);
--	}
-+	* There are two possible situations for entry here:
-+	* (1) refcount is 1(normal case),  entry is valid and on the tree
-+	* (2) refcount is 0, entry is freed and not on the tree
-+	*     because invalidate happened during writeback
-+	*  search the tree and free the entry if find entry
-+	*/
-+	if (entry == zswap_rb_search(&tree->rbroot, offset))
-+		zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
--	if (refcount <= 0) {
--		/* free the entry */
--		zswap_free_entry(tree, entry);
+-	softirq = *(int *)cp->info;
+-	local_irq_save(flags);
+-	__local_trigger(cp, softirq);
+-	local_irq_restore(flags);
+-}
+-
+-static int __try_remote_softirq(struct call_single_data *cp, int cpu, int softirq)
+-{
+-	if (cpu_online(cpu)) {
+-		cp->func = remote_softirq_receive;
+-		cp->info = &softirq;
+-		cp->flags = 0;
+-
+-		__smp_call_function_single(cpu, cp, 0);
 -		return 0;
 -	}
--	return -EAGAIN;
- 
-+	goto end;
-+
-+	/*
-+	* if we get here due to ZSWAP_SWAPCACHE_EXIST
-+	* a load may happening concurrently
-+	* it is safe and okay to not free the entry
-+	* if we free the entry in the following put
-+	* it it either okay to return !0
-+	*/
- fail:
- 	spin_lock(&tree->lock);
--	refcount = zswap_entry_put(entry);
--	if (refcount <= 0) {
--		/* invalidate happened, consider writeback as success */
--		zswap_free_entry(tree, entry);
--		ret = 0;
--	}
-+	zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
-+
-+end:
- 	return ret;
- }
- 
-@@ -685,11 +708,8 @@ static int zswap_frontswap_store(unsigne
- 		if (ret == -EEXIST) {
- 			zswap_duplicate_entry++;
- 			/* remove from rbtree */
--			rb_erase(&dupentry->rbnode, &tree->rbroot);
--			if (!zswap_entry_put(dupentry)) {
--				/* free */
--				zswap_free_entry(tree, dupentry);
--			}
-+			zswap_rb_erase(&tree->rbroot, dupentry);
-+			zswap_entry_put(tree, dupentry);
- 		}
- 	} while (ret == -EEXIST);
- 	spin_unlock(&tree->lock);
-@@ -718,17 +738,16 @@ static int zswap_frontswap_load(unsigned
- 	struct zswap_entry *entry;
- 	u8 *src, *dst;
- 	unsigned int dlen;
--	int refcount, ret;
-+	int ret;
- 
- 	/* find */
- 	spin_lock(&tree->lock);
--	entry = zswap_rb_search(&tree->rbroot, offset);
-+	entry = zswap_entry_find_get(&tree->rbroot, offset);
- 	if (!entry) {
- 		/* entry was written back */
- 		spin_unlock(&tree->lock);
- 		return -1;
- 	}
--	zswap_entry_get(entry);
- 	spin_unlock(&tree->lock);
- 
- 	/* decompress */
-@@ -743,22 +762,9 @@ static int zswap_frontswap_load(unsigned
- 	BUG_ON(ret);
- 
- 	spin_lock(&tree->lock);
--	refcount = zswap_entry_put(entry);
--	if (likely(refcount)) {
--		spin_unlock(&tree->lock);
--		return 0;
--	}
-+	zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
- 
+-	return 1;
+-}
+-#else /* CONFIG_USE_GENERIC_SMP_HELPERS */
+-static int __try_remote_softirq(struct call_single_data *cp, int cpu, int softirq)
+-{
+-	return 1;
+-}
+-#endif
+-
+-/**
+- * __send_remote_softirq - try to schedule softirq work on a remote cpu
+- * @cp: private SMP call function data area
+- * @cpu: the remote cpu
+- * @this_cpu: the currently executing cpu
+- * @softirq: the softirq for the work
+- *
+- * Attempt to schedule softirq work on a remote cpu.  If this cannot be
+- * done, the work is instead queued up on the local cpu.
+- *
+- * Interrupts must be disabled.
+- */
+-void __send_remote_softirq(struct call_single_data *cp, int cpu, int this_cpu, int softirq)
+-{
+-	if (cpu == this_cpu || __try_remote_softirq(cp, cpu, softirq))
+-		__local_trigger(cp, softirq);
+-}
+-EXPORT_SYMBOL(__send_remote_softirq);
+-
+-/**
+- * send_remote_softirq - try to schedule softirq work on a remote cpu
+- * @cp: private SMP call function data area
+- * @cpu: the remote cpu
+- * @softirq: the softirq for the work
+- *
+- * Like __send_remote_softirq except that disabling interrupts and
+- * computing the current cpu is done for the caller.
+- */
+-void send_remote_softirq(struct call_single_data *cp, int cpu, int softirq)
+-{
+-	unsigned long flags;
+-	int this_cpu;
+-
+-	local_irq_save(flags);
+-	this_cpu = smp_processor_id();
+-	__send_remote_softirq(cp, cpu, this_cpu, softirq);
+-	local_irq_restore(flags);
+-}
+-EXPORT_SYMBOL(send_remote_softirq);
+-
+-static int remote_softirq_cpu_notify(struct notifier_block *self,
+-					       unsigned long action, void *hcpu)
+-{
 -	/*
--	 * We don't have to unlink from the rbtree because
--	 * zswap_writeback_entry() or zswap_frontswap_invalidate page()
--	 * has already done this for us if we are the last reference.
+-	 * If a CPU goes away, splice its entries to the current CPU
+-	 * and trigger a run of the softirq
 -	 */
--	/* free */
+-	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
+-		int cpu = (unsigned long) hcpu;
+-		int i;
 -
--	zswap_free_entry(tree, entry);
+-		local_irq_disable();
+-		for (i = 0; i < NR_SOFTIRQS; i++) {
+-			struct list_head *head = &per_cpu(softirq_work_list[i], cpu);
+-			struct list_head *local_head;
 -
- 	return 0;
- }
- 
-@@ -767,7 +773,6 @@ static void zswap_frontswap_invalidate_p
+-			if (list_empty(head))
+-				continue;
+-
+-			local_head = &__get_cpu_var(softirq_work_list[i]);
+-			list_splice_init(head, local_head);
+-			raise_softirq_irqoff(i);
+-		}
+-		local_irq_enable();
+-	}
+-
+-	return NOTIFY_OK;
+-}
+-
+-static struct notifier_block remote_softirq_cpu_notifier = {
+-	.notifier_call	= remote_softirq_cpu_notify,
+-};
+-
+ void __init softirq_init(void)
  {
- 	struct zswap_tree *tree = zswap_trees[type];
- 	struct zswap_entry *entry;
--	int refcount;
+ 	int cpu;
  
- 	/* find */
- 	spin_lock(&tree->lock);
-@@ -779,20 +784,12 @@ static void zswap_frontswap_invalidate_p
+ 	for_each_possible_cpu(cpu) {
+-		int i;
+-
+ 		per_cpu(tasklet_vec, cpu).tail =
+ 			&per_cpu(tasklet_vec, cpu).head;
+ 		per_cpu(tasklet_hi_vec, cpu).tail =
+ 			&per_cpu(tasklet_hi_vec, cpu).head;
+-		for (i = 0; i < NR_SOFTIRQS; i++)
+-			INIT_LIST_HEAD(&per_cpu(softirq_work_list[i], cpu));
  	}
  
- 	/* remove from rbtree */
--	rb_erase(&entry->rbnode, &tree->rbroot);
-+	zswap_rb_erase(&tree->rbroot, entry);
- 
- 	/* drop the initial reference from entry creation */
--	refcount = zswap_entry_put(entry);
-+	zswap_entry_put(tree, entry);
- 
- 	spin_unlock(&tree->lock);
--
--	if (refcount) {
--		/* writeback in progress, writeback will free */
--		return;
--	}
--
--	/* free */
--	zswap_free_entry(tree, entry);
- }
- 
- /* frees all zswap entries for the given swap type */
-@@ -806,11 +803,8 @@ static void zswap_frontswap_invalidate_a
- 
- 	/* walk the tree and free everything */
- 	spin_lock(&tree->lock);
--	rbtree_postorder_for_each_entry_safe(entry, n, &tree->rbroot, rbnode) {
--		zbud_free(tree->pool, entry->handle);
--		zswap_entry_cache_free(entry);
--		atomic_dec(&zswap_stored_pages);
--	}
-+	rbtree_postorder_for_each_entry_safe(entry, n, &tree->rbroot, rbnode)
-+		zswap_free_entry(tree, entry);
- 	tree->rbroot = RB_ROOT;
- 	spin_unlock(&tree->lock);
- 
-_
-
-Patches currently in -mm which might be from weijie.yang@samsung.com are
-
-mm-zswap-avoid-unnecessary-page-scanning.patch
-mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly.patch
-mm-zswap-refoctor-the-get-put-routines.patch
-linux-next.patch
-
+-	register_hotcpu_notifier(&remote_softirq_cpu_notifier);
