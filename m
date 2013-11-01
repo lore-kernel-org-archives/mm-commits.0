@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch added to -mm tree
-Date: Fri, 01 Nov 2013 12:46:26 -0700
-Message-ID: <52740512.fIiaIVhortcGrOdo%akpm@linux-foundation.org>
+ mm-ensure-get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch added to -mm tree
+Date: Fri, 01 Nov 2013 13:02:07 -0700
+Message-ID: <527408bf.5zBjLobdLhRvQ/aw%akpm__26133.1867696301$1383336137$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53450 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754073Ab3KATq1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 15:46:27 -0400
+	with ESMTP id S1752357Ab3KAUCI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 16:02:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, greg@kroah.com, bhelgaas@google.com, axboe@kernel.dk, scameron@beardog.cce.hp.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, owada.kiyoshi@jp.panasonic.com, n-horiguchi@ah.jp.nec.com, takeuchi.akr@jp.panasonic.com
 
-Subject: + drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch added to -mm tree
-To: scameron@beardog.cce.hp.com,axboe@kernel.dk,bhelgaas@google.com,greg@kroah.com
+Subject: + mm-ensure-get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch added to -mm tree
+To: takeuchi.akr@jp.panasonic.com,n-horiguchi@ah.jp.nec.com,owada.kiyoshi@jp.panasonic.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 12:46:26 -0700
+Date: Fri, 01 Nov 2013 13:02:07 -0700
 
 
 The patch titled
-     Subject: drivers/pci/pci-driver.c: warn on driver probe return value greater than zero
+     Subject: mm: ensure get_unmapped_area() returns higher address than mmap_min_addr
 has been added to the -mm tree.  Its filename is
-     drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch
+     mm-ensure-get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-ensure-get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-ensure-get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,67 +44,128 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Subject: drivers/pci/pci-driver.c: warn on driver probe return value greater than zero
+From: Akira Takeuchi <takeuchi.akr@jp.panasonic.com>
+Subject: mm: ensure get_unmapped_area() returns higher address than mmap_min_addr
 
-Ages ago, drivers could return values greater than zero from their probe
-function and this would be regarded as success.  Commit f3ec4f87d607f40497
-"PCI: change device runtime PM settings for probe and remove" slightly
-altered this in 2010, and commit 967577b062417b4e4b8e27b ("PCI/PM: Keep
-runtime PM enabled for unbound PCI devices") in late 2012 altered it more
-signficantly, setting pci_dev->driver to NULL if the driver's probe
-function returned a value greater than zero, which would for example
-prevent the driver's remove function from being called on rmmod.
+This patch fixes the problem that get_unmapped_area() can return illegal
+address and result in failing mmap(2) etc.
 
-Neither of those changes would necessarily make the driver fail in an
-obvious way though, and so at least a couple drivers (cciss, hpsa) fell
-into this hole since they were returning 1, and this situation went
-unnoticed for quite some time.
+In case that the address higher than PAGE_SIZE is set to
+/proc/sys/vm/mmap_min_addr, the address lower than mmap_min_addr can be
+returned by get_unmapped_area(), even if you do not pass any virtual
+address hint (i.e.  the second argument).
 
-If a driver's probe function returns a value greater than zero, issue a
-warning, but otherwise treat this as success.
+This is because the current get_unmapped_area() code does not take into
+account mmap_min_addr.
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Greg KH <greg@kroah.com>
+This leads to two actual problems as follows:
+
+1. mmap(2) can fail with EPERM on the process without CAP_SYS_RAWIO,
+   although any illegal parameter is not passed.
+
+2. The bottom-up search path after the top-down search might not work in
+   arch_get_unmapped_area_topdown().
+
+Note: The first and third chunk of my patch, which changes "len" check,
+are for more precise check using mmap_min_addr, and not for solving the
+above problem.
+
+[How to reproduce]
+
+	--- test.c -------------------------------------------------
+	#include <stdio.h>
+	#include <unistd.h>
+	#include <sys/mman.h>
+	#include <sys/errno.h>
+
+	int main(int argc, char *argv[])
+	{
+		void *ret = NULL, *last_map;
+		size_t pagesize = sysconf(_SC_PAGESIZE);
+
+		do {
+			last_map = ret;
+			ret = mmap(0, pagesize, PROT_NONE,
+				MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+	//		printf("ret=%p\n", ret);
+		} while (ret != MAP_FAILED);
+
+		if (errno != ENOMEM) {
+			printf("ERR: unexpected errno: %d (last map=%p)\n",
+			errno, last_map);
+		}
+
+		return 0;
+	}
+	---------------------------------------------------------------
+
+	$ gcc -m32 -o test test.c
+	$ sudo sysctl -w vm.mmap_min_addr=65536
+	vm.mmap_min_addr = 65536
+	$ ./test  (run as non-priviledge user)
+	ERR: unexpected errno: 1 (last map=0x10000)
+
+Signed-off-by: Akira Takeuchi <takeuchi.akr@jp.panasonic.com>
+Signed-off-by: Kiyoshi Owada <owada.kiyoshi@jp.panasonic.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci-driver.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/mmap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pci/pci-driver.c~drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero drivers/pci/pci-driver.c
---- a/drivers/pci/pci-driver.c~drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero
-+++ a/drivers/pci/pci-driver.c
-@@ -264,11 +264,19 @@ static long local_pci_probe(void *_ddi)
- 	pm_runtime_get_sync(dev);
- 	pci_dev->driver = pci_drv;
- 	rc = pci_drv->probe(pci_dev, ddi->id);
--	if (rc) {
-+	if (!rc)
-+		return rc;
-+	if (rc < 0) {
- 		pci_dev->driver = NULL;
- 		pm_runtime_put_sync(dev);
-+		return rc;
- 	}
--	return rc;
-+	/*
-+	 * Probe function should return < 0 for failure, 0 for success
-+	 * Treat values > 0 as success, but warn.
-+	 */
-+	dev_warn(dev, "Driver probe function unexpectedly returned %d\n", rc);
-+	return 0;
- }
+diff -puN mm/mmap.c~mm-ensure-get_unmapped_area-returns-higher-address-than-mmap_min_addr mm/mmap.c
+--- a/mm/mmap.c~mm-ensure-get_unmapped_area-returns-higher-address-than-mmap_min_addr
++++ a/mm/mmap.c
+@@ -1856,7 +1856,7 @@ arch_get_unmapped_area(struct file *filp
+ 	struct vm_area_struct *vma;
+ 	struct vm_unmapped_area_info info;
  
- static int pci_call_probe(struct pci_driver *drv, struct pci_dev *dev,
+-	if (len > TASK_SIZE)
++	if (len > TASK_SIZE - mmap_min_addr)
+ 		return -ENOMEM;
+ 
+ 	if (flags & MAP_FIXED)
+@@ -1865,7 +1865,7 @@ arch_get_unmapped_area(struct file *filp
+ 	if (addr) {
+ 		addr = PAGE_ALIGN(addr);
+ 		vma = find_vma(mm, addr);
+-		if (TASK_SIZE - len >= addr &&
++		if (TASK_SIZE - len >= addr && addr >= mmap_min_addr &&
+ 		    (!vma || addr + len <= vma->vm_start))
+ 			return addr;
+ 	}
+@@ -1895,7 +1895,7 @@ arch_get_unmapped_area_topdown(struct fi
+ 	struct vm_unmapped_area_info info;
+ 
+ 	/* requested length too big for entire address space */
+-	if (len > TASK_SIZE)
++	if (len > TASK_SIZE - mmap_min_addr)
+ 		return -ENOMEM;
+ 
+ 	if (flags & MAP_FIXED)
+@@ -1905,14 +1905,14 @@ arch_get_unmapped_area_topdown(struct fi
+ 	if (addr) {
+ 		addr = PAGE_ALIGN(addr);
+ 		vma = find_vma(mm, addr);
+-		if (TASK_SIZE - len >= addr &&
++		if (TASK_SIZE - len >= addr && addr >= mmap_min_addr &&
+ 				(!vma || addr + len <= vma->vm_start))
+ 			return addr;
+ 	}
+ 
+ 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
+ 	info.length = len;
+-	info.low_limit = PAGE_SIZE;
++	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
+ 	info.high_limit = mm->mmap_base;
+ 	info.align_mask = 0;
+ 	addr = vm_unmapped_area(&info);
 _
 
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+Patches currently in -mm which might be from takeuchi.akr@jp.panasonic.com are
 
-drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch
-hpsa-return-0-from-driver-probe-function-on-success-not-1.patch
-drivers-block-ccissc-return-0-from-driver-probe-function-on-success-not-1.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+mm-ensure-get_unmapped_area-returns-higher-address-than-mmap_min_addr.patch
+mm-ensure-get_unmapped_area-returns-higher-address-than-mmap_min_addr-fix.patch
 
