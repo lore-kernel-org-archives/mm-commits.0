@@ -1,75 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- arch-arc-kernel-stacktracec-export-save_stack_trace.patch removed from -mm
+Subject: + scripts-tagssh-remove-obsolete-__devinit.patch added to -mm
  tree
-Date: Fri, 01 Nov 2013 16:16:11 -0700
-Message-ID: <5274363b.M9Pc6erjlVqeCrna%akpm@linux-foundation.org>
+Date: Fri, 01 Nov 2013 16:19:33 -0700
+Message-ID: <52743705.O+cXx8LhL0WVuDLQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56181 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56200 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870Ab3KAXQM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 19:16:12 -0400
+	with ESMTP id S1751870Ab3KAXTd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 19:19:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgupta@synopsys.com, gang.chen@asianux.com
+To: mm-commits@vger.kernel.org, mmarek@suse.cz, michael.opdenacker@free-electrons.com
 
-Subject: [merged] arch-arc-kernel-stacktracec-export-save_stack_trace.patch removed from -mm tree
-To: gang.chen@asianux.com,vgupta@synopsys.com,mm-commits@vger.kernel.org
+Subject: + scripts-tagssh-remove-obsolete-__devinit.patch added to -mm tree
+To: michael.opdenacker@free-electrons.com,mmarek@suse.cz
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 16:16:11 -0700
+Date: Fri, 01 Nov 2013 16:19:33 -0700
 
 
 The patch titled
-     Subject: arch/arc/kernel/stacktrace.c: export save_stack_trace()
-has been removed from the -mm tree.  Its filename was
-     arch-arc-kernel-stacktracec-export-save_stack_trace.patch
+     Subject: scripts/tags.sh: remove obsolete __devinit[const|data]
+has been added to the -mm tree.  Its filename is
+     scripts-tagssh-remove-obsolete-__devinit.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-tagssh-remove-obsolete-__devinit.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-tagssh-remove-obsolete-__devinit.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: arch/arc/kernel/stacktrace.c: export save_stack_trace()
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: scripts/tags.sh: remove obsolete __devinit[const|data]
 
-allmodconfig:
+This removes the use of __devinitconst and __devinitdata in scripts/tags.sh,
+which were removed in 3.8.
 
-    MODPOST 2994 modules
-  ERROR: "save_stack_trace" [kernel/backtracetest.ko] undefined!
-  ERROR: "save_stack_trace" [drivers/md/persistent-data/dm-persistent-data.ko] undefined!
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/stacktrace.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/tags.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/arc/kernel/stacktrace.c~arch-arc-kernel-stacktracec-export-save_stack_trace arch/arc/kernel/stacktrace.c
---- a/arch/arc/kernel/stacktrace.c~arch-arc-kernel-stacktracec-export-save_stack_trace
-+++ a/arch/arc/kernel/stacktrace.c
-@@ -244,4 +244,5 @@ void save_stack_trace(struct stack_trace
+diff -puN scripts/tags.sh~scripts-tagssh-remove-obsolete-__devinit scripts/tags.sh
+--- a/scripts/tags.sh~scripts-tagssh-remove-obsolete-__devinit
++++ a/scripts/tags.sh
+@@ -149,8 +149,8 @@ dogtags()
+ exuberant()
  {
- 	arc_unwind_core(current, NULL, __collect_all, trace);
- }
-+EXPORT_SYMBOL_GPL(save_stack_trace);
- #endif
+ 	all_target_sources | xargs $1 -a                        \
+-	-I __initdata,__exitdata,__initconst,__devinitdata	\
+-	-I __devinitconst,__cpuinitdata,__initdata_memblock	\
++	-I __initdata,__exitdata,__initconst			\
++	-I __cpuinitdata,__initdata_memblock			\
+ 	-I __refdata,__attribute				\
+ 	-I __acquires,__releases,__deprecated			\
+ 	-I __read_mostly,__aligned,____cacheline_aligned        \
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from michael.opdenacker@free-electrons.com are
 
-sh64-kernel-use-usp-instead-of-fn.patch
-sh64-kernel-remove-useless-variable-regs.patch
-mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
-kernel-delayacctc-remove-redundant-checking-in-__delayacct_add_tsk.patch
-kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str.patch
-kernel-sysctlc-check-return-value-after-call-proc_put_char-in-__do_proc_doulongvec_minmax.patch
-kernel-sysctl_binaryc-use-scnprintf-instead-of-snprintf.patch
-kernel-taskstatsc-add-nla_nest_cancel-for-failure-processing-between-nla_nest_start-and-nla_nest_end.patch
-kernel-taskstatsc-return-enomem-when-alloc-memory-fails-in-add_del_listener.patch
-kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch
+drivers-cdrom-gdromc-remove-deprecated-irqf_disabled.patch
+cramfs-mark-as-obsolete.patch
+init-make-init-failures-more-explicit.patch
+scripts-tagssh-remove-obsolete-__devinit.patch
 linux-next.patch
 
