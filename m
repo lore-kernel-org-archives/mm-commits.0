@@ -1,46 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + arch-arc-kernel-stacktracec-export-save_stack_trace.patch added to -mm tree
-Date: Fri, 01 Nov 2013 16:09:10 -0700
-Message-ID: <52743496.0DYESgTfbYRzmzMZ%akpm@linux-foundation.org>
+Subject: [merged]
+ arch-arc-kernel-stacktracec-export-save_stack_trace.patch removed from -mm
+ tree
+Date: Fri, 01 Nov 2013 16:16:11 -0700
+Message-ID: <5274363b.M9Pc6erjlVqeCrna%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56181 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870Ab3KAXJL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 19:09:11 -0400
+	with ESMTP id S1751870Ab3KAXQM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 19:16:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vgupta@synopsys.com, gang.chen@asianux.com
 
-Subject: + arch-arc-kernel-stacktracec-export-save_stack_trace.patch added to -mm tree
-To: gang.chen@asianux.com,vgupta@synopsys.com
+Subject: [merged] arch-arc-kernel-stacktracec-export-save_stack_trace.patch removed from -mm tree
+To: gang.chen@asianux.com,vgupta@synopsys.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 16:09:10 -0700
+Date: Fri, 01 Nov 2013 16:16:11 -0700
 
 
 The patch titled
      Subject: arch/arc/kernel/stacktrace.c: export save_stack_trace()
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      arch-arc-kernel-stacktracec-export-save_stack_trace.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-arc-kernel-stacktracec-export-save_stack_trace.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-arc-kernel-stacktracec-export-save_stack_trace.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Chen Gang <gang.chen@asianux.com>
@@ -83,6 +71,5 @@ kernel-sysctl_binaryc-use-scnprintf-instead-of-snprintf.patch
 kernel-taskstatsc-add-nla_nest_cancel-for-failure-processing-between-nla_nest_start-and-nla_nest_end.patch
 kernel-taskstatsc-return-enomem-when-alloc-memory-fails-in-add_del_listener.patch
 kernel-panicc-reduce-1-byte-usage-for-print-tainted-buffer.patch
-arch-arc-kernel-stacktracec-export-save_stack_trace.patch
 linux-next.patch
 
