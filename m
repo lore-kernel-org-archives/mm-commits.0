@@ -1,137 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-fix-test-for-child-groups.patch removed from
- -mm tree
-Date: Fri, 01 Nov 2013 12:11:19 -0700
-Message-ID: <5273fcd7.fNp7m6s0+RPDKFpt%akpm@linux-foundation.org>
+Subject: [merged] mm-memcg-lockdep-annotation-for-memcg-oom-lock.patch
+ removed from -mm tree
+Date: Fri, 01 Nov 2013 12:11:17 -0700
+Message-ID: <5273fcd5.+jQDOUA1rxdELNuH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53031 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53028 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511Ab3KATLU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 15:11:20 -0400
+	with ESMTP id S1752511Ab3KATLS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 15:11:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org
 
-Subject: [merged] mm-memcg-fix-test-for-child-groups.patch removed from -mm tree
+Subject: [merged] mm-memcg-lockdep-annotation-for-memcg-oom-lock.patch removed from -mm tree
 To: hannes@cmpxchg.org,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 12:11:19 -0700
+Date: Fri, 01 Nov 2013 12:11:17 -0700
 
 
 The patch titled
-     Subject: mm: memcg: fix test for child groups
+     Subject: mm: memcg: lockdep annotation for memcg OOM lock
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-fix-test-for-child-groups.patch
+     mm-memcg-lockdep-annotation-for-memcg-oom-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: fix test for child groups
+Subject: mm: memcg: lockdep annotation for memcg OOM lock
 
-When memcg code needs to know whether any given memcg has children, it
-uses the cgroup child iteration primitives and returns true/false
-depending on whether the iteration loop is executed at least once or not.
-
-Because a cgroup's list of children is RCU protected, these primitives
-require the RCU read-lock to be held, which is not the case for all memcg
-callers.  This results in the following splat when e.g.  enabling
-hierarchy mode:
-
-[    3.683974] WARNING: CPU: 3 PID: 1 at kernel/cgroup.c:3043 css_next_child+0xa3/0x160()
-[    3.686266] CPU: 3 PID: 1 Comm: systemd Not tainted 3.12.0-rc5-00117-g83f11a9-dirty #18
-[    3.688616] Hardware name: LENOVO 3680B56/3680B56, BIOS 6QET69WW (1.39 ) 04/26/2012
-[    3.690900]  0000000000000009 ffff88013227bdc8 ffffffff8173602f 0000000000000000
-[    3.693225]  ffff88013227be00 ffffffff81090af8 0000000000000000 ffff88013220d000
-[    3.695606]  ffff8800b6c50028 ffff88013220d000 0000000000000000 ffff88013227be10
-[    3.697950] Call Trace:
-[    3.700233]  [<ffffffff8173602f>] dump_stack+0x54/0x74
-[    3.702503]  [<ffffffff81090af8>] warn_slowpath_common+0x78/0xa0
-[    3.704764]  [<ffffffff81090c0a>] warn_slowpath_null+0x1a/0x20
-[    3.707009]  [<ffffffff81101173>] css_next_child+0xa3/0x160
-[    3.709255]  [<ffffffff8118ae7b>] mem_cgroup_hierarchy_write+0x5b/0xa0
-[    3.711497]  [<ffffffff810fe428>] cgroup_file_write+0x108/0x2a0
-[    3.713721]  [<ffffffff8119b90d>] ? __sb_start_write+0xed/0x1b0
-[    3.715936]  [<ffffffff811980fb>] ? vfs_write+0x1bb/0x1e0
-[    3.718155]  [<ffffffff810b8d3f>] ? up_write+0x1f/0x40
-[    3.720356]  [<ffffffff81197ffd>] vfs_write+0xbd/0x1e0
-[    3.722539]  [<ffffffff8119820c>] SyS_write+0x4c/0xa0
-[    3.724685]  [<ffffffff817400d2>] system_call_fastpath+0x16/0x1b
-[    3.726809] ---[ end trace ec33c7d4de043d06 ]---
-
-In the memcg case, we only care about children when we are attempting to
-modify inheritable attributes interactively.  Racing with deletion could
-mean a spurious -EBUSY, no problem.  Racing with addition is handled just
-fine as well through the memcg_create_mutex: if the child group is not on
-the list after the mutex is acquired, it won't be initialized from the
-parent's attributes until after the unlock.
+The memcg OOM lock is a mutex-type lock that is open-coded due to memcg's
+special needs.  Add annotations for lockdep coverage.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   35 +++++++++++------------------------
- 1 file changed, 11 insertions(+), 24 deletions(-)
+ mm/memcontrol.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-fix-test-for-child-groups mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-fix-test-for-child-groups
+diff -puN mm/memcontrol.c~mm-memcg-lockdep-annotation-for-memcg-oom-lock mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-lockdep-annotation-for-memcg-oom-lock
 +++ a/mm/memcontrol.c
-@@ -4959,31 +4959,18 @@ static void mem_cgroup_reparent_charges(
- 	} while (usage > 0);
+@@ -54,6 +54,7 @@
+ #include <linux/page_cgroup.h>
+ #include <linux/cpu.h>
+ #include <linux/oom.h>
++#include <linux/lockdep.h>
+ #include "internal.h"
+ #include <net/sock.h>
+ #include <net/ip.h>
+@@ -2046,6 +2047,12 @@ static int mem_cgroup_soft_reclaim(struc
+ 	return total;
  }
  
--/*
-- * This mainly exists for tests during the setting of set of use_hierarchy.
-- * Since this is the very setting we are changing, the current hierarchy value
-- * is meaningless
-- */
--static inline bool __memcg_has_children(struct mem_cgroup *memcg)
--{
--	struct cgroup_subsys_state *pos;
--
--	/* bounce at first found */
--	css_for_each_child(pos, &memcg->css)
--		return true;
--	return false;
--}
--
--/*
-- * Must be called with memcg_create_mutex held, unless the cgroup is guaranteed
-- * to be already dead (as in mem_cgroup_force_empty, for instance).  This is
-- * from mem_cgroup_count_children(), in the sense that we don't really care how
-- * many children we have; we only need to know if we have any.  It also counts
-- * any memcg without hierarchy as infertile.
-- */
- static inline bool memcg_has_children(struct mem_cgroup *memcg)
- {
--	return memcg->use_hierarchy && __memcg_has_children(memcg);
-+	lockdep_assert_held(&memcg_create_mutex);
-+	/*
-+	 * The lock does not prevent addition or deletion to the list
-+	 * of children, but it prevents a new child from being
-+	 * initialized based on this parent in css_online(), so it's
-+	 * enough to decide whether hierarchically inherited
-+	 * attributes can still be changed or not.
-+	 */
-+	return memcg->use_hierarchy &&
-+		!list_empty(&memcg->css.cgroup->children);
- }
++#ifdef CONFIG_LOCKDEP
++static struct lockdep_map memcg_oom_lock_dep_map = {
++	.name = "memcg_oom_lock",
++};
++#endif
++
+ static DEFINE_SPINLOCK(memcg_oom_lock);
  
  /*
-@@ -5063,7 +5050,7 @@ static int mem_cgroup_hierarchy_write(st
- 	 */
- 	if ((!parent_memcg || !parent_memcg->use_hierarchy) &&
- 				(val == 1 || val == 0)) {
--		if (!__memcg_has_children(memcg))
-+		if (list_empty(&memcg->css.cgroup->children))
- 			memcg->use_hierarchy = val;
- 		else
- 			retval = -EBUSY;
+@@ -2083,7 +2090,8 @@ static bool mem_cgroup_oom_trylock(struc
+ 			}
+ 			iter->oom_lock = false;
+ 		}
+-	}
++	} else
++		mutex_acquire(&memcg_oom_lock_dep_map, 0, 1, _RET_IP_);
+ 
+ 	spin_unlock(&memcg_oom_lock);
+ 
+@@ -2095,6 +2103,7 @@ static void mem_cgroup_oom_unlock(struct
+ 	struct mem_cgroup *iter;
+ 
+ 	spin_lock(&memcg_oom_lock);
++	mutex_release(&memcg_oom_lock_dep_map, 1, _RET_IP_);
+ 	for_each_mem_cgroup_tree(iter, memcg)
+ 		iter->oom_lock = false;
+ 	spin_unlock(&memcg_oom_lock);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
