@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + hpsa-return-0-from-driver-probe-function-on-success-not-1.patch added to -mm tree
-Date: Fri, 01 Nov 2013 12:28:48 -0700
-Message-ID: <527400f0.wFuDx3y+d/srQxpq%akpm@linux-foundation.org>
+Subject: +
+ drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch added to -mm tree
+Date: Fri, 01 Nov 2013 12:46:26 -0700
+Message-ID: <52740512.fIiaIVhortcGrOdo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53164 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53342 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457Ab3KAT2t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 15:28:49 -0400
+	with ESMTP id S1754073Ab3KATq1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 15:46:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, axboe@kernel.dk, scameron@beardog.cce.hp.com
+To: mm-commits@vger.kernel.org, greg@kroah.com, bhelgaas@google.com, axboe@kernel.dk, scameron@beardog.cce.hp.com
 
-Subject: + hpsa-return-0-from-driver-probe-function-on-success-not-1.patch added to -mm tree
-To: scameron@beardog.cce.hp.com,axboe@kernel.dk,stable@vger.kernel.org
+Subject: + drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch added to -mm tree
+To: scameron@beardog.cce.hp.com,axboe@kernel.dk,bhelgaas@google.com,greg@kroah.com
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 12:28:48 -0700
+Date: Fri, 01 Nov 2013 12:46:26 -0700
 
 
 The patch titled
-     Subject: hpsa: return 0 from driver probe function on success, not 1
+     Subject: drivers/pci/pci-driver.c: warn on driver probe return value greater than zero
 has been added to the -mm tree.  Its filename is
-     hpsa-return-0-from-driver-probe-function-on-success-not-1.patch
+     drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hpsa-return-0-from-driver-probe-function-on-success-not-1.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hpsa-return-0-from-driver-probe-function-on-success-not-1.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,52 +45,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Subject: hpsa: return 0 from driver probe function on success, not 1
+Subject: drivers/pci/pci-driver.c: warn on driver probe return value greater than zero
 
-A return value of 1 is interpreted as an error.  See pci_driver.  in
-local_pci_probe().  If you're wondering how this ever could have worked,
-it's because it used to be the case that only return values less than zero
-were interpreted as failure.  But even in the current kernel if the driver
-registers its various entry points with the kernel, and then returns a
-value which is interpreted as failure, those registrations aren't undone,
-so the driver still mostly works.  However, the driver's remove function
-wouldn't be called on rmmod, and pci power management functions wouldn't
-work.  In the case of Smart Array, since it has a battery backed cache (or
-else no cache) even if the driver is not shut down properly as long as
-there is no outstanding i/o, nothing too bad happens, which is why it took
-so long to notice.
+Ages ago, drivers could return values greater than zero from their probe
+function and this would be regarded as success.  Commit f3ec4f87d607f40497
+"PCI: change device runtime PM settings for probe and remove" slightly
+altered this in 2010, and commit 967577b062417b4e4b8e27b ("PCI/PM: Keep
+runtime PM enabled for unbound PCI devices") in late 2012 altered it more
+signficantly, setting pci_dev->driver to NULL if the driver's probe
+function returned a value greater than zero, which would for example
+prevent the driver's remove function from being called on rmmod.
 
-Requesting backport to stable because the change to pci-driver.c which
-requires driver probe functions to return 0 occurred between 2.6.35 and
-2.6.36 (the pci power management breakage) and again between 3.7 and 3.8
-(pci_dev->driver getting set to NULL in local_pci_probe() preventing
-driver remove function from being called on rmmod.)
+Neither of those changes would necessarily make the driver fail in an
+obvious way though, and so at least a couple drivers (cciss, hpsa) fell
+into this hole since they were returning 1, and this situation went
+unnoticed for quite some time.
+
+If a driver's probe function returns a value greater than zero, issue a
+warning, but otherwise treat this as success.
 
 Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/pci-driver.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-return-0-from-driver-probe-function-on-success-not-1 drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-return-0-from-driver-probe-function-on-success-not-1
-+++ a/drivers/scsi/hpsa.c
-@@ -4926,7 +4926,7 @@ reinit_after_soft_reset:
- 	hpsa_hba_inquiry(h);
- 	hpsa_register_scsi(h);	/* hook ourselves into SCSI subsystem */
- 	start_controller_lockup_detector(h);
--	return 1;
+diff -puN drivers/pci/pci-driver.c~drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero drivers/pci/pci-driver.c
+--- a/drivers/pci/pci-driver.c~drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero
++++ a/drivers/pci/pci-driver.c
+@@ -264,11 +264,19 @@ static long local_pci_probe(void *_ddi)
+ 	pm_runtime_get_sync(dev);
+ 	pci_dev->driver = pci_drv;
+ 	rc = pci_drv->probe(pci_dev, ddi->id);
+-	if (rc) {
++	if (!rc)
++		return rc;
++	if (rc < 0) {
+ 		pci_dev->driver = NULL;
+ 		pm_runtime_put_sync(dev);
++		return rc;
+ 	}
+-	return rc;
++	/*
++	 * Probe function should return < 0 for failure, 0 for success
++	 * Treat values > 0 as success, but warn.
++	 */
++	dev_warn(dev, "Driver probe function unexpectedly returned %d\n", rc);
 +	return 0;
+ }
  
- clean4:
- 	hpsa_free_sg_chain_blocks(h);
+ static int pci_call_probe(struct pci_driver *drv, struct pci_dev *dev,
 _
 
 Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
 
+drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch
 hpsa-return-0-from-driver-probe-function-on-success-not-1.patch
 drivers-block-ccissc-return-0-from-driver-probe-function-on-success-not-1.patch
 drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
