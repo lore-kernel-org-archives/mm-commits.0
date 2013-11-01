@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + lglock-map-to-spinlock-when-config_smp.patch added to -mm tree
-Date: Fri, 01 Nov 2013 15:33:06 -0700
-Message-ID: <52742c22.qDxorqiMID/wNP7D%akpm@linux-foundation.org>
+Subject: + kfifo-api-type-safety.patch added to -mm tree
+Date: Fri, 01 Nov 2013 15:58:06 -0700
+Message-ID: <527431fe.jh1CZIhyozNkKZNU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55795 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56035 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755395Ab3KAWdH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 18:33:07 -0400
+	with ESMTP id S1753176Ab3KAW6H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 18:58:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, npiggin@kernel.dk, mmarek@suse.cz, hpa@zytor.com, dhowells@redhat.com, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, rmk@arm.linux.org.uk, stefani@seibold.net
 
-Subject: + lglock-map-to-spinlock-when-config_smp.patch added to -mm tree
-To: josh@joshtriplett.org,dhowells@redhat.com,hpa@zytor.com,mmarek@suse.cz,npiggin@kernel.dk,rusty@rustcorp.com.au,tglx@linutronix.de
+Subject: + kfifo-api-type-safety.patch added to -mm tree
+To: stefani@seibold.net,rmk@arm.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 15:33:06 -0700
+Date: Fri, 01 Nov 2013 15:58:06 -0700
 
 
 The patch titled
-     Subject: lglock: map to spinlock when !CONFIG_SMP
+     Subject: kfifo API type safety
 has been added to the -mm tree.  Its filename is
-     lglock-map-to-spinlock-when-config_smp.patch
+     kfifo-api-type-safety.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lglock-map-to-spinlock-when-config_smp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kfifo-api-type-safety.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lglock-map-to-spinlock-when-config_smp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kfifo-api-type-safety.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,90 +43,319 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: lglock: map to spinlock when !CONFIG_SMP
+From: Stefani Seibold <stefani@seibold.net>
+Subject: kfifo API type safety
 
-When the system has only one CPU, lglock is effectively a spinlock; map it
-directly to spinlock to eliminate the indirection and duplicate code.
+This patch enhances the type safety for the kfifo API.  It is now safe to
+put const data into a non const FIFO and the API will now generate a
+compiler warning when reading from the fifo where the destination address
+is pointing to a const variable.
 
-In addition to removing overhead, this drops 1.6k of code with a defconfig
-modified to have !CONFIG_SMP, and 1.1k with a minimal config.
+As a side effect the kfifo_put() does now expect the value of an element
+instead a pointer to the element.  This was suggested Russell King.  It
+make the handling of the kfifo_put easier since there is no need to create
+a helper variable for getting the address of a pointer or to pass integers
+of different sizes.
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: David Howells <dhowells@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
+IMHO the API break is okay, since there are currently only six users of
+kfifo_put().
+
+The code is also cleaner by kicking out the "if (0)" expressions.
+
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lglock.h |   16 ++++++++++++++++
- kernel/Makefile        |    4 ++--
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/drm_flip_work.c         |    2 
+ drivers/iio/industrialio-event.c        |    2 
+ drivers/net/wireless/rt2x00/rt2800pci.c |    2 
+ drivers/net/wireless/rt2x00/rt2800usb.c |    2 
+ drivers/pci/pcie/aer/aerdrv_core.c      |    2 
+ include/linux/kfifo.h                   |   47 ++++++----------------
+ mm/memory-failure.c                     |    2 
+ samples/kfifo/bytestream-example.c      |    4 -
+ samples/kfifo/dma-example.c             |    2 
+ samples/kfifo/inttype-example.c         |    4 -
+ 10 files changed, 25 insertions(+), 44 deletions(-)
 
-diff -puN include/linux/lglock.h~lglock-map-to-spinlock-when-config_smp include/linux/lglock.h
---- a/include/linux/lglock.h~lglock-map-to-spinlock-when-config_smp
-+++ a/include/linux/lglock.h
-@@ -35,6 +35,8 @@
- #define DEFINE_BRLOCK(name)		DEFINE_LGLOCK(name)
- #define DEFINE_STATIC_BRLOCK(name)	DEFINE_STATIC_LGLOCK(name)
+diff -puN drivers/gpu/drm/drm_flip_work.c~kfifo-api-type-safety drivers/gpu/drm/drm_flip_work.c
+--- a/drivers/gpu/drm/drm_flip_work.c~kfifo-api-type-safety
++++ a/drivers/gpu/drm/drm_flip_work.c
+@@ -34,7 +34,7 @@
+  */
+ void drm_flip_work_queue(struct drm_flip_work *work, void *val)
+ {
+-	if (kfifo_put(&work->fifo, (const void **)&val)) {
++	if (kfifo_put(&work->fifo, val)) {
+ 		atomic_inc(&work->pending);
+ 	} else {
+ 		DRM_ERROR("%s fifo full!\n", work->name);
+diff -puN drivers/iio/industrialio-event.c~kfifo-api-type-safety drivers/iio/industrialio-event.c
+--- a/drivers/iio/industrialio-event.c~kfifo-api-type-safety
++++ a/drivers/iio/industrialio-event.c
+@@ -56,7 +56,7 @@ int iio_push_event(struct iio_dev *indio
+ 		ev.id = ev_code;
+ 		ev.timestamp = timestamp;
  
-+#ifdef CONFIG_SMP
-+
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- #define LOCKDEP_INIT_MAP lockdep_init_map
- #else
-@@ -67,4 +69,18 @@ void lg_local_unlock_cpu(struct lglock *
- void lg_global_lock(struct lglock *lg);
- void lg_global_unlock(struct lglock *lg);
+-		copied = kfifo_put(&ev_int->det_events, &ev);
++		copied = kfifo_put(&ev_int->det_events, ev);
+ 		if (copied != 0)
+ 			wake_up_locked_poll(&ev_int->wait, POLLIN);
+ 	}
+diff -puN drivers/net/wireless/rt2x00/rt2800pci.c~kfifo-api-type-safety drivers/net/wireless/rt2x00/rt2800pci.c
+--- a/drivers/net/wireless/rt2x00/rt2800pci.c~kfifo-api-type-safety
++++ a/drivers/net/wireless/rt2x00/rt2800pci.c
+@@ -1025,7 +1025,7 @@ static void rt2800pci_txstatus_interrupt
+ 		if (!rt2x00_get_field32(status, TX_STA_FIFO_VALID))
+ 			break;
  
-+#else
-+/* When !CONFIG_SMP, map lglock to spinlock */
-+#define lglock spinlock
-+#define DEFINE_LGLOCK(name) DEFINE_SPINLOCK(name)
-+#define DEFINE_STATIC_LGLOCK(name) static DEFINE_SPINLOCK(name)
-+#define lg_lock_init(lg, name) spin_lock_init(lg)
-+#define lg_local_lock spin_lock
-+#define lg_local_unlock spin_unlock
-+#define lg_local_lock_cpu(lg, cpu) spin_lock(lg)
-+#define lg_local_unlock_cpu(lg, cpu) spin_unlock(lg)
-+#define lg_global_lock spin_lock
-+#define lg_global_unlock spin_unlock
-+#endif
-+
- #endif
-diff -puN kernel/Makefile~lglock-map-to-spinlock-when-config_smp kernel/Makefile
---- a/kernel/Makefile~lglock-map-to-spinlock-when-config_smp
-+++ a/kernel/Makefile
-@@ -10,7 +10,7 @@ obj-y     = fork.o exec_domain.o panic.o
- 	    kthread.o wait.o sys_ni.o posix-cpu-timers.o mutex.o \
- 	    hrtimer.o rwsem.o nsproxy.o srcu.o semaphore.o \
- 	    notifier.o ksysfs.o cred.o reboot.o \
--	    async.o range.o groups.o lglock.o smpboot.o
-+	    async.o range.o groups.o smpboot.o
+-		if (!kfifo_put(&rt2x00dev->txstatus_fifo, &status)) {
++		if (!kfifo_put(&rt2x00dev->txstatus_fifo, status)) {
+ 			rt2x00_warn(rt2x00dev, "TX status FIFO overrun, drop tx status report\n");
+ 			break;
+ 		}
+diff -puN drivers/net/wireless/rt2x00/rt2800usb.c~kfifo-api-type-safety drivers/net/wireless/rt2x00/rt2800usb.c
+--- a/drivers/net/wireless/rt2x00/rt2800usb.c~kfifo-api-type-safety
++++ a/drivers/net/wireless/rt2x00/rt2800usb.c
+@@ -162,7 +162,7 @@ static bool rt2800usb_tx_sta_fifo_read_c
  
- ifdef CONFIG_FUNCTION_TRACER
- # Do not trace debug files and internal ftrace files
-@@ -50,7 +50,7 @@ obj-$(CONFIG_SMP) += smp.o
- ifneq ($(CONFIG_SMP),y)
- obj-y += up.o
- endif
--obj-$(CONFIG_SMP) += spinlock.o
-+obj-$(CONFIG_SMP) += lglock.o spinlock.o
- obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock.o
- obj-$(CONFIG_PROVE_LOCKING) += spinlock.o
- obj-$(CONFIG_UID16) += uid16.o
+ 	valid = rt2x00_get_field32(tx_status, TX_STA_FIFO_VALID);
+ 	if (valid) {
+-		if (!kfifo_put(&rt2x00dev->txstatus_fifo, &tx_status))
++		if (!kfifo_put(&rt2x00dev->txstatus_fifo, tx_status))
+ 			rt2x00_warn(rt2x00dev, "TX status FIFO overrun\n");
+ 
+ 		queue_work(rt2x00dev->workqueue, &rt2x00dev->txdone_work);
+diff -puN drivers/pci/pcie/aer/aerdrv_core.c~kfifo-api-type-safety drivers/pci/pcie/aer/aerdrv_core.c
+--- a/drivers/pci/pcie/aer/aerdrv_core.c~kfifo-api-type-safety
++++ a/drivers/pci/pcie/aer/aerdrv_core.c
+@@ -574,7 +574,7 @@ void aer_recover_queue(int domain, unsig
+ 	};
+ 
+ 	spin_lock_irqsave(&aer_recover_ring_lock, flags);
+-	if (kfifo_put(&aer_recover_ring, &entry))
++	if (kfifo_put(&aer_recover_ring, entry))
+ 		schedule_work(&aer_recover_work);
+ 	else
+ 		pr_err("AER recover: Buffer overflow when recovering AER for %04x:%02x:%02x:%x\n",
+diff -puN include/linux/kfifo.h~kfifo-api-type-safety include/linux/kfifo.h
+--- a/include/linux/kfifo.h~kfifo-api-type-safety
++++ a/include/linux/kfifo.h
+@@ -1,7 +1,7 @@
+ /*
+  * A generic kernel FIFO implementation
+  *
+- * Copyright (C) 2009/2010 Stefani Seibold <stefani@seibold.net>
++ * Copyright (C) 2013 Stefani Seibold <stefani@seibold.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -67,9 +67,10 @@ struct __kfifo {
+ 	union { \
+ 		struct __kfifo	kfifo; \
+ 		datatype	*type; \
++		const datatype	*const_type; \
+ 		char		(*rectype)[recsize]; \
+ 		ptrtype		*ptr; \
+-		const ptrtype	*ptr_const; \
++		ptrtype const	*ptr_const; \
+ 	}
+ 
+ #define __STRUCT_KFIFO(type, size, recsize, ptrtype) \
+@@ -386,16 +387,12 @@ __kfifo_int_must_check_helper( \
+ #define	kfifo_put(fifo, val) \
+ ({ \
+ 	typeof((fifo) + 1) __tmp = (fifo); \
+-	typeof((val) + 1) __val = (val); \
++	typeof(*__tmp->const_type) __val = (val); \
+ 	unsigned int __ret; \
+-	const size_t __recsize = sizeof(*__tmp->rectype); \
++	size_t __recsize = sizeof(*__tmp->rectype); \
+ 	struct __kfifo *__kfifo = &__tmp->kfifo; \
+-	if (0) { \
+-		typeof(__tmp->ptr_const) __dummy __attribute__ ((unused)); \
+-		__dummy = (typeof(__val))NULL; \
+-	} \
+ 	if (__recsize) \
+-		__ret = __kfifo_in_r(__kfifo, __val, sizeof(*__val), \
++		__ret = __kfifo_in_r(__kfifo, &__val, sizeof(__val), \
+ 			__recsize); \
+ 	else { \
+ 		__ret = !kfifo_is_full(__tmp); \
+@@ -404,7 +401,7 @@ __kfifo_int_must_check_helper( \
+ 			((typeof(__tmp->type))__kfifo->data) : \
+ 			(__tmp->buf) \
+ 			)[__kfifo->in & __tmp->kfifo.mask] = \
+-				*(typeof(__tmp->type))__val; \
++				(typeof(*__tmp->type))__val; \
+ 			smp_wmb(); \
+ 			__kfifo->in++; \
+ 		} \
+@@ -415,7 +412,7 @@ __kfifo_int_must_check_helper( \
+ /**
+  * kfifo_get - get data from the fifo
+  * @fifo: address of the fifo to be used
+- * @val: the var where to store the data to be added
++ * @val: address where to store the data
+  *
+  * This macro reads the data from the fifo.
+  * It returns 0 if the fifo was empty. Otherwise it returns the number
+@@ -428,12 +425,10 @@ __kfifo_int_must_check_helper( \
+ __kfifo_uint_must_check_helper( \
+ ({ \
+ 	typeof((fifo) + 1) __tmp = (fifo); \
+-	typeof((val) + 1) __val = (val); \
++	typeof(__tmp->ptr) __val = (val); \
+ 	unsigned int __ret; \
+ 	const size_t __recsize = sizeof(*__tmp->rectype); \
+ 	struct __kfifo *__kfifo = &__tmp->kfifo; \
+-	if (0) \
+-		__val = (typeof(__tmp->ptr))0; \
+ 	if (__recsize) \
+ 		__ret = __kfifo_out_r(__kfifo, __val, sizeof(*__val), \
+ 			__recsize); \
+@@ -456,7 +451,7 @@ __kfifo_uint_must_check_helper( \
+ /**
+  * kfifo_peek - get data from the fifo without removing
+  * @fifo: address of the fifo to be used
+- * @val: the var where to store the data to be added
++ * @val: address where to store the data
+  *
+  * This reads the data from the fifo without removing it from the fifo.
+  * It returns 0 if the fifo was empty. Otherwise it returns the number
+@@ -469,12 +464,10 @@ __kfifo_uint_must_check_helper( \
+ __kfifo_uint_must_check_helper( \
+ ({ \
+ 	typeof((fifo) + 1) __tmp = (fifo); \
+-	typeof((val) + 1) __val = (val); \
++	typeof(__tmp->ptr) __val = (val); \
+ 	unsigned int __ret; \
+ 	const size_t __recsize = sizeof(*__tmp->rectype); \
+ 	struct __kfifo *__kfifo = &__tmp->kfifo; \
+-	if (0) \
+-		__val = (typeof(__tmp->ptr))NULL; \
+ 	if (__recsize) \
+ 		__ret = __kfifo_out_peek_r(__kfifo, __val, sizeof(*__val), \
+ 			__recsize); \
+@@ -508,14 +501,10 @@ __kfifo_uint_must_check_helper( \
+ #define	kfifo_in(fifo, buf, n) \
+ ({ \
+ 	typeof((fifo) + 1) __tmp = (fifo); \
+-	typeof((buf) + 1) __buf = (buf); \
++ 	typeof(__tmp->ptr_const) __buf = (buf); \
+ 	unsigned long __n = (n); \
+ 	const size_t __recsize = sizeof(*__tmp->rectype); \
+ 	struct __kfifo *__kfifo = &__tmp->kfifo; \
+-	if (0) { \
+-		typeof(__tmp->ptr_const) __dummy __attribute__ ((unused)); \
+-		__dummy = (typeof(__buf))NULL; \
+-	} \
+ 	(__recsize) ?\
+ 	__kfifo_in_r(__kfifo, __buf, __n, __recsize) : \
+ 	__kfifo_in(__kfifo, __buf, __n); \
+@@ -561,14 +550,10 @@ __kfifo_uint_must_check_helper( \
+ __kfifo_uint_must_check_helper( \
+ ({ \
+ 	typeof((fifo) + 1) __tmp = (fifo); \
+-	typeof((buf) + 1) __buf = (buf); \
++	typeof(__tmp->ptr) __buf = (buf); \
+ 	unsigned long __n = (n); \
+ 	const size_t __recsize = sizeof(*__tmp->rectype); \
+ 	struct __kfifo *__kfifo = &__tmp->kfifo; \
+-	if (0) { \
+-		typeof(__tmp->ptr) __dummy = NULL; \
+-		__buf = __dummy; \
+-	} \
+ 	(__recsize) ?\
+ 	__kfifo_out_r(__kfifo, __buf, __n, __recsize) : \
+ 	__kfifo_out(__kfifo, __buf, __n); \
+@@ -773,14 +758,10 @@ __kfifo_uint_must_check_helper( \
+ __kfifo_uint_must_check_helper( \
+ ({ \
+ 	typeof((fifo) + 1) __tmp = (fifo); \
+-	typeof((buf) + 1) __buf = (buf); \
++	typeof(__tmp->ptr) __buf = (buf); \
+ 	unsigned long __n = (n); \
+ 	const size_t __recsize = sizeof(*__tmp->rectype); \
+ 	struct __kfifo *__kfifo = &__tmp->kfifo; \
+-	if (0) { \
+-		typeof(__tmp->ptr) __dummy __attribute__ ((unused)) = NULL; \
+-		__buf = __dummy; \
+-	} \
+ 	(__recsize) ? \
+ 	__kfifo_out_peek_r(__kfifo, __buf, __n, __recsize) : \
+ 	__kfifo_out_peek(__kfifo, __buf, __n); \
+diff -puN mm/memory-failure.c~kfifo-api-type-safety mm/memory-failure.c
+--- a/mm/memory-failure.c~kfifo-api-type-safety
++++ a/mm/memory-failure.c
+@@ -1269,7 +1269,7 @@ void memory_failure_queue(unsigned long
+ 
+ 	mf_cpu = &get_cpu_var(memory_failure_cpu);
+ 	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
+-	if (kfifo_put(&mf_cpu->fifo, &entry))
++	if (kfifo_put(&mf_cpu->fifo, entry))
+ 		schedule_work_on(smp_processor_id(), &mf_cpu->work);
+ 	else
+ 		pr_err("Memory failure: buffer overflow when queuing memory failure at %#lx\n",
+diff -puN samples/kfifo/bytestream-example.c~kfifo-api-type-safety samples/kfifo/bytestream-example.c
+--- a/samples/kfifo/bytestream-example.c~kfifo-api-type-safety
++++ a/samples/kfifo/bytestream-example.c
+@@ -64,7 +64,7 @@ static int __init testfunc(void)
+ 
+ 	/* put values into the fifo */
+ 	for (i = 0; i != 10; i++)
+-		kfifo_put(&test, &i);
++		kfifo_put(&test, i);
+ 
+ 	/* show the number of used elements */
+ 	printk(KERN_INFO "fifo len: %u\n", kfifo_len(&test));
+@@ -85,7 +85,7 @@ static int __init testfunc(void)
+ 	kfifo_skip(&test);
+ 
+ 	/* put values into the fifo until is full */
+-	for (i = 20; kfifo_put(&test, &i); i++)
++	for (i = 20; kfifo_put(&test, i); i++)
+ 		;
+ 
+ 	printk(KERN_INFO "queue len: %u\n", kfifo_len(&test));
+diff -puN samples/kfifo/dma-example.c~kfifo-api-type-safety samples/kfifo/dma-example.c
+--- a/samples/kfifo/dma-example.c~kfifo-api-type-safety
++++ a/samples/kfifo/dma-example.c
+@@ -39,7 +39,7 @@ static int __init example_init(void)
+ 	kfifo_in(&fifo, "test", 4);
+ 
+ 	for (i = 0; i != 9; i++)
+-		kfifo_put(&fifo, &i);
++		kfifo_put(&fifo, i);
+ 
+ 	/* kick away first byte */
+ 	kfifo_skip(&fifo);
+diff -puN samples/kfifo/inttype-example.c~kfifo-api-type-safety samples/kfifo/inttype-example.c
+--- a/samples/kfifo/inttype-example.c~kfifo-api-type-safety
++++ a/samples/kfifo/inttype-example.c
+@@ -61,7 +61,7 @@ static int __init testfunc(void)
+ 
+ 	/* put values into the fifo */
+ 	for (i = 0; i != 10; i++)
+-		kfifo_put(&test, &i);
++		kfifo_put(&test, i);
+ 
+ 	/* show the number of used elements */
+ 	printk(KERN_INFO "fifo len: %u\n", kfifo_len(&test));
+@@ -78,7 +78,7 @@ static int __init testfunc(void)
+ 	kfifo_skip(&test);
+ 
+ 	/* put values into the fifo until is full */
+-	for (i = 20; kfifo_put(&test, &i); i++)
++	for (i = 20; kfifo_put(&test, i); i++)
+ 		;
+ 
+ 	printk(KERN_INFO "queue len: %u\n", kfifo_len(&test));
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-lglock-map-to-spinlock-when-config_smp.patch
-checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
-checkpatchpl-check-for-the-fsf-mailing-address.patch
-documentation-abi-document-the-non-abi-status-of-kconfig-and-symbols.patch
-scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner.patch
-scripts-bloat-o-meter-use-startswith-rather-than-fragile-slicing.patch
-linux-next.patch
+kfifo-kfifo_copy_tofrom_user-fix-copied-bytes-calculation.patch
+kfifo-api-type-safety.patch
 
