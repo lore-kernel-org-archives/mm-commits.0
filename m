@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- documentation-abi-document-the-non-abi-status-of-kconfig-and-symbols.patch
- added to -mm tree
-Date: Fri, 01 Nov 2013 14:36:06 -0700
-Message-ID: <52741ec6.ma7VyrhEvyBWO58R%akpm@linux-foundation.org>
+ mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly.patch added to -mm tree
+Date: Fri, 01 Nov 2013 14:45:37 -0700
+Message-ID: <52742101.WIuVwoGZbXsKuhzZ%akpm__17412.6701582738$1383342355$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54720 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738Ab3KAVgH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 17:36:07 -0400
+	with ESMTP id S1752149Ab3KAVpi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 17:45:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rob@landley.net, richard.weinberger@gmail.com, hpa@zytor.com, gregkh@linuxfoundation.org, boyu.mt@taobao.com, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, sjenning@linux.vnet.ibm.com, minchan@kernel.org, bob.liu@oracle.com, weijie.yang@samsung.com
 
-Subject: + documentation-abi-document-the-non-abi-status-of-kconfig-and-symbols.patch added to -mm tree
-To: josh@joshtriplett.org,boyu.mt@taobao.com,gregkh@linuxfoundation.org,hpa@zytor.com,richard.weinberger@gmail.com,rob@landley.net
+Subject: + mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly.patch added to -mm tree
+To: weijie.yang@samsung.com,bob.liu@oracle.com,minchan@kernel.org,sjenning@linux.vnet.ibm.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 14:36:06 -0700
+Date: Fri, 01 Nov 2013 14:45:37 -0700
 
 
 The patch titled
-     Subject: Documentation/ABI: document the non-ABI status of Kconfig and symbols
+     Subject: mm/zswap: bugfix: memory leak when invalidate and reclaim occur concurrent\u200bly
 has been added to the -mm tree.  Its filename is
-     documentation-abi-document-the-non-abi-status-of-kconfig-and-symbols.patch
+     mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-abi-document-the-non-abi-status-of-kconfig-and-symbols.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-abi-document-the-non-abi-status-of-kconfig-and-symbols.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,59 +44,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: Documentation/ABI: document the non-ABI status of Kconfig and symbols
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: mm/zswap: bugfix: memory leak when invalidate and reclaim occur concurrent\u200bly
 
-Discussion at Kernel Summit made it clear that the presence or absence of
-specific Kconfig symbols are not considered ABI, and that no userspace (or
-bootloader, etc) should rely on them.
+Consider the following scenario:
+thread 0: reclaim entry x (get refcount, but not call zswap_get_swap_cache_page)
+thread 1: call zswap_frontswap_invalidate_page to invalidate entry x.
+	finished, entry x and its zbud is not freed as its refcount != 0
+	now, the swap_map[x] = 0
+thread 0: now call zswap_get_swap_cache_page
+	swapcache_prepare return -ENOENT because entry x is not used any more
+	zswap_get_swap_cache_page return ZSWAP_SWAPCACHE_NOMEM
+	zswap_writeback_entry do nothing except put refcount
+Now, the memory of zswap_entry x and its zpage leak.
 
-In addition, kernel-internal symbols are well established as non-ABI, per
-Documentation/stable_api_nonsense.txt.
+Modify:
+ - check the refcount in fail path, free memory if it is not referenced.
 
-Document both of these in Documentation/ABI/README, in a new section for
-notable bits of non-ABI.
+ - use ZSWAP_SWAPCACHE_FAIL instead of ZSWAP_SWAPCACHE_NOMEM as the fail path
+   can be not only caused by nomem but also by invalidate.
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: Tao Ma <boyu.mt@taobao.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Richard Weinberger <richard.weinberger@gmail.com>
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Reviewed-by: Bob Liu <bob.liu@oracle.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/README |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/zswap.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/ABI/README~documentation-abi-document-the-non-abi-status-of-kconfig-and-symbols Documentation/ABI/README
---- a/Documentation/ABI/README~documentation-abi-document-the-non-abi-status-of-kconfig-and-symbols
-+++ a/Documentation/ABI/README
-@@ -72,3 +72,16 @@ kernel tree without going through the ob
+diff -puN mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly mm/zswap.c
+--- a/mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly
++++ a/mm/zswap.c
+@@ -387,7 +387,7 @@ static void zswap_free_entry(struct zswa
+ enum zswap_get_swap_ret {
+ 	ZSWAP_SWAPCACHE_NEW,
+ 	ZSWAP_SWAPCACHE_EXIST,
+-	ZSWAP_SWAPCACHE_NOMEM
++	ZSWAP_SWAPCACHE_FAIL,
+ };
  
- It's up to the developer to place their interfaces in the category they
- wish for it to start out in.
-+
-+
-+Notable bits of non-ABI, which should not under any circumstances be considered
-+stable:
-+
-+- Kconfig.  Userspace should not rely on the presence or absence of any
-+  particular Kconfig symbol, in /proc/config.gz, in the copy of .config
-+  commonly installed to /boot, or in any invocation of the kernel build
-+  process.
-+
-+- Kernel-internal symbols.  Do not rely on the presence, absence, location, or
-+  type of any kernel symbol, either in System.map files or the kernel binary
-+  itself.  See Documentation/stable_api_nonsense.txt.
+ /*
+@@ -401,9 +401,10 @@ enum zswap_get_swap_ret {
+  * added to the swap cache, and returned in retpage.
+  *
+  * If success, the swap cache page is returned in retpage
+- * Returns 0 if page was already in the swap cache, page is not locked
+- * Returns 1 if the new page needs to be populated, page is locked
+- * Returns <0 on error
++ * Returns ZSWAP_SWAPCACHE_EXIST if page was already in the swap cache
++ * Returns ZSWAP_SWAPCACHE_NEW if the new page needs to be populated,
++ *     the new page is added to swapcache and locked
++ * Returns ZSWAP_SWAPCACHE_FAIL on error
+  */
+ static int zswap_get_swap_cache_page(swp_entry_t entry,
+ 				struct page **retpage)
+@@ -475,7 +476,7 @@ static int zswap_get_swap_cache_page(swp
+ 	if (new_page)
+ 		page_cache_release(new_page);
+ 	if (!found_page)
+-		return ZSWAP_SWAPCACHE_NOMEM;
++		return ZSWAP_SWAPCACHE_FAIL;
+ 	*retpage = found_page;
+ 	return ZSWAP_SWAPCACHE_EXIST;
+ }
+@@ -529,11 +530,11 @@ static int zswap_writeback_entry(struct
+ 
+ 	/* try to allocate swap cache page */
+ 	switch (zswap_get_swap_cache_page(swpentry, &page)) {
+-	case ZSWAP_SWAPCACHE_NOMEM: /* no memory */
++	case ZSWAP_SWAPCACHE_FAIL: /* no memory or invalidate happened */
+ 		ret = -ENOMEM;
+ 		goto fail;
+ 
+-	case ZSWAP_SWAPCACHE_EXIST: /* page is unlocked */
++	case ZSWAP_SWAPCACHE_EXIST:
+ 		/* page is already in the swap cache, ignore for now */
+ 		page_cache_release(page);
+ 		ret = -EEXIST;
+@@ -594,7 +595,12 @@ static int zswap_writeback_entry(struct
+ 
+ fail:
+ 	spin_lock(&tree->lock);
+-	zswap_entry_put(entry);
++	refcount = zswap_entry_put(entry);
++	if (refcount <= 0) {
++		/* invalidate happened, consider writeback as success */
++		zswap_free_entry(tree, entry);
++		ret = 0;
++	}
+ 	spin_unlock(&tree->lock);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
-checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
-checkpatchpl-check-for-the-fsf-mailing-address.patch
-documentation-abi-document-the-non-abi-status-of-kconfig-and-symbols.patch
-scripts-bloat-o-meter-ignore-changes-in-the-size-of-linux_banner.patch
-scripts-bloat-o-meter-use-startswith-rather-than-fragile-slicing.patch
+mm-zswap-avoid-unnecessary-page-scanning.patch
+mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly.patch
 linux-next.patch
 
