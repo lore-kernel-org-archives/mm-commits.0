@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-atmel-pwm-bl-use-gpio_request_one.patch added to -mm
+Subject: + backlight-atmel-pwm-bl-use-gpio_is_valid.patch added to -mm
  tree
-Date: Fri, 01 Nov 2013 13:07:39 -0700
-Message-ID: <52740a0b.AM82QOk0tSnD1gHu%akpm@linux-foundation.org>
+Date: Fri, 01 Nov 2013 13:07:37 -0700
+Message-ID: <52740a09.gIp2L9Chsp1z4D2d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53590 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53586 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752836Ab3KAUHk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 16:07:40 -0400
+	with ESMTP id S1752836Ab3KAUHi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Nov 2013 16:07:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com, jhovold@gmail.com
 
-Subject: + backlight-atmel-pwm-bl-use-gpio_request_one.patch added to -mm tree
+Subject: + backlight-atmel-pwm-bl-use-gpio_is_valid.patch added to -mm tree
 To: jhovold@gmail.com,jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Fri, 01 Nov 2013 13:07:39 -0700
+Date: Fri, 01 Nov 2013 13:07:37 -0700
 
 
 The patch titled
-     Subject: backlight: atmel-pwm-bl: use gpio_request_one
+     Subject: backlight: atmel-pwm-bl: use gpio_is_valid
 has been added to the -mm tree.  Its filename is
-     backlight-atmel-pwm-bl-use-gpio_request_one.patch
+     backlight-atmel-pwm-bl-use-gpio_is_valid.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-atmel-pwm-bl-use-gpio_request_one.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-atmel-pwm-bl-use-gpio_is_valid.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-atmel-pwm-bl-use-gpio_request_one.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-atmel-pwm-bl-use-gpio_is_valid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,51 +45,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johan Hovold <jhovold@gmail.com>
-Subject: backlight: atmel-pwm-bl: use gpio_request_one
+Subject: backlight: atmel-pwm-bl: use gpio_is_valid
 
-Use devm_gpio_request_one rather than requesting and setting direction
-in two calls.
+Use gpio_is_valid rather than open coding the more restrictive != -1
+test.
 
 Signed-off-by: Johan Hovold <jhovold@gmail.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/atmel-pwm-bl.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/video/backlight/atmel-pwm-bl.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-use-gpio_request_one drivers/video/backlight/atmel-pwm-bl.c
---- a/drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-use-gpio_request_one
+diff -puN drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-use-gpio_is_valid drivers/video/backlight/atmel-pwm-bl.c
+--- a/drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-use-gpio_is_valid
 +++ a/drivers/video/backlight/atmel-pwm-bl.c
-@@ -124,6 +124,7 @@ static int __init atmel_pwm_bl_probe(str
- 	const struct atmel_pwm_bl_platform_data *pdata;
- 	struct backlight_device *bldev;
- 	struct atmel_pwm_bl *pwmbl;
-+	unsigned long flags;
- 	int retval;
+@@ -48,7 +48,7 @@ static int atmel_pwm_bl_set_intensity(st
+ 		pwm_duty = pwmbl->pdata->pwm_duty_min;
  
- 	pdata = dev_get_platdata(&pdev->dev);
-@@ -149,14 +150,14 @@ static int __init atmel_pwm_bl_probe(str
+ 	if (!intensity) {
+-		if (pwmbl->gpio_on != -1) {
++		if (gpio_is_valid(pwmbl->gpio_on)) {
+ 			gpio_set_value(pwmbl->gpio_on,
+ 					0 ^ pwmbl->pdata->on_active_low);
+ 		}
+@@ -57,7 +57,7 @@ static int atmel_pwm_bl_set_intensity(st
+ 	} else {
+ 		pwm_channel_enable(&pwmbl->pwmc);
+ 		pwm_channel_writel(&pwmbl->pwmc, PWM_CUPD, pwm_duty);
+-		if (pwmbl->gpio_on != -1) {
++		if (gpio_is_valid(pwmbl->gpio_on)) {
+ 			gpio_set_value(pwmbl->gpio_on,
+ 					1 ^ pwmbl->pdata->on_active_low);
+ 		}
+@@ -146,7 +146,7 @@ static int __init atmel_pwm_bl_probe(str
+ 	if (retval)
  		return retval;
  
- 	if (gpio_is_valid(pwmbl->gpio_on)) {
--		retval = devm_gpio_request(&pdev->dev, pwmbl->gpio_on,
--					"gpio_atmel_pwm_bl");
--		if (retval)
--			goto err_free_pwm;
--
- 		/* Turn display off by default. */
--		retval = gpio_direction_output(pwmbl->gpio_on,
--				0 ^ pdata->on_active_low);
-+		if (pdata->on_active_low)
-+			flags = GPIOF_OUT_INIT_HIGH;
-+		else
-+			flags = GPIOF_OUT_INIT_LOW;
-+
-+		retval = devm_gpio_request_one(&pdev->dev, pwmbl->gpio_on,
-+						flags, "gpio_atmel_pwm_bl");
+-	if (pwmbl->gpio_on != -1) {
++	if (gpio_is_valid(pwmbl->gpio_on)) {
+ 		retval = devm_gpio_request(&pdev->dev, pwmbl->gpio_on,
+ 					"gpio_atmel_pwm_bl");
  		if (retval)
- 			goto err_free_pwm;
+@@ -196,7 +196,7 @@ static int __exit atmel_pwm_bl_remove(st
+ {
+ 	struct atmel_pwm_bl *pwmbl = platform_get_drvdata(pdev);
+ 
+-	if (pwmbl->gpio_on != -1) {
++	if (gpio_is_valid(pwmbl->gpio_on)) {
+ 		gpio_set_value(pwmbl->gpio_on,
+ 					0 ^ pwmbl->pdata->on_active_low);
  	}
 _
 
