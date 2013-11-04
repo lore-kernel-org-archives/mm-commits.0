@@ -1,75 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- input-route-kbd-leds-through-the-generic-leds-layer-fix-fix-fix.patch
- removed from -mm tree
-Date: Mon, 04 Nov 2013 12:20:55 -0800
-Message-ID: <527801a7.h4KYgj5LoU9km6Qz%akpm@linux-foundation.org>
+Subject: + writeback-do-not-sync-data-dirtied-after-sync-start-fix-3.patch added to -mm tree
+Date: Mon, 04 Nov 2013 12:36:44 -0800
+Message-ID: <5278055c.WOYvBMi56DWoB0bd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47274 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47740 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754044Ab3KDUU4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 15:20:56 -0500
+	with ESMTP id S1753560Ab3KDUgp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 15:36:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ralf@linux-mips.org, dmitry.torokhov@gmail.com, blogic@openwrt.org, samuel.thibault@ens-lyon.org
+To: mm-commits@vger.kernel.org, jack@suse.cz
 
-Subject: [to-be-updated] input-route-kbd-leds-through-the-generic-leds-layer-fix-fix-fix.patch removed from -mm tree
-To: samuel.thibault@ens-lyon.org,blogic@openwrt.org,dmitry.torokhov@gmail.com,ralf@linux-mips.org,mm-commits@vger.kernel.org
+Subject: + writeback-do-not-sync-data-dirtied-after-sync-start-fix-3.patch added to -mm tree
+To: jack@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 04 Nov 2013 12:20:55 -0800
+Date: Mon, 04 Nov 2013 12:36:44 -0800
 
 
 The patch titled
-     Subject: input-route-kbd-leds-through-the-generic-leds-layer-fix-fix-fix
-has been removed from the -mm tree.  Its filename was
-     input-route-kbd-leds-through-the-generic-leds-layer-fix-fix-fix.patch
+     Subject: writeback-do-not-sync-data-dirtied-after-sync-start-fix-3
+has been added to the -mm tree.  Its filename is
+     writeback-do-not-sync-data-dirtied-after-sync-start-fix-3.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/writeback-do-not-sync-data-dirtied-after-sync-start-fix-3.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/writeback-do-not-sync-data-dirtied-after-sync-start-fix-3.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: input-route-kbd-leds-through-the-generic-leds-layer-fix-fix-fix
+From: Jan Kara <jack@suse.cz>
+Subject: writeback-do-not-sync-data-dirtied-after-sync-start-fix-3
 
-Export input led symbols for input core module.
+Fixup sync_inodes_sb() comment
 
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: John Crispin <blogic@openwrt.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/leds.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/fs-writeback.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/leds.c~input-route-kbd-leds-through-the-generic-leds-layer-fix-fix-fix drivers/input/leds.c
---- a/drivers/input/leds.c~input-route-kbd-leds-through-the-generic-leds-layer-fix-fix-fix
-+++ a/drivers/input/leds.c
-@@ -210,6 +210,7 @@ err:
- 	input_led_delete(dev);
- 	return error;
- }
-+EXPORT_SYMBOL_GPL(input_led_connect);
+diff -puN fs/fs-writeback.c~writeback-do-not-sync-data-dirtied-after-sync-start-fix-3 fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-do-not-sync-data-dirtied-after-sync-start-fix-3
++++ a/fs/fs-writeback.c
+@@ -1353,10 +1353,11 @@ EXPORT_SYMBOL(try_to_writeback_inodes_sb
  
- /* Disconnected input device. Clean it, and deregister now-useless VT LEDs
-  * and triggers.  */
-@@ -241,6 +242,7 @@ extern void input_led_disconnect(struct
- 	}
- 	mutex_unlock(&vt_led_registered_lock);
- }
-+EXPORT_SYMBOL_GPL(input_led_disconnect);
- 
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("User LED support for input layer");
+ /**
+  * sync_inodes_sb	-	sync sb inode pages
+- * @sb: the superblock
++ * @sb:			the superblock
++ * @older_than_this:	timestamp
+  *
+  * This function writes and waits on any dirty inode belonging to this
+- * super_block.
++ * superblock that has been dirtied before given timestamp.
+  */
+ void sync_inodes_sb(struct super_block *sb, unsigned long older_than_this)
+ {
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+ocfs2-dont-spam-on-edquot.patch
+writeback-do-not-sync-data-dirtied-after-sync-start.patch
+writeback-do-not-sync-data-dirtied-after-sync-start-fix.patch
+writeback-do-not-sync-data-dirtied-after-sync-start-fix-2.patch
+writeback-do-not-sync-data-dirtied-after-sync-start-fix-3.patch
 linux-next.patch
+revert-softirq-add-support-for-triggering-softirq-work-on-softirqs.patch
+kernel-remove-config_use_generic_smp_helpers.patch
+kernel-provide-a-__smp_call_function_single-stub-for-config_smp.patch
+kernel-fix-generic_exec_single-indication.patch
+llists-move-llist_reverse_order-from-raid5-to-llistc.patch
+llists-move-llist_reverse_order-from-raid5-to-llistc-fix.patch
+kernel-use-lockless-list-for-smp_call_function_single.patch
+blk-mq-use-__smp_call_function_single-directly.patch
 
