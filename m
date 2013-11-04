@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + init-mainc-remove-prototype-for-softirq_init.patch added to -mm tree
-Date: Mon, 04 Nov 2013 13:17:17 -0800
-Message-ID: <52780edd.DJHdadbm3Fxeaael%akpm@linux-foundation.org>
+Subject: + mm-fix-the-incorrect-function-name-in-alloc_low_pages.patch
+ added to -mm tree
+Date: Mon, 04 Nov 2013 13:41:55 -0800
+Message-ID: <527814a3.TipM8Nct8u6INA64%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48077 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48180 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638Ab3KDVRR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 16:17:17 -0500
+	with ESMTP id S1751415Ab3KDVl4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 16:41:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, wuzhy@linux.vnet.ibm.com
 
-Subject: + init-mainc-remove-prototype-for-softirq_init.patch added to -mm tree
-To: geert@linux-m68k.org
+Subject: + mm-fix-the-incorrect-function-name-in-alloc_low_pages.patch added to -mm tree
+To: wuzhy@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Mon, 04 Nov 2013 13:17:17 -0800
+Date: Mon, 04 Nov 2013 13:41:55 -0800
 
 
 The patch titled
-     Subject: init/main.c: remove prototype for softirq_init()
+     Subject: arch/x86/mm/init.c: fix incorrect function name in alloc_low_pages()
 has been added to the -mm tree.  Its filename is
-     init-mainc-remove-prototype-for-softirq_init.patch
+     mm-fix-the-incorrect-function-name-in-alloc_low_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-mainc-remove-prototype-for-softirq_init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-the-incorrect-function-name-in-alloc_low_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-remove-prototype-for-softirq_init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-the-incorrect-function-name-in-alloc_low_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,46 +44,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: init/main.c: remove prototype for softirq_init()
+From: Zhi Yong Wu <wuzhy@linux.vnet.ibm.com>
+Subject: arch/x86/mm/init.c: fix incorrect function name in alloc_low_pages()
 
-It's already available in <linux/interrupt.h>
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Zhi Yong Wu <wuzhy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/mm/init.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN init/main.c~init-mainc-remove-prototype-for-softirq_init init/main.c
---- a/init/main.c~init-mainc-remove-prototype-for-softirq_init
-+++ a/init/main.c
-@@ -124,7 +124,6 @@ EXPORT_SYMBOL(system_state);
- extern void time_init(void);
- /* Default late time init is NULL. archs can override this later. */
- void (*__initdata late_time_init)(void);
--extern void softirq_init(void);
- 
- /* Untouched command line saved by arch-specific code. */
- char __initdata boot_command_line[COMMAND_LINE_SIZE];
+diff -puN arch/x86/mm/init.c~mm-fix-the-incorrect-function-name-in-alloc_low_pages arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~mm-fix-the-incorrect-function-name-in-alloc_low_pages
++++ a/arch/x86/mm/init.c
+@@ -53,12 +53,12 @@ __ref void *alloc_low_pages(unsigned int
+ 	if ((pgt_buf_end + num) > pgt_buf_top || !can_use_brk_pgt) {
+ 		unsigned long ret;
+ 		if (min_pfn_mapped >= max_pfn_mapped)
+-			panic("alloc_low_page: ran out of memory");
++			panic("alloc_low_pages: ran out of memory");
+ 		ret = memblock_find_in_range(min_pfn_mapped << PAGE_SHIFT,
+ 					max_pfn_mapped << PAGE_SHIFT,
+ 					PAGE_SIZE * num , PAGE_SIZE);
+ 		if (!ret)
+-			panic("alloc_low_page: can not alloc memory");
++			panic("alloc_low_pages: can not alloc memory");
+ 		memblock_reserve(ret, PAGE_SIZE * num);
+ 		pfn = ret >> PAGE_SHIFT;
+ 	} else {
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from wuzhy@linux.vnet.ibm.com are
 
-genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
-scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
-block-do-not-call-sector_div-with-a-64-bit-divisor.patch
-syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
-scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
-kernel-sysc-remove-obsolete-include-linux-kexech.patch
-init-mainc-remove-prototype-for-softirq_init.patch
-inith-document-the-existence-of-__initconst.patch
-init-make-init-failures-more-explicit.patch
+mm-fix-the-incorrect-function-name-in-alloc_low_pages.patch
+mm-fix-the-comment-in-zlc_setup.patch
 linux-next.patch
-x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
-m68k-handle-pgtable_page_ctor-fail.patch
-m68k-handle-pgtable_page_ctor-fail-fix.patch
-m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
 
