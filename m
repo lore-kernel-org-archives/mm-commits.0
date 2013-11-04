@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + media-platform-drivers-fix-build-on-cris-arch.patch added to
- -mm tree
-Date: Mon, 04 Nov 2013 13:16:24 -0800
-Message-ID: <52780ea8.LGlULVPDlYvCBUxF%akpm@linux-foundation.org>
+Subject: + init-mainc-remove-prototype-for-softirq_init.patch added to -mm tree
+Date: Mon, 04 Nov 2013 13:17:17 -0800
+Message-ID: <52780edd.DJHdadbm3Fxeaael%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48071 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48077 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904Ab3KDVQZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 16:16:25 -0500
+	with ESMTP id S1751638Ab3KDVRR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 16:17:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, starvik@axis.com, stable@vger.kernel.org, jesper.nilsson@axis.com, ben@decadent.org.uk, m.chehab@samsung.com
+To: mm-commits@vger.kernel.org, geert@linux-m68k.org
 
-Subject: + media-platform-drivers-fix-build-on-cris-arch.patch added to -mm tree
-To: m.chehab@samsung.com,ben@decadent.org.uk,jesper.nilsson@axis.com,stable@vger.kernel.org,starvik@axis.com
+Subject: + init-mainc-remove-prototype-for-softirq_init.patch added to -mm tree
+To: geert@linux-m68k.org
 From: akpm@linux-foundation.org
-Date: Mon, 04 Nov 2013 13:16:24 -0800
+Date: Mon, 04 Nov 2013 13:17:17 -0800
 
 
 The patch titled
-     Subject: media platform drivers: fix build on cris arch
+     Subject: init/main.c: remove prototype for softirq_init()
 has been added to the -mm tree.  Its filename is
-     media-platform-drivers-fix-build-on-cris-arch.patch
+     init-mainc-remove-prototype-for-softirq_init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/media-platform-drivers-fix-build-on-cris-arch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/init-mainc-remove-prototype-for-softirq_init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/media-platform-drivers-fix-build-on-cris-arch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-remove-prototype-for-softirq_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,60 +43,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: media platform drivers: fix build on cris arch
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: init/main.c: remove prototype for softirq_init()
 
-On cris arch, the functions below aren't defined:
+It's already available in <linux/interrupt.h>
 
-        drivers/media/platform/sh_veu.c: In function 'sh_veu_reg_read':
-
-        drivers/media/platform/sh_veu.c:228:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
-        drivers/media/platform/sh_veu.c: In function 'sh_veu_reg_write':
-
-        drivers/media/platform/sh_veu.c:234:2: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
-        drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_read':
-        drivers/media/platform/vsp1/vsp1.h:66:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
-        drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_write':
-        drivers/media/platform/vsp1/vsp1.h:71:2: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
-        drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_read':
-        drivers/media/platform/vsp1/vsp1.h:66:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
-        drivers/media/platform/vsp1/vsp1.h: In function 'vsp1_write':
-        drivers/media/platform/vsp1/vsp1.h:71:2: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
-        drivers/media/platform/soc_camera/rcar_vin.c: In function 'rcar_vin_setup':
-        drivers/media/platform/soc_camera/rcar_vin.c:284:3: error: implicit declaration of function 'iowrite32' [-Werror=implicit-function-declaration]
-
-        drivers/media/platform/soc_camera/rcar_vin.c: In function 'rcar_vin_request_capture_stop':
-        drivers/media/platform/soc_camera/rcar_vin.c:353:2: error: implicit declaration of function 'ioread32' [-Werror=implicit-function-declaration]
-
-Yet, they're available, as CONFIG_GENERIC_IOMAP is defined.  What happens
-is that asm/io.h was not including asm-generic/iomap.h.
-
-Suggested-by: Ben Hutchings <ben@decadent.org.uk>
-Signed-off-by: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/include/asm/io.h |    1 +
- 1 file changed, 1 insertion(+)
+ init/main.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/cris/include/asm/io.h~media-platform-drivers-fix-build-on-cris-arch arch/cris/include/asm/io.h
---- a/arch/cris/include/asm/io.h~media-platform-drivers-fix-build-on-cris-arch
-+++ a/arch/cris/include/asm/io.h
-@@ -3,6 +3,7 @@
+diff -puN init/main.c~init-mainc-remove-prototype-for-softirq_init init/main.c
+--- a/init/main.c~init-mainc-remove-prototype-for-softirq_init
++++ a/init/main.c
+@@ -124,7 +124,6 @@ EXPORT_SYMBOL(system_state);
+ extern void time_init(void);
+ /* Default late time init is NULL. archs can override this later. */
+ void (*__initdata late_time_init)(void);
+-extern void softirq_init(void);
  
- #include <asm/page.h>   /* for __va, __pa */
- #include <arch/io.h>
-+#include <asm-generic/iomap.h>
- #include <linux/kernel.h>
- 
- struct cris_io_operations
+ /* Untouched command line saved by arch-specific code. */
+ char __initdata boot_command_line[COMMAND_LINE_SIZE];
 _
 
-Patches currently in -mm which might be from m.chehab@samsung.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-media-platform-drivers-fix-build-on-cris-arch.patch
+genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
+scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
+block-do-not-call-sector_div-with-a-64-bit-divisor.patch
+syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
+kernel-sysc-remove-obsolete-include-linux-kexech.patch
+init-mainc-remove-prototype-for-softirq_init.patch
+inith-document-the-existence-of-__initconst.patch
+init-make-init-failures-more-explicit.patch
 linux-next.patch
+x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
+m68k-handle-pgtable_page_ctor-fail.patch
+m68k-handle-pgtable_page_ctor-fail-fix.patch
+m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
 
