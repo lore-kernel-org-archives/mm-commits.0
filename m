@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-get-aslr-work-for-hugetlb-mappings.patch added to -mm
- tree
-Date: Mon, 04 Nov 2013 13:08:44 -0800
-Message-ID: <52780cdc.qZpMwBOMFPODnXve%akpm@linux-foundation.org>
+Subject: +
+ gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding.patch added to -mm tree
+Date: Mon, 04 Nov 2013 13:12:11 -0800
+Message-ID: <52780dab.xBYmK5cwg59A6h+E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48041 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48060 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750749Ab3KDVIq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 16:08:46 -0500
+	with ESMTP id S1750819Ab3KDVMM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 16:12:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, willy@linux.intel.com, tglx@linutronix.de, n-horiguchi@ah.jp.nec.com, mingo@redhat.com, hpa@zytor.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, keescook@chromium.org, jkosina@suse.cz, jj@codesealer.com, mina86@mina86.com
 
-Subject: + x86-mm-get-aslr-work-for-hugetlb-mappings.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,dave.hansen@intel.com,hpa@zytor.com,mingo@redhat.com,n-horiguchi@ah.jp.nec.com,tglx@linutronix.de,willy@linux.intel.com
+Subject: + gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding.patch added to -mm tree
+To: mina86@mina86.com,jj@codesealer.com,jkosina@suse.cz,keescook@chromium.org
 From: akpm@linux-foundation.org
-Date: Mon, 04 Nov 2013 13:08:44 -0800
+Date: Mon, 04 Nov 2013 13:12:11 -0800
 
 
 The patch titled
-     Subject: x86, mm: get ASLR work for hugetlb mappings
+     Subject: gen_init_cpio: avoid NULL pointer dereference and rework env expanding
 has been added to the -mm tree.  Its filename is
-     x86-mm-get-aslr-work-for-hugetlb-mappings.patch
+     gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-get-aslr-work-for-hugetlb-mappings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-get-aslr-work-for-hugetlb-mappings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,154 +44,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: x86, mm: get ASLR work for hugetlb mappings
+From: Michal Nazarewicz <mina86@mina86.com>
+Subject: gen_init_cpio: avoid NULL pointer dereference and rework env expanding
 
-Matthew noticed that hugetlb doesn't participate in ASLR on x86-64.  The
-reason is genereic hugetlb_get_unmapped_area() which is used on x86-64. 
-It doesn't support randomization and use bottom-up unmapped area lookup,
-instead of usual top-down on x86-64.
+getenv() may return NULL if given environment variable does not exist
+which leads to NULL dereference when calling strncat.
 
-x86 has arch-specific hugetlb_get_unmapped_area(), but it's used only on
-x86-32.
+Besides that, the environment variable name was copied to a temporary
+env_var buffer, but this copying can be avoided by simply using the input
+string.
 
-Let's use arch-specific hugetlb_get_unmapped_area() on x86-64 too.  It
-fixes the issue and make hugetlb use top-down unmapped area lookup.
+Lastly, the whole loop can be greatly simplified by using the snprintf
+function instead of the playing with strncat.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+ By the way, the current implementation allows a recursive variable
+ expansion, as in:
+
+   $ echo 'out ${A} out ' | A='a ${B} a' B=b /tmp/a
+   out a b a out
+
+ I'm assuming this is just a side effect and not a conscious decision
+ (especially as this may lead to infinite loop), but I didn't want to
+ change this behaviour without consulting.
+
+ If the current behaviour is deamed incorrect, I'll be happy to send
+ a patch without recursive processing.
+
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Jesper Juhl <jj@codesealer.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/page.h    |    1 +
- arch/x86/include/asm/page_32.h |    4 ----
- arch/x86/mm/hugetlbpage.c      |    9 +++------
- 3 files changed, 4 insertions(+), 10 deletions(-)
+ usr/gen_init_cpio.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN arch/x86/include/asm/page.h~x86-mm-get-aslr-work-for-hugetlb-mappings arch/x86/include/asm/page.h
---- a/arch/x86/include/asm/page.h~x86-mm-get-aslr-work-for-hugetlb-mappings
-+++ a/arch/x86/include/asm/page.h
-@@ -71,6 +71,7 @@ extern bool __virt_addr_valid(unsigned l
- #include <asm-generic/getorder.h>
+diff -puN usr/gen_init_cpio.c~gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding usr/gen_init_cpio.c
+--- a/usr/gen_init_cpio.c~gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding
++++ a/usr/gen_init_cpio.c
+@@ -382,24 +382,15 @@ error:
+ static char *cpio_replace_env(char *new_location)
+ {
+ 	char expanded[PATH_MAX + 1];
+-	char env_var[PATH_MAX + 1];
+-	char *start;
+-	char *end;
++	char *start, *end, *var;
  
- #define __HAVE_ARCH_GATE_AREA 1
-+#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+-	for (start = NULL; (start = strstr(new_location, "${")); ) {
+-		end = strchr(start, '}');
+-		if (start < end) {
+-			*env_var = *expanded = '\0';
+-			strncat(env_var, start + 2, end - start - 2);
+-			strncat(expanded, new_location, start - new_location);
+-			strncat(expanded, getenv(env_var),
+-				PATH_MAX - strlen(expanded));
+-			strncat(expanded, end + 1,
+-				PATH_MAX - strlen(expanded));
+-			strncpy(new_location, expanded, PATH_MAX);
+-			new_location[PATH_MAX] = 0;
+-		} else
+-			break;
++	while ((start = strstr(new_location, "${")) &&
++	       (end = strchr(start + 2, '}'))) {
++		*start = *end = 0;
++		var = getenv(start + 2);
++		snprintf(expanded, sizeof expanded, "%s%s%s",
++			 new_location, var ? var : "", end + 1);
++		strcpy(new_location, expanded);
+ 	}
  
- #endif	/* __KERNEL__ */
- #endif /* _ASM_X86_PAGE_H */
-diff -puN arch/x86/include/asm/page_32.h~x86-mm-get-aslr-work-for-hugetlb-mappings arch/x86/include/asm/page_32.h
---- a/arch/x86/include/asm/page_32.h~x86-mm-get-aslr-work-for-hugetlb-mappings
-+++ a/arch/x86/include/asm/page_32.h
-@@ -5,10 +5,6 @@
- 
- #ifndef __ASSEMBLY__
- 
--#ifdef CONFIG_HUGETLB_PAGE
--#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
--#endif
--
- #define __phys_addr_nodebug(x)	((x) - PAGE_OFFSET)
- #ifdef CONFIG_DEBUG_VIRTUAL
- extern unsigned long __phys_addr(unsigned long);
-diff -puN arch/x86/mm/hugetlbpage.c~x86-mm-get-aslr-work-for-hugetlb-mappings arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~x86-mm-get-aslr-work-for-hugetlb-mappings
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -87,9 +87,7 @@ int pmd_huge_support(void)
- }
- #endif
- 
--/* x86_64 also uses this file */
--
--#ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
-+#ifdef CONFIG_HUGETLB_PAGE
- static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *file,
- 		unsigned long addr, unsigned long len,
- 		unsigned long pgoff, unsigned long flags)
-@@ -99,7 +97,7 @@ static unsigned long hugetlb_get_unmappe
- 
- 	info.flags = 0;
- 	info.length = len;
--	info.low_limit = TASK_UNMAPPED_BASE;
-+	info.low_limit = current->mm->mmap_legacy_base;
- 	info.high_limit = TASK_SIZE;
- 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
- 	info.align_offset = 0;
-@@ -172,8 +170,7 @@ hugetlb_get_unmapped_area(struct file *f
- 		return hugetlb_get_unmapped_area_topdown(file, addr, len,
- 				pgoff, flags);
- }
--
--#endif /*HAVE_ARCH_HUGETLB_UNMAPPED_AREA*/
-+#endif /* CONFIG_HUGETLB_PAGE */
- 
- #ifdef CONFIG_X86_64
- static __init int setup_hugepagesz(char *opt)
+ 	return new_location;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from mina86@mina86.com are
 
-mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
-mm-thp-cleanup-mv-alloc_hugepage-to-better-place.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
-x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
-cris-fix-potential-null-pointer-dereference.patch
-m32r-fix-potential-null-pointer-dereference.patch
-xtensa-fix-potential-null-pointer-dereference.patch
-mm-allow-pgtable_page_ctor-to-fail.patch
-microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
-mn10300-add-missing-pgtable_page_ctor-dtor-calls.patch
-openrisc-add-missing-pgtable_page_ctor-dtor-calls.patch
-alpha-handle-pgtable_page_ctor-fail.patch
-arc-handle-pgtable_page_ctor-fail.patch
-arm-handle-pgtable_page_ctor-fail.patch
-arm64-handle-pgtable_page_ctor-fail.patch
-avr32-handle-pgtable_page_ctor-fail.patch
-cris-handle-pgtable_page_ctor-fail.patch
-frv-handle-pgtable_page_ctor-fail.patch
-hexagon-handle-pgtable_page_ctor-fail.patch
-ia64-handle-pgtable_page_ctor-fail.patch
-m32r-handle-pgtable_page_ctor-fail.patch
-m68k-handle-pgtable_page_ctor-fail.patch
-m68k-handle-pgtable_page_ctor-fail-fix.patch
-m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
-metag-handle-pgtable_page_ctor-fail.patch
-mips-handle-pgtable_page_ctor-fail.patch
-parisc-handle-pgtable_page_ctor-fail.patch
-powerpc-handle-pgtable_page_ctor-fail.patch
-s390-handle-pgtable_page_ctor-fail.patch
-score-handle-pgtable_page_ctor-fail.patch
-sh-handle-pgtable_page_ctor-fail.patch
-sparc-handle-pgtable_page_ctor-fail.patch
-tile-handle-pgtable_page_ctor-fail.patch
-um-handle-pgtable_page_ctor-fail.patch
-unicore32-handle-pgtable_page_ctor-fail.patch
-x86-handle-pgtable_page_ctor-fail.patch
-xtensa-handle-pgtable_page_ctor-fail.patch
-iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch
-xtensa-use-buddy-allocator-for-pte-table.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
-x86-mm-get-aslr-work-for-hugetlb-mappings.patch
+memblock-factor-out-of-top-down-allocation.patch
+memblock-introduce-bottom-up-allocation-mode.patch
+x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
+x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
+mem-hotplug-introduce-movable_node-boot-option.patch
+mm-__rmqueue_fallback-should-respect-pageblock-type.patch
+gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding.patch
+drivers-memstick-core-mspro_blockc-fix-attributes-array-allocation.patch
+drivers-w1-make-w1_slave-flags-long-to-avoid-casts.patch
+linux-next.patch
+debugging-keep-track-of-page-owners-fix-2.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
 
