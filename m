@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + exec-ptrace-fix-get_dumpable-incorrect-tests.patch added to -mm tree
-Date: Mon, 04 Nov 2013 13:54:54 -0800
-Message-ID: <527817ae.zP2mV4bLPLSPGICQ%akpm__26654.3605401695$1383602293$gmane$org@linux-foundation.org>
+Subject: +
+ lib-genalloc-add-a-helper-function-for-dma-buffer-allocation.patch added to -mm tree
+Date: Mon, 04 Nov 2013 14:17:06 -0800
+Message-ID: <52781ce2.QW1NT6dp5ablAMGo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48399 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48760 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750749Ab3KDVyz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 16:54:55 -0500
+	with ESMTP id S1751155Ab3KDWRH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 17:17:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, stable@vger.kernel.org, segoon@openwall.com, oleg@redhat.com, ebiederm@xmission.com, keescook@chromium.org
+To: mm-commits@vger.kernel.org, vinod.koul@intel.com, tiwai@suse.de, rob.herring@calxeda.com, perex@perex.cz, nsekhar@ti.com, m.chehab@samsung.com, linux@arm.linux.org.uk, lgirdwood@gmail.com, khilman@deeprootsystems.com, hjk@hansjkoch.de, haojian.zhuang@gmail.com, gregkh@linuxfoundation.org, grant.likely@linaro.org, eric.y.miao@gmail.com, dan.j.williams@intel.com, broonie@kernel.org, b42378@freescale.com
 
-Subject: + exec-ptrace-fix-get_dumpable-incorrect-tests.patch added to -mm tree
-To: keescook@chromium.org,ebiederm@xmission.com,oleg@redhat.com,segoon@openwall.com,stable@vger.kernel.org,tony.luck@intel.com
+Subject: + lib-genalloc-add-a-helper-function-for-dma-buffer-allocation.patch added to -mm tree
+To: b42378@freescale.com,broonie@kernel.org,dan.j.williams@intel.com,eric.y.miao@gmail.com,grant.likely@linaro.org,gregkh@linuxfoundation.org,haojian.zhuang@gmail.com,hjk@hansjkoch.de,khilman@deeprootsystems.com,lgirdwood@gmail.com,linux@arm.linux.org.uk,m.chehab@samsung.com,nsekhar@ti.com,perex@perex.cz,rob.herring@calxeda.com,tiwai@suse.de,vinod.koul@intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 04 Nov 2013 13:54:54 -0800
+Date: Mon, 04 Nov 2013 14:17:06 -0800
 
 
 The patch titled
-     Subject: exec/ptrace: fix get_dumpable() incorrect tests
+     Subject: lib/genalloc: add a helper function for DMA buffer allocation
 has been added to the -mm tree.  Its filename is
-     exec-ptrace-fix-get_dumpable-incorrect-tests.patch
+     lib-genalloc-add-a-helper-function-for-dma-buffer-allocation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-ptrace-fix-get_dumpable-incorrect-tests.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-genalloc-add-a-helper-function-for-dma-buffer-allocation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-ptrace-fix-get_dumpable-incorrect-tests.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-genalloc-add-a-helper-function-for-dma-buffer-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,148 +44,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: exec/ptrace: fix get_dumpable() incorrect tests
+From: Nicolin Chen <b42378@freescale.com>
+Subject: lib/genalloc: add a helper function for DMA buffer allocation
 
-The get_dumpable() return value is not boolean.  Most users of the
-function actually want to be testing for non-SUID_DUMP_USER(1) rather than
-SUID_DUMP_DISABLE(0).  The SUID_DUMP_ROOT(2) is also considered a
-protected state.  Almost all places did this correctly, excepting the two
-places fixed in this patch.
+When using pool space for DMA buffer, there might be duplicated calling of
+gen_pool_alloc() and gen_pool_virt_to_phys() in each implementation.
 
-Wrong logic:
-    if (dumpable == SUID_DUMP_DISABLE) { /* be protective */ }
-        or
-    if (dumpable == 0) { /* be protective */ }
-        or
-    if (!dumpable) { /* be protective */ }
+Thus it's better to add a simple helper function, a compatible one to the
+common dma_alloc_coherent(), to save some code.
 
-Correct logic:
-    if (dumpable != SUID_DUMP_USER) { /* be protective */ }
-        or
-    if (dumpable != 1) { /* be protective */ }
-
-Without this patch, if the system had set the sysctl fs/suid_dumpable=2, a
-user was able to ptrace attach to processes that had dropped privileges to
-that user.  (This may have been partially mitigated if Yama was enabled.)
-
-The macros have been moved into the file that declares get/set_dumpable(),
-which means things like the ia64 code can see them too.
-
-CVE-2013-2929
-
-Reported-by: Vasily Kulikov <segoon@openwall.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Nicolin Chen <b42378@freescale.com>
+Cc: "Hans J. Koch" <hjk@hansjkoch.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Sekhar Nori <nsekhar@ti.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Vinod Koul <vinod.koul@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/processor.h |    2 +-
- fs/exec.c                         |    6 ++++++
- include/linux/binfmts.h           |    3 ---
- include/linux/sched.h             |    4 ++++
- kernel/ptrace.c                   |    3 ++-
- 5 files changed, 13 insertions(+), 5 deletions(-)
+ include/linux/genalloc.h |    2 ++
+ lib/genalloc.c           |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+)
 
-diff -puN arch/ia64/include/asm/processor.h~exec-ptrace-fix-get_dumpable-incorrect-tests arch/ia64/include/asm/processor.h
---- a/arch/ia64/include/asm/processor.h~exec-ptrace-fix-get_dumpable-incorrect-tests
-+++ a/arch/ia64/include/asm/processor.h
-@@ -319,7 +319,7 @@ struct thread_struct {
- 	regs->loadrs = 0;									\
- 	regs->r8 = get_dumpable(current->mm);	/* set "don't zap registers" flag */		\
- 	regs->r12 = new_sp - 16;	/* allocate 16 byte scratch area */			\
--	if (unlikely(!get_dumpable(current->mm))) {							\
-+	if (unlikely(get_dumpable(current->mm) != SUID_DUMP_USER)) {	\
- 		/*										\
- 		 * Zap scratch regs to avoid leaking bits between processes with different	\
- 		 * uid/privileges.								\
-diff -puN fs/exec.c~exec-ptrace-fix-get_dumpable-incorrect-tests fs/exec.c
---- a/fs/exec.c~exec-ptrace-fix-get_dumpable-incorrect-tests
-+++ a/fs/exec.c
-@@ -1668,6 +1668,12 @@ int __get_dumpable(unsigned long mm_flag
- 	return (ret > SUID_DUMP_USER) ? SUID_DUMP_ROOT : ret;
+diff -puN include/linux/genalloc.h~lib-genalloc-add-a-helper-function-for-dma-buffer-allocation include/linux/genalloc.h
+--- a/include/linux/genalloc.h~lib-genalloc-add-a-helper-function-for-dma-buffer-allocation
++++ a/include/linux/genalloc.h
+@@ -94,6 +94,8 @@ static inline int gen_pool_add(struct ge
  }
+ extern void gen_pool_destroy(struct gen_pool *);
+ extern unsigned long gen_pool_alloc(struct gen_pool *, size_t);
++extern void *gen_pool_dma_alloc(struct gen_pool *pool, size_t size,
++		dma_addr_t *dma);
+ extern void gen_pool_free(struct gen_pool *, unsigned long, size_t);
+ extern void gen_pool_for_each_chunk(struct gen_pool *,
+ 	void (*)(struct gen_pool *, struct gen_pool_chunk *, void *), void *);
+diff -puN lib/genalloc.c~lib-genalloc-add-a-helper-function-for-dma-buffer-allocation lib/genalloc.c
+--- a/lib/genalloc.c~lib-genalloc-add-a-helper-function-for-dma-buffer-allocation
++++ a/lib/genalloc.c
+@@ -313,6 +313,34 @@ retry:
+ EXPORT_SYMBOL(gen_pool_alloc);
  
-+/*
-+ * This returns the actual value of the suid_dumpable flag. For things
-+ * that are using this for checking for privilege transitions, it must
-+ * test against SUID_DUMP_USER rather than treating it as a boolean
-+ * value.
+ /**
++ * gen_pool_dma_alloc - allocate special memory from the pool for DMA usage
++ * @pool: pool to allocate from
++ * @size: number of bytes to allocate from the pool
++ * @dma: dma-view physical address
++ *
++ * Allocate the requested number of bytes from the specified pool.
++ * Uses the pool allocation function (with first-fit algorithm by default).
++ * Can not be used in NMI handler on architectures without
++ * NMI-safe cmpxchg implementation.
 + */
- int get_dumpable(struct mm_struct *mm)
- {
- 	return __get_dumpable(mm->flags);
-diff -puN include/linux/binfmts.h~exec-ptrace-fix-get_dumpable-incorrect-tests include/linux/binfmts.h
---- a/include/linux/binfmts.h~exec-ptrace-fix-get_dumpable-incorrect-tests
-+++ a/include/linux/binfmts.h
-@@ -99,9 +99,6 @@ extern void setup_new_exec(struct linux_
- extern void would_dump(struct linux_binprm *, struct file *);
- 
- extern int suid_dumpable;
--#define SUID_DUMP_DISABLE	0	/* No setuid dumping */
--#define SUID_DUMP_USER		1	/* Dump as user of process */
--#define SUID_DUMP_ROOT		2	/* Dump as root */
- 
- /* Stack area protections */
- #define EXSTACK_DEFAULT   0	/* Whatever the arch defaults to */
-diff -puN include/linux/sched.h~exec-ptrace-fix-get_dumpable-incorrect-tests include/linux/sched.h
---- a/include/linux/sched.h~exec-ptrace-fix-get_dumpable-incorrect-tests
-+++ a/include/linux/sched.h
-@@ -322,6 +322,10 @@ static inline void arch_pick_mmap_layout
- extern void set_dumpable(struct mm_struct *mm, int value);
- extern int get_dumpable(struct mm_struct *mm);
- 
-+#define SUID_DUMP_DISABLE	0	/* No setuid dumping */
-+#define SUID_DUMP_USER		1	/* Dump as user of process */
-+#define SUID_DUMP_ROOT		2	/* Dump as root */
++void *gen_pool_dma_alloc(struct gen_pool *pool, size_t size, dma_addr_t *dma)
++{
++	unsigned long vaddr;
 +
- /* mm flags */
- /* dumpable bits */
- #define MMF_DUMPABLE      0  /* core dump is permitted */
-diff -puN kernel/ptrace.c~exec-ptrace-fix-get_dumpable-incorrect-tests kernel/ptrace.c
---- a/kernel/ptrace.c~exec-ptrace-fix-get_dumpable-incorrect-tests
-+++ a/kernel/ptrace.c
-@@ -257,7 +257,8 @@ ok:
- 	if (task->mm)
- 		dumpable = get_dumpable(task->mm);
- 	rcu_read_lock();
--	if (!dumpable && !ptrace_has_cap(__task_cred(task)->user_ns, mode)) {
-+	if (dumpable != SUID_DUMP_USER &&
-+	    !ptrace_has_cap(__task_cred(task)->user_ns, mode)) {
- 		rcu_read_unlock();
- 		return -EPERM;
- 	}
++	if (!pool)
++		return NULL;
++
++	vaddr = gen_pool_alloc(pool, size);
++	if (!vaddr)
++		return NULL;
++
++	*dma = gen_pool_virt_to_phys(pool, vaddr);
++
++	return (void *)vaddr;
++}
++EXPORT_SYMBOL(gen_pool_dma_alloc);
++
++/**
+  * gen_pool_free - free allocated special memory back to the pool
+  * @pool: pool to free to
+  * @addr: starting address of memory to free back to pool
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from b42378@freescale.com are
 
-gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding.patch
-printk-report-console-names-during-cut-over.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-vsprintf-check-real-user-group-id-for-%pk.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-drivers-message-i2o-driverc-add-missing-destroy_workqueue-on-error-in-i2o_driver_register.patch
-exec-ptrace-fix-get_dumpable-incorrect-tests.patch
-gcov-move-gcov-structs-definitions-to-a-gcc-version-specific-file.patch
-gcov-add-support-for-gcc-47-gcov-format.patch
-gcov-compile-specific-gcov-implementation-based-on-gcc-version.patch
-kernel-gcov-fsc-use-pr_warn.patch
 linux-next.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-seq_file-introduce-seq_setwidth-and-seq_pad.patch
-seq_file-remove-%n-usage-from-seq_file-users.patch
-vsprintf-ignore-%n-again.patch
+lib-genalloc-add-a-helper-function-for-dma-buffer-allocation.patch
+arch-arm-mach-davinci-sramc-use-gen_pool_dma_alloc-to-sramc.patch
+drivers-dma-mmp_tdmac-use-gen_pool_dma_alloc-to-allocate-descriptor.patch
+drivers-media-platform-codac-use-gen_pool_dma_alloc-to-allocate-iram-buffer.patch
+drivers-uio-uio_prussc-use-gen_pool_dma_alloc-to-allocate-sram-memory.patch
+sound-soc-davinci-davinci-pcmc-use-gen_pool_dma_alloc-in-davinci-pcmc.patch
+sound-soc-pxa-mmp-pcmc-use-gen_pool_dma_alloc-to-allocate-dma-buffer.patch
+sound-core-memallocc-use-gen_pool_dma_alloc-to-allocate-iram-buffer.patch
 
