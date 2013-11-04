@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-msg-fix-message-length-check-for-negative-values.patch
- added to -mm tree
-Date: Mon, 04 Nov 2013 12:44:16 -0800
-Message-ID: <52780720.Wmhm/UErAqGgQHQO%akpm@linux-foundation.org>
+Subject: + block-do-not-call-sector_div-with-a-64-bit-divisor.patch added
+ to -mm tree
+Date: Mon, 04 Nov 2013 13:01:58 -0800
+Message-ID: <52780b46.YF9+SjNidEwCgb2Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47931 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48032 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750760Ab3KDUoR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 15:44:17 -0500
+	with ESMTP id S1751659Ab3KDVB7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 16:01:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, torvalds@linux-foundation.org, stable@vger.kernel.org, spender@grsecurity.net, pageexec@freemail.hu, manfred@colorfullife.com, davidlohr@hp.com, minipli@googlemail.com
+To: mm-commits@vger.kernel.org, axboe@kernel.dk, geert@linux-m68k.org
 
-Subject: + ipc-msg-fix-message-length-check-for-negative-values.patch added to -mm tree
-To: minipli@googlemail.com,davidlohr@hp.com,manfred@colorfullife.com,pageexec@freemail.hu,spender@grsecurity.net,stable@vger.kernel.org,torvalds@linux-foundation.org
+Subject: + block-do-not-call-sector_div-with-a-64-bit-divisor.patch added to -mm tree
+To: geert@linux-m68k.org,axboe@kernel.dk
 From: akpm@linux-foundation.org
-Date: Mon, 04 Nov 2013 12:44:16 -0800
+Date: Mon, 04 Nov 2013 13:01:58 -0800
 
 
 The patch titled
-     Subject: ipc, msg: fix message length check for negative values
+     Subject: block: do not call sector_div() with a 64-bit divisor
 has been added to the -mm tree.  Its filename is
-     ipc-msg-fix-message-length-check-for-negative-values.patch
+     block-do-not-call-sector_div-with-a-64-bit-divisor.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-msg-fix-message-length-check-for-negative-values.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-do-not-call-sector_div-with-a-64-bit-divisor.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-msg-fix-message-length-check-for-negative-values.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-do-not-call-sector_div-with-a-64-bit-divisor.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,179 +44,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mathias Krause <minipli@googlemail.com>
-Subject: ipc, msg: fix message length check for negative values
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: block: do not call sector_div() with a 64-bit divisor
 
-On 64 bit systems the test for negative message sizes is bogus as the
-size, which may be positive when evaluated as a long, will get truncated
-to an int when passed to load_msg().  So a long might very well contain a
-positive value but when truncated to an int it would become negative.
+do_div() (called by sector_div() if CONFIG_LBDAF=y) is meant for divisions
+of 64-bit number by 32-bit numbers.  Passing 64-bit divisor types caused
+issues in the past on 32-bit platforms, cfr.  commit ea077b1b96e073ea
+("m68k: Truncate base in do_div()").
 
-That in combination with a small negative value of msg_ctlmax (which will
-be promoted to an unsigned type for the comparison against msgsz, making
-it a big positive value and therefore make it pass the check) will lead to
-two problems: 1/ The kmalloc() call in alloc_msg() will allocate a too
-small buffer as the addition of alen is effectively a subtraction.  2/ The
-copy_from_user() call in load_msg() will first overflow the buffer with
-userland data and then, when the userland access generates an access
-violation, the fixup handler copy_user_handle_tail() will try to fill the
-remainder with zeros -- roughly 4GB.  That almost instantly results in a
-system crash or reset.
+As queue_limits.max_discard_sectors and .discard_granularity are unsigned
+int, max_discard_sectors and granularity should be unsigned int.  As
+bdev_discard_alignment() returns int, alignment should be int.  Now 2
+calls to sector_div() can be replaced by 32-bit arithmetic:
 
-,-[ Reproducer (needs to be run as root) ]--
-| #include <sys/stat.h>
-| #include <sys/msg.h>
-| #include <unistd.h>
-| #include <fcntl.h>
-|
-| int main(void) {
-|     long msg = 1;
-|     int fd;
-|
-|     fd = open("/proc/sys/kernel/msgmax", O_WRONLY);
-|     write(fd, "-1", 2);
-|     close(fd);
-|
-|     msgsnd(0, &msg, 0xfffffff0, IPC_NOWAIT);
-|
-|     return 0;
-| }
-'---
+  - The 64-bit modulo operation can become a 32-bit modulo operation,
+  - The 64-bit division and multiplication can be replaced by a 32-bit
+    modulo operation and a subtraction.
 
-Fix the issue by preventing msgsz from getting truncated by consistently
-using size_t for the message length.  This way the size checks in
-do_msgsnd() could still be passed with a negative value for msg_ctlmax but
-we would fail on the buffer allocation in that case and error out.
-
-Also change the type of m_ts from int to size_t to avoid similar nastiness
-in other code paths -- it is used in similar constructs, i.e.  signed vs. 
-unsigned checks.  It should never become negative under normal
-circumstances, though.
-
-Setting msg_ctlmax to a negative value is an odd configuration and should
-be prevented.  As that might break existing userland, it will be handled
-in a separate commit so it could easily be reverted and reworked without
-reintroducing the above described bug.
-
-Hardening mechanisms for user copy operations would have catched that bug
-early -- e.g.  checking slab object sizes on user copy operations as the
-usercopy feature of the PaX patch does.  Or, for that matter, detect the
-long vs.  int sign change due to truncation, as the size overflow plugin
-of the very same patch does.
-
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Pax Team <pageexec@freemail.hu>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Brad Spengler <spender@grsecurity.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: <stable@vger.kernel.org>	[ v2.3.27+ -- yes, that old ;) ]
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/msg.h |    6 +++---
- ipc/msgutil.c       |   20 ++++++++++----------
- ipc/util.h          |    4 ++--
- 3 files changed, 15 insertions(+), 15 deletions(-)
+ block/blk-lib.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/msg.h~ipc-msg-fix-message-length-check-for-negative-values include/linux/msg.h
---- a/include/linux/msg.h~ipc-msg-fix-message-length-check-for-negative-values
-+++ a/include/linux/msg.h
-@@ -6,9 +6,9 @@
+diff -puN block/blk-lib.c~block-do-not-call-sector_div-with-a-64-bit-divisor block/blk-lib.c
+--- a/block/blk-lib.c~block-do-not-call-sector_div-with-a-64-bit-divisor
++++ a/block/blk-lib.c
+@@ -43,8 +43,8 @@ int blkdev_issue_discard(struct block_de
+ 	DECLARE_COMPLETION_ONSTACK(wait);
+ 	struct request_queue *q = bdev_get_queue(bdev);
+ 	int type = REQ_WRITE | REQ_DISCARD;
+-	sector_t max_discard_sectors;
+-	sector_t granularity, alignment;
++	unsigned int max_discard_sectors, granularity;
++	int alignment;
+ 	struct bio_batch bb;
+ 	struct bio *bio;
+ 	int ret = 0;
+@@ -58,16 +58,14 @@ int blkdev_issue_discard(struct block_de
  
- /* one msg_msg structure for each message */
- struct msg_msg {
--	struct list_head m_list; 
--	long  m_type;          
--	int m_ts;           /* message text size */
-+	struct list_head m_list;
-+	long m_type;
-+	size_t m_ts;		/* message text size */
- 	struct msg_msgseg* next;
- 	void *security;
- 	/* the actual message follows immediately */
-diff -puN ipc/msgutil.c~ipc-msg-fix-message-length-check-for-negative-values ipc/msgutil.c
---- a/ipc/msgutil.c~ipc-msg-fix-message-length-check-for-negative-values
-+++ a/ipc/msgutil.c
-@@ -41,15 +41,15 @@ struct msg_msgseg {
- 	/* the next part of the message follows immediately */
- };
+ 	/* Zero-sector (unknown) and one-sector granularities are the same.  */
+ 	granularity = max(q->limits.discard_granularity >> 9, 1U);
+-	alignment = bdev_discard_alignment(bdev) >> 9;
+-	alignment = sector_div(alignment, granularity);
++	alignment = (bdev_discard_alignment(bdev) >> 9) % granularity;
  
--#define DATALEN_MSG	(int)(PAGE_SIZE-sizeof(struct msg_msg))
--#define DATALEN_SEG	(int)(PAGE_SIZE-sizeof(struct msg_msgseg))
-+#define DATALEN_MSG	(PAGE_SIZE-sizeof(struct msg_msg))
-+#define DATALEN_SEG	(PAGE_SIZE-sizeof(struct msg_msgseg))
- 
- 
--static struct msg_msg *alloc_msg(int len)
-+static struct msg_msg *alloc_msg(size_t len)
- {
- 	struct msg_msg *msg;
- 	struct msg_msgseg **pseg;
--	int alen;
-+	size_t alen;
- 
- 	alen = min(len, DATALEN_MSG);
- 	msg = kmalloc(sizeof(*msg) + alen, GFP_KERNEL);
-@@ -80,12 +80,12 @@ out_err:
- 	return NULL;
- }
- 
--struct msg_msg *load_msg(const void __user *src, int len)
-+struct msg_msg *load_msg(const void __user *src, size_t len)
- {
- 	struct msg_msg *msg;
- 	struct msg_msgseg *seg;
- 	int err = -EFAULT;
--	int alen;
-+	size_t alen;
- 
- 	msg = alloc_msg(len);
- 	if (msg == NULL)
-@@ -117,8 +117,8 @@ out_err:
- struct msg_msg *copy_msg(struct msg_msg *src, struct msg_msg *dst)
- {
- 	struct msg_msgseg *dst_pseg, *src_pseg;
--	int len = src->m_ts;
--	int alen;
-+	size_t len = src->m_ts;
-+	size_t alen;
- 
- 	BUG_ON(dst == NULL);
- 	if (src->m_ts > dst->m_ts)
-@@ -147,9 +147,9 @@ struct msg_msg *copy_msg(struct msg_msg
- 	return ERR_PTR(-ENOSYS);
- }
- #endif
--int store_msg(void __user *dest, struct msg_msg *msg, int len)
-+int store_msg(void __user *dest, struct msg_msg *msg, size_t len)
- {
--	int alen;
-+	size_t alen;
- 	struct msg_msgseg *seg;
- 
- 	alen = min(len, DATALEN_MSG);
-diff -puN ipc/util.h~ipc-msg-fix-message-length-check-for-negative-values ipc/util.h
---- a/ipc/util.h~ipc-msg-fix-message-length-check-for-negative-values
-+++ a/ipc/util.h
-@@ -148,9 +148,9 @@ int ipc_parse_version (int *cmd);
- #endif
- 
- extern void free_msg(struct msg_msg *msg);
--extern struct msg_msg *load_msg(const void __user *src, int len);
-+extern struct msg_msg *load_msg(const void __user *src, size_t len);
- extern struct msg_msg *copy_msg(struct msg_msg *src, struct msg_msg *dst);
--extern int store_msg(void __user *dest, struct msg_msg *msg, int len);
-+extern int store_msg(void __user *dest, struct msg_msg *msg, size_t len);
- 
- extern void recompute_msgmni(struct ipc_namespace *);
- 
+ 	/*
+ 	 * Ensure that max_discard_sectors is of the proper
+ 	 * granularity, so that requests stay aligned after a split.
+ 	 */
+ 	max_discard_sectors = min(q->limits.max_discard_sectors, UINT_MAX >> 9);
+-	sector_div(max_discard_sectors, granularity);
+-	max_discard_sectors *= granularity;
++	max_discard_sectors -= max_discard_sectors % granularity;
+ 	if (unlikely(!max_discard_sectors)) {
+ 		/* Avoid infinite loop below. Being cautious never hurts. */
+ 		return -EOPNOTSUPP;
 _
 
-Patches currently in -mm which might be from minipli@googlemail.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-origin.patch
-ipc-msg-fix-message-length-check-for-negative-values.patch
-ipc-msg-forbid-negative-values-for-msgmaxmnbmni.patch
+genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
+block-do-not-call-sector_div-with-a-64-bit-divisor.patch
+syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
+scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
+kernel-sysc-remove-obsolete-include-linux-kexech.patch
+inith-document-the-existence-of-__initconst.patch
+init-make-init-failures-more-explicit.patch
 linux-next.patch
+x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
+m68k-handle-pgtable_page_ctor-fail.patch
+m68k-handle-pgtable_page_ctor-fail-fix.patch
+m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
 
