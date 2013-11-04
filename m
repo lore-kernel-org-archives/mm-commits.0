@@ -1,120 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + input-route-kbd-leds-through-the-generic-leds-layer-fix-3.patch added to -mm tree
-Date: Mon, 04 Nov 2013 12:21:44 -0800
-Message-ID: <527801d8.L0z2wjsjJ2TS8kbr%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ input-route-kbd-leds-through-the-generic-leds-layer-fix-fix.patch removed
+ from -mm tree
+Date: Mon, 04 Nov 2013 12:20:53 -0800
+Message-ID: <527801a5.T+jePSqRJEnaPYLj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47323 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47266 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754244Ab3KDUVp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 15:21:45 -0500
+	with ESMTP id S1751842Ab3KDUUz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 15:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, samuel.thibault@ens-lyon.org
+To: mm-commits@vger.kernel.org, samuel.thibault@ens-lyon.org, ralf@linux-mips.org, dmitry.torokhov@gmail.com, blogic@openwrt.org, akpm@linux-foundation.org
 
-Subject: + input-route-kbd-leds-through-the-generic-leds-layer-fix-3.patch added to -mm tree
-To: samuel.thibault@ens-lyon.org
+Subject: [to-be-updated] input-route-kbd-leds-through-the-generic-leds-layer-fix-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,blogic@openwrt.org,dmitry.torokhov@gmail.com,ralf@linux-mips.org,samuel.thibault@ens-lyon.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 04 Nov 2013 12:21:44 -0800
+Date: Mon, 04 Nov 2013 12:20:53 -0800
 
 
 The patch titled
-     Subject: input-route-kbd-leds-through-the-generic-leds-layer-fix-3
-has been added to the -mm tree.  Its filename is
-     input-route-kbd-leds-through-the-generic-leds-layer-fix-3.patch
+     Subject: input-route-kbd-leds-through-the-generic-leds-layer-fix-fix
+has been removed from the -mm tree.  Its filename was
+     input-route-kbd-leds-through-the-generic-leds-layer-fix-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/input-route-kbd-leds-through-the-generic-leds-layer-fix-3.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/input-route-kbd-leds-through-the-generic-leds-layer-fix-3.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: input-route-kbd-leds-through-the-generic-leds-layer-fix-3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: input-route-kbd-leds-through-the-generic-leds-layer-fix-fix
 
-Link input/leds.c along input/input.c instead of separate module
+use IS_ENABLED to pick up CONFIG_INPUT_LEDS=m
 
-input.c needs to call leds.c and vice-versa, so it is simpler to stuff
-them together. INPUT_LEDS thus now depends on LEDS_CLASS being available
-enough for input.ko.
-
-This also documents the new leds field.
-
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: John Crispin <blogic@openwrt.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/Kconfig  |    4 ++--
- drivers/input/Makefile |    4 +++-
- include/linux/input.h  |    1 +
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ include/linux/input.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/Kconfig~input-route-kbd-leds-through-the-generic-leds-layer-fix-3 drivers/input/Kconfig
---- a/drivers/input/Kconfig~input-route-kbd-leds-through-the-generic-leds-layer-fix-3
-+++ a/drivers/input/Kconfig
-@@ -179,8 +179,8 @@ comment "Input Device Drivers"
- source "drivers/input/keyboard/Kconfig"
- 
- config INPUT_LEDS
--	tristate "LED Support"
--	depends on LEDS_CLASS
-+	bool "LED Support"
-+	depends on LEDS_CLASS = INPUT || LEDS_CLASS = y
- 	select LEDS_TRIGGERS
- 	default y
- 	help
-diff -puN drivers/input/Makefile~input-route-kbd-leds-through-the-generic-leds-layer-fix-3 drivers/input/Makefile
---- a/drivers/input/Makefile~input-route-kbd-leds-through-the-generic-leds-layer-fix-3
-+++ a/drivers/input/Makefile
-@@ -6,6 +6,9 @@
- 
- obj-$(CONFIG_INPUT)		+= input-core.o
- input-core-y := input.o input-compat.o input-mt.o ff-core.o
-+ifeq ($(CONFIG_INPUT_LEDS),y)
-+input-core-y += leds.o
-+endif
- 
- obj-$(CONFIG_INPUT_FF_MEMLESS)	+= ff-memless.o
- obj-$(CONFIG_INPUT_POLLDEV)	+= input-polldev.o
-@@ -16,7 +19,6 @@ obj-$(CONFIG_INPUT_MOUSEDEV)	+= mousedev
- obj-$(CONFIG_INPUT_JOYDEV)	+= joydev.o
- obj-$(CONFIG_INPUT_EVDEV)	+= evdev.o
- obj-$(CONFIG_INPUT_EVBUG)	+= evbug.o
--obj-$(CONFIG_INPUT_LEDS)	+= leds.o
- 
- obj-$(CONFIG_INPUT_KEYBOARD)	+= keyboard/
- obj-$(CONFIG_INPUT_MOUSE)	+= mouse/
-diff -puN include/linux/input.h~input-route-kbd-leds-through-the-generic-leds-layer-fix-3 include/linux/input.h
---- a/include/linux/input.h~input-route-kbd-leds-through-the-generic-leds-layer-fix-3
+diff -puN include/linux/input.h~input-route-kbd-leds-through-the-generic-leds-layer-fix-fix include/linux/input.h
+--- a/include/linux/input.h~input-route-kbd-leds-through-the-generic-leds-layer-fix-fix
 +++ a/include/linux/input.h
-@@ -79,6 +79,7 @@ struct input_value {
-  * @led: reflects current state of device's LEDs
-  * @snd: reflects current state of sound effects
-  * @sw: reflects current state of device's switches
-+ * @leds: leds objects for the device's LEDs
-  * @open: this method is called when the very first user calls
-  *	input_open_device(). The driver must prepare the device
-  *	to start generating events (start polling thread,
+@@ -533,7 +533,7 @@ int input_ff_erase(struct input_dev *dev
+ int input_ff_create_memless(struct input_dev *dev, void *data,
+ 		int (*play_effect)(struct input_dev *, void *, struct ff_effect *));
+ 
+-#ifdef CONFIG_INPUT_LEDS
++#if IS_ENABLED(CONFIG_INPUT_LEDS)
+ 
+ int input_led_connect(struct input_dev *dev);
+ void input_led_disconnect(struct input_dev *dev);
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix-3.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+checkpatch-add-test-for-defines-of-arch_has_foo.patch
+epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
+kfifo-api-type-safety-checkpatch-fixes.patch
 linux-next.patch
+linux-next-rejects.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
+net-netfilter-ipset-ip_set_hash_netnetc-fix-build-with-older-gcc.patch
+net-netfilter-ipset-ip_set_hash_netportnetc-fix-build-with-older-gccs.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
+tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
+llists-move-llist_reverse_order-from-raid5-to-llistc-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
