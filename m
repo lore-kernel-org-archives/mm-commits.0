@@ -1,86 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-msg-fix-message-length-check-for-negative-values-fix.patch added to -mm tree
-Date: Mon, 04 Nov 2013 15:06:44 -0800
-Message-ID: <20131105000511.212B431C226@corp2gmr1-1.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 05 Nov 2013 11:16:24 -0800
+Message-ID: <52794408.imNpwjVDqoo78KCH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:48953 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750719Ab3KEAbp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Nov 2013 19:31:45 -0500
-Received: by mail-ie0-f201.google.com with SMTP id u16so1604696iet.0
-        for <mm-commits@vger.kernel.org>; Mon, 04 Nov 2013 16:31:45 -0800 (PST)
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57721 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754866Ab3KETQZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 14:16:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidlohr@hp.com, manfred@colorfullife.com, minipli@googlemail.com, pageexec@freemail.hu, spender@grsecurity.net, torvalds@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+From: akpm@linux-foundation.org
+Date: Tue, 05 Nov 2013 11:16:24 -0800
 
 
 The patch titled
-     Subject: ipc-msg-fix-message-length-check-for-negative-values-fix
-has been added to the -mm tree.  Its filename is
-     ipc-msg-fix-message-length-check-for-negative-values-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-msg-fix-message-length-check-for-negative-values-fix
+Subject: linux-next-git-rejects
 
-fix i386 min() warnings
-
-ipc/msgutil.c: In function 'alloc_msg':
-ipc/msgutil.c:54: warning: comparison of distinct pointer types lacks a cast
-ipc/msgutil.c:66: warning: comparison of distinct pointer types lacks a cast
-ipc/msgutil.c: In function 'load_msg':
-ipc/msgutil.c:94: warning: comparison of distinct pointer types lacks a cast
-ipc/msgutil.c:101: warning: comparison of distinct pointer types lacks a cast
-ipc/msgutil.c: In function 'copy_msg':
-ipc/msgutil.c:127: warning: comparison of distinct pointer types lacks a cast
-ipc/msgutil.c:135: warning: comparison of distinct pointer types lacks a cast
-ipc/msgutil.c: In function 'store_msg':
-ipc/msgutil.c:155: warning: comparison of distinct pointer types lacks a cast
-ipc/msgutil.c:162: warning: comparison of distinct pointer types lacks a cast
-
-Cc: Brad Spengler <spender@grsecurity.net>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Mathias Krause <minipli@googlemail.com>
-Cc: Pax Team <pageexec@freemail.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msgutil.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/emulex/benet/be.h |    3 -
+ drivers/net/netconsole.c               |    4 --
+ net/bridge/br_private.h                |   41 -----------------------
+ 3 files changed, 48 deletions(-)
 
-diff -puN ipc/msgutil.c~ipc-msg-fix-message-length-check-for-negative-values-fix ipc/msgutil.c
---- a/ipc/msgutil.c~ipc-msg-fix-message-length-check-for-negative-values-fix
-+++ a/ipc/msgutil.c
-@@ -41,8 +41,8 @@ struct msg_msgseg {
- 	/* the next part of the message follows immediately */
- };
+diff -puN drivers/net/ethernet/emulex/benet/be.h~linux-next-git-rejects drivers/net/ethernet/emulex/benet/be.h
+--- a/drivers/net/ethernet/emulex/benet/be.h~linux-next-git-rejects
++++ a/drivers/net/ethernet/emulex/benet/be.h
+@@ -741,7 +741,6 @@ static inline int fw_major_num(const cha
+ 	return fw_major;
+ }
  
--#define DATALEN_MSG	(PAGE_SIZE-sizeof(struct msg_msg))
--#define DATALEN_SEG	(PAGE_SIZE-sizeof(struct msg_msgseg))
-+#define DATALEN_MSG	((size_t)PAGE_SIZE-sizeof(struct msg_msg))
-+#define DATALEN_SEG	((size_t)PAGE_SIZE-sizeof(struct msg_msgseg))
+-<<<<<<< HEAD
+ extern void be_cq_notify(struct be_adapter *adapter, u16 qid, bool arm,
+ 		u16 num_popped);
+ extern void be_link_status_update(struct be_adapter *adapter, u8 link_status);
+@@ -750,7 +749,6 @@ extern int be_load_fw(struct be_adapter
+ extern bool be_is_wol_supported(struct be_adapter *adapter);
+ extern bool be_pause_supported(struct be_adapter *adapter);
+ extern u32 be_get_fw_log_level(struct be_adapter *adapter);
+-=======
+ #ifdef CONFIG_NET_RX_BUSY_POLL
+ static inline bool be_lock_napi(struct be_eq_obj *eqo)
+ {
+@@ -859,7 +857,6 @@ int be_load_fw(struct be_adapter *adapte
+ bool be_is_wol_supported(struct be_adapter *adapter);
+ bool be_pause_supported(struct be_adapter *adapter);
+ u32 be_get_fw_log_level(struct be_adapter *adapter);
+->>>>>>> linux-next/akpm-base
+ int be_update_queues(struct be_adapter *adapter);
+ int be_poll(struct napi_struct *napi, int budget);
  
+diff -puN drivers/net/netconsole.c~linux-next-git-rejects drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~linux-next-git-rejects
++++ a/drivers/net/netconsole.c
+@@ -338,11 +338,7 @@ static ssize_t store_enabled(struct netc
+ 		if (err)
+ 			return err;
  
- static struct msg_msg *alloc_msg(size_t len)
+-<<<<<<< HEAD
+-		printk(KERN_INFO "netconsole: network logging started\n");
+-=======
+ 		pr_info("network logging started\n");
+->>>>>>> linux-next/akpm-base
+ 	} else {	/* 0 */
+ 		/* We need to disable the netconsole before cleaning it up
+ 		 * otherwise we might end up in write_msg() with
+diff -puN net/bridge/br_private.h~linux-next-git-rejects net/bridge/br_private.h
+--- a/net/bridge/br_private.h~linux-next-git-rejects
++++ a/net/bridge/br_private.h
+@@ -434,46 +434,6 @@ int br_ioctl_deviceless_stub(struct net
+ /* br_multicast.c */
+ #ifdef CONFIG_BRIDGE_IGMP_SNOOPING
+ extern unsigned int br_mdb_rehash_seq;
+-<<<<<<< HEAD
+-extern int br_multicast_rcv(struct net_bridge *br,
+-			    struct net_bridge_port *port,
+-			    struct sk_buff *skb,
+-			    u16 vid);
+-extern struct net_bridge_mdb_entry *br_mdb_get(struct net_bridge *br,
+-					       struct sk_buff *skb, u16 vid);
+-extern void br_multicast_add_port(struct net_bridge_port *port);
+-extern void br_multicast_del_port(struct net_bridge_port *port);
+-extern void br_multicast_enable_port(struct net_bridge_port *port);
+-extern void br_multicast_disable_port(struct net_bridge_port *port);
+-extern void br_multicast_init(struct net_bridge *br);
+-extern void br_multicast_open(struct net_bridge *br);
+-extern void br_multicast_stop(struct net_bridge *br);
+-extern void br_multicast_deliver(struct net_bridge_mdb_entry *mdst,
+-				 struct sk_buff *skb);
+-extern void br_multicast_forward(struct net_bridge_mdb_entry *mdst,
+-				 struct sk_buff *skb, struct sk_buff *skb2);
+-extern int br_multicast_set_router(struct net_bridge *br, unsigned long val);
+-extern int br_multicast_set_port_router(struct net_bridge_port *p,
+-					unsigned long val);
+-extern int br_multicast_toggle(struct net_bridge *br, unsigned long val);
+-extern int br_multicast_set_querier(struct net_bridge *br, unsigned long val);
+-extern int br_multicast_set_hash_max(struct net_bridge *br, unsigned long val);
+-extern struct net_bridge_mdb_entry *br_mdb_ip_get(
+-				struct net_bridge_mdb_htable *mdb,
+-				struct br_ip *dst);
+-extern struct net_bridge_mdb_entry *br_multicast_new_group(struct net_bridge *br,
+-				struct net_bridge_port *port, struct br_ip *group);
+-extern void br_multicast_free_pg(struct rcu_head *head);
+-extern struct net_bridge_port_group *br_multicast_new_port_group(
+-				struct net_bridge_port *port,
+-				struct br_ip *group,
+-				struct net_bridge_port_group __rcu *next,
+-				unsigned char state);
+-extern void br_mdb_init(void);
+-extern void br_mdb_uninit(void);
+-extern void br_mdb_notify(struct net_device *dev, struct net_bridge_port *port,
+-			  struct br_ip *group, int type);
+-=======
+ int br_multicast_rcv(struct net_bridge *br, struct net_bridge_port *port,
+ 		     struct sk_buff *skb, u16 vid);
+ struct net_bridge_mdb_entry *br_mdb_get(struct net_bridge *br,
+@@ -508,7 +468,6 @@ void br_mdb_init(void);
+ void br_mdb_uninit(void);
+ void br_mdb_notify(struct net_device *dev, struct net_bridge_port *port,
+ 		   struct br_ip *group, int type);
+->>>>>>> linux-next/akpm-base
+ 
+ #define mlock_dereference(X, br) \
+ 	rcu_dereference_protected(X, lockdep_is_held(&br->multicast_lock))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+linux-next.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
@@ -103,8 +167,6 @@ kernel-modulec-use-pr_foo.patch
 kernel-gcov-fsc-use-pr_warn.patch
 kfifo-api-type-safety-checkpatch-fixes.patch
 ipc-msg-fix-message-length-check-for-negative-values-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
 linux-next-rejects.patch
 x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
 net-netfilter-ipset-ip_set_hash_netnetc-fix-build-with-older-gcc.patch
