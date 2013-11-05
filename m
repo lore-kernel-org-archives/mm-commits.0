@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + pktcdvd-debugfs-functions-return-null-on-error.patch added to
- -mm tree
-Date: Tue, 05 Nov 2013 15:41:59 -0800
-Message-ID: <52798247.ihEFCRZ1PcCCdlsB%akpm@linux-foundation.org>
+Subject: + mm-factor-commit-limit-calculation.patch added to -mm tree
+Date: Tue, 05 Nov 2013 15:53:32 -0800
+Message-ID: <527984fc.DuH4qQZZrFpCVH68%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59412 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59512 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755713Ab3KEXmA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 18:42:00 -0500
+	with ESMTP id S1755894Ab3KEXxd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 18:53:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, petero2@telia.com, jkosina@suse.cz, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, dave.hansen@linux.intel.com, jmarchan@redhat.com
 
-Subject: + pktcdvd-debugfs-functions-return-null-on-error.patch added to -mm tree
-To: dan.carpenter@oracle.com,jkosina@suse.cz,petero2@telia.com
+Subject: + mm-factor-commit-limit-calculation.patch added to -mm tree
+To: jmarchan@redhat.com,dave.hansen@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 05 Nov 2013 15:41:59 -0800
+Date: Tue, 05 Nov 2013 15:53:32 -0800
 
 
 The patch titled
-     Subject: pktcdvd: debugfs functions return NULL on error
+     Subject: mm: factor commit limit calculation
 has been added to the -mm tree.  Its filename is
-     pktcdvd-debugfs-functions-return-null-on-error.patch
+     mm-factor-commit-limit-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pktcdvd-debugfs-functions-return-null-on-error.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-factor-commit-limit-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pktcdvd-debugfs-functions-return-null-on-error.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-factor-commit-limit-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,92 +43,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: pktcdvd: debugfs functions return NULL on error
+From: Jerome Marchand <jmarchan@redhat.com>
+Subject: mm: factor commit limit calculation
 
-My static checker complains correctly that this is potential NULL
-dereference because debugfs functions return NULL on error.  They return
-an ERR_PTR if they are configured out.
+The same calculation is currently done in three differents places.
+Factor that code so future changes has to be made at only one place.
 
-We don't need to check for ERR_PTR because if debugfs is stubbed out the
-dummy functions won't complain about that.  We don't need to check the
-values before calling debugfs_remove() because that accepts ERR_PTRs and
-NULL pointers.
-
-We don't need to set pkt->dfs_f_info to NULL in pkt_debugfs_dev_new()
-because it was initialized with kzalloc() so I have removed that.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Peter Osterlund <petero2@telia.com>
+Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/pktcdvd.c |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ fs/proc/meminfo.c    |    5 +----
+ include/linux/mman.h |   12 ++++++++++++
+ mm/mmap.c            |    4 +---
+ mm/nommu.c           |    3 +--
+ 4 files changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN drivers/block/pktcdvd.c~pktcdvd-debugfs-functions-return-null-on-error drivers/block/pktcdvd.c
---- a/drivers/block/pktcdvd.c~pktcdvd-debugfs-functions-return-null-on-error
-+++ a/drivers/block/pktcdvd.c
-@@ -473,45 +473,31 @@ static void pkt_debugfs_dev_new(struct p
+diff -puN fs/proc/meminfo.c~mm-factor-commit-limit-calculation fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-factor-commit-limit-calculation
++++ a/fs/proc/meminfo.c
+@@ -24,7 +24,6 @@ static int meminfo_proc_show(struct seq_
  {
- 	if (!pkt_debugfs_root)
- 		return;
--	pd->dfs_f_info = NULL;
- 	pd->dfs_d_root = debugfs_create_dir(pd->name, pkt_debugfs_root);
--	if (IS_ERR(pd->dfs_d_root)) {
--		pd->dfs_d_root = NULL;
-+	if (!pd->dfs_d_root)
- 		return;
--	}
+ 	struct sysinfo i;
+ 	unsigned long committed;
+-	unsigned long allowed;
+ 	struct vmalloc_info vmi;
+ 	long cached;
+ 	unsigned long pages[NR_LRU_LISTS];
+@@ -37,8 +36,6 @@ static int meminfo_proc_show(struct seq_
+ 	si_meminfo(&i);
+ 	si_swapinfo(&i);
+ 	committed = percpu_counter_read_positive(&vm_committed_as);
+-	allowed = ((totalram_pages - hugetlb_total_pages())
+-		* sysctl_overcommit_ratio / 100) + total_swap_pages;
+ 
+ 	cached = global_page_state(NR_FILE_PAGES) -
+ 			total_swapcache_pages() - i.bufferram;
+@@ -147,7 +144,7 @@ static int meminfo_proc_show(struct seq_
+ 		K(global_page_state(NR_UNSTABLE_NFS)),
+ 		K(global_page_state(NR_BOUNCE)),
+ 		K(global_page_state(NR_WRITEBACK_TEMP)),
+-		K(allowed),
++		K(vm_commit_limit()),
+ 		K(committed),
+ 		(unsigned long)VMALLOC_TOTAL >> 10,
+ 		vmi.used >> 10,
+diff -puN include/linux/mman.h~mm-factor-commit-limit-calculation include/linux/mman.h
+--- a/include/linux/mman.h~mm-factor-commit-limit-calculation
++++ a/include/linux/mman.h
+@@ -7,6 +7,9 @@
+ #include <linux/atomic.h>
+ #include <uapi/linux/mman.h>
+ 
++#include <linux/hugetlb.h>
++#include <linux/swap.h>
 +
- 	pd->dfs_f_info = debugfs_create_file("info", S_IRUGO,
- 				pd->dfs_d_root, pd, &debug_fops);
--	if (IS_ERR(pd->dfs_f_info)) {
--		pd->dfs_f_info = NULL;
--		return;
--	}
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+ extern struct percpu_counter vm_committed_as;
+@@ -87,4 +90,13 @@ calc_vm_flag_bits(unsigned long flags)
+ 	       _calc_vm_trans(flags, MAP_DENYWRITE,  VM_DENYWRITE ) |
+ 	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    );
  }
++
++/*
++ * Commited memory limit enforced when OVERCOMMIT_NEVER policy is used
++ */
++static inline unsigned long vm_commit_limit()
++{
++	return ((totalram_pages - hugetlb_total_pages())
++		* sysctl_overcommit_ratio / 100) + total_swap_pages;
++}
+ #endif /* _LINUX_MMAN_H */
+diff -puN mm/mmap.c~mm-factor-commit-limit-calculation mm/mmap.c
+--- a/mm/mmap.c~mm-factor-commit-limit-calculation
++++ a/mm/mmap.c
+@@ -179,14 +179,12 @@ int __vm_enough_memory(struct mm_struct
+ 		goto error;
+ 	}
  
- static void pkt_debugfs_dev_remove(struct pktcdvd_device *pd)
- {
- 	if (!pkt_debugfs_root)
- 		return;
--	if (pd->dfs_f_info)
--		debugfs_remove(pd->dfs_f_info);
-+	debugfs_remove(pd->dfs_f_info);
-+	debugfs_remove(pd->dfs_d_root);
- 	pd->dfs_f_info = NULL;
--	if (pd->dfs_d_root)
--		debugfs_remove(pd->dfs_d_root);
- 	pd->dfs_d_root = NULL;
- }
+-	allowed = (totalram_pages - hugetlb_total_pages())
+-	       	* sysctl_overcommit_ratio / 100;
++	allowed = vm_commit_limit();
+ 	/*
+ 	 * Reserve some for root
+ 	 */
+ 	if (!cap_sys_admin)
+ 		allowed -= sysctl_admin_reserve_kbytes >> (PAGE_SHIFT - 10);
+-	allowed += total_swap_pages;
  
- static void pkt_debugfs_init(void)
- {
- 	pkt_debugfs_root = debugfs_create_dir(DRIVER_NAME, NULL);
--	if (IS_ERR(pkt_debugfs_root)) {
--		pkt_debugfs_root = NULL;
--		return;
--	}
- }
+ 	/*
+ 	 * Don't let a single process grow so big a user can't recover
+diff -puN mm/nommu.c~mm-factor-commit-limit-calculation mm/nommu.c
+--- a/mm/nommu.c~mm-factor-commit-limit-calculation
++++ a/mm/nommu.c
+@@ -1948,13 +1948,12 @@ int __vm_enough_memory(struct mm_struct
+ 		goto error;
+ 	}
  
- static void pkt_debugfs_cleanup(void)
- {
--	if (!pkt_debugfs_root)
--		return;
- 	debugfs_remove(pkt_debugfs_root);
- 	pkt_debugfs_root = NULL;
- }
+-	allowed = totalram_pages * sysctl_overcommit_ratio / 100;
++	allowed = vm_commit_limit();
+ 	/*
+ 	 * Reserve some 3% for root
+ 	 */
+ 	if (!cap_sys_admin)
+ 		allowed -= sysctl_admin_reserve_kbytes >> (PAGE_SHIFT - 10);
+-	allowed += total_swap_pages;
+ 
+ 	/*
+ 	 * Don't let a single process grow so big a user can't recover
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from jmarchan@redhat.com are
 
-ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch
-drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
-xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
-backlight-lm3630-signedness-bug-in-lm3630a_chip_init.patch
-backlight-lm3630-potential-null-deref-in-probe.patch
-pktcdvd-debugfs-functions-return-null-on-error.patch
+mm-compactionc-update-comment-about-zone-lock-in-isolate_freepages_block.patch
+mm-factor-commit-limit-calculation.patch
+mm-factor-commit-limit-calculation-fix.patch
 linux-next.patch
 
