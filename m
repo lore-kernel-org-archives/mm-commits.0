@@ -1,188 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 05 Nov 2013 11:16:24 -0800
-Message-ID: <52794408.imNpwjVDqoo78KCH%akpm@linux-foundation.org>
+Subject: [wrecked] fs-bio-integrityc-remove-duplicate-code.patch removed
+ from -mm tree
+Date: Tue, 05 Nov 2013 11:24:31 -0800
+Message-ID: <527945ef.5W/HxrStFxvypnrA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57721 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57759 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754866Ab3KETQZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 14:16:25 -0500
+	with ESMTP id S1755388Ab3KETYc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 14:24:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, martin.petersen@oracle.com, axboe@kernel.dk, guz.fnst@cn.fujitsu.com
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [wrecked] fs-bio-integrityc-remove-duplicate-code.patch removed from -mm tree
+To: guz.fnst@cn.fujitsu.com,axboe@kernel.dk,martin.petersen@oracle.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 05 Nov 2013 11:16:24 -0800
+Date: Tue, 05 Nov 2013 11:24:31 -0800
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: fs/bio-integrity.c: remove duplicated code
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     fs-bio-integrityc-remove-duplicate-code.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: fs/bio-integrity.c: remove duplicated code
 
+Most code of function bio_integrity_verify and bio_integrity_generate is
+the same, so introduce a common function bio_integrity_generate_verify()
+to remove the reduplicate code.
+
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/emulex/benet/be.h |    3 -
- drivers/net/netconsole.c               |    4 --
- net/bridge/br_private.h                |   41 -----------------------
- 3 files changed, 48 deletions(-)
+ fs/bio-integrity.c |   86 +++++++++++++++++++------------------------
+ 1 file changed, 38 insertions(+), 48 deletions(-)
 
-diff -puN drivers/net/ethernet/emulex/benet/be.h~linux-next-git-rejects drivers/net/ethernet/emulex/benet/be.h
---- a/drivers/net/ethernet/emulex/benet/be.h~linux-next-git-rejects
-+++ a/drivers/net/ethernet/emulex/benet/be.h
-@@ -741,7 +741,6 @@ static inline int fw_major_num(const cha
- 	return fw_major;
+diff -puN fs/bio-integrity.c~fs-bio-integrityc-remove-duplicate-code fs/bio-integrity.c
+--- a/fs/bio-integrity.c~fs-bio-integrityc-remove-duplicate-code
++++ a/fs/bio-integrity.c
+@@ -287,24 +287,25 @@ int bio_integrity_get_tag(struct bio *bi
+ EXPORT_SYMBOL(bio_integrity_get_tag);
+ 
+ /**
+- * bio_integrity_generate - Generate integrity metadata for a bio
+- * @bio:	bio to generate integrity metadata for
+- *
+- * Description: Generates integrity metadata for a bio by calling the
+- * block device's generation callback function.  The bio must have a
+- * bip attached with enough room to accommodate the generated
+- * integrity metadata.
++ * bio_integrity_generate_verify - Generate/verify integrity metadata for a bio
++ * @bio:	bio to generate/verify integrity metadata for
++ * @operate:	operate number, 1 for generate, 0 for verify
+  */
+-static void bio_integrity_generate(struct bio *bio)
++static int bio_integrity_generate_verify(struct bio *bio, int operate)
+ {
+ 	struct blk_integrity *bi = bdev_get_integrity(bio->bi_bdev);
+ 	struct blk_integrity_exchg bix;
+ 	struct bio_vec *bv;
+-	sector_t sector = bio->bi_sector;
+-	unsigned int i, sectors, total;
++	sector_t sector;
++	unsigned int i, sectors, total, ret;
+ 	void *prot_buf = bio->bi_integrity->bip_buf;
+ 
+-	total = 0;
++	if (operate)
++		sector = bio->bi_sector;
++	else
++		sector = bio->bi_integrity->bip_sector;
++
++	ret = total = 0;
+ 	bix.disk_name = bio->bi_bdev->bd_disk->disk_name;
+ 	bix.sector_size = bi->sector_size;
+ 
+@@ -314,8 +315,15 @@ static void bio_integrity_generate(struc
+ 		bix.data_size = bv->bv_len;
+ 		bix.prot_buf = prot_buf;
+ 		bix.sector = sector;
+-
+-		bi->generate_fn(&bix);
++		if (operate) {
++			bi->generate_fn(&bix);
++		} else {
++			ret = bi->verify_fn(&bix);
++			if (ret) {
++				kunmap_atomic(kaddr);
++				return ret;
++			}
++		}
+ 
+ 		sectors = bv->bv_len / bi->sector_size;
+ 		sector += sectors;
+@@ -325,6 +333,22 @@ static void bio_integrity_generate(struc
+ 
+ 		kunmap_atomic(kaddr);
+ 	}
++
++	return ret;
++}
++
++/**
++ * bio_integrity_generate - Generate integrity metadata for a bio
++ * @bio:	bio to generate integrity metadata for
++ *
++ * Description: Generates integrity metadata for a bio by calling the
++ * block device's generation callback function.  The bio must have a
++ * bip attached with enough room to accommodate the generated
++ * integrity metadata.
++ */
++static void bio_integrity_generate(struct bio *bio)
++{
++	bio_integrity_generate_verify(bio, 1);
  }
  
--<<<<<<< HEAD
- extern void be_cq_notify(struct be_adapter *adapter, u16 qid, bool arm,
- 		u16 num_popped);
- extern void be_link_status_update(struct be_adapter *adapter, u8 link_status);
-@@ -750,7 +749,6 @@ extern int be_load_fw(struct be_adapter
- extern bool be_is_wol_supported(struct be_adapter *adapter);
- extern bool be_pause_supported(struct be_adapter *adapter);
- extern u32 be_get_fw_log_level(struct be_adapter *adapter);
--=======
- #ifdef CONFIG_NET_RX_BUSY_POLL
- static inline bool be_lock_napi(struct be_eq_obj *eqo)
+ static inline unsigned short blk_integrity_tuple_size(struct blk_integrity *bi)
+@@ -439,41 +463,7 @@ EXPORT_SYMBOL(bio_integrity_prep);
+  */
+ static int bio_integrity_verify(struct bio *bio)
  {
-@@ -859,7 +857,6 @@ int be_load_fw(struct be_adapter *adapte
- bool be_is_wol_supported(struct be_adapter *adapter);
- bool be_pause_supported(struct be_adapter *adapter);
- u32 be_get_fw_log_level(struct be_adapter *adapter);
-->>>>>>> linux-next/akpm-base
- int be_update_queues(struct be_adapter *adapter);
- int be_poll(struct napi_struct *napi, int budget);
- 
-diff -puN drivers/net/netconsole.c~linux-next-git-rejects drivers/net/netconsole.c
---- a/drivers/net/netconsole.c~linux-next-git-rejects
-+++ a/drivers/net/netconsole.c
-@@ -338,11 +338,7 @@ static ssize_t store_enabled(struct netc
- 		if (err)
- 			return err;
- 
--<<<<<<< HEAD
--		printk(KERN_INFO "netconsole: network logging started\n");
--=======
- 		pr_info("network logging started\n");
-->>>>>>> linux-next/akpm-base
- 	} else {	/* 0 */
- 		/* We need to disable the netconsole before cleaning it up
- 		 * otherwise we might end up in write_msg() with
-diff -puN net/bridge/br_private.h~linux-next-git-rejects net/bridge/br_private.h
---- a/net/bridge/br_private.h~linux-next-git-rejects
-+++ a/net/bridge/br_private.h
-@@ -434,46 +434,6 @@ int br_ioctl_deviceless_stub(struct net
- /* br_multicast.c */
- #ifdef CONFIG_BRIDGE_IGMP_SNOOPING
- extern unsigned int br_mdb_rehash_seq;
--<<<<<<< HEAD
--extern int br_multicast_rcv(struct net_bridge *br,
--			    struct net_bridge_port *port,
--			    struct sk_buff *skb,
--			    u16 vid);
--extern struct net_bridge_mdb_entry *br_mdb_get(struct net_bridge *br,
--					       struct sk_buff *skb, u16 vid);
--extern void br_multicast_add_port(struct net_bridge_port *port);
--extern void br_multicast_del_port(struct net_bridge_port *port);
--extern void br_multicast_enable_port(struct net_bridge_port *port);
--extern void br_multicast_disable_port(struct net_bridge_port *port);
--extern void br_multicast_init(struct net_bridge *br);
--extern void br_multicast_open(struct net_bridge *br);
--extern void br_multicast_stop(struct net_bridge *br);
--extern void br_multicast_deliver(struct net_bridge_mdb_entry *mdst,
--				 struct sk_buff *skb);
--extern void br_multicast_forward(struct net_bridge_mdb_entry *mdst,
--				 struct sk_buff *skb, struct sk_buff *skb2);
--extern int br_multicast_set_router(struct net_bridge *br, unsigned long val);
--extern int br_multicast_set_port_router(struct net_bridge_port *p,
--					unsigned long val);
--extern int br_multicast_toggle(struct net_bridge *br, unsigned long val);
--extern int br_multicast_set_querier(struct net_bridge *br, unsigned long val);
--extern int br_multicast_set_hash_max(struct net_bridge *br, unsigned long val);
--extern struct net_bridge_mdb_entry *br_mdb_ip_get(
--				struct net_bridge_mdb_htable *mdb,
--				struct br_ip *dst);
--extern struct net_bridge_mdb_entry *br_multicast_new_group(struct net_bridge *br,
--				struct net_bridge_port *port, struct br_ip *group);
--extern void br_multicast_free_pg(struct rcu_head *head);
--extern struct net_bridge_port_group *br_multicast_new_port_group(
--				struct net_bridge_port *port,
--				struct br_ip *group,
--				struct net_bridge_port_group __rcu *next,
--				unsigned char state);
--extern void br_mdb_init(void);
--extern void br_mdb_uninit(void);
--extern void br_mdb_notify(struct net_device *dev, struct net_bridge_port *port,
--			  struct br_ip *group, int type);
--=======
- int br_multicast_rcv(struct net_bridge *br, struct net_bridge_port *port,
- 		     struct sk_buff *skb, u16 vid);
- struct net_bridge_mdb_entry *br_mdb_get(struct net_bridge *br,
-@@ -508,7 +468,6 @@ void br_mdb_init(void);
- void br_mdb_uninit(void);
- void br_mdb_notify(struct net_device *dev, struct net_bridge_port *port,
- 		   struct br_ip *group, int type);
-->>>>>>> linux-next/akpm-base
- 
- #define mlock_dereference(X, br) \
- 	rcu_dereference_protected(X, lockdep_is_held(&br->multicast_lock))
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-kfifo-api-type-safety-checkpatch-fixes.patch
-ipc-msg-fix-message-length-check-for-negative-values-fix.patch
-linux-next-rejects.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
-net-netfilter-ipset-ip_set_hash_netnetc-fix-build-with-older-gcc.patch
-net-netfilter-ipset-ip_set_hash_netportnetc-fix-build-with-older-gccs.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
-tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
-kernel-provide-a-__smp_call_function_single-stub-for-config_smp-fix.patch
-llists-move-llist_reverse_order-from-raid5-to-llistc-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+-	struct blk_integrity *bi = bdev_get_integrity(bio->bi_bdev);
+-	struct blk_integrity_exchg bix;
+-	struct bio_vec *bv;
+-	sector_t sector = bio->bi_integrity->bip_sector;
+-	unsigned int i, sectors, total, ret;
+-	void *prot_buf = bio->bi_integrity->bip_buf;
+-
+-	ret = total = 0;
+-	bix.disk_name = bio->bi_bdev->bd_disk->disk_name;
+-	bix.sector_size = bi->sector_size;
+-
+-	bio_for_each_segment(bv, bio, i) {
+-		void *kaddr = kmap_atomic(bv->bv_page);
+-		bix.data_buf = kaddr + bv->bv_offset;
+-		bix.data_size = bv->bv_len;
+-		bix.prot_buf = prot_buf;
+-		bix.sector = sector;
+-
+-		ret = bi->verify_fn(&bix);
+-
+-		if (ret) {
+-			kunmap_atomic(kaddr);
+-			return ret;
+-		}
+-
+-		sectors = bv->bv_len / bi->sector_size;
+-		sector += sectors;
+-		prot_buf += sectors * bi->tuple_size;
+-		total += sectors * bi->tuple_size;
+-		BUG_ON(total > bio->bi_integrity->bip_size);
+-
+-		kunmap_atomic(kaddr);
+-	}
