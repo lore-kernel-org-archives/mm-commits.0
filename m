@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-underflow-bug-in-xfs_attrlist_by_handle.patch added to -mm
- tree
-Date: Tue, 05 Nov 2013 13:51:23 -0800
-Message-ID: <5279685b.Tlp5tKE9gGNyDvDu%akpm@linux-foundation.org>
+Subject: + update-zwane-mwaikambos-e-mail-address.patch added to -mm tree
+Date: Tue, 05 Nov 2013 14:20:02 -0800
+Message-ID: <52796f12.WLWcbS4mO88rmecu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58611 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58841 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755515Ab3KEVvY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 16:51:24 -0500
+	with ESMTP id S1755827Ab3KEWUI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 17:20:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, nico@ngolde.de, fabs@goesec.de, elder@kernel.org, dchinner@redhat.com, bpm@sgi.com, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, zwanem@gmail.com, rmk+kernel@arm.linux.org.uk, jdelvare@suse.de
 
-Subject: + xfs-underflow-bug-in-xfs_attrlist_by_handle.patch added to -mm tree
-To: dan.carpenter@oracle.com,bpm@sgi.com,dchinner@redhat.com,elder@kernel.org,fabs@goesec.de,nico@ngolde.de
+Subject: + update-zwane-mwaikambos-e-mail-address.patch added to -mm tree
+To: jdelvare@suse.de,rmk+kernel@arm.linux.org.uk,zwanem@gmail.com
 From: akpm@linux-foundation.org
-Date: Tue, 05 Nov 2013 13:51:23 -0800
+Date: Tue, 05 Nov 2013 14:20:02 -0800
 
 
 The patch titled
-     Subject: xfs: underflow bug in xfs_attrlist_by_handle()
+     Subject: Update Zwane Mwaikambo's e-mail address
 has been added to the -mm tree.  Its filename is
-     xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
+     update-zwane-mwaikambos-e-mail-address.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/update-zwane-mwaikambos-e-mail-address.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/update-zwane-mwaikambos-e-mail-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,61 +43,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: xfs: underflow bug in xfs_attrlist_by_handle()
+From: Jean Delvare <jdelvare@suse.de>
+Subject: Update Zwane Mwaikambo's e-mail address
 
-If we allocate less than sizeof(struct attrlist) then we end up corrupting
-memory or doing a ZERO_PTR_SIZE dereference.
+Zwane Mwaikambo's @arm.linux.org.uk address no longer works.  In February
+2013 he asked for his gmail address to be used instead [1] so let's just
+do that.
 
-This can only be triggered with CAP_SYS_ADMIN.
+[1] http://marc.info/?l=linux-kernel&m=136079068903214&w=2
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reported-by: Nico Golde <nico@ngolde.de>
-Reported-by: Fabian Yamaguchi <fabs@goesec.de>
-Cc: Ben Myers <bpm@sgi.com>
-Cc: Alex Elder <elder@kernel.org>
-Reviewed-by: Dave Chinner <dchinner@redhat.com>
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Zwane Mwaikambo <zwanem@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_ioctl.c   |    3 ++-
- fs/xfs/xfs_ioctl32.c |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ CREDITS                       |    2 +-
+ Documentation/cpu-hotplug.txt |    2 +-
+ MAINTAINERS                   |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/xfs/xfs_ioctl.c~xfs-underflow-bug-in-xfs_attrlist_by_handle fs/xfs/xfs_ioctl.c
---- a/fs/xfs/xfs_ioctl.c~xfs-underflow-bug-in-xfs_attrlist_by_handle
-+++ a/fs/xfs/xfs_ioctl.c
-@@ -442,7 +442,8 @@ xfs_attrlist_by_handle(
- 		return -XFS_ERROR(EPERM);
- 	if (copy_from_user(&al_hreq, arg, sizeof(xfs_fsop_attrlist_handlereq_t)))
- 		return -XFS_ERROR(EFAULT);
--	if (al_hreq.buflen > XATTR_LIST_MAX)
-+	if (al_hreq.buflen < sizeof(struct attrlist) ||
-+	    al_hreq.buflen > XATTR_LIST_MAX)
- 		return -XFS_ERROR(EINVAL);
+diff -puN CREDITS~update-zwane-mwaikambos-e-mail-address CREDITS
+--- a/CREDITS~update-zwane-mwaikambos-e-mail-address
++++ a/CREDITS
+@@ -2576,7 +2576,7 @@ S: Toronto, Ontario
+ S: Canada
  
- 	/*
-diff -puN fs/xfs/xfs_ioctl32.c~xfs-underflow-bug-in-xfs_attrlist_by_handle fs/xfs/xfs_ioctl32.c
---- a/fs/xfs/xfs_ioctl32.c~xfs-underflow-bug-in-xfs_attrlist_by_handle
-+++ a/fs/xfs/xfs_ioctl32.c
-@@ -356,7 +356,8 @@ xfs_compat_attrlist_by_handle(
- 	if (copy_from_user(&al_hreq, arg,
- 			   sizeof(compat_xfs_fsop_attrlist_handlereq_t)))
- 		return -XFS_ERROR(EFAULT);
--	if (al_hreq.buflen > XATTR_LIST_MAX)
-+	if (al_hreq.buflen < sizeof(struct attrlist) ||
-+	    al_hreq.buflen > XATTR_LIST_MAX)
- 		return -XFS_ERROR(EINVAL);
+ N: Zwane Mwaikambo
+-E: zwane@arm.linux.org.uk
++E: zwanem@gmail.com
+ D: Various driver hacking
+ D: Lowlevel x86 kernel hacking
+ D: General debugging
+diff -puN Documentation/cpu-hotplug.txt~update-zwane-mwaikambos-e-mail-address Documentation/cpu-hotplug.txt
+--- a/Documentation/cpu-hotplug.txt~update-zwane-mwaikambos-e-mail-address
++++ a/Documentation/cpu-hotplug.txt
+@@ -5,7 +5,7 @@
+ 			Rusty Russell <rusty@rustcorp.com.au>
+ 			Srivatsa Vaddagiri <vatsa@in.ibm.com>
+ 		i386:
+-			Zwane Mwaikambo <zwane@arm.linux.org.uk>
++			Zwane Mwaikambo <zwanem@gmail.com>
+ 		ppc64:
+ 			Nathan Lynch <nathanl@austin.ibm.com>
+ 			Joel Schopp <jschopp@austin.ibm.com>
+diff -puN MAINTAINERS~update-zwane-mwaikambos-e-mail-address MAINTAINERS
+--- a/MAINTAINERS~update-zwane-mwaikambos-e-mail-address
++++ a/MAINTAINERS
+@@ -7360,7 +7360,7 @@ S:	Odd Fixes
+ F:	drivers/media/usb/tlg2300/
  
- 	/*
+ SC1200 WDT DRIVER
+-M:	Zwane Mwaikambo <zwane@arm.linux.org.uk>
++M:	Zwane Mwaikambo <zwanem@gmail.com>
+ S:	Maintained
+ F:	drivers/watchdog/sc1200wdt.c
+ 
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
-ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch
-drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
-backlight-lm3630-signedness-bug-in-lm3630a_chip_init.patch
-backlight-lm3630-potential-null-deref-in-probe.patch
 linux-next.patch
-xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
+update-zwane-mwaikambos-e-mail-address.patch
 
