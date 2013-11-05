@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + configfs-fix-race-between-dentry-put-and-lookup.patch added to
- -mm tree
-Date: Tue, 05 Nov 2013 12:47:55 -0800
-Message-ID: <5279597b.V8NIUHpNFpVrAHmA%akpm@linux-foundation.org>
+Subject: +
+ drivers-memstick-core-ms_blockc-fix-unreachable-state-in-h_msb_read_page.patch added to -mm tree
+Date: Tue, 05 Nov 2013 13:08:39 -0800
+Message-ID: <52795e57.0iYC+32oiLTzLeT4%akpm__21375.1962794506$1383685736$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58365 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58387 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754728Ab3KEUr4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 15:47:56 -0500
+	with ESMTP id S1754726Ab3KEVIk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 16:08:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, jlbec@evilplan.org, junxiao.bi@oracle.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, maximlevitsky@gmail.com, rogerable@realtek.com
 
-Subject: + configfs-fix-race-between-dentry-put-and-lookup.patch added to -mm tree
-To: junxiao.bi@oracle.com,jlbec@evilplan.org,stable@vger.kernel.org,viro@zeniv.linux.org.uk
+Subject: + drivers-memstick-core-ms_blockc-fix-unreachable-state-in-h_msb_read_page.patch added to -mm tree
+To: rogerable@realtek.com,maximlevitsky@gmail.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 05 Nov 2013 12:47:55 -0800
+Date: Tue, 05 Nov 2013 13:08:39 -0800
 
 
 The patch titled
-     Subject: configfs: fix race between dentry put and lookup
+     Subject: drivers/memstick/core/ms_block.c: fix unreachable state in h_msb_read_page()
 has been added to the -mm tree.  Its filename is
-     configfs-fix-race-between-dentry-put-and-lookup.patch
+     drivers-memstick-core-ms_blockc-fix-unreachable-state-in-h_msb_read_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/configfs-fix-race-between-dentry-put-and-lookup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-memstick-core-ms_blockc-fix-unreachable-state-in-h_msb_read_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/configfs-fix-race-between-dentry-put-and-lookup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-memstick-core-ms_blockc-fix-unreachable-state-in-h_msb_read_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,98 +44,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: configfs: fix race between dentry put and lookup
+From: Roger Tseng <rogerable@realtek.com>
+Subject: drivers/memstick/core/ms_block.c: fix unreachable state in h_msb_read_page()
 
-A race window in configfs, it starts from one dentry is UNHASHED and end
-before configfs_d_iput is called.  In this window, if a lookup happen,
-since the original dentry was UNHASHED, so a new dentry will be allocated,
-and then in configfs_attach_attr(), sd->s_dentry will be updated to the
-new dentry.  Then in configfs_d_iput(), BUG_ON(sd->s_dentry != dentry)
-will be triggered and system panic.
+In h_msb_read_page() in ms_block.c, flow never reaches case
+MSB_RP_RECIVE_STATUS_REG.  This causes error when MEMSTICK_INT_ERR is
+encountered and status error bits are going to be examined, but the status
+will never be copied back.
 
-sys_open:                                             sys_close:
- ...                                                   fput
-                                                        dput
-                                                         dentry_kill
-                                                          __d_drop <--- dentry unhashed here,
-                                                                   but sd->dentry still point
-                                                                   to this dentry.
- lookup_real
-  configfs_lookup
-   configfs_attach_attr---> update sd->s_dentry
-                            to new allocated dentry here.
-                                                          d_kill
-                                                           configfs_d_iput <--- BUG_ON(sd->s_dentry != dentry)
-                                                                           triggered here.
+Fix it by transitioning to MSB_RP_RECIVE_STATUS_REG right after
+MSB_RP_SEND_READ_STATUS_REG.
 
-To fix it, change configfs_d_iput to not update sd->s_dentry if
-sd->s_count > 2, that means there are another dentry is using the sd
-beside the one that is going to be put.  Use configfs_dirent_lock in
-configfs_attach_attr to sync with configfs_d_iput.
-
-With the following steps, you can reproduce the bug.
-
-1. enable ocfs2, this will mount configfs at /sys/kernel/config and
-   fill configure in it.
-
-2. run the following script.
-	while [ 1 ]; do cat /sys/kernel/config/cluster/$your_cluster_name/idle_timeout_ms > /dev/null; done &
-	while [ 1 ]; do cat /sys/kernel/config/cluster/$your_cluster_name/idle_timeout_ms > /dev/null; done &
-
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Roger Tseng <rogerable@realtek.com>
+Acked-by: Maxim Levitsky <maximlevitsky@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/dir.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ drivers/memstick/core/ms_block.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/configfs/dir.c~configfs-fix-race-between-dentry-put-and-lookup fs/configfs/dir.c
---- a/fs/configfs/dir.c~configfs-fix-race-between-dentry-put-and-lookup
-+++ a/fs/configfs/dir.c
-@@ -56,10 +56,19 @@ static void configfs_d_iput(struct dentr
- 	struct configfs_dirent *sd = dentry->d_fsdata;
+diff -puN drivers/memstick/core/ms_block.c~drivers-memstick-core-ms_blockc-fix-unreachable-state-in-h_msb_read_page drivers/memstick/core/ms_block.c
+--- a/drivers/memstick/core/ms_block.c~drivers-memstick-core-ms_blockc-fix-unreachable-state-in-h_msb_read_page
++++ a/drivers/memstick/core/ms_block.c
+@@ -401,7 +401,7 @@ again:
+ 			sizeof(struct ms_status_register)))
+ 			return 0;
  
- 	if (sd) {
--		BUG_ON(sd->s_dentry != dentry);
- 		/* Coordinate with configfs_readdir */
- 		spin_lock(&configfs_dirent_lock);
--		sd->s_dentry = NULL;
-+		/* Coordinate with configfs_attach_attr where will increase
-+		 * sd->s_count and update sd->s_dentry to new allocated one.
-+		 * Only set sd->dentry to null when this dentry is the only
-+		 * sd owner.
-+		 * If not do so, configfs_d_iput may run just after
-+		 * configfs_attach_attr and set sd->s_dentry to null
-+		 * even it's still in use.
-+		 */
-+		if (atomic_read(&sd->s_count) <= 2)
-+			sd->s_dentry = NULL;
-+
- 		spin_unlock(&configfs_dirent_lock);
- 		configfs_put(sd);
- 	}
-@@ -426,8 +435,11 @@ static int configfs_attach_attr(struct c
- 	struct configfs_attribute * attr = sd->s_element;
- 	int error;
+-		msb->state = MSB_RP_RECEIVE_OOB_READ;
++		msb->state = MSB_RP_RECIVE_STATUS_REG;
+ 		return 0;
  
-+	spin_lock(&configfs_dirent_lock);
- 	dentry->d_fsdata = configfs_get(sd);
- 	sd->s_dentry = dentry;
-+	spin_unlock(&configfs_dirent_lock);
-+
- 	error = configfs_create(dentry, (attr->ca_mode & S_IALLUGO) | S_IFREG,
- 				configfs_init_file);
- 	if (error) {
+ 	case MSB_RP_RECIVE_STATUS_REG:
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from rogerable@realtek.com are
 
-configfs-fix-race-between-dentry-put-and-lookup.patch
-fs-ocfs2-filec-fix-wrong-comment.patch
-ocfs2-break-useless-while-loop.patch
-ocfs2-update-inode-size-after-zeronig-the-hole.patch
+drivers-memstick-core-ms_blockc-fix-unreachable-state-in-h_msb_read_page.patch
 
