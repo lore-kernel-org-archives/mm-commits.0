@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + update-zwane-mwaikambos-e-mail-address.patch added to -mm tree
-Date: Tue, 05 Nov 2013 14:20:02 -0800
-Message-ID: <52796f12.WLWcbS4mO88rmecu%akpm@linux-foundation.org>
+Subject: + kprobes-use-ksym_name_len-to-size-identifier-buffers.patch
+ added to -mm tree
+Date: Tue, 05 Nov 2013 14:34:22 -0800
+Message-ID: <5279726e.OiQHW5g7UgcAcUyE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58841 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58862 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755827Ab3KEWUI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 17:20:08 -0500
+	with ESMTP id S1755722Ab3KEWeX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 17:34:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zwanem@gmail.com, rmk+kernel@arm.linux.org.uk, jdelvare@suse.de
+To: mm-commits@vger.kernel.org, ananth@in.ibm.com, ak@linux.intel.com, jmario@redhat.com
 
-Subject: + update-zwane-mwaikambos-e-mail-address.patch added to -mm tree
-To: jdelvare@suse.de,rmk+kernel@arm.linux.org.uk,zwanem@gmail.com
+Subject: + kprobes-use-ksym_name_len-to-size-identifier-buffers.patch added to -mm tree
+To: jmario@redhat.com,ak@linux.intel.com,ananth@in.ibm.com
 From: akpm@linux-foundation.org
-Date: Tue, 05 Nov 2013 14:20:02 -0800
+Date: Tue, 05 Nov 2013 14:34:22 -0800
 
 
 The patch titled
-     Subject: Update Zwane Mwaikambo's e-mail address
+     Subject: kprobes: use KSYM_NAME_LEN to size identifier buffers
 has been added to the -mm tree.  Its filename is
-     update-zwane-mwaikambos-e-mail-address.patch
+     kprobes-use-ksym_name_len-to-size-identifier-buffers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/update-zwane-mwaikambos-e-mail-address.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kprobes-use-ksym_name_len-to-size-identifier-buffers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/update-zwane-mwaikambos-e-mail-address.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kprobes-use-ksym_name_len-to-size-identifier-buffers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,66 +44,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jean Delvare <jdelvare@suse.de>
-Subject: Update Zwane Mwaikambo's e-mail address
+From: Joe Mario <jmario@redhat.com>
+Subject: kprobes: use KSYM_NAME_LEN to size identifier buffers
 
-Zwane Mwaikambo's @arm.linux.org.uk address no longer works.  In February
-2013 he asked for his gmail address to be used instead [1] so let's just
-do that.
+Use KSYM_NAME_LEN to size identifier buffers, so that it can be easier
+increased.
 
-[1] http://marc.info/?l=linux-kernel&m=136079068903214&w=2
-
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Zwane Mwaikambo <zwanem@gmail.com>
+Signed-off-by: Joe Mario <jmario@redhat.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS                       |    2 +-
- Documentation/cpu-hotplug.txt |    2 +-
- MAINTAINERS                   |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/kprobes.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN CREDITS~update-zwane-mwaikambos-e-mail-address CREDITS
---- a/CREDITS~update-zwane-mwaikambos-e-mail-address
-+++ a/CREDITS
-@@ -2576,7 +2576,7 @@ S: Toronto, Ontario
- S: Canada
+diff -puN kernel/kprobes.c~kprobes-use-ksym_name_len-to-size-identifier-buffers kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-use-ksym_name_len-to-size-identifier-buffers
++++ a/kernel/kprobes.c
+@@ -2066,7 +2066,7 @@ static int __init init_kprobes(void)
+ {
+ 	int i, err = 0;
+ 	unsigned long offset = 0, size = 0;
+-	char *modname, namebuf[128];
++	char *modname, namebuf[KSYM_NAME_LEN];
+ 	const char *symbol_name;
+ 	void *addr;
+ 	struct kprobe_blackpoint *kb;
+@@ -2192,7 +2192,7 @@ static int __kprobes show_kprobe_addr(st
+ 	const char *sym = NULL;
+ 	unsigned int i = *(loff_t *) v;
+ 	unsigned long offset = 0;
+-	char *modname, namebuf[128];
++	char *modname, namebuf[KSYM_NAME_LEN];
  
- N: Zwane Mwaikambo
--E: zwane@arm.linux.org.uk
-+E: zwanem@gmail.com
- D: Various driver hacking
- D: Lowlevel x86 kernel hacking
- D: General debugging
-diff -puN Documentation/cpu-hotplug.txt~update-zwane-mwaikambos-e-mail-address Documentation/cpu-hotplug.txt
---- a/Documentation/cpu-hotplug.txt~update-zwane-mwaikambos-e-mail-address
-+++ a/Documentation/cpu-hotplug.txt
-@@ -5,7 +5,7 @@
- 			Rusty Russell <rusty@rustcorp.com.au>
- 			Srivatsa Vaddagiri <vatsa@in.ibm.com>
- 		i386:
--			Zwane Mwaikambo <zwane@arm.linux.org.uk>
-+			Zwane Mwaikambo <zwanem@gmail.com>
- 		ppc64:
- 			Nathan Lynch <nathanl@austin.ibm.com>
- 			Joel Schopp <jschopp@austin.ibm.com>
-diff -puN MAINTAINERS~update-zwane-mwaikambos-e-mail-address MAINTAINERS
---- a/MAINTAINERS~update-zwane-mwaikambos-e-mail-address
-+++ a/MAINTAINERS
-@@ -7360,7 +7360,7 @@ S:	Odd Fixes
- F:	drivers/media/usb/tlg2300/
- 
- SC1200 WDT DRIVER
--M:	Zwane Mwaikambo <zwane@arm.linux.org.uk>
-+M:	Zwane Mwaikambo <zwanem@gmail.com>
- S:	Maintained
- F:	drivers/watchdog/sc1200wdt.c
- 
+ 	head = &kprobe_table[i];
+ 	preempt_disable();
 _
 
-Patches currently in -mm which might be from jdelvare@suse.de are
+Patches currently in -mm which might be from jmario@redhat.com are
 
+kprobes-use-ksym_name_len-to-size-identifier-buffers.patch
 linux-next.patch
-update-zwane-mwaikambos-e-mail-address.patch
 
