@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hfs-btreeh-remove-duplicate-defines.patch added to -mm tree
-Date: Tue, 05 Nov 2013 15:38:21 -0800
-Message-ID: <5279816d.a3XHZz/t3yiXXDnH%akpm@linux-foundation.org>
+Subject: + pktcdvd-debugfs-functions-return-null-on-error.patch added to
+ -mm tree
+Date: Tue, 05 Nov 2013 15:41:59 -0800
+Message-ID: <52798247.ihEFCRZ1PcCCdlsB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59403 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59412 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755980Ab3KEXiW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 18:38:22 -0500
+	with ESMTP id S1755713Ab3KEXmA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 18:42:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, slava@dubeyko.com, hch@lst.de, michael.opdenacker@free-electrons.com
+To: mm-commits@vger.kernel.org, petero2@telia.com, jkosina@suse.cz, dan.carpenter@oracle.com
 
-Subject: + fs-hfs-btreeh-remove-duplicate-defines.patch added to -mm tree
-To: michael.opdenacker@free-electrons.com,hch@lst.de,slava@dubeyko.com
+Subject: + pktcdvd-debugfs-functions-return-null-on-error.patch added to -mm tree
+To: dan.carpenter@oracle.com,jkosina@suse.cz,petero2@telia.com
 From: akpm@linux-foundation.org
-Date: Tue, 05 Nov 2013 15:38:21 -0800
+Date: Tue, 05 Nov 2013 15:41:59 -0800
 
 
 The patch titled
-     Subject: fs/hfs/btree.h: remove duplicate defines
+     Subject: pktcdvd: debugfs functions return NULL on error
 has been added to the -mm tree.  Its filename is
-     fs-hfs-btreeh-remove-duplicate-defines.patch
+     pktcdvd-debugfs-functions-return-null-on-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-hfs-btreeh-remove-duplicate-defines.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pktcdvd-debugfs-functions-return-null-on-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hfs-btreeh-remove-duplicate-defines.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pktcdvd-debugfs-functions-return-null-on-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,28 +44,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: fs/hfs/btree.h: remove duplicate defines
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: pktcdvd: debugfs functions return NULL on error
 
-This patch removes duplicate defines from fs/hfs/btree.h
+My static checker complains correctly that this is potential NULL
+dereference because debugfs functions return NULL on error.  They return
+an ERR_PTR if they are configured out.
 
-Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Reviewed-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Christoph Hellwig <hch@lst.de>
+We don't need to check for ERR_PTR because if debugfs is stubbed out the
+dummy functions won't complain about that.  We don't need to check the
+values before calling debugfs_remove() because that accepts ERR_PTRs and
+NULL pointers.
+
+We don't need to set pkt->dfs_f_info to NULL in pkt_debugfs_dev_new()
+because it was initialized with kzalloc() so I have removed that.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Peter Osterlund <petero2@telia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/btree.h |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/block/pktcdvd.c |   22 ++++------------------
+ 1 file changed, 4 insertions(+), 18 deletions(-)
 
-diff -puN fs/hfs/btree.h~fs-hfs-btreeh-remove-duplicate-defines fs/hfs/btree.h
---- a/fs/hfs/btree.h~fs-hfs-btreeh-remove-duplicate-defines
-+++ a/fs/hfs/btree.h
-@@ -153,11 +153,6 @@ struct hfs_btree_header_rec {
- 	u32 reserved3[16];
- } __packed;
+diff -puN drivers/block/pktcdvd.c~pktcdvd-debugfs-functions-return-null-on-error drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-debugfs-functions-return-null-on-error
++++ a/drivers/block/pktcdvd.c
+@@ -473,45 +473,31 @@ static void pkt_debugfs_dev_new(struct p
+ {
+ 	if (!pkt_debugfs_root)
+ 		return;
+-	pd->dfs_f_info = NULL;
+ 	pd->dfs_d_root = debugfs_create_dir(pd->name, pkt_debugfs_root);
+-	if (IS_ERR(pd->dfs_d_root)) {
+-		pd->dfs_d_root = NULL;
++	if (!pd->dfs_d_root)
+ 		return;
+-	}
++
+ 	pd->dfs_f_info = debugfs_create_file("info", S_IRUGO,
+ 				pd->dfs_d_root, pd, &debug_fops);
+-	if (IS_ERR(pd->dfs_f_info)) {
+-		pd->dfs_f_info = NULL;
+-		return;
+-	}
+ }
  
--#define HFS_NODE_INDEX	0x00	/* An internal (index) node */
--#define HFS_NODE_HEADER	0x01	/* The tree header node (node 0) */
--#define HFS_NODE_MAP		0x02	/* Holds part of the bitmap of used nodes */
--#define HFS_NODE_LEAF		0xFF	/* A leaf (ndNHeight==1) node */
+ static void pkt_debugfs_dev_remove(struct pktcdvd_device *pd)
+ {
+ 	if (!pkt_debugfs_root)
+ 		return;
+-	if (pd->dfs_f_info)
+-		debugfs_remove(pd->dfs_f_info);
++	debugfs_remove(pd->dfs_f_info);
++	debugfs_remove(pd->dfs_d_root);
+ 	pd->dfs_f_info = NULL;
+-	if (pd->dfs_d_root)
+-		debugfs_remove(pd->dfs_d_root);
+ 	pd->dfs_d_root = NULL;
+ }
+ 
+ static void pkt_debugfs_init(void)
+ {
+ 	pkt_debugfs_root = debugfs_create_dir(DRIVER_NAME, NULL);
+-	if (IS_ERR(pkt_debugfs_root)) {
+-		pkt_debugfs_root = NULL;
+-		return;
+-	}
+ }
+ 
+ static void pkt_debugfs_cleanup(void)
+ {
+-	if (!pkt_debugfs_root)
+-		return;
+ 	debugfs_remove(pkt_debugfs_root);
+ 	pkt_debugfs_root = NULL;
+ }
+_
+
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
+
+ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch
+drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
+xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
+backlight-lm3630-signedness-bug-in-lm3630a_chip_init.patch
+backlight-lm3630-potential-null-deref-in-probe.patch
+pktcdvd-debugfs-functions-return-null-on-error.patch
+linux-next.patch
+
