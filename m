@@ -1,108 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-do-not-call-sector_div-with-a-64-bit-divisor.patch removed from -mm tree
-Date: Tue, 05 Nov 2013 11:29:05 -0800
-Message-ID: <52794701.Yg9ztNXnrMDQdcAD%akpm@linux-foundation.org>
+Subject: + configfs-fix-race-between-dentry-put-and-lookup.patch added to
+ -mm tree
+Date: Tue, 05 Nov 2013 12:47:55 -0800
+Message-ID: <5279597b.V8NIUHpNFpVrAHmA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57771 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58365 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752140Ab3KET3G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 14:29:06 -0500
+	with ESMTP id S1754728Ab3KEUr4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 15:47:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, axboe@kernel.dk, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, jlbec@evilplan.org, junxiao.bi@oracle.com
 
-Subject: [merged] block-do-not-call-sector_div-with-a-64-bit-divisor.patch removed from -mm tree
-To: geert@linux-m68k.org,axboe@kernel.dk,mm-commits@vger.kernel.org
+Subject: + configfs-fix-race-between-dentry-put-and-lookup.patch added to -mm tree
+To: junxiao.bi@oracle.com,jlbec@evilplan.org,stable@vger.kernel.org,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 05 Nov 2013 11:29:05 -0800
+Date: Tue, 05 Nov 2013 12:47:55 -0800
 
 
 The patch titled
-     Subject: block: do not call sector_div() with a 64-bit divisor
-has been removed from the -mm tree.  Its filename was
-     block-do-not-call-sector_div-with-a-64-bit-divisor.patch
+     Subject: configfs: fix race between dentry put and lookup
+has been added to the -mm tree.  Its filename is
+     configfs-fix-race-between-dentry-put-and-lookup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/configfs-fix-race-between-dentry-put-and-lookup.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/configfs-fix-race-between-dentry-put-and-lookup.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: block: do not call sector_div() with a 64-bit divisor
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: configfs: fix race between dentry put and lookup
 
-do_div() (called by sector_div() if CONFIG_LBDAF=y) is meant for divisions
-of 64-bit number by 32-bit numbers.  Passing 64-bit divisor types caused
-issues in the past on 32-bit platforms, cfr.  commit ea077b1b96e073ea
-("m68k: Truncate base in do_div()").
+A race window in configfs, it starts from one dentry is UNHASHED and end
+before configfs_d_iput is called.  In this window, if a lookup happen,
+since the original dentry was UNHASHED, so a new dentry will be allocated,
+and then in configfs_attach_attr(), sd->s_dentry will be updated to the
+new dentry.  Then in configfs_d_iput(), BUG_ON(sd->s_dentry != dentry)
+will be triggered and system panic.
 
-As queue_limits.max_discard_sectors and .discard_granularity are unsigned
-int, max_discard_sectors and granularity should be unsigned int.  As
-bdev_discard_alignment() returns int, alignment should be int.  Now 2
-calls to sector_div() can be replaced by 32-bit arithmetic:
+sys_open:                                             sys_close:
+ ...                                                   fput
+                                                        dput
+                                                         dentry_kill
+                                                          __d_drop <--- dentry unhashed here,
+                                                                   but sd->dentry still point
+                                                                   to this dentry.
+ lookup_real
+  configfs_lookup
+   configfs_attach_attr---> update sd->s_dentry
+                            to new allocated dentry here.
+                                                          d_kill
+                                                           configfs_d_iput <--- BUG_ON(sd->s_dentry != dentry)
+                                                                           triggered here.
 
-  - The 64-bit modulo operation can become a 32-bit modulo operation,
-  - The 64-bit division and multiplication can be replaced by a 32-bit
-    modulo operation and a subtraction.
+To fix it, change configfs_d_iput to not update sd->s_dentry if
+sd->s_count > 2, that means there are another dentry is using the sd
+beside the one that is going to be put.  Use configfs_dirent_lock in
+configfs_attach_attr to sync with configfs_d_iput.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+With the following steps, you can reproduce the bug.
+
+1. enable ocfs2, this will mount configfs at /sys/kernel/config and
+   fill configure in it.
+
+2. run the following script.
+	while [ 1 ]; do cat /sys/kernel/config/cluster/$your_cluster_name/idle_timeout_ms > /dev/null; done &
+	while [ 1 ]; do cat /sys/kernel/config/cluster/$your_cluster_name/idle_timeout_ms > /dev/null; done &
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-lib.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ fs/configfs/dir.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN block/blk-lib.c~block-do-not-call-sector_div-with-a-64-bit-divisor block/blk-lib.c
---- a/block/blk-lib.c~block-do-not-call-sector_div-with-a-64-bit-divisor
-+++ a/block/blk-lib.c
-@@ -43,8 +43,8 @@ int blkdev_issue_discard(struct block_de
- 	DECLARE_COMPLETION_ONSTACK(wait);
- 	struct request_queue *q = bdev_get_queue(bdev);
- 	int type = REQ_WRITE | REQ_DISCARD;
--	sector_t max_discard_sectors;
--	sector_t granularity, alignment;
-+	unsigned int max_discard_sectors, granularity;
-+	int alignment;
- 	struct bio_batch bb;
- 	struct bio *bio;
- 	int ret = 0;
-@@ -58,16 +58,14 @@ int blkdev_issue_discard(struct block_de
+diff -puN fs/configfs/dir.c~configfs-fix-race-between-dentry-put-and-lookup fs/configfs/dir.c
+--- a/fs/configfs/dir.c~configfs-fix-race-between-dentry-put-and-lookup
++++ a/fs/configfs/dir.c
+@@ -56,10 +56,19 @@ static void configfs_d_iput(struct dentr
+ 	struct configfs_dirent *sd = dentry->d_fsdata;
  
- 	/* Zero-sector (unknown) and one-sector granularities are the same.  */
- 	granularity = max(q->limits.discard_granularity >> 9, 1U);
--	alignment = bdev_discard_alignment(bdev) >> 9;
--	alignment = sector_div(alignment, granularity);
-+	alignment = (bdev_discard_alignment(bdev) >> 9) % granularity;
+ 	if (sd) {
+-		BUG_ON(sd->s_dentry != dentry);
+ 		/* Coordinate with configfs_readdir */
+ 		spin_lock(&configfs_dirent_lock);
+-		sd->s_dentry = NULL;
++		/* Coordinate with configfs_attach_attr where will increase
++		 * sd->s_count and update sd->s_dentry to new allocated one.
++		 * Only set sd->dentry to null when this dentry is the only
++		 * sd owner.
++		 * If not do so, configfs_d_iput may run just after
++		 * configfs_attach_attr and set sd->s_dentry to null
++		 * even it's still in use.
++		 */
++		if (atomic_read(&sd->s_count) <= 2)
++			sd->s_dentry = NULL;
++
+ 		spin_unlock(&configfs_dirent_lock);
+ 		configfs_put(sd);
+ 	}
+@@ -426,8 +435,11 @@ static int configfs_attach_attr(struct c
+ 	struct configfs_attribute * attr = sd->s_element;
+ 	int error;
  
- 	/*
- 	 * Ensure that max_discard_sectors is of the proper
- 	 * granularity, so that requests stay aligned after a split.
- 	 */
- 	max_discard_sectors = min(q->limits.max_discard_sectors, UINT_MAX >> 9);
--	sector_div(max_discard_sectors, granularity);
--	max_discard_sectors *= granularity;
-+	max_discard_sectors -= max_discard_sectors % granularity;
- 	if (unlikely(!max_discard_sectors)) {
- 		/* Avoid infinite loop below. Being cautious never hurts. */
- 		return -EOPNOTSUPP;
++	spin_lock(&configfs_dirent_lock);
+ 	dentry->d_fsdata = configfs_get(sd);
+ 	sd->s_dentry = dentry;
++	spin_unlock(&configfs_dirent_lock);
++
+ 	error = configfs_create(dentry, (attr->ca_mode & S_IALLUGO) | S_IFREG,
+ 				configfs_init_file);
+ 	if (error) {
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-linux-next.patch
-genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
-scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
-syscallsh-use-gcc-alias-instead-of-assembler-aliases-for-syscalls.patch
-scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
-kernel-sysc-remove-obsolete-include-linux-kexech.patch
-init-mainc-remove-prototype-for-softirq_init.patch
-inith-document-the-existence-of-__initconst.patch
-init-make-init-failures-more-explicit.patch
-x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
-m68k-handle-pgtable_page_ctor-fail.patch
-m68k-handle-pgtable_page_ctor-fail-fix.patch
-m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
+configfs-fix-race-between-dentry-put-and-lookup.patch
+fs-ocfs2-filec-fix-wrong-comment.patch
+ocfs2-break-useless-while-loop.patch
+ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
