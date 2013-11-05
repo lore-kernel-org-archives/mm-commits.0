@@ -1,167 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] fs-bio-integrityc-remove-duplicate-code.patch removed
- from -mm tree
-Date: Tue, 05 Nov 2013 11:24:31 -0800
-Message-ID: <527945ef.5W/HxrStFxvypnrA%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-block-ccissc-return-0-from-driver-probe-function-on-success-not-1.patch removed from -mm tree
+Date: Tue, 05 Nov 2013 11:29:03 -0800
+Message-ID: <527946ff.OaFZmLYt5N/rASz7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57759 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57768 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755388Ab3KETYc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 14:24:32 -0500
+	with ESMTP id S1752140Ab3KET3E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 14:29:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, martin.petersen@oracle.com, axboe@kernel.dk, guz.fnst@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, axboe@kernel.dk, scameron@beardog.cce.hp.com
 
-Subject: [wrecked] fs-bio-integrityc-remove-duplicate-code.patch removed from -mm tree
-To: guz.fnst@cn.fujitsu.com,axboe@kernel.dk,martin.petersen@oracle.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] drivers-block-ccissc-return-0-from-driver-probe-function-on-success-not-1.patch removed from -mm tree
+To: scameron@beardog.cce.hp.com,axboe@kernel.dk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 05 Nov 2013 11:24:31 -0800
+Date: Tue, 05 Nov 2013 11:29:03 -0800
 
 
 The patch titled
-     Subject: fs/bio-integrity.c: remove duplicated code
+     Subject: drivers/block/cciss.c: return 0 from driver probe function on success, not 1
 has been removed from the -mm tree.  Its filename was
-     fs-bio-integrityc-remove-duplicate-code.patch
+     drivers-block-ccissc-return-0-from-driver-probe-function-on-success-not-1.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: fs/bio-integrity.c: remove duplicated code
+From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Subject: drivers/block/cciss.c: return 0 from driver probe function on success, not 1
 
-Most code of function bio_integrity_verify and bio_integrity_generate is
-the same, so introduce a common function bio_integrity_generate_verify()
-to remove the reduplicate code.
+A return value of 1 is interpreted as an error.
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio-integrity.c |   86 +++++++++++++++++++------------------------
- 1 file changed, 38 insertions(+), 48 deletions(-)
+ drivers/block/cciss.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/bio-integrity.c~fs-bio-integrityc-remove-duplicate-code fs/bio-integrity.c
---- a/fs/bio-integrity.c~fs-bio-integrityc-remove-duplicate-code
-+++ a/fs/bio-integrity.c
-@@ -287,24 +287,25 @@ int bio_integrity_get_tag(struct bio *bi
- EXPORT_SYMBOL(bio_integrity_get_tag);
+diff -puN drivers/block/cciss.c~drivers-block-ccissc-return-0-from-driver-probe-function-on-success-not-1 drivers/block/cciss.c
+--- a/drivers/block/cciss.c~drivers-block-ccissc-return-0-from-driver-probe-function-on-success-not-1
++++ a/drivers/block/cciss.c
+@@ -5183,7 +5183,7 @@ reinit_after_soft_reset:
+ 	rebuild_lun_table(h, 1, 0);
+ 	cciss_engage_scsi(h);
+ 	h->busy_initializing = 0;
+-	return 1;
++	return 0;
  
- /**
-- * bio_integrity_generate - Generate integrity metadata for a bio
-- * @bio:	bio to generate integrity metadata for
-- *
-- * Description: Generates integrity metadata for a bio by calling the
-- * block device's generation callback function.  The bio must have a
-- * bip attached with enough room to accommodate the generated
-- * integrity metadata.
-+ * bio_integrity_generate_verify - Generate/verify integrity metadata for a bio
-+ * @bio:	bio to generate/verify integrity metadata for
-+ * @operate:	operate number, 1 for generate, 0 for verify
-  */
--static void bio_integrity_generate(struct bio *bio)
-+static int bio_integrity_generate_verify(struct bio *bio, int operate)
- {
- 	struct blk_integrity *bi = bdev_get_integrity(bio->bi_bdev);
- 	struct blk_integrity_exchg bix;
- 	struct bio_vec *bv;
--	sector_t sector = bio->bi_sector;
--	unsigned int i, sectors, total;
-+	sector_t sector;
-+	unsigned int i, sectors, total, ret;
- 	void *prot_buf = bio->bi_integrity->bip_buf;
- 
--	total = 0;
-+	if (operate)
-+		sector = bio->bi_sector;
-+	else
-+		sector = bio->bi_integrity->bip_sector;
-+
-+	ret = total = 0;
- 	bix.disk_name = bio->bi_bdev->bd_disk->disk_name;
- 	bix.sector_size = bi->sector_size;
- 
-@@ -314,8 +315,15 @@ static void bio_integrity_generate(struc
- 		bix.data_size = bv->bv_len;
- 		bix.prot_buf = prot_buf;
- 		bix.sector = sector;
--
--		bi->generate_fn(&bix);
-+		if (operate) {
-+			bi->generate_fn(&bix);
-+		} else {
-+			ret = bi->verify_fn(&bix);
-+			if (ret) {
-+				kunmap_atomic(kaddr);
-+				return ret;
-+			}
-+		}
- 
- 		sectors = bv->bv_len / bi->sector_size;
- 		sector += sectors;
-@@ -325,6 +333,22 @@ static void bio_integrity_generate(struc
- 
- 		kunmap_atomic(kaddr);
- 	}
-+
-+	return ret;
-+}
-+
-+/**
-+ * bio_integrity_generate - Generate integrity metadata for a bio
-+ * @bio:	bio to generate integrity metadata for
-+ *
-+ * Description: Generates integrity metadata for a bio by calling the
-+ * block device's generation callback function.  The bio must have a
-+ * bip attached with enough room to accommodate the generated
-+ * integrity metadata.
-+ */
-+static void bio_integrity_generate(struct bio *bio)
-+{
-+	bio_integrity_generate_verify(bio, 1);
- }
- 
- static inline unsigned short blk_integrity_tuple_size(struct blk_integrity *bi)
-@@ -439,41 +463,7 @@ EXPORT_SYMBOL(bio_integrity_prep);
-  */
- static int bio_integrity_verify(struct bio *bio)
- {
--	struct blk_integrity *bi = bdev_get_integrity(bio->bi_bdev);
--	struct blk_integrity_exchg bix;
--	struct bio_vec *bv;
--	sector_t sector = bio->bi_integrity->bip_sector;
--	unsigned int i, sectors, total, ret;
--	void *prot_buf = bio->bi_integrity->bip_buf;
--
--	ret = total = 0;
--	bix.disk_name = bio->bi_bdev->bd_disk->disk_name;
--	bix.sector_size = bi->sector_size;
--
--	bio_for_each_segment(bv, bio, i) {
--		void *kaddr = kmap_atomic(bv->bv_page);
--		bix.data_buf = kaddr + bv->bv_offset;
--		bix.data_size = bv->bv_len;
--		bix.prot_buf = prot_buf;
--		bix.sector = sector;
--
--		ret = bi->verify_fn(&bix);
--
--		if (ret) {
--			kunmap_atomic(kaddr);
--			return ret;
--		}
--
--		sectors = bv->bv_len / bi->sector_size;
--		sector += sectors;
--		prot_buf += sectors * bi->tuple_size;
--		total += sectors * bi->tuple_size;
--		BUG_ON(total > bio->bi_integrity->bip_size);
--
--		kunmap_atomic(kaddr);
--	}
+ clean4:
+ 	cciss_free_cmd_pool(h);
+_
+
+Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+
+linux-next.patch
+drivers-pci-pci-driverc-warn-on-driver-probe-return-value-greater-than-zero.patch
+hpsa-return-0-from-driver-probe-function-on-success-not-1.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+
