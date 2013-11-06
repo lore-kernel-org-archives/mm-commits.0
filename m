@@ -1,156 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: + printk-cache-mark-printk_once-test-variable-__read_mostly.patch added to -mm tree
-Date: Tue, 05 Nov 2013 16:06:26 -0800
-Message-ID: <52798802.JwHTLyL27OeFYKt8%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ net-netfilter-ipset-ip_set_hash_netnetc-fix-build-with-older-gcc.patch
+ removed from -mm tree
+Date: Wed, 06 Nov 2013 12:27:43 -0800
+Message-ID: <527aa63f.74BqaBWNwxkkreBW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38105 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932070Ab3KFAG1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Nov 2013 19:06:27 -0500
+	with ESMTP id S1755842Ab3KFU1o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Nov 2013 15:27:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, james.hogan@imgtec.com, joe@perches.com
+To: mm-commits@vger.kernel.org, oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa, kadlec@blackhole.kfki.hu, akpm@linux-foundation.org
 
-Subject: + printk-cache-mark-printk_once-test-variable-__read_mostly.patch added to -mm tree
-To: joe@perches.com,james.hogan@imgtec.com
+Subject: [alternative-merged] net-netfilter-ipset-ip_set_hash_netnetc-fix-build-with-older-gcc.patch removed from -mm tree
+To: akpm@linux-foundation.org,kadlec@blackhole.kfki.hu,oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 05 Nov 2013 16:06:26 -0800
+Date: Wed, 06 Nov 2013 12:27:43 -0800
 
 
 The patch titled
-     Subject: printk/cache: Mark printk_once test variable __read_mostly
-has been added to the -mm tree.  Its filename is
-     printk-cache-mark-printk_once-test-variable-__read_mostly.patch
+     Subject: net/netfilter/ipset/ip_set_hash_netnet.c: fix build with older gcc
+has been removed from the -mm tree.  Its filename was
+     net-netfilter-ipset-ip_set_hash_netnetc-fix-build-with-older-gcc.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk/cache: Mark printk_once test variable __read_mostly
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: net/netfilter/ipset/ip_set_hash_netnet.c: fix build with older gcc
 
-Add #include <linux/cache.h> to define __read_mostly.
+net/netfilter/ipset/ip_set_hash_netnet.c: In function 'hash_netnet4_kadt':
+net/netfilter/ipset/ip_set_hash_netnet.c:141: error: unknown field 'cidr' specified in initializer
+net/netfilter/ipset/ip_set_hash_netnet.c:141: warning: missing braces around initializer
+net/netfilter/ipset/ip_set_hash_netnet.c:141: warning: (near initialization for 'e.<anonymous>')
 
-Convert cache.h to use uapi/linux/kernel.h instead
-of linux/kernel.h to avoid recursive #includes.
+etc.
 
-Convert the ALIGN macro to __ALIGN_KERNEL.
+gcc-4.4.4 doesn't like that anonymous union initializer and I couldnt'
+find a way of tricking it into doing the right thing, so open-code it.
 
-printk_once only sets the bool variable tested
-once so mark it __read_mostly.
-
-Neaten the alignment so it matches the rest of the
-pr_<level>_once #defines too.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: James Hogan <james.hogan@imgtec.com>
+Cc: Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cache.h  |    4 ++--
- include/linux/printk.h |   19 ++++++++++---------
- 2 files changed, 12 insertions(+), 11 deletions(-)
+ net/netfilter/ipset/ip_set_hash_netnet.c |   28 ++++++++++++---------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/cache.h~printk-cache-mark-printk_once-test-variable-__read_mostly include/linux/cache.h
---- a/include/linux/cache.h~printk-cache-mark-printk_once-test-variable-__read_mostly
-+++ a/include/linux/cache.h
-@@ -1,11 +1,11 @@
- #ifndef __LINUX_CACHE_H
- #define __LINUX_CACHE_H
+diff -puN net/netfilter/ipset/ip_set_hash_netnet.c~net-netfilter-ipset-ip_set_hash_netnetc-fix-build-with-older-gcc net/netfilter/ipset/ip_set_hash_netnet.c
+--- a/net/netfilter/ipset/ip_set_hash_netnet.c~net-netfilter-ipset-ip_set_hash_netnetc-fix-build-with-older-gcc
++++ a/net/netfilter/ipset/ip_set_hash_netnet.c
+@@ -137,12 +137,12 @@ hash_netnet4_kadt(struct ip_set *set, co
+ {
+ 	const struct hash_netnet *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netnet4_elem e = {
+-		.cidr[0] = h->nets[0].cidr[0] ? h->nets[0].cidr[0] : HOST_MASK,
+-		.cidr[1] = h->nets[0].cidr[1] ? h->nets[0].cidr[1] : HOST_MASK,
+-	};
++	struct hash_netnet4_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
  
--#include <linux/kernel.h>
-+#include <uapi/linux/kernel.h>
- #include <asm/cache.h>
++	e.cidr[0] = h->nets[0].cidr[0] ? h->nets[0].cidr[0] : HOST_MASK;
++	e.cidr[1] = h->nets[0].cidr[1] ? h->nets[0].cidr[1] : HOST_MASK;
++
+ 	if (adt == IPSET_TEST)
+ 		e.ccmp = (HOST_MASK << (sizeof(e.cidr[0]) * 8)) | HOST_MASK;
  
- #ifndef L1_CACHE_ALIGN
--#define L1_CACHE_ALIGN(x) ALIGN(x, L1_CACHE_BYTES)
-+#define L1_CACHE_ALIGN(x) __ALIGN_KERNEL(x, L1_CACHE_BYTES)
- #endif
+@@ -160,13 +160,15 @@ hash_netnet4_uadt(struct ip_set *set, st
+ {
+ 	const struct hash_netnet *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netnet4_elem e = { .cidr[0] = HOST_MASK,
+-				       .cidr[1] = HOST_MASK };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0, ip_to = 0, last;
+ 	u32 ip2 = 0, ip2_from = 0, ip2_to = 0, last2;
+ 	u8 cidr, cidr2;
+ 	int ret;
++	struct hash_netnet4_elem e = { };
++
++	e.cidr[0] = HOST_MASK;
++	e.cidr[1] = HOST_MASK;
  
- #ifndef SMP_CACHE_BYTES
-diff -puN include/linux/printk.h~printk-cache-mark-printk_once-test-variable-__read_mostly include/linux/printk.h
---- a/include/linux/printk.h~printk-cache-mark-printk_once-test-variable-__read_mostly
-+++ a/include/linux/printk.h
-@@ -5,6 +5,7 @@
- #include <linux/init.h>
- #include <linux/kern_levels.h>
- #include <linux/linkage.h>
-+#include <linux/cache.h>
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+@@ -364,12 +366,12 @@ hash_netnet6_kadt(struct ip_set *set, co
+ {
+ 	const struct hash_netnet *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netnet6_elem e = {
+-		.cidr[0] = h->nets[0].cidr[0] ? h->nets[0].cidr[0] : HOST_MASK,
+-		.cidr[1] = h->nets[0].cidr[1] ? h->nets[0].cidr[1] : HOST_MASK
+-	};
++	struct hash_netnet6_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
  
- extern const char linux_banner[];
- extern const char linux_proc_banner[];
-@@ -251,17 +252,17 @@ extern asmlinkage void dump_stack(void)
-  */
++	e.cidr[0] = h->nets[0].cidr[0] ? h->nets[0].cidr[0] : HOST_MASK;
++	e.cidr[1] = h->nets[0].cidr[1] ? h->nets[0].cidr[1] : HOST_MASK;
++
+ 	if (adt == IPSET_TEST)
+ 		e.ccmp = (HOST_MASK << (sizeof(u8)*8)) | HOST_MASK;
  
- #ifdef CONFIG_PRINTK
--#define printk_once(fmt, ...)			\
--({						\
--	static bool __print_once;		\
--						\
--	if (!__print_once) {			\
--		__print_once = true;		\
--		printk(fmt, ##__VA_ARGS__);	\
--	}					\
-+#define printk_once(fmt, ...)					\
-+({								\
-+	static bool __print_once __read_mostly;			\
-+								\
-+	if (!__print_once) {					\
-+		__print_once = true;				\
-+		printk(fmt, ##__VA_ARGS__);			\
-+	}							\
- })
- #else
--#define printk_once(fmt, ...)			\
-+#define printk_once(fmt, ...)					\
- 	no_printk(fmt, ##__VA_ARGS__)
- #endif
+@@ -386,11 +388,13 @@ hash_netnet6_uadt(struct ip_set *set, st
+ 	       enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
+ {
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netnet6_elem e = { .cidr[0] = HOST_MASK,
+-				       .cidr[1] = HOST_MASK };
++	struct hash_netnet6_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	int ret;
  
++	e.cidr[0] = HOST_MASK;
++	e.cidr[1] = HOST_MASK;
++
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
-ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
-printk-report-console-names-during-cut-over.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-vsprintf-check-real-user-group-id-for-%pk.patch
-printkc-comments-should-refer-to-proc-vmcore-instead-of-proc-vmcoreinfo.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-get_maintainerpl-incomplete-output.patch
-checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-update-seq_foo-tests.patch
-checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-checkpatch-add-rules-to-check-init-attribute-and-const-defects.patch
-checkpatch-make-the-memory-barrier-test-noisier.patch
-checkpatchpl-check-for-the-fsf-mailing-address.patch
-checkpatch-improve-return-is-not-a-function-test.patch
-checkpatch-add-check-for-sscanf-without-return-use.patch
-checkpatch-add-check-for-sscanf-without-return-use-v2.patch
-drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-pr_debug.patch
-drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch
-kernel-modulec-use-pr_foo.patch
 linux-next.patch
-seq_file-introduce-seq_setwidth-and-seq_pad.patch
-seq_file-remove-%n-usage-from-seq_file-users.patch
-vsprintf-ignore-%n-again.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+mm-factor-commit-limit-calculation-fix.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+checkpatch-add-test-for-defines-of-arch_has_foo.patch
+epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
+drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes.patch
+fs-hfs-btreeh-remove-duplicate-defines-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
+ipc-msg-fix-message-length-check-for-negative-values-fix.patch
+net-netfilter-ipset-ip_set_hash_netportnetc-fix-build-with-older-gccs.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page-fix-fix.patch
+tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
+kernel-provide-a-__smp_call_function_single-stub-for-config_smp-fix.patch
+llists-move-llist_reverse_order-from-raid5-to-llistc-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
