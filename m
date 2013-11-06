@@ -1,33 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch removed from -mm tree
-Date: Wed, 06 Nov 2013 13:36:29 -0800
-Message-ID: <527ab65d./AWfD1x+loPH1mi1%akpm@linux-foundation.org>
+Subject: +
+ mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch added to -mm tree
+Date: Wed, 06 Nov 2013 13:38:12 -0800
+Message-ID: <527ab6c4.ZsdttMytKSvNEA/X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39504 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39511 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754728Ab3KFVga (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Nov 2013 16:36:30 -0500
+	with ESMTP id S1756724Ab3KFViN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Nov 2013 16:38:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, peterz@infradead.org, kirill.shutemov@linux.intel.com
 
-Subject: [to-be-updated] mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,peterz@infradead.org,mm-commits@vger.kernel.org
+Subject: + mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,peterz@infradead.org
 From: akpm@linux-foundation.org
-Date: Wed, 06 Nov 2013 13:36:29 -0800
+Date: Wed, 06 Nov 2013 13:38:12 -0800
 
 
 The patch titled
      Subject: mm: dynamically allocate page->ptl if it cannot be embedded to struct page
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -404,5 +418,6 @@ x86-handle-pgtable_page_ctor-fail.patch
 xtensa-handle-pgtable_page_ctor-fail.patch
 iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch
 xtensa-use-buddy-allocator-for-pte-table.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
 mm-create-a-separate-slab-for-page-ptl-allocation.patch
 
