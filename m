@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kcore-add-kconfig-help-text.patch added to -mm tree
-Date: Thu, 07 Nov 2013 13:39:25 -0800
-Message-ID: <527c088d.GPNEQQ64GqLQwVxl%akpm@linux-foundation.org>
+Subject: + framework-for-version-lvb-remove-some-impossible-checks.patch
+ added to -mm tree
+Date: Thu, 07 Nov 2013 13:43:31 -0800
+Message-ID: <527c0983.Fi1lqsejBNgBr6sF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49209 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49219 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753828Ab3KGVj0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 16:39:26 -0500
+	with ESMTP id S1752009Ab3KGVnc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 16:43:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, lailavrazda1979@gmail.com, dhowells@redhat.com, rdunlap@infradead.org
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, dan.carpenter@oracle.com
 
-Subject: + kcore-add-kconfig-help-text.patch added to -mm tree
-To: rdunlap@infradead.org,dhowells@redhat.com,lailavrazda1979@gmail.com
+Subject: + framework-for-version-lvb-remove-some-impossible-checks.patch added to -mm tree
+To: dan.carpenter@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
 From: akpm@linux-foundation.org
-Date: Thu, 07 Nov 2013 13:39:25 -0800
+Date: Thu, 07 Nov 2013 13:43:31 -0800
 
 
 The patch titled
-     Subject: kcore: add Kconfig help text
+     Subject: ocfs2: remove some impossible checks
 has been added to the -mm tree.  Its filename is
-     kcore-add-kconfig-help-text.patch
+     framework-for-version-lvb-remove-some-impossible-checks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kcore-add-kconfig-help-text.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/framework-for-version-lvb-remove-some-impossible-checks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kcore-add-kconfig-help-text.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/framework-for-version-lvb-remove-some-impossible-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,48 +44,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: kcore: add Kconfig help text
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: ocfs2: remove some impossible checks
 
-Under Pseudo filesystems, /proc/kcore support has no help.
+pv_major and pv_minor are unsigned char type so these checks are just
+noise.
 
-Fixes a portion of kernel bugzilla #52671:
-  https://bugzilla.kernel.org/show_bug.cgi?id=52671
-
-Thanks for David Howells for the help text.
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: <lailavrazda1979@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/Kconfig |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/ocfs2/stack_user.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN fs/proc/Kconfig~kcore-add-kconfig-help-text fs/proc/Kconfig
---- a/fs/proc/Kconfig~kcore-add-kconfig-help-text
-+++ a/fs/proc/Kconfig
-@@ -31,6 +31,10 @@ config PROC_FS
- config PROC_KCORE
- 	bool "/proc/kcore support" if !ARM
- 	depends on PROC_FS && MMU
-+	help
-+	  Provides a virtual ELF core file of the live kernel.  This can
-+	  be read with gdb and other ELF tools.  No modifications can be
-+	  made using this mechanism.
+diff -puN fs/ocfs2/stack_user.c~framework-for-version-lvb-remove-some-impossible-checks fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~framework-for-version-lvb-remove-some-impossible-checks
++++ a/fs/ocfs2/stack_user.c
+@@ -806,11 +806,7 @@ static int lvb_to_version(char *lvb, str
+ 		&ocfs2_user_plugin.sp_max_proto;
  
- config PROC_VMCORE
- 	bool "/proc/vmcore support"
+ 	memcpy(&pv, lvb, sizeof(struct ocfs2_protocol_version));
+-	if ((pv.pv_major == LONG_MIN) || (pv.pv_major == LONG_MAX) ||
+-	    (pv.pv_major > (u8)-1) || (pv.pv_major < 1))
+-		return -ERANGE;
+-	if ((pv.pv_minor == LONG_MIN) || (pv.pv_minor == LONG_MAX) ||
+-	    (pv.pv_minor > (u8)-1) || (pv.pv_minor < 0))
++	if (pv.pv_major < 1)
+ 		return -ERANGE;
+ 	if ((pv.pv_major != max->pv_major) ||
+ 	    (pv.pv_minor > max->pv_minor))
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
-drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix.patch
-hpet-allow-user-controlled-mmap-for-user-processes.patch
-kernel-doc-improve-no-structured-comments-found-error.patch
-kcore-add-kconfig-help-text.patch
+ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch
+framework-for-version-lvb-remove-some-impossible-checks.patch
+drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
+xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
+backlight-lm3630-signedness-bug-in-lm3630a_chip_init.patch
+backlight-lm3630-potential-null-deref-in-probe.patch
+pktcdvd-debugfs-functions-return-null-on-error.patch
 linux-next.patch
-debugging-keep-track-of-page-owners-fix-2.patch
 
