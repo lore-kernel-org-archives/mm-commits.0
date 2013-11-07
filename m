@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + framework-for-version-lvb-remove-some-impossible-checks.patch
- added to -mm tree
-Date: Thu, 07 Nov 2013 13:43:31 -0800
-Message-ID: <527c0983.Fi1lqsejBNgBr6sF%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to
+ -mm tree
+Date: Thu, 07 Nov 2013 13:55:38 -0800
+Message-ID: <527c0c5a.xHSLThp3GlVy+8+w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49219 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49232 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009Ab3KGVnc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 16:43:32 -0500
+	with ESMTP id S1752690Ab3KGVzj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 16:55:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joe@perches.com
 
-Subject: + framework-for-version-lvb-remove-some-impossible-checks.patch added to -mm tree
-To: dan.carpenter@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
+Subject: + ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
+To: joe@perches.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Thu, 07 Nov 2013 13:43:31 -0800
+Date: Thu, 07 Nov 2013 13:55:38 -0800
 
 
 The patch titled
-     Subject: ocfs2: remove some impossible checks
+     Subject: ocfs2: convert use of typedef ctl_table to struct ctl_table
 has been added to the -mm tree.  Its filename is
-     framework-for-version-lvb-remove-some-impossible-checks.patch
+     ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/framework-for-version-lvb-remove-some-impossible-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/framework-for-version-lvb-remove-some-impossible-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,49 +45,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ocfs2: remove some impossible checks
+From: Joe Perches <joe@perches.com>
+Subject: ocfs2: convert use of typedef ctl_table to struct ctl_table
 
-pv_major and pv_minor are unsigned char type so these checks are just
-noise.
+This typedef is unnecessary and should just be removed.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_user.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ fs/ocfs2/stackglue.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/stack_user.c~framework-for-version-lvb-remove-some-impossible-checks fs/ocfs2/stack_user.c
---- a/fs/ocfs2/stack_user.c~framework-for-version-lvb-remove-some-impossible-checks
-+++ a/fs/ocfs2/stack_user.c
-@@ -806,11 +806,7 @@ static int lvb_to_version(char *lvb, str
- 		&ocfs2_user_plugin.sp_max_proto;
+diff -puN fs/ocfs2/stackglue.c~ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/fs/ocfs2/stackglue.c
+@@ -643,7 +643,7 @@ error:
  
- 	memcpy(&pv, lvb, sizeof(struct ocfs2_protocol_version));
--	if ((pv.pv_major == LONG_MIN) || (pv.pv_major == LONG_MAX) ||
--	    (pv.pv_major > (u8)-1) || (pv.pv_major < 1))
--		return -ERANGE;
--	if ((pv.pv_minor == LONG_MIN) || (pv.pv_minor == LONG_MAX) ||
--	    (pv.pv_minor > (u8)-1) || (pv.pv_minor < 0))
-+	if (pv.pv_major < 1)
- 		return -ERANGE;
- 	if ((pv.pv_major != max->pv_major) ||
- 	    (pv.pv_minor > max->pv_minor))
+ #define FS_OCFS2_NM		1
+ 
+-static ctl_table ocfs2_nm_table[] = {
++static struct ctl_table ocfs2_nm_table[] = {
+ 	{
+ 		.procname	= "hb_ctl_path",
+ 		.data		= ocfs2_hb_ctl_path,
+@@ -654,7 +654,7 @@ static ctl_table ocfs2_nm_table[] = {
+ 	{ }
+ };
+ 
+-static ctl_table ocfs2_mod_table[] = {
++static struct ctl_table ocfs2_mod_table[] = {
+ 	{
+ 		.procname	= "nm",
+ 		.data		= NULL,
+@@ -665,7 +665,7 @@ static ctl_table ocfs2_mod_table[] = {
+ 	{ }
+ };
+ 
+-static ctl_table ocfs2_kern_table[] = {
++static struct ctl_table ocfs2_kern_table[] = {
+ 	{
+ 		.procname	= "ocfs2",
+ 		.data		= NULL,
+@@ -676,7 +676,7 @@ static ctl_table ocfs2_kern_table[] = {
+ 	{ }
+ };
+ 
+-static ctl_table ocfs2_root_table[] = {
++static struct ctl_table ocfs2_root_table[] = {
+ 	{
+ 		.procname	= "fs",
+ 		.data		= NULL,
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-ocfs2-add-missing-errno-in-ocfs2_ioctl_move_extents.patch
-framework-for-version-lvb-remove-some-impossible-checks.patch
-drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
-xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
-backlight-lm3630-signedness-bug-in-lm3630a_chip_init.patch
-backlight-lm3630-potential-null-deref-in-probe.patch
-pktcdvd-debugfs-functions-return-null-on-error.patch
+kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
+ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
+printk-report-console-names-during-cut-over.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+vsprintf-check-real-user-group-id-for-%pk.patch
+printkc-comments-should-refer-to-proc-vmcore-instead-of-proc-vmcoreinfo.patch
+printk-cache-mark-printk_once-test-variable-__read_mostly.patch
+printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch
+get_maintainerpl-incomplete-output.patch
+checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+checkpatch-update-seq_foo-tests.patch
+checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
+checkpatch-add-test-for-defines-of-arch_has_foo.patch
+checkpatch-add-rules-to-check-init-attribute-and-const-defects.patch
+checkpatch-make-the-memory-barrier-test-noisier.patch
+checkpatchpl-check-for-the-fsf-mailing-address.patch
+checkpatch-improve-return-is-not-a-function-test.patch
+checkpatch-add-check-for-sscanf-without-return-use.patch
+checkpatch-add-check-for-sscanf-without-return-use-v2.patch
+drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-pr_debug.patch
+drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch
+kernel-modulec-use-pr_foo.patch
 linux-next.patch
+seq_file-introduce-seq_setwidth-and-seq_pad.patch
+seq_file-remove-%n-usage-from-seq_file-users.patch
+vsprintf-ignore-%n-again.patch
 
