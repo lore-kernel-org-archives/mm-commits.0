@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to
+ mm-properly-separate-the-bloated-ptl-from-the-regular-case.patch added to
  -mm tree
-Date: Thu, 07 Nov 2013 13:55:38 -0800
-Message-ID: <527c0c5a.xHSLThp3GlVy+8+w%akpm@linux-foundation.org>
+Date: Thu, 07 Nov 2013 14:00:18 -0800
+Message-ID: <527c0d72.ajVcyvsRfDldBiQt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49273 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690Ab3KGVzj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 16:55:39 -0500
+	with ESMTP id S1752690Ab3KGWAT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 17:00:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joe@perches.com
+To: mm-commits@vger.kernel.org, mingo@elte.hu, kirill.shutemov@linux.intel.com, peterz@infradead.org
 
-Subject: + ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
-To: joe@perches.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + mm-properly-separate-the-bloated-ptl-from-the-regular-case.patch added to -mm tree
+To: peterz@infradead.org,kirill.shutemov@linux.intel.com,mingo@elte.hu
 From: akpm@linux-foundation.org
-Date: Thu, 07 Nov 2013 13:55:38 -0800
+Date: Thu, 07 Nov 2013 14:00:18 -0800
 
 
 The patch titled
-     Subject: ocfs2: convert use of typedef ctl_table to struct ctl_table
+     Subject: mm: properly separate the bloated ptl from the regular case
 has been added to the -mm tree.  Its filename is
-     ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+     mm-properly-separate-the-bloated-ptl-from-the-regular-case.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-properly-separate-the-bloated-ptl-from-the-regular-case.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-properly-separate-the-bloated-ptl-from-the-regular-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,90 +45,163 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: ocfs2: convert use of typedef ctl_table to struct ctl_table
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: mm: properly separate the bloated ptl from the regular case
 
-This typedef is unnecessary and should just be removed.
+Use kernel/bounds.c to convert build-time spinlock_t size check into a
+preprocessor symbol and apply that to properly separate the page::ptl
+situation.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Acked-by: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/mm.h       |   24 +++++++++++++-----------
+ include/linux/mm_types.h |    9 +++++----
+ kernel/bounds.c          |    2 ++
+ mm/memory.c              |   11 +++++------
+ 4 files changed, 25 insertions(+), 21 deletions(-)
 
-diff -puN fs/ocfs2/stackglue.c~ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/fs/ocfs2/stackglue.c
-@@ -643,7 +643,7 @@ error:
+diff -puN include/linux/mm.h~mm-properly-separate-the-bloated-ptl-from-the-regular-case include/linux/mm.h
+--- a/include/linux/mm.h~mm-properly-separate-the-bloated-ptl-from-the-regular-case
++++ a/include/linux/mm.h
+@@ -1317,27 +1317,29 @@ static inline pmd_t *pmd_alloc(struct mm
+ #endif /* CONFIG_MMU && !__ARCH_HAS_4LEVEL_HACK */
  
- #define FS_OCFS2_NM		1
+ #if USE_SPLIT_PTE_PTLOCKS
+-bool __ptlock_alloc(struct page *page);
+-void __ptlock_free(struct page *page);
++#if BLOATED_SPINLOCKS
++extern bool ptlock_alloc(struct page *page);
++extern void ptlock_free(struct page *page);
++
++static inline spinlock_t *ptlock_ptr(struct page *page)
++{
++	return page->ptl;
++}
++#else /* BLOATED_SPINLOCKS */
+ static inline bool ptlock_alloc(struct page *page)
+ {
+-	if (sizeof(spinlock_t) > sizeof(page->ptl))
+-		return __ptlock_alloc(page);
+ 	return true;
+ }
++
+ static inline void ptlock_free(struct page *page)
+ {
+-	if (sizeof(spinlock_t) > sizeof(page->ptl))
+-		__ptlock_free(page);
+ }
  
--static ctl_table ocfs2_nm_table[] = {
-+static struct ctl_table ocfs2_nm_table[] = {
- 	{
- 		.procname	= "hb_ctl_path",
- 		.data		= ocfs2_hb_ctl_path,
-@@ -654,7 +654,7 @@ static ctl_table ocfs2_nm_table[] = {
- 	{ }
- };
+ static inline spinlock_t *ptlock_ptr(struct page *page)
+ {
+-	if (sizeof(spinlock_t) > sizeof(page->ptl))
+-		return (spinlock_t *) page->ptl;
+-	else
+-		return (spinlock_t *) &page->ptl;
++	return &page->ptl;
+ }
++#endif /* BLOATED_SPINLOCKS */
  
--static ctl_table ocfs2_mod_table[] = {
-+static struct ctl_table ocfs2_mod_table[] = {
- 	{
- 		.procname	= "nm",
- 		.data		= NULL,
-@@ -665,7 +665,7 @@ static ctl_table ocfs2_mod_table[] = {
- 	{ }
- };
+ static inline spinlock_t *pte_lockptr(struct mm_struct *mm, pmd_t *pmd)
+ {
+@@ -1354,7 +1356,7 @@ static inline bool ptlock_init(struct pa
+ 	 * slab code uses page->slab_cache and page->first_page (for tail
+ 	 * pages), which share storage with page->ptl.
+ 	 */
+-	VM_BUG_ON(page->ptl);
++	VM_BUG_ON(*(unsigned long *)&page->ptl);
+ 	if (!ptlock_alloc(page))
+ 		return false;
+ 	spin_lock_init(ptlock_ptr(page));
+diff -puN include/linux/mm_types.h~mm-properly-separate-the-bloated-ptl-from-the-regular-case include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-properly-separate-the-bloated-ptl-from-the-regular-case
++++ a/include/linux/mm_types.h
+@@ -155,10 +155,11 @@ struct page {
+ 						 * system if PG_buddy is set.
+ 						 */
+ #if USE_SPLIT_PTE_PTLOCKS
+-		unsigned long ptl; /* It's spinlock_t if it fits to long,
+-				    * otherwise it's pointer to dynamicaly
+-				    * allocated spinlock_t.
+-				    */
++#if BLOATED_SPINLOCKS
++		spinlock_t *ptl;
++#else
++		spinlock_t ptl;
++#endif
+ #endif
+ 		struct kmem_cache *slab_cache;	/* SL[AU]B: Pointer to slab */
+ 		struct page *first_page;	/* Compound tail pages */
+diff -puN kernel/bounds.c~mm-properly-separate-the-bloated-ptl-from-the-regular-case kernel/bounds.c
+--- a/kernel/bounds.c~mm-properly-separate-the-bloated-ptl-from-the-regular-case
++++ a/kernel/bounds.c
+@@ -11,6 +11,7 @@
+ #include <linux/kbuild.h>
+ #include <linux/page_cgroup.h>
+ #include <linux/log2.h>
++#include <linux/spinlock.h>
  
--static ctl_table ocfs2_kern_table[] = {
-+static struct ctl_table ocfs2_kern_table[] = {
- 	{
- 		.procname	= "ocfs2",
- 		.data		= NULL,
-@@ -676,7 +676,7 @@ static ctl_table ocfs2_kern_table[] = {
- 	{ }
- };
+ void foo(void)
+ {
+@@ -21,5 +22,6 @@ void foo(void)
+ #ifdef CONFIG_SMP
+ 	DEFINE(NR_CPUS_BITS, ilog2(CONFIG_NR_CPUS));
+ #endif
++	DEFINE(BLOATED_SPINLOCKS, sizeof(spinlock_t) > sizeof(int));
+ 	/* End of constants */
+ }
+diff -puN mm/memory.c~mm-properly-separate-the-bloated-ptl-from-the-regular-case mm/memory.c
+--- a/mm/memory.c~mm-properly-separate-the-bloated-ptl-from-the-regular-case
++++ a/mm/memory.c
+@@ -4271,21 +4271,20 @@ void copy_user_huge_page(struct page *ds
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
  
--static ctl_table ocfs2_root_table[] = {
-+static struct ctl_table ocfs2_root_table[] = {
- 	{
- 		.procname	= "fs",
- 		.data		= NULL,
+-#if USE_SPLIT_PTE_PTLOCKS
+-bool __ptlock_alloc(struct page *page)
++#if USE_SPLIT_PTE_PTLOCKS && BLOATED_SPINLOCKS
++bool ptlock_alloc(struct page *page)
+ {
+ 	spinlock_t *ptl;
+ 
+ 	ptl = kmalloc(sizeof(spinlock_t), GFP_KERNEL);
+ 	if (!ptl)
+ 		return false;
+-	page->ptl = (unsigned long)ptl;
++	page->ptl = ptl;
+ 	return true;
+ }
+ 
+-void __ptlock_free(struct page *page)
++void ptlock_free(struct page *page)
+ {
+-	if (sizeof(spinlock_t) > sizeof(page->ptl))
+-		kfree((spinlock_t *)page->ptl);
++	kfree(page->ptl);
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from peterz@infradead.org are
 
-origin.patch
-kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
-ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
-ksm-remove-redundant-__gfp_zero-from-kcalloc.patch
-printk-report-console-names-during-cut-over.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-vsprintf-check-real-user-group-id-for-%pk.patch
-printkc-comments-should-refer-to-proc-vmcore-instead-of-proc-vmcoreinfo.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch
-get_maintainerpl-incomplete-output.patch
-checkpatch-report-missing-spaces-around-trigraphs-with-strict.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-update-seq_foo-tests.patch
-checkpatch-find-camelcase-definitions-of-struct-union-enum.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-checkpatch-add-rules-to-check-init-attribute-and-const-defects.patch
 checkpatch-make-the-memory-barrier-test-noisier.patch
-checkpatchpl-check-for-the-fsf-mailing-address.patch
-checkpatch-improve-return-is-not-a-function-test.patch
-checkpatch-add-check-for-sscanf-without-return-use.patch
-checkpatch-add-check-for-sscanf-without-return-use-v2.patch
-drivers-rtc-rtc-puv3c-use-dev_dbg-instead-of-pr_debug.patch
-drivers-rtc-rtc-pl030c-use-devm_kzalloc-instead-of-kmalloc.patch
-kernel-modulec-use-pr_foo.patch
 linux-next.patch
-seq_file-introduce-seq_setwidth-and-seq_pad.patch
-seq_file-remove-%n-usage-from-seq_file-users.patch
-vsprintf-ignore-%n-again.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
+mm-properly-separate-the-bloated-ptl-from-the-regular-case.patch
+mm-create-a-separate-slab-for-page-ptl-allocation.patch
 
