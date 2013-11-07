@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + proc-meminfo-provide-estimated-available-memory.patch added to
- -mm tree
-Date: Thu, 07 Nov 2013 14:27:49 -0800
-Message-ID: <527c13e5.O1/+x6JDZP+iyKMX%akpm@linux-foundation.org>
+Subject: +
+ kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch added
+ to -mm tree
+Date: Thu, 07 Nov 2013 14:37:24 -0800
+Message-ID: <527c1624.9towvmuoeidUK1pL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49525 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49546 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754834Ab3KGW1u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 17:27:50 -0500
+	with ESMTP id S1751228Ab3KGWhZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 17:37:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, erik.mouw_2@nxp.com, riel@redhat.com
+To: mm-commits@vger.kernel.org, vapier@gentoo.org, tj@kernel.org, tglx@linutronix.de, rusty@rustcorp.com.au, paulmck@linux.vnet.ibm.com, gilad@benyossef.com, fweisbec@gmail.com, bitbucket@online.de, cl@linux.com
 
-Subject: + proc-meminfo-provide-estimated-available-memory.patch added to -mm tree
-To: riel@redhat.com,erik.mouw_2@nxp.com,hannes@cmpxchg.org
+Subject: + kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch added to -mm tree
+To: cl@linux.com,bitbucket@online.de,fweisbec@gmail.com,gilad@benyossef.com,paulmck@linux.vnet.ibm.com,rusty@rustcorp.com.au,tglx@linutronix.de,tj@kernel.org,vapier@gentoo.org
 From: akpm@linux-foundation.org
-Date: Thu, 07 Nov 2013 14:27:49 -0800
+Date: Thu, 07 Nov 2013 14:37:24 -0800
 
 
 The patch titled
-     Subject: /proc/meminfo: provide estimated available memory
+     Subject: kmod: run usermodehelpers only on cpus allowed for kthreadd V2
 has been added to the -mm tree.  Its filename is
-     proc-meminfo-provide-estimated-available-memory.patch
+     kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-meminfo-provide-estimated-available-memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-meminfo-provide-estimated-available-memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,158 +45,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: /proc/meminfo: provide estimated available memory
+From: Christoph Lameter <cl@linux.com>
+Subject: kmod: run usermodehelpers only on cpus allowed for kthreadd V2
 
-Many load balancing and workload placing programs check /proc/meminfo to
-estimate how much free memory is available.  They generally do this by
-adding up "free" and "cached", which was fine ten years ago, but is pretty
-much guaranteed to be wrong today.
+usermodehelper() threads can currently run on all processors.  This is an
+issue for low latency cores.  Spawnig a new thread causes cpu holdoffs in
+the range of hundreds of microseconds to a few milliseconds.  Not good for
+cores on which processes run that need to react as fast as possible.
 
-It is wrong because Cached includes memory that is not freeable as page
-cache, for example shared memory segments, tmpfs, and ramfs, and it does
-not include reclaimable slab memory, which can take up a large fraction of
-system memory on mostly idle systems with lots of files.
+kthreadd threads can be restricted using taskset to a limited set of
+processors.  Then the kernel thread pool will not fork processes on those
+anymore thereby protecting those processors from additional latencies.
 
-Currently, the amount of memory that is available for a new workload,
-without pushing the system into swap, can be estimated from MemFree,
-Active(file), Inactive(file), and SReclaimable, as well as the "low"
-watermarks from /proc/zoneinfo.
+Make usermodehelper() threads obey the limitations that kthreadd is
+restricted to.  Kthreadd is not the parent of usermodehelper threads so we
+need to explicitly get the allowed processors for kthreadd.
 
-However, this may change in the future, and user space really should not
-be expected to know kernel internals to come up with an estimate for the
-amount of free memory.
+Before this patch there is no way to limit the cpus that usermodehelper
+can run on since the affinity is set when the thread is spawned to all
+processors.
 
-It is more convenient to provide such an estimate in /proc/meminfo.  If
-things change in the future, we only have to change it in one place.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Erik Mouw <erik.mouw_2@nxp.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Mike Galbraith <bitbucket@online.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Gilad Ben-Yossef <gilad@benyossef.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    9 ++++++
- fs/proc/meminfo.c                  |   37 +++++++++++++++++++++++++++
- 2 files changed, 46 insertions(+)
+ include/linux/kthread.h |    1 +
+ kernel/kmod.c           |   10 ++++++++--
+ kernel/kthread.c        |    9 +++++++++
+ 3 files changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-meminfo-provide-estimated-available-memory Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-meminfo-provide-estimated-available-memory
-+++ a/Documentation/filesystems/proc.txt
-@@ -767,6 +767,7 @@ The "Locked" indicates whether the mappi
- 
- MemTotal:     16344972 kB
- MemFree:      13634064 kB
-+MemAvailable: 14836172 kB
- Buffers:          3656 kB
- Cached:        1195708 kB
- SwapCached:          0 kB
-@@ -799,6 +800,14 @@ AnonHugePages:   49152 kB
-     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
-               bits and the kernel binary code)
-      MemFree: The sum of LowFree+HighFree
-+MemAvailable: An estimate of how much memory is available for starting new
-+              applications, without swapping. Calculated from MemFree,
-+              SReclaimable, the size of the file LRU lists, and the low
-+              watermarks in each zone.
-+              The estimate takes into account that the system needs some
-+              page cache to function well, and that not all reclaimable
-+              slab will be reclaimable, due to items being in use. The
-+              impact of those factors will vary from system to system.
-      Buffers: Relatively temporary storage for raw disk blocks
-               shouldn't get tremendously large (20MB or so)
-       Cached: in-memory cache for files read from the disk (the
-diff -puN fs/proc/meminfo.c~proc-meminfo-provide-estimated-available-memory fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~proc-meminfo-provide-estimated-available-memory
-+++ a/fs/proc/meminfo.c
-@@ -26,7 +26,11 @@ static int meminfo_proc_show(struct seq_
- 	unsigned long committed;
- 	struct vmalloc_info vmi;
- 	long cached;
-+	long available;
-+	unsigned long pagecache;
-+	unsigned long wmark_low = 0;
- 	unsigned long pages[NR_LRU_LISTS];
-+	struct zone *zone;
- 	int lru;
+diff -puN include/linux/kthread.h~kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2 include/linux/kthread.h
+--- a/include/linux/kthread.h~kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2
++++ a/include/linux/kthread.h
+@@ -51,6 +51,7 @@ void kthread_parkme(void);
+ int kthreadd(void *unused);
+ extern struct task_struct *kthreadd_task;
+ extern int tsk_fork_get_node(struct task_struct *tsk);
++void set_kthreadd_affinity(void);
  
  /*
-@@ -47,12 +51,44 @@ static int meminfo_proc_show(struct seq_
- 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
- 		pages[lru] = global_page_state(NR_LRU_BASE + lru);
+  * Simple work processor based on kthread.
+diff -puN kernel/kmod.c~kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2 kernel/kmod.c
+--- a/kernel/kmod.c~kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2
++++ a/kernel/kmod.c
+@@ -40,6 +40,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/async.h>
+ #include <asm/uaccess.h>
++#include <linux/kthread.h>
  
-+	for_each_zone(zone)
-+		wmark_low += zone->watermark[WMARK_LOW];
-+
+ #include <trace/events/module.h>
+ 
+@@ -209,8 +210,13 @@ static int ____call_usermodehelper(void
+ 	flush_signal_handlers(current, 1);
+ 	spin_unlock_irq(&current->sighand->siglock);
+ 
+-	/* We can run anywhere, unlike our parent keventd(). */
+-	set_cpus_allowed_ptr(current, cpu_all_mask);
 +	/*
-+	 * Estimate the amount of memory available for userspace allocations,
-+	 * without causing swapping.
-+	 *
-+	 * Free memory cannot be taken below the low watermark, before the
-+	 * system starts swapping.
++	 * Kthreadd can be restricted to a set of processors if the user wants to
++	 * protect other processors from OS latencies. If that has happened then
++	 * we do not want to disturb the other processors here either so we start
++	 * the usermode helper threads only on the processors allowed for kthreadd.
 +	 */
-+	available = i.freeram - wmark_low;
-+
-+	/*
-+	 * Not all the page cache can be freed, otherwise the system will
-+	 * start swapping. Assume at least half of the page cache, or the
-+	 * low watermark worth of cache, needs to stay.
-+	 */
-+	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
-+	pagecache -= min(pagecache / 2, wmark_low);
-+	available += pagecache;
-+
-+	/*
-+	 * Part of the reclaimable swap consists of items that are in use,
-+	 * and cannot be freed. Cap this estimate at the low watermark.
-+	 */
-+	available += global_page_state(NR_SLAB_RECLAIMABLE) -
-+		     min(global_page_state(NR_SLAB_RECLAIMABLE) / 2, wmark_low);
-+
-+	if (available < 0)
-+		available = 0;
-+
++	set_kthreadd_affinity();
+ 
  	/*
- 	 * Tagged format, for easy grepping and expansion.
- 	 */
- 	seq_printf(m,
- 		"MemTotal:       %8lu kB\n"
- 		"MemFree:        %8lu kB\n"
-+		"MemAvailable:   %8lu kB\n"
- 		"Buffers:        %8lu kB\n"
- 		"Cached:         %8lu kB\n"
- 		"SwapCached:     %8lu kB\n"
-@@ -105,6 +141,7 @@ static int meminfo_proc_show(struct seq_
- 		,
- 		K(i.totalram),
- 		K(i.freeram),
-+		K(available),
- 		K(i.bufferram),
- 		K(cached),
- 		K(total_swapcache_pages()),
+ 	 * Our parent is keventd, which runs with elevated scheduling priority.
+diff -puN kernel/kthread.c~kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2 kernel/kthread.c
+--- a/kernel/kthread.c~kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2
++++ a/kernel/kthread.c
+@@ -136,6 +136,15 @@ void *kthread_data(struct task_struct *t
+ 	return to_kthread(task)->data;
+ }
+ 
++/*
++ * Set the affinity of the calling task to be the same
++ * as the kthreadd affinities.
++ */
++void set_kthreadd_affinity(void)
++{
++	set_cpus_allowed(current, kthreadd_task->cpus_allowed);
++}
++
+ /**
+  * probe_kthread_data - speculative version of kthread_data()
+  * @task: possible kthread task in question
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from cl@linux.com are
 
-mm-mempolicy-make-mpol_to_str-robust-and-always-succeed.patch
-memblock-factor-out-of-top-down-allocation.patch
-memblock-introduce-bottom-up-allocation-mode.patch
-x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
-x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
-mem-hotplug-introduce-movable_node-boot-option.patch
-proc-meminfo-provide-estimated-available-memory.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+mm-set-n_cpu-to-node_states-during-boot.patch
+mm-clear-n_cpu-from-node_states-at-cpu-offline.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
 linux-next.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
 
