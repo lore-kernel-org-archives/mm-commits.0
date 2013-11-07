@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+ fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
  added to -mm tree
-Date: Thu, 07 Nov 2013 14:16:53 -0800
-Message-ID: <527c1155.ngilKWzUOYWO7FZ0%akpm@linux-foundation.org>
+Date: Thu, 07 Nov 2013 14:16:54 -0800
+Message-ID: <527c1156.Psj3xFemClJPSNbQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49435 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49437 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755556Ab3KGWQy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 17:16:54 -0500
+	with ESMTP id S1755848Ab3KGWQz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 17:16:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, jack@suse.cz, dedekind1@gmail.com, adrian.hunter@intel.com, cody@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, walken@google.com, tytso@mit.edu, jack@suse.cz, cody@linux.vnet.ibm.com
 
-Subject: + fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch added to -mm tree
-To: cody@linux.vnet.ibm.com,adrian.hunter@intel.com,dedekind1@gmail.com,jack@suse.cz,walken@google.com
+Subject: + fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch added to -mm tree
+To: cody@linux.vnet.ibm.com,jack@suse.cz,tytso@mit.edu,walken@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 07 Nov 2013 14:16:53 -0800
+Date: Thu, 07 Nov 2013 14:16:54 -0800
 
 
 The patch titled
-     Subject: fs/ubifs: use rbtree postorder iteration helper instead of opencoding
+     Subject: fs/ext4: use rbtree postorder iteration helper instead of opencoding
 has been added to the -mm tree.  Its filename is
-     fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+     fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,228 +46,115 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: fs/ubifs: use rbtree postorder iteration helper instead of opencoding
+Subject: fs/ext4: use rbtree postorder iteration helper instead of opencoding
 
 Use rbtree_postorder_for_each_entry_safe() to destroy the rbtree instead
 of opencoding an alternate postorder iteration that modifies the tree
 
 Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Michel Lespinasse <walken@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/debug.c    |   22 +++-------------------
- fs/ubifs/log.c      |   21 ++-------------------
- fs/ubifs/orphan.c   |   21 ++-------------------
- fs/ubifs/recovery.c |   21 +++------------------
- fs/ubifs/super.c    |   22 +++-------------------
- fs/ubifs/tnc.c      |   22 +++-------------------
- 6 files changed, 16 insertions(+), 113 deletions(-)
+ fs/ext4/block_validity.c |   33 ++++-----------------------------
+ fs/ext4/dir.c            |   33 ++++-----------------------------
+ 2 files changed, 8 insertions(+), 58 deletions(-)
 
-diff -puN fs/ubifs/debug.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding fs/ubifs/debug.c
---- a/fs/ubifs/debug.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding
-+++ a/fs/ubifs/debug.c
-@@ -2118,26 +2118,10 @@ out_free:
-  */
- static void free_inodes(struct fsck_data *fsckd)
+diff -puN fs/ext4/block_validity.c~fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding fs/ext4/block_validity.c
+--- a/fs/ext4/block_validity.c~fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding
++++ a/fs/ext4/block_validity.c
+@@ -180,37 +180,12 @@ int ext4_setup_system_zone(struct super_
+ /* Called when the filesystem is unmounted */
+ void ext4_release_system_zone(struct super_block *sb)
  {
--	struct rb_node *this = fsckd->inodes.rb_node;
--	struct fsck_inode *fscki;
-+	struct fsck_inode *fscki, *n;
+-	struct rb_node	*n = EXT4_SB(sb)->system_blks.rb_node;
+-	struct rb_node	*parent;
+-	struct ext4_system_zone	*entry;
++	struct ext4_system_zone	*entry, *n;
  
--	while (this) {
--		if (this->rb_left)
--			this = this->rb_left;
--		else if (this->rb_right)
--			this = this->rb_right;
--		else {
--			fscki = rb_entry(this, struct fsck_inode, rb);
--			this = rb_parent(this);
--			if (this) {
--				if (this->rb_left == &fscki->rb)
--					this->rb_left = NULL;
--				else
--					this->rb_right = NULL;
--			}
--			kfree(fscki);
--		}
--	}
-+	rbtree_postorder_for_each_entry_safe(fscki, n, &fsckd->inodes, rb)
-+		kfree(fscki);
- }
- 
- /**
-diff -puN fs/ubifs/log.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding fs/ubifs/log.c
---- a/fs/ubifs/log.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding
-+++ a/fs/ubifs/log.c
-@@ -574,27 +574,10 @@ static int done_already(struct rb_root *
-  */
- static void destroy_done_tree(struct rb_root *done_tree)
- {
--	struct rb_node *this = done_tree->rb_node;
--	struct done_ref *dr;
-+	struct done_ref *dr, *n;
- 
--	while (this) {
--		if (this->rb_left) {
--			this = this->rb_left;
--			continue;
--		} else if (this->rb_right) {
--			this = this->rb_right;
+-	while (n) {
+-		/* Do the node's children first */
+-		if (n->rb_left) {
+-			n = n->rb_left;
 -			continue;
 -		}
--		dr = rb_entry(this, struct done_ref, rb);
--		this = rb_parent(this);
--		if (this) {
--			if (this->rb_left == &dr->rb)
--				this->rb_left = NULL;
--			else
--				this->rb_right = NULL;
--		}
-+	rbtree_postorder_for_each_entry_safe(dr, n, done_tree, rb)
- 		kfree(dr);
--	}
- }
- 
- /**
-diff -puN fs/ubifs/orphan.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding fs/ubifs/orphan.c
---- a/fs/ubifs/orphan.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding
-+++ a/fs/ubifs/orphan.c
-@@ -815,27 +815,10 @@ static int dbg_find_check_orphan(struct
- 
- static void dbg_free_check_tree(struct rb_root *root)
- {
--	struct rb_node *this = root->rb_node;
--	struct check_orphan *o;
-+	struct check_orphan *o, *n;
- 
--	while (this) {
--		if (this->rb_left) {
--			this = this->rb_left;
--			continue;
--		} else if (this->rb_right) {
--			this = this->rb_right;
+-		if (n->rb_right) {
+-			n = n->rb_right;
 -			continue;
 -		}
--		o = rb_entry(this, struct check_orphan, rb);
--		this = rb_parent(this);
--		if (this) {
--			if (this->rb_left == &o->rb)
--				this->rb_left = NULL;
--			else
--				this->rb_right = NULL;
--		}
-+	rbtree_postorder_for_each_entry_safe(o, n, root, rb)
- 		kfree(o);
--	}
- }
- 
- static int dbg_orphan_check(struct ubifs_info *c, struct ubifs_zbranch *zbr,
-diff -puN fs/ubifs/recovery.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding fs/ubifs/recovery.c
---- a/fs/ubifs/recovery.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding
-+++ a/fs/ubifs/recovery.c
-@@ -1335,29 +1335,14 @@ static void remove_ino(struct ubifs_info
-  */
- void ubifs_destroy_size_tree(struct ubifs_info *c)
- {
--	struct rb_node *this = c->size_tree.rb_node;
--	struct size_entry *e;
-+	struct size_entry *e, *n;
- 
--	while (this) {
--		if (this->rb_left) {
--			this = this->rb_left;
--			continue;
--		} else if (this->rb_right) {
--			this = this->rb_right;
--			continue;
--		}
--		e = rb_entry(this, struct size_entry, rb);
-+	rbtree_postorder_for_each_entry_safe(e, n, &c->size_tree, rb) {
- 		if (e->inode)
- 			iput(e->inode);
--		this = rb_parent(this);
--		if (this) {
--			if (this->rb_left == &e->rb)
--				this->rb_left = NULL;
--			else
--				this->rb_right = NULL;
--		}
- 		kfree(e);
- 	}
-+
- 	c->size_tree = RB_ROOT;
- }
- 
-diff -puN fs/ubifs/super.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding fs/ubifs/super.c
---- a/fs/ubifs/super.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding
-+++ a/fs/ubifs/super.c
-@@ -873,26 +873,10 @@ static void free_orphans(struct ubifs_in
-  */
- static void free_buds(struct ubifs_info *c)
- {
--	struct rb_node *this = c->buds.rb_node;
--	struct ubifs_bud *bud;
-+	struct ubifs_bud *bud, *n;
- 
--	while (this) {
--		if (this->rb_left)
--			this = this->rb_left;
--		else if (this->rb_right)
--			this = this->rb_right;
--		else {
--			bud = rb_entry(this, struct ubifs_bud, rb);
--			this = rb_parent(this);
--			if (this) {
--				if (this->rb_left == &bud->rb)
--					this->rb_left = NULL;
--				else
--					this->rb_right = NULL;
--			}
--			kfree(bud);
--		}
--	}
-+	rbtree_postorder_for_each_entry_safe(bud, n, &c->buds, rb)
-+		kfree(bud);
- }
- 
- /**
-diff -puN fs/ubifs/tnc.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding fs/ubifs/tnc.c
---- a/fs/ubifs/tnc.c~fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding
-+++ a/fs/ubifs/tnc.c
-@@ -178,27 +178,11 @@ static int ins_clr_old_idx_znode(struct
-  */
- void destroy_old_idx(struct ubifs_info *c)
- {
--	struct rb_node *this = c->old_idx.rb_node;
--	struct ubifs_old_idx *old_idx;
-+	struct ubifs_old_idx *old_idx, *n;
- 
--	while (this) {
--		if (this->rb_left) {
--			this = this->rb_left;
--			continue;
--		} else if (this->rb_right) {
--			this = this->rb_right;
--			continue;
--		}
--		old_idx = rb_entry(this, struct ubifs_old_idx, rb);
--		this = rb_parent(this);
--		if (this) {
--			if (this->rb_left == &old_idx->rb)
--				this->rb_left = NULL;
--			else
--				this->rb_right = NULL;
--		}
-+	rbtree_postorder_for_each_entry_safe(old_idx, n, &c->old_idx, rb)
- 		kfree(old_idx);
+-		/*
+-		 * The node has no children; free it, and then zero
+-		 * out parent's link to it.  Finally go to the
+-		 * beginning of the loop and try to free the parent
+-		 * node.
+-		 */
+-		parent = rb_parent(n);
+-		entry = rb_entry(n, struct ext4_system_zone, node);
++	rbtree_postorder_for_each_entry_safe(entry, n,
++			&EXT4_SB(sb)->system_blks, node)
+ 		kmem_cache_free(ext4_system_zone_cachep, entry);
+-		if (!parent)
+-			EXT4_SB(sb)->system_blks = RB_ROOT;
+-		else if (parent->rb_left == n)
+-			parent->rb_left = NULL;
+-		else if (parent->rb_right == n)
+-			parent->rb_right = NULL;
+-		n = parent;
 -	}
 +
- 	c->old_idx = RB_ROOT;
+ 	EXT4_SB(sb)->system_blks = RB_ROOT;
  }
+ 
+diff -puN fs/ext4/dir.c~fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding fs/ext4/dir.c
+--- a/fs/ext4/dir.c~fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding
++++ a/fs/ext4/dir.c
+@@ -353,41 +353,16 @@ struct fname {
+  */
+ static void free_rb_tree_fname(struct rb_root *root)
+ {
+-	struct rb_node	*n = root->rb_node;
+-	struct rb_node	*parent;
+-	struct fname	*fname;
++	struct fname *fname, *next;
+ 
+-	while (n) {
+-		/* Do the node's children first */
+-		if (n->rb_left) {
+-			n = n->rb_left;
+-			continue;
+-		}
+-		if (n->rb_right) {
+-			n = n->rb_right;
+-			continue;
+-		}
+-		/*
+-		 * The node has no children; free it, and then zero
+-		 * out parent's link to it.  Finally go to the
+-		 * beginning of the loop and try to free the parent
+-		 * node.
+-		 */
+-		parent = rb_parent(n);
+-		fname = rb_entry(n, struct fname, rb_hash);
++	rbtree_postorder_for_each_entry_safe(fname, next, root, rb_hash)
+ 		while (fname) {
+ 			struct fname *old = fname;
+ 			fname = fname->next;
+ 			kfree(old);
+ 		}
+-		if (!parent)
+-			*root = RB_ROOT;
+-		else if (parent->rb_left == n)
+-			parent->rb_left = NULL;
+-		else if (parent->rb_right == n)
+-			parent->rb_right = NULL;
+-		n = parent;
+-	}
++
++	*root = RB_ROOT;
+ }
+ 
  
 _
 
