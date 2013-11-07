@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
- added to -mm tree
-Date: Thu, 07 Nov 2013 14:16:55 -0800
-Message-ID: <527c1157.WbizD/tNZv1khVsM%akpm@linux-foundation.org>
+ drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch added to -mm tree
+Date: Thu, 07 Nov 2013 14:16:57 -0800
+Message-ID: <527c1159.kf7XXYp4ZPa5jurk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49443 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49454 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755888Ab3KGWQ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 17:16:56 -0500
+	with ESMTP id S1755888Ab3KGWQ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 17:16:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, jack@suse.cz, dwmw2@infradead.org, cody@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, walken@google.com, jack@suse.cz, dwmw2@infradead.org, dedekind1@gmail.com, cody@linux.vnet.ibm.com
 
-Subject: + fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch added to -mm tree
-To: cody@linux.vnet.ibm.com,dwmw2@infradead.org,jack@suse.cz,walken@google.com
+Subject: + drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch added to -mm tree
+To: cody@linux.vnet.ibm.com,dedekind1@gmail.com,dwmw2@infradead.org,jack@suse.cz,walken@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 07 Nov 2013 14:16:55 -0800
+Date: Thu, 07 Nov 2013 14:16:57 -0800
 
 
 The patch titled
-     Subject: fs/jffs2: use rbtree postorder iteration helper instead of opencoding
+     Subject: drivers/mtd/ubi: use rbtree postorder iteration helper instead of opencoding
 has been added to the -mm tree.  Its filename is
-     fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+     drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cody P Schafer <cody@linux.vnet.ibm.com>
-Subject: fs/jffs2: use rbtree postorder iteration helper instead of opencoding
+Subject: drivers/mtd/ubi: use rbtree postorder iteration helper instead of opencoding
 
 Use rbtree_postorder_for_each_entry_safe() to destroy the rbtree instead
 of opencoding an alternate postorder iteration that modifies the tree
@@ -54,103 +53,124 @@ of opencoding an alternate postorder iteration that modifies the tree
 Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
 Cc: Michel Lespinasse <walken@google.com>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/nodelist.c  |   28 ++--------------------------
- fs/jffs2/readinode.c |   26 +++-----------------------
- 2 files changed, 5 insertions(+), 49 deletions(-)
+ drivers/mtd/ubi/attach.c |   47 ++++---------------------------------
+ drivers/mtd/ubi/wl.c     |   25 ++-----------------
+ 2 files changed, 9 insertions(+), 63 deletions(-)
 
-diff -puN fs/jffs2/nodelist.c~fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding fs/jffs2/nodelist.c
---- a/fs/jffs2/nodelist.c~fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding
-+++ a/fs/jffs2/nodelist.c
-@@ -564,25 +564,10 @@ struct jffs2_node_frag *jffs2_lookup_nod
-    they're killed. */
- void jffs2_kill_fragtree(struct rb_root *root, struct jffs2_sb_info *c)
+diff -puN drivers/mtd/ubi/attach.c~drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding drivers/mtd/ubi/attach.c
+--- a/drivers/mtd/ubi/attach.c~drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding
++++ a/drivers/mtd/ubi/attach.c
+@@ -1132,27 +1132,11 @@ static int late_analysis(struct ubi_devi
+  */
+ static void destroy_av(struct ubi_attach_info *ai, struct ubi_ainf_volume *av)
  {
--	struct jffs2_node_frag *frag;
--	struct jffs2_node_frag *parent;
--
--	if (!root->rb_node)
--		return;
-+	struct jffs2_node_frag *frag, *next;
+-	struct ubi_ainf_peb *aeb;
+-	struct rb_node *this = av->root.rb_node;
++	struct ubi_ainf_peb *aeb, *next;
  
- 	dbg_fragtree("killing\n");
--
--	frag = (rb_entry(root->rb_node, struct jffs2_node_frag, rb));
--	while(frag) {
--		if (frag->rb.rb_left) {
--			frag = frag_left(frag);
--			continue;
--		}
--		if (frag->rb.rb_right) {
--			frag = frag_right(frag);
--			continue;
--		}
--
-+	rbtree_postorder_for_each_entry_safe(frag, next, root, rb) {
- 		if (frag->node && !(--frag->node->frags)) {
- 			/* Not a hole, and it's the final remaining frag
- 			   of this node. Free the node */
-@@ -591,17 +576,8 @@ void jffs2_kill_fragtree(struct rb_root
- 
- 			jffs2_free_full_dnode(frag->node);
- 		}
--		parent = frag_parent(frag);
--		if (parent) {
--			if (frag_left(parent) == frag)
--				parent->rb.rb_left = NULL;
--			else
--				parent->rb.rb_right = NULL;
--		}
- 
- 		jffs2_free_node_frag(frag);
--		frag = parent;
--
- 		cond_resched();
- 	}
- }
-diff -puN fs/jffs2/readinode.c~fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding fs/jffs2/readinode.c
---- a/fs/jffs2/readinode.c~fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding
-+++ a/fs/jffs2/readinode.c
-@@ -543,33 +543,13 @@ static int jffs2_build_inode_fragtree(st
- 
- static void jffs2_free_tmp_dnode_info_list(struct rb_root *list)
- {
--	struct rb_node *this;
--	struct jffs2_tmp_dnode_info *tn;
-+	struct jffs2_tmp_dnode_info *tn, *next;
- 
--	this = list->rb_node;
--
--	/* Now at bottom of tree */
 -	while (this) {
 -		if (this->rb_left)
 -			this = this->rb_left;
 -		else if (this->rb_right)
 -			this = this->rb_right;
 -		else {
--			tn = rb_entry(this, struct jffs2_tmp_dnode_info, rb);
-+	rbtree_postorder_for_each_entry_safe(tn, next, list, rb) {
- 			jffs2_free_full_dnode(tn->fn);
- 			jffs2_free_tmp_dnode_info(tn);
--
+-			aeb = rb_entry(this, struct ubi_ainf_peb, u.rb);
 -			this = rb_parent(this);
--			if (!this)
--				break;
--
--			if (this->rb_left == &tn->rb)
--				this->rb_left = NULL;
--			else if (this->rb_right == &tn->rb)
--				this->rb_right = NULL;
--			else BUG();
+-			if (this) {
+-				if (this->rb_left == &aeb->u.rb)
+-					this->rb_left = NULL;
+-				else
+-					this->rb_right = NULL;
+-			}
++	rbtree_postorder_for_each_entry_safe(aeb, next, &av->root, u.rb)
++		kmem_cache_free(ai->aeb_slab_cache, aeb);
+ 
+-			kmem_cache_free(ai->aeb_slab_cache, aeb);
 -		}
- 	}
-+
- 	*list = RB_ROOT;
+-	}
+ 	kfree(av);
  }
  
+@@ -1163,8 +1147,7 @@ static void destroy_av(struct ubi_attach
+ static void destroy_ai(struct ubi_attach_info *ai)
+ {
+ 	struct ubi_ainf_peb *aeb, *aeb_tmp;
+-	struct ubi_ainf_volume *av;
+-	struct rb_node *rb;
++	struct ubi_ainf_volume *av, *next;
+ 
+ 	list_for_each_entry_safe(aeb, aeb_tmp, &ai->alien, u.list) {
+ 		list_del(&aeb->u.list);
+@@ -1184,26 +1167,8 @@ static void destroy_ai(struct ubi_attach
+ 	}
+ 
+ 	/* Destroy the volume RB-tree */
+-	rb = ai->volumes.rb_node;
+-	while (rb) {
+-		if (rb->rb_left)
+-			rb = rb->rb_left;
+-		else if (rb->rb_right)
+-			rb = rb->rb_right;
+-		else {
+-			av = rb_entry(rb, struct ubi_ainf_volume, rb);
+-
+-			rb = rb_parent(rb);
+-			if (rb) {
+-				if (rb->rb_left == &av->rb)
+-					rb->rb_left = NULL;
+-				else
+-					rb->rb_right = NULL;
+-			}
+-
+-			destroy_av(ai, av);
+-		}
+-	}
++	rbtree_postorder_for_each_entry_safe(av, next, &ai->volumes, rb)
++		destroy_av(ai, av);
+ 
+ 	if (ai->aeb_slab_cache)
+ 		kmem_cache_destroy(ai->aeb_slab_cache);
+diff -puN drivers/mtd/ubi/wl.c~drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding drivers/mtd/ubi/wl.c
+--- a/drivers/mtd/ubi/wl.c~drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding
++++ a/drivers/mtd/ubi/wl.c
+@@ -1756,29 +1756,10 @@ int ubi_wl_flush(struct ubi_device *ubi,
+  */
+ static void tree_destroy(struct rb_root *root)
+ {
+-	struct rb_node *rb;
+-	struct ubi_wl_entry *e;
++	struct ubi_wl_entry *e, *next;
+ 
+-	rb = root->rb_node;
+-	while (rb) {
+-		if (rb->rb_left)
+-			rb = rb->rb_left;
+-		else if (rb->rb_right)
+-			rb = rb->rb_right;
+-		else {
+-			e = rb_entry(rb, struct ubi_wl_entry, u.rb);
+-
+-			rb = rb_parent(rb);
+-			if (rb) {
+-				if (rb->rb_left == &e->u.rb)
+-					rb->rb_left = NULL;
+-				else
+-					rb->rb_right = NULL;
+-			}
+-
+-			kmem_cache_free(ubi_wl_entry_slab, e);
+-		}
+-	}
++	rbtree_postorder_for_each_entry_safe(e, next, root, u.rb)
++		kmem_cache_free(ubi_wl_entry_slab, e);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
