@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + block-remove-unrelated-header-files-and-export-symbol-fix.patch added to -mm tree
-Date: Thu, 07 Nov 2013 13:12:02 -0800
-Message-ID: <527c0222.46mBuIA84HfjLTFt%akpm@linux-foundation.org>
+Subject: + mm-factor-commit-limit-calculation-fix-fix-fix.patch added to
+ -mm tree
+Date: Thu, 07 Nov 2013 13:13:22 -0800
+Message-ID: <527c0272.r9WiA8AQzcfMiZQU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49055 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49076 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752763Ab3KGVMD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 16:12:03 -0500
+	with ESMTP id S1755000Ab3KGVNX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Nov 2013 16:13:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, caizhiyong@huawei.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, jmarchan@redhat.com, akpm@linux-foundation.org
 
-Subject: + block-remove-unrelated-header-files-and-export-symbol-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,caizhiyong@huawei.com,fengguang.wu@intel.com
+Subject: + mm-factor-commit-limit-calculation-fix-fix-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,jmarchan@redhat.com
 From: akpm@linux-foundation.org
-Date: Thu, 07 Nov 2013 13:12:02 -0800
+Date: Thu, 07 Nov 2013 13:13:22 -0800
 
 
 The patch titled
-     Subject: block-remove-unrelated-header-files-and-export-symbol-fix
+     Subject: mm-factor-commit-limit-calculation-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     block-remove-unrelated-header-files-and-export-symbol-fix.patch
+     mm-factor-commit-limit-calculation-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/block-remove-unrelated-header-files-and-export-symbol-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-factor-commit-limit-calculation-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/block-remove-unrelated-header-files-and-export-symbol-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-factor-commit-limit-calculation-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,31 +45,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-remove-unrelated-header-files-and-export-symbol-fix
+Subject: mm-factor-commit-limit-calculation-fix-fix-fix
 
-In file included from block/cmdline-parser.c:8:0:
-include/linux/cmdline-parser.h:17:12: error: 'BDEVNAME_SIZE' undeclared here (not in a function)
-     char name[BDEVNAME_SIZE]; /* partition name, such as 'rootfs' */
-
-Cc: CaiZhiyong <caizhiyong@huawei.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cmdline-parser.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cmdline-parser.h~block-remove-unrelated-header-files-and-export-symbol-fix include/linux/cmdline-parser.h
---- a/include/linux/cmdline-parser.h~block-remove-unrelated-header-files-and-export-symbol-fix
-+++ a/include/linux/cmdline-parser.h
-@@ -7,6 +7,7 @@
- #ifndef CMDLINEPARSEH
- #define CMDLINEPARSEH
+diff -puN mm/util.c~mm-factor-commit-limit-calculation-fix-fix-fix mm/util.c
+--- a/mm/util.c~mm-factor-commit-limit-calculation-fix-fix-fix
++++ a/mm/util.c
+@@ -402,7 +402,7 @@ struct address_space *page_mapping(struc
+ }
  
-+#include <linux/fs.h>
- #include <linux/blkdev.h>
- 
- /* partition flags */
+ /*
+- * Commited memory limit enforced when OVERCOMMIT_NEVER policy is used
++ * Committed memory limit enforced when OVERCOMMIT_NEVER policy is used
+  */
+ unsigned long vm_commit_limit(void)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +82,7 @@ mm.patch
 mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
 mm-factor-commit-limit-calculation-fix.patch
 mm-factor-commit-limit-calculation-fix-fix.patch
+mm-factor-commit-limit-calculation-fix-fix-fix.patch
 kernel-printk-printkc-convert-to-pr_foo.patch
 maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
 checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
