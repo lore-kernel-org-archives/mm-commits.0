@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + list-introduce-list_last_entry-use-list_firstlast_entry.patch
- added to -mm tree
-Date: Mon, 11 Nov 2013 15:18:54 -0800
-Message-ID: <528165de.Aj929kp7nwBaQq0/%akpm@linux-foundation.org>
+Subject: + list-change-list_for_each_entry-to-use-list__entry.patch added
+ to -mm tree
+Date: Mon, 11 Nov 2013 15:18:53 -0800
+Message-ID: <528165dd.VXek2w3/NnjKvHEj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51415 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51408 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753159Ab3KKXSz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 18:18:55 -0500
+	with ESMTP id S1753746Ab3KKXSy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 18:18:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, gregkh@linuxfoundation.org, eilong@broadcom.com, a.p.zijlstra@chello.nl, oleg@redhat.com
 
-Subject: + list-introduce-list_last_entry-use-list_firstlast_entry.patch added to -mm tree
+Subject: + list-change-list_for_each_entry-to-use-list__entry.patch added to -mm tree
 To: oleg@redhat.com,a.p.zijlstra@chello.nl,eilong@broadcom.com,gregkh@linuxfoundation.org
 From: akpm@linux-foundation.org
-Date: Mon, 11 Nov 2013 15:18:54 -0800
+Date: Mon, 11 Nov 2013 15:18:53 -0800
 
 
 The patch titled
-     Subject: list: introduce list_last_entry(), use list_{first,last}_entry()
+     Subject: list: change list_for_each_entry*() to use list_*_entry()
 has been added to the -mm tree.  Its filename is
-     list-introduce-list_last_entry-use-list_firstlast_entry.patch
+     list-change-list_for_each_entry-to-use-list__entry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/list-introduce-list_last_entry-use-list_firstlast_entry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/list-change-list_for_each_entry-to-use-list__entry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/list-introduce-list_last_entry-use-list_firstlast_entry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/list-change-list_for_each_entry-to-use-list__entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,11 +45,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: list: introduce list_last_entry(), use list_{first,last}_entry()
+Subject: list: change list_for_each_entry*() to use list_*_entry()
 
-We already have list_first_entry(), it makes sense to also add
-list_last_entry() for consistency.  And we use both helpers in
-list_for_each_*().
+Now that we have list_{next,prev}_entry() we can change
+list_for_each_entry*() and list_safe_reset_next() to use the new helpers
+to improve the readability.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Eilon Greenstein <eilong@broadcom.com>
@@ -58,66 +58,130 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ include/linux/list.h |   44 ++++++++++++++++++++---------------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/list.h~list-introduce-list_last_entry-use-list_firstlast_entry include/linux/list.h
---- a/include/linux/list.h~list-introduce-list_last_entry-use-list_firstlast_entry
+diff -puN include/linux/list.h~list-change-list_for_each_entry-to-use-list__entry include/linux/list.h
+--- a/include/linux/list.h~list-change-list_for_each_entry-to-use-list__entry
 +++ a/include/linux/list.h
-@@ -362,6 +362,17 @@ static inline void list_splice_tail_init
- 	list_entry((ptr)->next, type, member)
- 
- /**
-+ * list_last_entry - get the last element from a list
-+ * @ptr:	the list head to take the element from.
-+ * @type:	the type of the struct this is embedded in.
-+ * @member:	the name of the list_struct within the struct.
-+ *
-+ * Note, that list is expected to be not empty.
-+ */
-+#define list_last_entry(ptr, type, member) \
-+	list_entry((ptr)->prev, type, member)
-+
-+/**
-  * list_first_entry_or_null - get the first element from a list
-  * @ptr:	the list head to take the element from.
-  * @type:	the type of the struct this is embedded in.
-@@ -432,7 +443,7 @@ static inline void list_splice_tail_init
-  * @member:	the name of the list_struct within the struct.
+@@ -433,8 +433,8 @@ static inline void list_splice_tail_init
   */
  #define list_for_each_entry(pos, head, member)				\
--	for (pos = list_entry((head)->next, typeof(*pos), member);	\
-+	for (pos = list_first_entry(head, typeof(*pos), member);	\
- 	     &pos->member != (head);					\
- 	     pos = list_next_entry(pos, member))
+ 	for (pos = list_entry((head)->next, typeof(*pos), member);	\
+-	     &pos->member != (head); 	\
+-	     pos = list_entry(pos->member.next, typeof(*pos), member))
++	     &pos->member != (head);					\
++	     pos = list_next_entry(pos, member))
  
-@@ -443,7 +454,7 @@ static inline void list_splice_tail_init
-  * @member:	the name of the list_struct within the struct.
+ /**
+  * list_for_each_entry_reverse - iterate backwards over list of given type.
+@@ -444,8 +444,8 @@ static inline void list_splice_tail_init
   */
  #define list_for_each_entry_reverse(pos, head, member)			\
--	for (pos = list_entry((head)->prev, typeof(*pos), member);	\
-+	for (pos = list_last_entry(head, typeof(*pos), member);		\
- 	     &pos->member != (head); 					\
- 	     pos = list_prev_entry(pos, member))
+ 	for (pos = list_entry((head)->prev, typeof(*pos), member);	\
+-	     &pos->member != (head); 	\
+-	     pos = list_entry(pos->member.prev, typeof(*pos), member))
++	     &pos->member != (head); 					\
++	     pos = list_prev_entry(pos, member))
  
-@@ -506,7 +517,7 @@ static inline void list_splice_tail_init
-  * @member:	the name of the list_struct within the struct.
+ /**
+  * list_prepare_entry - prepare a pos entry for use in list_for_each_entry_continue()
+@@ -468,9 +468,9 @@ static inline void list_splice_tail_init
+  * the current position.
+  */
+ #define list_for_each_entry_continue(pos, head, member) 		\
+-	for (pos = list_entry(pos->member.next, typeof(*pos), member);	\
+-	     &pos->member != (head);	\
+-	     pos = list_entry(pos->member.next, typeof(*pos), member))
++	for (pos = list_next_entry(pos, member);			\
++	     &pos->member != (head);					\
++	     pos = list_next_entry(pos, member))
+ 
+ /**
+  * list_for_each_entry_continue_reverse - iterate backwards from the given point
+@@ -482,9 +482,9 @@ static inline void list_splice_tail_init
+  * the current position.
+  */
+ #define list_for_each_entry_continue_reverse(pos, head, member)		\
+-	for (pos = list_entry(pos->member.prev, typeof(*pos), member);	\
+-	     &pos->member != (head);	\
+-	     pos = list_entry(pos->member.prev, typeof(*pos), member))
++	for (pos = list_prev_entry(pos, member);			\
++	     &pos->member != (head);					\
++	     pos = list_prev_entry(pos, member))
+ 
+ /**
+  * list_for_each_entry_from - iterate over list of given type from the current point
+@@ -495,8 +495,8 @@ static inline void list_splice_tail_init
+  * Iterate over list of given type, continuing from current position.
+  */
+ #define list_for_each_entry_from(pos, head, member) 			\
+-	for (; &pos->member != (head);	\
+-	     pos = list_entry(pos->member.next, typeof(*pos), member))
++	for (; &pos->member != (head);					\
++	     pos = list_next_entry(pos, member))
+ 
+ /**
+  * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
+@@ -507,9 +507,9 @@ static inline void list_splice_tail_init
   */
  #define list_for_each_entry_safe(pos, n, head, member)			\
--	for (pos = list_entry((head)->next, typeof(*pos), member),	\
-+	for (pos = list_first_entry(head, typeof(*pos), member),	\
- 		n = list_next_entry(pos, member);			\
+ 	for (pos = list_entry((head)->next, typeof(*pos), member),	\
+-		n = list_entry(pos->member.next, typeof(*pos), member);	\
++		n = list_next_entry(pos, member);			\
  	     &pos->member != (head); 					\
- 	     pos = n, n = list_next_entry(n, member))
-@@ -553,7 +564,7 @@ static inline void list_splice_tail_init
-  * of list entry.
+-	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
++	     pos = n, n = list_next_entry(n, member))
+ 
+ /**
+  * list_for_each_entry_safe_continue - continue list iteration safe against removal
+@@ -522,10 +522,10 @@ static inline void list_splice_tail_init
+  * safe against removal of list entry.
+  */
+ #define list_for_each_entry_safe_continue(pos, n, head, member) 		\
+-	for (pos = list_entry(pos->member.next, typeof(*pos), member), 		\
+-		n = list_entry(pos->member.next, typeof(*pos), member);		\
++	for (pos = list_next_entry(pos, member), 				\
++		n = list_next_entry(pos, member);				\
+ 	     &pos->member != (head);						\
+-	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
++	     pos = n, n = list_next_entry(n, member))
+ 
+ /**
+  * list_for_each_entry_safe_from - iterate over list from current point safe against removal
+@@ -538,9 +538,9 @@ static inline void list_splice_tail_init
+  * removal of list entry.
+  */
+ #define list_for_each_entry_safe_from(pos, n, head, member) 			\
+-	for (n = list_entry(pos->member.next, typeof(*pos), member);		\
++	for (n = list_next_entry(pos, member);					\
+ 	     &pos->member != (head);						\
+-	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
++	     pos = n, n = list_next_entry(n, member))
+ 
+ /**
+  * list_for_each_entry_safe_reverse - iterate backwards over list safe against removal
+@@ -554,9 +554,9 @@ static inline void list_splice_tail_init
   */
  #define list_for_each_entry_safe_reverse(pos, n, head, member)		\
--	for (pos = list_entry((head)->prev, typeof(*pos), member),	\
-+	for (pos = list_last_entry(head, typeof(*pos), member),		\
- 		n = list_prev_entry(pos, member);			\
+ 	for (pos = list_entry((head)->prev, typeof(*pos), member),	\
+-		n = list_entry(pos->member.prev, typeof(*pos), member);	\
++		n = list_prev_entry(pos, member);			\
  	     &pos->member != (head); 					\
- 	     pos = n, n = list_prev_entry(n, member))
+-	     pos = n, n = list_entry(n->member.prev, typeof(*n), member))
++	     pos = n, n = list_prev_entry(n, member))
+ 
+ /**
+  * list_safe_reset_next - reset a stale list_for_each_entry_safe loop
+@@ -571,7 +571,7 @@ static inline void list_splice_tail_init
+  * completing the current iteration of the loop body.
+  */
+ #define list_safe_reset_next(pos, n, member)				\
+-	n = list_entry(pos->member.next, typeof(*pos), member)
++	n = list_next_entry(pos, member)
+ 
+ /*
+  * Double linked lists with a single pointer list head.
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
