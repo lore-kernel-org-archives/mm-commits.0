@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + list-change-list_for_each_entry-to-use-list__entry.patch added
- to -mm tree
-Date: Mon, 11 Nov 2013 15:18:53 -0800
-Message-ID: <528165dd.VXek2w3/NnjKvHEj%akpm@linux-foundation.org>
+Subject: +
+ mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch added to -mm tree
+Date: Mon, 11 Nov 2013 15:20:54 -0800
+Message-ID: <52816656.GEwQysPyWifA3rH0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51408 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51424 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753746Ab3KKXSy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 18:18:54 -0500
+	with ESMTP id S1752569Ab3KKXUz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 18:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gregkh@linuxfoundation.org, eilong@broadcom.com, a.p.zijlstra@chello.nl, oleg@redhat.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + list-change-list_for_each_entry-to-use-list__entry.patch added to -mm tree
-To: oleg@redhat.com,a.p.zijlstra@chello.nl,eilong@broadcom.com,gregkh@linuxfoundation.org
+Subject: + mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch added to -mm tree
+To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 11 Nov 2013 15:18:53 -0800
+Date: Mon, 11 Nov 2013 15:20:54 -0800
 
 
 The patch titled
-     Subject: list: change list_for_each_entry*() to use list_*_entry()
+     Subject: mm: numa: return the number of base pages altered by protection changes
 has been added to the -mm tree.  Its filename is
-     list-change-list_for_each_entry-to-use-list__entry.patch
+     mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/list-change-list_for_each_entry-to-use-list__entry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/list-change-list_for_each_entry-to-use-list__entry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,154 +44,140 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: list: change list_for_each_entry*() to use list_*_entry()
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: numa: return the number of base pages altered by protection changes
 
-Now that we have list_{next,prev}_entry() we can change
-list_for_each_entry*() and list_safe_reset_next() to use the new helpers
-to improve the readability.
+Commit 0255d491 ("mm: Account for a THP NUMA hinting update as one PTE
+update") was added to account for the number of PTE updates when marking
+pages prot_numa.  task_numa_work was using the old return value to track
+how much address space had been updated.  Altering the return value causes
+the scanner to do more work than it is configured or documented to in a
+single unit of work.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Eilon Greenstein <eilong@broadcom.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+This patch reverts 0255d491 and accounts for the number of THP updates
+separately in vmstat.  It is up to the administrator to interpret the pair
+of values correctly.  This is a straight-forward operation and likely to
+only be of interest when actively debugging NUMA balancing problems.
+
+The impact of this patch is that the NUMA PTE scanner will scan slower
+when THP is enabled and workloads may converge slower as a result.  On the
+flip size system CPU usage should be lower than recent tests reported. 
+This is an illustrative example of a short single JVM specjbb test
+
+specjbb
+                       3.12.0                3.12.0
+                      vanilla      acctupdates
+TPut 1      26143.00 (  0.00%)     25747.00 ( -1.51%)
+TPut 7     185257.00 (  0.00%)    183202.00 ( -1.11%)
+TPut 13    329760.00 (  0.00%)    346577.00 (  5.10%)
+TPut 19    442502.00 (  0.00%)    460146.00 (  3.99%)
+TPut 25    540634.00 (  0.00%)    549053.00 (  1.56%)
+TPut 31    512098.00 (  0.00%)    519611.00 (  1.47%)
+TPut 37    461276.00 (  0.00%)    474973.00 (  2.97%)
+TPut 43    403089.00 (  0.00%)    414172.00 (  2.75%)
+
+              3.12.0      3.12.0
+             vanillaacctupdates
+User         5169.64     5184.14
+System        100.45       80.02
+Elapsed       252.75      251.85
+
+Performance is similar but note the reduction in system CPU time.  While
+this showed a performance gain, it will not be universal but at least
+it'll be behaving as documented.  The vmstats are obviously different but
+here is an obvious interpretation of them from mmtests.
+
+                                3.12.0      3.12.0
+                               vanillaacctupdates
+NUMA page range updates        1408326    11043064
+NUMA huge PMD updates                0       21040
+NUMA PTE updates               1408326      291624
+
+"NUMA page range updates" == nr_pte_updates and is the value returned to
+the NUMA pte scanner.  NUMA huge PMD updates were the number of THP
+updates which in combination can be used to calculate how many ptes were
+updated from userspace.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reported-by: Alex Thorlton <athorlton@sgi.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |   44 ++++++++++++++++++++---------------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ include/linux/vm_event_item.h |    1 +
+ mm/mprotect.c                 |    6 +++++-
+ mm/vmstat.c                   |    1 +
+ 3 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/list.h~list-change-list_for_each_entry-to-use-list__entry include/linux/list.h
---- a/include/linux/list.h~list-change-list_for_each_entry-to-use-list__entry
-+++ a/include/linux/list.h
-@@ -433,8 +433,8 @@ static inline void list_splice_tail_init
-  */
- #define list_for_each_entry(pos, head, member)				\
- 	for (pos = list_entry((head)->next, typeof(*pos), member);	\
--	     &pos->member != (head); 	\
--	     pos = list_entry(pos->member.next, typeof(*pos), member))
-+	     &pos->member != (head);					\
-+	     pos = list_next_entry(pos, member))
+diff -puN include/linux/vm_event_item.h~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes
++++ a/include/linux/vm_event_item.h
+@@ -39,6 +39,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
+ #ifdef CONFIG_NUMA_BALANCING
+ 		NUMA_PTE_UPDATES,
++		NUMA_HUGE_PTE_UPDATES,
+ 		NUMA_HINT_FAULTS,
+ 		NUMA_HINT_FAULTS_LOCAL,
+ 		NUMA_PAGE_MIGRATE,
+diff -puN mm/mprotect.c~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes mm/mprotect.c
+--- a/mm/mprotect.c~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes
++++ a/mm/mprotect.c
+@@ -138,6 +138,7 @@ static inline unsigned long change_pmd_r
+ 	pmd_t *pmd;
+ 	unsigned long next;
+ 	unsigned long pages = 0;
++	unsigned long nr_huge_updates = 0;
+ 	bool all_same_node;
  
- /**
-  * list_for_each_entry_reverse - iterate backwards over list of given type.
-@@ -444,8 +444,8 @@ static inline void list_splice_tail_init
-  */
- #define list_for_each_entry_reverse(pos, head, member)			\
- 	for (pos = list_entry((head)->prev, typeof(*pos), member);	\
--	     &pos->member != (head); 	\
--	     pos = list_entry(pos->member.prev, typeof(*pos), member))
-+	     &pos->member != (head); 					\
-+	     pos = list_prev_entry(pos, member))
+ 	pmd = pmd_offset(pud, addr);
+@@ -148,7 +149,8 @@ static inline unsigned long change_pmd_r
+ 				split_huge_page_pmd(vma, addr, pmd);
+ 			else if (change_huge_pmd(vma, pmd, addr, newprot,
+ 						 prot_numa)) {
+-				pages++;
++				pages += HPAGE_PMD_NR;
++				nr_huge_updates++;
+ 				continue;
+ 			}
+ 			/* fall through */
+@@ -168,6 +170,8 @@ static inline unsigned long change_pmd_r
+ 			change_pmd_protnuma(vma->vm_mm, addr, pmd);
+ 	} while (pmd++, addr = next, addr != end);
  
- /**
-  * list_prepare_entry - prepare a pos entry for use in list_for_each_entry_continue()
-@@ -468,9 +468,9 @@ static inline void list_splice_tail_init
-  * the current position.
-  */
- #define list_for_each_entry_continue(pos, head, member) 		\
--	for (pos = list_entry(pos->member.next, typeof(*pos), member);	\
--	     &pos->member != (head);	\
--	     pos = list_entry(pos->member.next, typeof(*pos), member))
-+	for (pos = list_next_entry(pos, member);			\
-+	     &pos->member != (head);					\
-+	     pos = list_next_entry(pos, member))
++	if (nr_huge_updates)
++		count_vm_numa_events(NUMA_HUGE_PTE_UPDATES, nr_huge_updates);
+ 	return pages;
+ }
  
- /**
-  * list_for_each_entry_continue_reverse - iterate backwards from the given point
-@@ -482,9 +482,9 @@ static inline void list_splice_tail_init
-  * the current position.
-  */
- #define list_for_each_entry_continue_reverse(pos, head, member)		\
--	for (pos = list_entry(pos->member.prev, typeof(*pos), member);	\
--	     &pos->member != (head);	\
--	     pos = list_entry(pos->member.prev, typeof(*pos), member))
-+	for (pos = list_prev_entry(pos, member);			\
-+	     &pos->member != (head);					\
-+	     pos = list_prev_entry(pos, member))
+diff -puN mm/vmstat.c~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes mm/vmstat.c
+--- a/mm/vmstat.c~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes
++++ a/mm/vmstat.c
+@@ -812,6 +812,7 @@ const char * const vmstat_text[] = {
  
- /**
-  * list_for_each_entry_from - iterate over list of given type from the current point
-@@ -495,8 +495,8 @@ static inline void list_splice_tail_init
-  * Iterate over list of given type, continuing from current position.
-  */
- #define list_for_each_entry_from(pos, head, member) 			\
--	for (; &pos->member != (head);	\
--	     pos = list_entry(pos->member.next, typeof(*pos), member))
-+	for (; &pos->member != (head);					\
-+	     pos = list_next_entry(pos, member))
- 
- /**
-  * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
-@@ -507,9 +507,9 @@ static inline void list_splice_tail_init
-  */
- #define list_for_each_entry_safe(pos, n, head, member)			\
- 	for (pos = list_entry((head)->next, typeof(*pos), member),	\
--		n = list_entry(pos->member.next, typeof(*pos), member);	\
-+		n = list_next_entry(pos, member);			\
- 	     &pos->member != (head); 					\
--	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
-+	     pos = n, n = list_next_entry(n, member))
- 
- /**
-  * list_for_each_entry_safe_continue - continue list iteration safe against removal
-@@ -522,10 +522,10 @@ static inline void list_splice_tail_init
-  * safe against removal of list entry.
-  */
- #define list_for_each_entry_safe_continue(pos, n, head, member) 		\
--	for (pos = list_entry(pos->member.next, typeof(*pos), member), 		\
--		n = list_entry(pos->member.next, typeof(*pos), member);		\
-+	for (pos = list_next_entry(pos, member), 				\
-+		n = list_next_entry(pos, member);				\
- 	     &pos->member != (head);						\
--	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
-+	     pos = n, n = list_next_entry(n, member))
- 
- /**
-  * list_for_each_entry_safe_from - iterate over list from current point safe against removal
-@@ -538,9 +538,9 @@ static inline void list_splice_tail_init
-  * removal of list entry.
-  */
- #define list_for_each_entry_safe_from(pos, n, head, member) 			\
--	for (n = list_entry(pos->member.next, typeof(*pos), member);		\
-+	for (n = list_next_entry(pos, member);					\
- 	     &pos->member != (head);						\
--	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
-+	     pos = n, n = list_next_entry(n, member))
- 
- /**
-  * list_for_each_entry_safe_reverse - iterate backwards over list safe against removal
-@@ -554,9 +554,9 @@ static inline void list_splice_tail_init
-  */
- #define list_for_each_entry_safe_reverse(pos, n, head, member)		\
- 	for (pos = list_entry((head)->prev, typeof(*pos), member),	\
--		n = list_entry(pos->member.prev, typeof(*pos), member);	\
-+		n = list_prev_entry(pos, member);			\
- 	     &pos->member != (head); 					\
--	     pos = n, n = list_entry(n->member.prev, typeof(*n), member))
-+	     pos = n, n = list_prev_entry(n, member))
- 
- /**
-  * list_safe_reset_next - reset a stale list_for_each_entry_safe loop
-@@ -571,7 +571,7 @@ static inline void list_splice_tail_init
-  * completing the current iteration of the loop body.
-  */
- #define list_safe_reset_next(pos, n, member)				\
--	n = list_entry(pos->member.next, typeof(*pos), member)
-+	n = list_next_entry(pos, member)
- 
- /*
-  * Double linked lists with a single pointer list head.
+ #ifdef CONFIG_NUMA_BALANCING
+ 	"numa_pte_updates",
++	"numa_huge_pte_updates",
+ 	"numa_hint_faults",
+ 	"numa_hint_faults_local",
+ 	"numa_pages_migrated",
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-kthread-make-kthread_create-killable.patch
-list-introduce-list_next_entry-and-list_prev_entry.patch
-list-change-list_for_each_entry-to-use-list__entry.patch
-list-introduce-list_last_entry-use-list_firstlast_entry.patch
-debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch
-exec-ptrace-fix-get_dumpable-incorrect-tests.patch
+mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch
+memblock-factor-out-of-top-down-allocation.patch
+memblock-introduce-bottom-up-allocation-mode.patch
+x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
+x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
+mem-hotplug-introduce-movable_node-boot-option.patch
+mm-do-not-walk-all-of-system-memory-during-show_mem.patch
+mm-fix-page_group_by_mobility_disabled-breakage.patch
+mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
+mm-__rmqueue_fallback-should-respect-pageblock-type.patch
+mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch
 linux-next.patch
 mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
 mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
@@ -204,6 +190,4 @@ mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
 mm-convert-the-rest-to-new-page-table-lock-api.patch
 mm-implement-split-page-table-lock-for-pmd-level.patch
 x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
 
