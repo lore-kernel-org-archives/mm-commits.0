@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch added to -mm tree
-Date: Mon, 11 Nov 2013 15:20:54 -0800
-Message-ID: <52816656.GEwQysPyWifA3rH0%akpm@linux-foundation.org>
+Subject: + mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix.patch
+ added to -mm tree
+Date: Mon, 11 Nov 2013 15:34:29 -0800
+Message-ID: <52816985.v5mFIEqWG18pnZwS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51534 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569Ab3KKXUz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 18:20:55 -0500
+	with ESMTP id S1753056Ab3KKXea (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 18:34:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, shmulik.ladkani@gmail.com, kzak@redhat.com, ezequiel.garcia@free-electrons.com, dwmw2@infradead.org, dedekind1@gmail.com, computersforpeace@gmail.com, axboe@kernel.dk, albert.wanglin@hisilicon.com, caizhiyong@huawei.com
 
-Subject: + mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch added to -mm tree
-To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org
+Subject: + mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix.patch added to -mm tree
+To: caizhiyong@huawei.com,albert.wanglin@hisilicon.com,axboe@kernel.dk,computersforpeace@gmail.com,dedekind1@gmail.com,dwmw2@infradead.org,ezequiel.garcia@free-electrons.com,kzak@redhat.com,shmulik.ladkani@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 11 Nov 2013 15:20:54 -0800
+Date: Mon, 11 Nov 2013 15:34:29 -0800
 
 
 The patch titled
-     Subject: mm: numa: return the number of base pages altered by protection changes
+     Subject: mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix
 has been added to the -mm tree.  Its filename is
-     mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch
+     mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,150 +44,645 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: return the number of base pages altered by protection changes
+From: Cai Zhiyong <caizhiyong@huawei.com>
+Subject: mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix
 
-Commit 0255d491 ("mm: Account for a THP NUMA hinting update as one PTE
-update") was added to account for the number of PTE updates when marking
-pages prot_numa.  task_numa_work was using the old return value to track
-how much address space had been updated.  Altering the return value causes
-the scanner to do more work than it is configured or documented to in a
-single unit of work.
+ -Fix compile warning with value and function undeclared.
+  this reported by <fengguang.wu@intel.com> and
+  Randy Dunlap <rdunlap@infradead.org>
 
-This patch reverts 0255d491 and accounts for the number of THP updates
-separately in vmstat.  It is up to the administrator to interpret the pair
-of values correctly.  This is a straight-forward operation and likely to
-only be of interest when actively debugging NUMA balancing problems.
+ -perfect cmdline format checking, make the error information clear
+  for understand, make this lib fully equivalent to the old parser
+  in drivers/mtd/cmdlinepart.c
 
-The impact of this patch is that the NUMA PTE scanner will scan slower
-when THP is enabled and workloads may converge slower as a result.  On the
-flip size system CPU usage should be lower than recent tests reported. 
-This is an illustrative example of a short single JVM specjbb test
-
-specjbb
-                       3.12.0                3.12.0
-                      vanilla      acctupdates
-TPut 1      26143.00 (  0.00%)     25747.00 ( -1.51%)
-TPut 7     185257.00 (  0.00%)    183202.00 ( -1.11%)
-TPut 13    329760.00 (  0.00%)    346577.00 (  5.10%)
-TPut 19    442502.00 (  0.00%)    460146.00 (  3.99%)
-TPut 25    540634.00 (  0.00%)    549053.00 (  1.56%)
-TPut 31    512098.00 (  0.00%)    519611.00 (  1.47%)
-TPut 37    461276.00 (  0.00%)    474973.00 (  2.97%)
-TPut 43    403089.00 (  0.00%)    414172.00 (  2.75%)
-
-              3.12.0      3.12.0
-             vanillaacctupdates
-User         5169.64     5184.14
-System        100.45       80.02
-Elapsed       252.75      251.85
-
-Performance is similar but note the reduction in system CPU time.  While
-this showed a performance gain, it will not be universal but at least
-it'll be behaving as documented.  The vmstats are obviously different but
-here is an obvious interpretation of them from mmtests.
-
-                                3.12.0      3.12.0
-                               vanillaacctupdates
-NUMA page range updates        1408326    11043064
-NUMA huge PMD updates                0       21040
-NUMA PTE updates               1408326      291624
-
-"NUMA page range updates" == nr_pte_updates and is the value returned to
-the NUMA pte scanner.  NUMA huge PMD updates were the number of THP
-updates which in combination can be used to calculate how many ptes were
-updated from userspace.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Alex Thorlton <athorlton@sgi.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Cai Zhiyong <caizhiyong@huawei.com>
+Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+CC: Brian Norris <computersforpeace@gmail.com>
+Cc: "Wanglin (Albert)" <albert.wanglin@hisilicon.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Karel Zak <kzak@redhat.com>
+Cc: Shmulik Ladkani <shmulik.ladkani@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    1 +
- mm/mprotect.c                 |    6 +++++-
- mm/vmstat.c                   |    1 +
- 3 files changed, 7 insertions(+), 1 deletion(-)
+ block/cmdline-parser.c         |   86 +++++--
+ drivers/mtd/Kconfig            |    1 
+ drivers/mtd/cmdlinepart.c      |  345 +++++++++++++++++++++++++++----
+ include/linux/cmdline-parser.h |    1 
+ 4 files changed, 371 insertions(+), 62 deletions(-)
 
-diff -puN include/linux/vm_event_item.h~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes
-+++ a/include/linux/vm_event_item.h
-@@ -39,6 +39,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
- #ifdef CONFIG_NUMA_BALANCING
- 		NUMA_PTE_UPDATES,
-+		NUMA_HUGE_PTE_UPDATES,
- 		NUMA_HINT_FAULTS,
- 		NUMA_HINT_FAULTS_LOCAL,
- 		NUMA_PAGE_MIGRATE,
-diff -puN mm/mprotect.c~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes
-+++ a/mm/mprotect.c
-@@ -138,6 +138,7 @@ static inline unsigned long change_pmd_r
- 	pmd_t *pmd;
- 	unsigned long next;
- 	unsigned long pages = 0;
-+	unsigned long nr_huge_updates = 0;
- 	bool all_same_node;
+diff -puN block/cmdline-parser.c~mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix block/cmdline-parser.c
+--- a/block/cmdline-parser.c~mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix
++++ a/block/cmdline-parser.c
+@@ -6,10 +6,15 @@
+  */
+ #include <linux/export.h>
+ #include <linux/cmdline-parser.h>
++#include <linux/slab.h>
++
++#define PARSER                       "cmdline-parser: "
  
- 	pmd = pmd_offset(pud, addr);
-@@ -148,7 +149,8 @@ static inline unsigned long change_pmd_r
- 				split_huge_page_pmd(vma, addr, pmd);
- 			else if (change_huge_pmd(vma, pmd, addr, newprot,
- 						 prot_numa)) {
--				pages++;
-+				pages += HPAGE_PMD_NR;
-+				nr_huge_updates++;
- 				continue;
- 			}
- 			/* fall through */
-@@ -168,6 +170,8 @@ static inline unsigned long change_pmd_r
- 			change_pmd_protnuma(vma->vm_mm, addr, pmd);
- 	} while (pmd++, addr = next, addr != end);
+ static int parse_subpart(struct cmdline_subpart **subpart, char *partdef)
+ {
+ 	int ret = 0;
++	int lastpart = 0;
++	char *partorg = partdef;
+ 	struct cmdline_subpart *new_subpart;
  
-+	if (nr_huge_updates)
-+		count_vm_numa_events(NUMA_HUGE_PTE_UPDATES, nr_huge_updates);
- 	return pages;
+ 	*subpart = NULL;
+@@ -21,10 +26,12 @@ static int parse_subpart(struct cmdline_
+ 	if (*partdef == '-') {
+ 		new_subpart->size = (sector_t)(~0ULL);
+ 		partdef++;
++		lastpart = 1;
+ 	} else {
+ 		new_subpart->size = (sector_t)memparse(partdef, &partdef);
+ 		if (new_subpart->size < (sector_t)PAGE_SIZE) {
+-			pr_warn("cmdline partition size is invalid.");
++			pr_warn(PARSER "partition '%s' size '0x%llx' too small.",
++				partorg, new_subpart->size);
+ 			ret = -EINVAL;
+ 			goto fail;
+ 		}
+@@ -42,13 +49,19 @@ static int parse_subpart(struct cmdline_
+ 		char *next = strchr(++partdef, ')');
+ 
+ 		if (!next) {
+-			pr_warn("cmdline partition format is invalid.");
++			pr_warn(PARSER "partition '%s' has no closing ')' "
++				"found in partition name.", partorg);
+ 			ret = -EINVAL;
+ 			goto fail;
+ 		}
+ 
+-		length = min_t(int, next - partdef,
+-			       sizeof(new_subpart->name) - 1);
++		length = (int)(next - partdef);
++		if (length > sizeof(new_subpart->name) - 1) {
++			pr_warn(PARSER "partition '%s' partition name too long,"
++				" truncating.", partorg);
++			length = sizeof(new_subpart->name) - 1;
++		}
++
+ 		strncpy(new_subpart->name, partdef, length);
+ 		new_subpart->name[length] = '\0';
+ 
+@@ -68,8 +81,15 @@ static int parse_subpart(struct cmdline_
+ 		partdef += 2;
+ 	}
+ 
++	if (*partdef) {
++		pr_warn(PARSER "partition '%s' has bad character '%c' after"
++			" partition.", partorg, *partdef);
++		ret = -EINVAL;
++		goto fail;
++	}
++
+ 	*subpart = new_subpart;
+-	return 0;
++	return lastpart;
+ fail:
+ 	kfree(new_subpart);
+ 	return ret;
+@@ -86,14 +106,13 @@ static void free_subpart(struct cmdline_
+ 	}
  }
  
-diff -puN mm/vmstat.c~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes mm/vmstat.c
---- a/mm/vmstat.c~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes
-+++ a/mm/vmstat.c
-@@ -812,6 +812,7 @@ const char * const vmstat_text[] = {
+-static int parse_parts(struct cmdline_parts **parts, const char *bdevdef)
++static int parse_parts(struct cmdline_parts **parts, char *bdevdef)
+ {
+ 	int ret = -EINVAL;
+ 	char *next;
+ 	int length;
+ 	struct cmdline_subpart **next_subpart;
+ 	struct cmdline_parts *newparts;
+-	char buf[BDEVNAME_SIZE + 32 + 4];
  
- #ifdef CONFIG_NUMA_BALANCING
- 	"numa_pte_updates",
-+	"numa_huge_pte_updates",
- 	"numa_hint_faults",
- 	"numa_hint_faults_local",
- 	"numa_pages_migrated",
+ 	*parts = NULL;
+ 
+@@ -102,14 +121,21 @@ static int parse_parts(struct cmdline_pa
+ 		return -ENOMEM;
+ 
+ 	next = strchr(bdevdef, ':');
+-	if (!next) {
+-		pr_warn("cmdline partition has no block device.");
++	if (!next || next == bdevdef) {
++		pr_warn(PARSER "partition '%s' has no block device.", bdevdef);
+ 		goto fail;
+ 	}
+ 
+-	length = min_t(int, next - bdevdef, sizeof(newparts->name) - 1);
++	length = (int)(next - bdevdef);
++	if (length > sizeof(newparts->name) - 1) {
++		pr_warn(PARSER "partition '%s' device name too long, "
++			"truncating.", bdevdef);
++		length = sizeof(newparts->name) - 1;
++	}
++
+ 	strncpy(newparts->name, bdevdef, length);
+ 	newparts->name[length] = '\0';
++
+ 	newparts->nr_subparts = 0;
+ 
+ 	next_subpart = &newparts->subpart;
+@@ -117,23 +143,26 @@ static int parse_parts(struct cmdline_pa
+ 	while (next && *(++next)) {
+ 		bdevdef = next;
+ 		next = strchr(bdevdef, ',');
++		if (next)
++			*next = '\0';
+ 
+-		length = (!next) ? (sizeof(buf) - 1) :
+-			min_t(int, next - bdevdef, sizeof(buf) - 1);
+-
+-		strncpy(buf, bdevdef, length);
+-		buf[length] = '\0';
+-
+-		ret = parse_subpart(next_subpart, buf);
+-		if (ret)
++		ret = parse_subpart(next_subpart, bdevdef);
++		if (ret < 0) {
+ 			goto fail;
++		} else if (ret > 0 && next) {
++			pr_warn(PARSER "no partitions allowed after a "
++				"fill-up partition.");
++			ret = -EINVAL;
++			goto fail;
++		}
+ 
+ 		newparts->nr_subparts++;
+ 		next_subpart = &(*next_subpart)->next_subpart;
+ 	}
+ 
+ 	if (!newparts->subpart) {
+-		pr_warn("cmdline partition has no valid partition.");
++		pr_warn(PARSER "block device '%s' has no valid"
++			" partition.", newparts->name);
+ 		ret = -EINVAL;
+ 		goto fail;
+ 	}
+@@ -192,7 +221,7 @@ int cmdline_parts_parse(struct cmdline_p
+ 	}
+ 
+ 	if (!*parts) {
+-		pr_warn("cmdline partition has no valid partition.");
++		pr_warn(PARSER "no found valid partition.");
+ 		ret = -EINVAL;
+ 		goto fail;
+ 	}
+@@ -237,11 +266,24 @@ int cmdline_parts_set(struct cmdline_par
+ 		else
+ 			from = subpart->from;
+ 
+-		if (from >= disk_size)
++		if (subpart->name[0] == '\0')
++			snprintf(subpart->name, sizeof(subpart->name),
++				 "partition%03d", slot);
++
++		if (from >= disk_size) {
++			pr_warn(PARSER "partition '%s' offset exceeds device"
++				" '%s' size '0x%llx', ignoring.",
++				subpart->name, parts->name, disk_size);
+ 			break;
++		}
+ 
+-		if (subpart->size > (disk_size - from))
++		if (subpart->size > (disk_size - from)) {
++			if (subpart->size != (sector_t)(~0ULL))
++				pr_warn(PARSER "partition '%s' size exceeds "
++					"device '%s' size '0x%llx', truncating.",
++					subpart->name, parts->name, disk_size);
+ 			subpart->size = disk_size - from;
++		}
+ 
+ 		from += subpart->size;
+ 
+diff -puN drivers/mtd/Kconfig~mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix drivers/mtd/Kconfig
+--- a/drivers/mtd/Kconfig~mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix
++++ a/drivers/mtd/Kconfig
+@@ -75,7 +75,6 @@ endif # MTD_REDBOOT_PARTS
+ 
+ config MTD_CMDLINE_PARTS
+ 	tristate "Command line partition table parsing"
+-	select BLK_CMDLINE_PARSER
+ 	depends on MTD
+ 	---help---
+ 	  Allow generic configuration of the MTD partition tables via the kernel
+diff -puN drivers/mtd/cmdlinepart.c~mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix drivers/mtd/cmdlinepart.c
+--- a/drivers/mtd/cmdlinepart.c~mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix
++++ a/drivers/mtd/cmdlinepart.c
+@@ -47,79 +47,344 @@
+  * 1 NOR Flash with 2 partitions, 1 NAND with one
+  * edb7312-nor:256k(ARMboot)ro,-(root);edb7312-nand:-(home)
+  */
+- /*
+-  * Copyright © 2013 Cai Zhiyong <caizhiyong@huawei.com>
+-  * Rewrite the cmdline parser code, adjust it to a library-style code.
+-  * this module only use the cmdline parser lib.
+-  */
+ 
+ #include <linux/kernel.h>
++#include <linux/slab.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/module.h>
+ #include <linux/err.h>
+-#include <linux/cmdline-parser.h>
+ 
++/* error message prefix */
++#define ERRP "mtd: "
++
++/* debug macro */
++#if 0
++#define dbg(x) do { printk("DEBUG-CMDLINE-PART: "); printk x; } while(0)
++#else
++#define dbg(x)
++#endif
++
++
++/* special size referring to all the remaining space in a partition */
++#define SIZE_REMAINING ULLONG_MAX
++#define OFFSET_CONTINUOUS ULLONG_MAX
++
++struct cmdline_mtd_partition {
++	struct cmdline_mtd_partition *next;
++	char *mtd_id;
++	int num_parts;
++	struct mtd_partition *parts;
++};
++
++/* mtdpart_setup() parses into here */
++static struct cmdline_mtd_partition *partitions;
++
++/* the command line passed to mtdpart_setup() */
+ static char *mtdparts;
+-static struct cmdline_parts *mtd_cmdline_parts;
++static char *cmdline;
++static int cmdline_parsed;
+ 
+-static int add_part(int slot, struct cmdline_subpart *subpart, void *param)
++/*
++ * Parse one partition definition for an MTD. Since there can be many
++ * comma separated partition definitions, this function calls itself
++ * recursively until no more partition definitions are found. Nice side
++ * effect: the memory to keep the mtd_partition structs and the names
++ * is allocated upon the last definition being found. At that point the
++ * syntax has been verified ok.
++ */
++static struct mtd_partition * newpart(char *s,
++				      char **retptr,
++				      int *num_parts,
++				      int this_part,
++				      unsigned char **extra_mem_ptr,
++				      int extra_mem_size)
+ {
+-	struct mtd_partition *mtdpart = &((struct mtd_partition *)param)[slot];
++	struct mtd_partition *parts;
++	unsigned long long size, offset = OFFSET_CONTINUOUS;
++	char *name;
++	int name_len;
++	unsigned char *extra_mem;
++	char delim;
++	unsigned int mask_flags;
++
++	/* fetch the partition size */
++	if (*s == '-') {
++		/* assign all remaining space to this partition */
++		size = SIZE_REMAINING;
++		s++;
++	} else {
++		size = memparse(s, &s);
++		if (size < PAGE_SIZE) {
++			printk(KERN_ERR ERRP "partition size too small (%llx)\n",
++			       size);
++			return ERR_PTR(-EINVAL);
++		}
++	}
+ 
+-	mtdpart->offset = subpart->from;
+-	mtdpart->size = subpart->size;
+-	mtdpart->name = subpart->name;
+-	mtdpart->mask_flags = 0;
++	/* fetch partition name and flags */
++	mask_flags = 0; /* this is going to be a regular partition */
++	delim = 0;
++
++	/* check for offset */
++	if (*s == '@') {
++		s++;
++		offset = memparse(s, &s);
++	}
+ 
+-	if (subpart->flags & PF_RDONLY)
+-		mtdpart->mask_flags |= MTD_WRITEABLE;
++	/* now look for name */
++	if (*s == '(')
++		delim = ')';
++
++	if (delim) {
++		char *p;
++
++		name = ++s;
++		p = strchr(name, delim);
++		if (!p) {
++			printk(KERN_ERR ERRP "no closing %c found in partition name\n", delim);
++			return ERR_PTR(-EINVAL);
++		}
++		name_len = p - name;
++		s = p + 1;
++	} else {
++		name = NULL;
++		name_len = 13; /* Partition_000 */
++	}
+ 
+-	if (subpart->flags & PF_POWERUP_LOCK)
+-		mtdpart->mask_flags |= MTD_POWERUP_LOCK;
++	/* record name length for memory allocation later */
++	extra_mem_size += name_len + 1;
+ 
+-	return 0;
++	/* test for options */
++	if (strncmp(s, "ro", 2) == 0) {
++		mask_flags |= MTD_WRITEABLE;
++		s += 2;
++	}
++
++	/* if lk is found do NOT unlock the MTD partition*/
++	if (strncmp(s, "lk", 2) == 0) {
++		mask_flags |= MTD_POWERUP_LOCK;
++		s += 2;
++	}
++
++	/* test if more partitions are following */
++	if (*s == ',') {
++		if (size == SIZE_REMAINING) {
++			printk(KERN_ERR ERRP "no partitions allowed after a fill-up partition\n");
++			return ERR_PTR(-EINVAL);
++		}
++		/* more partitions follow, parse them */
++		parts = newpart(s + 1, &s, num_parts, this_part + 1,
++				&extra_mem, extra_mem_size);
++		if (IS_ERR(parts))
++			return parts;
++	} else {
++		/* this is the last partition: allocate space for all */
++		int alloc_size;
++
++		*num_parts = this_part + 1;
++		alloc_size = *num_parts * sizeof(struct mtd_partition) +
++			     extra_mem_size;
++
++		parts = kzalloc(alloc_size, GFP_KERNEL);
++		if (!parts)
++			return ERR_PTR(-ENOMEM);
++		extra_mem = (unsigned char *)(parts + *num_parts);
++	}
++
++	/* enter this partition (offset will be calculated later if it is zero at this point) */
++	parts[this_part].size = size;
++	parts[this_part].offset = offset;
++	parts[this_part].mask_flags = mask_flags;
++	if (name)
++		strlcpy(extra_mem, name, name_len + 1);
++	else
++		sprintf(extra_mem, "Partition_%03d", this_part);
++	parts[this_part].name = extra_mem;
++	extra_mem += name_len + 1;
++
++	dbg(("partition %d: name <%s>, offset %llx, size %llx, mask flags %x\n",
++	     this_part, parts[this_part].name, parts[this_part].offset,
++	     parts[this_part].size, parts[this_part].mask_flags));
++
++	/* return (updated) pointer to extra_mem memory */
++	if (extra_mem_ptr)
++		*extra_mem_ptr = extra_mem;
++
++	/* return (updated) pointer command line string */
++	*retptr = s;
++
++	/* return partition table */
++	return parts;
+ }
+ 
+-static int __init mtdpart_setup(char *s)
++/*
++ * Parse the command line.
++ */
++static int mtdpart_setup_real(char *s)
+ {
+-	mtdparts = s;
+-	return 1;
++	cmdline_parsed = 1;
++
++	for( ; s != NULL; )
++	{
++		struct cmdline_mtd_partition *this_mtd;
++		struct mtd_partition *parts;
++		int mtd_id_len, num_parts;
++		char *p, *mtd_id;
++
++		mtd_id = s;
++
++		/* fetch <mtd-id> */
++		p = strchr(s, ':');
++		if (!p) {
++			printk(KERN_ERR ERRP "no mtd-id\n");
++			return -EINVAL;
++		}
++		mtd_id_len = p - mtd_id;
++
++		dbg(("parsing <%s>\n", p+1));
++
++		/*
++		 * parse one mtd. have it reserve memory for the
++		 * struct cmdline_mtd_partition and the mtd-id string.
++		 */
++		parts = newpart(p + 1,		/* cmdline */
++				&s,		/* out: updated cmdline ptr */
++				&num_parts,	/* out: number of parts */
++				0,		/* first partition */
++				(unsigned char**)&this_mtd, /* out: extra mem */
++				mtd_id_len + 1 + sizeof(*this_mtd) +
++				sizeof(void*)-1 /*alignment*/);
++		if (IS_ERR(parts)) {
++			/*
++			 * An error occurred. We're either:
++			 * a) out of memory, or
++			 * b) in the middle of the partition spec
++			 * Either way, this mtd is hosed and we're
++			 * unlikely to succeed in parsing any more
++			 */
++			 return PTR_ERR(parts);
++		 }
++
++		/* align this_mtd */
++		this_mtd = (struct cmdline_mtd_partition *)
++				ALIGN((unsigned long)this_mtd, sizeof(void *));
++		/* enter results */
++		this_mtd->parts = parts;
++		this_mtd->num_parts = num_parts;
++		this_mtd->mtd_id = (char*)(this_mtd + 1);
++		strlcpy(this_mtd->mtd_id, mtd_id, mtd_id_len + 1);
++
++		/* link into chain */
++		this_mtd->next = partitions;
++		partitions = this_mtd;
++
++		dbg(("mtdid=<%s> num_parts=<%d>\n",
++		     this_mtd->mtd_id, this_mtd->num_parts));
++
++
++		/* EOS - we're done */
++		if (*s == 0)
++			break;
++
++		/* does another spec follow? */
++		if (*s != ';') {
++			printk(KERN_ERR ERRP "bad character after partition (%c)\n", *s);
++			return -EINVAL;
++		}
++		s++;
++	}
++
++	return 0;
+ }
+-__setup("mtdparts=", mtdpart_setup);
+ 
++/*
++ * Main function to be called from the MTD mapping driver/device to
++ * obtain the partitioning information. At this point the command line
++ * arguments will actually be parsed and turned to struct mtd_partition
++ * information. It returns partitions for the requested mtd device, or
++ * the first one in the chain if a NULL mtd_id is passed in.
++ */
+ static int parse_cmdline_partitions(struct mtd_info *master,
+ 				    struct mtd_partition **pparts,
+ 				    struct mtd_part_parser_data *data)
+ {
+-	struct cmdline_parts *parts;
+-
+-	if (mtdparts) {
+-		if (mtd_cmdline_parts)
+-			cmdline_parts_free(&mtd_cmdline_parts);
++	unsigned long long offset;
++	int i, err;
++	struct cmdline_mtd_partition *part;
++	const char *mtd_id = master->name;
++
++	/* parse command line */
++	if (!cmdline_parsed) {
++		err = mtdpart_setup_real(cmdline);
++		if (err)
++			return err;
++	}
+ 
+-		if (cmdline_parts_parse(&mtd_cmdline_parts, mtdparts)) {
+-			mtdparts = NULL;
+-			return -EINVAL;
+-		}
+-		mtdparts = NULL;
++	/*
++	 * Search for the partition definition matching master->name.
++	 * If master->name is not set, stop at first partition definition.
++	 */
++	for (part = partitions; part; part = part->next) {
++		if ((!mtd_id) || (!strcmp(part->mtd_id, mtd_id)))
++			break;
+ 	}
+ 
+-	if (!mtd_cmdline_parts)
++	if (!part)
+ 		return 0;
+ 
+-	parts = cmdline_parts_find(mtd_cmdline_parts, master->name);
+-	if (!parts)
+-		return 0;
++	for (i = 0, offset = 0; i < part->num_parts; i++) {
++		if (part->parts[i].offset == OFFSET_CONTINUOUS)
++			part->parts[i].offset = offset;
++		else
++			offset = part->parts[i].offset;
++
++		if (part->parts[i].size == SIZE_REMAINING)
++			part->parts[i].size = master->size - offset;
++
++		if (offset + part->parts[i].size > master->size) {
++			printk(KERN_WARNING ERRP
++			       "%s: partitioning exceeds flash size, truncating\n",
++			       part->mtd_id);
++			part->parts[i].size = master->size - offset;
++		}
++		offset += part->parts[i].size;
++
++		if (part->parts[i].size == 0) {
++			printk(KERN_WARNING ERRP
++			       "%s: skipping zero sized partition\n",
++			       part->mtd_id);
++			part->num_parts--;
++			memmove(&part->parts[i], &part->parts[i + 1],
++				sizeof(*part->parts) * (part->num_parts - i));
++			i--;
++		}
++	}
+ 
+-	*pparts = kzalloc(sizeof(**pparts) * parts->nr_subparts, GFP_KERNEL);
++	*pparts = kmemdup(part->parts, sizeof(*part->parts) * part->num_parts,
++			  GFP_KERNEL);
+ 	if (!*pparts)
+ 		return -ENOMEM;
+ 
+-	return cmdline_parts_set(parts, master->size, 0, add_part,
+-				 (void *)*pparts);
++	return part->num_parts;
+ }
+ 
++
++/*
++ * This is the handler for our kernel parameter, called from
++ * main.c::checksetup(). Note that we can not yet kmalloc() anything,
++ * so we only save the commandline for later processing.
++ *
++ * This function needs to be visible for bootloaders.
++ */
++static int __init mtdpart_setup(char *s)
++{
++	cmdline = s;
++	return 1;
++}
++
++__setup("mtdparts=", mtdpart_setup);
++
+ static struct mtd_part_parser cmdline_parser = {
+ 	.owner = THIS_MODULE,
+ 	.parse_fn = parse_cmdline_partitions,
+@@ -128,6 +393,8 @@ static struct mtd_part_parser cmdline_pa
+ 
+ static int __init cmdline_parser_init(void)
+ {
++	if (mtdparts)
++		mtdpart_setup(mtdparts);
+ 	return register_mtd_parser(&cmdline_parser);
+ }
+ 
+diff -puN include/linux/cmdline-parser.h~mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix include/linux/cmdline-parser.h
+--- a/include/linux/cmdline-parser.h~mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix
++++ a/include/linux/cmdline-parser.h
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/fs.h>
+ #include <linux/blkdev.h>
++#include <linux/fs.h>
+ 
+ /* partition flags */
+ #define PF_RDONLY                   0x01 /* Device is read only */
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from caizhiyong@huawei.com are
 
-mm-nobootmemc-have-__free_pages_memory-free-in-larger-chunks.patch
-memblock-factor-out-of-top-down-allocation.patch
-memblock-introduce-bottom-up-allocation-mode.patch
-x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
-x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
-mem-hotplug-introduce-movable_node-boot-option.patch
-mm-do-not-walk-all-of-system-memory-during-show_mem.patch
-mm-fix-page_group_by_mobility_disabled-breakage.patch
-mm-get-rid-of-unnecessary-overhead-of-trace_mm_page_alloc_extfrag.patch
-mm-__rmqueue_fallback-should-respect-pageblock-type.patch
-mm-numa-return-the-number-of-base-pages-altered-by-protection-changes.patch
-linux-next.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+block-remove-unrelated-header-files-and-export-symbol.patch
+block-remove-unrelated-header-files-and-export-symbol-fix.patch
+mtd-cmdlinepart-use-cmdline-partition-parser-lib.patch
+mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix.patch
 
