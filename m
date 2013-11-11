@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch
+Subject: + list-introduce-list_last_entry-use-list_firstlast_entry.patch
  added to -mm tree
-Date: Mon, 11 Nov 2013 15:18:55 -0800
-Message-ID: <528165df.Yl8YoZOnrIUZOnrN%akpm@linux-foundation.org>
+Date: Mon, 11 Nov 2013 15:18:54 -0800
+Message-ID: <528165de.Aj929kp7nwBaQq0/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51419 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51415 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753728Ab3KKXS4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 18:18:56 -0500
+	with ESMTP id S1753159Ab3KKXSz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 18:18:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, gregkh@linuxfoundation.org, eilong@broadcom.com, a.p.zijlstra@chello.nl, oleg@redhat.com
 
-Subject: + debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch added to -mm tree
+Subject: + list-introduce-list_last_entry-use-list_firstlast_entry.patch added to -mm tree
 To: oleg@redhat.com,a.p.zijlstra@chello.nl,eilong@broadcom.com,gregkh@linuxfoundation.org
 From: akpm@linux-foundation.org
-Date: Mon, 11 Nov 2013 15:18:55 -0800
+Date: Mon, 11 Nov 2013 15:18:54 -0800
 
 
 The patch titled
-     Subject: debugfs: use list_next_entry() in debugfs_remove_recursive()
+     Subject: list: introduce list_last_entry(), use list_{first,last}_entry()
 has been added to the -mm tree.  Its filename is
-     debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch
+     list-introduce-list_last_entry-use-list_firstlast_entry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/list-introduce-list_last_entry-use-list_firstlast_entry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/list-introduce-list_last_entry-use-list_firstlast_entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,10 +45,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: debugfs: use list_next_entry() in debugfs_remove_recursive()
+Subject: list: introduce list_last_entry(), use list_{first,last}_entry()
 
-Change debugfs_remove_recursive() to use list_next_entry(child), no
-changes in generated code.
+We already have list_first_entry(), it makes sense to also add
+list_last_entry() for consistency.  And we use both helpers in
+list_for_each_*().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Eilon Greenstein <eilong@broadcom.com>
@@ -57,22 +58,66 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/debugfs/inode.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/list.h |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN fs/debugfs/inode.c~debugfs-use-list_next_entry-in-debugfs_remove_recursive fs/debugfs/inode.c
---- a/fs/debugfs/inode.c~debugfs-use-list_next_entry-in-debugfs_remove_recursive
-+++ a/fs/debugfs/inode.c
-@@ -566,8 +566,7 @@ void debugfs_remove_recursive(struct den
- 	mutex_lock(&parent->d_inode->i_mutex);
+diff -puN include/linux/list.h~list-introduce-list_last_entry-use-list_firstlast_entry include/linux/list.h
+--- a/include/linux/list.h~list-introduce-list_last_entry-use-list_firstlast_entry
++++ a/include/linux/list.h
+@@ -362,6 +362,17 @@ static inline void list_splice_tail_init
+ 	list_entry((ptr)->next, type, member)
  
- 	if (child != dentry) {
--		next = list_entry(child->d_u.d_child.next, struct dentry,
--					d_u.d_child);
-+		next = list_next_entry(child, d_u.d_child);
- 		goto up;
- 	}
+ /**
++ * list_last_entry - get the last element from a list
++ * @ptr:	the list head to take the element from.
++ * @type:	the type of the struct this is embedded in.
++ * @member:	the name of the list_struct within the struct.
++ *
++ * Note, that list is expected to be not empty.
++ */
++#define list_last_entry(ptr, type, member) \
++	list_entry((ptr)->prev, type, member)
++
++/**
+  * list_first_entry_or_null - get the first element from a list
+  * @ptr:	the list head to take the element from.
+  * @type:	the type of the struct this is embedded in.
+@@ -432,7 +443,7 @@ static inline void list_splice_tail_init
+  * @member:	the name of the list_struct within the struct.
+  */
+ #define list_for_each_entry(pos, head, member)				\
+-	for (pos = list_entry((head)->next, typeof(*pos), member);	\
++	for (pos = list_first_entry(head, typeof(*pos), member);	\
+ 	     &pos->member != (head);					\
+ 	     pos = list_next_entry(pos, member))
  
+@@ -443,7 +454,7 @@ static inline void list_splice_tail_init
+  * @member:	the name of the list_struct within the struct.
+  */
+ #define list_for_each_entry_reverse(pos, head, member)			\
+-	for (pos = list_entry((head)->prev, typeof(*pos), member);	\
++	for (pos = list_last_entry(head, typeof(*pos), member);		\
+ 	     &pos->member != (head); 					\
+ 	     pos = list_prev_entry(pos, member))
+ 
+@@ -506,7 +517,7 @@ static inline void list_splice_tail_init
+  * @member:	the name of the list_struct within the struct.
+  */
+ #define list_for_each_entry_safe(pos, n, head, member)			\
+-	for (pos = list_entry((head)->next, typeof(*pos), member),	\
++	for (pos = list_first_entry(head, typeof(*pos), member),	\
+ 		n = list_next_entry(pos, member);			\
+ 	     &pos->member != (head); 					\
+ 	     pos = n, n = list_next_entry(n, member))
+@@ -553,7 +564,7 @@ static inline void list_splice_tail_init
+  * of list entry.
+  */
+ #define list_for_each_entry_safe_reverse(pos, n, head, member)		\
+-	for (pos = list_entry((head)->prev, typeof(*pos), member),	\
++	for (pos = list_last_entry(head, typeof(*pos), member),		\
+ 		n = list_prev_entry(pos, member);			\
+ 	     &pos->member != (head); 					\
+ 	     pos = n, n = list_prev_entry(n, member))
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
