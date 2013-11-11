@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + list-introduce-list_next_entry-and-list_prev_entry.patch added
- to -mm tree
-Date: Mon, 11 Nov 2013 15:18:52 -0800
-Message-ID: <528165dc.77KKtgWWp3/mZuN1%akpm@linux-foundation.org>
+Subject: + debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch
+ added to -mm tree
+Date: Mon, 11 Nov 2013 15:18:55 -0800
+Message-ID: <528165df.Yl8YoZOnrIUZOnrN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51401 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51419 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753159Ab3KKXSx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 18:18:53 -0500
+	with ESMTP id S1753728Ab3KKXS4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 18:18:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, gregkh@linuxfoundation.org, eilong@broadcom.com, a.p.zijlstra@chello.nl, oleg@redhat.com
 
-Subject: + list-introduce-list_next_entry-and-list_prev_entry.patch added to -mm tree
+Subject: + debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch added to -mm tree
 To: oleg@redhat.com,a.p.zijlstra@chello.nl,eilong@broadcom.com,gregkh@linuxfoundation.org
 From: akpm@linux-foundation.org
-Date: Mon, 11 Nov 2013 15:18:52 -0800
+Date: Mon, 11 Nov 2013 15:18:55 -0800
 
 
 The patch titled
-     Subject: list: introduce list_next_entry() and list_prev_entry()
+     Subject: debugfs: use list_next_entry() in debugfs_remove_recursive()
 has been added to the -mm tree.  Its filename is
-     list-introduce-list_next_entry-and-list_prev_entry.patch
+     debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/list-introduce-list_next_entry-and-list_prev_entry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/list-introduce-list_next_entry-and-list_prev_entry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/debugfs-use-list_next_entry-in-debugfs_remove_recursive.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,12 +45,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: list: introduce list_next_entry() and list_prev_entry()
+Subject: debugfs: use list_next_entry() in debugfs_remove_recursive()
 
-Add 2 trivial helpers list_next_entry() and list_prev_entry(), they can
-have a lot of users including list.h itself.  In fact the 1st one is
-already defined in events/core.c and bnx2x_sp.c, so the patch simply moves
-the definition to list.h.
+Change debugfs_remove_recursive() to use list_next_entry(child), no
+changes in generated code.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Eilon Greenstein <eilong@broadcom.com>
@@ -59,63 +57,22 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c |    3 --
- include/linux/list.h                           |   16 +++++++++++++++
- kernel/events/core.c                           |    3 --
- 3 files changed, 16 insertions(+), 6 deletions(-)
+ fs/debugfs/inode.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c~list-introduce-list_next_entry-and-list_prev_entry drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
---- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c~list-introduce-list_next_entry-and-list_prev_entry
-+++ a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
-@@ -1217,9 +1217,6 @@ static void bnx2x_set_one_vlan_mac_e1h(s
- 				     ETH_VLAN_FILTER_CLASSIFY, config);
- }
+diff -puN fs/debugfs/inode.c~debugfs-use-list_next_entry-in-debugfs_remove_recursive fs/debugfs/inode.c
+--- a/fs/debugfs/inode.c~debugfs-use-list_next_entry-in-debugfs_remove_recursive
++++ a/fs/debugfs/inode.c
+@@ -566,8 +566,7 @@ void debugfs_remove_recursive(struct den
+ 	mutex_lock(&parent->d_inode->i_mutex);
  
--#define list_next_entry(pos, member) \
--	list_entry((pos)->member.next, typeof(*(pos)), member)
--
- /**
-  * bnx2x_vlan_mac_restore - reconfigure next MAC/VLAN/VLAN-MAC element
-  *
-diff -puN include/linux/list.h~list-introduce-list_next_entry-and-list_prev_entry include/linux/list.h
---- a/include/linux/list.h~list-introduce-list_next_entry-and-list_prev_entry
-+++ a/include/linux/list.h
-@@ -373,6 +373,22 @@ static inline void list_splice_tail_init
- 	(!list_empty(ptr) ? list_first_entry(ptr, type, member) : NULL)
+ 	if (child != dentry) {
+-		next = list_entry(child->d_u.d_child.next, struct dentry,
+-					d_u.d_child);
++		next = list_next_entry(child, d_u.d_child);
+ 		goto up;
+ 	}
  
- /**
-+ * list_next_entry - get the next element in list
-+ * @pos:	the type * to cursor
-+ * @member:	the name of the list_struct within the struct.
-+ */
-+#define list_next_entry(pos, member) \
-+	list_entry((pos)->member.next, typeof(*(pos)), member)
-+
-+/**
-+ * list_prev_entry - get the prev element in list
-+ * @pos:	the type * to cursor
-+ * @member:	the name of the list_struct within the struct.
-+ */
-+#define list_prev_entry(pos, member) \
-+	list_entry((pos)->member.prev, typeof(*(pos)), member)
-+
-+/**
-  * list_for_each	-	iterate over a list
-  * @pos:	the &struct list_head to use as a loop cursor.
-  * @head:	the head for your list.
-diff -puN kernel/events/core.c~list-introduce-list_next_entry-and-list_prev_entry kernel/events/core.c
---- a/kernel/events/core.c~list-introduce-list_next_entry-and-list_prev_entry
-+++ a/kernel/events/core.c
-@@ -2210,9 +2210,6 @@ static void __perf_event_sync_stat(struc
- 	perf_event_update_userpage(next_event);
- }
- 
--#define list_next_entry(pos, member) \
--	list_entry(pos->member.next, typeof(*pos), member)
--
- static void perf_event_sync_stat(struct perf_event_context *ctx,
- 				   struct perf_event_context *next_ctx)
- {
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
