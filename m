@@ -1,103 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- hfsplus-implement-attributes-file-creation-functionality-v2.patch removed
- from -mm tree
-Date: Tue, 12 Nov 2013 14:44:49 -0800
-Message-ID: <5282af61.lkzn9Ndsnyo+6kd5%akpm@linux-foundation.org>
+Subject: [folded-merged] gcov-add-support-for-gcc-47-gcov-format-fix.patch removed from -mm tree
+Date: Tue, 12 Nov 2013 14:45:17 -0800
+Message-ID: <5282af7d.8ZlwbeCN00hA8nCG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60978 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60982 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756817Ab3KLWou (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:44:50 -0500
+	with ESMTP id S1753391Ab3KLWpR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:45:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
+To: mm-commits@vger.kernel.org, fhrbata@redhat.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] hfsplus-implement-attributes-file-creation-functionality-v2.patch removed from -mm tree
-To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [folded-merged] gcov-add-support-for-gcc-47-gcov-format-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,fhrbata@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 12 Nov 2013 14:44:49 -0800
+Date: Tue, 12 Nov 2013 14:45:17 -0800
 
 
 The patch titled
-     Subject: hfsplus-implement-attributes-file-creation-functionality-v2
+     Subject: gcov-add-support-for-gcc-47-gcov-format-fix
 has been removed from the -mm tree.  Its filename was
-     hfsplus-implement-attributes-file-creation-functionality-v2.patch
+     gcov-add-support-for-gcc-47-gcov-format-fix.patch
 
-This patch was dropped because it was folded into hfsplus-implement-attributes-file-creation-functionality.patch
+This patch was dropped because it was folded into gcov-add-support-for-gcc-47-gcov-format.patch
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus-implement-attributes-file-creation-functionality-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gcov-add-support-for-gcc-47-gcov-format-fix
 
-* SETOFFSET macro was removed (Andrew Morton).
-* Record offsets logic was reworked in hfsplus_init_header_node() (Al Viro).
-* AttributesFile's header node's bitmap is initialized by memset() (Al Viro).
-* Logic of checking attributes tree state before AttributesFile
-  creation was reworked for HFSPLUS_CREATING_ATTR_TREE case (Andrew Morton).
-* Setting error code was added after read_mapping_page()
-  call in hfsplus_create_attributes_file() method (Andrew Morton).
+use kmemdup() and kcalloc()
 
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Frantisek Hrbata <fhrbata@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/xattr.c |   22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ kernel/gcov/gcc_4_7.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/hfsplus/xattr.c~hfsplus-implement-attributes-file-creation-functionality-v2 fs/hfsplus/xattr.c
---- a/fs/hfsplus/xattr.c~hfsplus-implement-attributes-file-creation-functionality-v2
-+++ a/fs/hfsplus/xattr.c
-@@ -217,9 +217,21 @@ check_attr_tree_state_again:
- 			goto check_attr_tree_state_again;
- 		break;
- 	case HFSPLUS_CREATING_ATTR_TREE:
--		schedule_timeout_uninterruptible(HZ);
--		goto check_attr_tree_state_again;
--		break;
-+		/*
-+		 * This state means that another thread is in process
-+		 * of AttributesFile creation. Theoretically, it is
-+		 * possible to be here. But really __setxattr() method
-+		 * first of all calls hfs_find_init() for lookup in
-+		 * B-tree of CatalogFile. This method locks mutex of
-+		 * CatalogFile's B-tree. As a result, if some thread
-+		 * is inside AttributedFile creation operation then
-+		 * another threads will be waiting unlocking of
-+		 * CatalogFile's B-tree's mutex. However, if code will
-+		 * change then we will return error code (-EAGAIN) from
-+		 * here. Really, it means that first try to set of xattr
-+		 * fails with error but second attempt will have success.
-+		 */
-+		return -EAGAIN;
- 	case HFSPLUS_VALID_ATTR_TREE:
- 		return 0;
- 	case HFSPLUS_FAILED_ATTR_TREE:
-@@ -281,8 +293,10 @@ check_attr_tree_state_again:
- 		void *kaddr;
+diff -puN kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-47-gcov-format-fix kernel/gcov/gcc_4_7.c
+--- a/kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-47-gcov-format-fix
++++ a/kernel/gcov/gcc_4_7.c
+@@ -254,11 +254,10 @@ struct gcov_info *gcov_info_dup(struct g
+ 	size_t fi_size; /* function info size */
+ 	size_t cv_size; /* counter values size */
  
- 		page = read_mapping_page(mapping, index, NULL);
--		if (IS_ERR(page))
-+		if (IS_ERR(page)) {
-+			err = PTR_ERR(page);
- 			goto failed_header_node_init;
-+		}
+-	dup = kmalloc(sizeof(struct gcov_info), GFP_KERNEL);
++	dup = kmemdup(info, sizeof(*dup), GFP_KERNEL);
+ 	if (!dup)
+ 		return NULL;
  
- 		kaddr = kmap_atomic(page);
- 		memcpy(kaddr, buf + written,
+-	*dup = *info;
+ 	dup->next = NULL;
+ 	dup->filename = NULL;
+ 	dup->functions = NULL;
+@@ -267,8 +266,8 @@ struct gcov_info *gcov_info_dup(struct g
+ 	if (!dup->filename)
+ 		goto err_free;
+ 
+-	dup->functions = kzalloc(sizeof(struct gcov_fn_info *) *
+-			info->n_functions, GFP_KERNEL);
++	dup->functions = kcalloc(sizeof(struct gcov_fn_info *),
++				 info->n_functions, GFP_KERNEL);
+ 	if (!dup->functions)
+ 		goto err_free;
+ 
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node.patch
+mm-factor-commit-limit-calculation.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+maintainers-remove-richard-purdie-as-backlight-maintainer.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+checkpatch-add-test-for-defines-of-arch_has_foo.patch
+epoll-do-not-take-global-epmutex-for-simple-topologies.patch
+init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs.patch
+drivers-rtc-rtc-as3722-add-rtc-driver.patch
 fs-hfs-btreeh-remove-duplicate-defines.patch
-hfsplus-add-metadata-files-clump-size-calculation-functionality.patch
-hfsplus-implement-attributes-files-header-node-initialization-code.patch
-hfsplus-implement-attributes-file-creation-functionality.patch
+gcov-add-support-for-gcc-47-gcov-format.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
+ipc-msg-fix-message-length-check-for-negative-values-fix.patch
 
