@@ -1,91 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch removed from -mm tree
-Date: Tue, 12 Nov 2013 14:34:35 -0800
-Message-ID: <5282acfb.OeehIf/Jv8hJBEIW%akpm@linux-foundation.org>
+ mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap-v2.patch removed from -mm tree
+Date: Tue, 12 Nov 2013 14:35:03 -0800
+Message-ID: <5282ad17.xt/i0DlELQ+ePmex%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60477 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60484 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753864Ab3KLWeh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:34:37 -0500
+	with ESMTP id S1756607Ab3KLWfE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:35:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mel@csn.ul.ie, lliubbo@gmail.com, kirill.shutemov@linux.intel.com, isimatu.yasuaki@jp.fujitsu.com, davidoff@qedmf.net, bob.liu@oracle.com, aarcange@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, y-goto@jp.fujitsu.com, wency@cn.fujitsu.com, toshi.kani@hp.com, tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, apw@shadowen.org, zhangyanfei@cn.fujitsu.com
 
-Subject: [folded-merged] mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,aarcange@redhat.com,bob.liu@oracle.com,davidoff@qedmf.net,isimatu.yasuaki@jp.fujitsu.com,kirill.shutemov@linux.intel.com,lliubbo@gmail.com,mel@csn.ul.ie,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap-v2.patch removed from -mm tree
+To: zhangyanfei@cn.fujitsu.com,apw@shadowen.org,isimatu.yasuaki@jp.fujitsu.com,tangchen@cn.fujitsu.com,toshi.kani@hp.com,wency@cn.fujitsu.com,y-goto@jp.fujitsu.com,yinghai@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 12 Nov 2013 14:34:35 -0800
+Date: Tue, 12 Nov 2013 14:35:03 -0800
 
 
 The patch titled
-     Subject: mm-thp-khugepaged-add-policy-for-finding-target-node-fix
+     Subject: mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap-v2
 has been removed from the -mm tree.  Its filename was
-     mm-thp-khugepaged-add-policy-for-finding-target-node-fix.patch
+     mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap-v2.patch
 
-This patch was dropped because it was folded into mm-thp-khugepaged-add-policy-for-finding-target-node.patch
+This patch was dropped because it was folded into mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-khugepaged-add-policy-for-finding-target-node-fix
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap-v2
 
-make last_khugepaged_target_node local to khugepaged_find_target_node()
+v2: Fix a bug introduced in v1 patch. Thanks wanpeng!
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrew Davidoff <davidoff@qedmf.net>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Bob Liu <lliubbo@gmail.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/sparse.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-khugepaged-add-policy-for-finding-target-node-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-khugepaged-add-policy-for-finding-target-node-fix
-+++ a/mm/huge_memory.c
-@@ -2159,10 +2159,11 @@ static void khugepaged_alloc_sleep(void)
- }
- 
- static int khugepaged_node_load[MAX_NUMNODES];
-+
- #ifdef CONFIG_NUMA
--static int last_khugepaged_target_node = NUMA_NO_NODE;
- static int khugepaged_find_target_node(void)
+diff -puN mm/sparse.c~mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap-v2 mm/sparse.c
+--- a/mm/sparse.c~mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap-v2
++++ a/mm/sparse.c
+@@ -651,10 +651,11 @@ static void __kfree_section_memmap(struc
+ static void free_map_bootmem(struct page *memmap)
  {
-+	static int last_khugepaged_target_node = NUMA_NO_NODE;
- 	int nid, target_node = 0, max_value = 0;
+ 	unsigned long maps_section_nr, removing_section_nr, i;
+-	unsigned long magic;
++	unsigned long magic, nr_pages;
+ 	struct page *page = virt_to_page(memmap);
+-	unsigned long nr_pages = get_order(sizeof(struct page) *
+-					   PAGES_PER_SECTION);
++
++	nr_pages = PAGE_ALIGN(PAGES_PER_SECTION * sizeof(struct page))
++		>> PAGE_SHIFT;
  
- 	/* find first node with max normal pages hit */
+ 	for (i = 0; i < nr_pages; i++, page++) {
+ 		magic = (unsigned long) page->lru.next;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
-origin.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node.patch
-mm-factor-commit-limit-calculation-fix.patch
-mm-factor-commit-limit-calculation-fix-fix.patch
-mm-factor-commit-limit-calculation-fix-fix-fix.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
-init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
-drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes.patch
-fs-hfs-btreeh-remove-duplicate-defines-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-ipc-msg-fix-message-length-check-for-negative-values-fix.patch
+mm-vmalloc-dont-set-area-caller-twice.patch
+mm-vmalloc-fix-show-vmap_area-information-race-with-vmap_area-tear-down.patch
+mm-vmalloc-revert-mm-vmallocc-check-vm_uninitialized-flag-in-s_show-instead-of-show_numa_info.patch
+revert-mm-vmallocc-emit-the-failure-message-before-return.patch
+mm-sparsemem-use-pages_per_section-to-remove-redundant-nr_pages-parameter.patch
+mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap.patch
+mm-page_allocc-remove-unused-marco-long_align.patch
+memblock-factor-out-of-top-down-allocation.patch
+memblock-introduce-bottom-up-allocation-mode.patch
+x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
+x86-mem-hotplug-support-initialize-page-tables-in-bottom-up.patch
+x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
+mem-hotplug-introduce-movable_node-boot-option.patch
 
