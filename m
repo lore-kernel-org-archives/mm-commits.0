@@ -1,87 +1,103 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- initramfs-read-config_rd_-variables-for-initramfs-compression-fix.patch
- removed from -mm tree
-Date: Tue, 12 Nov 2013 14:43:09 -0800
-Message-ID: <5282aefd.XeC21Dqi7zKEmK8a%akpm@linux-foundation.org>
+ drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes.patch removed from
+ -mm tree
+Date: Tue, 12 Nov 2013 14:43:53 -0800
+Message-ID: <5282af29.qXuWSsMCH+fQFQO9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60841 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60925 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754925Ab3KLWnK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:43:10 -0500
+	with ESMTP id S1756613Ab3KLWny (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:43:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, prasad@redhat.com, ppandit@redhat.com
+To: mm-commits@vger.kernel.org, ldewangan@nvidia.com, florian.lobmaier@ams.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] initramfs-read-config_rd_-variables-for-initramfs-compression-fix.patch removed from -mm tree
-To: ppandit@redhat.com,prasad@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,florian.lobmaier@ams.com,ldewangan@nvidia.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 12 Nov 2013 14:43:09 -0800
+Date: Tue, 12 Nov 2013 14:43:53 -0800
 
 
 The patch titled
-     Subject: initramfs-read-config_rd_-variables-for-initramfs-compression-fix
+     Subject: drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     initramfs-read-config_rd_-variables-for-initramfs-compression-fix.patch
+     drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into initramfs-read-config_rd_-variables-for-initramfs-compression.patch
+This patch was dropped because it was folded into drivers-rtc-rtc-as3722-add-rtc-driver.patch
 
 ------------------------------------------------------
-From: P J P <ppandit@redhat.com>
-Subject: initramfs-read-config_rd_-variables-for-initramfs-compression-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes
 
-I've patched 'gen_initramfs_list.sh' script to check if a selected
-compression command is accessible or not; And fall-back to the default
-gzip(1) format when it is not.  usr/Makefile also defaults to '.gz' format
-when all are enabled.
+ERROR: Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.
+#76: FILE: drivers/rtc/rtc-as3722.c:20:
++ * You should have received a copy of the GNU General Public License$
 
-Signed-off-by: P J P <prasad@redhat.com>
+ERROR: Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.
+#77: FILE: drivers/rtc/rtc-as3722.c:21:
++ * along with this program; if not, write to the Free Software$
+
+ERROR: Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.
+#78: FILE: drivers/rtc/rtc-as3722.c:22:
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA$
+
+total: 3 errors, 0 warnings, 303 lines checked
+
+./patches/drivers-rtc-rtc-as3722-add-rtc-driver.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Florian Lobmaier <florian.lobmaier@ams.com>
+Cc: Laxman Dewangan <ldewangan@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gen_initramfs_list.sh |   19 ++++++++++++-------
- usr/Makefile                  |    6 +++---
- 2 files changed, 15 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-as3722.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN scripts/gen_initramfs_list.sh~initramfs-read-config_rd_-variables-for-initramfs-compression-fix scripts/gen_initramfs_list.sh
---- a/scripts/gen_initramfs_list.sh~initramfs-read-config_rd_-variables-for-initramfs-compression-fix
-+++ a/scripts/gen_initramfs_list.sh
-@@ -240,13 +240,18 @@ case "$arg" in
- 		output_file="$1"
- 		cpio_list="$(mktemp ${TMPDIR:-/tmp}/cpiolist.XXXXXX)"
- 		output=${cpio_list}
--		echo "$output_file" | grep -q "\.gz$" && compr="gzip -n -9 -f"
--		echo "$output_file" | grep -q "\.bz2$" && compr="bzip2 -9 -f"
--		echo "$output_file" | grep -q "\.lzma$" && compr="lzma -9 -f"
--		echo "$output_file" | grep -q "\.xz$" && \
--				compr="xz --check=crc32 --lzma2=dict=1MiB"
--		echo "$output_file" | grep -q "\.lzo$" && compr="lzop -9 -f"
--		echo "$output_file" | grep -q "\.lz4$" && compr="lz4 -9 -f"
-+		echo "$output_file" | grep -q "\.gz$" && [ -x "/bin/gzip" ] \
-+                && compr="gzip -n -9 -f"
-+		echo "$output_file" | grep -q "\.bz2$" && [ -x "/bin/bzip2" ] \
-+                && compr="bzip2 -9 -f"
-+		echo "$output_file" | grep -q "\.lzma$" && [ -x "/bin/lzma" ] \
-+                && compr="lzma -9 -f"
-+		echo "$output_file" | grep -q "\.xz$" && [ -x "/bin/xz" ] \
-+                && compr="xz --check=crc32 --lzma2=dict=1MiB"
-+		echo "$output_file" | grep -q "\.lzo$" && [ -x "/bin/lzop" ] \
-+                && compr="lzop -9 -f"
-+		echo "$output_file" | grep -q "\.lz4$" && [ -x "/bin/lz4" ] \
-+                && compr="lz4 -9 -f"
- 		echo "$output_file" | grep -q "\.cpio$" && compr="cat"
- 		shift
- 		;;
-diff -puN usr/Makefile~initramfs-read-config_rd_-variables-for-initramfs-compression-fix usr/Makefile
---- a/usr/Makefile~initramfs-read-config_rd_-variables-for-initramfs-compression-fix
-+++ a/usr/Makefile
-@@ -6,9 +6,6 @@ klibcdirs:;
- PHONY += klibcdirs
+diff -puN drivers/rtc/rtc-as3722.c~drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes drivers/rtc/rtc-as3722.c
+--- a/drivers/rtc/rtc-as3722.c~drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes
++++ a/drivers/rtc/rtc-as3722.c
+@@ -16,11 +16,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+- *
+  */
  
- 
--# Gzip
--suffix_$(CONFIG_RD_GZIP)   = .gz
+ #include <linux/bcd.h>
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+mm-readaheadc-do_readhead-dont-check-for-readpage.patch
+mm-thp-khugepaged-add-policy-for-finding-target-node.patch
+mm-factor-commit-limit-calculation.patch
+kernel-printk-printkc-convert-to-pr_foo.patch
+maintainers-remove-richard-purdie-as-backlight-maintainer.patch
+checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
+checkpatch-add-test-for-defines-of-arch_has_foo.patch
+epoll-do-not-take-global-epmutex-for-simple-topologies.patch
+init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs.patch
+drivers-rtc-rtc-as3722-add-rtc-driver.patch
+fs-hfs-btreeh-remove-duplicate-defines-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
+gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
+kernel-modulec-use-pr_foo.patch
+kernel-gcov-fsc-use-pr_warn.patch
+ipc-msg-fix-message-length-check-for-negative-values-fix.patch
+
