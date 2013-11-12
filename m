@@ -1,47 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch added to -mm tree
-Date: Mon, 11 Nov 2013 16:28:35 -0800
-Message-ID: <52817633.7G1WB7wj/OVVI8Gu%akpm@linux-foundation.org>
+Subject: [obsolete]
+ mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch removed from -mm tree
+Date: Tue, 12 Nov 2013 11:22:24 -0800
+Message-ID: <52827ff0.q9j0JzLNKKAGQRCM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51825 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59242 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753656Ab3KLA2g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Nov 2013 19:28:36 -0500
+	with ESMTP id S1753427Ab3KLTWZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 14:22:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: [obsolete] mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 11 Nov 2013 16:28:35 -0800
+Date: Tue, 12 Nov 2013 11:22:24 -0800
 
 
 The patch titled
      Subject: mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -140,7 +126,6 @@ kernel-modulec-use-pr_foo.patch
 kernel-gcov-fsc-use-pr_warn.patch
 ipc-msg-fix-message-length-check-for-negative-values-fix.patch
 linux-next.patch
-mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch
 x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
