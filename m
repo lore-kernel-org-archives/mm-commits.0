@@ -1,133 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- percpu-add-test-module-for-various-percpu-operations-fix.patch removed from -mm tree
-Date: Tue, 12 Nov 2013 14:37:07 -0800
-Message-ID: <5282ad93.qJKG2chfsEmJ9WKW%akpm@linux-foundation.org>
+ kernel-printk-printkc-enable-boot-delay-for-earlyprintk-fix.patch removed
+ from -mm tree
+Date: Tue, 12 Nov 2013 14:37:32 -0800
+Message-ID: <5282adac.V8EuRAXbpKVDweq6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60519 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753735Ab3KLWhI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:37:08 -0500
+	with ESMTP id S1756138Ab3KLWhd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:37:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, hannes@cmpxchg.org, gthelen@google.com
+To: mm-commits@vger.kernel.org, dyoung@redhat.com
 
-Subject: [folded-merged] percpu-add-test-module-for-various-percpu-operations-fix.patch removed from -mm tree
-To: gthelen@google.com,hannes@cmpxchg.org,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] kernel-printk-printkc-enable-boot-delay-for-earlyprintk-fix.patch removed from -mm tree
+To: dyoung@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 12 Nov 2013 14:37:07 -0800
+Date: Tue, 12 Nov 2013 14:37:32 -0800
 
 
 The patch titled
-     Subject: percpu-add-test-module-for-various-percpu-operations-fix
+     Subject: kernel/printk/printk.c: boot_delay return value fix
 has been removed from the -mm tree.  Its filename was
-     percpu-add-test-module-for-various-percpu-operations-fix.patch
+     kernel-printk-printkc-enable-boot-delay-for-earlyprintk-fix.patch
 
-This patch was dropped because it was folded into percpu-add-test-module-for-various-percpu-operations.patch
+This patch was dropped because it was folded into kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: percpu-add-test-module-for-various-percpu-operations-fix
+From: Dave Young <dyoung@redhat.com>
+Subject: kernel/printk/printk.c: boot_delay return value fix
 
-- use %lld/x which allows for less casting
-- fix 32 bit build by casting large constants
+Kernel report "Malformed early option boot_delay" because it returns
+non-zero value.  Move to 'return 0' now because there's no reason it
+should return 1.
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_test.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ kernel/printk/printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/percpu_test.c~percpu-add-test-module-for-various-percpu-operations-fix lib/percpu_test.c
---- a/lib/percpu_test.c~percpu-add-test-module-for-various-percpu-operations-fix
-+++ a/lib/percpu_test.c
-@@ -4,13 +4,13 @@
- #define CHECK(native, pcp, expected)                                    \
- 	do {                                                            \
- 		WARN((native) != (expected),                            \
--		     "raw %ld (0x%lx) != expected %ld (0x%lx)",         \
--		     (long)(native), (long)(native),                    \
--		     (long)(expected), (long)(expected));               \
-+		     "raw %ld (0x%lx) != expected %lld (0x%llx)",	\
-+		     (native), (native),				\
-+		     (long long)(expected), (long long)(expected));	\
- 		WARN(__this_cpu_read(pcp) != (expected),                \
--		     "pcp %ld (0x%lx) != expected %ld (0x%lx)",         \
--		     (long)__this_cpu_read(pcp), (long)__this_cpu_read(pcp), \
--		     (long)(expected), (long)(expected));               \
-+		     "pcp %ld (0x%lx) != expected %lld (0x%llx)",	\
-+		     __this_cpu_read(pcp), __this_cpu_read(pcp),	\
-+		     (long long)(expected), (long long)(expected));	\
- 	} while (0)
+diff -puN kernel/printk/printk.c~kernel-printk-printkc-enable-boot-delay-for-earlyprintk-fix kernel/printk/printk.c
+--- a/kernel/printk/printk.c~kernel-printk-printkc-enable-boot-delay-for-earlyprintk-fix
++++ a/kernel/printk/printk.c
+@@ -820,7 +820,7 @@ static int __init boot_delay_setup(char
+ 	pr_debug("boot_delay: %u, preset_lpj: %ld, lpj: %lu, "
+ 		"HZ: %d, loops_per_msec: %llu\n",
+ 		boot_delay, preset_lpj, lpj, HZ, loops_per_msec);
+-	return 1;
++	return 0;
+ }
+ early_param("boot_delay", boot_delay_setup);
  
- static DEFINE_PER_CPU(long, long_counter);
-@@ -20,7 +20,7 @@ static int __init percpu_test_init(void)
- {
- 	/*
- 	 * volatile prevents compiler from optimizing it uses, otherwise the
--	 * +ul_one and -ul_one below would replace with inc/dec instructions.
-+	 * +ul_one/-ul_one below would replace with inc/dec instructions.
- 	 */
- 	volatile unsigned int ui_one = 1;
- 	long l = 0;
-@@ -58,8 +58,8 @@ static int __init percpu_test_init(void)
- 
- 	ul -= 1;
- 	__this_cpu_dec(ulong_counter);
--	CHECK(ul, ulong_counter, 0xffffffffffffffff);
- 	CHECK(ul, ulong_counter, -1);
-+	CHECK(ul, ulong_counter, ULONG_MAX);
- 
- 	l += -ui_one;
- 	__this_cpu_add(long_counter, -ui_one);
-@@ -67,7 +67,7 @@ static int __init percpu_test_init(void)
- 
- 	l += ui_one;
- 	__this_cpu_add(long_counter, ui_one);
--	CHECK(l, long_counter, 0x100000000);
-+	CHECK(l, long_counter, (long)0x100000000LL);
- 
- 
- 	l = 0;
-@@ -86,7 +86,7 @@ static int __init percpu_test_init(void)
- 
- 	l += -ui_one;
- 	__this_cpu_add(long_counter, -ui_one);
--	CHECK(l, long_counter, 0x100000000);
-+	CHECK(l, long_counter, (long)0x100000000LL);
- 
- 	l = 0;
- 	__this_cpu_write(long_counter, 0);
-@@ -94,7 +94,7 @@ static int __init percpu_test_init(void)
- 	l -= ui_one;
- 	this_cpu_sub(long_counter, ui_one);
- 	CHECK(l, long_counter, -1);
--	CHECK(l, long_counter, 0xffffffffffffffff);
-+	CHECK(l, long_counter, ULONG_MAX);
- 
- 	ul = 0;
- 	__this_cpu_write(ulong_counter, 0);
-@@ -109,7 +109,7 @@ static int __init percpu_test_init(void)
- 	ul -= ui_one;
- 	__this_cpu_sub(ulong_counter, ui_one);
- 	CHECK(ul, ulong_counter, -1);
--	CHECK(ul, ulong_counter, 0xffffffffffffffff);
-+	CHECK(ul, ulong_counter, ULONG_MAX);
- 
- 	ul = 3;
- 	__this_cpu_write(ulong_counter, 3);
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from dyoung@redhat.com are
 
-memcg-refactor-mem_control_numa_stat_show.patch
-memcg-support-hierarchical-memorynuma_stats.patch
-percpu-add-test-module-for-various-percpu-operations.patch
+kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch
 
