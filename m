@@ -1,77 +1,133 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-factor-commit-limit-calculation-fix-fix-fix.patch removed from -mm tree
-Date: Tue, 12 Nov 2013 14:36:42 -0800
-Message-ID: <5282ad7a./8U+SEQTQp1999Ws%akpm@linux-foundation.org>
+ percpu-add-test-module-for-various-percpu-operations-fix.patch removed from -mm tree
+Date: Tue, 12 Nov 2013 14:37:07 -0800
+Message-ID: <5282ad93.qJKG2chfsEmJ9WKW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60515 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756720Ab3KLWgn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:36:43 -0500
+	with ESMTP id S1753735Ab3KLWhI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:37:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jmarchan@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tj@kernel.org, hannes@cmpxchg.org, gthelen@google.com
 
-Subject: [folded-merged] mm-factor-commit-limit-calculation-fix-fix-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,jmarchan@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] percpu-add-test-module-for-various-percpu-operations-fix.patch removed from -mm tree
+To: gthelen@google.com,hannes@cmpxchg.org,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 12 Nov 2013 14:36:42 -0800
+Date: Tue, 12 Nov 2013 14:37:07 -0800
 
 
 The patch titled
-     Subject: mm-factor-commit-limit-calculation-fix-fix-fix
+     Subject: percpu-add-test-module-for-various-percpu-operations-fix
 has been removed from the -mm tree.  Its filename was
-     mm-factor-commit-limit-calculation-fix-fix-fix.patch
+     percpu-add-test-module-for-various-percpu-operations-fix.patch
 
-This patch was dropped because it was folded into mm-factor-commit-limit-calculation.patch
+This patch was dropped because it was folded into percpu-add-test-module-for-various-percpu-operations.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-factor-commit-limit-calculation-fix-fix-fix
+From: Greg Thelen <gthelen@google.com>
+Subject: percpu-add-test-module-for-various-percpu-operations-fix
 
-Cc: Jerome Marchand <jmarchan@redhat.com>
+- use %lld/x which allows for less casting
+- fix 32 bit build by casting large constants
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/percpu_test.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/util.c~mm-factor-commit-limit-calculation-fix-fix-fix mm/util.c
---- a/mm/util.c~mm-factor-commit-limit-calculation-fix-fix-fix
-+++ a/mm/util.c
-@@ -402,7 +402,7 @@ struct address_space *page_mapping(struc
- }
+diff -puN lib/percpu_test.c~percpu-add-test-module-for-various-percpu-operations-fix lib/percpu_test.c
+--- a/lib/percpu_test.c~percpu-add-test-module-for-various-percpu-operations-fix
++++ a/lib/percpu_test.c
+@@ -4,13 +4,13 @@
+ #define CHECK(native, pcp, expected)                                    \
+ 	do {                                                            \
+ 		WARN((native) != (expected),                            \
+-		     "raw %ld (0x%lx) != expected %ld (0x%lx)",         \
+-		     (long)(native), (long)(native),                    \
+-		     (long)(expected), (long)(expected));               \
++		     "raw %ld (0x%lx) != expected %lld (0x%llx)",	\
++		     (native), (native),				\
++		     (long long)(expected), (long long)(expected));	\
+ 		WARN(__this_cpu_read(pcp) != (expected),                \
+-		     "pcp %ld (0x%lx) != expected %ld (0x%lx)",         \
+-		     (long)__this_cpu_read(pcp), (long)__this_cpu_read(pcp), \
+-		     (long)(expected), (long)(expected));               \
++		     "pcp %ld (0x%lx) != expected %lld (0x%llx)",	\
++		     __this_cpu_read(pcp), __this_cpu_read(pcp),	\
++		     (long long)(expected), (long long)(expected));	\
+ 	} while (0)
  
- /*
-- * Commited memory limit enforced when OVERCOMMIT_NEVER policy is used
-+ * Committed memory limit enforced when OVERCOMMIT_NEVER policy is used
-  */
- unsigned long vm_commit_limit(void)
+ static DEFINE_PER_CPU(long, long_counter);
+@@ -20,7 +20,7 @@ static int __init percpu_test_init(void)
  {
+ 	/*
+ 	 * volatile prevents compiler from optimizing it uses, otherwise the
+-	 * +ul_one and -ul_one below would replace with inc/dec instructions.
++	 * +ul_one/-ul_one below would replace with inc/dec instructions.
+ 	 */
+ 	volatile unsigned int ui_one = 1;
+ 	long l = 0;
+@@ -58,8 +58,8 @@ static int __init percpu_test_init(void)
+ 
+ 	ul -= 1;
+ 	__this_cpu_dec(ulong_counter);
+-	CHECK(ul, ulong_counter, 0xffffffffffffffff);
+ 	CHECK(ul, ulong_counter, -1);
++	CHECK(ul, ulong_counter, ULONG_MAX);
+ 
+ 	l += -ui_one;
+ 	__this_cpu_add(long_counter, -ui_one);
+@@ -67,7 +67,7 @@ static int __init percpu_test_init(void)
+ 
+ 	l += ui_one;
+ 	__this_cpu_add(long_counter, ui_one);
+-	CHECK(l, long_counter, 0x100000000);
++	CHECK(l, long_counter, (long)0x100000000LL);
+ 
+ 
+ 	l = 0;
+@@ -86,7 +86,7 @@ static int __init percpu_test_init(void)
+ 
+ 	l += -ui_one;
+ 	__this_cpu_add(long_counter, -ui_one);
+-	CHECK(l, long_counter, 0x100000000);
++	CHECK(l, long_counter, (long)0x100000000LL);
+ 
+ 	l = 0;
+ 	__this_cpu_write(long_counter, 0);
+@@ -94,7 +94,7 @@ static int __init percpu_test_init(void)
+ 	l -= ui_one;
+ 	this_cpu_sub(long_counter, ui_one);
+ 	CHECK(l, long_counter, -1);
+-	CHECK(l, long_counter, 0xffffffffffffffff);
++	CHECK(l, long_counter, ULONG_MAX);
+ 
+ 	ul = 0;
+ 	__this_cpu_write(ulong_counter, 0);
+@@ -109,7 +109,7 @@ static int __init percpu_test_init(void)
+ 	ul -= ui_one;
+ 	__this_cpu_sub(ulong_counter, ui_one);
+ 	CHECK(ul, ulong_counter, -1);
+-	CHECK(ul, ulong_counter, 0xffffffffffffffff);
++	CHECK(ul, ulong_counter, ULONG_MAX);
+ 
+ 	ul = 3;
+ 	__this_cpu_write(ulong_counter, 3);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gthelen@google.com are
 
-origin.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node.patch
-mm-factor-commit-limit-calculation.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-maintainers-remove-richard-purdie-as-backlight-maintainer-fix.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies-fix.patch
-init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
-drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes.patch
-fs-hfs-btreeh-remove-duplicate-defines-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-ipc-msg-fix-message-length-check-for-negative-values-fix.patch
+memcg-refactor-mem_control_numa_stat_show.patch
+memcg-support-hierarchical-memorynuma_stats.patch
+percpu-add-test-module-for-various-percpu-operations.patch
 
