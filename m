@@ -1,98 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [obsolete]
- mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch removed from -mm tree
-Date: Tue, 12 Nov 2013 11:22:24 -0800
-Message-ID: <52827ff0.q9j0JzLNKKAGQRCM%akpm@linux-foundation.org>
+ x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
+ removed from -mm tree
+Date: Tue, 12 Nov 2013 11:22:57 -0800
+Message-ID: <52828011.tNPNJAfUuqkUGLWT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59242 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59243 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753427Ab3KLTWZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 14:22:25 -0500
+	with ESMTP id S1753427Ab3KLTW6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 14:22:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: [obsolete] mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch removed from -mm tree
+Subject: [obsolete] x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch removed from -mm tree
 To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 12 Nov 2013 11:22:24 -0800
+Date: Tue, 12 Nov 2013 11:22:57 -0800
 
 
 The patch titled
-     Subject: mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next
+     Subject: x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix
 has been removed from the -mm tree.  Its filename was
-     mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next.patch
+     x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next
+Subject: x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ arch/x86/mm/init.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN mm/mprotect.c~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-return-the-number-of-base-pages-altered-by-protection-changes-vs-linux-next
-+++ a/mm/mprotect.c
-@@ -113,35 +113,34 @@ static inline unsigned long change_pmd_r
- 	unsigned long next;
- 	unsigned long pages = 0;
- 	unsigned long nr_huge_updates = 0;
--	bool all_same_node;
+diff -puN arch/x86/mm/init.c~x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix
++++ a/arch/x86/mm/init.c
+@@ -399,8 +399,24 @@ static unsigned long __init init_range_m
+ 	return mapped_ram_size;
+ }
  
- 	pmd = pmd_offset(pud, addr);
- 	do {
-+		unsigned long this_pages;
-+
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_trans_huge(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
- 				split_huge_page_pmd(vma, addr, pmd);
--			else if (change_huge_pmd(vma, pmd, addr, newprot,
--						 prot_numa)) {
--				pages += HPAGE_PMD_NR;
--				nr_huge_updates++;
- 				continue;
-+			else {
-+				int nr_ptes = change_huge_pmd(vma, pmd, addr,
-+						newprot, prot_numa);
-+
-+				if (nr_ptes) {
-+					if (nr_ptes == HPAGE_PMD_NR)
-+						pages += HPAGE_PMD_NR;
-+
-+					continue;
-+				}
- 			}
- 			/* fall through */
- 		}
- 		if (pmd_none_or_clear_bad(pmd))
- 			continue;
--		pages += change_pte_range(vma, pmd, addr, next, newprot,
--				 dirty_accountable, prot_numa, &all_same_node);
--
--		/*
--		 * If we are changing protections for NUMA hinting faults then
--		 * set pmd_numa if the examined pages were all on the same
--		 * node. This allows a regular PMD to be handled as one fault
--		 * and effectively batches the taking of the PTL
--		 */
--		if (prot_numa && all_same_node)
--			change_pmd_protnuma(vma->vm_mm, addr, pmd);
-+		this_pages = change_pte_range(vma, pmd, addr, next, newprot,
-+				 dirty_accountable, prot_numa);
-+		pages += this_pages;
- 	} while (pmd++, addr = next, addr != end);
+-/* (PUD_SHIFT-PMD_SHIFT)/2 */
+-#define STEP_SIZE_SHIFT 5
++static unsigned long __init get_new_step_size(unsigned long step_size)
++{
++	/*
++	 * Explain why we shift by 5 and why we don't have to worry about
++	 * 'step_size << 5' overflowing:
++	 *
++	 * initial mapped size is PMD_SIZE (2M).
++	 * We can not set step_size to be PUD_SIZE (1G) yet.
++	 * In worse case, when we cross the 1G boundary, and
++	 * PG_LEVEL_2M is not set, we will need 1+1+512 pages (2M + 8k)
++	 * to map 1G range with PTE. Use 5 as shift for now.
++	 *
++	 * Don't need to worry about overflow, on 32bit, when step_size
++	 * is 0, round_down() returns 0 for start, and that turns it
++	 * into 0x100000000ULL.
++	 */
++	return step_size << 5;
++}
  
- 	if (nr_huge_updates)
+ /**
+  * memory_map_top_down - Map [map_start, map_end) top down
+@@ -498,7 +514,7 @@ static void __init memory_map_bottom_up(
+ 		start = next;
+ 
+ 		if (new_mapped_ram_size > mapped_ram_size)
+-			step_size <<= STEP_SIZE_SHIFT;
++			step_size = get_new_step_size(step_size);
+ 		mapped_ram_size += new_mapped_ram_size;
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,7 +112,6 @@ kernel-modulec-use-pr_foo.patch
 kernel-gcov-fsc-use-pr_warn.patch
 ipc-msg-fix-message-length-check-for-negative-values-fix.patch
 linux-next.patch
-x86-mem-hotplug-support-initialize-page-tables-in-bottom-up-next-fix.patch
 mm-drop-actor-argument-of-do_generic_file_read-fix.patch
 mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock-checkpatch-fixes.patch
 x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
