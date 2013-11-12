@@ -1,81 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch removed from -mm tree
-Date: Tue, 12 Nov 2013 14:42:40 -0800
-Message-ID: <5282aee0.mUeiI74LWjbIfjh8%akpm@linux-foundation.org>
+ initramfs-read-config_rd_-variables-for-initramfs-compression-fix-2.patch
+ removed from -mm tree
+Date: Tue, 12 Nov 2013 14:43:11 -0800
+Message-ID: <5282aeff.5875eGuatY991rhv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60721 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60842 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756720Ab3KLWml (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:42:41 -0500
+	with ESMTP id S1754925Ab3KLWnM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Nov 2013 17:43:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, prasad@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, prasad@redhat.com, ppandit@redhat.com
 
-Subject: [folded-merged] init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,prasad@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] initramfs-read-config_rd_-variables-for-initramfs-compression-fix-2.patch removed from -mm tree
+To: ppandit@redhat.com,prasad@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 12 Nov 2013 14:42:40 -0800
+Date: Tue, 12 Nov 2013 14:43:11 -0800
 
 
 The patch titled
-     Subject: init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix
+     Subject: initramfs-read-config_rd_-variables-for-initramfs-compression-fix-2
 has been removed from the -mm tree.  Its filename was
-     init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix.patch
+     initramfs-read-config_rd_-variables-for-initramfs-compression-fix-2.patch
 
-This patch was dropped because it was folded into init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs.patch
+This patch was dropped because it was folded into initramfs-read-config_rd_-variables-for-initramfs-compression.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix
+From: P J P <ppandit@redhat.com>
+Subject: initramfs-read-config_rd_-variables-for-initramfs-compression-fix-2
 
-mention that the problem is with the ramdisk, don't print known-to-be-NULL value
-
-Cc: P J P <prasad@redhat.com>
+Signed-off-by: P J P <prasad@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts_rd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/gen_initramfs_list.sh |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN init/do_mounts_rd.c~init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix init/do_mounts_rd.c
---- a/init/do_mounts_rd.c~init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs-fix
-+++ a/init/do_mounts_rd.c
-@@ -344,8 +344,8 @@ static int __init crd_load(int in_fd, in
- 	crd_outfd = out_fd;
- 
- 	if (!deco) {
--		pr_emerg("Invalid decompression routine: %p; "
--				 "Select appropriate config option.\n", deco);
-+		pr_emerg("Invalid ramdisk decompression routine.  "
-+			 "Select appropriate config option.\n");
- 		panic("Could not decompress initial ramdisk image.");
- 	}
- 
+diff -puN scripts/gen_initramfs_list.sh~initramfs-read-config_rd_-variables-for-initramfs-compression-fix-2 scripts/gen_initramfs_list.sh
+--- a/scripts/gen_initramfs_list.sh~initramfs-read-config_rd_-variables-for-initramfs-compression-fix-2
++++ a/scripts/gen_initramfs_list.sh
+@@ -240,17 +240,23 @@ case "$arg" in
+ 		output_file="$1"
+ 		cpio_list="$(mktemp ${TMPDIR:-/tmp}/cpiolist.XXXXXX)"
+ 		output=${cpio_list}
+-		echo "$output_file" | grep -q "\.gz$" && [ -x "/bin/gzip" ] \
++		echo "$output_file" | grep -q "\.gz$" \
++                && [ -x "`which gzip 2> /dev/null`" ] \
+                 && compr="gzip -n -9 -f"
+-		echo "$output_file" | grep -q "\.bz2$" && [ -x "/bin/bzip2" ] \
++		echo "$output_file" | grep -q "\.bz2$" \
++                && [ -x "`which bzip2 2> /dev/null`" ] \
+                 && compr="bzip2 -9 -f"
+-		echo "$output_file" | grep -q "\.lzma$" && [ -x "/bin/lzma" ] \
++		echo "$output_file" | grep -q "\.lzma$" \
++                && [ -x "`which lzma 2> /dev/null`" ] \
+                 && compr="lzma -9 -f"
+-		echo "$output_file" | grep -q "\.xz$" && [ -x "/bin/xz" ] \
++		echo "$output_file" | grep -q "\.xz$" \
++                && [ -x "`which xz 2> /dev/null`" ] \
+                 && compr="xz --check=crc32 --lzma2=dict=1MiB"
+-		echo "$output_file" | grep -q "\.lzo$" && [ -x "/bin/lzop" ] \
++		echo "$output_file" | grep -q "\.lzo$" \
++                && [ -x "`which lzop 2> /dev/null`" ] \
+                 && compr="lzop -9 -f"
+-		echo "$output_file" | grep -q "\.lz4$" && [ -x "/bin/lz4" ] \
++		echo "$output_file" | grep -q "\.lz4$" \
++                && [ -x "`which lz4 2> /dev/null`" ] \
+                 && compr="lz4 -9 -f"
+ 		echo "$output_file" | grep -q "\.cpio$" && compr="cat"
+ 		shift
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ppandit@redhat.com are
 
-origin.patch
-mm-readaheadc-do_readhead-dont-check-for-readpage.patch
-mm-thp-khugepaged-add-policy-for-finding-target-node.patch
-mm-factor-commit-limit-calculation.patch
-kernel-printk-printkc-convert-to-pr_foo.patch
-maintainers-remove-richard-purdie-as-backlight-maintainer.patch
-checkpatch-extend-camelcase-types-and-ignore-existing-camelcase-uses-in-a-patch.patch
-checkpatch-add-test-for-defines-of-arch_has_foo.patch
-epoll-do-not-take-global-epmutex-for-simple-topologies.patch
-init-do_mounts_rdc-fix-null-pointer-dereference-while-loading-initramfs.patch
-drivers-rtc-rtc-as3722-add-rtc-driver-checkpatch-fixes.patch
-fs-hfs-btreeh-remove-duplicate-defines-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-fix-fix.patch
-gcov-add-support-for-gcc-47-gcov-format-checkpatch-fixes.patch
-kernel-modulec-use-pr_foo.patch
-kernel-gcov-fsc-use-pr_warn.patch
-ipc-msg-fix-message-length-check-for-negative-values-fix.patch
+initramfs-read-config_rd_-variables-for-initramfs-compression.patch
+makefile-export-initial-ramdisk-compression-config-option.patch
 
