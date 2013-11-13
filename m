@@ -1,97 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
- removed from -mm tree
-Date: Wed, 13 Nov 2013 12:39:52 -0800
-Message-ID: <5283e398.wmzoHgFgaQ/w4oEC%akpm@linux-foundation.org>
+Subject: [merged]
+ gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding.patch removed from -mm tree
+Date: Wed, 13 Nov 2013 12:39:58 -0800
+Message-ID: <5283e39e.kHD64B48K9XGLZc+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42861 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42868 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236Ab3KMUjx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:53 -0500
+	with ESMTP id S1751665Ab3KMUj7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, penguin-kernel@i-love.sakura.ne.jp, geert@linux-m68k.org, ak@linux.intel.com
+To: mm-commits@vger.kernel.org, keescook@chromium.org, jkosina@suse.cz, jj@codesealer.com, mina86@mina86.com
 
-Subject: [merged] scripts-mod-modpostc-handle-non-abs-crc-symbols.patch removed from -mm tree
-To: ak@linux.intel.com,geert@linux-m68k.org,penguin-kernel@i-love.sakura.ne.jp,viro@ZenIV.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding.patch removed from -mm tree
+To: mina86@mina86.com,jj@codesealer.com,jkosina@suse.cz,keescook@chromium.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:39:52 -0800
+Date: Wed, 13 Nov 2013 12:39:58 -0800
 
 
 The patch titled
-     Subject: scripts/mod/modpost.c: handle non ABS crc symbols
+     Subject: gen_init_cpio: avoid NULL pointer dereference and rework env expanding
 has been removed from the -mm tree.  Its filename was
-     scripts-mod-modpostc-handle-non-abs-crc-symbols.patch
+     gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: scripts/mod/modpost.c: handle non ABS crc symbols
+From: Michal Nazarewicz <mina86@mina86.com>
+Subject: gen_init_cpio: avoid NULL pointer dereference and rework env expanding
 
-For some reason I managed to trick gcc into create CRC symbols that are
-not absolute anymore, but weak.
+getenv() may return NULL if given environment variable does not exist
+which leads to NULL dereference when calling strncat.
 
-Make modpost handle this case.
+Besides that, the environment variable name was copied to a temporary
+env_var buffer, but this copying can be avoided by simply using the input
+string.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Lastly, the whole loop can be greatly simplified by using the snprintf
+function instead of the playing with strncat.
+
+ By the way, the current implementation allows a recursive variable
+ expansion, as in:
+
+   $ echo 'out ${A} out ' | A='a ${B} a' B=b /tmp/a
+   out a b a out
+
+ I'm assuming this is just a side effect and not a conscious decision
+ (especially as this may lead to infinite loop), but I didn't want to
+ change this behaviour without consulting.
+
+ If the current behaviour is deamed incorrect, I'll be happy to send
+ a patch without recursive processing.
+
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Jesper Juhl <jj@codesealer.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ usr/gen_init_cpio.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN scripts/mod/modpost.c~scripts-mod-modpostc-handle-non-abs-crc-symbols scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~scripts-mod-modpostc-handle-non-abs-crc-symbols
-+++ a/scripts/mod/modpost.c
-@@ -599,18 +599,17 @@ static void handle_modversions(struct mo
- 	else
- 		export = export_from_sec(info, get_secindex(info, sym));
+diff -puN usr/gen_init_cpio.c~gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding usr/gen_init_cpio.c
+--- a/usr/gen_init_cpio.c~gen_init_cpio-avoid-null-pointer-dereference-and-rework-env-expanding
++++ a/usr/gen_init_cpio.c
+@@ -382,24 +382,15 @@ error:
+ static char *cpio_replace_env(char *new_location)
+ {
+ 	char expanded[PATH_MAX + 1];
+-	char env_var[PATH_MAX + 1];
+-	char *start;
+-	char *end;
++	char *start, *end, *var;
  
-+	/* CRC'd symbol */
-+	if (strncmp(symname, CRC_PFX, strlen(CRC_PFX)) == 0) {
-+		crc = (unsigned int) sym->st_value;
-+		sym_update_crc(symname + strlen(CRC_PFX), mod, crc,
-+				export);
-+	}
-+
- 	switch (sym->st_shndx) {
- 	case SHN_COMMON:
- 		warn("\"%s\" [%s] is COMMON symbol\n", symname, mod->name);
- 		break;
--	case SHN_ABS:
--		/* CRC'd symbol */
--		if (strncmp(symname, CRC_PFX, strlen(CRC_PFX)) == 0) {
--			crc = (unsigned int) sym->st_value;
--			sym_update_crc(symname + strlen(CRC_PFX), mod, crc,
--					export);
--		}
--		break;
- 	case SHN_UNDEF:
- 		/* undefined symbol */
- 		if (ELF_ST_BIND(sym->st_info) != STB_GLOBAL &&
+-	for (start = NULL; (start = strstr(new_location, "${")); ) {
+-		end = strchr(start, '}');
+-		if (start < end) {
+-			*env_var = *expanded = '\0';
+-			strncat(env_var, start + 2, end - start - 2);
+-			strncat(expanded, new_location, start - new_location);
+-			strncat(expanded, getenv(env_var),
+-				PATH_MAX - strlen(expanded));
+-			strncat(expanded, end + 1,
+-				PATH_MAX - strlen(expanded));
+-			strncpy(new_location, expanded, PATH_MAX);
+-			new_location[PATH_MAX] = 0;
+-		} else
+-			break;
++	while ((start = strstr(new_location, "${")) &&
++	       (end = strchr(start + 2, '}'))) {
++		*start = *end = 0;
++		var = getenv(start + 2);
++		snprintf(expanded, sizeof expanded, "%s%s%s",
++			 new_location, var ? var : "", end + 1);
++		strcpy(new_location, expanded);
+ 	}
+ 
+ 	return new_location;
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from mina86@mina86.com are
 
 origin.patch
 linux-next.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+debugging-keep-track-of-page-owners-fix-2.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
 
