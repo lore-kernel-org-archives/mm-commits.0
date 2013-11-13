@@ -1,76 +1,107 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplugc-rename-the-function-is_memblock_offlined_cb.patch
- removed from -mm tree
-Date: Wed, 13 Nov 2013 12:38:01 -0800
-Message-ID: <5283e329.ueAdAYY9pMYNqCSq%akpm@linux-foundation.org>
+ mm-add-a-helper-function-to-check-may-oom-condition.patch removed from -mm
+ tree
+Date: Wed, 13 Nov 2013 12:38:05 -0800
+Message-ID: <5283e32d.GCVsYfZadSGXrtsS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42520 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751079Ab3KMUiC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:02 -0500
+	with ESMTP id S1751075Ab3KMUiG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, qiuxishi@huawei.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, h.huangqiang@huawei.com
 
-Subject: [merged] mm-memory_hotplugc-rename-the-function-is_memblock_offlined_cb.patch removed from -mm tree
-To: qiuxishi@huawei.com,isimatu.yasuaki@jp.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-add-a-helper-function-to-check-may-oom-condition.patch removed from -mm tree
+To: h.huangqiang@huawei.com,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:38:01 -0800
+Date: Wed, 13 Nov 2013 12:38:05 -0800
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: rename the function is_memblock_offlined_cb()
+     Subject: mm: add a helper function to check may oom condition
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplugc-rename-the-function-is_memblock_offlined_cb.patch
+     mm-add-a-helper-function-to-check-may-oom-condition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mm/memory_hotplug.c: rename the function is_memblock_offlined_cb()
+From: Qiang Huang <h.huangqiang@huawei.com>
+Subject: mm: add a helper function to check may oom condition
 
-A is_memblock_offlined() return or 1 means memory block is offlined, but
-is_memblock_offlined_cb() returning 1 means memory block is not offlined,
-this will confuse somebody, so rename the function.
+Use helper function to check if we need to deal with oom condition.
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Acked-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Qiang Huang <h.huangqiang@huawei.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/oom.h |    5 +++++
+ mm/memcontrol.c     |    9 +--------
+ mm/page_alloc.c     |    2 +-
+ 3 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplugc-rename-the-function-is_memblock_offlined_cb mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplugc-rename-the-function-is_memblock_offlined_cb
-+++ a/mm/memory_hotplug.c
-@@ -1701,7 +1701,7 @@ int walk_memory_range(unsigned long star
+diff -puN include/linux/oom.h~mm-add-a-helper-function-to-check-may-oom-condition include/linux/oom.h
+--- a/include/linux/oom.h~mm-add-a-helper-function-to-check-may-oom-condition
++++ a/include/linux/oom.h
+@@ -82,6 +82,11 @@ static inline void oom_killer_enable(voi
+ 	oom_killer_disabled = false;
  }
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
--static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
-+static int check_memblock_offlined_cb(struct memory_block *mem, void *arg)
- {
- 	int ret = !is_memblock_offlined(mem);
++static inline bool oom_gfp_allowed(gfp_t gfp_mask)
++{
++	return (gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY);
++}
++
+ extern struct task_struct *find_lock_task_mm(struct task_struct *p);
  
-@@ -1853,7 +1853,7 @@ void __ref remove_memory(int nid, u64 st
- 	 * if this is not the case.
+ /* sysctls */
+diff -puN mm/memcontrol.c~mm-add-a-helper-function-to-check-may-oom-condition mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-add-a-helper-function-to-check-may-oom-condition
++++ a/mm/memcontrol.c
+@@ -2984,21 +2984,14 @@ static int memcg_charge_kmem(struct mem_
+ 	struct res_counter *fail_res;
+ 	struct mem_cgroup *_memcg;
+ 	int ret = 0;
+-	bool may_oom;
+ 
+ 	ret = res_counter_charge(&memcg->kmem, size, &fail_res);
+ 	if (ret)
+ 		return ret;
+ 
+-	/*
+-	 * Conditions under which we can wait for the oom_killer. Those are
+-	 * the same conditions tested by the core page allocator
+-	 */
+-	may_oom = (gfp & __GFP_FS) && !(gfp & __GFP_NORETRY);
+-
+ 	_memcg = memcg;
+ 	ret = __mem_cgroup_try_charge(NULL, gfp, size >> PAGE_SHIFT,
+-				      &_memcg, may_oom);
++				      &_memcg, oom_gfp_allowed(gfp));
+ 
+ 	if (ret == -EINTR)  {
+ 		/*
+diff -puN mm/page_alloc.c~mm-add-a-helper-function-to-check-may-oom-condition mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-a-helper-function-to-check-may-oom-condition
++++ a/mm/page_alloc.c
+@@ -2593,7 +2593,7 @@ rebalance:
+ 	 * running out of options and have to consider going OOM
  	 */
- 	ret = walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1), NULL,
--				is_memblock_offlined_cb);
-+				check_memblock_offlined_cb);
- 	if (ret) {
- 		unlock_memory_hotplug();
- 		BUG();
+ 	if (!did_some_progress) {
+-		if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
++		if (oom_gfp_allowed(gfp_mask)) {
+ 			if (oom_killer_disabled)
+ 				goto nopage;
+ 			/* Coredumps can quickly deplete all memory reserves */
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from h.huangqiang@huawei.com are
 
 origin.patch
-linux-next.patch
 
