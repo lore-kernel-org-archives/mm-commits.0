@@ -1,86 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-set-n_cpu-to-node_states-during-boot.patch removed
- from -mm tree
-Date: Wed, 13 Nov 2013 12:39:06 -0800
-Message-ID: <5283e36a.RsquOrWIIT67gOF4%akpm@linux-foundation.org>
+Subject: [merged] x86-mm-factor-out-of-top-down-direct-mapping-setup.patch removed from -mm tree
+Date: Wed, 13 Nov 2013 12:39:00 -0800
+Message-ID: <5283e364.XtEKZ3j0QW2H8YXO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42719 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439Ab3KMUjH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:07 -0500
+	with ESMTP id S1751094Ab3KMUjC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, cl@linux.com, toshi.kani@hp.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, riel@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, laijs@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, tangchen@cn.fujitsu.com
 
-Subject: [merged] mm-set-n_cpu-to-node_states-during-boot.patch removed from -mm tree
-To: toshi.kani@hp.com,cl@linux.com,isimatu.yasuaki@jp.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] x86-mm-factor-out-of-top-down-direct-mapping-setup.patch removed from -mm tree
+To: tangchen@cn.fujitsu.com,hannes@cmpxchg.org,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,kamezawa.hiroyu@jp.fujitsu.com,laijs@cn.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,riel@redhat.com,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:39:06 -0800
+Date: Wed, 13 Nov 2013 12:39:00 -0800
 
 
 The patch titled
-     Subject: mm: set N_CPU to node_states during boot
+     Subject: x86/mm: factor out of top-down direct mapping setup
 has been removed from the -mm tree.  Its filename was
-     mm-set-n_cpu-to-node_states-during-boot.patch
+     x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm: set N_CPU to node_states during boot
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: x86/mm: factor out of top-down direct mapping setup
 
-After a system booted, N_CPU is not set to any node as has_cpu shows an
-empty line.
+Create a new function memory_map_top_down to factor out of the top-down
+direct memory mapping pagetable setup.  This is also a preparation for the
+following patch, which will introduce the bottom-up memory mapping.  That
+said, we will put the two ways of pagetable setup into separate functions,
+and choose to use which way in init_mem_mapping, which makes the code more
+clear.
 
-  # cat /sys/devices/system/node/has_cpu
-  (show-empty-line)
-
-setup_vmstat() registers its CPU notifier callback,
-vmstat_cpuup_callback(), which marks N_CPU to a node when a CPU is put
-into online.  However, setup_vmstat() is called after all CPUs are
-launched in the boot sequence.
-
-Changed setup_vmstat() to mark N_CPU to the nodes with online CPUs at
-boot, which is consistent with other operations in
-vmstat_cpuup_callback(), i.e.  start_cpu_timer() and
-refresh_zone_stat_thresholds().
-
-Also added get_online_cpus() to protect the for_each_online_cpu() loop.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/x86/mm/init.c |   59 ++++++++++++++++++++++++++++---------------
+ 1 file changed, 39 insertions(+), 20 deletions(-)
 
-diff -puN mm/vmstat.c~mm-set-n_cpu-to-node_states-during-boot mm/vmstat.c
---- a/mm/vmstat.c~mm-set-n_cpu-to-node_states-during-boot
-+++ a/mm/vmstat.c
-@@ -1276,8 +1276,12 @@ static int __init setup_vmstat(void)
+diff -puN arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup
++++ a/arch/x86/mm/init.c
+@@ -418,27 +418,27 @@ static unsigned long __init get_new_step
+ 	return step_size << 5;
+ }
  
- 	register_cpu_notifier(&vmstat_notifier);
+-void __init init_mem_mapping(void)
++/**
++ * memory_map_top_down - Map [map_start, map_end) top down
++ * @map_start: start address of the target memory range
++ * @map_end: end address of the target memory range
++ *
++ * This function will setup direct mapping for memory range
++ * [map_start, map_end) in top-down. That said, the page tables
++ * will be allocated at the end of the memory, and we map the
++ * memory in top-down.
++ */
++static void __init memory_map_top_down(unsigned long map_start,
++				       unsigned long map_end)
+ {
+-	unsigned long end, real_end, start, last_start;
++	unsigned long real_end, start, last_start;
+ 	unsigned long step_size;
+ 	unsigned long addr;
+ 	unsigned long mapped_ram_size = 0;
+ 	unsigned long new_mapped_ram_size;
  
--	for_each_online_cpu(cpu)
-+	get_online_cpus();
-+	for_each_online_cpu(cpu) {
- 		start_cpu_timer(cpu);
-+		node_set_state(cpu_to_node(cpu), N_CPU);
-+	}
-+	put_online_cpus();
- #endif
- #ifdef CONFIG_PROC_FS
- 	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
+-	probe_page_size_mask();
+-
+-#ifdef CONFIG_X86_64
+-	end = max_pfn << PAGE_SHIFT;
+-#else
+-	end = max_low_pfn << PAGE_SHIFT;
+-#endif
+-
+-	/* the ISA range is always mapped regardless of memory holes */
+-	init_memory_mapping(0, ISA_END_ADDRESS);
+-
+ 	/* xen has big range in reserved near end of ram, skip it at first.*/
+-	addr = memblock_find_in_range(ISA_END_ADDRESS, end, PMD_SIZE, PMD_SIZE);
++	addr = memblock_find_in_range(map_start, map_end, PMD_SIZE, PMD_SIZE);
+ 	real_end = addr + PMD_SIZE;
+ 
+ 	/* step_size need to be small so pgt_buf from BRK could cover it */
+@@ -453,13 +453,13 @@ void __init init_mem_mapping(void)
+ 	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
+ 	 * for page table.
+ 	 */
+-	while (last_start > ISA_END_ADDRESS) {
++	while (last_start > map_start) {
+ 		if (last_start > step_size) {
+ 			start = round_down(last_start - 1, step_size);
+-			if (start < ISA_END_ADDRESS)
+-				start = ISA_END_ADDRESS;
++			if (start < map_start)
++				start = map_start;
+ 		} else
+-			start = ISA_END_ADDRESS;
++			start = map_start;
+ 		new_mapped_ram_size = init_range_memory_mapping(start,
+ 							last_start);
+ 		last_start = start;
+@@ -470,8 +470,27 @@ void __init init_mem_mapping(void)
+ 		mapped_ram_size += new_mapped_ram_size;
+ 	}
+ 
+-	if (real_end < end)
+-		init_range_memory_mapping(real_end, end);
++	if (real_end < map_end)
++		init_range_memory_mapping(real_end, map_end);
++}
++
++void __init init_mem_mapping(void)
++{
++	unsigned long end;
++
++	probe_page_size_mask();
++
++#ifdef CONFIG_X86_64
++	end = max_pfn << PAGE_SHIFT;
++#else
++	end = max_low_pfn << PAGE_SHIFT;
++#endif
++
++	/* the ISA range is always mapped regardless of memory holes */
++	init_memory_mapping(0, ISA_END_ADDRESS);
++
++	/* setup direct mapping for range [ISA_END_ADDRESS, end) in top-down*/
++	memory_map_top_down(ISA_END_ADDRESS, end);
+ 
+ #ifdef CONFIG_X86_64
+ 	if (max_pfn > max_low_pfn) {
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
