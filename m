@@ -1,132 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly.patch removed from -mm tree
-Date: Wed, 13 Nov 2013 12:39:30 -0800
-Message-ID: <5283e382.EOjygLcDfJ33zs2q%akpm__6270.43338395215$1384375186$gmane$org@linux-foundation.org>
+Subject: [merged] memcg-kmem-use-is_root_cache-instead-of-hard-code.patch
+ removed from -mm tree
+Date: Wed, 13 Nov 2013 12:39:24 -0800
+Message-ID: <5283e37c.rXpFra4cLDLbgLEk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42813 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42794 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751527Ab3KMUjb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:31 -0500
+	with ESMTP id S1751557Ab3KMUjZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, sjenning@linux.vnet.ibm.com, minchan@kernel.org, bob.liu@oracle.com, weijie.yang@samsung.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, glommer@parallels.com, h.huangqiang@huawei.com
 
-Subject: [merged] mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly.patch removed from -mm tree
-To: weijie.yang@samsung.com,bob.liu@oracle.com,minchan@kernel.org,sjenning@linux.vnet.ibm.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] memcg-kmem-use-is_root_cache-instead-of-hard-code.patch removed from -mm tree
+To: h.huangqiang@huawei.com,glommer@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz,penberg@kernel.org,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:39:30 -0800
+Date: Wed, 13 Nov 2013 12:39:24 -0800
 
 
 The patch titled
-     Subject: mm/zswap: bugfix: memory leak when invalidate and reclaim occur concurrently
+     Subject: memcg, kmem: use is_root_cache instead of hard code
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly.patch
+     memcg-kmem-use-is_root_cache-instead-of-hard-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Weijie Yang <weijie.yang@samsung.com>
-Subject: mm/zswap: bugfix: memory leak when invalidate and reclaim occur concurrently
+From: Qiang Huang <h.huangqiang@huawei.com>
+Subject: memcg, kmem: use is_root_cache instead of hard code
 
-Consider the following scenario:
-thread 0: reclaim entry x (get refcount, but not call zswap_get_swap_cache_page)
-thread 1: call zswap_frontswap_invalidate_page to invalidate entry x.
-	finished, entry x and its zbud is not freed as its refcount != 0
-	now, the swap_map[x] = 0
-thread 0: now call zswap_get_swap_cache_page
-	swapcache_prepare return -ENOENT because entry x is not used any more
-	zswap_get_swap_cache_page return ZSWAP_SWAPCACHE_NOMEM
-	zswap_writeback_entry do nothing except put refcount
-Now, the memory of zswap_entry x and its zpage leak.
-
-Modify:
- - check the refcount in fail path, free memory if it is not referenced.
-
- - use ZSWAP_SWAPCACHE_FAIL instead of ZSWAP_SWAPCACHE_NOMEM as the fail path
-   can be not only caused by nomem but also by invalidate.
-
-Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
-Reviewed-by: Bob Liu <bob.liu@oracle.com>
-Reviewed-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Qiang Huang <h.huangqiang@huawei.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly mm/zswap.c
---- a/mm/zswap.c~mm-zswap-bugfix-memory-leak-when-invalidate-and-reclaim-occur-concurrentu200bly
-+++ a/mm/zswap.c
-@@ -387,7 +387,7 @@ static void zswap_free_entry(struct zswa
- enum zswap_get_swap_ret {
- 	ZSWAP_SWAPCACHE_NEW,
- 	ZSWAP_SWAPCACHE_EXIST,
--	ZSWAP_SWAPCACHE_NOMEM
-+	ZSWAP_SWAPCACHE_FAIL,
- };
+diff -puN mm/memcontrol.c~memcg-kmem-use-is_root_cache-instead-of-hard-code mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-kmem-use-is_root_cache-instead-of-hard-code
++++ a/mm/memcontrol.c
+@@ -59,6 +59,7 @@
+ #include <net/sock.h>
+ #include <net/ip.h>
+ #include <net/tcp_memcontrol.h>
++#include "slab.h"
  
- /*
-@@ -401,9 +401,10 @@ enum zswap_get_swap_ret {
-  * added to the swap cache, and returned in retpage.
-  *
-  * If success, the swap cache page is returned in retpage
-- * Returns 0 if page was already in the swap cache, page is not locked
-- * Returns 1 if the new page needs to be populated, page is locked
-- * Returns <0 on error
-+ * Returns ZSWAP_SWAPCACHE_EXIST if page was already in the swap cache
-+ * Returns ZSWAP_SWAPCACHE_NEW if the new page needs to be populated,
-+ *     the new page is added to swapcache and locked
-+ * Returns ZSWAP_SWAPCACHE_FAIL on error
-  */
- static int zswap_get_swap_cache_page(swp_entry_t entry,
- 				struct page **retpage)
-@@ -475,7 +476,7 @@ static int zswap_get_swap_cache_page(swp
- 	if (new_page)
- 		page_cache_release(new_page);
- 	if (!found_page)
--		return ZSWAP_SWAPCACHE_NOMEM;
-+		return ZSWAP_SWAPCACHE_FAIL;
- 	*retpage = found_page;
- 	return ZSWAP_SWAPCACHE_EXIST;
- }
-@@ -529,11 +530,11 @@ static int zswap_writeback_entry(struct
+ #include <asm/uaccess.h>
  
- 	/* try to allocate swap cache page */
- 	switch (zswap_get_swap_cache_page(swpentry, &page)) {
--	case ZSWAP_SWAPCACHE_NOMEM: /* no memory */
-+	case ZSWAP_SWAPCACHE_FAIL: /* no memory or invalidate happened */
- 		ret = -ENOMEM;
- 		goto fail;
+@@ -3131,7 +3132,7 @@ int memcg_update_cache_size(struct kmem_
+ {
+ 	struct memcg_cache_params *cur_params = s->memcg_params;
  
--	case ZSWAP_SWAPCACHE_EXIST: /* page is unlocked */
-+	case ZSWAP_SWAPCACHE_EXIST:
- 		/* page is already in the swap cache, ignore for now */
- 		page_cache_release(page);
- 		ret = -EEXIST;
-@@ -594,7 +595,12 @@ static int zswap_writeback_entry(struct
+-	VM_BUG_ON(s->memcg_params && !s->memcg_params->is_root_cache);
++	VM_BUG_ON(!is_root_cache(s));
  
- fail:
- 	spin_lock(&tree->lock);
--	zswap_entry_put(entry);
-+	refcount = zswap_entry_put(entry);
-+	if (refcount <= 0) {
-+		/* invalidate happened, consider writeback as success */
-+		zswap_free_entry(tree, entry);
-+		ret = 0;
-+	}
- 	spin_unlock(&tree->lock);
- 	return ret;
- }
+ 	if (num_groups > memcg_limited_groups_array_size) {
+ 		int i;
 _
 
-Patches currently in -mm which might be from weijie.yang@samsung.com are
+Patches currently in -mm which might be from h.huangqiang@huawei.com are
 
 origin.patch
 
