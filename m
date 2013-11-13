@@ -1,288 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memblock-introduce-bottom-up-allocation-mode.patch
+Subject: [merged] mm-clear-n_cpu-from-node_states-at-cpu-offline.patch
  removed from -mm tree
-Date: Wed, 13 Nov 2013 12:38:59 -0800
-Message-ID: <5283e363.1Bfvh5RRIcZwpKEX%akpm@linux-foundation.org>
+Date: Wed, 13 Nov 2013 12:39:08 -0800
+Message-ID: <5283e36c.sRDP7LgSvD1P2ZNx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42702 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075Ab3KMUjB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:01 -0500
+	with ESMTP id S1751439Ab3KMUjJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, riel@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, laijs@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, tangchen@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, cl@linux.com, toshi.kani@hp.com
 
-Subject: [merged] memblock-introduce-bottom-up-allocation-mode.patch removed from -mm tree
-To: tangchen@cn.fujitsu.com,hannes@cmpxchg.org,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,kamezawa.hiroyu@jp.fujitsu.com,laijs@cn.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,riel@redhat.com,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-clear-n_cpu-from-node_states-at-cpu-offline.patch removed from -mm tree
+To: toshi.kani@hp.com,cl@linux.com,isimatu.yasuaki@jp.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:38:59 -0800
+Date: Wed, 13 Nov 2013 12:39:08 -0800
 
 
 The patch titled
-     Subject: mm/memblock.c: introduce bottom-up allocation mode
+     Subject: mm: clear N_CPU from node_states at CPU offline
 has been removed from the -mm tree.  Its filename was
-     memblock-introduce-bottom-up-allocation-mode.patch
+     mm-clear-n_cpu-from-node_states-at-cpu-offline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mm/memblock.c: introduce bottom-up allocation mode
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: mm: clear N_CPU from node_states at CPU offline
 
-The Linux kernel cannot migrate pages used by the kernel.  As a result,
-kernel pages cannot be hot-removed.  So we cannot allocate hotpluggable
-memory for the kernel.
+vmstat_cpuup_callback() is a CPU notifier callback, which marks N_CPU to a
+node at CPU online event.  However, it does not update this N_CPU info at
+CPU offline event.
 
-ACPI SRAT (System Resource Affinity Table) contains the memory hotplug
-info.  But before SRAT is parsed, memblock has already started to allocate
-memory for the kernel.  So we need to prevent memblock from doing this.
+Changed vmstat_cpuup_callback() to clear N_CPU when the last CPU in the
+node is put into offline, i.e.  the node no longer has any online CPU.
 
-In a memory hotplug system, any numa node the kernel resides in should be
-unhotpluggable.  And for a modern server, each node could have at least
-16GB memory.  So memory around the kernel image is highly likely
-unhotpluggable.
-
-So the basic idea is: Allocate memory from the end of the kernel image and
-to the higher memory.  Since memory allocation before SRAT is parsed won't
-be too much, it could highly likely be in the same node with kernel image.
-
-The current memblock can only allocate memory top-down.  So this patch
-introduces a new bottom-up allocation mode to allocate memory bottom-up. 
-And later when we use this allocation direction to allocate memory, we
-will limit the start address above the kernel.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Acked-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |   24 ++++++++++
- include/linux/mm.h       |    4 +
- mm/memblock.c            |   83 +++++++++++++++++++++++++++++++++++--
- 3 files changed, 108 insertions(+), 3 deletions(-)
+ mm/vmstat.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN include/linux/memblock.h~memblock-introduce-bottom-up-allocation-mode include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-introduce-bottom-up-allocation-mode
-+++ a/include/linux/memblock.h
-@@ -35,6 +35,7 @@ struct memblock_type {
- };
- 
- struct memblock {
-+	bool bottom_up;  /* is bottom up direction? */
- 	phys_addr_t current_limit;
- 	struct memblock_type memory;
- 	struct memblock_type reserved;
-@@ -148,6 +149,29 @@ phys_addr_t memblock_alloc_try_nid(phys_
- 
- phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align);
- 
-+#ifdef CONFIG_MOVABLE_NODE
-+/*
-+ * Set the allocation direction to bottom-up or top-down.
-+ */
-+static inline void memblock_set_bottom_up(bool enable)
-+{
-+	memblock.bottom_up = enable;
-+}
-+
-+/*
-+ * Check if the allocation direction is bottom-up or not.
-+ * if this is true, that said, memblock will allocate memory
-+ * in bottom-up direction.
-+ */
-+static inline bool memblock_bottom_up(void)
-+{
-+	return memblock.bottom_up;
-+}
-+#else
-+static inline void memblock_set_bottom_up(bool enable) {}
-+static inline bool memblock_bottom_up(void) { return false; }
-+#endif
-+
- /* Flags for memblock_alloc_base() amd __memblock_alloc_base() */
- #define MEMBLOCK_ALLOC_ANYWHERE	(~(phys_addr_t)0)
- #define MEMBLOCK_ALLOC_ACCESSIBLE	0
-diff -puN include/linux/mm.h~memblock-introduce-bottom-up-allocation-mode include/linux/mm.h
---- a/include/linux/mm.h~memblock-introduce-bottom-up-allocation-mode
-+++ a/include/linux/mm.h
-@@ -50,6 +50,10 @@ extern int sysctl_legacy_va_layout;
- #include <asm/pgtable.h>
- #include <asm/processor.h>
- 
-+#ifndef __pa_symbol
-+#define __pa_symbol(x)  __pa(RELOC_HIDE((unsigned long)(x), 0))
-+#endif
-+
- extern unsigned long sysctl_user_reserve_kbytes;
- extern unsigned long sysctl_admin_reserve_kbytes;
- 
-diff -puN mm/memblock.c~memblock-introduce-bottom-up-allocation-mode mm/memblock.c
---- a/mm/memblock.c~memblock-introduce-bottom-up-allocation-mode
-+++ a/mm/memblock.c
-@@ -20,6 +20,8 @@
- #include <linux/seq_file.h>
- #include <linux/memblock.h>
- 
-+#include <asm-generic/sections.h>
-+
- static struct memblock_region memblock_memory_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
- static struct memblock_region memblock_reserved_init_regions[INIT_MEMBLOCK_REGIONS] __initdata_memblock;
- 
-@@ -32,6 +34,7 @@ struct memblock memblock __initdata_memb
- 	.reserved.cnt		= 1,	/* empty dummy entry */
- 	.reserved.max		= INIT_MEMBLOCK_REGIONS,
- 
-+	.bottom_up		= false,
- 	.current_limit		= MEMBLOCK_ALLOC_ANYWHERE,
- };
- 
-@@ -82,6 +85,38 @@ static long __init_memblock memblock_ove
- 	return (i < type->cnt) ? i : -1;
+diff -puN mm/vmstat.c~mm-clear-n_cpu-from-node_states-at-cpu-offline mm/vmstat.c
+--- a/mm/vmstat.c~mm-clear-n_cpu-from-node_states-at-cpu-offline
++++ a/mm/vmstat.c
+@@ -1229,6 +1229,20 @@ static void start_cpu_timer(int cpu)
+ 	schedule_delayed_work_on(cpu, work, __round_jiffies_relative(HZ, cpu));
  }
  
-+/*
-+ * __memblock_find_range_bottom_up - find free area utility in bottom-up
-+ * @start: start of candidate range
-+ * @end: end of candidate range, can be %MEMBLOCK_ALLOC_{ANYWHERE|ACCESSIBLE}
-+ * @size: size of free area to find
-+ * @align: alignment of free area to find
-+ * @nid: nid of the free area to find, %MAX_NUMNODES for any node
-+ *
-+ * Utility called from memblock_find_in_range_node(), find free area bottom-up.
-+ *
-+ * RETURNS:
-+ * Found address on success, 0 on failure.
-+ */
-+static phys_addr_t __init_memblock
-+__memblock_find_range_bottom_up(phys_addr_t start, phys_addr_t end,
-+				phys_addr_t size, phys_addr_t align, int nid)
++static void vmstat_cpu_dead(int node)
 +{
-+	phys_addr_t this_start, this_end, cand;
-+	u64 i;
++	int cpu;
 +
-+	for_each_free_mem_range(i, nid, &this_start, &this_end, NULL) {
-+		this_start = clamp(this_start, start, end);
-+		this_end = clamp(this_end, start, end);
++	get_online_cpus();
++	for_each_online_cpu(cpu)
++		if (cpu_to_node(cpu) == node)
++			goto end;
 +
-+		cand = round_up(this_start, align);
-+		if (cand < this_end && this_end - cand >= size)
-+			return cand;
-+	}
-+
-+	return 0;
++	node_clear_state(node, N_CPU);
++end:
++	put_online_cpus();
 +}
 +
- /**
-  * __memblock_find_range_top_down - find free area utility, in top-down
-  * @start: start of candidate range
-@@ -93,7 +128,7 @@ static long __init_memblock memblock_ove
-  * Utility called from memblock_find_in_range_node(), find free area top-down.
-  *
-  * RETURNS:
-- * Found address on success, %0 on failure.
-+ * Found address on success, 0 on failure.
-  */
- static phys_addr_t __init_memblock
- __memblock_find_range_top_down(phys_addr_t start, phys_addr_t end,
-@@ -127,13 +162,24 @@ __memblock_find_range_top_down(phys_addr
-  *
-  * Find @size free area aligned to @align in the specified range and node.
-  *
-+ * When allocation direction is bottom-up, the @start should be greater
-+ * than the end of the kernel image. Otherwise, it will be trimmed. The
-+ * reason is that we want the bottom-up allocation just near the kernel
-+ * image so it is highly likely that the allocated memory and the kernel
-+ * will reside in the same node.
-+ *
-+ * If bottom-up allocation failed, will try to allocate memory top-down.
-+ *
-  * RETURNS:
-- * Found address on success, %0 on failure.
-+ * Found address on success, 0 on failure.
-  */
- phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
- 					phys_addr_t end, phys_addr_t size,
- 					phys_addr_t align, int nid)
- {
-+	int ret;
-+	phys_addr_t kernel_end;
-+
- 	/* pump up @end */
- 	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
- 		end = memblock.current_limit;
-@@ -141,6 +187,37 @@ phys_addr_t __init_memblock memblock_fin
- 	/* avoid allocating the first page */
- 	start = max_t(phys_addr_t, start, PAGE_SIZE);
- 	end = max(start, end);
-+	kernel_end = __pa_symbol(_end);
-+
-+	/*
-+	 * try bottom-up allocation only when bottom-up mode
-+	 * is set and @end is above the kernel image.
-+	 */
-+	if (memblock_bottom_up() && end > kernel_end) {
-+		phys_addr_t bottom_up_start;
-+
-+		/* make sure we will allocate above the kernel */
-+		bottom_up_start = max(start, kernel_end);
-+
-+		/* ok, try bottom-up allocation first */
-+		ret = __memblock_find_range_bottom_up(bottom_up_start, end,
-+						      size, align, nid);
-+		if (ret)
-+			return ret;
-+
-+		/*
-+		 * we always limit bottom-up allocation above the kernel,
-+		 * but top-down allocation doesn't have the limit, so
-+		 * retrying top-down allocation may succeed when bottom-up
-+		 * allocation failed.
-+		 *
-+		 * bottom-up allocation is expected to be fail very rarely,
-+		 * so we use WARN_ONCE() here to see the stack trace if
-+		 * fail happens.
-+		 */
-+		WARN_ONCE(1, "memblock: bottom-up allocation failed, "
-+			     "memory hotunplug may be affected\n");
-+	}
- 
- 	return __memblock_find_range_top_down(start, end, size, align, nid);
- }
-@@ -155,7 +232,7 @@ phys_addr_t __init_memblock memblock_fin
-  * Find @size free area aligned to @align in the specified range.
-  *
-  * RETURNS:
-- * Found address on success, %0 on failure.
-+ * Found address on success, 0 on failure.
-  */
- phys_addr_t __init_memblock memblock_find_in_range(phys_addr_t start,
- 					phys_addr_t end, phys_addr_t size,
+ /*
+  * Use the cpu notifier to insure that the thresholds are recalculated
+  * when necessary.
+@@ -1258,6 +1272,7 @@ static int vmstat_cpuup_callback(struct
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
+ 		refresh_zone_stat_thresholds();
++		vmstat_cpu_dead(cpu_to_node(cpu));
+ 		break;
+ 	default:
+ 		break;
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from toshi.kani@hp.com are
 
 origin.patch
 linux-next.patch
