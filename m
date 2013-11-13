@@ -1,70 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch removed from
- -mm tree
-Date: Wed, 13 Nov 2013 12:40:20 -0800
-Message-ID: <5283e3b4.Fhwwp9KI59CP1QW6%akpm@linux-foundation.org>
+Subject: [merged] vsprintf-check-real-user-group-id-for-%pk.patch removed
+ from -mm tree
+Date: Wed, 13 Nov 2013 12:40:18 -0800
+Message-ID: <5283e3b2.iaVZxfNKI2v3Y5iB%akpm__20884.4165936627$1384375236$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42912 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751753Ab3KMUkV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:21 -0500
+	with ESMTP id S1751227Ab3KMUkT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dyoung@redhat.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, keescook@chromium.org, joe@perches.com, ebiederm@xmission.com, rmallon@gmail.com
 
-Subject: [merged] kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch removed from -mm tree
-To: dyoung@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] vsprintf-check-real-user-group-id-for-%pk.patch removed from -mm tree
+To: rmallon@gmail.com,ebiederm@xmission.com,joe@perches.com,keescook@chromium.org,stable@vger.kernel.org,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:40:20 -0800
+Date: Wed, 13 Nov 2013 12:40:18 -0800
 
 
 The patch titled
-     Subject: kernel/printk/printk.c: enable boot delay for earlyprintk
+     Subject: vsprintf: check real user/group id for %pK
 has been removed from the -mm tree.  Its filename was
-     kernel-printk-printkc-enable-boot-delay-for-earlyprintk.patch
+     vsprintf-check-real-user-group-id-for-%pk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Young <dyoung@redhat.com>
-Subject: kernel/printk/printk.c: enable boot delay for earlyprintk
+From: Ryan Mallon <rmallon@gmail.com>
+Subject: vsprintf: check real user/group id for %pK
 
-boot_delay does not work for earlyprintk because the kernel cmdline
-parsing is late.
+Some setuid binaries will allow reading of files which have read
+permission by the real user id.  This is problematic with files which use
+%pK because the file access permission is checked at open() time, but the
+kptr_restrict setting is checked at read() time.  If a setuid binary opens
+a %pK file as an unprivileged user, and then elevates permissions before
+reading the file, then kernel pointer values may be leaked.
 
-Change to use early_param so early kernel messages can also be delayed.
+This happens for example with the setuid pppd application on Ubuntu 12.04:
 
-Signed-off-by: Dave Young <dyoung@redhat.com>
+  $ head -1 /proc/kallsyms
+  00000000 T startup_32
+
+  $ pppd file /proc/kallsyms
+  pppd: In file /proc/kallsyms: unrecognized option 'c1000000'
+
+This will only leak the pointer value from the first line, but other
+setuid binaries may leak more information.
+
+Fix this by adding a check that in addition to the current process having
+CAP_SYSLOG, that effective user and group ids are equal to the real ids. 
+If a setuid binary reads the contents of a file which uses %pK then the
+pointer values will be printed as NULL if the real user is unprivileged.
+
+Update the sysctl documentation to reflect the changes, and also correct
+the documentation to state the kptr_restrict=0 is the default.
+
+This is a only temporary solution to the issue.  The correct solution is
+to do the permission check at open() time on files, and to replace %pK
+with a function which checks the open() time permission.  %pK uses in
+printk should be removed since no sane permission check can be done, and
+instead protected by using dmesg_restrict.
+
+Signed-off-by: Ryan Mallon <rmallon@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Joe Perches <joe@perches.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/sysctl/kernel.txt |   25 ++++++++++++++++------
+ lib/vsprintf.c                  |   33 +++++++++++++++++++++++++++---
+ 2 files changed, 48 insertions(+), 10 deletions(-)
 
-diff -puN kernel/printk/printk.c~kernel-printk-printkc-enable-boot-delay-for-earlyprintk kernel/printk/printk.c
---- a/kernel/printk/printk.c~kernel-printk-printkc-enable-boot-delay-for-earlyprintk
-+++ a/kernel/printk/printk.c
-@@ -820,9 +820,9 @@ static int __init boot_delay_setup(char
- 	pr_debug("boot_delay: %u, preset_lpj: %ld, lpj: %lu, "
- 		"HZ: %d, loops_per_msec: %llu\n",
- 		boot_delay, preset_lpj, lpj, HZ, loops_per_msec);
--	return 1;
-+	return 0;
- }
--__setup("boot_delay=", boot_delay_setup);
-+early_param("boot_delay", boot_delay_setup);
+diff -puN Documentation/sysctl/kernel.txt~vsprintf-check-real-user-group-id-for-%pk Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~vsprintf-check-real-user-group-id-for-%pk
++++ a/Documentation/sysctl/kernel.txt
+@@ -290,13 +290,24 @@ Default value is "/sbin/hotplug".
+ kptr_restrict:
  
- static void boot_delay_msec(int level)
- {
+ This toggle indicates whether restrictions are placed on
+-exposing kernel addresses via /proc and other interfaces.  When
+-kptr_restrict is set to (0), there are no restrictions.  When
+-kptr_restrict is set to (1), the default, kernel pointers
+-printed using the %pK format specifier will be replaced with 0's
+-unless the user has CAP_SYSLOG.  When kptr_restrict is set to
+-(2), kernel pointers printed using %pK will be replaced with 0's
+-regardless of privileges.
++exposing kernel addresses via /proc and other interfaces.
++
++When kptr_restrict is set to (0), the default, there are no restrictions.
++
++When kptr_restrict is set to (1), kernel pointers printed using the %pK
++format specifier will be replaced with 0's unless the user has CAP_SYSLOG
++and effective user and group ids are equal to the real ids. This is
++because %pK checks are done at read() time rather than open() time, so
++if permissions are elevated between the open() and the read() (e.g via
++a setuid binary) then %pK will not leak kernel pointers to unprivileged
++users. Note, this is a temporary solution only. The correct long-term
++solution is to do the permission checks at open() time. Consider removing
++world read permissions from files that use %pK, and using dmesg_restrict
++to protect against uses of %pK in dmesg(8) if leaking kernel pointer
++values to unprivileged users is a concern.
++
++When kptr_restrict is set to (2), kernel pointers printed using
++%pK will be replaced with 0's regardless of privileges.
+ 
+ ==============================================================
+ 
+diff -puN lib/vsprintf.c~vsprintf-check-real-user-group-id-for-%pk lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-check-real-user-group-id-for-%pk
++++ a/lib/vsprintf.c
+@@ -27,6 +27,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/ioport.h>
+ #include <linux/dcache.h>
++#include <linux/cred.h>
+ #include <net/addrconf.h>
+ 
+ #include <asm/page.h>		/* for PAGE_SIZE */
+@@ -1312,11 +1313,37 @@ char *pointer(const char *fmt, char *buf
+ 				spec.field_width = default_width;
+ 			return string(buf, end, "pK-error", spec);
+ 		}
+-		if (!((kptr_restrict == 0) ||
+-		      (kptr_restrict == 1 &&
+-		       has_capability_noaudit(current, CAP_SYSLOG))))
++
++		switch (kptr_restrict) {
++		case 0:
++			/* Always print %pK values */
++			break;
++		case 1: {
++			/*
++			 * Only print the real pointer value if the current
++			 * process has CAP_SYSLOG and is running with the
++			 * same credentials it started with. This is because
++			 * access to files is checked at open() time, but %pK
++			 * checks permission at read() time. We don't want to
++			 * leak pointer values if a binary opens a file using
++			 * %pK and then elevates privileges before reading it.
++			 */
++			const struct cred *cred = current_cred();
++
++			if (!has_capability_noaudit(current, CAP_SYSLOG) ||
++			    !uid_eq(cred->euid, cred->uid) ||
++			    !gid_eq(cred->egid, cred->gid))
++				ptr = NULL;
++			break;
++		}
++		case 2:
++		default:
++			/* Always print 0's for %pK */
+ 			ptr = NULL;
++			break;
++		}
+ 		break;
++
+ 	case 'N':
+ 		switch (fmt[1]) {
+ 		case 'F':
 _
 
-Patches currently in -mm which might be from dyoung@redhat.com are
+Patches currently in -mm which might be from rmallon@gmail.com are
 
 origin.patch
-kexec-migrate-to-reboot-cpu.patch
+linux-next.patch
 
