@@ -1,107 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch.patch
- removed from -mm tree
-Date: Wed, 13 Nov 2013 12:37:55 -0800
-Message-ID: <5283e323.WVcqzAvmXOrsamYJ%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-use-populated_zone-instead-of-ifzone-present_pages.patch removed from
+ -mm tree
+Date: Wed, 13 Nov 2013 12:37:59 -0800
+Message-ID: <5283e327.wsucOYuxzDIIQeQ1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42511 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42514 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751079Ab3KMUh4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:56 -0500
+	with ESMTP id S1751067Ab3KMUh7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, paulus@samba.org, lethal@linux-sh.org, james.hogan@imgtec.com, benh@kernel.crashing.org, qiuxishi@huawei.com
+To: mm-commits@vger.kernel.org, qiuxishi@huawei.com
 
-Subject: [merged] mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch.patch removed from -mm tree
-To: qiuxishi@huawei.com,benh@kernel.crashing.org,james.hogan@imgtec.com,lethal@linux-sh.org,paulus@samba.org,tony.luck@intel.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-use-populated_zone-instead-of-ifzone-present_pages.patch removed from -mm tree
+To: qiuxishi@huawei.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:37:55 -0800
+Date: Wed, 13 Nov 2013 12:37:59 -0800
 
 
 The patch titled
-     Subject: mm: use pgdat_end_pfn() to simplify the code in arch
+     Subject: mm: use populated_zone() instead of if(zone->present_pages)
 has been removed from the -mm tree.  Its filename was
-     mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch.patch
+     mm-use-populated_zone-instead-of-ifzone-present_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mm: use pgdat_end_pfn() to simplify the code in arch
+Subject: mm: use populated_zone() instead of if(zone->present_pages)
 
-Use "pgdat_end_pfn()" instead of "pgdat->node_start_pfn +
-pgdat->node_spanned_pages".  Simplify the code, no functional change.
+Use "if (zone->present_pages)" instead of "if (zone->present_pages)".
+Simplify the code, no functional change.
 
 Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c    |    4 +---
- arch/metag/mm/init.c   |    2 +-
- arch/powerpc/mm/numa.c |    3 +--
- arch/sh/mm/init.c      |    2 +-
- 4 files changed, 4 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/mm/init.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch
-+++ a/arch/ia64/mm/init.c
-@@ -357,9 +357,7 @@ int vmemmap_find_next_valid_pfn(int node
+diff -puN mm/page_alloc.c~mm-use-populated_zone-instead-of-ifzone-present_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-use-populated_zone-instead-of-ifzone-present_pages
++++ a/mm/page_alloc.c
+@@ -4266,7 +4266,7 @@ static __meminit void zone_pcp_init(stru
+ 	 */
+ 	zone->pageset = &boot_pageset;
  
- 	end_address = (unsigned long) &vmem_map[pgdat->node_start_pfn + i];
- 	end_address = PAGE_ALIGN(end_address);
--
--	stop_address = (unsigned long) &vmem_map[
--		pgdat->node_start_pfn + pgdat->node_spanned_pages];
-+	stop_address = (unsigned long) &vmem_map[pgdat_end_pfn(pgdat)];
+-	if (zone->present_pages)
++	if (populated_zone(zone))
+ 		printk(KERN_DEBUG "  %s zone: %lu pages, LIFO batch:%u\n",
+ 			zone->name, zone->present_pages,
+ 					 zone_batchsize(zone));
+@@ -5160,7 +5160,7 @@ static void check_for_memory(pg_data_t *
  
- 	do {
- 		pgd_t *pgd;
-diff -puN arch/metag/mm/init.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch arch/metag/mm/init.c
---- a/arch/metag/mm/init.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch
-+++ a/arch/metag/mm/init.c
-@@ -148,7 +148,7 @@ static void __init bootmem_init_one_node
- 	if (!p->node_spanned_pages)
- 		return;
- 
--	end_pfn = p->node_start_pfn + p->node_spanned_pages;
-+	end_pfn = pgdat_end_pfn(p);
- #ifdef CONFIG_HIGHMEM
- 	if (end_pfn > max_low_pfn)
- 		end_pfn = max_low_pfn;
-diff -puN arch/powerpc/mm/numa.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch arch/powerpc/mm/numa.c
---- a/arch/powerpc/mm/numa.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch
-+++ a/arch/powerpc/mm/numa.c
-@@ -938,8 +938,7 @@ static void __init mark_reserved_regions
- 		unsigned long start_pfn = physbase >> PAGE_SHIFT;
- 		unsigned long end_pfn = PFN_UP(physbase + size);
- 		struct node_active_region node_ar;
--		unsigned long node_end_pfn = node->node_start_pfn +
--					     node->node_spanned_pages;
-+		unsigned long node_end_pfn = pgdat_end_pfn(node);
- 
- 		/*
- 		 * Check to make sure that this memblock.reserved area is
-diff -puN arch/sh/mm/init.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-arch
-+++ a/arch/sh/mm/init.c
-@@ -231,7 +231,7 @@ static void __init bootmem_init_one_node
- 	if (!p->node_spanned_pages)
- 		return;
- 
--	end_pfn = p->node_start_pfn + p->node_spanned_pages;
-+	end_pfn = pgdat_end_pfn(p);
- 
- 	total_pages = bootmem_bootmap_pages(p->node_spanned_pages);
- 
+ 	for (zone_type = 0; zone_type <= ZONE_MOVABLE - 1; zone_type++) {
+ 		struct zone *zone = &pgdat->node_zones[zone_type];
+-		if (zone->present_pages) {
++		if (populated_zone(zone)) {
+ 			node_set_state(nid, N_HIGH_MEMORY);
+ 			if (N_NORMAL_MEMORY != N_HIGH_MEMORY &&
+ 			    zone_type <= ZONE_NORMAL)
 _
 
 Patches currently in -mm which might be from qiuxishi@huawei.com are
