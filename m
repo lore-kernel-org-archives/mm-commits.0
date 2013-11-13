@@ -1,43 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mm-factor-out-of-top-down-direct-mapping-setup.patch removed from -mm tree
-Date: Wed, 13 Nov 2013 12:39:00 -0800
-Message-ID: <5283e364.XtEKZ3j0QW2H8YXO%akpm@linux-foundation.org>
+Subject: [merged]
+ x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
+ removed from -mm tree
+Date: Wed, 13 Nov 2013 12:39:03 -0800
+Message-ID: <5283e367.+ZSsWARkBer8sMVN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42719 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42746 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751094Ab3KMUjC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:02 -0500
+	with ESMTP id S1751438Ab3KMUjF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, riel@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, laijs@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, tangchen@cn.fujitsu.com
 
-Subject: [merged] x86-mm-factor-out-of-top-down-direct-mapping-setup.patch removed from -mm tree
+Subject: [merged] x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch removed from -mm tree
 To: tangchen@cn.fujitsu.com,hannes@cmpxchg.org,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,kamezawa.hiroyu@jp.fujitsu.com,laijs@cn.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,riel@redhat.com,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:39:00 -0800
+Date: Wed, 13 Nov 2013 12:39:03 -0800
 
 
 The patch titled
-     Subject: x86/mm: factor out of top-down direct mapping setup
+     Subject: x86, acpi, crash, kdump: do reserve_crashkernel() after SRAT is parsed.
 has been removed from the -mm tree.  Its filename was
-     x86-mm-factor-out-of-top-down-direct-mapping-setup.patch
+     x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: x86/mm: factor out of top-down direct mapping setup
+Subject: x86, acpi, crash, kdump: do reserve_crashkernel() after SRAT is parsed.
 
-Create a new function memory_map_top_down to factor out of the top-down
-direct memory mapping pagetable setup.  This is also a preparation for the
-following patch, which will introduce the bottom-up memory mapping.  That
-said, we will put the two ways of pagetable setup into separate functions,
-and choose to use which way in init_mem_mapping, which makes the code more
-clear.
+Memory reserved for crashkernel could be large.  So we should not allocate
+this memory bottom up from the end of kernel image.
+
+When SRAT is parsed, we will be able to know which memory is hotpluggable,
+and we can avoid allocating this memory for the kernel.  So reorder
+reserve_crashkernel() after SRAT is parsed.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -63,106 +65,14 @@ Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c |   59 ++++++++++++++++++++++++++++---------------
- 1 file changed, 39 insertions(+), 20 deletions(-)
+ arch/x86/kernel/setup.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~x86-mm-factor-out-of-top-down-direct-mapping-setup
-+++ a/arch/x86/mm/init.c
-@@ -418,27 +418,27 @@ static unsigned long __init get_new_step
- 	return step_size << 5;
- }
+diff -puN arch/x86/kernel/setup.c~x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~x86-acpi-crash-kdump-do-reserve_crashkernel-after-srat-is-parsed
++++ a/arch/x86/kernel/setup.c
+@@ -1121,8 +1121,6 @@ void __init setup_arch(char **cmdline_p)
+ 	acpi_initrd_override((void *)initrd_start, initrd_end - initrd_start);
+ #endif
  
--void __init init_mem_mapping(void)
-+/**
-+ * memory_map_top_down - Map [map_start, map_end) top down
-+ * @map_start: start address of the target memory range
-+ * @map_end: end address of the target memory range
-+ *
-+ * This function will setup direct mapping for memory range
-+ * [map_start, map_end) in top-down. That said, the page tables
-+ * will be allocated at the end of the memory, and we map the
-+ * memory in top-down.
-+ */
-+static void __init memory_map_top_down(unsigned long map_start,
-+				       unsigned long map_end)
- {
--	unsigned long end, real_end, start, last_start;
-+	unsigned long real_end, start, last_start;
- 	unsigned long step_size;
- 	unsigned long addr;
- 	unsigned long mapped_ram_size = 0;
- 	unsigned long new_mapped_ram_size;
- 
--	probe_page_size_mask();
--
--#ifdef CONFIG_X86_64
--	end = max_pfn << PAGE_SHIFT;
--#else
--	end = max_low_pfn << PAGE_SHIFT;
--#endif
--
--	/* the ISA range is always mapped regardless of memory holes */
--	init_memory_mapping(0, ISA_END_ADDRESS);
--
- 	/* xen has big range in reserved near end of ram, skip it at first.*/
--	addr = memblock_find_in_range(ISA_END_ADDRESS, end, PMD_SIZE, PMD_SIZE);
-+	addr = memblock_find_in_range(map_start, map_end, PMD_SIZE, PMD_SIZE);
- 	real_end = addr + PMD_SIZE;
- 
- 	/* step_size need to be small so pgt_buf from BRK could cover it */
-@@ -453,13 +453,13 @@ void __init init_mem_mapping(void)
- 	 * end of RAM in [min_pfn_mapped, max_pfn_mapped) used as new pages
- 	 * for page table.
- 	 */
--	while (last_start > ISA_END_ADDRESS) {
-+	while (last_start > map_start) {
- 		if (last_start > step_size) {
- 			start = round_down(last_start - 1, step_size);
--			if (start < ISA_END_ADDRESS)
--				start = ISA_END_ADDRESS;
-+			if (start < map_start)
-+				start = map_start;
- 		} else
--			start = ISA_END_ADDRESS;
-+			start = map_start;
- 		new_mapped_ram_size = init_range_memory_mapping(start,
- 							last_start);
- 		last_start = start;
-@@ -470,8 +470,27 @@ void __init init_mem_mapping(void)
- 		mapped_ram_size += new_mapped_ram_size;
- 	}
- 
--	if (real_end < end)
--		init_range_memory_mapping(real_end, end);
-+	if (real_end < map_end)
-+		init_range_memory_mapping(real_end, map_end);
-+}
-+
-+void __init init_mem_mapping(void)
-+{
-+	unsigned long end;
-+
-+	probe_page_size_mask();
-+
-+#ifdef CONFIG_X86_64
-+	end = max_pfn << PAGE_SHIFT;
-+#else
-+	end = max_low_pfn << PAGE_SHIFT;
-+#endif
-+
-+	/* the ISA range is always mapped regardless of memory holes */
-+	init_memory_mapping(0, ISA_END_ADDRESS);
-+
-+	/* setup direct mapping for range [ISA_END_ADDRESS, end) in top-down*/
-+	memory_map_top_down(ISA_END_ADDRESS, end);
- 
- #ifdef CONFIG_X86_64
- 	if (max_pfn > max_low_pfn) {
-_
-
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
-
-origin.patch
-linux-next.patch
-
+-	reserve_crashkernel();
