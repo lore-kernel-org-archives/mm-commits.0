@@ -1,89 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-obsolete-comments-about-page-table-lock.patch
+Subject: [merged]
+ drivers-video-acornfbc-use-__free_reserved_page-to-simplify-the-code.patch
  removed from -mm tree
-Date: Wed, 13 Nov 2013 12:37:51 -0800
-Message-ID: <5283e31f.vdXZF9hNscsxX5Ki%akpm@linux-foundation.org>
+Date: Wed, 13 Nov 2013 12:37:49 -0800
+Message-ID: <5283e31d.Ok9z3zXMo10K4+d3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42494 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751067Ab3KMUhv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:51 -0500
+	with ESMTP id S1751067Ab3KMUhu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, qiuxishi@huawei.com
 
-Subject: [merged] mm-remove-obsolete-comments-about-page-table-lock.patch removed from -mm tree
-To: n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
+Subject: [merged] drivers-video-acornfbc-use-__free_reserved_page-to-simplify-the-code.patch removed from -mm tree
+To: qiuxishi@huawei.com,plagnioj@jcrosoft.com,tomi.valkeinen@ti.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:37:51 -0800
+Date: Wed, 13 Nov 2013 12:37:49 -0800
 
 
 The patch titled
-     Subject: mm: remove obsolete comments about page table lock
+     Subject: drivers/video/acornfb.c: use __free_reserved_page() to simplify the code
 has been removed from the -mm tree.  Its filename was
-     mm-remove-obsolete-comments-about-page-table-lock.patch
+     drivers-video-acornfbc-use-__free_reserved_page-to-simplify-the-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: remove obsolete comments about page table lock
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: drivers/video/acornfb.c: use __free_reserved_page() to simplify the code
 
-The callers of free_pgd_range() and hugetlb_free_pgd_range() don't hold
-page table locks.  The comments seems to be obsolete, so let's remove
-them.
+Use __free_reserved_page() to simplify the code in the others.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |    2 --
- mm/memory.c                   |    2 --
- 2 files changed, 4 deletions(-)
+ drivers/video/acornfb.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/powerpc/mm/hugetlbpage.c~mm-remove-obsolete-comments-about-page-table-lock arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~mm-remove-obsolete-comments-about-page-table-lock
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -633,8 +633,6 @@ static void hugetlb_free_pud_range(struc
+diff -puN drivers/video/acornfb.c~drivers-video-acornfbc-use-__free_reserved_page-to-simplify-the-code drivers/video/acornfb.c
+--- a/drivers/video/acornfb.c~drivers-video-acornfbc-use-__free_reserved_page-to-simplify-the-code
++++ a/drivers/video/acornfb.c
+@@ -949,9 +949,7 @@ free_unused_pages(unsigned int virtual_s
+ 		 * the page.
+ 		 */
+ 		page = virt_to_page(virtual_start);
+-		ClearPageReserved(page);
+-		init_page_count(page);
+-		free_page(virtual_start);
++		__free_reserved_page(page);
  
- /*
-  * This function frees user-level page tables of a process.
-- *
-- * Must be called with pagetable lock held.
-  */
- void hugetlb_free_pgd_range(struct mmu_gather *tlb,
- 			    unsigned long addr, unsigned long end,
-diff -puN mm/memory.c~mm-remove-obsolete-comments-about-page-table-lock mm/memory.c
---- a/mm/memory.c~mm-remove-obsolete-comments-about-page-table-lock
-+++ a/mm/memory.c
-@@ -453,8 +453,6 @@ static inline void free_pud_range(struct
- 
- /*
-  * This function frees user-level page tables of a process.
-- *
-- * Must be called with pagetable lock held.
-  */
- void free_pgd_range(struct mmu_gather *tlb,
- 			unsigned long addr, unsigned long end,
+ 		virtual_start += PAGE_SIZE;
+ 		mb_freed += PAGE_SIZE / 1024;
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
 origin.patch
-x86-mm-get-aslr-work-for-hugetlb-mappings.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+linux-next.patch
 
