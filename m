@@ -1,113 +1,110 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap.patch removed from -mm tree
-Date: Wed, 13 Nov 2013 12:38:36 -0800
-Message-ID: <5283e34c.PxsKWZfjqlQ1Y7hW%akpm@linux-foundation.org>
+ mm-kmemleak-avoid-false-negatives-on-vmalloced-objects.patch removed from
+ -mm tree
+Date: Wed, 13 Nov 2013 12:38:38 -0800
+Message-ID: <5283e34e.xE356C1xLjAIHQYB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42626 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42630 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857Ab3KMUih (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:37 -0500
+	with ESMTP id S1750857Ab3KMUij (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, y-goto@jp.fujitsu.com, wency@cn.fujitsu.com, toshi.kani@hp.com, tangchen@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com, apw@shadowen.org, zhangyanfei@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, catalin.marinas@arm.com
 
-Subject: [merged] mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap.patch removed from -mm tree
-To: zhangyanfei@cn.fujitsu.com,apw@shadowen.org,isimatu.yasuaki@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,tangchen@cn.fujitsu.com,toshi.kani@hp.com,wency@cn.fujitsu.com,y-goto@jp.fujitsu.com,yinghai@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-kmemleak-avoid-false-negatives-on-vmalloced-objects.patch removed from -mm tree
+To: catalin.marinas@arm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:38:36 -0800
+Date: Wed, 13 Nov 2013 12:38:38 -0800
 
 
 The patch titled
-     Subject: mm/sparsemem: fix a bug in free_map_bootmem when CONFIG_SPARSEMEM_VMEMMAP
+     Subject: mm: kmemleak: avoid false negatives on vmalloc'ed objects
 has been removed from the -mm tree.  Its filename was
-     mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap.patch
+     mm-kmemleak-avoid-false-negatives-on-vmalloced-objects.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Subject: mm/sparsemem: fix a bug in free_map_bootmem when CONFIG_SPARSEMEM_VMEMMAP
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: kmemleak: avoid false negatives on vmalloc'ed objects
 
-We pass the number of pages which hold page structs of a memory section to
-free_map_bootmem().  This is right when !CONFIG_SPARSEMEM_VMEMMAP but
-wrong when CONFIG_SPARSEMEM_VMEMMAP.  When CONFIG_SPARSEMEM_VMEMMAP, we
-should pass the number of pages of a memory section to free_map_bootmem.
+Commit 248ac0e1 ("mm/vmalloc: remove guard page from between vmap blocks")
+had the side effect of making vmap_area.va_end member point to the next
+vmap_area.va_start.  This was creating an artificial reference to
+vmalloc'ed objects and kmemleak was rarely reporting vmalloc() leaks.
 
-So the fix is removing the nr_pages parameter.  When
-CONFIG_SPARSEMEM_VMEMMAP, we directly use the prefined marco
-PAGES_PER_SECTION in free_map_bootmem.  When !CONFIG_SPARSEMEM_VMEMMAP, we
-calculate page numbers needed to hold the page structs for a memory
-section and use the value in free_map_bootmem().
+This patch marks the vmap_area containing pointers explicitly and reduces
+the min ref_count to 2 as vm_struct still contains a reference to the
+vmalloc'ed object.  The kmemleak add_scan_area() function has been
+improved to allow a SIZE_MAX argument covering the rest of the object (for
+simpler calling sites).
 
-This was found by reading the code.  And I have no machine that support
-memory hot-remove to test the bug now.
-
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ mm/kmemleak.c |    4 +++-
+ mm/vmalloc.c  |   14 ++++++++++----
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN mm/sparse.c~mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap mm/sparse.c
---- a/mm/sparse.c~mm-sparsemem-fix-a-bug-in-free_map_bootmem-when-config_sparsemem_vmemmap
-+++ a/mm/sparse.c
-@@ -603,10 +603,10 @@ static void __kfree_section_memmap(struc
- 	vmemmap_free(start, end);
- }
- #ifdef CONFIG_MEMORY_HOTREMOVE
--static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
-+static void free_map_bootmem(struct page *memmap)
- {
- 	unsigned long start = (unsigned long)memmap;
--	unsigned long end = (unsigned long)(memmap + nr_pages);
-+	unsigned long end = (unsigned long)(memmap + PAGES_PER_SECTION);
+diff -puN mm/kmemleak.c~mm-kmemleak-avoid-false-negatives-on-vmalloced-objects mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-avoid-false-negatives-on-vmalloced-objects
++++ a/mm/kmemleak.c
+@@ -753,7 +753,9 @@ static void add_scan_area(unsigned long
+ 	}
  
- 	vmemmap_free(start, end);
- }
-@@ -648,12 +648,15 @@ static void __kfree_section_memmap(struc
- }
+ 	spin_lock_irqsave(&object->lock, flags);
+-	if (ptr + size > object->pointer + object->size) {
++	if (size == SIZE_MAX) {
++		size = object->pointer + object->size - ptr;
++	} else if (ptr + size > object->pointer + object->size) {
+ 		kmemleak_warn("Scan area larger than object 0x%08lx\n", ptr);
+ 		dump_object_info(object);
+ 		kmem_cache_free(scan_area_cache, area);
+diff -puN mm/vmalloc.c~mm-kmemleak-avoid-false-negatives-on-vmalloced-objects mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-kmemleak-avoid-false-negatives-on-vmalloced-objects
++++ a/mm/vmalloc.c
+@@ -359,6 +359,12 @@ static struct vmap_area *alloc_vmap_area
+ 	if (unlikely(!va))
+ 		return ERR_PTR(-ENOMEM);
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
--static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
-+static void free_map_bootmem(struct page *memmap)
- {
- 	unsigned long maps_section_nr, removing_section_nr, i;
--	unsigned long magic;
-+	unsigned long magic, nr_pages;
- 	struct page *page = virt_to_page(memmap);
- 
-+	nr_pages = PAGE_ALIGN(PAGES_PER_SECTION * sizeof(struct page))
-+		>> PAGE_SHIFT;
++	/*
++	 * Only scan the relevant parts containing pointers to other objects
++	 * to avoid false negatives.
++	 */
++	kmemleak_scan_area(&va->rb_node, SIZE_MAX, gfp_mask & GFP_RECLAIM_MASK);
 +
- 	for (i = 0; i < nr_pages; i++, page++) {
- 		magic = (unsigned long) page->lru.next;
+ retry:
+ 	spin_lock(&vmap_area_lock);
+ 	/*
+@@ -1645,11 +1651,11 @@ void *__vmalloc_node_range(unsigned long
+ 	clear_vm_uninitialized_flag(area);
  
-@@ -756,7 +759,6 @@ static inline void clear_hwpoisoned_page
- static void free_section_usemap(struct page *memmap, unsigned long *usemap)
- {
- 	struct page *usemap_page;
--	unsigned long nr_pages;
- 
- 	if (!usemap)
- 		return;
-@@ -777,12 +779,8 @@ static void free_section_usemap(struct p
- 	 * on the section which has pgdat at boot time. Just keep it as is now.
+ 	/*
+-	 * A ref_count = 3 is needed because the vm_struct and vmap_area
+-	 * structures allocated in the __get_vm_area_node() function contain
+-	 * references to the virtual address of the vmalloc'ed block.
++	 * A ref_count = 2 is needed because vm_struct allocated in
++	 * __get_vm_area_node() contains a reference to the virtual address of
++	 * the vmalloc'ed block.
  	 */
+-	kmemleak_alloc(addr, real_size, 3, gfp_mask);
++	kmemleak_alloc(addr, real_size, 2, gfp_mask);
  
--	if (memmap) {
--		nr_pages = PAGE_ALIGN(PAGES_PER_SECTION * sizeof(struct page))
--			>> PAGE_SHIFT;
+ 	return addr;
+ 
+_
+
+Patches currently in -mm which might be from catalin.marinas@arm.com are
+
+origin.patch
+linux-next.patch
+x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
+arm64-handle-pgtable_page_ctor-fail.patch
+
