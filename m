@@ -1,68 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] init-mainc-remove-prototype-for-softirq_init.patch
- removed from -mm tree
-Date: Wed, 13 Nov 2013 12:40:12 -0800
-Message-ID: <5283e3ac.Lv36jF/Smr/3AwoG%akpm@linux-foundation.org>
+Subject: [merged] jump_label-unlikelyx-0.patch removed from -mm tree
+Date: Wed, 13 Nov 2013 12:40:04 -0800
+Message-ID: <5283e3a4.LbAjlLErTvJhJWvG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42897 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42879 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720Ab3KMUkM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:12 -0500
+	with ESMTP id S1751692Ab3KMUkF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, raghavendra.kt@linux.vnet.ibm.com, mingo@kernel.org, konrad.wilk@oracle.com, hpa@linux.intel.com, roel.kluin@gmail.com
 
-Subject: [merged] init-mainc-remove-prototype-for-softirq_init.patch removed from -mm tree
-To: geert@linux-m68k.org,mm-commits@vger.kernel.org
+Subject: [merged] jump_label-unlikelyx-0.patch removed from -mm tree
+To: roel.kluin@gmail.com,hpa@linux.intel.com,konrad.wilk@oracle.com,mingo@kernel.org,raghavendra.kt@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:40:12 -0800
+Date: Wed, 13 Nov 2013 12:40:04 -0800
 
 
 The patch titled
-     Subject: init/main.c: remove prototype for softirq_init()
+     Subject: jump_label: unlikely(x) > 0
 has been removed from the -mm tree.  Its filename was
-     init-mainc-remove-prototype-for-softirq_init.patch
+     jump_label-unlikelyx-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: init/main.c: remove prototype for softirq_init()
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: jump_label: unlikely(x) > 0
 
-It's already available in <linux/interrupt.h>
+if (unlikely(x) > 0) doesn't seem to help branch prediction
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: "H. Peter Anvin" <hpa@linux.intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/jump_label.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN init/main.c~init-mainc-remove-prototype-for-softirq_init init/main.c
---- a/init/main.c~init-mainc-remove-prototype-for-softirq_init
-+++ a/init/main.c
-@@ -124,7 +124,6 @@ EXPORT_SYMBOL(system_state);
- extern void time_init(void);
- /* Default late time init is NULL. archs can override this later. */
- void (*__initdata late_time_init)(void);
--extern void softirq_init(void);
+diff -puN include/linux/jump_label.h~jump_label-unlikelyx-0 include/linux/jump_label.h
+--- a/include/linux/jump_label.h~jump_label-unlikelyx-0
++++ a/include/linux/jump_label.h
+@@ -132,14 +132,14 @@ static __always_inline void jump_label_i
  
- /* Untouched command line saved by arch-specific code. */
- char __initdata boot_command_line[COMMAND_LINE_SIZE];
+ static __always_inline bool static_key_false(struct static_key *key)
+ {
+-	if (unlikely(atomic_read(&key->enabled)) > 0)
++	if (unlikely(atomic_read(&key->enabled) > 0))
+ 		return true;
+ 	return false;
+ }
+ 
+ static __always_inline bool static_key_true(struct static_key *key)
+ {
+-	if (likely(atomic_read(&key->enabled)) > 0)
++	if (likely(atomic_read(&key->enabled) > 0))
+ 		return true;
+ 	return false;
+ }
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
 origin.patch
-genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
-scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
 linux-next.patch
-x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
-m68k-handle-pgtable_page_ctor-fail.patch
-m68k-handle-pgtable_page_ctor-fail-fix.patch
-m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
 
