@@ -1,62 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-sysc-remove-obsolete-include-linux-kexech.patch
+Subject: [merged] init-mainc-remove-prototype-for-softirq_init.patch
  removed from -mm tree
-Date: Wed, 13 Nov 2013 12:40:02 -0800
-Message-ID: <5283e3a2.PloOWfOthliA7vGp%akpm@linux-foundation.org>
+Date: Wed, 13 Nov 2013 12:40:12 -0800
+Message-ID: <5283e3ac.Lv36jF/Smr/3AwoG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42875 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42897 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751692Ab3KMUkD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:03 -0500
+	with ESMTP id S1751720Ab3KMUkM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, holt@sgi.com, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, geert@linux-m68k.org
 
-Subject: [merged] kernel-sysc-remove-obsolete-include-linux-kexech.patch removed from -mm tree
-To: geert@linux-m68k.org,holt@sgi.com,mm-commits@vger.kernel.org
+Subject: [merged] init-mainc-remove-prototype-for-softirq_init.patch removed from -mm tree
+To: geert@linux-m68k.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:40:02 -0800
+Date: Wed, 13 Nov 2013 12:40:12 -0800
 
 
 The patch titled
-     Subject: kernel/sys.c: remove obsolete #include <linux/kexec.h>
+     Subject: init/main.c: remove prototype for softirq_init()
 has been removed from the -mm tree.  Its filename was
-     kernel-sysc-remove-obsolete-include-linux-kexech.patch
+     init-mainc-remove-prototype-for-softirq_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: kernel/sys.c: remove obsolete #include <linux/kexec.h>
+Subject: init/main.c: remove prototype for softirq_init()
 
-15d94b82565ebfb0 ("reboot: move shutdown/reboot related functions to
-kernel/reboot.c") moved all kexec-related functionality to
-kernel/reboot.c, so kernel/sys.c no longer needs to include
-<linux/kexec.h>.
+It's already available in <linux/interrupt.h>
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    1 -
+ init/main.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN kernel/sys.c~kernel-sysc-remove-obsolete-include-linux-kexech kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-remove-obsolete-include-linux-kexech
-+++ a/kernel/sys.c
-@@ -16,7 +16,6 @@
- #include <linux/perf_event.h>
- #include <linux/resource.h>
- #include <linux/kernel.h>
--#include <linux/kexec.h>
- #include <linux/workqueue.h>
- #include <linux/capability.h>
- #include <linux/device.h>
+diff -puN init/main.c~init-mainc-remove-prototype-for-softirq_init init/main.c
+--- a/init/main.c~init-mainc-remove-prototype-for-softirq_init
++++ a/init/main.c
+@@ -124,7 +124,6 @@ EXPORT_SYMBOL(system_state);
+ extern void time_init(void);
+ /* Default late time init is NULL. archs can override this later. */
+ void (*__initdata late_time_init)(void);
+-extern void softirq_init(void);
+ 
+ /* Untouched command line saved by arch-specific code. */
+ char __initdata boot_command_line[COMMAND_LINE_SIZE];
 _
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
