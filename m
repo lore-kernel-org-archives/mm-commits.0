@@ -1,73 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compactionc-update-comment-about-zone-lock-in-isolate_freepages_block.patch removed from -mm tree
-Date: Wed, 13 Nov 2013 12:37:45 -0800
-Message-ID: <5283e319.6kZKvoRtEm2m9zBG%akpm@linux-foundation.org>
+Subject: [merged] mm-remove-obsolete-comments-about-page-table-lock.patch
+ removed from -mm tree
+Date: Wed, 13 Nov 2013 12:37:51 -0800
+Message-ID: <5283e31f.vdXZF9hNscsxX5Ki%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42486 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751067Ab3KMUhp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:45 -0500
+	with ESMTP id S1751067Ab3KMUhv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mel@csn.ul.ie, jmarchan@redhat.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
 
-Subject: [merged] mm-compactionc-update-comment-about-zone-lock-in-isolate_freepages_block.patch removed from -mm tree
-To: jmarchan@redhat.com,mel@csn.ul.ie,mm-commits@vger.kernel.org
+Subject: [merged] mm-remove-obsolete-comments-about-page-table-lock.patch removed from -mm tree
+To: n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:37:45 -0800
+Date: Wed, 13 Nov 2013 12:37:51 -0800
 
 
 The patch titled
-     Subject: mm/compaction.c: update comment about zone lock in isolate_freepages_block
+     Subject: mm: remove obsolete comments about page table lock
 has been removed from the -mm tree.  Its filename was
-     mm-compactionc-update-comment-about-zone-lock-in-isolate_freepages_block.patch
+     mm-remove-obsolete-comments-about-page-table-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jerome Marchand <jmarchan@redhat.com>
-Subject: mm/compaction.c: update comment about zone lock in isolate_freepages_block
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: remove obsolete comments about page table lock
 
-Since commit f40d1e4 ("mm: compaction: acquire the zone->lock as late as
-possible"), isolate_freepages_block() takes the zone->lock itself.  The
-function description however still states that the zone->lock must be
-held.
+The callers of free_pgd_range() and hugetlb_free_pgd_range() don't hold
+page table locks.  The comments seems to be obsolete, so let's remove
+them.
 
-This patch removes this outdated statement.
-
-Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |    2 --
+ mm/memory.c                   |    2 --
+ 2 files changed, 4 deletions(-)
 
-diff -puN mm/compaction.c~mm-compactionc-update-comment-about-zone-lock-in-isolate_freepages_block mm/compaction.c
---- a/mm/compaction.c~mm-compactionc-update-comment-about-zone-lock-in-isolate_freepages_block
-+++ a/mm/compaction.c
-@@ -235,10 +235,9 @@ static bool suitable_migration_target(st
- }
+diff -puN arch/powerpc/mm/hugetlbpage.c~mm-remove-obsolete-comments-about-page-table-lock arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~mm-remove-obsolete-comments-about-page-table-lock
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -633,8 +633,6 @@ static void hugetlb_free_pud_range(struc
  
  /*
-- * Isolate free pages onto a private freelist. Caller must hold zone->lock.
-- * If @strict is true, will abort returning 0 on any invalid PFNs or non-free
-- * pages inside of the pageblock (even though it may still end up isolating
-- * some pages).
-+ * Isolate free pages onto a private freelist. If @strict is true, will abort
-+ * returning 0 on any invalid PFNs or non-free pages inside of the pageblock
-+ * (even though it may still end up isolating some pages).
+  * This function frees user-level page tables of a process.
+- *
+- * Must be called with pagetable lock held.
   */
- static unsigned long isolate_freepages_block(struct compact_control *cc,
- 				unsigned long blockpfn,
+ void hugetlb_free_pgd_range(struct mmu_gather *tlb,
+ 			    unsigned long addr, unsigned long end,
+diff -puN mm/memory.c~mm-remove-obsolete-comments-about-page-table-lock mm/memory.c
+--- a/mm/memory.c~mm-remove-obsolete-comments-about-page-table-lock
++++ a/mm/memory.c
+@@ -453,8 +453,6 @@ static inline void free_pud_range(struct
+ 
+ /*
+  * This function frees user-level page tables of a process.
+- *
+- * Must be called with pagetable lock held.
+  */
+ void free_pgd_range(struct mmu_gather *tlb,
+ 			unsigned long addr, unsigned long end,
 _
 
-Patches currently in -mm which might be from jmarchan@redhat.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
+x86-mm-get-aslr-work-for-hugetlb-mappings.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
 
