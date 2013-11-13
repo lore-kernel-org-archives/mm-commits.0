@@ -1,119 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx.patch removed
- from -mm tree
-Date: Wed, 13 Nov 2013 12:39:26 -0800
-Message-ID: <5283e37e.JTp1SYu9wnAnunoH%akpm@linux-foundation.org>
+Subject: [merged] hpet-allow-user-controlled-mmap-for-user-processes.patch removed from -mm tree
+Date: Wed, 13 Nov 2013 12:39:44 -0800
+Message-ID: <5283e390.5ptG4D4uPNRro2gg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42802 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42841 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751564Ab3KMUj1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:27 -0500
+	with ESMTP id S1751489Ab3KMUjp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, glommer@parallels.com, h.huangqiang@huawei.com
+To: mm-commits@vger.kernel.org, tomas.winkler@intel.com, rdunlap@infradead.org, msw@amazon.com, clemens@ladisch.de, prarit@redhat.com
 
-Subject: [merged] memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx.patch removed from -mm tree
-To: h.huangqiang@huawei.com,glommer@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz,penberg@kernel.org,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: [merged] hpet-allow-user-controlled-mmap-for-user-processes.patch removed from -mm tree
+To: prarit@redhat.com,clemens@ladisch.de,msw@amazon.com,rdunlap@infradead.org,tomas.winkler@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:39:26 -0800
+Date: Wed, 13 Nov 2013 12:39:44 -0800
 
 
 The patch titled
-     Subject: memcg, kmem: rename cache_from_memcg to cache_from_memcg_idx
+     Subject: drivers/char/hpet.c: allow user controlled mmap for user processes
 has been removed from the -mm tree.  Its filename was
-     memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx.patch
+     hpet-allow-user-controlled-mmap-for-user-processes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Qiang Huang <h.huangqiang@huawei.com>
-Subject: memcg, kmem: rename cache_from_memcg to cache_from_memcg_idx
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: drivers/char/hpet.c: allow user controlled mmap for user processes
 
-We can't see the relationship with memcg from the parameters,
-so the name with memcg_idx would be more reasonable.
+The CONFIG_HPET_MMAP Kconfig option exposes the memory map of the HPET
+registers to userspace.  The Kconfig help points out that in some cases
+this can be a security risk as some systems may erroneously configure the
+map such that additional data is exposed to userspace.
 
-Signed-off-by: Qiang Huang <h.huangqiang@huawei.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Glauber Costa <glommer@parallels.com>
+This is a problem for distributions -- some users want the MMAP
+functionality but it comes with a significant security risk.  In an effort
+to mitigate this risk, and due to the low number of users of the MMAP
+functionality, I've introduced a kernel parameter, hpet_mmap_enable, that
+is required in order to actually have the HPET MMAP exposed.
+
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Acked-by: Matt Wilson <msw@amazon.com>
+Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Tomas Winkler <tomas.winkler@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c        |    2 +-
- mm/slab.h        |    6 ++++--
- mm/slab_common.c |    2 +-
- mm/slub.c        |    2 +-
- 4 files changed, 7 insertions(+), 5 deletions(-)
+ Documentation/kernel-parameters.txt |    3 +++
+ drivers/char/Kconfig                |   10 ++++++++--
+ drivers/char/hpet.c                 |   24 ++++++++++++++++++++++--
+ 3 files changed, 33 insertions(+), 4 deletions(-)
 
-diff -puN mm/slab.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx mm/slab.c
---- a/mm/slab.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx
-+++ a/mm/slab.c
-@@ -3982,7 +3982,7 @@ static int do_tune_cpucache(struct kmem_
+diff -puN Documentation/kernel-parameters.txt~hpet-allow-user-controlled-mmap-for-user-processes Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~hpet-allow-user-controlled-mmap-for-user-processes
++++ a/Documentation/kernel-parameters.txt
+@@ -1070,6 +1070,9 @@ bytes respectively. Such letter suffixes
+ 				VIA, nVidia)
+ 			verbose: show contents of HPET registers during setup
  
- 	VM_BUG_ON(!mutex_is_locked(&slab_mutex));
- 	for_each_memcg_cache_index(i) {
--		c = cache_from_memcg(cachep, i);
-+		c = cache_from_memcg_idx(cachep, i);
- 		if (c)
- 			/* return value determined by the parent cache only */
- 			__do_tune_cpucache(c, limit, batchcount, shared, gfp);
-diff -puN mm/slab.h~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx mm/slab.h
---- a/mm/slab.h~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx
-+++ a/mm/slab.h
-@@ -160,7 +160,8 @@ static inline const char *cache_name(str
- 	return s->name;
++	hpet_mmap=	[X86, HPET_MMAP] Allow userspace to mmap HPET
++			registers.  Default set by CONFIG_HPET_MMAP_DEFAULT.
++
+ 	hugepages=	[HW,X86-32,IA-64] HugeTLB pages to allocate at boot.
+ 	hugepagesz=	[HW,IA-64,PPC,X86-64] The size of the HugeTLB pages.
+ 			On x86-64 and powerpc, this option can be specified
+diff -puN drivers/char/Kconfig~hpet-allow-user-controlled-mmap-for-user-processes drivers/char/Kconfig
+--- a/drivers/char/Kconfig~hpet-allow-user-controlled-mmap-for-user-processes
++++ a/drivers/char/Kconfig
+@@ -522,10 +522,16 @@ config HPET_MMAP
+ 	  If you say Y here, user applications will be able to mmap
+ 	  the HPET registers.
+ 
++config HPET_MMAP_DEFAULT
++	bool "Enable HPET MMAP access by default"
++	default y
++	depends on HPET_MMAP
++	help
+ 	  In some hardware implementations, the page containing HPET
+ 	  registers may also contain other things that shouldn't be
+-	  exposed to the user.  If this applies to your hardware,
+-	  say N here.
++	  exposed to the user.  This option selects the default (if
++	  kernel parameter hpet_mmap is not set) user access to the
++	  registers for applications that require it.
+ 
+ config HANGCHECK_TIMER
+ 	tristate "Hangcheck timer"
+diff -puN drivers/char/hpet.c~hpet-allow-user-controlled-mmap-for-user-processes drivers/char/hpet.c
+--- a/drivers/char/hpet.c~hpet-allow-user-controlled-mmap-for-user-processes
++++ a/drivers/char/hpet.c
+@@ -367,12 +367,29 @@ static unsigned int hpet_poll(struct fil
+ 	return 0;
  }
  
--static inline struct kmem_cache *cache_from_memcg(struct kmem_cache *s, int idx)
-+static inline struct kmem_cache *
-+cache_from_memcg_idx(struct kmem_cache *s, int idx)
++#ifdef CONFIG_HPET_MMAP
++#ifdef CONFIG_HPET_MMAP_DEFAULT
++static int hpet_mmap_enabled = 1;
++#else
++static int hpet_mmap_enabled = 0;
++#endif
++
++static __init int hpet_mmap_enable(char *str)
++{
++	get_option(&str, &hpet_mmap_enabled);
++	pr_info("HPET mmap %s\n", hpet_mmap_enabled ? "enabled" : "disabled");
++	return 1;
++}
++__setup("hpet_mmap", hpet_mmap_enable);
++
+ static int hpet_mmap(struct file *file, struct vm_area_struct *vma)
  {
- 	if (!s->memcg_params)
- 		return NULL;
-@@ -204,7 +205,8 @@ static inline const char *cache_name(str
- 	return s->name;
- }
+-#ifdef	CONFIG_HPET_MMAP
+ 	struct hpet_dev *devp;
+ 	unsigned long addr;
  
--static inline struct kmem_cache *cache_from_memcg(struct kmem_cache *s, int idx)
-+static inline struct kmem_cache *
-+cache_from_memcg_idx(struct kmem_cache *s, int idx)
++	if (!hpet_mmap_enabled)
++		return -EACCES;
++
+ 	devp = file->private_data;
+ 	addr = devp->hd_hpets->hp_hpet_phys;
+ 
+@@ -381,10 +398,13 @@ static int hpet_mmap(struct file *file,
+ 
+ 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+ 	return vm_iomap_memory(vma, addr, PAGE_SIZE);
++}
+ #else
++static int hpet_mmap(struct file *file, struct vm_area_struct *vma)
++{
+ 	return -ENOSYS;
+-#endif
+ }
++#endif
+ 
+ static int hpet_fasync(int fd, struct file *file, int on)
  {
- 	return NULL;
- }
-diff -puN mm/slab_common.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx mm/slab_common.c
---- a/mm/slab_common.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx
-+++ a/mm/slab_common.c
-@@ -571,7 +571,7 @@ memcg_accumulate_slabinfo(struct kmem_ca
- 		return;
- 
- 	for_each_memcg_cache_index(i) {
--		c = cache_from_memcg(s, i);
-+		c = cache_from_memcg_idx(s, i);
- 		if (!c)
- 			continue;
- 
-diff -puN mm/slub.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx mm/slub.c
---- a/mm/slub.c~memcg-kmem-rename-cache_from_memcg-to-cache_from_memcg_idx
-+++ a/mm/slub.c
-@@ -4983,7 +4983,7 @@ static ssize_t slab_attr_store(struct ko
- 		 * through the descendants with best-effort propagation.
- 		 */
- 		for_each_memcg_cache_index(i) {
--			struct kmem_cache *c = cache_from_memcg(s, i);
-+			struct kmem_cache *c = cache_from_memcg_idx(s, i);
- 			if (c)
- 				attribute->store(c, buf, len);
- 		}
 _
 
-Patches currently in -mm which might be from h.huangqiang@huawei.com are
+Patches currently in -mm which might be from prarit@redhat.com are
 
 origin.patch
+linux-next.patch
 
