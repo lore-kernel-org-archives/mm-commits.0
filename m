@@ -1,158 +1,243 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-sortextable-support-objects-with-more-than-64k-sections.patch
- removed from -mm tree
-Date: Wed, 13 Nov 2013 12:37:06 -0800
-Message-ID: <5283e2f2.GfN+NIqYFMwyI1Wr%akpm@linux-foundation.org>
+ fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits.patch removed from -mm tree
+Date: Wed, 13 Nov 2013 12:37:08 -0800
+Message-ID: <5283e2f4.winRnR7n/FMv90mC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42407 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42412 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751224Ab3KMUhH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:07 -0500
+	with ESMTP id S1751224Ab3KMUhI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, mmarek@suse.cz, jamie.iles@oracle.com
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: [merged] scripts-sortextable-support-objects-with-more-than-64k-sections.patch removed from -mm tree
-To: jamie.iles@oracle.com,mmarek@suse.cz,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
+Subject: [merged] fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits.patch removed from -mm tree
+To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:37:06 -0800
+Date: Wed, 13 Nov 2013 12:37:08 -0800
 
 
 The patch titled
-     Subject: scripts/sortextable: support objects with more than 64K sections.
+     Subject: fs/ocfs2: remove unnecessary variable bits_wanted from ocfs2_calc_extend_credits
 has been removed from the -mm tree.  Its filename was
-     scripts-sortextable-support-objects-with-more-than-64k-sections.patch
+     fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jamie Iles <jamie.iles@oracle.com>
-Subject: scripts/sortextable: support objects with more than 64K sections.
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: fs/ocfs2: remove unnecessary variable bits_wanted from ocfs2_calc_extend_credits
 
-Building with a large config and -ffunction-sections results in a large
-number of sections and sortextable needs to be able to handle that. 
-Implement support for > 64K sections as modpost does.
+Code cleanup to remove unnecessary variable passed but never used
+to ocfs2_calc_extend_credits.
 
-Signed-off-by: Jamie Iles <jamie.iles@oracle.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/sortextable.c |   24 ++++++++++++++++++++++++
- scripts/sortextable.h |   26 +++++++++++++++++++++++---
- 2 files changed, 47 insertions(+), 3 deletions(-)
+ fs/ocfs2/aops.c         |    3 +--
+ fs/ocfs2/dir.c          |    4 ++--
+ fs/ocfs2/file.c         |    3 +--
+ fs/ocfs2/journal.h      |    3 +--
+ fs/ocfs2/move_extents.c |    3 +--
+ fs/ocfs2/refcounttree.c |    9 +++------
+ fs/ocfs2/xattr.c        |   20 +++++++-------------
+ 7 files changed, 16 insertions(+), 29 deletions(-)
 
-diff -puN scripts/sortextable.c~scripts-sortextable-support-objects-with-more-than-64k-sections scripts/sortextable.c
---- a/scripts/sortextable.c~scripts-sortextable-support-objects-with-more-than-64k-sections
-+++ a/scripts/sortextable.c
-@@ -152,6 +152,30 @@ static void (*w2)(uint16_t, uint16_t *);
+diff -puN fs/ocfs2/aops.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits
++++ a/fs/ocfs2/aops.c
+@@ -1802,8 +1802,7 @@ try_again:
+ 			data_ac->ac_resv = &OCFS2_I(inode)->ip_la_data_resv;
  
- typedef void (*table_sort_t)(char *, int);
+ 		credits = ocfs2_calc_extend_credits(inode->i_sb,
+-						    &di->id2.i_list,
+-						    clusters_to_alloc);
++						    &di->id2.i_list);
  
-+/*
-+ * Move reserved section indices SHN_LORESERVE..SHN_HIRESERVE out of
-+ * the way to -256..-1, to avoid conflicting with real section
-+ * indices.
-+ */
-+#define SPECIAL(i) ((i) - (SHN_HIRESERVE + 1))
-+
-+static inline int is_shndx_special(unsigned int i)
-+{
-+	return i != SHN_XINDEX && i >= SHN_LORESERVE && i <= SHN_HIRESERVE;
-+}
-+
-+/* Accessor for sym->st_shndx, hides ugliness of "64k sections" */
-+static inline unsigned int get_secindex(unsigned int shndx,
-+					unsigned int sym_offs,
-+					const Elf32_Word *symtab_shndx_start)
-+{
-+	if (is_shndx_special(shndx))
-+		return SPECIAL(shndx);
-+	if (shndx != SHN_XINDEX)
-+		return shndx;
-+	return r(&symtab_shndx_start[sym_offs]);
-+}
-+
- /* 32 bit and 64 bit are very similar */
- #include "sortextable.h"
- #define SORTEXTABLE_64
-diff -puN scripts/sortextable.h~scripts-sortextable-support-objects-with-more-than-64k-sections scripts/sortextable.h
---- a/scripts/sortextable.h~scripts-sortextable-support-objects-with-more-than-64k-sections
-+++ a/scripts/sortextable.h
-@@ -98,6 +98,8 @@ do_func(Elf_Ehdr *ehdr, char const *cons
- 	Elf_Shdr *symtab_sec = NULL;
- 	Elf_Shdr *extab_sec = NULL;
- 	Elf_Sym *sym;
-+	const Elf_Sym *symtab;
-+	Elf32_Word *symtab_shndx_start = NULL;
- 	Elf_Sym *sort_needed_sym;
- 	Elf_Shdr *sort_needed_sec;
- 	Elf_Rel *relocs = NULL;
-@@ -109,11 +111,22 @@ do_func(Elf_Ehdr *ehdr, char const *cons
- 	int extab_index = 0;
- 	int i;
- 	int idx;
-+	unsigned int num_sections;
-+	unsigned int secindex_strings;
+ 	}
  
- 	shdr = (Elf_Shdr *)((char *)ehdr + _r(&ehdr->e_shoff));
--	shstrtab_sec = shdr + r2(&ehdr->e_shstrndx);
-+
-+	num_sections = r2(&ehdr->e_shnum);
-+	if (num_sections == SHN_UNDEF)
-+		num_sections = _r(&shdr[0].sh_size);
-+
-+	secindex_strings = r2(&ehdr->e_shstrndx);
-+	if (secindex_strings == SHN_XINDEX)
-+		secindex_strings = r(&shdr[0].sh_link);
-+
-+	shstrtab_sec = shdr + secindex_strings;
- 	secstrtab = (const char *)ehdr + _r(&shstrtab_sec->sh_offset);
--	for (i = 0; i < r2(&ehdr->e_shnum); i++) {
-+	for (i = 0; i < num_sections; i++) {
- 		idx = r(&shdr[i].sh_name);
- 		if (strcmp(secstrtab + idx, "__ex_table") == 0) {
- 			extab_sec = shdr + i;
-@@ -129,6 +142,9 @@ do_func(Elf_Ehdr *ehdr, char const *cons
- 			symtab_sec = shdr + i;
- 		if (strcmp(secstrtab + idx, ".strtab") == 0)
- 			strtab_sec = shdr + i;
-+		if (r(&shdr[i].sh_type) == SHT_SYMTAB_SHNDX)
-+			symtab_shndx_start = (Elf32_Word *)(
-+				(const char *)ehdr + _r(&shdr[i].sh_offset));
+diff -puN fs/ocfs2/dir.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits
++++ a/fs/ocfs2/dir.c
+@@ -3284,7 +3284,7 @@ static int ocfs2_extend_dir(struct ocfs2
+ 		if (ocfs2_dir_resv_allowed(osb))
+ 			data_ac->ac_resv = &OCFS2_I(dir)->ip_la_data_resv;
+ 
+-		credits = ocfs2_calc_extend_credits(sb, el, 1);
++		credits = ocfs2_calc_extend_credits(sb, el);
+ 	} else {
+ 		spin_unlock(&OCFS2_I(dir)->ip_lock);
+ 		credits = OCFS2_SIMPLE_DIR_EXTEND_CREDITS;
+@@ -3716,7 +3716,7 @@ static int ocfs2_dx_dir_rebalance_credit
+ {
+ 	int credits = ocfs2_clusters_to_blocks(osb->sb, 2);
+ 
+-	credits += ocfs2_calc_extend_credits(osb->sb, &dx_root->dr_list, 1);
++	credits += ocfs2_calc_extend_credits(osb->sb, &dx_root->dr_list);
+ 	credits += ocfs2_quota_trans_credits(osb->sb);
+ 	return credits;
+ }
+diff -puN fs/ocfs2/file.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits
++++ a/fs/ocfs2/file.c
+@@ -603,8 +603,7 @@ restart_all:
+ 		goto leave;
  	}
- 	if (strtab_sec == NULL) {
- 		fprintf(stderr,	"no .strtab in  file: %s\n", fname);
-@@ -138,6 +154,8 @@ do_func(Elf_Ehdr *ehdr, char const *cons
- 		fprintf(stderr,	"no .symtab in  file: %s\n", fname);
- 		fail_file();
+ 
+-	credits = ocfs2_calc_extend_credits(osb->sb, &fe->id2.i_list,
+-					    clusters_to_add);
++	credits = ocfs2_calc_extend_credits(osb->sb, &fe->id2.i_list);
+ 	handle = ocfs2_start_trans(osb, credits);
+ 	if (IS_ERR(handle)) {
+ 		status = PTR_ERR(handle);
+diff -puN fs/ocfs2/journal.h~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits fs/ocfs2/journal.h
+--- a/fs/ocfs2/journal.h~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits
++++ a/fs/ocfs2/journal.h
+@@ -524,8 +524,7 @@ static inline int ocfs2_calc_dxi_expand_
+  * the result may be wrong.
+  */
+ static inline int ocfs2_calc_extend_credits(struct super_block *sb,
+-					    struct ocfs2_extent_list *root_el,
+-					    u32 bits_wanted)
++					    struct ocfs2_extent_list *root_el)
+ {
+ 	int bitmap_blocks, sysfile_bitmap_blocks, extent_blocks;
+ 
+diff -puN fs/ocfs2/move_extents.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits fs/ocfs2/move_extents.c
+--- a/fs/ocfs2/move_extents.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits
++++ a/fs/ocfs2/move_extents.c
+@@ -201,8 +201,7 @@ static int ocfs2_lock_allocators_move_ex
+ 		}
  	}
-+	symtab = (const Elf_Sym *)((const char *)ehdr +
-+				   _r(&symtab_sec->sh_offset));
- 	if (extab_sec == NULL) {
- 		fprintf(stderr,	"no __ex_table in  file: %s\n", fname);
- 		fail_file();
-@@ -176,7 +194,9 @@ do_func(Elf_Ehdr *ehdr, char const *cons
- 			fname);
- 		fail_file();
+ 
+-	*credits += ocfs2_calc_extend_credits(osb->sb, et->et_root_el,
+-					      clusters_to_move + 2);
++	*credits += ocfs2_calc_extend_credits(osb->sb, et->et_root_el);
+ 
+ 	mlog(0, "reserve metadata_blocks: %d, data_clusters: %u, credits: %d\n",
+ 	     extra_blocks, clusters_to_move, *credits);
+diff -puN fs/ocfs2/refcounttree.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits
++++ a/fs/ocfs2/refcounttree.c
+@@ -2502,8 +2502,7 @@ static int ocfs2_calc_refcount_meta_cred
+ 		ocfs2_init_refcount_extent_tree(&et, ci, ref_root_bh);
+ 		*meta_add += ocfs2_extend_meta_needed(et.et_root_el);
+ 		*credits += ocfs2_calc_extend_credits(sb,
+-						      et.et_root_el,
+-						      ref_blocks);
++						      et.et_root_el);
+ 	} else {
+ 		*credits += OCFS2_EXPAND_REFCOUNT_TREE_CREDITS;
+ 		*meta_add += 1;
+@@ -2874,8 +2873,7 @@ static int ocfs2_lock_refcount_allocator
+ 		meta_add =
+ 			ocfs2_extend_meta_needed(et->et_root_el);
+ 
+-	*credits += ocfs2_calc_extend_credits(sb, et->et_root_el,
+-					      num_clusters + 2);
++	*credits += ocfs2_calc_extend_credits(sb, et->et_root_el);
+ 
+ 	ret = ocfs2_calc_refcount_meta_credits(sb, ref_ci, ref_root_bh,
+ 					       p_cluster, num_clusters,
+@@ -3625,8 +3623,7 @@ int ocfs2_refcounted_xattr_delete_need(s
+ 
+ 		ocfs2_init_refcount_extent_tree(&et, ref_ci, ref_root_bh);
+ 		*credits += ocfs2_calc_extend_credits(inode->i_sb,
+-						      et.et_root_el,
+-						      ref_blocks);
++						      et.et_root_el);
  	}
--	sort_needed_sec = &shdr[r2(&sort_needed_sym->st_shndx)];
-+	sort_needed_sec = &shdr[get_secindex(r2(&sym->st_shndx),
-+					     sort_needed_sym - symtab,
-+					     symtab_shndx_start)];
- 	sort_done_location = (void *)ehdr +
- 		_r(&sort_needed_sec->sh_offset) +
- 		_r(&sort_needed_sym->st_value) -
+ 
+ out:
+diff -puN fs/ocfs2/xattr.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~fs-ocfs2-remove-unnecessary-variable-bits_wanted-from-ocfs2_calc_extend_credits
++++ a/fs/ocfs2/xattr.c
+@@ -754,8 +754,7 @@ static int ocfs2_xattr_extend_allocation
+ 			BUG_ON(why == RESTART_META);
+ 
+ 			credits = ocfs2_calc_extend_credits(inode->i_sb,
+-							    &vb->vb_xv->xr_list,
+-							    clusters_to_add);
++							    &vb->vb_xv->xr_list);
+ 			status = ocfs2_extend_trans(handle, credits);
+ 			if (status < 0) {
+ 				status = -ENOMEM;
+@@ -3040,8 +3039,7 @@ static int ocfs2_calc_xattr_set_need(str
+ 		if (xi->xi_value_len > OCFS2_XATTR_INLINE_SIZE) {
+ 			clusters_add += new_clusters;
+ 			credits += ocfs2_calc_extend_credits(inode->i_sb,
+-							&def_xv.xv.xr_list,
+-							new_clusters);
++							&def_xv.xv.xr_list);
+ 		}
+ 
+ 		goto meta_guess;
+@@ -3106,8 +3104,7 @@ static int ocfs2_calc_xattr_set_need(str
+ 			if (!ocfs2_xattr_is_local(xe))
+ 				credits += ocfs2_calc_extend_credits(
+ 							inode->i_sb,
+-							&def_xv.xv.xr_list,
+-							new_clusters);
++							&def_xv.xv.xr_list);
+ 			goto out;
+ 		}
+ 	}
+@@ -3132,9 +3129,7 @@ static int ocfs2_calc_xattr_set_need(str
+ 			meta_add += ocfs2_extend_meta_needed(&xv->xr_list);
+ 			clusters_add += new_clusters - old_clusters;
+ 			credits += ocfs2_calc_extend_credits(inode->i_sb,
+-							     &xv->xr_list,
+-							     new_clusters -
+-							     old_clusters);
++							     &xv->xr_list);
+ 			if (value_size >= OCFS2_XATTR_ROOT_SIZE)
+ 				goto out;
+ 		}
+@@ -3180,7 +3175,7 @@ meta_guess:
+ 				 &xb->xb_attrs.xb_root.xt_list;
+ 			meta_add += ocfs2_extend_meta_needed(el);
+ 			credits += ocfs2_calc_extend_credits(inode->i_sb,
+-							     el, 1);
++							     el);
+ 		} else
+ 			credits += OCFS2_SUBALLOC_ALLOC + 1;
+ 
+@@ -6216,8 +6211,7 @@ static int ocfs2_value_metas_in_xattr_he
+ 			  le16_to_cpu(xv->xr_list.l_next_free_rec);
+ 
+ 		*credits += ocfs2_calc_extend_credits(sb,
+-						&def_xv.xv.xr_list,
+-						le32_to_cpu(xv->xr_clusters));
++						&def_xv.xv.xr_list);
+ 
+ 		/*
+ 		 * If the value is a tree with depth > 1, We don't go deep
+@@ -6782,7 +6776,7 @@ static int ocfs2_lock_reflink_xattr_rec_
+ 		metas.num_metas += ocfs2_extend_meta_needed(xt_et->et_root_el);
+ 
+ 	*credits += ocfs2_calc_extend_credits(osb->sb,
+-					      xt_et->et_root_el, len);
++					      xt_et->et_root_el);
+ 
+ 	if (metas.num_metas) {
+ 		ret = ocfs2_reserve_new_metadata_blocks(osb, metas.num_metas,
 _
 
-Patches currently in -mm which might be from jamie.iles@oracle.com are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
 origin.patch
-linux-next.patch
+add-clustername-to-cluster-connection.patch
+add-dlm-recovery-callbacks.patch
+shift-allocation-ocfs2_live_connection-to-user_connect.patch
+pass-ocfs2_cluster_connection-to-ocfs2_this_node.patch
+framework-for-version-lvb.patch
+use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
 
