@@ -1,185 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpu-mem-hotplug-add-try_online_node-for-cpu_up.patch
+Subject: [merged]
+ mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
  removed from -mm tree
-Date: Wed, 13 Nov 2013 12:38:09 -0800
-Message-ID: <5283e331.zoyMT9PFKyfkxpKZ%akpm@linux-foundation.org>
+Date: Wed, 13 Nov 2013 12:38:11 -0800
+Message-ID: <5283e333.XI7RfIC+2Nk1K9mZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42533 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751048Ab3KMUiJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:09 -0500
+	with ESMTP id S1751075Ab3KMUiM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, toshi.kani@hp.com
+To: mm-commits@vger.kernel.org, liwanp@linux.vnet.ibm.com, gong.chen@linux.intel.com, ak@linux.intel.com, n-horiguchi@ah.jp.nec.com
 
-Subject: [merged] cpu-mem-hotplug-add-try_online_node-for-cpu_up.patch removed from -mm tree
-To: toshi.kani@hp.com,isimatu.yasuaki@jp.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch removed from -mm tree
+To: n-horiguchi@ah.jp.nec.com,ak@linux.intel.com,gong.chen@linux.intel.com,liwanp@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:38:09 -0800
+Date: Wed, 13 Nov 2013 12:38:11 -0800
 
 
 The patch titled
-     Subject: cpu/mem hotplug: add try_online_node() for cpu_up()
+     Subject: mm/memory-failure.c: move set_migratetype_isolate() outside get_any_page()
 has been removed from the -mm tree.  Its filename was
-     cpu-mem-hotplug-add-try_online_node-for-cpu_up.patch
+     mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: cpu/mem hotplug: add try_online_node() for cpu_up()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/memory-failure.c: move set_migratetype_isolate() outside get_any_page()
 
-cpu_up() has #ifdef CONFIG_MEMORY_HOTPLUG code blocks, which call
-mem_online_node() to put its node online if offlined and then call
-build_all_zonelists() to initialize the zone list.  These steps are
-specific to memory hotplug, and should be managed in mm/memory_hotplug.c. 
-lock_memory_hotplug() should also be held for the whole steps.
+Chen Gong pointed out that set/unset_migratetype_isolate() was done in
+different functions in mm/memory-failure.c, which makes the code less
+readable/maintainable.  So this patch does it in soft_offline_page().
 
-For this reason, this patch replaces mem_online_node() with
-try_online_node(), which performs the whole steps with
-lock_memory_hotplug() held.  try_online_node() is named after
-try_offline_node() as they have similar purpose.
+With this patch, we get to hold lock_memory_hotplug() longer but it's not
+a problem because races between memory hotplug and soft offline are very
+rare.
 
-There is no functional change in this patch.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Chen, Gong <gong.chen@linux.intel.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    8 +++++++-
- kernel/cpu.c                   |   29 +++--------------------------
- mm/memory_hotplug.c            |   16 ++++++++++++++--
- 3 files changed, 24 insertions(+), 29 deletions(-)
+ mm/memory-failure.c |   36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/memory_hotplug.h~cpu-mem-hotplug-add-try_online_node-for-cpu_up include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~cpu-mem-hotplug-add-try_online_node-for-cpu_up
-+++ a/include/linux/memory_hotplug.h
-@@ -94,6 +94,8 @@ extern void __online_page_set_limits(str
- extern void __online_page_increment_counters(struct page *page);
- extern void __online_page_free(struct page *page);
+diff -puN mm/memory-failure.c~mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-move-set_migratetype_isolate-outside-get_any_page
++++ a/mm/memory-failure.c
+@@ -1423,19 +1423,6 @@ static int __get_any_page(struct page *p
+ 		return 1;
  
-+extern int try_online_node(int nid);
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- extern bool is_pageblock_removable_nolock(struct page *page);
- extern int arch_remove_memory(u64 start, u64 size);
-@@ -225,6 +227,11 @@ static inline void register_page_bootmem
- {
- }
- 
-+static inline int try_online_node(int nid)
-+{
-+	return 0;
-+}
-+
- static inline void lock_memory_hotplug(void) {}
- static inline void unlock_memory_hotplug(void) {}
- 
-@@ -256,7 +263,6 @@ static inline void remove_memory(int nid
- 
- extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
- 		void *arg, int (*func)(struct memory_block *, void *));
--extern int mem_online_node(int nid);
- extern int add_memory(int nid, u64 start, u64 size);
- extern int arch_add_memory(int nid, u64 start, u64 size);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
-diff -puN kernel/cpu.c~cpu-mem-hotplug-add-try_online_node-for-cpu_up kernel/cpu.c
---- a/kernel/cpu.c~cpu-mem-hotplug-add-try_online_node-for-cpu_up
-+++ a/kernel/cpu.c
-@@ -437,11 +437,6 @@ int cpu_up(unsigned int cpu)
- {
- 	int err = 0;
- 
--#ifdef	CONFIG_MEMORY_HOTPLUG
--	int nid;
--	pg_data_t	*pgdat;
--#endif
+ 	/*
+-	 * The lock_memory_hotplug prevents a race with memory hotplug.
+-	 * This is a big hammer, a better would be nicer.
+-	 */
+-	lock_memory_hotplug();
 -
- 	if (!cpu_possible(cpu)) {
- 		printk(KERN_ERR "can't online cpu %d because it is not "
- 			"configured as may-hotadd at boot time\n", cpu);
-@@ -452,27 +447,9 @@ int cpu_up(unsigned int cpu)
- 		return -EINVAL;
+-	/*
+-	 * Isolate the page, so that it doesn't get reallocated if it
+-	 * was free. This flag should be kept set until the source page
+-	 * is freed and PG_hwpoison on it is set.
+-	 */
+-	if (get_pageblock_migratetype(p) != MIGRATE_ISOLATE)
+-		set_migratetype_isolate(p, true);
+-	/*
+ 	 * When the target page is a free hugepage, just remove it
+ 	 * from free hugepage list.
+ 	 */
+@@ -1455,7 +1442,6 @@ static int __get_any_page(struct page *p
+ 		/* Not a free page */
+ 		ret = 1;
  	}
- 
--#ifdef	CONFIG_MEMORY_HOTPLUG
--	nid = cpu_to_node(cpu);
--	if (!node_online(nid)) {
--		err = mem_online_node(nid);
--		if (err)
--			return err;
--	}
--
--	pgdat = NODE_DATA(nid);
--	if (!pgdat) {
--		printk(KERN_ERR
--			"Can't online cpu %d due to NULL pgdat\n", cpu);
--		return -ENOMEM;
--	}
--
--	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
--		mutex_lock(&zonelists_mutex);
--		build_all_zonelists(NULL, NULL);
--		mutex_unlock(&zonelists_mutex);
--	}
--#endif
-+	err = try_online_node(cpu_to_node(cpu));
-+	if (err)
-+		return err;
- 
- 	cpu_maps_update_begin();
- 
-diff -puN mm/memory_hotplug.c~cpu-mem-hotplug-add-try_online_node-for-cpu_up mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~cpu-mem-hotplug-add-try_online_node-for-cpu_up
-+++ a/mm/memory_hotplug.c
-@@ -1043,17 +1043,23 @@ static void rollback_node_hotadd(int nid
- }
- 
- 
--/*
-+/**
-+ * try_online_node - online a node if offlined
-+ *
-  * called by cpu_up() to online a node without onlined memory.
-  */
--int mem_online_node(int nid)
-+int try_online_node(int nid)
- {
- 	pg_data_t	*pgdat;
- 	int	ret;
- 
-+	if (node_online(nid))
-+		return 0;
-+
- 	lock_memory_hotplug();
- 	pgdat = hotadd_new_pgdat(nid, 0);
- 	if (!pgdat) {
-+		pr_err("Cannot online node %d due to NULL pgdat\n", nid);
- 		ret = -ENOMEM;
- 		goto out;
- 	}
-@@ -1061,6 +1067,12 @@ int mem_online_node(int nid)
- 	ret = register_one_node(nid);
- 	BUG_ON(ret);
- 
-+	if (pgdat->node_zonelists->_zonerefs->zone == NULL) {
-+		mutex_lock(&zonelists_mutex);
-+		build_all_zonelists(NULL, NULL);
-+		mutex_unlock(&zonelists_mutex);
-+	}
-+
- out:
- 	unlock_memory_hotplug();
+-	unlock_memory_hotplug();
  	return ret;
+ }
+ 
+@@ -1654,15 +1640,28 @@ int soft_offline_page(struct page *page,
+ 		}
+ 	}
+ 
++	/*
++	 * The lock_memory_hotplug prevents a race with memory hotplug.
++	 * This is a big hammer, a better would be nicer.
++	 */
++	lock_memory_hotplug();
++
++	/*
++	 * Isolate the page, so that it doesn't get reallocated if it
++	 * was free. This flag should be kept set until the source page
++	 * is freed and PG_hwpoison on it is set.
++	 */
++	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
++		set_migratetype_isolate(page, true);
++
+ 	ret = get_any_page(page, pfn, flags);
+-	if (ret < 0)
+-		goto unset;
+-	if (ret) { /* for in-use pages */
++	unlock_memory_hotplug();
++	if (ret > 0) { /* for in-use pages */
+ 		if (PageHuge(page))
+ 			ret = soft_offline_huge_page(page, flags);
+ 		else
+ 			ret = __soft_offline_page(page, flags);
+-	} else { /* for free pages */
++	} else if (ret == 0) { /* for free pages */
+ 		if (PageHuge(page)) {
+ 			set_page_hwpoison_huge_page(hpage);
+ 			dequeue_hwpoisoned_huge_page(hpage);
+@@ -1673,7 +1672,6 @@ int soft_offline_page(struct page *page,
+ 			atomic_long_inc(&num_poisoned_pages);
+ 		}
+ 	}
+-unset:
+ 	unset_migratetype_isolate(page, MIGRATE_MOVABLE);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-linux-next.patch
+x86-mm-get-aslr-work-for-hugetlb-mappings.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
+x86-mm-enable-split-page-table-lock-for-pmd-level.patch
 
