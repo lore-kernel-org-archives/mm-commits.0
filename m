@@ -1,71 +1,176 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- sched-remove-arch-specific-fpu_counter-from-task_struct.patch removed from
+ x86-move-fpu_counter-into-arch-specific-thread_struct.patch removed from
  -mm tree
-Date: Wed, 13 Nov 2013 12:40:10 -0800
-Message-ID: <5283e3aa.eQZAbIha34YOq4eI%akpm@linux-foundation.org>
+Date: Wed, 13 Nov 2013 12:40:08 -0800
+Message-ID: <5283e3a8.IPVHxv91zb+Vy2OT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42892 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42888 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751714Ab3KMUkK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:10 -0500
+	with ESMTP id S1751708Ab3KMUkJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vgupta@synopsys.com, paul.mundt@gmail.com, mingo@kernel.org, Vineet.Gupta1@synopsys.com
 
-Subject: [merged] sched-remove-arch-specific-fpu_counter-from-task_struct.patch removed from -mm tree
+Subject: [merged] x86-move-fpu_counter-into-arch-specific-thread_struct.patch removed from -mm tree
 To: Vineet.Gupta1@synopsys.com,mingo@kernel.org,paul.mundt@gmail.com,vgupta@synopsys.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:40:10 -0800
+Date: Wed, 13 Nov 2013 12:40:08 -0800
 
 
 The patch titled
-     Subject: sched: remove ARCH specific fpu_counter from task_struct
+     Subject: x86: move fpu_counter into ARCH specific thread_struct
 has been removed from the -mm tree.  Its filename was
-     sched-remove-arch-specific-fpu_counter-from-task_struct.patch
+     x86-move-fpu_counter-into-arch-specific-thread_struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Subject: sched: remove ARCH specific fpu_counter from task_struct
+Subject: x86: move fpu_counter into ARCH specific thread_struct
 
-fpu_counter in task_struct was used only by sh/x86.  Both of these now
-carry it in ARCH specific thread_struct, hence this can now be removed
-from generic task_struct, shrinking it slightly for other arches.
+Only a couple of arches (sh/x86) use fpu_counter in task_struct so it can
+be moved out into ARCH specific thread_struct, reducing the size of
+task_struct for other arches.
+
+Compile tested i386_defconfig + gcc 4.7.3
 
 Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Acked-by: Ingo Molnar <mingo@kernel.org>
 Cc: Paul Mundt <paul.mundt@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    9 ---------
- 1 file changed, 9 deletions(-)
+ arch/x86/include/asm/fpu-internal.h |   10 +++++-----
+ arch/x86/include/asm/processor.h    |    9 +++++++++
+ arch/x86/kernel/i387.c              |    2 +-
+ arch/x86/kernel/process_32.c        |    4 ++--
+ arch/x86/kernel/process_64.c        |    2 +-
+ arch/x86/kernel/traps.c             |    2 +-
+ 6 files changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/sched.h~sched-remove-arch-specific-fpu_counter-from-task_struct include/linux/sched.h
---- a/include/linux/sched.h~sched-remove-arch-specific-fpu_counter-from-task_struct
-+++ a/include/linux/sched.h
-@@ -1062,15 +1062,6 @@ struct task_struct {
- 	struct hlist_head preempt_notifiers;
- #endif
+diff -puN arch/x86/include/asm/fpu-internal.h~x86-move-fpu_counter-into-arch-specific-thread_struct arch/x86/include/asm/fpu-internal.h
+--- a/arch/x86/include/asm/fpu-internal.h~x86-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/x86/include/asm/fpu-internal.h
+@@ -365,7 +365,7 @@ static inline void drop_fpu(struct task_
+ 	 * Forget coprocessor state..
+ 	 */
+ 	preempt_disable();
+-	tsk->fpu_counter = 0;
++	tsk->thread.fpu_counter = 0;
+ 	__drop_fpu(tsk);
+ 	clear_used_math();
+ 	preempt_enable();
+@@ -424,7 +424,7 @@ static inline fpu_switch_t switch_fpu_pr
+ 	 * or if the past 5 consecutive context-switches used math.
+ 	 */
+ 	fpu.preload = tsk_used_math(new) && (use_eager_fpu() ||
+-					     new->fpu_counter > 5);
++					     new->thread.fpu_counter > 5);
+ 	if (__thread_has_fpu(old)) {
+ 		if (!__save_init_fpu(old))
+ 			cpu = ~0;
+@@ -433,16 +433,16 @@ static inline fpu_switch_t switch_fpu_pr
  
--	/*
--	 * fpu_counter contains the number of consecutive context switches
--	 * that the FPU is used. If this is over a threshold, the lazy fpu
--	 * saving becomes unlazy to save the trap. This is an unsigned char
--	 * so that after 256 times the counter wraps and the behavior turns
--	 * lazy again; this to deal with bursty apps that only use FPU for
--	 * a short time
--	 */
--	unsigned char fpu_counter;
- #ifdef CONFIG_BLK_DEV_IO_TRACE
- 	unsigned int btrace_seq;
- #endif
+ 		/* Don't change CR0.TS if we just switch! */
+ 		if (fpu.preload) {
+-			new->fpu_counter++;
++			new->thread.fpu_counter++;
+ 			__thread_set_has_fpu(new);
+ 			prefetch(new->thread.fpu.state);
+ 		} else if (!use_eager_fpu())
+ 			stts();
+ 	} else {
+-		old->fpu_counter = 0;
++		old->thread.fpu_counter = 0;
+ 		old->thread.fpu.last_cpu = ~0;
+ 		if (fpu.preload) {
+-			new->fpu_counter++;
++			new->thread.fpu_counter++;
+ 			if (!use_eager_fpu() && fpu_lazy_restore(new, cpu))
+ 				fpu.preload = 0;
+ 			else
+diff -puN arch/x86/include/asm/processor.h~x86-move-fpu_counter-into-arch-specific-thread_struct arch/x86/include/asm/processor.h
+--- a/arch/x86/include/asm/processor.h~x86-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/x86/include/asm/processor.h
+@@ -488,6 +488,15 @@ struct thread_struct {
+ 	unsigned long		iopl;
+ 	/* Max allowed port in the bitmap, in bytes: */
+ 	unsigned		io_bitmap_max;
++	/*
++	 * fpu_counter contains the number of consecutive context switches
++	 * that the FPU is used. If this is over a threshold, the lazy fpu
++	 * saving becomes unlazy to save the trap. This is an unsigned char
++	 * so that after 256 times the counter wraps and the behavior turns
++	 * lazy again; this to deal with bursty apps that only use FPU for
++	 * a short time
++	 */
++	unsigned char fpu_counter;
+ };
+ 
+ /*
+diff -puN arch/x86/kernel/i387.c~x86-move-fpu_counter-into-arch-specific-thread_struct arch/x86/kernel/i387.c
+--- a/arch/x86/kernel/i387.c~x86-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/x86/kernel/i387.c
+@@ -100,7 +100,7 @@ void unlazy_fpu(struct task_struct *tsk)
+ 		__save_init_fpu(tsk);
+ 		__thread_fpu_end(tsk);
+ 	} else
+-		tsk->fpu_counter = 0;
++		tsk->thread.fpu_counter = 0;
+ 	preempt_enable();
+ }
+ EXPORT_SYMBOL(unlazy_fpu);
+diff -puN arch/x86/kernel/process_32.c~x86-move-fpu_counter-into-arch-specific-thread_struct arch/x86/kernel/process_32.c
+--- a/arch/x86/kernel/process_32.c~x86-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/x86/kernel/process_32.c
+@@ -153,7 +153,7 @@ int copy_thread(unsigned long clone_flag
+ 		childregs->orig_ax = -1;
+ 		childregs->cs = __KERNEL_CS | get_kernel_rpl();
+ 		childregs->flags = X86_EFLAGS_IF | X86_EFLAGS_FIXED;
+-		p->fpu_counter = 0;
++		p->thread.fpu_counter = 0;
+ 		p->thread.io_bitmap_ptr = NULL;
+ 		memset(p->thread.ptrace_bps, 0, sizeof(p->thread.ptrace_bps));
+ 		return 0;
+@@ -166,7 +166,7 @@ int copy_thread(unsigned long clone_flag
+ 	p->thread.ip = (unsigned long) ret_from_fork;
+ 	task_user_gs(p) = get_user_gs(current_pt_regs());
+ 
+-	p->fpu_counter = 0;
++	p->thread.fpu_counter = 0;
+ 	p->thread.io_bitmap_ptr = NULL;
+ 	tsk = current;
+ 	err = -ENOMEM;
+diff -puN arch/x86/kernel/process_64.c~x86-move-fpu_counter-into-arch-specific-thread_struct arch/x86/kernel/process_64.c
+--- a/arch/x86/kernel/process_64.c~x86-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/x86/kernel/process_64.c
+@@ -163,7 +163,7 @@ int copy_thread(unsigned long clone_flag
+ 	p->thread.sp = (unsigned long) childregs;
+ 	p->thread.usersp = me->thread.usersp;
+ 	set_tsk_thread_flag(p, TIF_FORK);
+-	p->fpu_counter = 0;
++	p->thread.fpu_counter = 0;
+ 	p->thread.io_bitmap_ptr = NULL;
+ 
+ 	savesegment(gs, p->thread.gsindex);
+diff -puN arch/x86/kernel/traps.c~x86-move-fpu_counter-into-arch-specific-thread_struct arch/x86/kernel/traps.c
+--- a/arch/x86/kernel/traps.c~x86-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/x86/kernel/traps.c
+@@ -653,7 +653,7 @@ void math_state_restore(void)
+ 		return;
+ 	}
+ 
+-	tsk->fpu_counter++;
++	tsk->thread.fpu_counter++;
+ }
+ EXPORT_SYMBOL_GPL(math_state_restore);
+ 
 _
 
 Patches currently in -mm which might be from Vineet.Gupta1@synopsys.com are
