@@ -1,111 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-refactor-mem_control_numa_stat_show.patch removed
- from -mm tree
-Date: Wed, 13 Nov 2013 12:38:30 -0800
-Message-ID: <5283e346.+XllPRssKY7bPjsl%akpm@linux-foundation.org>
+Subject: [merged] memcg-support-hierarchical-memorynuma_stats.patch
+ removed from -mm tree
+Date: Wed, 13 Nov 2013 12:38:32 -0800
+Message-ID: <5283e348.Te0/ol/aOUEux5jp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42609 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751047Ab3KMUib (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:31 -0500
+	with ESMTP id S1751047Ab3KMUid (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghan@google.com, mhocko@suse.cz, hannes@cmpxchg.org, gthelen@google.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, gthelen@google.com, yinghan@google.com
 
-Subject: [merged] memcg-refactor-mem_control_numa_stat_show.patch removed from -mm tree
-To: gthelen@google.com,hannes@cmpxchg.org,mhocko@suse.cz,yinghan@google.com,mm-commits@vger.kernel.org
+Subject: [merged] memcg-support-hierarchical-memorynuma_stats.patch removed from -mm tree
+To: yinghan@google.com,gthelen@google.com,hannes@cmpxchg.org,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:38:30 -0800
+Date: Wed, 13 Nov 2013 12:38:32 -0800
 
 
 The patch titled
-     Subject: memcg: refactor mem_control_numa_stat_show()
+     Subject: memcg: support hierarchical memory.numa_stats
 has been removed from the -mm tree.  Its filename was
-     memcg-refactor-mem_control_numa_stat_show.patch
+     memcg-support-hierarchical-memorynuma_stats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: memcg: refactor mem_control_numa_stat_show()
+From: Ying Han <yinghan@google.com>
+Subject: memcg: support hierarchical memory.numa_stats
 
-Refactor mem_control_numa_stat_show() to use a new stats structure for
-smaller and simpler code.  This consolidates nearly identical code.
+The memory.numa_stat file was not hierarchical.  Memory charged to the
+children was not shown in parent's numa_stat.
 
-  text      data      bss        dec      hex   filename
-8,137,679 1,703,496 1,896,448 11,737,623 b31a17 vmlinux.before
-8,136,911 1,703,496 1,896,448 11,736,855 b31717 vmlinux.after
+This change adds the "hierarchical_" stats to the existing stats.  The new
+hierarchical stats include the sum of all children's values in addition to
+the value of the memcg.
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
+Tested: Create cgroup a, a/b and run workload under b.  The values of
+b are included in the "hierarchical_*" under a.
+
+$ cd /sys/fs/cgroup
+$ echo 1 > memory.use_hierarchy
+$ mkdir a a/b
+
+Run workload in a/b:
+$ (echo $BASHPID >> a/b/cgroup.procs && cat /some/file && bash) &
+
+The hierarchical_ fields in parent (a) show use of workload in a/b:
+$ cat a/memory.numa_stat
+total=0 N0=0 N1=0 N2=0 N3=0
+file=0 N0=0 N1=0 N2=0 N3=0
+anon=0 N0=0 N1=0 N2=0 N3=0
+unevictable=0 N0=0 N1=0 N2=0 N3=0
+hierarchical_total=908 N0=552 N1=317 N2=39 N3=0
+hierarchical_file=850 N0=549 N1=301 N2=0 N3=0
+hierarchical_anon=58 N0=3 N1=16 N2=39 N3=0
+hierarchical_unevictable=0 N0=0 N1=0 N2=0 N3=0
+
+$ cat a/b/memory.numa_stat
+total=908 N0=552 N1=317 N2=39 N3=0
+file=850 N0=549 N1=301 N2=0 N3=0
+anon=58 N0=3 N1=16 N2=39 N3=0
+unevictable=0 N0=0 N1=0 N2=0 N3=0
+hierarchical_total=908 N0=552 N1=317 N2=39 N3=0
+hierarchical_file=850 N0=549 N1=301 N2=0 N3=0
+hierarchical_anon=58 N0=3 N1=16 N2=39 N3=0
+hierarchical_unevictable=0 N0=0 N1=0 N2=0 N3=0
+
 Signed-off-by: Ying Han <yinghan@google.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   56 ++++++++++++++++++----------------------------
- 1 file changed, 22 insertions(+), 34 deletions(-)
+ Documentation/cgroups/memory.txt |   10 +++++++---
+ mm/memcontrol.c                  |   17 +++++++++++++++++
+ 2 files changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-refactor-mem_control_numa_stat_show mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-refactor-mem_control_numa_stat_show
-+++ a/mm/memcontrol.c
-@@ -5369,45 +5369,33 @@ static int mem_cgroup_move_charge_write(
- static int memcg_numa_stat_show(struct cgroup_subsys_state *css,
- 				struct cftype *cft, struct seq_file *m)
- {
-+	struct numa_stat {
-+		const char *name;
-+		unsigned int lru_mask;
-+	};
-+
-+	static const struct numa_stat stats[] = {
-+		{ "total", LRU_ALL },
-+		{ "file", LRU_ALL_FILE },
-+		{ "anon", LRU_ALL_ANON },
-+		{ "unevictable", BIT(LRU_UNEVICTABLE) },
-+	};
-+	const struct numa_stat *stat;
- 	int nid;
--	unsigned long total_nr, file_nr, anon_nr, unevictable_nr;
--	unsigned long node_nr;
-+	unsigned long nr;
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+diff -puN Documentation/cgroups/memory.txt~memcg-support-hierarchical-memorynuma_stats Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-support-hierarchical-memorynuma_stats
++++ a/Documentation/cgroups/memory.txt
+@@ -573,15 +573,19 @@ an memcg since the pages are allowed to
+ node.  One of the use cases is evaluating application performance by
+ combining this information with the application's CPU allocation.
  
--	total_nr = mem_cgroup_nr_lru_pages(memcg, LRU_ALL);
--	seq_printf(m, "total=%lu", total_nr);
--	for_each_node_state(nid, N_MEMORY) {
--		node_nr = mem_cgroup_node_nr_lru_pages(memcg, nid, LRU_ALL);
--		seq_printf(m, " N%d=%lu", nid, node_nr);
--	}
--	seq_putc(m, '\n');
--
--	file_nr = mem_cgroup_nr_lru_pages(memcg, LRU_ALL_FILE);
--	seq_printf(m, "file=%lu", file_nr);
--	for_each_node_state(nid, N_MEMORY) {
--		node_nr = mem_cgroup_node_nr_lru_pages(memcg, nid,
--				LRU_ALL_FILE);
--		seq_printf(m, " N%d=%lu", nid, node_nr);
+-We export "total", "file", "anon" and "unevictable" pages per-node for
+-each memcg.  The ouput format of memory.numa_stat is:
++Each memcg's numa_stat file includes "total", "file", "anon" and "unevictable"
++per-node page counts including "hierarchical_<counter>" which sums up all
++hierarchical children's values in addition to the memcg's own value.
++
++The ouput format of memory.numa_stat is:
+ 
+ total=<total pages> N0=<node 0 pages> N1=<node 1 pages> ...
+ file=<total file pages> N0=<node 0 pages> N1=<node 1 pages> ...
+ anon=<total anon pages> N0=<node 0 pages> N1=<node 1 pages> ...
+ unevictable=<total anon pages> N0=<node 0 pages> N1=<node 1 pages> ...
++hierarchical_<counter>=<counter pages> N0=<node 0 pages> N1=<node 1 pages> ...
+ 
+-And we have total = file + anon + unevictable.
++The "total" count is sum of file + anon + unevictable.
+ 
+ 6. Hierarchy support
+ 
+diff -puN mm/memcontrol.c~memcg-support-hierarchical-memorynuma_stats mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-support-hierarchical-memorynuma_stats
++++ a/mm/memcontrol.c
+@@ -5396,6 +5396,23 @@ static int memcg_numa_stat_show(struct c
+ 		seq_putc(m, '\n');
+ 	}
+ 
 +	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
-+		nr = mem_cgroup_nr_lru_pages(memcg, stat->lru_mask);
-+		seq_printf(m, "%s=%lu", stat->name, nr);
++		struct mem_cgroup *iter;
++
++		nr = 0;
++		for_each_mem_cgroup_tree(iter, memcg)
++			nr += mem_cgroup_nr_lru_pages(iter, stat->lru_mask);
++		seq_printf(m, "hierarchical_%s=%lu", stat->name, nr);
 +		for_each_node_state(nid, N_MEMORY) {
-+			nr = mem_cgroup_node_nr_lru_pages(memcg, nid,
-+							  stat->lru_mask);
++			nr = 0;
++			for_each_mem_cgroup_tree(iter, memcg)
++				nr += mem_cgroup_node_nr_lru_pages(
++					iter, nid, stat->lru_mask);
 +			seq_printf(m, " N%d=%lu", nid, nr);
 +		}
 +		seq_putc(m, '\n');
- 	}
--	seq_putc(m, '\n');
- 
--	anon_nr = mem_cgroup_nr_lru_pages(memcg, LRU_ALL_ANON);
--	seq_printf(m, "anon=%lu", anon_nr);
--	for_each_node_state(nid, N_MEMORY) {
--		node_nr = mem_cgroup_node_nr_lru_pages(memcg, nid,
--				LRU_ALL_ANON);
--		seq_printf(m, " N%d=%lu", nid, node_nr);
--	}
--	seq_putc(m, '\n');
++	}
++
+ 	return 0;
+ }
+ #endif /* CONFIG_NUMA */
+_
+
+Patches currently in -mm which might be from yinghan@google.com are
+
+origin.patch
+
