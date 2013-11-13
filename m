@@ -1,174 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vsprintf-check-real-user-group-id-for-%pk.patch removed
- from -mm tree
-Date: Wed, 13 Nov 2013 12:40:18 -0800
-Message-ID: <5283e3b2.iaVZxfNKI2v3Y5iB%akpm__20884.4165936627$1384375236$gmane$org@linux-foundation.org>
+Subject: [merged]
+ sh-move-fpu_counter-into-arch-specific-thread_struct.patch removed from -mm tree
+Date: Wed, 13 Nov 2013 12:40:06 -0800
+Message-ID: <5283e3a6.dx3sFalddhOeIA9x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42912 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42884 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751227Ab3KMUkT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:19 -0500
+	with ESMTP id S1751708Ab3KMUkH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, keescook@chromium.org, joe@perches.com, ebiederm@xmission.com, rmallon@gmail.com
+To: mm-commits@vger.kernel.org, vgupta@synopsys.com, paul.mundt@gmail.com, mingo@kernel.org, Vineet.Gupta1@synopsys.com
 
-Subject: [merged] vsprintf-check-real-user-group-id-for-%pk.patch removed from -mm tree
-To: rmallon@gmail.com,ebiederm@xmission.com,joe@perches.com,keescook@chromium.org,stable@vger.kernel.org,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] sh-move-fpu_counter-into-arch-specific-thread_struct.patch removed from -mm tree
+To: Vineet.Gupta1@synopsys.com,mingo@kernel.org,paul.mundt@gmail.com,vgupta@synopsys.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:40:18 -0800
+Date: Wed, 13 Nov 2013 12:40:06 -0800
 
 
 The patch titled
-     Subject: vsprintf: check real user/group id for %pK
+     Subject: sh: move fpu_counter into ARCH specific thread_struct
 has been removed from the -mm tree.  Its filename was
-     vsprintf-check-real-user-group-id-for-%pk.patch
+     sh-move-fpu_counter-into-arch-specific-thread_struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ryan Mallon <rmallon@gmail.com>
-Subject: vsprintf: check real user/group id for %pK
+From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Subject: sh: move fpu_counter into ARCH specific thread_struct
 
-Some setuid binaries will allow reading of files which have read
-permission by the real user id.  This is problematic with files which use
-%pK because the file access permission is checked at open() time, but the
-kptr_restrict setting is checked at read() time.  If a setuid binary opens
-a %pK file as an unprivileged user, and then elevates permissions before
-reading the file, then kernel pointer values may be leaked.
+Only a couple of arches (sh/x86) use fpu_counter in task_struct so it can
+be moved out into ARCH specific thread_struct, reducing the size of
+task_struct for other arches.
 
-This happens for example with the setuid pppd application on Ubuntu 12.04:
+Compile tested sh defconfig + sh4-linux-gcc (4.6.3)
 
-  $ head -1 /proc/kallsyms
-  00000000 T startup_32
-
-  $ pppd file /proc/kallsyms
-  pppd: In file /proc/kallsyms: unrecognized option 'c1000000'
-
-This will only leak the pointer value from the first line, but other
-setuid binaries may leak more information.
-
-Fix this by adding a check that in addition to the current process having
-CAP_SYSLOG, that effective user and group ids are equal to the real ids. 
-If a setuid binary reads the contents of a file which uses %pK then the
-pointer values will be printed as NULL if the real user is unprivileged.
-
-Update the sysctl documentation to reflect the changes, and also correct
-the documentation to state the kptr_restrict=0 is the default.
-
-This is a only temporary solution to the issue.  The correct solution is
-to do the permission check at open() time on files, and to replace %pK
-with a function which checks the open() time permission.  %pK uses in
-printk should be removed since no sane permission check can be done, and
-instead protected by using dmesg_restrict.
-
-Signed-off-by: Ryan Mallon <rmallon@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Joe Perches <joe@perches.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
+Cc: Paul Mundt <paul.mundt@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   25 ++++++++++++++++------
- lib/vsprintf.c                  |   33 +++++++++++++++++++++++++++---
- 2 files changed, 48 insertions(+), 10 deletions(-)
+ arch/sh/include/asm/fpu.h          |    2 +-
+ arch/sh/include/asm/processor_32.h |   10 ++++++++++
+ arch/sh/include/asm/processor_64.h |   10 ++++++++++
+ arch/sh/kernel/cpu/fpu.c           |    2 +-
+ arch/sh/kernel/process_32.c        |    6 +++---
+ 5 files changed, 25 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~vsprintf-check-real-user-group-id-for-%pk Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~vsprintf-check-real-user-group-id-for-%pk
-+++ a/Documentation/sysctl/kernel.txt
-@@ -290,13 +290,24 @@ Default value is "/sbin/hotplug".
- kptr_restrict:
+diff -puN arch/sh/include/asm/fpu.h~sh-move-fpu_counter-into-arch-specific-thread_struct arch/sh/include/asm/fpu.h
+--- a/arch/sh/include/asm/fpu.h~sh-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/sh/include/asm/fpu.h
+@@ -46,7 +46,7 @@ static inline void __unlazy_fpu(struct t
+ 		save_fpu(tsk);
+ 		release_fpu(regs);
+ 	} else
+-		tsk->fpu_counter = 0;
++		tsk->thread.fpu_counter = 0;
+ }
  
- This toggle indicates whether restrictions are placed on
--exposing kernel addresses via /proc and other interfaces.  When
--kptr_restrict is set to (0), there are no restrictions.  When
--kptr_restrict is set to (1), the default, kernel pointers
--printed using the %pK format specifier will be replaced with 0's
--unless the user has CAP_SYSLOG.  When kptr_restrict is set to
--(2), kernel pointers printed using %pK will be replaced with 0's
--regardless of privileges.
-+exposing kernel addresses via /proc and other interfaces.
-+
-+When kptr_restrict is set to (0), the default, there are no restrictions.
-+
-+When kptr_restrict is set to (1), kernel pointers printed using the %pK
-+format specifier will be replaced with 0's unless the user has CAP_SYSLOG
-+and effective user and group ids are equal to the real ids. This is
-+because %pK checks are done at read() time rather than open() time, so
-+if permissions are elevated between the open() and the read() (e.g via
-+a setuid binary) then %pK will not leak kernel pointers to unprivileged
-+users. Note, this is a temporary solution only. The correct long-term
-+solution is to do the permission checks at open() time. Consider removing
-+world read permissions from files that use %pK, and using dmesg_restrict
-+to protect against uses of %pK in dmesg(8) if leaking kernel pointer
-+values to unprivileged users is a concern.
-+
-+When kptr_restrict is set to (2), kernel pointers printed using
-+%pK will be replaced with 0's regardless of privileges.
+ static inline void unlazy_fpu(struct task_struct *tsk, struct pt_regs *regs)
+diff -puN arch/sh/include/asm/processor_32.h~sh-move-fpu_counter-into-arch-specific-thread_struct arch/sh/include/asm/processor_32.h
+--- a/arch/sh/include/asm/processor_32.h~sh-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/sh/include/asm/processor_32.h
+@@ -111,6 +111,16 @@ struct thread_struct {
  
- ==============================================================
+ 	/* Extended processor state */
+ 	union thread_xstate *xstate;
++
++	/*
++	 * fpu_counter contains the number of consecutive context switches
++	 * that the FPU is used. If this is over a threshold, the lazy fpu
++	 * saving becomes unlazy to save the trap. This is an unsigned char
++	 * so that after 256 times the counter wraps and the behavior turns
++	 * lazy again; this to deal with bursty apps that only use FPU for
++	 * a short time
++	 */
++	unsigned char fpu_counter;
+ };
  
-diff -puN lib/vsprintf.c~vsprintf-check-real-user-group-id-for-%pk lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-check-real-user-group-id-for-%pk
-+++ a/lib/vsprintf.c
-@@ -27,6 +27,7 @@
- #include <linux/uaccess.h>
- #include <linux/ioport.h>
- #include <linux/dcache.h>
-+#include <linux/cred.h>
- #include <net/addrconf.h>
+ #define INIT_THREAD  {						\
+diff -puN arch/sh/include/asm/processor_64.h~sh-move-fpu_counter-into-arch-specific-thread_struct arch/sh/include/asm/processor_64.h
+--- a/arch/sh/include/asm/processor_64.h~sh-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/sh/include/asm/processor_64.h
+@@ -126,6 +126,16 @@ struct thread_struct {
  
- #include <asm/page.h>		/* for PAGE_SIZE */
-@@ -1312,11 +1313,37 @@ char *pointer(const char *fmt, char *buf
- 				spec.field_width = default_width;
- 			return string(buf, end, "pK-error", spec);
- 		}
--		if (!((kptr_restrict == 0) ||
--		      (kptr_restrict == 1 &&
--		       has_capability_noaudit(current, CAP_SYSLOG))))
+ 	/* floating point info */
+ 	union thread_xstate *xstate;
 +
-+		switch (kptr_restrict) {
-+		case 0:
-+			/* Always print %pK values */
-+			break;
-+		case 1: {
-+			/*
-+			 * Only print the real pointer value if the current
-+			 * process has CAP_SYSLOG and is running with the
-+			 * same credentials it started with. This is because
-+			 * access to files is checked at open() time, but %pK
-+			 * checks permission at read() time. We don't want to
-+			 * leak pointer values if a binary opens a file using
-+			 * %pK and then elevates privileges before reading it.
-+			 */
-+			const struct cred *cred = current_cred();
-+
-+			if (!has_capability_noaudit(current, CAP_SYSLOG) ||
-+			    !uid_eq(cred->euid, cred->uid) ||
-+			    !gid_eq(cred->egid, cred->gid))
-+				ptr = NULL;
-+			break;
-+		}
-+		case 2:
-+		default:
-+			/* Always print 0's for %pK */
- 			ptr = NULL;
-+			break;
-+		}
- 		break;
-+
- 	case 'N':
- 		switch (fmt[1]) {
- 		case 'F':
++	/*
++	 * fpu_counter contains the number of consecutive context switches
++	 * that the FPU is used. If this is over a threshold, the lazy fpu
++	 * saving becomes unlazy to save the trap. This is an unsigned char
++	 * so that after 256 times the counter wraps and the behavior turns
++	 * lazy again; this to deal with bursty apps that only use FPU for
++	 * a short time
++	 */
++	unsigned char fpu_counter;
+ };
+ 
+ #define INIT_MMAP \
+diff -puN arch/sh/kernel/cpu/fpu.c~sh-move-fpu_counter-into-arch-specific-thread_struct arch/sh/kernel/cpu/fpu.c
+--- a/arch/sh/kernel/cpu/fpu.c~sh-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/sh/kernel/cpu/fpu.c
+@@ -44,7 +44,7 @@ void __fpu_state_restore(void)
+ 	restore_fpu(tsk);
+ 
+ 	task_thread_info(tsk)->status |= TS_USEDFPU;
+-	tsk->fpu_counter++;
++	tsk->thread.fpu_counter++;
+ }
+ 
+ void fpu_state_restore(struct pt_regs *regs)
+diff -puN arch/sh/kernel/process_32.c~sh-move-fpu_counter-into-arch-specific-thread_struct arch/sh/kernel/process_32.c
+--- a/arch/sh/kernel/process_32.c~sh-move-fpu_counter-into-arch-specific-thread_struct
++++ a/arch/sh/kernel/process_32.c
+@@ -156,7 +156,7 @@ int copy_thread(unsigned long clone_flag
+ #endif
+ 		ti->addr_limit = KERNEL_DS;
+ 		ti->status &= ~TS_USEDFPU;
+-		p->fpu_counter = 0;
++		p->thread.fpu_counter = 0;
+ 		return 0;
+ 	}
+ 	*childregs = *current_pt_regs();
+@@ -189,7 +189,7 @@ __switch_to(struct task_struct *prev, st
+ 	unlazy_fpu(prev, task_pt_regs(prev));
+ 
+ 	/* we're going to use this soon, after a few expensive things */
+-	if (next->fpu_counter > 5)
++	if (next->thread.fpu_counter > 5)
+ 		prefetch(next_t->xstate);
+ 
+ #ifdef CONFIG_MMU
+@@ -207,7 +207,7 @@ __switch_to(struct task_struct *prev, st
+ 	 * restore of the math state immediately to avoid the trap; the
+ 	 * chances of needing FPU soon are obviously high now
+ 	 */
+-	if (next->fpu_counter > 5)
++	if (next->thread.fpu_counter > 5)
+ 		__fpu_state_restore();
+ 
+ 	return prev;
 _
 
-Patches currently in -mm which might be from rmallon@gmail.com are
+Patches currently in -mm which might be from Vineet.Gupta1@synopsys.com are
 
 origin.patch
-linux-next.patch
 
