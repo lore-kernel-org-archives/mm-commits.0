@@ -1,68 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-zswap-avoid-unnecessary-page-scanning.patch removed
- from -mm tree
-Date: Wed, 13 Nov 2013 12:38:52 -0800
-Message-ID: <5283e35c.RBDoxukz00tkBzyZ%akpm@linux-foundation.org>
+Subject: [merged]
+ mmap-arch_get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch removed from -mm tree
+Date: Wed, 13 Nov 2013 12:38:54 -0800
+Message-ID: <5283e35e.6BpFDIRIXBI1/4dc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42665 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075Ab3KMUiw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:52 -0500
+	with ESMTP id S1751392Ab3KMUiz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, minchan@kernel.org, bob.liu@oracle.com, weijie.yang@samsung.com
+To: mm-commits@vger.kernel.org, will.deacon@arm.com, walken@google.com, sinaelgl@gmail.com, schwidefsky@de.ibm.com, cmetcalf@tilera.com, catalin.marinas@arm.com, heiko.carstens@de.ibm.com
 
-Subject: [merged] mm-zswap-avoid-unnecessary-page-scanning.patch removed from -mm tree
-To: weijie.yang@samsung.com,bob.liu@oracle.com,minchan@kernel.org,sjenning@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [merged] mmap-arch_get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch removed from -mm tree
+To: heiko.carstens@de.ibm.com,catalin.marinas@arm.com,cmetcalf@tilera.com,schwidefsky@de.ibm.com,sinaelgl@gmail.com,walken@google.com,will.deacon@arm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:38:52 -0800
+Date: Wed, 13 Nov 2013 12:38:54 -0800
 
 
 The patch titled
-     Subject: mm/zswap: avoid unnecessary page scanning
+     Subject: mmap: arch_get_unmapped_area(): use proper mmap base for bottom up direction
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-avoid-unnecessary-page-scanning.patch
+     mmap-arch_get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Weijie Yang <weijie.yang@samsung.com>
-Subject: mm/zswap: avoid unnecessary page scanning
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mmap: arch_get_unmapped_area(): use proper mmap base for bottom up direction
 
-Add SetPageReclaim() before __swap_writepage() so that page can be moved
-to the tail of the inactive list, which can avoid unnecessary page
-scanning as this page was reclaimed by swap subsystem before.
+This is more or less the generic variant of 41aacc1eea ("x86
+get_unmapped_area: Access mmap_legacy_base through mm_struct member").
 
-Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
-Reviewed-by: Bob Liu <bob.liu@oracle.com>
-Reviewed-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+So effectively architectures which use an own arch_pick_mmap_layout()
+implementation but call the generic arch_get_unmapped_area() now can also
+randomize their mmap_base.
+
+All architectures which have an own arch_pick_mmap_layout() and call the
+generic arch_get_unmapped_area() (arm64, s390, tile) currently set
+mmap_base to TASK_UNMAPPED_BASE.  This is also true for the generic
+arch_pick_mmap_layout() function.  So this change is a no-op currently.
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Radu Caragea <sinaelgl@gmail.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zswap.c~mm-zswap-avoid-unnecessary-page-scanning mm/zswap.c
---- a/mm/zswap.c~mm-zswap-avoid-unnecessary-page-scanning
-+++ a/mm/zswap.c
-@@ -556,6 +556,9 @@ static int zswap_writeback_entry(struct
- 		SetPageUptodate(page);
- 	}
+diff -puN mm/mmap.c~mmap-arch_get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction mm/mmap.c
+--- a/mm/mmap.c~mmap-arch_get_unmapped_area-use-proper-mmap-base-for-bottom-up-direction
++++ a/mm/mmap.c
+@@ -1872,7 +1872,7 @@ arch_get_unmapped_area(struct file *filp
  
-+	/* move it to the tail of the inactive list after end_writeback */
-+	SetPageReclaim(page);
-+
- 	/* start writeback */
- 	__swap_writepage(page, &wbc, end_swap_bio_write);
- 	page_cache_release(page);
+ 	info.flags = 0;
+ 	info.length = len;
+-	info.low_limit = TASK_UNMAPPED_BASE;
++	info.low_limit = mm->mmap_base;
+ 	info.high_limit = TASK_SIZE;
+ 	info.align_mask = 0;
+ 	return vm_unmapped_area(&info);
 _
 
-Patches currently in -mm which might be from weijie.yang@samsung.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 origin.patch
+linux-next.patch
+x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
+s390-handle-pgtable_page_ctor-fail.patch
 
