@@ -1,107 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-swapfilec-fix-comment-typos.patch removed from -mm
+Subject: [merged]
+ frontswap-enable-call-to-invalidate-area-on-swapoff.patch removed from -mm
  tree
-Date: Wed, 13 Nov 2013 12:38:40 -0800
-Message-ID: <5283e350.kVWQ1d4j1I5g8+nx%akpm@linux-foundation.org>
+Date: Wed, 13 Nov 2013 12:38:42 -0800
+Message-ID: <5283e352.JxOY8YcchQ0OEShG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42633 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42637 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857Ab3KMUik (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:40 -0500
+	with ESMTP id S1751409Ab3KMUin (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, shli@fusionio.com, minchan@kernel.org, konrad.wilk@oracle.com, k.kozlowski@samsung.com
 
-Subject: [merged] mm-swapfilec-fix-comment-typos.patch removed from -mm tree
-To: sjenning@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [merged] frontswap-enable-call-to-invalidate-area-on-swapoff.patch removed from -mm tree
+To: k.kozlowski@samsung.com,konrad.wilk@oracle.com,minchan@kernel.org,shli@fusionio.com,sjenning@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:38:40 -0800
+Date: Wed, 13 Nov 2013 12:38:42 -0800
 
 
 The patch titled
-     Subject: mm/swapfile.c: fix comment typos
+     Subject: frontswap: enable call to invalidate area on swapoff
 has been removed from the -mm tree.  Its filename was
-     mm-swapfilec-fix-comment-typos.patch
+     frontswap-enable-call-to-invalidate-area-on-swapoff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Subject: mm/swapfile.c: fix comment typos
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: frontswap: enable call to invalidate area on swapoff
 
-Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+During swapoff the frontswap_map was NULL-ified before calling
+frontswap_invalidate_area().  However the frontswap_invalidate_area()
+exits early if frontswap_map is NULL.  Invalidate was never called during
+swapoff.
+
+This patch moves frontswap_map_set() in swapoff just after calling
+frontswap_invalidate_area() so outside of locks (swap_lock and
+swap_info_struct->lock).  This shouldn't be a problem as during swapon the
+frontswap_map_set() is called also outside of any locks.
+
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Reviewed-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/swapfile.c~mm-swapfilec-fix-comment-typos mm/swapfile.c
---- a/mm/swapfile.c~mm-swapfilec-fix-comment-typos
+diff -puN mm/swapfile.c~frontswap-enable-call-to-invalidate-area-on-swapoff mm/swapfile.c
+--- a/mm/swapfile.c~frontswap-enable-call-to-invalidate-area-on-swapoff
 +++ a/mm/swapfile.c
-@@ -707,7 +707,7 @@ noswap:
- 	return (swp_entry_t) {0};
- }
- 
--/* The only caller of this function is now susupend routine */
-+/* The only caller of this function is now suspend routine */
- swp_entry_t get_swap_page_of_type(int type)
- {
- 	struct swap_info_struct *si;
-@@ -845,7 +845,7 @@ static unsigned char swap_entry_free(str
- }
- 
- /*
-- * Caller has made sure that the swapdevice corresponding to entry
-+ * Caller has made sure that the swap device corresponding to entry
-  * is still around or has not been recycled.
-  */
- void swap_free(swp_entry_t entry)
-@@ -947,7 +947,7 @@ int try_to_free_swap(struct page *page)
- 	 * original page might be freed under memory pressure, then
- 	 * later read back in from swap, now with the wrong data.
- 	 *
--	 * Hibration suspends storage while it is writing the image
-+	 * Hibernation suspends storage while it is writing the image
- 	 * to disk so check that here.
- 	 */
- 	if (pm_suspended_storage())
-@@ -1179,7 +1179,7 @@ static int unuse_pte_range(struct vm_are
- 	 * some architectures (e.g. x86_32 with PAE) we might catch a glimpse
- 	 * of unmatched parts which look like swp_pte, so unuse_pte must
- 	 * recheck under pte lock.  Scanning without pte lock lets it be
--	 * preemptible whenever CONFIG_PREEMPT but not CONFIG_HIGHPTE.
-+	 * preemptable whenever CONFIG_PREEMPT but not CONFIG_HIGHPTE.
- 	 */
- 	pte = pte_offset_map(pmd, addr);
- 	do {
-@@ -1934,7 +1934,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	vfree(swap_map);
- 	vfree(cluster_info);
- 	vfree(frontswap_map);
--	/* Destroy swap account informatin */
-+	/* Destroy swap account information */
- 	swap_cgroup_swapoff(type);
- 
- 	inode = mapping->host;
-@@ -2786,8 +2786,8 @@ int add_swap_count_continuation(swp_entr
- 
- 	/*
- 	 * We are fortunate that although vmalloc_to_page uses pte_offset_map,
--	 * no architecture is using highmem pages for kernel pagetables: so it
--	 * will not corrupt the GFP_ATOMIC caller's atomic pagetable kmaps.
-+	 * no architecture is using highmem pages for kernel page tables: so it
-+	 * will not corrupt the GFP_ATOMIC caller's atomic page table kmaps.
- 	 */
- 	head = vmalloc_to_page(si->swap_map + offset);
- 	offset &= ~PAGE_MASK;
+@@ -1924,10 +1924,10 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	p->cluster_info = NULL;
+ 	p->flags = 0;
+ 	frontswap_map = frontswap_map_get(p);
+-	frontswap_map_set(p, NULL);
+ 	spin_unlock(&p->lock);
+ 	spin_unlock(&swap_lock);
+ 	frontswap_invalidate_area(type);
++	frontswap_map_set(p, NULL);
+ 	mutex_unlock(&swapon_mutex);
+ 	free_percpu(p->percpu_cluster);
+ 	p->percpu_cluster = NULL;
 _
 
-Patches currently in -mm which might be from sjenning@linux.vnet.ibm.com are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
 origin.patch
+swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
 
