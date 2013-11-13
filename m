@@ -1,213 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mem-hotplug-introduce-movable_node-boot-option.patch
- removed from -mm tree
-Date: Wed, 13 Nov 2013 12:39:04 -0800
-Message-ID: <5283e368.uMTv+NPpszTH3LxR%akpm@linux-foundation.org>
+Subject: [merged] mm-bootmemc-remove-unused-local-map.patch removed from
+ -mm tree
+Date: Wed, 13 Nov 2013 12:39:10 -0800
+Message-ID: <5283e36e./DkIIA4oJRSFj5pt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42755 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42765 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438Ab3KMUjG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:06 -0500
+	with ESMTP id S1751439Ab3KMUjK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:39:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, riel@redhat.com, mingo@kernel.org, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, laijs@cn.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, tangchen@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, daeseok.youn@gmail.com
 
-Subject: [merged] mem-hotplug-introduce-movable_node-boot-option.patch removed from -mm tree
-To: tangchen@cn.fujitsu.com,hannes@cmpxchg.org,hpa@zytor.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,kamezawa.hiroyu@jp.fujitsu.com,laijs@cn.fujitsu.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@kernel.org,riel@redhat.com,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-bootmemc-remove-unused-local-map.patch removed from -mm tree
+To: daeseok.youn@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:39:04 -0800
+Date: Wed, 13 Nov 2013 12:39:10 -0800
 
 
 The patch titled
-     Subject: mem-hotplug: introduce movable_node boot option
+     Subject: mm/bootmem.c: remove unused local `map'
 has been removed from the -mm tree.  Its filename was
-     mem-hotplug-introduce-movable_node-boot-option.patch
+     mm-bootmemc-remove-unused-local-map.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mem-hotplug: introduce movable_node boot option
+From: Daeseok Youn <daeseok.youn@gmail.com>
+Subject: mm/bootmem.c: remove unused local `map'
 
-The hot-Pluggable field in SRAT specifies which memory is hotpluggable. 
-As we mentioned before, if hotpluggable memory is used by the kernel, it
-cannot be hot-removed.  So memory hotplug users may want to set all
-hotpluggable memory in ZONE_MOVABLE so that the kernel won't use it.
-
-Memory hotplug users may also set a node as movable node, which has
-ZONE_MOVABLE only, so that the whole node can be hot-removed.
-
-But the kernel cannot use memory in ZONE_MOVABLE.  By doing this, the
-kernel cannot use memory in movable nodes.  This will cause NUMA
-performance down.  And other users may be unhappy.
-
-So we need a way to allow users to enable and disable this functionality. 
-In this patch, we introduce movable_node boot option to allow users to
-choose to not to consume hotpluggable memory at early boot time and later
-we can set it as ZONE_MOVABLE.
-
-To achieve this, the movable_node boot option will control the memblock
-allocation direction.  That said, after memblock is ready, before SRAT is
-parsed, we should allocate memory near the kernel image as we explained in
-the previous patches.  So if movable_node boot option is set, the kernel
-does the following:
-
-1. After memblock is ready, make memblock allocate memory bottom up.
-2. After SRAT is parsed, make memblock behave as default, allocate memory
-   top down.
-
-Users can specify "movable_node" in kernel commandline to enable this
-functionality.  For those who don't use memory hotplug or who don't want
-to lose their NUMA performance, just don't specify anything.  The kernel
-will work as before.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Suggested-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Suggested-by: Ingo Molnar <mingo@kernel.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    3 ++
- arch/x86/mm/numa.c                  |   11 +++++++++
- mm/Kconfig                          |   17 ++++++++++----
- mm/memory_hotplug.c                 |   31 ++++++++++++++++++++++++++
- 4 files changed, 57 insertions(+), 5 deletions(-)
+ mm/bootmem.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~mem-hotplug-introduce-movable_node-boot-option Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~mem-hotplug-introduce-movable_node-boot-option
-+++ a/Documentation/kernel-parameters.txt
-@@ -1775,6 +1775,9 @@ bytes respectively. Such letter suffixes
- 			that the amount of memory usable for all allocations
- 			is not too small.
+diff -puN mm/bootmem.c~mm-bootmemc-remove-unused-local-map mm/bootmem.c
+--- a/mm/bootmem.c~mm-bootmemc-remove-unused-local-map
++++ a/mm/bootmem.c
+@@ -172,11 +172,12 @@ void __init free_bootmem_late(unsigned l
+ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
+ {
+ 	struct page *page;
+-	unsigned long start, end, pages, count = 0;
++	unsigned long *map, start, end, pages, count = 0;
  
-+	movable_node	[KNL,X86] Boot-time switch to enable the effects
-+			of CONFIG_MOVABLE_NODE=y. See mm/Kconfig for details.
-+
- 	MTD_Partition=	[MTD]
- 			Format: <name>,<region-number>,<size>,<offset>
+ 	if (!bdata->node_bootmem_map)
+ 		return 0;
  
-diff -puN arch/x86/mm/numa.c~mem-hotplug-introduce-movable_node-boot-option arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~mem-hotplug-introduce-movable_node-boot-option
-+++ a/arch/x86/mm/numa.c
-@@ -567,6 +567,17 @@ static int __init numa_init(int (*init_f
- 	ret = init_func();
- 	if (ret < 0)
- 		return ret;
-+
-+	/*
-+	 * We reset memblock back to the top-down direction
-+	 * here because if we configured ACPI_NUMA, we have
-+	 * parsed SRAT in init_func(). It is ok to have the
-+	 * reset here even if we did't configure ACPI_NUMA
-+	 * or acpi numa init fails and fallbacks to dummy
-+	 * numa init.
-+	 */
-+	memblock_set_bottom_up(false);
-+
- 	ret = numa_cleanup_meminfo(&numa_meminfo);
- 	if (ret < 0)
- 		return ret;
-diff -puN mm/Kconfig~mem-hotplug-introduce-movable_node-boot-option mm/Kconfig
---- a/mm/Kconfig~mem-hotplug-introduce-movable_node-boot-option
-+++ a/mm/Kconfig
-@@ -153,11 +153,18 @@ config MOVABLE_NODE
- 	help
- 	  Allow a node to have only movable memory.  Pages used by the kernel,
- 	  such as direct mapping pages cannot be migrated.  So the corresponding
--	  memory device cannot be hotplugged.  This option allows users to
--	  online all the memory of a node as movable memory so that the whole
--	  node can be hotplugged.  Users who don't use the memory hotplug
--	  feature are fine with this option on since they don't online memory
--	  as movable.
-+	  memory device cannot be hotplugged.  This option allows the following
-+	  two things:
-+	  - When the system is booting, node full of hotpluggable memory can
-+	  be arranged to have only movable memory so that the whole node can
-+	  be hot-removed. (need movable_node boot option specified).
-+	  - After the system is up, the option allows users to online all the
-+	  memory of a node as movable memory so that the whole node can be
-+	  hot-removed.
-+
-+	  Users who don't use the memory hotplug feature are fine with this
-+	  option on since they don't specify movable_node boot option or they
-+	  don't online memory as movable.
++	map = bdata->node_bootmem_map;
+ 	start = bdata->node_min_pfn;
+ 	end = bdata->node_low_pfn;
  
- 	  Say Y here if you want to hotplug a whole node.
- 	  Say N here if you want kernel to use memory on all nodes evenly.
-diff -puN mm/memory_hotplug.c~mem-hotplug-introduce-movable_node-boot-option mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-introduce-movable_node-boot-option
-+++ a/mm/memory_hotplug.c
-@@ -31,6 +31,7 @@
- #include <linux/firmware-map.h>
- #include <linux/stop_machine.h>
- #include <linux/hugetlb.h>
-+#include <linux/memblock.h>
+@@ -184,10 +185,9 @@ static unsigned long __init free_all_boo
+ 		bdata - bootmem_node_data, start, end);
  
- #include <asm/tlbflush.h>
+ 	while (start < end) {
+-		unsigned long *map, idx, vec;
++		unsigned long idx, vec;
+ 		unsigned shift;
  
-@@ -1422,6 +1423,36 @@ static bool can_offline_normal(struct zo
- }
- #endif /* CONFIG_MOVABLE_NODE */
- 
-+static int __init cmdline_parse_movable_node(char *p)
-+{
-+#ifdef CONFIG_MOVABLE_NODE
-+	/*
-+	 * Memory used by the kernel cannot be hot-removed because Linux
-+	 * cannot migrate the kernel pages. When memory hotplug is
-+	 * enabled, we should prevent memblock from allocating memory
-+	 * for the kernel.
-+	 *
-+	 * ACPI SRAT records all hotpluggable memory ranges. But before
-+	 * SRAT is parsed, we don't know about it.
-+	 *
-+	 * The kernel image is loaded into memory at very early time. We
-+	 * cannot prevent this anyway. So on NUMA system, we set any
-+	 * node the kernel resides in as un-hotpluggable.
-+	 *
-+	 * Since on modern servers, one node could have double-digit
-+	 * gigabytes memory, we can assume the memory around the kernel
-+	 * image is also un-hotpluggable. So before SRAT is parsed, just
-+	 * allocate memory near the kernel image to try the best to keep
-+	 * the kernel away from hotpluggable memory.
-+	 */
-+	memblock_set_bottom_up(true);
-+#else
-+	pr_warn("movable_node option not supported\n");
-+#endif
-+	return 0;
-+}
-+early_param("movable_node", cmdline_parse_movable_node);
-+
- /* check which state of node_states will be changed when offline memory */
- static void node_states_check_changes_offline(unsigned long nr_pages,
- 		struct zone *zone, struct memory_notify *arg)
+-		map = bdata->node_bootmem_map;
+ 		idx = start - bdata->node_min_pfn;
+ 		shift = idx & (BITS_PER_LONG - 1);
+ 		/*
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from daeseok.youn@gmail.com are
 
 origin.patch
-linux-next.patch
 
