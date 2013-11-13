@@ -1,66 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-lm3630-apply-chip-revision-fix.patch removed
- from -mm tree
-Date: Wed, 13 Nov 2013 12:40:36 -0800
-Message-ID: <5283e3c4.P5hy/2vMlk9nu+Za%akpm@linux-foundation.org>
+Subject: [merged] backlight-lm3630-potential-null-deref-in-probe.patch
+ removed from -mm tree
+Date: Wed, 13 Nov 2013 12:40:34 -0800
+Message-ID: <5283e3c2.Rlcq5AGbYPSZSCIW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42941 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42938 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720Ab3KMUkg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:36 -0500
+	with ESMTP id S1751720Ab3KMUke (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:40:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com, gshark.jeong@gmail.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com, dan.carpenter@oracle.com
 
-Subject: [merged] backlight-lm3630-apply-chip-revision-fix.patch removed from -mm tree
-To: gshark.jeong@gmail.com,jg1.han@samsung.com,mm-commits@vger.kernel.org
+Subject: [merged] backlight-lm3630-potential-null-deref-in-probe.patch removed from -mm tree
+To: dan.carpenter@oracle.com,jg1.han@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:40:36 -0800
+Date: Wed, 13 Nov 2013 12:40:34 -0800
 
 
 The patch titled
-     Subject: backlight: lm3630: fix sparse warning
+     Subject: drivers/video/backlight/lm3630a_bl.c: potential NULL deref in probe()
 has been removed from the -mm tree.  Its filename was
-     backlight-lm3630-apply-chip-revision-fix.patch
+     backlight-lm3630-potential-null-deref-in-probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Jeong <gshark.jeong@gmail.com>
-Subject: backlight: lm3630: fix sparse warning
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/video/backlight/lm3630a_bl.c: potential NULL deref in probe()
 
-This patch is to fix sparse warning due to mixing different enum type.
+We dereference "pdata" later in the function so we can't leave it as NULL.
 
-Signed-off-by: Daniel Jeong <gshark.jeong@gmail.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3630a_bl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/lm3630a_bl.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN drivers/video/backlight/lm3630a_bl.c~backlight-lm3630-apply-chip-revision-fix drivers/video/backlight/lm3630a_bl.c
---- a/drivers/video/backlight/lm3630a_bl.c~backlight-lm3630-apply-chip-revision-fix
+diff -puN drivers/video/backlight/lm3630a_bl.c~backlight-lm3630-potential-null-deref-in-probe drivers/video/backlight/lm3630a_bl.c
+--- a/drivers/video/backlight/lm3630a_bl.c~backlight-lm3630-potential-null-deref-in-probe
 +++ a/drivers/video/backlight/lm3630a_bl.c
-@@ -90,8 +90,8 @@ static int lm3630a_chip_init(struct lm36
- 	/* set current B */
- 	rval |= lm3630a_write(pchip, REG_I_B, 0x1F);
- 	/* set control */
--	rval |=
--	    lm3630a_write(pchip, REG_CTRL, pdata->leda_ctrl | pdata->ledb_ctrl);
-+	rval |= lm3630a_update(pchip, REG_CTRL, 0x14, pdata->leda_ctrl);
-+	rval |= lm3630a_update(pchip, REG_CTRL, 0x0B, pdata->ledb_ctrl);
- 	usleep_range(1000, 2000);
- 	/* set brightness A and B */
- 	rval |= lm3630a_write(pchip, REG_BRT_A, pdata->leda_init_brt);
+@@ -389,22 +389,21 @@ static int lm3630a_probe(struct i2c_clie
+ 
+ 	i2c_set_clientdata(client, pchip);
+ 	if (pdata == NULL) {
+-		pchip->pdata = devm_kzalloc(pchip->dev,
+-					    sizeof(struct
+-						   lm3630a_platform_data),
+-					    GFP_KERNEL);
+-		if (pchip->pdata == NULL)
++		pdata = devm_kzalloc(pchip->dev,
++				     sizeof(struct lm3630a_platform_data),
++				     GFP_KERNEL);
++		if (pdata == NULL)
+ 			return -ENOMEM;
+ 		/* default values */
+-		pchip->pdata->leda_ctrl = LM3630A_LEDA_ENABLE;
+-		pchip->pdata->ledb_ctrl = LM3630A_LEDB_ENABLE;
+-		pchip->pdata->leda_max_brt = LM3630A_MAX_BRIGHTNESS;
+-		pchip->pdata->ledb_max_brt = LM3630A_MAX_BRIGHTNESS;
+-		pchip->pdata->leda_init_brt = LM3630A_MAX_BRIGHTNESS;
+-		pchip->pdata->ledb_init_brt = LM3630A_MAX_BRIGHTNESS;
+-	} else {
+-		pchip->pdata = pdata;
++		pdata->leda_ctrl = LM3630A_LEDA_ENABLE;
++		pdata->ledb_ctrl = LM3630A_LEDB_ENABLE;
++		pdata->leda_max_brt = LM3630A_MAX_BRIGHTNESS;
++		pdata->ledb_max_brt = LM3630A_MAX_BRIGHTNESS;
++		pdata->leda_init_brt = LM3630A_MAX_BRIGHTNESS;
++		pdata->ledb_init_brt = LM3630A_MAX_BRIGHTNESS;
+ 	}
++	pchip->pdata = pdata;
++
+ 	/* chip initialize */
+ 	rval = lm3630a_chip_init(pchip);
+ 	if (rval < 0) {
 _
 
-Patches currently in -mm which might be from gshark.jeong@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
+framework-for-version-lvb-remove-some-impossible-checks.patch
+drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
+xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
 linux-next.patch
 
