@@ -1,82 +1,106 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
- removed from -mm tree
-Date: Wed, 13 Nov 2013 12:37:53 -0800
-Message-ID: <5283e321.hjUuJqBukjx5ALLC%akpm@linux-foundation.org>
+ mm-use-pgdat_end_pfn-to-simplify-the-code-in-others.patch removed from -mm
+ tree
+Date: Wed, 13 Nov 2013 12:37:57 -0800
+Message-ID: <5283e325.yqhHf7jOsyXZjIVu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42503 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751067Ab3KMUhx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:53 -0500
+	with ESMTP id S1751067Ab3KMUh5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, liwanp@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, wujianguo@huawei.com
+To: mm-commits@vger.kernel.org, qiuxishi@huawei.com
 
-Subject: [merged] mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch removed from -mm tree
-To: wujianguo@huawei.com,kirill.shutemov@linux.intel.com,liwanp@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-use-pgdat_end_pfn-to-simplify-the-code-in-others.patch removed from -mm tree
+To: qiuxishi@huawei.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:37:53 -0800
+Date: Wed, 13 Nov 2013 12:37:57 -0800
 
 
 The patch titled
-     Subject: mm/huge_memory.c: fix stale comments of transparent_hugepage_flags
+     Subject: mm: use pgdat_end_pfn() to simplify the code in others
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags.patch
+     mm-use-pgdat_end_pfn-to-simplify-the-code-in-others.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: mm/huge_memory.c: fix stale comments of transparent_hugepage_flags
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mm: use pgdat_end_pfn() to simplify the code in others
 
-Since commit 13ece886d9 ("thp: transparent hugepage config choice"),
-transparent hugepage support is disabled by default, and
-TRANSPARENT_HUGEPAGE_ALWAYS is configured when TRANSPARENT_HUGEPAGE=y.
+Use "pgdat_end_pfn()" instead of "pgdat->node_start_pfn +
+pgdat->node_spanned_pages".  Simplify the code, no functional change.
 
-And since commit d39d33c332 ("thp: enable direct defrag"), defrag is
-enable for all transparent hugepage page faults by default, not only in
-MADV_HUGEPAGE regions.
-
-Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/proc/kcore.c     |    3 +--
+ mm/bootmem.c        |    2 +-
+ mm/memory_hotplug.c |    9 ++++-----
+ 3 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags mm/huge_memory.c
---- a/mm/huge_memory.c~mm-huge_memoryc-fix-stale-comments-of-transparent_hugepage_flags
-+++ a/mm/huge_memory.c
-@@ -27,11 +27,12 @@
- #include "internal.h"
+diff -puN fs/proc/kcore.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-others fs/proc/kcore.c
+--- a/fs/proc/kcore.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-others
++++ a/fs/proc/kcore.c
+@@ -255,8 +255,7 @@ static int kcore_update_ram(void)
+ 	end_pfn = 0;
+ 	for_each_node_state(nid, N_MEMORY) {
+ 		unsigned long node_end;
+-		node_end  = NODE_DATA(nid)->node_start_pfn +
+-			NODE_DATA(nid)->node_spanned_pages;
++		node_end = node_end_pfn(nid);
+ 		if (end_pfn < node_end)
+ 			end_pfn = node_end;
+ 	}
+diff -puN mm/bootmem.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-others mm/bootmem.c
+--- a/mm/bootmem.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-others
++++ a/mm/bootmem.c
+@@ -784,7 +784,7 @@ void * __init __alloc_bootmem_node_high(
+ 		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
  
- /*
-- * By default transparent hugepage support is enabled for all mappings
-- * and khugepaged scans all mappings. Defrag is only invoked by
-- * khugepaged hugepage allocations and by page faults inside
-- * MADV_HUGEPAGE regions to avoid the risk of slowing down short lived
-- * allocations.
-+ * By default transparent hugepage support is disabled in order that avoid
-+ * to risk increase the memory footprint of applications without a guaranteed
-+ * benefit. When transparent hugepage support is enabled, is for all mappings,
-+ * and khugepaged scans all mappings.
-+ * Defrag is invoked by khugepaged hugepage allocations and by page faults
-+ * for all hugepage allocations.
-  */
- unsigned long transparent_hugepage_flags __read_mostly =
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS
+ 	/* update goal according ...MAX_DMA32_PFN */
+-	end_pfn = pgdat->node_start_pfn + pgdat->node_spanned_pages;
++	end_pfn = pgdat_end_pfn(pgdat);
+ 
+ 	if (end_pfn > MAX_DMA32_PFN + (128 >> (20 - PAGE_SHIFT)) &&
+ 	    (goal >> PAGE_SHIFT) < MAX_DMA32_PFN) {
+diff -puN mm/memory_hotplug.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-others mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-use-pgdat_end_pfn-to-simplify-the-code-in-others
++++ a/mm/memory_hotplug.c
+@@ -365,8 +365,7 @@ out_fail:
+ static void grow_pgdat_span(struct pglist_data *pgdat, unsigned long start_pfn,
+ 			    unsigned long end_pfn)
+ {
+-	unsigned long old_pgdat_end_pfn =
+-		pgdat->node_start_pfn + pgdat->node_spanned_pages;
++	unsigned long old_pgdat_end_pfn = pgdat_end_pfn(pgdat);
+ 
+ 	if (!pgdat->node_spanned_pages || start_pfn < pgdat->node_start_pfn)
+ 		pgdat->node_start_pfn = start_pfn;
+@@ -579,9 +578,9 @@ static void shrink_zone_span(struct zone
+ static void shrink_pgdat_span(struct pglist_data *pgdat,
+ 			      unsigned long start_pfn, unsigned long end_pfn)
+ {
+-	unsigned long pgdat_start_pfn =  pgdat->node_start_pfn;
+-	unsigned long pgdat_end_pfn =
+-		pgdat->node_start_pfn + pgdat->node_spanned_pages;
++	unsigned long pgdat_start_pfn = pgdat->node_start_pfn;
++	unsigned long p = pgdat_end_pfn(pgdat); /* pgdat_end_pfn namespace clash */
++	unsigned long pgdat_end_pfn = p;
+ 	unsigned long pfn;
+ 	struct mem_section *ms;
+ 	int nid = pgdat->node_id;
 _
 
-Patches currently in -mm which might be from wujianguo@huawei.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
 origin.patch
-x86-srat-use-numa_no_node.patch
 linux-next.patch
 
