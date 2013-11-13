@@ -1,100 +1,91 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch removed
- from -mm tree
-Date: Wed, 13 Nov 2013 12:37:35 -0800
-Message-ID: <5283e30f.icsPOCbwDtlFLamU%akpm@linux-foundation.org>
+ ocfs2-do-not-call-brelse-if-group_bh-is-not-initialized-in-ocfs2_group_add.patch removed from -mm tree
+Date: Wed, 13 Nov 2013 12:37:29 -0800
+Message-ID: <5283e309.YXoc1pZSSDU14HtE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42465 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42452 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123Ab3KMUhf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:35 -0500
+	with ESMTP id S1751123Ab3KMUha (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:37:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joe@perches.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, younger.liu@huawei.com
 
-Subject: [merged] ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch removed from -mm tree
-To: joe@perches.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-do-not-call-brelse-if-group_bh-is-not-initialized-in-ocfs2_group_add.patch removed from -mm tree
+To: younger.liu@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:37:35 -0800
+Date: Wed, 13 Nov 2013 12:37:29 -0800
 
 
 The patch titled
-     Subject: ocfs2: convert use of typedef ctl_table to struct ctl_table
+     Subject: ocfs2: do not call brelse() if group_bh is not initialized in ocfs2_group_add()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+     ocfs2-do-not-call-brelse-if-group_bh-is-not-initialized-in-ocfs2_group_add.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: ocfs2: convert use of typedef ctl_table to struct ctl_table
+From: Younger Liu <younger.liu@huawei.com>
+Subject: ocfs2: do not call brelse() if group_bh is not initialized in ocfs2_group_add()
 
-This typedef is unnecessary and should just be removed.
+If group_bh is not initialized, there is no need to release.  This problem
+does not cause anything wrong, but the patch would make the code more
+logical.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Younger Liu <younger.liu@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Acked-by: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/ocfs2/resize.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/stackglue.c~ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~ocfs2-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/fs/ocfs2/stackglue.c
-@@ -643,7 +643,7 @@ error:
+diff -puN fs/ocfs2/resize.c~ocfs2-do-not-call-brelse-if-group_bh-is-not-initialized-in-ocfs2_group_add fs/ocfs2/resize.c
+--- a/fs/ocfs2/resize.c~ocfs2-do-not-call-brelse-if-group_bh-is-not-initialized-in-ocfs2_group_add
++++ a/fs/ocfs2/resize.c
+@@ -514,7 +514,7 @@ int ocfs2_group_add(struct inode *inode,
+ 	ret = ocfs2_verify_group_and_input(main_bm_inode, fe, input, group_bh);
+ 	if (ret) {
+ 		mlog_errno(ret);
+-		goto out_unlock;
++		goto out_free_group_bh;
+ 	}
  
- #define FS_OCFS2_NM		1
+ 	trace_ocfs2_group_add((unsigned long long)input->group,
+@@ -524,7 +524,7 @@ int ocfs2_group_add(struct inode *inode,
+ 	if (IS_ERR(handle)) {
+ 		mlog_errno(PTR_ERR(handle));
+ 		ret = -EINVAL;
+-		goto out_unlock;
++		goto out_free_group_bh;
+ 	}
  
--static ctl_table ocfs2_nm_table[] = {
-+static struct ctl_table ocfs2_nm_table[] = {
- 	{
- 		.procname	= "hb_ctl_path",
- 		.data		= ocfs2_hb_ctl_path,
-@@ -654,7 +654,7 @@ static ctl_table ocfs2_nm_table[] = {
- 	{ }
- };
+ 	cl_bpc = le16_to_cpu(fe->id2.i_chain.cl_bpc);
+@@ -577,8 +577,11 @@ int ocfs2_group_add(struct inode *inode,
  
--static ctl_table ocfs2_mod_table[] = {
-+static struct ctl_table ocfs2_mod_table[] = {
- 	{
- 		.procname	= "nm",
- 		.data		= NULL,
-@@ -665,7 +665,7 @@ static ctl_table ocfs2_mod_table[] = {
- 	{ }
- };
+ out_commit:
+ 	ocfs2_commit_trans(osb, handle);
+-out_unlock:
++
++out_free_group_bh:
+ 	brelse(group_bh);
++
++out_unlock:
+ 	brelse(main_bm_bh);
  
--static ctl_table ocfs2_kern_table[] = {
-+static struct ctl_table ocfs2_kern_table[] = {
- 	{
- 		.procname	= "ocfs2",
- 		.data		= NULL,
-@@ -676,7 +676,7 @@ static ctl_table ocfs2_kern_table[] = {
- 	{ }
- };
- 
--static ctl_table ocfs2_root_table[] = {
-+static struct ctl_table ocfs2_root_table[] = {
- 	{
- 		.procname	= "fs",
- 		.data		= NULL,
+ 	ocfs2_inode_unlock(main_bm_inode, 1);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from younger.liu@huawei.com are
 
 origin.patch
-kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch
-get_maintainerpl-incomplete-output.patch
-linux-next.patch
-seq_file-introduce-seq_setwidth-and-seq_pad.patch
-seq_file-remove-%n-usage-from-seq_file-users.patch
-vsprintf-ignore-%n-again.patch
+ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
+ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
+ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
