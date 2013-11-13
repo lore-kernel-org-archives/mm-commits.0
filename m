@@ -1,110 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-kmemleak-avoid-false-negatives-on-vmalloced-objects.patch removed from
- -mm tree
-Date: Wed, 13 Nov 2013 12:38:38 -0800
-Message-ID: <5283e34e.xE356C1xLjAIHQYB%akpm@linux-foundation.org>
+Subject: [merged] mm-swapfilec-fix-comment-typos.patch removed from -mm
+ tree
+Date: Wed, 13 Nov 2013 12:38:40 -0800
+Message-ID: <5283e350.kVWQ1d4j1I5g8+nx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42630 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42633 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857Ab3KMUij (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:39 -0500
+	with ESMTP id S1750857Ab3KMUik (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, catalin.marinas@arm.com
+To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com
 
-Subject: [merged] mm-kmemleak-avoid-false-negatives-on-vmalloced-objects.patch removed from -mm tree
-To: catalin.marinas@arm.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-swapfilec-fix-comment-typos.patch removed from -mm tree
+To: sjenning@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:38:38 -0800
+Date: Wed, 13 Nov 2013 12:38:40 -0800
 
 
 The patch titled
-     Subject: mm: kmemleak: avoid false negatives on vmalloc'ed objects
+     Subject: mm/swapfile.c: fix comment typos
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-avoid-false-negatives-on-vmalloced-objects.patch
+     mm-swapfilec-fix-comment-typos.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm: kmemleak: avoid false negatives on vmalloc'ed objects
+From: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Subject: mm/swapfile.c: fix comment typos
 
-Commit 248ac0e1 ("mm/vmalloc: remove guard page from between vmap blocks")
-had the side effect of making vmap_area.va_end member point to the next
-vmap_area.va_start.  This was creating an artificial reference to
-vmalloc'ed objects and kmemleak was rarely reporting vmalloc() leaks.
-
-This patch marks the vmap_area containing pointers explicitly and reduces
-the min ref_count to 2 as vm_struct still contains a reference to the
-vmalloc'ed object.  The kmemleak add_scan_area() function has been
-improved to allow a SIZE_MAX argument covering the rest of the object (for
-simpler calling sites).
-
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    4 +++-
- mm/vmalloc.c  |   14 ++++++++++----
- 2 files changed, 13 insertions(+), 5 deletions(-)
+ mm/swapfile.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/kmemleak.c~mm-kmemleak-avoid-false-negatives-on-vmalloced-objects mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleak-avoid-false-negatives-on-vmalloced-objects
-+++ a/mm/kmemleak.c
-@@ -753,7 +753,9 @@ static void add_scan_area(unsigned long
- 	}
+diff -puN mm/swapfile.c~mm-swapfilec-fix-comment-typos mm/swapfile.c
+--- a/mm/swapfile.c~mm-swapfilec-fix-comment-typos
++++ a/mm/swapfile.c
+@@ -707,7 +707,7 @@ noswap:
+ 	return (swp_entry_t) {0};
+ }
  
- 	spin_lock_irqsave(&object->lock, flags);
--	if (ptr + size > object->pointer + object->size) {
-+	if (size == SIZE_MAX) {
-+		size = object->pointer + object->size - ptr;
-+	} else if (ptr + size > object->pointer + object->size) {
- 		kmemleak_warn("Scan area larger than object 0x%08lx\n", ptr);
- 		dump_object_info(object);
- 		kmem_cache_free(scan_area_cache, area);
-diff -puN mm/vmalloc.c~mm-kmemleak-avoid-false-negatives-on-vmalloced-objects mm/vmalloc.c
---- a/mm/vmalloc.c~mm-kmemleak-avoid-false-negatives-on-vmalloced-objects
-+++ a/mm/vmalloc.c
-@@ -359,6 +359,12 @@ static struct vmap_area *alloc_vmap_area
- 	if (unlikely(!va))
- 		return ERR_PTR(-ENOMEM);
+-/* The only caller of this function is now susupend routine */
++/* The only caller of this function is now suspend routine */
+ swp_entry_t get_swap_page_of_type(int type)
+ {
+ 	struct swap_info_struct *si;
+@@ -845,7 +845,7 @@ static unsigned char swap_entry_free(str
+ }
  
-+	/*
-+	 * Only scan the relevant parts containing pointers to other objects
-+	 * to avoid false negatives.
-+	 */
-+	kmemleak_scan_area(&va->rb_node, SIZE_MAX, gfp_mask & GFP_RECLAIM_MASK);
-+
- retry:
- 	spin_lock(&vmap_area_lock);
- 	/*
-@@ -1645,11 +1651,11 @@ void *__vmalloc_node_range(unsigned long
- 	clear_vm_uninitialized_flag(area);
- 
- 	/*
--	 * A ref_count = 3 is needed because the vm_struct and vmap_area
--	 * structures allocated in the __get_vm_area_node() function contain
--	 * references to the virtual address of the vmalloc'ed block.
-+	 * A ref_count = 2 is needed because vm_struct allocated in
-+	 * __get_vm_area_node() contains a reference to the virtual address of
-+	 * the vmalloc'ed block.
+ /*
+- * Caller has made sure that the swapdevice corresponding to entry
++ * Caller has made sure that the swap device corresponding to entry
+  * is still around or has not been recycled.
+  */
+ void swap_free(swp_entry_t entry)
+@@ -947,7 +947,7 @@ int try_to_free_swap(struct page *page)
+ 	 * original page might be freed under memory pressure, then
+ 	 * later read back in from swap, now with the wrong data.
+ 	 *
+-	 * Hibration suspends storage while it is writing the image
++	 * Hibernation suspends storage while it is writing the image
+ 	 * to disk so check that here.
  	 */
--	kmemleak_alloc(addr, real_size, 3, gfp_mask);
-+	kmemleak_alloc(addr, real_size, 2, gfp_mask);
+ 	if (pm_suspended_storage())
+@@ -1179,7 +1179,7 @@ static int unuse_pte_range(struct vm_are
+ 	 * some architectures (e.g. x86_32 with PAE) we might catch a glimpse
+ 	 * of unmatched parts which look like swp_pte, so unuse_pte must
+ 	 * recheck under pte lock.  Scanning without pte lock lets it be
+-	 * preemptible whenever CONFIG_PREEMPT but not CONFIG_HIGHPTE.
++	 * preemptable whenever CONFIG_PREEMPT but not CONFIG_HIGHPTE.
+ 	 */
+ 	pte = pte_offset_map(pmd, addr);
+ 	do {
+@@ -1934,7 +1934,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	vfree(swap_map);
+ 	vfree(cluster_info);
+ 	vfree(frontswap_map);
+-	/* Destroy swap account informatin */
++	/* Destroy swap account information */
+ 	swap_cgroup_swapoff(type);
  
- 	return addr;
+ 	inode = mapping->host;
+@@ -2786,8 +2786,8 @@ int add_swap_count_continuation(swp_entr
  
+ 	/*
+ 	 * We are fortunate that although vmalloc_to_page uses pte_offset_map,
+-	 * no architecture is using highmem pages for kernel pagetables: so it
+-	 * will not corrupt the GFP_ATOMIC caller's atomic pagetable kmaps.
++	 * no architecture is using highmem pages for kernel page tables: so it
++	 * will not corrupt the GFP_ATOMIC caller's atomic page table kmaps.
+ 	 */
+ 	head = vmalloc_to_page(si->swap_map + offset);
+ 	offset &= ~PAGE_MASK;
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from sjenning@linux.vnet.ibm.com are
 
 origin.patch
-linux-next.patch
-x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
-arm64-handle-pgtable_page_ctor-fail.patch
 
