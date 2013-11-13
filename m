@@ -1,203 +1,313 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page-typesc-support-kpf_softdirty-bit.patch removed from -mm tree
-Date: Wed, 13 Nov 2013 12:38:48 -0800
-Message-ID: <5283e358.DOWAHtrfK1kDgcYG%akpm@linux-foundation.org>
+Subject: [merged]
+ writeback-do-not-sync-data-dirtied-after-sync-start.patch removed from -mm
+ tree
+Date: Wed, 13 Nov 2013 12:38:50 -0800
+Message-ID: <5283e35a.y4PCetAsVKnFQEEB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42652 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42656 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392Ab3KMUit (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:49 -0500
+	with ESMTP id S1751075Ab3KMUiv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:38:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, gorcunov@openvz.org, fengguang.wu@intel.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, dchinner@redhat.com, jack@suse.cz
 
-Subject: [merged] page-typesc-support-kpf_softdirty-bit.patch removed from -mm tree
-To: n-horiguchi@ah.jp.nec.com,fengguang.wu@intel.com,gorcunov@openvz.org,xemul@parallels.com,mm-commits@vger.kernel.org
+Subject: [merged] writeback-do-not-sync-data-dirtied-after-sync-start.patch removed from -mm tree
+To: jack@suse.cz,dchinner@redhat.com,fengguang.wu@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:38:48 -0800
+Date: Wed, 13 Nov 2013 12:38:50 -0800
 
 
 The patch titled
-     Subject: tools/vm/page-types.c: support KPF_SOFTDIRTY bit
+     Subject: writeback: do not sync data dirtied after sync start
 has been removed from the -mm tree.  Its filename was
-     page-typesc-support-kpf_softdirty-bit.patch
+     writeback-do-not-sync-data-dirtied-after-sync-start.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: tools/vm/page-types.c: support KPF_SOFTDIRTY bit
+From: Jan Kara <jack@suse.cz>
+Subject: writeback: do not sync data dirtied after sync start
 
-Soft dirty bit allows us to track which pages are written since the last
-clear_ref (by "echo 4 > /proc/pid/clear_refs".) This is useful for
-userspace applications to know their memory footprints.
+When there are processes heavily creating small files while sync(2) is
+running, it can easily happen that quite some new files are created
+between WB_SYNC_NONE and WB_SYNC_ALL pass of sync(2).  That can happen
+especially if there are several busy filesystems (remember that sync
+traverses filesystems sequentially and waits in WB_SYNC_ALL phase on one
+fs before starting it on another fs).  Because WB_SYNC_ALL pass is slow
+(e.g.  causes a transaction commit and cache flush for each inode in
+ext3), resulting sync(2) times are rather large.
 
-Note that the kernel exposes this flag via bit[55] of /proc/pid/pagemap,
-and the semantics is not a default one (scheduled to be the default in the
-near future.) However, it shifts to the new semantics at the first
-clear_ref, and the users of soft dirty bit always do it before utilizing
-the bit, so that's not a big deal.  Users must avoid relying on the bit in
-page-types before the first clear_ref.
+The following script reproduces the problem:
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+function run_writers
+{
+  for (( i = 0; i < 10; i++ )); do
+    mkdir $1/dir$i
+    for (( j = 0; j < 40000; j++ )); do
+      dd if=/dev/zero of=$1/dir$i/$j bs=4k count=4 &>/dev/null
+    done &
+  done
+}
+
+for dir in "$@"; do
+  run_writers $dir
+done
+
+sleep 40
+time sync
+======
+
+Fix the problem by disregarding inodes dirtied after sync(2) was called in
+the WB_SYNC_ALL pass.  To allow for this, sync_inodes_sb() now takes a
+time stamp when sync has started which is used for setting up work for
+flusher threads.
+
+To give some numbers, when above script is run on two ext4 filesystems on
+simple SATA drive, the average sync time from 10 runs is 267.549 seconds
+with standard deviation 104.799426.  With the patched kernel, the average
+sync time from 10 runs is 2.995 seconds with standard deviation 0.096.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Fengguang Wu <fengguang.wu@intel.com>
+Reviewed-by: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel-page-flags.h |    1 
- tools/vm/page-types.c             |   32 +++++++++++++++++-----------
- 2 files changed, 21 insertions(+), 12 deletions(-)
+ fs/fs-writeback.c                |   33 +++++++++++++++++++----------
+ fs/sync.c                        |   15 +++++++------
+ fs/xfs/xfs_super.c               |    2 -
+ include/linux/writeback.h        |    2 -
+ include/trace/events/writeback.h |    6 ++---
+ 5 files changed, 36 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/kernel-page-flags.h~page-typesc-support-kpf_softdirty-bit include/linux/kernel-page-flags.h
---- a/include/linux/kernel-page-flags.h~page-typesc-support-kpf_softdirty-bit
-+++ a/include/linux/kernel-page-flags.h
-@@ -15,5 +15,6 @@
- #define KPF_OWNER_PRIVATE	37
- #define KPF_ARCH		38
- #define KPF_UNCACHED		39
-+#define KPF_SOFTDIRTY		40
+diff -puN fs/fs-writeback.c~writeback-do-not-sync-data-dirtied-after-sync-start fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-do-not-sync-data-dirtied-after-sync-start
++++ a/fs/fs-writeback.c
+@@ -39,13 +39,18 @@
+ struct wb_writeback_work {
+ 	long nr_pages;
+ 	struct super_block *sb;
+-	unsigned long *older_than_this;
++	/*
++	 * Write only inodes dirtied before this time. Don't forget to set
++	 * older_than_this_is_set when you set this.
++	 */
++	unsigned long older_than_this;
+ 	enum writeback_sync_modes sync_mode;
+ 	unsigned int tagged_writepages:1;
+ 	unsigned int for_kupdate:1;
+ 	unsigned int range_cyclic:1;
+ 	unsigned int for_background:1;
+ 	unsigned int for_sync:1;	/* sync(2) WB_SYNC_ALL writeback */
++	unsigned int older_than_this_is_set:1;
+ 	enum wb_reason reason;		/* why was writeback initiated? */
  
- #endif /* LINUX_KERNEL_PAGE_FLAGS_H */
-diff -puN tools/vm/page-types.c~page-typesc-support-kpf_softdirty-bit tools/vm/page-types.c
---- a/tools/vm/page-types.c~page-typesc-support-kpf_softdirty-bit
-+++ a/tools/vm/page-types.c
-@@ -59,12 +59,14 @@
- #define PM_PSHIFT_BITS      6
- #define PM_PSHIFT_OFFSET    (PM_STATUS_OFFSET - PM_PSHIFT_BITS)
- #define PM_PSHIFT_MASK      (((1LL << PM_PSHIFT_BITS) - 1) << PM_PSHIFT_OFFSET)
--#define PM_PSHIFT(x)        (((u64) (x) << PM_PSHIFT_OFFSET) & PM_PSHIFT_MASK)
-+#define __PM_PSHIFT(x)      (((uint64_t) (x) << PM_PSHIFT_OFFSET) & PM_PSHIFT_MASK)
- #define PM_PFRAME_MASK      ((1LL << PM_PSHIFT_OFFSET) - 1)
- #define PM_PFRAME(x)        ((x) & PM_PFRAME_MASK)
+ 	struct list_head list;		/* pending work list */
+@@ -246,10 +251,10 @@ static int move_expired_inodes(struct li
+ 	int do_sb_sort = 0;
+ 	int moved = 0;
  
-+#define __PM_SOFT_DIRTY      (1LL)
- #define PM_PRESENT          PM_STATUS(4LL)
- #define PM_SWAP             PM_STATUS(2LL)
-+#define PM_SOFT_DIRTY       __PM_PSHIFT(__PM_SOFT_DIRTY)
- 
- 
- /*
-@@ -83,6 +85,7 @@
- #define KPF_OWNER_PRIVATE	37
- #define KPF_ARCH		38
- #define KPF_UNCACHED		39
-+#define KPF_SOFTDIRTY		40
- 
- /* [48-] take some arbitrary free slots for expanding overloaded flags
-  * not part of kernel API
-@@ -132,6 +135,7 @@ static const char * const page_flag_name
- 	[KPF_OWNER_PRIVATE]	= "O:owner_private",
- 	[KPF_ARCH]		= "h:arch",
- 	[KPF_UNCACHED]		= "c:uncached",
-+	[KPF_SOFTDIRTY]		= "f:softdirty",
- 
- 	[KPF_READAHEAD]		= "I:readahead",
- 	[KPF_SLOB_FREE]		= "P:slob_free",
-@@ -417,7 +421,7 @@ static int bit_mask_ok(uint64_t flags)
- 	return 1;
- }
- 
--static uint64_t expand_overloaded_flags(uint64_t flags)
-+static uint64_t expand_overloaded_flags(uint64_t flags, uint64_t pme)
- {
- 	/* SLOB/SLUB overload several page flags */
- 	if (flags & BIT(SLAB)) {
-@@ -433,6 +437,9 @@ static uint64_t expand_overloaded_flags(
- 	if ((flags & (BIT(RECLAIM) | BIT(WRITEBACK))) == BIT(RECLAIM))
- 		flags ^= BIT(RECLAIM) | BIT(READAHEAD);
- 
-+	if (pme & PM_SOFT_DIRTY)
-+		flags |= BIT(SOFTDIRTY);
-+
- 	return flags;
- }
- 
-@@ -448,11 +455,11 @@ static uint64_t well_known_flags(uint64_
- 	return flags;
- }
- 
--static uint64_t kpageflags_flags(uint64_t flags)
-+static uint64_t kpageflags_flags(uint64_t flags, uint64_t pme)
- {
--	flags = expand_overloaded_flags(flags);
--
--	if (!opt_raw)
-+	if (opt_raw)
-+		flags = expand_overloaded_flags(flags, pme);
-+	else
- 		flags = well_known_flags(flags);
- 
- 	return flags;
-@@ -545,9 +552,9 @@ static size_t hash_slot(uint64_t flags)
- }
- 
- static void add_page(unsigned long voffset,
--		     unsigned long offset, uint64_t flags)
-+		     unsigned long offset, uint64_t flags, uint64_t pme)
- {
--	flags = kpageflags_flags(flags);
-+	flags = kpageflags_flags(flags, pme);
- 
- 	if (!bit_mask_ok(flags))
- 		return;
-@@ -569,7 +576,8 @@ static void add_page(unsigned long voffs
- #define KPAGEFLAGS_BATCH	(64 << 10)	/* 64k pages */
- static void walk_pfn(unsigned long voffset,
- 		     unsigned long index,
--		     unsigned long count)
-+		     unsigned long count,
-+		     uint64_t pme)
- {
- 	uint64_t buf[KPAGEFLAGS_BATCH];
- 	unsigned long batch;
-@@ -583,7 +591,7 @@ static void walk_pfn(unsigned long voffs
++	WARN_ON_ONCE(!work->older_than_this_is_set);
+ 	while (!list_empty(delaying_queue)) {
+ 		inode = wb_inode(delaying_queue->prev);
+-		if (work->older_than_this &&
+-		    inode_dirtied_after(inode, *work->older_than_this))
++		if (inode_dirtied_after(inode, work->older_than_this))
  			break;
+ 		list_move(&inode->i_wb_list, &tmp);
+ 		moved++;
+@@ -733,6 +738,8 @@ static long writeback_inodes_wb(struct b
+ 		.sync_mode	= WB_SYNC_NONE,
+ 		.range_cyclic	= 1,
+ 		.reason		= reason,
++		.older_than_this = jiffies,
++		.older_than_this_is_set = 1,
+ 	};
  
- 		for (i = 0; i < pages; i++)
--			add_page(voffset + i, index + i, buf[i]);
-+			add_page(voffset + i, index + i, buf[i], pme);
+ 	spin_lock(&wb->list_lock);
+@@ -791,12 +798,13 @@ static long wb_writeback(struct bdi_writ
+ {
+ 	unsigned long wb_start = jiffies;
+ 	long nr_pages = work->nr_pages;
+-	unsigned long oldest_jif;
+ 	struct inode *inode;
+ 	long progress;
  
- 		index += pages;
- 		count -= pages;
-@@ -608,7 +616,7 @@ static void walk_vma(unsigned long index
- 		for (i = 0; i < pages; i++) {
- 			pfn = pagemap_pfn(buf[i]);
- 			if (pfn)
--				walk_pfn(index + i, pfn, 1);
-+				walk_pfn(index + i, pfn, 1, buf[i]);
- 		}
+-	oldest_jif = jiffies;
+-	work->older_than_this = &oldest_jif;
++	if (!work->older_than_this_is_set) {
++		work->older_than_this = jiffies;
++		work->older_than_this_is_set = 1;
++	}
  
- 		index += pages;
-@@ -659,7 +667,7 @@ static void walk_addr_ranges(void)
+ 	spin_lock(&wb->list_lock);
+ 	for (;;) {
+@@ -830,10 +838,10 @@ static long wb_writeback(struct bdi_writ
+ 		 * safe.
+ 		 */
+ 		if (work->for_kupdate) {
+-			oldest_jif = jiffies -
++			work->older_than_this = jiffies -
+ 				msecs_to_jiffies(dirty_expire_interval * 10);
+ 		} else if (work->for_background)
+-			oldest_jif = jiffies;
++			work->older_than_this = jiffies;
  
- 	for (i = 0; i < nr_addr_ranges; i++)
- 		if (!opt_pid)
--			walk_pfn(0, opt_offset[i], opt_size[i]);
-+			walk_pfn(0, opt_offset[i], opt_size[i], 0);
- 		else
- 			walk_task(opt_offset[i], opt_size[i]);
+ 		trace_writeback_start(wb->bdi, work);
+ 		if (list_empty(&wb->b_io))
+@@ -1345,18 +1353,21 @@ EXPORT_SYMBOL(try_to_writeback_inodes_sb
  
+ /**
+  * sync_inodes_sb	-	sync sb inode pages
+- * @sb: the superblock
++ * @sb:			the superblock
++ * @older_than_this:	timestamp
+  *
+  * This function writes and waits on any dirty inode belonging to this
+- * super_block.
++ * superblock that has been dirtied before given timestamp.
+  */
+-void sync_inodes_sb(struct super_block *sb)
++void sync_inodes_sb(struct super_block *sb, unsigned long older_than_this)
+ {
+ 	DECLARE_COMPLETION_ONSTACK(done);
+ 	struct wb_writeback_work work = {
+ 		.sb		= sb,
+ 		.sync_mode	= WB_SYNC_ALL,
+ 		.nr_pages	= LONG_MAX,
++		.older_than_this = older_than_this,
++		.older_than_this_is_set = 1,
+ 		.range_cyclic	= 0,
+ 		.done		= &done,
+ 		.reason		= WB_REASON_SYNC,
+diff -puN fs/sync.c~writeback-do-not-sync-data-dirtied-after-sync-start fs/sync.c
+--- a/fs/sync.c~writeback-do-not-sync-data-dirtied-after-sync-start
++++ a/fs/sync.c
+@@ -27,10 +27,11 @@
+  * wait == 1 case since in that case write_inode() functions do
+  * sync_dirty_buffer() and thus effectively write one block at a time.
+  */
+-static int __sync_filesystem(struct super_block *sb, int wait)
++static int __sync_filesystem(struct super_block *sb, int wait,
++			     unsigned long start)
+ {
+ 	if (wait)
+-		sync_inodes_sb(sb);
++		sync_inodes_sb(sb, start);
+ 	else
+ 		writeback_inodes_sb(sb, WB_REASON_SYNC);
+ 
+@@ -47,6 +48,7 @@ static int __sync_filesystem(struct supe
+ int sync_filesystem(struct super_block *sb)
+ {
+ 	int ret;
++	unsigned long start = jiffies;
+ 
+ 	/*
+ 	 * We need to be protected against the filesystem going from
+@@ -60,17 +62,17 @@ int sync_filesystem(struct super_block *
+ 	if (sb->s_flags & MS_RDONLY)
+ 		return 0;
+ 
+-	ret = __sync_filesystem(sb, 0);
++	ret = __sync_filesystem(sb, 0, start);
+ 	if (ret < 0)
+ 		return ret;
+-	return __sync_filesystem(sb, 1);
++	return __sync_filesystem(sb, 1, start);
+ }
+ EXPORT_SYMBOL_GPL(sync_filesystem);
+ 
+ static void sync_inodes_one_sb(struct super_block *sb, void *arg)
+ {
+ 	if (!(sb->s_flags & MS_RDONLY))
+-		sync_inodes_sb(sb);
++		sync_inodes_sb(sb, *((unsigned long *)arg));
+ }
+ 
+ static void sync_fs_one_sb(struct super_block *sb, void *arg)
+@@ -102,9 +104,10 @@ static void fdatawait_one_bdev(struct bl
+ SYSCALL_DEFINE0(sync)
+ {
+ 	int nowait = 0, wait = 1;
++	unsigned long start = jiffies;
+ 
+ 	wakeup_flusher_threads(0, WB_REASON_SYNC);
+-	iterate_supers(sync_inodes_one_sb, NULL);
++	iterate_supers(sync_inodes_one_sb, &start);
+ 	iterate_supers(sync_fs_one_sb, &nowait);
+ 	iterate_supers(sync_fs_one_sb, &wait);
+ 	iterate_bdevs(fdatawrite_one_bdev, NULL);
+diff -puN fs/xfs/xfs_super.c~writeback-do-not-sync-data-dirtied-after-sync-start fs/xfs/xfs_super.c
+--- a/fs/xfs/xfs_super.c~writeback-do-not-sync-data-dirtied-after-sync-start
++++ a/fs/xfs/xfs_super.c
+@@ -918,7 +918,7 @@ xfs_flush_inodes(
+ 	struct super_block	*sb = mp->m_super;
+ 
+ 	if (down_read_trylock(&sb->s_umount)) {
+-		sync_inodes_sb(sb);
++		sync_inodes_sb(sb, jiffies);
+ 		up_read(&sb->s_umount);
+ 	}
+ }
+diff -puN include/linux/writeback.h~writeback-do-not-sync-data-dirtied-after-sync-start include/linux/writeback.h
+--- a/include/linux/writeback.h~writeback-do-not-sync-data-dirtied-after-sync-start
++++ a/include/linux/writeback.h
+@@ -97,7 +97,7 @@ void writeback_inodes_sb_nr(struct super
+ int try_to_writeback_inodes_sb(struct super_block *, enum wb_reason reason);
+ int try_to_writeback_inodes_sb_nr(struct super_block *, unsigned long nr,
+ 				  enum wb_reason reason);
+-void sync_inodes_sb(struct super_block *);
++void sync_inodes_sb(struct super_block *sb, unsigned long older_than_this);
+ void wakeup_flusher_threads(long nr_pages, enum wb_reason reason);
+ void inode_wait_for_writeback(struct inode *inode);
+ 
+diff -puN include/trace/events/writeback.h~writeback-do-not-sync-data-dirtied-after-sync-start include/trace/events/writeback.h
+--- a/include/trace/events/writeback.h~writeback-do-not-sync-data-dirtied-after-sync-start
++++ a/include/trace/events/writeback.h
+@@ -287,11 +287,11 @@ TRACE_EVENT(writeback_queue_io,
+ 		__field(int,		reason)
+ 	),
+ 	TP_fast_assign(
+-		unsigned long *older_than_this = work->older_than_this;
++		unsigned long older_than_this = work->older_than_this;
+ 		strncpy(__entry->name, dev_name(wb->bdi->dev), 32);
+-		__entry->older	= older_than_this ?  *older_than_this : 0;
++		__entry->older	= older_than_this;
+ 		__entry->age	= older_than_this ?
+-				  (jiffies - *older_than_this) * 1000 / HZ : -1;
++				  (jiffies - older_than_this) * 1000 / HZ : -1;
+ 		__entry->moved	= moved;
+ 		__entry->reason	= work->reason;
+ 	),
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-x86-mm-get-aslr-work-for-hugetlb-mappings.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
-mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
-x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+linux-next.patch
+revert-softirq-add-support-for-triggering-softirq-work-on-softirqs.patch
+kernel-remove-config_use_generic_smp_helpers.patch
+kernel-provide-a-__smp_call_function_single-stub-for-config_smp.patch
+kernel-provide-a-__smp_call_function_single-stub-for-config_smp-fix.patch
+kernel-fix-generic_exec_single-indication.patch
+llists-move-llist_reverse_order-from-raid5-to-llistc.patch
+llists-move-llist_reverse_order-from-raid5-to-llistc-fix.patch
+kernel-use-lockless-list-for-smp_call_function_single.patch
+blk-mq-use-__smp_call_function_single-directly.patch
+rbtree-test-move-rb_node-to-the-middle-of-the-test-struct.patch
+rbtree-test-test-rbtree_postorder_for_each_entry_safe.patch
+net-netfilter-ipset-ip_set_hash_netifacec-use-rbtree-postorder-iteration-instead-of-opencoding.patch
+fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+arch-sh-kernel-dwarfc-use-rbtree-postorder-iteration-helper-instead-of-solution-using-repeated-rb_erase.patch
 
