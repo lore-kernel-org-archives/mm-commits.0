@@ -1,113 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
+Subject: [folded-merged]
+ tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
  removed from -mm tree
-Date: Thu, 14 Nov 2013 14:22:10 -0800
-Message-ID: <52854d12.5iLtvTuzp3na8ExI%akpm@linux-foundation.org>
+Date: Thu, 14 Nov 2013 14:22:44 -0800
+Message-ID: <52854d34.tHsc4UDrbV/G31YX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52535 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757967Ab3KNWWL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Nov 2013 17:22:11 -0500
+	with ESMTP id S1758107Ab3KNWWp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Nov 2013 17:22:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, geert@linux-m68k.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, wsa@the-dreams.de, akpm@linux-foundation.org
 
-Subject: [folded-merged] m68k-handle-pgtable_page_ctor-fail-fix-fix.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,geert@linux-m68k.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,wsa@the-dreams.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 14 Nov 2013 14:22:10 -0800
+Date: Thu, 14 Nov 2013 14:22:44 -0800
 
 
 The patch titled
-     Subject: m68k-handle-pgtable_page_ctor-fail-fix-fix
+     Subject: tree-wide-use-reinit_completion-instead-of-init_completion-fix
 has been removed from the -mm tree.  Its filename was
-     m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
+     tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
 
-This patch was dropped because it was folded into m68k-handle-pgtable_page_ctor-fail.patch
+This patch was dropped because it was folded into tree-wide-use-reinit_completion-instead-of-init_completion.patch
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: m68k-handle-pgtable_page_ctor-fail-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tree-wide-use-reinit_completion-instead-of-init_completion-fix
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Wolfram Sang <wsa@the-dreams.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/mcf_pgalloc.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/misc/mic/card/mic_virtio.c |    2 +-
+ drivers/misc/mic/host/mic_boot.c   |    2 +-
+ drivers/spi/spi.c                  |    2 +-
+ sound/firewire/dice.c              |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/m68k/include/asm/mcf_pgalloc.h~m68k-handle-pgtable_page_ctor-fail-fix-fix arch/m68k/include/asm/mcf_pgalloc.h
---- a/arch/m68k/include/asm/mcf_pgalloc.h~m68k-handle-pgtable_page_ctor-fail-fix-fix
-+++ a/arch/m68k/include/asm/mcf_pgalloc.h
-@@ -56,6 +56,10 @@ static inline struct page *pte_alloc_one
+diff -puN drivers/misc/mic/card/mic_virtio.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix drivers/misc/mic/card/mic_virtio.c
+--- a/drivers/misc/mic/card/mic_virtio.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix
++++ a/drivers/misc/mic/card/mic_virtio.c
+@@ -493,7 +493,7 @@ static int mic_remove_device(struct mic_
+ 			ioread8(&dc->config_change), ioread8(&d->type), mvdev);
  
- 	if (!page)
- 		return NULL;
-+	if (!pgtable_page_ctor(page)) {
-+		__free_page(page);
-+		return NULL;
-+	}
+ 		status = ioread8(&d->status);
+-		INIT_COMPLETION(mvdev->reset_done);
++		reinit_completion(&mvdev->reset_done);
+ 		unregister_virtio_device(&mvdev->vdev);
+ 		mic_free_card_irq(mvdev->virtio_cookie, mvdev);
+ 		if (status & VIRTIO_CONFIG_S_DRIVER_OK)
+diff -puN drivers/misc/mic/host/mic_boot.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix drivers/misc/mic/host/mic_boot.c
+--- a/drivers/misc/mic/host/mic_boot.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix
++++ a/drivers/misc/mic/host/mic_boot.c
+@@ -38,7 +38,7 @@ static void mic_reset(struct mic_device
  
- 	pte = kmap(page);
- 	if (pte) {
+ #define MIC_RESET_TO (45)
+ 
+-	INIT_COMPLETION(mdev->reset_wait);
++	reinit_completion(&mdev->reset_wait);
+ 	mdev->ops->reset_fw_ready(mdev);
+ 	mdev->ops->reset(mdev);
+ 
+diff -puN drivers/spi/spi.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix drivers/spi/spi.c
+--- a/drivers/spi/spi.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix
++++ a/drivers/spi/spi.c
+@@ -584,7 +584,7 @@ static int spi_transfer_one_message(stru
+ 	list_for_each_entry(xfer, &msg->transfers, transfer_list) {
+ 		trace_spi_transfer_start(msg, xfer);
+ 
+-		INIT_COMPLETION(master->xfer_completion);
++		reinit_completion(&master->xfer_completion);
+ 
+ 		ret = master->transfer_one(master, msg->spi, xfer);
+ 		if (ret < 0) {
+diff -puN sound/firewire/dice.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix sound/firewire/dice.c
+--- a/sound/firewire/dice.c~tree-wide-use-reinit_completion-instead-of-init_completion-fix
++++ a/sound/firewire/dice.c
+@@ -543,7 +543,7 @@ static int dice_change_rate(struct dice
+ 	__be32 value;
+ 	int err;
+ 
+-	INIT_COMPLETION(dice->clock_accepted);
++	reinit_completion(&dice->clock_accepted);
+ 
+ 	value = cpu_to_be32(clock_rate | CLOCK_SOURCE_ARX1);
+ 	err = snd_fw_transaction(dice->unit, TCODE_WRITE_QUADLET_REQUEST,
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-drop-actor-argument-of-do_generic_file_read.patch
-mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
-mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
-mm-convert-mm-nr_ptes-to-atomic_long_t.patch
-mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
-mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
-mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
-mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
+drivers-memstick-core-ms_blockc-fix-spelling-in-msb_rp_recive_status_reg.patch
 mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
-mm-convert-the-rest-to-new-page-table-lock-api.patch
-mm-implement-split-page-table-lock-for-pmd-level.patch
 x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
-cris-fix-potential-null-pointer-dereference.patch
-m32r-fix-potential-null-pointer-dereference.patch
-xtensa-fix-potential-null-pointer-dereference.patch
-mm-allow-pgtable_page_ctor-to-fail.patch
-microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
-mn10300-add-missing-pgtable_page_ctor-dtor-calls.patch
-openrisc-add-missing-pgtable_page_ctor-dtor-calls.patch
-alpha-handle-pgtable_page_ctor-fail.patch
-arc-handle-pgtable_page_ctor-fail.patch
-arm-handle-pgtable_page_ctor-fail.patch
-arm64-handle-pgtable_page_ctor-fail.patch
-avr32-handle-pgtable_page_ctor-fail.patch
-cris-handle-pgtable_page_ctor-fail.patch
-frv-handle-pgtable_page_ctor-fail.patch
-hexagon-handle-pgtable_page_ctor-fail.patch
-ia64-handle-pgtable_page_ctor-fail.patch
-m32r-handle-pgtable_page_ctor-fail.patch
-m68k-handle-pgtable_page_ctor-fail.patch
-metag-handle-pgtable_page_ctor-fail.patch
-mips-handle-pgtable_page_ctor-fail.patch
-parisc-handle-pgtable_page_ctor-fail.patch
-powerpc-handle-pgtable_page_ctor-fail.patch
-s390-handle-pgtable_page_ctor-fail.patch
-score-handle-pgtable_page_ctor-fail.patch
-sh-handle-pgtable_page_ctor-fail.patch
-sparc-handle-pgtable_page_ctor-fail.patch
-tile-handle-pgtable_page_ctor-fail.patch
-um-handle-pgtable_page_ctor-fail.patch
-unicore32-handle-pgtable_page_ctor-fail.patch
-x86-handle-pgtable_page_ctor-fail.patch
-xtensa-handle-pgtable_page_ctor-fail.patch
-iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch
-xtensa-use-buddy-allocator-for-pte-table.patch
-mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
-mm-properly-separate-the-bloated-ptl-from-the-regular-case.patch
-mm-create-a-separate-slab-for-page-ptl-allocation.patch
-lockref-use-bloated_spinlocks-to-avoid-explicit-config-dependencies.patch
+tree-wide-use-reinit_completion-instead-of-init_completion.patch
+kernel-provide-a-__smp_call_function_single-stub-for-config_smp-fix.patch
+llists-move-llist_reverse_order-from-raid5-to-llistc-fix.patch
+kfifo-api-type-safety-checkpatch-fixes.patch
 
