@@ -1,65 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-rtc-rtc-snvsc-remove-redundant-of_match_ptr.patch removed from -mm
- tree
-Date: Wed, 13 Nov 2013 12:44:22 -0800
-Message-ID: <5283e4a6.QNLkrcThozRGmLvk%akpm@linux-foundation.org>
+Subject: [merged] scripts-tagssh-remove-obsolete-__devinit.patch removed
+ from -mm tree
+Date: Thu, 14 Nov 2013 12:05:37 -0800
+Message-ID: <52852d11.W90tEg+L0obdzYRl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51090 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000Ab3KMUoZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Nov 2013 15:44:25 -0500
+	with ESMTP id S1756546Ab3KNUFi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Nov 2013 15:05:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
+To: mm-commits@vger.kernel.org, mmarek@suse.cz, michael.opdenacker@free-electrons.com
 
-Subject: [merged] drivers-rtc-rtc-snvsc-remove-redundant-of_match_ptr.patch removed from -mm tree
-To: sachin.kamat@linaro.org,mm-commits@vger.kernel.org
+Subject: [merged] scripts-tagssh-remove-obsolete-__devinit.patch removed from -mm tree
+To: michael.opdenacker@free-electrons.com,mmarek@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 13 Nov 2013 12:44:22 -0800
+Date: Thu, 14 Nov 2013 12:05:37 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-snvs.c: remove redundant of_match_ptr
+     Subject: scripts/tags.sh: remove obsolete __devinit[const|data]
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-snvsc-remove-redundant-of_match_ptr.patch
+     scripts-tagssh-remove-obsolete-__devinit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-snvs.c: remove redundant of_match_ptr
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: scripts/tags.sh: remove obsolete __devinit[const|data]
 
-The data structure of_match_ptr() protects is always compiled in.
-Hence of_match_ptr() is not needed.
+This removes the use of __devinitconst and __devinitdata in scripts/tags.sh,
+which were removed in 3.8.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-snvs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/tags.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-snvs.c~drivers-rtc-rtc-snvsc-remove-redundant-of_match_ptr drivers/rtc/rtc-snvs.c
---- a/drivers/rtc/rtc-snvs.c~drivers-rtc-rtc-snvsc-remove-redundant-of_match_ptr
-+++ a/drivers/rtc/rtc-snvs.c
-@@ -329,7 +329,7 @@ static struct platform_driver snvs_rtc_d
- 		.name	= "snvs_rtc",
- 		.owner	= THIS_MODULE,
- 		.pm	= &snvs_rtc_pm_ops,
--		.of_match_table = of_match_ptr(snvs_dt_ids),
-+		.of_match_table = snvs_dt_ids,
- 	},
- 	.probe		= snvs_rtc_probe,
- };
+diff -puN scripts/tags.sh~scripts-tagssh-remove-obsolete-__devinit scripts/tags.sh
+--- a/scripts/tags.sh~scripts-tagssh-remove-obsolete-__devinit
++++ a/scripts/tags.sh
+@@ -149,8 +149,8 @@ dogtags()
+ exuberant()
+ {
+ 	all_target_sources | xargs $1 -a                        \
+-	-I __initdata,__exitdata,__initconst,__devinitdata	\
+-	-I __devinitconst,__cpuinitdata,__initdata_memblock	\
++	-I __initdata,__exitdata,__initconst,			\
++	-I __cpuinitdata,__initdata_memblock			\
+ 	-I __refdata,__attribute,__maybe_unused,__always_unused \
+ 	-I __acquires,__releases,__deprecated			\
+ 	-I __read_mostly,__aligned,____cacheline_aligned        \
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from michael.opdenacker@free-electrons.com are
 
 origin.patch
+drivers-cdrom-gdromc-remove-deprecated-irqf_disabled.patch
 linux-next.patch
 
