@@ -1,82 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
+Subject: [folded-merged] m68k-handle-pgtable_page_ctor-fail-fix.patch
  removed from -mm tree
-Date: Thu, 14 Nov 2013 14:21:41 -0800
-Message-ID: <52854cf5.juwKUIHpiWqYLsLY%akpm@linux-foundation.org>
+Date: Thu, 14 Nov 2013 14:22:08 -0800
+Message-ID: <52854d10.fkzbE7YQH3JpdUOE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52528 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52531 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757967Ab3KNWVm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Nov 2013 17:21:42 -0500
+	with ESMTP id S1757967Ab3KNWWJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Nov 2013 17:22:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, geert@linux-m68k.org, kirill.shutemov@linux.intel.com
 
-Subject: [folded-merged] x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] m68k-handle-pgtable_page_ctor-fail-fix.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,geert@linux-m68k.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 14 Nov 2013 14:21:41 -0800
+Date: Thu, 14 Nov 2013 14:22:08 -0800
 
 
 The patch titled
-     Subject: x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes
+     Subject: m68k-handle-pgtable_page_ctor-fail-fix
 has been removed from the -mm tree.  Its filename was
-     x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes.patch
+     m68k-handle-pgtable_page_ctor-fail-fix.patch
 
-This patch was dropped because it was folded into x86-mm-enable-split-page-table-lock-for-pmd-level.patch
+This patch was dropped because it was folded into m68k-handle-pgtable_page_ctor-fail.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: m68k-handle-pgtable_page_ctor-fail-fix
 
-ERROR: need consistent spacing around '|' (ctx:VxW)
-#62: FILE: arch/x86/include/asm/pgalloc.h:84:
-+	page = alloc_pages(GFP_KERNEL | __GFP_REPEAT| __GFP_ZERO, 0);
- 	                                            ^
-
-total: 1 errors, 0 warnings, 32 lines checked
-
-./patches/x86-mm-enable-split-page-table-lock-for-pmd-level.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgalloc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m68k/include/asm/motorola_pgalloc.h |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/include/asm/pgalloc.h~x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes arch/x86/include/asm/pgalloc.h
---- a/arch/x86/include/asm/pgalloc.h~x86-mm-enable-split-page-table-lock-for-pmd-level-checkpatch-fixes
-+++ a/arch/x86/include/asm/pgalloc.h
-@@ -81,7 +81,7 @@ static inline void pmd_populate(struct m
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
+diff -puN arch/m68k/include/asm/motorola_pgalloc.h~m68k-handle-pgtable_page_ctor-fail-fix arch/m68k/include/asm/motorola_pgalloc.h
+--- a/arch/m68k/include/asm/motorola_pgalloc.h~m68k-handle-pgtable_page_ctor-fail-fix
++++ a/arch/m68k/include/asm/motorola_pgalloc.h
+@@ -29,21 +29,22 @@ static inline void pte_free_kernel(struc
+ 
+ static inline pgtable_t pte_alloc_one(struct mm_struct *mm, unsigned long address)
  {
- 	struct page *page;
--	page = alloc_pages(GFP_KERNEL | __GFP_REPEAT| __GFP_ZERO, 0);
-+	page = alloc_pages(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO, 0);
- 	if (!page)
+-	struct page *page = alloc_pages(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO, 0);
++	struct page *page;
+ 	pte_t *pte;
+ 
++	page = alloc_pages(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO, 0);
+ 	if(!page)
  		return NULL;
- 	if (!pgtable_pmd_page_ctor(page)) {
++	if (!pgtable_page_ctor(page)) {
++		__free_page(page);
++		return NULL;
++	}
+ 
+ 	pte = kmap(page);
+ 	__flush_page_to_ram(pte);
+ 	flush_tlb_kernel_page(pte);
+ 	nocache_page(pte);
+ 	kunmap(page);
+-	if (!pgtable_page_ctor(page)) {
+-		__free_page(page);
+-		return NULL;
+-	}
+ 	return page;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-drivers-memstick-core-ms_blockc-fix-spelling-in-msb_rp_recive_status_reg.patch
+mm-drop-actor-argument-of-do_generic_file_read.patch
+mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
+mm-convert-mm-nr_ptes-to-atomic_long_t.patch
+mm-introduce-api-for-split-page-table-lock-for-pmd-level.patch
+mm-thp-change-pmd_trans_huge_lock-to-return-taken-lock.patch
+mm-thp-move-ptl-taking-inside-page_check_address_pmd.patch
+mm-thp-do-not-access-mm-pmd_huge_pte-directly.patch
 mm-hugetlb-convert-hugetlbfs-to-use-split-pmd-lock.patch
+mm-convert-the-rest-to-new-page-table-lock-api.patch
+mm-implement-split-page-table-lock-for-pmd-level.patch
 x86-mm-enable-split-page-table-lock-for-pmd-level.patch
-tree-wide-use-reinit_completion-instead-of-init_completion-fix.patch
-kernel-provide-a-__smp_call_function_single-stub-for-config_smp-fix.patch
-llists-move-llist_reverse_order-from-raid5-to-llistc-fix.patch
-kfifo-api-type-safety-checkpatch-fixes.patch
+x86-add-missed-pgtable_pmd_page_ctor-dtor-calls-for-preallocated-pmds.patch
+cris-fix-potential-null-pointer-dereference.patch
+m32r-fix-potential-null-pointer-dereference.patch
+xtensa-fix-potential-null-pointer-dereference.patch
+mm-allow-pgtable_page_ctor-to-fail.patch
+microblaze-add-missing-pgtable_page_ctor-dtor-calls.patch
+mn10300-add-missing-pgtable_page_ctor-dtor-calls.patch
+openrisc-add-missing-pgtable_page_ctor-dtor-calls.patch
+alpha-handle-pgtable_page_ctor-fail.patch
+arc-handle-pgtable_page_ctor-fail.patch
+arm-handle-pgtable_page_ctor-fail.patch
+arm64-handle-pgtable_page_ctor-fail.patch
+avr32-handle-pgtable_page_ctor-fail.patch
+cris-handle-pgtable_page_ctor-fail.patch
+frv-handle-pgtable_page_ctor-fail.patch
+hexagon-handle-pgtable_page_ctor-fail.patch
+ia64-handle-pgtable_page_ctor-fail.patch
+m32r-handle-pgtable_page_ctor-fail.patch
+m68k-handle-pgtable_page_ctor-fail.patch
+m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
+metag-handle-pgtable_page_ctor-fail.patch
+mips-handle-pgtable_page_ctor-fail.patch
+parisc-handle-pgtable_page_ctor-fail.patch
+powerpc-handle-pgtable_page_ctor-fail.patch
+s390-handle-pgtable_page_ctor-fail.patch
+score-handle-pgtable_page_ctor-fail.patch
+sh-handle-pgtable_page_ctor-fail.patch
+sparc-handle-pgtable_page_ctor-fail.patch
+tile-handle-pgtable_page_ctor-fail.patch
+um-handle-pgtable_page_ctor-fail.patch
+unicore32-handle-pgtable_page_ctor-fail.patch
+x86-handle-pgtable_page_ctor-fail.patch
+xtensa-handle-pgtable_page_ctor-fail.patch
+iommu-arm-smmu-handle-pgtable_page_ctor-fail.patch
+xtensa-use-buddy-allocator-for-pte-table.patch
+mm-dynamically-allocate-page-ptl-if-it-cannot-be-embedded-to-struct-page.patch
+mm-properly-separate-the-bloated-ptl-from-the-regular-case.patch
+mm-create-a-separate-slab-for-page-ptl-allocation.patch
+lockref-use-bloated_spinlocks-to-avoid-explicit-config-dependencies.patch
 
