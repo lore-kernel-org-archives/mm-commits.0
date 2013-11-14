@@ -1,59 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] m68k-handle-pgtable_page_ctor-fail-fix.patch
+Subject: [folded-merged] m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
  removed from -mm tree
-Date: Thu, 14 Nov 2013 14:22:08 -0800
-Message-ID: <52854d10.fkzbE7YQH3JpdUOE%akpm@linux-foundation.org>
+Date: Thu, 14 Nov 2013 14:22:10 -0800
+Message-ID: <52854d12.5iLtvTuzp3na8ExI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52531 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52534 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757967Ab3KNWWJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Nov 2013 17:22:09 -0500
+	with ESMTP id S1757967Ab3KNWWL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Nov 2013 17:22:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, geert@linux-m68k.org, kirill.shutemov@linux.intel.com
 
-Subject: [folded-merged] m68k-handle-pgtable_page_ctor-fail-fix.patch removed from -mm tree
+Subject: [folded-merged] m68k-handle-pgtable_page_ctor-fail-fix-fix.patch removed from -mm tree
 To: kirill.shutemov@linux.intel.com,geert@linux-m68k.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 14 Nov 2013 14:22:08 -0800
+Date: Thu, 14 Nov 2013 14:22:10 -0800
 
 
 The patch titled
-     Subject: m68k-handle-pgtable_page_ctor-fail-fix
+     Subject: m68k-handle-pgtable_page_ctor-fail-fix-fix
 has been removed from the -mm tree.  Its filename was
-     m68k-handle-pgtable_page_ctor-fail-fix.patch
+     m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
 
 This patch was dropped because it was folded into m68k-handle-pgtable_page_ctor-fail.patch
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: m68k-handle-pgtable_page_ctor-fail-fix
+Subject: m68k-handle-pgtable_page_ctor-fail-fix-fix
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/motorola_pgalloc.h |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ arch/m68k/include/asm/mcf_pgalloc.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/m68k/include/asm/motorola_pgalloc.h~m68k-handle-pgtable_page_ctor-fail-fix arch/m68k/include/asm/motorola_pgalloc.h
---- a/arch/m68k/include/asm/motorola_pgalloc.h~m68k-handle-pgtable_page_ctor-fail-fix
-+++ a/arch/m68k/include/asm/motorola_pgalloc.h
-@@ -29,21 +29,22 @@ static inline void pte_free_kernel(struc
+diff -puN arch/m68k/include/asm/mcf_pgalloc.h~m68k-handle-pgtable_page_ctor-fail-fix-fix arch/m68k/include/asm/mcf_pgalloc.h
+--- a/arch/m68k/include/asm/mcf_pgalloc.h~m68k-handle-pgtable_page_ctor-fail-fix-fix
++++ a/arch/m68k/include/asm/mcf_pgalloc.h
+@@ -56,6 +56,10 @@ static inline struct page *pte_alloc_one
  
- static inline pgtable_t pte_alloc_one(struct mm_struct *mm, unsigned long address)
- {
--	struct page *page = alloc_pages(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO, 0);
-+	struct page *page;
- 	pte_t *pte;
- 
-+	page = alloc_pages(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO, 0);
- 	if(!page)
+ 	if (!page)
  		return NULL;
 +	if (!pgtable_page_ctor(page)) {
 +		__free_page(page);
@@ -61,17 +54,7 @@ diff -puN arch/m68k/include/asm/motorola_pgalloc.h~m68k-handle-pgtable_page_ctor
 +	}
  
  	pte = kmap(page);
- 	__flush_page_to_ram(pte);
- 	flush_tlb_kernel_page(pte);
- 	nocache_page(pte);
- 	kunmap(page);
--	if (!pgtable_page_ctor(page)) {
--		__free_page(page);
--		return NULL;
--	}
- 	return page;
- }
- 
+ 	if (pte) {
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -108,7 +91,6 @@ hexagon-handle-pgtable_page_ctor-fail.patch
 ia64-handle-pgtable_page_ctor-fail.patch
 m32r-handle-pgtable_page_ctor-fail.patch
 m68k-handle-pgtable_page_ctor-fail.patch
-m68k-handle-pgtable_page_ctor-fail-fix-fix.patch
 metag-handle-pgtable_page_ctor-fail.patch
 mips-handle-pgtable_page_ctor-fail.patch
 parisc-handle-pgtable_page_ctor-fail.patch
