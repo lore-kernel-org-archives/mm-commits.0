@@ -1,74 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix.patch
- removed from -mm tree
-Date: Fri, 15 Nov 2013 14:14:17 -0800
-Message-ID: <52869cb9.Nxglw6dliPLsOK+j%akpm@linux-foundation.org>
+ input-route-kbd-leds-through-the-generic-leds-layer-fix.patch removed from
+ -mm tree
+Date: Fri, 15 Nov 2013 14:16:49 -0800
+Message-ID: <52869d51.eaa1tT6bIEnYQFYY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36316 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36326 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751768Ab3KOWOS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 17:14:18 -0500
+	with ESMTP id S1751385Ab3KOWQu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 17:16:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jslaby@suse.cz, jeffm@suse.com, bskeggs@redhat.com, airlied@linux.ie, rdunlap@infradead.org
+To: mm-commits@vger.kernel.org, samuel.thibault@ens-lyon.org, ralf@linux-mips.org, dmitry.torokhov@gmail.com, blogic@openwrt.org
 
-Subject: [folded-merged] drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix.patch removed from -mm tree
-To: rdunlap@infradead.org,airlied@linux.ie,bskeggs@redhat.com,jeffm@suse.com,jslaby@suse.cz,mm-commits@vger.kernel.org
+Subject: [folded-merged] input-route-kbd-leds-through-the-generic-leds-layer-fix.patch removed from -mm tree
+To: blogic@openwrt.org,dmitry.torokhov@gmail.com,ralf@linux-mips.org,samuel.thibault@ens-lyon.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 15 Nov 2013 14:14:17 -0800
+Date: Fri, 15 Nov 2013 14:16:49 -0800
 
 
 The patch titled
-     Subject: nouveau: fix build eror when VGA_SWITCHEROO is not enabled
+     Subject: input: CONFIG_INPUT_LEDS stubs should be static inline
 has been removed from the -mm tree.  Its filename was
-     drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix.patch
+     input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 
-This patch was dropped because it was folded into drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo.patch
+This patch was dropped because it was folded into input-route-kbd-leds-through-the-generic-leds-layer.patch
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: nouveau: fix build eror when VGA_SWITCHEROO is not enabled
+From: John Crispin <blogic@openwrt.org>
+Subject: input: CONFIG_INPUT_LEDS stubs should be static inline
 
-Fix nouveau build error on x86, when ACPI is enabled but VGA_SWITCHEROO is
-not enabled, by providing a stub function.
+The following commit breaks compile when CONFIG_INPUT_LEDS is not selected.
 
-drivers/built-in.o: In function `nouveau_pmops_runtime_suspend':
-nouveau_drm.c:(.text+0x3aac89): undefined reference to `nouveau_switcheroo_optimus_dsm'
+commit 0eb6ee2db914ebb594cb9bc8ae97e3c362c3475a
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Wed Oct 30 11:45:16 2013 +1100
+input: route kbd LEDs through the generic LEDs layer
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: David Airlie <airlied@linux.ie>
+Signed-off-by: John Crispin <blogic@openwrt.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_acpi.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/input.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/nouveau/nouveau_acpi.c~drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix drivers/gpu/drm/nouveau/nouveau_acpi.c
---- a/drivers/gpu/drm/nouveau/nouveau_acpi.c~drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo-fix
-+++ a/drivers/gpu/drm/nouveau/nouveau_acpi.c
-@@ -380,6 +380,7 @@ void nouveau_unregister_dsm_handler(void
- #else
- void nouveau_register_dsm_handler(void) {}
- void nouveau_unregister_dsm_handler(void) {}
-+void nouveau_switcheroo_optimus_dsm(void) {}
- #endif
+diff -puN include/linux/input.h~input-route-kbd-leds-through-the-generic-leds-layer-fix include/linux/input.h
+--- a/include/linux/input.h~input-route-kbd-leds-through-the-generic-leds-layer-fix
++++ a/include/linux/input.h
+@@ -540,12 +540,12 @@ void input_led_disconnect(struct input_d
  
- /* retrieve the ROM in 4k blocks */
+ #else
+ 
+-int input_led_connect(struct input_dev *dev)
++static inline int input_led_connect(struct input_dev *dev)
+ {
+ 	return 0;
+ }
+ 
+-void input_led_disconnect(struct input_dev *dev)
++static inline void input_led_disconnect(struct input_dev *dev)
+ {
+ }
+ 
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from blogic@openwrt.org are
 
 origin.patch
-drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo.patch
-mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
 linux-next.patch
-debugging-keep-track-of-page-owners-fix-2.patch
 
