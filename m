@@ -1,128 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- debugging-keep-track-of-page-owners-fix-2-fix-fix.patch removed from -mm
- tree
-Date: Fri, 15 Nov 2013 14:24:06 -0800
-Message-ID: <52869f06.fycK/yBSSqOG2cpG%akpm@linux-foundation.org>
+ debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
+ removed from -mm tree
+Date: Fri, 15 Nov 2013 14:24:10 -0800
+Message-ID: <52869f0a.iPeq7Z7/00bF9Aie%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36356 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36365 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752145Ab3KOWYH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 17:24:07 -0500
+	with ESMTP id S1752081Ab3KOWYL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 17:24:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mina86@mina86.com, dave@linux.vnet.ibm.com, minchan@kernel.org
+To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, dave@linux.vnet.ibm.com
 
-Subject: [folded-merged] debugging-keep-track-of-page-owners-fix-2-fix-fix.patch removed from -mm tree
-To: minchan@kernel.org,dave@linux.vnet.ibm.com,mina86@mina86.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch removed from -mm tree
+To: dave@linux.vnet.ibm.com,fengguang.wu@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 15 Nov 2013 14:24:06 -0800
+Date: Fri, 15 Nov 2013 14:24:10 -0800
 
 
 The patch titled
-     Subject: Enhance read_block of page_owner.c
+     Subject: PAGE_OWNER now depends on STACKTRACE_SUPPORT
 has been removed from the -mm tree.  Its filename was
-     debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
+     debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support.patch
 
 This patch was dropped because it was folded into debugging-keep-track-of-page-owners.patch
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: Enhance read_block of page_owner.c
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: PAGE_OWNER now depends on STACKTRACE_SUPPORT
 
-The read_block reads char one by one until meeting two newline.
-It's not good for the performance and current code isn't good shape
-for readability.
+One of the enhancements I made to the PAGE_OWNER code was to make
+it use the generic stack trace support.  However, there are some
+architectures that do not support it, like m68k.  So, make
+PAGE_OWNER also depend on having STACKTRACE_SUPPORT.
 
-This patch enhances speed and clean up.
+This isn't ideal since it restricts the number of places
+PAGE_OWNER runs now, but it at least hits all the major
+architectures.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+tree:   git://git.cmpxchg.org/linux-mmotm.git master
+head:   83b324c5ff5cca85bbeb2ba913d465f108afe472
+commit: 2a561c9d47c295ed91984c2b916a4dd450ee0279 [484/499] debugging-keep-track-of-page-owners-fix
+config: make ARCH=m68k allmodconfig
+
+All warnings:
+
+warning: (PAGE_OWNER && STACK_TRACER && BLK_DEV_IO_TRACE && KMEMCHECK) selects STACKTRACE which has unmet direct dependencies (STACKTRACE_SUPPORT)
+
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/page_owner.c |   35 +++++++++++++----------------------
- 1 file changed, 13 insertions(+), 22 deletions(-)
+ lib/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/page_owner.c~debugging-keep-track-of-page-owners-fix-2-fix-fix Documentation/page_owner.c
---- a/Documentation/page_owner.c~debugging-keep-track-of-page-owners-fix-2-fix-fix
-+++ a/Documentation/page_owner.c
-@@ -28,27 +28,17 @@ static int max_size;
+diff -puN lib/Kconfig.debug~debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support lib/Kconfig.debug
+--- a/lib/Kconfig.debug~debugging-keep-track-of-page-owner-now-depends-on-stacktrace_support
++++ a/lib/Kconfig.debug
+@@ -205,7 +205,7 @@ config UNUSED_SYMBOLS
  
- struct block_list *block_head;
- 
--int read_block(char *buf, FILE *fin)
-+int read_block(char *buf, int buf_size, FILE *fin)
- {
--	int ret = 0;
--	int hit = 0;
--	char *curr = buf;
--
--	for (;;) {
--		int val = getc(fin);
--
--		if (val == EOF)
--			return -1;
--		*curr = val;
--		ret++;
--		if (*curr == '\n' && hit == 1)
--			return ret - 1;
--		else if (*curr == '\n')
--			hit = 1;
--		else
--			hit = 0;
--		curr++;
-+	char *curr = buf, *const buf_end = buf + buf_size;
-+
-+	while (buf_end - curr > 1 && fgets(curr, buf_end - curr, fin)) {
-+		if (*curr == '\n') /* empty line */
-+			return curr - buf;
-+		curr += strlen(curr);
- 	}
-+
-+	return -1; /* EOF or no space left in buf. */
- }
- 
- static int compare_txt(struct block_list *l1, struct block_list *l2)
-@@ -85,10 +75,12 @@ static void add_list(char *buf, int len)
- 	}
- }
- 
-+#define BUF_SIZE	1024
-+
- int main(int argc, char **argv)
- {
- 	FILE *fin, *fout;
--	char buf[1024];
-+	char buf[BUF_SIZE];
- 	int ret, i, count;
- 	struct block_list *list2;
- 	struct stat st;
-@@ -107,11 +99,10 @@ int main(int argc, char **argv)
- 	list = malloc(max_size * sizeof(*list));
- 
- 	for(;;) {
--		ret = read_block(buf, fin);
-+		ret = read_block(buf, BUF_SIZE, fin);
- 		if (ret < 0)
- 			break;
- 
--		buf[ret] = '\0';
- 		add_list(buf, ret);
- 	}
- 
+ config PAGE_OWNER
+ 	bool "Track page owner"
+-	depends on DEBUG_KERNEL
++	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT
+ 	select DEBUG_FS
+ 	select STACKTRACE
+ 	help
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
-origin.patch
-swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-linux-next.patch
 debugging-keep-track-of-page-owners.patch
 
