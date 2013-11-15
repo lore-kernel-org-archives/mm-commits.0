@@ -1,185 +1,43 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
- removed from -mm tree
-Date: Fri, 15 Nov 2013 12:07:17 -0800
-Message-ID: <52867ef5./iRcikYFuIx6rHVN%akpm@linux-foundation.org>
+ mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch removed from -mm tree
+Date: Fri, 15 Nov 2013 12:07:19 -0800
+Message-ID: <52867ef7.DfFFbWhdyYEVAofp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35423 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35446 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751446Ab3KOUHS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 15:07:18 -0500
+	with ESMTP id S1751446Ab3KOUHV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 15:07:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tglx@linutronix.de, srikar@linux.vnet.ibm.com, sedat.dilek@gmail.com, robinmholt@gmail.com, riel@redhat.com, peterz@infradead.org, paulmck@linux.vnet.ibm.com, oleg@redhat.com, n-horiguchi@ah.jp.nec.com, mtk.manpages@gmail.com, mingo@redhat.com, mgorman@suse.de, keescook@chromium.org, hughd@google.com, hannes@cmpxchg.org, fweisbec@gmail.com, ebiederm@xmission.com, dhowells@redhat.com, davej@redhat.com, dave.hansen@intel.com, athorlton@sgi.com, ak@linux.intel.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch removed from -mm tree
+Subject: [merged] mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch removed from -mm tree
 To: kirill.shutemov@linux.intel.com,aarcange@redhat.com,ak@linux.intel.com,athorlton@sgi.com,dave.hansen@intel.com,davej@redhat.com,dhowells@redhat.com,ebiederm@xmission.com,fweisbec@gmail.com,hannes@cmpxchg.org,hughd@google.com,keescook@chromium.org,mgorman@suse.de,mingo@redhat.com,mtk.manpages@gmail.com,n-horiguchi@ah.jp.nec.com,oleg@redhat.com,paulmck@linux.vnet.ibm.com,peterz@infradead.org,riel@redhat.com,robinmholt@gmail.com,sedat.dilek@gmail.com,srikar@linux.vnet.ibm.com,tglx@linutronix.de,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 15 Nov 2013 12:07:16 -0800
+Date: Fri, 15 Nov 2013 12:07:19 -0800
 
 
 The patch titled
-     Subject: mm: avoid increase sizeof(struct page) due to split page table lock
+     Subject: mm: rename USE_SPLIT_PTLOCKS to USE_SPLIT_PTE_PTLOCKS
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock.patch
+     mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: avoid increase sizeof(struct page) due to split page table lock
+Subject: mm: rename USE_SPLIT_PTLOCKS to USE_SPLIT_PTE_PTLOCKS
 
-Alex Thorlton noticed that some massively threaded workloads work poorly,
-if THP enabled.  This patchset fixes this by introducing split page table
-lock for PMD tables.  hugetlbfs is not covered yet.
-
-This patchset is based on work by Naoya Horiguchi.
-
-: akpm result summary:
-: 
-: THP off, v3.12-rc2: 18.059261877 seconds time elapsed
-: THP off, patched:   16.768027318 seconds time elapsed
-: 
-: THP on, v3.12-rc2:  42.162306788 seconds time elapsed
-: THP on, patched:    8.397885779 seconds time elapsed
-: 
-: HUGETLB, v3.12-rc2: 47.574936948 seconds time elapsed
-: HUGETLB, patched:   19.447481153 seconds time elapsed
-
-
-THP off, v3.12-rc2:
--------------------
-
- Performance counter stats for './thp_memscale -c 80 -b 512m' (5 runs):
-
-    1037072.835207 task-clock                #   57.426 CPUs utilized            ( +-  3.59% )
-            95,093 context-switches          #    0.092 K/sec                    ( +-  3.93% )
-               140 cpu-migrations            #    0.000 K/sec                    ( +-  5.28% )
-        10,000,550 page-faults               #    0.010 M/sec                    ( +-  0.00% )
- 2,455,210,400,261 cycles                    #    2.367 GHz                      ( +-  3.62% ) [83.33%]
- 2,429,281,882,056 stalled-cycles-frontend   #   98.94% frontend cycles idle     ( +-  3.67% ) [83.33%]
- 1,975,960,019,659 stalled-cycles-backend    #   80.48% backend  cycles idle     ( +-  3.88% ) [66.68%]
-    46,503,296,013 instructions              #    0.02  insns per cycle
-                                             #   52.24  stalled cycles per insn  ( +-  3.21% ) [83.34%]
-     9,278,997,542 branches                  #    8.947 M/sec                    ( +-  4.00% ) [83.34%]
-        89,881,640 branch-misses             #    0.97% of all branches          ( +-  1.17% ) [83.33%]
-
-      18.059261877 seconds time elapsed                                          ( +-  2.65% )
-
-THP on, v3.12-rc2:
-------------------
-
- Performance counter stats for './thp_memscale -c 80 -b 512m' (5 runs):
-
-    3114745.395974 task-clock                #   73.875 CPUs utilized            ( +-  1.84% )
-           267,356 context-switches          #    0.086 K/sec                    ( +-  1.84% )
-                99 cpu-migrations            #    0.000 K/sec                    ( +-  1.40% )
-            58,313 page-faults               #    0.019 K/sec                    ( +-  0.28% )
- 7,416,635,817,510 cycles                    #    2.381 GHz                      ( +-  1.83% ) [83.33%]
- 7,342,619,196,993 stalled-cycles-frontend   #   99.00% frontend cycles idle     ( +-  1.88% ) [83.33%]
- 6,267,671,641,967 stalled-cycles-backend    #   84.51% backend  cycles idle     ( +-  2.03% ) [66.67%]
-   117,819,935,165 instructions              #    0.02  insns per cycle
-                                             #   62.32  stalled cycles per insn  ( +-  4.39% ) [83.34%]
-    28,899,314,777 branches                  #    9.278 M/sec                    ( +-  4.48% ) [83.34%]
-        71,787,032 branch-misses             #    0.25% of all branches          ( +-  1.03% ) [83.33%]
-
-      42.162306788 seconds time elapsed                                          ( +-  1.73% )
-
-HUGETLB, v3.12-rc2:
--------------------
-
- Performance counter stats for './thp_memscale_hugetlbfs -c 80 -b 512M' (5 runs):
-
-    2588052.787264 task-clock                #   54.400 CPUs utilized            ( +-  3.69% )
-           246,831 context-switches          #    0.095 K/sec                    ( +-  4.15% )
-               138 cpu-migrations            #    0.000 K/sec                    ( +-  5.30% )
-            21,027 page-faults               #    0.008 K/sec                    ( +-  0.01% )
- 6,166,666,307,263 cycles                    #    2.383 GHz                      ( +-  3.68% ) [83.33%]
- 6,086,008,929,407 stalled-cycles-frontend   #   98.69% frontend cycles idle     ( +-  3.77% ) [83.33%]
- 5,087,874,435,481 stalled-cycles-backend    #   82.51% backend  cycles idle     ( +-  4.41% ) [66.67%]
-   133,782,831,249 instructions              #    0.02  insns per cycle
-                                             #   45.49  stalled cycles per insn  ( +-  4.30% ) [83.34%]
-    34,026,870,541 branches                  #   13.148 M/sec                    ( +-  4.24% ) [83.34%]
-        68,670,942 branch-misses             #    0.20% of all branches          ( +-  3.26% ) [83.33%]
-
-      47.574936948 seconds time elapsed                                          ( +-  2.09% )
-
-THP off, patched:
------------------
-
- Performance counter stats for './thp_memscale -c 80 -b 512m' (5 runs):
-
-     943301.957892 task-clock                #   56.256 CPUs utilized            ( +-  3.01% )
-            86,218 context-switches          #    0.091 K/sec                    ( +-  3.17% )
-               121 cpu-migrations            #    0.000 K/sec                    ( +-  6.64% )
-        10,000,551 page-faults               #    0.011 M/sec                    ( +-  0.00% )
- 2,230,462,457,654 cycles                    #    2.365 GHz                      ( +-  3.04% ) [83.32%]
- 2,204,616,385,805 stalled-cycles-frontend   #   98.84% frontend cycles idle     ( +-  3.09% ) [83.32%]
- 1,778,640,046,926 stalled-cycles-backend    #   79.74% backend  cycles idle     ( +-  3.47% ) [66.69%]
-    45,995,472,617 instructions              #    0.02  insns per cycle
-                                             #   47.93  stalled cycles per insn  ( +-  2.51% ) [83.34%]
-     9,179,700,174 branches                  #    9.731 M/sec                    ( +-  3.04% ) [83.35%]
-        89,166,529 branch-misses             #    0.97% of all branches          ( +-  1.45% ) [83.33%]
-
-      16.768027318 seconds time elapsed                                          ( +-  2.47% )
-
-THP on, patched:
-----------------
-
- Performance counter stats for './thp_memscale -c 80 -b 512m' (5 runs):
-
-     458793.837905 task-clock                #   54.632 CPUs utilized            ( +-  0.79% )
-            41,831 context-switches          #    0.091 K/sec                    ( +-  0.97% )
-                98 cpu-migrations            #    0.000 K/sec                    ( +-  1.66% )
-            57,829 page-faults               #    0.126 K/sec                    ( +-  0.62% )
- 1,077,543,336,716 cycles                    #    2.349 GHz                      ( +-  0.81% ) [83.33%]
- 1,067,403,802,964 stalled-cycles-frontend   #   99.06% frontend cycles idle     ( +-  0.87% ) [83.33%]
-   864,764,616,143 stalled-cycles-backend    #   80.25% backend  cycles idle     ( +-  0.73% ) [66.68%]
-    16,129,177,440 instructions              #    0.01  insns per cycle
-                                             #   66.18  stalled cycles per insn  ( +-  7.94% ) [83.35%]
-     3,618,938,569 branches                  #    7.888 M/sec                    ( +-  8.46% ) [83.36%]
-        33,242,032 branch-misses             #    0.92% of all branches          ( +-  2.02% ) [83.32%]
-
-       8.397885779 seconds time elapsed                                          ( +-  0.18% )
-
-HUGETLB, patched:
------------------
-
- Performance counter stats for './thp_memscale_hugetlbfs -c 80 -b 512M' (5 runs):
-
-     395353.076837 task-clock                #   20.329 CPUs utilized            ( +-  8.16% )
-            55,730 context-switches          #    0.141 K/sec                    ( +-  5.31% )
-               138 cpu-migrations            #    0.000 K/sec                    ( +-  4.24% )
-            21,027 page-faults               #    0.053 K/sec                    ( +-  0.00% )
-   930,219,717,244 cycles                    #    2.353 GHz                      ( +-  8.21% ) [83.32%]
-   914,295,694,103 stalled-cycles-frontend   #   98.29% frontend cycles idle     ( +-  8.35% ) [83.33%]
-   704,137,950,187 stalled-cycles-backend    #   75.70% backend  cycles idle     ( +-  9.16% ) [66.69%]
-    30,541,538,385 instructions              #    0.03  insns per cycle
-                                             #   29.94  stalled cycles per insn  ( +-  3.98% ) [83.35%]
-     8,415,376,631 branches                  #   21.286 M/sec                    ( +-  3.61% ) [83.36%]
-        32,645,478 branch-misses             #    0.39% of all branches          ( +-  3.41% ) [83.32%]
-
-      19.447481153 seconds time elapsed                                          ( +-  2.00% )
-
-
-
-This patch (of 11):
-
-CONFIG_GENERIC_LOCKBREAK increases sizeof(spinlock_t) to 8 bytes.  It
-leads to increase sizeof(struct page) by 4 bytes on 32-bit system if split
-page table lock is in use, since page->ptl shares space in union with
-longs and pointers.
-
-Let's disable split page table lock on 32-bit systems with
-GENERIC_LOCKBREAK enabled.
+We're going to introduce split page table lock for PMD level.  Let's
+rename existing split ptlock for PTE level to avoid confusion.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Alex Thorlton <athorlton@sgi.com>
+Tested-by: Alex Thorlton <athorlton@sgi.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: "Eric W . Biederman" <ebiederm@xmission.com>
@@ -206,20 +64,134 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/mm/fault-armv.c |    6 +++---
+ arch/x86/xen/mmu.c       |    6 +++---
+ include/linux/mm.h       |    6 +++---
+ include/linux/mm_types.h |    8 ++++----
+ 4 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN mm/Kconfig~mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock mm/Kconfig
---- a/mm/Kconfig~mm-avoid-increase-sizeofstruct-page-due-to-split-page-table-lock
-+++ a/mm/Kconfig
-@@ -219,6 +219,7 @@ config SPLIT_PTLOCK_CPUS
- 	default "999999" if ARM && !CPU_CACHE_VIPT
- 	default "999999" if PARISC && !PA20
- 	default "999999" if DEBUG_SPINLOCK || DEBUG_LOCK_ALLOC
-+	default "999999" if !64BIT && GENERIC_LOCKBREAK
- 	default "4"
+diff -puN arch/arm/mm/fault-armv.c~mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks arch/arm/mm/fault-armv.c
+--- a/arch/arm/mm/fault-armv.c~mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks
++++ a/arch/arm/mm/fault-armv.c
+@@ -65,7 +65,7 @@ static int do_adjust_pte(struct vm_area_
+ 	return ret;
+ }
  
- #
+-#if USE_SPLIT_PTLOCKS
++#if USE_SPLIT_PTE_PTLOCKS
+ /*
+  * If we are using split PTE locks, then we need to take the page
+  * lock here.  Otherwise we are using shared mm->page_table_lock
+@@ -84,10 +84,10 @@ static inline void do_pte_unlock(spinloc
+ {
+ 	spin_unlock(ptl);
+ }
+-#else /* !USE_SPLIT_PTLOCKS */
++#else /* !USE_SPLIT_PTE_PTLOCKS */
+ static inline void do_pte_lock(spinlock_t *ptl) {}
+ static inline void do_pte_unlock(spinlock_t *ptl) {}
+-#endif /* USE_SPLIT_PTLOCKS */
++#endif /* USE_SPLIT_PTE_PTLOCKS */
+ 
+ static int adjust_pte(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned long pfn)
+diff -puN arch/x86/xen/mmu.c~mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks arch/x86/xen/mmu.c
+--- a/arch/x86/xen/mmu.c~mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks
++++ a/arch/x86/xen/mmu.c
+@@ -796,7 +796,7 @@ static spinlock_t *xen_pte_lock(struct p
+ {
+ 	spinlock_t *ptl = NULL;
+ 
+-#if USE_SPLIT_PTLOCKS
++#if USE_SPLIT_PTE_PTLOCKS
+ 	ptl = __pte_lockptr(page);
+ 	spin_lock_nest_lock(ptl, &mm->page_table_lock);
+ #endif
+@@ -1637,7 +1637,7 @@ static inline void xen_alloc_ptpage(stru
+ 
+ 			__set_pfn_prot(pfn, PAGE_KERNEL_RO);
+ 
+-			if (level == PT_PTE && USE_SPLIT_PTLOCKS)
++			if (level == PT_PTE && USE_SPLIT_PTE_PTLOCKS)
+ 				__pin_pagetable_pfn(MMUEXT_PIN_L1_TABLE, pfn);
+ 
+ 			xen_mc_issue(PARAVIRT_LAZY_MMU);
+@@ -1671,7 +1671,7 @@ static inline void xen_release_ptpage(un
+ 		if (!PageHighMem(page)) {
+ 			xen_mc_batch();
+ 
+-			if (level == PT_PTE && USE_SPLIT_PTLOCKS)
++			if (level == PT_PTE && USE_SPLIT_PTE_PTLOCKS)
+ 				__pin_pagetable_pfn(MMUEXT_UNPIN_TABLE, pfn);
+ 
+ 			__set_pfn_prot(pfn, PAGE_KERNEL);
+diff -puN include/linux/mm.h~mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks include/linux/mm.h
+--- a/include/linux/mm.h~mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks
++++ a/include/linux/mm.h
+@@ -1316,7 +1316,7 @@ static inline pmd_t *pmd_alloc(struct mm
+ }
+ #endif /* CONFIG_MMU && !__ARCH_HAS_4LEVEL_HACK */
+ 
+-#if USE_SPLIT_PTLOCKS
++#if USE_SPLIT_PTE_PTLOCKS
+ /*
+  * We tuck a spinlock to guard each pagetable page into its struct page,
+  * at page->private, with BUILD_BUG_ON to make sure that this will not
+@@ -1329,14 +1329,14 @@ static inline pmd_t *pmd_alloc(struct mm
+ } while (0)
+ #define pte_lock_deinit(page)	((page)->mapping = NULL)
+ #define pte_lockptr(mm, pmd)	({(void)(mm); __pte_lockptr(pmd_page(*(pmd)));})
+-#else	/* !USE_SPLIT_PTLOCKS */
++#else	/* !USE_SPLIT_PTE_PTLOCKS */
+ /*
+  * We use mm->page_table_lock to guard all pagetable pages of the mm.
+  */
+ #define pte_lock_init(page)	do {} while (0)
+ #define pte_lock_deinit(page)	do {} while (0)
+ #define pte_lockptr(mm, pmd)	({(void)(pmd); &(mm)->page_table_lock;})
+-#endif /* USE_SPLIT_PTLOCKS */
++#endif /* USE_SPLIT_PTE_PTLOCKS */
+ 
+ static inline void pgtable_page_ctor(struct page *page)
+ {
+diff -puN include/linux/mm_types.h~mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-rename-use_split_ptlocks-to-use_split_pte_ptlocks
++++ a/include/linux/mm_types.h
+@@ -23,7 +23,7 @@
+ 
+ struct address_space;
+ 
+-#define USE_SPLIT_PTLOCKS	(NR_CPUS >= CONFIG_SPLIT_PTLOCK_CPUS)
++#define USE_SPLIT_PTE_PTLOCKS	(NR_CPUS >= CONFIG_SPLIT_PTLOCK_CPUS)
+ 
+ /*
+  * Each physical page in the system has a struct page associated with
+@@ -141,7 +141,7 @@ struct page {
+ 						 * indicates order in the buddy
+ 						 * system if PG_buddy is set.
+ 						 */
+-#if USE_SPLIT_PTLOCKS
++#if USE_SPLIT_PTE_PTLOCKS
+ 		spinlock_t ptl;
+ #endif
+ 		struct kmem_cache *slab_cache;	/* SL[AU]B: Pointer to slab */
+@@ -309,14 +309,14 @@ enum {
+ 	NR_MM_COUNTERS
+ };
+ 
+-#if USE_SPLIT_PTLOCKS && defined(CONFIG_MMU)
++#if USE_SPLIT_PTE_PTLOCKS && defined(CONFIG_MMU)
+ #define SPLIT_RSS_COUNTING
+ /* per-thread cached information, */
+ struct task_rss_stat {
+ 	int events;	/* for synchronization threshold */
+ 	int count[NR_MM_COUNTERS];
+ };
+-#endif /* USE_SPLIT_PTLOCKS */
++#endif /* USE_SPLIT_PTE_PTLOCKS */
+ 
+ struct mm_rss_stat {
+ 	atomic_long_t count[NR_MM_COUNTERS];
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
