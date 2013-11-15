@@ -1,127 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-create-a-separate-slab-for-page-ptl-allocation.patch
+Subject: [merged] seq_file-introduce-seq_setwidth-and-seq_pad.patch
  removed from -mm tree
-Date: Fri, 15 Nov 2013 12:08:52 -0800
-Message-ID: <52867f54.wP7vTTR52MDnAZ1S%akpm@linux-foundation.org>
+Date: Fri, 15 Nov 2013 12:08:55 -0800
+Message-ID: <52867f57.ZhZx5B+85g94+r8r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35751 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35758 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753233Ab3KOUIx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 15:08:53 -0500
+	with ESMTP id S1753233Ab3KOUI4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 15:08:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peterz@infradead.org, mingo@elte.hu, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, keescook@chromium.org, joe@perches.com, davem@davemloft.net, penguin-kernel@I-love.SAKURA.ne.jp
 
-Subject: [merged] mm-create-a-separate-slab-for-page-ptl-allocation.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,mingo@elte.hu,peterz@infradead.org,mm-commits@vger.kernel.org
+Subject: [merged] seq_file-introduce-seq_setwidth-and-seq_pad.patch removed from -mm tree
+To: penguin-kernel@I-love.SAKURA.ne.jp,davem@davemloft.net,joe@perches.com,keescook@chromium.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 15 Nov 2013 12:08:52 -0800
+Date: Fri, 15 Nov 2013 12:08:55 -0800
 
 
 The patch titled
-     Subject: mm: create a separate slab for page->ptl allocation
+     Subject: seq_file: introduce seq_setwidth() and seq_pad()
 has been removed from the -mm tree.  Its filename was
-     mm-create-a-separate-slab-for-page-ptl-allocation.patch
+     seq_file-introduce-seq_setwidth-and-seq_pad.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: create a separate slab for page->ptl allocation
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: seq_file: introduce seq_setwidth() and seq_pad()
 
-If DEBUG_SPINLOCK and DEBUG_LOCK_ALLOC are enabled spinlock_t on x86_64 is
-72 bytes.  For page->ptl they will be allocated from kmalloc-96 slab, so
-we loose 24 on each.  An average system can easily allocate few tens
-thousands of page->ptl and overhead is significant.
+There are several users who want to know bytes written by seq_*() for
+alignment purpose.  Currently they are using %n format for knowing it
+because seq_*() returns 0 on success.
 
-Let's create a separate slab for page->ptl allocation to solve this.
+This patch introduces seq_setwidth() and seq_pad() for allowing them to
+align without using %n format.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    9 +++++++++
- init/main.c        |    2 +-
- mm/memory.c        |    7 +++++++
- 3 files changed, 17 insertions(+), 1 deletion(-)
+ fs/seq_file.c            |   15 +++++++++++++++
+ include/linux/seq_file.h |   15 +++++++++++++++
+ 2 files changed, 30 insertions(+)
 
-diff -puN include/linux/mm.h~mm-create-a-separate-slab-for-page-ptl-allocation include/linux/mm.h
---- a/include/linux/mm.h~mm-create-a-separate-slab-for-page-ptl-allocation
-+++ a/include/linux/mm.h
-@@ -1318,6 +1318,7 @@ static inline pmd_t *pmd_alloc(struct mm
- 
- #if USE_SPLIT_PTE_PTLOCKS
- #if BLOATED_SPINLOCKS
-+void __init ptlock_cache_init(void);
- extern bool ptlock_alloc(struct page *page);
- extern void ptlock_free(struct page *page);
- 
-@@ -1326,6 +1327,7 @@ static inline spinlock_t *ptlock_ptr(str
- 	return page->ptl;
+diff -puN fs/seq_file.c~seq_file-introduce-seq_setwidth-and-seq_pad fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-introduce-seq_setwidth-and-seq_pad
++++ a/fs/seq_file.c
+@@ -766,6 +766,21 @@ int seq_write(struct seq_file *seq, cons
  }
- #else /* BLOATED_SPINLOCKS */
-+static inline void ptlock_cache_init(void) {}
- static inline bool ptlock_alloc(struct page *page)
- {
- 	return true;
-@@ -1378,10 +1380,17 @@ static inline spinlock_t *pte_lockptr(st
- {
- 	return &mm->page_table_lock;
- }
-+static inline void ptlock_cache_init(void) {}
- static inline bool ptlock_init(struct page *page) { return true; }
- static inline void pte_lock_deinit(struct page *page) {}
- #endif /* USE_SPLIT_PTE_PTLOCKS */
+ EXPORT_SYMBOL(seq_write);
  
-+static inline void pgtable_init(void)
++/**
++ * seq_pad - write padding spaces to buffer
++ * @m: seq_file identifying the buffer to which data should be written
++ * @c: the byte to append after padding if non-zero
++ */
++void seq_pad(struct seq_file *m, char c)
 +{
-+	ptlock_cache_init();
-+	pgtable_cache_init();
++	int size = m->pad_until - m->count;
++	if (size > 0)
++		seq_printf(m, "%*s", size, "");
++	if (c)
++		seq_putc(m, c);
 +}
++EXPORT_SYMBOL(seq_pad);
 +
- static inline bool pgtable_page_ctor(struct page *page)
+ struct list_head *seq_list_start(struct list_head *head, loff_t pos)
  {
- 	inc_zone_page_state(page, NR_PAGETABLE);
-diff -puN init/main.c~mm-create-a-separate-slab-for-page-ptl-allocation init/main.c
---- a/init/main.c~mm-create-a-separate-slab-for-page-ptl-allocation
-+++ a/init/main.c
-@@ -473,7 +473,7 @@ static void __init mm_init(void)
- 	mem_init();
- 	kmem_cache_init();
- 	percpu_init_late();
--	pgtable_cache_init();
-+	pgtable_init();
- 	vmalloc_init();
+ 	struct list_head *lh;
+diff -puN include/linux/seq_file.h~seq_file-introduce-seq_setwidth-and-seq_pad include/linux/seq_file.h
+--- a/include/linux/seq_file.h~seq_file-introduce-seq_setwidth-and-seq_pad
++++ a/include/linux/seq_file.h
+@@ -20,6 +20,7 @@ struct seq_file {
+ 	size_t size;
+ 	size_t from;
+ 	size_t count;
++	size_t pad_until;
+ 	loff_t index;
+ 	loff_t read_pos;
+ 	u64 version;
+@@ -79,6 +80,20 @@ static inline void seq_commit(struct seq
+ 	}
  }
  
-diff -puN mm/memory.c~mm-create-a-separate-slab-for-page-ptl-allocation mm/memory.c
---- a/mm/memory.c~mm-create-a-separate-slab-for-page-ptl-allocation
-+++ a/mm/memory.c
-@@ -4272,6 +4272,13 @@ void copy_user_huge_page(struct page *ds
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
- 
- #if USE_SPLIT_PTE_PTLOCKS && BLOATED_SPINLOCKS
-+static struct kmem_cache *page_ptl_cachep;
-+void __init ptlock_cache_init(void)
++/**
++ * seq_setwidth - set padding width
++ * @m: the seq_file handle
++ * @size: the max number of bytes to pad.
++ *
++ * Call seq_setwidth() for setting max width, then call seq_printf() etc. and
++ * finally call seq_pad() to pad the remaining bytes.
++ */
++static inline void seq_setwidth(struct seq_file *m, size_t size)
 +{
-+	page_ptl_cachep = kmem_cache_create("page->ptl", sizeof(spinlock_t), 0,
-+			SLAB_PANIC, NULL);
++	m->pad_until = m->count + size;
 +}
++void seq_pad(struct seq_file *m, char c);
 +
- bool ptlock_alloc(struct page *page)
- {
- 	spinlock_t *ptl;
+ char *mangle_path(char *s, const char *p, const char *esc);
+ int seq_open(struct file *, const struct seq_operations *);
+ ssize_t seq_read(struct file *, char __user *, size_t, loff_t *);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
 origin.patch
-x86-mm-get-aslr-work-for-hugetlb-mappings.patch
-mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+linux-next.patch
 
