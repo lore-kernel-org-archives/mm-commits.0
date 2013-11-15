@@ -1,67 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tile-handle-pgtable_page_ctor-fail.patch removed from
- -mm tree
-Date: Fri, 15 Nov 2013 12:08:34 -0800
-Message-ID: <52867f42.ZKS7ziZoBjtAPC9f%akpm@linux-foundation.org>
+Subject: [merged] sh-handle-pgtable_page_ctor-fail.patch removed from -mm
+ tree
+Date: Fri, 15 Nov 2013 12:08:30 -0800
+Message-ID: <52867f3e.MEPy7P4MTMfBYS9X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35713 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35716 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753058Ab3KOUIe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 15:08:34 -0500
+	with ESMTP id S1753058Ab3KOUIf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 15:08:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, cmetcalf@tilera.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, lethal@linux-sh.org, kirill.shutemov@linux.intel.com
 
-Subject: [merged] tile-handle-pgtable_page_ctor-fail.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,cmetcalf@tilera.com,mm-commits@vger.kernel.org
+Subject: [merged] sh-handle-pgtable_page_ctor-fail.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,lethal@linux-sh.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 15 Nov 2013 12:08:34 -0800
+Date: Fri, 15 Nov 2013 12:08:30 -0800
 
 
 The patch titled
-     Subject: tile: handle pgtable_page_ctor() fail
+     Subject: sh: handle pgtable_page_ctor() fail
 has been removed from the -mm tree.  Its filename was
-     tile-handle-pgtable_page_ctor-fail.patch
+     sh-handle-pgtable_page_ctor-fail.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: tile: handle pgtable_page_ctor() fail
+Subject: sh: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/mm/pgtable.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/sh/include/asm/pgalloc.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/tile/mm/pgtable.c~tile-handle-pgtable_page_ctor-fail arch/tile/mm/pgtable.c
---- a/arch/tile/mm/pgtable.c~tile-handle-pgtable_page_ctor-fail
-+++ a/arch/tile/mm/pgtable.c
-@@ -241,6 +241,11 @@ struct page *pgtable_alloc_one(struct mm
- 	if (p == NULL)
+diff -puN arch/sh/include/asm/pgalloc.h~sh-handle-pgtable_page_ctor-fail arch/sh/include/asm/pgalloc.h
+--- a/arch/sh/include/asm/pgalloc.h~sh-handle-pgtable_page_ctor-fail
++++ a/arch/sh/include/asm/pgalloc.h
+@@ -47,7 +47,10 @@ static inline pgtable_t pte_alloc_one(st
+ 	if (!pg)
  		return NULL;
- 
-+	if (!pgtable_page_ctor(p)) {
-+		__free_pages(p, L2_USER_PGTABLE_ORDER);
+ 	page = virt_to_page(pg);
+-	pgtable_page_ctor(page);
++	if (!pgtable_page_ctor(page)) {
++		quicklist_free(QUICK_PT, NULL, pg);
 +		return NULL;
 +	}
-+
- 	/*
- 	 * Make every page have a page_count() of one, not just the first.
- 	 * We don't use __GFP_COMP since it doesn't look like it works
-@@ -251,7 +256,6 @@ struct page *pgtable_alloc_one(struct mm
- 		inc_zone_page_state(p+i, NR_PAGETABLE);
- 	}
- 
--	pgtable_page_ctor(p);
- 	return p;
+ 	return page;
  }
  
 _
