@@ -1,77 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- drivers-rtc-rtc-hid-sensor-timec-use-dev_get_platdata.patch removed from
- -mm tree
-Date: Fri, 15 Nov 2013 12:09:01 -0800
-Message-ID: <52867f5d.VpUFywnIerxBkkXg%akpm@linux-foundation.org>
+ drivers-rtc-rtc-hid-sensor-timec-enable-hid-input-processing-early.patch
+ removed from -mm tree
+Date: Fri, 15 Nov 2013 12:09:03 -0800
+Message-ID: <52867f5f.WxAa1C4sWoHb4WGS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35774 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753233Ab3KOUJC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 15:09:02 -0500
+	with ESMTP id S1753233Ab3KOUJD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 15:09:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, holler@ahsoftware.de
 
-Subject: [merged] drivers-rtc-rtc-hid-sensor-timec-use-dev_get_platdata.patch removed from -mm tree
-To: jg1.han@samsung.com,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-hid-sensor-timec-enable-hid-input-processing-early.patch removed from -mm tree
+To: holler@ahsoftware.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 15 Nov 2013 12:09:01 -0800
+Date: Fri, 15 Nov 2013 12:09:03 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-hid-sensor-time.c: use dev_get_platdata()
+     Subject: drivers/rtc/rtc-hid-sensor-time.c: enable HID input processing early
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-hid-sensor-timec-use-dev_get_platdata.patch
+     drivers-rtc-rtc-hid-sensor-timec-enable-hid-input-processing-early.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-hid-sensor-time.c: use dev_get_platdata()
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: drivers/rtc/rtc-hid-sensor-time.c: enable HID input processing early
 
-Use the wrapper function for retrieving the platform data instead of
-accessing dev->platform_data directly.  This is a cosmetic change to make
-the code simpler and enhance the readability.
+Enable the processing of HID input records before the RTC will be
+registered, in order to allow the RTC register function to read clock. 
+Without doing that the clock can only be read after the probe function has
+finished.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Alexander Holler <holler@ahsoftware.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hid-sensor-time.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-hid-sensor-time.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/rtc/rtc-hid-sensor-time.c~drivers-rtc-rtc-hid-sensor-timec-use-dev_get_platdata drivers/rtc/rtc-hid-sensor-time.c
---- a/drivers/rtc/rtc-hid-sensor-time.c~drivers-rtc-rtc-hid-sensor-timec-use-dev_get_platdata
+diff -puN drivers/rtc/rtc-hid-sensor-time.c~drivers-rtc-rtc-hid-sensor-timec-enable-hid-input-processing-early drivers/rtc/rtc-hid-sensor-time.c
+--- a/drivers/rtc/rtc-hid-sensor-time.c~drivers-rtc-rtc-hid-sensor-timec-enable-hid-input-processing-early
 +++ a/drivers/rtc/rtc-hid-sensor-time.c
-@@ -236,7 +236,7 @@ static const struct rtc_class_ops hid_ti
- static int hid_time_probe(struct platform_device *pdev)
- {
- 	int ret = 0;
--	struct hid_sensor_hub_device *hsdev = pdev->dev.platform_data;
-+	struct hid_sensor_hub_device *hsdev = dev_get_platdata(&pdev->dev);
- 	struct hid_time_state *time_state = devm_kzalloc(&pdev->dev,
- 		sizeof(struct hid_time_state), GFP_KERNEL);
+@@ -281,11 +281,18 @@ static int hid_time_probe(struct platfor
+ 		goto err_open;
+ 	}
  
-@@ -303,7 +303,7 @@ err_open:
++	/*
++	 * Enable HID input processing early in order to be able to read the
++	 * clock already in devm_rtc_device_register().
++	 */
++	hid_device_io_start(hsdev->hdev);
++
+ 	time_state->rtc = devm_rtc_device_register(&pdev->dev,
+ 					"hid-sensor-time", &hid_time_rtc_ops,
+ 					THIS_MODULE);
  
- static int hid_time_remove(struct platform_device *pdev)
- {
--	struct hid_sensor_hub_device *hsdev = pdev->dev.platform_data;
-+	struct hid_sensor_hub_device *hsdev = dev_get_platdata(&pdev->dev);
- 
- 	sensor_hub_device_close(hsdev);
- 	sensor_hub_remove_callback(hsdev, HID_USAGE_SENSOR_TIME);
+ 	if (IS_ERR_OR_NULL(time_state->rtc)) {
++		hid_device_io_stop(hsdev->hdev);
+ 		ret = time_state->rtc ? PTR_ERR(time_state->rtc) : -ENODEV;
+ 		time_state->rtc = NULL;
+ 		dev_err(&pdev->dev, "rtc device register failed!\n");
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from holler@ahsoftware.de are
 
 origin.patch
-drivers-block-sx8c-use-module_pci_driver.patch
-drivers-block-sx8c-remove-unnecessary-pci_set_drvdata.patch
 linux-next.patch
 
