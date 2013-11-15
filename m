@@ -1,65 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mips-handle-pgtable_page_ctor-fail.patch removed from
+Subject: [merged] parisc-handle-pgtable_page_ctor-fail.patch removed from
  -mm tree
-Date: Fri, 15 Nov 2013 12:08:20 -0800
-Message-ID: <52867f34.59pEN1C/hnpUjfZ2%akpm@linux-foundation.org>
+Date: Fri, 15 Nov 2013 12:08:22 -0800
+Message-ID: <52867f36.gPqddyTcgI865OUX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35693 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35697 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753070Ab3KOUIU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 15:08:20 -0500
+	with ESMTP id S1753024Ab3KOUIW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 15:08:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ralf@linux-mips.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, jejb@parisc-linux.org, deller@gmx.de, kirill.shutemov@linux.intel.com
 
-Subject: [merged] mips-handle-pgtable_page_ctor-fail.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,ralf@linux-mips.org,mm-commits@vger.kernel.org
+Subject: [merged] parisc-handle-pgtable_page_ctor-fail.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,deller@gmx.de,jejb@parisc-linux.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 15 Nov 2013 12:08:20 -0800
+Date: Fri, 15 Nov 2013 12:08:22 -0800
 
 
 The patch titled
-     Subject: mips: handle pgtable_page_ctor() fail
+     Subject: parisc: handle pgtable_page_ctor() fail
 has been removed from the -mm tree.  Its filename was
-     mips-handle-pgtable_page_ctor-fail.patch
+     parisc-handle-pgtable_page_ctor-fail.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mips: handle pgtable_page_ctor() fail
+Subject: parisc: handle pgtable_page_ctor() fail
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgalloc.h |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/parisc/include/asm/pgalloc.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/include/asm/pgalloc.h~mips-handle-pgtable_page_ctor-fail arch/mips/include/asm/pgalloc.h
---- a/arch/mips/include/asm/pgalloc.h~mips-handle-pgtable_page_ctor-fail
-+++ a/arch/mips/include/asm/pgalloc.h
-@@ -80,9 +80,12 @@ static inline struct page *pte_alloc_one
- 	struct page *pte;
- 
- 	pte = alloc_pages(GFP_KERNEL | __GFP_REPEAT, PTE_ORDER);
--	if (pte) {
--		clear_highpage(pte);
--		pgtable_page_ctor(pte);
-+	if (!pte)
+diff -puN arch/parisc/include/asm/pgalloc.h~parisc-handle-pgtable_page_ctor-fail arch/parisc/include/asm/pgalloc.h
+--- a/arch/parisc/include/asm/pgalloc.h~parisc-handle-pgtable_page_ctor-fail
++++ a/arch/parisc/include/asm/pgalloc.h
+@@ -121,8 +121,12 @@ static inline pgtable_t
+ pte_alloc_one(struct mm_struct *mm, unsigned long address)
+ {
+ 	struct page *page = alloc_page(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO);
+-	if (page)
+-		pgtable_page_ctor(page);
++	if (!page)
 +		return NULL;
-+	clear_highpage(pte);
-+	if (!pgtable_page_ctor(pte)) {
-+		__free_page(pte);
++	if (!pgtable_page_ctor(page)) {
++		__free_page(page);
 +		return NULL;
- 	}
- 	return pte;
++	}
+ 	return page;
  }
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
