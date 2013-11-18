@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + cmdline-fix-style-issues.patch added to -mm tree
-Date: Mon, 18 Nov 2013 15:47:40 -0800
-Message-ID: <528aa71c.bOfgDX72n6K1TmpM%akpm@linux-foundation.org>
+Subject: + lib-cmdlinec-declare-exported-symbols-immediately.patch added
+ to -mm tree
+Date: Mon, 18 Nov 2013 15:48:55 -0800
+Message-ID: <528aa767.8odNICn1nkQlEc5V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59476 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751421Ab3KRXrl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 18:47:41 -0500
+	with ESMTP id S1751665Ab3KRXs4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 18:48:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, felipe.contreras@gmail.com
+To: mm-commits@vger.kernel.org, levex@linux.com, felipe.contreras@gmail.com
 
-Subject: + cmdline-fix-style-issues.patch added to -mm tree
-To: felipe.contreras@gmail.com
+Subject: + lib-cmdlinec-declare-exported-symbols-immediately.patch added to -mm tree
+To: felipe.contreras@gmail.com,levex@linux.com
 From: akpm@linux-foundation.org
-Date: Mon, 18 Nov 2013 15:47:40 -0800
+Date: Mon, 18 Nov 2013 15:48:55 -0800
 
 
 The patch titled
-     Subject: lib/cmdline.c: fix style issues
+     Subject: lib/cmdline.c: declare exported symbols immediately
 has been added to the -mm tree.  Its filename is
-     cmdline-fix-style-issues.patch
+     lib-cmdlinec-declare-exported-symbols-immediately.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cmdline-fix-style-issues.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-cmdlinec-declare-exported-symbols-immediately.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cmdline-fix-style-issues.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-cmdlinec-declare-exported-symbols-immediately.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,66 +45,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: lib/cmdline.c: fix style issues
+Subject: lib/cmdline.c: declare exported symbols immediately
 
-WARNING: space prohibited between function name and open parenthesis '('
-+int get_option (char **str, int *pint)
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
++EXPORT_SYMBOL(memparse);
 
-WARNING: space prohibited between function name and open parenthesis '('
-+	*pint = simple_strtol (cur, str, 0);
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
++EXPORT_SYMBOL(get_option);
 
-ERROR: trailing whitespace
-+ $
-
-WARNING: please, no spaces at the start of a line
-+ $
-
-WARNING: space prohibited between function name and open parenthesis '('
-+		res = get_option ((char **)&str, ints + i);
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
++EXPORT_SYMBOL(get_options);
 
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Levente Kurusa <levex@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ lib/cmdline.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN lib/cmdline.c~cmdline-fix-style-issues lib/cmdline.c
---- a/lib/cmdline.c~cmdline-fix-style-issues
+diff -puN lib/cmdline.c~lib-cmdlinec-declare-exported-symbols-immediately lib/cmdline.c
+--- a/lib/cmdline.c~lib-cmdlinec-declare-exported-symbols-immediately
 +++ a/lib/cmdline.c
-@@ -49,13 +49,13 @@ static int get_range(char **str, int *pi
-  *	3 - hyphen found to denote a range
-  */
+@@ -67,6 +67,7 @@ int get_option(char **str, int *pint)
  
--int get_option (char **str, int *pint)
-+int get_option(char **str, int *pint)
- {
- 	char *cur = *str;
+ 	return 1;
+ }
++EXPORT_SYMBOL(get_option);
  
- 	if (!cur || !(*cur))
- 		return 0;
--	*pint = simple_strtol (cur, str, 0);
-+	*pint = simple_strtol(cur, str, 0);
- 	if (cur == *str)
- 		return 0;
- 	if (**str == ',') {
-@@ -84,13 +84,13 @@ int get_option (char **str, int *pint)
-  *	the parse to end (typically a null terminator, if @str is
-  *	completely parseable).
-  */
-- 
-+
- char *get_options(const char *str, int nints, int *ints)
- {
- 	int res, i = 1;
+ /**
+  *	get_options - Parse a string into a list of integers
+@@ -112,6 +113,7 @@ char *get_options(const char *str, int n
+ 	ints[0] = i - 1;
+ 	return (char *)str;
+ }
++EXPORT_SYMBOL(get_options);
  
- 	while (i < nints) {
--		res = get_option ((char **)&str, ints + i);
-+		res = get_option((char **)&str, ints + i);
- 		if (res == 0)
- 			break;
- 		if (res == 3) {
-@@ -153,7 +153,6 @@ unsigned long long memparse(const char *
+ /**
+  *	memparse - parse a string with mem suffixes into a number
+@@ -152,7 +154,4 @@ unsigned long long memparse(const char *
+ 
  	return ret;
  }
- 
