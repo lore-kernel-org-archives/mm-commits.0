@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch added
- to -mm tree
-Date: Mon, 18 Nov 2013 13:26:38 -0800
-Message-ID: <528a860e.JqjUtpuXsJuesk3c%akpm@linux-foundation.org>
+ mm-memcg-add-memoryoom_control-notification-for-system-oom.patch added to
+ -mm tree
+Date: Mon, 18 Nov 2013 13:42:46 -0800
+Message-ID: <528a89d6.obDK6YUZ1HDgvYDt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751286Ab3KRV0j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 16:26:39 -0500
+	with ESMTP id S1751521Ab3KRVmr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 16:42:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, dave.hansen@linux.intel.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, rientjes@google.com
 
-Subject: + mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch added to -mm tree
-To: dave.hansen@linux.intel.com,n-horiguchi@ah.jp.nec.com
+Subject: + mm-memcg-add-memoryoom_control-notification-for-system-oom.patch added to -mm tree
+To: rientjes@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 18 Nov 2013 13:26:38 -0800
+Date: Mon, 18 Nov 2013 13:42:46 -0800
 
 
 The patch titled
-     Subject: mm: hugetlbfs: Add some VM_BUG_ON()s to catch non-hugetlbfs pages
+     Subject: mm, memcg: add memory.oom_control notification for system oom
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
+     mm-memcg-add-memoryoom_control-notification-for-system-oom.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-add-memoryoom_control-notification-for-system-oom.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-add-memoryoom_control-notification-for-system-oom.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,54 +45,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm: hugetlbfs: Add some VM_BUG_ON()s to catch non-hugetlbfs pages
+From: David Rientjes <rientjes@google.com>
+Subject: mm, memcg: add memory.oom_control notification for system oom
 
-Dave Jiang reported that he was seeing oopses when running NUMA systems
-and default_hugepagesz=1G.  I traced the issue down to migrate_page_copy()
-trying to use the same code for hugetlb pages and transparent hugepages. 
-It should not have been trying to pass thp pages in there.
+A subset of applications that wait on memory.oom_control don't disable the
+oom killer for that memcg and simply log or cleanup after the kernel oom
+killer kills a process to free memory.
 
-So, add some VM_BUG_ON()s for the next hapless VM developer that tries the
-same thing.
+We need the ability to do this for system oom conditions as well, i.e. 
+when the system is depleted of all memory and must kill a process.  For
+convenience, this can use memcg since oom notifiers are already present.
 
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+When a userspace process waits on the root memcg's memory.oom_control, it
+will wake up anytime there is a system oom condition so that it can log
+the event, including what process was killed and the stack, or cleanup
+after the kernel oom killer has killed something.
+
+This is a special case of oom notifiers since it doesn't subsequently
+notify all memcgs under the root memcg (all memcgs on the system).  We
+don't want to trigger those oom handlers which are set aside specifically
+for true memcg oom notifications that disable their own oom killers to
+enforce their own oom policy, for example.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- mm/hugetlb.c            |    1 +
- 2 files changed, 2 insertions(+)
+ Documentation/cgroups/memory.txt |   11 ++++++-----
+ include/linux/memcontrol.h       |    5 +++++
+ mm/memcontrol.c                  |    9 +++++++++
+ mm/oom_kill.c                    |    4 ++++
+ 4 files changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages
-+++ a/include/linux/hugetlb.h
-@@ -355,6 +355,7 @@ static inline pte_t arch_make_huge_pte(p
+diff -puN Documentation/cgroups/memory.txt~mm-memcg-add-memoryoom_control-notification-for-system-oom Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~mm-memcg-add-memoryoom_control-notification-for-system-oom
++++ a/Documentation/cgroups/memory.txt
+@@ -743,18 +743,19 @@ delivery and gets notification when OOM
  
- static inline struct hstate *page_hstate(struct page *page)
- {
-+	VM_BUG_ON(!PageHuge(page));
- 	return size_to_hstate(PAGE_SIZE << compound_order(page));
+ To register a notifier, an application must:
+  - create an eventfd using eventfd(2)
+- - open memory.oom_control file
++ - open memory.oom_control file for reading
+  - write string like "<event_fd> <fd of memory.oom_control>" to
+    cgroup.event_control
+ 
+-The application will be notified through eventfd when OOM happens.
+-OOM notification doesn't work for the root cgroup.
++The application will be notified through eventfd when OOM happens, including
++on system oom when used with the root memcg.
+ 
+ You can disable the OOM-killer by writing "1" to memory.oom_control file, as:
+ 
+-	#echo 1 > memory.oom_control
++	# echo 1 > memory.oom_control
+ 
+-This operation is only allowed to the top cgroup of a sub-hierarchy.
++This operation is only allowed to the top cgroup of a sub-hierarchy and does
++not include the root memcg.
+ If OOM-killer is disabled, tasks under cgroup will hang/sleep
+ in memory cgroup's OOM-waitqueue when they request accountable memory.
+ 
+diff -puN include/linux/memcontrol.h~mm-memcg-add-memoryoom_control-notification-for-system-oom include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcg-add-memoryoom_control-notification-for-system-oom
++++ a/include/linux/memcontrol.h
+@@ -155,6 +155,7 @@ static inline bool task_in_memcg_oom(str
  }
  
-diff -puN mm/hugetlb.c~mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages
-+++ a/mm/hugetlb.c
-@@ -498,6 +498,7 @@ void copy_huge_page(struct page *dst, st
- 	int i;
- 	struct hstate *h = page_hstate(src);
+ bool mem_cgroup_oom_synchronize(bool wait);
++void mem_cgroup_root_oom_notify(void);
  
-+	VM_BUG_ON(!h);
- 	if (unlikely(pages_per_huge_page(h) > MAX_ORDER_NR_PAGES)) {
- 		copy_gigantic_page(dst, src);
+ #ifdef CONFIG_MEMCG_SWAP
+ extern int do_swap_account;
+@@ -397,6 +398,10 @@ static inline bool mem_cgroup_oom_synchr
+ 	return false;
+ }
+ 
++static inline void mem_cgroup_root_oom_notify(void)
++{
++}
++
+ static inline void mem_cgroup_inc_page_stat(struct page *page,
+ 					    enum mem_cgroup_stat_index idx)
+ {
+diff -puN mm/memcontrol.c~mm-memcg-add-memoryoom_control-notification-for-system-oom mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-add-memoryoom_control-notification-for-system-oom
++++ a/mm/memcontrol.c
+@@ -5648,6 +5648,15 @@ static void mem_cgroup_oom_notify(struct
+ 		mem_cgroup_oom_notify_cb(iter);
+ }
+ 
++/*
++ * Notify any process waiting on the root memcg's memory.oom_control, but do not
++ * notify any child memcgs to avoid triggering their per-memcg oom handlers.
++ */
++void mem_cgroup_root_oom_notify(void)
++{
++	mem_cgroup_oom_notify_cb(root_mem_cgroup);
++}
++
+ static int mem_cgroup_usage_register_event(struct cgroup_subsys_state *css,
+ 	struct cftype *cft, struct eventfd_ctx *eventfd, const char *args)
+ {
+diff -puN mm/oom_kill.c~mm-memcg-add-memoryoom_control-notification-for-system-oom mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-memcg-add-memoryoom_control-notification-for-system-oom
++++ a/mm/oom_kill.c
+@@ -632,6 +632,10 @@ void out_of_memory(struct zonelist *zone
  		return;
+ 	}
+ 
++	/* Avoid waking up processes for oom kills triggered by sysrq */
++	if (!force_kill)
++		mem_cgroup_root_oom_notify();
++
+ 	/*
+ 	 * Check if there were limitations on the allocation (only relevant for
+ 	 * NUMA) that may require different handling.
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch
-mm-thp-give-transparent-hugepage-code-a-separate-copy_page-checkpatch-fixes.patch
-mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
+x86-srat-use-numa_no_node.patch
+mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch
+mm-memcg-add-memoryoom_control-notification-for-system-oom.patch
 
