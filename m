@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcg-add-memoryoom_control-notification-for-system-oom.patch added to
- -mm tree
-Date: Mon, 18 Nov 2013 13:42:46 -0800
-Message-ID: <528a89d6.obDK6YUZ1HDgvYDt%akpm@linux-foundation.org>
+ mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch added to -mm tree
+Date: Mon, 18 Nov 2013 13:42:45 -0800
+Message-ID: <528a89d5.+t4ko3p+o7+AoGFu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58763 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58755 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751521Ab3KRVmr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 16:42:47 -0500
+	with ESMTP id S1751506Ab3KRVmq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 16:42:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, rientjes@google.com
 
-Subject: + mm-memcg-add-memoryoom_control-notification-for-system-oom.patch added to -mm tree
+Subject: + mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch added to -mm tree
 To: rientjes@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 18 Nov 2013 13:42:46 -0800
+Date: Mon, 18 Nov 2013 13:42:45 -0800
 
 
 The patch titled
-     Subject: mm, memcg: add memory.oom_control notification for system oom
+     Subject: mm, memcg: avoid oom notification when current needs access to memory reserves
 has been added to the -mm tree.  Its filename is
-     mm-memcg-add-memoryoom_control-notification-for-system-oom.patch
+     mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-add-memoryoom_control-notification-for-system-oom.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-add-memoryoom_control-notification-for-system-oom.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,123 +45,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, memcg: add memory.oom_control notification for system oom
+Subject: mm, memcg: avoid oom notification when current needs access to memory reserves
 
-A subset of applications that wait on memory.oom_control don't disable the
-oom killer for that memcg and simply log or cleanup after the kernel oom
-killer kills a process to free memory.
+When current has a pending SIGKILL or is already in the exit path, it only
+needs access to memory reserves to fully exit.  In that sense, the memcg
+is not actually oom for current, it simply needs to bypass memory charges
+to exit and free its memory, which is guarantee itself that memory will be
+freed.
 
-We need the ability to do this for system oom conditions as well, i.e. 
-when the system is depleted of all memory and must kill a process.  For
-convenience, this can use memcg since oom notifiers are already present.
-
-When a userspace process waits on the root memcg's memory.oom_control, it
-will wake up anytime there is a system oom condition so that it can log
-the event, including what process was killed and the stack, or cleanup
-after the kernel oom killer has killed something.
-
-This is a special case of oom notifiers since it doesn't subsequently
-notify all memcgs under the root memcg (all memcgs on the system).  We
-don't want to trigger those oom handlers which are set aside specifically
-for true memcg oom notifications that disable their own oom killers to
-enforce their own oom policy, for example.
+We only want to notify userspace for actionable oom conditions where
+something needs to be done (and all oom handling can already be deferred
+to userspace through this method by disabling the memcg oom killer with
+memory.oom_control), not simply when a memcg has reached its limit, which
+would actually have to happen before memcg reclaim actually frees memory
+for charges.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   11 ++++++-----
- include/linux/memcontrol.h       |    5 +++++
- mm/memcontrol.c                  |    9 +++++++++
- mm/oom_kill.c                    |    4 ++++
- 4 files changed, 24 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~mm-memcg-add-memoryoom_control-notification-for-system-oom Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~mm-memcg-add-memoryoom_control-notification-for-system-oom
-+++ a/Documentation/cgroups/memory.txt
-@@ -743,18 +743,19 @@ delivery and gets notification when OOM
- 
- To register a notifier, an application must:
-  - create an eventfd using eventfd(2)
-- - open memory.oom_control file
-+ - open memory.oom_control file for reading
-  - write string like "<event_fd> <fd of memory.oom_control>" to
-    cgroup.event_control
- 
--The application will be notified through eventfd when OOM happens.
--OOM notification doesn't work for the root cgroup.
-+The application will be notified through eventfd when OOM happens, including
-+on system oom when used with the root memcg.
- 
- You can disable the OOM-killer by writing "1" to memory.oom_control file, as:
- 
--	#echo 1 > memory.oom_control
-+	# echo 1 > memory.oom_control
- 
--This operation is only allowed to the top cgroup of a sub-hierarchy.
-+This operation is only allowed to the top cgroup of a sub-hierarchy and does
-+not include the root memcg.
- If OOM-killer is disabled, tasks under cgroup will hang/sleep
- in memory cgroup's OOM-waitqueue when they request accountable memory.
- 
-diff -puN include/linux/memcontrol.h~mm-memcg-add-memoryoom_control-notification-for-system-oom include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-add-memoryoom_control-notification-for-system-oom
-+++ a/include/linux/memcontrol.h
-@@ -155,6 +155,7 @@ static inline bool task_in_memcg_oom(str
- }
- 
- bool mem_cgroup_oom_synchronize(bool wait);
-+void mem_cgroup_root_oom_notify(void);
- 
- #ifdef CONFIG_MEMCG_SWAP
- extern int do_swap_account;
-@@ -397,6 +398,10 @@ static inline bool mem_cgroup_oom_synchr
- 	return false;
- }
- 
-+static inline void mem_cgroup_root_oom_notify(void)
-+{
-+}
-+
- static inline void mem_cgroup_inc_page_stat(struct page *page,
- 					    enum mem_cgroup_stat_index idx)
- {
-diff -puN mm/memcontrol.c~mm-memcg-add-memoryoom_control-notification-for-system-oom mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-add-memoryoom_control-notification-for-system-oom
+diff -puN mm/memcontrol.c~mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves
 +++ a/mm/memcontrol.c
-@@ -5648,6 +5648,15 @@ static void mem_cgroup_oom_notify(struct
- 		mem_cgroup_oom_notify_cb(iter);
- }
+@@ -1783,16 +1783,6 @@ static void mem_cgroup_out_of_memory(str
+ 	unsigned int points = 0;
+ 	struct task_struct *chosen = NULL;
  
-+/*
-+ * Notify any process waiting on the root memcg's memory.oom_control, but do not
-+ * notify any child memcgs to avoid triggering their per-memcg oom handlers.
-+ */
-+void mem_cgroup_root_oom_notify(void)
-+{
-+	mem_cgroup_oom_notify_cb(root_mem_cgroup);
-+}
-+
- static int mem_cgroup_usage_register_event(struct cgroup_subsys_state *css,
- 	struct cftype *cft, struct eventfd_ctx *eventfd, const char *args)
- {
-diff -puN mm/oom_kill.c~mm-memcg-add-memoryoom_control-notification-for-system-oom mm/oom_kill.c
---- a/mm/oom_kill.c~mm-memcg-add-memoryoom_control-notification-for-system-oom
-+++ a/mm/oom_kill.c
-@@ -632,6 +632,10 @@ void out_of_memory(struct zonelist *zone
- 		return;
- 	}
+-	/*
+-	 * If current has a pending SIGKILL or is exiting, then automatically
+-	 * select it.  The goal is to allow it to allocate so that it may
+-	 * quickly exit and free its memory.
+-	 */
+-	if (fatal_signal_pending(current) || current->flags & PF_EXITING) {
+-		set_thread_flag(TIF_MEMDIE);
+-		return;
+-	}
+-
+ 	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL);
+ 	totalpages = mem_cgroup_get_limit(memcg) >> PAGE_SHIFT ? : 1;
+ 	for_each_mem_cgroup_tree(iter, memcg) {
+@@ -2243,6 +2233,16 @@ bool mem_cgroup_oom_synchronize(bool han
+ 	if (!handle)
+ 		goto cleanup;
  
-+	/* Avoid waking up processes for oom kills triggered by sysrq */
-+	if (!force_kill)
-+		mem_cgroup_root_oom_notify();
++	/*
++	 * If current has a pending SIGKILL or is exiting, then automatically
++	 * select it.  The goal is to allow it to allocate so that it may
++	 * quickly exit and free its memory.
++	 */
++	if (fatal_signal_pending(current) || current->flags & PF_EXITING) {
++		set_thread_flag(TIF_MEMDIE);
++		goto cleanup;
++	}
 +
- 	/*
- 	 * Check if there were limitations on the allocation (only relevant for
- 	 * NUMA) that may require different handling.
+ 	owait.memcg = memcg;
+ 	owait.wait.flags = 0;
+ 	owait.wait.func = memcg_oom_wake_function;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
