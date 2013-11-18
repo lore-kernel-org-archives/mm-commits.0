@@ -1,101 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- init-kconfig-fix-option-to-disable-kernel-compression.patch removed from
- -mm tree
-Date: Mon, 18 Nov 2013 11:52:46 -0800
-Message-ID: <528a700e.Ldc7hZXbzHxk7pw5%akpm@linux-foundation.org>
+Subject: + block-blk-mq-cpuc-use-hotcpu_notifier.patch added to -mm tree
+Date: Mon, 18 Nov 2013 12:00:18 -0800
+Message-ID: <528a71d2.LlQZRoQinDgmKJ74%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58155 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58167 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918Ab3KRTwr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 14:52:47 -0500
+	with ESMTP id S1751834Ab3KRUAT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 15:00:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hpa@zytor.com, christian.ruppert@abilis.com
+To: mm-commits@vger.kernel.org, jack@suse.cz, hch@lst.de, axboe@kernel.dk, akpm@linux-foundation.org
 
-Subject: [obsolete] init-kconfig-fix-option-to-disable-kernel-compression.patch removed from -mm tree
-To: christian.ruppert@abilis.com,hpa@zytor.com,mm-commits@vger.kernel.org
+Subject: + block-blk-mq-cpuc-use-hotcpu_notifier.patch added to -mm tree
+To: akpm@linux-foundation.org,axboe@kernel.dk,hch@lst.de,jack@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 18 Nov 2013 11:52:46 -0800
+Date: Mon, 18 Nov 2013 12:00:18 -0800
 
 
 The patch titled
-     Subject: init/Kconfig: fix option to disable kernel compression
-has been removed from the -mm tree.  Its filename was
-     init-kconfig-fix-option-to-disable-kernel-compression.patch
+     Subject: block/blk-mq-cpu.c: use hotcpu_notifier()
+has been added to the -mm tree.  Its filename is
+     block-blk-mq-cpuc-use-hotcpu_notifier.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/block-blk-mq-cpuc-use-hotcpu_notifier.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-blk-mq-cpuc-use-hotcpu_notifier.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Christian Ruppert <christian.ruppert@abilis.com>
-Subject: init/Kconfig: fix option to disable kernel compression
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: block/blk-mq-cpu.c: use hotcpu_notifier()
 
-Some architectures with self-decompressing kernel images did not compile
-with commit 69f0554ec261fd68 ("init/Kconfig: add option to disable kernel
-compression") because they don't provide a non-decompression mechanism for
-uncompressed kernels.
-
-Rectify this problem by allowing uncompressed kernels only for architectures
-which explicitly state they support them.
-
-Signed-off-by: Christian Ruppert <christian.ruppert@abilis.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/Kconfig |    2 ++
- init/Kconfig     |    5 +++++
- 2 files changed, 7 insertions(+)
+ block/blk-mq-cpu.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/arc/Kconfig~init-kconfig-fix-option-to-disable-kernel-compression arch/arc/Kconfig
---- a/arch/arc/Kconfig~init-kconfig-fix-option-to-disable-kernel-compression
-+++ a/arch/arc/Kconfig
-@@ -21,6 +21,8 @@ config ARC
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_IOREMAP_PROT
-+	select HAVE_KERNEL_UNCOMPRESSED
-+	select HAVE_KERNEL_GZIP
- 	select HAVE_KPROBES
- 	select HAVE_KRETPROBES
- 	select HAVE_MEMBLOCK
-diff -puN init/Kconfig~init-kconfig-fix-option-to-disable-kernel-compression init/Kconfig
---- a/init/Kconfig~init-kconfig-fix-option-to-disable-kernel-compression
-+++ a/init/Kconfig
-@@ -97,6 +97,9 @@ config LOCALVERSION_AUTO
+diff -puN block/blk-mq-cpu.c~block-blk-mq-cpuc-use-hotcpu_notifier block/blk-mq-cpu.c
+--- a/block/blk-mq-cpu.c~block-blk-mq-cpuc-use-hotcpu_notifier
++++ a/block/blk-mq-cpu.c
+@@ -28,10 +28,6 @@ static int blk_mq_main_cpu_notify(struct
+ 	return NOTIFY_OK;
+ }
  
- 	  which is done within the script "scripts/setlocalversion".)
+-static struct notifier_block __cpuinitdata blk_mq_main_cpu_notifier = {
+-	.notifier_call	= blk_mq_main_cpu_notify,
+-};
+-
+ void blk_mq_register_cpu_notifier(struct blk_mq_cpu_notifier *notifier)
+ {
+ 	BUG_ON(!notifier->notify);
+@@ -58,5 +54,5 @@ void blk_mq_init_cpu_notifier(struct blk
  
-+config HAVE_KERNEL_UNCOMPRESSED
-+        bool
-+
- config HAVE_KERNEL_GZIP
- 	bool
- 
-@@ -118,6 +121,7 @@ config HAVE_KERNEL_LZ4
- choice
- 	prompt "Kernel compression mode"
- 	default KERNEL_GZIP
-+	depends on HAVE_KERNEL_GZIP || HAVE_KERNEL_BZIP2 || HAVE_KERNEL_LZMA || HAVE_KERNEL_XZ || HAVE_KERNEL_LZO || HAVE_KERNEL_LZ4 || HAVE_KERNEL_UNCOMPRESSED
- 	help
- 	  The linux kernel is a kind of self-extracting executable.
- 	  Several compression algorithms are available, which differ
-@@ -138,6 +142,7 @@ choice
- 
- config KERNEL_UNCOMPRESSED
- 	bool "No compression"
-+	depends on HAVE_KERNEL_UNCOMPRESSED
- 	help
- 	  No compression at all. The kernel is huge but the compression and
- 	  decompression times are zero.
+ void __init blk_mq_cpu_init(void)
+ {
+-	register_hotcpu_notifier(&blk_mq_main_cpu_notifier);
++	hotcpu_notifier(blk_mq_main_cpu_notify, 0);
+ }
+diff -puN block/blk-mq.c~block-blk-mq-cpuc-use-hotcpu_notifier block/blk-mq.c
+diff -puN block/blk-mq.h~block-blk-mq-cpuc-use-hotcpu_notifier block/blk-mq.h
 _
 
-Patches currently in -mm which might be from christian.ruppert@abilis.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+posix_acl-uninlining.patch
+mm.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
 linux-next.patch
+mm-drop-actor-argument-of-do_generic_file_read-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
