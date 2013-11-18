@@ -1,47 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + init-kconfig-fix-option-to-disable-kernel-compression.patch
- added to -mm tree
-Date: Fri, 15 Nov 2013 14:31:10 -0800
-Message-ID: <5286a0ae.iuoYQjWbor/C1OXC%akpm@linux-foundation.org>
+Subject: [obsolete]
+ init-kconfig-fix-option-to-disable-kernel-compression.patch removed from
+ -mm tree
+Date: Mon, 18 Nov 2013 11:52:46 -0800
+Message-ID: <528a700e.Ldc7hZXbzHxk7pw5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36380 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58155 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750992Ab3KOWbL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Nov 2013 17:31:11 -0500
+	with ESMTP id S1751918Ab3KRTwr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 14:52:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, hpa@zytor.com, christian.ruppert@abilis.com
 
-Subject: + init-kconfig-fix-option-to-disable-kernel-compression.patch added to -mm tree
-To: christian.ruppert@abilis.com,hpa@zytor.com
+Subject: [obsolete] init-kconfig-fix-option-to-disable-kernel-compression.patch removed from -mm tree
+To: christian.ruppert@abilis.com,hpa@zytor.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 15 Nov 2013 14:31:10 -0800
+Date: Mon, 18 Nov 2013 11:52:46 -0800
 
 
 The patch titled
      Subject: init/Kconfig: fix option to disable kernel compression
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      init-kconfig-fix-option-to-disable-kernel-compression.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-kconfig-fix-option-to-disable-kernel-compression.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-kconfig-fix-option-to-disable-kernel-compression.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Christian Ruppert <christian.ruppert@abilis.com>
@@ -110,6 +97,5 @@ _
 Patches currently in -mm which might be from christian.ruppert@abilis.com are
 
 origin.patch
-init-kconfig-fix-option-to-disable-kernel-compression.patch
 linux-next.patch
 
