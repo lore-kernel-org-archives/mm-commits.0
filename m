@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-bounds-avoid-circular-dependencies-in-generated-headers.patch added
- to -mm tree
-Date: Mon, 18 Nov 2013 13:14:52 -0800
-Message-ID: <528a834c.CQL7JpOm6P5FdrCM%akpm@linux-foundation.org>
+ mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch added to
+ -mm tree
+Date: Mon, 18 Nov 2013 13:25:15 -0800
+Message-ID: <528a85bb.hdxGgmbqv/1TiY0N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58405 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58731 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751171Ab3KRVOx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 16:14:53 -0500
+	with ESMTP id S1751281Ab3KRVZQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 16:25:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, dhillf@gmail.com, dave.hansen@linux.intel.com
 
-Subject: + kernel-bounds-avoid-circular-dependencies-in-generated-headers.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,tony.luck@intel.com
+Subject: + mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch added to -mm tree
+To: dave.hansen@linux.intel.com,dhillf@gmail.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 18 Nov 2013 13:14:52 -0800
+Date: Mon, 18 Nov 2013 13:25:15 -0800
 
 
 The patch titled
-     Subject: kernel/bounds: avoid circular dependencies in generated headers
+     Subject: mm: thp: give transparent hugepage code a separate copy_page()
 has been added to the -mm tree.  Its filename is
-     kernel-bounds-avoid-circular-dependencies-in-generated-headers.patch
+     mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-bounds-avoid-circular-dependencies-in-generated-headers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-bounds-avoid-circular-dependencies-in-generated-headers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,51 +45,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: kernel/bounds: avoid circular dependencies in generated headers
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm: thp: give transparent hugepage code a separate copy_page()
 
-<linux/spinlock.h> has havy dependencies on other header files.
-It trigger circular dependencies in generated headers on IA64, at least:
+Right now, the migration code in migrate_page_copy() uses copy_huge_page()
+for hugetlbfs and thp pages:
 
-  CC      kernel/bounds.s
-In file included from arch/ia64/include/asm/thread_info.h:9:0,
-                 from include/linux/thread_info.h:54,
-                 from include/asm-generic/preempt.h:4,
-                 from arch/ia64/include/generated/asm/preempt.h:1,
-                 from include/linux/preempt.h:18,
-                 from include/linux/spinlock.h:50,
-                 from kernel/bounds.c:14:
-arch/ia64/include/asm/asm-offsets.h:1:35: fatal error: generated/asm-offsets.h: No such file or directory
-compilation terminated.
+       if (PageHuge(page) || PageTransHuge(page))
+                copy_huge_page(newpage, page);
 
-Let's replace <linux/spinlock.h> with <linux/spinlock_types.h>, it's
-enough to find out size of spinlock_t.
+So, yay for code reuse.  But:
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Tested-by: Tony Luck <tony.luck@intel.com>
+void copy_huge_page(struct page *dst, struct page *src)
+{
+        struct hstate *h = page_hstate(src);
+
+and a non-hugetlbfs page has no page_hstate().  This works 99% of the time
+because page_hstate() determines the hstate from the page order alone. 
+Since the page order of a THP page matches the default hugetlbfs page
+order, it works.
+
+But, if you change the default huge page size on the boot command-line
+(say default_hugepagesz=1G), then we might not even *have* a 2MB hstate so
+page_hstate() returns null and copy_huge_page() oopses pretty fast since
+copy_huge_page() dereferences the hstate:
+
+void copy_huge_page(struct page *dst, struct page *src)
+{
+        struct hstate *h = page_hstate(src);
+        if (unlikely(pages_per_huge_page(h) > MAX_ORDER_NR_PAGES)) {
+...
+
+This patch creates a copy_high_order_page() which can
+be used on THP pages.
+
+I believe the bug was introduced in b32967ff101:
+
+Author: Mel Gorman <mgorman@suse.de>
+Date:   Mon Nov 19 12:35:47 2012 +0000
+mm: numa: Add THP migration for the NUMA working set scanning fault case.
+
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/bounds.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/huge_mm.h |   16 ++++++++++++++++
+ mm/huge_memory.c        |   12 ++++++++++++
+ mm/migrate.c            |    6 ++++--
+ 3 files changed, 32 insertions(+), 2 deletions(-)
 
-diff -puN kernel/bounds.c~kernel-bounds-avoid-circular-dependencies-in-generated-headers kernel/bounds.c
---- a/kernel/bounds.c~kernel-bounds-avoid-circular-dependencies-in-generated-headers
-+++ a/kernel/bounds.c
-@@ -11,7 +11,7 @@
- #include <linux/kbuild.h>
- #include <linux/page_cgroup.h>
- #include <linux/log2.h>
--#include <linux/spinlock.h>
-+#include <linux/spinlock_types.h>
+diff -puN include/linux/huge_mm.h~mm-thp-give-transparent-hugepage-code-a-separate-copy_page include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-thp-give-transparent-hugepage-code-a-separate-copy_page
++++ a/include/linux/huge_mm.h
+@@ -178,6 +178,10 @@ static inline struct page *compound_tran
+ extern int do_huge_pmd_numa_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 				unsigned long addr, pmd_t pmd, pmd_t *pmdp);
  
- void foo(void)
++extern void copy_high_order_page(struct page *newpage,
++				 struct page *oldpage,
++				 int order);
++
+ #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
+ #define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
+@@ -228,6 +232,18 @@ static inline int do_huge_pmd_numa_page(
+ 	return 0;
+ }
+ 
++/*
++ * The non-stub version of this code is probably usable
++ * generically but its only user is thp at the moment,
++ * so enforce that with a BUG()
++ */
++static inline  void copy_high_order_page(struct page *newpage,
++					 struct page *oldpage,
++					 int order)
++{
++	BUG();
++}
++
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ #endif /* _LINUX_HUGE_MM_H */
+diff -puN mm/huge_memory.c~mm-thp-give-transparent-hugepage-code-a-separate-copy_page mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-give-transparent-hugepage-code-a-separate-copy_page
++++ a/mm/huge_memory.c
+@@ -2927,3 +2927,15 @@ void __vma_adjust_trans_huge(struct vm_a
+ 			split_huge_page_address(next->vm_mm, nstart);
+ 	}
+ }
++
++void copy_high_order_page(struct page *newpage,
++			  struct page *oldpage,
++			  int order)
++{
++	int i;
++
++	for (i = 0; i < (1<<order); i++) {
++		cond_resched();
++		copy_highpage(newpage + i, oldpage + i);
++	}
++}
+diff -puN mm/migrate.c~mm-thp-give-transparent-hugepage-code-a-separate-copy_page mm/migrate.c
+--- a/mm/migrate.c~mm-thp-give-transparent-hugepage-code-a-separate-copy_page
++++ a/mm/migrate.c
+@@ -448,8 +448,10 @@ void migrate_page_copy(struct page *newp
  {
+ 	int cpupid;
+ 
+-	if (PageHuge(page) || PageTransHuge(page))
+-		copy_huge_page(newpage, page);
++	if (PageHuge(page))
++ 		copy_huge_page(newpage, page);
++	else if(PageTransHuge(page))
++		copy_high_order_page(newpage, page, HPAGE_PMD_ORDER);
+ 	else
+ 		copy_highpage(newpage, page);
+ 
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
 origin.patch
-kernel-bounds-avoid-circular-dependencies-in-generated-headers.patch
-x86-mm-get-aslr-work-for-hugetlb-mappings.patch
+mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch
 
