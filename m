@@ -1,258 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] get_maintainerpl-incomplete-output.patch removed
- from -mm tree
-Date: Tue, 19 Nov 2013 15:15:49 -0800
-Message-ID: <528bf125.W6kl2yBsj23+WgIv%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch added to -mm tree
+Date: Tue, 19 Nov 2013 15:30:09 -0800
+Message-ID: <528bf481.AqT/olmZ18XMcLf5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42596 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561Ab3KSXPv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 18:15:51 -0500
+	with ESMTP id S1753407Ab3KSXaK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 18:30:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, tariq.x.saeed@oracle.com
 
-Subject: [to-be-updated] get_maintainerpl-incomplete-output.patch removed from -mm tree
-To: joe@perches.com,mm-commits@vger.kernel.org
+Subject: + ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch added to -mm tree
+To: tariq.x.saeed@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 19 Nov 2013 15:15:49 -0800
+Date: Tue, 19 Nov 2013 15:30:09 -0800
 
 
 The patch titled
-     Subject: get_maintainer.pl incomplete output
-has been removed from the -mm tree.  Its filename was
-     get_maintainerpl-incomplete-output.patch
+     Subject: ocfs2/o2net: incorrect to terminate accepting connections loop upon rejecting an invalid one
+has been added to the -mm tree.  Its filename is
+     ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: get_maintainer.pl incomplete output
+From: Tariq Saeed <tariq.x.saeed@oracle.com>
+Subject: ocfs2/o2net: incorrect to terminate accepting connections loop upon rejecting an invalid one
 
-Try this:
+When o2net-accept-one() rejects an illegal connection, it terminates the
+loop picking up the remaining queued connections.  This fix will continue
+accepting connections till the queue is emtpy.
 
+Addresses Orabug 17489469.
 
+Signed-off-by: Tariq Saseed <tariq.x.saeed@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   90 +++++++++++++++++++++++++++++++++---
- 1 file changed, 84 insertions(+), 6 deletions(-)
+ fs/ocfs2/cluster/tcp.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainerpl-incomplete-output scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainerpl-incomplete-output
-+++ a/scripts/get_maintainer.pl
-@@ -98,6 +98,7 @@ my %VCS_cmds_git = (
-     "available" => '(which("git") ne "") && (-d ".git")',
-     "find_signers_cmd" =>
- 	"git log --no-color --follow --since=\$email_git_since " .
-+	    '--numstat --no-merges ' .
- 	    '--format="GitCommit: %H%n' .
- 		      'GitAuthor: %an <%ae>%n' .
- 		      'GitDate: %aD%n' .
-@@ -106,6 +107,7 @@ my %VCS_cmds_git = (
- 	    " -- \$file",
-     "find_commit_signers_cmd" =>
- 	"git log --no-color " .
-+	    '--numstat ' .
- 	    '--format="GitCommit: %H%n' .
- 		      'GitAuthor: %an <%ae>%n' .
- 		      'GitDate: %aD%n' .
-@@ -114,6 +116,7 @@ my %VCS_cmds_git = (
- 	    " -1 \$commit",
-     "find_commit_author_cmd" =>
- 	"git log --no-color " .
-+	    '--numstat ' .
- 	    '--format="GitCommit: %H%n' .
- 		      'GitAuthor: %an <%ae>%n' .
- 		      'GitDate: %aD%n' .
-@@ -125,6 +128,7 @@ my %VCS_cmds_git = (
-     "blame_commit_pattern" => "^([0-9a-f]+) ",
-     "author_pattern" => "^GitAuthor: (.*)",
-     "subject_pattern" => "^GitSubject: (.*)",
-+    "stat_pattern" => "(\\d+)\\t(\\d+)\\t\$file",
- );
+diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -1826,7 +1826,7 @@ int o2net_register_hb_callbacks(void)
  
- my %VCS_cmds_hg = (
-@@ -152,6 +156,7 @@ my %VCS_cmds_hg = (
-     "blame_commit_pattern" => "^([ 0-9a-f]+):",
-     "author_pattern" => "^HgAuthor: (.*)",
-     "subject_pattern" => "^HgSubject: (.*)",
-+    "stat_pattern" => "(\\d+)\t(\\d+)\t\$file",
- );
+ /* ------------------------------------------------------------ */
  
- my $conf = which_conf(".get_maintainer.conf");
-@@ -1269,20 +1274,30 @@ sub extract_formatted_signatures {
+-static int o2net_accept_one(struct socket *sock)
++static int o2net_accept_one(struct socket *sock, int *more)
+ {
+ 	int ret, slen;
+ 	struct sockaddr_in sin;
+@@ -1837,6 +1837,7 @@ static int o2net_accept_one(struct socke
+ 	struct o2net_node *nn;
+ 
+ 	BUG_ON(sock == NULL);
++	*more = 0;
+ 	ret = sock_create_lite(sock->sk->sk_family, sock->sk->sk_type,
+ 			       sock->sk->sk_protocol, &new_sock);
+ 	if (ret)
+@@ -1848,6 +1849,7 @@ static int o2net_accept_one(struct socke
+ 	if (ret < 0)
+ 		goto out;
+ 
++	*more = 1;
+ 	new_sock->sk->sk_allocation = GFP_ATOMIC;
+ 
+ 	ret = o2net_set_nodelay(new_sock);
+@@ -1949,8 +1951,15 @@ out:
+ static void o2net_accept_many(struct work_struct *work)
+ {
+ 	struct socket *sock = o2net_listen_sock;
+-	while (o2net_accept_one(sock) == 0)
++	int	more;
++	int	err;
++
++	for (;;) {
++		err = o2net_accept_one(sock, &more);
++		if (!more)
++			break;
+ 		cond_resched();
++	}
  }
  
- sub vcs_find_signers {
--    my ($cmd) = @_;
-+    my ($cmd, $file) = @_;
-     my $commits;
-     my @lines = ();
-     my @signatures = ();
-+    my @authors = ();
-+    my @stats = ();
- 
-     @lines = &{$VCS_cmds{"execute_cmd"}}($cmd);
- 
-     my $pattern = $VCS_cmds{"commit_pattern"};
-+    my $author_pattern = $VCS_cmds{"author_pattern"};
-+    my $stat_pattern = $VCS_cmds{"stat_pattern"};
-+
-+    $stat_pattern =~ s/(\$\w+)/$1/eeg;		#interpolate $stat_pattern
- 
-     $commits = grep(/$pattern/, @lines);	# of commits
- 
-+    @authors = grep(/$author_pattern/, @lines);
-     @signatures = grep(/^[ \t]*${signature_pattern}.*\@.*$/, @lines);
-+    @stats = grep(/$stat_pattern/, @lines);
-+
-+#    print("stats: <@stats>\n");
- 
--    return (0, @signatures) if !@signatures;
-+    return (0, @signatures, @authors) if !@signatures;
- 
-     save_commits_by_author(@lines) if ($interactive);
-     save_commits_by_signer(@lines) if ($interactive);
-@@ -1291,9 +1306,10 @@ sub vcs_find_signers {
- 	@signatures = grep(!/${penguin_chiefs}/i, @signatures);
-     }
- 
-+    my ($author_ref, $authors_ref) = extract_formatted_signatures(@authors);
-     my ($types_ref, $signers_ref) = extract_formatted_signatures(@signatures);
- 
--    return ($commits, @$signers_ref);
-+    return ($commits, $signers_ref, $authors_ref, \@stats);
- }
- 
- sub vcs_find_author {
-@@ -1849,7 +1865,12 @@ sub vcs_assign {
- sub vcs_file_signoffs {
-     my ($file) = @_;
- 
-+    my $authors_ref;
-+    my $signers_ref;
-+    my $stats_ref;
-+    my @authors = ();
-     my @signers = ();
-+    my @stats = ();
-     my $commits;
- 
-     $vcs_used = vcs_exists();
-@@ -1858,13 +1879,58 @@ sub vcs_file_signoffs {
-     my $cmd = $VCS_cmds{"find_signers_cmd"};
-     $cmd =~ s/(\$\w+)/$1/eeg;		# interpolate $cmd
- 
--    ($commits, @signers) = vcs_find_signers($cmd);
-+    ($commits, $signers_ref, $authors_ref, $stats_ref) = vcs_find_signers($cmd, $file);
-+    @signers = @{$signers_ref};
-+    @authors = @{$authors_ref};
-+    @stats = @{$stats_ref};
-+
-+#    print("commits: <$commits>\nsigners:<@signers>\nauthors: <@authors>\nstats: <@stats>\n");
- 
-     foreach my $signer (@signers) {
- 	$signer = deduplicate_email($signer);
-     }
- 
-     vcs_assign("commit_signer", $commits, @signers);
-+    vcs_assign("authored", $commits, @authors);
-+    if ($#authors == $#stats) {
-+	my $stat_pattern = $VCS_cmds{"stat_pattern"};
-+	$stat_pattern =~ s/(\$\w+)/$1/eeg;	#interpolate $stat_pattern
-+
-+	my $added = 0;
-+	my $deleted = 0;
-+	for (my $i = 0; $i <= $#stats; $i++) {
-+	    if ($stats[$i] =~ /$stat_pattern/) {
-+		$added += $1;
-+		$deleted += $2;
-+	    }
-+	}
-+	my @tmp_authors = uniq(@authors);
-+	foreach my $author (@tmp_authors) {
-+	    $author = deduplicate_email($author);
-+	}
-+	@tmp_authors = uniq(@tmp_authors);
-+	my @list_added = ();
-+	my @list_deleted = ();
-+	foreach my $author (@tmp_authors) {
-+	    my $auth_added = 0;
-+	    my $auth_deleted = 0;
-+	    for (my $i = 0; $i <= $#stats; $i++) {
-+		if ($author eq deduplicate_email($authors[$i]) &&
-+		    $stats[$i] =~ /$stat_pattern/) {
-+		    $auth_added += $1;
-+		    $auth_deleted += $2;
-+		}
-+	    }
-+	    for (my $i = 0; $i < $auth_added; $i++) {
-+		push(@list_added, $author);
-+	    }
-+	    for (my $i = 0; $i < $auth_deleted; $i++) {
-+		push(@list_deleted, $author);
-+	    }
-+	}
-+	vcs_assign("added_lines", $added, @list_added);
-+	vcs_assign("removed_lines", $deleted, @list_deleted);
-+    }
- }
- 
- sub vcs_file_blame {
-@@ -1887,6 +1953,10 @@ sub vcs_file_blame {
-     if ($email_git_blame_signatures) {
- 	if (vcs_is_hg()) {
- 	    my $commit_count;
-+	    my $commit_authors_ref;
-+	    my $commit_signers_ref;
-+	    my $stats_ref;
-+	    my @commit_authors = ();
- 	    my @commit_signers = ();
- 	    my $commit = join(" -r ", @commits);
- 	    my $cmd;
-@@ -1894,19 +1964,27 @@ sub vcs_file_blame {
- 	    $cmd = $VCS_cmds{"find_commit_signers_cmd"};
- 	    $cmd =~ s/(\$\w+)/$1/eeg;	#substitute variables in $cmd
- 
--	    ($commit_count, @commit_signers) = vcs_find_signers($cmd);
-+	    ($commit_count, $commit_signers_ref, $commit_authors_ref, $stats_ref) = vcs_find_signers($cmd, $file);
-+	    @commit_authors = @{$commit_authors_ref};
-+	    @commit_signers = @{$commit_signers_ref};
- 
- 	    push(@signers, @commit_signers);
- 	} else {
- 	    foreach my $commit (@commits) {
- 		my $commit_count;
-+		my $commit_authors_ref;
-+		my $commit_signers_ref;
-+		my $stats_ref;
-+		my @commit_authors = ();
- 		my @commit_signers = ();
- 		my $cmd;
- 
- 		$cmd = $VCS_cmds{"find_commit_signers_cmd"};
- 		$cmd =~ s/(\$\w+)/$1/eeg;	#substitute variables in $cmd
- 
--		($commit_count, @commit_signers) = vcs_find_signers($cmd);
-+		($commit_count, $commit_signers_ref, $commit_authors_ref, $stats_ref) = vcs_find_signers($cmd, $file);
-+		@commit_authors = @{$commit_authors_ref};
-+		@commit_signers = @{$commit_signers_ref};
- 
- 		push(@signers, @commit_signers);
- 	    }
+ static void o2net_listen_data_ready(struct sock *sk, int bytes)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from tariq.x.saeed@oracle.com are
 
 origin.patch
-checkpatch-fix-use-of-uninitialized-value-warnings.patch
-kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch
-checkpatchpl-check-for-function-declarations-without-arguments.patch
-linux-next.patch
+ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
 
