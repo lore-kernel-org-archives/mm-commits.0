@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch added to
- -mm tree
-Date: Tue, 19 Nov 2013 14:33:26 -0800
-Message-ID: <528be736.dggkIY3Eu2AEXWL4%akpm@linux-foundation.org>
+Subject: + ipcshm-fix-shm_file-deletion-races.patch added to -mm tree
+Date: Tue, 19 Nov 2013 14:43:04 -0800
+Message-ID: <528be978.ktXYjMMSXAah9Dd/%akpm__3502.16445881433$1384900996$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42031 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42133 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753230Ab3KSWd1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 17:33:27 -0500
+	with ESMTP id S1752987Ab3KSWnF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 17:43:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, alexander.deucher@amd.com, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, manfred@colorfullife.com, davidlohr@hp.com, gthelen@google.com
 
-Subject: + drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch added to -mm tree
-To: geert@linux-m68k.org,alexander.deucher@amd.com
+Subject: + ipcshm-fix-shm_file-deletion-races.patch added to -mm tree
+To: gthelen@google.com,davidlohr@hp.com,manfred@colorfullife.com,riel@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 19 Nov 2013 14:33:26 -0800
+Date: Tue, 19 Nov 2013 14:43:04 -0800
 
 
 The patch titled
-     Subject: drivers/gpu/drm/drm_edid_load.c: make edid_load() return a void *
+     Subject: ipc,shm: fix shm_file deletion races
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
+     ipcshm-fix-shm_file-deletion-races.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-fix-shm_file-deletion-races.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-fix-shm_file-deletion-races.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,50 +43,161 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: drivers/gpu/drm/drm_edid_load.c: make edid_load() return a void *
+From: Greg Thelen <gthelen@google.com>
+Subject: ipc,shm: fix shm_file deletion races
 
-Always use "void *" for arbitrary memory buffers, as this allows to drop
-casts in assignments.
+When IPC_RMID races with other shm operations there's potential for
+use-after-free of the shm object's associated file (shm_file).
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Here's the race before this patch:
+  TASK 1                     TASK 2
+  ------                     ------
+  shm_rmid()
+    ipc_lock_object()
+                             shmctl()
+                             shp = shm_obtain_object_check()
+
+    shm_destroy()
+      shum_unlock()
+      fput(shp->shm_file)
+                             ipc_lock_object()
+                             shmem_lock(shp->shm_file)
+                             <OOPS>
+
+The oops is caused because shm_destroy() calls fput() after dropping the
+ipc_lock.  fput() clears the file's f_inode, f_path.dentry, and
+f_path.mnt, which causes various NULL pointer references in task 2.  I
+reliably see the oops in task 2 if with shmlock, shmu
+
+This patch fixes the races by:
+1) set shm_file=NULL in shm_destroy() while holding ipc_object_lock().
+2) modify at risk operations to check shm_file while holding
+   ipc_object_lock().
+
+Example workloads, which each trigger oops...
+
+Workload 1:
+  while true; do
+    id=$(shmget 1 4096)
+    shm_rmid $id &
+    shmlock $id &
+    wait
+  done
+
+  The oops stack shows accessing NULL f_inode due to racing fput:
+    _raw_spin_lock
+    shmem_lock
+    SyS_shmctl
+
+Workload 2:
+  while true; do
+    id=$(shmget 1 4096)
+    shmat $id 4096 &
+    shm_rmid $id &
+    wait
+  done
+
+  The oops stack is similar to workload 1 due to NULL f_inode:
+    touch_atime
+    shmem_mmap
+    shm_mmap
+    mmap_region
+    do_mmap_pgoff
+    do_shmat
+    SyS_shmat
+
+Workload 3:
+  while true; do
+    id=$(shmget 1 4096)
+    shmlock $id
+    shm_rmid $id &
+    shmunlock $id &
+    wait
+  done
+
+  The oops stack shows second fput tripping on an NULL f_inode.  The
+  first fput() completed via from shm_destroy(), but a racing thread did
+  a get_file() and queued this fput():
+    locks_remove_flock
+    __fput
+    ____fput
+    task_work_run
+    do_notify_resume
+    int_signal
+
+Fixes: c2c737a0461e ("ipc,shm: shorten critical region for shmat")
+Fixes: 2caacaa82a51 ("ipc,shm: shorten critical region for shmctl")
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: <stable@vger.kernel.org>  # 3.10.17+ 3.11.6+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_edid_load.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/shm.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_edid_load.c~drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void drivers/gpu/drm/drm_edid_load.c
---- a/drivers/gpu/drm/drm_edid_load.c~drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void
-+++ a/drivers/gpu/drm/drm_edid_load.c
-@@ -141,7 +141,7 @@ static int edid_size(const u8 *edid, int
- 	return (edid[0x7e] + 1) * EDID_LENGTH;
+diff -puN ipc/shm.c~ipcshm-fix-shm_file-deletion-races ipc/shm.c
+--- a/ipc/shm.c~ipcshm-fix-shm_file-deletion-races
++++ a/ipc/shm.c
+@@ -208,15 +208,18 @@ static void shm_open(struct vm_area_stru
+  */
+ static void shm_destroy(struct ipc_namespace *ns, struct shmid_kernel *shp)
+ {
++	struct file *shm_file;
++
++	shm_file = shp->shm_file;
++	shp->shm_file = NULL;
+ 	ns->shm_tot -= (shp->shm_segsz + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	shm_rmid(ns, shp);
+ 	shm_unlock(shp);
+-	if (!is_file_hugepages(shp->shm_file))
+-		shmem_lock(shp->shm_file, 0, shp->mlock_user);
++	if (!is_file_hugepages(shm_file))
++		shmem_lock(shm_file, 0, shp->mlock_user);
+ 	else if (shp->mlock_user)
+-		user_shm_unlock(file_inode(shp->shm_file)->i_size,
+-						shp->mlock_user);
+-	fput (shp->shm_file);
++		user_shm_unlock(file_inode(shm_file)->i_size, shp->mlock_user);
++	fput(shm_file);
+ 	ipc_rcu_putref(shp, shm_rcu_free);
  }
  
--static u8 *edid_load(struct drm_connector *connector, const char *name,
-+static void *edid_load(struct drm_connector *connector, const char *name,
- 			const char *connector_name)
- {
- 	const struct firmware *fw = NULL;
-@@ -263,7 +263,7 @@ int drm_load_edid_firmware(struct drm_co
- 	if (*last == '\n')
- 		*last = '\0';
+@@ -983,6 +986,13 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
+ 		}
  
--	edid = (struct edid *) edid_load(connector, edidname, connector_name);
-+	edid = edid_load(connector, edidname, connector_name);
- 	if (IS_ERR_OR_NULL(edid))
- 		return 0;
+ 		shm_file = shp->shm_file;
++
++		/* check if shm_destroy() is tearing down shp */
++		if (shm_file == NULL) {
++			err = -EIDRM;
++			goto out_unlock0;
++		}
++
+ 		if (is_file_hugepages(shm_file))
+ 			goto out_unlock0;
  
+@@ -1101,6 +1111,14 @@ long do_shmat(int shmid, char __user *sh
+ 		goto out_unlock;
+ 
+ 	ipc_lock_object(&shp->shm_perm);
++
++	/* check if shm_destroy() is tearing down shp */
++	if (shp->shm_file == NULL) {
++		ipc_unlock_object(&shp->shm_perm);
++		err = -EIDRM;
++		goto out_unlock;
++	}
++
+ 	path = shp->shm_file->f_path;
+ 	path_get(&path);
+ 	shp->shm_nattch++;
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from gthelen@google.com are
 
 origin.patch
-drivers-rtc-rtc-s5mc-fix-info-rtc-assignment.patch
-drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
-genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
-scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
-asm-typesh-remove-include-asm-generic-int-l64h.patch
-linux-next.patch
+ipcshm-fix-shm_file-deletion-races.patch
 
