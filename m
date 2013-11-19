@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix.patch added
- to -mm tree
-Date: Mon, 18 Nov 2013 16:09:29 -0800
-Message-ID: <528aac39.O+WNhPtOONnIIA3A%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 19 Nov 2013 13:28:11 -0800
+Message-ID: <528bd7eb.tQvoRBYTSKCZDNoO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59590 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41105 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752423Ab3KSAJa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 19:09:30 -0500
+	with ESMTP id S1752004Ab3KSV2M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 16:28:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, dhillf@gmail.com, dave.hansen@linux.intel.com, aarcange@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,aarcange@redhat.com,dave.hansen@linux.intel.com,dhillf@gmail.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com
+Subject: + linux-next-git-rejects.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Mon, 18 Nov 2013 16:09:29 -0800
+Date: Tue, 19 Nov 2013 13:28:11 -0800
 
 
 The patch titled
-     Subject: mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,46 +44,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix
+Subject: linux-next-git-rejects
 
-fix coding-style and comment text, per Naoya Horiguchi
-
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/i2c/busses/i2c-exynos5.c |    4 ----
+ drivers/i2c/busses/i2c-st.c      |    4 ----
+ 2 files changed, 8 deletions(-)
 
-diff -puN mm/migrate.c~mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix mm/migrate.c
---- a/mm/migrate.c~mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix
-+++ a/mm/migrate.c
-@@ -442,9 +442,9 @@ int migrate_huge_page_move_mapping(struc
- }
+diff -puN drivers/i2c/busses/i2c-exynos5.c~linux-next-git-rejects drivers/i2c/busses/i2c-exynos5.c
+--- a/drivers/i2c/busses/i2c-exynos5.c~linux-next-git-rejects
++++ a/drivers/i2c/busses/i2c-exynos5.c
+@@ -535,11 +535,7 @@ static int exynos5_i2c_xfer_msg(struct e
+ 	i2c->msg_ptr = 0;
+ 	i2c->trans_done = 0;
  
- /*
-- * Gigantic pages are so large that the we do not guarantee
-- * that page++ pointer arithmetic will work across the
-- * entire page.  We need something more specialized.
-+ * Gigantic pages are so large that we do not guarantee that page++ pointer
-+ * arithmetic will work across the entire page.  We need something more
-+ * specialized.
-  */
- static void __copy_gigantic_page(struct page *dst, struct page *src,
- 				int nr_pages)
-@@ -483,7 +483,7 @@ static void copy_huge_page(struct page *
- 		nr_pages = hpage_nr_pages(src);
- 	}
+-<<<<<<< HEAD
+ 	reinit_completion(&i2c->msg_complete);
+-=======
+-	INIT_COMPLETION(i2c->msg_complete);
+->>>>>>> linux-next/akpm-base
  
--	for (i = 0; i < nr_pages; i++ ) {
-+	for (i = 0; i < nr_pages; i++) {
- 		cond_resched();
- 		copy_highpage(dst + i, src + i);
- 	}
+ 	exynos5_i2c_message_start(i2c, stop);
+ 
+diff -puN drivers/i2c/busses/i2c-st.c~linux-next-git-rejects drivers/i2c/busses/i2c-st.c
+--- a/drivers/i2c/busses/i2c-st.c~linux-next-git-rejects
++++ a/drivers/i2c/busses/i2c-st.c
+@@ -615,11 +615,7 @@ static int st_i2c_xfer_msg(struct st_i2c
+ 	c->result	= 0;
+ 	c->stop		= is_last;
+ 
+-<<<<<<< HEAD
+ 	reinit_completion(&i2c_dev->complete);
+-=======
+-	INIT_COMPLETION(i2c_dev->complete);
+->>>>>>> linux-next/akpm-base
+ 
+ 	ctl = SSC_CTL_EN | SSC_CTL_MS |	SSC_CTL_EN_RX_FIFO | SSC_CTL_EN_TX_FIFO;
+ 	st_i2c_set_bits(i2c_dev->base + SSC_CTL, ctl);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +100,7 @@ kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
 kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
 kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
 linux-next.patch
+linux-next-git-rejects.patch
 debugging-keep-track-of-page-owners.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
