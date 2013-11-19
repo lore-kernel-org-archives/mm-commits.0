@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-cmdlinec-declare-exported-symbols-immediately.patch added
- to -mm tree
-Date: Mon, 18 Nov 2013 15:48:55 -0800
-Message-ID: <528aa767.8odNICn1nkQlEc5V%akpm@linux-foundation.org>
+Subject: + kernel-paramsc-improve-standard-definitions.patch added to -mm
+ tree
+Date: Mon, 18 Nov 2013 16:01:13 -0800
+Message-ID: <528aaa49.6e0a4PFKk3iYDwz/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59476 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59566 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665Ab3KRXs4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 18:48:56 -0500
+	with ESMTP id S1751321Ab3KSABO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Nov 2013 19:01:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, levex@linux.com, felipe.contreras@gmail.com
+To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, levex@linux.com, felipe.contreras@gmail.com
 
-Subject: + lib-cmdlinec-declare-exported-symbols-immediately.patch added to -mm tree
-To: felipe.contreras@gmail.com,levex@linux.com
+Subject: + kernel-paramsc-improve-standard-definitions.patch added to -mm tree
+To: felipe.contreras@gmail.com,levex@linux.com,rusty@rustcorp.com.au
 From: akpm@linux-foundation.org
-Date: Mon, 18 Nov 2013 15:48:55 -0800
+Date: Mon, 18 Nov 2013 16:01:13 -0800
 
 
 The patch titled
-     Subject: lib/cmdline.c: declare exported symbols immediately
+     Subject: kernel/params.c: improve standard definitions
 has been added to the -mm tree.  Its filename is
-     lib-cmdlinec-declare-exported-symbols-immediately.patch
+     kernel-paramsc-improve-standard-definitions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-cmdlinec-declare-exported-symbols-immediately.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-paramsc-improve-standard-definitions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-cmdlinec-declare-exported-symbols-immediately.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-paramsc-improve-standard-definitions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,45 +45,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: lib/cmdline.c: declare exported symbols immediately
+Subject: kernel/params.c: improve standard definitions
 
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-+EXPORT_SYMBOL(memparse);
-
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-+EXPORT_SYMBOL(get_option);
-
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-+EXPORT_SYMBOL(get_options);
+We are repeating the functionality of kstrtol in param_set_long, and the
+same for kstrtoint.  We can get rid of the extra code by using the right
+functions.
 
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Levente Kurusa <levex@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/params.c |   25 +++++++++----------------
+ 1 file changed, 9 insertions(+), 16 deletions(-)
 
-diff -puN lib/cmdline.c~lib-cmdlinec-declare-exported-symbols-immediately lib/cmdline.c
---- a/lib/cmdline.c~lib-cmdlinec-declare-exported-symbols-immediately
-+++ a/lib/cmdline.c
-@@ -67,6 +67,7 @@ int get_option(char **str, int *pint)
- 
- 	return 1;
+diff -puN kernel/params.c~kernel-paramsc-improve-standard-definitions kernel/params.c
+--- a/kernel/params.c~kernel-paramsc-improve-standard-definitions
++++ a/kernel/params.c
+@@ -227,17 +227,10 @@ int parse_args(const char *doing,
  }
-+EXPORT_SYMBOL(get_option);
  
- /**
-  *	get_options - Parse a string into a list of integers
-@@ -112,6 +113,7 @@ char *get_options(const char *str, int n
- 	ints[0] = i - 1;
- 	return (char *)str;
- }
-+EXPORT_SYMBOL(get_options);
+ /* Lazy bastard, eh? */
+-#define STANDARD_PARAM_DEF(name, type, format, tmptype, strtolfn)      	\
++#define STANDARD_PARAM_DEF(name, type, format, strtolfn)      		\
+ 	int param_set_##name(const char *val, const struct kernel_param *kp) \
+ 	{								\
+-		tmptype l;						\
+-		int ret;						\
+-									\
+-		ret = strtolfn(val, 0, &l);				\
+-		if (ret < 0 || ((type)l != l))				\
+-			return ret < 0 ? ret : -EINVAL;			\
+-		*((type *)kp->arg) = l;					\
+-		return 0;						\
++		return strtolfn(val, 0, (type *)kp->arg);		\
+ 	}								\
+ 	int param_get_##name(char *buffer, const struct kernel_param *kp) \
+ 	{								\
+@@ -253,13 +246,13 @@ int parse_args(const char *doing,
+ 	EXPORT_SYMBOL(param_ops_##name)
  
- /**
-  *	memparse - parse a string with mem suffixes into a number
-@@ -152,7 +154,4 @@ unsigned long long memparse(const char *
  
- 	return ret;
- }
+-STANDARD_PARAM_DEF(byte, unsigned char, "%hhu", unsigned long, kstrtoul);
+-STANDARD_PARAM_DEF(short, short, "%hi", long, kstrtol);
+-STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, kstrtoul);
+-STANDARD_PARAM_DEF(int, int, "%i", long, kstrtol);
+-STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, kstrtoul);
+-STANDARD_PARAM_DEF(long, long, "%li", long, kstrtol);
+-STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, kstrtoul);
++STANDARD_PARAM_DEF(byte, unsigned char, "%hhu", kstrtou8);
++STANDARD_PARAM_DEF(short, short, "%hi", kstrtos16);
++STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", kstrtou16);
++STANDARD_PARAM_DEF(int, int, "%i", kstrtoint);
++STANDARD_PARAM_DEF(uint, unsigned int, "%u", kstrtouint);
++STANDARD_PARAM_DEF(long, long, "%li", kstrtol);
++STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", kstrtoul);
+ 
+ int param_set_charp(const char *val, const struct kernel_param *kp)
+ {
+_
+
+Patches currently in -mm which might be from felipe.contreras@gmail.com are
+
+origin.patch
+kstrtox-remove-redundant-cleanup.patch
+cmdline-fix-style-issues.patch
+lib-cmdlinec-declare-exported-symbols-immediately.patch
+kernel-paramsc-improve-standard-definitions.patch
+
