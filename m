@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-parserc-add-match_wildcard-function.patch added to -mm tree
-Date: Tue, 19 Nov 2013 15:34:19 -0800
-Message-ID: <528bf57b.GuafqX8ip9SEafAi%akpm@linux-foundation.org>
+Subject: + dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
+ added to -mm tree
+Date: Tue, 19 Nov 2013 15:34:21 -0800
+Message-ID: <528bf57d.ud2roS3UNZh6jFWB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42601 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42609 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752199Ab3KSXeU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 18:34:20 -0500
+	with ESMTP id S1752962Ab3KSXeW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 18:34:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com, jbaron@akamai.com, changbin.du@gmail.com
 
-Subject: + lib-parserc-add-match_wildcard-function.patch added to -mm tree
+Subject: + dynamic-debug-howtotxt-update-since-new-wildcard-support.patch added to -mm tree
 To: changbin.du@gmail.com,jbaron@akamai.com,joe@perches.com
 From: akpm@linux-foundation.org
-Date: Tue, 19 Nov 2013 15:34:19 -0800
+Date: Tue, 19 Nov 2013 15:34:21 -0800
 
 
 The patch titled
-     Subject: lib/parser.c: add match_wildcard function
+     Subject: dynamic-debug-howto.txt: update since new wildcard support
 has been added to the -mm tree.  Its filename is
-     lib-parserc-add-match_wildcard-function.patch
+     dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-parserc-add-match_wildcard-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-parserc-add-match_wildcard-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,13 +45,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Du, Changbin" <changbin.du@gmail.com>
-Subject: lib/parser.c: add match_wildcard function
+Subject: dynamic-debug-howto.txt: update since new wildcard support
 
-match_wildcard function is a simple implementation of wildcard
-matching algorithm. It only supports two usual wildcardes:
-    '*' - matches zero or more characters
-    '?' - matches one character
-This algorithm is safe since it is non-recursive.
+Add the usage of using new feature wildcard support.
 
 Signed-off-by: Du, Changbin <changbin.du@gmail.com>
 Cc: Jason Baron <jbaron@akamai.com>
@@ -58,87 +55,35 @@ Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/parser.h |    1 
- lib/parser.c           |   51 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 52 insertions(+)
+ Documentation/dynamic-debug-howto.txt |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN include/linux/parser.h~lib-parserc-add-match_wildcard-function include/linux/parser.h
---- a/include/linux/parser.h~lib-parserc-add-match_wildcard-function
-+++ a/include/linux/parser.h
-@@ -29,5 +29,6 @@ int match_token(char *, const match_tabl
- int match_int(substring_t *, int *result);
- int match_octal(substring_t *, int *result);
- int match_hex(substring_t *, int *result);
-+bool match_wildcard(const char *pattern, const char *str);
- size_t match_strlcpy(char *, const substring_t *, size_t);
- char *match_strdup(const substring_t *);
-diff -puN lib/parser.c~lib-parserc-add-match_wildcard-function lib/parser.c
---- a/lib/parser.c~lib-parserc-add-match_wildcard-function
-+++ a/lib/parser.c
-@@ -193,6 +193,56 @@ int match_hex(substring_t *s, int *resul
- }
+diff -puN Documentation/dynamic-debug-howto.txt~dynamic-debug-howtotxt-update-since-new-wildcard-support Documentation/dynamic-debug-howto.txt
+--- a/Documentation/dynamic-debug-howto.txt~dynamic-debug-howtotxt-update-since-new-wildcard-support
++++ a/Documentation/dynamic-debug-howto.txt
+@@ -108,6 +108,12 @@ If your query set is big, you can batch
  
- /**
-+ * match_wildcard: - parse if a string matches given wildcard pattern
-+ * @pattern: wildcard pattern
-+ * @str: the string to be parsed
-+ *
-+ * Description: Parse the string @str to check if matches wildcard
-+ * pattern @pattern. The pattern may contain two type wildcardes:
-+ *   '*' - matches zero or more characters
-+ *   '?' - matches one character
-+ * If it's matched, return true, else return false.
-+ */
-+bool match_wildcard(const char *pattern, const char *str)
-+{
-+	const char *s = str;
-+	const char *p = pattern;
-+	bool star = false;
+   ~# cat query-batch-file > <debugfs>/dynamic_debug/control
+ 
++A another way is to use wildcard. The match rule support '*' (matches
++zero or more characters) and '?' (matches exactly one character).For
++example, you can match all usb drivers:
 +
-+	while (*s) {
-+		switch (*p) {
-+		case '?':
-+			s++;
-+			p++;
-+			break;
-+		case '*':
-+			star = true;
-+			str = s;
-+			if (!*++p)
-+				return true;
-+			pattern = p;
-+			break;
-+		default:
-+			if (*s == *p) {
-+				s++;
-+				p++;
-+			} else {
-+				if (!star)
-+					return false;
-+				str++;
-+				s = str;
-+				p = pattern;
-+			}
-+			break;
-+		}
-+	}
++  ~# echo "file drivers/usb/* +p" > <debugfs>/dynamic_debug/control
 +
-+	if (*p == '*')
-+		++p;
-+	return !*p;
-+}
+ At the syntactical level, a command comprises a sequence of match
+ specifications, followed by a flags change specification.
+ 
+@@ -315,6 +321,9 @@ nullarbor:~ # echo -n 'func svc_process
+ nullarbor:~ # echo -n 'format "nfsd: READ" +p' >
+ 				<debugfs>/dynamic_debug/control
+ 
++// enable messages in files of which the pathes include string "usb"
++nullarbor:~ # echo -n '*usb* +p' > <debugfs>/dynamic_debug/control
 +
-+/**
-  * match_strlcpy: - Copy the characters from a substring_t to a sized buffer
-  * @dest: where to copy to
-  * @src: &substring_t to copy
-@@ -235,5 +285,6 @@ EXPORT_SYMBOL(match_token);
- EXPORT_SYMBOL(match_int);
- EXPORT_SYMBOL(match_octal);
- EXPORT_SYMBOL(match_hex);
-+EXPORT_SYMBOL(match_wildcard);
- EXPORT_SYMBOL(match_strlcpy);
- EXPORT_SYMBOL(match_strdup);
+ // enable all messages
+ nullarbor:~ # echo -n '+p' > <debugfs>/dynamic_debug/control
+ 
 _
 
 Patches currently in -mm which might be from changbin.du@gmail.com are
