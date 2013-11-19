@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch added to
- -mm tree
-Date: Tue, 19 Nov 2013 14:22:12 -0800
-Message-ID: <528be494.ZwQgWnB/WhoLVzkE%akpm@linux-foundation.org>
+Subject: + coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch added to -mm tree
+Date: Tue, 19 Nov 2013 14:22:14 -0800
+Message-ID: <528be496.oh626gajyrgLZgPp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41994 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42004 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752058Ab3KSWWN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 17:22:13 -0500
+	with ESMTP id S1752714Ab3KSWWP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 17:22:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, segoon@openwall.com, pmatouse@redhat.com, keescook@chromium.org, josh@joshtriplett.org, ebiederm@xmission.com, alex.page.kelly@gmail.com, oleg@redhat.com
 
-Subject: + coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch added to -mm tree
+Subject: + coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch added to -mm tree
 To: oleg@redhat.com,alex.page.kelly@gmail.com,ebiederm@xmission.com,josh@joshtriplett.org,keescook@chromium.org,pmatouse@redhat.com,segoon@openwall.com
 From: akpm@linux-foundation.org
-Date: Tue, 19 Nov 2013 14:22:12 -0800
+Date: Tue, 19 Nov 2013 14:22:14 -0800
 
 
 The patch titled
-     Subject: coredump: set_dumpable: fix the theoretical race with itself
+     Subject: coredump: kill MMF_DUMPABLE and MMF_DUMP_SECURELY
 has been added to the -mm tree.  Its filename is
-     coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
+     coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,21 +44,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: set_dumpable: fix the theoretical race with itself
+Subject: coredump: kill MMF_DUMPABLE and MMF_DUMP_SECURELY
 
-set_dumpable() updates MMF_DUMPABLE_MASK in a non-trivial way to ensure
-that get_dumpable() can't observe the intermediate state, but this all
-can't help if multiple threads call set_dumpable() at the same time.
+Nobody actually needs MMF_DUMPABLE/MMF_DUMP_SECURELY, they are only used
+to enforce the encoding of SUID_DUMP_* enum in mm->flags &
+MMF_DUMPABLE_MASK.
 
-And in theory commit_creds()->set_dumpable(SUID_DUMP_ROOT) racing with
-sys_prctl()->set_dumpable(SUID_DUMP_DISABLE) can result in SUID_DUMP_USER.
-
-Change this code to update both bits atomically via cmpxchg().
-
-Note: this assumes that it is safe to mix bitops and cmpxchg.  IOW, if,
-say, an architecture implements cmpxchg() using the locking (like
-arch/parisc/lib/bitops.c does), then it should use the same locks for
-set_bit/etc.
+Now that set_dumpable() updates both bits atomically we can kill them and
+simply store the value "as is" in 2 lower bits.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
@@ -72,71 +63,68 @@ Cc: Vasily Kulikov <segoon@openwall.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   49 +++++++++++++++----------------------------------
- 1 file changed, 15 insertions(+), 34 deletions(-)
+ fs/exec.c             |   21 ++++++---------------
+ include/linux/sched.h |    4 +---
+ 2 files changed, 7 insertions(+), 18 deletions(-)
 
-diff -puN fs/exec.c~coredump-set_dumpable-fix-the-theoretical-race-with-itself fs/exec.c
---- a/fs/exec.c~coredump-set_dumpable-fix-the-theoretical-race-with-itself
+diff -puN fs/exec.c~coredump-kill-mmf_dumpable-and-mmf_dump_securely fs/exec.c
+--- a/fs/exec.c~coredump-kill-mmf_dumpable-and-mmf_dump_securely
 +++ a/fs/exec.c
-@@ -1617,43 +1617,24 @@ EXPORT_SYMBOL(set_binfmt);
+@@ -1616,33 +1616,24 @@ void set_binfmt(struct linux_binfmt *new
+ EXPORT_SYMBOL(set_binfmt);
  
  /*
-  * set_dumpable converts traditional three-value dumpable to two flags and
-- * stores them into mm->flags.  It modifies lower two bits of mm->flags, but
-- * these bits are not changed atomically.  So get_dumpable can observe the
-- * intermediate state.  To avoid doing unexpected behavior, get get_dumpable
-- * return either old dumpable or new one by paying attention to the order of
-- * modifying the bits.
-- *
-- * dumpable |   mm->flags (binary)
-- * old  new | initial interim  final
-- * ---------+-----------------------
-- *  0    1  |   00      01      01
-- *  0    2  |   00      10(*)   11
-- *  1    0  |   01      00      00
-- *  1    2  |   01      11      11
-- *  2    0  |   11      10(*)   00
-- *  2    1  |   11      11      01
-- *
-- * (*) get_dumpable regards interim value of 10 as 11.
-+ * stores them into mm->flags.
+- * set_dumpable converts traditional three-value dumpable to two flags and
+- * stores them into mm->flags.
++ * set_dumpable stores three-value SUID_DUMP_* into mm->flags.
   */
  void set_dumpable(struct mm_struct *mm, int value)
  {
--	switch (value) {
--	case SUID_DUMP_DISABLE:
--		clear_bit(MMF_DUMPABLE, &mm->flags);
--		smp_wmb();
--		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
--		break;
--	case SUID_DUMP_USER:
--		set_bit(MMF_DUMPABLE, &mm->flags);
--		smp_wmb();
--		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
--		break;
--	case SUID_DUMP_ROOT:
--		set_bit(MMF_DUMP_SECURELY, &mm->flags);
--		smp_wmb();
--		set_bit(MMF_DUMPABLE, &mm->flags);
--		break;
--	}
-+	unsigned long old, new;
+ 	unsigned long old, new;
+ 
++	if (WARN_ON((unsigned)value > SUID_DUMP_ROOT))
++		return;
 +
-+	do {
-+		old = ACCESS_ONCE(mm->flags);
-+		new = old & ~MMF_DUMPABLE_MASK;
-+
-+		switch (value) {
-+		case SUID_DUMP_ROOT:
-+			new |= (1 << MMF_DUMP_SECURELY);
-+		case SUID_DUMP_USER:
-+			new |= (1<< MMF_DUMPABLE);
-+		}
-+
-+	} while (cmpxchg(&mm->flags, old, new) != old);
+ 	do {
+ 		old = ACCESS_ONCE(mm->flags);
+-		new = old & ~MMF_DUMPABLE_MASK;
+-
+-		switch (value) {
+-		case SUID_DUMP_ROOT:
+-			new |= (1 << MMF_DUMP_SECURELY);
+-		case SUID_DUMP_USER:
+-			new |= (1<< MMF_DUMPABLE);
+-		}
+-
++		new = (old & ~MMF_DUMPABLE_MASK) | value;
+ 	} while (cmpxchg(&mm->flags, old, new) != old);
  }
  
  int __get_dumpable(unsigned long mm_flags)
+ {
+-	int ret;
+-
+-	ret = mm_flags & MMF_DUMPABLE_MASK;
+-	return (ret > SUID_DUMP_USER) ? SUID_DUMP_ROOT : ret;
++	return mm_flags & MMF_DUMPABLE_MASK;
+ }
+ 
+ /*
+diff -puN include/linux/sched.h~coredump-kill-mmf_dumpable-and-mmf_dump_securely include/linux/sched.h
+--- a/include/linux/sched.h~coredump-kill-mmf_dumpable-and-mmf_dump_securely
++++ a/include/linux/sched.h
+@@ -336,10 +336,8 @@ extern int get_dumpable(struct mm_struct
+ #define SUID_DUMP_ROOT		2	/* Dump as root */
+ 
+ /* mm flags */
+-/* dumpable bits */
+-#define MMF_DUMPABLE      0  /* core dump is permitted */
+-#define MMF_DUMP_SECURELY 1  /* core file is readable only by root */
+ 
++/* for SUID_DUMP_* above */
+ #define MMF_DUMPABLE_BITS 2
+ #define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
+ 
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
