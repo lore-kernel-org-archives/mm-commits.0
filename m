@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + lib-parserc-put-export_symbols-in-the-conventional-place.patch
- added to -mm tree
-Date: Tue, 19 Nov 2013 15:36:20 -0800
-Message-ID: <528bf5f4.DRzWTBZxQpoSCjWJ%akpm@linux-foundation.org>
+Subject: +
+ arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown.patch added
+ to -mm tree
+Date: Tue, 19 Nov 2013 15:46:31 -0800
+Message-ID: <528bf857.qdZ7AIUxJGMMirYU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42628 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752604Ab3KSXgV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 18:36:21 -0500
+	with ESMTP id S1752211Ab3KSXqc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 18:46:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, changbin.du@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, linux@maxim.org.za, a.zummo@towertech.it, jhovold@gmail.com
 
-Subject: + lib-parserc-put-export_symbols-in-the-conventional-place.patch added to -mm tree
-To: akpm@linux-foundation.org,changbin.du@gmail.com,joe@perches.com
+Subject: + arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown.patch added to -mm tree
+To: jhovold@gmail.com,a.zummo@towertech.it,linux@maxim.org.za,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com
 From: akpm@linux-foundation.org
-Date: Tue, 19 Nov 2013 15:36:20 -0800
+Date: Tue, 19 Nov 2013 15:46:31 -0800
 
 
 The patch titled
-     Subject: lib/parser.c: put EXPORT_SYMBOLs in the conventional place
+     Subject: ARM: drivers/rtc/rtc-at91rm9200.c: disable interrupts at shutdown
 has been added to the -mm tree.  Its filename is
-     lib-parserc-put-export_symbols-in-the-conventional-place.patch
+     arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-parserc-put-export_symbols-in-the-conventional-place.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-parserc-put-export_symbols-in-the-conventional-place.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,105 +45,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/parser.c: put EXPORT_SYMBOLs in the conventional place
+From: Johan Hovold <jhovold@gmail.com>
+Subject: ARM: drivers/rtc/rtc-at91rm9200.c: disable interrupts at shutdown
 
-Cc: Du, Changbin <changbin.du@gmail.com>
-Cc: Joe Perches <joe@perches.com>
+Make sure RTC-interrupts are disabled at shutdown.
+
+As the RTC is generally powered by backup power (VDDBU), its interrupts
+are not disabled on wake-up, user, watchdog or software reset.  This could
+cause troubles on other systems (e.g.  older kernels) if an interrupt
+occurs before a handler has been installed at next boot.
+
+Let us be well-behaved and disable them on clean shutdowns at least (as
+do the RTT-based rtc-at91sam9 driver).
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/parser.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN lib/parser.c~lib-parserc-put-export_symbols-in-the-conventional-place lib/parser.c
---- a/lib/parser.c~lib-parserc-put-export_symbols-in-the-conventional-place
-+++ a/lib/parser.c
-@@ -113,6 +113,7 @@ int match_token(char *s, const match_tab
- 
- 	return p->token;
+diff -puN drivers/rtc/rtc-at91rm9200.c~arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -428,6 +428,14 @@ static int __exit at91_rtc_remove(struct
+ 	return 0;
  }
-+EXPORT_SYMBOL(match_token);
  
- /**
-  * match_number: scan a number in the given base from a substring_t
-@@ -163,6 +164,7 @@ int match_int(substring_t *s, int *resul
- {
- 	return match_number(s, result, 0);
- }
-+EXPORT_SYMBOL(match_int);
++static void at91_rtc_shutdown(struct platform_device *pdev)
++{
++	/* Disable all interrupts */
++	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
++					AT91_RTC_SECEV | AT91_RTC_TIMEV |
++					AT91_RTC_CALEV);
++}
++
+ #ifdef CONFIG_PM_SLEEP
  
- /**
-  * match_octal: - scan an octal representation of an integer from a substring_t
-@@ -177,6 +179,7 @@ int match_octal(substring_t *s, int *res
- {
- 	return match_number(s, result, 8);
- }
-+EXPORT_SYMBOL(match_octal);
+ /* AT91RM9200 RTC Power management control */
+@@ -466,6 +474,7 @@ static SIMPLE_DEV_PM_OPS(at91_rtc_pm_ops
  
- /**
-  * match_hex: - scan a hex representation of an integer from a substring_t
-@@ -191,6 +194,7 @@ int match_hex(substring_t *s, int *resul
- {
- 	return match_number(s, result, 16);
- }
-+EXPORT_SYMBOL(match_hex);
- 
- /**
-  * match_wildcard: - parse if a string matches given wildcard pattern
-@@ -241,6 +245,7 @@ bool match_wildcard(const char *pattern,
- 		++p;
- 	return !*p;
- }
-+EXPORT_SYMBOL(match_wildcard);
- 
- /**
-  * match_strlcpy: - Copy the characters from a substring_t to a sized buffer
-@@ -263,6 +268,7 @@ size_t match_strlcpy(char *dest, const s
- 	}
- 	return ret;
- }
-+EXPORT_SYMBOL(match_strlcpy);
- 
- /**
-  * match_strdup: - allocate a new string with the contents of a substring_t
-@@ -280,11 +286,4 @@ char *match_strdup(const substring_t *s)
- 		match_strlcpy(p, s, sz);
- 	return p;
- }
--
--EXPORT_SYMBOL(match_token);
--EXPORT_SYMBOL(match_int);
--EXPORT_SYMBOL(match_octal);
--EXPORT_SYMBOL(match_hex);
--EXPORT_SYMBOL(match_wildcard);
--EXPORT_SYMBOL(match_strlcpy);
- EXPORT_SYMBOL(match_strdup);
+ static struct platform_driver at91_rtc_driver = {
+ 	.remove		= __exit_p(at91_rtc_remove),
++	.shutdown	= at91_rtc_shutdown,
+ 	.driver		= {
+ 		.name	= "at91_rtc",
+ 		.owner	= THIS_MODULE,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
+arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown.patch
 
