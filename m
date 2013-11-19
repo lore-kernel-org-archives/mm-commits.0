@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + asm-typesh-remove-include-asm-generic-int-l64h.patch added to
+Subject: +
+ drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch added to
  -mm tree
-Date: Tue, 19 Nov 2013 14:26:57 -0800
-Message-ID: <528be5b1.FaI75ozshqJO+HRm%akpm@linux-foundation.org>
+Date: Tue, 19 Nov 2013 14:33:26 -0800
+Message-ID: <528be736.dggkIY3Eu2AEXWL4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42018 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42031 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752202Ab3KSW06 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 17:26:58 -0500
+	with ESMTP id S1753230Ab3KSWd1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 17:33:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, rdunlap@xenotime.net, arnd@arndb.de, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, alexander.deucher@amd.com, geert@linux-m68k.org
 
-Subject: + asm-typesh-remove-include-asm-generic-int-l64h.patch added to -mm tree
-To: geert@linux-m68k.org,arnd@arndb.de,rdunlap@xenotime.net,viro@zeniv.linux.org.uk
+Subject: + drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch added to -mm tree
+To: geert@linux-m68k.org,alexander.deucher@amd.com
 From: akpm@linux-foundation.org
-Date: Tue, 19 Nov 2013 14:26:57 -0800
+Date: Tue, 19 Nov 2013 14:33:26 -0800
 
 
 The patch titled
-     Subject: asm/types.h: Remove include/asm-generic/int-l64.h
+     Subject: drivers/gpu/drm/drm_edid_load.c: make edid_load() return a void *
 has been added to the -mm tree.  Its filename is
-     asm-typesh-remove-include-asm-generic-int-l64h.patch
+     drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/asm-typesh-remove-include-asm-generic-int-l64h.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/asm-typesh-remove-include-asm-generic-int-l64h.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,98 +46,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: asm/types.h: Remove include/asm-generic/int-l64.h
+Subject: drivers/gpu/drm/drm_edid_load.c: make edid_load() return a void *
 
-Now all 64-bit architectures have been converted to int-ll64.h, we can
-remove int-l64.h in kernelspace.
-
-For backwards compatibility, alpha, ia64, mips64, and powerpc64 still use
-int-l64.h in userspace.
-
-This is the (reworked for UAPI) non-documentation part of more than two
-year old "asm/types.h: All architectures use int-ll64.h in kernelspace"
-(https://lkml.org/lkml/2011/8/13/104)
-
-Since <asm/types.h> (from include/uapi/asm-generic/types.h) is used for
-both kernel and user space, include/asm-generic/int-ll64.h cannot just
-become include/asm-generic/types.h, as Arnd suggested.
+Always use "void *" for arbitrary memory buffers, as this allows to drop
+casts in assignments.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/int-l64.h    |   49 -----------------------------
- include/uapi/asm-generic/types.h |    3 -
- 2 files changed, 1 insertion(+), 51 deletions(-)
+ drivers/gpu/drm/drm_edid_load.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/int-l64.h~asm-typesh-remove-include-asm-generic-int-l64h /dev/null
---- a/include/asm-generic/int-l64.h
-+++ /dev/null
-@@ -1,49 +0,0 @@
--/*
-- * asm-generic/int-l64.h
-- *
-- * Integer declarations for architectures which use "long"
-- * for 64-bit types.
-- */
--#ifndef _ASM_GENERIC_INT_L64_H
--#define _ASM_GENERIC_INT_L64_H
--
--#include <uapi/asm-generic/int-l64.h>
--
--
--#ifndef __ASSEMBLY__
--
--typedef signed char s8;
--typedef unsigned char u8;
--
--typedef signed short s16;
--typedef unsigned short u16;
--
--typedef signed int s32;
--typedef unsigned int u32;
--
--typedef signed long s64;
--typedef unsigned long u64;
--
--#define S8_C(x)  x
--#define U8_C(x)  x ## U
--#define S16_C(x) x
--#define U16_C(x) x ## U
--#define S32_C(x) x
--#define U32_C(x) x ## U
--#define S64_C(x) x ## L
--#define U64_C(x) x ## UL
--
--#else /* __ASSEMBLY__ */
--
--#define S8_C(x)  x
--#define U8_C(x)  x
--#define S16_C(x) x
--#define U16_C(x) x
--#define S32_C(x) x
--#define U32_C(x) x
--#define S64_C(x) x
--#define U64_C(x) x
--
--#endif /* __ASSEMBLY__ */
--
--#endif /* _ASM_GENERIC_INT_L64_H */
-diff -puN include/uapi/asm-generic/types.h~asm-typesh-remove-include-asm-generic-int-l64h include/uapi/asm-generic/types.h
---- a/include/uapi/asm-generic/types.h~asm-typesh-remove-include-asm-generic-int-l64h
-+++ a/include/uapi/asm-generic/types.h
-@@ -1,8 +1,7 @@
- #ifndef _ASM_GENERIC_TYPES_H
- #define _ASM_GENERIC_TYPES_H
- /*
-- * int-ll64 is used practically everywhere now,
-- * so use it as a reasonable default.
-+ * int-ll64 is used everywhere now.
-  */
- #include <asm-generic/int-ll64.h>
+diff -puN drivers/gpu/drm/drm_edid_load.c~drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void drivers/gpu/drm/drm_edid_load.c
+--- a/drivers/gpu/drm/drm_edid_load.c~drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void
++++ a/drivers/gpu/drm/drm_edid_load.c
+@@ -141,7 +141,7 @@ static int edid_size(const u8 *edid, int
+ 	return (edid[0x7e] + 1) * EDID_LENGTH;
+ }
+ 
+-static u8 *edid_load(struct drm_connector *connector, const char *name,
++static void *edid_load(struct drm_connector *connector, const char *name,
+ 			const char *connector_name)
+ {
+ 	const struct firmware *fw = NULL;
+@@ -263,7 +263,7 @@ int drm_load_edid_firmware(struct drm_co
+ 	if (*last == '\n')
+ 		*last = '\0';
+ 
+-	edid = (struct edid *) edid_load(connector, edidname, connector_name);
++	edid = edid_load(connector, edidname, connector_name);
+ 	if (IS_ERR_OR_NULL(edid))
+ 		return 0;
  
 _
 
@@ -144,6 +86,7 @@ Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
 drivers-rtc-rtc-s5mc-fix-info-rtc-assignment.patch
+drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
 genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
 scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
 asm-typesh-remove-include-asm-generic-int-l64h.patch
