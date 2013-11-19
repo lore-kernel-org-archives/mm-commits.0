@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch added to -mm tree
-Date: Tue, 19 Nov 2013 14:22:14 -0800
-Message-ID: <528be496.oh626gajyrgLZgPp%akpm@linux-foundation.org>
+Subject: +
+ coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
+ added to -mm tree
+Date: Tue, 19 Nov 2013 14:22:15 -0800
+Message-ID: <528be497.II+YXw4Hqh+TxYji%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42011 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714Ab3KSWWP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 17:22:15 -0500
+	with ESMTP id S1752987Ab3KSWWQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 17:22:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, segoon@openwall.com, pmatouse@redhat.com, keescook@chromium.org, josh@joshtriplett.org, ebiederm@xmission.com, alex.page.kelly@gmail.com, oleg@redhat.com
 
-Subject: + coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch added to -mm tree
+Subject: + coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch added to -mm tree
 To: oleg@redhat.com,alex.page.kelly@gmail.com,ebiederm@xmission.com,josh@joshtriplett.org,keescook@chromium.org,pmatouse@redhat.com,segoon@openwall.com
 From: akpm@linux-foundation.org
-Date: Tue, 19 Nov 2013 14:22:14 -0800
+Date: Tue, 19 Nov 2013 14:22:15 -0800
 
 
 The patch titled
-     Subject: coredump: kill MMF_DUMPABLE and MMF_DUMP_SECURELY
+     Subject: coredump: make __get_dumpable/get_dumpable inline, kill fs/coredump.h
 has been added to the -mm tree.  Its filename is
-     coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
+     coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,14 +46,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: kill MMF_DUMPABLE and MMF_DUMP_SECURELY
+Subject: coredump: make __get_dumpable/get_dumpable inline, kill fs/coredump.h
 
-Nobody actually needs MMF_DUMPABLE/MMF_DUMP_SECURELY, they are only used
-to enforce the encoding of SUID_DUMP_* enum in mm->flags &
-MMF_DUMPABLE_MASK.
+1. Remove fs/coredump.h. It is not clear why do we need it,
+   it only declares __get_dumpable(), signal.c includes it
+   for no reason.
 
-Now that set_dumpable() updates both bits atomically we can kill them and
-simply store the value "as is" in 2 lower bits.
+2. Now that get_dumpable() and __get_dumpable() are really
+   trivial make them inline in linux/sched.h.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Kees Cook <keescook@chromium.org>
@@ -63,68 +65,113 @@ Cc: Vasily Kulikov <segoon@openwall.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c             |   21 ++++++---------------
- include/linux/sched.h |    4 +---
- 2 files changed, 7 insertions(+), 18 deletions(-)
+ fs/coredump.c         |    1 -
+ fs/coredump.h         |    6 ------
+ fs/exec.c             |   18 ------------------
+ include/linux/sched.h |   21 +++++++++++++++++----
+ 4 files changed, 17 insertions(+), 29 deletions(-)
 
-diff -puN fs/exec.c~coredump-kill-mmf_dumpable-and-mmf_dump_securely fs/exec.c
---- a/fs/exec.c~coredump-kill-mmf_dumpable-and-mmf_dump_securely
+diff -puN fs/coredump.c~coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph fs/coredump.c
+--- a/fs/coredump.c~coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph
++++ a/fs/coredump.c
+@@ -40,7 +40,6 @@
+ 
+ #include <trace/events/task.h>
+ #include "internal.h"
+-#include "coredump.h"
+ 
+ #include <trace/events/sched.h>
+ 
+diff -puN fs/coredump.h~coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph /dev/null
+--- a/fs/coredump.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef _FS_COREDUMP_H
+-#define _FS_COREDUMP_H
+-
+-extern int __get_dumpable(unsigned long mm_flags);
+-
+-#endif
+diff -puN fs/exec.c~coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph fs/exec.c
+--- a/fs/exec.c~coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph
 +++ a/fs/exec.c
-@@ -1616,33 +1616,24 @@ void set_binfmt(struct linux_binfmt *new
+@@ -62,7 +62,6 @@
+ 
+ #include <trace/events/task.h>
+ #include "internal.h"
+-#include "coredump.h"
+ 
+ #include <trace/events/sched.h>
+ 
+@@ -1612,7 +1611,6 @@ void set_binfmt(struct linux_binfmt *new
+ 	if (new)
+ 		__module_get(new->module);
+ }
+-
  EXPORT_SYMBOL(set_binfmt);
  
  /*
-- * set_dumpable converts traditional three-value dumpable to two flags and
-- * stores them into mm->flags.
-+ * set_dumpable stores three-value SUID_DUMP_* into mm->flags.
-  */
- void set_dumpable(struct mm_struct *mm, int value)
- {
- 	unsigned long old, new;
- 
-+	if (WARN_ON((unsigned)value > SUID_DUMP_ROOT))
-+		return;
-+
- 	do {
- 		old = ACCESS_ONCE(mm->flags);
--		new = old & ~MMF_DUMPABLE_MASK;
--
--		switch (value) {
--		case SUID_DUMP_ROOT:
--			new |= (1 << MMF_DUMP_SECURELY);
--		case SUID_DUMP_USER:
--			new |= (1<< MMF_DUMPABLE);
--		}
--
-+		new = (old & ~MMF_DUMPABLE_MASK) | value;
+@@ -1631,22 +1629,6 @@ void set_dumpable(struct mm_struct *mm,
  	} while (cmpxchg(&mm->flags, old, new) != old);
  }
  
- int __get_dumpable(unsigned long mm_flags)
- {
--	int ret;
+-int __get_dumpable(unsigned long mm_flags)
+-{
+-	return mm_flags & MMF_DUMPABLE_MASK;
+-}
 -
--	ret = mm_flags & MMF_DUMPABLE_MASK;
--	return (ret > SUID_DUMP_USER) ? SUID_DUMP_ROOT : ret;
-+	return mm_flags & MMF_DUMPABLE_MASK;
- }
- 
- /*
-diff -puN include/linux/sched.h~coredump-kill-mmf_dumpable-and-mmf_dump_securely include/linux/sched.h
---- a/include/linux/sched.h~coredump-kill-mmf_dumpable-and-mmf_dump_securely
+-/*
+- * This returns the actual value of the suid_dumpable flag. For things
+- * that are using this for checking for privilege transitions, it must
+- * test against SUID_DUMP_USER rather than treating it as a boolean
+- * value.
+- */
+-int get_dumpable(struct mm_struct *mm)
+-{
+-	return __get_dumpable(mm->flags);
+-}
+-
+ SYSCALL_DEFINE3(execve,
+ 		const char __user *, filename,
+ 		const char __user *const __user *, argv,
+diff -puN include/linux/sched.h~coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph include/linux/sched.h
+--- a/include/linux/sched.h~coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph
 +++ a/include/linux/sched.h
-@@ -336,10 +336,8 @@ extern int get_dumpable(struct mm_struct
+@@ -327,10 +327,6 @@ arch_get_unmapped_area_topdown(struct fi
+ static inline void arch_pick_mmap_layout(struct mm_struct *mm) {}
+ #endif
+ 
+-
+-extern void set_dumpable(struct mm_struct *mm, int value);
+-extern int get_dumpable(struct mm_struct *mm);
+-
+ #define SUID_DUMP_DISABLE	0	/* No setuid dumping */
+ #define SUID_DUMP_USER		1	/* Dump as user of process */
  #define SUID_DUMP_ROOT		2	/* Dump as root */
- 
- /* mm flags */
--/* dumpable bits */
--#define MMF_DUMPABLE      0  /* core dump is permitted */
--#define MMF_DUMP_SECURELY 1  /* core file is readable only by root */
- 
-+/* for SUID_DUMP_* above */
+@@ -341,6 +337,23 @@ extern int get_dumpable(struct mm_struct
  #define MMF_DUMPABLE_BITS 2
  #define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
  
++extern void set_dumpable(struct mm_struct *mm, int value);
++/*
++ * This returns the actual value of the suid_dumpable flag. For things
++ * that are using this for checking for privilege transitions, it must
++ * test against SUID_DUMP_USER rather than treating it as a boolean
++ * value.
++ */
++static inline int __get_dumpable(unsigned long mm_flags)
++{
++	return mm_flags & MMF_DUMPABLE_MASK;
++}
++
++static inline int get_dumpable(struct mm_struct *mm)
++{
++	return __get_dumpable(mm->flags);
++}
++
+ /* coredump filter bits */
+ #define MMF_DUMP_ANON_PRIVATE	2
+ #define MMF_DUMP_ANON_SHARED	3
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
