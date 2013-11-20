@@ -1,57 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-swapc-reorganize-put_compound_page-fix.patch
- removed from -mm tree
-Date: Wed, 20 Nov 2013 13:24:22 -0800
-Message-ID: <528d2886.L8U1IClvQTeKCHUd%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch removed from -mm tree
+Date: Wed, 20 Nov 2013 13:24:24 -0800
+Message-ID: <528d2888.92s+ij84BBkYv6Jx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35847 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755403Ab3KTVYX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Nov 2013 16:24:23 -0500
+	with ESMTP id S1755459Ab3KTVYZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Nov 2013 16:24:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, aarcange@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, riel@redhat.com, pshelar@nicira.com, minchan@kernel.org, mgorman@suse.de, khalid.aziz@oracle.com, jweiner@redhat.com, gregkh@linuxfoundation.org, cl@linux.com, bhutchings@solarflare.com, andi@firstfloor.org, aarcange@redhat.com, akpm@linux-foundation.org
 
-Subject: [to-be-updated] mm-swapc-reorganize-put_compound_page-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,aarcange@redhat.com,mm-commits@vger.kernel.org
+Subject: [to-be-updated] mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch removed from -mm tree
+To: akpm@linux-foundation.org,aarcange@redhat.com,andi@firstfloor.org,bhutchings@solarflare.com,cl@linux.com,gregkh@linuxfoundation.org,jweiner@redhat.com,khalid.aziz@oracle.com,mgorman@suse.de,minchan@kernel.org,pshelar@nicira.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 20 Nov 2013 13:24:22 -0800
+Date: Wed, 20 Nov 2013 13:24:24 -0800
 
 
 The patch titled
-     Subject: mm-swapc-reorganize-put_compound_page-fix
+     Subject: mm/hugetlb.c: simplify PageHeadHuge() and PageHuge()
 has been removed from the -mm tree.  Its filename was
-     mm-swapc-reorganize-put_compound_page-fix.patch
+     mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swapc-reorganize-put_compound_page-fix
+Subject: mm/hugetlb.c: simplify PageHeadHuge() and PageHuge()
 
+Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ben Hutchings <bhutchings@solarflare.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Pravin Shelar <pshelar@nicira.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN mm/swap.c~mm-swapc-reorganize-put_compound_page-fix mm/swap.c
---- a/mm/swap.c~mm-swapc-reorganize-put_compound_page-fix
-+++ a/mm/swap.c
-@@ -84,7 +84,7 @@ static void put_compound_page(struct pag
+diff -puN mm/hugetlb.c~mm-hugetlbc-simplify-pageheadhuge-and-pagehuge mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-simplify-pageheadhuge-and-pagehuge
++++ a/mm/hugetlb.c
+@@ -690,15 +690,11 @@ static void prep_compound_gigantic_page(
+  */
+ int PageHuge(struct page *page)
  {
- 	struct page *page_head;
+-	compound_page_dtor *dtor;
+-
+ 	if (!PageCompound(page))
+ 		return 0;
  
--	if (likely(PageTail(page))) {
-+	if (likely(!PageTail(page))) {
- 		if (put_page_testzero(page)) {
- 			if (PageHead(page))
- 				__put_compound_page(page);
+ 	page = compound_head(page);
+-	dtor = get_compound_page_dtor(page);
+-
+-	return dtor == free_huge_page;
++	return get_compound_page_dtor(page) == free_huge_page;
+ }
+ EXPORT_SYMBOL_GPL(PageHuge);
+ 
+@@ -708,14 +704,10 @@ EXPORT_SYMBOL_GPL(PageHuge);
+  */
+ int PageHeadHuge(struct page *page_head)
+ {
+-	compound_page_dtor *dtor;
+-
+ 	if (!PageHead(page_head))
+ 		return 0;
+ 
+-	dtor = get_compound_page_dtor(page_head);
+-
+-	return dtor == free_huge_page;
++	return get_compound_page_dtor(page_head) == free_huge_page;
+ }
+ EXPORT_SYMBOL_GPL(PageHeadHuge);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +99,6 @@ drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
 block-blk-mq-cpuc-use-hotcpu_notifier.patch
 posix_acl-uninlining.patch
 mm.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
 mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
 lib-parserc-put-export_symbols-in-the-conventional-place.patch
 kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
