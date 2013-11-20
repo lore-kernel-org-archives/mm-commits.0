@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempolicy-silence-gcc-warning.patch added to -mm tree
-Date: Wed, 20 Nov 2013 14:15:45 -0800
-Message-ID: <528d3491.X5FBuAA4bEYkWh2r%akpm@linux-foundation.org>
+Subject: +
+ fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch added to -mm tree
+Date: Wed, 20 Nov 2013 14:42:45 -0800
+Message-ID: <528d3ae5.HekZPR9Ss+5WGZXE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36191 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36246 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755480Ab3KTWPq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Nov 2013 17:15:46 -0500
+	with ESMTP id S1751918Ab3KTWmq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Nov 2013 17:42:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, keescook@chromium.org, fengguang.wu@intel.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, axel.lin@ingics.com
 
-Subject: + mm-mempolicy-silence-gcc-warning.patch added to -mm tree
-To: rientjes@google.com,fengguang.wu@intel.com,keescook@chromium.org
+Subject: + fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch added to -mm tree
+To: axel.lin@ingics.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 20 Nov 2013 14:15:45 -0800
+Date: Wed, 20 Nov 2013 14:42:45 -0800
 
 
 The patch titled
-     Subject: mm, mempolicy: silence gcc warning
+     Subject: fs/ramfs/file-nommu.c: make ramfs_nommu_get_unmapped_area() and ramfs_nommu_mmap() static
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-silence-gcc-warning.patch
+     fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-silence-gcc-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-silence-gcc-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,45 +44,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, mempolicy: silence gcc warning
+From: Axel Lin <axel.lin@ingics.com>
+Subject: fs/ramfs/file-nommu.c: make ramfs_nommu_get_unmapped_area() and ramfs_nommu_mmap() static
 
-Fengguang Wu reports that compiling mm/mempolicy.c results in a warning:
+Since commit 853ac43ab194f "shmem: unify regular and tiny shmem",
+ramfs_nommu_get_unmapped_area() and ramfs_nommu_mmap() are not directly
+referenced outside of file-nommu.c.  Thus make them static.
 
-	mm/mempolicy.c: In function 'mpol_to_str':
-	mm/mempolicy.c:2878:2: error: format not a string literal and no format arguments
-
-Kees says this is because he is using -Wformat-security.
-
-Silence the warning.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Suggested-by: Kees Cook <keescook@chromium.org>
-Acked-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ramfs/file-nommu.c |   10 ++++++++--
+ include/linux/ramfs.h |    7 -------
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-silence-gcc-warning mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-silence-gcc-warning
-+++ a/mm/mempolicy.c
-@@ -2950,7 +2950,7 @@ void mpol_to_str(char *buffer, int maxle
- 		return;
- 	}
+diff -puN fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static
++++ a/fs/ramfs/file-nommu.c
+@@ -27,6 +27,12 @@
+ #include "internal.h"
  
--	p += snprintf(p, maxlen, policy_modes[mode]);
-+	p += snprintf(p, maxlen, "%s", policy_modes[mode]);
+ static int ramfs_nommu_setattr(struct dentry *, struct iattr *);
++static unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
++						   unsigned long addr,
++						   unsigned long len,
++						   unsigned long pgoff,
++						   unsigned long flags);
++static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma);
  
- 	if (flags & MPOL_MODE_FLAGS) {
- 		p += snprintf(p, buffer + maxlen - p, "=");
-_
-
-Patches currently in -mm which might be from rientjes@google.com are
-
-origin.patch
-mm-mempolicy-silence-gcc-warning.patch
-mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch
-
+ const struct address_space_operations ramfs_aops = {
+ 	.readpage		= simple_readpage,
+@@ -197,7 +203,7 @@ static int ramfs_nommu_setattr(struct de
+  *   - the pages to be mapped must exist
+  *   - the pages be physically contiguous in sequence
+  */
+-unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
++static unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
+ 					    unsigned long addr, unsigned long len,
+ 					    unsigned long pgoff, unsigned long flags)
+ {
+@@ -256,7 +262,7 @@ out:
+ /*
+  * set up a mapping for shared memory segments
+  */
+-int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
++static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	if (!(vma->vm_flags & VM_SHARED))
+ 		return -ENOSYS;
+diff -puN include/linux/ramfs.h~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static include/linux/ramfs.h
+--- a/include/linux/ramfs.h~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static
++++ a/include/linux/ramfs.h
+@@ -14,13 +14,6 @@ ramfs_nommu_expand_for_mapping(struct in
+ }
+ #else
+ extern int ramfs_nommu_expand_for_mapping(struct inode *inode, size_t newsize);
+-extern unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
+-						   unsigned long addr,
+-						   unsigned long len,
+-						   unsigned long pgoff,
+-						   unsigned long flags);
