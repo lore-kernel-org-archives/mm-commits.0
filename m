@@ -1,71 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swapc-reorganize-put_compound_page-fix.patch added to -mm
- tree
-Date: Tue, 19 Nov 2013 16:39:55 -0800
-Message-ID: <528c04db.EVfuQUFCrUJ2RjGT%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 20 Nov 2013 13:10:00 -0800
+Message-ID: <528d2528.7ymJV8mR+jZ9eVCT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35733 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752058Ab3KTAj4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 19:39:56 -0500
+	with ESMTP id S1755391Ab3KTVKB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Nov 2013 16:10:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, aarcange@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + mm-swapc-reorganize-put_compound_page-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,aarcange@redhat.com
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 19 Nov 2013 16:39:55 -0800
+Date: Wed, 20 Nov 2013 13:10:00 -0800
 
 
 The patch titled
-     Subject: mm-swapc-reorganize-put_compound_page-fix
-has been added to the -mm tree.  Its filename is
-     mm-swapc-reorganize-put_compound_page-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapc-reorganize-put_compound_page-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapc-reorganize-put_compound_page-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swapc-reorganize-put_compound_page-fix
+Subject: linux-next-git-rejects
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/i2c/busses/i2c-exynos5.c |    4 ----
+ drivers/i2c/busses/i2c-st.c      |    4 ----
+ 2 files changed, 8 deletions(-)
 
-diff -puN mm/swap.c~mm-swapc-reorganize-put_compound_page-fix mm/swap.c
---- a/mm/swap.c~mm-swapc-reorganize-put_compound_page-fix
-+++ a/mm/swap.c
-@@ -84,7 +84,7 @@ static void put_compound_page(struct pag
- {
- 	struct page *page_head;
+diff -puN drivers/i2c/busses/i2c-exynos5.c~linux-next-git-rejects drivers/i2c/busses/i2c-exynos5.c
+--- a/drivers/i2c/busses/i2c-exynos5.c~linux-next-git-rejects
++++ a/drivers/i2c/busses/i2c-exynos5.c
+@@ -535,11 +535,7 @@ static int exynos5_i2c_xfer_msg(struct e
+ 	i2c->msg_ptr = 0;
+ 	i2c->trans_done = 0;
  
--	if (likely(PageTail(page))) {
-+	if (likely(!PageTail(page))) {
- 		if (put_page_testzero(page)) {
- 			if (PageHead(page))
- 				__put_compound_page(page);
+-<<<<<<< HEAD
+ 	reinit_completion(&i2c->msg_complete);
+-=======
+-	INIT_COMPLETION(i2c->msg_complete);
+->>>>>>> linux-next/akpm-base
+ 
+ 	exynos5_i2c_message_start(i2c, stop);
+ 
+diff -puN drivers/i2c/busses/i2c-st.c~linux-next-git-rejects drivers/i2c/busses/i2c-st.c
+--- a/drivers/i2c/busses/i2c-st.c~linux-next-git-rejects
++++ a/drivers/i2c/busses/i2c-st.c
+@@ -615,11 +615,7 @@ static int st_i2c_xfer_msg(struct st_i2c
+ 	c->result	= 0;
+ 	c->stop		= is_last;
+ 
+-<<<<<<< HEAD
+ 	reinit_completion(&i2c_dev->complete);
+-=======
+-	INIT_COMPLETION(i2c_dev->complete);
+->>>>>>> linux-next/akpm-base
+ 
+ 	ctl = SSC_CTL_EN | SSC_CTL_MS |	SSC_CTL_EN_RX_FIFO | SSC_CTL_EN_TX_FIFO;
+ 	st_i2c_set_bits(i2c_dev->base + SSC_CTL, ctl);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,7 +91,6 @@ kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
 kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
 kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
 linux-next.patch
-linux-next-git-rejects.patch
 debugging-keep-track-of-page-owners.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
