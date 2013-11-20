@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + block-partitions-efic-fix-bound-check.patch added to -mm tree
-Date: Tue, 19 Nov 2013 16:04:58 -0800
-Message-ID: <528bfcaa.RZrSl/r30keHczcC%akpm@linux-foundation.org>
+Subject: +
+ mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch added to -mm tree
+Date: Tue, 19 Nov 2013 16:25:26 -0800
+Message-ID: <528c0176.sBuopd6maOIBpNjj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42884 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753751Ab3KTAE7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 19:04:59 -0500
+	with ESMTP id S1752199Ab3KTAZ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Nov 2013 19:25:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wad@chromium.org, matt.fleming@intel.com, hdoyu@nvidia.com, amiettinen@nvidia.com
+To: mm-commits@vger.kernel.org, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
 
-Subject: + block-partitions-efic-fix-bound-check.patch added to -mm tree
-To: amiettinen@nvidia.com,hdoyu@nvidia.com,matt.fleming@intel.com,wad@chromium.org
+Subject: + mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch added to -mm tree
+To: isimatu.yasuaki@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de
 From: akpm@linux-foundation.org
-Date: Tue, 19 Nov 2013 16:04:58 -0800
+Date: Tue, 19 Nov 2013 16:25:26 -0800
 
 
 The patch titled
-     Subject: block/partitions/efi.c: fix bound check
+     Subject: mm: get rid of unnecessary pageblock scanning in setup_zone_migrate_reserve
 has been added to the -mm tree.  Its filename is
-     block-partitions-efic-fix-bound-check.patch
+     mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/block-partitions-efic-fix-bound-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/block-partitions-efic-fix-bound-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,47 +44,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Antti P Miettinen <amiettinen@nvidia.com>
-Subject: block/partitions/efi.c: fix bound check
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: mm: get rid of unnecessary pageblock scanning in setup_zone_migrate_reserve
 
-Use ARRAY_SIZE instead of sizeof to get proper max for label length.
+Yasuaki Ishimatsu reported memory hot-add spent more than 5 _hours_ on 9TB
+memory machine since onlining memory sections is too slow.  And we found
+out setup_zone_migrate_reserve spent >90% of the time.
 
-Signed-off-by: Antti P Miettinen <amiettinen@nvidia.com>
-Reviewed-by: Hiroshi Doyu <hdoyu@nvidia.com>
-Tested-by: Hiroshi Doyu <hdoyu@nvidia.com>
-Cc: Will Drewry <wad@chromium.org>
-Cc: Matt Fleming <matt.fleming@intel.com>
+The problem is, setup_zone_migrate_reserve scans all pageblocks
+unconditionally, but it is only necessary if the number of reserved block
+was reduced (i.e.  memory hot remove).
+
+Moreover, maximum MIGRATE_RESERVE per zone is currently 2.  It means that
+the number of reserved pageblocks is almost always unchanged.
+
+This patch adds zone->nr_migrate_reserve_block to maintain the number of
+MIGRATE_RESERVE pageblocks and it reduces the overhead of
+setup_zone_migrate_reserve dramatically.  The following table shows time
+of onlining a memory section.
+
+  Amount of memory     | 128GB | 192GB | 256GB|
+  ---------------------------------------------
+  linux-3.12           |  23.9 |  31.4 | 44.5 |
+  This patch           |   8.3 |   8.3 |  8.6 |
+  Mel's proposal patch |  10.9 |  19.2 | 31.3 |
+  ---------------------------------------------
+                                   (millisecond)
+
+  128GB : 4 nodes and each node has 32GB of memory
+  192GB : 6 nodes and each node has 32GB of memory
+  256GB : 8 nodes and each node has 32GB of memory
+
+  (*1) Mel proposed his idea by the following threads.
+       https://lkml.org/lkml/2013/10/30/272
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Reported-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/efi.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |    6 ++++++
+ mm/page_alloc.c        |   13 +++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff -puN block/partitions/efi.c~block-partitions-efic-fix-bound-check block/partitions/efi.c
---- a/block/partitions/efi.c~block-partitions-efic-fix-bound-check
-+++ a/block/partitions/efi.c
-@@ -96,6 +96,7 @@
-  * - Code works, detects all the partitions.
-  *
-  ************************************************************/
-+#include <linux/kernel.h>
- #include <linux/crc32.h>
- #include <linux/ctype.h>
- #include <linux/math64.h>
-@@ -715,8 +716,8 @@ int efi_partition(struct parsed_partitio
- 		efi_guid_unparse(&ptes[i].unique_partition_guid, info->uuid);
+diff -puN include/linux/mmzone.h~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve
++++ a/include/linux/mmzone.h
+@@ -490,6 +490,12 @@ struct zone {
+ 	unsigned long		managed_pages;
  
- 		/* Naively convert UTF16-LE to 7 bits. */
--		label_max = min(sizeof(info->volname) - 1,
--				sizeof(ptes[i].partition_name));
-+		label_max = min(ARRAY_SIZE(info->volname) - 1,
-+				ARRAY_SIZE(ptes[i].partition_name));
- 		info->volname[label_max] = 0;
- 		while (label_count < label_max) {
- 			u8 c = ptes[i].partition_name[label_count] & 0xff;
+ 	/*
++	 * Number of MIGRATE_RESEVE page block. To maintain for just
++	 * optimization. Protected by zone->lock.
++	 */
++	int			nr_migrate_reserve_block;
++
++	/*
+ 	 * rarely used fields:
+ 	 */
+ 	const char		*name;
+diff -puN mm/page_alloc.c~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve
++++ a/mm/page_alloc.c
+@@ -3902,6 +3902,7 @@ static void setup_zone_migrate_reserve(s
+ 	struct page *page;
+ 	unsigned long block_migratetype;
+ 	int reserve;
++	int old_reserve;
+ 
+ 	/*
+ 	 * Get the start pfn, end pfn and the number of blocks to reserve
+@@ -3923,6 +3924,12 @@ static void setup_zone_migrate_reserve(s
+ 	 * future allocation of hugepages at runtime.
+ 	 */
+ 	reserve = min(2, reserve);
++	old_reserve = zone->nr_migrate_reserve_block;
++
++	/* When memory hot-add, we almost always need to do nothing */
++	if (reserve == old_reserve)
++		return;
++	zone->nr_migrate_reserve_block = reserve;
+ 
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
+ 		if (!pfn_valid(pfn))
+@@ -3960,6 +3967,12 @@ static void setup_zone_migrate_reserve(s
+ 				reserve--;
+ 				continue;
+ 			}
++		} else if (!old_reserve) {
++			/*
++			 * When boot time, we don't need scan whole zone
++			 * for turning off MIGRATE_RESERVE.
++			 */
++			break;
+ 		}
+ 
+ 		/*
 _
 
-Patches currently in -mm which might be from amiettinen@nvidia.com are
+Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
 
-block-partitions-efic-fix-bound-check.patch
+origin.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
 
