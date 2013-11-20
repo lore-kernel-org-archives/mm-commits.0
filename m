@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbc-defer-pageheadhuge-symbol-export.patch added to -mm tree
-Date: Wed, 20 Nov 2013 13:29:22 -0800
-Message-ID: <528d29b2.XDrLe7be/JAlCmup%akpm@linux-foundation.org>
+Subject: +
+ dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors.patch added to -mm tree
+Date: Wed, 20 Nov 2013 13:53:27 -0800
+Message-ID: <528d2f57.Qv1tJo83viNgC4ln%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36047 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755393Ab3KTV3X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Nov 2013 16:29:23 -0500
+	with ESMTP id S1752124Ab3KTVx2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Nov 2013 16:53:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, pshelar@nicira.com, minchan@kernel.org, mgorman@suse.de, khalid.aziz@oracle.com, jweiner@redhat.com, gregkh@linuxfoundation.org, cl@linux.com, bhutchings@solarflare.com, andi@firstfloor.org, aarcange@redhat.com
+To: mm-commits@vger.kernel.org, joro@8bytes.org, alexander.h.duyck@intel.com, shuah.kh@samsung.com
 
-Subject: + mm-hugetlbc-defer-pageheadhuge-symbol-export.patch added to -mm tree
-To: aarcange@redhat.com,andi@firstfloor.org,bhutchings@solarflare.com,cl@linux.com,gregkh@linuxfoundation.org,jweiner@redhat.com,khalid.aziz@oracle.com,mgorman@suse.de,minchan@kernel.org,pshelar@nicira.com,riel@redhat.com
+Subject: + dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors.patch added to -mm tree
+To: shuah.kh@samsung.com,alexander.h.duyck@intel.com,joro@8bytes.org
 From: akpm@linux-foundation.org
-Date: Wed, 20 Nov 2013 13:29:22 -0800
+Date: Wed, 20 Nov 2013 13:53:27 -0800
 
 
 The patch titled
-     Subject: mm/hugetlb.c: defer PageHeadHuge() symbol export
+     Subject: dma-debug: enhance dma_debug_device_change() to check for mapping errors
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+     dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,52 +44,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm/hugetlb.c: defer PageHeadHuge() symbol export
+From: Shuah Khan <shuah.kh@samsung.com>
+Subject: dma-debug: enhance dma_debug_device_change() to check for mapping errors
 
-No actual need of it. So keep it internal.
+dma-debug checks to verify if driver validated the address returned by dma
+mapping routines when driver does unmap.  If a driver doesn't call unmap,
+failure to check mapping errors isn't detected and reported.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Pravin Shelar <pshelar@nicira.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ben Hutchings <bhutchings@solarflare.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Enhance the existing bus notifier_call dma_debug_device_change() to check
+for mapping errors at the same time it detects leaked dma buffers for
+BUS_NOTIFY_UNBOUND_DRIVER event.  It scans for mapping errors and if any
+found, prints one warning message that includes mapping error count.
+
+Signed-off-by: Shuah Khan <shuah.kh@samsung.com>
+Cc: Alexander Duyck <alexander.h.duyck@intel.com>
+Cc: Joerg Roedel <joro@8bytes.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/dma-debug.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-defer-pageheadhuge-symbol-export mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-defer-pageheadhuge-symbol-export
-+++ a/mm/hugetlb.c
-@@ -709,7 +709,6 @@ int PageHeadHuge(struct page *page_head)
+diff -puN lib/dma-debug.c~dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors
++++ a/lib/dma-debug.c
+@@ -717,6 +717,7 @@ static int device_dma_allocations(struct
+ 	struct dma_debug_entry *entry;
+ 	unsigned long flags;
+ 	int count = 0, i;
++	int map_err_cnt = 0;
  
- 	return get_compound_page_dtor(page_head) == free_huge_page;
+ 	local_irq_save(flags);
+ 
+@@ -724,6 +725,8 @@ static int device_dma_allocations(struct
+ 		spin_lock(&dma_entry_hash[i].lock);
+ 		list_for_each_entry(entry, &dma_entry_hash[i].list, list) {
+ 			if (entry->dev == dev) {
++				if (entry->map_err_type == MAP_ERR_NOT_CHECKED)
++					map_err_cnt += 1;
+ 				count += 1;
+ 				*out_entry = entry;
+ 			}
+@@ -733,6 +736,10 @@ static int device_dma_allocations(struct
+ 
+ 	local_irq_restore(flags);
+ 
++	if (map_err_cnt)
++		dev_warn(entry->dev,
++			"DMA-API: device driver failed to check map errors: "
++			"[count] = %d\n", map_err_cnt);
+ 	return count;
  }
--EXPORT_SYMBOL_GPL(PageHeadHuge);
  
- pgoff_t __basepage_index(struct page *page)
- {
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from shuah.kh@samsung.com are
 
 origin.patch
-mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch
-mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix.patch
-mm-hugetlbfs-fix-hugetlbfs-optimization.patch
-mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
-mm-thp-optimize-compound_trans_huge.patch
-mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors.patch
 
