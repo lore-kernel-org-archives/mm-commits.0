@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
- added to -mm tree
-Date: Thu, 21 Nov 2013 15:40:37 -0800
-Message-ID: <528e99f5.7m1bAvh7rbPiPGDi%akpm@linux-foundation.org>
+Subject: +
+ drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch added to -mm tree
+Date: Thu, 21 Nov 2013 15:58:12 -0800
+Message-ID: <528e9e14.gV6ep1/32fDRatL1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49885 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754566Ab3KUXki (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Nov 2013 18:40:38 -0500
+	with ESMTP id S1753876Ab3KUX6N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Nov 2013 18:58:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, caizhiyong@huawei.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, nico@ngolde.de, keescook@google.com, fabs@goesec.de, dan.carpenter@oracle.com
 
-Subject: + mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,caizhiyong@huawei.com,fengguang.wu@intel.com
+Subject: + drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch added to -mm tree
+To: dan.carpenter@oracle.com,fabs@goesec.de,keescook@google.com,nico@ngolde.de
 From: akpm@linux-foundation.org
-Date: Thu, 21 Nov 2013 15:40:37 -0800
+Date: Thu, 21 Nov 2013 15:58:12 -0800
 
 
 The patch titled
-     Subject: mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix
+     Subject: drivers/scsi/megaraid/megaraid_mm.c: missing bounds check in mimd_to_kioc()
 has been added to the -mm tree.  Its filename is
-     mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
+     drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,80 +44,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/scsi/megaraid/megaraid_mm.c: missing bounds check in mimd_to_kioc()
 
-fix sector_t printk warnings
+pthru32->dataxferlen comes from the user so we need to check that it's not
+too large so we don't overflow the buffer.
 
-Cc: Cai Zhiyong <caizhiyong@huawei.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Reported-by: Nico Golde <nico@ngolde.de>
+Reported-by: Fabian Yamaguchi <fabs@goesec.de>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Kees Cook <keescook@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cmdline-parser.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/scsi/megaraid/megaraid_mm.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN block/cmdline-parser.c~mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix block/cmdline-parser.c
---- a/block/cmdline-parser.c~mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix
-+++ a/block/cmdline-parser.c
-@@ -31,7 +31,8 @@ static int parse_subpart(struct cmdline_
- 		new_subpart->size = (sector_t)memparse(partdef, &partdef);
- 		if (new_subpart->size < (sector_t)PAGE_SIZE) {
- 			pr_warn(PARSER "partition '%s' size '0x%llx' too small.",
--				partorg, new_subpart->size);
-+				partorg,
-+				(unsigned long long)new_subpart->size);
- 			ret = -EINVAL;
- 			goto fail;
- 		}
-@@ -273,7 +274,8 @@ int cmdline_parts_set(struct cmdline_par
- 		if (from >= disk_size) {
- 			pr_warn(PARSER "partition '%s' offset exceeds device"
- 				" '%s' size '0x%llx', ignoring.",
--				subpart->name, parts->name, disk_size);
-+				subpart->name, parts->name,
-+				(unsigned long long)disk_size);
- 			break;
- 		}
+diff -puN drivers/scsi/megaraid/megaraid_mm.c~drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc drivers/scsi/megaraid/megaraid_mm.c
+--- a/drivers/scsi/megaraid/megaraid_mm.c~drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc
++++ a/drivers/scsi/megaraid/megaraid_mm.c
+@@ -486,6 +486,8 @@ mimd_to_kioc(mimd_t __user *umimd, mraid
  
-@@ -281,7 +283,8 @@ int cmdline_parts_set(struct cmdline_par
- 			if (subpart->size != (sector_t)(~0ULL))
- 				pr_warn(PARSER "partition '%s' size exceeds "
- 					"device '%s' size '0x%llx', truncating.",
--					subpart->name, parts->name, disk_size);
-+					subpart->name, parts->name,
-+					(unsigned long long)disk_size);
- 			subpart->size = disk_size - from;
- 		}
- 
+ 	pthru32->dataxferaddr	= kioc->buf_paddr;
+ 	if (kioc->data_dir & UIOC_WR) {
++		if (pthru32->dataxferlen > kioc->xferlen)
++			return -EINVAL;
+ 		if (copy_from_user(kioc->buf_vaddr, kioc->user_data,
+ 						pthru32->dataxferlen)) {
+ 			return (-EFAULT);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-arch-um-kernel-sysrqc-rename-print_stack_trace.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+framework-for-version-lvb-remove-some-impossible-checks.patch
+drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
+drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
+xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
 linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
