@@ -1,102 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: + mm-place-page-pmd_huge_pte-to-right-union.patch added to -mm
- tree
-Date: Thu, 21 Nov 2013 12:37:39 -0800
-Message-ID: <528e6f13.Q/jnalPixvCRBfNa%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix.patch
+ removed from -mm tree
+Date: Thu, 21 Nov 2013 14:29:11 -0800
+Message-ID: <528e8937.IbyykfPAJt6C/K3o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48561 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49426 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751508Ab3KUUhk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Nov 2013 15:37:40 -0500
+	with ESMTP id S1752430Ab3KUW3M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Nov 2013 17:29:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, dhillf@gmail.com, dave.hansen@linux.intel.com, aarcange@redhat.com, akpm@linux-foundation.org
 
-Subject: + mm-place-page-pmd_huge_pte-to-right-union.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,n-horiguchi@ah.jp.nec.com
+Subject: [folded-merged] mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,aarcange@redhat.com,dave.hansen@linux.intel.com,dhillf@gmail.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 21 Nov 2013 12:37:39 -0800
+Date: Thu, 21 Nov 2013 14:29:11 -0800
 
 
 The patch titled
-     Subject: mm: place page->pmd_huge_pte to right union
-has been added to the -mm tree.  Its filename is
-     mm-place-page-pmd_huge_pte-to-right-union.patch
+     Subject: mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix
+has been removed from the -mm tree.  Its filename was
+     mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-place-page-pmd_huge_pte-to-right-union.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-place-page-pmd_huge_pte-to-right-union.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: place page->pmd_huge_pte to right union
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix
 
-I don't know what went wrong, mis-merge or something, but ->pmd_huge_pte
-placed in wrong union within struct page.
+fix coding-style and comment text, per Naoya Horiguchi
 
-In original patch[1] it's placed to union with ->lru and ->slab, but in
-commit e009bb30c8df it's in union with ->index and ->freelist.
-
-That union seems also unused for pages with table tables and safe to
-re-use, but it's not what I've tested.
-
-Let's move it to original place. It fixes indentation at least. :)
-
-[1] https://lkml.org/lkml/2013/10/7/288
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/migrate.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-place-page-pmd_huge_pte-to-right-union include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-place-page-pmd_huge_pte-to-right-union
-+++ a/include/linux/mm_types.h
-@@ -65,9 +65,6 @@ struct page {
- 						 * this page is only used to
- 						 * free other pages.
- 						 */
--#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && USE_SPLIT_PMD_PTLOCKS
--		pgtable_t pmd_huge_pte; /* protected by page->ptl */
--#endif
- 		};
+diff -puN mm/migrate.c~mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix mm/migrate.c
+--- a/mm/migrate.c~mm-thp-give-transparent-hugepage-code-a-separate-copy_page-fix
++++ a/mm/migrate.c
+@@ -442,9 +442,9 @@ int migrate_huge_page_move_mapping(struc
+ }
  
- 		union {
-@@ -135,6 +132,9 @@ struct page {
+ /*
+- * Gigantic pages are so large that the we do not guarantee
+- * that page++ pointer arithmetic will work across the
+- * entire page.  We need something more specialized.
++ * Gigantic pages are so large that we do not guarantee that page++ pointer
++ * arithmetic will work across the entire page.  We need something more
++ * specialized.
+  */
+ static void __copy_gigantic_page(struct page *dst, struct page *src,
+ 				int nr_pages)
+@@ -483,7 +483,7 @@ static void copy_huge_page(struct page *
+ 		nr_pages = hpage_nr_pages(src);
+ 	}
  
- 		struct list_head list;	/* slobs list of pages */
- 		struct slab *slab_page; /* slab fields */
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && USE_SPLIT_PMD_PTLOCKS
-+		pgtable_t pmd_huge_pte; /* protected by page->ptl */
-+#endif
- 	};
- 
- 	/* Remainder is not double word aligned */
+-	for (i = 0; i < nr_pages; i++ ) {
++	for (i = 0; i < nr_pages; i++) {
+ 		cond_resched();
+ 		copy_highpage(dst + i, src + i);
+ 	}
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-x86-mm-do-not-leak-page-ptl-for-pmd-page-tables.patch
-mm-place-page-pmd_huge_pte-to-right-union.patch
-x86-mm-get-aslr-work-for-hugetlb-mappings.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
