@@ -1,67 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] input-remove-unnecessary-work-pending-test.patch removed from -mm tree
-Date: Fri, 22 Nov 2013 13:22:09 -0800
-Message-ID: <528fcb01.JcPgCI3LX4AvFVkz%akpm@linux-foundation.org>
+Subject: +
+ documentation-docbook-device-driverstmpl-fix-generation-of-device-drivers.patch added to -mm tree
+Date: Fri, 22 Nov 2013 14:13:51 -0800
+Message-ID: <528fd71f.yb7fm3tGZvn8L8lO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56912 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57403 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756109Ab3KVVWK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:22:10 -0500
+	with ESMTP id S1755998Ab3KVWNw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:13:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, fery@cypress.com, dmitry.torokhov@gmail.com, xiexiuqi@huawei.com
+To: mm-commits@vger.kernel.org, rob@landley.net, rdunlap@infradead.org, peterz@infradead.org, mingo@kernel.org, nicolas.dichtel@6wind.com
 
-Subject: [merged] input-remove-unnecessary-work-pending-test.patch removed from -mm tree
-To: xiexiuqi@huawei.com,dmitry.torokhov@gmail.com,fery@cypress.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: + documentation-docbook-device-driverstmpl-fix-generation-of-device-drivers.patch added to -mm tree
+To: nicolas.dichtel@6wind.com,mingo@kernel.org,peterz@infradead.org,rdunlap@infradead.org,rob@landley.net
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 13:22:09 -0800
+Date: Fri, 22 Nov 2013 14:13:51 -0800
 
 
 The patch titled
-     Subject: drivers/input/touchscreen/cyttsp4_core.c: : remove unnecessary work pending test
-has been removed from the -mm tree.  Its filename was
-     input-remove-unnecessary-work-pending-test.patch
+     Subject: Documentation/DocBook/device-drivers.tmpl: fix generation of device-drivers
+has been added to the -mm tree.  Its filename is
+     documentation-docbook-device-driverstmpl-fix-generation-of-device-drivers.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-docbook-device-driverstmpl-fix-generation-of-device-drivers.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-docbook-device-driverstmpl-fix-generation-of-device-drivers.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: drivers/input/touchscreen/cyttsp4_core.c: : remove unnecessary work pending test
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Documentation/DocBook/device-drivers.tmpl: fix generation of device-drivers
 
-Remove unnecessary work pending test before calling schedule_work().  It
-has been tested in queue_work_on() already.
+Since commit 7a6354e241d8 ("sched: Move wait.c into kernel/sched/"), the path
+of this file has changed.
 
-Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Cc: Ferruh Yigit <fery@cypress.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/cyttsp4_core.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/DocBook/device-drivers.tmpl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/cyttsp4_core.c~input-remove-unnecessary-work-pending-test drivers/input/touchscreen/cyttsp4_core.c
---- a/drivers/input/touchscreen/cyttsp4_core.c~input-remove-unnecessary-work-pending-test
-+++ a/drivers/input/touchscreen/cyttsp4_core.c
-@@ -1246,8 +1246,7 @@ static void cyttsp4_watchdog_timer(unsig
- 
- 	dev_vdbg(cd->dev, "%s: Watchdog timer triggered\n", __func__);
- 
--	if (!work_pending(&cd->watchdog_work))
--		schedule_work(&cd->watchdog_work);
-+	schedule_work(&cd->watchdog_work);
- 
- 	return;
- }
+diff -puN Documentation/DocBook/device-drivers.tmpl~documentation-docbook-device-driverstmpl-fix-generation-of-device-drivers Documentation/DocBook/device-drivers.tmpl
+--- a/Documentation/DocBook/device-drivers.tmpl~documentation-docbook-device-driverstmpl-fix-generation-of-device-drivers
++++ a/Documentation/DocBook/device-drivers.tmpl
+@@ -58,7 +58,7 @@
+      </sect1>
+      <sect1><title>Wait queues and Wake events</title>
+ !Iinclude/linux/wait.h
+-!Ekernel/wait.c
++!Ekernel/sched/wait.c
+      </sect1>
+      <sect1><title>High-resolution timers</title>
+ !Iinclude/linux/ktime.h
 _
 
-Patches currently in -mm which might be from xiexiuqi@huawei.com are
+Patches currently in -mm which might be from nicolas.dichtel@6wind.com are
 
 origin.patch
-linux-next.patch
+documentation-docbook-device-driverstmpl-fix-generation-of-device-drivers.patch
 
