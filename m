@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch added to -mm tree
-Date: Thu, 21 Nov 2013 16:12:03 -0800
-Message-ID: <528ea153.wNqr0QsSES15FA8b%akpm@linux-foundation.org>
+Subject: + include-linux-hugetlbh-make-isolate_huge_page-an-inline.patch
+ added to -mm tree
+Date: Thu, 21 Nov 2013 16:32:45 -0800
+Message-ID: <528ea62d.hYu9ycAmBkoMP5Hv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49978 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50007 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751663Ab3KVAME (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Nov 2013 19:12:04 -0500
+	with ESMTP id S1754108Ab3KVAcq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Nov 2013 19:32:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com, ldewangan@nvidia.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, bp@alien8.de, n-horiguchi@ah.jp.nec.com
 
-Subject: + drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch added to -mm tree
-To: ldewangan@nvidia.com,jg1.han@samsung.com
+Subject: + include-linux-hugetlbh-make-isolate_huge_page-an-inline.patch added to -mm tree
+To: n-horiguchi@ah.jp.nec.com,bp@alien8.de,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 21 Nov 2013 16:12:03 -0800
+Date: Thu, 21 Nov 2013 16:32:45 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-as3722: use devm for rtc and irq registration
+     Subject: include/linux/hugetlb.h: make isolate_huge_page() an inline
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch
+     include-linux-hugetlbh-make-isolate_huge_page-an-inline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-hugetlbh-make-isolate_huge_page-an-inline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-hugetlbh-make-isolate_huge_page-an-inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,53 +44,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: drivers/rtc/rtc-as3722: use devm for rtc and irq registration
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: include/linux/hugetlb.h: make isolate_huge_page() an inline
 
-Use devm_* calls for rtc and irq registration and get rid of
-remove callback for platform driver.
+With CONFIG_HUGETLBFS=n:
 
-Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
+mm/migrate.c: In function `do_move_page_to_node_array':
+include/linux/hugetlb.h:140:33: warning: statement with no effect [-Wunused-value]
+ #define isolate_huge_page(p, l) false
+                                 ^
+mm/migrate.c:1170:4: note: in expansion of macro `isolate_huge_page'
+    isolate_huge_page(page, &pagelist);
+
+
+Reported-by: Borislav Petkov <bp@alien8.de>
+Tested-by: Borislav Petkov <bp@alien8.de>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-as3722.c |   19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
+ include/linux/hugetlb.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-as3722.c~drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration drivers/rtc/rtc-as3722.c
---- a/drivers/rtc/rtc-as3722.c~drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration
-+++ a/drivers/rtc/rtc-as3722.c
-@@ -198,7 +198,7 @@ static int as3722_rtc_probe(struct platf
- 
- 	device_init_wakeup(&pdev->dev, 1);
- 
--	as3722_rtc->rtc = rtc_device_register("as3722", &pdev->dev,
-+	as3722_rtc->rtc = devm_rtc_device_register(&pdev->dev, "as3722-rtc",
- 				&as3722_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(as3722_rtc->rtc)) {
- 		ret = PTR_ERR(as3722_rtc->rtc);
-@@ -209,28 +209,16 @@ static int as3722_rtc_probe(struct platf
- 	as3722_rtc->alarm_irq = platform_get_irq(pdev, 0);
- 	dev_info(&pdev->dev, "RTC interrupt %d\n", as3722_rtc->alarm_irq);
- 
--	ret = request_threaded_irq(as3722_rtc->alarm_irq, NULL,
-+	ret = devm_request_threaded_irq(&pdev->dev, as3722_rtc->alarm_irq, NULL,
- 			as3722_alarm_irq, IRQF_ONESHOT | IRQF_EARLY_RESUME,
- 			"rtc-alarm", as3722_rtc);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "Failed to request alarm IRQ %d: %d\n",
- 				as3722_rtc->alarm_irq, ret);
--		goto scrub;
-+		return ret;
- 	}
- 	disable_irq(as3722_rtc->alarm_irq);
+diff -puN include/linux/hugetlb.h~include-linux-hugetlbh-make-isolate_huge_page-an-inline include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~include-linux-hugetlbh-make-isolate_huge_page-an-inline
++++ a/include/linux/hugetlb.h
+@@ -142,7 +142,10 @@ static inline int dequeue_hwpoisoned_hug
  	return 0;
--scrub:
--	rtc_device_unregister(as3722_rtc->rtc);
--	return ret;
--}
--
--static int as3722_rtc_remove(struct platform_device *pdev)
--{
--	struct as3722_rtc *as3722_rtc = platform_get_drvdata(pdev);
+ }
+ 
+-#define isolate_huge_page(p, l) false
++static inline bool isolate_huge_page(struct page *page, struct list_head *list)
++{
++	return false;
++}
+ #define putback_active_hugepage(p)	do {} while (0)
+ #define is_hugepage_active(x)	false
+ 
+_
+
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+
+origin.patch
+mm-thp-give-transparent-hugepage-code-a-separate-copy_page.patch
+mm-place-page-pmd_huge_pte-to-right-union.patch
+include-linux-hugetlbh-make-isolate_huge_page-an-inline.patch
+x86-mm-get-aslr-work-for-hugetlb-mappings.patch
+mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
+
