@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
- added to -mm tree
-Date: Fri, 22 Nov 2013 14:49:28 -0800
-Message-ID: <528fdf78.60GPrBAsSCaO1ojS%akpm@linux-foundation.org>
+ exec-move-the-final-allow_write_access-fput-into-free_bprm.patch added to
+ -mm tree
+Date: Fri, 22 Nov 2013 14:49:30 -0800
+Message-ID: <528fdf7a.nEXKi1mM0aqCalYs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58163 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58174 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755338Ab3KVWt3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:49:29 -0500
+	with ESMTP id S1755526Ab3KVWtb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:49:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, kosaki.motohiro@jp.fujitsu.com, keescook@chromium.org, oleg@redhat.com
 
-Subject: + exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch added to -mm tree
+Subject: + exec-move-the-final-allow_write_access-fput-into-free_bprm.patch added to -mm tree
 To: oleg@redhat.com,keescook@chromium.org,kosaki.motohiro@jp.fujitsu.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 14:49:28 -0800
+Date: Fri, 22 Nov 2013 14:49:30 -0800
 
 
 The patch titled
-     Subject: exec:check_unsafe_exec: use while_each_thread() rather than next_thread()
+     Subject: exec: move the final allow_write_access/fput into free_bprm()
 has been added to the -mm tree.  Its filename is
-     exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
+     exec-move-the-final-allow_write_access-fput-into-free_bprm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-move-the-final-allow_write_access-fput-into-free_bprm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-move-the-final-allow_write_access-fput-into-free_bprm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,17 +46,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exec:check_unsafe_exec: use while_each_thread() rather than next_thread()
+Subject: exec: move the final allow_write_access/fput into free_bprm()
 
-next_thread() should be avoided, change check_unsafe_exec() to use
-while_each_thread().
-
-Nobody except signal->curr_target actually needs next_thread-like code,
-and we need to change (fix) this interface.  This particular code is fine,
-p == current.  But in general the code like this can loop forever if p
-exits and next_thread(t) can't reach the unhashed thread.
-
-This also saves 32 bytes.
+Both success/failure paths cleanup bprm->file, we can move this
+code into free_bprm() to simlify and cleanup this logic.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -65,25 +58,68 @@ Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/exec.c |   20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
-diff -puN fs/exec.c~exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread fs/exec.c
---- a/fs/exec.c~exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread
+diff -puN fs/exec.c~exec-move-the-final-allow_write_access-fput-into-free_bprm fs/exec.c
+--- a/fs/exec.c~exec-move-the-final-allow_write_access-fput-into-free_bprm
 +++ a/fs/exec.c
-@@ -1243,10 +1243,11 @@ static int check_unsafe_exec(struct linu
- 	if (current->no_new_privs)
- 		bprm->unsafe |= LSM_UNSAFE_NO_NEW_PRIVS;
+@@ -1138,9 +1138,7 @@ void setup_new_exec(struct linux_binprm
  
-+	t = p;
- 	n_fs = 1;
- 	spin_lock(&p->fs->lock);
- 	rcu_read_lock();
--	for (t = next_thread(p); t != p; t = next_thread(t)) {
-+	while_each_thread(p, t) {
- 		if (t->fs == p->fs)
- 			n_fs++;
+ 	/* An exec changes our domain. We are no longer part of the thread
+ 	   group */
+-
+ 	current->self_exec_id++;
+-			
+ 	flush_signal_handlers(current, 0);
+ 	do_close_on_exec(current->files);
+ }
+@@ -1172,6 +1170,10 @@ void free_bprm(struct linux_binprm *bprm
+ 		mutex_unlock(&current->signal->cred_guard_mutex);
+ 		abort_creds(bprm->cred);
  	}
++	if (bprm->file) {
++		allow_write_access(bprm->file);
++		fput(bprm->file);
++	}
+ 	/* If a binfmt changed the interp, free it. */
+ 	if (bprm->interp != bprm->filename)
+ 		kfree(bprm->interp);
+@@ -1424,12 +1426,6 @@ static int exec_binprm(struct linux_binp
+ 		ptrace_event(PTRACE_EVENT_EXEC, old_vpid);
+ 		current->did_exec = 1;
+ 		proc_exec_connector(current);
+-
+-		if (bprm->file) {
+-			allow_write_access(bprm->file);
+-			fput(bprm->file);
+-			bprm->file = NULL; /* to catch use-after-free */
+-		}
+ 	}
+ 
+ 	return ret;
+@@ -1492,7 +1488,7 @@ static int do_execve_common(const char *
+ 
+ 	retval = bprm_mm_init(bprm);
+ 	if (retval)
+-		goto out_file;
++		goto out_unmark;
+ 
+ 	bprm->argc = count(argv, MAX_ARG_STRINGS);
+ 	if ((retval = bprm->argc) < 0)
+@@ -1539,12 +1535,6 @@ out:
+ 		mmput(bprm->mm);
+ 	}
+ 
+-out_file:
+-	if (bprm->file) {
+-		allow_write_access(bprm->file);
+-		fput(bprm->file);
+-	}
+-
+ out_unmark:
+ 	current->fs->in_exec = 0;
+ 	current->in_execve = 0;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
