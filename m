@@ -1,75 +1,243 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- framework-for-version-lvb-remove-some-impossible-checks.patch removed from
- -mm tree
-Date: Thu, 21 Nov 2013 16:33:52 -0800
-Message-ID: <528ea670.mJaIQ3C0XhSVkly1%akpm@linux-foundation.org>
+ use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
+ removed from -mm tree
+Date: Thu, 21 Nov 2013 16:33:54 -0800
+Message-ID: <528ea672.liZmz12a00l82gYu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50034 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755149Ab3KVAdw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Nov 2013 19:33:52 -0500
+	with ESMTP id S1755149Ab3KVAdz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Nov 2013 19:33:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: [to-be-updated] framework-for-version-lvb-remove-some-impossible-checks.patch removed from -mm tree
-To: dan.carpenter@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,mm-commits@vger.kernel.org
+Subject: [to-be-updated] use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch removed from -mm tree
+To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 21 Nov 2013 16:33:52 -0800
+Date: Thu, 21 Nov 2013 16:33:54 -0800
 
 
 The patch titled
-     Subject: ocfs2: remove some impossible checks
+     Subject: ocfs2: use the new DLM operation callbacks while requesting new lockspace
 has been removed from the -mm tree.  Its filename was
-     framework-for-version-lvb-remove-some-impossible-checks.patch
+     use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ocfs2: remove some impossible checks
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: ocfs2: use the new DLM operation callbacks while requesting new lockspace
 
-pv_major and pv_minor are unsigned char type so these checks are just
-noise.
+Attempt to use the new DLM operations.  If it is not supported, use the
+traditional ocfs2_controld.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+To exchange ocfs2 versioning, we use the LVB of the version dlm lock.  It
+first attempts to take the lock in EX mode (non-blocking).  If successful
+(which means it is the first mount), it writes the version number and
+downconverts to PR lock.  If it is unsuccessful, it reads the version from
+the lock.
+
+If this becomes the standard (with o2cb as well), it could simplify
+userspace tools to check if the filesystem is mounted on other nodes.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_user.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ fs/ocfs2/stack_user.c |   97 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 73 insertions(+), 24 deletions(-)
 
-diff -puN fs/ocfs2/stack_user.c~framework-for-version-lvb-remove-some-impossible-checks fs/ocfs2/stack_user.c
---- a/fs/ocfs2/stack_user.c~framework-for-version-lvb-remove-some-impossible-checks
+diff -puN fs/ocfs2/stack_user.c~use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace
 +++ a/fs/ocfs2/stack_user.c
-@@ -806,11 +806,7 @@ static int lvb_to_version(char *lvb, str
- 		&ocfs2_user_plugin.sp_max_proto;
+@@ -23,6 +23,7 @@
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+ #include <linux/reboot.h>
++#include <linux/sched.h>
+ #include <asm/uaccess.h>
  
- 	memcpy(&pv, lvb, sizeof(struct ocfs2_protocol_version));
--	if ((pv.pv_major == LONG_MIN) || (pv.pv_major == LONG_MAX) ||
--	    (pv.pv_major > (u8)-1) || (pv.pv_major < 1))
--		return -ERANGE;
--	if ((pv.pv_minor == LONG_MIN) || (pv.pv_minor == LONG_MAX) ||
--	    (pv.pv_minor > (u8)-1) || (pv.pv_minor < 0))
-+	if (pv.pv_major < 1)
- 		return -ERANGE;
- 	if ((pv.pv_major != max->pv_major) ||
- 	    (pv.pv_minor > max->pv_minor))
+ #include "stackglue.h"
+@@ -121,6 +122,7 @@ struct ocfs2_live_connection {
+ 	struct dlm_lksb                 oc_version_lksb;
+ 	char                            oc_lvb[DLM_LVB_LEN];
+ 	struct completion               oc_sync_wait;
++	wait_queue_head_t		oc_wait;
+ };
+ 
+ struct ocfs2_control_private {
+@@ -217,7 +219,7 @@ static int ocfs2_live_connection_new(str
+ 	mutex_lock(&ocfs2_control_lock);
+ 	c->oc_conn = conn;
+ 
+-	if (atomic_read(&ocfs2_control_opened))
++	if ((c->oc_type == NO_CONTROLD) || atomic_read(&ocfs2_control_opened))
+ 		list_add(&c->oc_list, &ocfs2_live_connection_list);
+ 	else {
+ 		printk(KERN_ERR
+@@ -922,6 +924,7 @@ static void user_recover_done(void *arg,
+ 		}
+ 
+ 	lc->oc_our_slot = our_slot;
++	wake_up(&lc->oc_wait);
+ }
+ 
+ const struct dlm_lockspace_ops ocfs2_ls_ops = {
+@@ -930,11 +933,21 @@ const struct dlm_lockspace_ops ocfs2_ls_
+ 	.recover_done = user_recover_done,
+ };
+ 
++static int user_cluster_disconnect(struct ocfs2_cluster_connection *conn)
++{
++	version_unlock(conn);
++	dlm_release_lockspace(conn->cc_lockspace, 2);
++	conn->cc_lockspace = NULL;
++	ocfs2_live_connection_drop(conn->cc_private);
++	conn->cc_private = NULL;
++	return 0;
++}
++
+ static int user_cluster_connect(struct ocfs2_cluster_connection *conn)
+ {
+ 	dlm_lockspace_t *fsdlm;
+ 	struct ocfs2_live_connection *lc;
+-	int rc;
++	int rc, ops_rv;
+ 
+ 	BUG_ON(conn == NULL);
+ 
+@@ -944,12 +957,65 @@ static int user_cluster_connect(struct o
+ 		goto out;
+ 	}
+ 
+-	lc->oc_type = WITH_CONTROLD;
++	init_waitqueue_head(&lc->oc_wait);
++	init_completion(&lc->oc_sync_wait);
++	atomic_set(&lc->oc_this_node, 0);
++	conn->cc_private = lc;
++	lc->oc_type = NO_CONTROLD;
++
++	rc = dlm_new_lockspace(conn->cc_name, conn->cc_cluster_name,
++			       DLM_LSFL_FS, DLM_LVB_LEN,
++			       &ocfs2_ls_ops, conn, &ops_rv, &fsdlm);
++	if (rc)
++		goto out;
++
++	if (ops_rv == -EOPNOTSUPP) {
++		lc->oc_type = WITH_CONTROLD;
++		printk(KERN_NOTICE "ocfs2: You seem to be using an older "
++				"version of dlm_controld and/or ocfs2-tools."
++				" Please consider upgrading.\n");
++	} else if (ops_rv) {
++		rc = ops_rv;
++		goto out;
++	}
++	conn->cc_lockspace = fsdlm;
+ 
+ 	rc = ocfs2_live_connection_new(conn, lc);
+ 	if (rc)
+ 		goto out;
+ 
++	if (lc->oc_type == NO_CONTROLD) {
++		int ret;
++		lc->oc_version_lksb.sb_lvbptr = lc->oc_lvb;
++		ret = version_lock(conn, DLM_LOCK_EX,
++				DLM_LKF_VALBLK|DLM_LKF_NOQUEUE);
++		running_proto.pv_major =
++			ocfs2_user_plugin.sp_max_proto.pv_major;
++		running_proto.pv_minor =
++			ocfs2_user_plugin.sp_max_proto.pv_minor;
++		if (!ret) {
++			conn->cc_version.pv_major = running_proto.pv_major;
++			conn->cc_version.pv_minor = running_proto.pv_minor;
++			version_to_lvb(&running_proto, lc->oc_lvb);
++			version_lock(conn, DLM_LOCK_PR, DLM_LKF_CONVERT|DLM_LKF_VALBLK);
++		} else if (ret == -EAGAIN) {
++			version_lock(conn, DLM_LOCK_PR, DLM_LKF_VALBLK);
++			ret = lvb_to_version(lc->oc_lvb, &conn->cc_version);
++			if (ret) {
++				rc = ret;
++				user_cluster_disconnect(conn);
++				goto out;
++			}
++		} else {
++			printk(KERN_ERR "ocfs2: Could not determine"
++					" locking version\n");
++			rc = ret;
++			user_cluster_disconnect(conn);
++			goto out;
++		}
++		wait_event(lc->oc_wait, (atomic_read(&lc->oc_this_node) > 0));
++	}
++
+ 	/*
+ 	 * running_proto must have been set before we allowed any mounts
+ 	 * to proceed.
+@@ -957,40 +1023,20 @@ static int user_cluster_connect(struct o
+ 	if (fs_protocol_compare(&running_proto, &conn->cc_version)) {
+ 		printk(KERN_ERR
+ 		       "Unable to mount with fs locking protocol version "
+-		       "%u.%u because the userspace control daemon has "
+-		       "negotiated %u.%u\n",
++		       "%u.%u because negotiated protocol is %u.%u\n",
+ 		       conn->cc_version.pv_major, conn->cc_version.pv_minor,
+ 		       running_proto.pv_major, running_proto.pv_minor);
+ 		rc = -EPROTO;
+ 		ocfs2_live_connection_drop(lc);
+ 		lc = NULL;
+-		goto out;
+-	}
+-
+-	rc = dlm_new_lockspace(conn->cc_name, NULL, DLM_LSFL_FS, DLM_LVB_LEN,
+-			       NULL, NULL, NULL, &fsdlm);
+-	if (rc) {
+-		ocfs2_live_connection_drop(lc);
+-		lc = NULL;
+-		goto out;
+ 	}
+ 
+-	conn->cc_private = lc;
+-	conn->cc_lockspace = fsdlm;
+ out:
+ 	if (rc && lc)
+ 		kfree(lc);
+ 	return rc;
+ }
+ 
+-static int user_cluster_disconnect(struct ocfs2_cluster_connection *conn)
+-{
+-	dlm_release_lockspace(conn->cc_lockspace, 2);
+-	conn->cc_lockspace = NULL;
+-	ocfs2_live_connection_drop(conn->cc_private);
+-	conn->cc_private = NULL;
+-	return 0;
+-}
+ 
+ static int user_cluster_this_node(struct ocfs2_cluster_connection *conn,
+ 				  unsigned int *this_node)
+@@ -1000,8 +1046,11 @@ static int user_cluster_this_node(struct
+ 
+ 	if (lc->oc_type == WITH_CONTROLD)
+ 		rc = ocfs2_control_get_this_node();
++	else if (lc->oc_type == NO_CONTROLD)
++		rc = atomic_read(&lc->oc_this_node);
+ 	else
+ 		rc = -EINVAL;
++
+ 	if (rc < 0)
+ 		return rc;
+ 
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
 origin.patch
-drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
-drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
-xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
-linux-next.patch
 
