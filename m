@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
- added to -mm tree
-Date: Fri, 22 Nov 2013 14:49:29 -0800
-Message-ID: <528fdf79.Jy8eYKkmHaET20UT%akpm@linux-foundation.org>
+Subject: + exec-kill-task_struct-did_exec.patch added to -mm tree
+Date: Fri, 22 Nov 2013 14:49:31 -0800
+Message-ID: <528fdf7b.NC0WcYMacGOvUUR7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58169 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58179 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755526Ab3KVWta (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:49:30 -0500
+	with ESMTP id S1755876Ab3KVWtc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:49:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, kosaki.motohiro@jp.fujitsu.com, keescook@chromium.org, oleg@redhat.com
 
-Subject: + exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch added to -mm tree
+Subject: + exec-kill-task_struct-did_exec.patch added to -mm tree
 To: oleg@redhat.com,keescook@chromium.org,kosaki.motohiro@jp.fujitsu.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 14:49:29 -0800
+Date: Fri, 22 Nov 2013 14:49:31 -0800
 
 
 The patch titled
-     Subject: exec:check_unsafe_exec: kill the dead -EAGAIN and clear_in_exec logic
+     Subject: exec: kill task_struct->did_exec
 has been added to the -mm tree.  Its filename is
-     exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
+     exec-kill-task_struct-did_exec.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-kill-task_struct-did_exec.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-kill-task_struct-did_exec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,39 +44,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exec:check_unsafe_exec: kill the dead -EAGAIN and clear_in_exec logic
+Subject: exec: kill task_struct->did_exec
 
-fs_struct->in_exec == T means that this ->fs is used by a single process
-(thread group), and one of the treads does do_execve().
-
-To avoid the mt-exec races this code has the following complications:
-
-	1. check_unsafe_exec() returns -EBUSY if ->in_exec was
-	   already set by another thread.
-
-	2. do_execve_common() records "clear_in_exec" to ensure
-	   that the error path can only clear ->in_exec if it was
-	   set by current.
-
-However, after 9b1bf12d5d51 "signals: move cred_guard_mutex from
-task_struct to signal_struct" we do not need these complications:
-
-	1. We can't race with our sub-thread, this is called under
-	   per-process ->cred_guard_mutex. And we can't race with
-	   another CLONE_FS task, we already checked that this fs
-	   is not shared.
-
-	   We can remove the  dead -EAGAIN logic.
-
-	2. "out_unmark:" in do_execve_common() is either called
-	   under ->cred_guard_mutex, or after de_thread() which
-	   kills other threads, so we can't race with sub-thread
-	   which could set ->in_exec. And if ->fs is shared with
-	   another process ->in_exec should be false anyway.
-
-	   We can clear in_exec unconditionally.
-
-This also means that check_unsafe_exec() can be void.
+We can kill either task->did_exec or PF_FORKNOEXEC, they are mutually
+exclusive.  The patch kills ->did_exec because it has a single user.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -87,83 +56,67 @@ Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   29 ++++++++---------------------
- 1 file changed, 8 insertions(+), 21 deletions(-)
+ fs/exec.c             |    1 -
+ include/linux/sched.h |    1 -
+ kernel/fork.c         |    1 -
+ kernel/sys.c          |    5 ++---
+ 4 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/exec.c~exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic fs/exec.c
---- a/fs/exec.c~exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic
+diff -puN fs/exec.c~exec-kill-task_struct-did_exec fs/exec.c
+--- a/fs/exec.c~exec-kill-task_struct-did_exec
 +++ a/fs/exec.c
-@@ -1223,11 +1223,10 @@ EXPORT_SYMBOL(install_exec_creds);
-  * - the caller must hold ->cred_guard_mutex to protect against
-  *   PTRACE_ATTACH
-  */
--static int check_unsafe_exec(struct linux_binprm *bprm)
-+static void check_unsafe_exec(struct linux_binprm *bprm)
- {
- 	struct task_struct *p = current, *t;
- 	unsigned n_fs;
--	int res = 0;
- 
- 	if (p->ptrace) {
- 		if (p->ptrace & PT_PTRACE_CAP)
-@@ -1253,22 +1252,15 @@ static int check_unsafe_exec(struct linu
+@@ -1424,7 +1424,6 @@ static int exec_binprm(struct linux_binp
+ 		audit_bprm(bprm);
+ 		trace_sched_process_exec(current, old_pid, bprm);
+ 		ptrace_event(PTRACE_EVENT_EXEC, old_vpid);
+-		current->did_exec = 1;
+ 		proc_exec_connector(current);
  	}
- 	rcu_read_unlock();
  
--	if (p->fs->users > n_fs) {
-+	if (p->fs->users > n_fs)
- 		bprm->unsafe |= LSM_UNSAFE_SHARE;
--	} else {
--		res = -EAGAIN;
--		if (!p->fs->in_exec) {
--			p->fs->in_exec = 1;
--			res = 1;
--		}
--	}
-+	else
-+		p->fs->in_exec = 1;
- 	spin_unlock(&p->fs->lock);
--
--	return res;
- }
+diff -puN include/linux/sched.h~exec-kill-task_struct-did_exec include/linux/sched.h
+--- a/include/linux/sched.h~exec-kill-task_struct-did_exec
++++ a/include/linux/sched.h
+@@ -1129,7 +1129,6 @@ struct task_struct {
+ 	/* Used for emulating ABI behavior of previous Linux versions */
+ 	unsigned int personality;
  
--/* 
-- * Fill the binprm structure from the inode. 
-+/*
-+ * Fill the binprm structure from the inode.
-  * Check permissions, then read the first 128 (BINPRM_BUF_SIZE) bytes
+-	unsigned did_exec:1;
+ 	unsigned in_execve:1;	/* Tell the LSMs that the process is doing an
+ 				 * execve */
+ 	unsigned in_iowait:1;
+diff -puN kernel/fork.c~exec-kill-task_struct-did_exec kernel/fork.c
+--- a/kernel/fork.c~exec-kill-task_struct-did_exec
++++ a/kernel/fork.c
+@@ -1221,7 +1221,6 @@ static struct task_struct *copy_process(
+ 	if (!try_module_get(task_thread_info(p)->exec_domain->module))
+ 		goto bad_fork_cleanup_count;
+ 
+-	p->did_exec = 0;
+ 	delayacct_tsk_init(p);	/* Must remain after dup_task_struct() */
+ 	copy_flags(clone_flags, p);
+ 	INIT_LIST_HEAD(&p->children);
+diff -puN kernel/sys.c~exec-kill-task_struct-did_exec kernel/sys.c
+--- a/kernel/sys.c~exec-kill-task_struct-did_exec
++++ a/kernel/sys.c
+@@ -895,8 +895,7 @@ SYSCALL_DEFINE1(times, struct tms __user
+  * only important on a multi-user system anyway, to make sure one user
+  * can't send a signal to a process owned by another.  -TYT, 12/12/91
   *
-  * This may be called multiple times for binary chains (scripts for example).
-@@ -1453,7 +1445,6 @@ static int do_execve_common(const char *
- 	struct linux_binprm *bprm;
- 	struct file *file;
- 	struct files_struct *displaced;
--	bool clear_in_exec;
- 	int retval;
- 
- 	/*
-@@ -1485,10 +1476,7 @@ static int do_execve_common(const char *
- 	if (retval)
- 		goto out_free;
- 
--	retval = check_unsafe_exec(bprm);
--	if (retval < 0)
--		goto out_free;
--	clear_in_exec = retval;
-+	check_unsafe_exec(bprm);
- 	current->in_execve = 1;
- 
- 	file = open_exec(filename);
-@@ -1558,8 +1546,7 @@ out_file:
- 	}
- 
- out_unmark:
--	if (clear_in_exec)
--		current->fs->in_exec = 0;
-+	current->fs->in_exec = 0;
- 	current->in_execve = 0;
- 
- out_free:
+- * Auch. Had to add the 'did_exec' flag to conform completely to POSIX.
+- * LBT 04.03.94
++ * !PF_FORKNOEXEC check to conform completely to POSIX.
+  */
+ SYSCALL_DEFINE2(setpgid, pid_t, pid, pid_t, pgid)
+ {
+@@ -932,7 +931,7 @@ SYSCALL_DEFINE2(setpgid, pid_t, pid, pid
+ 		if (task_session(p) != task_session(group_leader))
+ 			goto out;
+ 		err = -EACCES;
+-		if (p->did_exec)
++		if (!(p->flags & PF_FORKNOEXEC))
+ 			goto out;
+ 	} else {
+ 		err = -ESRCH;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
