@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch added to
- -mm tree
-Date: Fri, 22 Nov 2013 14:52:57 -0800
-Message-ID: <528fe049.KZe+CILHiSKLIiUT%akpm@linux-foundation.org>
+ kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch added to -mm tree
+Date: Fri, 22 Nov 2013 14:52:59 -0800
+Message-ID: <528fe04b.B410bQ+fgQfxsmf8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58188 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58198 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755526Ab3KVWw6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:52:58 -0500
+	with ESMTP id S1755797Ab3KVWxA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:53:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, snanda@chromium.org, kosaki.motohiro@jp.fujitsu.com, keescook@chromium.org, oleg@redhat.com
 
-Subject: + fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch added to -mm tree
+Subject: + kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch added to -mm tree
 To: oleg@redhat.com,keescook@chromium.org,kosaki.motohiro@jp.fujitsu.com,snanda@chromium.org,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 14:52:57 -0800
+Date: Fri, 22 Nov 2013 14:52:59 -0800
 
 
 The patch titled
-     Subject: fs/proc/array.c: change do_task_stat() to use while_each_thread()
+     Subject: kernel/signal.c: change do_signal_stop/do_sigaction to use while_each_thread()
 has been added to the -mm tree.  Its filename is
-     fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
+     kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,21 +45,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: fs/proc/array.c: change do_task_stat() to use while_each_thread()
+Subject: kernel/signal.c: change do_signal_stop/do_sigaction to use while_each_thread()
 
-Change the remaining next_thread (ab)users to use while_each_thread().
-
-The last user which should be changed is next_tid(), but we can't do this
-now.
-
-__exit_signal() and complete_signal() are fine, they actually need
-next_thread() logic.
-
-
-This patch (of 3):
-
-do_task_stat() can use while_each_thread(), no changes in
-the compiled code.
+Change do_signal_stop() and do_sigaction() to avoid next_thread() and use
+while_each_thread() instead.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -70,22 +58,33 @@ Reviewed-by: Sameer Nanda <snanda@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/signal.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/array.c~fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread fs/proc/array.c
---- a/fs/proc/array.c~fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread
-+++ a/fs/proc/array.c
-@@ -444,8 +444,7 @@ static int do_task_stat(struct seq_file
- 				min_flt += t->min_flt;
- 				maj_flt += t->maj_flt;
- 				gtime += task_gtime(t);
--				t = next_thread(t);
--			} while (t != task);
-+			} while_each_thread(task, t);
+diff -puN kernel/signal.c~kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread kernel/signal.c
+--- a/kernel/signal.c~kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread
++++ a/kernel/signal.c
+@@ -2047,8 +2047,8 @@ static bool do_signal_stop(int signr)
+ 		if (task_set_jobctl_pending(current, signr | gstop))
+ 			sig->group_stop_count++;
  
- 			min_flt += sig->min_flt;
- 			maj_flt += sig->maj_flt;
+-		for (t = next_thread(current); t != current;
+-		     t = next_thread(t)) {
++		t = current;
++		while_each_thread(current, t) {
+ 			/*
+ 			 * Setting state to TASK_STOPPED for a group
+ 			 * stop is always done with the siglock held,
+@@ -3125,8 +3125,7 @@ int do_sigaction(int sig, struct k_sigac
+ 			rm_from_queue_full(&mask, &t->signal->shared_pending);
+ 			do {
+ 				rm_from_queue_full(&mask, &t->pending);
+-				t = next_thread(t);
+-			} while (t != current);
++			} while_each_thread(current, t);
+ 		}
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
