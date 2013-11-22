@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch added to -mm tree
-Date: Fri, 22 Nov 2013 14:19:08 -0800
-Message-ID: <528fd85c.p7oV/EmFflGH3Uuz%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch added to -mm tree
+Date: Fri, 22 Nov 2013 14:22:43 -0800
+Message-ID: <528fd933.VUJxdwiIMD3o/bp/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57419 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756261Ab3KVWTJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:19:09 -0500
+	with ESMTP id S1753277Ab3KVWWo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:22:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, lizefan@huawei.com, joseph.qi@huawei.com, jlbec@evilplan.org, wangzongxun@huawei.com
 
-Subject: + mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com
+Subject: + ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch added to -mm tree
+To: wangzongxun@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,lizefan@huawei.com,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 14:19:08 -0800
+Date: Fri, 22 Nov 2013 14:22:43 -0800
 
 
 The patch titled
-     Subject: mm: create a separate slab for page->ptl allocation
+     Subject: ocfs2: free allocated clusters if error occurs after ocfs2_claim_clusters
 has been added to the -mm tree.  Its filename is
-     mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch
+     ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,124 +44,209 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: create a separate slab for page->ptl allocation
+From: Zongxun Wang <wangzongxun@huawei.com>
+Subject: ocfs2: free allocated clusters if error occurs after ocfs2_claim_clusters
 
-If DEBUG_SPINLOCK and DEBUG_LOCK_ALLOC are enabled spinlock_t on x86_64 is
-72 bytes.  For page->ptl they will be allocated from kmalloc-96 slab, so
-we loose 24 on each.  An average system can easily allocate few tens
-thousands of page->ptl and overhead is significant.
+Even if using the same jbd2 handle, we cannot rollback a transaction.  So
+once some error occurs after successfully allocating clusters, the
+allocated clusters will never be used and it means they are lost.  For
+example, call ocfs2_claim_clusters successfully when expanding a file, but
+failed in ocfs2_insert_extent.  So we need free the allocated clusters if
+they are not used indeed.
 
-Let's create a separate slab for page->ptl allocation to solve this.
-
-To make sure that it really works this time, some numbers from my test
-machine (just booted, no load):
-
-Before:
-  # grep '^\(kmalloc-96\|page->ptl\)' /proc/slabinfo
-  kmalloc-96         31987  32190    128   30    1 : tunables  120   60    8 : slabdata   1073   1073     92
-After:
-  # grep '^\(kmalloc-96\|page->ptl\)' /proc/slabinfo
-  page->ptl          27516  28143     72   53    1 : tunables  120   60    8 : slabdata    531    531      9
-  kmalloc-96          3853   5280    128   30    1 : tunables  120   60    8 : slabdata    176    176      0
-
-Note that the patch is useful not only for debug case, but also for
-PREEMPT_RT, where spinlock_t is always bloated.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Zongxun Wang <wangzongxun@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Li Zefan <lizefan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    9 +++++++++
- init/main.c        |    2 +-
- mm/memory.c        |   11 +++++++++--
- 3 files changed, 19 insertions(+), 3 deletions(-)
+ fs/ocfs2/alloc.c      |   38 +++++++++++++++++++++++++++++++++++---
+ fs/ocfs2/localalloc.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ fs/ocfs2/localalloc.h |    6 ++++++
+ 3 files changed, 81 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~mm-create-a-separate-slab-for-page-ptl-allocation-try-two include/linux/mm.h
---- a/include/linux/mm.h~mm-create-a-separate-slab-for-page-ptl-allocation-try-two
-+++ a/include/linux/mm.h
-@@ -1348,6 +1348,7 @@ static inline pmd_t *pmd_alloc(struct mm
- 
- #if USE_SPLIT_PTE_PTLOCKS
- #if BLOATED_SPINLOCKS
-+void __init ptlock_cache_init(void);
- extern bool ptlock_alloc(struct page *page);
- extern void ptlock_free(struct page *page);
- 
-@@ -1356,6 +1357,7 @@ static inline spinlock_t *ptlock_ptr(str
- 	return page->ptl;
- }
- #else /* BLOATED_SPINLOCKS */
-+static inline void ptlock_cache_init(void) {}
- static inline bool ptlock_alloc(struct page *page)
+diff -puN fs/ocfs2/alloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
++++ a/fs/ocfs2/alloc.c
+@@ -4742,6 +4742,7 @@ int ocfs2_add_clusters_in_btree(handle_t
+ 				enum ocfs2_alloc_restarted *reason_ret)
  {
- 	return true;
-@@ -1408,10 +1410,17 @@ static inline spinlock_t *pte_lockptr(st
- {
- 	return &mm->page_table_lock;
- }
-+static inline void ptlock_cache_init(void) {}
- static inline bool ptlock_init(struct page *page) { return true; }
- static inline void pte_lock_deinit(struct page *page) {}
- #endif /* USE_SPLIT_PTE_PTLOCKS */
+ 	int status = 0, err = 0;
++	int need_free = 0;
+ 	int free_extents;
+ 	enum ocfs2_alloc_restarted reason = RESTART_NONE;
+ 	u32 bit_off, num_bits;
+@@ -4796,7 +4797,8 @@ int ocfs2_add_clusters_in_btree(handle_t
+ 					      OCFS2_JOURNAL_ACCESS_WRITE);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		goto leave;
++		need_free = 1;
++		goto bail;
+ 	}
  
-+static inline void pgtable_init(void)
+ 	block = ocfs2_clusters_to_blocks(osb->sb, bit_off);
+@@ -4807,7 +4809,8 @@ int ocfs2_add_clusters_in_btree(handle_t
+ 				     num_bits, flags, meta_ac);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		goto leave;
++		need_free = 1;
++		goto bail;
+ 	}
+ 
+ 	ocfs2_journal_dirty(handle, et->et_root_bh);
+@@ -4821,6 +4824,19 @@ int ocfs2_add_clusters_in_btree(handle_t
+ 		reason = RESTART_TRANS;
+ 	}
+ 
++bail:
++	if (need_free) {
++		if (data_ac->ac_which == OCFS2_AC_USE_LOCAL)
++			ocfs2_free_local_alloc_bits(osb, handle, data_ac,
++					bit_off, num_bits);
++		else
++			ocfs2_free_clusters(handle,
++					data_ac->ac_inode,
++					data_ac->ac_bh,
++					ocfs2_clusters_to_blocks(osb->sb, bit_off),
++					num_bits);
++	}
++
+ leave:
+ 	if (reason_ret)
+ 		*reason_ret = reason;
+@@ -6805,6 +6821,8 @@ int ocfs2_convert_inline_data_to_extents
+ 					 struct buffer_head *di_bh)
+ {
+ 	int ret, i, has_data, num_pages = 0;
++	int need_free = 0;
++	u32 bit_off, num;
+ 	handle_t *handle;
+ 	u64 uninitialized_var(block);
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
+@@ -6850,7 +6868,6 @@ int ocfs2_convert_inline_data_to_extents
+ 	}
+ 
+ 	if (has_data) {
+-		u32 bit_off, num;
+ 		unsigned int page_end;
+ 		u64 phys;
+ 
+@@ -6886,6 +6903,7 @@ int ocfs2_convert_inline_data_to_extents
+ 		ret = ocfs2_grab_eof_pages(inode, 0, end, pages, &num_pages);
+ 		if (ret) {
+ 			mlog_errno(ret);
++			need_free = 1;
+ 			goto out_commit;
+ 		}
+ 
+@@ -6896,6 +6914,7 @@ int ocfs2_convert_inline_data_to_extents
+ 		ret = ocfs2_read_inline_data(inode, pages[0], di_bh);
+ 		if (ret) {
+ 			mlog_errno(ret);
++			need_free = 1;
+ 			goto out_commit;
+ 		}
+ 
+@@ -6927,6 +6946,7 @@ int ocfs2_convert_inline_data_to_extents
+ 		ret = ocfs2_insert_extent(handle, &et, 0, block, 1, 0, NULL);
+ 		if (ret) {
+ 			mlog_errno(ret);
++			need_free = 1;
+ 			goto out_commit;
+ 		}
+ 
+@@ -6938,6 +6958,18 @@ out_commit:
+ 		dquot_free_space_nodirty(inode,
+ 					  ocfs2_clusters_to_bytes(osb->sb, 1));
+ 
++	if (need_free) {
++		if (data_ac->ac_which == OCFS2_AC_USE_LOCAL)
++			ocfs2_free_local_alloc_bits(osb, handle, data_ac,
++					bit_off, num);
++		else
++			ocfs2_free_clusters(handle,
++					data_ac->ac_inode,
++					data_ac->ac_bh,
++					ocfs2_clusters_to_blocks(osb->sb, bit_off),
++					num);
++	}
++
+ 	ocfs2_commit_trans(osb, handle);
+ 
+ out_unlock:
+diff -puN fs/ocfs2/localalloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/localalloc.c
+--- a/fs/ocfs2/localalloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
++++ a/fs/ocfs2/localalloc.c
+@@ -781,6 +781,46 @@ bail:
+ 	return status;
+ }
+ 
++int ocfs2_free_local_alloc_bits(struct ocfs2_super *osb,
++				handle_t *handle,
++				struct ocfs2_alloc_context *ac,
++				u32 bit_off,
++				u32 num_bits)
 +{
-+	ptlock_cache_init();
-+	pgtable_cache_init();
++	int status, start;
++	struct inode *local_alloc_inode;
++	void *bitmap;
++	struct ocfs2_dinode *alloc;
++	struct ocfs2_local_alloc *la;
++
++	BUG_ON(ac->ac_which != OCFS2_AC_USE_LOCAL);
++
++	local_alloc_inode = ac->ac_inode;
++	alloc = (struct ocfs2_dinode *) osb->local_alloc_bh->b_data;
++	la = OCFS2_LOCAL_ALLOC(alloc);
++
++	bitmap = la->la_bitmap;
++	start = bit_off - le32_to_cpu(la->la_bm_off);
++
++	status = ocfs2_journal_access_di(handle,
++			INODE_CACHE(local_alloc_inode),
++			osb->local_alloc_bh,
++			OCFS2_JOURNAL_ACCESS_WRITE);
++	if (status < 0) {
++		mlog_errno(status);
++		goto bail;
++	}
++
++	while (num_bits--)
++		ocfs2_clear_bit(start++, bitmap);
++
++	le32_add_cpu(&alloc->id1.bitmap1.i_used, -num_bits);
++	ocfs2_journal_dirty(handle, osb->local_alloc_bh);
++
++bail:
++	return status;
 +}
 +
- static inline bool pgtable_page_ctor(struct page *page)
+ static u32 ocfs2_local_alloc_count_bits(struct ocfs2_dinode *alloc)
  {
- 	inc_zone_page_state(page, NR_PAGETABLE);
-diff -puN init/main.c~mm-create-a-separate-slab-for-page-ptl-allocation-try-two init/main.c
---- a/init/main.c~mm-create-a-separate-slab-for-page-ptl-allocation-try-two
-+++ a/init/main.c
-@@ -476,7 +476,7 @@ static void __init mm_init(void)
- 	mem_init();
- 	kmem_cache_init();
- 	percpu_init_late();
--	pgtable_cache_init();
-+	pgtable_init();
- 	vmalloc_init();
- }
+ 	u32 count;
+diff -puN fs/ocfs2/localalloc.h~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/localalloc.h
+--- a/fs/ocfs2/localalloc.h~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
++++ a/fs/ocfs2/localalloc.h
+@@ -55,6 +55,12 @@ int ocfs2_claim_local_alloc_bits(struct
+ 				 u32 *bit_off,
+ 				 u32 *num_bits);
  
-diff -puN mm/memory.c~mm-create-a-separate-slab-for-page-ptl-allocation-try-two mm/memory.c
---- a/mm/memory.c~mm-create-a-separate-slab-for-page-ptl-allocation-try-two
-+++ a/mm/memory.c
-@@ -4272,11 +4272,18 @@ void copy_user_huge_page(struct page *ds
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
- 
- #if USE_SPLIT_PTE_PTLOCKS && BLOATED_SPINLOCKS
-+static struct kmem_cache *page_ptl_cachep;
-+void __init ptlock_cache_init(void)
-+{
-+	page_ptl_cachep = kmem_cache_create("page->ptl", sizeof(spinlock_t), 0,
-+			SLAB_PANIC, NULL);
-+}
++int ocfs2_free_local_alloc_bits(struct ocfs2_super *osb,
++				handle_t *handle,
++				struct ocfs2_alloc_context *ac,
++				u32 bit_off,
++				u32 num_bits);
 +
- bool ptlock_alloc(struct page *page)
- {
- 	spinlock_t *ptl;
- 
--	ptl = kmalloc(sizeof(spinlock_t), GFP_KERNEL);
-+	ptl = kmem_cache_alloc(page_ptl_cachep, GFP_KERNEL);
- 	if (!ptl)
- 		return false;
- 	page->ptl = ptl;
-@@ -4285,6 +4292,6 @@ bool ptlock_alloc(struct page *page)
- 
- void ptlock_free(struct page *page)
- {
--	kfree(page->ptl);
-+	kmem_cache_free(page_ptl_cachep, page->ptl);
- }
- #endif
+ void ocfs2_local_alloc_seen_free_bits(struct ocfs2_super *osb,
+ 				      unsigned int num_clusters);
+ void ocfs2_la_enable_worker(struct work_struct *work);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from wangzongxun@huawei.com are
 
-origin.patch
-x86-mm-get-aslr-work-for-hugetlb-mappings.patch
-mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch
+ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
 
