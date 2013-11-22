@@ -1,113 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-remove-config_use_generic_smp_helpers-cleanly.patch removed from -mm tree
-Date: Fri, 22 Nov 2013 13:21:51 -0800
-Message-ID: <528fcaef.wF2D7N6QeLYUCZot%akpm@linux-foundation.org>
+ arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown.patch
+ removed from -mm tree
+Date: Fri, 22 Nov 2013 13:21:55 -0800
+Message-ID: <528fcaf3.uQd7m1XyzBYdBSuJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56868 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56880 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932115Ab3KVVVv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:21:51 -0500
+	with ESMTP id S1755698Ab3KVVV4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:21:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hch@infradead.org, yuanhan.liu@linux.intel.com
+To: mm-commits@vger.kernel.org, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, linux@maxim.org.za, a.zummo@towertech.it, jhovold@gmail.com
 
-Subject: [merged] kernel-remove-config_use_generic_smp_helpers-cleanly.patch removed from -mm tree
-To: yuanhan.liu@linux.intel.com,hch@infradead.org,mm-commits@vger.kernel.org
+Subject: [merged] arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown.patch removed from -mm tree
+To: jhovold@gmail.com,a.zummo@towertech.it,linux@maxim.org.za,nicolas.ferre@atmel.com,plagnioj@jcrosoft.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 13:21:51 -0800
+Date: Fri, 22 Nov 2013 13:21:55 -0800
 
 
 The patch titled
-     Subject: kernel: remove CONFIG_USE_GENERIC_SMP_HELPERS cleanly
+     Subject: ARM: drivers/rtc/rtc-at91rm9200.c: disable interrupts at shutdown
 has been removed from the -mm tree.  Its filename was
-     kernel-remove-config_use_generic_smp_helpers-cleanly.patch
+     arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-Subject: kernel: remove CONFIG_USE_GENERIC_SMP_HELPERS cleanly
+From: Johan Hovold <jhovold@gmail.com>
+Subject: ARM: drivers/rtc/rtc-at91rm9200.c: disable interrupts at shutdown
 
-Remove CONFIG_USE_GENERIC_SMP_HELPERS left by commit
-0a06ff06 ("kernel: remove CONFIG_USE_GENERIC_SMP_HELPERS").
+Make sure RTC-interrupts are disabled at shutdown.
 
-Signed-off-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+As the RTC is generally powered by backup power (VDDBU), its interrupts
+are not disabled on wake-up, user, watchdog or software reset.  This could
+cause troubles on other systems (e.g.  older kernels) if an interrupt
+occurs before a handler has been installed at next boot.
+
+Let us be well-behaved and disable them on clean shutdowns at least (as
+do the RTT-based rtc-at91sam9 driver).
+
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/null_blk.c |    8 ++++----
- net/Kconfig              |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/block/null_blk.c~kernel-remove-config_use_generic_smp_helpers-cleanly drivers/block/null_blk.c
---- a/drivers/block/null_blk.c~kernel-remove-config_use_generic_smp_helpers-cleanly
-+++ a/drivers/block/null_blk.c
-@@ -223,7 +223,7 @@ static void null_softirq_done_fn(struct
- 	blk_end_request_all(rq, 0);
+diff -puN drivers/rtc/rtc-at91rm9200.c~arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~arm-drivers-rtc-rtc-at91rm9200c-disable-interrupts-at-shutdown
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -428,6 +428,14 @@ static int __exit at91_rtc_remove(struct
+ 	return 0;
  }
  
--#if defined(CONFIG_SMP) && defined(CONFIG_USE_GENERIC_SMP_HELPERS)
-+#ifdef CONFIG_SMP
++static void at91_rtc_shutdown(struct platform_device *pdev)
++{
++	/* Disable all interrupts */
++	at91_rtc_write(AT91_RTC_IDR, AT91_RTC_ACKUPD | AT91_RTC_ALARM |
++					AT91_RTC_SECEV | AT91_RTC_TIMEV |
++					AT91_RTC_CALEV);
++}
++
+ #ifdef CONFIG_PM_SLEEP
  
- static void null_ipi_cmd_end_io(void *data)
- {
-@@ -260,7 +260,7 @@ static void null_cmd_end_ipi(struct null
- 	put_cpu();
- }
+ /* AT91RM9200 RTC Power management control */
+@@ -466,6 +474,7 @@ static SIMPLE_DEV_PM_OPS(at91_rtc_pm_ops
  
--#endif /* CONFIG_SMP && CONFIG_USE_GENERIC_SMP_HELPERS */
-+#endif /* CONFIG_SMP */
- 
- static inline void null_handle_cmd(struct nullb_cmd *cmd)
- {
-@@ -270,7 +270,7 @@ static inline void null_handle_cmd(struc
- 		end_cmd(cmd);
- 		break;
- 	case NULL_IRQ_SOFTIRQ:
--#if defined(CONFIG_SMP) && defined(CONFIG_USE_GENERIC_SMP_HELPERS)
-+#ifdef CONFIG_SMP
- 		null_cmd_end_ipi(cmd);
- #else
- 		end_cmd(cmd);
-@@ -571,7 +571,7 @@ static int __init null_init(void)
- {
- 	unsigned int i;
- 
--#if !defined(CONFIG_SMP) || !defined(CONFIG_USE_GENERIC_SMP_HELPERS)
-+#if !defined(CONFIG_SMP)
- 	if (irqmode == NULL_IRQ_SOFTIRQ) {
- 		pr_warn("null_blk: softirq completions not available.\n");
- 		pr_warn("null_blk: using direct completions.\n");
-diff -puN net/Kconfig~kernel-remove-config_use_generic_smp_helpers-cleanly net/Kconfig
---- a/net/Kconfig~kernel-remove-config_use_generic_smp_helpers-cleanly
-+++ a/net/Kconfig
-@@ -224,7 +224,7 @@ source "net/hsr/Kconfig"
- 
- config RPS
- 	boolean
--	depends on SMP && SYSFS && USE_GENERIC_SMP_HELPERS
-+	depends on SMP && SYSFS
- 	default y
- 
- config RFS_ACCEL
-@@ -235,7 +235,7 @@ config RFS_ACCEL
- 
- config XPS
- 	boolean
--	depends on SMP && USE_GENERIC_SMP_HELPERS
-+	depends on SMP
- 	default y
- 
- config NETPRIO_CGROUP
+ static struct platform_driver at91_rtc_driver = {
+ 	.remove		= __exit_p(at91_rtc_remove),
++	.shutdown	= at91_rtc_shutdown,
+ 	.driver		= {
+ 		.name	= "at91_rtc",
+ 		.owner	= THIS_MODULE,
 _
 
-Patches currently in -mm which might be from yuanhan.liu@linux.intel.com are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
 origin.patch
 
