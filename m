@@ -1,101 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mm-do-not-leak-page-ptl-for-pmd-page-tables.patch
- removed from -mm tree
-Date: Fri, 22 Nov 2013 13:22:03 -0800
-Message-ID: <528fcafb.6xsFpibA5IJt8nmt%akpm@linux-foundation.org>
+Subject: [merged] block-partitions-efic-fix-bound-check.patch removed from -mm tree
+Date: Fri, 22 Nov 2013 13:21:57 -0800
+Message-ID: <528fcaf5.9/ZW7LJV83Pmdk+C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56899 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56886 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756082Ab3KVVWE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:22:04 -0500
+	with ESMTP id S1755698Ab3KVVWC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:22:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peterz@infradead.org, mingo@redhat.com, avagin@openvz.org, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, wad@chromium.org, matt.fleming@intel.com, hdoyu@nvidia.com, davidlohr@hp.com, amiettinen@nvidia.com
 
-Subject: [merged] x86-mm-do-not-leak-page-ptl-for-pmd-page-tables.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,avagin@openvz.org,mingo@redhat.com,peterz@infradead.org,mm-commits@vger.kernel.org
+Subject: [merged] block-partitions-efic-fix-bound-check.patch removed from -mm tree
+To: amiettinen@nvidia.com,davidlohr@hp.com,hdoyu@nvidia.com,matt.fleming@intel.com,wad@chromium.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 13:22:03 -0800
+Date: Fri, 22 Nov 2013 13:21:57 -0800
 
 
 The patch titled
-     Subject: x86, mm: do not leak page->ptl for pmd page tables
+     Subject: block/partitions/efi.c: fix bound check
 has been removed from the -mm tree.  Its filename was
-     x86-mm-do-not-leak-page-ptl-for-pmd-page-tables.patch
+     block-partitions-efic-fix-bound-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: x86, mm: do not leak page->ptl for pmd page tables
+From: Antti P Miettinen <amiettinen@nvidia.com>
+Subject: block/partitions/efi.c: fix bound check
 
-There are two code paths how page with pmd page table can be freed:
-pmd_free() and pmd_free_tlb().
+Use ARRAY_SIZE instead of sizeof to get proper max for label length.
 
-I've missed the second one and didn't add page table destructor call
-there.  It leads to leak of page->ptl for pmd page tables, if dynamically
-allocated page->ptl is in use.
+Since this is just a read out of bounds it's not that bad, but the problem
+becomes user-visible e.g.  if one tries to use CONFIG_DEBUG_PAGEALLOC and
+CONFIG_DEBUG_RODATA, at least with some enhancements from Hiroshi.  Of
+course the destination array can contain garbage when we read beyond the
+end of source array so that would be another user-visible problem.
 
-The patch adds the missed destructor and modifies documentation
-accordingly.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Andrey Vagin <avagin@openvz.org>
-Tested-by: Andrey Vagin <avagin@openvz.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Antti P Miettinen <amiettinen@nvidia.com>
+Reviewed-by: Hiroshi Doyu <hdoyu@nvidia.com>
+Tested-by: Hiroshi Doyu <hdoyu@nvidia.com>
+Cc: Will Drewry <wad@chromium.org>
+Cc: Matt Fleming <matt.fleming@intel.com>
+Acked-by: Davidlohr Bueso <davidlohr@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/split_page_table_lock |    6 +++---
- arch/x86/mm/pgtable.c                  |    4 +++-
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ block/partitions/efi.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/vm/split_page_table_lock~x86-mm-do-not-leak-page-ptl-for-pmd-page-tables Documentation/vm/split_page_table_lock
---- a/Documentation/vm/split_page_table_lock~x86-mm-do-not-leak-page-ptl-for-pmd-page-tables
-+++ a/Documentation/vm/split_page_table_lock
-@@ -63,9 +63,9 @@ levels.
- PMD split lock enabling requires pgtable_pmd_page_ctor() call on PMD table
- allocation and pgtable_pmd_page_dtor() on freeing.
+diff -puN block/partitions/efi.c~block-partitions-efic-fix-bound-check block/partitions/efi.c
+--- a/block/partitions/efi.c~block-partitions-efic-fix-bound-check
++++ a/block/partitions/efi.c
+@@ -96,6 +96,7 @@
+  * - Code works, detects all the partitions.
+  *
+  ************************************************************/
++#include <linux/kernel.h>
+ #include <linux/crc32.h>
+ #include <linux/ctype.h>
+ #include <linux/math64.h>
+@@ -715,8 +716,8 @@ int efi_partition(struct parsed_partitio
+ 		efi_guid_unparse(&ptes[i].unique_partition_guid, info->uuid);
  
--Allocation usually happens in pmd_alloc_one(), freeing in pmd_free(), but
--make sure you cover all PMD table allocation / freeing paths: i.e X86_PAE
--preallocate few PMDs on pgd_alloc().
-+Allocation usually happens in pmd_alloc_one(), freeing in pmd_free() and
-+pmd_free_tlb(), but make sure you cover all PMD table allocation / freeing
-+paths: i.e X86_PAE preallocate few PMDs on pgd_alloc().
- 
- With everything in place you can set CONFIG_ARCH_ENABLE_SPLIT_PMD_PTLOCK.
- 
-diff -puN arch/x86/mm/pgtable.c~x86-mm-do-not-leak-page-ptl-for-pmd-page-tables arch/x86/mm/pgtable.c
---- a/arch/x86/mm/pgtable.c~x86-mm-do-not-leak-page-ptl-for-pmd-page-tables
-+++ a/arch/x86/mm/pgtable.c
-@@ -61,6 +61,7 @@ void ___pte_free_tlb(struct mmu_gather *
- #if PAGETABLE_LEVELS > 2
- void ___pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd)
- {
-+	struct page *page = virt_to_page(pmd);
- 	paravirt_release_pmd(__pa(pmd) >> PAGE_SHIFT);
- 	/*
- 	 * NOTE! For PAE, any changes to the top page-directory-pointer-table
-@@ -69,7 +70,8 @@ void ___pmd_free_tlb(struct mmu_gather *
- #ifdef CONFIG_X86_PAE
- 	tlb->need_flush_all = 1;
- #endif
--	tlb_remove_page(tlb, virt_to_page(pmd));
-+	pgtable_pmd_page_dtor(page);
-+	tlb_remove_page(tlb, page);
- }
- 
- #if PAGETABLE_LEVELS > 3
+ 		/* Naively convert UTF16-LE to 7 bits. */
+-		label_max = min(sizeof(info->volname) - 1,
+-				sizeof(ptes[i].partition_name));
++		label_max = min(ARRAY_SIZE(info->volname) - 1,
++				ARRAY_SIZE(ptes[i].partition_name));
+ 		info->volname[label_max] = 0;
+ 		while (label_count < label_max) {
+ 			u8 c = ptes[i].partition_name[label_count] & 0xff;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from amiettinen@nvidia.com are
 
 origin.patch
-x86-mm-get-aslr-work-for-hugetlb-mappings.patch
 
