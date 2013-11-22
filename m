@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-memstick-host-rtsx_pci_msc-fix-ms-card-data-transfer-bug.patch
- added to -mm tree
-Date: Fri, 22 Nov 2013 15:33:22 -0800
-Message-ID: <528fe9c2.v+sGApKScv3US6bE%akpm@linux-foundation.org>
+Subject: + mm-add-strictlimit-knob-v2.patch added to -mm tree
+Date: Fri, 22 Nov 2013 15:47:49 -0800
+Message-ID: <528fed25.1a6H3FNOhMajLSxv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58333 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58551 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756143Ab3KVXdX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 18:33:23 -0500
+	with ESMTP id S1756338Ab3KVXru (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 18:47:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sameo@linux.intel.com, oakad@yahoo.com, maximlevitsky@gmail.com, micky_ching@realsil.com.cn
+To: mm-commits@vger.kernel.org, tytso@mit.edu, t.artem@lycos.com, mel@csn.ul.ie, jack@suse.cz, hmh@hmh.eng.br, fengguang.wu@intel.com, MPatlasov@parallels.com
 
-Subject: + drivers-memstick-host-rtsx_pci_msc-fix-ms-card-data-transfer-bug.patch added to -mm tree
-To: micky_ching@realsil.com.cn,maximlevitsky@gmail.com,oakad@yahoo.com,sameo@linux.intel.com
+Subject: + mm-add-strictlimit-knob-v2.patch added to -mm tree
+To: MPatlasov@parallels.com,fengguang.wu@intel.com,hmh@hmh.eng.br,jack@suse.cz,mel@csn.ul.ie,t.artem@lycos.com,tytso@mit.edu
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 15:33:22 -0800
+Date: Fri, 22 Nov 2013 15:47:49 -0800
 
 
 The patch titled
-     Subject: drivers/memstick/host/rtsx_pci_ms.c: fix ms card data transfer bug
+     Subject: mm: add strictlimit knob
 has been added to the -mm tree.  Its filename is
-     drivers-memstick-host-rtsx_pci_msc-fix-ms-card-data-transfer-bug.patch
+     mm-add-strictlimit-knob-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-memstick-host-rtsx_pci_msc-fix-ms-card-data-transfer-bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-strictlimit-knob-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-memstick-host-rtsx_pci_msc-fix-ms-card-data-transfer-bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-strictlimit-knob-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,99 +43,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Micky Ching <micky_ching@realsil.com.cn>
-Subject: drivers/memstick/host/rtsx_pci_ms.c: fix ms card data transfer bug
+From: Maxim Patlasov <MPatlasov@parallels.com>
+Subject: mm: add strictlimit knob
 
-This patch is used to add support for ms card. The main difference
-between ms card and mspro card is long data transfer mode. mspro card
-can use auto mode DMA for long data transfer, but ms can not use this
-mode, it should use normal mode DMA.
+The "strictlimit" feature was introduced to enforce per-bdi dirty limits
+for FUSE which sets bdi max_ratio to 1% by default:
 
-The memstick core add support for ms card, but the original driver will
-make ms card fail at initialize, because it use auto mode DMA. This
-patch can make ms card work properly.
+http://article.gmane.org/gmane.linux.kernel.mm/105809
 
-Signed-off-by: Micky Ching <micky_ching@realsil.com.cn>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Alex Dubov <oakad@yahoo.com>
+However the feature can be useful for other relatively slow or untrusted
+BDIs like USB flash drives and DVD+RW.  The patch adds a knob to enable
+the feature:
+
+echo 1 > /sys/class/bdi/X:Y/strictlimit
+
+Being enabled, the feature enforces bdi max_ratio limit even if global
+(10%) dirty limit is not reached.  Of course, the effect is not visible
+until /sys/class/bdi/X:Y/max_ratio is decreased to some reasonable value.
+
+Signed-off-by: Maxim Patlasov <MPatlasov@parallels.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: "Artem S. Tashkinov" <t.artem@lycos.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/rtsx_pci_ms.c |   30 +++++++++++++++++---------
- 1 file changed, 20 insertions(+), 10 deletions(-)
+ Documentation/ABI/testing/sysfs-class-bdi |    8 ++++
+ mm/backing-dev.c                          |   35 ++++++++++++++++++++
+ 2 files changed, 43 insertions(+)
 
-diff -puN drivers/memstick/host/rtsx_pci_ms.c~drivers-memstick-host-rtsx_pci_msc-fix-ms-card-data-transfer-bug drivers/memstick/host/rtsx_pci_ms.c
---- a/drivers/memstick/host/rtsx_pci_ms.c~drivers-memstick-host-rtsx_pci_msc-fix-ms-card-data-transfer-bug
-+++ a/drivers/memstick/host/rtsx_pci_ms.c
-@@ -145,6 +145,8 @@ static int ms_transfer_data(struct realt
- 	unsigned int length = sg->length;
- 	u16 sec_cnt = (u16)(length / 512);
- 	u8 val, trans_mode, dma_dir;
-+	struct memstick_dev *card = host->msh->card;
-+	bool pro_card = card->id.type == MEMSTICK_TYPE_PRO;
+diff -puN Documentation/ABI/testing/sysfs-class-bdi~mm-add-strictlimit-knob-v2 Documentation/ABI/testing/sysfs-class-bdi
+--- a/Documentation/ABI/testing/sysfs-class-bdi~mm-add-strictlimit-knob-v2
++++ a/Documentation/ABI/testing/sysfs-class-bdi
+@@ -53,3 +53,11 @@ stable_pages_required (read-only)
  
- 	dev_dbg(ms_dev(host), "%s: tpc = 0x%02x, data_dir = %s, length = %d\n",
- 			__func__, tpc, (data_dir == READ) ? "READ" : "WRITE",
-@@ -152,19 +154,21 @@ static int ms_transfer_data(struct realt
- 
- 	if (data_dir == READ) {
- 		dma_dir = DMA_DIR_FROM_CARD;
--		trans_mode = MS_TM_AUTO_READ;
-+		trans_mode = pro_card ? MS_TM_AUTO_READ : MS_TM_NORMAL_READ;
- 	} else {
- 		dma_dir = DMA_DIR_TO_CARD;
--		trans_mode = MS_TM_AUTO_WRITE;
-+		trans_mode = pro_card ? MS_TM_AUTO_WRITE : MS_TM_NORMAL_WRITE;
- 	}
- 
- 	rtsx_pci_init_cmd(pcr);
- 
- 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, MS_TPC, 0xFF, tpc);
--	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, MS_SECTOR_CNT_H,
--			0xFF, (u8)(sec_cnt >> 8));
--	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, MS_SECTOR_CNT_L,
--			0xFF, (u8)sec_cnt);
-+	if (pro_card) {
-+		rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, MS_SECTOR_CNT_H,
-+				0xFF, (u8)(sec_cnt >> 8));
-+		rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, MS_SECTOR_CNT_L,
-+				0xFF, (u8)sec_cnt);
-+	}
- 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, MS_TRANS_CFG, 0xFF, cfg);
- 
- 	rtsx_pci_add_cmd(pcr, WRITE_REG_CMD, IRQSTAT0,
-@@ -192,8 +196,14 @@ static int ms_transfer_data(struct realt
- 	}
- 
- 	rtsx_pci_read_register(pcr, MS_TRANS_CFG, &val);
--	if (val & (MS_INT_CMDNK | MS_INT_ERR | MS_CRC16_ERR | MS_RDY_TIMEOUT))
--		return -EIO;
-+	if (pro_card) {
-+		if (val & (MS_INT_CMDNK | MS_INT_ERR |
-+				MS_CRC16_ERR | MS_RDY_TIMEOUT))
-+			return -EIO;
-+	} else {
-+		if (val & (MS_CRC16_ERR | MS_RDY_TIMEOUT))
-+			return -EIO;
-+	}
- 
- 	return 0;
+ 	If set, the backing device requires that all pages comprising a write
+ 	request must not be changed until writeout is complete.
++
++strictlimit (read-write)
++
++	Forces per-BDI checks for the share of given device in the write-back
++	cache even before the global background dirty limit is reached. This
++	is useful in situations where the global limit is much higher than
++	affordable for given relatively slow (or untrusted) device. Turning
++	strictlimit on has no visible effect if max_ratio is equal to 100%.
+diff -puN mm/backing-dev.c~mm-add-strictlimit-knob-v2 mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-add-strictlimit-knob-v2
++++ a/mm/backing-dev.c
+@@ -234,11 +234,46 @@ static ssize_t stable_pages_required_sho
  }
-@@ -462,8 +472,8 @@ static int rtsx_pci_ms_set_param(struct
- 			clock = 19000000;
- 			ssc_depth = RTSX_SSC_DEPTH_500K;
+ static DEVICE_ATTR_RO(stable_pages_required);
  
--			err = rtsx_pci_write_register(pcr, MS_CFG,
--					0x18, MS_BUS_WIDTH_1);
-+			err = rtsx_pci_write_register(pcr, MS_CFG, 0x58,
-+					MS_BUS_WIDTH_1 | PUSH_TIME_DEFAULT);
- 			if (err < 0)
- 				return err;
- 		} else if (value == MEMSTICK_PAR4) {
++static ssize_t strictlimit_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct backing_dev_info *bdi = dev_get_drvdata(dev);
++	unsigned int val;
++	ssize_t ret;
++
++	ret = kstrtouint(buf, 10, &val);
++	if (ret < 0)
++		return ret;
++
++	switch (val) {
++	case 0:
++		bdi->capabilities &= ~BDI_CAP_STRICTLIMIT;
++		break;
++	case 1:
++		bdi->capabilities |= BDI_CAP_STRICTLIMIT;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return count;
++}
++static ssize_t strictlimit_show(struct device *dev,
++		struct device_attribute *attr, char *page)
++{
++	struct backing_dev_info *bdi = dev_get_drvdata(dev);
++
++	return snprintf(page, PAGE_SIZE-1, "%d\n",
++			!!(bdi->capabilities & BDI_CAP_STRICTLIMIT));
++}
++static DEVICE_ATTR_RW(strictlimit);
++
+ static struct attribute *bdi_dev_attrs[] = {
+ 	&dev_attr_read_ahead_kb.attr,
+ 	&dev_attr_min_ratio.attr,
+ 	&dev_attr_max_ratio.attr,
+ 	&dev_attr_stable_pages_required.attr,
++	&dev_attr_strictlimit.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(bdi_dev);
 _
 
-Patches currently in -mm which might be from micky_ching@realsil.com.cn are
+Patches currently in -mm which might be from MPatlasov@parallels.com are
 
-drivers-memstick-host-rtsx_pci_msc-fix-ms-card-data-transfer-bug.patch
+origin.patch
+mm-add-strictlimit-knob-v2.patch
 
