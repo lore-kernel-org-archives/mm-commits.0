@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-strictlimit-knob-v2.patch added to -mm tree
-Date: Fri, 22 Nov 2013 15:47:49 -0800
-Message-ID: <528fed25.1a6H3FNOhMajLSxv%akpm@linux-foundation.org>
+Subject: + mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
+ added to -mm tree
+Date: Fri, 22 Nov 2013 15:53:45 -0800
+Message-ID: <528fee89.7UUwSSzz01C2zn+N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58551 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58559 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756338Ab3KVXru (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 18:47:50 -0500
+	with ESMTP id S1756002Ab3KVXxq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 18:53:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tytso@mit.edu, t.artem@lycos.com, mel@csn.ul.ie, jack@suse.cz, hmh@hmh.eng.br, fengguang.wu@intel.com, MPatlasov@parallels.com
+To: mm-commits@vger.kernel.org, steve.capper@linaro.org, riel@redhat.com, mgorman@suse.de, marc.zyngier@arm.com, hughd@google.com, aarcange@redhat.com, andreas@sandberg.pp.se
 
-Subject: + mm-add-strictlimit-knob-v2.patch added to -mm tree
-To: MPatlasov@parallels.com,fengguang.wu@intel.com,hmh@hmh.eng.br,jack@suse.cz,mel@csn.ul.ie,t.artem@lycos.com,tytso@mit.edu
+Subject: + mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch added to -mm tree
+To: andreas@sandberg.pp.se,aarcange@redhat.com,hughd@google.com,marc.zyngier@arm.com,mgorman@suse.de,riel@redhat.com,steve.capper@linaro.org
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 15:47:49 -0800
+Date: Fri, 22 Nov 2013 15:53:45 -0800
 
 
 The patch titled
-     Subject: mm: add strictlimit knob
+     Subject: mm/hugetlb.c: call MMU notifiers when copying a hugetlb page range
 has been added to the -mm tree.  Its filename is
-     mm-add-strictlimit-knob-v2.patch
+     mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-strictlimit-knob-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-strictlimit-knob-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,107 +44,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Maxim Patlasov <MPatlasov@parallels.com>
-Subject: mm: add strictlimit knob
+From: Andreas Sandberg <andreas@sandberg.pp.se>
+Subject: mm/hugetlb.c: call MMU notifiers when copying a hugetlb page range
 
-The "strictlimit" feature was introduced to enforce per-bdi dirty limits
-for FUSE which sets bdi max_ratio to 1% by default:
+When copy_hugetlb_page_range() is called to copy a range of hugetlb
+mappings, the secondary MMUs are not notified if there is a protection
+downgrade, which breaks COW semantics in KVM.
 
-http://article.gmane.org/gmane.linux.kernel.mm/105809
+This patch adds the necessary MMU notifier calls.
 
-However the feature can be useful for other relatively slow or untrusted
-BDIs like USB flash drives and DVD+RW.  The patch adds a knob to enable
-the feature:
-
-echo 1 > /sys/class/bdi/X:Y/strictlimit
-
-Being enabled, the feature enforces bdi max_ratio limit even if global
-(10%) dirty limit is not reached.  Of course, the effect is not visible
-until /sys/class/bdi/X:Y/max_ratio is decreased to some reasonable value.
-
-Signed-off-by: Maxim Patlasov <MPatlasov@parallels.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: "Artem S. Tashkinov" <t.artem@lycos.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Andreas Sandberg <andreas@sandberg.pp.se>
+Acked-by: Steve Capper <steve.capper@linaro.org>
+Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-bdi |    8 ++++
- mm/backing-dev.c                          |   35 ++++++++++++++++++++
- 2 files changed, 43 insertions(+)
+ mm/hugetlb.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-class-bdi~mm-add-strictlimit-knob-v2 Documentation/ABI/testing/sysfs-class-bdi
---- a/Documentation/ABI/testing/sysfs-class-bdi~mm-add-strictlimit-knob-v2
-+++ a/Documentation/ABI/testing/sysfs-class-bdi
-@@ -53,3 +53,11 @@ stable_pages_required (read-only)
+diff -puN mm/hugetlb.c~mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range
++++ a/mm/hugetlb.c
+@@ -2346,17 +2346,27 @@ int copy_hugetlb_page_range(struct mm_st
+ 	int cow;
+ 	struct hstate *h = hstate_vma(vma);
+ 	unsigned long sz = huge_page_size(h);
++	unsigned long mmun_start;	/* For mmu_notifiers */
++	unsigned long mmun_end;		/* For mmu_notifiers */
++	int ret = 0;
  
- 	If set, the backing device requires that all pages comprising a write
- 	request must not be changed until writeout is complete.
+ 	cow = (vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
+ 
++	mmun_start = vma->vm_start;
++	mmun_end = vma->vm_end;
++	if (cow)
++		mmu_notifier_invalidate_range_start(src, mmun_start, mmun_end);
 +
-+strictlimit (read-write)
+ 	for (addr = vma->vm_start; addr < vma->vm_end; addr += sz) {
+ 		spinlock_t *src_ptl, *dst_ptl;
+ 		src_pte = huge_pte_offset(src, addr);
+ 		if (!src_pte)
+ 			continue;
+ 		dst_pte = huge_pte_alloc(dst, addr, sz);
+-		if (!dst_pte)
+-			goto nomem;
++		if (!dst_pte) {
++			ret = -ENOMEM;
++			break;
++		}
+ 
+ 		/* If the pagetables are shared don't copy or take references */
+ 		if (dst_pte == src_pte)
+@@ -2377,10 +2387,11 @@ int copy_hugetlb_page_range(struct mm_st
+ 		spin_unlock(src_ptl);
+ 		spin_unlock(dst_ptl);
+ 	}
+-	return 0;
+ 
+-nomem:
+-	return -ENOMEM;
++	if (cow)
++		mmu_notifier_invalidate_range_end(src, mmun_start, mmun_end);
 +
-+	Forces per-BDI checks for the share of given device in the write-back
-+	cache even before the global background dirty limit is reached. This
-+	is useful in situations where the global limit is much higher than
-+	affordable for given relatively slow (or untrusted) device. Turning
-+	strictlimit on has no visible effect if max_ratio is equal to 100%.
-diff -puN mm/backing-dev.c~mm-add-strictlimit-knob-v2 mm/backing-dev.c
---- a/mm/backing-dev.c~mm-add-strictlimit-knob-v2
-+++ a/mm/backing-dev.c
-@@ -234,11 +234,46 @@ static ssize_t stable_pages_required_sho
++	return ret;
  }
- static DEVICE_ATTR_RO(stable_pages_required);
  
-+static ssize_t strictlimit_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct backing_dev_info *bdi = dev_get_drvdata(dev);
-+	unsigned int val;
-+	ssize_t ret;
-+
-+	ret = kstrtouint(buf, 10, &val);
-+	if (ret < 0)
-+		return ret;
-+
-+	switch (val) {
-+	case 0:
-+		bdi->capabilities &= ~BDI_CAP_STRICTLIMIT;
-+		break;
-+	case 1:
-+		bdi->capabilities |= BDI_CAP_STRICTLIMIT;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return count;
-+}
-+static ssize_t strictlimit_show(struct device *dev,
-+		struct device_attribute *attr, char *page)
-+{
-+	struct backing_dev_info *bdi = dev_get_drvdata(dev);
-+
-+	return snprintf(page, PAGE_SIZE-1, "%d\n",
-+			!!(bdi->capabilities & BDI_CAP_STRICTLIMIT));
-+}
-+static DEVICE_ATTR_RW(strictlimit);
-+
- static struct attribute *bdi_dev_attrs[] = {
- 	&dev_attr_read_ahead_kb.attr,
- 	&dev_attr_min_ratio.attr,
- 	&dev_attr_max_ratio.attr,
- 	&dev_attr_stable_pages_required.attr,
-+	&dev_attr_strictlimit.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(bdi_dev);
+ static int is_hugetlb_entry_migration(pte_t pte)
 _
 
-Patches currently in -mm which might be from MPatlasov@parallels.com are
+Patches currently in -mm which might be from andreas@sandberg.pp.se are
 
-origin.patch
-mm-add-strictlimit-knob-v2.patch
+mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
 
