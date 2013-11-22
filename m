@@ -1,43 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- pass-ocfs2_cluster_connection-to-ocfs2_this_node.patch removed from -mm
+Subject: [to-be-updated] framework-for-version-lvb.patch removed from -mm
  tree
-Date: Thu, 21 Nov 2013 16:33:48 -0800
-Message-ID: <528ea66c.F3PXy8v/8n/LvX7y%akpm@linux-foundation.org>
+Date: Thu, 21 Nov 2013 16:33:50 -0800
+Message-ID: <528ea66e.CIEJjxrR75euXYj8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50024 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50029 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753279Ab3KVAdt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Nov 2013 19:33:49 -0500
+	with ESMTP id S1753861Ab3KVAdv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Nov 2013 19:33:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: [to-be-updated] pass-ocfs2_cluster_connection-to-ocfs2_this_node.patch removed from -mm tree
+Subject: [to-be-updated] framework-for-version-lvb.patch removed from -mm tree
 To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 21 Nov 2013 16:33:48 -0800
+Date: Thu, 21 Nov 2013 16:33:50 -0800
 
 
 The patch titled
-     Subject: ocfs2: pass ocfs2_cluster_connection to ocfs2_this_node
+     Subject: ocfs2: framework for version LVB
 has been removed from the -mm tree.  Its filename was
-     pass-ocfs2_cluster_connection-to-ocfs2_this_node.patch
+     framework-for-version-lvb.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: ocfs2: pass ocfs2_cluster_connection to ocfs2_this_node
+Subject: ocfs2: framework for version LVB
 
-This is done to differentiate between using and not using controld and use
-the connection information accordingly.  We need to be backward
-compatible.  So, we use a new enum ocfs2_connection_type to identify when
-controld is used and when it is not.
+Use the native DLM locks for version control negotiation.  Most of the
+framework is taken from gfs2/lock_dlm.c
 
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -45,133 +42,132 @@ Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c    |    2 +-
- fs/ocfs2/stack_o2cb.c |    3 ++-
- fs/ocfs2/stack_user.c |   17 +++++++++++++++--
- fs/ocfs2/stackglue.c  |    5 +++--
- fs/ocfs2/stackglue.h  |    6 ++++--
- 5 files changed, 25 insertions(+), 8 deletions(-)
+ fs/ocfs2/stack_user.c |  102 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 102 insertions(+)
 
-diff -puN fs/ocfs2/dlmglue.c~pass-ocfs2_cluster_connection-to-ocfs2_this_node fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~pass-ocfs2_cluster_connection-to-ocfs2_this_node
-+++ a/fs/ocfs2/dlmglue.c
-@@ -3007,7 +3007,7 @@ int ocfs2_dlm_init(struct ocfs2_super *o
- 		goto bail;
- 	}
- 
--	status = ocfs2_cluster_this_node(&osb->node_num);
-+	status = ocfs2_cluster_this_node(conn, &osb->node_num);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		mlog(ML_ERROR,
-diff -puN fs/ocfs2/stack_o2cb.c~pass-ocfs2_cluster_connection-to-ocfs2_this_node fs/ocfs2/stack_o2cb.c
---- a/fs/ocfs2/stack_o2cb.c~pass-ocfs2_cluster_connection-to-ocfs2_this_node
-+++ a/fs/ocfs2/stack_o2cb.c
-@@ -398,7 +398,8 @@ static int o2cb_cluster_disconnect(struc
- 	return 0;
- }
- 
--static int o2cb_cluster_this_node(unsigned int *node)
-+static int o2cb_cluster_this_node(struct ocfs2_cluster_connection *conn,
-+				  unsigned int *node)
- {
- 	int node_num;
- 
-diff -puN fs/ocfs2/stack_user.c~pass-ocfs2_cluster_connection-to-ocfs2_this_node fs/ocfs2/stack_user.c
---- a/fs/ocfs2/stack_user.c~pass-ocfs2_cluster_connection-to-ocfs2_this_node
+diff -puN fs/ocfs2/stack_user.c~framework-for-version-lvb fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~framework-for-version-lvb
 +++ a/fs/ocfs2/stack_user.c
-@@ -103,6 +103,11 @@
- #define OCFS2_CONTROL_MESSAGE_VERNUM_LEN	2
- #define OCFS2_CONTROL_MESSAGE_NODENUM_LEN	8
- 
-+enum ocfs2_connection_type {
-+	WITH_CONTROLD,
-+	NO_CONTROLD
-+};
-+
- /*
-  * ocfs2_live_connection is refcounted because the filesystem and
-  * miscdevice sides can detach in different order.  Let's just be safe.
-@@ -110,6 +115,7 @@
- struct ocfs2_live_connection {
- 	struct list_head		oc_list;
- 	struct ocfs2_cluster_connection	*oc_conn;
-+	enum ocfs2_connection_type	oc_type;
+@@ -118,6 +118,9 @@ struct ocfs2_live_connection {
+ 	enum ocfs2_connection_type	oc_type;
  	atomic_t                        oc_this_node;
  	int                             oc_our_slot;
++	struct dlm_lksb                 oc_version_lksb;
++	char                            oc_lvb[DLM_LVB_LEN];
++	struct completion               oc_sync_wait;
  };
-@@ -840,6 +846,8 @@ static int user_cluster_connect(struct o
- 		goto out;
- 	}
  
-+	lc->oc_type = WITH_CONTROLD;
-+
- 	rc = ocfs2_live_connection_new(conn, lc);
- 	if (rc)
- 		goto out;
-@@ -886,11 +894,16 @@ static int user_cluster_disconnect(struc
+ struct ocfs2_control_private {
+@@ -796,6 +799,105 @@ static int fs_protocol_compare(struct oc
  	return 0;
  }
  
--static int user_cluster_this_node(unsigned int *this_node)
-+static int user_cluster_this_node(struct ocfs2_cluster_connection *conn,
-+				  unsigned int *this_node)
- {
- 	int rc;
++static int lvb_to_version(char *lvb, struct ocfs2_protocol_version *ver)
++{
++	struct ocfs2_protocol_version pv;
++	struct ocfs2_protocol_version *max =
++		&ocfs2_user_plugin.sp_max_proto;
++
++	memcpy(&pv, lvb, sizeof(struct ocfs2_protocol_version));
++	if ((pv.pv_major == LONG_MIN) || (pv.pv_major == LONG_MAX) ||
++	    (pv.pv_major > (u8)-1) || (pv.pv_major < 1))
++		return -ERANGE;
++	if ((pv.pv_minor == LONG_MIN) || (pv.pv_minor == LONG_MAX) ||
++	    (pv.pv_minor > (u8)-1) || (pv.pv_minor < 0))
++		return -ERANGE;
++	if ((pv.pv_major != max->pv_major) ||
++	    (pv.pv_minor > max->pv_minor))
++		return -EINVAL;
++	ver->pv_major = pv.pv_major;
++	ver->pv_minor = pv.pv_minor;
++	return 0;
++}
++
++static void version_to_lvb(struct ocfs2_protocol_version *ver, char *lvb)
++{
++	memcpy(lvb, ver, sizeof(struct ocfs2_protocol_version));
++}
++
++static void sync_wait_cb(void *arg)
++{
++	struct ocfs2_cluster_connection *conn = arg;
 +	struct ocfs2_live_connection *lc = conn->cc_private;
- 
--	rc = ocfs2_control_get_this_node();
-+	if (lc->oc_type == WITH_CONTROLD)
-+		rc = ocfs2_control_get_this_node();
-+	else
-+		rc = -EINVAL;
- 	if (rc < 0)
- 		return rc;
- 
-diff -puN fs/ocfs2/stackglue.c~pass-ocfs2_cluster_connection-to-ocfs2_this_node fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~pass-ocfs2_cluster_connection-to-ocfs2_this_node
-+++ a/fs/ocfs2/stackglue.c
-@@ -465,9 +465,10 @@ void ocfs2_cluster_hangup(const char *gr
- }
- EXPORT_SYMBOL_GPL(ocfs2_cluster_hangup);
- 
--int ocfs2_cluster_this_node(unsigned int *node)
-+int ocfs2_cluster_this_node(struct ocfs2_cluster_connection *conn,
-+			    unsigned int *node)
++	complete(&lc->oc_sync_wait);
++}
++
++static int sync_unlock(struct ocfs2_cluster_connection *conn,
++		struct dlm_lksb *lksb, char *name)
++{
++	int error;
++	struct ocfs2_live_connection *lc = conn->cc_private;
++
++	error = dlm_unlock(conn->cc_lockspace, lksb->sb_lkid, 0, lksb, conn);
++	if (error) {
++		printk(KERN_ERR "%s lkid %x error %d\n",
++				name, lksb->sb_lkid, error);
++		return error;
++	}
++
++	wait_for_completion(&lc->oc_sync_wait);
++
++	if (lksb->sb_status != -DLM_EUNLOCK) {
++		printk(KERN_ERR "%s lkid %x status %d\n",
++				name, lksb->sb_lkid, lksb->sb_status);
++		return -1;
++	}
++	return 0;
++}
++
++static int sync_lock(struct ocfs2_cluster_connection *conn,
++		int mode, uint32_t flags,
++		struct dlm_lksb *lksb, char *name)
++{
++	int error, status;
++	struct ocfs2_live_connection *lc = conn->cc_private;
++
++	error = dlm_lock(conn->cc_lockspace, mode, lksb, flags,
++			name, strlen(name),
++			0, sync_wait_cb, conn, NULL);
++	if (error) {
++		printk(KERN_ERR "%s lkid %x flags %x mode %d error %d\n",
++				name, lksb->sb_lkid, flags, mode, error);
++		return error;
++	}
++
++	wait_for_completion(&lc->oc_sync_wait);
++
++	status = lksb->sb_status;
++
++	if (status && status != -EAGAIN) {
++		printk(KERN_ERR "%s lkid %x flags %x mode %d status %d\n",
++				name, lksb->sb_lkid, flags, mode, status);
++	}
++
++	return status;
++}
++
++
++static int version_lock(struct ocfs2_cluster_connection *conn, int mode,
++		int flags)
++{
++	struct ocfs2_live_connection *lc = conn->cc_private;
++	return sync_lock(conn, mode, flags,
++			&lc->oc_version_lksb, "version_lock");
++}
++
++static int version_unlock(struct ocfs2_cluster_connection *conn)
++{
++	struct ocfs2_live_connection *lc = conn->cc_private;
++	return sync_unlock(conn, &lc->oc_version_lksb, "version_lock");
++}
++
+ static void user_recover_prep(void *arg)
  {
--	return active_stack->sp_ops->this_node(node);
-+	return active_stack->sp_ops->this_node(conn, node);
  }
- EXPORT_SYMBOL_GPL(ocfs2_cluster_this_node);
- 
-diff -puN fs/ocfs2/stackglue.h~pass-ocfs2_cluster_connection-to-ocfs2_this_node fs/ocfs2/stackglue.h
---- a/fs/ocfs2/stackglue.h~pass-ocfs2_cluster_connection-to-ocfs2_this_node
-+++ a/fs/ocfs2/stackglue.h
-@@ -157,7 +157,8 @@ struct ocfs2_stack_operations {
- 	 * ->this_node() returns the cluster's unique identifier for the
- 	 * local node.
- 	 */
--	int (*this_node)(unsigned int *node);
-+	int (*this_node)(struct ocfs2_cluster_connection *conn,
-+			 unsigned int *node);
- 
- 	/*
- 	 * Call the underlying dlm lock function.  The ->dlm_lock()
-@@ -267,7 +268,8 @@ int ocfs2_cluster_connect_agnostic(const
- int ocfs2_cluster_disconnect(struct ocfs2_cluster_connection *conn,
- 			     int hangup_pending);
- void ocfs2_cluster_hangup(const char *group, int grouplen);
--int ocfs2_cluster_this_node(unsigned int *node);
-+int ocfs2_cluster_this_node(struct ocfs2_cluster_connection *conn,
-+			    unsigned int *node);
- 
- struct ocfs2_lock_res;
- int ocfs2_dlm_lock(struct ocfs2_cluster_connection *conn,
 _
 
 Patches currently in -mm which might be from rgoldwyn@suse.de are
 
 origin.patch
-framework-for-version-lvb.patch
 use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
 
