@@ -1,80 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-bounds-avoid-circular-dependencies-in-generated-headers.patch
+Subject: [merged] configfs-fix-race-between-dentry-put-and-lookup.patch
  removed from -mm tree
-Date: Fri, 22 Nov 2013 13:21:41 -0800
-Message-ID: <528fcae5.uidAvo+m9bdPyUSZ%akpm@linux-foundation.org>
+Date: Fri, 22 Nov 2013 13:21:44 -0800
+Message-ID: <528fcae8.4w8FUpbHaD9vKrVm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56842 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56845 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755698Ab3KVVVm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:21:42 -0500
+	with ESMTP id S932100Ab3KVVVp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:21:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, jlbec@evilplan.org, junxiao.bi@oracle.com
 
-Subject: [merged] kernel-bounds-avoid-circular-dependencies-in-generated-headers.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,tony.luck@intel.com,mm-commits@vger.kernel.org
+Subject: [merged] configfs-fix-race-between-dentry-put-and-lookup.patch removed from -mm tree
+To: junxiao.bi@oracle.com,jlbec@evilplan.org,stable@vger.kernel.org,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 13:21:41 -0800
+Date: Fri, 22 Nov 2013 13:21:44 -0800
 
 
 The patch titled
-     Subject: kernel/bounds: avoid circular dependencies in generated headers
+     Subject: configfs: fix race between dentry put and lookup
 has been removed from the -mm tree.  Its filename was
-     kernel-bounds-avoid-circular-dependencies-in-generated-headers.patch
+     configfs-fix-race-between-dentry-put-and-lookup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: kernel/bounds: avoid circular dependencies in generated headers
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: configfs: fix race between dentry put and lookup
 
-<linux/spinlock.h> has havy dependencies on other header files.
-It trigger circular dependencies in generated headers on IA64, at least:
+A race window in configfs, it starts from one dentry is UNHASHED and end
+before configfs_d_iput is called.  In this window, if a lookup happen,
+since the original dentry was UNHASHED, so a new dentry will be allocated,
+and then in configfs_attach_attr(), sd->s_dentry will be updated to the
+new dentry.  Then in configfs_d_iput(), BUG_ON(sd->s_dentry != dentry)
+will be triggered and system panic.
 
-  CC      kernel/bounds.s
-In file included from arch/ia64/include/asm/thread_info.h:9:0,
-                 from include/linux/thread_info.h:54,
-                 from include/asm-generic/preempt.h:4,
-                 from arch/ia64/include/generated/asm/preempt.h:1,
-                 from include/linux/preempt.h:18,
-                 from include/linux/spinlock.h:50,
-                 from kernel/bounds.c:14:
-arch/ia64/include/asm/asm-offsets.h:1:35: fatal error: generated/asm-offsets.h: No such file or directory
-compilation terminated.
+sys_open:                                             sys_close:
+ ...                                                   fput
+                                                        dput
+                                                         dentry_kill
+                                                          __d_drop <--- dentry unhashed here,
+                                                                   but sd->dentry still point
+                                                                   to this dentry.
+ lookup_real
+  configfs_lookup
+   configfs_attach_attr---> update sd->s_dentry
+                            to new allocated dentry here.
+                                                          d_kill
+                                                           configfs_d_iput <--- BUG_ON(sd->s_dentry != dentry)
+                                                                           triggered here.
 
-Let's replace <linux/spinlock.h> with <linux/spinlock_types.h>, it's
-enough to find out size of spinlock_t.
+To fix it, change configfs_d_iput to not update sd->s_dentry if
+sd->s_count > 2, that means there are another dentry is using the sd
+beside the one that is going to be put.  Use configfs_dirent_lock in
+configfs_attach_attr to sync with configfs_d_iput.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Tested-by: Tony Luck <tony.luck@intel.com>
+With the following steps, you can reproduce the bug.
+
+1. enable ocfs2, this will mount configfs at /sys/kernel/config and
+   fill configure in it.
+
+2. run the following script.
+	while [ 1 ]; do cat /sys/kernel/config/cluster/$your_cluster_name/idle_timeout_ms > /dev/null; done &
+	while [ 1 ]; do cat /sys/kernel/config/cluster/$your_cluster_name/idle_timeout_ms > /dev/null; done &
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/bounds.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/configfs/dir.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN kernel/bounds.c~kernel-bounds-avoid-circular-dependencies-in-generated-headers kernel/bounds.c
---- a/kernel/bounds.c~kernel-bounds-avoid-circular-dependencies-in-generated-headers
-+++ a/kernel/bounds.c
-@@ -11,7 +11,7 @@
- #include <linux/kbuild.h>
- #include <linux/page_cgroup.h>
- #include <linux/log2.h>
--#include <linux/spinlock.h>
-+#include <linux/spinlock_types.h>
+diff -puN fs/configfs/dir.c~configfs-fix-race-between-dentry-put-and-lookup fs/configfs/dir.c
+--- a/fs/configfs/dir.c~configfs-fix-race-between-dentry-put-and-lookup
++++ a/fs/configfs/dir.c
+@@ -56,10 +56,19 @@ static void configfs_d_iput(struct dentr
+ 	struct configfs_dirent *sd = dentry->d_fsdata;
  
- void foo(void)
- {
+ 	if (sd) {
+-		BUG_ON(sd->s_dentry != dentry);
+ 		/* Coordinate with configfs_readdir */
+ 		spin_lock(&configfs_dirent_lock);
+-		sd->s_dentry = NULL;
++		/* Coordinate with configfs_attach_attr where will increase
++		 * sd->s_count and update sd->s_dentry to new allocated one.
++		 * Only set sd->dentry to null when this dentry is the only
++		 * sd owner.
++		 * If not do so, configfs_d_iput may run just after
++		 * configfs_attach_attr and set sd->s_dentry to null
++		 * even it's still in use.
++		 */
++		if (atomic_read(&sd->s_count) <= 2)
++			sd->s_dentry = NULL;
++
+ 		spin_unlock(&configfs_dirent_lock);
+ 		configfs_put(sd);
+ 	}
+@@ -416,8 +425,11 @@ static int configfs_attach_attr(struct c
+ 	struct configfs_attribute * attr = sd->s_element;
+ 	int error;
+ 
++	spin_lock(&configfs_dirent_lock);
+ 	dentry->d_fsdata = configfs_get(sd);
+ 	sd->s_dentry = dentry;
++	spin_unlock(&configfs_dirent_lock);
++
+ 	error = configfs_create(dentry, (attr->ca_mode & S_IALLUGO) | S_IFREG,
+ 				configfs_init_file);
+ 	if (error) {
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 origin.patch
-x86-mm-get-aslr-work-for-hugetlb-mappings.patch
+ocfs2-update-inode-size-after-zeronig-the-hole.patch
 
