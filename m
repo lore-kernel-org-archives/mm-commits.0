@@ -1,189 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipcshm-fix-shm_file-deletion-races.patch removed from
- -mm tree
-Date: Fri, 22 Nov 2013 13:21:49 -0800
-Message-ID: <528fcaed.ebO9bkSinHrN+B7b%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-remove-config_use_generic_smp_helpers-cleanly.patch removed from -mm tree
+Date: Fri, 22 Nov 2013 13:21:51 -0800
+Message-ID: <528fcaef.wF2D7N6QeLYUCZot%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56861 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56868 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932100Ab3KVVVu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:21:50 -0500
+	with ESMTP id S932115Ab3KVVVv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:21:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, manfred@colorfullife.com, davidlohr@hp.com, gthelen@google.com
+To: mm-commits@vger.kernel.org, hch@infradead.org, yuanhan.liu@linux.intel.com
 
-Subject: [merged] ipcshm-fix-shm_file-deletion-races.patch removed from -mm tree
-To: gthelen@google.com,davidlohr@hp.com,manfred@colorfullife.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] kernel-remove-config_use_generic_smp_helpers-cleanly.patch removed from -mm tree
+To: yuanhan.liu@linux.intel.com,hch@infradead.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 13:21:49 -0800
+Date: Fri, 22 Nov 2013 13:21:51 -0800
 
 
 The patch titled
-     Subject: ipc,shm: fix shm_file deletion races
+     Subject: kernel: remove CONFIG_USE_GENERIC_SMP_HELPERS cleanly
 has been removed from the -mm tree.  Its filename was
-     ipcshm-fix-shm_file-deletion-races.patch
+     kernel-remove-config_use_generic_smp_helpers-cleanly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: ipc,shm: fix shm_file deletion races
+From: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Subject: kernel: remove CONFIG_USE_GENERIC_SMP_HELPERS cleanly
 
-When IPC_RMID races with other shm operations there's potential for
-use-after-free of the shm object's associated file (shm_file).
+Remove CONFIG_USE_GENERIC_SMP_HELPERS left by commit
+0a06ff06 ("kernel: remove CONFIG_USE_GENERIC_SMP_HELPERS").
 
-Here's the race before this patch:
-  TASK 1                     TASK 2
-  ------                     ------
-  shm_rmid()
-    ipc_lock_object()
-                             shmctl()
-                             shp = shm_obtain_object_check()
-
-    shm_destroy()
-      shum_unlock()
-      fput(shp->shm_file)
-                             ipc_lock_object()
-                             shmem_lock(shp->shm_file)
-                             <OOPS>
-
-The oops is caused because shm_destroy() calls fput() after dropping the
-ipc_lock.  fput() clears the file's f_inode, f_path.dentry, and
-f_path.mnt, which causes various NULL pointer references in task 2.  I
-reliably see the oops in task 2 if with shmlock, shmu
-
-This patch fixes the races by:
-1) set shm_file=NULL in shm_destroy() while holding ipc_object_lock().
-2) modify at risk operations to check shm_file while holding
-   ipc_object_lock().
-
-Example workloads, which each trigger oops...
-
-Workload 1:
-  while true; do
-    id=$(shmget 1 4096)
-    shm_rmid $id &
-    shmlock $id &
-    wait
-  done
-
-  The oops stack shows accessing NULL f_inode due to racing fput:
-    _raw_spin_lock
-    shmem_lock
-    SyS_shmctl
-
-Workload 2:
-  while true; do
-    id=$(shmget 1 4096)
-    shmat $id 4096 &
-    shm_rmid $id &
-    wait
-  done
-
-  The oops stack is similar to workload 1 due to NULL f_inode:
-    touch_atime
-    shmem_mmap
-    shm_mmap
-    mmap_region
-    do_mmap_pgoff
-    do_shmat
-    SyS_shmat
-
-Workload 3:
-  while true; do
-    id=$(shmget 1 4096)
-    shmlock $id
-    shm_rmid $id &
-    shmunlock $id &
-    wait
-  done
-
-  The oops stack shows second fput tripping on an NULL f_inode.  The
-  first fput() completed via from shm_destroy(), but a racing thread did
-  a get_file() and queued this fput():
-    locks_remove_flock
-    __fput
-    ____fput
-    task_work_run
-    do_notify_resume
-    int_signal
-
-Fixes: c2c737a0461e ("ipc,shm: shorten critical region for shmat")
-Fixes: 2caacaa82a51 ("ipc,shm: shorten critical region for shmctl")
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: <stable@vger.kernel.org>  # 3.10.17+ 3.11.6+
+Signed-off-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ drivers/block/null_blk.c |    8 ++++----
+ net/Kconfig              |    4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN ipc/shm.c~ipcshm-fix-shm_file-deletion-races ipc/shm.c
---- a/ipc/shm.c~ipcshm-fix-shm_file-deletion-races
-+++ a/ipc/shm.c
-@@ -208,15 +208,18 @@ static void shm_open(struct vm_area_stru
-  */
- static void shm_destroy(struct ipc_namespace *ns, struct shmid_kernel *shp)
- {
-+	struct file *shm_file;
-+
-+	shm_file = shp->shm_file;
-+	shp->shm_file = NULL;
- 	ns->shm_tot -= (shp->shm_segsz + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	shm_rmid(ns, shp);
- 	shm_unlock(shp);
--	if (!is_file_hugepages(shp->shm_file))
--		shmem_lock(shp->shm_file, 0, shp->mlock_user);
-+	if (!is_file_hugepages(shm_file))
-+		shmem_lock(shm_file, 0, shp->mlock_user);
- 	else if (shp->mlock_user)
--		user_shm_unlock(file_inode(shp->shm_file)->i_size,
--						shp->mlock_user);
--	fput (shp->shm_file);
-+		user_shm_unlock(file_inode(shm_file)->i_size, shp->mlock_user);
-+	fput(shm_file);
- 	ipc_rcu_putref(shp, shm_rcu_free);
+diff -puN drivers/block/null_blk.c~kernel-remove-config_use_generic_smp_helpers-cleanly drivers/block/null_blk.c
+--- a/drivers/block/null_blk.c~kernel-remove-config_use_generic_smp_helpers-cleanly
++++ a/drivers/block/null_blk.c
+@@ -223,7 +223,7 @@ static void null_softirq_done_fn(struct
+ 	blk_end_request_all(rq, 0);
  }
  
-@@ -983,6 +986,13 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 		}
+-#if defined(CONFIG_SMP) && defined(CONFIG_USE_GENERIC_SMP_HELPERS)
++#ifdef CONFIG_SMP
  
- 		shm_file = shp->shm_file;
-+
-+		/* check if shm_destroy() is tearing down shp */
-+		if (shm_file == NULL) {
-+			err = -EIDRM;
-+			goto out_unlock0;
-+		}
-+
- 		if (is_file_hugepages(shm_file))
- 			goto out_unlock0;
+ static void null_ipi_cmd_end_io(void *data)
+ {
+@@ -260,7 +260,7 @@ static void null_cmd_end_ipi(struct null
+ 	put_cpu();
+ }
  
-@@ -1101,6 +1111,14 @@ long do_shmat(int shmid, char __user *sh
- 		goto out_unlock;
+-#endif /* CONFIG_SMP && CONFIG_USE_GENERIC_SMP_HELPERS */
++#endif /* CONFIG_SMP */
  
- 	ipc_lock_object(&shp->shm_perm);
-+
-+	/* check if shm_destroy() is tearing down shp */
-+	if (shp->shm_file == NULL) {
-+		ipc_unlock_object(&shp->shm_perm);
-+		err = -EIDRM;
-+		goto out_unlock;
-+	}
-+
- 	path = shp->shm_file->f_path;
- 	path_get(&path);
- 	shp->shm_nattch++;
+ static inline void null_handle_cmd(struct nullb_cmd *cmd)
+ {
+@@ -270,7 +270,7 @@ static inline void null_handle_cmd(struc
+ 		end_cmd(cmd);
+ 		break;
+ 	case NULL_IRQ_SOFTIRQ:
+-#if defined(CONFIG_SMP) && defined(CONFIG_USE_GENERIC_SMP_HELPERS)
++#ifdef CONFIG_SMP
+ 		null_cmd_end_ipi(cmd);
+ #else
+ 		end_cmd(cmd);
+@@ -571,7 +571,7 @@ static int __init null_init(void)
+ {
+ 	unsigned int i;
+ 
+-#if !defined(CONFIG_SMP) || !defined(CONFIG_USE_GENERIC_SMP_HELPERS)
++#if !defined(CONFIG_SMP)
+ 	if (irqmode == NULL_IRQ_SOFTIRQ) {
+ 		pr_warn("null_blk: softirq completions not available.\n");
+ 		pr_warn("null_blk: using direct completions.\n");
+diff -puN net/Kconfig~kernel-remove-config_use_generic_smp_helpers-cleanly net/Kconfig
+--- a/net/Kconfig~kernel-remove-config_use_generic_smp_helpers-cleanly
++++ a/net/Kconfig
+@@ -224,7 +224,7 @@ source "net/hsr/Kconfig"
+ 
+ config RPS
+ 	boolean
+-	depends on SMP && SYSFS && USE_GENERIC_SMP_HELPERS
++	depends on SMP && SYSFS
+ 	default y
+ 
+ config RFS_ACCEL
+@@ -235,7 +235,7 @@ config RFS_ACCEL
+ 
+ config XPS
+ 	boolean
+-	depends on SMP && USE_GENERIC_SMP_HELPERS
++	depends on SMP
+ 	default y
+ 
+ config NETPRIO_CGROUP
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from yuanhan.liu@linux.intel.com are
 
 origin.patch
 
