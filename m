@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-k_getrusage-can-use-while_each_thread.patch added
- to -mm tree
-Date: Fri, 22 Nov 2013 14:52:58 -0800
-Message-ID: <528fe04a.DV8P6xajiGQWP5W/%akpm@linux-foundation.org>
+Subject: +
+ fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch added to
+ -mm tree
+Date: Fri, 22 Nov 2013 14:52:57 -0800
+Message-ID: <528fe049.KZe+CILHiSKLIiUT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58193 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58188 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755526Ab3KVWw7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:52:59 -0500
+	with ESMTP id S1755526Ab3KVWw6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:52:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, snanda@chromium.org, kosaki.motohiro@jp.fujitsu.com, keescook@chromium.org, oleg@redhat.com
 
-Subject: + kernel-sysc-k_getrusage-can-use-while_each_thread.patch added to -mm tree
+Subject: + fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch added to -mm tree
 To: oleg@redhat.com,keescook@chromium.org,kosaki.motohiro@jp.fujitsu.com,snanda@chromium.org,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 14:52:58 -0800
+Date: Fri, 22 Nov 2013 14:52:57 -0800
 
 
 The patch titled
-     Subject: kernel/sys.c: k_getrusage() can use while_each_thread()
+     Subject: fs/proc/array.c: change do_task_stat() to use while_each_thread()
 has been added to the -mm tree.  Its filename is
-     kernel-sysc-k_getrusage-can-use-while_each_thread.patch
+     fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-sysc-k_getrusage-can-use-while_each_thread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-sysc-k_getrusage-can-use-while_each_thread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,10 +46,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: kernel/sys.c: k_getrusage() can use while_each_thread()
+Subject: fs/proc/array.c: change do_task_stat() to use while_each_thread()
 
-Change k_getrusage() to use while_each_thread(), no changes in the
-compiled code.
+Change the remaining next_thread (ab)users to use while_each_thread().
+
+The last user which should be changed is next_tid(), but we can't do this
+now.
+
+__exit_signal() and complete_signal() are fine, they actually need
+next_thread() logic.
+
+
+This patch (of 3):
+
+do_task_stat() can use while_each_thread(), no changes in
+the compiled code.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -58,22 +70,22 @@ Reviewed-by: Sameer Nanda <snanda@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    3 +--
+ fs/proc/array.c |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/sys.c~kernel-sysc-k_getrusage-can-use-while_each_thread kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-k_getrusage-can-use-while_each_thread
-+++ a/kernel/sys.c
-@@ -1571,8 +1571,7 @@ static void k_getrusage(struct task_stru
- 			t = p;
- 			do {
- 				accumulate_thread_rusage(t, r);
+diff -puN fs/proc/array.c~fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread fs/proc/array.c
+--- a/fs/proc/array.c~fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread
++++ a/fs/proc/array.c
+@@ -444,8 +444,7 @@ static int do_task_stat(struct seq_file
+ 				min_flt += t->min_flt;
+ 				maj_flt += t->maj_flt;
+ 				gtime += task_gtime(t);
 -				t = next_thread(t);
--			} while (t != p);
-+			} while_each_thread(p, t);
- 			break;
+-			} while (t != task);
++			} while_each_thread(task, t);
  
- 		default:
+ 			min_flt += sig->min_flt;
+ 			maj_flt += sig->maj_flt;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
