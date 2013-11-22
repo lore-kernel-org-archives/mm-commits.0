@@ -1,9 +1,8 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ipcshm-correct-error-return-value-in-shmctl-shm_unlock.patch removed from
- -mm tree
-Date: Fri, 22 Nov 2013 13:22:01 -0800
-Message-ID: <528fcaf9./ZA+SqDkJe4V4E8z%akpm__48951.6569221907$1385155332$gmane$org@linux-foundation.org>
+Subject: [merged] x86-mm-do-not-leak-page-ptl-for-pmd-page-tables.patch
+ removed from -mm tree
+Date: Fri, 22 Nov 2013 13:22:03 -0800
+Message-ID: <528fcafb.6xsFpibA5IJt8nmt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -11,81 +10,92 @@ Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:56899 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755807Ab3KVVWC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:22:02 -0500
+	with ESMTP id S1756082Ab3KVVWE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 16:22:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, viro@zeniv.linux.org.uk, stable@vger.kernel.org, riel@redhat.com, davidlohr@hp.com, jesper.nilsson@axis.com
+To: mm-commits@vger.kernel.org, peterz@infradead.org, mingo@redhat.com, avagin@openvz.org, kirill.shutemov@linux.intel.com
 
-Subject: [merged] ipcshm-correct-error-return-value-in-shmctl-shm_unlock.patch removed from -mm tree
-To: jesper.nilsson@axis.com,davidlohr@hp.com,riel@redhat.com,stable@vger.kernel.org,viro@zeniv.linux.org.uk,walken@google.com,mm-commits@vger.kernel.org
+Subject: [merged] x86-mm-do-not-leak-page-ptl-for-pmd-page-tables.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,avagin@openvz.org,mingo@redhat.com,peterz@infradead.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 13:22:01 -0800
+Date: Fri, 22 Nov 2013 13:22:03 -0800
 
 
 The patch titled
-     Subject: ipc,shm: correct error return value in shmctl (SHM_UNLOCK)
+     Subject: x86, mm: do not leak page->ptl for pmd page tables
 has been removed from the -mm tree.  Its filename was
-     ipcshm-correct-error-return-value-in-shmctl-shm_unlock.patch
+     x86-mm-do-not-leak-page-ptl-for-pmd-page-tables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jesper Nilsson <jesper.nilsson@axis.com>
-Subject: ipc,shm: correct error return value in shmctl (SHM_UNLOCK)
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: x86, mm: do not leak page->ptl for pmd page tables
 
-2caacaa82a51b78 ("ipc,shm: shorten critical region for shmctl")
-restructured the ipc shm to shorten critical region, but introduced a path
-where the return value could be -EPERM, even if the operation actually was
-performed.
+There are two code paths how page with pmd page table can be freed:
+pmd_free() and pmd_free_tlb().
 
-Before the commit, the err return value was reset by the return value from
-security_shm_shmctl() after the if (!ns_capable(...)) statement.
+I've missed the second one and didn't add page table destructor call
+there.  It leads to leak of page->ptl for pmd page tables, if dynamically
+allocated page->ptl is in use.
 
-Now, we still exit the if statement with err set to -EPERM, and in the
-case of SHM_UNLOCK, it is not reset at all, and used as the return value
-from shmctl.
+The patch adds the missed destructor and modifies documentation
+accordingly.
 
-To fix this, we only set err when errors occur, leaving the fallthrough
-case alone.
-
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>	[3.12.x]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Andrey Vagin <avagin@openvz.org>
+Tested-by: Andrey Vagin <avagin@openvz.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ Documentation/vm/split_page_table_lock |    6 +++---
+ arch/x86/mm/pgtable.c                  |    4 +++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN ipc/shm.c~ipcshm-correct-error-return-value-in-shmctl-shm_unlock ipc/shm.c
---- a/ipc/shm.c~ipcshm-correct-error-return-value-in-shmctl-shm_unlock
-+++ a/ipc/shm.c
-@@ -977,12 +977,15 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 		ipc_lock_object(&shp->shm_perm);
- 		if (!ns_capable(ns->user_ns, CAP_IPC_LOCK)) {
- 			kuid_t euid = current_euid();
--			err = -EPERM;
- 			if (!uid_eq(euid, shp->shm_perm.uid) &&
--			    !uid_eq(euid, shp->shm_perm.cuid))
-+			    !uid_eq(euid, shp->shm_perm.cuid)) {
-+				err = -EPERM;
- 				goto out_unlock0;
--			if (cmd == SHM_LOCK && !rlimit(RLIMIT_MEMLOCK))
-+			}
-+			if (cmd == SHM_LOCK && !rlimit(RLIMIT_MEMLOCK)) {
-+				err = -EPERM;
- 				goto out_unlock0;
-+			}
- 		}
+diff -puN Documentation/vm/split_page_table_lock~x86-mm-do-not-leak-page-ptl-for-pmd-page-tables Documentation/vm/split_page_table_lock
+--- a/Documentation/vm/split_page_table_lock~x86-mm-do-not-leak-page-ptl-for-pmd-page-tables
++++ a/Documentation/vm/split_page_table_lock
+@@ -63,9 +63,9 @@ levels.
+ PMD split lock enabling requires pgtable_pmd_page_ctor() call on PMD table
+ allocation and pgtable_pmd_page_dtor() on freeing.
  
- 		shm_file = shp->shm_file;
+-Allocation usually happens in pmd_alloc_one(), freeing in pmd_free(), but
+-make sure you cover all PMD table allocation / freeing paths: i.e X86_PAE
+-preallocate few PMDs on pgd_alloc().
++Allocation usually happens in pmd_alloc_one(), freeing in pmd_free() and
++pmd_free_tlb(), but make sure you cover all PMD table allocation / freeing
++paths: i.e X86_PAE preallocate few PMDs on pgd_alloc().
+ 
+ With everything in place you can set CONFIG_ARCH_ENABLE_SPLIT_PMD_PTLOCK.
+ 
+diff -puN arch/x86/mm/pgtable.c~x86-mm-do-not-leak-page-ptl-for-pmd-page-tables arch/x86/mm/pgtable.c
+--- a/arch/x86/mm/pgtable.c~x86-mm-do-not-leak-page-ptl-for-pmd-page-tables
++++ a/arch/x86/mm/pgtable.c
+@@ -61,6 +61,7 @@ void ___pte_free_tlb(struct mmu_gather *
+ #if PAGETABLE_LEVELS > 2
+ void ___pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd)
+ {
++	struct page *page = virt_to_page(pmd);
+ 	paravirt_release_pmd(__pa(pmd) >> PAGE_SHIFT);
+ 	/*
+ 	 * NOTE! For PAE, any changes to the top page-directory-pointer-table
+@@ -69,7 +70,8 @@ void ___pmd_free_tlb(struct mmu_gather *
+ #ifdef CONFIG_X86_PAE
+ 	tlb->need_flush_all = 1;
+ #endif
+-	tlb_remove_page(tlb, virt_to_page(pmd));
++	pgtable_pmd_page_dtor(page);
++	tlb_remove_page(tlb, page);
+ }
+ 
+ #if PAGETABLE_LEVELS > 3
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
+x86-mm-get-aslr-work-for-hugetlb-mappings.patch
 
