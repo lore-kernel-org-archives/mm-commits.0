@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch added to -mm tree
-Date: Fri, 22 Nov 2013 14:22:43 -0800
-Message-ID: <528fd933.VUJxdwiIMD3o/bp/%akpm@linux-foundation.org>
+Subject: + fs-ramfs-move-ramfs_aops-to-inodec.patch added to -mm tree
+Date: Fri, 22 Nov 2013 14:24:24 -0800
+Message-ID: <528fd998.bwZVsRXo7aEZWXcZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57419 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57425 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753277Ab3KVWWo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:22:44 -0500
+	with ESMTP id S1755635Ab3KVWYY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 17:24:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, lizefan@huawei.com, joseph.qi@huawei.com, jlbec@evilplan.org, wangzongxun@huawei.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, axel.lin@ingics.com
 
-Subject: + ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch added to -mm tree
-To: wangzongxun@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,lizefan@huawei.com,mfasheh@suse.com
+Subject: + fs-ramfs-move-ramfs_aops-to-inodec.patch added to -mm tree
+To: axel.lin@ingics.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Fri, 22 Nov 2013 14:22:43 -0800
+Date: Fri, 22 Nov 2013 14:24:24 -0800
 
 
 The patch titled
-     Subject: ocfs2: free allocated clusters if error occurs after ocfs2_claim_clusters
+     Subject: fs/ramfs: move ramfs_aops to inode.c
 has been added to the -mm tree.  Its filename is
-     ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
+     fs-ramfs-move-ramfs_aops-to-inodec.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ramfs-move-ramfs_aops-to-inodec.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ramfs-move-ramfs_aops-to-inodec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,209 +43,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zongxun Wang <wangzongxun@huawei.com>
-Subject: ocfs2: free allocated clusters if error occurs after ocfs2_claim_clusters
+From: Axel Lin <axel.lin@ingics.com>
+Subject: fs/ramfs: move ramfs_aops to inode.c
 
-Even if using the same jbd2 handle, we cannot rollback a transaction.  So
-once some error occurs after successfully allocating clusters, the
-allocated clusters will never be used and it means they are lost.  For
-example, call ocfs2_claim_clusters successfully when expanding a file, but
-failed in ocfs2_insert_extent.  So we need free the allocated clusters if
-they are not used indeed.
+ramfs_aops is identical in file-mmu.c and file-nommu.c.  Thus move it to
+fs/ramfs/inode.c and make it static.
 
-Signed-off-by: Zongxun Wang <wangzongxun@huawei.com>
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Li Zefan <lizefan@huawei.com>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c      |   38 +++++++++++++++++++++++++++++++++++---
- fs/ocfs2/localalloc.c |   40 ++++++++++++++++++++++++++++++++++++++++
- fs/ocfs2/localalloc.h |    6 ++++++
- 3 files changed, 81 insertions(+), 3 deletions(-)
+ fs/ramfs/file-mmu.c   |    7 -------
+ fs/ramfs/file-nommu.c |    7 -------
+ fs/ramfs/inode.c      |    7 +++++++
+ fs/ramfs/internal.h   |    1 -
+ 4 files changed, 7 insertions(+), 15 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
-+++ a/fs/ocfs2/alloc.c
-@@ -4742,6 +4742,7 @@ int ocfs2_add_clusters_in_btree(handle_t
- 				enum ocfs2_alloc_restarted *reason_ret)
- {
- 	int status = 0, err = 0;
-+	int need_free = 0;
- 	int free_extents;
- 	enum ocfs2_alloc_restarted reason = RESTART_NONE;
- 	u32 bit_off, num_bits;
-@@ -4796,7 +4797,8 @@ int ocfs2_add_clusters_in_btree(handle_t
- 					      OCFS2_JOURNAL_ACCESS_WRITE);
- 	if (status < 0) {
- 		mlog_errno(status);
--		goto leave;
-+		need_free = 1;
-+		goto bail;
- 	}
+diff -puN fs/ramfs/file-mmu.c~fs-ramfs-move-ramfs_aops-to-inodec fs/ramfs/file-mmu.c
+--- a/fs/ramfs/file-mmu.c~fs-ramfs-move-ramfs_aops-to-inodec
++++ a/fs/ramfs/file-mmu.c
+@@ -30,13 +30,6 @@
  
- 	block = ocfs2_clusters_to_blocks(osb->sb, bit_off);
-@@ -4807,7 +4809,8 @@ int ocfs2_add_clusters_in_btree(handle_t
- 				     num_bits, flags, meta_ac);
- 	if (status < 0) {
- 		mlog_errno(status);
--		goto leave;
-+		need_free = 1;
-+		goto bail;
- 	}
+ #include "internal.h"
  
- 	ocfs2_journal_dirty(handle, et->et_root_bh);
-@@ -4821,6 +4824,19 @@ int ocfs2_add_clusters_in_btree(handle_t
- 		reason = RESTART_TRANS;
- 	}
+-const struct address_space_operations ramfs_aops = {
+-	.readpage	= simple_readpage,
+-	.write_begin	= simple_write_begin,
+-	.write_end	= simple_write_end,
+-	.set_page_dirty = __set_page_dirty_no_writeback,
+-};
+-
+ const struct file_operations ramfs_file_operations = {
+ 	.read		= do_sync_read,
+ 	.aio_read	= generic_file_aio_read,
+diff -puN fs/ramfs/file-nommu.c~fs-ramfs-move-ramfs_aops-to-inodec fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~fs-ramfs-move-ramfs_aops-to-inodec
++++ a/fs/ramfs/file-nommu.c
+@@ -34,13 +34,6 @@ static unsigned long ramfs_nommu_get_unm
+ 						   unsigned long flags);
+ static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma);
  
-+bail:
-+	if (need_free) {
-+		if (data_ac->ac_which == OCFS2_AC_USE_LOCAL)
-+			ocfs2_free_local_alloc_bits(osb, handle, data_ac,
-+					bit_off, num_bits);
-+		else
-+			ocfs2_free_clusters(handle,
-+					data_ac->ac_inode,
-+					data_ac->ac_bh,
-+					ocfs2_clusters_to_blocks(osb->sb, bit_off),
-+					num_bits);
-+	}
+-const struct address_space_operations ramfs_aops = {
+-	.readpage		= simple_readpage,
+-	.write_begin		= simple_write_begin,
+-	.write_end		= simple_write_end,
+-	.set_page_dirty		= __set_page_dirty_no_writeback,
+-};
+-
+ const struct file_operations ramfs_file_operations = {
+ 	.mmap			= ramfs_nommu_mmap,
+ 	.get_unmapped_area	= ramfs_nommu_get_unmapped_area,
+diff -puN fs/ramfs/inode.c~fs-ramfs-move-ramfs_aops-to-inodec fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~fs-ramfs-move-ramfs_aops-to-inodec
++++ a/fs/ramfs/inode.c
+@@ -43,6 +43,13 @@
+ static const struct super_operations ramfs_ops;
+ static const struct inode_operations ramfs_dir_inode_operations;
+ 
++static const struct address_space_operations ramfs_aops = {
++	.readpage	= simple_readpage,
++	.write_begin	= simple_write_begin,
++	.write_end	= simple_write_end,
++	.set_page_dirty	= __set_page_dirty_no_writeback,
++};
 +
- leave:
- 	if (reason_ret)
- 		*reason_ret = reason;
-@@ -6805,6 +6821,8 @@ int ocfs2_convert_inline_data_to_extents
- 					 struct buffer_head *di_bh)
- {
- 	int ret, i, has_data, num_pages = 0;
-+	int need_free = 0;
-+	u32 bit_off, num;
- 	handle_t *handle;
- 	u64 uninitialized_var(block);
- 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
-@@ -6850,7 +6868,6 @@ int ocfs2_convert_inline_data_to_extents
- 	}
+ static struct backing_dev_info ramfs_backing_dev_info = {
+ 	.name		= "ramfs",
+ 	.ra_pages	= 0,	/* No readahead */
+diff -puN fs/ramfs/internal.h~fs-ramfs-move-ramfs_aops-to-inodec fs/ramfs/internal.h
+--- a/fs/ramfs/internal.h~fs-ramfs-move-ramfs_aops-to-inodec
++++ a/fs/ramfs/internal.h
+@@ -10,5 +10,4 @@
+  */
  
- 	if (has_data) {
--		u32 bit_off, num;
- 		unsigned int page_end;
- 		u64 phys;
  
-@@ -6886,6 +6903,7 @@ int ocfs2_convert_inline_data_to_extents
- 		ret = ocfs2_grab_eof_pages(inode, 0, end, pages, &num_pages);
- 		if (ret) {
- 			mlog_errno(ret);
-+			need_free = 1;
- 			goto out_commit;
- 		}
- 
-@@ -6896,6 +6914,7 @@ int ocfs2_convert_inline_data_to_extents
- 		ret = ocfs2_read_inline_data(inode, pages[0], di_bh);
- 		if (ret) {
- 			mlog_errno(ret);
-+			need_free = 1;
- 			goto out_commit;
- 		}
- 
-@@ -6927,6 +6946,7 @@ int ocfs2_convert_inline_data_to_extents
- 		ret = ocfs2_insert_extent(handle, &et, 0, block, 1, 0, NULL);
- 		if (ret) {
- 			mlog_errno(ret);
-+			need_free = 1;
- 			goto out_commit;
- 		}
- 
-@@ -6938,6 +6958,18 @@ out_commit:
- 		dquot_free_space_nodirty(inode,
- 					  ocfs2_clusters_to_bytes(osb->sb, 1));
- 
-+	if (need_free) {
-+		if (data_ac->ac_which == OCFS2_AC_USE_LOCAL)
-+			ocfs2_free_local_alloc_bits(osb, handle, data_ac,
-+					bit_off, num);
-+		else
-+			ocfs2_free_clusters(handle,
-+					data_ac->ac_inode,
-+					data_ac->ac_bh,
-+					ocfs2_clusters_to_blocks(osb->sb, bit_off),
-+					num);
-+	}
-+
- 	ocfs2_commit_trans(osb, handle);
- 
- out_unlock:
-diff -puN fs/ocfs2/localalloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/localalloc.c
---- a/fs/ocfs2/localalloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
-+++ a/fs/ocfs2/localalloc.c
-@@ -781,6 +781,46 @@ bail:
- 	return status;
- }
- 
-+int ocfs2_free_local_alloc_bits(struct ocfs2_super *osb,
-+				handle_t *handle,
-+				struct ocfs2_alloc_context *ac,
-+				u32 bit_off,
-+				u32 num_bits)
-+{
-+	int status, start;
-+	struct inode *local_alloc_inode;
-+	void *bitmap;
-+	struct ocfs2_dinode *alloc;
-+	struct ocfs2_local_alloc *la;
-+
-+	BUG_ON(ac->ac_which != OCFS2_AC_USE_LOCAL);
-+
-+	local_alloc_inode = ac->ac_inode;
-+	alloc = (struct ocfs2_dinode *) osb->local_alloc_bh->b_data;
-+	la = OCFS2_LOCAL_ALLOC(alloc);
-+
-+	bitmap = la->la_bitmap;
-+	start = bit_off - le32_to_cpu(la->la_bm_off);
-+
-+	status = ocfs2_journal_access_di(handle,
-+			INODE_CACHE(local_alloc_inode),
-+			osb->local_alloc_bh,
-+			OCFS2_JOURNAL_ACCESS_WRITE);
-+	if (status < 0) {
-+		mlog_errno(status);
-+		goto bail;
-+	}
-+
-+	while (num_bits--)
-+		ocfs2_clear_bit(start++, bitmap);
-+
-+	le32_add_cpu(&alloc->id1.bitmap1.i_used, -num_bits);
-+	ocfs2_journal_dirty(handle, osb->local_alloc_bh);
-+
-+bail:
-+	return status;
-+}
-+
- static u32 ocfs2_local_alloc_count_bits(struct ocfs2_dinode *alloc)
- {
- 	u32 count;
-diff -puN fs/ocfs2/localalloc.h~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/localalloc.h
---- a/fs/ocfs2/localalloc.h~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
-+++ a/fs/ocfs2/localalloc.h
-@@ -55,6 +55,12 @@ int ocfs2_claim_local_alloc_bits(struct
- 				 u32 *bit_off,
- 				 u32 *num_bits);
- 
-+int ocfs2_free_local_alloc_bits(struct ocfs2_super *osb,
-+				handle_t *handle,
-+				struct ocfs2_alloc_context *ac,
-+				u32 bit_off,
-+				u32 num_bits);
-+
- void ocfs2_local_alloc_seen_free_bits(struct ocfs2_super *osb,
- 				      unsigned int num_clusters);
- void ocfs2_la_enable_worker(struct work_struct *work);
+-extern const struct address_space_operations ramfs_aops;
+ extern const struct inode_operations ramfs_file_inode_operations;
 _
 
-Patches currently in -mm which might be from wangzongxun@huawei.com are
+Patches currently in -mm which might be from axel.lin@ingics.com are
 
-ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
+origin.patch
+fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch
+fs-ramfs-move-ramfs_aops-to-inodec.patch
+linux-next.patch
 
