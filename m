@@ -1,238 +1,534 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2013-11-22-16-50 uploaded
-Date: Fri, 22 Nov 2013 16:51:08 -0800
-Message-ID: <20131123005108.B1FA95A41FE__42666.0768026069$1385167878$gmane$org@corp2gmr1-2.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 25 Nov 2013 12:12:08 -0800
+Message-ID: <5293af18.vZ/+Vxz1SIKQ/g70%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:52437 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755798Ab3KWAvK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Nov 2013 19:51:10 -0500
-Received: by mail-qa0-f74.google.com with SMTP id i13so709736qae.5
-        for <mm-commits@vger.kernel.org>; Fri, 22 Nov 2013 16:51:09 -0800 (PST)
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56220 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756774Ab3KYUMJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Nov 2013 15:12:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-The mm-of-the-moment snapshot 2013-11-22-16-50 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (3.x
-or 3.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+From: akpm@linux-foundation.org
+Date: Mon, 25 Nov 2013 12:12:08 -0800
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-http://git.cmpxchg.org/?p=linux-mmotm.git;a=summary
+This patch was dropped because it is obsolete
 
-To develop on top of mmotm git:
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-To rebase a branch with older patches to a new mmotm release:
+ crypto/Makefile               |    3 
+ include/linux/mm_types.h      |    3 
+ security/keys/big_key.c       |    3 
+ security/keys/gc.c            |    7 
+ security/keys/keyring.c       |  255 --------------------------------
+ security/keys/persistent.c    |    5 
+ sound/pci/hda/patch_realtek.c |    3 
+ 7 files changed, 279 deletions(-)
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+diff -puN crypto/Makefile~linux-next-git-rejects crypto/Makefile
+--- a/crypto/Makefile~linux-next-git-rejects
++++ a/crypto/Makefile
+@@ -109,8 +109,5 @@ obj-$(CONFIG_CRYPTO_USER_API_SKCIPHER) +
+ obj-$(CONFIG_XOR_BLOCKS) += xor.o
+ obj-$(CONFIG_ASYNC_CORE) += async_tx/
+ obj-$(CONFIG_ASYMMETRIC_KEY_TYPE) += asymmetric_keys/
+-<<<<<<< HEAD
+-=======
+ obj-$(CONFIG_CRYPTO_ABLK_HELPER) += ablk_helper.o
+->>>>>>> linux-next/akpm-base
+ obj-$(CONFIG_CRYPTO_HASH_INFO) += hash_info.o
+diff -puN include/linux/mm_types.h~linux-next-git-rejects include/linux/mm_types.h
+--- a/include/linux/mm_types.h~linux-next-git-rejects
++++ a/include/linux/mm_types.h
+@@ -140,12 +140,9 @@ struct page {
+ 		struct rcu_head rcu_head;	/* Used by SLAB
+ 						 * when destroying via RCU
+ 						 */
+-<<<<<<< HEAD
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && USE_SPLIT_PMD_PTLOCKS
+ 		pgtable_t pmd_huge_pte; /* protected by page->ptl */
+ #endif
+-=======
+->>>>>>> linux-next/akpm-base
+ 	};
+ 
+ 	/* Remainder is not double word aligned */
+diff -puN security/keys/big_key.c~linux-next-git-rejects security/keys/big_key.c
+--- a/security/keys/big_key.c~linux-next-git-rejects
++++ a/security/keys/big_key.c
+@@ -78,10 +78,7 @@ int big_key_instantiate(struct key *key,
+ 
+ 		written = kernel_write(file, prep->data, prep->datalen, 0);
+ 		if (written != datalen) {
+-<<<<<<< HEAD
+ 			ret = written;
+-=======
+->>>>>>> linux-next/akpm-base
+ 			if (written >= 0)
+ 				ret = -ENOMEM;
+ 			goto err_fput;
+diff -puN security/keys/gc.c~linux-next-git-rejects security/keys/gc.c
+--- a/security/keys/gc.c~linux-next-git-rejects
++++ a/security/keys/gc.c
+@@ -138,8 +138,6 @@ static int key_gc_keyring_func(const voi
+ }
+ 
+ /*
+-<<<<<<< HEAD
+-=======
+  * Garbage collect pointers from a keyring.
+  *
+  * Not called with any locks held.  The keyring's key struct will not be
+@@ -173,7 +171,6 @@ do_gc:
+ }
+ 
+ /*
+->>>>>>> linux-next/akpm-base
+  * Garbage collect a list of unreferenced, detached keys
+  */
+ static noinline void key_gc_unused_keys(struct list_head *keys)
+@@ -391,11 +388,7 @@ found_unreferenced_key:
+ 	 */
+ found_keyring:
+ 	spin_unlock(&key_serial_lock);
+-<<<<<<< HEAD
+-	keyring_gc(key, limit);
+-=======
+ 	key_gc_keyring(key, limit);
+->>>>>>> linux-next/akpm-base
+ 	goto maybe_resched;
+ 
+ 	/* We found a dead key that is still referenced.  Reset its type and
+diff -puN security/keys/keyring.c~linux-next-git-rejects security/keys/keyring.c
+--- a/security/keys/keyring.c~linux-next-git-rejects
++++ a/security/keys/keyring.c
+@@ -215,7 +215,6 @@ static unsigned long hash_key_type_and_d
+  *	hash	desclen	typeptr	desc[]
+  *
+  * We return it one word-sized chunk at a time.
+-<<<<<<< HEAD
+  */
+ static unsigned long keyring_get_key_chunk(const void *data, int level)
+ {
+@@ -346,138 +345,6 @@ differ:
+ }
+ 
+ /*
+-=======
+- */
+-static unsigned long keyring_get_key_chunk(const void *data, int level)
+-{
+-	const struct keyring_index_key *index_key = data;
+-	unsigned long chunk = 0;
+-	long offset = 0;
+-	int desc_len = index_key->desc_len, n = sizeof(chunk);
+-
+-	level /= ASSOC_ARRAY_KEY_CHUNK_SIZE;
+-	switch (level) {
+-	case 0:
+-		return hash_key_type_and_desc(index_key);
+-	case 1:
+-		return ((unsigned long)index_key->type << 8) | desc_len;
+-	case 2:
+-		if (desc_len == 0)
+-			return (u8)((unsigned long)index_key->type >>
+-				    (ASSOC_ARRAY_KEY_CHUNK_SIZE - 8));
+-		n--;
+-		offset = 1;
+-	default:
+-		offset += sizeof(chunk) - 1;
+-		offset += (level - 3) * sizeof(chunk);
+-		if (offset >= desc_len)
+-			return 0;
+-		desc_len -= offset;
+-		if (desc_len > n)
+-			desc_len = n;
+-		offset += desc_len;
+-		do {
+-			chunk <<= 8;
+-			chunk |= ((u8*)index_key->description)[--offset];
+-		} while (--desc_len > 0);
+-
+-		if (level == 2) {
+-			chunk <<= 8;
+-			chunk |= (u8)((unsigned long)index_key->type >>
+-				      (ASSOC_ARRAY_KEY_CHUNK_SIZE - 8));
+-		}
+-		return chunk;
+-	}
+-}
+-
+-static unsigned long keyring_get_object_key_chunk(const void *object, int level)
+-{
+-	const struct key *key = keyring_ptr_to_key(object);
+-	return keyring_get_key_chunk(&key->index_key, level);
+-}
+-
+-static bool keyring_compare_object(const void *object, const void *data)
+-{
+-	const struct keyring_index_key *index_key = data;
+-	const struct key *key = keyring_ptr_to_key(object);
+-
+-	return key->index_key.type == index_key->type &&
+-		key->index_key.desc_len == index_key->desc_len &&
+-		memcmp(key->index_key.description, index_key->description,
+-		       index_key->desc_len) == 0;
+-}
+-
+-/*
+- * Compare the index keys of a pair of objects and determine the bit position
+- * at which they differ - if they differ.
+- */
+-static int keyring_diff_objects(const void *_a, const void *_b)
+-{
+-	const struct key *key_a = keyring_ptr_to_key(_a);
+-	const struct key *key_b = keyring_ptr_to_key(_b);
+-	const struct keyring_index_key *a = &key_a->index_key;
+-	const struct keyring_index_key *b = &key_b->index_key;
+-	unsigned long seg_a, seg_b;
+-	int level, i;
+-
+-	level = 0;
+-	seg_a = hash_key_type_and_desc(a);
+-	seg_b = hash_key_type_and_desc(b);
+-	if ((seg_a ^ seg_b) != 0)
+-		goto differ;
+-
+-	/* The number of bits contributed by the hash is controlled by a
+-	 * constant in the assoc_array headers.  Everything else thereafter we
+-	 * can deal with as being machine word-size dependent.
+-	 */
+-	level += ASSOC_ARRAY_KEY_CHUNK_SIZE / 8;
+-	seg_a = a->desc_len;
+-	seg_b = b->desc_len;
+-	if ((seg_a ^ seg_b) != 0)
+-		goto differ;
+-
+-	/* The next bit may not work on big endian */
+-	level++;
+-	seg_a = (unsigned long)a->type;
+-	seg_b = (unsigned long)b->type;
+-	if ((seg_a ^ seg_b) != 0)
+-		goto differ;
+-
+-	level += sizeof(unsigned long);
+-	if (a->desc_len == 0)
+-		goto same;
+-
+-	i = 0;
+-	if (((unsigned long)a->description | (unsigned long)b->description) &
+-	    (sizeof(unsigned long) - 1)) {
+-		do {
+-			seg_a = *(unsigned long *)(a->description + i);
+-			seg_b = *(unsigned long *)(b->description + i);
+-			if ((seg_a ^ seg_b) != 0)
+-				goto differ_plus_i;
+-			i += sizeof(unsigned long);
+-		} while (i < (a->desc_len & (sizeof(unsigned long) - 1)));
+-	}
+-
+-	for (; i < a->desc_len; i++) {
+-		seg_a = *(unsigned char *)(a->description + i);
+-		seg_b = *(unsigned char *)(b->description + i);
+-		if ((seg_a ^ seg_b) != 0)
+-			goto differ_plus_i;
+-	}
+-
+-same:
+-	return -1;
+-
+-differ_plus_i:
+-	level += i;
+-differ:
+-	i = level * 8 + __ffs(seg_a ^ seg_b);
+-	return i;
+-}
+-
+-/*
+->>>>>>> linux-next/akpm-base
+  * Free an object after stripping the keyring flag off of the pointer.
+  */
+ static void keyring_free_object(void *object)
+@@ -586,18 +453,6 @@ static long keyring_read(const struct ke
+ 	nr_keys = keyring->keys.nr_leaves_on_tree;
+ 	if (nr_keys == 0)
+ 		return 0;
+-<<<<<<< HEAD
+-
+-	/* Calculate how much data we could return */
+-	ctx.qty = nr_keys * sizeof(key_serial_t);
+-
+-	if (!buffer || !buflen)
+-		return ctx.qty;
+-
+-	if (buflen > ctx.qty)
+-		ctx.qty = buflen;
+-
+-=======
+ 
+ 	/* Calculate how much data we could return */
+ 	ctx.qty = nr_keys * sizeof(key_serial_t);
+@@ -608,7 +463,6 @@ static long keyring_read(const struct ke
+ 	if (buflen > ctx.qty)
+ 		ctx.qty = buflen;
+ 
+->>>>>>> linux-next/akpm-base
+ 	/* Copy the IDs of the subscribed keys into the buffer */
+ 	ctx.buffer = (key_serial_t __user *)buffer;
+ 	ctx.count = 0;
+@@ -779,16 +633,6 @@ static bool search_nested_keyrings(struc
+ 	ctx->skipped_ret = 0;
+ 	if (ctx->flags & KEYRING_SEARCH_NO_STATE_CHECK)
+ 		ctx->flags &= ~KEYRING_SEARCH_DO_STATE_CHECK;
+-<<<<<<< HEAD
+-
+-	/* Start processing a new keyring */
+-descend_to_keyring:
+-	kdebug("descend to %d", keyring->serial);
+-	if (keyring->flags & ((1 << KEY_FLAG_INVALIDATED) |
+-			      (1 << KEY_FLAG_REVOKED)))
+-		goto not_this_keyring;
+-
+-=======
+ 
+ 	/* Start processing a new keyring */
+ descend_to_keyring:
+@@ -797,7 +641,6 @@ descend_to_keyring:
+ 			      (1 << KEY_FLAG_REVOKED)))
+ 		goto not_this_keyring;
+ 
+->>>>>>> linux-next/akpm-base
+ 	/* Search through the keys in this keyring before its searching its
+ 	 * subtrees.
+ 	 */
+@@ -891,37 +734,6 @@ ascend_to_node:
+ 		/* begin again with the new keyring */
+ 		keyring = key;
+ 		goto descend_to_keyring;
+-<<<<<<< HEAD
+-	}
+-
+-	/* We've dealt with all the slots in the current node, so now we need
+-	 * to ascend to the parent and continue processing there.
+-	 */
+-	ptr = ACCESS_ONCE(node->back_pointer);
+-	slot = node->parent_slot;
+-
+-	if (ptr && assoc_array_ptr_is_shortcut(ptr)) {
+-		shortcut = assoc_array_ptr_to_shortcut(ptr);
+-		smp_read_barrier_depends();
+-		ptr = ACCESS_ONCE(shortcut->back_pointer);
+-		slot = shortcut->parent_slot;
+-	}
+-	if (!ptr)
+-		goto not_this_keyring;
+-	node = assoc_array_ptr_to_node(ptr);
+-	smp_read_barrier_depends();
+-	slot++;
+-
+-	/* If we've ascended to the root (zero backpointer), we must have just
+-	 * finished processing the leftmost branch rather than the root slots -
+-	 * so there can't be any more keyrings for us to find.
+-	 */
+-	if (node->back_pointer) {
+-		kdebug("ascend %d", slot);
+-		goto ascend_to_node;
+-	}
+-
+-=======
+ 	}
+ 
+ 	/* We've dealt with all the slots in the current node, so now we need
+@@ -951,7 +763,6 @@ ascend_to_node:
+ 		goto ascend_to_node;
+ 	}
+ 
+->>>>>>> linux-next/akpm-base
+ 	/* The keyring we're looking at was disqualified or didn't contain a
+ 	 * matching key.
+ 	 */
+@@ -1232,17 +1043,10 @@ int __key_link_begin(struct key *keyring
+ {
+ 	struct assoc_array_edit *edit;
+ 	int ret;
+-<<<<<<< HEAD
+ 
+ 	kenter("%d,%s,%s,",
+ 	       keyring->serial, index_key->type->name, index_key->description);
+ 
+-=======
+-
+-	kenter("%d,%s,%s,",
+-	       keyring->serial, index_key->type->name, index_key->description);
+-
+->>>>>>> linux-next/akpm-base
+ 	BUG_ON(index_key->desc_len == 0);
+ 
+ 	if (keyring->type != &key_type_keyring)
+@@ -1491,35 +1295,6 @@ EXPORT_SYMBOL(keyring_clear);
+ static void keyring_revoke(struct key *keyring)
+ {
+ 	struct assoc_array_edit *edit;
+-<<<<<<< HEAD
+-
+-	edit = assoc_array_clear(&keyring->keys, &keyring_assoc_array_ops);
+-	if (!IS_ERR(edit)) {
+-		if (edit)
+-			assoc_array_apply_edit(edit);
+-		key_payload_reserve(keyring, 0);
+-	}
+-}
+-
+-static bool keyring_gc_select_iterator(void *object, void *iterator_data)
+-{
+-	struct key *key = keyring_ptr_to_key(object);
+-	time_t *limit = iterator_data;
+-
+-	if (key_is_dead(key, *limit))
+-		return false;
+-	key_get(key);
+-	return true;
+-}
+-
+-static int keyring_gc_check_iterator(const void *object, void *iterator_data)
+-{
+-	const struct key *key = keyring_ptr_to_key(object);
+-	time_t *limit = iterator_data;
+-
+-	key_check(key);
+-	return key_is_dead(key, *limit);
+-=======
+ 
+ 	edit = assoc_array_clear(&keyring->keys, &keyring_assoc_array_ops);
+ 	if (!IS_ERR(edit)) {
+@@ -1538,7 +1313,6 @@ static bool gc_iterator(void *object, vo
+ 		return false;
+ 	key_get(key);
+ 	return true;
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ /*
+@@ -1549,34 +1323,6 @@ static bool gc_iterator(void *object, vo
+  */
+ void keyring_gc(struct key *keyring, time_t limit)
+ {
+-<<<<<<< HEAD
+-	int result;
+-
+-	kenter("%x{%s}", keyring->serial, keyring->description ?: "");
+-
+-	if (keyring->flags & ((1 << KEY_FLAG_INVALIDATED) |
+-			      (1 << KEY_FLAG_REVOKED)))
+-		goto dont_gc;
+-
+-	/* scan the keyring looking for dead keys */
+-	rcu_read_lock();
+-	result = assoc_array_iterate(&keyring->keys,
+-				     keyring_gc_check_iterator, &limit);
+-	rcu_read_unlock();
+-	if (result == true)
+-		goto do_gc;
+-
+-dont_gc:
+-	kleave(" [no gc]");
+-	return;
+-
+-do_gc:
+-	down_write(&keyring->sem);
+-	assoc_array_gc(&keyring->keys, &keyring_assoc_array_ops,
+-		       keyring_gc_select_iterator, &limit);
+-	up_write(&keyring->sem);
+-	kleave(" [gc]");
+-=======
+ 	kenter("{%x,%s}", key_serial(keyring), keyring->description);
+ 
+ 	down_write(&keyring->sem);
+@@ -1585,5 +1331,4 @@ do_gc:
+ 	up_write(&keyring->sem);
+ 
+ 	kleave("");
+->>>>>>> linux-next/akpm-base
+ }
+diff -puN security/keys/persistent.c~linux-next-git-rejects security/keys/persistent.c
+--- a/security/keys/persistent.c~linux-next-git-rejects
++++ a/security/keys/persistent.c
+@@ -144,15 +144,10 @@ long keyctl_get_persistent(uid_t _uid, k
+ 		/* You can only see your own persistent cache if you're not
+ 		 * sufficiently privileged.
+ 		 */
+-<<<<<<< HEAD
+-		if (!uid_eq(uid, current_uid()) &&
+-		    !uid_eq(uid, current_euid()) &&
+-=======
+ 		if (uid_eq(uid, current_uid()) &&
+ 		    uid_eq(uid, current_suid()) &&
+ 		    uid_eq(uid, current_euid()) &&
+ 		    uid_eq(uid, current_fsuid()) &&
+->>>>>>> linux-next/akpm-base
+ 		    !ns_capable(ns, CAP_SETUID))
+ 			return -EPERM;
+ 	}
+diff -puN sound/pci/hda/patch_realtek.c~linux-next-git-rejects sound/pci/hda/patch_realtek.c
+--- a/sound/pci/hda/patch_realtek.c~linux-next-git-rejects
++++ a/sound/pci/hda/patch_realtek.c
+@@ -1679,10 +1679,7 @@ static const struct snd_pci_quirk alc260
+ 	SND_PCI_QUIRK(0x1025, 0x008f, "Acer", ALC260_FIXUP_GPIO1),
+ 	SND_PCI_QUIRK(0x103c, 0x280a, "HP dc5750", ALC260_FIXUP_HP_DC5750),
+ 	SND_PCI_QUIRK(0x103c, 0x30ba, "HP Presario B1900", ALC260_FIXUP_HP_B1900),
+-<<<<<<< HEAD
+ 	SND_PCI_QUIRK(0x104d, 0x81bb, "Sony VAIO", ALC260_FIXUP_VAIO_PINS),
+-=======
+->>>>>>> linux-next/akpm-base
+ 	SND_PCI_QUIRK(0x104d, 0x81e2, "Sony VAIO TX", ALC260_FIXUP_HP_PIN_0F),
+ 	SND_PCI_QUIRK(0x10cf, 0x1326, "FSC LifeBook S7020", ALC260_FIXUP_FSC_S7020),
+ 	SND_PCI_QUIRK(0x1509, 0x4540, "Favorit 100XS", ALC260_FIXUP_GPIO1),
+_
 
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+arch-um-kernel-sysrqc-rename-print_stack_trace.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
-
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
-
-A git copy of this tree is available at
-
-	http://git.cmpxchg.org/?p=linux-mmots.git;a=summary
-
-and use of this tree is similar to
-http://git.cmpxchg.org/?p=linux-mmotm.git, described above.
-
-
-This mmotm tree contains the following patches against 3.13-rc1:
-(patches marked "*" will be included in linux-next)
-
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-  i-need-old-gcc.patch
-* include-linux-hugetlbh-make-isolate_huge_page-an-inline.patch
-* documentation-docbook-device-driverstmpl-fix-generation-of-device-drivers.patch
-* mm-memcg-do-not-declare-oom-from-__gfp_nofail-allocations.patch
-* drivers-rtc-rtc-at91rm9200c-correct-alarm-over-day-month-wrap.patch
-* drivers-rtc-rtc-s5mc-fix-info-rtc-assignment.patch
-* arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
-* x86-mm-get-aslr-work-for-hugetlb-mappings.patch
-* dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors.patch
-* drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress.patch
-* drm-cirrus-correct-register-values-for-16bpp.patch
-* drm-nouveau-make-vga_switcheroo-code-depend-on-vga_switcheroo.patch
-* drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
-* genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
-* sched_clock-document-4mhz-vs-1mhz-decision.patch
-* kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
-* kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-* input-route-kbd-leds-through-the-generic-leds-layer.patch
-* drivers-net-irda-donauboe-convert-to-module_pci_driver.patch
-* ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
-* ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
-* ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-* ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch
-* ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-* ocfs2-update-inode-size-after-zeronig-the-hole.patch
-* scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
-* drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
-* drivers-cdrom-gdromc-remove-deprecated-irqf_disabled.patch
-* drivers-block-sx8c-use-module_pci_driver.patch
-* drivers-block-sx8c-remove-unnecessary-pci_set_drvdata.patch
-* drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
-* hpsa-return-0-from-driver-probe-function-on-success-not-1.patch
-* drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-* blk-mq-use-__smp_call_function_single-directly.patch
-* block-blk-mq-cpuc-use-hotcpu_notifier.patch
-* block-remove-unrelated-header-files-and-export-symbol.patch
-* mtd-cmdlinepart-use-cmdline-partition-parser-lib.patch
-* mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix.patch
-* mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* posix_acl-uninlining.patch
-* watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
-* xfs-underflow-bug-in-xfs_attrlist_by_handle.patch
-  mm.patch
-* mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
-* mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch
-* mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
-* mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
-* mm-thp-optimize-compound_trans_huge.patch
-* mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
-* mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
-* mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-* mm-swapc-reorganize-put_compound_page.patch
-* mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
-* proc-meminfo-provide-estimated-available-memory.patch
-* mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
-* mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-* mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch
-* mm-memory-failure-fix-the-typo-in-me_pagecache_dirty.patch
-* mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-* mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
-* swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
-* swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-* swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-* arch-um-kernel-sysrqc-rename-print_stack_trace.patch
-* kernel-use-lockless-list-for-smp_call_function_single.patch
-* asm-typesh-remove-include-asm-generic-int-l64h.patch
-* drivers-mailbox-omap-make-mbox-irq-signed-for-error-handling.patch
-* drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check.patch
-* lib-parserc-add-match_wildcard-function.patch
-* lib-parserc-put-export_symbols-in-the-conventional-place.patch
-* dynamic_debug-add-wildcard-support-to-filter-files-functions-modules.patch
-* dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
-* printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-* printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch
-* get_maintainer-add-commit-author-information-to-rolestats.patch
-* maintainers-add-an-entry-for-the-macintosh-hfsplus-filesystem.patch
-* kstrtox-remove-redundant-cleanup.patch
-* cmdline-fix-style-issues.patch
-* lib-cmdlinec-declare-exported-symbols-immediately.patch
-* kernel-paramsc-improve-standard-definitions.patch
-* kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
-* lib-add-crc64-ecma-module.patch
-* checkpatchpl-check-for-function-declarations-without-arguments.patch
-* binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-* fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch
-* fs-ramfs-move-ramfs_aops-to-inodec.patch
-* init-mainc-remove-unused-declaration-of-tc_init.patch
-* autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-* autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-* drivers-rtc-rtc-at91sam9c-include-mach-hardwareh-explicitly.patch
-* drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch
-* fat-add-i_disksize-to-represent-uninitialized-size.patch
-* fat-add-fat_fallocate-operation.patch
-* fat-zero-out-seek-range-on-_fat_get_block.patch
-* fat-fallback-to-buffered-write-in-case-of-fallocatded-region-on-direct-io.patch
-* fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
-* documentation-filesystems-sysfstxt-fix-device_attribute-declaration.patch
-* kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
-* kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-* kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-* coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
-* coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
-* coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
-* exit_state-kill-task_is_dead.patch
-* proc-cleanup-simplify-get_task_state-task_state_array.patch
-* proc-fix-the-potential-use-after-free-in-first_tid.patch
-* proc-change-first_tid-to-use-while_each_thread-rather-than-next_thread.patch
-* proc-dont-abuse-group_leader-in-proc_task_readdir-paths.patch
-* proc-fix-f_pos-overflows-in-first_tid.patch
-* fork-no-need-to-initialize-child-exit_state.patch
-* exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
-* exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
-* exec-move-the-final-allow_write_access-fput-into-free_bprm.patch
-* exec-kill-task_struct-did_exec.patch
-* fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
-* kernel-sysc-k_getrusage-can-use-while_each_thread.patch
-* kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch
-* lib-cpumask-make-cpumask_offstack-usable-without-debug-dependency.patch
-* kernel-kexecc-use-vscnprintf-instead-of-vsnprintf-in-vmcoreinfo_append_str.patch
-* kexec-migrate-to-reboot-cpu.patch
-* rbtree-test-move-rb_node-to-the-middle-of-the-test-struct.patch
-* rbtree-test-test-rbtree_postorder_for_each_entry_safe.patch
-* net-netfilter-ipset-ip_set_hash_netifacec-use-rbtree-postorder-iteration-instead-of-opencoding.patch
-* fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
-* fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
-* fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
-* fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
-* drivers-mtd-ubi-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
-* arch-sh-kernel-dwarfc-use-rbtree-postorder-iteration-helper-instead-of-solution-using-repeated-rb_erase.patch
-* pps-add-non-blocking-option-to-pps_fetch-ioctl.patch
-* drivers-memstick-host-rtsx_pci_msc-fix-ms-card-data-transfer-bug.patch
-* drivers-w1-masters-w1-gpioc-add-strong-pullup-emulation.patch
-* lib-decompress_unlz4c-always-set-an-error-return-code-on-failures.patch
-  linux-next.patch
-  linux-next-git-rejects.patch
-* mm-add-strictlimit-knob-v2.patch
-  debugging-keep-track-of-page-owners.patch
-  make-sure-nobodys-leaking-resources.patch
-  journal_add_journal_head-debug.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  put_bh-debug.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
-  single_open-seq_release-leak-diagnostics.patch
