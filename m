@@ -1,48 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: +
- include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch added to
- -mm tree
-Date: Mon, 25 Nov 2013 16:25:36 -0800
-Message-ID: <5293ea80.4HIPKlSmuJeBn7MV%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch removed
+ from -mm tree
+Date: Mon, 25 Nov 2013 17:16:55 -0800
+Message-ID: <5293f687./E5teq9dLb7jgZa9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57406 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57608 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751852Ab3KZAZh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Nov 2013 19:25:37 -0500
+	with ESMTP id S1751793Ab3KZBQ4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Nov 2013 20:16:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, akpm@linux-foundation.org
 
-Subject: + include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch added to -mm tree
-To: akpm@linux-foundation.org,hannes@cmpxchg.org,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,rientjes@google.com
+Subject: [alternative-merged] include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch removed from -mm tree
+To: akpm@linux-foundation.org,hannes@cmpxchg.org,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 25 Nov 2013 16:25:36 -0800
+Date: Mon, 25 Nov 2013 17:16:55 -0800
 
 
 The patch titled
      Subject: include/linux/mempolicy.h: add BUILD_BUG to mpol_to_str() stub
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -102,7 +88,6 @@ mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
 mm-swapc-reorganize-put_compound_page.patch
 mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
 mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch
 arch-um-kernel-sysrqc-rename-print_stack_trace.patch
 lib-parserc-put-export_symbols-in-the-conventional-place.patch
 kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
