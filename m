@@ -1,103 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch removed
- from -mm tree
-Date: Mon, 25 Nov 2013 17:16:55 -0800
-Message-ID: <5293f687./E5teq9dLb7jgZa9%akpm@linux-foundation.org>
+Subject: + mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
+ added to -mm tree
+Date: Mon, 25 Nov 2013 17:17:41 -0800
+Message-ID: <5293f6b5.reQ1M9c73qYSREaz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57608 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57615 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793Ab3KZBQ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Nov 2013 20:16:56 -0500
+	with ESMTP id S1751714Ab3KZBRm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Nov 2013 20:17:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, rientjes@google.com
 
-Subject: [alternative-merged] include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch removed from -mm tree
-To: akpm@linux-foundation.org,hannes@cmpxchg.org,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: + mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch added to -mm tree
+To: rientjes@google.com,hannes@cmpxchg.org,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 25 Nov 2013 17:16:55 -0800
+Date: Mon, 25 Nov 2013 17:17:41 -0800
 
 
 The patch titled
-     Subject: include/linux/mempolicy.h: add BUILD_BUG to mpol_to_str() stub
-has been removed from the -mm tree.  Its filename was
-     include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub.patch
+     Subject: mm, mempolicy: remove unneeded functions for UMA configs
+has been added to the -mm tree.  Its filename is
+     mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/mempolicy.h: add BUILD_BUG to mpol_to_str() stub
+From: David Rientjes <rientjes@google.com>
+Subject: mm, mempolicy: remove unneeded functions for UMA configs
 
-mpol_to_str() shouldn't be called if CONFIG_NUMA=n.  If it *is* called,
-it's seruiously buggy - it leaves the output string unterminated.
+Mempolicies only exist for CONFIG_NUMA configurations.  Therefore, a
+certain class of functions are unneeded in configurations where
+CONFIG_NUMA is disabled such as functions that duplicate existing
+mempolicies, lookup existing policies, set certain mempolicy traits, or
+test mempolicies for certain attributes.
 
-So break the build if this situation occurs.
+Remove the unneeded functions so that any future callers get a compile-
+time error and protect their code with CONFIG_NUMA as required.
 
+Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mempolicy.h |   32 --------------------------------
+ 1 file changed, 32 deletions(-)
 
-diff -puN include/linux/mempolicy.h~include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~include-linux-mempolicyh-add-build_bug-to-mpol_to_str-stub
+diff -puN include/linux/mempolicy.h~mm-mempolicy-remove-unneeded-functions-for-uma-configs include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicy-remove-unneeded-functions-for-uma-configs
 +++ a/include/linux/mempolicy.h
-@@ -5,7 +5,7 @@
- #ifndef _LINUX_MEMPOLICY_H
- #define _LINUX_MEMPOLICY_H 1
- 
--
-+#include <linux/bug.h>
- #include <linux/mmzone.h>
- #include <linux/slab.h>
- #include <linux/rbtree.h>
-@@ -309,6 +309,7 @@ static inline int mpol_parse_str(char *s
- 
- static inline void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
+@@ -211,20 +211,8 @@ static inline void mpol_get(struct mempo
  {
-+	BUILD_BUG();
  }
  
- static inline int mpol_misplaced(struct page *page, struct vm_area_struct *vma,
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
-kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-arch-um-kernel-sysrqc-rename-print_stack_trace.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-linux-next.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+-static inline struct mempolicy *mpol_dup(struct mempolicy *old)
+-{
+-	return NULL;
+-}
+-
+ struct shared_policy {};
+ 
+-static inline int mpol_set_shared_policy(struct shared_policy *info,
+-					struct vm_area_struct *vma,
+-					struct mempolicy *new)
+-{
+-	return -EINVAL;
+-}
+-
+ static inline void mpol_shared_policy_init(struct shared_policy *sp,
+ 						struct mempolicy *mpol)
+ {
+@@ -234,12 +222,6 @@ static inline void mpol_free_shared_poli
+ {
+ }
+ 
+-static inline struct mempolicy *
+-mpol_shared_policy_lookup(struct shared_policy *sp, unsigned long idx)
+-{
+-	return NULL;
+-}
+-
+ #define vma_policy(vma) NULL
+ 
+ static inline int
+@@ -266,10 +248,6 @@ static inline void mpol_rebind_mm(struct
+ {
+ }
+ 
+-static inline void mpol_fix_fork_child_flag(struct task_struct *p)
+-{
+-}
+-
+ static inline struct zonelist *huge_zonelist(struct vm_area_struct *vma,
+ 				unsigned long addr, gfp_t gfp_flags,
+ 				struct mempolicy **mpol, nodemask_t **nodemask)
+@@ -284,12 +262,6 @@ static inline bool init_nodemask_of_memp
+ 	return false;
+ }
+ 
+-static inline bool mempolicy_nodemask_intersects(struct task_struct *tsk,
+-			const nodemask_t *mask)
+-{
+-	return false;
+-}
+-
+ static inline int do_migrate_pages(struct mm_struct *mm, const nodemask_t *from,
+ 				   const nodemask_t *to, int flags)
+ {
+@@ -307,10 +279,6 @@ static inline int mpol_parse_str(char *s
+ }
+ #endif
+ 
+-static inline void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
+-{
+-}
