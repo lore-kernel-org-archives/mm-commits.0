@@ -1,84 +1,101 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch removed from
- -mm tree
-Date: Wed, 27 Nov 2013 12:26:29 -0800
-Message-ID: <52965575.bhN6DQ00PDDZZd9h%akpm@linux-foundation.org>
+ kernel-time-tick-commonc-document-tick_do_timer_cpu.patch removed from -mm
+ tree
+Date: Wed, 27 Nov 2013 12:26:33 -0800
+Message-ID: <52965579.app5jSYXd1DTQGOy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51435 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51438 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757949Ab3K0U0d (ORCPT
+	with ESMTP id S1757814Ab3K0U0d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 15:26:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, akpm@linux-foundation.org
 
-Subject: [merged] genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch removed from -mm tree
-To: geert@linux-m68k.org,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: [merged] kernel-time-tick-commonc-document-tick_do_timer_cpu.patch removed from -mm tree
+To: akpm@linux-foundation.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 27 Nov 2013 12:26:29 -0800
+Date: Wed, 27 Nov 2013 12:26:33 -0800
 
 
 The patch titled
-     Subject: genirq: correct fuzzy and fragile IRQ_RETVAL() definition
+     Subject: kernel/time/tick-common.c: document tick_do_timer_cpu
 has been removed from the -mm tree.  Its filename was
-     genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
+     kernel-time-tick-commonc-document-tick_do_timer_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: genirq: correct fuzzy and fragile IRQ_RETVAL() definition
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/time/tick-common.c: document tick_do_timer_cpu
 
-commit bedd30d986a0 ("genirq: make irqreturn_t an enum") blindly replaced
-"0" by "IRQ_NONE" in the "IRQ_RETVAL(x)" macro definition.
+Taken straight from a tglx email ;)
 
-However, as "x" is a condition, "0" meant "boolean false", not an
-irqreturn_t value.
-
-All of this worked, and kept working after the addition of IRQ_WAKE_THREAD,
-as
-  - both "boolean false" and "IRQ_NONE" are "0" (for the comparison),
-  - "boolean true" and "boolean false" nicely map to the correct values of
-    "IRQ_HANDLED" and "IRQ_NONE" (for the return value).
-
-Correct the macro definition for clarity and future-proofness.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irqreturn.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/time/tick-common.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN include/linux/irqreturn.h~genirq-correct-fuzzy-and-fragile-irq_retval-definition include/linux/irqreturn.h
---- a/include/linux/irqreturn.h~genirq-correct-fuzzy-and-fragile-irq_retval-definition
-+++ a/include/linux/irqreturn.h
-@@ -14,6 +14,6 @@ enum irqreturn {
- };
+diff -puN kernel/time/tick-common.c~kernel-time-tick-commonc-document-tick_do_timer_cpu kernel/time/tick-common.c
+--- a/kernel/time/tick-common.c~kernel-time-tick-commonc-document-tick_do_timer_cpu
++++ a/kernel/time/tick-common.c
+@@ -33,6 +33,21 @@ DEFINE_PER_CPU(struct tick_device, tick_
+  */
+ ktime_t tick_next_period;
+ ktime_t tick_period;
++
++/*
++ * tick_do_timer_cpu is a timer core internal variable which holds the CPU NR
++ * which is responsible for calling do_timer(), i.e. the timekeeping stuff. This
++ * variable has two functions:
++ *
++ * 1) Prevent a thundering herd issue of a gazillion of CPUs trying to grab the
++ *    timekeeping lock all at once. Only the CPU which is assigned to do the
++ *    update is handling it.
++ *
++ * 2) Hand off the duty in the NOHZ idle case by setting the value to
++ *    TICK_DO_TIMER_NONE, i.e. a non existing CPU. So the next cpu which looks
++ *    at it will take over and keep the time keeping alive.  The handover
++ *    procedure also covers cpu hotplug.
++ */
+ int tick_do_timer_cpu __read_mostly = TICK_DO_TIMER_BOOT;
  
- typedef enum irqreturn irqreturn_t;
--#define IRQ_RETVAL(x)	((x) != IRQ_NONE)
-+#define IRQ_RETVAL(x)	((x) ? IRQ_HANDLED : IRQ_NONE)
- 
- #endif
+ /*
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-drivers-rtc-rtc-s5mc-fix-info-rtc-assignment.patch
-drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
-scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
-asm-typesh-remove-include-asm-generic-int-l64h.patch
-maintainers-add-an-entry-for-the-macintosh-hfsplus-filesystem.patch
-init-mainc-remove-unused-declaration-of-tc_init.patch
-exit_state-kill-task_is_dead.patch
-proc-cleanup-simplify-get_task_state-task_state_array.patch
-fork-no-need-to-initialize-child-exit_state.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+arch-um-kernel-sysrqc-rename-print_stack_trace.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
