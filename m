@@ -1,75 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch removed
- from -mm tree
-Date: Wed, 27 Nov 2013 12:26:31 -0800
-Message-ID: <52965577.r6pN2kmIpsgRNh7p%akpm@linux-foundation.org>
+ genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch removed from
+ -mm tree
+Date: Wed, 27 Nov 2013 12:26:29 -0800
+Message-ID: <52965575.bhN6DQ00PDDZZd9h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51435 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757814Ab3K0U0g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 15:26:36 -0500
+	with ESMTP id S1757949Ab3K0U0d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 15:26:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, geert@linux-m68k.org
 
-Subject: [merged] kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch removed from -mm tree
-To: joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch removed from -mm tree
+To: geert@linux-m68k.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 27 Nov 2013 12:26:31 -0800
+Date: Wed, 27 Nov 2013 12:26:29 -0800
 
 
 The patch titled
-     Subject: kernel/timer.c: convert kmalloc_node(...GFP_ZERO...) to kzalloc_node(...)
+     Subject: genirq: correct fuzzy and fragile IRQ_RETVAL() definition
 has been removed from the -mm tree.  Its filename was
-     kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node.patch
+     genirq-correct-fuzzy-and-fragile-irq_retval-definition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: kernel/timer.c: convert kmalloc_node(...GFP_ZERO...) to kzalloc_node(...)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: genirq: correct fuzzy and fragile IRQ_RETVAL() definition
 
-Use the helper function instead of __GFP_ZERO.
+commit bedd30d986a0 ("genirq: make irqreturn_t an enum") blindly replaced
+"0" by "IRQ_NONE" in the "IRQ_RETVAL(x)" macro definition.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+However, as "x" is a condition, "0" meant "boolean false", not an
+irqreturn_t value.
+
+All of this worked, and kept working after the addition of IRQ_WAKE_THREAD,
+as
+  - both "boolean false" and "IRQ_NONE" are "0" (for the comparison),
+  - "boolean true" and "boolean false" nicely map to the correct values of
+    "IRQ_HANDLED" and "IRQ_NONE" (for the return value).
+
+Correct the macro definition for clarity and future-proofness.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/irqreturn.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node kernel/timer.c
---- a/kernel/timer.c~kernel-timerc-convert-kmalloc_nodegfp_zero-to-kzalloc_node
-+++ a/kernel/timer.c
-@@ -1518,9 +1518,8 @@ static int init_timers_cpu(int cpu)
- 			/*
- 			 * The APs use this path later in boot
- 			 */
--			base = kmalloc_node(sizeof(*base),
--						GFP_KERNEL | __GFP_ZERO,
--						cpu_to_node(cpu));
-+			base = kzalloc_node(sizeof(*base), GFP_KERNEL,
-+					    cpu_to_node(cpu));
- 			if (!base)
- 				return -ENOMEM;
+diff -puN include/linux/irqreturn.h~genirq-correct-fuzzy-and-fragile-irq_retval-definition include/linux/irqreturn.h
+--- a/include/linux/irqreturn.h~genirq-correct-fuzzy-and-fragile-irq_retval-definition
++++ a/include/linux/irqreturn.h
+@@ -14,6 +14,6 @@ enum irqreturn {
+ };
  
+ typedef enum irqreturn irqreturn_t;
+-#define IRQ_RETVAL(x)	((x) != IRQ_NONE)
++#define IRQ_RETVAL(x)	((x) ? IRQ_HANDLED : IRQ_NONE)
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-origin.patch
 linux-next.patch
-lib-parserc-add-match_wildcard-function.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-dynamic_debug-add-wildcard-support-to-filter-files-functions-modules.patch
-dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch
-get_maintainer-add-commit-author-information-to-rolestats.patch
-checkpatchpl-check-for-function-declarations-without-arguments.patch
+drivers-rtc-rtc-s5mc-fix-info-rtc-assignment.patch
+drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
+scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
+asm-typesh-remove-include-asm-generic-int-l64h.patch
+maintainers-add-an-entry-for-the-macintosh-hfsplus-filesystem.patch
+init-mainc-remove-unused-declaration-of-tc_init.patch
+exit_state-kill-task_is_dead.patch
+proc-cleanup-simplify-get_task_state-task_state_array.patch
+fork-no-need-to-initialize-child-exit_state.patch
 
