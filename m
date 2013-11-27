@@ -1,136 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
- added to -mm tree
-Date: Mon, 25 Nov 2013 17:17:41 -0800
-Message-ID: <5293f6b5.reQ1M9c73qYSREaz%akpm@linux-foundation.org>
+Subject: [merged]
+ arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch removed from -mm tree
+Date: Wed, 27 Nov 2013 12:26:25 -0800
+Message-ID: <52965571.vi1mpPW9q3FcgZoO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57615 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51421 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751714Ab3KZBRm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Nov 2013 20:17:42 -0500
+	with ESMTP id S1758171Ab3K0U01 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 15:26:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, rientjes@google.com
+To: mm-commits@vger.kernel.org, xemul@parallels.com, tglx@linutronix.de, mingo@elte.hu, luto@amacapital.net, hpa@zytor.com, gorcunov@openvz.org, gorcunov@gmail.com
 
-Subject: + mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch added to -mm tree
-To: rientjes@google.com,hannes@cmpxchg.org,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz
+Subject: [merged] arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch removed from -mm tree
+To: gorcunov@gmail.com,gorcunov@openvz.org,hpa@zytor.com,luto@amacapital.net,mingo@elte.hu,tglx@linutronix.de,xemul@parallels.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 25 Nov 2013 17:17:41 -0800
+Date: Wed, 27 Nov 2013 12:26:25 -0800
 
 
 The patch titled
-     Subject: mm, mempolicy: remove unneeded functions for UMA configs
-has been added to the -mm tree.  Its filename is
-     mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
+     Subject: arch/x86: unify pte_to_pgoff and pgoff_to_pte helpers
+has been removed from the -mm tree.  Its filename was
+     arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, mempolicy: remove unneeded functions for UMA configs
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: arch/x86: unify pte_to_pgoff and pgoff_to_pte helpers
 
-Mempolicies only exist for CONFIG_NUMA configurations.  Therefore, a
-certain class of functions are unneeded in configurations where
-CONFIG_NUMA is disabled such as functions that duplicate existing
-mempolicies, lookup existing policies, set certain mempolicy traits, or
-test mempolicies for certain attributes.
+Use unified pte_bitop helper to manipulate bits in pte/pgoff bitfield, and
+convert pte_to_pgoff/pgoff_to_pte to inlines.
 
-Remove the unneeded functions so that any future callers get a compile-
-time error and protect their code with CONFIG_NUMA as required.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   32 --------------------------------
- 1 file changed, 32 deletions(-)
+ arch/x86/include/asm/pgtable-2level.h |  100 ++++++++++++++----------
+ 1 file changed, 59 insertions(+), 41 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mm-mempolicy-remove-unneeded-functions-for-uma-configs include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-mempolicy-remove-unneeded-functions-for-uma-configs
-+++ a/include/linux/mempolicy.h
-@@ -211,20 +211,8 @@ static inline void mpol_get(struct mempo
- {
- }
- 
--static inline struct mempolicy *mpol_dup(struct mempolicy *old)
--{
--	return NULL;
--}
--
- struct shared_policy {};
- 
--static inline int mpol_set_shared_policy(struct shared_policy *info,
--					struct vm_area_struct *vma,
--					struct mempolicy *new)
--{
--	return -EINVAL;
--}
--
- static inline void mpol_shared_policy_init(struct shared_policy *sp,
- 						struct mempolicy *mpol)
- {
-@@ -234,12 +222,6 @@ static inline void mpol_free_shared_poli
- {
- }
- 
--static inline struct mempolicy *
--mpol_shared_policy_lookup(struct shared_policy *sp, unsigned long idx)
--{
--	return NULL;
--}
--
- #define vma_policy(vma) NULL
- 
- static inline int
-@@ -266,10 +248,6 @@ static inline void mpol_rebind_mm(struct
- {
- }
- 
--static inline void mpol_fix_fork_child_flag(struct task_struct *p)
--{
--}
--
- static inline struct zonelist *huge_zonelist(struct vm_area_struct *vma,
- 				unsigned long addr, gfp_t gfp_flags,
- 				struct mempolicy **mpol, nodemask_t **nodemask)
-@@ -284,12 +262,6 @@ static inline bool init_nodemask_of_memp
- 	return false;
- }
- 
--static inline bool mempolicy_nodemask_intersects(struct task_struct *tsk,
--			const nodemask_t *mask)
--{
--	return false;
--}
--
- static inline int do_migrate_pages(struct mm_struct *mm, const nodemask_t *from,
- 				   const nodemask_t *to, int flags)
- {
-@@ -307,10 +279,6 @@ static inline int mpol_parse_str(char *s
- }
+diff -puN arch/x86/include/asm/pgtable-2level.h~arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers arch/x86/include/asm/pgtable-2level.h
+--- a/arch/x86/include/asm/pgtable-2level.h~arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers
++++ a/arch/x86/include/asm/pgtable-2level.h
+@@ -55,6 +55,13 @@ static inline pmd_t native_pmdp_get_and_
+ #define native_pmdp_get_and_clear(xp) native_local_pmdp_get_and_clear(xp)
  #endif
  
--static inline void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol)
--{
--}
++/* Bit manipulation helper on pte/pgoff entry */
++static inline unsigned long pte_bitop(unsigned long value, unsigned int rightshift,
++				      unsigned long mask, unsigned int leftshift)
++{
++	return ((value >> rightshift) & mask) << leftshift;
++}
++
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+ 
+ /*
+@@ -71,31 +78,34 @@ static inline pmd_t native_pmdp_get_and_
+ #define PTE_FILE_BITS2		(PTE_FILE_SHIFT3 - PTE_FILE_SHIFT2 - 1)
+ #define PTE_FILE_BITS3		(PTE_FILE_SHIFT4 - PTE_FILE_SHIFT3 - 1)
+ 
+-#define pte_to_pgoff(pte)						\
+-	((((pte).pte_low >> (PTE_FILE_SHIFT1))				\
+-	  & ((1U << PTE_FILE_BITS1) - 1)))				\
+-	+ ((((pte).pte_low >> (PTE_FILE_SHIFT2))			\
+-	    & ((1U << PTE_FILE_BITS2) - 1))				\
+-	   << (PTE_FILE_BITS1))						\
+-	+ ((((pte).pte_low >> (PTE_FILE_SHIFT3))			\
+-	    & ((1U << PTE_FILE_BITS3) - 1))				\
+-	   << (PTE_FILE_BITS1 + PTE_FILE_BITS2))			\
+-	+ ((((pte).pte_low >> (PTE_FILE_SHIFT4)))			\
+-	    << (PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3))
+-
+-#define pgoff_to_pte(off)						\
+-	((pte_t) { .pte_low =						\
+-	 ((((off)) & ((1U << PTE_FILE_BITS1) - 1)) << PTE_FILE_SHIFT1)	\
+-	 + ((((off) >> PTE_FILE_BITS1)					\
+-	     & ((1U << PTE_FILE_BITS2) - 1))				\
+-	    << PTE_FILE_SHIFT2)						\
+-	 + ((((off) >> (PTE_FILE_BITS1 + PTE_FILE_BITS2))		\
+-	     & ((1U << PTE_FILE_BITS3) - 1))				\
+-	    << PTE_FILE_SHIFT3)						\
+-	 + ((((off) >>							\
+-	      (PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3)))	\
+-	    << PTE_FILE_SHIFT4)						\
+-	 + _PAGE_FILE })
++#define PTE_FILE_MASK1		((1U << PTE_FILE_BITS1) - 1)
++#define PTE_FILE_MASK2		((1U << PTE_FILE_BITS2) - 1)
++#define PTE_FILE_MASK3		((1U << PTE_FILE_BITS3) - 1)
++
++#define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
++#define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
++#define PTE_FILE_LSHIFT4	(PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3)
++
++static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
++{
++	return (pgoff_t)
++		(pte_bitop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		    +
++		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
++		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT3, PTE_FILE_MASK3,  PTE_FILE_LSHIFT3) +
++		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT4,           -1UL,  PTE_FILE_LSHIFT4));
++}
++
++static __always_inline pte_t pgoff_to_pte(pgoff_t off)
++{
++	return (pte_t){
++		.pte_low =
++			pte_bitop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
++			pte_bitop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
++			pte_bitop(off, PTE_FILE_LSHIFT3, PTE_FILE_MASK3,  PTE_FILE_SHIFT3) +
++			pte_bitop(off, PTE_FILE_LSHIFT4,           -1UL,  PTE_FILE_SHIFT4) +
++			_PAGE_FILE,
++	};
++}
+ 
+ #else /* CONFIG_MEM_SOFT_DIRTY */
+ 
+@@ -115,22 +125,30 @@ static inline pmd_t native_pmdp_get_and_
+ #define PTE_FILE_BITS1		(PTE_FILE_SHIFT2 - PTE_FILE_SHIFT1 - 1)
+ #define PTE_FILE_BITS2		(PTE_FILE_SHIFT3 - PTE_FILE_SHIFT2 - 1)
+ 
+-#define pte_to_pgoff(pte)						\
+-	((((pte).pte_low >> PTE_FILE_SHIFT1)				\
+-	  & ((1U << PTE_FILE_BITS1) - 1))				\
+-	 + ((((pte).pte_low >> PTE_FILE_SHIFT2)				\
+-	     & ((1U << PTE_FILE_BITS2) - 1)) << PTE_FILE_BITS1)		\
+-	 + (((pte).pte_low >> PTE_FILE_SHIFT3)				\
+-	    << (PTE_FILE_BITS1 + PTE_FILE_BITS2)))
+-
+-#define pgoff_to_pte(off)						\
+-	((pte_t) { .pte_low =						\
+-	 (((off) & ((1U << PTE_FILE_BITS1) - 1)) << PTE_FILE_SHIFT1)	\
+-	 + ((((off) >> PTE_FILE_BITS1) & ((1U << PTE_FILE_BITS2) - 1))	\
+-	    << PTE_FILE_SHIFT2)						\
+-	 + (((off) >> (PTE_FILE_BITS1 + PTE_FILE_BITS2))		\
+-	    << PTE_FILE_SHIFT3)						\
+-	 + _PAGE_FILE })
++#define PTE_FILE_MASK1		((1U << PTE_FILE_BITS1) - 1)
++#define PTE_FILE_MASK2		((1U << PTE_FILE_BITS2) - 1)
++
++#define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
++#define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
++
++static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
++{
++	return (pgoff_t)
++		(pte_bitop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		    +
++		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
++		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT3,           -1UL,  PTE_FILE_LSHIFT3));
++}
++
++static __always_inline pte_t pgoff_to_pte(pgoff_t off)
++{
++	return (pte_t){
++		.pte_low =
++			pte_bitop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
++			pte_bitop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
++			pte_bitop(off, PTE_FILE_LSHIFT3,           -1UL,  PTE_FILE_SHIFT3) +
++			_PAGE_FILE,
++	};
++}
+ 
+ #endif /* CONFIG_MEM_SOFT_DIRTY */
+ 
+_
+
+Patches currently in -mm which might be from gorcunov@gmail.com are
+
+linux-next.patch
+
