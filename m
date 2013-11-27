@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-parport-parport_pcc-remove-double-pci-id-for-netmos.patch added to
- -mm tree
-Date: Wed, 27 Nov 2013 13:52:24 -0800
-Message-ID: <52966998.6dRzG5oIMtWNtgIn%akpm@linux-foundation.org>
+Subject: + firmware-dmi_scan-generalize-for-use-by-other-archs.patch added to -mm tree
+Date: Wed, 27 Nov 2013 13:56:42 -0800
+Message-ID: <52966a9a.8jjHhChyl+CZcWcO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51911 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51920 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752940Ab3K0VwZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 16:52:25 -0500
+	with ESMTP id S1754584Ab3K0V4r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 16:56:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, maks@stro.at, bigeasy@linutronix.de
+To: mm-commits@vger.kernel.org, mingo@elte.hu, grant.likely@linaro.org, ard.biesheuvel@linaro.org
 
-Subject: + drivers-parport-parport_pcc-remove-double-pci-id-for-netmos.patch added to -mm tree
-To: bigeasy@linutronix.de,maks@stro.at
+Subject: + firmware-dmi_scan-generalize-for-use-by-other-archs.patch added to -mm tree
+To: ard.biesheuvel@linaro.org,grant.likely@linaro.org,mingo@elte.hu
 From: akpm@linux-foundation.org
-Date: Wed, 27 Nov 2013 13:52:24 -0800
+Date: Wed, 27 Nov 2013 13:56:42 -0800
 
 
 The patch titled
-     Subject: drivers/parport/parport_pc.c: remove double PCI ID for NetMos
+     Subject: firmware/dmi_scan: generalize for use by other archs
 has been added to the -mm tree.  Its filename is
-     drivers-parport-parport_pcc-remove-double-pci-id-for-netmos.patch
+     firmware-dmi_scan-generalize-for-use-by-other-archs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-parport-parport_pcc-remove-double-pci-id-for-netmos.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/firmware-dmi_scan-generalize-for-use-by-other-archs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-parport-parport_pcc-remove-double-pci-id-for-netmos.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/firmware-dmi_scan-generalize-for-use-by-other-archs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,78 +43,177 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: drivers/parport/parport_pc.c: remove double PCI ID for NetMos
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: firmware/dmi_scan: generalize for use by other archs
 
-In commit 85747f ("PATCH] parport: add NetMOS 9805 support") Max added the
-PCI ID for NetMOS 9805 based on a Debian bug report from 2k4 which was at
-the v2.4.26 time frame.  The patch made into 2.6.14.  Shortly before that
-patch akpm merged commit 296d3c783b ("[PATCH] Support NetMOS based PCI
-cards providing serial and parallel ports") which made into v2.6.9-rc1.
+This patch makes a couple of changes to the SMBIOS/DMI scanning
+code so it can be used on other archs (such as ARM and arm64):
+(a) wrap the calls to ioremap()/iounmap(), this allows the use of a
+    flavor of ioremap() more suitable for random unaligned access;
+(b) allow the non-EFI fallback probe into hardcoded physical address
+    0xF0000 to be disabled.
 
-Now we have two different entries for the same PCI id.  I have here the
-NetMos 9805 which claims to support SPP/EPP/ECP mode.  This patch takes
-Max's entry for titan_1284p1 (base != -1 specifies the ioport for ECP
-mode) and replaces akpm's entry for netmos_9805 which specified -1
-(=none).  Both share the same PCI-ID (my card has subsystem 0x1000 /
-0x0020 so it should match PCI_ANY).
-
-While here I also drop the entry for titan_1284p2 which is the same as
-netmos_9815.
-
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Maximilian Attems <maks@stro.at>
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Acked-by: Grant Likely <grant.likely@linaro.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ arch/ia64/Kconfig           |    1 +
+ arch/ia64/include/asm/dmi.h |    8 +++++---
+ arch/x86/Kconfig            |    1 +
+ arch/x86/include/asm/dmi.h  |    6 ++++--
+ drivers/firmware/Kconfig    |    3 +++
+ drivers/firmware/dmi_scan.c |   20 ++++++++++----------
+ 6 files changed, 24 insertions(+), 15 deletions(-)
 
-diff -puN drivers/parport/parport_pc.c~drivers-parport-parport_pcc-remove-double-pci-id-for-netmos drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~drivers-parport-parport_pcc-remove-double-pci-id-for-netmos
-+++ a/drivers/parport/parport_pc.c
-@@ -2600,8 +2600,6 @@ enum parport_pc_pci_cards {
- 	syba_2p_epp,
- 	syba_1p_ecp,
- 	titan_010l,
--	titan_1284p1,
--	titan_1284p2,
- 	avlab_1p,
- 	avlab_2p,
- 	oxsemi_952,
-@@ -2660,8 +2658,6 @@ static struct parport_pc_pci {
- 	/* syba_2p_epp AP138B */	{ 2, { { 0, 0x078 }, { 0, 0x178 }, } },
- 	/* syba_1p_ecp W83787 */	{ 1, { { 0, 0x078 }, } },
- 	/* titan_010l */		{ 1, { { 3, -1 }, } },
--	/* titan_1284p1 */              { 1, { { 0, 1 }, } },
--	/* titan_1284p2 */		{ 2, { { 0, 1 }, { 2, 3 }, } },
- 	/* avlab_1p		*/	{ 1, { { 0, 1}, } },
- 	/* avlab_2p		*/	{ 2, { { 0, 1}, { 2, 3 },} },
- 	/* The Oxford Semi cards are unusual: 954 doesn't support ECP,
-@@ -2677,8 +2673,8 @@ static struct parport_pc_pci {
- 	/* netmos_9705 */               { 1, { { 0, -1 }, } },
- 	/* netmos_9715 */               { 2, { { 0, 1 }, { 2, 3 },} },
- 	/* netmos_9755 */               { 2, { { 0, 1 }, { 2, 3 },} },
--	/* netmos_9805 */               { 1, { { 0, -1 }, } },
--	/* netmos_9815 */               { 2, { { 0, -1 }, { 2, -1 }, } },
-+	/* netmos_9805 */		{ 1, { { 0, 1 }, } },
-+	/* netmos_9815 */		{ 2, { { 0, 1 }, { 2, 3 }, } },
- 	/* netmos_9901 */               { 1, { { 0, -1 }, } },
- 	/* netmos_9865 */               { 1, { { 0, -1 }, } },
- 	/* quatech_sppxp100 */		{ 1, { { 0, 1 }, } },
-@@ -2722,8 +2718,6 @@ static const struct pci_device_id parpor
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, syba_1p_ecp },
- 	{ PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_010L,
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, titan_010l },
--	{ 0x9710, 0x9805, 0x1000, 0x0010, 0, 0, titan_1284p1 },
--	{ 0x9710, 0x9815, 0x1000, 0x0020, 0, 0, titan_1284p2 },
- 	/* PCI_VENDOR_ID_AVLAB/Intek21 has another bunch of cards ...*/
- 	/* AFAVLAB_TK9902 */
- 	{ 0x14db, 0x2120, PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1p},
+diff -puN arch/ia64/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/arch/ia64/Kconfig
+@@ -104,6 +104,7 @@ config HAVE_SETUP_PER_CPU_AREA
+ config DMI
+ 	bool
+ 	default y
++	select DMI_SCAN_MACHINE_NON_EFI_FALLBACK
+ 
+ config EFI
+ 	bool
+diff -puN arch/ia64/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs arch/ia64/include/asm/dmi.h
+--- a/arch/ia64/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/arch/ia64/include/asm/dmi.h
+@@ -5,8 +5,10 @@
+ #include <asm/io.h>
+ 
+ /* Use normal IO mappings for DMI */
+-#define dmi_ioremap ioremap
+-#define dmi_iounmap(x,l) iounmap(x)
+-#define dmi_alloc(l) kzalloc(l, GFP_ATOMIC)
++#define dmi_early_remap		ioremap
++#define dmi_early_unmap(x, l)	iounmap(x)
++#define dmi_remap		ioremap
++#define dmi_unmap		iounmap
++#define dmi_alloc(l)		kzalloc(l, GFP_ATOMIC)
+ 
+ #endif
+diff -puN arch/x86/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs arch/x86/Kconfig
+--- a/arch/x86/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/arch/x86/Kconfig
+@@ -745,6 +745,7 @@ config APB_TIMER
+ # The code disables itself when not needed.
+ config DMI
+ 	default y
++	select DMI_SCAN_MACHINE_NON_EFI_FALLBACK
+ 	bool "Enable DMI scanning" if EXPERT
+ 	---help---
+ 	  Enabled scanning of DMI to identify machine quirks. Say Y
+diff -puN arch/x86/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs arch/x86/include/asm/dmi.h
+--- a/arch/x86/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/arch/x86/include/asm/dmi.h
+@@ -13,7 +13,9 @@ static __always_inline __init void *dmi_
+ }
+ 
+ /* Use early IO mappings for DMI because it's initialized early */
+-#define dmi_ioremap early_ioremap
+-#define dmi_iounmap early_iounmap
++#define dmi_early_remap		early_ioremap
++#define dmi_early_unmap		early_iounmap
++#define dmi_remap		ioremap
++#define dmi_unmap		iounmap
+ 
+ #endif /* _ASM_X86_DMI_H */
+diff -puN drivers/firmware/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs drivers/firmware/Kconfig
+--- a/drivers/firmware/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/drivers/firmware/Kconfig
+@@ -108,6 +108,9 @@ config DMI_SYSFS
+ 	  under /sys/firmware/dmi when this option is enabled and
+ 	  loaded.
+ 
++config DMI_SCAN_MACHINE_NON_EFI_FALLBACK
++	bool
++
+ config ISCSI_IBFT_FIND
+ 	bool "iSCSI Boot Firmware Table Attributes"
+ 	depends on X86
+diff -puN drivers/firmware/dmi_scan.c~firmware-dmi_scan-generalize-for-use-by-other-archs drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/drivers/firmware/dmi_scan.c
+@@ -116,7 +116,7 @@ static int __init dmi_walk_early(void (*
+ {
+ 	u8 *buf;
+ 
+-	buf = dmi_ioremap(dmi_base, dmi_len);
++	buf = dmi_early_remap(dmi_base, dmi_len);
+ 	if (buf == NULL)
+ 		return -1;
+ 
+@@ -124,7 +124,7 @@ static int __init dmi_walk_early(void (*
+ 
+ 	add_device_randomness(buf, dmi_len);
+ 
+-	dmi_iounmap(buf, dmi_len);
++	dmi_early_unmap(buf, dmi_len);
+ 	return 0;
+ }
+ 
+@@ -527,18 +527,18 @@ void __init dmi_scan_machine(void)
+ 		 * needed during early boot.  This also means we can
+ 		 * iounmap the space when we're done with it.
+ 		 */
+-		p = dmi_ioremap(efi.smbios, 32);
++		p = dmi_early_remap(efi.smbios, 32);
+ 		if (p == NULL)
+ 			goto error;
+ 		memcpy_fromio(buf, p, 32);
+-		dmi_iounmap(p, 32);
++		dmi_early_unmap(p, 32);
+ 
+ 		if (!dmi_present(buf)) {
+ 			dmi_available = 1;
+ 			goto out;
+ 		}
+-	} else {
+-		p = dmi_ioremap(0xF0000, 0x10000);
++	} else if (IS_ENABLED(CONFIG_DMI_SCAN_MACHINE_NON_EFI_FALLBACK)) {
++		p = dmi_early_remap(0xF0000, 0x10000);
+ 		if (p == NULL)
+ 			goto error;
+ 
+@@ -554,12 +554,12 @@ void __init dmi_scan_machine(void)
+ 			memcpy_fromio(buf + 16, q, 16);
+ 			if (!dmi_present(buf)) {
+ 				dmi_available = 1;
+-				dmi_iounmap(p, 0x10000);
++				dmi_early_unmap(p, 0x10000);
+ 				goto out;
+ 			}
+ 			memcpy(buf, buf + 16, 16);
+ 		}
+-		dmi_iounmap(p, 0x10000);
++		dmi_early_unmap(p, 0x10000);
+ 	}
+  error:
+ 	pr_info("DMI not present or invalid.\n");
+@@ -831,13 +831,13 @@ int dmi_walk(void (*decode)(const struct
+ 	if (!dmi_available)
+ 		return -1;
+ 
+-	buf = ioremap(dmi_base, dmi_len);
++	buf = dmi_remap(dmi_base, dmi_len);
+ 	if (buf == NULL)
+ 		return -1;
+ 
+ 	dmi_table(buf, dmi_len, dmi_num, decode, private_data);
+ 
+-	iounmap(buf);
++	dmi_unmap(buf);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(dmi_walk);
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
 
-drivers-parport-parport_pcc-remove-double-pci-id-for-netmos.patch
-linux-next.patch
+origin.patch
+firmware-dmi_scan-generalize-for-use-by-other-archs.patch
 
