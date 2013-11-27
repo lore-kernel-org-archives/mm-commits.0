@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + firmware-dmi_scan-generalize-for-use-by-other-archs.patch added to -mm tree
-Date: Wed, 27 Nov 2013 13:56:42 -0800
-Message-ID: <52966a9a.8jjHhChyl+CZcWcO%akpm@linux-foundation.org>
+Subject: +
+ dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch added to -mm tree
+Date: Wed, 27 Nov 2013 15:04:52 -0800
+Message-ID: <52967a94.SoBgOMyhfLuoqUoS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52222 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754584Ab3K0V4r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 16:56:47 -0500
+	with ESMTP id S1754521Ab3K0XEx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 18:04:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mingo@elte.hu, grant.likely@linaro.org, ard.biesheuvel@linaro.org
+To: mm-commits@vger.kernel.org, shuah.kh@samsung.com, joro@8bytes.org, dan.carpenter@oracle.com, alexander.h.duyck@intel.com, akpm@linux-foundation.org
 
-Subject: + firmware-dmi_scan-generalize-for-use-by-other-archs.patch added to -mm tree
-To: ard.biesheuvel@linaro.org,grant.likely@linaro.org,mingo@elte.hu
+Subject: + dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,alexander.h.duyck@intel.com,dan.carpenter@oracle.com,joro@8bytes.org,shuah.kh@samsung.com
 From: akpm@linux-foundation.org
-Date: Wed, 27 Nov 2013 13:56:42 -0800
+Date: Wed, 27 Nov 2013 15:04:52 -0800
 
 
 The patch titled
-     Subject: firmware/dmi_scan: generalize for use by other archs
+     Subject: dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix
 has been added to the -mm tree.  Its filename is
-     firmware-dmi_scan-generalize-for-use-by-other-archs.patch
+     dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/firmware-dmi_scan-generalize-for-use-by-other-archs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/firmware-dmi_scan-generalize-for-use-by-other-archs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,177 +44,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: firmware/dmi_scan: generalize for use by other archs
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix
 
-This patch makes a couple of changes to the SMBIOS/DMI scanning
-code so it can be used on other archs (such as ARM and arm64):
-(a) wrap the calls to ioremap()/iounmap(), this allows the use of a
-    flavor of ioremap() more suitable for random unaligned access;
-(b) allow the non-EFI fallback probe into hardcoded physical address
-    0xF0000 to be disabled.
+Per Shuah: "dev_warn() on line 740 should use dev not entry->dev"
 
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Acked-by: Grant Likely <grant.likely@linaro.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc "Luck, Tony" <tony.luck@intel.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Alexander Duyck <alexander.h.duyck@intel.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Shuah Khan <shuah.kh@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig           |    1 +
- arch/ia64/include/asm/dmi.h |    8 +++++---
- arch/x86/Kconfig            |    1 +
- arch/x86/include/asm/dmi.h  |    6 ++++--
- drivers/firmware/Kconfig    |    3 +++
- drivers/firmware/dmi_scan.c |   20 ++++++++++----------
- 6 files changed, 24 insertions(+), 15 deletions(-)
+ lib/dma-debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs
-+++ a/arch/ia64/Kconfig
-@@ -104,6 +104,7 @@ config HAVE_SETUP_PER_CPU_AREA
- config DMI
- 	bool
- 	default y
-+	select DMI_SCAN_MACHINE_NON_EFI_FALLBACK
+diff -puN lib/dma-debug.c~dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix
++++ a/lib/dma-debug.c
+@@ -737,7 +737,7 @@ static int device_dma_allocations(struct
+ 	local_irq_restore(flags);
  
- config EFI
- 	bool
-diff -puN arch/ia64/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs arch/ia64/include/asm/dmi.h
---- a/arch/ia64/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs
-+++ a/arch/ia64/include/asm/dmi.h
-@@ -5,8 +5,10 @@
- #include <asm/io.h>
- 
- /* Use normal IO mappings for DMI */
--#define dmi_ioremap ioremap
--#define dmi_iounmap(x,l) iounmap(x)
--#define dmi_alloc(l) kzalloc(l, GFP_ATOMIC)
-+#define dmi_early_remap		ioremap
-+#define dmi_early_unmap(x, l)	iounmap(x)
-+#define dmi_remap		ioremap
-+#define dmi_unmap		iounmap
-+#define dmi_alloc(l)		kzalloc(l, GFP_ATOMIC)
- 
- #endif
-diff -puN arch/x86/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs arch/x86/Kconfig
---- a/arch/x86/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs
-+++ a/arch/x86/Kconfig
-@@ -745,6 +745,7 @@ config APB_TIMER
- # The code disables itself when not needed.
- config DMI
- 	default y
-+	select DMI_SCAN_MACHINE_NON_EFI_FALLBACK
- 	bool "Enable DMI scanning" if EXPERT
- 	---help---
- 	  Enabled scanning of DMI to identify machine quirks. Say Y
-diff -puN arch/x86/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs arch/x86/include/asm/dmi.h
---- a/arch/x86/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs
-+++ a/arch/x86/include/asm/dmi.h
-@@ -13,7 +13,9 @@ static __always_inline __init void *dmi_
- }
- 
- /* Use early IO mappings for DMI because it's initialized early */
--#define dmi_ioremap early_ioremap
--#define dmi_iounmap early_iounmap
-+#define dmi_early_remap		early_ioremap
-+#define dmi_early_unmap		early_iounmap
-+#define dmi_remap		ioremap
-+#define dmi_unmap		iounmap
- 
- #endif /* _ASM_X86_DMI_H */
-diff -puN drivers/firmware/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs drivers/firmware/Kconfig
---- a/drivers/firmware/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs
-+++ a/drivers/firmware/Kconfig
-@@ -108,6 +108,9 @@ config DMI_SYSFS
- 	  under /sys/firmware/dmi when this option is enabled and
- 	  loaded.
- 
-+config DMI_SCAN_MACHINE_NON_EFI_FALLBACK
-+	bool
-+
- config ISCSI_IBFT_FIND
- 	bool "iSCSI Boot Firmware Table Attributes"
- 	depends on X86
-diff -puN drivers/firmware/dmi_scan.c~firmware-dmi_scan-generalize-for-use-by-other-archs drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~firmware-dmi_scan-generalize-for-use-by-other-archs
-+++ a/drivers/firmware/dmi_scan.c
-@@ -116,7 +116,7 @@ static int __init dmi_walk_early(void (*
- {
- 	u8 *buf;
- 
--	buf = dmi_ioremap(dmi_base, dmi_len);
-+	buf = dmi_early_remap(dmi_base, dmi_len);
- 	if (buf == NULL)
- 		return -1;
- 
-@@ -124,7 +124,7 @@ static int __init dmi_walk_early(void (*
- 
- 	add_device_randomness(buf, dmi_len);
- 
--	dmi_iounmap(buf, dmi_len);
-+	dmi_early_unmap(buf, dmi_len);
- 	return 0;
- }
- 
-@@ -527,18 +527,18 @@ void __init dmi_scan_machine(void)
- 		 * needed during early boot.  This also means we can
- 		 * iounmap the space when we're done with it.
- 		 */
--		p = dmi_ioremap(efi.smbios, 32);
-+		p = dmi_early_remap(efi.smbios, 32);
- 		if (p == NULL)
- 			goto error;
- 		memcpy_fromio(buf, p, 32);
--		dmi_iounmap(p, 32);
-+		dmi_early_unmap(p, 32);
- 
- 		if (!dmi_present(buf)) {
- 			dmi_available = 1;
- 			goto out;
- 		}
--	} else {
--		p = dmi_ioremap(0xF0000, 0x10000);
-+	} else if (IS_ENABLED(CONFIG_DMI_SCAN_MACHINE_NON_EFI_FALLBACK)) {
-+		p = dmi_early_remap(0xF0000, 0x10000);
- 		if (p == NULL)
- 			goto error;
- 
-@@ -554,12 +554,12 @@ void __init dmi_scan_machine(void)
- 			memcpy_fromio(buf + 16, q, 16);
- 			if (!dmi_present(buf)) {
- 				dmi_available = 1;
--				dmi_iounmap(p, 0x10000);
-+				dmi_early_unmap(p, 0x10000);
- 				goto out;
- 			}
- 			memcpy(buf, buf + 16, 16);
- 		}
--		dmi_iounmap(p, 0x10000);
-+		dmi_early_unmap(p, 0x10000);
- 	}
-  error:
- 	pr_info("DMI not present or invalid.\n");
-@@ -831,13 +831,13 @@ int dmi_walk(void (*decode)(const struct
- 	if (!dmi_available)
- 		return -1;
- 
--	buf = ioremap(dmi_base, dmi_len);
-+	buf = dmi_remap(dmi_base, dmi_len);
- 	if (buf == NULL)
- 		return -1;
- 
- 	dmi_table(buf, dmi_len, dmi_num, decode, private_data);
- 
--	iounmap(buf);
-+	dmi_unmap(buf);
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(dmi_walk);
+ 	if (map_err_cnt)
+-		dev_warn(entry->dev,
++		dev_warn(dev,
+ 			"DMA-API: device driver failed to check map errors: "
+ 			"[count] = %d\n", map_err_cnt);
+ 	return count;
 _
 
-Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-firmware-dmi_scan-generalize-for-use-by-other-archs.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
+dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+arch-um-kernel-sysrqc-rename-print_stack_trace.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
