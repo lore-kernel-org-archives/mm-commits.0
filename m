@@ -1,180 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch removed from -mm tree
-Date: Wed, 27 Nov 2013 12:26:25 -0800
-Message-ID: <52965571.vi1mpPW9q3FcgZoO%akpm@linux-foundation.org>
+Subject: [merged] x86-mm-get-aslr-work-for-hugetlb-mappings.patch removed
+ from -mm tree
+Date: Wed, 27 Nov 2013 12:26:27 -0800
+Message-ID: <52965573.FLAiZi9jekVfyOOD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51421 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51429 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758171Ab3K0U01 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 15:26:27 -0500
+	with ESMTP id S1758199Ab3K0U02 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 15:26:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, tglx@linutronix.de, mingo@elte.hu, luto@amacapital.net, hpa@zytor.com, gorcunov@openvz.org, gorcunov@gmail.com
+To: mm-commits@vger.kernel.org, willy@linux.intel.com, tglx@linutronix.de, n-horiguchi@ah.jp.nec.com, mingo@redhat.com, hpa@zytor.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch removed from -mm tree
-To: gorcunov@gmail.com,gorcunov@openvz.org,hpa@zytor.com,luto@amacapital.net,mingo@elte.hu,tglx@linutronix.de,xemul@parallels.com,mm-commits@vger.kernel.org
+Subject: [merged] x86-mm-get-aslr-work-for-hugetlb-mappings.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,dave.hansen@intel.com,hpa@zytor.com,mingo@redhat.com,n-horiguchi@ah.jp.nec.com,tglx@linutronix.de,willy@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 27 Nov 2013 12:26:25 -0800
+Date: Wed, 27 Nov 2013 12:26:27 -0800
 
 
 The patch titled
-     Subject: arch/x86: unify pte_to_pgoff and pgoff_to_pte helpers
+     Subject: x86, mm: get ASLR work for hugetlb mappings
 has been removed from the -mm tree.  Its filename was
-     arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers.patch
+     x86-mm-get-aslr-work-for-hugetlb-mappings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: arch/x86: unify pte_to_pgoff and pgoff_to_pte helpers
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: x86, mm: get ASLR work for hugetlb mappings
 
-Use unified pte_bitop helper to manipulate bits in pte/pgoff bitfield, and
-convert pte_to_pgoff/pgoff_to_pte to inlines.
+Matthew noticed that hugetlb doesn't participate in ASLR on x86-64.  The
+reason is genereic hugetlb_get_unmapped_area() which is used on x86-64. 
+It doesn't support randomization and use bottom-up unmapped area lookup,
+instead of usual top-down on x86-64.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+x86 has arch-specific hugetlb_get_unmapped_area(), but it's used only on
+x86-32.
+
+Let's use arch-specific hugetlb_get_unmapped_area() on x86-64 too.  It
+fixes the issue and make hugetlb use top-down unmapped area lookup.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable-2level.h |  100 ++++++++++++++----------
- 1 file changed, 59 insertions(+), 41 deletions(-)
+ arch/x86/include/asm/page.h    |    1 +
+ arch/x86/include/asm/page_32.h |    4 ----
+ arch/x86/mm/hugetlbpage.c      |    9 +++------
+ 3 files changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable-2level.h~arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers arch/x86/include/asm/pgtable-2level.h
---- a/arch/x86/include/asm/pgtable-2level.h~arch-x86-mnify-pte_to_pgoff-and-pgoff_to_pte-helpers
-+++ a/arch/x86/include/asm/pgtable-2level.h
-@@ -55,6 +55,13 @@ static inline pmd_t native_pmdp_get_and_
- #define native_pmdp_get_and_clear(xp) native_local_pmdp_get_and_clear(xp)
+diff -puN arch/x86/include/asm/page.h~x86-mm-get-aslr-work-for-hugetlb-mappings arch/x86/include/asm/page.h
+--- a/arch/x86/include/asm/page.h~x86-mm-get-aslr-work-for-hugetlb-mappings
++++ a/arch/x86/include/asm/page.h
+@@ -71,6 +71,7 @@ extern bool __virt_addr_valid(unsigned l
+ #include <asm-generic/getorder.h>
+ 
+ #define __HAVE_ARCH_GATE_AREA 1
++#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ 
+ #endif	/* __KERNEL__ */
+ #endif /* _ASM_X86_PAGE_H */
+diff -puN arch/x86/include/asm/page_32.h~x86-mm-get-aslr-work-for-hugetlb-mappings arch/x86/include/asm/page_32.h
+--- a/arch/x86/include/asm/page_32.h~x86-mm-get-aslr-work-for-hugetlb-mappings
++++ a/arch/x86/include/asm/page_32.h
+@@ -5,10 +5,6 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
+-#define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+-#endif
+-
+ #define __phys_addr_nodebug(x)	((x) - PAGE_OFFSET)
+ #ifdef CONFIG_DEBUG_VIRTUAL
+ extern unsigned long __phys_addr(unsigned long);
+diff -puN arch/x86/mm/hugetlbpage.c~x86-mm-get-aslr-work-for-hugetlb-mappings arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~x86-mm-get-aslr-work-for-hugetlb-mappings
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -87,9 +87,7 @@ int pmd_huge_support(void)
+ }
  #endif
  
-+/* Bit manipulation helper on pte/pgoff entry */
-+static inline unsigned long pte_bitop(unsigned long value, unsigned int rightshift,
-+				      unsigned long mask, unsigned int leftshift)
-+{
-+	return ((value >> rightshift) & mask) << leftshift;
-+}
-+
- #ifdef CONFIG_MEM_SOFT_DIRTY
- 
- /*
-@@ -71,31 +78,34 @@ static inline pmd_t native_pmdp_get_and_
- #define PTE_FILE_BITS2		(PTE_FILE_SHIFT3 - PTE_FILE_SHIFT2 - 1)
- #define PTE_FILE_BITS3		(PTE_FILE_SHIFT4 - PTE_FILE_SHIFT3 - 1)
- 
--#define pte_to_pgoff(pte)						\
--	((((pte).pte_low >> (PTE_FILE_SHIFT1))				\
--	  & ((1U << PTE_FILE_BITS1) - 1)))				\
--	+ ((((pte).pte_low >> (PTE_FILE_SHIFT2))			\
--	    & ((1U << PTE_FILE_BITS2) - 1))				\
--	   << (PTE_FILE_BITS1))						\
--	+ ((((pte).pte_low >> (PTE_FILE_SHIFT3))			\
--	    & ((1U << PTE_FILE_BITS3) - 1))				\
--	   << (PTE_FILE_BITS1 + PTE_FILE_BITS2))			\
--	+ ((((pte).pte_low >> (PTE_FILE_SHIFT4)))			\
--	    << (PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3))
+-/* x86_64 also uses this file */
 -
--#define pgoff_to_pte(off)						\
--	((pte_t) { .pte_low =						\
--	 ((((off)) & ((1U << PTE_FILE_BITS1) - 1)) << PTE_FILE_SHIFT1)	\
--	 + ((((off) >> PTE_FILE_BITS1)					\
--	     & ((1U << PTE_FILE_BITS2) - 1))				\
--	    << PTE_FILE_SHIFT2)						\
--	 + ((((off) >> (PTE_FILE_BITS1 + PTE_FILE_BITS2))		\
--	     & ((1U << PTE_FILE_BITS3) - 1))				\
--	    << PTE_FILE_SHIFT3)						\
--	 + ((((off) >>							\
--	      (PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3)))	\
--	    << PTE_FILE_SHIFT4)						\
--	 + _PAGE_FILE })
-+#define PTE_FILE_MASK1		((1U << PTE_FILE_BITS1) - 1)
-+#define PTE_FILE_MASK2		((1U << PTE_FILE_BITS2) - 1)
-+#define PTE_FILE_MASK3		((1U << PTE_FILE_BITS3) - 1)
-+
-+#define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
-+#define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
-+#define PTE_FILE_LSHIFT4	(PTE_FILE_BITS1 + PTE_FILE_BITS2 + PTE_FILE_BITS3)
-+
-+static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
-+{
-+	return (pgoff_t)
-+		(pte_bitop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		    +
-+		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
-+		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT3, PTE_FILE_MASK3,  PTE_FILE_LSHIFT3) +
-+		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT4,           -1UL,  PTE_FILE_LSHIFT4));
-+}
-+
-+static __always_inline pte_t pgoff_to_pte(pgoff_t off)
-+{
-+	return (pte_t){
-+		.pte_low =
-+			pte_bitop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
-+			pte_bitop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
-+			pte_bitop(off, PTE_FILE_LSHIFT3, PTE_FILE_MASK3,  PTE_FILE_SHIFT3) +
-+			pte_bitop(off, PTE_FILE_LSHIFT4,           -1UL,  PTE_FILE_SHIFT4) +
-+			_PAGE_FILE,
-+	};
-+}
+-#ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
++#ifdef CONFIG_HUGETLB_PAGE
+ static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *file,
+ 		unsigned long addr, unsigned long len,
+ 		unsigned long pgoff, unsigned long flags)
+@@ -99,7 +97,7 @@ static unsigned long hugetlb_get_unmappe
  
- #else /* CONFIG_MEM_SOFT_DIRTY */
- 
-@@ -115,22 +125,30 @@ static inline pmd_t native_pmdp_get_and_
- #define PTE_FILE_BITS1		(PTE_FILE_SHIFT2 - PTE_FILE_SHIFT1 - 1)
- #define PTE_FILE_BITS2		(PTE_FILE_SHIFT3 - PTE_FILE_SHIFT2 - 1)
- 
--#define pte_to_pgoff(pte)						\
--	((((pte).pte_low >> PTE_FILE_SHIFT1)				\
--	  & ((1U << PTE_FILE_BITS1) - 1))				\
--	 + ((((pte).pte_low >> PTE_FILE_SHIFT2)				\
--	     & ((1U << PTE_FILE_BITS2) - 1)) << PTE_FILE_BITS1)		\
--	 + (((pte).pte_low >> PTE_FILE_SHIFT3)				\
--	    << (PTE_FILE_BITS1 + PTE_FILE_BITS2)))
--
--#define pgoff_to_pte(off)						\
--	((pte_t) { .pte_low =						\
--	 (((off) & ((1U << PTE_FILE_BITS1) - 1)) << PTE_FILE_SHIFT1)	\
--	 + ((((off) >> PTE_FILE_BITS1) & ((1U << PTE_FILE_BITS2) - 1))	\
--	    << PTE_FILE_SHIFT2)						\
--	 + (((off) >> (PTE_FILE_BITS1 + PTE_FILE_BITS2))		\
--	    << PTE_FILE_SHIFT3)						\
--	 + _PAGE_FILE })
-+#define PTE_FILE_MASK1		((1U << PTE_FILE_BITS1) - 1)
-+#define PTE_FILE_MASK2		((1U << PTE_FILE_BITS2) - 1)
-+
-+#define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
-+#define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
-+
-+static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
-+{
-+	return (pgoff_t)
-+		(pte_bitop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		    +
-+		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
-+		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT3,           -1UL,  PTE_FILE_LSHIFT3));
-+}
-+
-+static __always_inline pte_t pgoff_to_pte(pgoff_t off)
-+{
-+	return (pte_t){
-+		.pte_low =
-+			pte_bitop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
-+			pte_bitop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
-+			pte_bitop(off, PTE_FILE_LSHIFT3,           -1UL,  PTE_FILE_SHIFT3) +
-+			_PAGE_FILE,
-+	};
-+}
- 
- #endif /* CONFIG_MEM_SOFT_DIRTY */
- 
-_
-
-Patches currently in -mm which might be from gorcunov@gmail.com are
-
-linux-next.patch
-
+ 	info.flags = 0;
+ 	info.length = len;
+-	info.low_limit = TASK_UNMAPPED_BASE;
++	info.low_limit = current->mm->mmap_legacy_base;
+ 	info.high_limit = TASK_SIZE;
+ 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+ 	info.align_offset = 0;
+@@ -172,8 +170,7 @@ hugetlb_get_unmapped_area(struct file *f
+ 		return hugetlb_get_unmapped_area_topdown(file, addr, len,
+ 				pgoff, flags);
+ }
