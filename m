@@ -1,89 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name.patch removed from
- -mm tree
-Date: Mon, 02 Dec 2013 13:39:30 -0800
-Message-ID: <529cfe12.w/g2qfxSCP3NsEcX%akpm@linux-foundation.org>
+Subject: + kernel-forkc-fix-coding-style-issues.patch added to -mm tree
+Date: Mon, 02 Dec 2013 14:08:19 -0800
+Message-ID: <529d04d3.UU5lopqbQLHLolqS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41091 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750938Ab3LBVjb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 16:39:31 -0500
+	with ESMTP id S1752280Ab3LBWIU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 17:08:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, daeseok.youn@gmail.com
 
-Subject: [nacked] ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name.patch removed from -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: + kernel-forkc-fix-coding-style-issues.patch added to -mm tree
+To: daeseok.youn@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 02 Dec 2013 13:39:30 -0800
+Date: Mon, 02 Dec 2013 14:08:19 -0800
 
 
 The patch titled
-     Subject: ocfs2: drop the unwanted null byte in dentry lock name
-has been removed from the -mm tree.  Its filename was
-     ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name.patch
+     Subject: kernel/fork.c: fix coding style issues
+has been added to the -mm tree.  Its filename is
+     kernel-forkc-fix-coding-style-issues.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-forkc-fix-coding-style-issues.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-forkc-fix-coding-style-issues.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: drop the unwanted null byte in dentry lock name
+From: Daeseok Youn <daeseok.youn@gmail.com>
+Subject: kernel/fork.c: fix coding style issues
 
-Dentry lock name is made up of the type 'N', the parent blkno and its
-blkno represented as a binary value.  Now there is a null byte between
-parent blkno and the binary blkno value, so drop it.
+Fix errors reported by checkpatch.pl.  One error is parentheses, the other
+is a whitespace issue.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdebug.c |    2 +-
- fs/ocfs2/dlmglue.c      |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/fork.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmdebug.c~ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name fs/ocfs2/dlm/dlmdebug.c
---- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name
-+++ a/fs/ocfs2/dlm/dlmdebug.c
-@@ -257,7 +257,7 @@ static int stringify_lockname(const char
- #define OCFS2_DENTRY_LOCK_INO_START	18
- 	if (*lockname == 'N') {
- 		memcpy((__be64 *)&inode_blkno_be,
--		       (char *)&lockname[OCFS2_DENTRY_LOCK_INO_START],
-+		       (char *)&lockname[OCFS2_DENTRY_LOCK_INO_START - 1],
- 		       sizeof(__be64));
- 		out += snprintf(buf + out, len - out, "%.*s%08x",
- 				OCFS2_DENTRY_LOCK_INO_START - 1, lockname,
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name
-+++ a/fs/ocfs2/dlmglue.c
-@@ -586,7 +586,7 @@ static __u64 ocfs2_get_dentry_lock_ino(s
+diff -puN kernel/fork.c~kernel-forkc-fix-coding-style-issues kernel/fork.c
+--- a/kernel/fork.c~kernel-forkc-fix-coding-style-issues
++++ a/kernel/fork.c
+@@ -1644,7 +1644,7 @@ SYSCALL_DEFINE0(fork)
+ 	return do_fork(SIGCHLD, 0, 0, NULL, NULL);
+ #else
+ 	/* can not support in nommu mode */
+-	return(-EINVAL);
++	return -EINVAL;
+ #endif
+ }
+ #endif
+@@ -1652,7 +1652,7 @@ SYSCALL_DEFINE0(fork)
+ #ifdef __ARCH_WANT_SYS_VFORK
+ SYSCALL_DEFINE0(vfork)
  {
- 	__be64 inode_blkno_be;
- 
--	memcpy(&inode_blkno_be, &lockres->l_name[OCFS2_DENTRY_LOCK_INO_START],
-+	memcpy(&inode_blkno_be, &lockres->l_name[OCFS2_DENTRY_LOCK_INO_START - 1],
- 	       sizeof(__be64));
- 
- 	return be64_to_cpu(inode_blkno_be);
-@@ -631,7 +631,7 @@ void ocfs2_dentry_lock_res_init(struct o
- 
- 	BUG_ON(len != (OCFS2_DENTRY_LOCK_INO_START - 1));
- 
--	memcpy(&lockres->l_name[OCFS2_DENTRY_LOCK_INO_START], &inode_blkno_be,
-+	memcpy(&lockres->l_name[OCFS2_DENTRY_LOCK_INO_START - 1], &inode_blkno_be,
- 	       sizeof(__be64));
- 
- 	ocfs2_lock_res_init_common(OCFS2_SB(inode->i_sb), lockres,
+-	return do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, 0, 
++	return do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, 0,
+ 			0, NULL, NULL);
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from daeseok.youn@gmail.com are
 
-ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
+kernel-forkc-make-dup_mm-static.patch
+kernel-forkc-fix-coding-style-issues.patch
+kernel-forkc-remove-redundant-null-check-in-dup_mm.patch
 
