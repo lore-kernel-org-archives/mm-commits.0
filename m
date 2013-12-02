@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name.patch
- added to -mm tree
-Date: Wed, 27 Nov 2013 15:40:02 -0800
-Message-ID: <529682d2.8GR9L4VM83iOsKh1%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Mon, 02 Dec 2013 12:35:35 -0800
+Message-ID: <529cef17.z8V+Hs/CsfRyZ7rg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52699 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40492 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758520Ab3K0XkD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Nov 2013 18:40:03 -0500
+	with ESMTP id S1753637Ab3LBUfg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 15:35:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name.patch added to -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + linux-next-git-rejects.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Wed, 27 Nov 2013 15:40:02 -0800
+Date: Mon, 02 Dec 2013 12:35:35 -0800
 
 
 The patch titled
-     Subject: ocfs2: drop the unwanted null byte in dentry lock name
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,60 +43,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: drop the unwanted null byte in dentry lock name
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Dentry lock name is made up of the type 'N', the parent blkno and its
-blkno represented as a binary value.  Now there is a null byte between
-parent blkno and the binary blkno value, so drop it.
-
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdebug.c |    2 +-
- fs/ocfs2/dlmglue.c      |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/spi/spi-rspi.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmdebug.c~ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name fs/ocfs2/dlm/dlmdebug.c
---- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name
-+++ a/fs/ocfs2/dlm/dlmdebug.c
-@@ -257,7 +257,7 @@ static int stringify_lockname(const char
- #define OCFS2_DENTRY_LOCK_INO_START	18
- 	if (*lockname == 'N') {
- 		memcpy((__be64 *)&inode_blkno_be,
--		       (char *)&lockname[OCFS2_DENTRY_LOCK_INO_START],
-+		       (char *)&lockname[OCFS2_DENTRY_LOCK_INO_START - 1],
- 		       sizeof(__be64));
- 		out += snprintf(buf + out, len - out, "%.*s%08x",
- 				OCFS2_DENTRY_LOCK_INO_START - 1, lockname,
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name
-+++ a/fs/ocfs2/dlmglue.c
-@@ -586,7 +586,7 @@ static __u64 ocfs2_get_dentry_lock_ino(s
- {
- 	__be64 inode_blkno_be;
+diff -puN drivers/spi/spi-rspi.c~linux-next-git-rejects drivers/spi/spi-rspi.c
+--- a/drivers/spi/spi-rspi.c~linux-next-git-rejects
++++ a/drivers/spi/spi-rspi.c
+@@ -889,12 +889,6 @@ static int rspi_remove(struct platform_d
  
--	memcpy(&inode_blkno_be, &lockres->l_name[OCFS2_DENTRY_LOCK_INO_START],
-+	memcpy(&inode_blkno_be, &lockres->l_name[OCFS2_DENTRY_LOCK_INO_START - 1],
- 	       sizeof(__be64));
+ 	spi_unregister_master(rspi->master);
+ 	rspi_release_dma(rspi);
+-<<<<<<< HEAD
+-	free_irq(platform_get_irq(pdev, 0), rspi);
+-	clk_put(rspi->clk);
+-	iounmap(rspi->addr);
+-=======
+->>>>>>> linux-next/akpm-base
  
- 	return be64_to_cpu(inode_blkno_be);
-@@ -631,7 +631,7 @@ void ocfs2_dentry_lock_res_init(struct o
- 
- 	BUG_ON(len != (OCFS2_DENTRY_LOCK_INO_START - 1));
- 
--	memcpy(&lockres->l_name[OCFS2_DENTRY_LOCK_INO_START], &inode_blkno_be,
-+	memcpy(&lockres->l_name[OCFS2_DENTRY_LOCK_INO_START - 1], &inode_blkno_be,
- 	       sizeof(__be64));
- 
- 	ocfs2_lock_res_init_common(OCFS2_SB(inode->i_sb), lockres,
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-drop-the-unwanted-null-byte-in-dentry-lock-name.patch
-ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
+origin.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
+dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+arch-um-kernel-sysrqc-rename-print_stack_trace.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+linux-next-git-rejects.patch
 
