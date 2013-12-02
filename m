@@ -1,101 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- arch-um-kernel-sysrqc-rename-print_stack_trace.patch removed from -mm tree
-Date: Mon, 02 Dec 2013 12:36:18 -0800
-Message-ID: <529cef42.9SplWGAG6ct/GFzz%akpm@linux-foundation.org>
+Subject: [merged] fork-no-need-to-initialize-child-exit_state.patch
+ removed from -mm tree
+Date: Mon, 02 Dec 2013 12:37:31 -0800
+Message-ID: <529cef8b.ku6Wa/UOoucLEZ6b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40495 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754882Ab3LBUgT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 15:36:19 -0500
+	with ESMTP id S1756118Ab3LBUhc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 15:37:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, richrd@nod.at, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tj@kernel.org, peterz@infradead.org, mingo@kernel.org, geert@linux-m68k.org, David.Laight@ACULAB.COM, oleg@redhat.com
 
-Subject: [alternative-merged] arch-um-kernel-sysrqc-rename-print_stack_trace.patch removed from -mm tree
-To: akpm@linux-foundation.org,fengguang.wu@intel.com,richrd@nod.at,mm-commits@vger.kernel.org
+Subject: [merged] fork-no-need-to-initialize-child-exit_state.patch removed from -mm tree
+To: oleg@redhat.com,David.Laight@ACULAB.COM,geert@linux-m68k.org,mingo@kernel.org,peterz@infradead.org,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 02 Dec 2013 12:36:18 -0800
+Date: Mon, 02 Dec 2013 12:37:31 -0800
 
 
 The patch titled
-     Subject: arch/um/kernel/sysrq.c: rename print_stack_trace()
+     Subject: fork: no need to initialize child->exit_state
 has been removed from the -mm tree.  Its filename was
-     arch-um-kernel-sysrqc-rename-print_stack_trace.patch
+     fork-no-need-to-initialize-child-exit_state.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/um/kernel/sysrq.c: rename print_stack_trace()
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: fork: no need to initialize child->exit_state
 
-This symbol conflicts with include/linux/stacktrace.h:print_stack_trace().
-If sysrq.c sees stacktrace.h, the build blows up.  I have a local debug
-patch whcih triggers this.
+A zombie task obviously can't fork(), remove the unnecessary
+initialization of child->exit_state.  It is zero anyway after
+dup_task_struct().
 
-So s/print_stack_trace/um_print_stack_trace/
+Note: copy_process() is huge and it has a lot of chaotic initializations,
+probably it makes sense to move them into the new helper called by
+dup_task_struct().
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Richard Weinberger <richrd@nod.at>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/sysrq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/fork.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/um/kernel/sysrq.c~arch-um-kernel-sysrqc-rename-print_stack_trace arch/um/kernel/sysrq.c
---- a/arch/um/kernel/sysrq.c~arch-um-kernel-sysrqc-rename-print_stack_trace
-+++ a/arch/um/kernel/sysrq.c
-@@ -19,7 +19,7 @@ struct stack_frame {
- 	unsigned long return_address;
- };
- 
--static void print_stack_trace(unsigned long *sp, unsigned long bp)
-+static void um_print_stack_trace(unsigned long *sp, unsigned long bp)
- {
- 	int reliable;
- 	unsigned long addr;
-@@ -94,5 +94,5 @@ void show_stack(struct task_struct *task
+diff -puN kernel/fork.c~fork-no-need-to-initialize-child-exit_state kernel/fork.c
+--- a/kernel/fork.c~fork-no-need-to-initialize-child-exit_state
++++ a/kernel/fork.c
+@@ -1402,13 +1402,11 @@ static struct task_struct *copy_process(
+ 		p->tgid = p->pid;
  	}
- 	printk(KERN_CONT "\n");
  
--	print_stack_trace(sp, bp);
-+	um_print_stack_trace(sp, bp);
- }
+-	p->pdeath_signal = 0;
+-	p->exit_state = 0;
+-
+ 	p->nr_dirtied = 0;
+ 	p->nr_dirtied_pause = 128 >> (PAGE_SHIFT - 10);
+ 	p->dirty_paused_when = 0;
+ 
++	p->pdeath_signal = 0;
+ 	INIT_LIST_HEAD(&p->thread_group);
+ 	p->task_works = NULL;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-origin.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
+coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
+coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
+proc-cleanup-simplify-get_task_state-task_state_array.patch
+proc-fix-the-potential-use-after-free-in-first_tid.patch
+proc-change-first_tid-to-use-while_each_thread-rather-than-next_thread.patch
+proc-dont-abuse-group_leader-in-proc_task_readdir-paths.patch
+proc-fix-f_pos-overflows-in-first_tid.patch
+exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
+exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
+exec-move-the-final-allow_write_access-fput-into-free_bprm.patch
+exec-kill-task_struct-did_exec.patch
+fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
+kernel-sysc-k_getrusage-can-use-while_each_thread.patch
+kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
-dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
