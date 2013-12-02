@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-s5m-fix-unsuccesful-irq-request-during-probe.patch added to -mm tree
-Date: Mon, 02 Dec 2013 15:15:40 -0800
-Message-ID: <529d149c.uklhWX5FMOR4SvVu%akpm@linux-foundation.org>
+Subject: + mfd-sec-constify-regmap-configs-and-regmap-irqs.patch added to
+ -mm tree
+Date: Mon, 02 Dec 2013 15:15:44 -0800
+Message-ID: <529d14a0.8/YCQtURIE3bU73b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41510 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41530 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751766Ab3LBXPl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 18:15:41 -0500
+	with ESMTP id S1754375Ab3LBXPp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 18:15:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, sbkim73@samsung.com, sameo@linux.intel.com, m.szyprowski@samsung.com, lgirdwood@gmail.com, lee.jones@linaro.org, kyungmin.park@samsung.com, geert@linux-m68k.org, broonie@linaro.org, a.zummo@towertech.it, k.kozlowski@samsung.com
+To: mm-commits@vger.kernel.org, sbkim73@samsung.com, sameo@linux.intel.com, m.szyprowski@samsung.com, lgirdwood@gmail.com, lee.jones@linaro.org, kyungmin.park@samsung.com, geert@linux-m68k.org, broonie@linaro.org, a.zummo@towertech.it, k.kozlowski@samsung.com
 
-Subject: + rtc-s5m-fix-unsuccesful-irq-request-during-probe.patch added to -mm tree
-To: k.kozlowski@samsung.com,a.zummo@towertech.it,broonie@linaro.org,geert@linux-m68k.org,kyungmin.park@samsung.com,lee.jones@linaro.org,lgirdwood@gmail.com,m.szyprowski@samsung.com,sameo@linux.intel.com,sbkim73@samsung.com,stable@vger.kernel.org
+Subject: + mfd-sec-constify-regmap-configs-and-regmap-irqs.patch added to -mm tree
+To: k.kozlowski@samsung.com,a.zummo@towertech.it,broonie@linaro.org,geert@linux-m68k.org,kyungmin.park@samsung.com,lee.jones@linaro.org,lgirdwood@gmail.com,m.szyprowski@samsung.com,sameo@linux.intel.com,sbkim73@samsung.com
 From: akpm@linux-foundation.org
-Date: Mon, 02 Dec 2013 15:15:40 -0800
+Date: Mon, 02 Dec 2013 15:15:44 -0800
 
 
 The patch titled
-     Subject: rtc: s5m: fix unsuccesful IRQ request during probe
+     Subject: mfd: sec: constify regmap configs and regmap irqs
 has been added to the -mm tree.  Its filename is
-     rtc-s5m-fix-unsuccesful-irq-request-during-probe.patch
+     mfd-sec-constify-regmap-configs-and-regmap-irqs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-s5m-fix-unsuccesful-irq-request-during-probe.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mfd-sec-constify-regmap-configs-and-regmap-irqs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-s5m-fix-unsuccesful-irq-request-during-probe.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mfd-sec-constify-regmap-configs-and-regmap-irqs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,18 +45,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: rtc: s5m: fix unsuccesful IRQ request during probe
+Subject: mfd: sec: constify regmap configs and regmap irqs
 
-Probe failed for rtc-s5m:
-	s5m-rtc s5m-rtc: Failed to request alarm IRQ: 12: -22
-	s5m-rtc: probe of s5m-rtc failed with error -22
-
-Fix rtc-s5m interrupt request by using regmap_irq_get_virq() for mapping
-the IRQ.
+Add "const" to "static struct regmap_irq" and "static struct
+regmap_config".
 
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Reviwed-by: Mark Brown <broonie@linaro.org>
+Reviewed-by: Mark Brown <broonie@linaro.org>
 Acked-by: Sangbeom Kim <sbkim73@samsung.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 Cc: Lee Jones <lee.jones@linaro.org>
@@ -64,32 +60,106 @@ Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s5m.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mfd/sec-core.c |    8 ++++----
+ drivers/mfd/sec-irq.c  |   12 ++++++------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-s5m.c~rtc-s5m-fix-unsuccesful-irq-request-during-probe drivers/rtc/rtc-s5m.c
---- a/drivers/rtc/rtc-s5m.c~rtc-s5m-fix-unsuccesful-irq-request-during-probe
-+++ a/drivers/rtc/rtc-s5m.c
-@@ -548,11 +548,13 @@ static int s5m_rtc_probe(struct platform
+diff -puN drivers/mfd/sec-core.c~mfd-sec-constify-regmap-configs-and-regmap-irqs drivers/mfd/sec-core.c
+--- a/drivers/mfd/sec-core.c~mfd-sec-constify-regmap-configs-and-regmap-irqs
++++ a/drivers/mfd/sec-core.c
+@@ -134,12 +134,12 @@ static bool s5m8763_volatile(struct devi
+ 	}
+ }
  
- 	switch (pdata->device_type) {
- 	case S5M8763X:
--		info->irq = s5m87xx->irq_base + S5M8763_IRQ_ALARM0;
-+		info->irq = regmap_irq_get_virq(s5m87xx->irq_data,
-+				S5M8763_IRQ_ALARM0);
- 		break;
+-static struct regmap_config sec_regmap_config = {
++static const struct regmap_config sec_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ };
  
- 	case S5M8767X:
--		info->irq = s5m87xx->irq_base + S5M8767_IRQ_RTCA1;
-+		info->irq = regmap_irq_get_virq(s5m87xx->irq_data,
-+				S5M8767_IRQ_RTCA1);
- 		break;
+-static struct regmap_config s2mps11_regmap_config = {
++static const struct regmap_config s2mps11_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
  
- 	default:
+@@ -148,7 +148,7 @@ static struct regmap_config s2mps11_regm
+ 	.cache_type = REGCACHE_FLAT,
+ };
+ 
+-static struct regmap_config s5m8763_regmap_config = {
++static const struct regmap_config s5m8763_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 
+@@ -157,7 +157,7 @@ static struct regmap_config s5m8763_regm
+ 	.cache_type = REGCACHE_FLAT,
+ };
+ 
+-static struct regmap_config s5m8767_regmap_config = {
++static const struct regmap_config s5m8767_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 
+diff -puN drivers/mfd/sec-irq.c~mfd-sec-constify-regmap-configs-and-regmap-irqs drivers/mfd/sec-irq.c
+--- a/drivers/mfd/sec-irq.c~mfd-sec-constify-regmap-configs-and-regmap-irqs
++++ a/drivers/mfd/sec-irq.c
+@@ -22,7 +22,7 @@
+ #include <linux/mfd/samsung/s5m8763.h>
+ #include <linux/mfd/samsung/s5m8767.h>
+ 
+-static struct regmap_irq s2mps11_irqs[] = {
++static const struct regmap_irq s2mps11_irqs[] = {
+ 	[S2MPS11_IRQ_PWRONF] = {
+ 		.reg_offset = 0,
+ 		.mask = S2MPS11_IRQ_PWRONF_MASK,
+@@ -90,7 +90,7 @@ static struct regmap_irq s2mps11_irqs[]
+ };
+ 
+ 
+-static struct regmap_irq s5m8767_irqs[] = {
++static const struct regmap_irq s5m8767_irqs[] = {
+ 	[S5M8767_IRQ_PWRR] = {
+ 		.reg_offset = 0,
+ 		.mask = S5M8767_IRQ_PWRR_MASK,
+@@ -161,7 +161,7 @@ static struct regmap_irq s5m8767_irqs[]
+ 	},
+ };
+ 
+-static struct regmap_irq s5m8763_irqs[] = {
++static const struct regmap_irq s5m8763_irqs[] = {
+ 	[S5M8763_IRQ_DCINF] = {
+ 		.reg_offset = 0,
+ 		.mask = S5M8763_IRQ_DCINF_MASK,
+@@ -236,7 +236,7 @@ static struct regmap_irq s5m8763_irqs[]
+ 	},
+ };
+ 
+-static struct regmap_irq_chip s2mps11_irq_chip = {
++static const struct regmap_irq_chip s2mps11_irq_chip = {
+ 	.name = "s2mps11",
+ 	.irqs = s2mps11_irqs,
+ 	.num_irqs = ARRAY_SIZE(s2mps11_irqs),
+@@ -246,7 +246,7 @@ static struct regmap_irq_chip s2mps11_ir
+ 	.ack_base = S2MPS11_REG_INT1,
+ };
+ 
+-static struct regmap_irq_chip s5m8767_irq_chip = {
++static const struct regmap_irq_chip s5m8767_irq_chip = {
+ 	.name = "s5m8767",
+ 	.irqs = s5m8767_irqs,
+ 	.num_irqs = ARRAY_SIZE(s5m8767_irqs),
+@@ -256,7 +256,7 @@ static struct regmap_irq_chip s5m8767_ir
+ 	.ack_base = S5M8767_REG_INT1,
+ };
+ 
+-static struct regmap_irq_chip s5m8763_irq_chip = {
++static const struct regmap_irq_chip s5m8763_irq_chip = {
+ 	.name = "s5m8763",
+ 	.irqs = s5m8763_irqs,
+ 	.num_irqs = ARRAY_SIZE(s5m8763_irqs),
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
