@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-show_mem-remove-show_mem_filter_page_count.patch added to
- -mm tree
-Date: Tue, 03 Dec 2013 13:59:13 -0800
-Message-ID: <529e5431.LRcpeNunfvZoewp3%akpm@linux-foundation.org>
+Subject: + mm-add-overcommit_kbytes-sysctl-variable.patch added to -mm
+ tree
+Date: Tue, 03 Dec 2013 14:09:01 -0800
+Message-ID: <529e567d.T2pM8pBLW7GoM7lG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54667 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54687 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909Ab3LCV7O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 16:59:14 -0500
+	with ESMTP id S1752482Ab3LCWJC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 17:09:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, rientjes@google.com, linux@arm.linux.org.uk, jejb@parisc-linux.org, mgorman@suse.de
+To: mm-commits@vger.kernel.org, dave.hansen@linux.intel.com, alan@lxorguk.ukuu.org.uk, jmarchan@redhat.com
 
-Subject: + mm-show_mem-remove-show_mem_filter_page_count.patch added to -mm tree
-To: mgorman@suse.de,jejb@parisc-linux.org,linux@arm.linux.org.uk,rientjes@google.com,tony.luck@intel.com
+Subject: + mm-add-overcommit_kbytes-sysctl-variable.patch added to -mm tree
+To: jmarchan@redhat.com,alan@lxorguk.ukuu.org.uk,dave.hansen@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 03 Dec 2013 13:59:13 -0800
+Date: Tue, 03 Dec 2013 14:09:01 -0800
 
 
 The patch titled
-     Subject: mm, show_mem: remove SHOW_MEM_FILTER_PAGE_COUNT
+     Subject: mm: add overcommit_kbytes sysctl variable
 has been added to the -mm tree.  Its filename is
-     mm-show_mem-remove-show_mem_filter_page_count.patch
+     mm-add-overcommit_kbytes-sysctl-variable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-show_mem-remove-show_mem_filter_page_count.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-overcommit_kbytes-sysctl-variable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-show_mem-remove-show_mem_filter_page_count.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-overcommit_kbytes-sysctl-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,386 +44,219 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm, show_mem: remove SHOW_MEM_FILTER_PAGE_COUNT
+From: Jerome Marchand <jmarchan@redhat.com>
+Subject: mm: add overcommit_kbytes sysctl variable
 
-Commit 4b59e6c4 ("mm, show_mem: suppress page counts in non-blockable
-contexts") introduced SHOW_MEM_FILTER_PAGE_COUNT to suppress PFN walks on
-large memory machines.  Commit c78e9363 (:mm: do not walk all of system
-memory during show_mem") avoided a PFN walk in the generic show_mem helper
-which removes the requirement for SHOW_MEM_FILTER_PAGE_COUNT in that case.
+Some applications that run on HPC clusters are designed around the
+availability of RAM and the overcommit ratio is fine tuned to get the
+maximum usage of memory without swapping.  With growing memory, the
+1%-of-all-RAM grain provided by overcommit_ratio has become too coarse for
+these workload (on a 2TB machine it represents no less than 20GB).
 
-This patch removes PFN walkers from the arch-specific implementations that
-report on a per-node or per-zone granularity.  ARM and unicore32 still do
-a PFN walk as they report memory usage on each bank which is a much finer
-granularity where the debugging information may still be of use.  As the
-remaining arches doing PFN walks have relatively small amounts of memory,
-this patch simply removes SHOW_MEM_FILTER_PAGE_COUNT.
+This patch adds the new overcommit_kbytes sysctl variable that allow a
+much finer grain.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: James Bottomley <jejb@parisc-linux.org>
+Signed-of-by: Jerome Marchand <jmarchan@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/init.c       |    3 -
- arch/ia64/mm/contig.c    |   68 -------------------------------------
- arch/ia64/mm/discontig.c |   63 ----------------------------------
- arch/ia64/mm/init.c      |   48 ++++++++++++++++++++++++++
- arch/parisc/mm/init.c    |   64 +++++++++++-----------------------
- arch/unicore32/mm/init.c |    3 -
- include/linux/mm.h       |    1 
- lib/show_mem.c           |    3 -
- mm/page_alloc.c          |    7 ---
- 9 files changed, 69 insertions(+), 191 deletions(-)
+ Documentation/sysctl/vm.txt            |   12 +++++++++++
+ Documentation/vm/overcommit-accounting |    7 +++---
+ include/linux/mm.h                     |    5 ++++
+ include/linux/mman.h                   |    1 
+ kernel/sysctl.c                        |   10 ++++++++-
+ mm/mmap.c                              |   25 +++++++++++++++++++++++
+ mm/nommu.c                             |    1 
+ mm/util.c                              |   12 +++++++++--
+ 8 files changed, 67 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count
-+++ a/arch/arm/mm/init.c
-@@ -92,9 +92,6 @@ void show_mem(unsigned int filter)
- 	printk("Mem-info:\n");
- 	show_free_areas(filter);
+diff -puN Documentation/sysctl/vm.txt~mm-add-overcommit_kbytes-sysctl-variable Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-add-overcommit_kbytes-sysctl-variable
++++ a/Documentation/sysctl/vm.txt
+@@ -47,6 +47,7 @@ Currently, these files are in /proc/sys/
+ - numa_zonelist_order
+ - oom_dump_tasks
+ - oom_kill_allocating_task
++- overcommit_kbytes
+ - overcommit_memory
+ - overcommit_ratio
+ - page-cluster
+@@ -574,6 +575,17 @@ The default value is 0.
  
--	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
--		return;
--
- 	for_each_bank (i, mi) {
- 		struct membank *bank = &mi->bank[i];
- 		unsigned int pfn1, pfn2;
-diff -puN arch/ia64/mm/contig.c~mm-show_mem-remove-show_mem_filter_page_count arch/ia64/mm/contig.c
---- a/arch/ia64/mm/contig.c~mm-show_mem-remove-show_mem_filter_page_count
-+++ a/arch/ia64/mm/contig.c
-@@ -31,74 +31,6 @@
- static unsigned long max_gap;
- #endif
+ ==============================================================
  
--/**
-- * show_mem - give short summary of memory stats
-- *
-- * Shows a simple page count of reserved and used pages in the system.
-- * For discontig machines, it does this on a per-pgdat basis.
-- */
--void show_mem(unsigned int filter)
--{
--	int i, total_reserved = 0;
--	int total_shared = 0, total_cached = 0;
--	unsigned long total_present = 0;
--	pg_data_t *pgdat;
--
--	printk(KERN_INFO "Mem-info:\n");
--	show_free_areas(filter);
--	printk(KERN_INFO "Node memory in pages:\n");
--	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
--		return;
--	for_each_online_pgdat(pgdat) {
--		unsigned long present;
--		unsigned long flags;
--		int shared = 0, cached = 0, reserved = 0;
--		int nid = pgdat->node_id;
--
--		if (skip_free_areas_node(filter, nid))
--			continue;
--		pgdat_resize_lock(pgdat, &flags);
--		present = pgdat->node_present_pages;
--		for(i = 0; i < pgdat->node_spanned_pages; i++) {
--			struct page *page;
--			if (unlikely(i % MAX_ORDER_NR_PAGES == 0))
--				touch_nmi_watchdog();
--			if (pfn_valid(pgdat->node_start_pfn + i))
--				page = pfn_to_page(pgdat->node_start_pfn + i);
--			else {
--#ifdef CONFIG_VIRTUAL_MEM_MAP
--				if (max_gap < LARGE_GAP)
--					continue;
--#endif
--				i = vmemmap_find_next_valid_pfn(nid, i) - 1;
--				continue;
--			}
--			if (PageReserved(page))
--				reserved++;
--			else if (PageSwapCache(page))
--				cached++;
--			else if (page_count(page))
--				shared += page_count(page)-1;
--		}
--		pgdat_resize_unlock(pgdat, &flags);
--		total_present += present;
--		total_reserved += reserved;
--		total_cached += cached;
--		total_shared += shared;
--		printk(KERN_INFO "Node %4d:  RAM: %11ld, rsvd: %8d, "
--		       "shrd: %10d, swpd: %10d\n", nid,
--		       present, reserved, shared, cached);
--	}
--	printk(KERN_INFO "%ld pages of RAM\n", total_present);
--	printk(KERN_INFO "%d reserved pages\n", total_reserved);
--	printk(KERN_INFO "%d pages shared\n", total_shared);
--	printk(KERN_INFO "%d pages swap cached\n", total_cached);
--	printk(KERN_INFO "Total of %ld pages in page table cache\n",
--	       quicklist_total_size());
--	printk(KERN_INFO "%ld free buffer pages\n", nr_free_buffer_pages());
--}
--
--
- /* physical address where the bootmem map is located */
- unsigned long bootmap_start;
++overcommit_kbytes:
++
++When overcommit_memory is set to 2, the committed address space is not
++permitted to exceed swap plus this amount of physical RAM. See below.
++
++Note: overcommit_kbytes is the counterpart of overcommit_ratio. Only one
++of them may be specified at a time. Setting one disable the other (which
++then appears as 0 when read).
++
++==============================================================
++
+ overcommit_memory:
  
-diff -puN arch/ia64/mm/discontig.c~mm-show_mem-remove-show_mem_filter_page_count arch/ia64/mm/discontig.c
---- a/arch/ia64/mm/discontig.c~mm-show_mem-remove-show_mem_filter_page_count
-+++ a/arch/ia64/mm/discontig.c
-@@ -608,69 +608,6 @@ void *per_cpu_init(void)
- #endif /* CONFIG_SMP */
+ This value contains a flag that enables memory overcommitment.
+diff -puN Documentation/vm/overcommit-accounting~mm-add-overcommit_kbytes-sysctl-variable Documentation/vm/overcommit-accounting
+--- a/Documentation/vm/overcommit-accounting~mm-add-overcommit_kbytes-sysctl-variable
++++ a/Documentation/vm/overcommit-accounting
+@@ -14,8 +14,8 @@ The Linux kernel supports the following
  
- /**
-- * show_mem - give short summary of memory stats
-- *
-- * Shows a simple page count of reserved and used pages in the system.
-- * For discontig machines, it does this on a per-pgdat basis.
-- */
--void show_mem(unsigned int filter)
--{
--	int i, total_reserved = 0;
--	int total_shared = 0, total_cached = 0;
--	unsigned long total_present = 0;
--	pg_data_t *pgdat;
--
--	printk(KERN_INFO "Mem-info:\n");
--	show_free_areas(filter);
--	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
--		return;
--	printk(KERN_INFO "Node memory in pages:\n");
--	for_each_online_pgdat(pgdat) {
--		unsigned long present;
--		unsigned long flags;
--		int shared = 0, cached = 0, reserved = 0;
--		int nid = pgdat->node_id;
--
--		if (skip_free_areas_node(filter, nid))
--			continue;
--		pgdat_resize_lock(pgdat, &flags);
--		present = pgdat->node_present_pages;
--		for(i = 0; i < pgdat->node_spanned_pages; i++) {
--			struct page *page;
--			if (unlikely(i % MAX_ORDER_NR_PAGES == 0))
--				touch_nmi_watchdog();
--			if (pfn_valid(pgdat->node_start_pfn + i))
--				page = pfn_to_page(pgdat->node_start_pfn + i);
--			else {
--				i = vmemmap_find_next_valid_pfn(nid, i) - 1;
--				continue;
--			}
--			if (PageReserved(page))
--				reserved++;
--			else if (PageSwapCache(page))
--				cached++;
--			else if (page_count(page))
--				shared += page_count(page)-1;
--		}
--		pgdat_resize_unlock(pgdat, &flags);
--		total_present += present;
--		total_reserved += reserved;
--		total_cached += cached;
--		total_shared += shared;
--		printk(KERN_INFO "Node %4d:  RAM: %11ld, rsvd: %8d, "
--		       "shrd: %10d, swpd: %10d\n", nid,
--		       present, reserved, shared, cached);
--	}
--	printk(KERN_INFO "%ld pages of RAM\n", total_present);
--	printk(KERN_INFO "%d reserved pages\n", total_reserved);
--	printk(KERN_INFO "%d pages shared\n", total_shared);
--	printk(KERN_INFO "%d pages swap cached\n", total_cached);
--	printk(KERN_INFO "Total of %ld pages in page table cache\n",
--	       quicklist_total_size());
--	printk(KERN_INFO "%ld free buffer pages\n", nr_free_buffer_pages());
--}
--
--/**
-  * call_pernode_memory - use SRAT to call callback functions with node info
-  * @start: physical start of range
-  * @len: length of range
-diff -puN arch/ia64/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count
-+++ a/arch/ia64/mm/init.c
-@@ -684,3 +684,51 @@ per_linux32_init(void)
+ 2	-	Don't overcommit. The total address space commit
+ 		for the system is not permitted to exceed swap + a
+-		configurable percentage (default is 50) of physical RAM.
+-		Depending on the percentage you use, in most situations
++		configurable amount (default is 50%) of physical RAM.
++		Depending on the amount you use, in most situations
+ 		this means a process will not be killed while accessing
+ 		pages but will receive errors on memory allocation as
+ 		appropriate.
+@@ -26,7 +26,8 @@ The Linux kernel supports the following
+ 
+ The overcommit policy is set via the sysctl `vm.overcommit_memory'.
+ 
+-The overcommit percentage is set via `vm.overcommit_ratio'.
++The overcommit amount can be set via `vm.overcommit_ratio' (percentage)
++or `vm.overcommit_kbytes' (absolute value).
+ 
+ The current overcommit limit and amount committed are viewable in
+ /proc/meminfo as CommitLimit and Committed_AS respectively.
+diff -puN include/linux/mm.h~mm-add-overcommit_kbytes-sysctl-variable include/linux/mm.h
+--- a/include/linux/mm.h~mm-add-overcommit_kbytes-sysctl-variable
++++ a/include/linux/mm.h
+@@ -57,6 +57,11 @@ extern int sysctl_legacy_va_layout;
+ extern unsigned long sysctl_user_reserve_kbytes;
+ extern unsigned long sysctl_admin_reserve_kbytes;
+ 
++extern int overcommit_ratio_handler(struct ctl_table *, int, void __user *,
++				    size_t *, loff_t *);
++extern int overcommit_kbytes_handler(struct ctl_table *, int, void __user *,
++				    size_t *, loff_t *);
++
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
+ /* to align the pointer to the (next) page boundary */
+diff -puN include/linux/mman.h~mm-add-overcommit_kbytes-sysctl-variable include/linux/mman.h
+--- a/include/linux/mman.h~mm-add-overcommit_kbytes-sysctl-variable
++++ a/include/linux/mman.h
+@@ -9,6 +9,7 @@
+ 
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
++extern unsigned long sysctl_overcommit_kbytes;
+ extern struct percpu_counter vm_committed_as;
+ 
+ #ifdef CONFIG_SMP
+diff -puN kernel/sysctl.c~mm-add-overcommit_kbytes-sysctl-variable kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-add-overcommit_kbytes-sysctl-variable
++++ a/kernel/sysctl.c
+@@ -97,6 +97,7 @@
+ /* External variables not in a header file. */
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
++extern unsigned long sysctl_overcommit_kbytes;
+ extern int max_threads;
+ extern int suid_dumpable;
+ #ifdef CONFIG_COREDUMP
+@@ -1128,7 +1129,14 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &sysctl_overcommit_ratio,
+ 		.maxlen		= sizeof(sysctl_overcommit_ratio),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= overcommit_ratio_handler,
++	},
++	{
++		.procname	= "overcommit_kbytes",
++		.data		= &sysctl_overcommit_kbytes,
++		.maxlen		= sizeof(sysctl_overcommit_kbytes),
++		.mode		= 0644,
++		.proc_handler	= overcommit_kbytes_handler,
+ 	},
+ 	{
+ 		.procname	= "page-cluster", 
+diff -puN mm/mmap.c~mm-add-overcommit_kbytes-sysctl-variable mm/mmap.c
+--- a/mm/mmap.c~mm-add-overcommit_kbytes-sysctl-variable
++++ a/mm/mmap.c
+@@ -86,6 +86,7 @@ EXPORT_SYMBOL(vm_get_page_prot);
+ 
+ int sysctl_overcommit_memory __read_mostly = OVERCOMMIT_GUESS;  /* heuristic overcommit */
+ int sysctl_overcommit_ratio __read_mostly = 50;	/* default is 50% */
++unsigned long sysctl_overcommit_kbytes __read_mostly = 0;
+ int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
+ unsigned long sysctl_user_reserve_kbytes __read_mostly = 1UL << 17; /* 128MB */
+ unsigned long sysctl_admin_reserve_kbytes __read_mostly = 1UL << 13; /* 8MB */
+@@ -95,6 +96,30 @@ unsigned long sysctl_admin_reserve_kbyte
+  */
+ struct percpu_counter vm_committed_as ____cacheline_aligned_in_smp;
+ 
++int overcommit_ratio_handler(struct ctl_table *table, int write,
++			     void __user *buffer, size_t *lenp,
++			     loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_dointvec(table, write, buffer, lenp, ppos);
++	if (ret == 0 && write)
++		sysctl_overcommit_kbytes = 0;
++	return ret;
++}
++
++int overcommit_kbytes_handler(struct ctl_table *table, int write,
++			     void __user *buffer, size_t *lenp,
++			     loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
++	if (ret == 0 && write)
++		sysctl_overcommit_ratio = 0;
++	return ret;
++}
++
+ /*
+  * The global memory commitment made in the system can be a metric
+  * that can be used to drive ballooning decisions when Linux is hosted
+diff -puN mm/nommu.c~mm-add-overcommit_kbytes-sysctl-variable mm/nommu.c
+--- a/mm/nommu.c~mm-add-overcommit_kbytes-sysctl-variable
++++ a/mm/nommu.c
+@@ -60,6 +60,7 @@ unsigned long highest_memmap_pfn;
+ struct percpu_counter vm_committed_as;
+ int sysctl_overcommit_memory = OVERCOMMIT_GUESS; /* heuristic overcommit */
+ int sysctl_overcommit_ratio = 50; /* default is 50% */
++unsigned long sysctl_overcommit_kbytes __read_mostly = 0;
+ int sysctl_max_map_count = DEFAULT_MAX_MAP_COUNT;
+ int sysctl_nr_trim_pages = CONFIG_NOMMU_INITIAL_TRIM_EXCESS;
+ unsigned long sysctl_user_reserve_kbytes __read_mostly = 1UL << 17; /* 128MB */
+diff -puN mm/util.c~mm-add-overcommit_kbytes-sysctl-variable mm/util.c
+--- a/mm/util.c~mm-add-overcommit_kbytes-sysctl-variable
++++ a/mm/util.c
+@@ -406,8 +406,16 @@ struct address_space *page_mapping(struc
+  */
+ unsigned long vm_commit_limit(void)
+ {
+-	return ((totalram_pages - hugetlb_total_pages())
+-		* sysctl_overcommit_ratio / 100) + total_swap_pages;
++	unsigned long allowed;
++
++	if (sysctl_overcommit_kbytes)
++		allowed = sysctl_overcommit_kbytes >> (PAGE_SHIFT - 10);
++	else
++		allowed = ((totalram_pages - hugetlb_total_pages())
++			   * sysctl_overcommit_ratio / 100);
++	allowed += total_swap_pages;
++
++	return allowed;
  }
  
- __initcall(per_linux32_init);
-+
-+/**
-+ * show_mem - give short summary of memory stats
-+ *
-+ * Shows a simple page count of reserved and used pages in the system.
-+ * For discontig machines, it does this on a per-pgdat basis.
-+ */
-+void show_mem(unsigned int filter)
-+{
-+	int total_reserved = 0;
-+	unsigned long total_present = 0;
-+	pg_data_t *pgdat;
-+
-+	printk(KERN_INFO "Mem-info:\n");
-+	show_free_areas(filter);
-+	printk(KERN_INFO "Node memory in pages:\n");
-+	for_each_online_pgdat(pgdat) {
-+		unsigned long present;
-+		unsigned long flags;
-+		int reserved = 0;
-+		int nid = pgdat->node_id;
-+		int zoneid;
-+
-+		if (skip_free_areas_node(filter, nid))
-+			continue;
-+		pgdat_resize_lock(pgdat, &flags);
-+
-+		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
-+			struct zone *zone = &pgdat->node_zones[zoneid];
-+			if (!populated_zone(zone))
-+				continue;
-+
-+			reserved += zone->present_pages - zone->managed_pages;
-+		}
-+		present = pgdat->node_present_pages;
-+
-+		pgdat_resize_unlock(pgdat, &flags);
-+		total_present += present;
-+		total_reserved += reserved;
-+		printk(KERN_INFO "Node %4d:  RAM: %11ld, rsvd: %8d, ",
-+		       nid, present, reserved);
-+	}
-+	printk(KERN_INFO "%ld pages of RAM\n", total_present);
-+	printk(KERN_INFO "%d reserved pages\n", total_reserved);
-+	printk(KERN_INFO "Total of %ld pages in page table cache\n",
-+	       quicklist_total_size());
-+	printk(KERN_INFO "%ld free buffer pages\n", nr_free_buffer_pages());
-+}
-diff -puN arch/parisc/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count
-+++ a/arch/parisc/mm/init.c
-@@ -632,55 +632,33 @@ EXPORT_SYMBOL(empty_zero_page);
  
- void show_mem(unsigned int filter)
- {
--	int i,free = 0,total = 0,reserved = 0;
--	int shared = 0, cached = 0;
-+	int total = 0,reserved = 0;
-+	pg_data_t *pgdat;
- 
- 	printk(KERN_INFO "Mem-info:\n");
- 	show_free_areas(filter);
--	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
--		return;
--#ifndef CONFIG_DISCONTIGMEM
--	i = max_mapnr;
--	while (i-- > 0) {
--		total++;
--		if (PageReserved(mem_map+i))
--			reserved++;
--		else if (PageSwapCache(mem_map+i))
--			cached++;
--		else if (!page_count(&mem_map[i]))
--			free++;
--		else
--			shared += page_count(&mem_map[i]) - 1;
--	}
--#else
--	for (i = 0; i < npmem_ranges; i++) {
--		int j;
--
--		for (j = node_start_pfn(i); j < node_end_pfn(i); j++) {
--			struct page *p;
--			unsigned long flags;
--
--			pgdat_resize_lock(NODE_DATA(i), &flags);
--			p = nid_page_nr(i, j) - node_start_pfn(i);
--
--			total++;
--			if (PageReserved(p))
--				reserved++;
--			else if (PageSwapCache(p))
--				cached++;
--			else if (!page_count(p))
--				free++;
--			else
--				shared += page_count(p) - 1;
--			pgdat_resize_unlock(NODE_DATA(i), &flags);
--        	}
-+
-+	for_each_online_pgdat(pgdat) {
-+		unsigned long flags;
-+		int zoneid;
-+
-+		pgdat_resize_lock(pgdat, &flags);
-+		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
-+			struct zone *zone = &pgdat->node_zones[zoneid];
-+			if (!populated_zone(zone))
-+				continue;
-+
-+			total += zone->present_pages;
-+			reserved = zone->present_pages - zone->managed_pages;
-+
-+			if (is_highmem_idx(zoneid))
-+				highmem += zone->present_pages;
-+		}
-+		pgdat_resize_unlock(pgdat, &flags);
- 	}
--#endif
-+
- 	printk(KERN_INFO "%d pages of RAM\n", total);
- 	printk(KERN_INFO "%d reserved pages\n", reserved);
--	printk(KERN_INFO "%d pages shared\n", shared);
--	printk(KERN_INFO "%d pages swap cached\n", cached);
--
- 
- #ifdef CONFIG_DISCONTIGMEM
- 	{
-diff -puN arch/unicore32/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count arch/unicore32/mm/init.c
---- a/arch/unicore32/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count
-+++ a/arch/unicore32/mm/init.c
-@@ -66,9 +66,6 @@ void show_mem(unsigned int filter)
- 	printk(KERN_DEFAULT "Mem-info:\n");
- 	show_free_areas(filter);
- 
--	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
--		return;
--
- 	for_each_bank(i, mi) {
- 		struct membank *bank = &mi->bank[i];
- 		unsigned int pfn1, pfn2;
-diff -puN include/linux/mm.h~mm-show_mem-remove-show_mem_filter_page_count include/linux/mm.h
---- a/include/linux/mm.h~mm-show_mem-remove-show_mem_filter_page_count
-+++ a/include/linux/mm.h
-@@ -1014,7 +1014,6 @@ extern void pagefault_out_of_memory(void
-  * various contexts.
-  */
- #define SHOW_MEM_FILTER_NODES		(0x0001u)	/* disallowed nodes */
--#define SHOW_MEM_FILTER_PAGE_COUNT	(0x0002u)	/* page type count */
- 
- extern void show_free_areas(unsigned int flags);
- extern bool skip_free_areas_node(unsigned int flags, int nid);
-diff -puN lib/show_mem.c~mm-show_mem-remove-show_mem_filter_page_count lib/show_mem.c
---- a/lib/show_mem.c~mm-show_mem-remove-show_mem_filter_page_count
-+++ a/lib/show_mem.c
-@@ -17,9 +17,6 @@ void show_mem(unsigned int filter)
- 	printk("Mem-Info:\n");
- 	show_free_areas(filter);
- 
--	if (filter & SHOW_MEM_FILTER_PAGE_COUNT)
--		return;
--
- 	for_each_online_pgdat(pgdat) {
- 		unsigned long flags;
- 		int zoneid;
-diff -puN mm/page_alloc.c~mm-show_mem-remove-show_mem_filter_page_count mm/page_alloc.c
---- a/mm/page_alloc.c~mm-show_mem-remove-show_mem_filter_page_count
-+++ a/mm/page_alloc.c
-@@ -2073,13 +2073,6 @@ void warn_alloc_failed(gfp_t gfp_mask, i
- 		return;
- 
- 	/*
--	 * Walking all memory to count page types is very expensive and should
--	 * be inhibited in non-blockable contexts.
--	 */
--	if (!(gfp_mask & __GFP_WAIT))
--		filter |= SHOW_MEM_FILTER_PAGE_COUNT;
+_
+
+Patches currently in -mm which might be from jmarchan@redhat.com are
+
+mm-add-overcommit_kbytes-sysctl-variable.patch
+linux-next.patch
+
