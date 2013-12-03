@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 03 Dec 2013 15:57:00 -0800
-Message-ID: <529e6fcc.DoqzxtnGqUFKzfzt%akpm@linux-foundation.org>
+ memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 03 Dec 2013 15:57:54 -0800
+Message-ID: <529e7002.sXbsvVM1QbQyAzVq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55351 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55353 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754340Ab3LCX5B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 18:57:01 -0500
+	with ESMTP id S1751206Ab3LCX5z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 18:57:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tangchen@cn.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, akpm@linux-foundation.org
 
-Subject: + acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,tangchen@cn.fujitsu.com,zhangyanfei@cn.fujitsu.com
+Subject: + memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch added to -mm tree
+To: akpm@linux-foundation.org,hpa@zytor.com,tangchen@cn.fujitsu.com,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Tue, 03 Dec 2013 15:57:00 -0800
+Date: Tue, 03 Dec 2013 15:57:54 -0800
 
 
 The patch titled
-     Subject: acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes
+     Subject: memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
+     memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,15 +45,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes
+Subject: memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 
 WARNING: line over 80 characters
-#65: FILE: arch/x86/mm/srat.c:187:
-+			(unsigned long long) start, (unsigned long long) end - 1);
+#141: FILE: mm/memblock.c:731:
++		memblock_clear_region_flags(&type->regions[i], MEMBLOCK_HOTPLUG);
 
-total: 0 errors, 1 warnings, 19 lines checked
+total: 0 errors, 1 warnings, 93 lines checked
 
-./patches/acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch has style problems, please review.
+./patches/memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -65,21 +67,22 @@ Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/srat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memblock.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/srat.c~acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes arch/x86/mm/srat.c
---- a/arch/x86/mm/srat.c~acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes
-+++ a/arch/x86/mm/srat.c
-@@ -184,7 +184,7 @@ acpi_numa_memory_affinity_init(struct ac
- 	/* Mark hotplug range in memblock. */
- 	if (hotpluggable && memblock_mark_hotplug(start, ma->length))
- 		pr_warn("SRAT: Failed to mark hotplug range [mem %#010Lx-%#010Lx] in memblock\n",
--			(unsigned long long) start, (unsigned long long) end - 1);
-+			(unsigned long long)start, (unsigned long long)end - 1);
+diff -puN mm/memblock.c~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes mm/memblock.c
+--- a/mm/memblock.c~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes
++++ a/mm/memblock.c
+@@ -728,7 +728,8 @@ int __init_memblock memblock_clear_hotpl
+ 		return ret;
  
+ 	for (i = start_rgn; i < end_rgn; i++)
+-		memblock_clear_region_flags(&type->regions[i], MEMBLOCK_HOTPLUG);
++		memblock_clear_region_flags(&type->regions[i],
++					    MEMBLOCK_HOTPLUG);
+ 
+ 	memblock_merge_regions(type);
  	return 0;
- out_err_bad_srat:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +104,7 @@ mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.p
 mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
 mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
 mm-add-overcommit_kbytes-sysctl-variable-fix.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
 acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
 memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
 lib-parserc-put-export_symbols-in-the-conventional-place.patch
