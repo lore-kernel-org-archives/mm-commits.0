@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-more-comprehensive-split-strings-warning.patch added to -mm tree
-Date: Tue, 03 Dec 2013 15:15:48 -0800
-Message-ID: <529e6624.8LEmE64Cu4MnVBKl%akpm@linux-foundation.org>
+Subject: + x86-get-pg_data_ts-memory-from-other-node.patch added to -mm
+ tree
+Date: Tue, 03 Dec 2013 15:54:35 -0800
+Message-ID: <529e6f3b.gbCVggcLAE/xCwYm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54975 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55139 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753867Ab3LCXPt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 18:15:49 -0500
+	with ESMTP id S1754219Ab3LCXyh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 18:54:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, josh@joshtriplett.org, joe@perches.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, zhangyanfei.yes@gmail.com, yinghai@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, tangchen@cn.fujitsu.com, rjw@sisk.pl, riel@redhat.com, prarit@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, lwoodman@redhat.com, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, imtangchen@gmail.com, hpa@zytor.com, hannes@cmpxchg.org, gong.chen@linux.intel.com, isimatu.yasuaki@jp.fujitsu.com
 
-Subject: + checkpatch-more-comprehensive-split-strings-warning.patch added to -mm tree
-To: joe@perches.com,josh@joshtriplett.org
+Subject: + x86-get-pg_data_ts-memory-from-other-node.patch added to -mm tree
+To: isimatu.yasuaki@jp.fujitsu.com,gong.chen@linux.intel.com,hannes@cmpxchg.org,hpa@zytor.com,imtangchen@gmail.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,lwoodman@redhat.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,prarit@redhat.com,riel@redhat.com,rjw@sisk.pl,tangchen@cn.fujitsu.com,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,vasilis.liaskovitis@profitbricks.com,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei.yes@gmail.com,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Tue, 03 Dec 2013 15:15:48 -0800
+Date: Tue, 03 Dec 2013 15:54:35 -0800
 
 
 The patch titled
-     Subject: checkpatch: more comprehensive split strings warning
+     Subject: x86: get pg_data_t's memory from other node
 has been added to the -mm tree.  Its filename is
-     checkpatch-more-comprehensive-split-strings-warning.patch
+     x86-get-pg_data_ts-memory-from-other-node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-more-comprehensive-split-strings-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-get-pg_data_ts-memory-from-other-node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-more-comprehensive-split-strings-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-get-pg_data_ts-memory-from-other-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,79 +44,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: more comprehensive split strings warning
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: x86: get pg_data_t's memory from other node
 
-The current checkpatch test for split strings does not find several cases
-that should be found.
+If system can create movable node which all memory of the node is
+allocated as ZONE_MOVABLE, setup_node_data() cannot allocate memory for
+the node's pg_data_t.  So, invoke memblock_alloc_nid(...MAX_NUMNODES)
+again to retry when the first allocation fails.  Otherwise, the system
+could failed to boot.  (We don't use memblock_alloc_try_nid() to retry
+because in this function, if the allocation fails, it will panic the
+system.)
 
-For instance:
+The node_data could be on hotpluggable node.  And so could pagetable and
+vmemmap.  But for now, doing so will break memory hot-remove path.
 
-[]
-@@ -1868,7 +1865,8 @@ static void rs_rate_scale_perform(struct iwl_mvm *mvm,
- 		/* Else poor success; go back to mode in "active" table */
- 		} else {
- 			IWL_DEBUG_RATE(mvm,
--				       "LQ: GOING BACK TO THE OLD TABLE suc=%d cur-tpt=%d old-tpt=%d\n",
-+				       "GOING BACK TO THE OLD TABLE: SR %d "
-+				       "cur-tpt %d old-tpt %d\n",
- 				       window->success_ratio,
- 				       window->average_tpt,
- 				      lq_sta->last_tpt);
+A node could have several memory devices.  And the device who holds node
+data should be hot-removed in the last place.  But in NUMA level, we don't
+know which memory_block (/sys/devices/system/node/nodeX/memoryXXX) belongs
+to which memory device.  We only have node.  So we can only do node
+hotplug.
 
-does not currently emit a warning.
+But in virtualization, developers are now developing memory hotplug in
+qemu, which support a single memory device hotplug.  So a whole node
+hotplug will not satisfy virtualization users.
 
-Improve the test to find these cases.
+So at last, we concluded that we'd better do memory hotplug and local node
+things (local node node data, pagetable, vmemmap, ...) in two steps. 
+Please refer to https://lkml.org/lkml/2013/6/19/73
 
-Add more exceptions to reduce false positives for assembly and octal/hex
-string constants.
+For now, we put node_data of movable node to another node, and then
+improve it in the future.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Acked-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Tejun Heo <tj@kernel.org>
+CC: "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Gong Chen <gong.chen@linux.intel.com>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Chen Tang <imtangchen@gmail.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ arch/x86/mm/numa.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-more-comprehensive-split-strings-warning scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-more-comprehensive-split-strings-warning
-+++ a/scripts/checkpatch.pl
-@@ -2049,16 +2049,12 @@ sub process {
- 		}
+diff -puN arch/x86/mm/numa.c~x86-get-pg_data_ts-memory-from-other-node arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~x86-get-pg_data_ts-memory-from-other-node
++++ a/arch/x86/mm/numa.c
+@@ -211,9 +211,14 @@ static void __init setup_node_data(int n
+ 	 */
+ 	nd_pa = memblock_alloc_nid(nd_size, SMP_CACHE_BYTES, nid);
+ 	if (!nd_pa) {
+-		pr_err("Cannot find %zu bytes in node %d\n",
+-		       nd_size, nid);
+-		return;
++		pr_warn("Cannot find %zu bytes in node %d, so try other nodes",
++			nd_size, nid);
++		nd_pa = memblock_alloc_nid(nd_size, SMP_CACHE_BYTES,
++					   MAX_NUMNODES);
++		if (!nd_pa) {
++			pr_err("Cannot find %zu bytes in any node\n", nd_size);
++			return;
++		}
+ 	}
+ 	nd = __va(nd_pa);
  
- # Check for user-visible strings broken across lines, which breaks the ability
--# to grep for the string.  Limited to strings used as parameters (those
--# following an open parenthesis), which almost completely eliminates false
--# positives, as well as warning only once per parameter rather than once per
--# line of the string.  Make an exception when the previous string ends in a
--# newline (multiple lines in one string constant) or \n\t (common in inline
--# assembly to indent the instruction on the following line).
-+# to grep for the string.  Make exceptions when the previous string ends in a
-+# newline (multiple lines in one string constant) or '\t', '\r', ';', or '{'
-+# (common in inline assembly) or is a octal \123 or hexadecimal \xaf value
- 		if ($line =~ /^\+\s*"/ &&
- 		    $prevline =~ /"\s*$/ &&
--		    $prevline =~ /\(/ &&
--		    $prevrawline !~ /\\n(?:\\t)*"\s*$/) {
-+		    $prevrawline !~ /(?:\\(?:[ntr]|[0-7]{1,3}|x[0-9a-fA-F]{1,2})|;\s*|\{\s*)"\s*$/) {
- 			WARN("SPLIT_STRING",
- 			     "quoted string split across lines\n" . $hereprev);
- 		}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
 
-origin.patch
-lib-parserc-add-match_wildcard-function.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-dynamic_debug-add-wildcard-support-to-filter-files-functions-modules.patch
-dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch
-vsprintf-add-%pad-extension-for-dma_addr_t-use.patch
-get_maintainer-add-commit-author-information-to-rolestats.patch
-checkpatchpl-check-for-function-declarations-without-arguments.patch
-checkpatch-more-comprehensive-split-strings-warning.patch
-linux-next.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+x86-get-pg_data_ts-memory-from-other-node.patch
+memblock-numa-introduce-flags-field-into-memblock.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+memblock-make-memblock_set_node-support-different-memblock_type.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
+x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
 
