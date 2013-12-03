@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + vsprintf-add-%pad-extension-for-dma_addr_t-use.patch added to
- -mm tree
-Date: Tue, 03 Dec 2013 14:22:38 -0800
-Message-ID: <529e59ae.FG8xNa2IpPdUtIUm%akpm@linux-foundation.org>
+Subject: + ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+ added to -mm tree
+Date: Tue, 03 Dec 2013 14:47:12 -0800
+Message-ID: <529e5f70.FC5SpxQx0tt3L6ms%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54715 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54848 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755143Ab3LCWWj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 17:22:39 -0500
+	with ESMTP id S1755309Ab3LCWrN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 17:47:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rob@landley.net, laurent.pinchart+renesas@ideasonboard.com, julia.lawall@lip6.fr, andriy.shevchenko@intel.com, joe@perches.com
+To: mm-commits@vger.kernel.org, pmladek@suse.cz, manfred@colorfullife.com, jkosina@suse.cz, davidlohr@hp.com, akpm@linux-foundation.org
 
-Subject: + vsprintf-add-%pad-extension-for-dma_addr_t-use.patch added to -mm tree
-To: joe@perches.com,andriy.shevchenko@intel.com,julia.lawall@lip6.fr,laurent.pinchart+renesas@ideasonboard.com,rob@landley.net
+Subject: + ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,davidlohr@hp.com,jkosina@suse.cz,manfred@colorfullife.com,pmladek@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 03 Dec 2013 14:22:38 -0800
+Date: Tue, 03 Dec 2013 14:47:12 -0800
 
 
 The patch titled
-     Subject: vsprintf: add %pad extension for dma_addr_t use
+     Subject: ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix
 has been added to the -mm tree.  Its filename is
-     vsprintf-add-%pad-extension-for-dma_addr_t-use.patch
+     ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vsprintf-add-%pad-extension-for-dma_addr_t-use.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vsprintf-add-%pad-extension-for-dma_addr_t-use.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,127 +44,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: vsprintf: add %pad extension for dma_addr_t use
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix
 
-dma_addr_t's can be either u32 or u64 depending on a CONFIG option.
+restore lessened scope of local `undo'
 
-There are a few hundred dma_addr_t's printed via either cast to unsigned
-long long, unsigned long or no cast at all.
-
-Add %pad to be able to emit them without the cast.
-
-Update Documentation/printk-formats.txt too.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Petr Mladek <pmladek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |   11 +++++++--
- lib/vsprintf.c                   |   33 +++++++++++++++++++++++------
- 2 files changed, 36 insertions(+), 8 deletions(-)
+ ipc/sem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/printk-formats.txt~vsprintf-add-%pad-extension-for-dma_addr_t-use Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~vsprintf-add-%pad-extension-for-dma_addr_t-use
-+++ a/Documentation/printk-formats.txt
-@@ -55,14 +55,21 @@ Struct Resources:
- 	For printing struct resources. The 'R' and 'r' specifiers result in a
- 	printed resource with ('R') or without ('r') a decoded flags member.
+diff -puN ipc/sem.c~ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix
++++ a/ipc/sem.c
+@@ -599,7 +599,7 @@ SYSCALL_DEFINE3(semget, key_t, key, int,
+ static int perform_atomic_semop(struct sem_array *sma, struct sembuf *sops,
+ 			     int nsops, struct sem_undo *un, int pid)
+ {
+-	int result, undo, sem_op;
++	int result, sem_op;
+ 	struct sembuf *sop;
+ 	struct sem * curr;
  
--Physical addresses:
-+Physical addresses types phys_addr_t:
+@@ -618,7 +618,7 @@ static int perform_atomic_semop(struct s
+ 			goto out_of_range;
  
--	%pa	0x01234567 or 0x0123456789abcdef
-+	%pa[p]	0x01234567 or 0x0123456789abcdef
- 
- 	For printing a phys_addr_t type (and its derivatives, such as
- 	resource_size_t) which can vary based on build options, regardless of
- 	the width of the CPU data path. Passed by reference.
- 
-+DMA addresses types dma_addr_t:
-+
-+	%pad	0x01234567 or 0x0123456789abcdef
-+
-+	For printing a dma_addr_t type which can vary based on build options,
-+	regardless of the width of the CPU data path. Passed by reference.
-+
- Raw buffer as a hex string:
- 	%*ph	00 01 02  ...  3f
- 	%*phC	00:01:02: ... :3f
-diff -puN lib/vsprintf.c~vsprintf-add-%pad-extension-for-dma_addr_t-use lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-add-%pad-extension-for-dma_addr_t-use
-+++ a/lib/vsprintf.c
-@@ -1155,6 +1155,30 @@ char *netdev_feature_string(char *buf, c
- 	return number(buf, end, *(const netdev_features_t *)addr, spec);
- }
- 
-+static noinline_for_stack
-+char *address_val(char *buf, char *end, const void *addr,
-+		  struct printf_spec spec, const char *fmt)
-+{
-+	unsigned long long num;
-+
-+	spec.flags |= SPECIAL | SMALL | ZEROPAD;
-+	spec.base = 16;
-+
-+	switch (fmt[1]) {
-+	case 'd':
-+		num = *(const dma_addr_t *)addr;
-+		spec.field_width = sizeof(dma_addr_t) * 2 + 2;
-+		break;
-+	case 'p':
-+	default:
-+		num = *(const phys_addr_t *)addr;
-+		spec.field_width = sizeof(phys_addr_t) * 2 + 2;
-+		break;
-+	}
-+
-+	return number(buf, end, num, spec);
-+}
-+
- int kptr_restrict __read_mostly;
- 
- /*
-@@ -1218,7 +1242,8 @@ int kptr_restrict __read_mostly;
-  *              N no separator
-  *            The maximum supported length is 64 bytes of the input. Consider
-  *            to use print_hex_dump() for the larger input.
-- * - 'a' For a phys_addr_t type and its derivative types (passed by reference)
-+ * - 'a[pd]' For address types [p] phys_addr_t, [d] dma_addr_t and derivatives
-+ *           (default assumed to be phys_addr_t, passed by reference)
-  * - 'd[234]' For a dentry name (optionally 2-4 last components)
-  * - 'D[234]' Same as 'd' but for a struct file
-  *
-@@ -1353,11 +1378,7 @@ char *pointer(const char *fmt, char *buf
- 		}
- 		break;
- 	case 'a':
--		spec.flags |= SPECIAL | SMALL | ZEROPAD;
--		spec.field_width = sizeof(phys_addr_t) * 2 + 2;
--		spec.base = 16;
--		return number(buf, end,
--			      (unsigned long long) *((phys_addr_t *)ptr), spec);
-+		return address_val(buf, end, ptr, spec, fmt);
- 	case 'd':
- 		return dentry_name(buf, end, ptr, spec, fmt);
- 	case 'D':
+ 		if (sop->sem_flg & SEM_UNDO) {
+-			undo = un->semadj[sop->sem_num] - sem_op;
++			int undo = un->semadj[sop->sem_num] - sem_op;
+ 			/* Exceeding the undo range is an error. */
+ 			if (undo < (-SEMAEM - 1) || undo > SEMAEM)
+ 				goto out_of_range;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-lib-parserc-add-match_wildcard-function.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
+dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix.patch
 lib-parserc-put-export_symbols-in-the-conventional-place.patch
-dynamic_debug-add-wildcard-support-to-filter-files-functions-modules.patch
-dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch
-vsprintf-add-%pad-extension-for-dma_addr_t-use.patch
-get_maintainer-add-commit-author-information-to-rolestats.patch
-checkpatchpl-check-for-function-declarations-without-arguments.patch
+kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
 linux-next.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
