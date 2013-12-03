@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch added to
- -mm tree
-Date: Tue, 03 Dec 2013 15:54:43 -0800
-Message-ID: <529e6f43.NYD1zA9Md5NBuLp5%akpm@linux-foundation.org>
+ acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch added to -mm tree
+Date: Tue, 03 Dec 2013 15:54:45 -0800
+Message-ID: <529e6f45.5VAaC5a9Pspi2Mr7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55216 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55234 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754844Ab3LCXyp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 18:54:45 -0500
+	with ESMTP id S1754844Ab3LCXyr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 18:54:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, prarit@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, lwoodman@redhat.com, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, imtangchen@gmail.com, hpa@zytor.com, hannes@cmpxchg.org, gong.chen@linux.intel.com, tangchen@cn.fujitsu.com
 
-Subject: + acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch added to -mm tree
+Subject: + acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch added to -mm tree
 To: tangchen@cn.fujitsu.com,gong.chen@linux.intel.com,hannes@cmpxchg.org,hpa@zytor.com,imtangchen@gmail.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,lwoodman@redhat.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,prarit@redhat.com,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,vasilis.liaskovitis@profitbricks.com,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Tue, 03 Dec 2013 15:54:43 -0800
+Date: Tue, 03 Dec 2013 15:54:45 -0800
 
 
 The patch titled
-     Subject: acpi, numa, mem_hotplug: mark hotpluggable memory in memblock
+     Subject: acpi, numa, mem_hotplug: mark all nodes the kernel resides un-hotpluggable
 has been added to the -mm tree.  Its filename is
-     acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+     acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,11 +45,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: acpi, numa, mem_hotplug: mark hotpluggable memory in memblock
+Subject: acpi, numa, mem_hotplug: mark all nodes the kernel resides un-hotpluggable
 
-When parsing SRAT, we know that which memory area is hotpluggable.  So we
-invoke function memblock_mark_hotplug() introduced by previous patch to
-mark hotpluggable memory in memblock.
+At very early time, the kernel have to use some memory such as loading the
+kernel image.  We cannot prevent this anyway.  So any node the kernel
+resides in should be un-hotpluggable.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
@@ -83,37 +82,84 @@ Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |    2 ++
- arch/x86/mm/srat.c |    5 +++++
- 2 files changed, 7 insertions(+)
+ arch/x86/mm/numa.c |   44 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff -puN arch/x86/mm/numa.c~acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock
+diff -puN arch/x86/mm/numa.c~acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable
 +++ a/arch/x86/mm/numa.c
-@@ -569,6 +569,8 @@ static int __init numa_init(int (*init_f
+@@ -494,6 +494,14 @@ static int __init numa_register_memblks(
+ 		struct numa_memblk *mb = &mi->blk[i];
+ 		memblock_set_node(mb->start, mb->end - mb->start,
+ 				  &memblock.memory, mb->nid);
++
++		/*
++		 * At this time, all memory regions reserved by memblock are
++		 * used by the kernel. Set the nid in memblock.reserved will
++		 * mark out all the nodes the kernel resides in.
++		 */
++		memblock_set_node(mb->start, mb->end - mb->start,
++				  &memblock.reserved, mb->nid);
+ 	}
+ 
+ 	/*
+@@ -555,6 +563,30 @@ static void __init numa_init_array(void)
+ 	}
+ }
+ 
++static void __init numa_clear_kernel_node_hotplug(void)
++{
++	int i, nid;
++	nodemask_t numa_kernel_nodes;
++	unsigned long start, end;
++	struct memblock_type *type = &memblock.reserved;
++
++	/* Mark all kernel nodes. */
++	for (i = 0; i < type->cnt; i++)
++		node_set(type->regions[i].nid, numa_kernel_nodes);
++
++	/* Clear MEMBLOCK_HOTPLUG flag for memory in kernel nodes. */
++	for (i = 0; i < numa_meminfo.nr_blks; i++) {
++		nid = numa_meminfo.blk[i].nid;
++		if (!node_isset(nid, numa_kernel_nodes))
++			continue;
++
++		start = numa_meminfo.blk[i].start;
++		end = numa_meminfo.blk[i].end;
++
++		memblock_clear_hotplug(start, end - start);
++	}
++}
++
+ static int __init numa_init(int (*init_func)(void))
+ {
+ 	int i;
+@@ -569,6 +601,8 @@ static int __init numa_init(int (*init_f
  	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
  	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.memory,
  				  MAX_NUMNODES));
-+	/* In case that parsing SRAT failed. */
-+	WARN_ON(memblock_clear_hotplug(0, ULLONG_MAX));
++	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.reserved,
++				  MAX_NUMNODES));
+ 	/* In case that parsing SRAT failed. */
+ 	WARN_ON(memblock_clear_hotplug(0, ULLONG_MAX));
  	numa_reset_distance();
- 
- 	ret = init_func();
-diff -puN arch/x86/mm/srat.c~acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock arch/x86/mm/srat.c
---- a/arch/x86/mm/srat.c~acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock
-+++ a/arch/x86/mm/srat.c
-@@ -181,6 +181,11 @@ acpi_numa_memory_affinity_init(struct ac
- 		(unsigned long long) start, (unsigned long long) end - 1,
- 		hotpluggable ? " hotplug" : "");
- 
-+	/* Mark hotplug range in memblock. */
-+	if (hotpluggable && memblock_mark_hotplug(start, ma->length))
-+		pr_warn("SRAT: Failed to mark hotplug range [mem %#010Lx-%#010Lx] in memblock\n",
-+			(unsigned long long) start, (unsigned long long) end - 1);
+@@ -606,6 +640,16 @@ static int __init numa_init(int (*init_f
+ 			numa_clear_node(i);
+ 	}
+ 	numa_init_array();
++
++	/*
++	 * At very early time, the kernel have to use some memory such as
++	 * loading the kernel image. We cannot prevent this anyway. So any
++	 * node the kernel resides in should be un-hotpluggable.
++	 *
++	 * And when we come here, numa_init() won't fail.
++	 */
++	numa_clear_kernel_node_hotplug();
 +
  	return 0;
- out_err_bad_srat:
- 	bad_srat();
+ }
+ 
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
