@@ -1,83 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- hpsa-return-0-from-driver-probe-function-on-success-not-1.patch removed
- from -mm tree
-Date: Tue, 03 Dec 2013 12:22:08 -0800
-Message-ID: <529e3d70.Z00Zh23hDklXdsdr%akpm@linux-foundation.org>
+Subject: [merged] mfd-sec-constify-regmap-configs-and-regmap-irqs.patch
+ removed from -mm tree
+Date: Tue, 03 Dec 2013 12:22:05 -0800
+Message-ID: <529e3d6d.ZnCsKJi/VWISpG54%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53990 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53985 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754716Ab3LCUWJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 15:22:09 -0500
+	with ESMTP id S1754164Ab3LCUWH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 15:22:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, axboe@kernel.dk, scameron@beardog.cce.hp.com
+To: mm-commits@vger.kernel.org, sbkim73@samsung.com, sameo@linux.intel.com, m.szyprowski@samsung.com, lgirdwood@gmail.com, lee.jones@linaro.org, kyungmin.park@samsung.com, geert@linux-m68k.org, broonie@linaro.org, a.zummo@towertech.it, k.kozlowski@samsung.com
 
-Subject: [merged] hpsa-return-0-from-driver-probe-function-on-success-not-1.patch removed from -mm tree
-To: scameron@beardog.cce.hp.com,axboe@kernel.dk,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mfd-sec-constify-regmap-configs-and-regmap-irqs.patch removed from -mm tree
+To: k.kozlowski@samsung.com,a.zummo@towertech.it,broonie@linaro.org,geert@linux-m68k.org,kyungmin.park@samsung.com,lee.jones@linaro.org,lgirdwood@gmail.com,m.szyprowski@samsung.com,sameo@linux.intel.com,sbkim73@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 03 Dec 2013 12:22:08 -0800
+Date: Tue, 03 Dec 2013 12:22:05 -0800
 
 
 The patch titled
-     Subject: hpsa: return 0 from driver probe function on success, not 1
+     Subject: mfd: sec: constify regmap configs and regmap irqs
 has been removed from the -mm tree.  Its filename was
-     hpsa-return-0-from-driver-probe-function-on-success-not-1.patch
+     mfd-sec-constify-regmap-configs-and-regmap-irqs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Subject: hpsa: return 0 from driver probe function on success, not 1
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: mfd: sec: constify regmap configs and regmap irqs
 
-A return value of 1 is interpreted as an error.  See pci_driver.  in
-local_pci_probe().  If you're wondering how this ever could have worked,
-it's because it used to be the case that only return values less than zero
-were interpreted as failure.  But even in the current kernel if the driver
-registers its various entry points with the kernel, and then returns a
-value which is interpreted as failure, those registrations aren't undone,
-so the driver still mostly works.  However, the driver's remove function
-wouldn't be called on rmmod, and pci power management functions wouldn't
-work.  In the case of Smart Array, since it has a battery backed cache (or
-else no cache) even if the driver is not shut down properly as long as
-there is no outstanding i/o, nothing too bad happens, which is why it took
-so long to notice.
+Add "const" to "static struct regmap_irq" and "static struct
+regmap_config".
 
-Requesting backport to stable because the change to pci-driver.c which
-requires driver probe functions to return 0 occurred between 2.6.35 and
-2.6.36 (the pci power management breakage) and again between 3.7 and 3.8
-(pci_dev->driver getting set to NULL in local_pci_probe() preventing
-driver remove function from being called on rmmod.)
-
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Reviewed-by: Mark Brown <broonie@linaro.org>
+Acked-by: Sangbeom Kim <sbkim73@samsung.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mfd/sec-core.c |    8 ++++----
+ drivers/mfd/sec-irq.c  |   12 ++++++------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/scsi/hpsa.c~hpsa-return-0-from-driver-probe-function-on-success-not-1 drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~hpsa-return-0-from-driver-probe-function-on-success-not-1
-+++ a/drivers/scsi/hpsa.c
-@@ -4925,7 +4925,7 @@ reinit_after_soft_reset:
- 	hpsa_hba_inquiry(h);
- 	hpsa_register_scsi(h);	/* hook ourselves into SCSI subsystem */
- 	start_controller_lockup_detector(h);
--	return 1;
-+	return 0;
+diff -puN drivers/mfd/sec-core.c~mfd-sec-constify-regmap-configs-and-regmap-irqs drivers/mfd/sec-core.c
+--- a/drivers/mfd/sec-core.c~mfd-sec-constify-regmap-configs-and-regmap-irqs
++++ a/drivers/mfd/sec-core.c
+@@ -134,12 +134,12 @@ static bool s5m8763_volatile(struct devi
+ 	}
+ }
  
- clean4:
- 	hpsa_free_sg_chain_blocks(h);
+-static struct regmap_config sec_regmap_config = {
++static const struct regmap_config sec_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ };
+ 
+-static struct regmap_config s2mps11_regmap_config = {
++static const struct regmap_config s2mps11_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 
+@@ -148,7 +148,7 @@ static struct regmap_config s2mps11_regm
+ 	.cache_type = REGCACHE_FLAT,
+ };
+ 
+-static struct regmap_config s5m8763_regmap_config = {
++static const struct regmap_config s5m8763_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 
+@@ -157,7 +157,7 @@ static struct regmap_config s5m8763_regm
+ 	.cache_type = REGCACHE_FLAT,
+ };
+ 
+-static struct regmap_config s5m8767_regmap_config = {
++static const struct regmap_config s5m8767_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ 
+diff -puN drivers/mfd/sec-irq.c~mfd-sec-constify-regmap-configs-and-regmap-irqs drivers/mfd/sec-irq.c
+--- a/drivers/mfd/sec-irq.c~mfd-sec-constify-regmap-configs-and-regmap-irqs
++++ a/drivers/mfd/sec-irq.c
+@@ -22,7 +22,7 @@
+ #include <linux/mfd/samsung/s5m8763.h>
+ #include <linux/mfd/samsung/s5m8767.h>
+ 
+-static struct regmap_irq s2mps11_irqs[] = {
++static const struct regmap_irq s2mps11_irqs[] = {
+ 	[S2MPS11_IRQ_PWRONF] = {
+ 		.reg_offset = 0,
+ 		.mask = S2MPS11_IRQ_PWRONF_MASK,
+@@ -90,7 +90,7 @@ static struct regmap_irq s2mps11_irqs[]
+ };
+ 
+ 
+-static struct regmap_irq s5m8767_irqs[] = {
++static const struct regmap_irq s5m8767_irqs[] = {
+ 	[S5M8767_IRQ_PWRR] = {
+ 		.reg_offset = 0,
+ 		.mask = S5M8767_IRQ_PWRR_MASK,
+@@ -161,7 +161,7 @@ static struct regmap_irq s5m8767_irqs[]
+ 	},
+ };
+ 
+-static struct regmap_irq s5m8763_irqs[] = {
++static const struct regmap_irq s5m8763_irqs[] = {
+ 	[S5M8763_IRQ_DCINF] = {
+ 		.reg_offset = 0,
+ 		.mask = S5M8763_IRQ_DCINF_MASK,
+@@ -236,7 +236,7 @@ static struct regmap_irq s5m8763_irqs[]
+ 	},
+ };
+ 
+-static struct regmap_irq_chip s2mps11_irq_chip = {
++static const struct regmap_irq_chip s2mps11_irq_chip = {
+ 	.name = "s2mps11",
+ 	.irqs = s2mps11_irqs,
+ 	.num_irqs = ARRAY_SIZE(s2mps11_irqs),
+@@ -246,7 +246,7 @@ static struct regmap_irq_chip s2mps11_ir
+ 	.ack_base = S2MPS11_REG_INT1,
+ };
+ 
+-static struct regmap_irq_chip s5m8767_irq_chip = {
++static const struct regmap_irq_chip s5m8767_irq_chip = {
+ 	.name = "s5m8767",
+ 	.irqs = s5m8767_irqs,
+ 	.num_irqs = ARRAY_SIZE(s5m8767_irqs),
+@@ -256,7 +256,7 @@ static struct regmap_irq_chip s5m8767_ir
+ 	.ack_base = S5M8767_REG_INT1,
+ };
+ 
+-static struct regmap_irq_chip s5m8763_irq_chip = {
++static const struct regmap_irq_chip s5m8763_irq_chip = {
+ 	.name = "s5m8763",
+ 	.irqs = s5m8763_irqs,
+ 	.num_irqs = ARRAY_SIZE(s5m8763_irqs),
 _
 
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+drivers-rtc-rtc-s5mc-fix-info-rtc-assignment.patch
+rtc-s5m-fix-unsuccesful-irq-request-during-probe.patch
+rtc-s5m-limit-endless-loop-waiting-for-register-update.patch
+rtc-s5m-enable-irq-wake-during-suspend.patch
+mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc.patch
+swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
 linux-next.patch
 
