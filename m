@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-jornada720-use-devm_backlight_device_register.patch
+Subject: + backlight-hp680_bl-use-devm_backlight_device_register.patch
  added to -mm tree
-Date: Mon, 02 Dec 2013 17:00:31 -0800
-Message-ID: <529d2d2f.7p9o+TAg1caCNVeO%akpm@linux-foundation.org>
+Date: Mon, 02 Dec 2013 17:00:32 -0800
+Message-ID: <529d2d30.Lyf9ELM+RbbvLh6g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43562 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43567 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
 	with ESMTP id S1751967Ab3LCBAc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 20:00:32 -0500
@@ -16,21 +16,21 @@ Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, jg1.han@samsung.com
 
-Subject: + backlight-jornada720-use-devm_backlight_device_register.patch added to -mm tree
+Subject: + backlight-hp680_bl-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com,tomi.valkeinen@ti.com
 From: akpm@linux-foundation.org
-Date: Mon, 02 Dec 2013 17:00:31 -0800
+Date: Mon, 02 Dec 2013 17:00:32 -0800
 
 
 The patch titled
-     Subject: backlight: jornada720: use devm_backlight_device_register()
+     Subject: backlight: hp680_bl: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-jornada720-use-devm_backlight_device_register.patch
+     backlight-hp680_bl-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-jornada720-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-hp680_bl-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-jornada720-use-devm_backlight_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-hp680_bl-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,44 +45,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: jornada720: use devm_backlight_device_register()
+Subject: backlight: hp680_bl: use devm_backlight_device_register()
 
-Use devm_backlight_device_register() to make cleanup paths simpler,
-and remove unnecessary remove().
+Use devm_backlight_device_register() to make cleanup paths simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/jornada720_bl.c |   15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ drivers/video/backlight/hp680_bl.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/jornada720_bl.c~backlight-jornada720-use-devm_backlight_device_register drivers/video/backlight/jornada720_bl.c
---- a/drivers/video/backlight/jornada720_bl.c~backlight-jornada720-use-devm_backlight_device_register
-+++ a/drivers/video/backlight/jornada720_bl.c
-@@ -115,9 +115,10 @@ static int jornada_bl_probe(struct platf
+diff -puN drivers/video/backlight/hp680_bl.c~backlight-hp680_bl-use-devm_backlight_device_register drivers/video/backlight/hp680_bl.c
+--- a/drivers/video/backlight/hp680_bl.c~backlight-hp680_bl-use-devm_backlight_device_register
++++ a/drivers/video/backlight/hp680_bl.c
+@@ -110,8 +110,8 @@ static int hp680bl_probe(struct platform
  	memset(&props, 0, sizeof(struct backlight_properties));
  	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = BL_MAX_BRIGHT;
--	bd = backlight_device_register(S1D_DEVICENAME, &pdev->dev, NULL,
--				       &jornada_bl_ops, &props);
+ 	props.max_brightness = HP680_MAX_INTENSITY;
+-	bd = backlight_device_register("hp680-bl", &pdev->dev, NULL,
+-				       &hp680bl_ops, &props);
++	bd = devm_backlight_device_register(&pdev->dev, "hp680-bl", &pdev->dev,
++					NULL, &hp680bl_ops, &props);
+ 	if (IS_ERR(bd))
+ 		return PTR_ERR(bd);
  
-+	bd = devm_backlight_device_register(&pdev->dev, S1D_DEVICENAME,
-+					&pdev->dev, NULL, &jornada_bl_ops,
-+					&props);
- 	if (IS_ERR(bd)) {
- 		ret = PTR_ERR(bd);
- 		dev_err(&pdev->dev, "failed to register device, err=%x\n", ret);
-@@ -139,18 +140,8 @@ static int jornada_bl_probe(struct platf
- 	return 0;
- }
+@@ -131,8 +131,6 @@ static int hp680bl_remove(struct platfor
+ 	bd->props.power = 0;
+ 	hp680bl_send_intensity(bd);
  
--static int jornada_bl_remove(struct platform_device *pdev)
--{
--	struct backlight_device *bd = platform_get_drvdata(pdev);
--
 -	backlight_device_unregister(bd);
--
--	return 0;
--}
