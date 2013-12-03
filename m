@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-block-loopc-fix-comment-typo-in-loop_config_discard.patch added to
+Subject: + fs-execc-call-arch_pick_mmap_layout-only-once.patch added to
  -mm tree
-Date: Mon, 02 Dec 2013 16:08:51 -0800
-Message-ID: <529d2113.zmmRY/OCrXdv7SUD%akpm@linux-foundation.org>
+Date: Mon, 02 Dec 2013 16:36:17 -0800
+Message-ID: <529d2781.nBNOBuwR3XUj9lqy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43239 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43535 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752468Ab3LCAIv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 19:08:51 -0500
+	with ESMTP id S1751556Ab3LCAgS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 19:36:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, olaf@aepfle.de
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, richard@nod.at
 
-Subject: + drivers-block-loopc-fix-comment-typo-in-loop_config_discard.patch added to -mm tree
-To: olaf@aepfle.de
+Subject: + fs-execc-call-arch_pick_mmap_layout-only-once.patch added to -mm tree
+To: richard@nod.at,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Mon, 02 Dec 2013 16:08:51 -0800
+Date: Mon, 02 Dec 2013 16:36:17 -0800
 
 
 The patch titled
-     Subject: drivers/block/loop.c: fix comment typo in loop_config_discard
+     Subject: fs/exec.c: call arch_pick_mmap_layout() only once
 has been added to the -mm tree.  Its filename is
-     drivers-block-loopc-fix-comment-typo-in-loop_config_discard.patch
+     fs-execc-call-arch_pick_mmap_layout-only-once.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-block-loopc-fix-comment-typo-in-loop_config_discard.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-execc-call-arch_pick_mmap_layout-only-once.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-block-loopc-fix-comment-typo-in-loop_config_discard.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-execc-call-arch_pick_mmap_layout-only-once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,35 +44,29 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Olaf Hering <olaf@aepfle.de>
-Subject: drivers/block/loop.c: fix comment typo in loop_config_discard
+From: Richard Weinberger <richard@nod.at>
+Subject: fs/exec.c: call arch_pick_mmap_layout() only once
 
-Discard requests are ignored if the encryption is enabled for the given
-loop device.  Update comment to match the code, and similar comments
-elsewhere in the file.
+Currently both setup_new_exec() and flush_old_exec() issue a call to
+arch_pick_mmap_layout().  As setup_new_exec() and flush_old_exec() are
+always called pairwise arch_pick_mmap_layout() is called twice.
 
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
+This patch removes one call from setup_new_exec() to have it only called
+once.
+
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/exec.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/block/loop.c~drivers-block-loopc-fix-comment-typo-in-loop_config_discard drivers/block/loop.c
---- a/drivers/block/loop.c~drivers-block-loopc-fix-comment-typo-in-loop_config_discard
-+++ a/drivers/block/loop.c
-@@ -798,7 +798,7 @@ static void loop_config_discard(struct l
+diff -puN fs/exec.c~fs-execc-call-arch_pick_mmap_layout-only-once fs/exec.c
+--- a/fs/exec.c~fs-execc-call-arch_pick_mmap_layout-only-once
++++ a/fs/exec.c
+@@ -1108,8 +1108,6 @@ EXPORT_SYMBOL(would_dump);
  
- 	/*
- 	 * We use punch hole to reclaim the free space used by the
--	 * image a.k.a. discard. However we do support discard if
-+	 * image a.k.a. discard. However we do not support discard if
- 	 * encryption is enabled, because it may give an attacker
- 	 * useful information.
- 	 */
-_
-
-Patches currently in -mm which might be from olaf@aepfle.de are
-
-drivers-block-loopc-fix-comment-typo-in-loop_config_discard.patch
-
+ void setup_new_exec(struct linux_binprm * bprm)
+ {
+-	arch_pick_mmap_layout(current->mm);
