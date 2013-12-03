@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-execc-call-arch_pick_mmap_layout-only-once.patch added to
- -mm tree
-Date: Mon, 02 Dec 2013 16:36:17 -0800
-Message-ID: <529d2781.nBNOBuwR3XUj9lqy%akpm@linux-foundation.org>
+Subject: + backlight-jornada720-use-devm_backlight_device_register.patch
+ added to -mm tree
+Date: Mon, 02 Dec 2013 17:00:31 -0800
+Message-ID: <529d2d2f.7p9o+TAg1caCNVeO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43562 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556Ab3LCAgS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 19:36:18 -0500
+	with ESMTP id S1751967Ab3LCBAc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 20:00:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, richard@nod.at
+To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, jg1.han@samsung.com
 
-Subject: + fs-execc-call-arch_pick_mmap_layout-only-once.patch added to -mm tree
-To: richard@nod.at,viro@zeniv.linux.org.uk
+Subject: + backlight-jornada720-use-devm_backlight_device_register.patch added to -mm tree
+To: jg1.han@samsung.com,tomi.valkeinen@ti.com
 From: akpm@linux-foundation.org
-Date: Mon, 02 Dec 2013 16:36:17 -0800
+Date: Mon, 02 Dec 2013 17:00:31 -0800
 
 
 The patch titled
-     Subject: fs/exec.c: call arch_pick_mmap_layout() only once
+     Subject: backlight: jornada720: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     fs-execc-call-arch_pick_mmap_layout-only-once.patch
+     backlight-jornada720-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-execc-call-arch_pick_mmap_layout-only-once.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-jornada720-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-execc-call-arch_pick_mmap_layout-only-once.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-jornada720-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,29 +44,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Richard Weinberger <richard@nod.at>
-Subject: fs/exec.c: call arch_pick_mmap_layout() only once
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: jornada720: use devm_backlight_device_register()
 
-Currently both setup_new_exec() and flush_old_exec() issue a call to
-arch_pick_mmap_layout().  As setup_new_exec() and flush_old_exec() are
-always called pairwise arch_pick_mmap_layout() is called twice.
+Use devm_backlight_device_register() to make cleanup paths simpler,
+and remove unnecessary remove().
 
-This patch removes one call from setup_new_exec() to have it only called
-once.
-
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/video/backlight/jornada720_bl.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff -puN fs/exec.c~fs-execc-call-arch_pick_mmap_layout-only-once fs/exec.c
---- a/fs/exec.c~fs-execc-call-arch_pick_mmap_layout-only-once
-+++ a/fs/exec.c
-@@ -1108,8 +1108,6 @@ EXPORT_SYMBOL(would_dump);
+diff -puN drivers/video/backlight/jornada720_bl.c~backlight-jornada720-use-devm_backlight_device_register drivers/video/backlight/jornada720_bl.c
+--- a/drivers/video/backlight/jornada720_bl.c~backlight-jornada720-use-devm_backlight_device_register
++++ a/drivers/video/backlight/jornada720_bl.c
+@@ -115,9 +115,10 @@ static int jornada_bl_probe(struct platf
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = BL_MAX_BRIGHT;
+-	bd = backlight_device_register(S1D_DEVICENAME, &pdev->dev, NULL,
+-				       &jornada_bl_ops, &props);
  
- void setup_new_exec(struct linux_binprm * bprm)
- {
--	arch_pick_mmap_layout(current->mm);
++	bd = devm_backlight_device_register(&pdev->dev, S1D_DEVICENAME,
++					&pdev->dev, NULL, &jornada_bl_ops,
++					&props);
+ 	if (IS_ERR(bd)) {
+ 		ret = PTR_ERR(bd);
+ 		dev_err(&pdev->dev, "failed to register device, err=%x\n", ret);
+@@ -139,18 +140,8 @@ static int jornada_bl_probe(struct platf
+ 	return 0;
+ }
+ 
+-static int jornada_bl_remove(struct platform_device *pdev)
+-{
+-	struct backlight_device *bd = platform_get_drvdata(pdev);
+-
+-	backlight_device_unregister(bd);
+-
+-	return 0;
+-}
