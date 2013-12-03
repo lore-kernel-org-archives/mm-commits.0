@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-jornada720-use-devm_lcd_device_register.patch added
+Subject: + backlight-tosa-use-devm_backlight_device_register.patch added
  to -mm tree
-Date: Mon, 02 Dec 2013 17:00:36 -0800
-Message-ID: <529d2d34.wh2ejjzj1q8uPsgb%akpm@linux-foundation.org>
+Date: Mon, 02 Dec 2013 17:00:35 -0800
+Message-ID: <529d2d33.A8dF9RiVBFkCZAcD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43578 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43575 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752801Ab3LCBAh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 20:00:37 -0500
+	with ESMTP id S1752266Ab3LCBAg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Dec 2013 20:00:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, jg1.han@samsung.com
 
-Subject: + backlight-jornada720-use-devm_lcd_device_register.patch added to -mm tree
+Subject: + backlight-tosa-use-devm_backlight_device_register.patch added to -mm tree
 To: jg1.han@samsung.com,tomi.valkeinen@ti.com
 From: akpm@linux-foundation.org
-Date: Mon, 02 Dec 2013 17:00:36 -0800
+Date: Mon, 02 Dec 2013 17:00:35 -0800
 
 
 The patch titled
-     Subject: backlight: jornada720: use devm_lcd_device_register()
+     Subject: backlight: tosa: use devm_backlight_device_register()
 has been added to the -mm tree.  Its filename is
-     backlight-jornada720-use-devm_lcd_device_register.patch
+     backlight-tosa-use-devm_backlight_device_register.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-jornada720-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-tosa-use-devm_backlight_device_register.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-jornada720-use-devm_lcd_device_register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-tosa-use-devm_backlight_device_register.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,41 +45,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: jornada720: use devm_lcd_device_register()
+Subject: backlight: tosa: use devm_backlight_device_register()
 
-Use devm_lcd_device_register() to make cleanup paths simpler,
-and remove unnecessary remove().
+Use devm_backlight_device_register() to make cleanup paths simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/jornada720_lcd.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ drivers/video/backlight/tosa_bl.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/jornada720_lcd.c~backlight-jornada720-use-devm_lcd_device_register drivers/video/backlight/jornada720_lcd.c
---- a/drivers/video/backlight/jornada720_lcd.c~backlight-jornada720-use-devm_lcd_device_register
-+++ a/drivers/video/backlight/jornada720_lcd.c
-@@ -100,7 +100,8 @@ static int jornada_lcd_probe(struct plat
- 	struct lcd_device *lcd_device;
- 	int ret;
+diff -puN drivers/video/backlight/tosa_bl.c~backlight-tosa-use-devm_backlight_device_register drivers/video/backlight/tosa_bl.c
+--- a/drivers/video/backlight/tosa_bl.c~backlight-tosa-use-devm_backlight_device_register
++++ a/drivers/video/backlight/tosa_bl.c
+@@ -105,8 +105,9 @@ static int tosa_bl_probe(struct i2c_clie
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = 512 - 1;
+-	data->bl = backlight_device_register("tosa-bl", &client->dev, data,
+-					     &bl_ops, &props);
++	data->bl = devm_backlight_device_register(&client->dev, "tosa-bl",
++						&client->dev, data, &bl_ops,
++						&props);
+ 	if (IS_ERR(data->bl)) {
+ 		ret = PTR_ERR(data->bl);
+ 		goto err_reg;
+@@ -128,9 +129,7 @@ static int tosa_bl_remove(struct i2c_cli
+ {
+ 	struct tosa_bl_data *data = i2c_get_clientdata(client);
  
--	lcd_device = lcd_device_register(S1D_DEVICENAME, &pdev->dev, NULL, &jornada_lcd_props);
-+	lcd_device = devm_lcd_device_register(&pdev->dev, S1D_DEVICENAME,
-+					&pdev->dev, NULL, &jornada_lcd_props);
- 
- 	if (IS_ERR(lcd_device)) {
- 		ret = PTR_ERR(lcd_device);
-@@ -119,18 +120,8 @@ static int jornada_lcd_probe(struct plat
- 	return 0;
- }
- 
--static int jornada_lcd_remove(struct platform_device *pdev)
--{
--	struct lcd_device *lcd_device = platform_get_drvdata(pdev);
--
--	lcd_device_unregister(lcd_device);
--
--	return 0;
--}
+-	backlight_device_unregister(data->bl);
+ 	data->bl = NULL;
