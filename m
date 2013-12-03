@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
 Subject: + drivers-char-i8kc-add-dell-xpls-l421x.patch added to -mm tree
-Date: Tue, 03 Dec 2013 13:56:17 -0800
-Message-ID: <529e5381.EKd0ia5dJMeJQglp%akpm@linux-foundation.org>
+Date: Tue, 03 Dec 2013 13:56:56 -0800
+Message-ID: <529e53a8.xTHa+yWkud6QPAdK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54659 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54663 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754653Ab3LCV4R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 16:56:17 -0500
+	with ESMTP id S1754653Ab3LCV45 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 16:56:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, greg@kroah.com, alan@linux.intel.com
+To: mm-commits@vger.kernel.org, leho@kraav.com, greg@kroah.com, alan@linux.intel.com
 
 Subject: + drivers-char-i8kc-add-dell-xpls-l421x.patch added to -mm tree
-To: alan@linux.intel.com,greg@kroah.com
+To: alan@linux.intel.com,greg@kroah.com,leho@kraav.com
 From: akpm@linux-foundation.org
-Date: Tue, 03 Dec 2013 13:56:17 -0800
+Date: Tue, 03 Dec 2013 13:56:56 -0800
 
 
 The patch titled
@@ -49,6 +49,7 @@ Subject: drivers/char/i8k.c: add Dell XPLS L421X
 Addresses https://bugzilla.kernel.org/show_bug.cgi?id=60772
 
 Signed-off-by: Alan Cox <alan@linux.intel.com>
+Reported-by: Leho Kraav <leho@kraav.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
