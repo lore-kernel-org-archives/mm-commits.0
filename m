@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-use-is_root-to-replace-root-dentry-checks.patch added to -mm tree
-Date: Tue, 03 Dec 2013 13:30:38 -0800
-Message-ID: <529e4d7e.6YfTOGsCCFny7j28%akpm@linux-foundation.org>
+Subject: + drivers-char-i8kc-add-dell-xpls-l421x.patch added to -mm tree
+Date: Tue, 03 Dec 2013 13:56:17 -0800
+Message-ID: <529e5381.EKd0ia5dJMeJQglp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54461 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54659 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754872Ab3LCVaj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 16:30:39 -0500
+	with ESMTP id S1754653Ab3LCV4R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 16:56:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, raven@themaw.net, rui.xiang@huawei.com
+To: mm-commits@vger.kernel.org, greg@kroah.com, alan@linux.intel.com
 
-Subject: + autofs-use-is_root-to-replace-root-dentry-checks.patch added to -mm tree
-To: rui.xiang@huawei.com,raven@themaw.net
+Subject: + drivers-char-i8kc-add-dell-xpls-l421x.patch added to -mm tree
+To: alan@linux.intel.com,greg@kroah.com
 From: akpm@linux-foundation.org
-Date: Tue, 03 Dec 2013 13:30:38 -0800
+Date: Tue, 03 Dec 2013 13:56:17 -0800
 
 
 The patch titled
-     Subject: autofs: use IS_ROOT to replace root dentry checks
+     Subject: drivers/char/i8k.c: add Dell XPLS L421X
 has been added to the -mm tree.  Its filename is
-     autofs-use-is_root-to-replace-root-dentry-checks.patch
+     drivers-char-i8kc-add-dell-xpls-l421x.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-use-is_root-to-replace-root-dentry-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-char-i8kc-add-dell-xpls-l421x.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-use-is_root-to-replace-root-dentry-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-char-i8kc-add-dell-xpls-l421x.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,54 +43,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rui Xiang <rui.xiang@huawei.com>
-Subject: autofs: use IS_ROOT to replace root dentry checks
+From: Alan Cox <alan@linux.intel.com>
+Subject: drivers/char/i8k.c: add Dell XPLS L421X
 
-Use the helper macro !IS_ROOT to replace parent != dentry->d_parent.  Just
-clean up.
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=60772
 
-Signed-off-by: Rui Xiang <rui.xiang@huawei.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/char/i8k.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/autofs4/root.c~autofs-use-is_root-to-replace-root-dentry-checks fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs-use-is_root-to-replace-root-dentry-checks
-+++ a/fs/autofs4/root.c
-@@ -558,7 +558,7 @@ static int autofs4_dir_symlink(struct in
- 	dget(dentry);
- 	atomic_inc(&ino->count);
- 	p_ino = autofs4_dentry_ino(dentry->d_parent);
--	if (p_ino && dentry->d_parent != dentry)
-+	if (p_ino && !IS_ROOT(dentry))
- 		atomic_inc(&p_ino->count);
+diff -puN drivers/char/i8k.c~drivers-char-i8kc-add-dell-xpls-l421x drivers/char/i8k.c
+--- a/drivers/char/i8k.c~drivers-char-i8kc-add-dell-xpls-l421x
++++ a/drivers/char/i8k.c
+@@ -664,6 +664,13 @@ static struct dmi_system_id __initdata i
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "Vostro"),
+ 		},
+ 	},
++	{
++		.ident = "Dell XPS421",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "XPS L421X"),
++		},
++	},
+         { }
+ };
  
- 	dir->i_mtime = CURRENT_TIME;
-@@ -593,7 +593,7 @@ static int autofs4_dir_unlink(struct ino
- 
- 	if (atomic_dec_and_test(&ino->count)) {
- 		p_ino = autofs4_dentry_ino(dentry->d_parent);
--		if (p_ino && dentry->d_parent != dentry)
-+		if (p_ino && !IS_ROOT(dentry))
- 			atomic_dec(&p_ino->count);
- 	}
- 	dput(ino->dentry);
-@@ -732,7 +732,7 @@ static int autofs4_dir_mkdir(struct inod
- 	dget(dentry);
- 	atomic_inc(&ino->count);
- 	p_ino = autofs4_dentry_ino(dentry->d_parent);
--	if (p_ino && dentry->d_parent != dentry)
-+	if (p_ino && !IS_ROOT(dentry))
- 		atomic_inc(&p_ino->count);
- 	inc_nlink(dir);
- 	dir->i_mtime = CURRENT_TIME;
 _
 
-Patches currently in -mm which might be from rui.xiang@huawei.com are
+Patches currently in -mm which might be from alan@linux.intel.com are
 
-autofs-fix-the-return-value-of-autofs4_fill_super.patch
-autofs-use-is_root-to-replace-root-dentry-checks.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+drivers-char-i8kc-add-dell-xpls-l421x.patch
 
