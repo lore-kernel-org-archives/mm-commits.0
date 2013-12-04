@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 03 Dec 2013 15:57:54 -0800
-Message-ID: <529e7002.sXbsvVM1QbQyAzVq%akpm@linux-foundation.org>
+ memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch added to -mm tree
+Date: Tue, 03 Dec 2013 17:03:40 -0800
+Message-ID: <529e7f6c.ZaWWHxS6a5PMBWsW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55589 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206Ab3LCX5z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 18:57:55 -0500
+	with ESMTP id S1754129Ab3LDBDl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 20:03:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@parallels.com, bsingharora@gmail.com, vdavydov@parallels.com
 
-Subject: + memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,hpa@zytor.com,tangchen@cn.fujitsu.com,zhangyanfei@cn.fujitsu.com
+Subject: + memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch added to -mm tree
+To: vdavydov@parallels.com,bsingharora@gmail.com,glommer@parallels.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 03 Dec 2013 15:57:54 -0800
+Date: Tue, 03 Dec 2013 17:03:40 -0800
 
 
 The patch titled
-     Subject: memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes
+     Subject: memcg: fix kmem_account_flags check in memcg_can_account_kmem()
 has been added to the -mm tree.  Its filename is
-     memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+     memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,80 +44,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: memcg: fix kmem_account_flags check in memcg_can_account_kmem()
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+We should start kmem accounting for a memory cgroup only after both its
+kmem limit is set (KMEM_ACCOUNTED_ACTIVE) and related call sites are
+patched (KMEM_ACCOUNTED_ACTIVATED).  Currently memcg_can_account_kmem()
+allows kmem accounting even if only one of the conditions is true.  Fix
+it.
 
-WARNING: line over 80 characters
-#141: FILE: mm/memblock.c:731:
-+		memblock_clear_region_flags(&type->regions[i], MEMBLOCK_HOTPLUG);
-
-total: 0 errors, 1 warnings, 93 lines checked
-
-./patches/memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    3 ++-
+ mm/memcontrol.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes mm/memblock.c
---- a/mm/memblock.c~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes
-+++ a/mm/memblock.c
-@@ -728,7 +728,8 @@ int __init_memblock memblock_clear_hotpl
- 		return ret;
+diff -puN mm/memcontrol.c~memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem
++++ a/mm/memcontrol.c
+@@ -2959,7 +2959,8 @@ static DEFINE_MUTEX(set_limit_mutex);
+ static inline bool memcg_can_account_kmem(struct mem_cgroup *memcg)
+ {
+ 	return !mem_cgroup_disabled() && !mem_cgroup_is_root(memcg) &&
+-		(memcg->kmem_account_flags & KMEM_ACCOUNTED_MASK);
++		(memcg->kmem_account_flags & KMEM_ACCOUNTED_MASK) ==
++							KMEM_ACCOUNTED_MASK;
+ }
  
- 	for (i = start_rgn; i < end_rgn; i++)
--		memblock_clear_region_flags(&type->regions[i], MEMBLOCK_HOTPLUG);
-+		memblock_clear_region_flags(&type->regions[i],
-+					    MEMBLOCK_HOTPLUG);
- 
- 	memblock_merge_regions(type);
- 	return 0;
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
-dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
-linux-next.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
 
