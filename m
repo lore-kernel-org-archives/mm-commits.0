@@ -1,82 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-make-memcg_update_cache_sizes-static.patch added to -mm
- tree
-Date: Tue, 03 Dec 2013 17:04:35 -0800
-Message-ID: <529e7fa3.qBzjXeB65KTSV3m+%akpm@linux-foundation.org>
+Subject: [merged] scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
+ removed from -mm tree
+Date: Wed, 04 Dec 2013 12:52:41 -0800
+Message-ID: <529f9619.bJAExUT4McaySI7m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35289 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753549Ab3LDBEg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Dec 2013 20:04:36 -0500
+	with ESMTP id S1755921Ab3LDUwm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Dec 2013 15:52:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, bsingharora@gmail.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, geert@linux-m68k.org
 
-Subject: + memcg-make-memcg_update_cache_sizes-static.patch added to -mm tree
-To: vdavydov@parallels.com,bsingharora@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
+Subject: [merged] scsi-do-not-call-do_div-with-a-64-bit-divisor.patch removed from -mm tree
+To: geert@linux-m68k.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 03 Dec 2013 17:04:35 -0800
+Date: Wed, 04 Dec 2013 12:52:41 -0800
 
 
 The patch titled
-     Subject: memcg: make memcg_update_cache_sizes() static
-has been added to the -mm tree.  Its filename is
-     memcg-make-memcg_update_cache_sizes-static.patch
+     Subject: scsi: do not call do_div() with a 64-bit divisor
+has been removed from the -mm tree.  Its filename was
+     scsi-do-not-call-do_div-with-a-64-bit-divisor.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-make-memcg_update_cache_sizes-static.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-make-memcg_update_cache_sizes-static.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: make memcg_update_cache_sizes() static
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: scsi: do not call do_div() with a 64-bit divisor
 
-This function is not used outside of memcontrol.c so make it static.
+do_div() is meant for divisions of 64-bit number by 32-bit numbers. 
+Passing 64-bit divisor types caused issues in the past on 32-bit
+platforms, cfr.  commit ea077b1b96e073eac5c ("m68k: Truncate base in
+do_div()").
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+As scsi_device.sector_size is unsigned (int), factor should be unsigned
+int, too.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ drivers/scsi/sd.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-make-memcg_update_cache_sizes-static mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-make-memcg_update_cache_sizes-static
-+++ a/mm/memcontrol.c
-@@ -3087,7 +3087,7 @@ int memcg_cache_id(struct mem_cgroup *me
-  * But when we create a new cache, we can call this as well if its parent
-  * is kmem-limited. That will have to hold set_limit_mutex as well.
-  */
--int memcg_update_cache_sizes(struct mem_cgroup *memcg)
-+static int memcg_update_cache_sizes(struct mem_cgroup *memcg)
- {
- 	int num, ret;
- 
+diff -puN drivers/scsi/sd.c~scsi-do-not-call-do_div-with-a-64-bit-divisor drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~scsi-do-not-call-do_div-with-a-64-bit-divisor
++++ a/drivers/scsi/sd.c
+@@ -1628,7 +1628,7 @@ static unsigned int sd_completed_bytes(s
+ 		end_lba <<= 1;
+ 	} else {
+ 		/* be careful ... don't want any overflows */
+-		u64 factor = scmd->device->sector_size / 512;
++		unsigned int factor = scmd->device->sector_size / 512;
+ 		do_div(start_lba, factor);
+ 		do_div(end_lba, factor);
+ 	}
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
-memcg-make-memcg_update_cache_sizes-static.patch
+drivers-rtc-rtc-s5mc-fix-info-rtc-assignment.patch
+rtc-s5m-fix-unsuccesful-irq-request-during-probe.patch
+rtc-s5m-limit-endless-loop-waiting-for-register-update.patch
+rtc-s5m-enable-irq-wake-during-suspend.patch
+mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc.patch
+inith-add-missing-initcall-variants.patch
+drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
+asm-typesh-remove-include-asm-generic-int-l64h.patch
+maintainers-add-an-entry-for-the-macintosh-hfsplus-filesystem.patch
+init-mainc-remove-unused-declaration-of-tc_init.patch
+proc-cleanup-simplify-get_task_state-task_state_array.patch
+linux-next.patch
 
