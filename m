@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-vr41xx-use-devm_-functions.patch added to -mm tree
-Date: Mon, 09 Dec 2013 15:17:47 -0800
-Message-ID: <52a64f9b.ofJXFvRXuHzNKOep%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch added to -mm tree
+Date: Mon, 09 Dec 2013 15:23:29 -0800
+Message-ID: <52a650f1.kR2YB8mE+AerzOn0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54938 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699Ab3LIXRs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 18:17:48 -0500
+	with ESMTP id S1750790Ab3LIXX3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 18:23:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yuasa@linux-mips.org, grygorii.strashko@ti.com, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, mgorman@suse.de, rientjes@google.com
 
-Subject: + rtc-rtc-vr41xx-use-devm_-functions.patch added to -mm tree
-To: jg1.han@samsung.com,grygorii.strashko@ti.com,yuasa@linux-mips.org
+Subject: + mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch added to -mm tree
+To: rientjes@google.com,mgorman@suse.de,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 15:17:47 -0800
+Date: Mon, 09 Dec 2013 15:23:29 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-vr41xx.c: use devm_*() functions
+     Subject: mm, page_alloc: allow __GFP_NOFAIL to allocate below watermarks after reclaim
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-vr41xx-use-devm_-functions.patch
+     mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-vr41xx-use-devm_-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-vr41xx-use-devm_-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,148 +44,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-vr41xx.c: use devm_*() functions
+From: David Rientjes <rientjes@google.com>
+Subject: mm, page_alloc: allow __GFP_NOFAIL to allocate below watermarks after reclaim
 
-Use devm_*() functions to make cleanup paths simpler, and remove
-unnecessary remove().
+If direct reclaim has failed to free memory, __GFP_NOFAIL allocations can
+potentially loop forever in the page allocator.  In this case, it's better
+to give them the ability to access below watermarks so that they may
+allocate similar to the same privilege given to GFP_ATOMIC allocations.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Yoichi Yuasa <yuasa@linux-mips.org>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+We're careful to ensure this is only done after direct reclaim has had the
+chance to free memory, however.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vr41xx.c |   50 ++++++++-----------------------------
- 1 file changed, 12 insertions(+), 38 deletions(-)
+ mm/page_alloc.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-use-devm_-functions drivers/rtc/rtc-vr41xx.c
---- a/drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-use-devm_-functions
-+++ a/drivers/rtc/rtc-vr41xx.c
-@@ -293,7 +293,7 @@ static int rtc_probe(struct platform_dev
- 	if (!res)
- 		return -EBUSY;
- 
--	rtc1_base = ioremap(res->start, resource_size(res));
-+	rtc1_base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
- 	if (!rtc1_base)
- 		return -EBUSY;
- 
-@@ -303,13 +303,14 @@ static int rtc_probe(struct platform_dev
- 		goto err_rtc1_iounmap;
- 	}
- 
--	rtc2_base = ioremap(res->start, resource_size(res));
-+	rtc2_base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
- 	if (!rtc2_base) {
- 		retval = -EBUSY;
- 		goto err_rtc1_iounmap;
- 	}
- 
--	rtc = rtc_device_register(rtc_name, &pdev->dev, &vr41xx_rtc_ops, THIS_MODULE);
-+	rtc = devm_rtc_device_register(&pdev->dev, rtc_name, &vr41xx_rtc_ops,
-+					THIS_MODULE);
- 	if (IS_ERR(rtc)) {
- 		retval = PTR_ERR(rtc);
- 		goto err_iounmap_all;
-@@ -330,24 +331,24 @@ static int rtc_probe(struct platform_dev
- 	aie_irq = platform_get_irq(pdev, 0);
- 	if (aie_irq <= 0) {
- 		retval = -EBUSY;
--		goto err_device_unregister;
-+		goto err_iounmap_all;
- 	}
- 
--	retval = request_irq(aie_irq, elapsedtime_interrupt, 0,
--			     "elapsed_time", pdev);
-+	retval = devm_request_irq(&pdev->dev, aie_irq, elapsedtime_interrupt, 0,
-+				"elapsed_time", pdev);
- 	if (retval < 0)
--		goto err_device_unregister;
-+		goto err_iounmap_all;
- 
- 	pie_irq = platform_get_irq(pdev, 1);
- 	if (pie_irq <= 0) {
- 		retval = -EBUSY;
--		goto err_free_irq;
-+		goto err_iounmap_all;
- 	}
- 
--	retval = request_irq(pie_irq, rtclong1_interrupt, 0,
--			     "rtclong1", pdev);
-+	retval = devm_request_irq(&pdev->dev, pie_irq, rtclong1_interrupt, 0,
-+				"rtclong1", pdev);
- 	if (retval < 0)
--		goto err_free_irq;
-+		goto err_iounmap_all;
- 
- 	platform_set_drvdata(pdev, rtc);
- 
-@@ -358,47 +359,20 @@ static int rtc_probe(struct platform_dev
- 
- 	return 0;
- 
--err_free_irq:
--	free_irq(aie_irq, pdev);
--
--err_device_unregister:
--	rtc_device_unregister(rtc);
--
- err_iounmap_all:
--	iounmap(rtc2_base);
- 	rtc2_base = NULL;
- 
- err_rtc1_iounmap:
--	iounmap(rtc1_base);
- 	rtc1_base = NULL;
- 
- 	return retval;
- }
- 
--static int rtc_remove(struct platform_device *pdev)
--{
--	struct rtc_device *rtc;
--
--	rtc = platform_get_drvdata(pdev);
--	if (rtc)
--		rtc_device_unregister(rtc);
--
--	free_irq(aie_irq, pdev);
--	free_irq(pie_irq, pdev);
--	if (rtc1_base)
--		iounmap(rtc1_base);
--	if (rtc2_base)
--		iounmap(rtc2_base);
--
--	return 0;
--}
--
- /* work with hotplug and coldplug */
- MODULE_ALIAS("platform:RTC");
- 
- static struct platform_driver rtc_platform_driver = {
- 	.probe		= rtc_probe,
--	.remove		= rtc_remove,
- 	.driver		= {
- 		.name	= rtc_name,
- 		.owner	= THIS_MODULE,
+diff -puN mm/page_alloc.c~mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim
++++ a/mm/page_alloc.c
+@@ -2622,6 +2622,11 @@ rebalance:
+ 						pages_reclaimed)) {
+ 		/* Wait for some write requests to complete then retry */
+ 		wait_iff_congested(preferred_zone, BLK_RW_ASYNC, HZ/50);
++
++		/* Allocations that cannot fail must allocate from somewhere */
++		if (gfp_mask & __GFP_NOFAIL)
++			alloc_flags |= ALLOC_HARDER;
++
+ 		goto rebalance;
+ 	} else {
+ 		/*
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-drivers-block-sx8c-use-module_pci_driver.patch
-drivers-block-sx8c-remove-unnecessary-pci_set_drvdata.patch
-backlight-jornada720-use-devm_backlight_device_register.patch
-backlight-hp680_bl-use-devm_backlight_device_register.patch
-backlight-omap1-use-devm_backlight_device_register.patch
-backlight-ot200_bl-use-devm_backlight_device_register.patch
-backlight-tosa-use-devm_backlight_device_register.patch
-backlight-jornada720-use-devm_lcd_device_register.patch
-backlight-l4f00242t03-use-devm_lcd_device_register.patch
-backlight-tosa-use-devm_lcd_device_register.patch
-drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch
-rtc-ds1305-remove-unnecessary-spi_set_drvdata.patch
-rtc-rtc-twl-use-devm_-functions.patch
-rtc-rtc-vr41xx-use-devm_-functions.patch
-linux-next.patch
+include-linux-hugetlbh-make-isolate_huge_page-an-inline.patch
+mm-memcg-do-not-declare-oom-from-__gfp_nofail-allocations.patch
+mm-memcg-fix-race-condition-between-memcg-teardown-and-swapin.patch
+mm-memcg-do-not-allow-task-about-to-oom-kill-to-bypass-the-limit.patch
+arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit.patch
+arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix.patch
+mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch
+mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
+mm-show_mem-remove-show_mem_filter_page_count.patch
+introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
+oom_kill-change-oom_killc-to-use-for_each_thread.patch
+oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
+oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
+mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
 
