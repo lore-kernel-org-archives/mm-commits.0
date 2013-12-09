@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch added
- to -mm tree
-Date: Mon, 09 Dec 2013 15:07:37 -0800
-Message-ID: <52a64d39.FqSupy3PezCa06kV%akpm@linux-foundation.org>
+Subject: + oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
+ added to -mm tree
+Date: Mon, 09 Dec 2013 15:07:35 -0800
+Message-ID: <52a64d37.NRLxQgudtgXUczUu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54765 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54759 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752856Ab3LIXHi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 18:07:38 -0500
+	with ESMTP id S1752856Ab3LIXHg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 18:07:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, xindong.ma@intel.com, xiaobing.tu@intel.com, snanda@chromium.org, rientjes@google.com, msb@chromium.org, mhocko@suse.cz, fweisbec@gmail.com, ebiederm@xmission.com, dserrg@gmail.com, oleg@redhat.com
 
-Subject: + oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch added to -mm tree
+Subject: + oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch added to -mm tree
 To: oleg@redhat.com,dserrg@gmail.com,ebiederm@xmission.com,fweisbec@gmail.com,mhocko@suse.cz,msb@chromium.org,rientjes@google.com,snanda@chromium.org,xiaobing.tu@intel.com,xindong.ma@intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 15:07:37 -0800
+Date: Mon, 09 Dec 2013 15:07:35 -0800
 
 
 The patch titled
-     Subject: oom_kill: add rcu_read_lock() into find_lock_task_mm()
+     Subject: oom_kill: has_intersects_mems_allowed() needs rcu_read_lock()
 has been added to the -mm tree.  Its filename is
-     oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
+     oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,19 +45,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: oom_kill: add rcu_read_lock() into find_lock_task_mm()
+Subject: oom_kill: has_intersects_mems_allowed() needs rcu_read_lock()
 
-find_lock_task_mm() expects it is called under rcu or tasklist lock, but
-it seems that at least oom_unkillable_task()->task_in_mem_cgroup() and
-mem_cgroup_out_of_memory()->oom_badness() can call it lockless.
+At least out_of_memory() calls has_intersects_mems_allowed() without even
+rcu_read_lock(), this is obviously buggy.
 
-Perhaps we could fix the callers, but this patch simply adds rcu lock into
-find_lock_task_mm().  This also allows to simplify a bit one of its
-callers, oom_kill_process().
+Add the necessary rcu_read_lock().  This means that we can not simply
+return from the loop, we need "bool ret" and "break".
+
+While at it, swap the names of task_struct's (the argument and the local).
+This cleans up the code a little bit and avoids the unnecessary
+initialization.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Sergey Dyasly <dserrg@gmail.com>
-Cc: Sameer Nanda <snanda@chromium.org>
+Reviewed-by: Sergey Dyasly <dserrg@gmail.com>
+Tested-by: Sergey Dyasly <dserrg@gmail.com>
+Reviewed-by: Sameer Nanda <snanda@chromium.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Mandeep Singh Baines <msb@chromium.org>
@@ -68,53 +71,62 @@ Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/oom_kill.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN mm/oom_kill.c~oom_kill-add-rcu_read_lock-into-find_lock_task_mm mm/oom_kill.c
---- a/mm/oom_kill.c~oom_kill-add-rcu_read_lock-into-find_lock_task_mm
+diff -puN mm/oom_kill.c~oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock mm/oom_kill.c
+--- a/mm/oom_kill.c~oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock
 +++ a/mm/oom_kill.c
-@@ -102,14 +102,19 @@ struct task_struct *find_lock_task_mm(st
+@@ -47,18 +47,20 @@ static DEFINE_SPINLOCK(zone_scan_lock);
+ #ifdef CONFIG_NUMA
+ /**
+  * has_intersects_mems_allowed() - check task eligiblity for kill
+- * @tsk: task struct of which task to consider
++ * @start: task struct of which task to consider
+  * @mask: nodemask passed to page allocator for mempolicy ooms
+  *
+  * Task eligibility is determined by whether or not a candidate task, @tsk,
+  * shares the same mempolicy nodes as current if it is bound by such a policy
+  * and whether or not it has the same set of allowed cpuset nodes.
+  */
+-static bool has_intersects_mems_allowed(struct task_struct *tsk,
++static bool has_intersects_mems_allowed(struct task_struct *start,
+ 					const nodemask_t *mask)
  {
- 	struct task_struct *t;
+-	struct task_struct *start = tsk;
++	struct task_struct *tsk;
++	bool ret = false;
  
 +	rcu_read_lock();
-+
- 	for_each_thread(p, t) {
- 		task_lock(t);
- 		if (likely(t->mm))
--			return t;
-+			goto found;
- 		task_unlock(t);
+ 	for_each_thread(start, tsk) {
+ 		if (mask) {
+ 			/*
+@@ -67,19 +69,20 @@ static bool has_intersects_mems_allowed(
+ 			 * mempolicy intersects current, otherwise it may be
+ 			 * needlessly killed.
+ 			 */
+-			if (mempolicy_nodemask_intersects(tsk, mask))
+-				return true;
++			ret = mempolicy_nodemask_intersects(tsk, mask);
+ 		} else {
+ 			/*
+ 			 * This is not a mempolicy constrained oom, so only
+ 			 * check the mems of tsk's cpuset.
+ 			 */
+-			if (cpuset_mems_allowed_intersects(current, tsk))
+-				return true;
++			ret = cpuset_mems_allowed_intersects(current, tsk);
+ 		}
++		if (ret)
++			break;
  	}
-+	t = NULL;
-+found:
 +	rcu_read_unlock();
  
--	return NULL;
-+	return t;
+-	return false;
++	return ret;
  }
- 
- /* return true if the task is not adequate as candidate victim task. */
-@@ -461,10 +466,8 @@ void oom_kill_process(struct task_struct
- 	}
- 	read_unlock(&tasklist_lock);
- 
--	rcu_read_lock();
- 	p = find_lock_task_mm(victim);
- 	if (!p) {
--		rcu_read_unlock();
- 		put_task_struct(victim);
- 		return;
- 	} else if (victim != p) {
-@@ -490,6 +493,7 @@ void oom_kill_process(struct task_struct
- 	 * That thread will now get access to memory reserves since it has a
- 	 * pending fatal signal.
- 	 */
-+	rcu_read_lock();
- 	for_each_process(p)
- 		if (p->mm == mm && !same_thread_group(p, victim) &&
- 		    !(p->flags & PF_KTHREAD)) {
+ #else
+ static bool has_intersects_mems_allowed(struct task_struct *tsk,
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
