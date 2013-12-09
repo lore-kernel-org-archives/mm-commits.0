@@ -1,106 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch removed
- from -mm tree
-Date: Mon, 09 Dec 2013 13:52:48 -0800
-Message-ID: <52a63bb0.HtS6UKMTg8RLaRLc%akpm@linux-foundation.org>
+Subject: +
+ arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix.patch added to
+ -mm tree
+Date: Mon, 09 Dec 2013 14:43:17 -0800
+Message-ID: <52a64785.hlmZCboEvAw5vPQQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54444 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54685 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761803Ab3LIVwu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 16:52:50 -0500
+	with ESMTP id S1752681Ab3LIWnS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 17:43:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, felipe.contreras@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, rientjes@google.com, mingo@elte.hu, hpa@zytor.com, toshi.kani@hp.com
 
-Subject: [withdrawn] kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,felipe.contreras@gmail.com,mm-commits@vger.kernel.org
+Subject: + arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix.patch added to -mm tree
+To: toshi.kani@hp.com,hpa@zytor.com,mingo@elte.hu,rientjes@google.com,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 13:52:48 -0800
+Date: Mon, 09 Dec 2013 14:43:17 -0800
 
 
 The patch titled
-     Subject: kernel-paramsc-improve-standard-definitions-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     kernel-paramsc-improve-standard-definitions-checkpatch-fixes.patch
+     Subject: arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix
+has been added to the -mm tree.  Its filename is
+     arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-paramsc-improve-standard-definitions-checkpatch-fixes
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix
 
-WARNING: please, no space before tabs
-#25: FILE: kernel/params.c:230:
-+#define STANDARD_PARAM_DEF(name, type, format, strtolfn)      ^I^I\$
-
-total: 0 errors, 1 warnings, 39 lines checked
-
-./patches/kernel-paramsc-improve-standard-definitions.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Felipe Contreras <felipe.contreras@gmail.com>
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/params.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/srat.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN kernel/params.c~kernel-paramsc-improve-standard-definitions-checkpatch-fixes kernel/params.c
---- a/kernel/params.c~kernel-paramsc-improve-standard-definitions-checkpatch-fixes
-+++ a/kernel/params.c
-@@ -227,7 +227,7 @@ int parse_args(const char *doing,
+diff -puN arch/x86/mm/srat.c~arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix arch/x86/mm/srat.c
+--- a/arch/x86/mm/srat.c~arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix
++++ a/arch/x86/mm/srat.c
+@@ -42,7 +42,11 @@ static __init inline int srat_disabled(v
+ 	return acpi_numa < 0;
  }
  
- /* Lazy bastard, eh? */
--#define STANDARD_PARAM_DEF(name, type, format, strtolfn)      		\
-+#define STANDARD_PARAM_DEF(name, type, format, strtolfn)		\
- 	int param_set_##name(const char *val, const struct kernel_param *kp) \
- 	{								\
- 		return strtolfn(val, 0, (type *)kp->arg);		\
+-/* Callback for SLIT parsing */
++/**
++ * Callback for SLIT parsing.  pxm_to_node() returns NUMA_NO_NODE for
++ * I/O localities since SRAT does not list them.  I/O localities are
++ * not supported at this point.
++ */
+ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+ {
+ 	int i, j;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from toshi.kani@hp.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
-dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit.patch
+arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit-fix.patch
+x86-get-pg_data_ts-memory-from-other-node.patch
+memblock-numa-introduce-flags-field-into-memblock.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+memblock-make-memblock_set_node-support-different-memblock_type.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
+x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
 linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
