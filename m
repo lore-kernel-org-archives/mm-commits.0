@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
- added to -mm tree
-Date: Mon, 09 Dec 2013 15:07:31 -0800
-Message-ID: <52a64d33.AdibX1ybnxe065mr%akpm@linux-foundation.org>
+Subject: + oom_kill-change-oom_killc-to-use-for_each_thread.patch added to -mm tree
+Date: Mon, 09 Dec 2013 15:07:33 -0800
+Message-ID: <52a64d35.AfweiNH0NKYujT6y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54744 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54755 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752856Ab3LIXHd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 18:07:33 -0500
+	with ESMTP id S1752856Ab3LIXHe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 18:07:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, xindong.ma@intel.com, xiaobing.tu@intel.com, snanda@chromium.org, rientjes@google.com, msb@chromium.org, mhocko@suse.cz, fweisbec@gmail.com, ebiederm@xmission.com, dserrg@gmail.com, oleg@redhat.com
 
-Subject: + introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch added to -mm tree
+Subject: + oom_kill-change-oom_killc-to-use-for_each_thread.patch added to -mm tree
 To: oleg@redhat.com,dserrg@gmail.com,ebiederm@xmission.com,fweisbec@gmail.com,mhocko@suse.cz,msb@chromium.org,rientjes@google.com,snanda@chromium.org,xiaobing.tu@intel.com,xindong.ma@intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 15:07:31 -0800
+Date: Mon, 09 Dec 2013 15:07:33 -0800
 
 
 The patch titled
-     Subject: introduce for_each_thread() to replace the buggy while_each_thread()
+     Subject: oom_kill: change oom_kill.c to use for_each_thread()
 has been added to the -mm tree.  Its filename is
-     introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
+     oom_kill-change-oom_killc-to-use-for_each_thread.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom_kill-change-oom_killc-to-use-for_each_thread.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom_kill-change-oom_killc-to-use-for_each_thread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,156 +44,118 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: introduce for_each_thread() to replace the buggy while_each_thread()
+Subject: oom_kill: change oom_kill.c to use for_each_thread()
 
-while_each_thread() and next_thread() should die, almost every lockless
-usage is wrong.
+Change oom_kill.c to use for_each_thread() rather than the racy
+while_each_thread() which can loop forever if we race with exit.
 
-1. Unless g == current, the lockless while_each_thread() is not safe.
+Note also that most users were buggy even if while_each_thread() was fine,
+the task can exit even _before_ rcu_read_lock().
 
-   while_each_thread(g, t) can loop forever if g exits, next_thread()
-   can't reach the unhashed thread in this case. Note that this can
-   happen even if g is the group leader, it can exec.
-
-2. Even if while_each_thread() itself was correct, people often use
-   it wrongly.
-
-   It was never safe to just take rcu_read_lock() and loop unless
-   you verify that pid_alive(g) == T, even the first next_thread()
-   can point to the already freed/reused memory.
-
-This patch adds signal_struct->thread_head and task->thread_node to create
-the normal rcu-safe list with the stable head.  The new for_each_thread(g,
-t) helper is always safe under rcu_read_lock() as long as this task_struct
-can't go away.
-
-Note: of course it is ugly to have both task_struct->thread_node and the
-old task_struct->thread_group, we will kill it later, after we change the
-users of while_each_thread() to use for_each_thread().
-
-Perhaps we can kill it even before we convert all users, we can
-reimplement next_thread(t) using the new thread_head/thread_node.  But we
-can't do this right now because this will lead to subtle behavioural
-changes.  For example, do/while_each_thread() always sees at least one
-task, while for_each_thread() can do nothing if the whole thread group has
-died.  Or thread_group_empty(), currently its semantics is not clear
-unless thread_group_leader(p) and we need to audit the callers before we
-can change it.
-
-So this patch adds the new interface which has to coexist with the old one
-for some time, hopefully the next changes will be more or less
-straightforward and the old one will go away soon.
+Fortunately the new for_each_thread() only requires the stable
+task_struct, so this change fixes both problems.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Reviewed-by: Sergey Dyasly <dserrg@gmail.com>
 Tested-by: Sergey Dyasly <dserrg@gmail.com>
 Reviewed-by: Sameer Nanda <snanda@chromium.org>
-Acked-by: David Rientjes <rientjes@google.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Mandeep Singh Baines <msb@chromium.org>
 Cc: "Ma, Xindong" <xindong.ma@intel.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Cc: "Tu, Xiaobing" <xiaobing.tu@intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    2 ++
- include/linux/sched.h     |   12 ++++++++++++
- kernel/exit.c             |    1 +
- kernel/fork.c             |    7 +++++++
- 4 files changed, 22 insertions(+)
+ mm/oom_kill.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/init_task.h~introduce-for_each_thread-to-replace-the-buggy-while_each_thread include/linux/init_task.h
---- a/include/linux/init_task.h~introduce-for_each_thread-to-replace-the-buggy-while_each_thread
-+++ a/include/linux/init_task.h
-@@ -40,6 +40,7 @@ extern struct fs_struct init_fs;
- 
- #define INIT_SIGNALS(sig) {						\
- 	.nr_threads	= 1,						\
-+	.thread_head	= LIST_HEAD_INIT(init_task.thread_node),	\
- 	.wait_chldexit	= __WAIT_QUEUE_HEAD_INITIALIZER(sig.wait_chldexit),\
- 	.shared_pending	= { 						\
- 		.list = LIST_HEAD_INIT(sig.shared_pending.list),	\
-@@ -213,6 +214,7 @@ extern struct task_group root_task_group
- 		[PIDTYPE_SID]  = INIT_PID_LINK(PIDTYPE_SID),		\
- 	},								\
- 	.thread_group	= LIST_HEAD_INIT(tsk.thread_group),		\
-+	.thread_node	= LIST_HEAD_INIT(init_signals.thread_head),	\
- 	INIT_IDS							\
- 	INIT_PERF_EVENTS(tsk)						\
- 	INIT_TRACE_IRQFLAGS						\
-diff -puN include/linux/sched.h~introduce-for_each_thread-to-replace-the-buggy-while_each_thread include/linux/sched.h
---- a/include/linux/sched.h~introduce-for_each_thread-to-replace-the-buggy-while_each_thread
-+++ a/include/linux/sched.h
-@@ -487,6 +487,7 @@ struct signal_struct {
- 	atomic_t		sigcnt;
- 	atomic_t		live;
- 	int			nr_threads;
-+	struct list_head	thread_head;
- 
- 	wait_queue_head_t	wait_chldexit;	/* for wait4() */
- 
-@@ -1161,6 +1162,7 @@ struct task_struct {
- 	/* PID/PID hash table linkage. */
- 	struct pid_link pids[PIDTYPE_MAX];
- 	struct list_head thread_group;
-+	struct list_head thread_node;
- 
- 	struct completion *vfork_done;		/* for vfork() */
- 	int __user *set_child_tid;		/* CLONE_CHILD_SETTID */
-@@ -2224,6 +2226,16 @@ extern bool current_is_single_threaded(v
- #define while_each_thread(g, t) \
- 	while ((t = next_thread(t)) != g)
- 
-+#define __for_each_thread(signal, t)	\
-+	list_for_each_entry_rcu(t, &(signal)->thread_head, thread_node)
-+
-+#define for_each_thread(p, t)		\
-+	__for_each_thread((p)->signal, t)
-+
-+/* Careful: this is a double loop, 'break' won't work as expected. */
-+#define for_each_process_thread(p, t)	\
-+	for_each_process(p) for_each_thread(p, t)
-+
- static inline int get_nr_threads(struct task_struct *tsk)
+diff -puN mm/oom_kill.c~oom_kill-change-oom_killc-to-use-for_each_thread mm/oom_kill.c
+--- a/mm/oom_kill.c~oom_kill-change-oom_killc-to-use-for_each_thread
++++ a/mm/oom_kill.c
+@@ -59,7 +59,7 @@ static bool has_intersects_mems_allowed(
  {
- 	return tsk->signal->nr_threads;
-diff -puN kernel/exit.c~introduce-for_each_thread-to-replace-the-buggy-while_each_thread kernel/exit.c
---- a/kernel/exit.c~introduce-for_each_thread-to-replace-the-buggy-while_each_thread
-+++ a/kernel/exit.c
-@@ -74,6 +74,7 @@ static void __unhash_process(struct task
- 		__this_cpu_dec(process_counts);
- 	}
- 	list_del_rcu(&p->thread_group);
-+	list_del_rcu(&p->thread_node);
- }
+ 	struct task_struct *start = tsk;
  
- /*
-diff -puN kernel/fork.c~introduce-for_each_thread-to-replace-the-buggy-while_each_thread kernel/fork.c
---- a/kernel/fork.c~introduce-for_each_thread-to-replace-the-buggy-while_each_thread
-+++ a/kernel/fork.c
-@@ -1034,6 +1034,11 @@ static int copy_signal(unsigned long clo
- 	sig->nr_threads = 1;
- 	atomic_set(&sig->live, 1);
- 	atomic_set(&sig->sigcnt, 1);
-+
-+	/* list_add(thread_node, thread_head) without INIT_LIST_HEAD() */
-+	sig->thread_head = (struct list_head)LIST_HEAD_INIT(tsk->thread_node);
-+	tsk->thread_node = (struct list_head)LIST_HEAD_INIT(sig->thread_head);
-+
- 	init_waitqueue_head(&sig->wait_chldexit);
- 	sig->curr_target = tsk;
- 	init_sigpending(&sig->shared_pending);
-@@ -1471,6 +1476,8 @@ static struct task_struct *copy_process(
- 			atomic_inc(&current->signal->sigcnt);
- 			list_add_tail_rcu(&p->thread_group,
- 					  &p->group_leader->thread_group);
-+			list_add_tail_rcu(&p->thread_node,
-+					  &p->signal->thread_head);
+-	do {
++	for_each_thread(start, tsk) {
+ 		if (mask) {
+ 			/*
+ 			 * If this is a mempolicy constrained oom, tsk's
+@@ -77,7 +77,7 @@ static bool has_intersects_mems_allowed(
+ 			if (cpuset_mems_allowed_intersects(current, tsk))
+ 				return true;
  		}
- 		attach_pid(p, PIDTYPE_PID);
- 		nr_threads++;
+-	} while_each_thread(start, tsk);
++	}
+ 
+ 	return false;
+ }
+@@ -97,14 +97,14 @@ static bool has_intersects_mems_allowed(
+  */
+ struct task_struct *find_lock_task_mm(struct task_struct *p)
+ {
+-	struct task_struct *t = p;
++	struct task_struct *t;
+ 
+-	do {
++	for_each_thread(p, t) {
+ 		task_lock(t);
+ 		if (likely(t->mm))
+ 			return t;
+ 		task_unlock(t);
+-	} while_each_thread(p, t);
++	}
+ 
+ 	return NULL;
+ }
+@@ -301,7 +301,7 @@ static struct task_struct *select_bad_pr
+ 	unsigned long chosen_points = 0;
+ 
+ 	rcu_read_lock();
+-	do_each_thread(g, p) {
++	for_each_process_thread(g, p) {
+ 		unsigned int points;
+ 
+ 		switch (oom_scan_process_thread(p, totalpages, nodemask,
+@@ -323,7 +323,7 @@ static struct task_struct *select_bad_pr
+ 			chosen = p;
+ 			chosen_points = points;
+ 		}
+-	} while_each_thread(g, p);
++	}
+ 	if (chosen)
+ 		get_task_struct(chosen);
+ 	rcu_read_unlock();
+@@ -406,7 +406,7 @@ void oom_kill_process(struct task_struct
+ {
+ 	struct task_struct *victim = p;
+ 	struct task_struct *child;
+-	struct task_struct *t = p;
++	struct task_struct *t;
+ 	struct mm_struct *mm;
+ 	unsigned int victim_points = 0;
+ 	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
+@@ -437,7 +437,7 @@ void oom_kill_process(struct task_struct
+ 	 * still freeing memory.
+ 	 */
+ 	read_lock(&tasklist_lock);
+-	do {
++	for_each_thread(p, t) {
+ 		list_for_each_entry(child, &t->children, sibling) {
+ 			unsigned int child_points;
+ 
+@@ -455,7 +455,7 @@ void oom_kill_process(struct task_struct
+ 				get_task_struct(victim);
+ 			}
+ 		}
+-	} while_each_thread(p, t);
++	}
+ 	read_unlock(&tasklist_lock);
+ 
+ 	rcu_read_lock();
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
