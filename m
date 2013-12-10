@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-do-not-clear-pmd-during-pte-update-scan.patch added to
- -mm tree
-Date: Tue, 10 Dec 2013 14:20:20 -0800
-Message-ID: <52a793a4.ENLYa9FzS2k6/HYk%akpm__4948.75930385223$1386714033$gmane$org@linux-foundation.org>
+Subject: + mm-clear-pmd_numa-before-invalidating.patch added to -mm tree
+Date: Tue, 10 Dec 2013 14:20:19 -0800
+Message-ID: <52a793a3.Ztw3M5uW4IKAa/pq%akpm__29013.3086535663$1386714034$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40737 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40732 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751776Ab3LJWUV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:21 -0500
+	with ESMTP id S1751139Ab3LJWUU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + mm-numa-do-not-clear-pmd-during-pte-update-scan.patch added to -mm tree
+Subject: + mm-clear-pmd_numa-before-invalidating.patch added to -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:20:20 -0800
+Date: Tue, 10 Dec 2013 14:20:19 -0800
 
 
 The patch titled
-     Subject: mm: numa: do not clear PMD during PTE update scan
+     Subject: mm: clear pmd_numa before invalidating
 has been added to the -mm tree.  Its filename is
-     mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
+     mm-clear-pmd_numa-before-invalidating.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-clear-pmd_numa-before-invalidating.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clear-pmd_numa-before-invalidating.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,12 +44,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: do not clear PMD during PTE update scan
+Subject: mm: clear pmd_numa before invalidating
 
-If the PMD is flushed then a parallel fault in handle_mm_fault() will
-enter the pmd_none and do_huge_pmd_anonymous_page() path where it'll
-attempt to insert a huge zero page.  This is wasteful so the patch avoids
-clearing the PMD when setting pmd_numa.
+pmdp_invalidate clears the present bit without taking into account that it
+might be in the _PAGE_NUMA bit leaving the PMD in an unexpected state. 
+Clear pmd_numa before invalidating.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -59,21 +57,22 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/pgtable-generic.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/huge_memory.c~mm-numa-do-not-clear-pmd-during-pte-update-scan mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-do-not-clear-pmd-during-pte-update-scan
-+++ a/mm/huge_memory.c
-@@ -1539,7 +1539,7 @@ int change_huge_pmd(struct vm_area_struc
- 			 */
- 			if (!is_huge_zero_page(page) &&
- 			    !pmd_numa(*pmd)) {
--				entry = pmdp_get_and_clear(mm, addr, pmd);
-+				entry = *pmd;
- 				entry = pmd_mknuma(entry);
- 				ret = HPAGE_PMD_NR;
- 			}
+diff -puN mm/pgtable-generic.c~mm-clear-pmd_numa-before-invalidating mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~mm-clear-pmd_numa-before-invalidating
++++ a/mm/pgtable-generic.c
+@@ -191,6 +191,9 @@ pgtable_t pgtable_trans_huge_withdraw(st
+ void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 		     pmd_t *pmdp)
+ {
++	pmd_t entry = *pmdp;
++	if (pmd_numa(entry))
++		entry = pmd_mknonnuma(entry);
+ 	set_pmd_at(vma->vm_mm, address, pmdp, pmd_mknotpresent(*pmdp));
+ 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ }
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
