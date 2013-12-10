@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch added to -mm tree
-Date: Tue, 10 Dec 2013 14:20:32 -0800
-Message-ID: <52a793b0.VpZmj7NaX4IEAIu8%akpm@linux-foundation.org>
+Subject: + sched-numa-skip-inaccessible-vmas.patch added to -mm tree
+Date: Tue, 10 Dec 2013 14:20:24 -0800
+Message-ID: <52a793a8.B/pCpUvUMyUhZljT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40779 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40755 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752046Ab3LJWUd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:33 -0500
+	with ESMTP id S1751776Ab3LJWUZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch added to -mm tree
-To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com
+Subject: + sched-numa-skip-inaccessible-vmas.patch added to -mm tree
+To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:20:32 -0800
+Date: Tue, 10 Dec 2013 14:20:24 -0800
 
 
 The patch titled
-     Subject: mm: numa: trace tasks that fail migration due to rate limiting
+     Subject: sched: numa: skip inaccessible VMAs
 has been added to the -mm tree.  Its filename is
-     mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
+     sched-numa-skip-inaccessible-vmas.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sched-numa-skip-inaccessible-vmas.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sched-numa-skip-inaccessible-vmas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,74 +44,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: trace tasks that fail migration due to rate limiting
+Subject: sched: numa: skip inaccessible VMAs
 
-A low local/remote numa hinting fault ratio is potentially explained by
-failed migrations.  This patch adds a tracepoint that fires when migration
-fails due to migration rate limitation.
+Inaccessible VMA should not be trapping NUMA hint faults. Skip them.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Alex Thorlton <athorlton@sgi.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/migrate.h |   26 ++++++++++++++++++++++++++
- mm/migrate.c                   |    5 ++++-
- 2 files changed, 30 insertions(+), 1 deletion(-)
+ kernel/sched/fair.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/trace/events/migrate.h~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting include/trace/events/migrate.h
---- a/include/trace/events/migrate.h~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting
-+++ a/include/trace/events/migrate.h
-@@ -45,6 +45,32 @@ TRACE_EVENT(mm_migrate_pages,
- 		__print_symbolic(__entry->reason, MIGRATE_REASON))
- );
+diff -puN kernel/sched/fair.c~sched-numa-skip-inaccessible-vmas kernel/sched/fair.c
+--- a/kernel/sched/fair.c~sched-numa-skip-inaccessible-vmas
++++ a/kernel/sched/fair.c
+@@ -1752,6 +1752,13 @@ void task_numa_work(struct callback_head
+ 		    (vma->vm_file && (vma->vm_flags & (VM_READ|VM_WRITE)) == (VM_READ)))
+ 			continue;
  
-+TRACE_EVENT(mm_numa_migrate_ratelimit,
++		/*
++		 * Skip inaccessible VMAs to avoid any confusion between
++		 * PROT_NONE and NUMA hinting ptes
++		 */
++		if (!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)))
++			continue;
 +
-+	TP_PROTO(struct task_struct *p, int dst_nid, unsigned long nr_pages),
-+
-+	TP_ARGS(p, dst_nid, nr_pages),
-+
-+	TP_STRUCT__entry(
-+		__array(	char,		comm,	TASK_COMM_LEN)
-+		__field(	pid_t,		pid)
-+		__field(	int,		dst_nid)
-+		__field(	unsigned long,	nr_pages)
-+	),
-+
-+	TP_fast_assign(
-+		memcpy(__entry->comm, p->comm, TASK_COMM_LEN);
-+		__entry->pid		= p->pid;
-+		__entry->dst_nid	= dst_nid;
-+		__entry->nr_pages	= nr_pages;
-+	),
-+
-+	TP_printk("comm=%s pid=%d dst_nid=%d nr_pages=%lu",
-+		__entry->comm,
-+		__entry->pid,
-+		__entry->dst_nid,
-+		__entry->nr_pages)
-+);
- #endif /* _TRACE_MIGRATE_H */
- 
- /* This part must be outside protection */
-diff -puN mm/migrate.c~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting mm/migrate.c
---- a/mm/migrate.c~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting
-+++ a/mm/migrate.c
-@@ -1613,8 +1613,11 @@ static bool numamigrate_update_ratelimit
- 			msecs_to_jiffies(migrate_interval_millisecs);
- 		spin_unlock(&pgdat->numabalancing_migrate_lock);
- 	}
--	if (pgdat->numabalancing_migrate_nr_pages > ratelimit_pages)
-+	if (pgdat->numabalancing_migrate_nr_pages > ratelimit_pages) {
-+		trace_mm_numa_migrate_ratelimit(current, pgdat->node_id,
-+								nr_pages);
- 		return true;
-+	}
- 
- 	/*
- 	 * This is an unlocked non-atomic update so errors are possible.
+ 		do {
+ 			start = max(start, vma->vm_start);
+ 			end = ALIGN(start + (pages << PAGE_SHIFT), HPAGE_SIZE);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
