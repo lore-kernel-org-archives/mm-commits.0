@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-clear-numa-hinting-information-on-mprotect.patch added
- to -mm tree
-Date: Tue, 10 Dec 2013 14:20:25 -0800
-Message-ID: <52a793a9.EpeLmTFHpDjJnCcP%akpm@linux-foundation.org>
+Subject: +
+ mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
+ added to -mm tree
+Date: Tue, 10 Dec 2013 14:20:22 -0800
+Message-ID: <52a793a6.qB/e92PBp2GvAOTh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40759 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40744 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752029Ab3LJWU0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:26 -0500
+	with ESMTP id S1752007Ab3LJWUX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + mm-numa-clear-numa-hinting-information-on-mprotect.patch added to -mm tree
+Subject: + mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch added to -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:20:25 -0800
+Date: Tue, 10 Dec 2013 14:20:22 -0800
 
 
 The patch titled
-     Subject: mm: numa: clear numa hinting information on mprotect
+     Subject: mm: numa: ensure anon_vma is locked to prevent parallel THP splits
 has been added to the -mm tree.  Its filename is
-     mm-numa-clear-numa-hinting-information-on-mprotect.patch
+     mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-clear-numa-hinting-information-on-mprotect.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-clear-numa-hinting-information-on-mprotect.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,11 +46,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: clear numa hinting information on mprotect
+Subject: mm: numa: ensure anon_vma is locked to prevent parallel THP splits
 
-On a protection change it is no longer clear if the page should be still
-accessible.  This patch clears the NUMA hinting fault bits on a protection
-change.
+The anon_vma lock prevents parallel THP splits and any associated
+complexity that arises when handling splits during THP migration.  This
+patch checks if the lock was successfully acquired and bails from THP
+migration if it failed for any reason.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -58,34 +60,26 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 ++
- mm/mprotect.c    |    2 ++
- 2 files changed, 4 insertions(+)
+ mm/huge_memory.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/huge_memory.c~mm-numa-clear-numa-hinting-information-on-mprotect mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-clear-numa-hinting-information-on-mprotect
+diff -puN mm/huge_memory.c~mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits
 +++ a/mm/huge_memory.c
-@@ -1532,6 +1532,8 @@ int change_huge_pmd(struct vm_area_struc
- 		ret = 1;
- 		if (!prot_numa) {
- 			entry = pmdp_get_and_clear(mm, addr, pmd);
-+			if (pmd_numa(entry))
-+				entry = pmd_mknonnuma(entry);
- 			entry = pmd_modify(entry, newprot);
- 			ret = HPAGE_PMD_NR;
- 			BUG_ON(pmd_write(entry));
-diff -puN mm/mprotect.c~mm-numa-clear-numa-hinting-information-on-mprotect mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-clear-numa-hinting-information-on-mprotect
-+++ a/mm/mprotect.c
-@@ -54,6 +54,8 @@ static unsigned long change_pte_range(st
+@@ -1359,6 +1359,13 @@ int do_huge_pmd_numa_page(struct mm_stru
+ 		goto out_unlock;
+ 	}
  
- 			if (!prot_numa) {
- 				ptent = ptep_modify_prot_start(mm, addr, pte);
-+				if (pte_numa(ptent))
-+					ptent = pte_mknonnuma(ptent);
- 				ptent = pte_modify(ptent, newprot);
- 				updated = true;
- 			} else {
++	/* Bail if we fail to protect against THP splits for any reason */
++	if (unlikely(!anon_vma)) {
++		put_page(page);
++		page_nid = -1;
++		goto clear_pmdnuma;
++	}
++
+ 	/*
+ 	 * Migrate the THP to the requested node, returns with page unlocked
+ 	 * and pmd_numa cleared.
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
