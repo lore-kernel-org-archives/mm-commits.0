@@ -1,121 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 10 Dec 2013 13:11:32 -0800
-Message-ID: <52a78384.zdUJ+wgSFkeOP4ju%akpm@linux-foundation.org>
+Subject: + mm-hwpoison-add-to-hwpoison_inject.patch added to -mm tree
+Date: Tue, 10 Dec 2013 13:39:28 -0800
+Message-ID: <52a78a10.5kDvYANe9mRosfLT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40153 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751141Ab3LJVLd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 16:11:33 -0500
+	with ESMTP id S1751851Ab3LJVj3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 16:39:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, murzin.v@gmail.com, liwanp@linux.vnet.ibm.com
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: + mm-hwpoison-add-to-hwpoison_inject.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,murzin.v@gmail.com,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 13:11:32 -0800
+Date: Tue, 10 Dec 2013 13:39:28 -0800
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm/hwpoison: add '#' to hwpoison_inject
+has been added to the -mm tree.  Its filename is
+     mm-hwpoison-add-to-hwpoison_inject.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-add-to-hwpoison_inject.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-add-to-hwpoison_inject.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/hwpoison: add '#' to hwpoison_inject
 
+Add '#' to hwpoison_inject just as done in madvise_hwpoison.
+
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Vladimir Murzin <murzin.v@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_display.c |    8 --------
- include/linux/hid-sensor-ids.h       |    3 ---
- 2 files changed, 11 deletions(-)
+ mm/hwpoison-inject.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_display.c
---- a/drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_display.c
-@@ -6589,11 +6589,7 @@ static void hsw_restore_lcpll(struct drm
+diff -puN mm/hwpoison-inject.c~mm-hwpoison-add-to-hwpoison_inject mm/hwpoison-inject.c
+--- a/mm/hwpoison-inject.c~mm-hwpoison-add-to-hwpoison_inject
++++ a/mm/hwpoison-inject.c
+@@ -55,7 +55,7 @@ static int hwpoison_inject(void *data, u
+ 		return 0;
  
- 	/* Make sure we're not on PC8 state before disabling PC8, otherwise
- 	 * we'll hang the machine! */
--<<<<<<< HEAD
--	gen6_gt_force_wake_get(dev_priv);
--=======
- 	gen6_gt_force_wake_get(dev_priv, FORCEWAKE_ALL);
-->>>>>>> linux-next/akpm-base
- 
- 	if (val & LCPLL_POWER_DOWN_ALLOW) {
- 		val &= ~LCPLL_POWER_DOWN_ALLOW;
-@@ -6627,11 +6623,7 @@ static void hsw_restore_lcpll(struct drm
- 			DRM_ERROR("Switching back to LCPLL failed\n");
- 	}
- 
--<<<<<<< HEAD
--	gen6_gt_force_wake_put(dev_priv);
--=======
- 	gen6_gt_force_wake_put(dev_priv, FORCEWAKE_ALL);
-->>>>>>> linux-next/akpm-base
+ inject:
+-	printk(KERN_INFO "Injecting memory failure at pfn %lx\n", pfn);
++	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
+ 	return memory_failure(pfn, 18, MF_COUNT_INCREASED);
  }
  
- void hsw_enable_pc8_work(struct work_struct *__work)
-diff -puN include/linux/hid-sensor-ids.h~linux-next-git-rejects include/linux/hid-sensor-ids.h
---- a/include/linux/hid-sensor-ids.h~linux-next-git-rejects
-+++ a/include/linux/hid-sensor-ids.h
-@@ -133,11 +133,8 @@
- #define HID_USAGE_SENSOR_PROP_REPORTING_STATE_NO_EVENTS_ENUM		0x00
- #define HID_USAGE_SENSOR_PROP_REPORTING_STATE_ALL_EVENTS_ENUM		0x01
- 
--<<<<<<< HEAD
--=======
- /* Per data field properties */
- #define HID_USAGE_SENSOR_DATA_MOD_NONE					0x00
- #define HID_USAGE_SENSOR_DATA_MOD_CHANGE_SENSITIVITY_ABS		0x1000
- 
-->>>>>>> linux-next/akpm-base
- #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
-origin.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
-dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+x86-get-pg_data_ts-memory-from-other-node.patch
+memblock-numa-introduce-flags-field-into-memblock.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+memblock-make-memblock_set_node-support-different-memblock_type.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
+x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
+mm-hwpoison-add-to-hwpoison_inject.patch
 
