@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
- added to -mm tree
-Date: Mon, 09 Dec 2013 16:29:40 -0800
-Message-ID: <52a66074./2NdZDheK+pH9B1A%akpm@linux-foundation.org>
+ arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
+Date: Mon, 09 Dec 2013 16:29:42 -0800
+Message-ID: <52a66076.NEH1IpTm4H5SKvf7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55820 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55835 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751566Ab3LJA3l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:41 -0500
+	with ESMTP id S1751577Ab3LJA3n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, grygorii.strashko@ti.com, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, santosh.shilimkar@ti.com
 
-Subject: + arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
+Subject: + arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
 To: santosh.shilimkar@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,grygorii.strashko@ti.com,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,tj@kernel.org,tony@atomide.com,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 16:29:40 -0800
+Date: Mon, 09 Dec 2013 16:29:42 -0800
 
 
 The patch titled
-     Subject: arch/arm/mm/init.c: use memblock apis for early memory allocations
+     Subject: arch/arm/mach-omap2/omap_hwmod.c: use memblock apis for early memory allocations
 has been added to the -mm tree.  Its filename is
-     arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
+     arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: arch/arm/mm/init.c: use memblock apis for early memory allocations
+Subject: arch/arm/mach-omap2/omap_hwmod.c: use memblock apis for early memory allocations
 
 Switch to memblock interfaces for early memory allocator instead of
 bootmem allocator.  No functional change in beahvior than what it is in
@@ -77,21 +76,34 @@ Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm/mm/init.c~arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations
-+++ a/arch/arm/mm/init.c
-@@ -458,7 +458,7 @@ free_memmap(unsigned long start_pfn, uns
- 	 * free the section of the memmap array.
- 	 */
- 	if (pg < pgend)
--		free_bootmem(pg, pgend - pg);
-+		memblock_free_early(pg, pgend - pg);
- }
+diff -puN arch/arm/mach-omap2/omap_hwmod.c~arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations arch/arm/mach-omap2/omap_hwmod.c
+--- a/arch/arm/mach-omap2/omap_hwmod.c~arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations
++++ a/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2695,9 +2695,7 @@ static int __init _alloc_links(struct om
+ 	sz = sizeof(struct omap_hwmod_link) * LINKS_PER_OCP_IF;
  
- /*
+ 	*sl = NULL;
+-	*ml = alloc_bootmem(sz);
+-
+-	memset(*ml, 0, sz);
++	*ml = memblock_virt_alloc(sz, 0);
+ 
+ 	*sl = (void *)(*ml) + sizeof(struct omap_hwmod_link);
+ 
+@@ -2816,9 +2814,7 @@ static int __init _alloc_linkspace(struc
+ 	pr_debug("omap_hwmod: %s: allocating %d byte linkspace (%d links)\n",
+ 		 __func__, sz, max_ls);
+ 
+-	linkspace = alloc_bootmem(sz);
+-
+-	memset(linkspace, 0, sz);
++	linkspace = memblock_virt_alloc(sz, 0);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from santosh.shilimkar@ti.com are
