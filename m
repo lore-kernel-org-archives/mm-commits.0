@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch added to
- -mm tree
-Date: Tue, 10 Dec 2013 14:20:31 -0800
-Message-ID: <52a793af.EBDkaIen7cECTlOA%akpm@linux-foundation.org>
+Subject: + mm-numa-make-numa-migrate-related-functions-static.patch added
+ to -mm tree
+Date: Tue, 10 Dec 2013 14:20:30 -0800
+Message-ID: <52a793ae.L8q12ZJq2em07AwS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40770 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954Ab3LJWUc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:32 -0500
+	with ESMTP id S1752062Ab3LJWUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch added to -mm tree
+Subject: + mm-numa-make-numa-migrate-related-functions-static.patch added to -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:20:31 -0800
+Date: Tue, 10 Dec 2013 14:20:30 -0800
 
 
 The patch titled
-     Subject: mm: numa: limit scope of lock for NUMA migrate rate limiting
+     Subject: mm: numa: make NUMA-migrate related functions static
 has been added to the -mm tree.  Its filename is
-     mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
+     mm-numa-make-numa-migrate-related-functions-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-make-numa-migrate-related-functions-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-make-numa-migrate-related-functions-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,12 +45,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: limit scope of lock for NUMA migrate rate limiting
+Subject: mm: numa: make NUMA-migrate related functions static
 
-NUMA migrate rate limiting protects a migration counter and window using a
-lock but in some cases this can be a contended lock.  It is not critical
-that the number of pages be perfect, lost updates are acceptable.  Reduce
-the importance of this lock.
+numamigrate_update_ratelimit and numamigrate_isolate_page only have
+callers in mm/migrate.c.  This patch makes them static.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -59,67 +56,31 @@ Cc: Alex Thorlton <athorlton@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 +----
- mm/migrate.c           |   21 ++++++++++++---------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ mm/migrate.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting
-+++ a/include/linux/mmzone.h
-@@ -764,10 +764,7 @@ typedef struct pglist_data {
- 	int kswapd_max_order;
- 	enum zone_type classzone_idx;
- #ifdef CONFIG_NUMA_BALANCING
--	/*
--	 * Lock serializing the per destination node AutoNUMA memory
--	 * migration rate limiting data.
--	 */
-+	/* Lock serializing the migrate rate limiting window */
- 	spinlock_t numabalancing_migrate_lock;
- 
- 	/* Rate limiting time interval */
-diff -puN mm/migrate.c~mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting mm/migrate.c
---- a/mm/migrate.c~mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting
+diff -puN mm/migrate.c~mm-numa-make-numa-migrate-related-functions-static mm/migrate.c
+--- a/mm/migrate.c~mm-numa-make-numa-migrate-related-functions-static
 +++ a/mm/migrate.c
-@@ -1601,26 +1601,29 @@ bool migrate_ratelimited(int node)
- static bool numamigrate_update_ratelimit(pg_data_t *pgdat,
- 					unsigned long nr_pages)
- {
--	bool rate_limited = false;
--
- 	/*
- 	 * Rate-limit the amount of data that is being migrated to a node.
- 	 * Optimal placement is no good if the memory bus is saturated and
- 	 * all the time is being spent migrating!
- 	 */
--	spin_lock(&pgdat->numabalancing_migrate_lock);
- 	if (time_after(jiffies, pgdat->numabalancing_migrate_next_window)) {
-+		spin_lock(&pgdat->numabalancing_migrate_lock);
- 		pgdat->numabalancing_migrate_nr_pages = 0;
- 		pgdat->numabalancing_migrate_next_window = jiffies +
- 			msecs_to_jiffies(migrate_interval_millisecs);
-+		spin_unlock(&pgdat->numabalancing_migrate_lock);
- 	}
- 	if (pgdat->numabalancing_migrate_nr_pages > ratelimit_pages)
--		rate_limited = true;
--	else
--		pgdat->numabalancing_migrate_nr_pages += nr_pages;
--	spin_unlock(&pgdat->numabalancing_migrate_lock);
--	
--	return rate_limited;
-+		return true;
-+
-+	/*
-+	 * This is an unlocked non-atomic update so errors are possible.
-+	 * The consequences are failing to migrate when we potentiall should
-+	 * have which is not severe enough to warrant locking. If it is ever
-+	 * a problem, it can be converted to a per-cpu counter.
-+	 */
-+	pgdat->numabalancing_migrate_nr_pages += nr_pages;
-+	return false;
+@@ -1598,7 +1598,8 @@ bool migrate_ratelimited(int node)
  }
  
- static int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
+ /* Returns true if the node is migrate rate-limited after the update */
+-bool numamigrate_update_ratelimit(pg_data_t *pgdat, unsigned long nr_pages)
++static bool numamigrate_update_ratelimit(pg_data_t *pgdat,
++					unsigned long nr_pages)
+ {
+ 	bool rate_limited = false;
+ 
+@@ -1622,7 +1623,7 @@ bool numamigrate_update_ratelimit(pg_dat
+ 	return rate_limited;
+ }
+ 
+-int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
++static int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
+ {
+ 	int page_lru;
+ 
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
