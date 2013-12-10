@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
-Date: Mon, 09 Dec 2013 16:29:19 -0800
-Message-ID: <52a6605f.chnZ/CUEG6JVv/2f%akpm@linux-foundation.org>
+ lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch added to
+ -mm tree
+Date: Mon, 09 Dec 2013 16:29:23 -0800
+Message-ID: <52a66063.6qpGYReVdNk0DqUZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55684 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55705 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478Ab3LJA3U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:20 -0500
+	with ESMTP id S1751542Ab3LJA3Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, grygorii.strashko@ti.com, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, santosh.shilimkar@ti.com
 
-Subject: + mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
+Subject: + lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
 To: santosh.shilimkar@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,grygorii.strashko@ti.com,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,tj@kernel.org,tony@atomide.com,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 16:29:19 -0800
+Date: Mon, 09 Dec 2013 16:29:23 -0800
 
 
 The patch titled
-     Subject: mm/page_alloc.c: use memblock apis for early memory allocations
+     Subject: lib/swiotlb.c: use memblock apis for early memory allocations
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
+     lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +46,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: mm/page_alloc.c: use memblock apis for early memory allocations
+Subject: lib/swiotlb.c: use memblock apis for early memory allocations
 
 Switch to memblock interfaces for early memory allocator instead of
 bootmem allocator.  No functional change in beahvior than what it is in
@@ -55,14 +56,12 @@ Archs already converted to NO_BOOTMEM now directly use memblock interfaces
 instead of bootmem wrappers build on top of memblock.  And the archs which
 still uses bootmem, these new apis just fallback to exiting bootmem APIs.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -71,96 +70,88 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ lib/swiotlb.c |   35 ++++++++++++++++++++---------------
+ 1 file changed, 20 insertions(+), 15 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-use-memblock-apis-for-early-memory-allocations mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-use-memblock-apis-for-early-memory-allocations
-+++ a/mm/page_alloc.c
-@@ -4221,7 +4221,6 @@ static noinline __init_refok
- int zone_wait_table_init(struct zone *zone, unsigned long zone_size_pages)
- {
- 	int i;
--	struct pglist_data *pgdat = zone->zone_pgdat;
- 	size_t alloc_size;
- 
+diff -puN lib/swiotlb.c~lib-swiotlbc-use-memblock-apis-for-early-memory-allocations lib/swiotlb.c
+--- a/lib/swiotlb.c~lib-swiotlbc-use-memblock-apis-for-early-memory-allocations
++++ a/lib/swiotlb.c
+@@ -172,8 +172,9 @@ int __init swiotlb_init_with_tbl(char *t
  	/*
-@@ -4237,7 +4236,8 @@ int zone_wait_table_init(struct zone *zo
+ 	 * Get the overflow emergency buffer
+ 	 */
+-	v_overflow_buffer = alloc_bootmem_low_pages_nopanic(
+-						PAGE_ALIGN(io_tlb_overflow));
++	v_overflow_buffer = memblock_virt_alloc_nopanic(
++						PAGE_ALIGN(io_tlb_overflow),
++						PAGE_SIZE);
+ 	if (!v_overflow_buffer)
+ 		return -ENOMEM;
  
- 	if (!slab_is_available()) {
- 		zone->wait_table = (wait_queue_head_t *)
--			alloc_bootmem_node_nopanic(pgdat, alloc_size);
-+			memblock_virt_alloc_node_nopanic(
-+				alloc_size, zone->zone_pgdat->node_id);
+@@ -184,11 +185,15 @@ int __init swiotlb_init_with_tbl(char *t
+ 	 * to find contiguous free memory regions of size up to IO_TLB_SEGSIZE
+ 	 * between io_tlb_start and io_tlb_end.
+ 	 */
+-	io_tlb_list = alloc_bootmem_pages(PAGE_ALIGN(io_tlb_nslabs * sizeof(int)));
++	io_tlb_list = memblock_virt_alloc(
++				PAGE_ALIGN(io_tlb_nslabs * sizeof(int)),
++				PAGE_SIZE);
+ 	for (i = 0; i < io_tlb_nslabs; i++)
+  		io_tlb_list[i] = IO_TLB_SEGSIZE - OFFSET(i, IO_TLB_SEGSIZE);
+ 	io_tlb_index = 0;
+-	io_tlb_orig_addr = alloc_bootmem_pages(PAGE_ALIGN(io_tlb_nslabs * sizeof(phys_addr_t)));
++	io_tlb_orig_addr = memblock_virt_alloc(
++				PAGE_ALIGN(io_tlb_nslabs * sizeof(phys_addr_t)),
++				PAGE_SIZE);
+ 
+ 	if (verbose)
+ 		swiotlb_print_info();
+@@ -215,13 +220,13 @@ swiotlb_init(int verbose)
+ 	bytes = io_tlb_nslabs << IO_TLB_SHIFT;
+ 
+ 	/* Get IO TLB memory from the low pages */
+-	vstart = alloc_bootmem_low_pages_nopanic(PAGE_ALIGN(bytes));
++	vstart = memblock_virt_alloc_nopanic(PAGE_ALIGN(bytes), PAGE_SIZE);
+ 	if (vstart && !swiotlb_init_with_tbl(vstart, io_tlb_nslabs, verbose))
+ 		return;
+ 
+ 	if (io_tlb_start)
+-		free_bootmem(io_tlb_start,
+-				 PAGE_ALIGN(io_tlb_nslabs << IO_TLB_SHIFT));
++		memblock_free_early(io_tlb_start,
++				    PAGE_ALIGN(io_tlb_nslabs << IO_TLB_SHIFT));
+ 	pr_warn("Cannot allocate SWIOTLB buffer");
+ 	no_iotlb_memory = true;
+ }
+@@ -357,14 +362,14 @@ void __init swiotlb_free(void)
+ 		free_pages((unsigned long)phys_to_virt(io_tlb_start),
+ 			   get_order(io_tlb_nslabs << IO_TLB_SHIFT));
  	} else {
- 		/*
- 		 * This case means that a zone whose size was 0 gets new memory
-@@ -4357,13 +4357,14 @@ bool __meminit early_pfn_in_nid(unsigned
- #endif
- 
- /**
-- * free_bootmem_with_active_regions - Call free_bootmem_node for each active range
-+ * free_bootmem_with_active_regions - Call memblock_free_early_nid for each active range
-  * @nid: The node to free memory on. If MAX_NUMNODES, all nodes are freed.
-- * @max_low_pfn: The highest PFN that will be passed to free_bootmem_node
-+ * @max_low_pfn: The highest PFN that will be passed to memblock_free_early_nid
-  *
-  * If an architecture guarantees that all ranges registered with
-  * add_active_ranges() contain no holes and may be freed, this
-- * this function may be used instead of calling free_bootmem() manually.
-+ * this function may be used instead of calling memblock_free_early_nid()
-+ * manually.
-  */
- void __init free_bootmem_with_active_regions(int nid, unsigned long max_low_pfn)
- {
-@@ -4375,9 +4376,9 @@ void __init free_bootmem_with_active_reg
- 		end_pfn = min(end_pfn, max_low_pfn);
- 
- 		if (start_pfn < end_pfn)
--			free_bootmem_node(NODE_DATA(this_nid),
--					  PFN_PHYS(start_pfn),
--					  (end_pfn - start_pfn) << PAGE_SHIFT);
-+			memblock_free_early_nid(PFN_PHYS(start_pfn),
-+					(end_pfn - start_pfn) << PAGE_SHIFT,
-+					this_nid);
+-		free_bootmem_late(io_tlb_overflow_buffer,
+-				  PAGE_ALIGN(io_tlb_overflow));
+-		free_bootmem_late(__pa(io_tlb_orig_addr),
+-				  PAGE_ALIGN(io_tlb_nslabs * sizeof(phys_addr_t)));
+-		free_bootmem_late(__pa(io_tlb_list),
+-				  PAGE_ALIGN(io_tlb_nslabs * sizeof(int)));
+-		free_bootmem_late(io_tlb_start,
+-				  PAGE_ALIGN(io_tlb_nslabs << IO_TLB_SHIFT));
++		memblock_free_late(io_tlb_overflow_buffer,
++				   PAGE_ALIGN(io_tlb_overflow));
++		memblock_free_late(__pa(io_tlb_orig_addr),
++				   PAGE_ALIGN(io_tlb_nslabs * sizeof(phys_addr_t)));
++		memblock_free_late(__pa(io_tlb_list),
++				   PAGE_ALIGN(io_tlb_nslabs * sizeof(int)));
++		memblock_free_late(io_tlb_start,
++				   PAGE_ALIGN(io_tlb_nslabs << IO_TLB_SHIFT));
  	}
+ 	io_tlb_nslabs = 0;
  }
- 
-@@ -4648,8 +4649,9 @@ static void __init setup_usemap(struct p
- 	unsigned long usemapsize = usemap_size(zone_start_pfn, zonesize);
- 	zone->pageblock_flags = NULL;
- 	if (usemapsize)
--		zone->pageblock_flags = alloc_bootmem_node_nopanic(pgdat,
--								   usemapsize);
-+		zone->pageblock_flags =
-+			memblock_virt_alloc_node_nopanic(usemapsize,
-+							 pgdat->node_id);
- }
- #else
- static inline void setup_usemap(struct pglist_data *pgdat, struct zone *zone,
-@@ -4843,7 +4845,8 @@ static void __init_refok alloc_node_mem_
- 		size =  (end - start) * sizeof(struct page);
- 		map = alloc_remap(pgdat->node_id, size);
- 		if (!map)
--			map = alloc_bootmem_node_nopanic(pgdat, size);
-+			map = memblock_virt_alloc_node_nopanic(size,
-+							       pgdat->node_id);
- 		pgdat->node_mem_map = map + (pgdat->node_start_pfn - start);
- 	}
- #ifndef CONFIG_NEED_MULTIPLE_NODES
-@@ -5893,7 +5896,7 @@ void *__init alloc_large_system_hash(con
- 	do {
- 		size = bucketsize << log2qty;
- 		if (flags & HASH_EARLY)
--			table = alloc_bootmem_nopanic(size);
-+			table = memblock_virt_alloc_nopanic(size, 0);
- 		else if (hashdist)
- 			table = __vmalloc(size, GFP_ATOMIC, PAGE_KERNEL);
- 		else {
 _
 
 Patches currently in -mm which might be from santosh.shilimkar@ti.com are
