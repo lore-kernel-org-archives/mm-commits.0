@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch added
- to -mm tree
-Date: Mon, 09 Dec 2013 16:28:58 -0800
-Message-ID: <52a6604a.Y4uhi7uCz8t9DQFY%akpm@linux-foundation.org>
+ mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
+ added to -mm tree
+Date: Mon, 09 Dec 2013 16:29:00 -0800
+Message-ID: <52a6604c.6vGT/uuujtQv2l+k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55524 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55544 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699Ab3LJA3A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:00 -0500
+	with ESMTP id S1750699Ab3LJA3C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, santosh.shilimkar@ti.com, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, grygorii.strashko@ti.com
 
-Subject: + mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch added to -mm tree
+Subject: + mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch added to -mm tree
 To: grygorii.strashko@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,santosh.shilimkar@ti.com,tj@kernel.org,tony@atomide.com,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 16:28:58 -0800
+Date: Mon, 09 Dec 2013 16:29:00 -0800
 
 
 The patch titled
-     Subject: mm/memblock: debug: correct displaying of upper memory boundary
+     Subject: mm/memblock: debug: don't free reserved array if !ARCH_DISCARD_MEMBLOCK
 has been added to the -mm tree.  Its filename is
-     mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
+     mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,85 +46,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: mm/memblock: debug: correct displaying of upper memory boundary
+Subject: mm/memblock: debug: don't free reserved array if !ARCH_DISCARD_MEMBLOCK
 
-Current memblock APIs don't work on 32 PAE or LPAE extension arches where
-the physical memory start address beyond 4GB.  The problem was discussed
-here [3] where Tejun, Yinghai(thanks) proposed a way forward with memblock
-interfaces.  Based on the proposal, this series adds necessary memblock
-interfaces and convert the core kernel code to use them.  Architectures
-already converted to NO_BOOTMEM use these new interfaces and other which
-still uses bootmem, these new interfaces just fallback to exiting bootmem
-APIs.
+Now the Nobootmem allocator will always try to free memory allocated for
+reserved memory regions (free_low_memory_core_early()) without taking into
+to account current memblock debugging configuration
+(CONFIG_ARCH_DISCARD_MEMBLOCK and CONFIG_DEBUG_FS state).  As result if:
 
-So no functional change in behavior.  In long run, once all the
-architectures moves to NO_BOOTMEM, we can get rid of bootmem layer
-completely.  This is one step to remove the core code dependency with
-bootmem and also gives path for architectures to move away from bootmem.
+ - CONFIG_DEBUG_FS defined
+ - CONFIG_ARCH_DISCARD_MEMBLOCK not defined;
+-  reserved memory regions array have been resized during boot
 
-Testing is done on ARM architecture with 32 bit ARM LAPE machines
-with normal as well sparse(faked) memory model.
+then:
 
+- memory allocated for reserved memory regions array will be freed to
+  buddy allocator;
+- debug_fs entry "sys/kernel/debug/memblock/reserved" will show garbage
+  instead of state of memory reservations. like:
+   0: 0x98393bc0..0x9a393bbf
+   1: 0xff120000..0xff11ffff
+   2: 0x00000000..0xffffffff
 
-
-This patch (of 23):
-
-When debugging is enabled (cmdline has "memblock=debug") the memblock will
-display upper memory boundary per each allocated/freed memory range
-wrongly.  For example:
-
- memblock_reserve: [0x0000009e7e8000-0x0000009e7ed000] _memblock_early_alloc_try_nid_nopanic+0xfc/0x12c
-
-The 0x0000009e7ed000 is displayed instead of 0x0000009e7ecfff
-
-Hence, correct this by changing formula used to calculate upper memory
-boundary to (u64)base + size - 1 instead of  (u64)base + size everywhere
-in the debug messages.
+Hence, do not free memory allocated for reserved memory regions if
+defined(CONFIG_DEBUG_FS) && !defined(CONFIG_ARCH_DISCARD_MEMBLOCK).
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
 Cc: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Russell King <linux@arm.linux.org.uk>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memblock.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN mm/memblock.c~mm-memblock-debug-correct-displaying-of-upper-memory-boundary mm/memblock.c
---- a/mm/memblock.c~mm-memblock-debug-correct-displaying-of-upper-memory-boundary
+diff -puN mm/memblock.c~mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock
 +++ a/mm/memblock.c
-@@ -659,7 +659,7 @@ int __init_memblock memblock_free(phys_a
- {
- 	memblock_dbg("   memblock_free: [%#016llx-%#016llx] %pF\n",
- 		     (unsigned long long)base,
--		     (unsigned long long)base + size,
-+		     (unsigned long long)base + size - 1,
- 		     (void *)_RET_IP_);
+@@ -269,6 +269,19 @@ phys_addr_t __init_memblock get_allocate
+ 	if (memblock.reserved.regions == memblock_reserved_init_regions)
+ 		return 0;
  
- 	return __memblock_remove(&memblock.reserved, base, size);
-@@ -674,7 +674,7 @@ static int __init_memblock memblock_rese
++	/*
++	 * Don't allow nobootmem allocator to free reserved memory regions
++	 * array if
++	 *  - CONFIG_DEBUG_FS is enabled;
++	 *  - CONFIG_ARCH_DISCARD_MEMBLOCK is not enabled;
++	 *  - reserved memory regions array have been resized during boot.
++	 * Otherwise debug_fs entry "sys/kernel/debug/memblock/reserved"
++	 * will show garbage instead of state of memory reservations.
++	 */
++	if (IS_ENABLED(CONFIG_DEBUG_FS) &&
++	    !IS_ENABLED(CONFIG_ARCH_DISCARD_MEMBLOCK))
++		return 0;
++
+ 	*addr = __pa(memblock.reserved.regions);
  
- 	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] flags %#02lx %pF\n",
- 		     (unsigned long long)base,
--		     (unsigned long long)base + size,
-+		     (unsigned long long)base + size - 1,
- 		     flags, (void *)_RET_IP_);
- 
- 	return memblock_add_region(_rgn, base, size, nid, flags);
+ 	return PAGE_ALIGN(sizeof(struct memblock_region) *
 _
 
 Patches currently in -mm which might be from grygorii.strashko@ti.com are
