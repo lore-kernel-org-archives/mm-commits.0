@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec.patch
- added to -mm tree
-Date: Tue, 10 Dec 2013 15:23:24 -0800
-Message-ID: <52a7a26c.yX/rjyzaTSg+2DJ5%akpm@linux-foundation.org>
+Subject: +
+ x86-reserve-setup_data-ranges-late-after-parsing-memmap-cmdline.patch added to -mm tree
+Date: Tue, 10 Dec 2013 15:23:28 -0800
+Message-ID: <52a7a270.zRBbWyVUABz7A3hP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41287 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41306 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751267Ab3LJXXZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 18:23:25 -0500
+	with ESMTP id S1751398Ab3LJXX3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 18:23:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vgoyal@redhat.com, toshi.kani@hp.com, tglx@linutronix.de, mjg59@srcf.ucam.org, mingo@elte.hu, matt@console-pimps.org, hpa@zytor.com, horms@verge.net.au, greg@kroah.com, ebiederm@xmission.com, bp@suse.de, James.Bottomley@HansenPartnership.com, dyoung@redhat.com
 
-Subject: + x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec.patch added to -mm tree
+Subject: + x86-reserve-setup_data-ranges-late-after-parsing-memmap-cmdline.patch added to -mm tree
 To: dyoung@redhat.com,James.Bottomley@HansenPartnership.com,bp@suse.de,ebiederm@xmission.com,greg@kroah.com,horms@verge.net.au,hpa@zytor.com,matt@console-pimps.org,mingo@elte.hu,mjg59@srcf.ucam.org,tglx@linutronix.de,toshi.kani@hp.com,vgoyal@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 15:23:24 -0800
+Date: Tue, 10 Dec 2013 15:23:28 -0800
 
 
 The patch titled
-     Subject: x86: add xloadflags bit for efi runtime support on kexec
+     Subject: x86: reserve setup_data ranges late after parsing memmap cmdline
 has been added to the -mm tree.  Its filename is
-     x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec.patch
+     x86-reserve-setup_data-ranges-late-after-parsing-memmap-cmdline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-reserve-setup_data-ranges-late-after-parsing-memmap-cmdline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-reserve-setup_data-ranges-late-after-parsing-memmap-cmdline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,21 +45,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dave Young <dyoung@redhat.com>
-Subject: x86: add xloadflags bit for efi runtime support on kexec
+Subject: x86: reserve setup_data ranges late after parsing memmap cmdline
 
-Old kexec-tools can not load new kernel.  The reason is kexec-tools do not
-fill efi_info in x86 setup header previously, thus efi failed to
-initialize.  In new kexec-tools it will by default fill efi_info and pass
-other efi required infomation to 2nd kernel so kexec kernel efi
-initialization can succeed finally.
+Currently e820_reserve_setup_data is called before parsing early params,
+it works in normal case.  But for memmap=exactmap, the final memory ranges
+are created after parsing memmap= cmdline params, so the previous
+e820_reserve_setup_data has no effect.  For example, setup_data ranges
+will still be marked as normal system ram, thus when later sysfs driver
+ioremap them kernel will warn about mapping normal ram.
 
-To prevent from breaking userspace, add a new xloadflags bit so
-kexec-tools can check the flag and switch to old logic.
+This patch fixes it by moving the e820_reserve_setup_data callback after
+parsing early params so they can be set as reserved ranges and later
+ioremap will be fine with it.
 
 Signed-off-by: Dave Young <dyoung@redhat.com>
-Acked-by: Borislav Petkov <bp@suse.de>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Borislav Petkov <bp@suse.de>
 Cc: Greg KH <greg@kroah.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
@@ -72,54 +74,30 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/x86/boot.txt            |    3 +++
- arch/x86/boot/header.S                |    9 ++++++++-
- arch/x86/include/uapi/asm/bootparam.h |    1 +
- 3 files changed, 12 insertions(+), 1 deletion(-)
+ arch/x86/kernel/setup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/x86/boot.txt~x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec Documentation/x86/boot.txt
---- a/Documentation/x86/boot.txt~x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec
-+++ a/Documentation/x86/boot.txt
-@@ -608,6 +608,9 @@ Protocol:       2.12+
- 	- If 1, the kernel supports the 64-bit EFI handoff entry point
-           given at handover_offset + 0x200.
+diff -puN arch/x86/kernel/setup.c~x86-reserve-setup_data-ranges-late-after-parsing-memmap-cmdline arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~x86-reserve-setup_data-ranges-late-after-parsing-memmap-cmdline
++++ a/arch/x86/kernel/setup.c
+@@ -941,8 +941,6 @@ void __init setup_arch(char **cmdline_p)
+ 	iomem_resource.end = (1ULL << boot_cpu_data.x86_phys_bits) - 1;
+ 	setup_memory_map();
+ 	parse_setup_data();
+-	/* update the e820_saved too */
+-	e820_reserve_setup_data();
  
-+  Bit 4 (read): XLF_EFI_KEXEC
-+	- If 1, the kernel supports kexec EFI boot with EFI runtime support.
-+
- Field name:	cmdline_size
- Type:		read
- Offset/size:	0x238/4
-diff -puN arch/x86/boot/header.S~x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec arch/x86/boot/header.S
---- a/arch/x86/boot/header.S~x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec
-+++ a/arch/x86/boot/header.S
-@@ -391,7 +391,14 @@ xloadflags:
- #else
- # define XLF23 0
+ 	copy_edd();
+ 
+@@ -1004,6 +1002,8 @@ void __init setup_arch(char **cmdline_p)
+ 		early_dump_pci_devices();
  #endif
--			.word XLF0 | XLF1 | XLF23
-+
-+#if defined(CONFIG_X86_64) && defined(CONFIG_EFI) && defined(CONFIG_KEXEC)
-+# define XLF4 XLF_EFI_KEXEC
-+#else
-+# define XLF4 0
-+#endif
-+
-+			.word XLF0 | XLF1 | XLF23 | XLF4
  
- cmdline_size:   .long   COMMAND_LINE_SIZE-1     #length of the command line,
-                                                 #added with boot protocol
-diff -puN arch/x86/include/uapi/asm/bootparam.h~x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec arch/x86/include/uapi/asm/bootparam.h
---- a/arch/x86/include/uapi/asm/bootparam.h~x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec
-+++ a/arch/x86/include/uapi/asm/bootparam.h
-@@ -24,6 +24,7 @@
- #define XLF_CAN_BE_LOADED_ABOVE_4G	(1<<1)
- #define XLF_EFI_HANDOVER_32		(1<<2)
- #define XLF_EFI_HANDOVER_64		(1<<3)
-+#define XLF_EFI_KEXEC			(1<<4)
++	/* update the e820_saved too */
++	e820_reserve_setup_data();
+ 	finish_e820_parsing();
  
- #ifndef __ASSEMBLY__
- 
+ 	if (efi_enabled(EFI_BOOT))
 _
 
 Patches currently in -mm which might be from dyoung@redhat.com are
