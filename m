@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-power-use-memblock-apis-for-early-memory-allocations.patch
+Subject: + mm-init-use-memblock-apis-for-early-memory-allocations.patch
  added to -mm tree
-Date: Mon, 09 Dec 2013 16:29:21 -0800
-Message-ID: <52a66061.rJhsBGUFVsB3j6rh%akpm@linux-foundation.org>
+Date: Mon, 09 Dec 2013 16:29:15 -0800
+Message-ID: <52a6605b.gj+92WZ5iX9vDVFk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55653 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478Ab3LJA3W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:22 -0500
+	with ESMTP id S1750920Ab3LJA3S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, grygorii.strashko@ti.com, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, santosh.shilimkar@ti.com
 
-Subject: + mm-power-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
+Subject: + mm-init-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
 To: santosh.shilimkar@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,grygorii.strashko@ti.com,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,tj@kernel.org,tony@atomide.com,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 16:29:21 -0800
+Date: Mon, 09 Dec 2013 16:29:15 -0800
 
 
 The patch titled
-     Subject: kernel/power/snapshot.c: use memblock apis for early memory allocations
+     Subject: init/main.c: use memblock apis for early memory allocations
 has been added to the -mm tree.  Its filename is
-     mm-power-use-memblock-apis-for-early-memory-allocations.patch
+     mm-init-use-memblock-apis-for-early-memory-allocations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-power-use-memblock-apis-for-early-memory-allocations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-init-use-memblock-apis-for-early-memory-allocations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-power-use-memblock-apis-for-early-memory-allocations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-init-use-memblock-apis-for-early-memory-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: kernel/power/snapshot.c: use memblock apis for early memory allocations
+Subject: init/main.c: use memblock apis for early memory allocations
 
 Switch to memblock interfaces for early memory allocator instead of
 bootmem allocator.  No functional change in beahvior than what it is in
@@ -53,10 +53,12 @@ current code from bootmem users points of view.
 
 Archs already converted to NO_BOOTMEM now directly use memblock interfaces
 instead of bootmem wrappers build on top of memblock.  And the archs which
-still uses bootmem, these new apis just fallback to exiting bootmem APIs.
+still uses bootmem, these new apis just fall back to exiting bootmem APIs.
 
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -69,27 +71,31 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/snapshot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/main.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN kernel/power/snapshot.c~mm-power-use-memblock-apis-for-early-memory-allocations kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~mm-power-use-memblock-apis-for-early-memory-allocations
-+++ a/kernel/power/snapshot.c
-@@ -637,7 +637,7 @@ __register_nosave_region(unsigned long s
- 		BUG_ON(!region);
- 	} else
- 		/* This allocation cannot fail */
--		region = alloc_bootmem(sizeof(struct nosave_region));
-+		region = memblock_virt_alloc(sizeof(struct nosave_region), 0);
- 	region->start_pfn = start_pfn;
- 	region->end_pfn = end_pfn;
- 	list_add_tail(&region->list, &nosave_regions);
+diff -puN init/main.c~mm-init-use-memblock-apis-for-early-memory-allocations init/main.c
+--- a/init/main.c~mm-init-use-memblock-apis-for-early-memory-allocations
++++ a/init/main.c
+@@ -355,9 +355,11 @@ static inline void smp_prepare_cpus(unsi
+  */
+ static void __init setup_command_line(char *command_line)
+ {
+-	saved_command_line = alloc_bootmem(strlen (boot_command_line)+1);
+-	initcall_command_line = alloc_bootmem(strlen (boot_command_line)+1);
+-	static_command_line = alloc_bootmem(strlen (command_line)+1);
++	saved_command_line =
++		memblock_virt_alloc(strlen(boot_command_line) + 1, 0);
++	initcall_command_line =
++		memblock_virt_alloc(strlen(boot_command_line) + 1, 0);
++	static_command_line = memblock_virt_alloc(strlen(command_line) + 1, 0);
+ 	strcpy (saved_command_line, boot_command_line);
+ 	strcpy (static_command_line, command_line);
+ }
 _
 
 Patches currently in -mm which might be from santosh.shilimkar@ti.com are
