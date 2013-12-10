@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + softirq-use-ffs-in-__do_softirq.patch added to -mm tree
-Date: Tue, 10 Dec 2013 15:54:25 -0800
-Message-ID: <52a7a9b1.cNsn96gBL7aH4ORJ%akpm@linux-foundation.org>
+Subject: + softirq-convert-printks-to-pr_level.patch added to -mm tree
+Date: Tue, 10 Dec 2013 15:54:26 -0800
+Message-ID: <52a7a9b2.ymKJRGo2KjfDcDDz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41501 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41508 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750776Ab3LJXy0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 18:54:26 -0500
+	with ESMTP id S1750887Ab3LJXy1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 18:54:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, fweisbec@gmail.com, joe@perches.com
 
-Subject: + softirq-use-ffs-in-__do_softirq.patch added to -mm tree
+Subject: + softirq-convert-printks-to-pr_level.patch added to -mm tree
 To: joe@perches.com,fweisbec@gmail.com,mingo@elte.hu,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 15:54:25 -0800
+Date: Tue, 10 Dec 2013 15:54:26 -0800
 
 
 The patch titled
-     Subject: softirq: use ffs() in __do_softirq()
+     Subject: softirq: convert printks to pr_<level>
 has been added to the -mm tree.  Its filename is
-     softirq-use-ffs-in-__do_softirq.patch
+     softirq-convert-printks-to-pr_level.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/softirq-use-ffs-in-__do_softirq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/softirq-convert-printks-to-pr_level.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/softirq-use-ffs-in-__do_softirq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/softirq-convert-printks-to-pr_level.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,10 +44,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: softirq: use ffs() in __do_softirq()
+Subject: softirq: convert printks to pr_<level>
 
-Possible speed improvement of __do_softirq() by using ffs() instead of
-using a while loop with an & 1 test then single bit shift.
+Use a more current logging style.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
@@ -56,73 +55,39 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softirq.c |   45 +++++++++++++++++++++++----------------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ kernel/softirq.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/softirq.c~softirq-use-ffs-in-__do_softirq kernel/softirq.c
---- a/kernel/softirq.c~softirq-use-ffs-in-__do_softirq
+diff -puN kernel/softirq.c~softirq-convert-printks-to-pr_level kernel/softirq.c
+--- a/kernel/softirq.c~softirq-convert-printks-to-pr_level
 +++ a/kernel/softirq.c
-@@ -219,6 +219,7 @@ asmlinkage void __do_softirq(void)
- 	int cpu;
- 	unsigned long old_flags = current->flags;
- 	int max_restart = MAX_SOFTIRQ_RESTART;
-+	int softirq_bit;
+@@ -8,6 +8,8 @@
+  *	Rewritten. Old one was good in 2.2, but in 2.3 it was immoral. --ANK (990903)
+  */
  
- 	/*
- 	 * Mask out PF_MEMALLOC s current task context is borrowed for the
-@@ -242,30 +243,30 @@ restart:
- 
- 	h = softirq_vec;
- 
--	do {
--		if (pending & 1) {
--			unsigned int vec_nr = h - softirq_vec;
--			int prev_count = preempt_count();
--
--			kstat_incr_softirqs_this_cpu(vec_nr);
--
--			trace_softirq_entry(vec_nr);
--			h->action(h);
--			trace_softirq_exit(vec_nr);
--			if (unlikely(prev_count != preempt_count())) {
--				printk(KERN_ERR "huh, entered softirq %u %s %p"
--				       "with preempt_count %08x,"
--				       " exited with %08x?\n", vec_nr,
--				       softirq_to_name[vec_nr], h->action,
--				       prev_count, preempt_count());
--				preempt_count_set(prev_count);
--			}
--
--			rcu_bh_qs(cpu);
-+	while ((softirq_bit = ffs(pending))) {
-+		unsigned int vec_nr;
-+		int prev_count;
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
-+		h += softirq_bit - 1;
-+
-+		vec_nr = h - softirq_vec;
-+		prev_count = preempt_count();
-+
-+		kstat_incr_softirqs_this_cpu(vec_nr);
-+
-+		trace_softirq_entry(vec_nr);
-+		h->action(h);
-+		trace_softirq_exit(vec_nr);
-+		if (unlikely(prev_count != preempt_count())) {
-+			printk(KERN_ERR "huh, entered softirq %u %s %p with preempt_count %08x, exited with %08x?\n",
-+			       vec_nr, softirq_to_name[vec_nr], h->action,
-+			       prev_count, preempt_count());
-+			preempt_count_set(prev_count);
- 		}
-+		rcu_bh_qs(cpu);
- 		h++;
--		pending >>= 1;
--	} while (pending);
-+		pending >>= softirq_bit;
-+	}
+ #include <linux/export.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/interrupt.h>
+@@ -258,7 +260,7 @@ restart:
+ 		h->action(h);
+ 		trace_softirq_exit(vec_nr);
+ 		if (unlikely(prev_count != preempt_count())) {
+-			printk(KERN_ERR "huh, entered softirq %u %s %p with preempt_count %08x, exited with %08x?\n",
++			pr_err("huh, entered softirq %u %s %p with preempt_count %08x, exited with %08x?\n",
+ 			       vec_nr, softirq_to_name[vec_nr], h->action,
+ 			       prev_count, preempt_count());
+ 			preempt_count_set(prev_count);
+@@ -562,7 +564,7 @@ EXPORT_SYMBOL(tasklet_init);
+ void tasklet_kill(struct tasklet_struct *t)
+ {
+ 	if (in_interrupt())
+-		printk("Attempt to kill tasklet from interrupt\n");
++		pr_notice("Attempt to kill tasklet from interrupt\n");
  
- 	local_irq_disable();
- 
+ 	while (test_and_set_bit(TASKLET_STATE_SCHED, &t->state)) {
+ 		do {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
