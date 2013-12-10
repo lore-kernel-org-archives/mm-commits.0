@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-show_memc-show-num_poisoned_pages-when-oom.patch added to
- -mm tree
-Date: Tue, 10 Dec 2013 13:42:26 -0800
-Message-ID: <52a78ac2.S434n63Td7gV93wd%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-ds1305c-remove-redundant-spi_set_drvdata.patch
+ added to -mm tree
+Date: Tue, 10 Dec 2013 13:43:09 -0800
+Message-ID: <52a78aed.jRVz9wsYuj2u5c22%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40164 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40170 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750976Ab3LJVm1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 16:42:27 -0500
+	with ESMTP id S1750983Ab3LJVnK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 16:43:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, n-horiguchi@ah.jp.nec.com, mhocko@suse.cz, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, qiuxishi@huawei.com
+To: mm-commits@vger.kernel.org, sachin.kamat@linaro.org
 
-Subject: + lib-show_memc-show-num_poisoned_pages-when-oom.patch added to -mm tree
-To: qiuxishi@huawei.com,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mhocko@suse.cz,n-horiguchi@ah.jp.nec.com,rientjes@google.com
+Subject: + drivers-rtc-rtc-ds1305c-remove-redundant-spi_set_drvdata.patch added to -mm tree
+To: sachin.kamat@linaro.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 13:42:26 -0800
+Date: Tue, 10 Dec 2013 13:43:09 -0800
 
 
 The patch titled
-     Subject: lib/show_mem.c: show num_poisoned_pages when oom
+     Subject: drivers/rtc/rtc-ds1305.c: remove redundant spi_set_drvdata()
 has been added to the -mm tree.  Its filename is
-     lib-show_memc-show-num_poisoned_pages-when-oom.patch
+     drivers-rtc-rtc-ds1305c-remove-redundant-spi_set_drvdata.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-show_memc-show-num_poisoned_pages-when-oom.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-ds1305c-remove-redundant-spi_set_drvdata.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-show_memc-show-num_poisoned_pages-when-oom.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-ds1305c-remove-redundant-spi_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,39 +44,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: lib/show_mem.c: show num_poisoned_pages when oom
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-ds1305.c: remove redundant spi_set_drvdata()
 
-Show num_poisoned_pages when oom, it is a little helpful to find the
-reason.  Also it will be emitted anytime show_mem() is called.
+Driver core sets driver data to NULL upon failure or remove.
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/show_mem.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/rtc/rtc-ds1305.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/show_mem.c~lib-show_memc-show-num_poisoned_pages-when-oom lib/show_mem.c
---- a/lib/show_mem.c~lib-show_memc-show-num_poisoned_pages-when-oom
-+++ a/lib/show_mem.c
-@@ -43,4 +43,7 @@ void show_mem(unsigned int filter)
- 	printk("%lu pages in pagetable cache\n",
- 		quicklist_total_size());
- #endif
-+#ifdef CONFIG_MEMORY_FAILURE
-+	printk("%lu pages hwpoisoned\n", atomic_long_read(&num_poisoned_pages));
-+#endif
+diff -puN drivers/rtc/rtc-ds1305.c~drivers-rtc-rtc-ds1305c-remove-redundant-spi_set_drvdata drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~drivers-rtc-rtc-ds1305c-remove-redundant-spi_set_drvdata
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -787,7 +787,6 @@ static int ds1305_remove(struct spi_devi
+ 		cancel_work_sync(&ds1305->work);
+ 	}
+ 
+-	spi_set_drvdata(spi, NULL);
+ 	return 0;
  }
+ 
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
-lib-show_memc-show-num_poisoned_pages-when-oom.patch
+origin.patch
+drivers-rtc-rtc-s5mc-fix-info-rtc-assignment.patch
+drivers-rtc-rtc-ds1305c-remove-redundant-spi_set_drvdata.patch
 linux-next.patch
 
