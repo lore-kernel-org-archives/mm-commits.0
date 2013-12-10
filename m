@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-do-not-automatically-migrate-ksm-pages.patch added to
- -mm tree
-Date: Tue, 10 Dec 2013 14:20:33 -0800
-Message-ID: <52a793b1.nJakKFkF8fnJASjy%akpm@linux-foundation.org>
+Subject: + sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+ added to -mm tree
+Date: Tue, 10 Dec 2013 14:23:58 -0800
+Message-ID: <52a7947e.PHXBEvG2w7CPmkZY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40798 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752073Ab3LJWUe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:34 -0500
+	with ESMTP id S1751028Ab3LJWX7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:23:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, athorlton@sgi.com, akpm@linux-foundation.org
 
-Subject: + mm-numa-do-not-automatically-migrate-ksm-pages.patch added to -mm tree
-To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com
+Subject: + sched-add-tracepoints-related-to-numa-task-migration-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,athorlton@sgi.com,mgorman@suse.de,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:20:33 -0800
+Date: Tue, 10 Dec 2013 14:23:58 -0800
 
 
 The patch titled
-     Subject: mm: numa: do not automatically migrate KSM pages
+     Subject: sched-add-tracepoints-related-to-numa-task-migration-fix
 has been added to the -mm tree.  Its filename is
-     mm-numa-do-not-automatically-migrate-ksm-pages.patch
+     sched-add-tracepoints-related-to-numa-task-migration-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-do-not-automatically-migrate-ksm-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sched-add-tracepoints-related-to-numa-task-migration-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-do-not-automatically-migrate-ksm-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sched-add-tracepoints-related-to-numa-task-migration-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,94 +44,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: do not automatically migrate KSM pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sched-add-tracepoints-related-to-numa-task-migration-fix
 
-KSM pages can be shared between tasks that are not necessarily related to
-each other from a NUMA perspective.  This patch causes those pages to be
-ignored by automatic NUMA balancing so they do not migrate and do not
-cause unrelated tasks to be grouped together.
+remove semicolon-after-if, repair coding-style
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Alex Thorlton <athorlton@sgi.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/sched/fair.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/mprotect.c~mm-numa-do-not-automatically-migrate-ksm-pages mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-do-not-automatically-migrate-ksm-pages
-+++ a/mm/mprotect.c
-@@ -23,6 +23,7 @@
- #include <linux/mmu_notifier.h>
- #include <linux/migrate.h>
- #include <linux/perf_event.h>
-+#include <linux/ksm.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
- #include <asm/cacheflush.h>
-@@ -63,7 +64,7 @@ static unsigned long change_pte_range(st
+diff -puN kernel/sched/fair.c~sched-add-tracepoints-related-to-numa-task-migration-fix kernel/sched/fair.c
+--- a/kernel/sched/fair.c~sched-add-tracepoints-related-to-numa-task-migration-fix
++++ a/kernel/sched/fair.c
+@@ -1272,12 +1272,14 @@ static int task_numa_migrate(struct task
+ 	p->numa_scan_period = task_scan_min(p);
  
- 				ptent = *pte;
- 				page = vm_normal_page(vma, addr, oldpte);
--				if (page) {
-+				if (page && !PageKsm(page)) {
- 					if (!pte_numa(oldpte)) {
- 						ptent = pte_mknuma(ptent);
- 						updated = true;
+ 	if (env.best_task == NULL) {
+-		if ((ret = migrate_task_to(p, env.best_cpu)) != 0)
++		ret = migrate_task_to(p, env.best_cpu);
++		if (ret != 0)
+ 			trace_sched_stick_numa(p, env.src_cpu, env.best_cpu);
+ 		return ret;
+ 	}
+ 
+-	if ((ret = migrate_swap(p, env.best_task)) != 0);
++	ret = migrate_swap(p, env.best_task);
++	if (ret != 0)
+ 		trace_sched_stick_numa(p, env.src_cpu, task_cpu(env.best_task));
+ 	put_task_struct(env.best_task);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
-mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
-mm-thp-optimize-compound_trans_huge.patch
-mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
-mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
+dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
+posix_acl-uninlining.patch
+mm.patch
 mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
 mm-swapc-reorganize-put_compound_page.patch
-mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
 mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
-mm-show_mem-remove-show_mem_filter_page_count.patch
-x86-get-pg_data_ts-memory-from-other-node.patch
-memblock-numa-introduce-flags-field-into-memblock.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
-memblock-make-memblock_set_node-support-different-memblock_type.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
-acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
-x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
-mm-rmap-recompute-pgoff-for-huge-page.patch
-mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
-mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
-mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
-mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
-mm-rmap-use-rmap_walk-in-try_to_unmap.patch
-mm-rmap-use-rmap_walk-in-try_to_munlock.patch
-mm-rmap-use-rmap_walk-in-page_referenced.patch
-mm-rmap-use-rmap_walk-in-page_mkclean.patch
-mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
-mm-numa-serialise-parallel-get_user_page-against-thp-migration.patch
-mm-numa-call-mmu-notifiers-on-thp-migration.patch
-mm-clear-pmd_numa-before-invalidating.patch
-mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
-mm-numa-do-not-clear-pte-for-pte_numa-update.patch
-mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
-mm-numa-avoid-unnecessary-work-on-the-failure-path.patch
-sched-numa-skip-inaccessible-vmas.patch
-mm-numa-clear-numa-hinting-information-on-mprotect.patch
-mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch
-mm-fix-tlb-flush-race-between-migration-and-change_protection_range.patch
-mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch
-mm-numa-make-numa-migrate-related-functions-static.patch
-mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
-mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
-mm-numa-do-not-automatically-migrate-ksm-pages.patch
-sched-add-tracepoints-related-to-numa-task-migration.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
+mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
 linux-next.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
