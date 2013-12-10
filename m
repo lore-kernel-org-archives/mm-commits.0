@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
- added to -mm tree
-Date: Tue, 10 Dec 2013 14:47:15 -0800
-Message-ID: <52a799f3.q625eXSn1sCGHzIz%akpm@linux-foundation.org>
+Subject: + arm-move-arm_dma_limit-to-setup_dma_zone.patch added to -mm
+ tree
+Date: Tue, 10 Dec 2013 14:48:43 -0800
+Message-ID: <52a79a4b.x17AMI6k67waG4F1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41032 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751105Ab3LJWrQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:47:16 -0500
+	with ESMTP id S1750829Ab3LJWsn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:48:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, tj@kernel.org, grygorii.strashko@ti.com, santosh.shilimkar@ti.com
+To: mm-commits@vger.kernel.org, av1474@comtv.ru, murzin.v@gmail.com
 
-Subject: + mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch added to -mm tree
-To: santosh.shilimkar@ti.com,grygorii.strashko@ti.com,tj@kernel.org,yinghai@kernel.org
+Subject: + arm-move-arm_dma_limit-to-setup_dma_zone.patch added to -mm tree
+To: murzin.v@gmail.com,av1474@comtv.ru
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:47:15 -0800
+Date: Tue, 10 Dec 2013 14:48:43 -0800
 
 
 The patch titled
-     Subject: mm/memblock: fix buld of "cris" arch
+     Subject: arm: move arm_dma_limit to setup_dma_zone
 has been added to the -mm tree.  Its filename is
-     mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
+     arm-move-arm_dma_limit-to-setup_dma_zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-move-arm_dma_limit-to-setup_dma_zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-move-arm_dma_limit-to-setup_dma_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,89 +44,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: mm/memblock: fix buld of "cris" arch
+From: Vladimir Murzin <murzin.v@gmail.com>
+Subject: arm: move arm_dma_limit to setup_dma_zone
 
+Since 4dcfa600 ("ARM: DMA-API: better handing of DMA masks for coherent
+allocations") arm_dma_limit_pfn has almost substituted the arm_dma_limit. 
+The remaining user is dma_contiguous_reserve().  It is also referenced in
+setup_dma_zone() to calculate arm_dma_limit_pfn.
 
-The build of "criss" arch is broken after applying new memblock API
-series.
+Kill the global arm_dma_limit and equip setup_zone_dma with the local one.
 
-In file included from arch/cris/mm/init.c:13:0:
-include/linux/bootmem.h: In function 'memblock_virt_alloc':
-include/linux/bootmem.h:229:55: error: 'KSEG_C' undeclared (first use in this function)
-include/linux/bootmem.h:229:55: note: each undeclared identifier is reported only once for each function it appears in
-include/linux/bootmem.h: In function 'memblock_virt_alloc_nopanic':
-include/linux/bootmem.h:237:63: error: 'KSEG_C' undeclared (first use in this function)
-include/linux/bootmem.h: In function 'memblock_virt_alloc_node':
-include/linux/bootmem.h:250:27: error: 'KSEG_C' undeclared (first use in this function)
-include/linux/bootmem.h: In function 'memblock_virt_alloc_node_nopanic':
-include/linux/bootmem.h:258:28: error: 'KSEG_C' undeclared (first use in this function)
-
-In file included from mm/bootmem.c:14:0:
-include/linux/bootmem.h: In function 'memblock_virt_alloc':
-include/linux/bootmem.h:229:55: error: 'KSEG_C' undeclared (first use in this function)
-include/linux/bootmem.h:229:55: note: each undeclared identifier is reported only once for each function it appears in
-include/linux/bootmem.h: In function 'memblock_virt_alloc_nopanic':
-include/linux/bootmem.h:237:63: error: 'KSEG_C' undeclared (first use in this function)
-include/linux/bootmem.h: In function 'memblock_virt_alloc_node':
-include/linux/bootmem.h:250:27: error: 'KSEG_C' undeclared (first use in this function)
-
-The "cris" arch defines memory parameters in a different manner than other
-arch's and they are splitted between 2 headers: <asm/page.h> and <asm/mmu.h>
-
-As result, now build is failed if "bootmem.h" included before
-<asm/page.h> and <asm/mmu.h>. Hence, fix it by including additional
-header in bootmem.h.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Vladimir Murzin <murzin.v@gmail.com>
+Reported-by: Vassili Karpov <av1474@comtv.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/mm/init.c |    6 ++++--
+ arch/arm/mm/mm.h   |    2 --
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/bootmem.h~mm-memblock-add-memblock-memory-allocation-apis-fix-2 include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-memblock-add-memblock-memory-allocation-apis-fix-2
-+++ a/include/linux/bootmem.h
-@@ -5,6 +5,7 @@
- #define _LINUX_BOOTMEM_H
+diff -puN arch/arm/mm/init.c~arm-move-arm_dma_limit-to-setup_dma_zone arch/arm/mm/init.c
+--- a/arch/arm/mm/init.c~arm-move-arm_dma_limit-to-setup_dma_zone
++++ a/arch/arm/mm/init.c
+@@ -208,7 +208,6 @@ EXPORT_SYMBOL(arm_dma_zone_size);
+  * allocations.  This must be the smallest DMA mask in the system,
+  * so a successful GFP_DMA allocation will always satisfy this.
+  */
+-phys_addr_t arm_dma_limit;
+ unsigned long arm_dma_pfn_limit;
  
- #include <linux/mmzone.h>
-+#include <linux/mm_types.h>
- #include <asm/dma.h>
+ static void __init arm_adjust_dma_zone(unsigned long *size, unsigned long *hole,
+@@ -227,6 +226,8 @@ static void __init arm_adjust_dma_zone(u
+ void __init setup_dma_zone(const struct machine_desc *mdesc)
+ {
+ #ifdef CONFIG_ZONE_DMA
++	phys_addr_t arm_dma_limit;
++
+ 	if (mdesc->dma_zone_size) {
+ 		arm_dma_zone_size = mdesc->dma_zone_size;
+ 		arm_dma_limit = PHYS_OFFSET + arm_dma_zone_size - 1;
+@@ -381,7 +382,8 @@ void __init arm_memblock_init(struct mem
+ 	 * reserve memory for DMA contigouos allocations,
+ 	 * must come from DMA area inside low memory
+ 	 */
+-	dma_contiguous_reserve(min(arm_dma_limit, arm_lowmem_limit));
++	dma_contiguous_reserve(min((phys_addr_t)arm_dma_pfn_limit << PAGE_SHIFT,
++				   arm_lowmem_limit));
  
- /*
+ 	arm_memblock_steal_permitted = false;
+ 	memblock_allow_resize();
+diff -puN arch/arm/mm/mm.h~arm-move-arm_dma_limit-to-setup_dma_zone arch/arm/mm/mm.h
+--- a/arch/arm/mm/mm.h~arm-move-arm_dma_limit-to-setup_dma_zone
++++ a/arch/arm/mm/mm.h
+@@ -80,10 +80,8 @@ extern __init void add_static_vm_early(s
+ #endif
+ 
+ #ifdef CONFIG_ZONE_DMA
+-extern phys_addr_t arm_dma_limit;
+ extern unsigned long arm_dma_pfn_limit;
+ #else
+-#define arm_dma_limit ((phys_addr_t)~0)
+ #define arm_dma_pfn_limit (~0ul >> PAGE_SHIFT)
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from santosh.shilimkar@ti.com are
+Patches currently in -mm which might be from murzin.v@gmail.com are
 
-mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
-mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
-mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
-mm-memblock-remove-unnecessary-inclusions-of-bootmemh.patch
-mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
-mm-memblock-reorder-parameters-of-memblock_find_in_range_node.patch
-mm-memblock-switch-to-use-numa_no_node-instead-of-max_numnodes.patch
-mm-memblock-add-memblock-memory-allocation-apis.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
-mm-init-use-memblock-apis-for-early-memory-allocations.patch
-mm-printk-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
-mm-power-use-memblock-apis-for-early-memory-allocations.patch
-lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
-lib-cpumaskc-use-memblock-apis-for-early-memory-allocations.patch
-mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
-mm-hugetlb-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_cgroup-use-memblock-apis-for-early-memory-allocations.patch
-mm-percpu-use-memblock-apis-for-early-memory-allocations.patch
-mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
-drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
-linux-next.patch
+arm-move-arm_dma_limit-to-setup_dma_zone.patch
+mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch
+mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage-fix.patch
+mm-hwpoison-add-to-hwpoison_inject.patch
 
