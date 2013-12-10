@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-make-numa-migrate-related-functions-static.patch added
+Subject: +
+ mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch added
  to -mm tree
-Date: Tue, 10 Dec 2013 14:20:30 -0800
-Message-ID: <52a793ae.L8q12ZJq2em07AwS%akpm@linux-foundation.org>
+Date: Tue, 10 Dec 2013 14:20:29 -0800
+Message-ID: <52a793ad.PGB1DX5B+S556xB1%akpm__40628.6231278957$1386714049$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40768 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062Ab3LJWUb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:31 -0500
+	with ESMTP id S1751139Ab3LJWUa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + mm-numa-make-numa-migrate-related-functions-static.patch added to -mm tree
-To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com
+Subject: + mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch added to -mm tree
+To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:20:30 -0800
+Date: Tue, 10 Dec 2013 14:20:29 -0800
 
 
 The patch titled
-     Subject: mm: numa: make NUMA-migrate related functions static
+     Subject: mm: numa: defer TLB flush for THP migration as long as possible
 has been added to the -mm tree.  Its filename is
-     mm-numa-make-numa-migrate-related-functions-static.patch
+     mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-make-numa-migrate-related-functions-static.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-make-numa-migrate-related-functions-static.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,42 +46,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: make NUMA-migrate related functions static
+Subject: mm: numa: defer TLB flush for THP migration as long as possible
 
-numamigrate_update_ratelimit and numamigrate_isolate_page only have
-callers in mm/migrate.c.  This patch makes them static.
+THP migration can fail for a variety of reasons.  Avoid flushing the TLB
+to deal with THP migration races until the copy is ready to start.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Alex Thorlton <athorlton@sgi.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    7 -------
+ mm/migrate.c     |    3 +++
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN mm/migrate.c~mm-numa-make-numa-migrate-related-functions-static mm/migrate.c
---- a/mm/migrate.c~mm-numa-make-numa-migrate-related-functions-static
+diff -puN mm/huge_memory.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible
++++ a/mm/huge_memory.c
+@@ -1377,13 +1377,6 @@ int do_huge_pmd_numa_page(struct mm_stru
+ 	}
+ 
+ 	/*
+-	 * The page_table_lock above provides a memory barrier
+-	 * with change_protection_range.
+-	 */
+-	if (tlb_flush_pending(mm))
+-		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
+-
+-	/*
+ 	 * Migrate the THP to the requested node, returns with page unlocked
+ 	 * and pmd_numa cleared.
+ 	 */
+diff -puN mm/migrate.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible mm/migrate.c
+--- a/mm/migrate.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible
 +++ a/mm/migrate.c
-@@ -1598,7 +1598,8 @@ bool migrate_ratelimited(int node)
- }
+@@ -1764,6 +1764,9 @@ int migrate_misplaced_transhuge_page(str
+ 		goto out_fail;
+ 	}
  
- /* Returns true if the node is migrate rate-limited after the update */
--bool numamigrate_update_ratelimit(pg_data_t *pgdat, unsigned long nr_pages)
-+static bool numamigrate_update_ratelimit(pg_data_t *pgdat,
-+					unsigned long nr_pages)
- {
- 	bool rate_limited = false;
- 
-@@ -1622,7 +1623,7 @@ bool numamigrate_update_ratelimit(pg_dat
- 	return rate_limited;
- }
- 
--int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
-+static int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
- {
- 	int page_lru;
- 
++	if (tlb_flush_pending(mm))
++		flush_tlb_range(vma, mmun_start, mmun_end);
++
+ 	/* Prepare a page as a migration target */
+ 	__set_page_locked(new_page);
+ 	SetPageSwapBacked(new_page);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
