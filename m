@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
- added to -mm tree
-Date: Mon, 09 Dec 2013 16:29:34 -0800
-Message-ID: <52a6606e.pC/IgDt8W4kzi+80%akpm@linux-foundation.org>
+ drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
+Date: Mon, 09 Dec 2013 16:29:36 -0800
+Message-ID: <52a66070.omYjgToLw8GRwW2K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55780 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55793 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313Ab3LJA3f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:35 -0500
+	with ESMTP id S1751313Ab3LJA3h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, grygorii.strashko@ti.com, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, santosh.shilimkar@ti.com
 
-Subject: + mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
+Subject: + drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
 To: santosh.shilimkar@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,grygorii.strashko@ti.com,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,tj@kernel.org,tony@atomide.com,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 16:29:34 -0800
+Date: Mon, 09 Dec 2013 16:29:36 -0800
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: use memblock apis for early memory allocations
+     Subject: drivers/firmware/memmap.c: use memblock apis for early memory allocations
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
+     drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,10 +45,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: mm/memory_hotplug.c: use memblock apis for early memory allocations
+Subject: drivers/firmware/memmap.c: use memblock apis for early memory allocations
 
-Correct ensure_zone_is_initialized() function description according to the
-introduced memblock APIs for early memory allocations.
+Switch to memblock interfaces for early memory allocator instead of
+bootmem allocator.  No functional change in beahvior than what it is in
+current code from bootmem users points of view.
+
+Archs already converted to NO_BOOTMEM now directly use memblock interfaces
+instead of bootmem wrappers build on top of memblock.  And the archs which
+still uses bootmem, these new apis just fallback to exiting bootmem APIs.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
@@ -71,21 +75,21 @@ Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
+ drivers/firmware/memmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations
-+++ a/mm/memory_hotplug.c
-@@ -268,7 +268,7 @@ static void fix_zone_id(struct zone *zon
- }
- 
- /* Can fail with -ENOMEM from allocating a wait table with vmalloc() or
-- * alloc_bootmem_node_nopanic() */
-+ * alloc_bootmem_node_nopanic()/memblock_virt_alloc_node_nopanic() */
- static int __ref ensure_zone_is_initialized(struct zone *zone,
- 			unsigned long start_pfn, unsigned long num_pages)
+diff -puN drivers/firmware/memmap.c~drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations
++++ a/drivers/firmware/memmap.c
+@@ -324,7 +324,7 @@ int __init firmware_map_add_early(u64 st
  {
+ 	struct firmware_map_entry *entry;
+ 
+-	entry = alloc_bootmem(sizeof(struct firmware_map_entry));
++	entry = memblock_virt_alloc(sizeof(struct firmware_map_entry), 0);
+ 	if (WARN_ON(!entry))
+ 		return -ENOMEM;
+ 
 _
 
 Patches currently in -mm which might be from santosh.shilimkar@ti.com are
