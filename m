@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblock-add-memblock-memory-allocation-apis-fix.patch added to -mm tree
-Date: Mon, 09 Dec 2013 16:29:13 -0800
-Message-ID: <52a66059.mNgRGafyUPtXqCrt%akpm@linux-foundation.org>
+Subject: + mm-power-use-memblock-apis-for-early-memory-allocations.patch
+ added to -mm tree
+Date: Mon, 09 Dec 2013 16:29:21 -0800
+Message-ID: <52a66061.rJhsBGUFVsB3j6rh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55639 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55692 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750920Ab3LJA3O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:14 -0500
+	with ESMTP id S1751478Ab3LJA3W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, santosh.shilimkar@ti.com, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, grygorii.strashko@ti.com, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, grygorii.strashko@ti.com, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, santosh.shilimkar@ti.com
 
-Subject: + mm-memblock-add-memblock-memory-allocation-apis-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,grygorii.strashko@ti.com,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,santosh.shilimkar@ti.com,tj@kernel.org,tony@atomide.com,yinghai@kernel.org
+Subject: + mm-power-use-memblock-apis-for-early-memory-allocations.patch added to -mm tree
+To: santosh.shilimkar@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,grygorii.strashko@ti.com,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,tj@kernel.org,tony@atomide.com,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 16:29:13 -0800
+Date: Mon, 09 Dec 2013 16:29:21 -0800
 
 
 The patch titled
-     Subject: mm-memblock-add-memblock-memory-allocation-apis-fix
+     Subject: kernel/power/snapshot.c: use memblock apis for early memory allocations
 has been added to the -mm tree.  Its filename is
-     mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+     mm-power-use-memblock-apis-for-early-memory-allocations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-power-use-memblock-apis-for-early-memory-allocations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-power-use-memblock-apis-for-early-memory-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,12 +44,19 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memblock-add-memblock-memory-allocation-apis-fix
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: kernel/power/snapshot.c: use memblock apis for early memory allocations
 
-s/depricated/deprecated/
+Switch to memblock interfaces for early memory allocator instead of
+bootmem allocator.  No functional change in beahvior than what it is in
+current code from bootmem users points of view.
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Archs already converted to NO_BOOTMEM now directly use memblock interfaces
+instead of bootmem wrappers build on top of memblock.  And the archs which
+still uses bootmem, these new apis just fallback to exiting bootmem APIs.
+
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -61,82 +69,54 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/power/snapshot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mm-memblock-add-memblock-memory-allocation-apis-fix mm/memblock.c
---- a/mm/memblock.c~mm-memblock-add-memblock-memory-allocation-apis-fix
-+++ a/mm/memblock.c
-@@ -788,7 +788,7 @@ void __init_memblock __next_free_mem_ran
- 	bool check_node = (nid != NUMA_NO_NODE) && (nid != MAX_NUMNODES);
- 
- 	if (nid == MAX_NUMNODES)
--		pr_warn_once("%s: Usage of MAX_NUMNODES is depricated. Use NUMA_NO_NODE instead\n",
-+		pr_warn_once("%s: Usage of MAX_NUMNODES is deprecated. Use NUMA_NO_NODE instead\n",
- 			     __func__);
- 
- 	for ( ; mi < mem->cnt; mi++) {
-@@ -861,7 +861,7 @@ void __init_memblock __next_free_mem_ran
- 	bool check_node = (nid != NUMA_NO_NODE) && (nid != MAX_NUMNODES);
- 
- 	if (nid == MAX_NUMNODES)
--		pr_warn_once("%s: Usage of MAX_NUMNODES is depricated. Use NUMA_NO_NODE instead\n",
-+		pr_warn_once("%s: Usage of MAX_NUMNODES is deprecated. Use NUMA_NO_NODE instead\n",
- 			     __func__);
- 
- 	if (*idx == (u64)ULLONG_MAX) {
-@@ -1068,7 +1068,7 @@ static void * __init memblock_virt_alloc
- 	void *ptr;
- 
- 	if (nid == MAX_NUMNODES)
--		pr_warn("%s: usage of MAX_NUMNODES is depricated. Use NUMA_NO_NODE\n",
-+		pr_warn("%s: usage of MAX_NUMNODES is deprecated. Use NUMA_NO_NODE\n",
- 			__func__);
- 
- 	if (WARN_ON_ONCE(slab_is_available()))
+diff -puN kernel/power/snapshot.c~mm-power-use-memblock-apis-for-early-memory-allocations kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~mm-power-use-memblock-apis-for-early-memory-allocations
++++ a/kernel/power/snapshot.c
+@@ -637,7 +637,7 @@ __register_nosave_region(unsigned long s
+ 		BUG_ON(!region);
+ 	} else
+ 		/* This allocation cannot fail */
+-		region = alloc_bootmem(sizeof(struct nosave_region));
++		region = memblock_virt_alloc(sizeof(struct nosave_region), 0);
+ 	region->start_pfn = start_pfn;
+ 	region->end_pfn = end_pfn;
+ 	list_add_tail(&region->list, &nosave_regions);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from santosh.shilimkar@ti.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
-dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
+mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
+mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
+mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
+mm-memblock-remove-unnecessary-inclusions-of-bootmemh.patch
+mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
+mm-memblock-reorder-parameters-of-memblock_find_in_range_node.patch
+mm-memblock-switch-to-use-numa_no_node-instead-of-max_numnodes.patch
+mm-memblock-add-memblock-memory-allocation-apis.patch
 mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+mm-init-use-memblock-apis-for-early-memory-allocations.patch
+mm-printk-use-memblock-apis-for-early-memory-allocations.patch
+mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
+mm-power-use-memblock-apis-for-early-memory-allocations.patch
+lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
+lib-cpumaskc-use-memblock-apis-for-early-memory-allocations.patch
+mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
+mm-hugetlb-use-memblock-apis-for-early-memory-allocations.patch
+mm-page_cgroup-use-memblock-apis-for-early-memory-allocations.patch
+mm-percpu-use-memblock-apis-for-early-memory-allocations.patch
+mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
+drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
 linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
