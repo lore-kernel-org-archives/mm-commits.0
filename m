@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits.patch added to -mm tree
-Date: Tue, 10 Dec 2013 15:10:43 -0800
-Message-ID: <52a79f73.crsxaXyfo0YoMJd2%akpm@linux-foundation.org>
+Subject: + x86-mm-sparse-warning-fix-for-early_memremap.patch added to -mm tree
+Date: Tue, 10 Dec 2013 15:23:04 -0800
+Message-ID: <52a7a258.BcTz4hy/+aPu72y6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41157 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724Ab3LJXKo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 18:10:44 -0500
+	with ESMTP id S1751297Ab3LJXXG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 18:23:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, younger.liucn@gmail.com, mfasheh@suse.com, jlbec@evilplan.org, liuyiyang@hisense.com
+To: mm-commits@vger.kernel.org, vgoyal@redhat.com, toshi.kani@hp.com, tglx@linutronix.de, mjg59@srcf.ucam.org, mingo@elte.hu, matt@console-pimps.org, hpa@zytor.com, horms@verge.net.au, greg@kroah.com, ebiederm@xmission.com, bp@suse.de, James.Bottomley@HansenPartnership.com, dyoung@redhat.com
 
-Subject: + ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits.patch added to -mm tree
-To: liuyiyang@hisense.com,jlbec@evilplan.org,mfasheh@suse.com,younger.liucn@gmail.com
+Subject: + x86-mm-sparse-warning-fix-for-early_memremap.patch added to -mm tree
+To: dyoung@redhat.com,James.Bottomley@HansenPartnership.com,bp@suse.de,ebiederm@xmission.com,greg@kroah.com,horms@verge.net.au,hpa@zytor.com,matt@console-pimps.org,mingo@elte.hu,mjg59@srcf.ucam.org,tglx@linutronix.de,toshi.kani@hp.com,vgoyal@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 15:10:43 -0800
+Date: Tue, 10 Dec 2013 15:23:04 -0800
 
 
 The patch titled
-     Subject: ocfs2: remove redundant ocfs2_alloc_dinode_update_counts() and ocfs2_block_group_set_bits()
+     Subject: x86/mm: sparse warning fix for early_memremap
 has been added to the -mm tree.  Its filename is
-     ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits.patch
+     x86-mm-sparse-warning-fix-for-early_memremap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-sparse-warning-fix-for-early_memremap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-sparse-warning-fix-for-early_memremap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,184 +43,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Younger Liu <liuyiyang@hisense.com>
-Subject: ocfs2: remove redundant ocfs2_alloc_dinode_update_counts() and ocfs2_block_group_set_bits()
+From: Dave Young <dyoung@redhat.com>
+Subject: x86/mm: sparse warning fix for early_memremap
 
-ocfs2_alloc_dinode_update_counts() and ocfs2_block_group_set_bits() are
-already provided in suballoc.c.  So, the same functions in move_extents.c
-are not needed any more.
+There's a lot of sparse warnings for code like below: void *a =
+early_memremap(phys_addr, size);
 
-Declare the functions in suballoc.h and remove redundant functions in
-move_extents.c.
+early_memremap intend to map kernel memory with ioremap facility, the
+return pointer should be a kernel ram pointer instead of iomem one.
 
-Signed-off-by: Younger Liu <liuyiyang@hisense.com>
-Cc: Younger Liu <younger.liucn@gmail.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+For making the function clearer and supressing sparse warnings this patch
+do below two things:
+1. cast to (__force void *) for the return value of early_memremap
+2. add early_memunmap function and pass (__force void __iomem *) to iounmap
+
+Signed-off-by: Dave Young <dyoung@redhat.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Matt Fleming <matt@console-pimps.org>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |   77 --------------------------------------
- fs/ocfs2/suballoc.c     |   12 -----
- fs/ocfs2/suballoc.h     |   12 +++++
- 3 files changed, 14 insertions(+), 87 deletions(-)
+ arch/x86/include/asm/io.h |    3 ++-
+ arch/x86/mm/ioremap.c     |   10 +++++++---
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/move_extents.c~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits fs/ocfs2/move_extents.c
---- a/fs/ocfs2/move_extents.c~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits
-+++ a/fs/ocfs2/move_extents.c
-@@ -561,83 +561,6 @@ static void ocfs2_probe_alloc_group(stru
- 	mlog(0, "found phys_cpos: %u to fit the wanted moving.\n", *phys_cpos);
+diff -puN arch/x86/include/asm/io.h~x86-mm-sparse-warning-fix-for-early_memremap arch/x86/include/asm/io.h
+--- a/arch/x86/include/asm/io.h~x86-mm-sparse-warning-fix-for-early_memremap
++++ a/arch/x86/include/asm/io.h
+@@ -325,9 +325,10 @@ extern void early_ioremap_init(void);
+ extern void early_ioremap_reset(void);
+ extern void __iomem *early_ioremap(resource_size_t phys_addr,
+ 				   unsigned long size);
+-extern void __iomem *early_memremap(resource_size_t phys_addr,
++extern void *early_memremap(resource_size_t phys_addr,
+ 				    unsigned long size);
+ extern void early_iounmap(void __iomem *addr, unsigned long size);
++extern void early_memunmap(void *addr, unsigned long size);
+ extern void fixup_early_ioremap(void);
+ extern bool is_early_ioremap_ptep(pte_t *ptep);
+ 
+diff -puN arch/x86/mm/ioremap.c~x86-mm-sparse-warning-fix-for-early_memremap arch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~x86-mm-sparse-warning-fix-for-early_memremap
++++ a/arch/x86/mm/ioremap.c
+@@ -562,10 +562,9 @@ early_ioremap(resource_size_t phys_addr,
  }
  
--static int ocfs2_alloc_dinode_update_counts(struct inode *inode,
--				       handle_t *handle,
--				       struct buffer_head *di_bh,
--				       u32 num_bits,
--				       u16 chain)
--{
--	int ret;
--	u32 tmp_used;
--	struct ocfs2_dinode *di = (struct ocfs2_dinode *) di_bh->b_data;
--	struct ocfs2_chain_list *cl =
--				(struct ocfs2_chain_list *) &di->id2.i_chain;
--
--	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), di_bh,
--				      OCFS2_JOURNAL_ACCESS_WRITE);
--	if (ret < 0) {
--		mlog_errno(ret);
--		goto out;
--	}
--
--	tmp_used = le32_to_cpu(di->id1.bitmap1.i_used);
--	di->id1.bitmap1.i_used = cpu_to_le32(num_bits + tmp_used);
--	le32_add_cpu(&cl->cl_recs[chain].c_free, -num_bits);
--	ocfs2_journal_dirty(handle, di_bh);
--
--out:
--	return ret;
--}
--
--static inline int ocfs2_block_group_set_bits(handle_t *handle,
--					     struct inode *alloc_inode,
--					     struct ocfs2_group_desc *bg,
--					     struct buffer_head *group_bh,
--					     unsigned int bit_off,
--					     unsigned int num_bits)
--{
--	int status;
--	void *bitmap = bg->bg_bitmap;
--	int journal_type = OCFS2_JOURNAL_ACCESS_WRITE;
--
--	/* All callers get the descriptor via
--	 * ocfs2_read_group_descriptor().  Any corruption is a code bug. */
--	BUG_ON(!OCFS2_IS_VALID_GROUP_DESC(bg));
--	BUG_ON(le16_to_cpu(bg->bg_free_bits_count) < num_bits);
--
--	mlog(0, "block_group_set_bits: off = %u, num = %u\n", bit_off,
--	     num_bits);
--
--	if (ocfs2_is_cluster_bitmap(alloc_inode))
--		journal_type = OCFS2_JOURNAL_ACCESS_UNDO;
--
--	status = ocfs2_journal_access_gd(handle,
--					 INODE_CACHE(alloc_inode),
--					 group_bh,
--					 journal_type);
--	if (status < 0) {
--		mlog_errno(status);
--		goto bail;
--	}
--
--	le16_add_cpu(&bg->bg_free_bits_count, -num_bits);
--	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
--		ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
--			    " count %u but claims %u are freed. num_bits %d",
--			    (unsigned long long)le64_to_cpu(bg->bg_blkno),
--			    le16_to_cpu(bg->bg_bits),
--			    le16_to_cpu(bg->bg_free_bits_count), num_bits);
--		return -EROFS;
--	}
--	while (num_bits--)
--		ocfs2_set_bit(bit_off++, bitmap);
--
--	ocfs2_journal_dirty(handle, group_bh);
--
--bail:
--	return status;
--}
--
- static int ocfs2_move_extent(struct ocfs2_move_extents_context *context,
- 			     u32 cpos, u32 phys_cpos, u32 *new_phys_cpos,
- 			     u32 len, int ext_flags)
-diff -puN fs/ocfs2/suballoc.c~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits
-+++ a/fs/ocfs2/suballoc.c
-@@ -113,12 +113,6 @@ static int ocfs2_claim_suballoc_bits(str
- 				     struct ocfs2_suballoc_result *res);
- static int ocfs2_test_bg_bit_allocatable(struct buffer_head *bg_bh,
- 					 int nr);
--static inline int ocfs2_block_group_set_bits(handle_t *handle,
--					     struct inode *alloc_inode,
--					     struct ocfs2_group_desc *bg,
--					     struct buffer_head *group_bh,
--					     unsigned int bit_off,
--					     unsigned int num_bits);
- static int ocfs2_relink_block_group(handle_t *handle,
- 				    struct inode *alloc_inode,
- 				    struct buffer_head *fe_bh,
-@@ -1343,7 +1337,7 @@ static int ocfs2_block_group_find_clear_
- 	return status;
+ /* Remap memory */
+-void __init __iomem *
+-early_memremap(resource_size_t phys_addr, unsigned long size)
++void __init *early_memremap(resource_size_t phys_addr, unsigned long size)
+ {
+-	return __early_ioremap(phys_addr, size, PAGE_KERNEL);
++	return (__force void *)__early_ioremap(phys_addr, size, PAGE_KERNEL);
  }
  
--static inline int ocfs2_block_group_set_bits(handle_t *handle,
-+int ocfs2_block_group_set_bits(handle_t *handle,
- 					     struct inode *alloc_inode,
- 					     struct ocfs2_group_desc *bg,
- 					     struct buffer_head *group_bh,
-@@ -1388,8 +1382,6 @@ static inline int ocfs2_block_group_set_
- 	ocfs2_journal_dirty(handle, group_bh);
- 
- bail:
--	if (status)
--		mlog_errno(status);
- 	return status;
+ void __init early_iounmap(void __iomem *addr, unsigned long size)
+@@ -620,3 +619,8 @@ void __init early_iounmap(void __iomem *
+ 	}
+ 	prev_map[slot] = NULL;
  }
- 
-@@ -1588,7 +1580,7 @@ static int ocfs2_block_group_search(stru
- 	return ret;
- }
- 
--static int ocfs2_alloc_dinode_update_counts(struct inode *inode,
-+int ocfs2_alloc_dinode_update_counts(struct inode *inode,
- 				       handle_t *handle,
- 				       struct buffer_head *di_bh,
- 				       u32 num_bits,
-diff -puN fs/ocfs2/suballoc.h~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits fs/ocfs2/suballoc.h
---- a/fs/ocfs2/suballoc.h~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits
-+++ a/fs/ocfs2/suballoc.h
-@@ -86,6 +86,18 @@ int ocfs2_reserve_clusters(struct ocfs2_
- 			   u32 bits_wanted,
- 			   struct ocfs2_alloc_context **ac);
- 
-+int ocfs2_alloc_dinode_update_counts(struct inode *inode,
-+			 handle_t *handle,
-+			 struct buffer_head *di_bh,
-+			 u32 num_bits,
-+			 u16 chain);
-+int ocfs2_block_group_set_bits(handle_t *handle,
-+			 struct inode *alloc_inode,
-+			 struct ocfs2_group_desc *bg,
-+			 struct buffer_head *group_bh,
-+			 unsigned int bit_off,
-+			 unsigned int num_bits);
 +
- int ocfs2_claim_metadata(handle_t *handle,
- 			 struct ocfs2_alloc_context *ac,
- 			 u32 bits_wanted,
++void __init early_memunmap(void *addr, unsigned long size)
++{
++	early_iounmap((__force void __iomem *)addr, size);
++}
 _
 
-Patches currently in -mm which might be from liuyiyang@hisense.com are
+Patches currently in -mm which might be from dyoung@redhat.com are
 
-ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits.patch
-linux-next.patch
+kexec-migrate-to-reboot-cpu.patch
+x86-mm-sparse-warning-fix-for-early_memremap.patch
+efi-use-early_memremap-and-early_memunmap.patch
+efi-remove-unused-variables-in-__map_region.patch
+efi-add-a-wrapper-function-efi_map_region_fixed.patch
+efi-reserve-boot-service-fix.patch
+efi-cleanup-efi_enter_virtual_mode-function.patch
+efi-export-more-efi-table-variable-to-sysfs.patch
+efi-export-efi-runtime-memory-mapping-to-sysfs.patch
+efi-pass-kexec-necessary-efi-data-via-setup_data.patch
+efi-only-print-saved-efi-runtime-maps-instead-of-all-memmap-ranges-for-kexec.patch
+x86-add-xloadflags-bit-for-efi-runtime-support-on-kexec.patch
+x86-export-x86-boot_params-to-sysfs.patch
+x86-reserve-setup_data-ranges-late-after-parsing-memmap-cmdline.patch
+x86-kdebugfs-do-not-use-__va-for-getting-setup_data-virt-addr.patch
 
