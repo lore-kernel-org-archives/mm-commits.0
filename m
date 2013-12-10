@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch added
- to -mm tree
-Date: Tue, 10 Dec 2013 14:20:29 -0800
-Message-ID: <52a793ad.PGB1DX5B+S556xB1%akpm__40628.6231278957$1386714049$gmane$org@linux-foundation.org>
+Subject: + mm-numa-do-not-automatically-migrate-ksm-pages.patch added to
+ -mm tree
+Date: Tue, 10 Dec 2013 14:20:33 -0800
+Message-ID: <52a793b1.nJakKFkF8fnJASjy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40768 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40784 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751139Ab3LJWUa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:30 -0500
+	with ESMTP id S1752073Ab3LJWUe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch added to -mm tree
-To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org
+Subject: + mm-numa-do-not-automatically-migrate-ksm-pages.patch added to -mm tree
+To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:20:29 -0800
+Date: Tue, 10 Dec 2013 14:20:33 -0800
 
 
 The patch titled
-     Subject: mm: numa: defer TLB flush for THP migration as long as possible
+     Subject: mm: numa: do not automatically migrate KSM pages
 has been added to the -mm tree.  Its filename is
-     mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch
+     mm-numa-do-not-automatically-migrate-ksm-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-do-not-automatically-migrate-ksm-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-do-not-automatically-migrate-ksm-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,52 +45,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: defer TLB flush for THP migration as long as possible
+Subject: mm: numa: do not automatically migrate KSM pages
 
-THP migration can fail for a variety of reasons.  Avoid flushing the TLB
-to deal with THP migration races until the copy is ready to start.
+KSM pages can be shared between tasks that are not necessarily related to
+each other from a NUMA perspective.  This patch causes those pages to be
+ignored by automatic NUMA balancing so they do not migrate and do not
+cause unrelated tasks to be grouped together.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Alex Thorlton <athorlton@sgi.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 -------
- mm/migrate.c     |    3 +++
- 2 files changed, 3 insertions(+), 7 deletions(-)
+ mm/mprotect.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible
-+++ a/mm/huge_memory.c
-@@ -1377,13 +1377,6 @@ int do_huge_pmd_numa_page(struct mm_stru
- 	}
+diff -puN mm/mprotect.c~mm-numa-do-not-automatically-migrate-ksm-pages mm/mprotect.c
+--- a/mm/mprotect.c~mm-numa-do-not-automatically-migrate-ksm-pages
++++ a/mm/mprotect.c
+@@ -23,6 +23,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/migrate.h>
+ #include <linux/perf_event.h>
++#include <linux/ksm.h>
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+ #include <asm/cacheflush.h>
+@@ -63,7 +64,7 @@ static unsigned long change_pte_range(st
  
- 	/*
--	 * The page_table_lock above provides a memory barrier
--	 * with change_protection_range.
--	 */
--	if (tlb_flush_pending(mm))
--		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
--
--	/*
- 	 * Migrate the THP to the requested node, returns with page unlocked
- 	 * and pmd_numa cleared.
- 	 */
-diff -puN mm/migrate.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible mm/migrate.c
---- a/mm/migrate.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible
-+++ a/mm/migrate.c
-@@ -1764,6 +1764,9 @@ int migrate_misplaced_transhuge_page(str
- 		goto out_fail;
- 	}
- 
-+	if (tlb_flush_pending(mm))
-+		flush_tlb_range(vma, mmun_start, mmun_end);
-+
- 	/* Prepare a page as a migration target */
- 	__set_page_locked(new_page);
- 	SetPageSwapBacked(new_page);
+ 				ptent = *pte;
+ 				page = vm_normal_page(vma, addr, oldpte);
+-				if (page) {
++				if (page && !PageKsm(page)) {
+ 					if (!pte_numa(oldpte)) {
+ 						ptent = pte_mknuma(ptent);
+ 						updated = true;
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
