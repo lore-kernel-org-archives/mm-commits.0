@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch added to -mm tree
-Date: Tue, 10 Dec 2013 14:20:26 -0800
-Message-ID: <52a793aa.5bOr32sTYvaYMc51%akpm@linux-foundation.org>
+ mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch added to -mm tree
+Date: Tue, 10 Dec 2013 14:20:32 -0800
+Message-ID: <52a793b0.VpZmj7NaX4IEAIu8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40779 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954Ab3LJWU1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:27 -0500
+	with ESMTP id S1752046Ab3LJWUd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch added to -mm tree
-To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org
+Subject: + mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch added to -mm tree
+To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:20:26 -0800
+Date: Tue, 10 Dec 2013 14:20:32 -0800
 
 
 The patch titled
-     Subject: mm: numa: avoid unnecessary disruption of NUMA hinting during migration
+     Subject: mm: numa: trace tasks that fail migration due to rate limiting
 has been added to the -mm tree.  Its filename is
-     mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch
+     mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,116 +45,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: avoid unnecessary disruption of NUMA hinting during migration
+Subject: mm: numa: trace tasks that fail migration due to rate limiting
 
-do_huge_pmd_numa_page() handles the case where there is parallel THP
-migration.  However, by the time it is checked the NUMA hinting
-information has already been disrupted.  This patch adds an earlier check
-with some helpers.
+A low local/remote numa hinting fault ratio is potentially explained by
+failed migrations.  This patch adds a tracepoint that fires when migration
+fails due to migration rate limitation.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Alex Thorlton <athorlton@sgi.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    9 +++++++++
- mm/huge_memory.c        |   22 ++++++++++++++++------
- mm/migrate.c            |   12 ++++++++++++
- 3 files changed, 37 insertions(+), 6 deletions(-)
+ include/trace/events/migrate.h |   26 ++++++++++++++++++++++++++
+ mm/migrate.c                   |    5 ++++-
+ 2 files changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/migrate.h~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration include/linux/migrate.h
---- a/include/linux/migrate.h~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration
-+++ a/include/linux/migrate.h
-@@ -90,10 +90,19 @@ static inline int migrate_huge_page_move
- #endif /* CONFIG_MIGRATION */
+diff -puN include/trace/events/migrate.h~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting include/trace/events/migrate.h
+--- a/include/trace/events/migrate.h~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting
++++ a/include/trace/events/migrate.h
+@@ -45,6 +45,32 @@ TRACE_EVENT(mm_migrate_pages,
+ 		__print_symbolic(__entry->reason, MIGRATE_REASON))
+ );
  
- #ifdef CONFIG_NUMA_BALANCING
-+extern bool pmd_trans_migrating(pmd_t pmd);
-+extern void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd);
- extern int migrate_misplaced_page(struct page *page,
- 				  struct vm_area_struct *vma, int node);
- extern bool migrate_ratelimited(int node);
- #else
-+static inline bool pmd_trans_migrating(pmd_t pmd)
-+{
-+	return false;
-+}
-+static inline void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd)
-+{
-+}
- static inline int migrate_misplaced_page(struct page *page,
- 					 struct vm_area_struct *vma, int node)
- {
-diff -puN mm/huge_memory.c~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration
-+++ a/mm/huge_memory.c
-@@ -882,6 +882,10 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		ret = 0;
- 		goto out_unlock;
- 	}
++TRACE_EVENT(mm_numa_migrate_ratelimit,
 +
-+	/* mmap_sem prevents this happening but warn if that changes */
-+	WARN_ON(pmd_trans_migrating(pmd));
++	TP_PROTO(struct task_struct *p, int dst_nid, unsigned long nr_pages),
 +
- 	if (unlikely(pmd_trans_splitting(pmd))) {
- 		/* split huge page running from under us */
- 		spin_unlock(src_ptl);
-@@ -1299,6 +1303,17 @@ int do_huge_pmd_numa_page(struct mm_stru
- 	if (unlikely(!pmd_same(pmd, *pmdp)))
- 		goto out_unlock;
++	TP_ARGS(p, dst_nid, nr_pages),
++
++	TP_STRUCT__entry(
++		__array(	char,		comm,	TASK_COMM_LEN)
++		__field(	pid_t,		pid)
++		__field(	int,		dst_nid)
++		__field(	unsigned long,	nr_pages)
++	),
++
++	TP_fast_assign(
++		memcpy(__entry->comm, p->comm, TASK_COMM_LEN);
++		__entry->pid		= p->pid;
++		__entry->dst_nid	= dst_nid;
++		__entry->nr_pages	= nr_pages;
++	),
++
++	TP_printk("comm=%s pid=%d dst_nid=%d nr_pages=%lu",
++		__entry->comm,
++		__entry->pid,
++		__entry->dst_nid,
++		__entry->nr_pages)
++);
+ #endif /* _TRACE_MIGRATE_H */
  
-+	/*
-+	 * If there are potential migrations, wait for completion and retry
-+	 * without disrupting NUMA hinting information. Do not relock and
-+	 * check_same as the page may no longer be mapped.
-+	 */
-+	if (unlikely(pmd_trans_migrating(*pmdp))) {
-+		spin_unlock(ptl);
-+		wait_migrate_huge_page(vma->anon_vma, pmdp);
-+		goto out;
-+	}
-+
- 	page = pmd_page(pmd);
- 	BUG_ON(is_huge_zero_page(page));
- 	page_nid = page_to_nid(page);
-@@ -1329,12 +1344,7 @@ int do_huge_pmd_numa_page(struct mm_stru
- 			goto clear_pmdnuma;
- 	}
- 
--	/*
--	 * If there are potential migrations, wait for completion and retry. We
--	 * do not relock and check_same as the page may no longer be mapped.
--	 * Furtermore, even if the page is currently misplaced, there is no
--	 * guarantee it is still misplaced after the migration completes.
--	 */
-+	/* Migration could have started since the pmd_trans_migrating check */
- 	if (!page_locked) {
- 		spin_unlock(ptl);
- 		wait_on_page_locked(page);
-diff -puN mm/migrate.c~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration mm/migrate.c
---- a/mm/migrate.c~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration
+ /* This part must be outside protection */
+diff -puN mm/migrate.c~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting mm/migrate.c
+--- a/mm/migrate.c~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting
 +++ a/mm/migrate.c
-@@ -1660,6 +1660,18 @@ int numamigrate_isolate_page(pg_data_t *
- 	return 1;
- }
+@@ -1613,8 +1613,11 @@ static bool numamigrate_update_ratelimit
+ 			msecs_to_jiffies(migrate_interval_millisecs);
+ 		spin_unlock(&pgdat->numabalancing_migrate_lock);
+ 	}
+-	if (pgdat->numabalancing_migrate_nr_pages > ratelimit_pages)
++	if (pgdat->numabalancing_migrate_nr_pages > ratelimit_pages) {
++		trace_mm_numa_migrate_ratelimit(current, pgdat->node_id,
++								nr_pages);
+ 		return true;
++	}
  
-+bool pmd_trans_migrating(pmd_t pmd)
-+{
-+	struct page *page = pmd_page(pmd);
-+	return PageLocked(page);
-+}
-+
-+void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd)
-+{
-+	struct page *page = pmd_page(*pmd);
-+	wait_on_page_locked(page);
-+}
-+
- /*
-  * Attempt to migrate a misplaced page to the specified destination
-  * node. Caller is expected to have an elevated reference count on
+ 	/*
+ 	 * This is an unlocked non-atomic update so errors are possible.
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
