@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch added to -mm tree
-Date: Tue, 10 Dec 2013 14:43:20 -0800
-Message-ID: <52a79908.1MWIRARXGOKqbJeh%akpm@linux-foundation.org>
+Subject: + mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
+ added to -mm tree
+Date: Tue, 10 Dec 2013 14:47:15 -0800
+Message-ID: <52a799f3.q625eXSn1sCGHzIz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41012 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41030 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750776Ab3LJWnV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:43:21 -0500
+	with ESMTP id S1751105Ab3LJWrQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:47:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.de, jlbec@evilplan.org, dan.carpenter@oracle.com, rgoldwyn@suse.de
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, tj@kernel.org, grygorii.strashko@ti.com, santosh.shilimkar@ti.com
 
-Subject: + ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch added to -mm tree
-To: rgoldwyn@suse.de,dan.carpenter@oracle.com,jlbec@evilplan.org,mfasheh@suse.de,rgoldwyn@suse.com
+Subject: + mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch added to -mm tree
+To: santosh.shilimkar@ti.com,grygorii.strashko@ti.com,tj@kernel.org,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:43:20 -0800
+Date: Tue, 10 Dec 2013 14:47:15 -0800
 
 
 The patch titled
-     Subject: ocfs2: use the new DLM operation callbacks while requesting new lockspace
+     Subject: mm/memblock: fix buld of "cris" arch
 has been added to the -mm tree.  Its filename is
-     ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
+     mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,262 +44,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: ocfs2: use the new DLM operation callbacks while requesting new lockspace
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: mm/memblock: fix buld of "cris" arch
 
-Attempt to use the new DLM operations.  If it is not supported, use the
-traditional ocfs2_controld.
 
-To exchange ocfs2 versioning, we use the LVB of the version dlm lock.  It
-first attempts to take the lock in EX mode (non-blocking).  If successful
-(which means it is the first mount), it writes the version number and
-downconverts to PR lock.  If it is unsuccessful, it reads the version from
-the lock.
+The build of "criss" arch is broken after applying new memblock API
+series.
 
-If this becomes the standard (with o2cb as well), it could simplify
-userspace tools to check if the filesystem is mounted on other nodes.
+In file included from arch/cris/mm/init.c:13:0:
+include/linux/bootmem.h: In function 'memblock_virt_alloc':
+include/linux/bootmem.h:229:55: error: 'KSEG_C' undeclared (first use in this function)
+include/linux/bootmem.h:229:55: note: each undeclared identifier is reported only once for each function it appears in
+include/linux/bootmem.h: In function 'memblock_virt_alloc_nopanic':
+include/linux/bootmem.h:237:63: error: 'KSEG_C' undeclared (first use in this function)
+include/linux/bootmem.h: In function 'memblock_virt_alloc_node':
+include/linux/bootmem.h:250:27: error: 'KSEG_C' undeclared (first use in this function)
+include/linux/bootmem.h: In function 'memblock_virt_alloc_node_nopanic':
+include/linux/bootmem.h:258:28: error: 'KSEG_C' undeclared (first use in this function)
 
-Dan: Since ocfs2_protocol_version are two u8 values, the additional
-checks with LONG* don't make sense.
+In file included from mm/bootmem.c:14:0:
+include/linux/bootmem.h: In function 'memblock_virt_alloc':
+include/linux/bootmem.h:229:55: error: 'KSEG_C' undeclared (first use in this function)
+include/linux/bootmem.h:229:55: note: each undeclared identifier is reported only once for each function it appears in
+include/linux/bootmem.h: In function 'memblock_virt_alloc_nopanic':
+include/linux/bootmem.h:237:63: error: 'KSEG_C' undeclared (first use in this function)
+include/linux/bootmem.h: In function 'memblock_virt_alloc_node':
+include/linux/bootmem.h:250:27: error: 'KSEG_C' undeclared (first use in this function)
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+The "cris" arch defines memory parameters in a different manner than other
+arch's and they are splitted between 2 headers: <asm/page.h> and <asm/mmu.h>
+
+As result, now build is failed if "bootmem.h" included before
+<asm/page.h> and <asm/mmu.h>. Hence, fix it by including additional
+header in bootmem.h.
+
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_user.c |  130 ++++++++++++++++++++++++++++++++--------
- 1 file changed, 106 insertions(+), 24 deletions(-)
+ include/linux/bootmem.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/stack_user.c~ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace fs/ocfs2/stack_user.c
---- a/fs/ocfs2/stack_user.c~ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace
-+++ a/fs/ocfs2/stack_user.c
-@@ -23,6 +23,7 @@
- #include <linux/mutex.h>
- #include <linux/slab.h>
- #include <linux/reboot.h>
-+#include <linux/sched.h>
- #include <asm/uaccess.h>
+diff -puN include/linux/bootmem.h~mm-memblock-add-memblock-memory-allocation-apis-fix-2 include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-memblock-add-memblock-memory-allocation-apis-fix-2
++++ a/include/linux/bootmem.h
+@@ -5,6 +5,7 @@
+ #define _LINUX_BOOTMEM_H
  
- #include "stackglue.h"
-@@ -122,6 +123,7 @@ struct ocfs2_live_connection {
- 	struct dlm_lksb                 oc_version_lksb;
- 	char                            oc_lvb[DLM_LVB_LEN];
- 	struct completion               oc_sync_wait;
-+	wait_queue_head_t		oc_wait;
- };
+ #include <linux/mmzone.h>
++#include <linux/mm_types.h>
+ #include <asm/dma.h>
  
- struct ocfs2_control_private {
-@@ -218,7 +220,7 @@ static int ocfs2_live_connection_attach(
- 	mutex_lock(&ocfs2_control_lock);
- 	c->oc_conn = conn;
- 
--	if (atomic_read(&ocfs2_control_opened))
-+	if ((c->oc_type == NO_CONTROLD) || atomic_read(&ocfs2_control_opened))
- 		list_add(&c->oc_list, &ocfs2_live_connection_list);
- 	else {
- 		printk(KERN_ERR
-@@ -897,6 +899,59 @@ static int version_unlock(struct ocfs2_c
- 	return sync_unlock(conn, &lc->oc_version_lksb, VERSION_LOCK);
- }
- 
-+/* get_protocol_version()
-+ *
-+ * To exchange ocfs2 versioning, we use the LVB of the version dlm lock.
-+ * The algorithm is:
-+ * 1. Attempt to take the lock in EX mode (non-blocking).
-+ * 2. If successful (which means it is the first mount), write the
-+ *    version number and downconvert to PR lock.
-+ * 3. If unsuccessful (returns -EAGAIN), read the version from the LVB after
-+ *    taking the PR lock.
-+ */
-+
-+static int get_protocol_version(struct ocfs2_cluster_connection *conn)
-+{
-+	int ret;
-+	struct ocfs2_live_connection *lc = conn->cc_private;
-+	struct ocfs2_protocol_version pv;
-+
-+	running_proto.pv_major =
-+		ocfs2_user_plugin.sp_max_proto.pv_major;
-+	running_proto.pv_minor =
-+		ocfs2_user_plugin.sp_max_proto.pv_minor;
-+
-+	lc->oc_version_lksb.sb_lvbptr = lc->oc_lvb;
-+	ret = version_lock(conn, DLM_LOCK_EX,
-+			DLM_LKF_VALBLK|DLM_LKF_NOQUEUE);
-+	if (!ret) {
-+		conn->cc_version.pv_major = running_proto.pv_major;
-+		conn->cc_version.pv_minor = running_proto.pv_minor;
-+		version_to_lvb(&running_proto, lc->oc_lvb);
-+		version_lock(conn, DLM_LOCK_PR, DLM_LKF_CONVERT|DLM_LKF_VALBLK);
-+	} else if (ret == -EAGAIN) {
-+		ret = version_lock(conn, DLM_LOCK_PR, DLM_LKF_VALBLK);
-+		if (ret)
-+			goto out;
-+		lvb_to_version(lc->oc_lvb, &pv);
-+
-+		if (pv.pv_minor < 0) {
-+			ret = -ERANGE;
-+			goto out;
-+		}
-+		if ((pv.pv_major != running_proto.pv_major) ||
-+				(pv.pv_minor > running_proto.pv_minor)) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+
-+		conn->cc_version.pv_major = pv.pv_major;
-+		conn->cc_version.pv_minor = pv.pv_minor;
-+	}
-+out:
-+	return ret;
-+}
-+
- static void user_recover_prep(void *arg)
- {
- }
-@@ -925,6 +980,7 @@ static void user_recover_done(void *arg,
- 		}
- 
- 	lc->oc_our_slot = our_slot;
-+	wake_up(&lc->oc_wait);
- }
- 
- const struct dlm_lockspace_ops ocfs2_ls_ops = {
-@@ -933,11 +989,21 @@ const struct dlm_lockspace_ops ocfs2_ls_
- 	.recover_done = user_recover_done,
- };
- 
-+static int user_cluster_disconnect(struct ocfs2_cluster_connection *conn)
-+{
-+	version_unlock(conn);
-+	dlm_release_lockspace(conn->cc_lockspace, 2);
-+	conn->cc_lockspace = NULL;
-+	ocfs2_live_connection_drop(conn->cc_private);
-+	conn->cc_private = NULL;
-+	return 0;
-+}
-+
- static int user_cluster_connect(struct ocfs2_cluster_connection *conn)
- {
- 	dlm_lockspace_t *fsdlm;
- 	struct ocfs2_live_connection *lc;
--	int rc;
-+	int rc, ops_rv;
- 
- 	BUG_ON(conn == NULL);
- 
-@@ -947,11 +1013,44 @@ static int user_cluster_connect(struct o
- 		goto out;
- 	}
- 
--	lc->oc_type = WITH_CONTROLD;
-+	init_waitqueue_head(&lc->oc_wait);
-+	init_completion(&lc->oc_sync_wait);
-+	atomic_set(&lc->oc_this_node, 0);
-+	conn->cc_private = lc;
-+	lc->oc_type = NO_CONTROLD;
-+
-+	rc = dlm_new_lockspace(conn->cc_name, conn->cc_cluster_name,
-+			       DLM_LSFL_FS, DLM_LVB_LEN,
-+			       &ocfs2_ls_ops, conn, &ops_rv, &fsdlm);
-+	if (rc)
-+		goto out;
-+
-+	if (ops_rv == -EOPNOTSUPP) {
-+		lc->oc_type = WITH_CONTROLD;
-+		printk(KERN_NOTICE "ocfs2: You seem to be using an older "
-+				"version of dlm_controld and/or ocfs2-tools."
-+				" Please consider upgrading.\n");
-+	} else if (ops_rv) {
-+		rc = ops_rv;
-+		goto out;
-+	}
-+	conn->cc_lockspace = fsdlm;
-+
- 	rc = ocfs2_live_connection_attach(conn, lc);
- 	if (rc)
- 		goto out;
- 
-+	if (lc->oc_type == NO_CONTROLD) {
-+		rc = get_protocol_version(conn);
-+		if (rc) {
-+			printk(KERN_ERR "ocfs2: Could not determine"
-+					" locking version\n");
-+			user_cluster_disconnect(conn);
-+			goto out;
-+		}
-+		wait_event(lc->oc_wait, (atomic_read(&lc->oc_this_node) > 0));
-+	}
-+
- 	/*
- 	 * running_proto must have been set before we allowed any mounts
- 	 * to proceed.
-@@ -959,40 +1058,20 @@ static int user_cluster_connect(struct o
- 	if (fs_protocol_compare(&running_proto, &conn->cc_version)) {
- 		printk(KERN_ERR
- 		       "Unable to mount with fs locking protocol version "
--		       "%u.%u because the userspace control daemon has "
--		       "negotiated %u.%u\n",
-+		       "%u.%u because negotiated protocol is %u.%u\n",
- 		       conn->cc_version.pv_major, conn->cc_version.pv_minor,
- 		       running_proto.pv_major, running_proto.pv_minor);
- 		rc = -EPROTO;
- 		ocfs2_live_connection_drop(lc);
- 		lc = NULL;
--		goto out;
- 	}
- 
--	rc = dlm_new_lockspace(conn->cc_name, NULL, DLM_LSFL_FS, DLM_LVB_LEN,
--			       NULL, NULL, NULL, &fsdlm);
--	if (rc) {
--		ocfs2_live_connection_drop(lc);
--		lc = NULL;
--		goto out;
--	}
--
--	conn->cc_private = lc;
--	conn->cc_lockspace = fsdlm;
- out:
- 	if (rc && lc)
- 		kfree(lc);
- 	return rc;
- }
- 
--static int user_cluster_disconnect(struct ocfs2_cluster_connection *conn)
--{
--	dlm_release_lockspace(conn->cc_lockspace, 2);
--	conn->cc_lockspace = NULL;
--	ocfs2_live_connection_drop(conn->cc_private);
--	conn->cc_private = NULL;
--	return 0;
--}
- 
- static int user_cluster_this_node(struct ocfs2_cluster_connection *conn,
- 				  unsigned int *this_node)
-@@ -1002,8 +1081,11 @@ static int user_cluster_this_node(struct
- 
- 	if (lc->oc_type == WITH_CONTROLD)
- 		rc = ocfs2_control_get_this_node();
-+	else if (lc->oc_type == NO_CONTROLD)
-+		rc = atomic_read(&lc->oc_this_node);
- 	else
- 		rc = -EINVAL;
-+
- 	if (rc < 0)
- 		return rc;
- 
+ /*
 _
 
-Patches currently in -mm which might be from rgoldwyn@suse.de are
+Patches currently in -mm which might be from santosh.shilimkar@ti.com are
 
-ocfs2-remove-versioning-information.patch
-ocfs2-add-clustername-to-cluster-connection.patch
-ocfs2-add-dlm-recovery-callbacks.patch
-ocfs2-shift-allocation-ocfs2_live_connection-to-user_connect.patch
-ocfs2-pass-ocfs2_cluster_connection-to-ocfs2_this_node.patch
-ocfs2-framework-for-version-lvb.patch
-ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
+mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
+mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
+mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
+mm-memblock-remove-unnecessary-inclusions-of-bootmemh.patch
+mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
+mm-memblock-reorder-parameters-of-memblock_find_in_range_node.patch
+mm-memblock-switch-to-use-numa_no_node-instead-of-max_numnodes.patch
+mm-memblock-add-memblock-memory-allocation-apis.patch
+mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
+mm-init-use-memblock-apis-for-early-memory-allocations.patch
+mm-printk-use-memblock-apis-for-early-memory-allocations.patch
+mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
+mm-power-use-memblock-apis-for-early-memory-allocations.patch
+lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
+lib-cpumaskc-use-memblock-apis-for-early-memory-allocations.patch
+mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
+mm-hugetlb-use-memblock-apis-for-early-memory-allocations.patch
+mm-page_cgroup-use-memblock-apis-for-early-memory-allocations.patch
+mm-percpu-use-memblock-apis-for-early-memory-allocations.patch
+mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
+drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
+linux-next.patch
 
