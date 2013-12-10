@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-hym8563-rtc-driver.patch added to -mm tree
-Date: Tue, 10 Dec 2013 14:34:49 -0800
-Message-ID: <52a79709.Io5+rD/3z2Evrkjf%akpm@linux-foundation.org>
+Subject: + ocfs2-add-clustername-to-cluster-connection.patch added to -mm
+ tree
+Date: Tue, 10 Dec 2013 14:43:14 -0800
+Message-ID: <52a79902.RM4jmPvTgJZPSvFK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40975 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40993 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750836Ab3LJWeu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:34:50 -0500
+	with ESMTP id S1750776Ab3LJWnP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:43:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, swarren@wwwdotorg.org, rob.herring@calxeda.com, richard.weinberger@gmail.com, pawel.moll@arm.com, mturquette@linaro.org, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, grant.likely@linaro.org, broonie@kernel.org, heiko@sntech.de
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.de, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: + rtc-add-hym8563-rtc-driver.patch added to -mm tree
-To: heiko@sntech.de,broonie@kernel.org,grant.likely@linaro.org,ijc+devicetree@hellion.org.uk,mark.rutland@arm.com,mturquette@linaro.org,pawel.moll@arm.com,richard.weinberger@gmail.com,rob.herring@calxeda.com,swarren@wwwdotorg.org
+Subject: + ocfs2-add-clustername-to-cluster-connection.patch added to -mm tree
+To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.de,rgoldwyn@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:34:49 -0800
+Date: Tue, 10 Dec 2013 14:43:14 -0800
 
 
 The patch titled
-     Subject: rtc: add hym8563 rtc-driver
+     Subject: ocfs2: add clustername to cluster connection
 has been added to the -mm tree.  Its filename is
-     rtc-add-hym8563-rtc-driver.patch
+     ocfs2-add-clustername-to-cluster-connection.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-add-hym8563-rtc-driver.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-clustername-to-cluster-connection.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-add-hym8563-rtc-driver.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-clustername-to-cluster-connection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,672 +44,180 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiko Stuebner <heiko@sntech.de>
-Subject: rtc: add hym8563 rtc-driver
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: ocfs2: add clustername to cluster connection
 
-The Haoyu Microelectronics HYM8563 provides rtc and alarm functions as
-well as a clock output of up to 32kHz.
+This is an effort of removing ocfs2_controld.pcmk and getting ocfs2 DLM
+handling up to the times with respect to DLM (>=4.0.1) and corosync
+(2.3.x).  AFAIK, cman also is being phased out for a unified corosync
+cluster stack.
 
-Signed-off-by: Heiko Stuebner <heiko@sntech.de>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Mike Turquette <mturquette@linaro.org>
-Cc: Richard Weinberger <richard.weinberger@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>
+fs/dlm performs all the functions with respect to fencing and node
+management and provides the API's to do so for ocfs2.  For all future
+references, DLM stands for fs/dlm code.
+
+The advantages are:
+ + No need to run an additional userspace daemon (ocfs2_controld)
+ + No controld device handling and controld protocol
+ + Shifting responsibilities of node management to DLM layer
+
+For backward compatibility, we are keeping the controld handling code. Once
+enough time has passed we can remove a significant portion of the code. This
+was tested by using the kernel with changes on older unmodified tools. The
+kernel used ocfs2_controld as expected, and displayed the appropriate
+warning message.
+
+This feature requires modification in the userspace ocfs2-tools.  The
+changes can be found at: https://github.com/goldwynr/ocfs2-tools branch:
+nocontrold Currently, not many checks are present in the userspace code,
+but that would change soon.
+
+
+This patch (of 6):
+
+Add clustername to cluster connection.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig       |   11 
- drivers/rtc/Makefile      |    1 
- drivers/rtc/rtc-hym8563.c |  601 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 613 insertions(+)
+ fs/ocfs2/dlmglue.c   |    2 ++
+ fs/ocfs2/ocfs2.h     |    1 +
+ fs/ocfs2/stackglue.c |   11 ++++++++---
+ fs/ocfs2/stackglue.h |    9 ++++++++-
+ fs/ocfs2/super.c     |    8 +++++---
+ 5 files changed, 24 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-hym8563-rtc-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-hym8563-rtc-driver
-+++ a/drivers/rtc/Kconfig
-@@ -212,6 +212,17 @@ config RTC_DRV_DS3232
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called rtc-ds3232.
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-add-clustername-to-cluster-connection fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-add-clustername-to-cluster-connection
++++ a/fs/ocfs2/dlmglue.c
+@@ -2996,6 +2996,8 @@ int ocfs2_dlm_init(struct ocfs2_super *o
  
-+config RTC_DRV_HYM8563
-+	tristate "Haoyu Microelectronics HYM8563"
-+	depends on I2C && OF
-+	help
-+	  Say Y to enable support for the HYM8563 I2C RTC chip. Apart
-+	  from the usual rtc functions it provides a clock output of
-+	  up to 32kHz.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-hym8563.
-+
- config RTC_DRV_LP8788
- 	tristate "TI LP8788 RTC driver"
- 	depends on MFD_LP8788
-diff -puN drivers/rtc/Makefile~rtc-add-hym8563-rtc-driver drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-hym8563-rtc-driver
-+++ a/drivers/rtc/Makefile
-@@ -55,6 +55,7 @@ obj-$(CONFIG_RTC_DRV_EP93XX)	+= rtc-ep93
- obj-$(CONFIG_RTC_DRV_FM3130)	+= rtc-fm3130.o
- obj-$(CONFIG_RTC_DRV_GENERIC)	+= rtc-generic.o
- obj-$(CONFIG_RTC_DRV_HID_SENSOR_TIME) += rtc-hid-sensor-time.o
-+obj-$(CONFIG_RTC_DRV_HYM8563)	+= rtc-hym8563.o
- obj-$(CONFIG_RTC_DRV_IMXDI)	+= rtc-imxdi.o
- obj-$(CONFIG_RTC_DRV_ISL1208)	+= rtc-isl1208.o
- obj-$(CONFIG_RTC_DRV_ISL12022)	+= rtc-isl12022.o
-diff -puN /dev/null drivers/rtc/rtc-hym8563.c
---- /dev/null
-+++ a/drivers/rtc/rtc-hym8563.c
-@@ -0,0 +1,601 @@
-+/*
-+ * Haoyu HYM8563 RTC driver
-+ *
-+ * Copyright (C) 2013 MundoReader S.L.
-+ * Author: Heiko Stuebner <heiko@sntech.de>
-+ *
-+ * based on rtc-HYM8563
-+ * Copyright (C) 2010 ROCKCHIP, Inc.
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/clk-provider.h>
-+#include <linux/i2c.h>
-+#include <linux/bcd.h>
-+#include <linux/rtc.h>
-+
-+#define HYM8563_CTL1		0x00
-+#define HYM8563_CTL1_TEST	BIT(7)
-+#define HYM8563_CTL1_STOP	BIT(5)
-+#define HYM8563_CTL1_TESTC	BIT(3)
-+
-+#define HYM8563_CTL2		0x01
-+#define HYM8563_CTL2_TI_TP	BIT(4)
-+#define HYM8563_CTL2_AF		BIT(3)
-+#define HYM8563_CTL2_TF		BIT(2)
-+#define HYM8563_CTL2_AIE	BIT(1)
-+#define HYM8563_CTL2_TIE	BIT(0)
-+
-+#define HYM8563_SEC		0x02
-+#define HYM8563_SEC_VL		BIT(7)
-+#define HYM8563_SEC_MASK	0x7f
-+
-+#define HYM8563_MIN		0x03
-+#define HYM8563_MIN_MASK	0x7f
-+
-+#define HYM8563_HOUR		0x04
-+#define HYM8563_HOUR_MASK	0x3f
-+
-+#define HYM8563_DAY		0x05
-+#define HYM8563_DAY_MASK	0x3f
-+
-+#define HYM8563_WEEKDAY		0x06
-+#define HYM8563_WEEKDAY_MASK	0x07
-+
-+#define HYM8563_MONTH		0x07
-+#define HYM8563_MONTH_CENTURY	BIT(7)
-+#define HYM8563_MONTH_MASK	0x1f
-+
-+#define HYM8563_YEAR		0x08
-+
-+#define HYM8563_ALM_MIN		0x09
-+#define HYM8563_ALM_HOUR	0x0a
-+#define HYM8563_ALM_DAY		0x0b
-+#define HYM8563_ALM_WEEK	0x0c
-+
-+/* Each alarm check can be disabled by setting this bit in the register */
-+#define HYM8563_ALM_BIT_DISABLE	BIT(7)
-+
-+#define HYM8563_CLKOUT		0x0d
-+#define HYM8563_CLKOUT_DISABLE	BIT(7)
-+#define HYM8563_CLKOUT_32768	0
-+#define HYM8563_CLKOUT_1024	1
-+#define HYM8563_CLKOUT_32	2
-+#define HYM8563_CLKOUT_1	3
-+#define HYM8563_CLKOUT_MASK	3
-+
-+#define HYM8563_TMR_CTL		0x0e
-+#define HYM8563_TMR_CTL_ENABLE	BIT(7)
-+#define HYM8563_TMR_CTL_4096	0
-+#define HYM8563_TMR_CTL_64	1
-+#define HYM8563_TMR_CTL_1	2
-+#define HYM8563_TMR_CTL_1_60	3
-+#define HYM8563_TMR_CTL_MASK	3
-+
-+#define HYM8563_TMR_CNT		0x0f
-+
-+struct hym8563 {
-+	struct i2c_client	*client;
-+	struct rtc_device	*rtc;
-+	bool			valid;
-+	struct clk_hw		clkout_hw;
-+};
-+
-+/*
-+ * RTC handling
-+ */
-+
-+static int hym8563_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct hym8563 *hym8563 = i2c_get_clientdata(client);
-+	u8 buf[7];
-+	int ret;
-+
-+	if (!hym8563->valid) {
-+		dev_warn(&client->dev, "no valid clock/calendar values available\n");
-+		return -EPERM;
-+	}
-+
-+	ret = i2c_smbus_read_i2c_block_data(client, HYM8563_SEC, 7, buf);
-+
-+	tm->tm_sec = bcd2bin(buf[0] & HYM8563_SEC_MASK);
-+	tm->tm_min = bcd2bin(buf[1] & HYM8563_MIN_MASK);
-+	tm->tm_hour = bcd2bin(buf[2] & HYM8563_HOUR_MASK);
-+	tm->tm_mday = bcd2bin(buf[3] & HYM8563_DAY_MASK);
-+	tm->tm_wday = bcd2bin(buf[4] & HYM8563_WEEKDAY_MASK); /* 0 = Sun */
-+	tm->tm_mon = bcd2bin(buf[5] & HYM8563_MONTH_MASK) - 1; /* 0 = Jan */
-+	tm->tm_year = bcd2bin(buf[6]) + 100;
-+
-+	return 0;
-+}
-+
-+static int hym8563_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct hym8563 *hym8563 = i2c_get_clientdata(client);
-+	u8 buf[7];
-+	int ret;
-+
-+	/* Years >= 2100 are to far in the future, 19XX is to early */
-+	if (tm->tm_year < 100 || tm->tm_year >= 200)
-+		return -EINVAL;
-+
-+	buf[0] = bin2bcd(tm->tm_sec);
-+	buf[1] = bin2bcd(tm->tm_min);
-+	buf[2] = bin2bcd(tm->tm_hour);
-+	buf[3] = bin2bcd(tm->tm_mday);
-+	buf[4] = bin2bcd(tm->tm_wday);
-+	buf[5] = bin2bcd(tm->tm_mon + 1);
-+
-+	/*
-+	 * While the HYM8563 has a century flag in the month register,
-+	 * it does not seem to carry it over a subsequent write/read.
-+	 * So we'll limit ourself to 100 years, starting at 2000 for now.
-+	 */
-+	buf[6] = tm->tm_year - 100;
-+
-+	/*
-+	 * CTL1 only contains TEST-mode bits apart from stop,
-+	 * so no need to read the value first
-+	 */
-+	ret = i2c_smbus_write_byte_data(client, HYM8563_CTL1,
-+						HYM8563_CTL1_STOP);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = i2c_smbus_write_i2c_block_data(client, HYM8563_SEC, 7, buf);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = i2c_smbus_write_byte_data(client, HYM8563_CTL1, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	hym8563->valid = true;
-+
-+	return 0;
-+}
-+
-+static int hym8563_rtc_alarm_irq_enable(struct device *dev,
-+					unsigned int enabled)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int data;
-+
-+	data = i2c_smbus_read_byte_data(client, HYM8563_CTL2);
-+	if (data < 0)
-+		return data;
-+
-+	if (enabled)
-+		data |= HYM8563_CTL2_AIE;
-+	else
-+		data &= ~HYM8563_CTL2_AIE;
-+
-+	return i2c_smbus_write_byte_data(client, HYM8563_CTL2, data);
-+};
-+
-+static int hym8563_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct rtc_time *alm_tm = &alm->time;
-+	u8 buf[4];
-+	int ret;
-+
-+	ret = i2c_smbus_read_i2c_block_data(client, HYM8563_ALM_MIN, 4, buf);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* The alarm only has a minute accuracy */
-+	alm_tm->tm_sec = -1;
-+
-+	alm_tm->tm_min = (buf[0] & HYM8563_ALM_BIT_DISABLE) ?
-+					-1 :
-+					bcd2bin(buf[0] & HYM8563_MIN_MASK);
-+	alm_tm->tm_hour = (buf[1] & HYM8563_ALM_BIT_DISABLE) ?
-+					-1 :
-+					bcd2bin(buf[1] & HYM8563_HOUR_MASK);
-+	alm_tm->tm_mday = (buf[2] & HYM8563_ALM_BIT_DISABLE) ?
-+					-1 :
-+					bcd2bin(buf[2] & HYM8563_DAY_MASK);
-+	alm_tm->tm_wday = (buf[3] & HYM8563_ALM_BIT_DISABLE) ?
-+					-1 :
-+					bcd2bin(buf[3] & HYM8563_WEEKDAY_MASK);
-+
-+	alm_tm->tm_mon = -1;
-+	alm_tm->tm_year = -1;
-+
-+	ret = i2c_smbus_read_byte_data(client, HYM8563_CTL2);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (ret & HYM8563_CTL2_AIE)
-+		alm->enabled = 1;
-+
-+	return 0;
-+}
-+
-+static int hym8563_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct rtc_time *alm_tm = &alm->time;
-+	u8 buf[4];
-+	int ret;
-+
-+	/*
-+	 * The alarm has no seconds so deal with it
-+	 */
-+	if (alm_tm->tm_sec) {
-+		alm_tm->tm_sec = 0;
-+		alm_tm->tm_min++;
-+		if (alm_tm->tm_min >= 60) {
-+			alm_tm->tm_min = 0;
-+			alm_tm->tm_hour++;
-+			if (alm_tm->tm_hour >= 24) {
-+				alm_tm->tm_hour = 0;
-+				alm_tm->tm_mday++;
-+				if (alm_tm->tm_mday > 31)
-+					alm_tm->tm_mday = 0;
-+			}
-+		}
-+	}
-+
-+	ret = i2c_smbus_read_byte_data(client, HYM8563_CTL2);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret &= ~HYM8563_CTL2_AIE;
-+
-+	ret = i2c_smbus_write_byte_data(client, HYM8563_CTL2, ret);
-+	if (ret < 0)
-+		return ret;
-+
-+	buf[0] = (alm_tm->tm_min < 60 && alm_tm->tm_min >= 0) ?
-+			bin2bcd(alm_tm->tm_min) : HYM8563_ALM_BIT_DISABLE;
-+
-+	buf[1] = (alm_tm->tm_hour < 24 && alm_tm->tm_hour >= 0) ?
-+			bin2bcd(alm_tm->tm_hour) : HYM8563_ALM_BIT_DISABLE;
-+
-+	buf[2] = (alm_tm->tm_mday <= 31 && alm_tm->tm_mday >= 1) ?
-+			bin2bcd(alm_tm->tm_mday) : HYM8563_ALM_BIT_DISABLE;
-+
-+	buf[3] = (alm_tm->tm_wday < 7 && alm_tm->tm_wday >= 0) ?
-+			bin2bcd(alm_tm->tm_wday) : HYM8563_ALM_BIT_DISABLE;
-+
-+	ret = i2c_smbus_write_i2c_block_data(client, HYM8563_ALM_MIN, 4, buf);
-+	if (ret < 0)
-+		return ret;
-+
-+	return hym8563_rtc_alarm_irq_enable(dev, alm->enabled);
-+}
-+
-+static const struct rtc_class_ops hym8563_rtc_ops = {
-+	.read_time		= hym8563_rtc_read_time,
-+	.set_time		= hym8563_rtc_set_time,
-+	.alarm_irq_enable	= hym8563_rtc_alarm_irq_enable,
-+	.read_alarm		= hym8563_rtc_read_alarm,
-+	.set_alarm		= hym8563_rtc_set_alarm,
-+};
-+
-+/*
-+ * Handling of the clkout
-+ */
-+
-+#define clkout_hw_to_hym8563(_hw) container_of(_hw, struct hym8563, clkout_hw)
-+
-+static int clkout_rates[] = {
-+	32768,
-+	1024,
-+	32,
-+	1,
-+};
-+
-+static unsigned long hym8563_clkout_recalc_rate(struct clk_hw *hw,
-+						unsigned long parent_rate)
-+{
-+	struct hym8563 *hym8563 = clkout_hw_to_hym8563(hw);
-+	struct i2c_client *client = hym8563->client;
-+	int ret = i2c_smbus_read_byte_data(client, HYM8563_CLKOUT);
-+
-+	if (ret < 0 || ret & HYM8563_CLKOUT_DISABLE)
-+		return 0;
-+
-+	ret &= HYM8563_CLKOUT_MASK;
-+	return clkout_rates[ret];
-+}
-+
-+static long hym8563_clkout_round_rate(struct clk_hw *hw, unsigned long rate,
-+				      unsigned long *prate)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(clkout_rates); i++)
-+		if (clkout_rates[i] <= rate)
-+			return clkout_rates[i];
-+
-+	return 0;
-+}
-+
-+static int hym8563_clkout_set_rate(struct clk_hw *hw, unsigned long rate,
-+				   unsigned long parent_rate)
-+{
-+	struct hym8563 *hym8563 = clkout_hw_to_hym8563(hw);
-+	struct i2c_client *client = hym8563->client;
-+	int ret = i2c_smbus_read_byte_data(client, HYM8563_CLKOUT);
-+	int i;
-+
-+	if (ret < 0)
-+		return ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(clkout_rates); i++)
-+		if (clkout_rates[i] == rate) {
-+			ret &= ~HYM8563_CLKOUT_MASK;
-+			ret |= i;
-+			return i2c_smbus_write_byte_data(client,
-+							 HYM8563_CLKOUT, ret);
-+		}
-+
-+	return -EINVAL;
-+}
-+
-+static int hym8563_clkout_control(struct clk_hw *hw, bool enable)
-+{
-+	struct hym8563 *hym8563 = clkout_hw_to_hym8563(hw);
-+	struct i2c_client *client = hym8563->client;
-+	int ret = i2c_smbus_read_byte_data(client, HYM8563_CLKOUT);
-+
-+	if (ret < 0)
-+		return ret;
-+
-+	if (enable)
-+		ret &= ~HYM8563_CLKOUT_DISABLE;
-+	else
-+		ret |= HYM8563_CLKOUT_DISABLE;
-+
-+	return i2c_smbus_write_byte_data(client, HYM8563_CLKOUT, ret);
-+}
-+
-+static int hym8563_clkout_prepare(struct clk_hw *hw)
-+{
-+	return hym8563_clkout_control(hw, 1);
-+}
-+
-+static void hym8563_clkout_unprepare(struct clk_hw *hw)
-+{
-+	hym8563_clkout_control(hw, 0);
-+}
-+
-+static int hym8563_clkout_is_prepared(struct clk_hw *hw)
-+{
-+	struct hym8563 *hym8563 = clkout_hw_to_hym8563(hw);
-+	struct i2c_client *client = hym8563->client;
-+	int ret = i2c_smbus_read_byte_data(client, HYM8563_CLKOUT);
-+
-+	if (ret < 0)
-+		return ret;
-+
-+	return !(ret & HYM8563_CLKOUT_DISABLE);
-+}
-+
-+const struct clk_ops hym8563_clkout_ops = {
-+	.prepare = hym8563_clkout_prepare,
-+	.unprepare = hym8563_clkout_unprepare,
-+	.is_prepared = hym8563_clkout_is_prepared,
-+	.recalc_rate = hym8563_clkout_recalc_rate,
-+	.round_rate = hym8563_clkout_round_rate,
-+	.set_rate = hym8563_clkout_set_rate,
-+};
-+
-+static struct clk *hym8563_clkout_register_clk(struct hym8563 *hym8563)
-+{
-+	struct i2c_client *client = hym8563->client;
-+	struct device_node *node = client->dev.of_node;
-+	struct clk *clk;
-+	struct clk_init_data init;
-+	int ret;
-+
-+	ret = i2c_smbus_write_byte_data(client, HYM8563_CLKOUT,
-+						HYM8563_CLKOUT_DISABLE);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	init.name = "hym8563-clkout";
-+	init.ops = &hym8563_clkout_ops;
-+	init.flags = CLK_IS_ROOT;
-+	init.parent_names = NULL;
-+	init.num_parents = 0;
-+	hym8563->clkout_hw.init = &init;
-+
-+	/* register the clock */
-+	clk = clk_register(&client->dev, &hym8563->clkout_hw);
-+
-+	if (!IS_ERR(clk))
-+		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+
-+	return clk;
-+}
-+
-+/*
-+ * The alarm interrupt is implemented as a level-low interrupt in the
-+ * hym8563, while the timer interrupt uses a falling edge.
-+ * We don't use the timer at all, so the interrupt is requested to
-+ * use the level-low trigger.
-+ */
-+static irqreturn_t hym8563_irq(int irq, void *dev_id)
-+{
-+	struct hym8563 *hym8563 = (struct hym8563 *)dev_id;
-+	struct i2c_client *client = hym8563->client;
-+	struct mutex *lock = &hym8563->rtc->ops_lock;
-+	int data, ret;
-+
-+	mutex_lock(lock);
-+
-+	/* Clear the alarm flag */
-+
-+	data = i2c_smbus_read_byte_data(client, HYM8563_CTL2);
-+	if (data < 0) {
-+		dev_err(&client->dev, "%s: error reading i2c data %d\n",
-+			__func__, data);
-+		goto out;
-+	}
-+
-+	data &= ~HYM8563_CTL2_AF;
-+
-+	ret = i2c_smbus_write_byte_data(client, HYM8563_CTL2, data);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "%s: error writing i2c data %d\n",
-+			__func__, ret);
-+	}
-+
-+out:
-+	mutex_unlock(lock);
-+	return IRQ_HANDLED;
-+}
-+
-+static int hym8563_init_device(struct i2c_client *client)
-+{
-+	int ret;
-+
-+	/* Clear stop flag if present */
-+	ret = i2c_smbus_write_byte_data(client, HYM8563_CTL1, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = i2c_smbus_read_byte_data(client, HYM8563_CTL2);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Disable alarm and timer interrupts */
-+	ret &= ~HYM8563_CTL2_AIE;
-+	ret &= ~HYM8563_CTL2_TIE;
-+
-+	/* Clear any pending alarm and timer flags */
-+	if (ret & HYM8563_CTL2_AF)
-+		ret &= ~HYM8563_CTL2_AF;
-+
-+	if (ret & HYM8563_CTL2_TF)
-+		ret &= ~HYM8563_CTL2_TF;
-+
-+	ret &= ~HYM8563_CTL2_TI_TP;
-+
-+	return i2c_smbus_write_byte_data(client, HYM8563_CTL2, ret);
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int hym8563_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int ret;
-+
-+	if (device_may_wakeup(dev)) {
-+		ret = enable_irq_wake(client->irq);
-+		if (ret) {
-+			dev_err(dev, "enable_irq_wake failed, %d\n", ret);
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int hym8563_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+
-+	if (device_may_wakeup(dev))
-+		disable_irq_wake(client->irq);
-+
-+	return 0;
-+}
-+#endif
-+
-+static SIMPLE_DEV_PM_OPS(hym8563_pm_ops, hym8563_suspend, hym8563_resume);
-+
-+static int hym8563_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	struct hym8563 *hym8563;
-+	int ret;
-+
-+	hym8563 = devm_kzalloc(&client->dev, sizeof(*hym8563), GFP_KERNEL);
-+	if (!hym8563)
-+		return -ENOMEM;
-+
-+	hym8563->client = client;
-+	i2c_set_clientdata(client, hym8563);
-+
-+	device_set_wakeup_capable(&client->dev, true);
-+
-+	ret = hym8563_init_device(client);
-+	if (ret) {
-+		dev_err(&client->dev, "could not init device, %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = devm_request_threaded_irq(&client->dev, client->irq,
-+					NULL, hym8563_irq,
-+					IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-+					client->name, hym8563);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "irq %d request failed, %d\n",
-+			client->irq, ret);
-+		return ret;
-+	}
-+
-+	/* check state of calendar information */
-+	ret = i2c_smbus_read_byte_data(client, HYM8563_SEC);
-+	if (ret < 0)
-+		return ret;
-+
-+	hym8563->valid = !(ret & HYM8563_SEC_VL);
-+	dev_dbg(&client->dev, "rtc information is %s\n",
-+		hym8563->valid ? "valid" : "invalid");
-+
-+	hym8563->rtc = devm_rtc_device_register(&client->dev, client->name,
-+						&hym8563_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(hym8563->rtc))
-+		return PTR_ERR(hym8563->rtc);
-+
-+	if (IS_ENABLED(CONFIG_COMMON_CLK))
-+		hym8563_clkout_register_clk(hym8563);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id hym8563_id[] = {
-+	{ "hym8563", 0 },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(i2c, hym8563_id);
-+
-+static struct of_device_id hym8563_dt_idtable[] = {
-+	{ .compatible = "haoyu,hym8563" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, hym8563_dt_idtable);
-+
-+static struct i2c_driver hym8563_driver = {
-+	.driver		= {
-+		.name	= "rtc-hym8563",
-+		.owner	= THIS_MODULE,
-+		.pm	= &hym8563_pm_ops,
-+		.of_match_table	= of_match_ptr(hym8563_dt_idtable),
-+	},
-+	.probe		= hym8563_probe,
-+	.id_table	= hym8563_id,
-+};
-+
-+module_i2c_driver(hym8563_driver);
-+
-+MODULE_AUTHOR("Heiko Stuebner <heiko@sntech.de>");
-+MODULE_DESCRIPTION("HYM8563 RTC driver");
-+MODULE_LICENSE("GPL");
+ 	/* for now, uuid == domain */
+ 	status = ocfs2_cluster_connect(osb->osb_cluster_stack,
++				       osb->osb_cluster_name,
++				       strlen(osb->osb_cluster_name),
+ 				       osb->uuid_str,
+ 				       strlen(osb->uuid_str),
+ 				       &lproto, ocfs2_do_node_down, osb,
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-add-clustername-to-cluster-connection fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-add-clustername-to-cluster-connection
++++ a/fs/ocfs2/ocfs2.h
+@@ -387,6 +387,7 @@ struct ocfs2_super
+ 	u8 osb_stackflags;
+ 
+ 	char osb_cluster_stack[OCFS2_STACK_LABEL_LEN + 1];
++	char osb_cluster_name[OCFS2_CLUSTER_NAME_LEN + 1];
+ 	struct ocfs2_cluster_connection *cconn;
+ 	struct ocfs2_lock_res osb_super_lockres;
+ 	struct ocfs2_lock_res osb_rename_lockres;
+diff -puN fs/ocfs2/stackglue.c~ocfs2-add-clustername-to-cluster-connection fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-add-clustername-to-cluster-connection
++++ a/fs/ocfs2/stackglue.c
+@@ -309,6 +309,8 @@ int ocfs2_plock(struct ocfs2_cluster_con
+ EXPORT_SYMBOL_GPL(ocfs2_plock);
+ 
+ int ocfs2_cluster_connect(const char *stack_name,
++			  const char *cluster_name,
++			  int cluster_name_len,
+ 			  const char *group,
+ 			  int grouplen,
+ 			  struct ocfs2_locking_protocol *lproto,
+@@ -342,8 +344,10 @@ int ocfs2_cluster_connect(const char *st
+ 		goto out;
+ 	}
+ 
+-	memcpy(new_conn->cc_name, group, grouplen);
++	strlcpy(new_conn->cc_name, group, GROUP_NAME_MAX + 1);
+ 	new_conn->cc_namelen = grouplen;
++	strlcpy(new_conn->cc_cluster_name, cluster_name, CLUSTER_NAME_MAX + 1);
++	new_conn->cc_cluster_name_len = cluster_name_len;
+ 	new_conn->cc_recovery_handler = recovery_handler;
+ 	new_conn->cc_recovery_data = recovery_data;
+ 
+@@ -386,8 +390,9 @@ int ocfs2_cluster_connect_agnostic(const
+ 
+ 	if (cluster_stack_name[0])
+ 		stack_name = cluster_stack_name;
+-	return ocfs2_cluster_connect(stack_name, group, grouplen, lproto,
+-				     recovery_handler, recovery_data, conn);
++	return ocfs2_cluster_connect(stack_name, NULL, 0, group, grouplen,
++				     lproto, recovery_handler, recovery_data,
++				     conn);
+ }
+ EXPORT_SYMBOL_GPL(ocfs2_cluster_connect_agnostic);
+ 
+diff -puN fs/ocfs2/stackglue.h~ocfs2-add-clustername-to-cluster-connection fs/ocfs2/stackglue.h
+--- a/fs/ocfs2/stackglue.h~ocfs2-add-clustername-to-cluster-connection
++++ a/fs/ocfs2/stackglue.h
+@@ -45,6 +45,9 @@ struct file_lock;
+  */
+ #define GROUP_NAME_MAX		64
+ 
++/* This shadows  OCFS2_CLUSTER_NAME_LEN */
++#define CLUSTER_NAME_MAX	16
++
+ 
+ /*
+  * ocfs2_protocol_version changes when ocfs2 does something different in
+@@ -97,8 +100,10 @@ struct ocfs2_locking_protocol {
+  * locking compatibility.
+  */
+ struct ocfs2_cluster_connection {
+-	char cc_name[GROUP_NAME_MAX];
++	char cc_name[GROUP_NAME_MAX + 1];
+ 	int cc_namelen;
++	char cc_cluster_name[CLUSTER_NAME_MAX + 1];
++	int cc_cluster_name_len;
+ 	struct ocfs2_protocol_version cc_version;
+ 	struct ocfs2_locking_protocol *cc_proto;
+ 	void (*cc_recovery_handler)(int node_num, void *recovery_data);
+@@ -239,6 +244,8 @@ struct ocfs2_stack_plugin {
+ 
+ /* Used by the filesystem */
+ int ocfs2_cluster_connect(const char *stack_name,
++			  const char *cluster_name,
++			  int cluster_name_len,
+ 			  const char *group,
+ 			  int grouplen,
+ 			  struct ocfs2_locking_protocol *lproto,
+diff -puN fs/ocfs2/super.c~ocfs2-add-clustername-to-cluster-connection fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-add-clustername-to-cluster-connection
++++ a/fs/ocfs2/super.c
+@@ -2223,10 +2223,9 @@ static int ocfs2_initialize_super(struct
+ 	if (ocfs2_clusterinfo_valid(osb)) {
+ 		osb->osb_stackflags =
+ 			OCFS2_RAW_SB(di)->s_cluster_info.ci_stackflags;
+-		memcpy(osb->osb_cluster_stack,
++		strlcpy(osb->osb_cluster_stack,
+ 		       OCFS2_RAW_SB(di)->s_cluster_info.ci_stack,
+-		       OCFS2_STACK_LABEL_LEN);
+-		osb->osb_cluster_stack[OCFS2_STACK_LABEL_LEN] = '\0';
++		       OCFS2_STACK_LABEL_LEN + 1);
+ 		if (strlen(osb->osb_cluster_stack) != OCFS2_STACK_LABEL_LEN) {
+ 			mlog(ML_ERROR,
+ 			     "couldn't mount because of an invalid "
+@@ -2235,6 +2234,9 @@ static int ocfs2_initialize_super(struct
+ 			status = -EINVAL;
+ 			goto bail;
+ 		}
++		strlcpy(osb->osb_cluster_name,
++			OCFS2_RAW_SB(di)->s_cluster_info.ci_cluster,
++			OCFS2_CLUSTER_NAME_LEN + 1);
+ 	} else {
+ 		/* The empty string is identical with classic tools that
+ 		 * don't know about s_cluster_info. */
 _
 
-Patches currently in -mm which might be from heiko@sntech.de are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
-dt-bindings-add-hym8563-binding.patch
-rtc-add-hym8563-rtc-driver.patch
-linux-next.patch
+ocfs2-remove-versioning-information.patch
+ocfs2-add-clustername-to-cluster-connection.patch
+ocfs2-add-dlm-recovery-callbacks.patch
+ocfs2-shift-allocation-ocfs2_live_connection-to-user_connect.patch
+ocfs2-pass-ocfs2_cluster_connection-to-ocfs2_this_node.patch
+ocfs2-framework-for-version-lvb.patch
+ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
 
