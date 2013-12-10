@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-call-mmu-notifiers-on-thp-migration.patch added to -mm
- tree
-Date: Tue, 10 Dec 2013 14:20:18 -0800
-Message-ID: <52a793a2.xFjKT31+pJ0ivRow%akpm__15145.5542458736$1386714031$gmane$org@linux-foundation.org>
+Subject: + mm-numa-do-not-clear-pmd-during-pte-update-scan.patch added to
+ -mm tree
+Date: Tue, 10 Dec 2013 14:20:20 -0800
+Message-ID: <52a793a4.ENLYa9FzS2k6/HYk%akpm__4948.75930385223$1386714033$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40731 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40737 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751226Ab3LJWUT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:19 -0500
+	with ESMTP id S1751776Ab3LJWUV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + mm-numa-call-mmu-notifiers-on-thp-migration.patch added to -mm tree
+Subject: + mm-numa-do-not-clear-pmd-during-pte-update-scan.patch added to -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:20:18 -0800
+Date: Tue, 10 Dec 2013 14:20:20 -0800
 
 
 The patch titled
-     Subject: mm: numa: call MMU notifiers on THP migration
+     Subject: mm: numa: do not clear PMD during PTE update scan
 has been added to the -mm tree.  Its filename is
-     mm-numa-call-mmu-notifiers-on-thp-migration.patch
+     mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-call-mmu-notifiers-on-thp-migration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-call-mmu-notifiers-on-thp-migration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,10 +45,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: call MMU notifiers on THP migration
+Subject: mm: numa: do not clear PMD during PTE update scan
 
-MMU notifiers must be called on THP page migration or secondary MMUs will
-get very confused.
+If the PMD is flushed then a parallel fault in handle_mm_fault() will
+enter the pmd_none and do_huge_pmd_anonymous_page() path where it'll
+attempt to insert a huge zero page.  This is wasteful so the patch avoids
+clearing the PMD when setting pmd_numa.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -57,88 +59,21 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-numa-call-mmu-notifiers-on-thp-migration mm/migrate.c
---- a/mm/migrate.c~mm-numa-call-mmu-notifiers-on-thp-migration
-+++ a/mm/migrate.c
-@@ -36,6 +36,7 @@
- #include <linux/hugetlb_cgroup.h>
- #include <linux/gfp.h>
- #include <linux/balloon_compaction.h>
-+#include <linux/mmu_notifier.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -1721,12 +1722,13 @@ int migrate_misplaced_transhuge_page(str
- 				struct page *page, int node)
- {
- 	spinlock_t *ptl;
--	unsigned long haddr = address & HPAGE_PMD_MASK;
- 	pg_data_t *pgdat = NODE_DATA(node);
- 	int isolated = 0;
- 	struct page *new_page = NULL;
- 	struct mem_cgroup *memcg = NULL;
- 	int page_lru = page_is_file_cache(page);
-+	unsigned long mmun_start = address & HPAGE_PMD_MASK;
-+	unsigned long mmun_end = mmun_start + HPAGE_PMD_SIZE;
- 	pmd_t orig_entry;
- 
- 	/*
-@@ -1761,10 +1763,12 @@ int migrate_misplaced_transhuge_page(str
- 	WARN_ON(PageLRU(new_page));
- 
- 	/* Recheck the target PMD */
-+	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	ptl = pmd_lock(mm, pmd);
- 	if (unlikely(!pmd_same(*pmd, entry) || page_count(page) != 2)) {
- fail_putback:
- 		spin_unlock(ptl);
-+		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 
- 		/* Reverse changes made by migrate_page_copy() */
- 		if (TestClearPageActive(new_page))
-@@ -1805,15 +1809,16 @@ fail_putback:
- 	 * The SetPageUptodate on the new page and page_add_new_anon_rmap
- 	 * guarantee the copy is visible before the pagetable update.
- 	 */
--	flush_cache_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
--	page_add_new_anon_rmap(new_page, vma, haddr);
--	pmdp_clear_flush(vma, haddr, pmd);
--	set_pmd_at(mm, haddr, pmd, entry);
-+	flush_cache_range(vma, mmun_start, mmun_end);
-+	page_add_new_anon_rmap(new_page, vma, mmun_start);
-+	pmdp_clear_flush(vma, mmun_start, pmd);
-+	set_pmd_at(mm, mmun_start, pmd, entry);
-+	flush_tlb_range(vma, mmun_start, mmun_end);
- 	update_mmu_cache_pmd(vma, address, &entry);
- 
- 	if (page_count(page) != 2) {
--		set_pmd_at(mm, haddr, pmd, orig_entry);
--		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
-+		set_pmd_at(mm, mmun_start, pmd, orig_entry);
-+		flush_tlb_range(vma, mmun_start, mmun_end);
- 		update_mmu_cache_pmd(vma, address, &entry);
- 		page_remove_rmap(new_page);
- 		goto fail_putback;
-@@ -1828,6 +1833,7 @@ fail_putback:
- 	 */
- 	mem_cgroup_end_migration(memcg, page, new_page, true);
- 	spin_unlock(ptl);
-+	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 
- 	unlock_page(new_page);
- 	unlock_page(page);
-@@ -1848,7 +1854,7 @@ out_dropref:
- 	ptl = pmd_lock(mm, pmd);
- 	if (pmd_same(*pmd, entry)) {
- 		entry = pmd_mknonnuma(entry);
--		set_pmd_at(mm, haddr, pmd, entry);
-+		set_pmd_at(mm, mmun_start, pmd, entry);
- 		update_mmu_cache_pmd(vma, address, &entry);
- 	}
- 	spin_unlock(ptl);
+diff -puN mm/huge_memory.c~mm-numa-do-not-clear-pmd-during-pte-update-scan mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-do-not-clear-pmd-during-pte-update-scan
++++ a/mm/huge_memory.c
+@@ -1539,7 +1539,7 @@ int change_huge_pmd(struct vm_area_struc
+ 			 */
+ 			if (!is_huge_zero_page(page) &&
+ 			    !pmd_numa(*pmd)) {
+-				entry = pmdp_get_and_clear(mm, addr, pmd);
++				entry = *pmd;
+ 				entry = pmd_mknuma(entry);
+ 				ret = HPAGE_PMD_NR;
+ 			}
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
