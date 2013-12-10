@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-do-not-clear-pte-for-pte_numa-update.patch added to -mm tree
-Date: Tue, 10 Dec 2013 14:20:21 -0800
-Message-ID: <52a793a5./n3zp8Jbh05h0d23%akpm@linux-foundation.org>
+Subject: + mm-numa-avoid-unnecessary-work-on-the-failure-path.patch added
+ to -mm tree
+Date: Tue, 10 Dec 2013 14:20:23 -0800
+Message-ID: <52a793a7.oZVCU1CD0hdFNqpl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40743 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40751 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006Ab3LJWUW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:22 -0500
+	with ESMTP id S1751139Ab3LJWUY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 17:20:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + mm-numa-do-not-clear-pte-for-pte_numa-update.patch added to -mm tree
+Subject: + mm-numa-avoid-unnecessary-work-on-the-failure-path.patch added to -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 14:20:21 -0800
+Date: Tue, 10 Dec 2013 14:20:23 -0800
 
 
 The patch titled
-     Subject: mm: numa: do not clear PTE for pte_numa update
+     Subject: mm: numa: avoid unnecessary work on the failure path
 has been added to the -mm tree.  Its filename is
-     mm-numa-do-not-clear-pte-for-pte_numa-update.patch
+     mm-numa-avoid-unnecessary-work-on-the-failure-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-do-not-clear-pte-for-pte_numa-update.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-avoid-unnecessary-work-on-the-failure-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-do-not-clear-pte-for-pte_numa-update.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-avoid-unnecessary-work-on-the-failure-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,15 +45,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: do not clear PTE for pte_numa update
+Subject: mm: numa: avoid unnecessary work on the failure path
 
-The TLB must be flushed if the PTE is updated but change_pte_range is
-clearing the PTE while marking PTEs pte_numa without necessarily flushing
-the TLB if it reinserts the same entry.  Without the flush, it's
-conceivable that two processors have different TLBs for the same virtual
-address and at the very least it would generate spurious faults.  This
-patch only unmaps the pages in change_pte_range for a full protection
-change.
+If a PMD changes during a THP migration then migration aborts but the
+failure path is doing more work than is necessary.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -61,40 +57,30 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/migrate.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/mprotect.c~mm-numa-do-not-clear-pte-for-pte_numa-update mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-do-not-clear-pte-for-pte_numa-update
-+++ a/mm/mprotect.c
-@@ -52,13 +52,14 @@ static unsigned long change_pte_range(st
- 			pte_t ptent;
- 			bool updated = false;
- 
--			ptent = ptep_modify_prot_start(mm, addr, pte);
- 			if (!prot_numa) {
-+				ptent = ptep_modify_prot_start(mm, addr, pte);
- 				ptent = pte_modify(ptent, newprot);
- 				updated = true;
- 			} else {
- 				struct page *page;
- 
-+				ptent = *pte;
- 				page = vm_normal_page(vma, addr, oldpte);
- 				if (page) {
- 					if (!pte_numa(oldpte)) {
-@@ -79,7 +80,10 @@ static unsigned long change_pte_range(st
- 
- 			if (updated)
- 				pages++;
--			ptep_modify_prot_commit(mm, addr, pte, ptent);
+diff -puN mm/migrate.c~mm-numa-avoid-unnecessary-work-on-the-failure-path mm/migrate.c
+--- a/mm/migrate.c~mm-numa-avoid-unnecessary-work-on-the-failure-path
++++ a/mm/migrate.c
+@@ -1785,7 +1785,8 @@ fail_putback:
+ 		putback_lru_page(page);
+ 		mod_zone_page_state(page_zone(page),
+ 			 NR_ISOLATED_ANON + page_lru, -HPAGE_PMD_NR);
+-		goto out_fail;
 +
-+			/* Only !prot_numa always clears the pte */
-+			if (!prot_numa)
-+				ptep_modify_prot_commit(mm, addr, pte, ptent);
- 		} else if (IS_ENABLED(CONFIG_MIGRATION) && !pte_file(oldpte)) {
- 			swp_entry_t entry = pte_to_swp_entry(oldpte);
++		goto out_unlock;
+ 	}
  
+ 	/*
+@@ -1859,6 +1860,7 @@ out_dropref:
+ 	}
+ 	spin_unlock(ptl);
+ 
++out_unlock:
+ 	unlock_page(page);
+ 	put_page(page);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
