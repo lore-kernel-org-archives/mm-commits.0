@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
+ mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
  added to -mm tree
-Date: Mon, 09 Dec 2013 16:29:02 -0800
-Message-ID: <52a6604e.LakxIWysca2yn4Mo%akpm@linux-foundation.org>
+Date: Mon, 09 Dec 2013 16:29:06 -0800
+Message-ID: <52a66052.7M66d/hutNP8iv6r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55558 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55589 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699Ab3LJA3D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:03 -0500
+	with ESMTP id S1750920Ab3LJA3I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Dec 2013 19:29:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, santosh.shilimkar@ti.com, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, grygorii.strashko@ti.com
 
-Subject: + mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch added to -mm tree
+Subject: + mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch added to -mm tree
 To: grygorii.strashko@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,santosh.shilimkar@ti.com,tj@kernel.org,tony@atomide.com,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 09 Dec 2013 16:29:02 -0800
+Date: Mon, 09 Dec 2013 16:29:06 -0800
 
 
 The patch titled
-     Subject: mm/bootmem: remove duplicated declaration of __free_pages_bootmem()
+     Subject: mm/memblock: drop WARN and use SMP_CACHE_BYTES as a default alignment
 has been added to the -mm tree.  Its filename is
-     mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
+     mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,15 +46,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: mm/bootmem: remove duplicated declaration of __free_pages_bootmem()
+Subject: mm/memblock: drop WARN and use SMP_CACHE_BYTES as a default alignment
 
-The __free_pages_bootmem is used internally by MM core and already defined
-in internal.h.  So, remove duplicated declaration.
+Don't produce warning and interpret 0 as "default align" equal to
+SMP_CACHE_BYTES in case if caller of memblock_alloc_base_nid() doesn't
+specify alignment for the block (align == 0).
+
+This is done in preparation of introducing common memblock alloc interface
+to make code behavior consistent.  More details are in below thread :
+
+	https://lkml.org/lkml/2013/10/13/117.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
 Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christoph Lameter <cl@linux-foundation.org>
@@ -71,20 +77,23 @@ Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memblock.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bootmem.h~mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem
-+++ a/include/linux/bootmem.h
-@@ -52,7 +52,6 @@ extern void free_bootmem_node(pg_data_t
- 			      unsigned long size);
- extern void free_bootmem(unsigned long physaddr, unsigned long size);
- extern void free_bootmem_late(unsigned long physaddr, unsigned long size);
--extern void __free_pages_bootmem(struct page *page, unsigned int order);
+diff -puN mm/memblock.c~mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment
++++ a/mm/memblock.c
+@@ -969,8 +969,8 @@ static phys_addr_t __init memblock_alloc
+ {
+ 	phys_addr_t found;
  
- /*
-  * Flags for reserve_bootmem (also if CONFIG_HAVE_ARCH_BOOTMEM_NODE,
+-	if (WARN_ON(!align))
+-		align = __alignof__(long long);
++	if (!align)
++		align = SMP_CACHE_BYTES;
+ 
+ 	/* align @size to avoid excessive fragmentation on reserved array */
+ 	size = round_up(size, align);
 _
 
 Patches currently in -mm which might be from grygorii.strashko@ti.com are
