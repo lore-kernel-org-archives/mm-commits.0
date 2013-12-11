@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-warning-of-future-__gfp_nofail-use.patch added
- to -mm tree
-Date: Wed, 11 Dec 2013 15:58:26 -0800
-Message-ID: <52a8fc22.NgGhUoVuYU7KcPNd%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+ added to -mm tree
+Date: Wed, 11 Dec 2013 15:59:22 -0800
+Message-ID: <52a8fc5a.HrhzSAherbStbM5t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50628 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751685Ab3LKX61 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Dec 2013 18:58:27 -0500
+	with ESMTP id S1751000Ab3LKX7X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Dec 2013 18:59:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, mgorman@suse.de, akpm@linux-foundation.org, rientjes@google.com
 
-Subject: + checkpatch-add-warning-of-future-__gfp_nofail-use.patch added to -mm tree
-To: rientjes@google.com,joe@perches.com
+Subject: + mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch added to -mm tree
+To: rientjes@google.com,akpm@linux-foundation.org,mgorman@suse.de,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 11 Dec 2013 15:58:26 -0800
+Date: Wed, 11 Dec 2013 15:59:22 -0800
 
 
 The patch titled
-     Subject: checkpatch: add warning of future __GFP_NOFAIL use
+     Subject: mm, page_alloc: warn for non-blockable __GFP_NOFAIL allocation failure
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-warning-of-future-__gfp_nofail-use.patch
+     mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-warning-of-future-__gfp_nofail-use.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-warning-of-future-__gfp_nofail-use.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,37 +46,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: checkpatch: add warning of future __GFP_NOFAIL use
+Subject: mm, page_alloc: warn for non-blockable __GFP_NOFAIL allocation failure
 
-gfp.h and page_alloc.c already specify that __GFP_NOFAIL is deprecated and
-no new users should be added.
+__GFP_NOFAIL may return NULL when coupled with GFP_NOWAIT or GFP_ATOMIC.
 
-Add a warning to checkpatch to catch this.
+Luckily, nothing currently does such craziness.  So instead of causing
+such allocations to loop (potentially forever), we maintain the current
+behavior and also warn about the new users of the deprecated flag.
 
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Joe Perches <joe@perches.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/page_alloc.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-warning-of-future-__gfp_nofail-use scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-warning-of-future-__gfp_nofail-use
-+++ a/scripts/checkpatch.pl
-@@ -4119,6 +4119,12 @@ sub process {
- 			     "$1 uses number as first arg, sizeof is generally wrong\n" . $herecurr);
- 		}
+diff -puN mm/page_alloc.c~mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure
++++ a/mm/page_alloc.c
+@@ -2527,8 +2527,15 @@ rebalance:
+ 	}
  
-+# check for GFP_NOWAIT use
-+		if ($line =~ /\b__GFP_NOFAIL\b/) {
-+			WARN("__GFP_NOFAIL",
-+			     "Use of __GFP_NOFAIL is deprecated, no new users should be added\n" . $herecurr);
-+		}
-+
- # check for multiple semicolons
- 		if ($line =~ /;\s*;\s*$/) {
- 			if (WARN("ONE_SEMICOLON",
+ 	/* Atomic allocations - we can't balance anything */
+-	if (!wait)
++	if (!wait) {
++		/*
++		 * All existing users of the deprecated __GFP_NOFAIL are
++		 * blockable, so warn of any new users that actually allow this
++		 * type of allocation to fail.
++		 */
++		WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL);
+ 		goto nopage;
++	}
+ 
+ 	/* Avoid recursion of direct reclaim */
+ 	if (current->flags & PF_MEMALLOC)
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -96,5 +104,6 @@ oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
 mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
 lib-show_memc-show-num_poisoned_pages-when-oom.patch
 memcg-oom-lock-mem_cgroup_print_oom_info.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
 checkpatch-add-warning-of-future-__gfp_nofail-use.patch
 
