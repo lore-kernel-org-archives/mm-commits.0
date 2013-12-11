@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch added to -mm tree
-Date: Wed, 11 Dec 2013 15:43:11 -0800
-Message-ID: <52a8f88f.7hshQz8nud8e3XQg%akpm@linux-foundation.org>
+ mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
+ added to -mm tree
+Date: Wed, 11 Dec 2013 15:43:12 -0800
+Message-ID: <52a8f890.fkHjhlqIAEHcCHua%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50476 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50479 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276Ab3LKXnM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Dec 2013 18:43:12 -0500
+	with ESMTP id S1751346Ab3LKXnN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Dec 2013 18:43:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, vbabka@suse.cz
 
-Subject: + mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch added to -mm tree
+Subject: + mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch added to -mm tree
 To: vbabka@suse.cz,iamjoonsoo.kim@lge.com,mgorman@suse.de,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 11 Dec 2013 15:43:11 -0800
+Date: Wed, 11 Dec 2013 15:43:12 -0800
 
 
 The patch titled
-     Subject: mm: compaction: do not mark unmovable pageblocks as skipped in async compaction
+     Subject: mm: compaction: reset scanner positions immediately when they meet
 has been added to the -mm tree.  Its filename is
-     mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+     mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,25 +46,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: compaction: do not mark unmovable pageblocks as skipped in async compaction
+Subject: mm: compaction: reset scanner positions immediately when they meet
 
-Compaction temporarily marks pageblocks where it fails to isolate pages as
-to-be-skipped in further compactions, in order to improve efficiency.  One
-of the reasons to fail isolating pages is that isolation is not attempted
-in pageblocks that are not of MIGRATE_MOVABLE (or CMA) type.
+Compaction used to start its migrate and free page scaners at the zone's
+lowest and highest pfn, respectively.  Later, caching was introduced to
+remember the scanners' progress across compaction attempts so that
+pageblocks are not re-scanned uselessly.  Additionally, pageblocks where
+isolation failed are marked to be quickly skipped when encountered again
+in future compactions.
 
-The problem is that blocks skipped due to not being MIGRATE_MOVABLE in
-async compaction become skipped due to the temporary mark also in future
-sync compaction.  Moreover, this may follow quite soon during
-__alloc_page_slowpath, without much time for kswapd to clear the pageblock
-skip marks.  This goes against the idea that sync compaction should try to
-scan these blocks more thoroughly than the async compaction.
+Currently, both the reset of cached pfn's and clearing of the pageblock
+skip information for a zone is done in __reset_isolation_suitable().  This
+function gets called when:
 
-The fix is to ensure in async compaction that these !MIGRATE_MOVABLE
-blocks are not marked to be skipped.  Note this should not affect
-performance or locking impact of further async compactions, as skipping a
-block due to being !MIGRATE_MOVABLE is done soon after skipping a block
-marked to be skipped, both without locking.
+ - compaction is restarting after being deferred
+ - compact_blockskip_flush flag is set in compact_finished() when the scanners
+   meet (and not again cleared when direct compaction succeeds in allocation)
+   and kswapd acts upon this flag before going to sleep
+
+This behavior is suboptimal for several reasons:
+
+ - when direct sync compaction is called after async compaction fails (in the
+   allocation slowpath), it will effectively do nothing, unless kswapd
+   happens to process the compact_blockskip_flush flag meanwhile. This is racy
+   and goes against the purpose of sync compaction to more thoroughly retry
+   the compaction of a zone where async compaction has failed.
+   The restart-after-deferring path cannot help here as deferring happens only
+   after the sync compaction fails. It is also done only for the preferred
+   zone, while the compaction might be done for a fallback zone.
+
+ - the mechanism of marking pageblock to be skipped has little value since the
+   cached pfn's are reset only together with the pageblock skip flags. This
+   effectively limits pageblock skip usage to parallel compactions.
+
+This patch changes compact_finished() so that cached pfn's are reset
+immediately when the scanners meet.  Clearing pageblock skip flags is
+unchanged, as well as the other situations where cached pfn's are reset. 
+This allows the sync-after-async compaction to retry pageblocks not marked
+as skipped, such as blocks !MIGRATE_MOVABLE blocks that async compactions
+now skips without marking them.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Rik van Riel <riel@redhat.com>
@@ -72,44 +93,23 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/compaction.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction mm/compaction.c
---- a/mm/compaction.c~mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction
+diff -puN mm/compaction.c~mm-compaction-reset-scanner-positions-immediately-when-they-meet mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-reset-scanner-positions-immediately-when-they-meet
 +++ a/mm/compaction.c
-@@ -455,6 +455,7 @@ isolate_migratepages_range(struct zone *
- 	unsigned long flags;
- 	bool locked = false;
- 	struct page *page = NULL, *valid_page = NULL;
-+	bool skipped_async_unsuitable = false;
+@@ -847,6 +847,10 @@ static int compact_finished(struct zone
  
- 	/*
- 	 * Ensure that there are not too many pages isolated from the LRU
-@@ -530,6 +531,7 @@ isolate_migratepages_range(struct zone *
- 		if (!cc->sync && last_pageblock_nr != pageblock_nr &&
- 		    !migrate_async_suitable(get_pageblock_migratetype(page))) {
- 			cc->finished_update_migrate = true;
-+			skipped_async_unsuitable = true;
- 			goto next_pageblock;
- 		}
- 
-@@ -623,8 +625,13 @@ next_pageblock:
- 	if (locked)
- 		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 
--	/* Update the pageblock-skip if the whole pageblock was scanned */
--	if (low_pfn == end_pfn)
-+	/*
-+	 * Update the pageblock-skip information and cached scanner pfn,
-+	 * if the whole pageblock was scanned without isolating any page.
-+	 * This is not done when pageblock was skipped due to being unsuitable
-+	 * for async compaction, so that eventual sync compaction can try.
-+	 */
-+	if (low_pfn == end_pfn && !skipped_async_unsuitable)
- 		update_pageblock_skip(cc, valid_page, nr_isolated, true);
- 
- 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
+ 	/* Compaction run completes if the migrate and free scanner meet */
+ 	if (cc->free_pfn <= cc->migrate_pfn) {
++		/* Let the next compaction start anew. */
++		zone->compact_cached_migrate_pfn = zone->zone_start_pfn;
++		zone->compact_cached_free_pfn = zone_end_pfn(zone);
++
+ 		/*
+ 		 * Mark that the PG_migrate_skip information should be cleared
+ 		 * by kswapd when it goes to sleep. kswapd does not set the
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
