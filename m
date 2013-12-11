@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-return-einval-if-the-given-range-to-discard-is-less-than-block-size.patch added to -mm tree
-Date: Tue, 10 Dec 2013 16:18:04 -0800
-Message-ID: <52a7af3c.TSI1Wwy3LyUEaGUz%akpm@linux-foundation.org>
+ ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl.patch
+ added to -mm tree
+Date: Tue, 10 Dec 2013 16:18:05 -0800
+Message-ID: <52a7af3d.nOyPKbgkf/bPamEZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41619 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41621 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751061Ab3LKASF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 19:18:05 -0500
+	with ESMTP id S1751133Ab3LKASG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Dec 2013 19:18:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com
 
-Subject: + ocfs2-return-einval-if-the-given-range-to-discard-is-less-than-block-size.patch added to -mm tree
+Subject: + ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl.patch added to -mm tree
 To: jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 10 Dec 2013 16:18:04 -0800
+Date: Tue, 10 Dec 2013 16:18:05 -0800
 
 
 The patch titled
-     Subject: ocfs2: return EINVAL if the given range to discard is less than block size
+     Subject: ocfs2: adjust minlen with discard_granularity in the FITRIM ioctl
 has been added to the -mm tree.  Its filename is
-     ocfs2-return-einval-if-the-given-range-to-discard-is-less-than-block-size.patch
+     ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-return-einval-if-the-given-range-to-discard-is-less-than-block-size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-return-einval-if-the-given-range-to-discard-is-less-than-block-size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,12 +46,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jie Liu <jeff.liu@oracle.com>
-Subject: ocfs2: return EINVAL if the given range to discard is less than block size
+Subject: ocfs2: adjust minlen with discard_granularity in the FITRIM ioctl
 
-For FITRIM ioctl(2), we should not keep silence if the given range length
-ls less than a block size as there is no data blocks would be discareded. 
-Hence it should return EINVAL instead.  This issue can be verified via
-xfstests/generic/288 which is used for FITRIM argument handling tests.
+Adjust minlen with discard_granularity for FITRIM ioctl(2) if the given
+minimum size in bytes is less than it because, discard granularity is used
+to tell us that the minimum size of extent that can be discarded by the
+storage device.
+
+This is inspired by ext4 commit 5c2ed62fd4 ("ext4: Adjust minlen with
+discard_granularity in the FITRIM ioctl") from Lukas Czerner.
 
 Signed-off-by: Jie Liu <jeff.liu@oracle.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -58,44 +62,21 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ fs/ocfs2/ioctl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-return-einval-if-the-given-range-to-discard-is-less-than-block-size fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-return-einval-if-the-given-range-to-discard-is-less-than-block-size
-+++ a/fs/ocfs2/alloc.c
-@@ -7292,14 +7292,8 @@ int ocfs2_trim_fs(struct super_block *sb
- 	start = range->start >> osb->s_clustersize_bits;
- 	len = range->len >> osb->s_clustersize_bits;
- 	minlen = range->minlen >> osb->s_clustersize_bits;
--	trimmed = 0;
--
--	if (!len) {
--		range->len = 0;
--		return 0;
--	}
+diff -puN fs/ocfs2/ioctl.c~ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl fs/ocfs2/ioctl.c
+--- a/fs/ocfs2/ioctl.c~ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl
++++ a/fs/ocfs2/ioctl.c
+@@ -980,6 +980,8 @@ long ocfs2_ioctl(struct file *filp, unsi
+ 		if (copy_from_user(&range, argp, sizeof(range)))
+ 			return -EFAULT;
  
--	if (minlen >= osb->bitmap_cpg)
-+	if (minlen >= osb->bitmap_cpg || range->len < sb->s_blocksize)
- 		return -EINVAL;
- 
- 	main_bm_inode = ocfs2_get_system_file_inode(osb,
-@@ -7325,6 +7319,7 @@ int ocfs2_trim_fs(struct super_block *sb
- 		goto out_unlock;
- 	}
- 
-+	len = range->len >> osb->s_clustersize_bits;
- 	if (start + len > le32_to_cpu(main_bm->i_clusters))
- 		len = le32_to_cpu(main_bm->i_clusters) - start;
- 
-@@ -7339,6 +7334,7 @@ int ocfs2_trim_fs(struct super_block *sb
- 	last_group = ocfs2_which_cluster_group(main_bm_inode, start + len - 1);
- 	last_bit = osb->bitmap_cpg;
- 
-+	trimmed = 0;
- 	for (group = first_group; group <= last_group;) {
- 		if (first_bit + len >= osb->bitmap_cpg)
- 			last_bit = osb->bitmap_cpg;
++		range.minlen = max_t(u64, q->limits.discard_granularity,
++				     range.minlen);
+ 		ret = ocfs2_trim_fs(sb, &range);
+ 		if (ret < 0)
+ 			return ret;
 _
 
 Patches currently in -mm which might be from jeff.liu@oracle.com are
