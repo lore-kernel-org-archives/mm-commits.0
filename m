@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch added to -mm tree
-Date: Wed, 11 Dec 2013 13:29:19 -0800
-Message-ID: <52a8d92f.0yMif1w/rE231qEC%akpm@linux-foundation.org>
+Subject: + inotify-provide-function-for-name-length-rounding.patch added
+ to -mm tree
+Date: Wed, 11 Dec 2013 13:51:18 -0800
+Message-ID: <52a8de56.gAokQKXG2kp135AA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49766 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49799 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751512Ab3LKV3U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Dec 2013 16:29:20 -0500
+	with ESMTP id S1750911Ab3LKVvT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Dec 2013 16:51:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mgorman@suse.de, dave.hansen@intel.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, hch@lst.de, eparis@parisplace.org, jack@suse.cz
 
-Subject: + mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch added to -mm tree
-To: hannes@cmpxchg.org,dave.hansen@intel.com,mgorman@suse.de,riel@redhat.com,stable@kernel.org
+Subject: + inotify-provide-function-for-name-length-rounding.patch added to -mm tree
+To: jack@suse.cz,eparis@parisplace.org,hch@lst.de,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 11 Dec 2013 13:29:19 -0800
+Date: Wed, 11 Dec 2013 13:51:18 -0800
 
 
 The patch titled
-     Subject: mm: page_alloc: exclude unreclaimable allocations from zone fairness policy
+     Subject: inotify: provide function for name length rounding
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch
+     inotify-provide-function-for-name-length-rounding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/inotify-provide-function-for-name-length-rounding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/inotify-provide-function-for-name-length-rounding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,96 +44,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: exclude unreclaimable allocations from zone fairness policy
+From: Jan Kara <jack@suse.cz>
+Subject: inotify: provide function for name length rounding
 
-Dave Hansen noted a regression in a microbenchmark that loops around
-open() and close() on an 8-node NUMA machine and bisected it down to
-81c0a2bb515f ("mm: page_alloc: fair zone allocator policy").  That change
-forces the slab allocations of the file descriptor to spread out to all 8
-nodes, causing remote references in the page allocator and slab.
+Rounding of name length when passing it to userspace was done in several
+places.  Provide a function to do it and use it in all places.
 
-The round-robin policy is only there to provide fairness among memory
-allocations that are reclaimed involuntarily based on pressure in each
-zone.  It does not make sense to apply it to unreclaimable kernel
-allocations that are freed manually, in this case instantly after the
-allocation, and incur the remote reference costs twice for no reason.
-
-Only round-robin allocations that are usually freed through page reclaim
-or slab shrinking.
-
-Bisected by Dave Hansen.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/notify/inotify/inotify_user.c |   41 ++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy
-+++ a/mm/page_alloc.c
-@@ -1920,7 +1920,8 @@ zonelist_scan:
- 		 * back to remote zones that do not partake in the
- 		 * fairness round-robin cycle of this zonelist.
- 		 */
--		if (alloc_flags & ALLOC_WMARK_LOW) {
-+		if ((alloc_flags & ALLOC_WMARK_LOW) &&
-+		    (gfp_mask & GFP_MOVABLE_MASK)) {
- 			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
- 				continue;
- 			if (zone_reclaim_mode &&
+diff -puN fs/notify/inotify/inotify_user.c~inotify-provide-function-for-name-length-rounding fs/notify/inotify/inotify_user.c
+--- a/fs/notify/inotify/inotify_user.c~inotify-provide-function-for-name-length-rounding
++++ a/fs/notify/inotify/inotify_user.c
+@@ -124,6 +124,13 @@ static unsigned int inotify_poll(struct
+ 	return ret;
+ }
+ 
++static int round_event_name_len(struct fsnotify_event *event)
++{
++	if (!event->name_len)
++		return 0;
++	return roundup(event->name_len + 1, sizeof(struct inotify_event));
++}
++
+ /*
+  * Get an inotify_kernel_event if one exists and is small
+  * enough to fit in "count". Return an error pointer if
+@@ -144,9 +151,7 @@ static struct fsnotify_event *get_one_ev
+ 
+ 	pr_debug("%s: group=%p event=%p\n", __func__, group, event);
+ 
+-	if (event->name_len)
+-		event_size += roundup(event->name_len + 1, event_size);
+-
++	event_size += round_event_name_len(event);
+ 	if (event_size > count)
+ 		return ERR_PTR(-EINVAL);
+ 
+@@ -171,7 +176,8 @@ static ssize_t copy_event_to_user(struct
+ 	struct fsnotify_event_private_data *fsn_priv;
+ 	struct inotify_event_private_data *priv;
+ 	size_t event_size = sizeof(struct inotify_event);
+-	size_t name_len = 0;
++	size_t name_len;
++	size_t pad_name_len;
+ 
+ 	pr_debug("%s: group=%p event=%p\n", __func__, group, event);
+ 
+@@ -189,14 +195,13 @@ static ssize_t copy_event_to_user(struct
+ 		inotify_free_event_priv(fsn_priv);
+ 	}
+ 
++	name_len = event->name_len;
+ 	/*
+-	 * round up event->name_len so it is a multiple of event_size
++	 * round up name length so it is a multiple of event_size
+ 	 * plus an extra byte for the terminating '\0'.
+ 	 */
+-	if (event->name_len)
+-		name_len = roundup(event->name_len + 1, event_size);
+-	inotify_event.len = name_len;
+-
++	pad_name_len = round_event_name_len(event);
++	inotify_event.len = pad_name_len;
+ 	inotify_event.mask = inotify_mask_to_arg(event->mask);
+ 	inotify_event.cookie = event->sync_cookie;
+ 
+@@ -209,20 +214,18 @@ static ssize_t copy_event_to_user(struct
+ 	/*
+ 	 * fsnotify only stores the pathname, so here we have to send the pathname
+ 	 * and then pad that pathname out to a multiple of sizeof(inotify_event)
+-	 * with zeros.  I get my zeros from the nul_inotify_event.
++	 * with zeros.
+ 	 */
+-	if (name_len) {
+-		unsigned int len_to_zero = name_len - event->name_len;
++	if (pad_name_len) {
+ 		/* copy the path name */
+-		if (copy_to_user(buf, event->file_name, event->name_len))
++		if (copy_to_user(buf, event->file_name, name_len))
+ 			return -EFAULT;
+-		buf += event->name_len;
++		buf += name_len;
+ 
+ 		/* fill userspace with 0's */
+-		if (clear_user(buf, len_to_zero))
++		if (clear_user(buf, pad_name_len - name_len))
+ 			return -EFAULT;
+-		buf += len_to_zero;
+-		event_size += name_len;
++		event_size += pad_name_len;
+ 	}
+ 
+ 	return event_size;
+@@ -314,9 +317,7 @@ static long inotify_ioctl(struct file *f
+ 		list_for_each_entry(holder, &group->notification_list, event_list) {
+ 			event = holder->event;
+ 			send_len += sizeof(struct inotify_event);
+-			if (event->name_len)
+-				send_len += roundup(event->name_len + 1,
+-						sizeof(struct inotify_event));
++			send_len += round_event_name_len(event);
+ 		}
+ 		mutex_unlock(&group->notification_mutex);
+ 		ret = put_user(send_len, (int __user *) p);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-memcg-do-not-declare-oom-from-__gfp_nofail-allocations.patch
-mm-memcg-fix-race-condition-between-memcg-teardown-and-swapin.patch
-mm-memcg-do-not-allow-task-about-to-oom-kill-to-bypass-the-limit.patch
-mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch
-mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch
-proc-meminfo-provide-estimated-available-memory.patch
-mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
-x86-get-pg_data_ts-memory-from-other-node.patch
-memblock-numa-introduce-flags-field-into-memblock.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
-memblock-make-memblock_set_node-support-different-memblock_type.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
-acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
-x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
-memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
-memcg-make-memcg_update_cache_sizes-static.patch
-mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
-mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
-mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
-mm-memblock-remove-unnecessary-inclusions-of-bootmemh.patch
-mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
-mm-memblock-reorder-parameters-of-memblock_find_in_range_node.patch
-mm-memblock-switch-to-use-numa_no_node-instead-of-max_numnodes.patch
-mm-memblock-add-memblock-memory-allocation-apis.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-mm-init-use-memblock-apis-for-early-memory-allocations.patch
-mm-printk-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
-mm-power-use-memblock-apis-for-early-memory-allocations.patch
-lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
-lib-cpumaskc-use-memblock-apis-for-early-memory-allocations.patch
-mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
-mm-hugetlb-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_cgroup-use-memblock-apis-for-early-memory-allocations.patch
-mm-percpu-use-memblock-apis-for-early-memory-allocations.patch
-mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
-drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+inotify-provide-function-for-name-length-rounding.patch
+fsnotify-do-not-share-events-between-notification-groups.patch
+fsnotify-remove-should_send_event-callback.patch
+fsnotify-remove-pointless-null-initializers.patch
+blk-mq-use-__smp_call_function_single-directly.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+kernel-use-lockless-list-for-smp_call_function_single.patch
+rbtree-test-move-rb_node-to-the-middle-of-the-test-struct.patch
+rbtree-test-test-rbtree_postorder_for_each_entry_safe.patch
+net-netfilter-ipset-ip_set_hash_netifacec-use-rbtree-postorder-iteration-instead-of-opencoding.patch
+fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+arch-sh-kernel-dwarfc-use-rbtree-postorder-iteration-helper-instead-of-solution-using-repeated-rb_erase.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
+mm-add-strictlimit-knob-v2.patch
 
