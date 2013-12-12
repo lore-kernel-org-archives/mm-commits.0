@@ -1,214 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-add-more-comment.patch removed from -mm tree
-Date: Thu, 12 Dec 2013 12:47:52 -0800
-Message-ID: <52aa20f8.0AWUHsjaguYI5o52%akpm@linux-foundation.org>
+Subject: [merged]
+ zsmalloc-add-kconfig-for-enabling-page-table-method.patch removed from -mm
+ tree
+Date: Thu, 12 Dec 2013 12:47:50 -0800
+Message-ID: <52aa20f6.oyMV4qEK1r26Cf3n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58032 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58016 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600Ab3LLUrx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Dec 2013 15:47:53 -0500
+	with ESMTP id S1751871Ab3LLUrv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Dec 2013 15:47:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, semenzato@google.com, riel@redhat.com, penberg@kernel.org, minchan@kernel.org, mgorman@suse.de, konrad.wilk@oracle.com, hughd@google.com, gregkh@linuxfoundation.org, bob.liu@oracle.com, axboe@kernel.dk, ngupta@vflare.org
+To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, semenzato@google.com, riel@redhat.com, penberg@kernel.org, ngupta@vflare.org, mgorman@suse.de, konrad.wilk@oracle.com, hughd@google.com, gregkh@linuxfoundation.org, bob.liu@oracle.com, axboe@kernel.dk, minchan@kernel.org
 
-Subject: [merged] zsmalloc-add-more-comment.patch removed from -mm tree
-To: ngupta@vflare.org,axboe@kernel.dk,bob.liu@oracle.com,gregkh@linuxfoundation.org,hughd@google.com,konrad.wilk@oracle.com,mgorman@suse.de,minchan@kernel.org,penberg@kernel.org,riel@redhat.com,semenzato@google.com,sjenning@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [merged] zsmalloc-add-kconfig-for-enabling-page-table-method.patch removed from -mm tree
+To: minchan@kernel.org,axboe@kernel.dk,bob.liu@oracle.com,gregkh@linuxfoundation.org,hughd@google.com,konrad.wilk@oracle.com,mgorman@suse.de,ngupta@vflare.org,penberg@kernel.org,riel@redhat.com,semenzato@google.com,sjenning@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Dec 2013 12:47:52 -0800
+Date: Thu, 12 Dec 2013 12:47:50 -0800
 
 
 The patch titled
-     Subject: zsmalloc: add more comment
+     Subject: zsmalloc: add Kconfig for enabling page table method
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-add-more-comment.patch
+     zsmalloc-add-kconfig-for-enabling-page-table-method.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nitin Cupta <ngupta@vflare.org>
-Subject: zsmalloc: add more comment
+From: Minchan Kim <minchan@kernel.org>
+Subject: zsmalloc: add Kconfig for enabling page table method
 
-This patch adds lots of comments and it will help others to review and
-enhance.
+Zsmalloc has two methods 1) copy-based and 2) pte based to access objects
+that span two pages.  You can see history why we supported two approach
+from [1].
 
-Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Signed-off-by: Nitin Gupta <ngupta@vflare.org>
+But it was bad choice that adding hard coding to select arch which want to
+use pte based method because there are lots of SoC in an architecure and
+they can have different cache size, CPU speed and so on so it would be
+better to expose it to user as selectable Kconfig option like Andrew
+Morton suggested.
+
+[1] https://lkml.org/lkml/2012/7/11/58
+
 Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Nitin Gupta <ngupta@vflare.org>
+Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Bob Liu <bob.liu@oracle.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Luigi Semenzato <semenzato@google.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/zsmalloc/zsmalloc-main.c |   66 +++++++++++++++++----
- drivers/staging/zsmalloc/zsmalloc.h      |    9 ++
- 2 files changed, 64 insertions(+), 11 deletions(-)
+ drivers/staging/zsmalloc/Kconfig         |   13 +++++++++++++
+ drivers/staging/zsmalloc/zsmalloc-main.c |   19 ++++---------------
+ 2 files changed, 17 insertions(+), 15 deletions(-)
 
-diff -puN drivers/staging/zsmalloc/zsmalloc-main.c~zsmalloc-add-more-comment drivers/staging/zsmalloc/zsmalloc-main.c
---- a/drivers/staging/zsmalloc/zsmalloc-main.c~zsmalloc-add-more-comment
+diff -puN drivers/staging/zsmalloc/Kconfig~zsmalloc-add-kconfig-for-enabling-page-table-method drivers/staging/zsmalloc/Kconfig
+--- a/drivers/staging/zsmalloc/Kconfig~zsmalloc-add-kconfig-for-enabling-page-table-method
++++ a/drivers/staging/zsmalloc/Kconfig
+@@ -9,3 +9,16 @@ config ZSMALLOC
+ 	  non-standard allocator interface where a handle, not a pointer, is
+ 	  returned by an alloc().  This handle must be mapped in order to
+ 	  access the allocated space.
++
++config PGTABLE_MAPPING
++	bool "Use page table mapping to access object in zsmalloc"
++	depends on ZSMALLOC
++	help
++	  By default, zsmalloc uses a copy-based object mapping method to
++	  access allocations that span two pages. However, if a particular
++	  architecture (ex, ARM) performs VM mapping faster than copying,
++	  then you should select this. This causes zsmalloc to use page table
++	  mapping rather than copying for object mapping.
++
++	  You can check speed with zsmalloc benchmark[1].
++	  [1] https://github.com/spartacus06/zsmalloc
+diff -puN drivers/staging/zsmalloc/zsmalloc-main.c~zsmalloc-add-kconfig-for-enabling-page-table-method drivers/staging/zsmalloc/zsmalloc-main.c
+--- a/drivers/staging/zsmalloc/zsmalloc-main.c~zsmalloc-add-kconfig-for-enabling-page-table-method
 +++ a/drivers/staging/zsmalloc/zsmalloc-main.c
-@@ -10,16 +10,14 @@
-  * Released under the terms of GNU General Public License Version 2.0
-  */
+@@ -218,19 +218,8 @@ struct zs_pool {
+ #define CLASS_IDX_MASK	((1 << CLASS_IDX_BITS) - 1)
+ #define FULLNESS_MASK	((1 << FULLNESS_BITS) - 1)
  
+-/*
+- * By default, zsmalloc uses a copy-based object mapping method to access
+- * allocations that span two pages. However, if a particular architecture
+- * performs VM mapping faster than copying, then it should be added here
+- * so that USE_PGTABLE_MAPPING is defined. This causes zsmalloc to use
+- * page table mapping rather than copying for object mapping.
+- */
+-#if defined(CONFIG_ARM) && !defined(MODULE)
+-#define USE_PGTABLE_MAPPING
+-#endif
 -
- /*
-- * This allocator is designed for use with zcache and zram. Thus, the
-- * allocator is supposed to work well under low memory conditions. In
-- * particular, it never attempts higher order page allocation which is
-- * very likely to fail under memory pressure. On the other hand, if we
-- * just use single (0-order) pages, it would suffer from very high
-- * fragmentation -- any object of size PAGE_SIZE/2 or larger would occupy
-- * an entire page. This was one of the major issues with its predecessor
-- * (xvmalloc).
-+ * This allocator is designed for use with zram. Thus, the allocator is
-+ * supposed to work well under low memory conditions. In particular, it
-+ * never attempts higher order page allocation which is very likely to
-+ * fail under memory pressure. On the other hand, if we just use single
-+ * (0-order) pages, it would suffer from very high fragmentation --
-+ * any object of size PAGE_SIZE/2 or larger would occupy an entire page.
-+ * This was one of the major issues with its predecessor (xvmalloc).
-  *
-  * To overcome these issues, zsmalloc allocates a bunch of 0-order pages
-  * and links them together using various 'struct page' fields. These linked
-@@ -27,6 +25,21 @@
-  * page boundaries. The code refers to these linked pages as a single entity
-  * called zspage.
-  *
-+ * For simplicity, zsmalloc can only allocate objects of size up to PAGE_SIZE
-+ * since this satisfies the requirements of all its current users (in the
-+ * worst case, page is incompressible and is thus stored "as-is" i.e. in
-+ * uncompressed form). For allocation requests larger than this size, failure
-+ * is returned (see zs_malloc).
-+ *
-+ * Additionally, zs_malloc() does not return a dereferenceable pointer.
-+ * Instead, it returns an opaque handle (unsigned long) which encodes actual
-+ * location of the allocated object. The reason for this indirection is that
-+ * zsmalloc does not keep zspages permanently mapped since that would cause
-+ * issues on 32-bit systems where the VA region for kernel space mappings
-+ * is very small. So, before using the allocating memory, the object has to
-+ * be mapped using zs_map_object() to get a usable pointer and subsequently
-+ * unmapped using zs_unmap_object().
-+ *
-  * Following is how we use various fields and flags of underlying
-  * struct page(s) to form a zspage.
-  *
-@@ -98,7 +111,7 @@
- 
- /*
-  * Object location (<PFN>, <obj_idx>) is encoded as
-- * as single (void *) handle value.
-+ * as single (unsigned long) handle value.
-  *
-  * Note that object index <obj_idx> is relative to system
-  * page <PFN> it is stored in, so for each sub-page belonging
-@@ -264,6 +277,13 @@ static void set_zspage_mapping(struct pa
- 	page->mapping = (struct address_space *)m;
+ struct mapping_area {
+-#ifdef USE_PGTABLE_MAPPING
++#ifdef CONFIG_PGTABLE_MAPPING
+ 	struct vm_struct *vm; /* vm area for mapping object that span pages */
+ #else
+ 	char *vm_buf; /* copy buffer for objects that span pages */
+@@ -631,7 +620,7 @@ static struct page *find_get_zspage(stru
+ 	return page;
  }
  
-+/*
-+ * zsmalloc divides the pool into various size classes where each
-+ * class maintains a list of zspages where each zspage is divided
-+ * into equal sized chunks. Each allocation falls into one of these
-+ * classes depending on its size. This function returns index of the
-+ * size class which has chunk size big enough to hold the give size.
-+ */
- static int get_size_class_index(int size)
+-#ifdef USE_PGTABLE_MAPPING
++#ifdef CONFIG_PGTABLE_MAPPING
+ static inline int __zs_cpu_up(struct mapping_area *area)
  {
- 	int idx = 0;
-@@ -275,6 +295,13 @@ static int get_size_class_index(int size
- 	return idx;
+ 	/*
+@@ -669,7 +658,7 @@ static inline void __zs_unmap_object(str
+ 	unmap_kernel_range(addr, PAGE_SIZE * 2);
  }
  
-+/*
-+ * For each size class, zspages are divided into different groups
-+ * depending on how "full" they are. This was done so that we could
-+ * easily find empty or nearly empty zspages when we try to shrink
-+ * the pool (not yet implemented). This function returns fullness
-+ * status of the given page.
-+ */
- static enum fullness_group get_fullness_group(struct page *page)
+-#else /* USE_PGTABLE_MAPPING */
++#else /* CONFIG_PGTABLE_MAPPING */
+ 
+ static inline int __zs_cpu_up(struct mapping_area *area)
  {
- 	int inuse, max_objects;
-@@ -296,6 +323,12 @@ static enum fullness_group get_fullness_
- 	return fg;
+@@ -747,7 +736,7 @@ out:
+ 	pagefault_enable();
  }
  
-+/*
-+ * Each size class maintains various freelists and zspages are assigned
-+ * to one of these freelists based on the number of live objects they
-+ * have. This functions inserts the given zspage into the freelist
-+ * identified by <class, fullness_group>.
-+ */
- static void insert_zspage(struct page *page, struct size_class *class,
- 				enum fullness_group fullness)
- {
-@@ -313,6 +346,10 @@ static void insert_zspage(struct page *p
- 	*head = page;
- }
+-#endif /* USE_PGTABLE_MAPPING */
++#endif /* CONFIG_PGTABLE_MAPPING */
  
-+/*
-+ * This function removes the given zspage from the freelist identified
-+ * by <class, fullness_group>.
-+ */
- static void remove_zspage(struct page *page, struct size_class *class,
- 				enum fullness_group fullness)
- {
-@@ -334,6 +371,15 @@ static void remove_zspage(struct page *p
- 	list_del_init(&page->lru);
- }
- 
-+/*
-+ * Each size class maintains zspages in different fullness groups depending
-+ * on the number of live objects they contain. When allocating or freeing
-+ * objects, the fullness status of the page can change, say, from ALMOST_FULL
-+ * to ALMOST_EMPTY when freeing an object. This function checks if such
-+ * a status change has occurred for the given page and accordingly moves the
-+ * page from the freelist of the old fullness group to that of the new
-+ * fullness group.
-+ */
- static enum fullness_group fix_fullness_group(struct zs_pool *pool,
- 						struct page *page)
- {
-diff -puN drivers/staging/zsmalloc/zsmalloc.h~zsmalloc-add-more-comment drivers/staging/zsmalloc/zsmalloc.h
---- a/drivers/staging/zsmalloc/zsmalloc.h~zsmalloc-add-more-comment
-+++ a/drivers/staging/zsmalloc/zsmalloc.h
-@@ -18,12 +18,19 @@
- /*
-  * zsmalloc mapping modes
-  *
-- * NOTE: These only make a difference when a mapped object spans pages
-+ * NOTE: These only make a difference when a mapped object spans pages.
-+ * They also have no effect when PGTABLE_MAPPING is selected.
-  */
- enum zs_mapmode {
- 	ZS_MM_RW, /* normal read-write mapping */
- 	ZS_MM_RO, /* read-only (no copy-out at unmap time) */
- 	ZS_MM_WO /* write-only (no copy-in at map time) */
-+	/*
-+	 * NOTE: ZS_MM_WO should only be used for initializing new
-+	 * (uninitialized) allocations.  Partial writes to already
-+	 * initialized allocations should use ZS_MM_RW to preserve the
-+	 * existing data.
-+	 */
- };
- 
- struct zs_pool;
+ static int zs_cpu_notifier(struct notifier_block *nb, unsigned long action,
+ 				void *pcpu)
 _
 
-Patches currently in -mm which might be from ngupta@vflare.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
+mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
+mm-thp-optimize-compound_trans_huge.patch
+mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
+mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+x86-get-pg_data_ts-memory-from-other-node.patch
+memblock-numa-introduce-flags-field-into-memblock.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+memblock-make-memblock_set_node-support-different-memblock_type.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
+x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
+swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 linux-next.patch
 zsmalloc-move-it-under-mm.patch
 zram-promote-zram-from-staging.patch
+debugging-keep-track-of-page-owners.patch
 
