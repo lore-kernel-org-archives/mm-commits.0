@@ -1,127 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-parport-parport_pcc-remove-double-pci-id-for-netmos.patch removed
- from -mm tree
-Date: Thu, 12 Dec 2013 12:47:48 -0800
-Message-ID: <52aa20f4.zpiNRueduiGbq0Yc%akpm@linux-foundation.org>
+Subject: [merged] zsmalloc-add-more-comment.patch removed from -mm tree
+Date: Thu, 12 Dec 2013 12:47:52 -0800
+Message-ID: <52aa20f8.0AWUHsjaguYI5o52%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58009 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58032 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600Ab3LLUrs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Dec 2013 15:47:48 -0500
+	with ESMTP id S1751600Ab3LLUrx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Dec 2013 15:47:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, maks@stro.at, bigeasy@linutronix.de
+To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, semenzato@google.com, riel@redhat.com, penberg@kernel.org, minchan@kernel.org, mgorman@suse.de, konrad.wilk@oracle.com, hughd@google.com, gregkh@linuxfoundation.org, bob.liu@oracle.com, axboe@kernel.dk, ngupta@vflare.org
 
-Subject: [merged] drivers-parport-parport_pcc-remove-double-pci-id-for-netmos.patch removed from -mm tree
-To: bigeasy@linutronix.de,maks@stro.at,mm-commits@vger.kernel.org
+Subject: [merged] zsmalloc-add-more-comment.patch removed from -mm tree
+To: ngupta@vflare.org,axboe@kernel.dk,bob.liu@oracle.com,gregkh@linuxfoundation.org,hughd@google.com,konrad.wilk@oracle.com,mgorman@suse.de,minchan@kernel.org,penberg@kernel.org,riel@redhat.com,semenzato@google.com,sjenning@linux.vnet.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Dec 2013 12:47:48 -0800
+Date: Thu, 12 Dec 2013 12:47:52 -0800
 
 
 The patch titled
-     Subject: drivers/parport/parport_pc.c: remove double PCI ID for NetMos
+     Subject: zsmalloc: add more comment
 has been removed from the -mm tree.  Its filename was
-     drivers-parport-parport_pcc-remove-double-pci-id-for-netmos.patch
+     zsmalloc-add-more-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: drivers/parport/parport_pc.c: remove double PCI ID for NetMos
+From: Nitin Cupta <ngupta@vflare.org>
+Subject: zsmalloc: add more comment
 
-In commit 85747f ("PATCH] parport: add NetMOS 9805 support") Max added the
-PCI ID for NetMOS 9805 based on a Debian bug report from 2k4 which was at
-the v2.4.26 time frame.  The patch made into 2.6.14.  Shortly before that
-patch akpm merged commit 296d3c783b ("[PATCH] Support NetMOS based PCI
-cards providing serial and parallel ports") which made into v2.6.9-rc1.
+This patch adds lots of comments and it will help others to review and
+enhance.
 
-Now we have two different entries for the same PCI id.  I have here the
-NetMos 9805 which claims to support SPP/EPP/ECP mode.  This patch takes
-Max's entry for titan_1284p1 (base != -1 specifies the ioport for ECP
-mode) and replaces akpm's entry for netmos_9805 which specified -1
-(=none).  Both share the same PCI-ID (my card has subsystem 0x1000 /
-0x0020 so it should match PCI_ANY).
-
-While here I also drop the entry for titan_1284p2 which is the same as
-netmos_9815.
-
-
-The only runtime visible change I notice is with KERN_DEBUG being visible.
- The card details are the same, it always prints
-
-|parport1: PC-style at 0xc120 (0xc128), irq 11, using FIFO
-[PCSPP,TRISTATE,COMPAT,ECP]
-
-However the ID that was used to detect the card is different:
-
-| PCI parallel port detected: 1415:c118, I/O at 0xc120(0xc128), IRQ 11
-
-vs
-
-| PCI parallel port detected: 9710:9805, I/O at 0xc120(0xc128), IRQ 11
-
-The wrong id print is printed for all devices which come after
-PCI_DEVICE_ID_OXSEMI_PCIe840_G in the id table because the code that
-prints the ID table assumes one id per entry.
-
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Maximilian Attems <maks@stro.at>
+Signed-off-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Signed-off-by: Nitin Gupta <ngupta@vflare.org>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Luigi Semenzato <semenzato@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/staging/zsmalloc/zsmalloc-main.c |   66 +++++++++++++++++----
+ drivers/staging/zsmalloc/zsmalloc.h      |    9 ++
+ 2 files changed, 64 insertions(+), 11 deletions(-)
 
-diff -puN drivers/parport/parport_pc.c~drivers-parport-parport_pcc-remove-double-pci-id-for-netmos drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~drivers-parport-parport_pcc-remove-double-pci-id-for-netmos
-+++ a/drivers/parport/parport_pc.c
-@@ -2600,8 +2600,6 @@ enum parport_pc_pci_cards {
- 	syba_2p_epp,
- 	syba_1p_ecp,
- 	titan_010l,
--	titan_1284p1,
--	titan_1284p2,
- 	avlab_1p,
- 	avlab_2p,
- 	oxsemi_952,
-@@ -2660,8 +2658,6 @@ static struct parport_pc_pci {
- 	/* syba_2p_epp AP138B */	{ 2, { { 0, 0x078 }, { 0, 0x178 }, } },
- 	/* syba_1p_ecp W83787 */	{ 1, { { 0, 0x078 }, } },
- 	/* titan_010l */		{ 1, { { 3, -1 }, } },
--	/* titan_1284p1 */              { 1, { { 0, 1 }, } },
--	/* titan_1284p2 */		{ 2, { { 0, 1 }, { 2, 3 }, } },
- 	/* avlab_1p		*/	{ 1, { { 0, 1}, } },
- 	/* avlab_2p		*/	{ 2, { { 0, 1}, { 2, 3 },} },
- 	/* The Oxford Semi cards are unusual: 954 doesn't support ECP,
-@@ -2677,8 +2673,8 @@ static struct parport_pc_pci {
- 	/* netmos_9705 */               { 1, { { 0, -1 }, } },
- 	/* netmos_9715 */               { 2, { { 0, 1 }, { 2, 3 },} },
- 	/* netmos_9755 */               { 2, { { 0, 1 }, { 2, 3 },} },
--	/* netmos_9805 */               { 1, { { 0, -1 }, } },
--	/* netmos_9815 */               { 2, { { 0, -1 }, { 2, -1 }, } },
-+	/* netmos_9805 */		{ 1, { { 0, 1 }, } },
-+	/* netmos_9815 */		{ 2, { { 0, 1 }, { 2, 3 }, } },
- 	/* netmos_9901 */               { 1, { { 0, -1 }, } },
- 	/* netmos_9865 */               { 1, { { 0, -1 }, } },
- 	/* quatech_sppxp100 */		{ 1, { { 0, 1 }, } },
-@@ -2722,8 +2718,6 @@ static const struct pci_device_id parpor
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, syba_1p_ecp },
- 	{ PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_010L,
- 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, titan_010l },
--	{ 0x9710, 0x9805, 0x1000, 0x0010, 0, 0, titan_1284p1 },
--	{ 0x9710, 0x9815, 0x1000, 0x0020, 0, 0, titan_1284p2 },
- 	/* PCI_VENDOR_ID_AVLAB/Intek21 has another bunch of cards ...*/
- 	/* AFAVLAB_TK9902 */
- 	{ 0x14db, 0x2120, PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1p},
+diff -puN drivers/staging/zsmalloc/zsmalloc-main.c~zsmalloc-add-more-comment drivers/staging/zsmalloc/zsmalloc-main.c
+--- a/drivers/staging/zsmalloc/zsmalloc-main.c~zsmalloc-add-more-comment
++++ a/drivers/staging/zsmalloc/zsmalloc-main.c
+@@ -10,16 +10,14 @@
+  * Released under the terms of GNU General Public License Version 2.0
+  */
+ 
+-
+ /*
+- * This allocator is designed for use with zcache and zram. Thus, the
+- * allocator is supposed to work well under low memory conditions. In
+- * particular, it never attempts higher order page allocation which is
+- * very likely to fail under memory pressure. On the other hand, if we
+- * just use single (0-order) pages, it would suffer from very high
+- * fragmentation -- any object of size PAGE_SIZE/2 or larger would occupy
+- * an entire page. This was one of the major issues with its predecessor
+- * (xvmalloc).
++ * This allocator is designed for use with zram. Thus, the allocator is
++ * supposed to work well under low memory conditions. In particular, it
++ * never attempts higher order page allocation which is very likely to
++ * fail under memory pressure. On the other hand, if we just use single
++ * (0-order) pages, it would suffer from very high fragmentation --
++ * any object of size PAGE_SIZE/2 or larger would occupy an entire page.
++ * This was one of the major issues with its predecessor (xvmalloc).
+  *
+  * To overcome these issues, zsmalloc allocates a bunch of 0-order pages
+  * and links them together using various 'struct page' fields. These linked
+@@ -27,6 +25,21 @@
+  * page boundaries. The code refers to these linked pages as a single entity
+  * called zspage.
+  *
++ * For simplicity, zsmalloc can only allocate objects of size up to PAGE_SIZE
++ * since this satisfies the requirements of all its current users (in the
++ * worst case, page is incompressible and is thus stored "as-is" i.e. in
++ * uncompressed form). For allocation requests larger than this size, failure
++ * is returned (see zs_malloc).
++ *
++ * Additionally, zs_malloc() does not return a dereferenceable pointer.
++ * Instead, it returns an opaque handle (unsigned long) which encodes actual
++ * location of the allocated object. The reason for this indirection is that
++ * zsmalloc does not keep zspages permanently mapped since that would cause
++ * issues on 32-bit systems where the VA region for kernel space mappings
++ * is very small. So, before using the allocating memory, the object has to
++ * be mapped using zs_map_object() to get a usable pointer and subsequently
++ * unmapped using zs_unmap_object().
++ *
+  * Following is how we use various fields and flags of underlying
+  * struct page(s) to form a zspage.
+  *
+@@ -98,7 +111,7 @@
+ 
+ /*
+  * Object location (<PFN>, <obj_idx>) is encoded as
+- * as single (void *) handle value.
++ * as single (unsigned long) handle value.
+  *
+  * Note that object index <obj_idx> is relative to system
+  * page <PFN> it is stored in, so for each sub-page belonging
+@@ -264,6 +277,13 @@ static void set_zspage_mapping(struct pa
+ 	page->mapping = (struct address_space *)m;
+ }
+ 
++/*
++ * zsmalloc divides the pool into various size classes where each
++ * class maintains a list of zspages where each zspage is divided
++ * into equal sized chunks. Each allocation falls into one of these
++ * classes depending on its size. This function returns index of the
++ * size class which has chunk size big enough to hold the give size.
++ */
+ static int get_size_class_index(int size)
+ {
+ 	int idx = 0;
+@@ -275,6 +295,13 @@ static int get_size_class_index(int size
+ 	return idx;
+ }
+ 
++/*
++ * For each size class, zspages are divided into different groups
++ * depending on how "full" they are. This was done so that we could
++ * easily find empty or nearly empty zspages when we try to shrink
++ * the pool (not yet implemented). This function returns fullness
++ * status of the given page.
++ */
+ static enum fullness_group get_fullness_group(struct page *page)
+ {
+ 	int inuse, max_objects;
+@@ -296,6 +323,12 @@ static enum fullness_group get_fullness_
+ 	return fg;
+ }
+ 
++/*
++ * Each size class maintains various freelists and zspages are assigned
++ * to one of these freelists based on the number of live objects they
++ * have. This functions inserts the given zspage into the freelist
++ * identified by <class, fullness_group>.
++ */
+ static void insert_zspage(struct page *page, struct size_class *class,
+ 				enum fullness_group fullness)
+ {
+@@ -313,6 +346,10 @@ static void insert_zspage(struct page *p
+ 	*head = page;
+ }
+ 
++/*
++ * This function removes the given zspage from the freelist identified
++ * by <class, fullness_group>.
++ */
+ static void remove_zspage(struct page *page, struct size_class *class,
+ 				enum fullness_group fullness)
+ {
+@@ -334,6 +371,15 @@ static void remove_zspage(struct page *p
+ 	list_del_init(&page->lru);
+ }
+ 
++/*
++ * Each size class maintains zspages in different fullness groups depending
++ * on the number of live objects they contain. When allocating or freeing
++ * objects, the fullness status of the page can change, say, from ALMOST_FULL
++ * to ALMOST_EMPTY when freeing an object. This function checks if such
++ * a status change has occurred for the given page and accordingly moves the
++ * page from the freelist of the old fullness group to that of the new
++ * fullness group.
++ */
+ static enum fullness_group fix_fullness_group(struct zs_pool *pool,
+ 						struct page *page)
+ {
+diff -puN drivers/staging/zsmalloc/zsmalloc.h~zsmalloc-add-more-comment drivers/staging/zsmalloc/zsmalloc.h
+--- a/drivers/staging/zsmalloc/zsmalloc.h~zsmalloc-add-more-comment
++++ a/drivers/staging/zsmalloc/zsmalloc.h
+@@ -18,12 +18,19 @@
+ /*
+  * zsmalloc mapping modes
+  *
+- * NOTE: These only make a difference when a mapped object spans pages
++ * NOTE: These only make a difference when a mapped object spans pages.
++ * They also have no effect when PGTABLE_MAPPING is selected.
+  */
+ enum zs_mapmode {
+ 	ZS_MM_RW, /* normal read-write mapping */
+ 	ZS_MM_RO, /* read-only (no copy-out at unmap time) */
+ 	ZS_MM_WO /* write-only (no copy-in at map time) */
++	/*
++	 * NOTE: ZS_MM_WO should only be used for initializing new
++	 * (uninitialized) allocations.  Partial writes to already
++	 * initialized allocations should use ZS_MM_RW to preserve the
++	 * existing data.
++	 */
+ };
+ 
+ struct zs_pool;
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from ngupta@vflare.org are
 
-origin.patch
 linux-next.patch
+zsmalloc-move-it-under-mm.patch
+zram-promote-zram-from-staging.patch
 
