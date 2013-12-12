@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix.patch added to -mm tree
-Date: Wed, 11 Dec 2013 16:20:43 -0800
-Message-ID: <52a9015b.gGO1krOOkNUdpBaN%akpm@linux-foundation.org>
+Subject: + sh-always-link-in-helper-functions-extracted-from-libgcc.patch
+ added to -mm tree
+Date: Wed, 11 Dec 2013 16:22:28 -0800
+Message-ID: <52a901c4.WLui5H/oLoBksMum%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50665 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751377Ab3LLAUo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Dec 2013 19:20:44 -0500
+	with ESMTP id S1751076Ab3LLAW3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Dec 2013 19:22:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgoyal@redhat.com, kumagai-atsushi@mxc.nes.nec.co.jp, ebiederm@xmission.com, d.hatayama@jp.fujitsu.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, nobuhiro.iwamatsu.yj@renesas.com, lethal@linux-sh.org, geert@linux-m68k.org
 
-Subject: + vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,d.hatayama@jp.fujitsu.com,ebiederm@xmission.com,kumagai-atsushi@mxc.nes.nec.co.jp,vgoyal@redhat.com
+Subject: + sh-always-link-in-helper-functions-extracted-from-libgcc.patch added to -mm tree
+To: geert@linux-m68k.org,lethal@linux-sh.org,nobuhiro.iwamatsu.yj@renesas.com
 From: akpm@linux-foundation.org
-Date: Wed, 11 Dec 2013 16:20:43 -0800
+Date: Wed, 11 Dec 2013 16:22:28 -0800
 
 
 The patch titled
-     Subject: vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix
+     Subject: sh: always link in helper functions extracted from libgcc
 has been added to the -mm tree.  Its filename is
-     vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix.patch
+     sh-always-link-in-helper-functions-extracted-from-libgcc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-always-link-in-helper-functions-extracted-from-libgcc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-always-link-in-helper-functions-extracted-from-libgcc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,71 +44,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: sh: always link in helper functions extracted from libgcc
 
-remove unneeded assignment of `paddr'
+E.g. landisk_defconfig, which has CONFIG_NTFS_FS=m:
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Atsushi Kumagai <kumagai-atsushi@mxc.nes.nec.co.jp>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+ERROR: "__ashrdi3" [fs/ntfs/ntfs.ko] undefined!
+
+For "lib-y", if no symbols in a compilation unit are referenced by other
+units, the compilation unit will not be included in vmlinux.
+This breaks modules that do reference those symbols.
+
+Use "obj-y" instead to fix this.
+
+http://kisskb.ellerman.id.au/kisskb/buildresult/8838077/
+
+This doesn't fix all cases. There are others, e.g. udivsi3.
+This is also not limited to sh, many architectures handle this in the same
+way.
+
+A simple solution is to unconditionally include all helper functions.
+A more complex solution is to make the choice of "lib-y" or "obj-y" depend
+on CONFIG_MODULES:
+  obj-$(CONFIG_MODULES) += ...
+  lib-y($CONFIG_MODULES) += ...
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Tested-by: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
+Reviewed-by: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    2 +-
+ arch/sh/lib/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix
-+++ a/fs/proc/vmcore.c
-@@ -401,7 +401,7 @@ static int mmap_vmcore(struct file *file
- 								kaddr, tsz))
- 					goto fail;
- 			} else {
--				u64 paddr = paddr = m->paddr+start-m->offset;
-+				u64 paddr = m->paddr + start - m->offset;
+diff -puN arch/sh/lib/Makefile~sh-always-link-in-helper-functions-extracted-from-libgcc arch/sh/lib/Makefile
+--- a/arch/sh/lib/Makefile~sh-always-link-in-helper-functions-extracted-from-libgcc
++++ a/arch/sh/lib/Makefile
+@@ -6,7 +6,7 @@ lib-y  = delay.o memmove.o memchr.o \
+ 	 checksum.o strlen.o div64.o div64-generic.o
  
- 				if (remap_oldmem_pfn_range(vma,
- 							   vma->vm_start + len,
+ # Extracted from libgcc
+-lib-y += movmem.o ashldi3.o ashrdi3.o lshrdi3.o \
++obj-y += movmem.o ashldi3.o ashrdi3.o lshrdi3.o \
+ 	 ashlsi3.o ashrsi3.o ashiftrt.o lshrsi3.o \
+ 	 udiv_qrnnd.o
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
-dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-sched-add-tracepoints-related-to-numa-task-migration-fix.patch
-mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+drivers-rtc-rtc-s5mc-fix-info-rtc-assignment.patch
+rtc-s5m-fix-unsuccesful-irq-request-during-probe.patch
+rtc-s5m-limit-endless-loop-waiting-for-register-update.patch
+rtc-s5m-enable-irq-wake-during-suspend.patch
+mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc.patch
+inith-add-missing-initcall-variants.patch
+futex-switch-to-user_ds-for-futex-test.patch
+sh-always-link-in-helper-functions-extracted-from-libgcc.patch
+drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
+asm-typesh-remove-include-asm-generic-int-l64h.patch
+maintainers-add-an-entry-for-the-macintosh-hfsplus-filesystem.patch
+init-mainc-remove-unused-declaration-of-tc_init.patch
+proc-cleanup-simplify-get_task_state-task_state_array.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
