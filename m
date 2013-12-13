@@ -1,165 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- zsmalloc-add-kconfig-for-enabling-page-table-method.patch removed from -mm
- tree
-Date: Thu, 12 Dec 2013 12:47:50 -0800
-Message-ID: <52aa20f6.oyMV4qEK1r26Cf3n%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch removed
+ from -mm tree
+Date: Thu, 12 Dec 2013 17:09:53 -0800
+Message-ID: <52aa5e61.1XJ8cpJc1SBFSb2l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58016 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60180 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871Ab3LLUrv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Dec 2013 15:47:51 -0500
+	with ESMTP id S1751056Ab3LMBJy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Dec 2013 20:09:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sjenning@linux.vnet.ibm.com, semenzato@google.com, riel@redhat.com, penberg@kernel.org, ngupta@vflare.org, mgorman@suse.de, konrad.wilk@oracle.com, hughd@google.com, gregkh@linuxfoundation.org, bob.liu@oracle.com, axboe@kernel.dk, minchan@kernel.org
+To: mm-commits@vger.kernel.org, jbeulich@suse.com, davem@davemloft.net, d.hatayama@jp.fujitsu.com, adobriyan@gmail.com, akpm@linux-foundation.org
 
-Subject: [merged] zsmalloc-add-kconfig-for-enabling-page-table-method.patch removed from -mm tree
-To: minchan@kernel.org,axboe@kernel.dk,bob.liu@oracle.com,gregkh@linuxfoundation.org,hughd@google.com,konrad.wilk@oracle.com,mgorman@suse.de,ngupta@vflare.org,penberg@kernel.org,riel@redhat.com,semenzato@google.com,sjenning@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,adobriyan@gmail.com,d.hatayama@jp.fujitsu.com,davem@davemloft.net,jbeulich@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 12 Dec 2013 12:47:50 -0800
+Date: Thu, 12 Dec 2013 17:09:53 -0800
 
 
 The patch titled
-     Subject: zsmalloc: add Kconfig for enabling page table method
+     Subject: procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-add-kconfig-for-enabling-page-table-method.patch
+     procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case.patch
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: add Kconfig for enabling page table method
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix
 
-Zsmalloc has two methods 1) copy-based and 2) pte based to access objects
-that span two pages.  You can see history why we supported two approach
-from [1].
-
-But it was bad choice that adding hard coding to select arch which want to
-use pte based method because there are lots of SoC in an architecure and
-they can have different cache size, CPU speed and so on so it would be
-better to expose it to user as selectable Kconfig option like Andrew
-Morton suggested.
-
-[1] https://lkml.org/lkml/2012/7/11/58
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Nitin Gupta <ngupta@vflare.org>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Luigi Semenzato <semenzato@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: Jan Beulich <jbeulich@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/zsmalloc/Kconfig         |   13 +++++++++++++
- drivers/staging/zsmalloc/zsmalloc-main.c |   19 ++++---------------
- 2 files changed, 17 insertions(+), 15 deletions(-)
+ fs/proc/inode.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/staging/zsmalloc/Kconfig~zsmalloc-add-kconfig-for-enabling-page-table-method drivers/staging/zsmalloc/Kconfig
---- a/drivers/staging/zsmalloc/Kconfig~zsmalloc-add-kconfig-for-enabling-page-table-method
-+++ a/drivers/staging/zsmalloc/Kconfig
-@@ -9,3 +9,16 @@ config ZSMALLOC
- 	  non-standard allocator interface where a handle, not a pointer, is
- 	  returned by an alloc().  This handle must be mapped in order to
- 	  access the allocated space.
+diff -puN fs/proc/inode.c~procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix fs/proc/inode.c
+--- a/fs/proc/inode.c~procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case-fix
++++ a/fs/proc/inode.c
+@@ -294,17 +294,18 @@ proc_reg_get_unmapped_area(struct file *
+ 	unsigned long rv = -EIO;
+ 
+ 	if (use_pde(pde)) {
+-		typeof(proc_reg_get_unmapped_area) *get_area
++		typeof(proc_reg_get_unmapped_area) *get_area;
 +
-+config PGTABLE_MAPPING
-+	bool "Use page table mapping to access object in zsmalloc"
-+	depends on ZSMALLOC
-+	help
-+	  By default, zsmalloc uses a copy-based object mapping method to
-+	  access allocations that span two pages. However, if a particular
-+	  architecture (ex, ARM) performs VM mapping faster than copying,
-+	  then you should select this. This causes zsmalloc to use page table
-+	  mapping rather than copying for object mapping.
-+
-+	  You can check speed with zsmalloc benchmark[1].
-+	  [1] https://github.com/spartacus06/zsmalloc
-diff -puN drivers/staging/zsmalloc/zsmalloc-main.c~zsmalloc-add-kconfig-for-enabling-page-table-method drivers/staging/zsmalloc/zsmalloc-main.c
---- a/drivers/staging/zsmalloc/zsmalloc-main.c~zsmalloc-add-kconfig-for-enabling-page-table-method
-+++ a/drivers/staging/zsmalloc/zsmalloc-main.c
-@@ -218,19 +218,8 @@ struct zs_pool {
- #define CLASS_IDX_MASK	((1 << CLASS_IDX_BITS) - 1)
- #define FULLNESS_MASK	((1 << FULLNESS_BITS) - 1)
++		get_area = pde->proc_fops->get_unmapped_area;
+ #ifdef CONFIG_MMU
+-			= pde->proc_fops->get_unmapped_area
+-			  ?: current->mm->get_unmapped_area;
+-#else
+-			= pde->proc_fops->get_unmapped_area;
++		if (!get_area)
++			get_area = current->mm->get_unmapped_area;
+ #endif
  
--/*
-- * By default, zsmalloc uses a copy-based object mapping method to access
-- * allocations that span two pages. However, if a particular architecture
-- * performs VM mapping faster than copying, then it should be added here
-- * so that USE_PGTABLE_MAPPING is defined. This causes zsmalloc to use
-- * page table mapping rather than copying for object mapping.
-- */
--#if defined(CONFIG_ARM) && !defined(MODULE)
--#define USE_PGTABLE_MAPPING
--#endif
--
- struct mapping_area {
--#ifdef USE_PGTABLE_MAPPING
-+#ifdef CONFIG_PGTABLE_MAPPING
- 	struct vm_struct *vm; /* vm area for mapping object that span pages */
- #else
- 	char *vm_buf; /* copy buffer for objects that span pages */
-@@ -631,7 +620,7 @@ static struct page *find_get_zspage(stru
- 	return page;
- }
- 
--#ifdef USE_PGTABLE_MAPPING
-+#ifdef CONFIG_PGTABLE_MAPPING
- static inline int __zs_cpu_up(struct mapping_area *area)
- {
- 	/*
-@@ -669,7 +658,7 @@ static inline void __zs_unmap_object(str
- 	unmap_kernel_range(addr, PAGE_SIZE * 2);
- }
- 
--#else /* USE_PGTABLE_MAPPING */
-+#else /* CONFIG_PGTABLE_MAPPING */
- 
- static inline int __zs_cpu_up(struct mapping_area *area)
- {
-@@ -747,7 +736,7 @@ out:
- 	pagefault_enable();
- }
- 
--#endif /* USE_PGTABLE_MAPPING */
-+#endif /* CONFIG_PGTABLE_MAPPING */
- 
- static int zs_cpu_notifier(struct notifier_block *nb, unsigned long action,
- 				void *pcpu)
+-		rv = get_area
+-		     ? get_area(file, orig_addr, len, pgoff, flags)
+-		     : orig_addr;
++		if (get_area)
++			rv = get_area(file, orig_addr, len, pgoff, flags);
++		else
++			rv = orig_addr;
+ 		unuse_pde(pde);
+ 	}
+ 	return rv;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
-mm-thp-optimize-compound_trans_huge.patch
-mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
-mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+procfs-also-fix-proc_reg_get_unmapped_area-for-mmu-case.patch
+dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+mtd-cmdlinepart-use-cmdline-partition-parser-lib-fix-fix.patch
+posix_acl-uninlining.patch
+mm.patch
 mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
 mm-swapc-reorganize-put_compound_page.patch
-mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
-x86-get-pg_data_ts-memory-from-other-node.patch
-memblock-numa-introduce-flags-field-into-memblock.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
-memblock-make-memblock_set_node-support-different-memblock_type.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
-acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
-x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
-swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
+mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+vmcore-copy-fractional-pages-into-buffers-in-the-kdump-2nd-kernel-fix.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
 linux-next.patch
-zsmalloc-move-it-under-mm.patch
-zram-promote-zram-from-staging.patch
+linux-next-git-rejects.patch
 debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
