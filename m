@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + fix-build-with-make-380.patch added to -mm tree
-Date: Mon, 16 Dec 2013 14:52:24 -0800
-Message-ID: <52af8428.Pc26eKEb3LSesT59%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-check-for-pte-null-pointer-in-__page_check_address.patch added
+ to -mm tree
+Date: Mon, 16 Dec 2013 15:01:50 -0800
+Message-ID: <52af865e.a9FfkYQAY2SR6O87%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46467 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46490 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942Ab3LPWwZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 17:52:25 -0500
+	with ESMTP id S1750935Ab3LPXBv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 18:01:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ppandit@redhat.com, jbeulich@suse.com, JBeulich@suse.com
+To: mm-commits@vger.kernel.org, qiuxishi@huawei.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, kirill.shutemov@linux.intel.com, guohanjun@huawei.com, wujianguo@huawei.com
 
-Subject: + fix-build-with-make-380.patch added to -mm tree
-To: JBeulich@suse.com,jbeulich@suse.com,ppandit@redhat.com
+Subject: + mm-hugetlb-check-for-pte-null-pointer-in-__page_check_address.patch added to -mm tree
+To: wujianguo@huawei.com,guohanjun@huawei.com,kirill.shutemov@linux.intel.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,qiuxishi@huawei.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 14:52:24 -0800
+Date: Mon, 16 Dec 2013 15:01:50 -0800
 
 
 The patch titled
-     Subject: fix build with make 3.80
+     Subject: mm/hugetlb: check for pte NULL pointer in __page_check_address()
 has been added to the -mm tree.  Its filename is
-     fix-build-with-make-380.patch
+     mm-hugetlb-check-for-pte-null-pointer-in-__page_check_address.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-build-with-make-380.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-check-for-pte-null-pointer-in-__page_check_address.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-build-with-make-380.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-check-for-pte-null-pointer-in-__page_check_address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,60 +45,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: fix build with make 3.80
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/hugetlb: check for pte NULL pointer in __page_check_address()
 
-According to Documentation/Changes, make 3.80 is still being supported for
-building the kernel, hence make files must not make (unconditional) use of
-features introduced only in newer versions.  Commit 1bf49dd4 ("./Makefile:
-export initial ramdisk compression config option") however introduced
-"else ifeq" constructs which make 3.80 doesn't understand.  Replace the
-logic there with more conventional (in the kernel build infrastructure)
-list constructs (except that the list here is intentionally limited to
-exactly one element).
+In __page_check_address(), if address's pud is not present,
+huge_pte_offset() will return NULL, we should check the return value.
 
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
-Cc: P J P <ppandit@redhat.com>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: qiuxishi <qiuxishi@huawei.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |   20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+ mm/rmap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN Makefile~fix-build-with-make-380 Makefile
---- a/Makefile~fix-build-with-make-380
-+++ a/Makefile
-@@ -732,19 +732,13 @@ export mod_strip_cmd
- # Select initial ramdisk compression format, default is gzip(1).
- # This shall be used by the dracut(8) tool while creating an initramfs image.
- #
--INITRD_COMPRESS=gzip
--ifeq ($(CONFIG_RD_BZIP2), y)
--        INITRD_COMPRESS=bzip2
--else ifeq ($(CONFIG_RD_LZMA), y)
--        INITRD_COMPRESS=lzma
--else ifeq ($(CONFIG_RD_XZ), y)
--        INITRD_COMPRESS=xz
--else ifeq ($(CONFIG_RD_LZO), y)
--        INITRD_COMPRESS=lzo
--else ifeq ($(CONFIG_RD_LZ4), y)
--        INITRD_COMPRESS=lz4
--endif
--export INITRD_COMPRESS
-+INITRD_COMPRESS-y                  := gzip
-+INITRD_COMPRESS-$(CONFIG_RD_BZIP2) := bzip2
-+INITRD_COMPRESS-$(CONFIG_RD_LZMA)  := lzma
-+INITRD_COMPRESS-$(CONFIG_RD_XZ)    := xz
-+INITRD_COMPRESS-$(CONFIG_RD_LZO)   := lzo
-+INITRD_COMPRESS-$(CONFIG_RD_LZ4)   := lz4
-+export INITRD_COMPRESS := $(INITRD_COMPRESS-y)
+diff -puN mm/rmap.c~mm-hugetlb-check-for-pte-null-pointer-in-__page_check_address mm/rmap.c
+--- a/mm/rmap.c~mm-hugetlb-check-for-pte-null-pointer-in-__page_check_address
++++ a/mm/rmap.c
+@@ -600,7 +600,11 @@ pte_t *__page_check_address(struct page
+ 	spinlock_t *ptl;
  
- ifdef CONFIG_MODULE_SIG_ALL
- MODSECKEY = ./signing_key.priv
+ 	if (unlikely(PageHuge(page))) {
++		/* when pud is not present, pte will be NULL */
+ 		pte = huge_pte_offset(mm, address);
++		if (!pte)
++			return NULL;
++
+ 		ptl = huge_pte_lockptr(page_hstate(page), mm, pte);
+ 		goto check;
+ 	}
 _
 
-Patches currently in -mm which might be from JBeulich@suse.com are
+Patches currently in -mm which might be from wujianguo@huawei.com are
 
-fix-build-with-make-380.patch
-lib-decompress_unlz4c-always-set-an-error-return-code-on-failures.patch
+mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch
+mm-hugetlb-check-for-pte-null-pointer-in-__page_check_address.patch
 
