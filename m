@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + arm-use-generic-fixmaph.patch added to -mm tree
-Date: Mon, 16 Dec 2013 11:55:55 -0800
-Message-ID: <52af5acb.hc0bj709ZkcicsZx%akpm@linux-foundation.org>
+Subject: + um-use-generic-fixmaph.patch added to -mm tree
+Date: Mon, 16 Dec 2013 11:55:56 -0800
+Message-ID: <52af5acc.slj1XEGKi1C0eoXQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45401 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45435 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752149Ab3LPTz4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:56 -0500
+	with ESMTP id S1752232Ab3LPTz7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux@arm.linux.org.uk, msalter@redhat.com
+To: mm-commits@vger.kernel.org, richard@nod.at, jdike@addtoit.com, msalter@redhat.com
 
-Subject: + arm-use-generic-fixmaph.patch added to -mm tree
-To: msalter@redhat.com,linux@arm.linux.org.uk
+Subject: + um-use-generic-fixmaph.patch added to -mm tree
+To: msalter@redhat.com,jdike@addtoit.com,richard@nod.at
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 11:55:55 -0800
+Date: Mon, 16 Dec 2013 11:55:56 -0800
 
 
 The patch titled
-     Subject: arm: use generic fixmap.h
+     Subject: um: use generic fixmap.h
 has been added to the -mm tree.  Its filename is
-     arm-use-generic-fixmaph.patch
+     um-use-generic-fixmaph.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-use-generic-fixmaph.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/um-use-generic-fixmaph.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-use-generic-fixmaph.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/um-use-generic-fixmaph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,77 +44,73 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mark Salter <msalter@redhat.com>
-Subject: arm: use generic fixmap.h
-
-ARM is different from other architectures in that fixmap pages are indexed
-with a positive offset from FIXADDR_START.  Other architectures index with
-a negative offset from FIXADDR_TOP.  In order to use the generic fixmap.h
-definitions, this patch redefines FIXADDR_TOP to be inclusive of the
-useable range.  That is, FIXADDR_TOP is the virtual address of the topmost
-fixed page.  The newly defined FIXADDR_END is the first virtual address
-past the fixed mappings.
+Subject: um: use generic fixmap.h
 
 Signed-off-by: Mark Salter <msalter@redhat.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Acked-by: Richard Weinberger <richard@nod.at>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/fixmap.h |   29 ++++++++---------------------
- arch/arm/mm/init.c            |    2 +-
- 2 files changed, 9 insertions(+), 22 deletions(-)
+ arch/um/include/asm/fixmap.h |   40 ---------------------------------
+ 1 file changed, 1 insertion(+), 39 deletions(-)
 
-diff -puN arch/arm/include/asm/fixmap.h~arm-use-generic-fixmaph arch/arm/include/asm/fixmap.h
---- a/arch/arm/include/asm/fixmap.h~arm-use-generic-fixmaph
-+++ a/arch/arm/include/asm/fixmap.h
-@@ -14,28 +14,15 @@
-  */
+diff -puN arch/um/include/asm/fixmap.h~um-use-generic-fixmaph arch/um/include/asm/fixmap.h
+--- a/arch/um/include/asm/fixmap.h~um-use-generic-fixmaph
++++ a/arch/um/include/asm/fixmap.h
+@@ -43,13 +43,6 @@ enum fixed_addresses {
+ extern void __set_fixmap (enum fixed_addresses idx,
+ 			  unsigned long phys, pgprot_t flags);
  
- #define FIXADDR_START		0xfff00000UL
--#define FIXADDR_TOP		0xfffe0000UL
--#define FIXADDR_SIZE		(FIXADDR_TOP - FIXADDR_START)
-+#define FIXADDR_END		0xfffe0000UL
-+#define FIXADDR_TOP		(FIXADDR_END - PAGE_SIZE)
+-#define set_fixmap(idx, phys) \
+-		__set_fixmap(idx, phys, PAGE_KERNEL)
+-/*
+- * Some hardware wants to get fixmapped without caching.
+- */
+-#define set_fixmap_nocache(idx, phys) \
+-		__set_fixmap(idx, phys, PAGE_KERNEL_NOCACHE)
+ /*
+  * used by vmalloc.c.
+  *
+@@ -62,37 +55,6 @@ extern void __set_fixmap (enum fixed_add
+ #define FIXADDR_SIZE	(__end_of_fixed_addresses << PAGE_SHIFT)
+ #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)
  
--#define FIX_KMAP_BEGIN		0
--#define FIX_KMAP_END		(FIXADDR_SIZE >> PAGE_SHIFT)
-+enum fixed_addresses {
-+	FIX_KMAP_BEGIN,
-+	FIX_KMAP_END = (FIXADDR_TOP - FIXADDR_START) >> PAGE_SHIFT,
-+	__end_of_fixed_addresses
-+};
- 
--#define __fix_to_virt(x)	(FIXADDR_START + ((x) << PAGE_SHIFT))
--#define __virt_to_fix(x)	(((x) - FIXADDR_START) >> PAGE_SHIFT)
+-#define __fix_to_virt(x)	(FIXADDR_TOP - ((x) << PAGE_SHIFT))
+-#define __virt_to_fix(x)      ((FIXADDR_TOP - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
 -
 -extern void __this_fixmap_does_not_exist(void);
 -
+-/*
+- * 'index to address' translation. If anyone tries to use the idx
+- * directly without tranlation, we catch the bug with a NULL-deference
+- * kernel oops. Illegal ranges of incoming indices are caught too.
+- */
 -static inline unsigned long fix_to_virt(const unsigned int idx)
 -{
--	if (idx >= FIX_KMAP_END)
+-	/*
+-	 * this branch gets completely eliminated after inlining,
+-	 * except when someone tries to use fixaddr indices in an
+-	 * illegal way. (such as mixing up address types or using
+-	 * out-of-range indices).
+-	 *
+-	 * If it doesn't get removed, the linker will complain
+-	 * loudly with a reasonably clear error message..
+-	 */
+-	if (idx >= __end_of_fixed_addresses)
 -		__this_fixmap_does_not_exist();
--	return __fix_to_virt(idx);
+-
+-        return __fix_to_virt(idx);
 -}
 -
--static inline unsigned int virt_to_fix(const unsigned long vaddr)
+-static inline unsigned long virt_to_fix(const unsigned long vaddr)
 -{
--	BUG_ON(vaddr >= FIXADDR_TOP || vaddr < FIXADDR_START);
--	return __virt_to_fix(vaddr);
+-      BUG_ON(vaddr >= FIXADDR_TOP || vaddr < FIXADDR_START);
+-      return __virt_to_fix(vaddr);
 -}
 +#include <asm-generic/fixmap.h>
  
  #endif
-diff -puN arch/arm/mm/init.c~arm-use-generic-fixmaph arch/arm/mm/init.c
---- a/arch/arm/mm/init.c~arm-use-generic-fixmaph
-+++ a/arch/arm/mm/init.c
-@@ -631,7 +631,7 @@ void __init mem_init(void)
- 			MLK(DTCM_OFFSET, (unsigned long) dtcm_end),
- 			MLK(ITCM_OFFSET, (unsigned long) itcm_end),
- #endif
--			MLK(FIXADDR_START, FIXADDR_TOP),
-+			MLK(FIXADDR_START, FIXADDR_END),
- 			MLM(VMALLOC_START, VMALLOC_END),
- 			MLM(PAGE_OFFSET, (unsigned long)high_memory),
- #ifdef CONFIG_HIGHMEM
 _
 
 Patches currently in -mm which might be from msalter@redhat.com are
