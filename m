@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch added to -mm tree
-Date: Mon, 16 Dec 2013 11:55:53 -0800
-Message-ID: <52af5ac9.4vTDR6fRSqUcKndG%akpm@linux-foundation.org>
+Subject: + mm-migrate-remove-unused-function-fail_migrate_page.patch added to -mm tree
+Date: Mon, 16 Dec 2013 11:55:54 -0800
+Message-ID: <52af5aca.F9l7CNKe2HMDHpv+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45329 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45327 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752113Ab3LPTzy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:54 -0500
+	with ESMTP id S1752115Ab3LPTzz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
 
-Subject: + mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch added to -mm tree
+Subject: + mm-migrate-remove-unused-function-fail_migrate_page.patch added to -mm tree
 To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 11:55:53 -0800
+Date: Mon, 16 Dec 2013 11:55:54 -0800
 
 
 The patch titled
-     Subject: mm/migrate: remove putback_lru_pages, fix comment on putback_movable_pages
+     Subject: mm/migrate: remove unused function, fail_migrate_page()
 has been added to the -mm tree.  Its filename is
-     mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
+     mm-migrate-remove-unused-function-fail_migrate_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-remove-unused-function-fail_migrate_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-remove-unused-function-fail_migrate_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,120 +44,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/migrate: remove putback_lru_pages, fix comment on putback_movable_pages
+Subject: mm/migrate: remove unused function, fail_migrate_page()
 
-Some part of putback_lru_pages() and putback_movable_pages() is
-duplicated, so it could confuse us what we should use.  We can remove
-putback_lru_pages() since it is not really needed now.  This makes us
-undestand and maintain the code more easily.
-
-And comment on putback_movable_pages() is stale now, so fix it.
+fail_migrate_page() isn't used anywhere, so remove it.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Rafael Aquini <aquini@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    2 --
- mm/memory-failure.c     |    8 +++++++-
- mm/migrate.c            |   29 +++++++++--------------------
- 3 files changed, 16 insertions(+), 23 deletions(-)
+ include/linux/migrate.h |    4 ----
+ mm/migrate.c            |    8 --------
+ 2 files changed, 12 deletions(-)
 
-diff -puN include/linux/migrate.h~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages include/linux/migrate.h
---- a/include/linux/migrate.h~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages
+diff -puN include/linux/migrate.h~mm-migrate-remove-unused-function-fail_migrate_page include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migrate-remove-unused-function-fail_migrate_page
 +++ a/include/linux/migrate.h
-@@ -35,7 +35,6 @@ enum migrate_reason {
+@@ -41,9 +41,6 @@ extern int migrate_page(struct address_s
+ extern int migrate_pages(struct list_head *l, new_page_t x,
+ 		unsigned long private, enum migrate_mode mode, int reason);
  
- #ifdef CONFIG_MIGRATION
+-extern int fail_migrate_page(struct address_space *,
+-			struct page *, struct page *);
+-
+ extern int migrate_prep(void);
+ extern int migrate_prep_local(void);
+ extern int migrate_vmas(struct mm_struct *mm,
+@@ -83,7 +80,6 @@ static inline int migrate_huge_page_move
  
--extern void putback_lru_pages(struct list_head *l);
- extern void putback_movable_pages(struct list_head *l);
- extern int migrate_page(struct address_space *,
- 			struct page *, struct page *, enum migrate_mode);
-@@ -58,7 +57,6 @@ extern int migrate_page_move_mapping(str
- 		struct buffer_head *head, enum migrate_mode mode);
- #else
+ /* Possible settings for the migrate_page() method in address_operations */
+ #define migrate_page NULL
+-#define fail_migrate_page NULL
  
--static inline void putback_lru_pages(struct list_head *l) {}
- static inline void putback_movable_pages(struct list_head *l) {}
- static inline int migrate_pages(struct list_head *l, new_page_t x,
- 		unsigned long private, enum migrate_mode mode, int reason)
-diff -puN mm/memory-failure.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages mm/memory-failure.c
---- a/mm/memory-failure.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages
-+++ a/mm/memory-failure.c
-@@ -1575,7 +1575,13 @@ static int __soft_offline_page(struct pa
- 		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL,
- 					MIGRATE_SYNC, MR_MEMORY_FAILURE);
- 		if (ret) {
--			putback_lru_pages(&pagelist);
-+			if (!list_empty(&pagelist)) {
-+				list_del(&page->lru);
-+				dec_zone_page_state(page, NR_ISOLATED_ANON +
-+						page_is_file_cache(page));
-+				putback_lru_page(page);
-+			}
-+
- 			pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
- 				pfn, ret, page->flags);
- 			if (ret > 0)
-diff -puN mm/migrate.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages mm/migrate.c
---- a/mm/migrate.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages
+ #endif /* CONFIG_MIGRATION */
+ 
+diff -puN mm/migrate.c~mm-migrate-remove-unused-function-fail_migrate_page mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-remove-unused-function-fail_migrate_page
 +++ a/mm/migrate.c
-@@ -72,28 +72,12 @@ int migrate_prep_local(void)
- }
+@@ -551,14 +551,6 @@ void migrate_page_copy(struct page *newp
+  *                    Migration functions
+  ***********************************************************/
  
- /*
-- * Add isolated pages on the list back to the LRU under page lock
-- * to avoid leaking evictable pages back onto unevictable list.
-- */
--void putback_lru_pages(struct list_head *l)
+-/* Always fail migration. Used for mappings that are not movable */
+-int fail_migrate_page(struct address_space *mapping,
+-			struct page *newpage, struct page *page)
 -{
--	struct page *page;
--	struct page *page2;
--
--	list_for_each_entry_safe(page, page2, l, lru) {
--		list_del(&page->lru);
--		dec_zone_page_state(page, NR_ISOLATED_ANON +
--				page_is_file_cache(page));
--			putback_lru_page(page);
--	}
+-	return -EIO;
 -}
+-EXPORT_SYMBOL(fail_migrate_page);
 -
--/*
-  * Put previously isolated pages back onto the appropriate lists
-  * from where they were once taken off for compaction/migration.
-  *
-- * This function shall be used instead of putback_lru_pages(),
-- * whenever the isolated pageset has been built by isolate_migratepages_range()
-+ * This function shall be used whenever the isolated pageset has been
-+ * built from lru, balloon, hugetlbfs page. See isolate_migratepages_range()
-+ * and isolate_huge_page().
-  */
- void putback_movable_pages(struct list_head *l)
- {
-@@ -1724,7 +1708,12 @@ int migrate_misplaced_page(struct page *
- 	nr_remaining = migrate_pages(&migratepages, alloc_misplaced_dst_page,
- 				     node, MIGRATE_ASYNC, MR_NUMA_MISPLACED);
- 	if (nr_remaining) {
--		putback_lru_pages(&migratepages);
-+		if (!list_empty(&migratepages)) {
-+			list_del(&page->lru);
-+			dec_zone_page_state(page, NR_ISOLATED_ANON +
-+					page_is_file_cache(page));
-+			putback_lru_page(page);
-+		}
- 		isolated = 0;
- 	} else
- 		count_vm_numa_event(NUMA_PAGE_MIGRATE);
+ /*
+  * Common logic to directly migrate a single page suitable for
+  * pages that do not use PagePrivate/PagePrivate2.
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
