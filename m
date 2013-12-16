@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
- added to -mm tree
-Date: Mon, 16 Dec 2013 11:55:53 -0800
-Message-ID: <52af5ac9.ESS6lTxHDAXKfrQR%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-sparse-non-static-symbol-warning.patch added to -mm
+ tree
+Date: Mon, 16 Dec 2013 11:55:52 -0800
+Message-ID: <52af5ac8.ueswwbk0iYA3KW5k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45348 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095Ab3LPTzy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:54 -0500
+	with ESMTP id S1752079Ab3LPTzx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, yongjun_wei@trendmicro.com.cn
 
-Subject: + mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch added to -mm tree
-To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com
+Subject: + ocfs2-fix-sparse-non-static-symbol-warning.patch added to -mm tree
+To: yongjun_wei@trendmicro.com.cn,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 11:55:53 -0800
+Date: Mon, 16 Dec 2013 11:55:52 -0800
 
 
 The patch titled
-     Subject: mm/migrate: correct failure handling if !hugepage_migration_support()
+     Subject: ocfs2: fix sparse non static symbol warning
 has been added to the -mm tree.  Its filename is
-     mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+     ocfs2-fix-sparse-non-static-symbol-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-sparse-non-static-symbol-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-sparse-non-static-symbol-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,83 +44,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/migrate: correct failure handling if !hugepage_migration_support()
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Subject: ocfs2: fix sparse non static symbol warning
 
-We should remove the page from the list if we fail with ENOSYS, since
-migrate_pages() consider error cases except -ENOMEM and -EAGAIN as
-permanent failure and it assumes that the page would be removed from the
-list.  Without this patch, we could overcount number of failure.
+Fixes the following sparse warning:
 
-In addition, we should put back the new hugepage if
-!hugepage_migration_support().  If not, we would leak hugepage memory.
+fs/ocfs2/stack_user.c:930:32: warning:
+ symbol 'ocfs2_ls_ops' was not declared. Should it be static?
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/ocfs2/stack_user.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-migrate-correct-failure-handling-if-hugepage_migration_support mm/migrate.c
---- a/mm/migrate.c~mm-migrate-correct-failure-handling-if-hugepage_migration_support
-+++ a/mm/migrate.c
-@@ -1012,7 +1012,7 @@ static int unmap_and_move_huge_page(new_
- {
- 	int rc = 0;
- 	int *result = NULL;
--	struct page *new_hpage = get_new_page(hpage, private, &result);
-+	struct page *new_hpage;
- 	struct anon_vma *anon_vma = NULL;
+diff -puN fs/ocfs2/stack_user.c~ocfs2-fix-sparse-non-static-symbol-warning fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~ocfs2-fix-sparse-non-static-symbol-warning
++++ a/fs/ocfs2/stack_user.c
+@@ -983,7 +983,7 @@ static void user_recover_done(void *arg,
+ 	wake_up(&lc->oc_wait);
+ }
  
- 	/*
-@@ -1022,9 +1022,12 @@ static int unmap_and_move_huge_page(new_
- 	 * tables or check whether the hugepage is pmd-based or not before
- 	 * kicking migration.
- 	 */
--	if (!hugepage_migration_support(page_hstate(hpage)))
-+	if (!hugepage_migration_support(page_hstate(hpage))) {
-+		putback_active_hugepage(hpage);
- 		return -ENOSYS;
-+	}
- 
-+	new_hpage = get_new_page(hpage, private, &result);
- 	if (!new_hpage)
- 		return -ENOMEM;
- 
+-const struct dlm_lockspace_ops ocfs2_ls_ops = {
++static const struct dlm_lockspace_ops ocfs2_ls_ops = {
+ 	.recover_prep = user_recover_prep,
+ 	.recover_slot = user_recover_slot,
+ 	.recover_done = user_recover_done,
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
 
-mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
-mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
-mm-rmap-recompute-pgoff-for-huge-page.patch
-mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
-mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
-mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
-mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
-mm-rmap-use-rmap_walk-in-try_to_unmap.patch
-mm-rmap-use-rmap_walk-in-try_to_munlock.patch
-mm-rmap-use-rmap_walk-in-page_referenced.patch
-mm-rmap-use-rmap_walk-in-page_mkclean.patch
-mm-compaction-trace-compaction-begin-and-end.patch
-mm-compaction-encapsulate-defer-reset-logic.patch
-mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
-mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
-mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
-mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
-mm-migrate-add-comment-about-permanent-failure-path.patch
-mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
-mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
-mm-migrate-remove-unused-function-fail_migrate_page.patch
+origin.patch
+ocfs2-fix-sparse-non-static-symbol-warning.patch
+linux-next.patch
 
