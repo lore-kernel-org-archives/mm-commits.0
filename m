@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + keys-fix-uninitialized-persistent_keyring_register_sem.patch
- added to -mm tree
-Date: Mon, 16 Dec 2013 11:55:50 -0800
-Message-ID: <52af5ac6.baMI8IHjShdZKOEa%akpm@linux-foundation.org>
+Subject: +
+ mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch added to -mm tree
+Date: Mon, 16 Dec 2013 11:55:51 -0800
+Message-ID: <52af5ac7.DH/5XTIZZybRH3Xs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45297 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45311 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751941Ab3LPTzw (ORCPT
+	with ESMTP id S1751992Ab3LPTzw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jwboyer@fedoraproject.org, dhowells@redhat.com, xiaoguangrong@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, wujianguo@huawei.com
 
-Subject: + keys-fix-uninitialized-persistent_keyring_register_sem.patch added to -mm tree
-To: xiaoguangrong@linux.vnet.ibm.com,dhowells@redhat.com,jwboyer@fedoraproject.org
+Subject: + mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch added to -mm tree
+To: wujianguo@huawei.com,n-horiguchi@ah.jp.nec.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 11:55:50 -0800
+Date: Mon, 16 Dec 2013 11:55:51 -0800
 
 
 The patch titled
-     Subject: KEYS: fix uninitialized persistent_keyring_register_sem
+     Subject: mm/memory-failure.c: recheck PageHuge() after hugetlb page migrate successfully
 has been added to the -mm tree.  Its filename is
-     keys-fix-uninitialized-persistent_keyring_register_sem.patch
+     mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/keys-fix-uninitialized-persistent_keyring_register_sem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/keys-fix-uninitialized-persistent_keyring_register_sem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,82 +44,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: KEYS: fix uninitialized persistent_keyring_register_sem
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/memory-failure.c: recheck PageHuge() after hugetlb page migrate successfully
 
-We run into this bug:
-[ 2736.063245] Unable to handle kernel paging request for data at address 0x00000000
-[ 2736.063293] Faulting instruction address: 0xc00000000037efb0
-[ 2736.063300] Oops: Kernel access of bad area, sig: 11 [#1]
-[ 2736.063303] SMP NR_CPUS=2048 NUMA pSeries
-[ 2736.063310] Modules linked in: sg nfsv3 rpcsec_gss_krb5 nfsv4 dns_resolver nfs fscache nf_conntrack_netbios_ns nf_conntrack_broadcast ipt_MASQUERADE ip6table_mangle ip6table_security ip6table_raw ip6t_REJECT iptable_nat nf_nat_ipv4 iptable_mangle iptable_security iptable_raw ipt_REJECT nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack ebtable_filter ebtables ip6table_filter iptable_filter ip_tables ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 nf_nat nf_conntrack ip6_tables ibmveth pseries_rng nx_crypto nfsd auth_rpcgss nfs_acl lockd sunrpc binfmt_misc xfs libcrc32c dm_service_time sd_mod crc_t10dif crct10dif_common ibmvfc scsi_transport_fc scsi_tgt dm_mirror dm_region_hash dm_log dm_multipath dm_mod
-[ 2736.063383] CPU: 1 PID: 7128 Comm: ssh Not tainted 3.10.0-48.el7.ppc64 #1
-[ 2736.063389] task: c000000131930120 ti: c0000001319a0000 task.ti: c0000001319a0000
-[ 2736.063394] NIP: c00000000037efb0 LR: c0000000006c40f8 CTR: 0000000000000000
-[ 2736.063399] REGS: c0000001319a3870 TRAP: 0300   Not tainted  (3.10.0-48.el7.ppc64)
-[ 2736.063403] MSR: 8000000000009032 <SF,EE,ME,IR,DR,RI>  CR: 28824242  XER: 20000000
-[ 2736.063415] SOFTE: 0
-[ 2736.063418] CFAR: c00000000000908c
-[ 2736.063421] DAR: 0000000000000000, DSISR: 40000000
-[ 2736.063425]
-GPR00: c0000000006c40f8 c0000001319a3af0 c000000001074788 c0000001319a3bf0
-GPR04: 0000000000000000 0000000000000000 0000000000000020 000000000000000a
-GPR08: fffffffe00000002 00000000ffff0000 0000000080000001 c000000000924888
-GPR12: 0000000028824248 c000000007e00400 00001fffffa0f998 0000000000000000
-GPR16: 0000000000000022 00001fffffa0f998 0000010022e92470 0000000000000000
-GPR20: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-GPR24: 0000000000000000 c000000000f4a828 00003ffffe527108 0000000000000000
-GPR28: c000000000f4a730 c000000000f4a828 0000000000000000 c0000001319a3bf0
-[ 2736.063498] NIP [c00000000037efb0] .__list_add+0x30/0x110
-[ 2736.063504] LR [c0000000006c40f8] .rwsem_down_write_failed+0x78/0x264
-[ 2736.063508] PACATMSCRATCH [800000000280f032]
-[ 2736.063511] Call Trace:
-[ 2736.063516] [c0000001319a3af0] [c0000001319a3b80] 0xc0000001319a3b80 (unreliable)
-[ 2736.063523] [c0000001319a3b80] [c0000000006c40f8] .rwsem_down_write_failed+0x78/0x264
-[ 2736.063530] [c0000001319a3c50] [c0000000006c1bb0] .down_write+0x70/0x78
-[ 2736.063536] [c0000001319a3cd0] [c0000000002e5ffc] .keyctl_get_persistent+0x20c/0x320
-[ 2736.063542] [c0000001319a3dc0] [c0000000002e2388] .SyS_keyctl+0x238/0x260
-[ 2736.063548] [c0000001319a3e30] [c000000000009e7c] syscall_exit+0x0/0x7c
-[ 2736.063553] Instruction dump:
-[ 2736.063556] 7c0802a6 fba1ffe8 fbc1fff0 fbe1fff8 7cbd2b78 7c9e2378 7c7f1b78 f8010010
-[ 2736.063566] f821ff71 e8a50008 7fa52040 40de00c0 <e8be0000> 7fbd2840 40de0094 7fbff040
-[ 2736.063579] ---[ end trace 2708241785538296 ]---
+After a successful hugetlb page migration by soft offline, the source page
+will either be freed into hugepage_freelists or buddy(over-commit page). 
+If page is in buddy, page_hstate(page) will be NULL.  It will hit a NULL
+pointer dereference in dequeue_hwpoisoned_huge_page().
 
-It's caused by uninitialized persistent_keyring_register_sem.
+[  890.677918] BUG: unable to handle kernel NULL pointer dereference at
+ 0000000000000058
+[  890.685741] IP: [<ffffffff81163761>]
+dequeue_hwpoisoned_huge_page+0x131/0x1d0
+[  890.692861] PGD c23762067 PUD c24be2067 PMD 0
+[  890.697314] Oops: 0000 [#1] SMP
 
-The bug was introduced by commit f36f8c75 ("KEYS: Add per-user_namespace
-registers for persistent per-UID kerberos caches").  Two typos are in that
-commit: CONFIG_KEYS_KERBEROS_CACHE should be CONFIG_PERSISTENT_KEYRINGS
-and krb_cache_register_sem should be persistent_keyring_register_sem.
+So check PageHuge(page) after call migrate_pages() successfully.
 
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: David Howells <dhowells@redhat.com>
-Acked-by: Josh Boyer <jwboyer@fedoraproject.org>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Tested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN kernel/user.c~keys-fix-uninitialized-persistent_keyring_register_sem kernel/user.c
---- a/kernel/user.c~keys-fix-uninitialized-persistent_keyring_register_sem
-+++ a/kernel/user.c
-@@ -51,9 +51,9 @@ struct user_namespace init_user_ns = {
- 	.owner = GLOBAL_ROOT_UID,
- 	.group = GLOBAL_ROOT_GID,
- 	.proc_inum = PROC_USER_INIT_INO,
--#ifdef CONFIG_KEYS_KERBEROS_CACHE
--	.krb_cache_register_sem =
--	__RWSEM_INITIALIZER(init_user_ns.krb_cache_register_sem),
-+#ifdef CONFIG_PERSISTENT_KEYRINGS
-+	.persistent_keyring_register_sem =
-+	__RWSEM_INITIALIZER(init_user_ns.persistent_keyring_register_sem),
- #endif
- };
- EXPORT_SYMBOL_GPL(init_user_ns);
+diff -puN mm/memory-failure.c~mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully
++++ a/mm/memory-failure.c
+@@ -1505,10 +1505,16 @@ static int soft_offline_huge_page(struct
+ 		if (ret > 0)
+ 			ret = -EIO;
+ 	} else {
+-		set_page_hwpoison_huge_page(hpage);
+-		dequeue_hwpoisoned_huge_page(hpage);
+-		atomic_long_add(1 << compound_order(hpage),
+-				&num_poisoned_pages);
++		/* overcommit hugetlb page will be freed to buddy */
++		if (PageHuge(page)) {
++			set_page_hwpoison_huge_page(hpage);
++			dequeue_hwpoisoned_huge_page(hpage);
++			atomic_long_add(1 << compound_order(hpage),
++					&num_poisoned_pages);
++		} else {
++			SetPageHWPoison(page);
++			atomic_long_inc(&num_poisoned_pages);
++		}
+ 	}
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from wujianguo@huawei.com are
 
-keys-fix-uninitialized-persistent_keyring_register_sem.patch
+mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch
 
