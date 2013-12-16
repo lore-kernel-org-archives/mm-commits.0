@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- sh-add-export_symbolmin_low_pfn-and-export_symbolmax_low_pfn-to-sh_ksyms_32c.patch added to -mm tree
+Subject: + video-mmp-delete-a-stray-mutex_unlock.patch added to -mm tree
 Date: Mon, 16 Dec 2013 11:55:52 -0800
-Message-ID: <52af5ac8.aY08kWvjqu7xmuca%akpm@linux-foundation.org>
+Message-ID: <52af5ac8.P3zYYB3jhz3lGx2p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45327 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45329 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752032Ab3LPTzx (ORCPT
+	with ESMTP id S1751941Ab3LPTzx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, lethal@linux-sh.org, kuninori.morimoto.gx@gmail.com, geert@linux-m68k.org, nobuhiro.iwamatsu.yj@renesas.com
+To: mm-commits@vger.kernel.org, zzhu3@marvell.com, tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, haojian.zhuang@gmail.com, epure.andrei@gmail.com, cldu@marvell.com, dan.carpenter@oracle.com
 
-Subject: + sh-add-export_symbolmin_low_pfn-and-export_symbolmax_low_pfn-to-sh_ksyms_32c.patch added to -mm tree
-To: nobuhiro.iwamatsu.yj@renesas.com,geert@linux-m68k.org,kuninori.morimoto.gx@gmail.com,lethal@linux-sh.org
+Subject: + video-mmp-delete-a-stray-mutex_unlock.patch added to -mm tree
+To: dan.carpenter@oracle.com,cldu@marvell.com,epure.andrei@gmail.com,haojian.zhuang@gmail.com,plagnioj@jcrosoft.com,tomi.valkeinen@ti.com,zzhu3@marvell.com
 From: akpm@linux-foundation.org
 Date: Mon, 16 Dec 2013 11:55:52 -0800
 
 
 The patch titled
-     Subject: sh: add EXPORT_SYMBOL(min_low_pfn) and EXPORT_SYMBOL(max_low_pfn) to sh_ksyms_32.c
+     Subject: drivers/video/mmp/core.c: delete a stray mutex_unlock()
 has been added to the -mm tree.  Its filename is
-     sh-add-export_symbolmin_low_pfn-and-export_symbolmax_low_pfn-to-sh_ksyms_32c.patch
+     video-mmp-delete-a-stray-mutex_unlock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-add-export_symbolmin_low_pfn-and-export_symbolmax_low_pfn-to-sh_ksyms_32c.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/video-mmp-delete-a-stray-mutex_unlock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-add-export_symbolmin_low_pfn-and-export_symbolmax_low_pfn-to-sh_ksyms_32c.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/video-mmp-delete-a-stray-mutex_unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,49 +43,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-Subject: sh: add EXPORT_SYMBOL(min_low_pfn) and EXPORT_SYMBOL(max_low_pfn) to sh_ksyms_32.c
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/video/mmp/core.c: delete a stray mutex_unlock()
 
-Min_low_pfn and max_low_pfn were used in pfn_valid macro if defined
-CONFIG_FLATMEM. When the functions that use the pfn_valid is used in driver
-module, max_low_pfn and min_low_pfn is to undefined, and fail to build.
+We aren't holding the disp_lock so we shouldn't release it.
 
-ERROR: "min_low_pfn" [drivers/block/aoe/aoe.ko] undefined!
-ERROR: "max_low_pfn" [drivers/block/aoe/aoe.ko] undefined!
-make[2]: *** [__modpost] Error 1
-make[1]: *** [modules] Error 2
-
-This patch fix this problem.
-
-Signed-off-by: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@gmail.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Acked-by: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Andrei Epure <epure.andrei@gmail.com>
+Cc: Lisa Du <cldu@marvell.com>
+Cc: Zhou Zhu <zzhu3@marvell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/sh_ksyms_32.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/video/mmp/core.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN arch/sh/kernel/sh_ksyms_32.c~sh-add-export_symbolmin_low_pfn-and-export_symbolmax_low_pfn-to-sh_ksyms_32c arch/sh/kernel/sh_ksyms_32.c
---- a/arch/sh/kernel/sh_ksyms_32.c~sh-add-export_symbolmin_low_pfn-and-export_symbolmax_low_pfn-to-sh_ksyms_32c
-+++ a/arch/sh/kernel/sh_ksyms_32.c
-@@ -20,6 +20,11 @@ EXPORT_SYMBOL(csum_partial_copy_generic)
- EXPORT_SYMBOL(copy_page);
- EXPORT_SYMBOL(__clear_user);
- EXPORT_SYMBOL(empty_zero_page);
-+#ifdef CONFIG_FLATMEM
-+/* need in pfn_valid macro */
-+EXPORT_SYMBOL(min_low_pfn);
-+EXPORT_SYMBOL(max_low_pfn);
-+#endif
+diff -puN drivers/video/mmp/core.c~video-mmp-delete-a-stray-mutex_unlock drivers/video/mmp/core.c
+--- a/drivers/video/mmp/core.c~video-mmp-delete-a-stray-mutex_unlock
++++ a/drivers/video/mmp/core.c
+@@ -173,7 +173,7 @@ struct mmp_path *mmp_register_path(struc
+ 		+ sizeof(struct mmp_overlay) * info->overlay_num;
+ 	path = kzalloc(size, GFP_KERNEL);
+ 	if (!path)
+-		goto failed;
++		return NULL;
  
- #define DECLARE_EXPORT(name)		\
- 	extern void name(void);EXPORT_SYMBOL(name)
-_
-
-Patches currently in -mm which might be from nobuhiro.iwamatsu.yj@renesas.com are
-
-sh-always-link-in-helper-functions-extracted-from-libgcc.patch
-sh-add-export_symbolmin_low_pfn-and-export_symbolmax_low_pfn-to-sh_ksyms_32c.patch
-
+ 	/* path set */
+ 	mutex_init(&path->access_ok);
+@@ -219,11 +219,6 @@ struct mmp_path *mmp_register_path(struc
+ 
+ 	mutex_unlock(&disp_lock);
+ 	return path;
