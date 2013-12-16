@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
- added to -mm tree
-Date: Mon, 16 Dec 2013 14:48:43 -0800
-Message-ID: <52af834b.jnJGshWWQRIWGWjb%akpm@linux-foundation.org>
+Subject: + fix-build-with-make-380.patch added to -mm tree
+Date: Mon, 16 Dec 2013 14:52:24 -0800
+Message-ID: <52af8428.Pc26eKEb3LSesT59%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46462 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46467 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750935Ab3LPWso (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 17:48:44 -0500
+	with ESMTP id S1751942Ab3LPWwZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 17:52:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, swarren@nvidia.com
+To: mm-commits@vger.kernel.org, ppandit@redhat.com, jbeulich@suse.com, JBeulich@suse.com
 
-Subject: + rtc-honor-device-tree-alias-entries-when-assigning-ids.patch added to -mm tree
-To: swarren@nvidia.com
+Subject: + fix-build-with-make-380.patch added to -mm tree
+To: JBeulich@suse.com,jbeulich@suse.com,ppandit@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 14:48:43 -0800
+Date: Mon, 16 Dec 2013 14:52:24 -0800
 
 
 The patch titled
-     Subject: rtc: honor device tree /alias entries when assigning IDs
+     Subject: fix build with make 3.80
 has been added to the -mm tree.  Its filename is
-     rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
+     fix-build-with-make-380.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fix-build-with-make-380.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fix-build-with-make-380.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,75 +43,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Warren <swarren@nvidia.com>
-Subject: rtc: honor device tree /alias entries when assigning IDs
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: fix build with make 3.80
 
-Assign RTC device IDs based on device tree /aliases entries if present,
-falling back to the existing numbering scheme if there is no /aliases
-entry (which includes when the system isn't booted using DT), or there is
-a numbering conflict.
+According to Documentation/Changes, make 3.80 is still being supported for
+building the kernel, hence make files must not make (unconditional) use of
+features introduced only in newer versions.  Commit 1bf49dd4 ("./Makefile:
+export initial ramdisk compression config option") however introduced
+"else ifeq" constructs which make 3.80 doesn't understand.  Replace the
+logic there with more conventional (in the kernel build infrastructure)
+list constructs (except that the list here is intentionally limited to
+exactly one element).
 
-This is useful in systems with multiple RTC devices, to ensure that the
-best RTC device is selected as /dev/rtc0, which provides the overall
-system time.
-
-For example, Tegra has an on-SoC RTC that is not battery backed, typically
-coupled with an off-SoC RTC that is battery backed.  Only the latter is
-useful for populating the system time, yet the former is useful e.g.  for
-wakeup timing, since the time is not lost when the system is sleeps.
-
-Signed-off-by: Stephen Warren <swarren@nvidia.com>
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Cc: P J P <ppandit@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |   22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ Makefile |   20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc-honor-device-tree-alias-entries-when-assigning-ids drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-honor-device-tree-alias-entries-when-assigning-ids
-+++ a/drivers/rtc/class.c
-@@ -14,6 +14,7 @@
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+diff -puN Makefile~fix-build-with-make-380 Makefile
+--- a/Makefile~fix-build-with-make-380
++++ a/Makefile
+@@ -732,19 +732,13 @@ export mod_strip_cmd
+ # Select initial ramdisk compression format, default is gzip(1).
+ # This shall be used by the dracut(8) tool while creating an initramfs image.
+ #
+-INITRD_COMPRESS=gzip
+-ifeq ($(CONFIG_RD_BZIP2), y)
+-        INITRD_COMPRESS=bzip2
+-else ifeq ($(CONFIG_RD_LZMA), y)
+-        INITRD_COMPRESS=lzma
+-else ifeq ($(CONFIG_RD_XZ), y)
+-        INITRD_COMPRESS=xz
+-else ifeq ($(CONFIG_RD_LZO), y)
+-        INITRD_COMPRESS=lzo
+-else ifeq ($(CONFIG_RD_LZ4), y)
+-        INITRD_COMPRESS=lz4
+-endif
+-export INITRD_COMPRESS
++INITRD_COMPRESS-y                  := gzip
++INITRD_COMPRESS-$(CONFIG_RD_BZIP2) := bzip2
++INITRD_COMPRESS-$(CONFIG_RD_LZMA)  := lzma
++INITRD_COMPRESS-$(CONFIG_RD_XZ)    := xz
++INITRD_COMPRESS-$(CONFIG_RD_LZO)   := lzo
++INITRD_COMPRESS-$(CONFIG_RD_LZ4)   := lz4
++export INITRD_COMPRESS := $(INITRD_COMPRESS-y)
  
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/rtc.h>
- #include <linux/kdev_t.h>
- #include <linux/idr.h>
-@@ -157,12 +158,25 @@ struct rtc_device *rtc_device_register(c
- {
- 	struct rtc_device *rtc;
- 	struct rtc_wkalrm alrm;
--	int id, err;
-+	int of_id, id = -1, err;
-+
-+	if (dev->of_node) {
-+		of_id = of_alias_get_id(dev->of_node, "rtc");
-+		if (of_id >= 0) {
-+			id = ida_simple_get(&rtc_ida, of_id, of_id + 1,
-+					    GFP_KERNEL);
-+			if (id < 0)
-+				dev_warn(dev, "/aliases ID %d not available\n",
-+					 of_id);
-+		}
-+	}
- 
--	id = ida_simple_get(&rtc_ida, 0, 0, GFP_KERNEL);
- 	if (id < 0) {
--		err = id;
--		goto exit;
-+		id = ida_simple_get(&rtc_ida, 0, 0, GFP_KERNEL);
-+		if (id < 0) {
-+			err = id;
-+			goto exit;
-+		}
- 	}
- 
- 	rtc = kzalloc(sizeof(struct rtc_device), GFP_KERNEL);
+ ifdef CONFIG_MODULE_SIG_ALL
+ MODSECKEY = ./signing_key.priv
 _
 
-Patches currently in -mm which might be from swarren@nvidia.com are
+Patches currently in -mm which might be from JBeulich@suse.com are
 
-rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
-linux-next.patch
+fix-build-with-make-380.patch
+lib-decompress_unlz4c-always-set-an-error-return-code-on-failures.patch
 
