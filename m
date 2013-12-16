@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + hexagon-use-generic-fixmaph.patch added to -mm tree
-Date: Mon, 16 Dec 2013 11:55:55 -0800
-Message-ID: <52af5acb.fhWgmjieA2U1mo7Z%akpm@linux-foundation.org>
+Subject: +
+ drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
+ added to -mm tree
+Date: Mon, 16 Dec 2013 11:55:56 -0800
+Message-ID: <52af5acc.Iy9CtPfyyuoF540v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45327 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45439 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206Ab3LPTz5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:57 -0500
+	with ESMTP id S1752079Ab3LPT4A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:56:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rkuo@codeaurora.org, msalter@redhat.com
+To: mm-commits@vger.kernel.org, rpurdie@rpsys.net, mjg59@srcf.ucam.org, kay.sievers@vrfy.org, jg1.han@samsung.com, ibm-acpi@hmh.eng.br, hmh@hmh.eng.br, kyungmin.park@samsung.com
 
-Subject: + hexagon-use-generic-fixmaph.patch added to -mm tree
-To: msalter@redhat.com,rkuo@codeaurora.org
+Subject: + drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch added to -mm tree
+To: kyungmin.park@samsung.com,hmh@hmh.eng.br,ibm-acpi@hmh.eng.br,jg1.han@samsung.com,kay.sievers@vrfy.org,mjg59@srcf.ucam.org,rpurdie@rpsys.net
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 11:55:55 -0800
+Date: Mon, 16 Dec 2013 11:55:56 -0800
 
 
 The patch titled
-     Subject: hexagon: use generic fixmap.h
+     Subject: drivers/video/backlight/backlight.c: remove backlight sysfs uevent
 has been added to the -mm tree.  Its filename is
-     hexagon-use-generic-fixmaph.patch
+     drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hexagon-use-generic-fixmaph.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hexagon-use-generic-fixmaph.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,81 +45,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mark Salter <msalter@redhat.com>
-Subject: hexagon: use generic fixmap.h
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: drivers/video/backlight/backlight.c: remove backlight sysfs uevent
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Acked-by: Richard Kuo <rkuo@codeaurora.org>
+Most mobile phones have Ambient Light Sensors and it changes brightness
+according to the lux.  It means it changes backlight brightness frequently
+by just writing sysfs node, so it generates uevent.
+
+Usually there's no user to use this backlight changes.  But it forks udev
+worker threads and it takes about 5ms.  The main problem is that it hurts
+other process activities.  so remove it.
+
+Kay said
+"Uevents are for the major, low-frequent, global device state-changes,
+ not for carrying-out any sort of measurement data. Subsystems which
+ need that should use other facilities like poll()-able sysfs file or
+ any other subscription-based, client-tracking interface which does not
+ cause overhead if it isn't used. Uevents are not the right thing to
+ use here, and upstream udev should not paper-over broken kernel
+ subsystems."
+
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/include/asm/fixmap.h |   40 ----------------------------
- 1 file changed, 1 insertion(+), 39 deletions(-)
+ drivers/video/backlight/backlight.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/hexagon/include/asm/fixmap.h~hexagon-use-generic-fixmaph arch/hexagon/include/asm/fixmap.h
---- a/arch/hexagon/include/asm/fixmap.h~hexagon-use-generic-fixmaph
-+++ a/arch/hexagon/include/asm/fixmap.h
-@@ -26,45 +26,7 @@
-  */
- #include <asm/mem-layout.h>
+diff -puN drivers/video/backlight/backlight.c~drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent
++++ a/drivers/video/backlight/backlight.c
+@@ -175,8 +175,6 @@ static ssize_t brightness_store(struct d
+ 	}
+ 	mutex_unlock(&bd->ops_lock);
  
--/*
-- * Full fixmap support involves set_fixmap() functions, but
-- * these may not be needed if all we're after is an area for
-- * highmem kernel mappings.
-- */
--#define	__fix_to_virt(x)	(FIXADDR_TOP - ((x) << PAGE_SHIFT))
--#define	__virt_to_fix(x)	((FIXADDR_TOP - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
--
--extern void __this_fixmap_does_not_exist(void);
--
--/**
-- * fix_to_virt -- "index to address" translation.
-- *
-- * If anyone tries to use the idx directly without translation,
-- * we catch the bug with a NULL-deference kernel oops. Illegal
-- * ranges of incoming indices are caught too.
-- */
--static inline unsigned long fix_to_virt(const unsigned int idx)
--{
--	/*
--	 * This branch gets completely eliminated after inlining,
--	 * except when someone tries to use fixaddr indices in an
--	 * illegal way. (such as mixing up address types or using
--	 * out-of-range indices).
--	 *
--	 * If it doesn't get removed, the linker will complain
--	 * loudly with a reasonably clear error message..
--	 */
--	if (idx >= __end_of_fixed_addresses)
--		__this_fixmap_does_not_exist();
--
--	return __fix_to_virt(idx);
--}
--
--static inline unsigned long virt_to_fix(const unsigned long vaddr)
--{
--	BUG_ON(vaddr >= FIXADDR_TOP || vaddr < FIXADDR_START);
--	return __virt_to_fix(vaddr);
--}
-+#include <asm-generic/fixmap.h>
- 
- #define kmap_get_fixmap_pte(vaddr) \
- 	pte_offset_kernel(pmd_offset(pud_offset(pgd_offset_k(vaddr), \
-_
-
-Patches currently in -mm which might be from msalter@redhat.com are
-
-add-generic-fixmaph.patch
-x86-use-generic-fixmaph.patch
-arm-use-generic-fixmaph.patch
-hexagon-use-generic-fixmaph.patch
-metag-use-generic-fixmaph.patch
-microblaze-use-generic-fixmaph.patch
-mips-use-generic-fixmaph.patch
-powerpc-use-generic-fixmaph.patch
-sh-use-generic-fixmaph.patch
-tile-use-generic-fixmaph.patch
-um-use-generic-fixmaph.patch
-linux-next.patch
-
+-	backlight_generate_event(bd, BACKLIGHT_UPDATE_SYSFS);
