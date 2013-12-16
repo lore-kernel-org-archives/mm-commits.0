@@ -1,48 +1,43 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc.patch removed
- from -mm tree
-Date: Mon, 16 Dec 2013 12:39:38 -0800
-Message-ID: <52af650a.2towvtGFnb+St2lU%akpm@linux-foundation.org>
+ rtc-s5m-limit-endless-loop-waiting-for-register-update.patch removed from
+ -mm tree
+Date: Mon, 16 Dec 2013 12:39:34 -0800
+Message-ID: <52af6506.UqotpNi01F5NjXgs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45836 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993Ab3LPUjj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 15:39:39 -0500
+	with ESMTP id S1752316Ab3LPUjf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 15:39:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sbkim73@samsung.com, sameo@linux.intel.com, m.szyprowski@samsung.com, lgirdwood@gmail.com, lee.jones@linaro.org, kyungmin.park@samsung.com, geert@linux-m68k.org, broonie@linaro.org, a.zummo@towertech.it, k.kozlowski@samsung.com
 
-Subject: [merged] mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc.patch removed from -mm tree
+Subject: [merged] rtc-s5m-limit-endless-loop-waiting-for-register-update.patch removed from -mm tree
 To: k.kozlowski@samsung.com,a.zummo@towertech.it,broonie@linaro.org,geert@linux-m68k.org,kyungmin.park@samsung.com,lee.jones@linaro.org,lgirdwood@gmail.com,m.szyprowski@samsung.com,sameo@linux.intel.com,sbkim73@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 12:39:38 -0800
+Date: Mon, 16 Dec 2013 12:39:34 -0800
 
 
 The patch titled
-     Subject: mfd/rtc: s5m: fix register updating by adding regmap for RTC
+     Subject: rtc: s5m: limit endless loop waiting for register update
 has been removed from the -mm tree.  Its filename was
-     mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc.patch
+     rtc-s5m-limit-endless-loop-waiting-for-register-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: mfd/rtc: s5m: fix register updating by adding regmap for RTC
+Subject: rtc: s5m: limit endless loop waiting for register update
 
-Rename old regmap field of "struct sec_pmic_dev" to "regmap_pmic" and add
-new regmap for RTC.
+After setting alarm or time the driver is waiting for UDR register to be
+cleared indicating that registers data have been transferred.
 
-On S5M8767A registers were not properly updated and read due to usage of
-the same regmap as the PMIC.  This could be observed in various hangs,
-e.g.  in infinite loop during waiting for UDR field change.
-
-On this chip family the RTC has different I2C address than PMIC so
-additional regmap is needed.
+Limit the endless loop to only 5 retries.
 
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
@@ -58,157 +53,77 @@ Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sec-core.c           |   30 +++++++++++++++++++++--------
- drivers/mfd/sec-irq.c            |    6 ++---
- drivers/regulator/s5m8767.c      |    2 -
- drivers/rtc/rtc-s5m.c            |    2 -
- include/linux/mfd/samsung/core.h |    3 +-
- 5 files changed, 29 insertions(+), 14 deletions(-)
+ drivers/rtc/rtc-s5m.c |   37 +++++++++++++++++++++++++++++++------
+ 1 file changed, 31 insertions(+), 6 deletions(-)
 
-diff -puN drivers/mfd/sec-core.c~mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc drivers/mfd/sec-core.c
---- a/drivers/mfd/sec-core.c~mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc
-+++ a/drivers/mfd/sec-core.c
-@@ -81,31 +81,31 @@ static struct of_device_id sec_dt_match[
+diff -puN drivers/rtc/rtc-s5m.c~rtc-s5m-limit-endless-loop-waiting-for-register-update drivers/rtc/rtc-s5m.c
+--- a/drivers/rtc/rtc-s5m.c~rtc-s5m-limit-endless-loop-waiting-for-register-update
++++ a/drivers/rtc/rtc-s5m.c
+@@ -28,6 +28,16 @@
+ #include <linux/mfd/samsung/irq.h>
+ #include <linux/mfd/samsung/rtc.h>
  
- int sec_reg_read(struct sec_pmic_dev *sec_pmic, u8 reg, void *dest)
- {
--	return regmap_read(sec_pmic->regmap, reg, dest);
-+	return regmap_read(sec_pmic->regmap_pmic, reg, dest);
- }
- EXPORT_SYMBOL_GPL(sec_reg_read);
- 
- int sec_bulk_read(struct sec_pmic_dev *sec_pmic, u8 reg, int count, u8 *buf)
- {
--	return regmap_bulk_read(sec_pmic->regmap, reg, buf, count);
-+	return regmap_bulk_read(sec_pmic->regmap_pmic, reg, buf, count);
- }
- EXPORT_SYMBOL_GPL(sec_bulk_read);
- 
- int sec_reg_write(struct sec_pmic_dev *sec_pmic, u8 reg, u8 value)
- {
--	return regmap_write(sec_pmic->regmap, reg, value);
-+	return regmap_write(sec_pmic->regmap_pmic, reg, value);
- }
- EXPORT_SYMBOL_GPL(sec_reg_write);
- 
- int sec_bulk_write(struct sec_pmic_dev *sec_pmic, u8 reg, int count, u8 *buf)
- {
--	return regmap_raw_write(sec_pmic->regmap, reg, buf, count);
-+	return regmap_raw_write(sec_pmic->regmap_pmic, reg, buf, count);
- }
- EXPORT_SYMBOL_GPL(sec_bulk_write);
- 
- int sec_reg_update(struct sec_pmic_dev *sec_pmic, u8 reg, u8 val, u8 mask)
- {
--	return regmap_update_bits(sec_pmic->regmap, reg, mask, val);
-+	return regmap_update_bits(sec_pmic->regmap_pmic, reg, mask, val);
- }
- EXPORT_SYMBOL_GPL(sec_reg_update);
- 
-@@ -166,6 +166,11 @@ static struct regmap_config s5m8767_regm
- 	.cache_type = REGCACHE_FLAT,
- };
- 
-+static const struct regmap_config sec_rtc_regmap_config = {
-+	.reg_bits = 8,
-+	.val_bits = 8,
-+};
++/*
++ * Maximum number of retries for checking changes in UDR field
++ * of SEC_RTC_UDR_CON register (to limit possible endless loop).
++ *
++ * After writing to RTC registers (setting time or alarm) read the UDR field
++ * in SEC_RTC_UDR_CON register. UDR is auto-cleared when data have
++ * been transferred.
++ */
++#define UDR_READ_RETRY_CNT	5
 +
- #ifdef CONFIG_OF
- /*
-  * Only the common platform data elements for s5m8767 are parsed here from the
-@@ -266,9 +271,9 @@ static int sec_pmic_probe(struct i2c_cli
- 		break;
+ struct s5m_rtc_info {
+ 	struct device *dev;
+ 	struct sec_pmic_dev *s5m87xx;
+@@ -84,6 +94,25 @@ static int s5m8767_tm_to_data(struct rtc
+ 	}
+ }
+ 
++/*
++ * Read RTC_UDR_CON register and wait till UDR field is cleared.
++ * This indicates that time/alarm update ended.
++ */
++static inline int s5m8767_wait_for_udr_update(struct s5m_rtc_info *info)
++{
++	int ret, retry = UDR_READ_RETRY_CNT;
++	unsigned int data;
++
++	do {
++		ret = regmap_read(info->regmap, SEC_RTC_UDR_CON, &data);
++	} while (--retry && (data & RTC_UDR_MASK) && !ret);
++
++	if (!retry)
++		dev_err(info->dev, "waiting for UDR update, reached max number of retries\n");
++
++	return ret;
++}
++
+ static inline int s5m8767_rtc_set_time_reg(struct s5m_rtc_info *info)
+ {
+ 	int ret;
+@@ -104,9 +133,7 @@ static inline int s5m8767_rtc_set_time_r
+ 		return ret;
  	}
  
--	sec_pmic->regmap = devm_regmap_init_i2c(i2c, regmap);
--	if (IS_ERR(sec_pmic->regmap)) {
--		ret = PTR_ERR(sec_pmic->regmap);
-+	sec_pmic->regmap_pmic = devm_regmap_init_i2c(i2c, regmap);
-+	if (IS_ERR(sec_pmic->regmap_pmic)) {
-+		ret = PTR_ERR(sec_pmic->regmap_pmic);
- 		dev_err(&i2c->dev, "Failed to allocate register map: %d\n",
- 			ret);
+-	do {
+-		ret = regmap_read(info->regmap, SEC_RTC_UDR_CON, &data);
+-	} while ((data & RTC_UDR_MASK) && !ret);
++	ret = s5m8767_wait_for_udr_update(info);
+ 
+ 	return ret;
+ }
+@@ -133,9 +160,7 @@ static inline int s5m8767_rtc_set_alarm_
  		return ret;
-@@ -277,6 +282,15 @@ static int sec_pmic_probe(struct i2c_cli
- 	sec_pmic->rtc = i2c_new_dummy(i2c->adapter, RTC_I2C_ADDR);
- 	i2c_set_clientdata(sec_pmic->rtc, sec_pmic);
+ 	}
  
-+	sec_pmic->regmap_rtc = devm_regmap_init_i2c(sec_pmic->rtc,
-+			&sec_rtc_regmap_config);
-+	if (IS_ERR(sec_pmic->regmap_rtc)) {
-+		ret = PTR_ERR(sec_pmic->regmap_rtc);
-+		dev_err(&i2c->dev, "Failed to allocate RTC register map: %d\n",
-+			ret);
-+		return ret;
-+	}
-+
- 	if (pdata && pdata->cfg_pmic_irq)
- 		pdata->cfg_pmic_irq();
+-	do {
+-		ret = regmap_read(info->regmap, SEC_RTC_UDR_CON, &data);
+-	} while ((data & RTC_UDR_MASK) && !ret);
++	ret = s5m8767_wait_for_udr_update(info);
  
-diff -puN drivers/mfd/sec-irq.c~mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc drivers/mfd/sec-irq.c
---- a/drivers/mfd/sec-irq.c~mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc
-+++ a/drivers/mfd/sec-irq.c
-@@ -280,19 +280,19 @@ int sec_irq_init(struct sec_pmic_dev *se
- 
- 	switch (type) {
- 	case S5M8763X:
--		ret = regmap_add_irq_chip(sec_pmic->regmap, sec_pmic->irq,
-+		ret = regmap_add_irq_chip(sec_pmic->regmap_pmic, sec_pmic->irq,
- 				  IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
- 				  sec_pmic->irq_base, &s5m8763_irq_chip,
- 				  &sec_pmic->irq_data);
- 		break;
- 	case S5M8767X:
--		ret = regmap_add_irq_chip(sec_pmic->regmap, sec_pmic->irq,
-+		ret = regmap_add_irq_chip(sec_pmic->regmap_pmic, sec_pmic->irq,
- 				  IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
- 				  sec_pmic->irq_base, &s5m8767_irq_chip,
- 				  &sec_pmic->irq_data);
- 		break;
- 	case S2MPS11X:
--		ret = regmap_add_irq_chip(sec_pmic->regmap, sec_pmic->irq,
-+		ret = regmap_add_irq_chip(sec_pmic->regmap_pmic, sec_pmic->irq,
- 				  IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
- 				  sec_pmic->irq_base, &s2mps11_irq_chip,
- 				  &sec_pmic->irq_data);
-diff -puN drivers/regulator/s5m8767.c~mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc drivers/regulator/s5m8767.c
---- a/drivers/regulator/s5m8767.c~mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc
-+++ a/drivers/regulator/s5m8767.c
-@@ -925,7 +925,7 @@ static int s5m8767_pmic_probe(struct pla
- 		config.dev = s5m8767->dev;
- 		config.init_data = pdata->regulators[i].initdata;
- 		config.driver_data = s5m8767;
--		config.regmap = iodev->regmap;
-+		config.regmap = iodev->regmap_pmic;
- 		config.of_node = pdata->regulators[i].reg_node;
- 
- 		rdev[i] = devm_regulator_register(&pdev->dev, &regulators[id],
-diff -puN drivers/rtc/rtc-s5m.c~mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc drivers/rtc/rtc-s5m.c
---- a/drivers/rtc/rtc-s5m.c~mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc
-+++ a/drivers/rtc/rtc-s5m.c
-@@ -567,7 +567,7 @@ static int s5m_rtc_probe(struct platform
- 
- 	info->dev = &pdev->dev;
- 	info->s5m87xx = s5m87xx;
--	info->regmap = s5m87xx->regmap;
-+	info->regmap = s5m87xx->regmap_rtc;
- 	info->device_type = s5m87xx->device_type;
- 	info->wtsr_smpl = s5m87xx->wtsr_smpl;
- 
-diff -puN include/linux/mfd/samsung/core.h~mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc include/linux/mfd/samsung/core.h
---- a/include/linux/mfd/samsung/core.h~mfd-rtc-s5m-fix-register-updating-by-adding-regmap-for-rtc
-+++ a/include/linux/mfd/samsung/core.h
-@@ -39,7 +39,8 @@ enum sec_device_type {
- struct sec_pmic_dev {
- 	struct device *dev;
- 	struct sec_platform_data *pdata;
--	struct regmap *regmap;
-+	struct regmap *regmap_pmic;
-+	struct regmap *regmap_rtc;
- 	struct i2c_client *i2c;
- 	struct i2c_client *rtc;
- 
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
