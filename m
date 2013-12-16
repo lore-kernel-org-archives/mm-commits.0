@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mips-use-generic-fixmaph.patch added to -mm tree
+Subject: + sh-use-generic-fixmaph.patch added to -mm tree
 Date: Mon, 16 Dec 2013 11:55:55 -0800
-Message-ID: <52af5acb.bh5DRV1KSmCV4AIM%akpm@linux-foundation.org>
+Message-ID: <52af5acb.ENIGOVimdUjpD3Xo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45336 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45430 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752213Ab3LPTz6 (ORCPT
+	with ESMTP id S1752216Ab3LPTz6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ralf@linux-mips.org, msalter@redhat.com
+To: mm-commits@vger.kernel.org, lethal@linux-sh.org, msalter@redhat.com
 
-Subject: + mips-use-generic-fixmaph.patch added to -mm tree
-To: msalter@redhat.com,ralf@linux-mips.org
+Subject: + sh-use-generic-fixmaph.patch added to -mm tree
+To: msalter@redhat.com,lethal@linux-sh.org
 From: akpm@linux-foundation.org
 Date: Mon, 16 Dec 2013 11:55:55 -0800
 
 
 The patch titled
-     Subject: mips: use generic fixmap.h
+     Subject: sh: use generic fixmap.h
 has been added to the -mm tree.  Its filename is
-     mips-use-generic-fixmaph.patch
+     sh-use-generic-fixmaph.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mips-use-generic-fixmaph.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-use-generic-fixmaph.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mips-use-generic-fixmaph.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-use-generic-fixmaph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,20 +44,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mark Salter <msalter@redhat.com>
-Subject: mips: use generic fixmap.h
+Subject: sh: use generic fixmap.h
 
 Signed-off-by: Mark Salter <msalter@redhat.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/fixmap.h |   33 -------------------------------
- 1 file changed, 1 insertion(+), 32 deletions(-)
+ arch/sh/include/asm/fixmap.h |   39 +--------------------------------
+ 1 file changed, 2 insertions(+), 37 deletions(-)
 
-diff -puN arch/mips/include/asm/fixmap.h~mips-use-generic-fixmaph arch/mips/include/asm/fixmap.h
---- a/arch/mips/include/asm/fixmap.h~mips-use-generic-fixmaph
-+++ a/arch/mips/include/asm/fixmap.h
-@@ -71,38 +71,7 @@ enum fixed_addresses {
+diff -puN arch/sh/include/asm/fixmap.h~sh-use-generic-fixmaph arch/sh/include/asm/fixmap.h
+--- a/arch/sh/include/asm/fixmap.h~sh-use-generic-fixmaph
++++ a/arch/sh/include/asm/fixmap.h
+@@ -79,13 +79,6 @@ extern void __set_fixmap(enum fixed_addr
+ 			 unsigned long phys, pgprot_t flags);
+ extern void __clear_fixmap(enum fixed_addresses idx, pgprot_t flags);
+ 
+-#define set_fixmap(idx, phys) \
+-		__set_fixmap(idx, phys, PAGE_KERNEL)
+-/*
+- * Some hardware wants to get fixmapped without caching.
+- */
+-#define set_fixmap_nocache(idx, phys) \
+-		__set_fixmap(idx, phys, PAGE_KERNEL_NOCACHE)
+ /*
+  * used by vmalloc.c.
+  *
+@@ -101,36 +94,8 @@ extern void __clear_fixmap(enum fixed_ad
  #define FIXADDR_SIZE	(__end_of_fixed_addresses << PAGE_SHIFT)
  #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)
  
@@ -84,19 +98,18 @@ diff -puN arch/mips/include/asm/fixmap.h~mips-use-generic-fixmaph arch/mips/incl
 -	 */
 -	if (idx >= __end_of_fixed_addresses)
 -		__this_fixmap_does_not_exist();
--
--	return __fix_to_virt(idx);
++#define FIXMAP_PAGE_NOCACHE PAGE_KERNEL_NOCACHE
+ 
+-        return __fix_to_virt(idx);
 -}
--
++#include <asm-generic/fixmap.h>
+ 
 -static inline unsigned long virt_to_fix(const unsigned long vaddr)
 -{
 -	BUG_ON(vaddr >= FIXADDR_TOP || vaddr < FIXADDR_START);
 -	return __virt_to_fix(vaddr);
 -}
-+#include <asm-generic/fixmap.h>
- 
- #define kmap_get_fixmap_pte(vaddr)					\
- 	pte_offset_kernel(pmd_offset(pud_offset(pgd_offset_k(vaddr), (vaddr)), (vaddr)), (vaddr))
+ #endif
 _
 
 Patches currently in -mm which might be from msalter@redhat.com are
