@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-smpc-remove-cpumask_ipi.patch added to -mm tree
-Date: Mon, 16 Dec 2013 15:35:19 -0800
-Message-ID: <52af8e37.Ozn1O5XI1NsIlyh5%akpm@linux-foundation.org>
+Subject: + mm-show_mem-remove-show_mem_filter_page_count-fix.patch added
+ to -mm tree
+Date: Mon, 16 Dec 2013 15:37:54 -0800
+Message-ID: <52af8ed2.OYPWqbN2TWM7TiWt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46827 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46836 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751019Ab3LPXfU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 18:35:20 -0500
+	with ESMTP id S1750869Ab3LPXhz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 18:37:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xiexiuqi@huawei.com, udknight@gmail.com, shli@fusionio.com, mingo@kernel.org, hch@lst.de, a.p.zijlstra@chello.nl, klamm@yandex-team.ru
+To: mm-commits@vger.kernel.org, tony.luck@intel.com, rientjes@google.com, mgorman@suse.de, linux@arm.linux.org.uk, jejb@parisc-linux.org, akpm@linux-foundation.org
 
-Subject: + kernel-smpc-remove-cpumask_ipi.patch added to -mm tree
-To: klamm@yandex-team.ru,a.p.zijlstra@chello.nl,hch@lst.de,mingo@kernel.org,shli@fusionio.com,udknight@gmail.com,xiexiuqi@huawei.com
+Subject: + mm-show_mem-remove-show_mem_filter_page_count-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,jejb@parisc-linux.org,linux@arm.linux.org.uk,mgorman@suse.de,rientjes@google.com,tony.luck@intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 15:35:19 -0800
+Date: Mon, 16 Dec 2013 15:37:54 -0800
 
 
 The patch titled
-     Subject: kernel/smp.c: remove cpumask_ipi
+     Subject: mm-show_mem-remove-show_mem_filter_page_count-fix
 has been added to the -mm tree.  Its filename is
-     kernel-smpc-remove-cpumask_ipi.patch
+     mm-show_mem-remove-show_mem_filter_page_count-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-smpc-remove-cpumask_ipi.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-show_mem-remove-show_mem_filter_page_count-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-smpc-remove-cpumask_ipi.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-show_mem-remove-show_mem_filter_page_count-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,69 +44,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <klamm@yandex-team.ru>
-Subject: kernel/smp.c: remove cpumask_ipi
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-show_mem-remove-show_mem_filter_page_count-fix
 
-After 9a46ad6 ("smp: make smp_call_function_many() use logic similar to
-smp_call_function_single()"), cfd->cpumask is accessed only in
-smp_call_function_many().  So there is no more need to copy it into
-cfd->cpumask_ipi before putting csd into the list.  The cpumask_ipi field
-is obsolete and can be removed.
+fix parisc
 
-Signed-off-by: Roman Gushchin <klamm@yandex-team.ru>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Wang YanQing <udknight@gmail.com>
-Cc: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: Shaohua Li <shli@fusionio.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: David Rientjes <rientjes@google.com>
+Cc: James Bottomley <jejb@parisc-linux.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ arch/parisc/mm/init.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/smp.c~kernel-smpc-remove-cpumask_ipi kernel/smp.c
---- a/kernel/smp.c~kernel-smpc-remove-cpumask_ipi
-+++ a/kernel/smp.c
-@@ -23,7 +23,6 @@ enum {
- struct call_function_data {
- 	struct call_single_data	__percpu *csd;
- 	cpumask_var_t		cpumask;
--	cpumask_var_t		cpumask_ipi;
- };
+diff -puN arch/parisc/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count-fix arch/parisc/mm/init.c
+--- a/arch/parisc/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count-fix
++++ a/arch/parisc/mm/init.c
+@@ -663,9 +663,6 @@ void show_mem(unsigned int filter)
  
- static DEFINE_PER_CPU_SHARED_ALIGNED(struct call_function_data, cfd_data);
-@@ -42,14 +41,8 @@ hotplug_cfd(struct notifier_block *nfb,
- 		if (!zalloc_cpumask_var_node(&cfd->cpumask, GFP_KERNEL,
- 				cpu_to_node(cpu)))
- 			return notifier_from_errno(-ENOMEM);
--		if (!zalloc_cpumask_var_node(&cfd->cpumask_ipi, GFP_KERNEL,
--				cpu_to_node(cpu))) {
--			free_cpumask_var(cfd->cpumask);
--			return notifier_from_errno(-ENOMEM);
--		}
- 		cfd->csd = alloc_percpu(struct call_single_data);
- 		if (!cfd->csd) {
--			free_cpumask_var(cfd->cpumask_ipi);
- 			free_cpumask_var(cfd->cpumask);
- 			return notifier_from_errno(-ENOMEM);
+ 			total += zone->present_pages;
+ 			reserved = zone->present_pages - zone->managed_pages;
+-
+-			if (is_highmem_idx(zoneid))
+-				highmem += zone->present_pages;
  		}
-@@ -62,7 +55,6 @@ hotplug_cfd(struct notifier_block *nfb,
- 	case CPU_DEAD:
- 	case CPU_DEAD_FROZEN:
- 		free_cpumask_var(cfd->cpumask);
--		free_cpumask_var(cfd->cpumask_ipi);
- 		free_percpu(cfd->csd);
- 		break;
- #endif
-@@ -383,13 +375,6 @@ void smp_call_function_many(const struct
- 	if (unlikely(!cpumask_weight(cfd->cpumask)))
- 		return;
- 
--	/*
--	 * After we put an entry into the list, cfd->cpumask may be cleared
--	 * again when another CPU sends another IPI for a SMP function call, so
--	 * cfd->cpumask will be zero.
--	 */
--	cpumask_copy(cfd->cpumask_ipi, cfd->cpumask);
+ 		pgdat_resize_unlock(pgdat, &flags);
+ 	}
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+mm-show_mem-remove-show_mem_filter_page_count-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
