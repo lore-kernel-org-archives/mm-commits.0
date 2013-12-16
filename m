@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-migrate-remove-unused-function-fail_migrate_page.patch added to -mm tree
-Date: Mon, 16 Dec 2013 11:55:54 -0800
-Message-ID: <52af5aca.F9l7CNKe2HMDHpv+%akpm@linux-foundation.org>
+Subject: +
+ mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch added to -mm tree
+Date: Mon, 16 Dec 2013 11:55:51 -0800
+Message-ID: <52af5ac7.R3bHOdfc4r2r8S7f%akpm__48279.8302466564$1387223770$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45327 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45306 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752115Ab3LPTzz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:55 -0500
+	with ESMTP id S1751963Ab3LPTzw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, stable@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
 
-Subject: + mm-migrate-remove-unused-function-fail_migrate_page.patch added to -mm tree
-To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com
+Subject: + mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch added to -mm tree
+To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,stable@vger.kernel.org,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 11:55:54 -0800
+Date: Mon, 16 Dec 2013 11:55:51 -0800
 
 
 The patch titled
-     Subject: mm/migrate: remove unused function, fail_migrate_page()
+     Subject: mm/mempolicy: correct putback method for isolate pages if failed
 has been added to the -mm tree.  Its filename is
-     mm-migrate-remove-unused-function-fail_migrate_page.patch
+     mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-remove-unused-function-fail_migrate_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-remove-unused-function-fail_migrate_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,66 +45,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/migrate: remove unused function, fail_migrate_page()
+Subject: mm/mempolicy: correct putback method for isolate pages if failed
 
-fail_migrate_page() isn't used anywhere, so remove it.
+queue_pages_range() isolates hugetlbfs pages and putback_lru_pages() can't
+handle these.  We should change it to putback_movable_pages().
+
+Naoya said that it is worth going into stable, because it can break in-use
+hugepage list.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: <stable@vger.kernel.org>	[3.12.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    4 ----
- mm/migrate.c            |    8 --------
- 2 files changed, 12 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/migrate.h~mm-migrate-remove-unused-function-fail_migrate_page include/linux/migrate.h
---- a/include/linux/migrate.h~mm-migrate-remove-unused-function-fail_migrate_page
-+++ a/include/linux/migrate.h
-@@ -41,9 +41,6 @@ extern int migrate_page(struct address_s
- extern int migrate_pages(struct list_head *l, new_page_t x,
- 		unsigned long private, enum migrate_mode mode, int reason);
+diff -puN mm/mempolicy.c~mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed
++++ a/mm/mempolicy.c
+@@ -1318,7 +1318,7 @@ static long do_mbind(unsigned long start
+ 		if (nr_failed && (flags & MPOL_MF_STRICT))
+ 			err = -EIO;
+ 	} else
+-		putback_lru_pages(&pagelist);
++		putback_movable_pages(&pagelist);
  
--extern int fail_migrate_page(struct address_space *,
--			struct page *, struct page *);
--
- extern int migrate_prep(void);
- extern int migrate_prep_local(void);
- extern int migrate_vmas(struct mm_struct *mm,
-@@ -83,7 +80,6 @@ static inline int migrate_huge_page_move
- 
- /* Possible settings for the migrate_page() method in address_operations */
- #define migrate_page NULL
--#define fail_migrate_page NULL
- 
- #endif /* CONFIG_MIGRATION */
- 
-diff -puN mm/migrate.c~mm-migrate-remove-unused-function-fail_migrate_page mm/migrate.c
---- a/mm/migrate.c~mm-migrate-remove-unused-function-fail_migrate_page
-+++ a/mm/migrate.c
-@@ -551,14 +551,6 @@ void migrate_page_copy(struct page *newp
-  *                    Migration functions
-  ***********************************************************/
- 
--/* Always fail migration. Used for mappings that are not movable */
--int fail_migrate_page(struct address_space *mapping,
--			struct page *newpage, struct page *page)
--{
--	return -EIO;
--}
--EXPORT_SYMBOL(fail_migrate_page);
--
- /*
-  * Common logic to directly migrate a single page suitable for
-  * pages that do not use PagePrivate/PagePrivate2.
+ 	up_write(&mm->mmap_sem);
+  mpol_out:
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
