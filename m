@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-show_mem-remove-show_mem_filter_page_count-fix.patch added
- to -mm tree
-Date: Mon, 16 Dec 2013 15:37:54 -0800
-Message-ID: <52af8ed2.OYPWqbN2TWM7TiWt%akpm@linux-foundation.org>
+Subject: + mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch added to
+ -mm tree
+Date: Mon, 16 Dec 2013 15:43:57 -0800
+Message-ID: <52af903d.TzS+J7MzkJnCJur5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46855 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750869Ab3LPXhz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 18:37:55 -0500
+	with ESMTP id S1750901Ab3LPXn6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 18:43:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, rientjes@google.com, mgorman@suse.de, linux@arm.linux.org.uk, jejb@parisc-linux.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, jmarchan@redhat.com, dave.hansen@linux.intel.com, alan@lxorguk.ukuu.org.uk, akpm@linux-foundation.org
 
-Subject: + mm-show_mem-remove-show_mem_filter_page_count-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,jejb@parisc-linux.org,linux@arm.linux.org.uk,mgorman@suse.de,rientjes@google.com,tony.luck@intel.com
+Subject: + mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch added to -mm tree
+To: akpm@linux-foundation.org,alan@lxorguk.ukuu.org.uk,dave.hansen@linux.intel.com,jmarchan@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 15:37:54 -0800
+Date: Mon, 16 Dec 2013 15:43:57 -0800
 
 
 The patch titled
-     Subject: mm-show_mem-remove-show_mem_filter_page_count-fix
+     Subject: mm-add-overcommit_kbytes-sysctl-variable-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-show_mem-remove-show_mem_filter_page_count-fix.patch
+     mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-show_mem-remove-show_mem_filter_page_count-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-show_mem-remove-show_mem_filter_page_count-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,34 +45,88 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-show_mem-remove-show_mem_filter_page_count-fix
+Subject: mm-add-overcommit_kbytes-sysctl-variable-fix-2
 
-fix parisc
+fix nommu build
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: James Bottomley <jejb@parisc-linux.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/mm/init.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/mmap.c |   24 ------------------------
+ mm/util.c |   24 ++++++++++++++++++++++++
+ 2 files changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN arch/parisc/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count-fix arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~mm-show_mem-remove-show_mem_filter_page_count-fix
-+++ a/arch/parisc/mm/init.c
-@@ -663,9 +663,6 @@ void show_mem(unsigned int filter)
+diff -puN mm/mmap.c~mm-add-overcommit_kbytes-sysctl-variable-fix-2 mm/mmap.c
+--- a/mm/mmap.c~mm-add-overcommit_kbytes-sysctl-variable-fix-2
++++ a/mm/mmap.c
+@@ -96,30 +96,6 @@ unsigned long sysctl_admin_reserve_kbyte
+  */
+ struct percpu_counter vm_committed_as ____cacheline_aligned_in_smp;
  
- 			total += zone->present_pages;
- 			reserved = zone->present_pages - zone->managed_pages;
+-int overcommit_ratio_handler(struct ctl_table *table, int write,
+-			     void __user *buffer, size_t *lenp,
+-			     loff_t *ppos)
+-{
+-	int ret;
 -
--			if (is_highmem_idx(zoneid))
--				highmem += zone->present_pages;
- 		}
- 		pgdat_resize_unlock(pgdat, &flags);
- 	}
+-	ret = proc_dointvec(table, write, buffer, lenp, ppos);
+-	if (ret == 0 && write)
+-		sysctl_overcommit_kbytes = 0;
+-	return ret;
+-}
+-
+-int overcommit_kbytes_handler(struct ctl_table *table, int write,
+-			     void __user *buffer, size_t *lenp,
+-			     loff_t *ppos)
+-{
+-	int ret;
+-
+-	ret = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
+-	if (ret == 0 && write)
+-		sysctl_overcommit_ratio = 0;
+-	return ret;
+-}
+-
+ /*
+  * The global memory commitment made in the system can be a metric
+  * that can be used to drive ballooning decisions when Linux is hosted
+diff -puN mm/util.c~mm-add-overcommit_kbytes-sysctl-variable-fix-2 mm/util.c
+--- a/mm/util.c~mm-add-overcommit_kbytes-sysctl-variable-fix-2
++++ a/mm/util.c
+@@ -401,6 +401,30 @@ struct address_space *page_mapping(struc
+ 	return mapping;
+ }
+ 
++int overcommit_ratio_handler(struct ctl_table *table, int write,
++			     void __user *buffer, size_t *lenp,
++			     loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_dointvec(table, write, buffer, lenp, ppos);
++	if (ret == 0 && write)
++		sysctl_overcommit_kbytes = 0;
++	return ret;
++}
++
++int overcommit_kbytes_handler(struct ctl_table *table, int write,
++			     void __user *buffer, size_t *lenp,
++			     loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
++	if (ret == 0 && write)
++		sysctl_overcommit_ratio = 0;
++	return ret;
++}
++
+ /*
+  * Committed memory limit enforced when OVERCOMMIT_NEVER policy is used
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,6 +146,7 @@ mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
 mm-show_mem-remove-show_mem_filter_page_count-fix.patch
 mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
 mm-add-overcommit_kbytes-sysctl-variable-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
 memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
 acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
 memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
