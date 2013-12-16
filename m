@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch added to -mm tree
-Date: Mon, 16 Dec 2013 11:55:51 -0800
-Message-ID: <52af5ac7.R3bHOdfc4r2r8S7f%akpm__48279.8302466564$1387223770$gmane$org@linux-foundation.org>
+ mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+ added to -mm tree
+Date: Mon, 16 Dec 2013 11:55:53 -0800
+Message-ID: <52af5ac9.ESS6lTxHDAXKfrQR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45306 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45374 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751963Ab3LPTzw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:52 -0500
+	with ESMTP id S1752095Ab3LPTzy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, stable@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
 
-Subject: + mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch added to -mm tree
-To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,stable@vger.kernel.org,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com
+Subject: + mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch added to -mm tree
+To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 11:55:51 -0800
+Date: Mon, 16 Dec 2013 11:55:53 -0800
 
 
 The patch titled
-     Subject: mm/mempolicy: correct putback method for isolate pages if failed
+     Subject: mm/migrate: correct failure handling if !hugepage_migration_support()
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
+     mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,44 +46,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/mempolicy: correct putback method for isolate pages if failed
+Subject: mm/migrate: correct failure handling if !hugepage_migration_support()
 
-queue_pages_range() isolates hugetlbfs pages and putback_lru_pages() can't
-handle these.  We should change it to putback_movable_pages().
+We should remove the page from the list if we fail with ENOSYS, since
+migrate_pages() consider error cases except -ENOMEM and -EAGAIN as
+permanent failure and it assumes that the page would be removed from the
+list.  Without this patch, we could overcount number of failure.
 
-Naoya said that it is worth going into stable, because it can break in-use
-hugepage list.
+In addition, we should put back the new hugepage if
+!hugepage_migration_support().  If not, we would leak hugepage memory.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Rafael Aquini <aquini@redhat.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: <stable@vger.kernel.org>	[3.12.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed
-+++ a/mm/mempolicy.c
-@@ -1318,7 +1318,7 @@ static long do_mbind(unsigned long start
- 		if (nr_failed && (flags & MPOL_MF_STRICT))
- 			err = -EIO;
- 	} else
--		putback_lru_pages(&pagelist);
-+		putback_movable_pages(&pagelist);
+diff -puN mm/migrate.c~mm-migrate-correct-failure-handling-if-hugepage_migration_support mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-correct-failure-handling-if-hugepage_migration_support
++++ a/mm/migrate.c
+@@ -1012,7 +1012,7 @@ static int unmap_and_move_huge_page(new_
+ {
+ 	int rc = 0;
+ 	int *result = NULL;
+-	struct page *new_hpage = get_new_page(hpage, private, &result);
++	struct page *new_hpage;
+ 	struct anon_vma *anon_vma = NULL;
  
- 	up_write(&mm->mmap_sem);
-  mpol_out:
+ 	/*
+@@ -1022,9 +1022,12 @@ static int unmap_and_move_huge_page(new_
+ 	 * tables or check whether the hugepage is pmd-based or not before
+ 	 * kicking migration.
+ 	 */
+-	if (!hugepage_migration_support(page_hstate(hpage)))
++	if (!hugepage_migration_support(page_hstate(hpage))) {
++		putback_active_hugepage(hpage);
+ 		return -ENOSYS;
++	}
+ 
++	new_hpage = get_new_page(hpage, private, &result);
+ 	if (!new_hpage)
+ 		return -ENOMEM;
+ 
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
