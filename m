@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
+Subject: + rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
  added to -mm tree
-Date: Mon, 16 Dec 2013 14:43:10 -0800
-Message-ID: <52af81fe.vQ9tzXKjRoj4YJy3%akpm@linux-foundation.org>
+Date: Mon, 16 Dec 2013 14:48:43 -0800
+Message-ID: <52af834b.jnJGshWWQRIWGWjb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46361 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46462 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901Ab3LPWnL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 17:43:11 -0500
+	with ESMTP id S1750935Ab3LPWso (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 17:48:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, peterz@infradead.org, mgorman@suse.de, dvhart@linux.intel.com, davej@redhat.com, aarcange@redhat.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, swarren@nvidia.com
 
-Subject: + mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch added to -mm tree
-To: oleg@redhat.com,aarcange@redhat.com,davej@redhat.com,dvhart@linux.intel.com,mgorman@suse.de,peterz@infradead.org,tglx@linutronix.de
+Subject: + rtc-honor-device-tree-alias-entries-when-assigning-ids.patch added to -mm tree
+To: swarren@nvidia.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 14:43:10 -0800
+Date: Mon, 16 Dec 2013 14:48:43 -0800
 
 
 The patch titled
-     Subject: mm: thp: __get_page_tail_foll() can use get_huge_page_tail()
+     Subject: rtc: honor device tree /alias entries when assigning IDs
 has been added to the -mm tree.  Its filename is
-     mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
+     rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,69 +44,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: mm: thp: __get_page_tail_foll() can use get_huge_page_tail()
+From: Stephen Warren <swarren@nvidia.com>
+Subject: rtc: honor device tree /alias entries when assigning IDs
 
-Cleanup. Change __get_page_tail_foll() to use get_huge_page_tail()
-to avoid the code duplication.
+Assign RTC device IDs based on device tree /aliases entries if present,
+falling back to the existing numbering scheme if there is no /aliases
+entry (which includes when the system isn't booted using DT), or there is
+a numbering conflict.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Darren Hart <dvhart@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+This is useful in systems with multiple RTC devices, to ensure that the
+best RTC device is selected as /dev/rtc0, which provides the overall
+system time.
+
+For example, Tegra has an on-SoC RTC that is not battery backed, typically
+coupled with an off-SoC RTC that is battery backed.  Only the latter is
+useful for populating the system time, yet the former is useful e.g.  for
+wakeup timing, since the time is not lost when the system is sleeps.
+
+Signed-off-by: Stephen Warren <swarren@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/rtc/class.c |   22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
-diff -puN mm/internal.h~mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail mm/internal.h
---- a/mm/internal.h~mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail
-+++ a/mm/internal.h
-@@ -47,12 +47,9 @@ static inline void __get_page_tail_foll(
- 	 * page_cache_get_speculative()) on tail pages.
- 	 */
- 	VM_BUG_ON(atomic_read(&page->first_page->_count) <= 0);
--	VM_BUG_ON(atomic_read(&page->_count) != 0);
--	VM_BUG_ON(page_mapcount(page) < 0);
- 	if (get_page_head)
- 		atomic_inc(&page->first_page->_count);
--	if (compound_tail_refcounted(page->first_page))
--		atomic_inc(&page->_mapcount);
-+	get_huge_page_tail(page);
- }
+diff -puN drivers/rtc/class.c~rtc-honor-device-tree-alias-entries-when-assigning-ids drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc-honor-device-tree-alias-entries-when-assigning-ids
++++ a/drivers/rtc/class.c
+@@ -14,6 +14,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- /*
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/rtc.h>
+ #include <linux/kdev_t.h>
+ #include <linux/idr.h>
+@@ -157,12 +158,25 @@ struct rtc_device *rtc_device_register(c
+ {
+ 	struct rtc_device *rtc;
+ 	struct rtc_wkalrm alrm;
+-	int id, err;
++	int of_id, id = -1, err;
++
++	if (dev->of_node) {
++		of_id = of_alias_get_id(dev->of_node, "rtc");
++		if (of_id >= 0) {
++			id = ida_simple_get(&rtc_ida, of_id, of_id + 1,
++					    GFP_KERNEL);
++			if (id < 0)
++				dev_warn(dev, "/aliases ID %d not available\n",
++					 of_id);
++		}
++	}
+ 
+-	id = ida_simple_get(&rtc_ida, 0, 0, GFP_KERNEL);
+ 	if (id < 0) {
+-		err = id;
+-		goto exit;
++		id = ida_simple_get(&rtc_ida, 0, 0, GFP_KERNEL);
++		if (id < 0) {
++			err = id;
++			goto exit;
++		}
+ 	}
+ 
+ 	rtc = kzalloc(sizeof(struct rtc_device), GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from swarren@nvidia.com are
 
-mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
-mm-thp-turn-compound_head-into-bug_onpagetail-in-get_huge_page_tail.patch
-introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
-oom_kill-change-oom_killc-to-use-for_each_thread.patch
-oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
-oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
-coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
-coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
-proc-cleanup-simplify-get_task_state-task_state_array.patch
-proc-fix-the-potential-use-after-free-in-first_tid.patch
-proc-change-first_tid-to-use-while_each_thread-rather-than-next_thread.patch
-proc-dont-abuse-group_leader-in-proc_task_readdir-paths.patch
-proc-fix-f_pos-overflows-in-first_tid.patch
-kernel-forkc-remove-redundant-null-check-in-dup_mm.patch
-exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
-exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
-exec-move-the-final-allow_write_access-fput-into-free_bprm.patch
-exec-kill-task_struct-did_exec.patch
-fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
-kernel-sysc-k_getrusage-can-use-while_each_thread.patch
-kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch
+rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
 linux-next.patch
 
