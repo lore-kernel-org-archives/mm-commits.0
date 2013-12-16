@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-compat_ioctlc-fix-an-underflow-issue-harmless.patch added to -mm tree
-Date: Mon, 16 Dec 2013 11:55:52 -0800
-Message-ID: <52af5ac8.W6dlbgnvAz9VNLmn%akpm@linux-foundation.org>
+Subject: + metag-use-generic-fixmaph.patch added to -mm tree
+Date: Mon, 16 Dec 2013 11:55:55 -0800
+Message-ID: <52af5acb.aZQGRuTBT801TeqY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45351 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45364 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752089Ab3LPTzx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:53 -0500
+	with ESMTP id S1752162Ab3LPTz4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, james.hogan@imgtec.com, msalter@redhat.com
 
-Subject: + fs-compat_ioctlc-fix-an-underflow-issue-harmless.patch added to -mm tree
-To: dan.carpenter@oracle.com
+Subject: + metag-use-generic-fixmaph.patch added to -mm tree
+To: msalter@redhat.com,james.hogan@imgtec.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 11:55:52 -0800
+Date: Mon, 16 Dec 2013 11:55:55 -0800
 
 
 The patch titled
-     Subject: fs/compat_ioctl.c: fix an underflow issue (harmless)
+     Subject: metag: use generic fixmap.h
 has been added to the -mm tree.  Its filename is
-     fs-compat_ioctlc-fix-an-underflow-issue-harmless.patch
+     metag-use-generic-fixmaph.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-compat_ioctlc-fix-an-underflow-issue-harmless.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/metag-use-generic-fixmaph.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-compat_ioctlc-fix-an-underflow-issue-harmless.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/metag-use-generic-fixmaph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,46 +43,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: fs/compat_ioctl.c: fix an underflow issue (harmless)
+From: Mark Salter <msalter@redhat.com>
+Subject: metag: use generic fixmap.h
 
-We cap "nmsgs" at I2C_RDRW_IOCTL_MAX_MSGS (42) but the current code allows
-negative values.  It's harmless but it makes my static checker upset so
-I've made nsmgs unsigned.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Mark Salter <msalter@redhat.com>
+Acked-by: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/metag/include/asm/fixmap.h |   32 ------------------------------
+ 1 file changed, 1 insertion(+), 31 deletions(-)
 
-diff -puN fs/compat_ioctl.c~fs-compat_ioctlc-fix-an-underflow-issue-harmless fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~fs-compat_ioctlc-fix-an-underflow-issue-harmless
-+++ a/fs/compat_ioctl.c
-@@ -680,7 +680,8 @@ static int do_i2c_rdwr_ioctl(unsigned in
- 	struct i2c_msg			__user *tmsgs;
- 	struct i2c_msg32		__user *umsgs;
- 	compat_caddr_t			datap;
--	int				nmsgs, i;
-+	u32				nmsgs;
-+	int				i;
+diff -puN arch/metag/include/asm/fixmap.h~metag-use-generic-fixmaph arch/metag/include/asm/fixmap.h
+--- a/arch/metag/include/asm/fixmap.h~metag-use-generic-fixmaph
++++ a/arch/metag/include/asm/fixmap.h
+@@ -51,37 +51,7 @@ enum fixed_addresses {
+ #define FIXADDR_SIZE	(__end_of_fixed_addresses << PAGE_SHIFT)
+ #define FIXADDR_START	((FIXADDR_TOP - FIXADDR_SIZE) & PMD_MASK)
  
- 	if (get_user(nmsgs, &udata->nmsgs))
- 		return -EFAULT;
+-#define __fix_to_virt(x)	(FIXADDR_TOP - ((x) << PAGE_SHIFT))
+-#define __virt_to_fix(x)	((FIXADDR_TOP - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
+-
+-extern void __this_fixmap_does_not_exist(void);
+-/*
+- * 'index to address' translation. If anyone tries to use the idx
+- * directly without tranlation, we catch the bug with a NULL-deference
+- * kernel oops. Illegal ranges of incoming indices are caught too.
+- */
+-static inline unsigned long fix_to_virt(const unsigned int idx)
+-{
+-	/*
+-	 * this branch gets completely eliminated after inlining,
+-	 * except when someone tries to use fixaddr indices in an
+-	 * illegal way. (such as mixing up address types or using
+-	 * out-of-range indices).
+-	 *
+-	 * If it doesn't get removed, the linker will complain
+-	 * loudly with a reasonably clear error message..
+-	 */
+-	if (idx >= __end_of_fixed_addresses)
+-		__this_fixmap_does_not_exist();
+-
+-	return __fix_to_virt(idx);
+-}
+-
+-static inline unsigned long virt_to_fix(const unsigned long vaddr)
+-{
+-	BUG_ON(vaddr >= FIXADDR_TOP || vaddr < FIXADDR_START);
+-	return __virt_to_fix(vaddr);
+-}
++#include <asm-generic/fixmap.h>
+ 
+ #define kmap_get_fixmap_pte(vaddr) \
+ 	pte_offset_kernel( \
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from msalter@redhat.com are
 
-origin.patch
-dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
-video-mmp-delete-a-stray-mutex_unlock.patch
-video-mmp-using-plain-integer-as-null-pointer.patch
-ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
-drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
-drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
-fs-compat_ioctlc-fix-an-underflow-issue-harmless.patch
-drivers-mailbox-omap-make-mbox-irq-signed-for-error-handling.patch
-checkpatch-warn-only-on-space-before-semicolon-at-end-of-line.patch
+add-generic-fixmaph.patch
+x86-use-generic-fixmaph.patch
+arm-use-generic-fixmaph.patch
+hexagon-use-generic-fixmaph.patch
+metag-use-generic-fixmaph.patch
+microblaze-use-generic-fixmaph.patch
+mips-use-generic-fixmaph.patch
+powerpc-use-generic-fixmaph.patch
+sh-use-generic-fixmaph.patch
+tile-use-generic-fixmaph.patch
+um-use-generic-fixmaph.patch
 linux-next.patch
 
