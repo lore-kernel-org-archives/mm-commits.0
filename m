@@ -1,133 +1,115 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- rtc-s5m-limit-endless-loop-waiting-for-register-update.patch removed from
+ thp-move-preallocated-pte-page-table-on-move_huge_pmd.patch removed from
  -mm tree
-Date: Mon, 16 Dec 2013 12:39:34 -0800
-Message-ID: <52af6506.UqotpNi01F5NjXgs%akpm@linux-foundation.org>
+Date: Mon, 16 Dec 2013 12:39:40 -0800
+Message-ID: <52af650c.FP48J9Qoo2HfvdL6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45857 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752316Ab3LPUjf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 15:39:35 -0500
+	with ESMTP id S1752367Ab3LPUjl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 15:39:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sbkim73@samsung.com, sameo@linux.intel.com, m.szyprowski@samsung.com, lgirdwood@gmail.com, lee.jones@linaro.org, kyungmin.park@samsung.com, geert@linux-m68k.org, broonie@linaro.org, a.zummo@towertech.it, k.kozlowski@samsung.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, avagin@openvz.org, kirill.shutemov@linux.intel.com
 
-Subject: [merged] rtc-s5m-limit-endless-loop-waiting-for-register-update.patch removed from -mm tree
-To: k.kozlowski@samsung.com,a.zummo@towertech.it,broonie@linaro.org,geert@linux-m68k.org,kyungmin.park@samsung.com,lee.jones@linaro.org,lgirdwood@gmail.com,m.szyprowski@samsung.com,sameo@linux.intel.com,sbkim73@samsung.com,mm-commits@vger.kernel.org
+Subject: [merged] thp-move-preallocated-pte-page-table-on-move_huge_pmd.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,avagin@openvz.org,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 12:39:34 -0800
+Date: Mon, 16 Dec 2013 12:39:40 -0800
 
 
 The patch titled
-     Subject: rtc: s5m: limit endless loop waiting for register update
+     Subject: thp: move preallocated PTE page table on move_huge_pmd()
 has been removed from the -mm tree.  Its filename was
-     rtc-s5m-limit-endless-loop-waiting-for-register-update.patch
+     thp-move-preallocated-pte-page-table-on-move_huge_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: rtc: s5m: limit endless loop waiting for register update
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: move preallocated PTE page table on move_huge_pmd()
 
-After setting alarm or time the driver is waiting for UDR register to be
-cleared indicating that registers data have been transferred.
+Andrey Wagin reported crash on VM_BUG_ON() in pgtable_pmd_page_dtor() with
+fallowing backtrace:
 
-Limit the endless loop to only 5 retries.
+  [<ffffffff8119427f>] free_pgd_range+0x2bf/0x410
+  [<ffffffff8119449e>] free_pgtables+0xce/0x120
+  [<ffffffff8119b900>] unmap_region+0xe0/0x120
+  [<ffffffff811a0036>] ? move_page_tables+0x526/0x6b0
+  [<ffffffff8119d6a9>] do_munmap+0x249/0x360
+  [<ffffffff811a0304>] move_vma+0x144/0x270
+  [<ffffffff811a07e9>] SyS_mremap+0x3b9/0x510
+  [<ffffffff8172d512>] system_call_fastpath+0x16/0x1b
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Reviewed-by: Mark Brown <broonie@linaro.org>
-Acked-by: Sangbeom Kim <sbkim73@samsung.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
+The crash can be reproduce with this test case:
+
+  #define _GNU_SOURCE
+  #include <sys/mman.h>
+  #include <stdio.h>
+  #include <unistd.h>
+
+  #define MB (1024 * 1024UL)
+  #define GB (1024 * MB)
+
+  int main(int argc, char **argv)
+  {
+	char *p;
+	int i;
+
+	p = mmap((void *) GB, 10 * MB, PROT_READ | PROT_WRITE,
+			MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+	for (i = 0; i < 10 * MB; i += 4096)
+		p[i] = 1;
+	mremap(p, 10 * MB, 10 * MB, MREMAP_FIXED | MREMAP_MAYMOVE, 2 * GB);
+	return 0;
+  }
+
+Due to split PMD lock, we now store preallocated PTE tables for THP pages
+per-PMD table.  It means we need to move them to other PMD table if huge
+PMD moved there.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Andrey Vagin <avagin@openvz.org>
+Tested-by: Andrey Vagin <avagin@openvz.org>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s5m.c |   37 +++++++++++++++++++++++++++++++------
- 1 file changed, 31 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-s5m.c~rtc-s5m-limit-endless-loop-waiting-for-register-update drivers/rtc/rtc-s5m.c
---- a/drivers/rtc/rtc-s5m.c~rtc-s5m-limit-endless-loop-waiting-for-register-update
-+++ a/drivers/rtc/rtc-s5m.c
-@@ -28,6 +28,16 @@
- #include <linux/mfd/samsung/irq.h>
- #include <linux/mfd/samsung/rtc.h>
- 
-+/*
-+ * Maximum number of retries for checking changes in UDR field
-+ * of SEC_RTC_UDR_CON register (to limit possible endless loop).
-+ *
-+ * After writing to RTC registers (setting time or alarm) read the UDR field
-+ * in SEC_RTC_UDR_CON register. UDR is auto-cleared when data have
-+ * been transferred.
-+ */
-+#define UDR_READ_RETRY_CNT	5
+diff -puN mm/huge_memory.c~thp-move-preallocated-pte-page-table-on-move_huge_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-move-preallocated-pte-page-table-on-move_huge_pmd
++++ a/mm/huge_memory.c
+@@ -1481,8 +1481,18 @@ int move_huge_pmd(struct vm_area_struct
+ 		pmd = pmdp_get_and_clear(mm, old_addr, old_pmd);
+ 		VM_BUG_ON(!pmd_none(*new_pmd));
+ 		set_pmd_at(mm, new_addr, new_pmd, pmd_mksoft_dirty(pmd));
+-		if (new_ptl != old_ptl)
++		if (new_ptl != old_ptl) {
++			pgtable_t pgtable;
 +
- struct s5m_rtc_info {
- 	struct device *dev;
- 	struct sec_pmic_dev *s5m87xx;
-@@ -84,6 +94,25 @@ static int s5m8767_tm_to_data(struct rtc
++			/*
++			 * Move preallocated PTE page table if new_pmd is on
++			 * different PMD page table.
++			 */
++			pgtable = pgtable_trans_huge_withdraw(mm, old_pmd);
++			pgtable_trans_huge_deposit(mm, new_pmd, pgtable);
++
+ 			spin_unlock(new_ptl);
++		}
+ 		spin_unlock(old_ptl);
  	}
- }
- 
-+/*
-+ * Read RTC_UDR_CON register and wait till UDR field is cleared.
-+ * This indicates that time/alarm update ended.
-+ */
-+static inline int s5m8767_wait_for_udr_update(struct s5m_rtc_info *info)
-+{
-+	int ret, retry = UDR_READ_RETRY_CNT;
-+	unsigned int data;
-+
-+	do {
-+		ret = regmap_read(info->regmap, SEC_RTC_UDR_CON, &data);
-+	} while (--retry && (data & RTC_UDR_MASK) && !ret);
-+
-+	if (!retry)
-+		dev_err(info->dev, "waiting for UDR update, reached max number of retries\n");
-+
-+	return ret;
-+}
-+
- static inline int s5m8767_rtc_set_time_reg(struct s5m_rtc_info *info)
- {
- 	int ret;
-@@ -104,9 +133,7 @@ static inline int s5m8767_rtc_set_time_r
- 		return ret;
- 	}
- 
--	do {
--		ret = regmap_read(info->regmap, SEC_RTC_UDR_CON, &data);
--	} while ((data & RTC_UDR_MASK) && !ret);
-+	ret = s5m8767_wait_for_udr_update(info);
- 
- 	return ret;
- }
-@@ -133,9 +160,7 @@ static inline int s5m8767_rtc_set_alarm_
- 		return ret;
- 	}
- 
--	do {
--		ret = regmap_read(info->regmap, SEC_RTC_UDR_CON, &data);
--	} while ((data & RTC_UDR_MASK) && !ret);
-+	ret = s5m8767_wait_for_udr_update(info);
- 
- 	return ret;
- }
+ out:
 _
 
-Patches currently in -mm which might be from k.kozlowski@samsung.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
+mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch
 linux-next.patch
 
