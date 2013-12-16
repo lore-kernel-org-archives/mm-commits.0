@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-rtc-fix-for-previous-rtc-fix.patch added to -mm tree
-Date: Mon, 16 Dec 2013 15:10:37 -0800
-Message-ID: <52af886d.TY/Gx38b1IC3NnUV%akpm@linux-foundation.org>
+Subject: + backlight-lcd-call-put_device-if-device_register-fails.patch
+ added to -mm tree
+Date: Mon, 16 Dec 2013 15:17:49 -0800
+Message-ID: <52af8a1d.9lps6d04rj+IG3DA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46499 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46588 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750995Ab3LPXKi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 18:10:38 -0500
+	with ESMTP id S1751991Ab3LPXRu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 18:17:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sbkim73@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com, broonie@linaro.org, sfr@canb.auug.org.au
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com, levex@linux.com
 
-Subject: + mfd-rtc-fix-for-previous-rtc-fix.patch added to -mm tree
-To: sfr@canb.auug.org.au,broonie@linaro.org,k.kozlowski@samsung.com,kyungmin.park@samsung.com,sbkim73@samsung.com
+Subject: + backlight-lcd-call-put_device-if-device_register-fails.patch added to -mm tree
+To: levex@linux.com,jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 15:10:37 -0800
+Date: Mon, 16 Dec 2013 15:17:49 -0800
 
 
 The patch titled
-     Subject: mfd/rtc: fix for previous RTC fix
+     Subject: drivers/video/backlight/lcd.c: call put_device if device_register fails
 has been added to the -mm tree.  Its filename is
-     mfd-rtc-fix-for-previous-rtc-fix.patch
+     backlight-lcd-call-put_device-if-device_register-fails.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mfd-rtc-fix-for-previous-rtc-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lcd-call-put_device-if-device_register-fails.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mfd-rtc-fix-for-previous-rtc-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lcd-call-put_device-if-device_register-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,41 +44,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mfd/rtc: fix for previous RTC fix
+From: Levente Kurusa <levex@linux.com>
+Subject: drivers/video/backlight/lcd.c: call put_device if device_register fails
 
-This updates drivers/regulator/s2mps11.c for the changes in commit
-3e1e4a5f3a32 ("mfd/rtc: s5m: fix register updating by adding regmap
-for RTC").
+Currently we kfree the container of the device which failed to register. 
+This is wrong as the last reference is not given up with a put_device
+call.  Also, now that we have put_device() callen, we no longer need the
+kfree as the new_ld->dev.release function will take care of kfreeing the
+associated memory.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mark Brown <broonie@linaro.org>
-Cc: Sangbeom Kim <sbkim73@samsung.com>
+Signed-off-by: Levente Kurusa <levex@linux.com>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/s2mps11.c |    2 +-
+ drivers/video/backlight/lcd.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/regulator/s2mps11.c~mfd-rtc-fix-for-previous-rtc-fix drivers/regulator/s2mps11.c
---- a/drivers/regulator/s2mps11.c~mfd-rtc-fix-for-previous-rtc-fix
-+++ a/drivers/regulator/s2mps11.c
-@@ -438,7 +438,7 @@ common_reg:
- 	platform_set_drvdata(pdev, s2mps11);
+diff -puN drivers/video/backlight/lcd.c~backlight-lcd-call-put_device-if-device_register-fails drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~backlight-lcd-call-put_device-if-device_register-fails
++++ a/drivers/video/backlight/lcd.c
+@@ -228,7 +228,7 @@ struct lcd_device *lcd_device_register(c
  
- 	config.dev = &pdev->dev;
--	config.regmap = iodev->regmap;
-+	config.regmap = iodev->regmap_pmic;
- 	config.driver_data = s2mps11;
- 	for (i = 0; i < S2MPS11_REGULATOR_MAX; i++) {
- 		if (!reg_np) {
+ 	rc = device_register(&new_ld->dev);
+ 	if (rc) {
+-		kfree(new_ld);
++		put_device(&new_ld->dev);
+ 		return ERR_PTR(rc);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from levex@linux.com are
 
-mfd-rtc-fix-for-previous-rtc-fix.patch
+kstrtox-remove-redundant-cleanup.patch
+lib-cmdlinec-declare-exported-symbols-immediately.patch
 linux-next.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+backlight-lcd-call-put_device-if-device_register-fails.patch
+net-phy-call-put_device-on-device_register-failure.patch
+eisa-call-put_device-if-device_register-fails.patch
+w1-call-put_device-if-device_register-fails.patch
 
