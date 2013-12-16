@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-migrate-add-comment-about-permanent-failure-path.patch added to -mm tree
-Date: Mon, 16 Dec 2013 11:55:53 -0800
-Message-ID: <52af5ac9.Is+H4BrDZ2xIjuUt%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch added to -mm tree
+Date: Mon, 16 Dec 2013 11:55:51 -0800
+Message-ID: <52af5ac7.bczkYppZ/DucLPB8%akpm__36683.5809116766$1387223770$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45320 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751963Ab3LPTzy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:54 -0500
+	with ESMTP id S1751993Ab3LPTzw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, riel@redhat.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, cl@linux.com, aquini@redhat.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, stable@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
 
-Subject: + mm-migrate-add-comment-about-permanent-failure-path.patch added to -mm tree
-To: n-horiguchi@ah.jp.nec.com,aquini@redhat.com,cl@linux.com,iamjoonsoo.kim@lge.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,riel@redhat.com,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com
+Subject: + mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch added to -mm tree
+To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,stable@vger.kernel.org,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 11:55:53 -0800
+Date: Mon, 16 Dec 2013 11:55:51 -0800
 
 
 The patch titled
-     Subject: mm/migrate: add comment about permanent failure path
+     Subject: mm/compaction: respect ignore_skip_hint in update_pageblock_skip
 has been added to the -mm tree.  Its filename is
-     mm-migrate-add-comment-about-permanent-failure-path.patch
+     mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-add-comment-about-permanent-failure-path.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-add-comment-about-permanent-failure-path.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,56 +44,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/migrate: add comment about permanent failure path
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/compaction: respect ignore_skip_hint in update_pageblock_skip
 
-Let's add a comment about where the failed page goes to, which makes code
-more readable.
+update_pageblock_skip() only fits to compaction which tries to isolate by
+pageblock unit.  If isolate_migratepages_range() is called by CMA, it try
+to isolate regardless of pageblock unit and it don't reference
+get_pageblock_skip() by ignore_skip_hint.  We should also respect it on
+update_pageblock_skip() to prevent from setting the wrong information.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Rafael Aquini <aquini@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: <stable@vger.kernel.org>	[3.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/compaction.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/migrate.c~mm-migrate-add-comment-about-permanent-failure-path mm/migrate.c
---- a/mm/migrate.c~mm-migrate-add-comment-about-permanent-failure-path
-+++ a/mm/migrate.c
-@@ -1124,7 +1124,12 @@ int migrate_pages(struct list_head *from
- 				nr_succeeded++;
- 				break;
- 			default:
--				/* Permanent failure */
-+				/*
-+				 * Permanent failure (-EBUSY, -ENOSYS, etc.):
-+				 * unlike -EAGAIN case, the failed page is
-+				 * removed from migration page list and not
-+				 * retried in the next outer loop.
-+				 */
- 				nr_failed++;
- 				break;
- 			}
+diff -puN mm/compaction.c~mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip
++++ a/mm/compaction.c
+@@ -134,6 +134,10 @@ static void update_pageblock_skip(struct
+ 			bool migrate_scanner)
+ {
+ 	struct zone *zone = cc->zone;
++
++	if (cc->ignore_skip_hint)
++		return;
++
+ 	if (!page)
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-include-linux-hugetlbh-make-isolate_huge_page-an-inline.patch
-thp-move-preallocated-pte-page-table-on-move_huge_pmd.patch
 mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
 mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
-mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch
-mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
 mm-rmap-recompute-pgoff-for-huge-page.patch
 mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
 mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
@@ -102,13 +100,14 @@ mm-rmap-use-rmap_walk-in-try_to_unmap.patch
 mm-rmap-use-rmap_walk-in-try_to_munlock.patch
 mm-rmap-use-rmap_walk-in-page_referenced.patch
 mm-rmap-use-rmap_walk-in-page_mkclean.patch
-mm-hwpoison-add-to-hwpoison_inject.patch
-lib-show_memc-show-num_poisoned_pages-when-oom.patch
+mm-compaction-trace-compaction-begin-and-end.patch
+mm-compaction-encapsulate-defer-reset-logic.patch
+mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
+mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
+mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
 mm-migrate-add-comment-about-permanent-failure-path.patch
 mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
 mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
 mm-migrate-remove-unused-function-fail_migrate_page.patch
-linux-next.patch
-mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
-mm-migratec-fix-setting-of-cpupid-on-page-migration-twice-against-normal-page.patch
 
