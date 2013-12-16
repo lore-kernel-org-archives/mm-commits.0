@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch added to -mm tree
-Date: Mon, 16 Dec 2013 11:55:51 -0800
-Message-ID: <52af5ac7.bczkYppZ/DucLPB8%akpm__36683.5809116766$1387223770$gmane$org@linux-foundation.org>
+ mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch added to -mm tree
+Date: Mon, 16 Dec 2013 11:55:53 -0800
+Message-ID: <52af5ac9.4vTDR6fRSqUcKndG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45320 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45329 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993Ab3LPTzw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:52 -0500
+	with ESMTP id S1752113Ab3LPTzy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 14:55:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, stable@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
 
-Subject: + mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch added to -mm tree
-To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,stable@vger.kernel.org,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com
+Subject: + mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch added to -mm tree
+To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 11:55:51 -0800
+Date: Mon, 16 Dec 2013 11:55:53 -0800
 
 
 The patch titled
-     Subject: mm/compaction: respect ignore_skip_hint in update_pageblock_skip
+     Subject: mm/migrate: remove putback_lru_pages, fix comment on putback_movable_pages
 has been added to the -mm tree.  Its filename is
-     mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
+     mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,46 +45,120 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction: respect ignore_skip_hint in update_pageblock_skip
+Subject: mm/migrate: remove putback_lru_pages, fix comment on putback_movable_pages
 
-update_pageblock_skip() only fits to compaction which tries to isolate by
-pageblock unit.  If isolate_migratepages_range() is called by CMA, it try
-to isolate regardless of pageblock unit and it don't reference
-get_pageblock_skip() by ignore_skip_hint.  We should also respect it on
-update_pageblock_skip() to prevent from setting the wrong information.
+Some part of putback_lru_pages() and putback_movable_pages() is
+duplicated, so it could confuse us what we should use.  We can remove
+putback_lru_pages() since it is not really needed now.  This makes us
+undestand and maintain the code more easily.
+
+And comment on putback_movable_pages() is stale now, so fix it.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Rafael Aquini <aquini@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: <stable@vger.kernel.org>	[3.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/migrate.h |    2 --
+ mm/memory-failure.c     |    8 +++++++-
+ mm/migrate.c            |   29 +++++++++--------------------
+ 3 files changed, 16 insertions(+), 23 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip mm/compaction.c
---- a/mm/compaction.c~mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip
-+++ a/mm/compaction.c
-@@ -134,6 +134,10 @@ static void update_pageblock_skip(struct
- 			bool migrate_scanner)
- {
- 	struct zone *zone = cc->zone;
-+
-+	if (cc->ignore_skip_hint)
-+		return;
-+
- 	if (!page)
- 		return;
+diff -puN include/linux/migrate.h~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages
++++ a/include/linux/migrate.h
+@@ -35,7 +35,6 @@ enum migrate_reason {
  
+ #ifdef CONFIG_MIGRATION
+ 
+-extern void putback_lru_pages(struct list_head *l);
+ extern void putback_movable_pages(struct list_head *l);
+ extern int migrate_page(struct address_space *,
+ 			struct page *, struct page *, enum migrate_mode);
+@@ -58,7 +57,6 @@ extern int migrate_page_move_mapping(str
+ 		struct buffer_head *head, enum migrate_mode mode);
+ #else
+ 
+-static inline void putback_lru_pages(struct list_head *l) {}
+ static inline void putback_movable_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+ 		unsigned long private, enum migrate_mode mode, int reason)
+diff -puN mm/memory-failure.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages
++++ a/mm/memory-failure.c
+@@ -1575,7 +1575,13 @@ static int __soft_offline_page(struct pa
+ 		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL,
+ 					MIGRATE_SYNC, MR_MEMORY_FAILURE);
+ 		if (ret) {
+-			putback_lru_pages(&pagelist);
++			if (!list_empty(&pagelist)) {
++				list_del(&page->lru);
++				dec_zone_page_state(page, NR_ISOLATED_ANON +
++						page_is_file_cache(page));
++				putback_lru_page(page);
++			}
++
+ 			pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
+ 				pfn, ret, page->flags);
+ 			if (ret > 0)
+diff -puN mm/migrate.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages
++++ a/mm/migrate.c
+@@ -72,28 +72,12 @@ int migrate_prep_local(void)
+ }
+ 
+ /*
+- * Add isolated pages on the list back to the LRU under page lock
+- * to avoid leaking evictable pages back onto unevictable list.
+- */
+-void putback_lru_pages(struct list_head *l)
+-{
+-	struct page *page;
+-	struct page *page2;
+-
+-	list_for_each_entry_safe(page, page2, l, lru) {
+-		list_del(&page->lru);
+-		dec_zone_page_state(page, NR_ISOLATED_ANON +
+-				page_is_file_cache(page));
+-			putback_lru_page(page);
+-	}
+-}
+-
+-/*
+  * Put previously isolated pages back onto the appropriate lists
+  * from where they were once taken off for compaction/migration.
+  *
+- * This function shall be used instead of putback_lru_pages(),
+- * whenever the isolated pageset has been built by isolate_migratepages_range()
++ * This function shall be used whenever the isolated pageset has been
++ * built from lru, balloon, hugetlbfs page. See isolate_migratepages_range()
++ * and isolate_huge_page().
+  */
+ void putback_movable_pages(struct list_head *l)
+ {
+@@ -1724,7 +1708,12 @@ int migrate_misplaced_page(struct page *
+ 	nr_remaining = migrate_pages(&migratepages, alloc_misplaced_dst_page,
+ 				     node, MIGRATE_ASYNC, MR_NUMA_MISPLACED);
+ 	if (nr_remaining) {
+-		putback_lru_pages(&migratepages);
++		if (!list_empty(&migratepages)) {
++			list_del(&page->lru);
++			dec_zone_page_state(page, NR_ISOLATED_ANON +
++					page_is_file_cache(page));
++			putback_lru_page(page);
++		}
+ 		isolated = 0;
+ 	} else
+ 		count_vm_numa_event(NUMA_PAGE_MIGRATE);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
