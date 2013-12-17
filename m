@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch added to
- -mm tree
-Date: Mon, 16 Dec 2013 15:43:57 -0800
-Message-ID: <52af903d.TzS+J7MzkJnCJur5%akpm@linux-foundation.org>
+Subject: + mm-print-more-details-for-bad_page.patch added to -mm tree
+Date: Mon, 16 Dec 2013 16:03:08 -0800
+Message-ID: <52af94bc.f1bZ3UuJodNLOklt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46855 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46965 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901Ab3LPXn6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 18:43:58 -0500
+	with ESMTP id S1751093Ab3LQADJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 19:03:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jmarchan@redhat.com, dave.hansen@linux.intel.com, alan@lxorguk.ukuu.org.uk, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, dave.hansen@linux.intel.com, cl@linux.com, andi@firstfloor.org, dave@sr71.net
 
-Subject: + mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch added to -mm tree
-To: akpm@linux-foundation.org,alan@lxorguk.ukuu.org.uk,dave.hansen@linux.intel.com,jmarchan@redhat.com
+Subject: + mm-print-more-details-for-bad_page.patch added to -mm tree
+To: dave@sr71.net,andi@firstfloor.org,cl@linux.com,dave.hansen@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 15:43:57 -0800
+Date: Mon, 16 Dec 2013 16:03:08 -0800
 
 
 The patch titled
-     Subject: mm-add-overcommit_kbytes-sysctl-variable-fix-2
+     Subject: mm: print more details for bad_page()
 has been added to the -mm tree.  Its filename is
-     mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
+     mm-print-more-details-for-bad_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-print-more-details-for-bad_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-print-more-details-for-bad_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,124 +43,227 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-overcommit_kbytes-sysctl-variable-fix-2
+From: Dave Hansen <dave@sr71.net>
+Subject: mm: print more details for bad_page()
 
-fix nommu build
+bad_page() is cool in that it prints out a bunch of data about the page. 
+But, I can never remember which page flags are good and which are bad, or
+whether ->index or ->mapping is required to be NULL.
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
+This patch allows bad/dump_page() callers to specify a string about why
+they are dumping the page and adds explanation strings to a number of
+places.  It also adds a 'bad_flags' argument to bad_page(), which it then
+dumps out separately from the flags which are actually set.
+
+This way, the messages will show specifically why the page was bad,
+*specifically* which flags it is complaining about, if it was a page flag
+combination which was the problem.
+
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   24 ------------------------
- mm/util.c |   24 ++++++++++++++++++++++++
- 2 files changed, 24 insertions(+), 24 deletions(-)
+ include/linux/mm.h      |    4 +-
+ mm/balloon_compaction.c |    4 +-
+ mm/memory.c             |    2 -
+ mm/memory_hotplug.c     |    2 -
+ mm/page_alloc.c         |   73 ++++++++++++++++++++++++++++----------
+ 5 files changed, 62 insertions(+), 23 deletions(-)
 
-diff -puN mm/mmap.c~mm-add-overcommit_kbytes-sysctl-variable-fix-2 mm/mmap.c
---- a/mm/mmap.c~mm-add-overcommit_kbytes-sysctl-variable-fix-2
-+++ a/mm/mmap.c
-@@ -96,30 +96,6 @@ unsigned long sysctl_admin_reserve_kbyte
-  */
- struct percpu_counter vm_committed_as ____cacheline_aligned_in_smp;
+diff -puN include/linux/mm.h~mm-print-more-details-for-bad_page include/linux/mm.h
+--- a/include/linux/mm.h~mm-print-more-details-for-bad_page
++++ a/include/linux/mm.h
+@@ -2023,7 +2023,9 @@ extern void shake_page(struct page *p, i
+ extern atomic_long_t num_poisoned_pages;
+ extern int soft_offline_page(struct page *page, int flags);
  
--int overcommit_ratio_handler(struct ctl_table *table, int write,
--			     void __user *buffer, size_t *lenp,
--			     loff_t *ppos)
--{
--	int ret;
--
--	ret = proc_dointvec(table, write, buffer, lenp, ppos);
--	if (ret == 0 && write)
--		sysctl_overcommit_kbytes = 0;
--	return ret;
--}
--
--int overcommit_kbytes_handler(struct ctl_table *table, int write,
--			     void __user *buffer, size_t *lenp,
--			     loff_t *ppos)
--{
--	int ret;
--
--	ret = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
--	if (ret == 0 && write)
--		sysctl_overcommit_ratio = 0;
--	return ret;
--}
--
- /*
-  * The global memory commitment made in the system can be a metric
-  * that can be used to drive ballooning decisions when Linux is hosted
-diff -puN mm/util.c~mm-add-overcommit_kbytes-sysctl-variable-fix-2 mm/util.c
---- a/mm/util.c~mm-add-overcommit_kbytes-sysctl-variable-fix-2
-+++ a/mm/util.c
-@@ -401,6 +401,30 @@ struct address_space *page_mapping(struc
- 	return mapping;
+-extern void dump_page(struct page *page);
++extern void dump_page(struct page *page, char *reason);
++extern void dump_page_badflags(struct page *page, char *reason,
++			       unsigned long badflags);
+ 
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
+ extern void clear_huge_page(struct page *page,
+diff -puN mm/balloon_compaction.c~mm-print-more-details-for-bad_page mm/balloon_compaction.c
+--- a/mm/balloon_compaction.c~mm-print-more-details-for-bad_page
++++ a/mm/balloon_compaction.c
+@@ -267,7 +267,7 @@ void balloon_page_putback(struct page *p
+ 		put_page(page);
+ 	} else {
+ 		WARN_ON(1);
+-		dump_page(page);
++		dump_page(page, "not movable balloon page");
+ 	}
+ 	unlock_page(page);
+ }
+@@ -287,7 +287,7 @@ int balloon_page_migrate(struct page *ne
+ 	BUG_ON(!trylock_page(newpage));
+ 
+ 	if (WARN_ON(!__is_movable_balloon_page(page))) {
+-		dump_page(page);
++		dump_page(page, "not movable balloon page");
+ 		unlock_page(newpage);
+ 		return rc;
+ 	}
+diff -puN mm/memory.c~mm-print-more-details-for-bad_page mm/memory.c
+--- a/mm/memory.c~mm-print-more-details-for-bad_page
++++ a/mm/memory.c
+@@ -670,7 +670,7 @@ static void print_bad_pte(struct vm_area
+ 		current->comm,
+ 		(long long)pte_val(pte), (long long)pmd_val(*pmd));
+ 	if (page)
+-		dump_page(page);
++		dump_page(page, "bad pte");
+ 	printk(KERN_ALERT
+ 		"addr:%p vm_flags:%08lx anon_vma:%p mapping:%p index:%lx\n",
+ 		(void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
+diff -puN mm/memory_hotplug.c~mm-print-more-details-for-bad_page mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-print-more-details-for-bad_page
++++ a/mm/memory_hotplug.c
+@@ -1310,7 +1310,7 @@ do_migrate_range(unsigned long start_pfn
+ #ifdef CONFIG_DEBUG_VM
+ 			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
+ 			       pfn);
+-			dump_page(page);
++			dump_page(page, "failed to remove from LRU");
+ #endif
+ 			put_page(page);
+ 			/* Because we don't have big zone->lock. we should
+diff -puN mm/page_alloc.c~mm-print-more-details-for-bad_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-print-more-details-for-bad_page
++++ a/mm/page_alloc.c
+@@ -295,7 +295,7 @@ static inline int bad_range(struct zone
+ }
+ #endif
+ 
+-static void bad_page(struct page *page)
++static void bad_page(struct page *page, char *reason, unsigned long bad_flags)
+ {
+ 	static unsigned long resume;
+ 	static unsigned long nr_shown;
+@@ -329,7 +329,7 @@ static void bad_page(struct page *page)
+ 
+ 	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
+ 		current->comm, page_to_pfn(page));
+-	dump_page(page);
++	dump_page_badflags(page, reason, bad_flags);
+ 
+ 	print_modules();
+ 	dump_stack();
+@@ -383,7 +383,7 @@ static int destroy_compound_page(struct
+ 	int bad = 0;
+ 
+ 	if (unlikely(compound_order(page) != order)) {
+-		bad_page(page);
++		bad_page(page, "wrong compound order", 0);
+ 		bad++;
+ 	}
+ 
+@@ -392,8 +392,11 @@ static int destroy_compound_page(struct
+ 	for (i = 1; i < nr_pages; i++) {
+ 		struct page *p = page + i;
+ 
+-		if (unlikely(!PageTail(p) || (p->first_page != page))) {
+-			bad_page(page);
++		if (unlikely(!PageTail(p))) {
++			bad_page(page, "PageTail not set", 0);
++			bad++;
++		} else if (unlikely(p->first_page != page)) {
++			bad_page(page, "first_page not consistent", 0);
+ 			bad++;
+ 		}
+ 		__ClearPageTail(p);
+@@ -618,12 +621,23 @@ out:
+ 
+ static inline int free_pages_check(struct page *page)
+ {
+-	if (unlikely(page_mapcount(page) |
+-		(page->mapping != NULL)  |
+-		(atomic_read(&page->_count) != 0) |
+-		(page->flags & PAGE_FLAGS_CHECK_AT_FREE) |
+-		(mem_cgroup_bad_page_check(page)))) {
+-		bad_page(page);
++	char *bad_reason = NULL;
++	unsigned long bad_flags = 0;
++
++	if (unlikely(page_mapcount(page)))
++		bad_reason = "nonzero mapcount";
++	if (unlikely(page->mapping != NULL))
++		bad_reason = "non-NULL mapping";
++	if (unlikely(atomic_read(&page->_count) != 0))
++		bad_reason = "nonzero _count";
++	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_FREE)) {
++		bad_reason = "PAGE_FLAGS_CHECK_AT_FREE flag(s) set";
++		bad_flags = PAGE_FLAGS_CHECK_AT_FREE;
++	}
++	if (unlikely(mem_cgroup_bad_page_check(page)))
++		bad_reason = "cgroup check failed";
++	if (unlikely(bad_reason)) {
++		bad_page(page, bad_reason, bad_flags);
+ 		return 1;
+ 	}
+ 	page_cpupid_reset_last(page);
+@@ -843,12 +857,23 @@ static inline void expand(struct zone *z
+  */
+ static inline int check_new_page(struct page *page)
+ {
+-	if (unlikely(page_mapcount(page) |
+-		(page->mapping != NULL)  |
+-		(atomic_read(&page->_count) != 0)  |
+-		(page->flags & PAGE_FLAGS_CHECK_AT_PREP) |
+-		(mem_cgroup_bad_page_check(page)))) {
+-		bad_page(page);
++	char *bad_reason = NULL;
++	unsigned long bad_flags = 0;
++
++	if (unlikely(page_mapcount(page)))
++		bad_reason = "nonzero mapcount";
++	if (unlikely(page->mapping != NULL))
++		bad_reason = "non-NULL mapping";
++	if (unlikely(atomic_read(&page->_count) != 0))
++		bad_reason = "nonzero _count";
++	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_PREP)) {
++		bad_reason = "PAGE_FLAGS_CHECK_AT_PREP flag set";
++		bad_flags = PAGE_FLAGS_CHECK_AT_PREP;
++	}
++	if (unlikely(mem_cgroup_bad_page_check(page)))
++		bad_reason = "cgroup check failed";
++	if (unlikely(bad_reason)) {
++		bad_page(page, bad_reason, bad_flags);
+ 		return 1;
+ 	}
+ 	return 0;
+@@ -6498,12 +6523,24 @@ static void dump_page_flags(unsigned lon
+ 	printk(")\n");
  }
  
-+int overcommit_ratio_handler(struct ctl_table *table, int write,
-+			     void __user *buffer, size_t *lenp,
-+			     loff_t *ppos)
-+{
-+	int ret;
+-void dump_page(struct page *page)
++void dump_page_badflags(struct page *page, char *reason, unsigned long badflags)
+ {
+ 	printk(KERN_ALERT
+ 	       "page:%p count:%d mapcount:%d mapping:%p index:%#lx\n",
+ 		page, atomic_read(&page->_count), page_mapcount(page),
+ 		page->mapping, page->index);
+ 	dump_page_flags(page->flags);
++	if (reason)
++		printk(KERN_ALERT "page dumped because: %s\n", reason);
++	if (page->flags & badflags) {
++		printk(KERN_ALERT "bad because of flags:\n");
++		dump_page_flags(page->flags & badflags);
++	}
+ 	mem_cgroup_print_bad_page(page);
+ }
 +
-+	ret = proc_dointvec(table, write, buffer, lenp, ppos);
-+	if (ret == 0 && write)
-+		sysctl_overcommit_kbytes = 0;
-+	return ret;
++void dump_page(struct page *page, char *reason)
++{
++	dump_page_badflags(page, reason, 0);
 +}
 +
-+int overcommit_kbytes_handler(struct ctl_table *table, int write,
-+			     void __user *buffer, size_t *lenp,
-+			     loff_t *ppos)
-+{
-+	int ret;
-+
-+	ret = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
-+	if (ret == 0 && write)
-+		sysctl_overcommit_ratio = 0;
-+	return ret;
-+}
-+
- /*
-  * Committed memory limit enforced when OVERCOMMIT_NEVER policy is used
-  */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dave@sr71.net are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-mm-show_mem-remove-show_mem_filter_page_count-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
-sched-add-tracepoints-related-to-numa-task-migration-fix.patch
-mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
-linux-next.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-print-more-details-for-bad_page.patch
 
