@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-remove-hfsplus_file_lookup.patch added to -mm tree
-Date: Mon, 16 Dec 2013 16:17:21 -0800
-Message-ID: <52af9811.cYRZgkNg2C7xP1dJ%akpm@linux-foundation.org>
+Subject: + mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
+ added to -mm tree
+Date: Mon, 16 Dec 2013 16:34:36 -0800
+Message-ID: <52af9c1c.dFF29ZU+7z2wj/H8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47352 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47466 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665Ab3LQARW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 19:17:22 -0500
+	with ESMTP id S1751095Ab3LQAeh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 19:34:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hch@lst.de, sougata@tuxera.com
+To: mm-commits@vger.kernel.org, walken@google.com, stable@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, mgorman@suse.de, hughd@google.com, aarcange@redhat.com, vbabka@suse.cz
 
-Subject: + hfsplus-remove-hfsplus_file_lookup.patch added to -mm tree
-To: sougata@tuxera.com,hch@lst.de
+Subject: + mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch added to -mm tree
+To: vbabka@suse.cz,aarcange@redhat.com,hughd@google.com,mgorman@suse.de,riel@redhat.com,sasha.levin@oracle.com,stable@vger.kernel.org,walken@google.com
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 16:17:21 -0800
+Date: Mon, 16 Dec 2013 16:34:36 -0800
 
 
 The patch titled
-     From: Sougata Santra <sougata@tuxera.com>
+     Subject: mm: munlock: fix a bug where THP tail page is encountered
 has been added to the -mm tree.  Its filename is
-     hfsplus-remove-hfsplus_file_lookup.patch
+     mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-remove-hfsplus_file_lookup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-remove-hfsplus_file_lookup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,135 +44,125 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sougata Santra <sougata@tuxera.com>
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: munlock: fix a bug where THP tail page is encountered
 
-HFS+ resource fork lookup breaks opendir() library function.  Since
-opendir first calls open() with O_DIRECTORY flag set.  O_DIRECTORY means
-"refuse to open if not a directory".  The open system call in the kernel
-does a check for inode->i_op->lookup and returns -ENOTDIR.  So if
-hfsplus_file_lookup is set it allows opendir() for plain files.
+Since ff6a6da60 ("mm: accelerate munlock() treatment of THP pages")
+munlock skips tail pages of a munlocked THP page.  However, when the head
+page already has PageMlocked unset, it will not skip the tail pages.
 
-Also resource fork lookup in HFS+ does not work.  Since it is never
-invoked after VFS permission checking.  It will always return with
--EACCES.
+Commit 7225522bb ("mm: munlock: batch non-THP page isolation and
+munlock+putback using pagevec") has added a PageTransHuge() check which
+contains VM_BUG_ON(PageTail(page)).  Sasha Levin found this triggered
+using trinity, on the first tail page of a THP page without PageMlocked
+flag.
 
+This patch fixes the issue by skipping tail pages also in the case when
+PageMlocked flag is unset.  There is still a possibility of race with THP
+page split between clearing PageMlocked and determining how many pages to
+skip.  The race might result in former tail pages not being skipped, which
+is however no longer a bug, as during the skip the PageTail flags are
+cleared.
 
+However this race also affects correctness of NR_MLOCK accounting, which
+is to be fixed in a separate patch.
 
-
-When we call opendir() on a file, it does not return NULL.  opendir()
-library call is based on open with O_DIRECTORY flag passed and then
-layered on top of getdents() system call.  O_DIRECTORY means "refuse to
-open if not a directory".
-
-The open() system call in the kernel does a check for: do_sys_open()
--->..--> can_lookup() i.e it only checks inode->i_op->lookup and returns
-ENOTDIR if this function pointer is not set.
-
-In OSX, we can open "file/rsrc" to get the resource fork of "file".  This
-behavior is emulated inside hfsplus on Linux, which means that to some
-degree every file acts like a directory.  That is the reason lookup()
-inode operations is supported for files, and it is possible to do a lookup
-on this specific name.  As a result of this open succeeds without
-returning ENOTDIR for HFS+
-
-Please see the LKML discussion thread on this issue:
-http://marc.info/?l=linux-fsdevel&m=122823343730412&w=2
-
-I tried to test file/rsrc lookup in HFS+ driver and the feature does not
-work.  From OSX:
-
-$ touch test
-$ echo "1234" > test/..namedfork/rsrc
-$ ls -l test..namedfork/rsrc
---rw-r--r-- 1 tuxera staff 5 10 dec 12:59 test/..namedfork/rsrc
-
-[sougata@ultrabook tmp]$ id
-uid=1000(sougata) gid=1000(sougata) groups=1000(sougata),5(tty),18(dialout),1001(vboxusers)
-
-[sougata@ultrabook tmp]$ mount
-/dev/sdb1 on /mnt/tmp type hfsplus (rw,relatime,umask=0,uid=1000,gid=1000,nls=utf8)
-
-[sougata@ultrabook tmp]$ ls -l test/rsrc
-ls: cannot access test/rsrc: Permission denied
-
-According to this LKML thread it is expected behavior.
-
-http://marc.info/?t=121139033800008&r=1&w=4
-
-I guess now that permission checking happens in vfs generic_permission() ?
- So it turns out that even though the lookup() inode_operation exists for
-HFS+ files.  It cannot really get invoked ?.  So if we can disable this
-feature to make opendir() work for HFS+.
-
-Signed-off-by: Sougata Santra <sougata@tuxera.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/inode.c |   59 -------------------------------------------
- 1 file changed, 59 deletions(-)
+ mm/mlock.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN fs/hfsplus/inode.c~hfsplus-remove-hfsplus_file_lookup fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~hfsplus-remove-hfsplus_file_lookup
-+++ a/fs/hfsplus/inode.c
-@@ -178,64 +178,6 @@ const struct dentry_operations hfsplus_d
- 	.d_compare    = hfsplus_compare_dentry,
- };
+diff -puN mm/mlock.c~mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered
++++ a/mm/mlock.c
+@@ -148,21 +148,30 @@ static void __munlock_isolation_failed(s
+  */
+ unsigned int munlock_vma_page(struct page *page)
+ {
+-	unsigned int page_mask = 0;
++	unsigned int nr_pages;
  
--static struct dentry *hfsplus_file_lookup(struct inode *dir,
--		struct dentry *dentry, unsigned int flags)
--{
--	struct hfs_find_data fd;
--	struct super_block *sb = dir->i_sb;
--	struct inode *inode = NULL;
--	struct hfsplus_inode_info *hip;
--	int err;
--
--	if (HFSPLUS_IS_RSRC(dir) || strcmp(dentry->d_name.name, "rsrc"))
--		goto out;
--
--	inode = HFSPLUS_I(dir)->rsrc_inode;
--	if (inode)
--		goto out;
--
--	inode = new_inode(sb);
--	if (!inode)
--		return ERR_PTR(-ENOMEM);
--
--	hip = HFSPLUS_I(inode);
--	inode->i_ino = dir->i_ino;
--	INIT_LIST_HEAD(&hip->open_dir_list);
--	mutex_init(&hip->extents_lock);
--	hip->extent_state = 0;
--	hip->flags = 0;
--	hip->userflags = 0;
--	set_bit(HFSPLUS_I_RSRC, &hip->flags);
--
--	err = hfs_find_init(HFSPLUS_SB(sb)->cat_tree, &fd);
--	if (!err) {
--		err = hfsplus_find_cat(sb, dir->i_ino, &fd);
--		if (!err)
--			err = hfsplus_cat_read_inode(inode, &fd);
--		hfs_find_exit(&fd);
--	}
--	if (err) {
--		iput(inode);
--		return ERR_PTR(err);
--	}
--	hip->rsrc_inode = dir;
--	HFSPLUS_I(dir)->rsrc_inode = inode;
--	igrab(dir);
--
--	/*
--	 * __mark_inode_dirty expects inodes to be hashed.  Since we don't
--	 * want resource fork inodes in the regular inode space, we make them
--	 * appear hashed, but do not put on any lists.  hlist_del()
--	 * will work fine and require no locking.
--	 */
--	hlist_add_fake(&inode->i_hash);
--
--	mark_inode_dirty(inode);
--out:
--	d_add(dentry, inode);
--	return NULL;
--}
+ 	BUG_ON(!PageLocked(page));
+ 
+ 	if (TestClearPageMlocked(page)) {
+-		unsigned int nr_pages = hpage_nr_pages(page);
++		nr_pages = hpage_nr_pages(page);
+ 		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
+-		page_mask = nr_pages - 1;
+ 		if (!isolate_lru_page(page))
+ 			__munlock_isolated_page(page);
+ 		else
+ 			__munlock_isolation_failed(page);
++	} else {
++		nr_pages = hpage_nr_pages(page);
+ 	}
+ 
+-	return page_mask;
++	/*
++	 * Regardless of the original PageMlocked flag, we determine nr_pages
++	 * after touching the flag. This leaves a possible race with a THP page
++	 * split, such that a whole THP page was munlocked, but nr_pages == 1.
++	 * Returning a smaller mask due to that is OK, the worst that can
++	 * happen is subsequent useless scanning of the former tail pages.
++	 * The NR_MLOCK accounting can however become broken.
++	 */
++	return nr_pages - 1;
+ }
+ 
+ /**
+@@ -440,7 +449,8 @@ void munlock_vma_pages_range(struct vm_a
+ 
+ 	while (start < end) {
+ 		struct page *page = NULL;
+-		unsigned int page_mask, page_increm;
++		unsigned int page_mask;
++		unsigned long page_increm;
+ 		struct pagevec pvec;
+ 		struct zone *zone;
+ 		int zoneid;
+@@ -490,7 +500,9 @@ void munlock_vma_pages_range(struct vm_a
+ 				goto next;
+ 			}
+ 		}
+-		page_increm = 1 + (~(start >> PAGE_SHIFT) & page_mask);
++		/* It's a bug to munlock in the middle of a THP page */
++		VM_BUG_ON((start >> PAGE_SHIFT) & page_mask);
++		page_increm = 1 + page_mask;
+ 		start += page_increm * PAGE_SIZE;
+ next:
+ 		cond_resched();
+_
+
+Patches currently in -mm which might be from vbabka@suse.cz are
+
+mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
+mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
+mm-mmapc-add-mlock_future_check-helper.patch
+mm-mlock-prepare-params-outside-critical-region.patch
+mm-compaction-trace-compaction-begin-and-end.patch
+mm-compaction-encapsulate-defer-reset-logic.patch
+mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
+mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
+mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
+mm-migrate-add-comment-about-permanent-failure-path.patch
+mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
+mm-migrate-remove-unused-function-fail_migrate_page.patch
+mm-documentation-remove-hopelessly-out-of-date-locking-doc.patch
+mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
+mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
+mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
+mm-munlock-fix-potential-race-with-thp-page-split.patch
+mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
+linux-next.patch
+
