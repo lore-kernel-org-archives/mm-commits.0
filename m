@@ -1,69 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] mfd-rtc-fix-for-previous-rtc-fix.patch
- removed from -mm tree
-Date: Mon, 16 Dec 2013 16:46:26 -0800
-Message-ID: <52af9ee2.pxXSGJnrsaptvu+w%akpm@linux-foundation.org>
+Subject: + rtc-add-hym8563-rtc-driver-fix.patch added to -mm tree
+Date: Wed, 18 Dec 2013 13:16:13 -0800
+Message-ID: <52b2109d.5QkMN/F/dIjX6OGD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47507 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36701 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551Ab3LQAq1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Dec 2013 19:46:27 -0500
+	with ESMTP id S1751963Ab3LRVQO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Dec 2013 16:16:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sbkim73@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com, broonie@linaro.org, sfr@canb.auug.org.au
+To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, fengguang.wu@intel.com, heiko@sntech.de
 
-Subject: [alternative-merged] mfd-rtc-fix-for-previous-rtc-fix.patch removed from -mm tree
-To: sfr@canb.auug.org.au,broonie@linaro.org,k.kozlowski@samsung.com,kyungmin.park@samsung.com,sbkim73@samsung.com,mm-commits@vger.kernel.org
+Subject: + rtc-add-hym8563-rtc-driver-fix.patch added to -mm tree
+To: heiko@sntech.de,fengguang.wu@intel.com,sfr@canb.auug.org.au
 From: akpm@linux-foundation.org
-Date: Mon, 16 Dec 2013 16:46:26 -0800
+Date: Wed, 18 Dec 2013 13:16:13 -0800
 
 
 The patch titled
-     Subject: mfd/rtc: fix for previous RTC fix
-has been removed from the -mm tree.  Its filename was
-     mfd-rtc-fix-for-previous-rtc-fix.patch
+     Subject: rtc: hym8563: include clkout code only if COMMON_CLK active
+has been added to the -mm tree.  Its filename is
+     rtc-add-hym8563-rtc-driver-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-add-hym8563-rtc-driver-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-add-hym8563-rtc-driver-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mfd/rtc: fix for previous RTC fix
+From: Heiko Stuebner <heiko@sntech.de>
+Subject: rtc: hym8563: include clkout code only if COMMON_CLK active
 
-This updates drivers/regulator/s2mps11.c for the changes in commit
-3e1e4a5f3a32 ("mfd/rtc: s5m: fix register updating by adding regmap
-for RTC").
+The contents of clk-provide.h, struct clk_hw etc, are only available if
+CONFIG_COMMON_CLK is selected.  Therefore IS_ENABLED(COMMON_CLK) is not
+sufficient and real preprocessor conditions are necessary to keep the code
+in question from being compiled on non-COMMON_CLK systems.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mark Brown <broonie@linaro.org>
-Cc: Sangbeom Kim <sbkim73@samsung.com>
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/s2mps11.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-hym8563.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/regulator/s2mps11.c~mfd-rtc-fix-for-previous-rtc-fix drivers/regulator/s2mps11.c
---- a/drivers/regulator/s2mps11.c~mfd-rtc-fix-for-previous-rtc-fix
-+++ a/drivers/regulator/s2mps11.c
-@@ -438,7 +438,7 @@ common_reg:
- 	platform_set_drvdata(pdev, s2mps11);
+diff -puN drivers/rtc/rtc-hym8563.c~rtc-add-hym8563-rtc-driver-fix drivers/rtc/rtc-hym8563.c
+--- a/drivers/rtc/rtc-hym8563.c~rtc-add-hym8563-rtc-driver-fix
++++ a/drivers/rtc/rtc-hym8563.c
+@@ -87,7 +87,9 @@ struct hym8563 {
+ 	struct i2c_client	*client;
+ 	struct rtc_device	*rtc;
+ 	bool			valid;
++#ifdef CONFIG_COMMON_CLK
+ 	struct clk_hw		clkout_hw;
++#endif
+ };
  
- 	config.dev = &pdev->dev;
--	config.regmap = iodev->regmap;
-+	config.regmap = iodev->regmap_pmic;
- 	config.driver_data = s2mps11;
- 	for (i = 0; i < S2MPS11_REGULATOR_MAX; i++) {
- 		if (!reg_np) {
+ /*
+@@ -290,6 +292,7 @@ static const struct rtc_class_ops hym856
+  * Handling of the clkout
+  */
+ 
++#ifdef CONFIG_COMMON_CLK
+ #define clkout_hw_to_hym8563(_hw) container_of(_hw, struct hym8563, clkout_hw)
+ 
+ static int clkout_rates[] = {
+@@ -423,6 +426,7 @@ static struct clk *hym8563_clkout_regist
+ 
+ 	return clk;
+ }
++#endif
+ 
+ /*
+  * The alarm interrupt is implemented as a level-low interrupt in the
+@@ -565,8 +569,9 @@ static int hym8563_probe(struct i2c_clie
+ 	if (IS_ERR(hym8563->rtc))
+ 		return PTR_ERR(hym8563->rtc);
+ 
+-	if (IS_ENABLED(CONFIG_COMMON_CLK))
+-		hym8563_clkout_register_clk(hym8563);
++#ifdef CONFIG_COMMON_CLK
++	hym8563_clkout_register_clk(hym8563);
++#endif
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from heiko@sntech.de are
 
+dt-bindings-add-hym8563-binding.patch
+rtc-add-hym8563-rtc-driver.patch
+rtc-add-hym8563-rtc-driver-fix.patch
 linux-next.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
