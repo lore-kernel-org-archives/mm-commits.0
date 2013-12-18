@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempolicy-fix-vma-in-new_vma_page.patch added to -mm tree
-Date: Wed, 18 Dec 2013 13:24:14 -0800
-Message-ID: <52b2127e.y4t8QXeeTuZddx/b%akpm@linux-foundation.org>
+Subject: + mm-fix-use-after-free-in-sys_remap_file_pages.patch added to
+ -mm tree
+Date: Wed, 18 Dec 2013 13:25:55 -0800
+Message-ID: <52b212e3.FtUnH4dh6nnrE1/F%akpm__20724.0785276101$1387401986$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36725 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36731 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755149Ab3LRVYP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Dec 2013 16:24:15 -0500
+	with ESMTP id S1755194Ab3LRVZ4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Dec 2013 16:25:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, n-horiguchi@ah.jp.nec.com, davej@redhat.com, bob.liu@oracle.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, walken@google.com, stable@vger.kernel.org, pageexec@freemail.hu, keescook@chromium.org, hughd@google.com, gorcunov@openvz.org, dvyukov@google.com, riel@redhat.com
 
-Subject: + mm-mempolicy-fix-vma-in-new_vma_page.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,bob.liu@oracle.com,davej@redhat.com,n-horiguchi@ah.jp.nec.com,sasha.levin@oracle.com
+Subject: + mm-fix-use-after-free-in-sys_remap_file_pages.patch added to -mm tree
+To: riel@redhat.com,dvyukov@google.com,gorcunov@openvz.org,hughd@google.com,keescook@chromium.org,pageexec@freemail.hu,stable@vger.kernel.org,walken@google.com
 From: akpm@linux-foundation.org
-Date: Wed, 18 Dec 2013 13:24:14 -0800
+Date: Wed, 18 Dec 2013 13:25:55 -0800
 
 
 The patch titled
-     Subject: mm/mempolicy: fix !vma in new_vma_page()
+     Subject: mm: fix use-after-free in sys_remap_file_pages
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-fix-vma-in-new_vma_page.patch
+     mm-fix-use-after-free-in-sys_remap_file_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-fix-vma-in-new_vma_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-use-after-free-in-sys_remap_file_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-fix-vma-in-new_vma_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-use-after-free-in-sys_remap_file_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,95 +44,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/mempolicy: fix !vma in new_vma_page()
+From: Rik van Riel <riel@redhat.com>
+Subject: mm: fix use-after-free in sys_remap_file_pages
 
-BUG_ON(!vma) assumption is introduced by commit 0bf598d8 (mbind: add
-BUG_ON(!vma) in new_vma_page()), however, even if address =
-__vma_address(page, vma); and vma->start < address < vma->end;
-page_address_in_vma() may still return -EFAULT because of many other
-conditions in it.  As a result the while loop in new_vma_page() may end
-with vma=NULL.  This patch revert the commit and also fix the potential
-dereference NULL pointer reported by Dan. 
-http://marc.info/?l=linux-mm&m=137689530323257&w=2
+remap_file_pages calls mmap_region, which may merge the VMA with other
+existing VMAs, and free "vma".  This can lead to a use-after-free bug. 
+Avoid the bug by remembering vm_flags before calling mmap_region, and not
+trying to dereference vma later.
 
-kernel BUG at mm/mempolicy.c:1204!
-invalid opcode: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-CPU: 3 PID: 7056 Comm: trinity-child3 Not tainted 3.13.0-rc3+ #2
-task: ffff8801ca5295d0 ti: ffff88005ab20000 task.ti: ffff88005ab20000
-RIP: 0010:[<ffffffff8119f200>]  [<ffffffff8119f200>] new_vma_page+0x70/0x90
-RSP: 0000:ffff88005ab21db0  EFLAGS: 00010246
-RAX: fffffffffffffff2 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: 0000000008040075 RSI: ffff8801c3d74600 RDI: ffffea00079a8b80
-RBP: ffff88005ab21dc8 R08: 0000000000000004 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: fffffffffffffff2
-R13: ffffea00079a8b80 R14: 0000000000400000 R15: 0000000000400000
-
-FS:  00007ff49c6f4740(0000) GS:ffff880244e00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007ff49c68f994 CR3: 000000005a205000 CR4: 00000000001407e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Stack:
- ffffea00079a8b80 ffffea00079a8bc0 ffffea00079a8ba0 ffff88005ab21e50
- ffffffff811adc7a 0000000000000000 ffff8801ca5295d0 0000000464e224f8
- 0000000000000000 0000000000000002 0000000000000000 ffff88020ce75c00
-Call Trace:
- [<ffffffff811adc7a>] migrate_pages+0x12a/0x850
- [<ffffffff8119f190>] ? alloc_pages_vma+0x1b0/0x1b0
- [<ffffffff8119fa13>] SYSC_mbind+0x513/0x6a0
- [<ffffffff810aa7de>] ? lock_release_holdtime.part.29+0xee/0x170
- [<ffffffff8119fbae>] SyS_mbind+0xe/0x10
- [<ffffffff817626a9>] ia32_do_call+0x13/0x13
-Code: 85 c0 75 2f 4c 89 e1 48 89 da 31 f6 bf da 00 02 00 65 44 8b 04 25 08 f7 1c 00 e8 ec fd ff ff 5b 41 5c 41 5d 5d c3 0f 1f 44 00 00 <0f> 0b 66 0f 1f 44 00
-+00 4c 89 e6 48 89 df ba 01 00 00 00 e8 48
-RIP  [<ffffffff8119f200>] new_vma_page+0x70/0x90
- RSP <ffff88005ab21db0>
-
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reported-by: Dave Jones <davej@redhat.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Bob Liu <bob.liu@oracle.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: "PaX Team" <pageexec@freemail.hu>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/fremap.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-fix-vma-in-new_vma_page mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-fix-vma-in-new_vma_page
-+++ a/mm/mempolicy.c
-@@ -1197,14 +1197,16 @@ static struct page *new_vma_page(struct
- 			break;
- 		vma = vma->vm_next;
- 	}
-+
-+	if (PageHuge(page)) {
-+		if (vma)
-+			return alloc_huge_page_noerr(vma, address, 1);
-+		else
-+			return NULL;
-+	}
- 	/*
--	 * queue_pages_range() confirms that @page belongs to some vma,
--	 * so vma shouldn't be NULL.
-+	 * if !vma, alloc_page_vma() will use task or system default policy
- 	 */
--	BUG_ON(!vma);
--
--	if (PageHuge(page))
--		return alloc_huge_page_noerr(vma, address, 1);
- 	return alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
- }
- #else
+diff -puN mm/fremap.c~mm-fix-use-after-free-in-sys_remap_file_pages mm/fremap.c
+--- a/mm/fremap.c~mm-fix-use-after-free-in-sys_remap_file_pages
++++ a/mm/fremap.c
+@@ -208,9 +208,10 @@ get_write_lock:
+ 		if (mapping_cap_account_dirty(mapping)) {
+ 			unsigned long addr;
+ 			struct file *file = get_file(vma->vm_file);
++			/* mmap_region may free vma; grab the info now */
++			vm_flags = ACCESS_ONCE(vma->vm_flags);
+ 
+-			addr = mmap_region(file, start, size,
+-					vma->vm_flags, pgoff);
++			addr = mmap_region(file, start, size, vm_flags, pgoff);
+ 			fput(file);
+ 			if (IS_ERR_VALUE(addr)) {
+ 				err = addr;
+@@ -218,7 +219,7 @@ get_write_lock:
+ 				BUG_ON(addr != start);
+ 				err = 0;
+ 			}
+-			goto out;
++			goto out_freed;
+ 		}
+ 		mutex_lock(&mapping->i_mmap_mutex);
+ 		flush_dcache_mmap_lock(mapping);
+@@ -253,6 +254,7 @@ get_write_lock:
+ out:
+ 	if (vma)
+ 		vm_flags = vma->vm_flags;
++out_freed:
+ 	if (likely(!has_write_lock))
+ 		up_read(&mm->mmap_sem);
+ 	else
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
+mm-numa-serialise-parallel-get_user_page-against-thp-migration.patch
+mm-numa-call-mmu-notifiers-on-thp-migration.patch
+mm-clear-pmd_numa-before-invalidating.patch
+mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
+mm-numa-do-not-clear-pte-for-pte_numa-update.patch
+mm-numa-do-not-clear-pte-for-pte_numa-update-fix.patch
+mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
+mm-numa-avoid-unnecessary-work-on-the-failure-path.patch
+sched-numa-skip-inaccessible-vmas.patch
+mm-numa-clear-numa-hinting-information-on-mprotect.patch
+mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch
+mm-fix-tlb-flush-race-between-migration-and-change_protection_range.patch
+mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates.patch
+mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch
+mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch
 mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
 mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
-mm-mempolicy-fix-vma-in-new_vma_page.patch
+mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
+mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2.patch
+mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
+mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
+mm-fix-use-after-free-in-sys_remap_file_pages.patch
+mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
+mm-thp-optimize-compound_trans_huge.patch
+mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
+mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+proc-meminfo-provide-estimated-available-memory.patch
+mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
+mm-mmapc-add-mlock_future_check-helper.patch
+mm-mlock-prepare-params-outside-critical-region.patch
 x86-get-pg_data_ts-memory-from-other-node.patch
 memblock-numa-introduce-flags-field-into-memblock.patch
 memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
@@ -140,13 +145,35 @@ acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
 acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
 memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
 x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
-mm-hwpoison-add-to-hwpoison_inject.patch
-lib-show_memc-show-num_poisoned_pages-when-oom.patch
+mm-rmap-recompute-pgoff-for-huge-page.patch
+mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
+mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
+mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
+mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
+mm-rmap-use-rmap_walk-in-try_to_unmap.patch
+mm-rmap-use-rmap_walk-in-try_to_munlock.patch
+mm-rmap-use-rmap_walk-in-page_referenced.patch
+mm-rmap-use-rmap_walk-in-page_mkclean.patch
+mm-numa-make-numa-migrate-related-functions-static.patch
+mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
+mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
+mm-numa-do-not-automatically-migrate-ksm-pages.patch
+sched-add-tracepoints-related-to-numa-task-migration.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-compaction-trace-compaction-begin-and-end.patch
+mm-compaction-encapsulate-defer-reset-logic.patch
+mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
+mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
+mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
 mm-migrate-add-comment-about-permanent-failure-path.patch
 mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
 mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
 mm-migrate-remove-unused-function-fail_migrate_page.patch
-mm-documentation-remove-hopelessly-out-of-date-locking-doc.patch
+mm-munlock-fix-potential-race-with-thp-page-split.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+linux-next.patch
 mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
-mm-migratec-fix-setting-of-cpupid-on-page-migration-twice-against-normal-page.patch
+zsmalloc-move-it-under-mm.patch
+zram-promote-zram-from-staging.patch
 
