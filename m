@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch added to -mm tree
-Date: Wed, 18 Dec 2013 13:29:18 -0800
-Message-ID: <52b213ae.ZGOzsaa1u8faUXj2%akpm@linux-foundation.org>
+Subject: + mmnumathp-initialize-hstate-for-thp-page-size.patch added to
+ -mm tree
+Date: Wed, 18 Dec 2013 14:07:56 -0800
+Message-ID: <52b21cbc.18pe0dhV/bmucTeg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36968 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754244Ab3LRV3T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Dec 2013 16:29:19 -0500
+	with ESMTP id S1752200Ab3LRWH5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Dec 2013 17:07:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@openvz.org, bsingharora@gmail.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, chayang@redhat.com, riel@redhat.com
 
-Subject: + memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch added to -mm tree
-To: vdavydov@parallels.com,bsingharora@gmail.com,glommer@openvz.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
+Subject: + mmnumathp-initialize-hstate-for-thp-page-size.patch added to -mm tree
+To: riel@redhat.com,chayang@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 18 Dec 2013 13:29:18 -0800
+Date: Wed, 18 Dec 2013 14:07:56 -0800
 
 
 The patch titled
-     Subject: memcg: do not use vmalloc for mem_cgroup allocations
+     Subject: mm,numa,THP: initialize hstate for THP page size
 has been added to the -mm tree.  Its filename is
-     memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
+     mmnumathp-initialize-hstate-for-thp-page-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmnumathp-initialize-hstate-for-thp-page-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmnumathp-initialize-hstate-for-thp-page-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,115 +44,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: do not use vmalloc for mem_cgroup allocations
+From: Rik van Riel <riel@redhat.com>
+Subject: mm,numa,THP: initialize hstate for THP page size
 
-The vmalloc was introduced by 333279 ("memcgroup: use vmalloc for
-mem_cgroup allocation"), because at that time MAX_NUMNODES was used for
-defining the per-node array in the mem_cgroup structure so that the
-structure could be huge even if the system had the only NUMA node.
+When hugetlbfs is started with a non-default page size, it is possible
+that no hstate is initialized for the page sized used by transparent huge
+pages.
 
-The situation was significantly improved by patch 45cf7e ("memcg: reduce
-the size of struct memcg 244-fold"), which made the size of the mem_cgroup
-structure calculated dynamically depending on the real number of NUMA
-nodes installed on the system (nr_node_ids), so now there is no point in
-using vmalloc here: the structure is allocated rarely and on most systems
-its size is about 1K.
+This causes copy_huge_page to crash on a null pointer.  Make sure we
+always have an hpage initialized for the page sized used by THP.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Glauber Costa <glommer@openvz.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Reported-by: Chao Yang <chayang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   28 ++++++----------------------
- 1 file changed, 6 insertions(+), 22 deletions(-)
+ mm/huge_memory.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-do-not-use-vmalloc-for-mem_cgroup-allocations mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-do-not-use-vmalloc-for-mem_cgroup-allocations
-+++ a/mm/memcontrol.c
-@@ -48,7 +48,6 @@
- #include <linux/sort.h>
- #include <linux/fs.h>
- #include <linux/seq_file.h>
--#include <linux/vmalloc.h>
- #include <linux/vmpressure.h>
- #include <linux/mm_inline.h>
- #include <linux/page_cgroup.h>
-@@ -335,12 +334,6 @@ struct mem_cgroup {
- 	/* WARNING: nodeinfo must be the last member here */
- };
+diff -puN mm/huge_memory.c~mmnumathp-initialize-hstate-for-thp-page-size mm/huge_memory.c
+--- a/mm/huge_memory.c~mmnumathp-initialize-hstate-for-thp-page-size
++++ a/mm/huge_memory.c
+@@ -630,6 +630,13 @@ static int __init hugepage_init(void)
+ 		return -EINVAL;
+ 	}
  
--static size_t memcg_size(void)
--{
--	return sizeof(struct mem_cgroup) +
--		nr_node_ids * sizeof(struct mem_cgroup_per_node *);
--}
--
- /* internal only representation about the status of kmem accounting. */
- enum {
- 	KMEM_ACCOUNTED_ACTIVE = 0, /* accounted by this cgroup itself */
-@@ -6142,14 +6135,12 @@ static void free_mem_cgroup_per_zone_inf
- static struct mem_cgroup *mem_cgroup_alloc(void)
- {
- 	struct mem_cgroup *memcg;
--	size_t size = memcg_size();
-+	size_t size;
- 
--	/* Can be very big if nr_node_ids is very big */
--	if (size < PAGE_SIZE)
--		memcg = kzalloc(size, GFP_KERNEL);
--	else
--		memcg = vzalloc(size);
-+	size = sizeof(struct mem_cgroup);
-+	size += nr_node_ids * sizeof(struct mem_cgroup_per_node *);
- 
-+	memcg = kzalloc(size, GFP_KERNEL);
- 	if (!memcg)
- 		return NULL;
- 
-@@ -6160,10 +6151,7 @@ static struct mem_cgroup *mem_cgroup_all
- 	return memcg;
- 
- out_free:
--	if (size < PAGE_SIZE)
--		kfree(memcg);
--	else
--		vfree(memcg);
-+	kfree(memcg);
- 	return NULL;
- }
- 
-@@ -6181,7 +6169,6 @@ out_free:
- static void __mem_cgroup_free(struct mem_cgroup *memcg)
- {
- 	int node;
--	size_t size = memcg_size();
- 
- 	mem_cgroup_remove_from_trees(memcg);
- 
-@@ -6202,10 +6189,7 @@ static void __mem_cgroup_free(struct mem
- 	 * the cgroup_lock.
- 	 */
- 	disarm_static_keys(memcg);
--	if (size < PAGE_SIZE)
--		kfree(memcg);
--	else
--		vfree(memcg);
-+	kfree(memcg);
- }
- 
- /*
++	/*
++	 * Make sure an hstate is initialized for our page size,
++	 * even if hugetlbfs is using a non-default page size.
++	 */
++	if (!size_to_hstate(PMD_PAGE_SIZE))
++		hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
++
+ 	err = hugepage_init_sysfs(&hugepage_kobj);
+ 	if (err)
+ 		return err;
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
-memcg-fix-memcg_size-calculation.patch
-memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
-memcg-make-memcg_update_cache_sizes-static.patch
-memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
+mm-numa-serialise-parallel-get_user_page-against-thp-migration.patch
+mm-numa-call-mmu-notifiers-on-thp-migration.patch
+mm-clear-pmd_numa-before-invalidating.patch
+mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
+mm-numa-do-not-clear-pte-for-pte_numa-update.patch
+mm-numa-do-not-clear-pte-for-pte_numa-update-fix.patch
+mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
+mm-numa-avoid-unnecessary-work-on-the-failure-path.patch
+sched-numa-skip-inaccessible-vmas.patch
+mm-numa-clear-numa-hinting-information-on-mprotect.patch
+mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch
+mm-fix-tlb-flush-race-between-migration-and-change_protection_range.patch
+mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates.patch
+mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch
+mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch
+mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
+mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
+mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
+mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2.patch
+mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
+mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
+mm-fix-use-after-free-in-sys_remap_file_pages.patch
+mmnumathp-initialize-hstate-for-thp-page-size.patch
+mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
+mm-thp-optimize-compound_trans_huge.patch
+mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
+mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+proc-meminfo-provide-estimated-available-memory.patch
+mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
+mm-mmapc-add-mlock_future_check-helper.patch
+mm-mlock-prepare-params-outside-critical-region.patch
+x86-get-pg_data_ts-memory-from-other-node.patch
+memblock-numa-introduce-flags-field-into-memblock.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+memblock-make-memblock_set_node-support-different-memblock_type.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
+x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
+mm-rmap-recompute-pgoff-for-huge-page.patch
+mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
+mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
+mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
+mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
+mm-rmap-use-rmap_walk-in-try_to_unmap.patch
+mm-rmap-use-rmap_walk-in-try_to_munlock.patch
+mm-rmap-use-rmap_walk-in-page_referenced.patch
+mm-rmap-use-rmap_walk-in-page_mkclean.patch
+mm-numa-make-numa-migrate-related-functions-static.patch
+mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
+mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
+mm-numa-do-not-automatically-migrate-ksm-pages.patch
+sched-add-tracepoints-related-to-numa-task-migration.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-compaction-trace-compaction-begin-and-end.patch
+mm-compaction-encapsulate-defer-reset-logic.patch
+mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
+mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
+mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
+mm-migrate-add-comment-about-permanent-failure-path.patch
+mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
+mm-migrate-remove-unused-function-fail_migrate_page.patch
+mm-munlock-fix-potential-race-with-thp-page-split.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 linux-next.patch
+mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
+zsmalloc-move-it-under-mm.patch
+zram-promote-zram-from-staging.patch
 
