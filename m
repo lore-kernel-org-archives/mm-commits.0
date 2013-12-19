@@ -1,95 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-numa-do-not-clear-pte-for-pte_numa-update.patch
+Subject: [merged]
+ mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
  removed from -mm tree
-Date: Thu, 19 Dec 2013 11:53:33 -0800
-Message-ID: <52b34ebd.JgLi3PUPo/+iYKzJ%akpm@linux-foundation.org>
+Date: Thu, 19 Dec 2013 11:53:35 -0800
+Message-ID: <52b34ebf.EGfisZ59LcC9/0T9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45485 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756065Ab3LSTxe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:34 -0500
+	with ESMTP id S1756065Ab3LSTxg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, chegu_vinod@hp.com, athorlton@sgi.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: [merged] mm-numa-do-not-clear-pte-for-pte_numa-update.patch removed from -mm tree
-To: mgorman@suse.de,athorlton@sgi.com,chegu_vinod@hp.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch removed from -mm tree
+To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:33 -0800
+Date: Thu, 19 Dec 2013 11:53:35 -0800
 
 
 The patch titled
-     Subject: mm: numa: do not clear PTE for pte_numa update
+     Subject: mm: numa: ensure anon_vma is locked to prevent parallel THP splits
 has been removed from the -mm tree.  Its filename was
-     mm-numa-do-not-clear-pte-for-pte_numa-update.patch
+     mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: do not clear PTE for pte_numa update
+Subject: mm: numa: ensure anon_vma is locked to prevent parallel THP splits
 
-The TLB must be flushed if the PTE is updated but change_pte_range is
-clearing the PTE while marking PTEs pte_numa without necessarily flushing
-the TLB if it reinserts the same entry.  Without the flush, it's
-conceivable that two processors have different TLBs for the same virtual
-address and at the very least it would generate spurious faults.  This
-patch only unmaps the pages in change_pte_range for a full protection
-change.
+The anon_vma lock prevents parallel THP splits and any associated
+complexity that arises when handling splits during THP migration.  This
+patch checks if the lock was successfully acquired and bails from THP
+migration if it failed for any reason.
 
-[riel@redhat.com: write pte_numa pte back to the page tables]
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Alex Thorlton <athorlton@sgi.com>
-Cc: Chegu Vinod <chegu_vinod@hp.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/mprotect.c~mm-numa-do-not-clear-pte-for-pte_numa-update mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-do-not-clear-pte-for-pte_numa-update
-+++ a/mm/mprotect.c
-@@ -52,17 +52,19 @@ static unsigned long change_pte_range(st
- 			pte_t ptent;
- 			bool updated = false;
+diff -puN mm/huge_memory.c~mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits
++++ a/mm/huge_memory.c
+@@ -1359,6 +1359,13 @@ int do_huge_pmd_numa_page(struct mm_stru
+ 		goto out_unlock;
+ 	}
  
--			ptent = ptep_modify_prot_start(mm, addr, pte);
- 			if (!prot_numa) {
-+				ptent = ptep_modify_prot_start(mm, addr, pte);
- 				ptent = pte_modify(ptent, newprot);
- 				updated = true;
- 			} else {
- 				struct page *page;
- 
-+				ptent = *pte;
- 				page = vm_normal_page(vma, addr, oldpte);
- 				if (page) {
- 					if (!pte_numa(oldpte)) {
- 						ptent = pte_mknuma(ptent);
-+						set_pte_at(mm, addr, pte, ptent);
- 						updated = true;
- 					}
- 				}
-@@ -79,7 +81,10 @@ static unsigned long change_pte_range(st
- 
- 			if (updated)
- 				pages++;
--			ptep_modify_prot_commit(mm, addr, pte, ptent);
++	/* Bail if we fail to protect against THP splits for any reason */
++	if (unlikely(!anon_vma)) {
++		put_page(page);
++		page_nid = -1;
++		goto clear_pmdnuma;
++	}
 +
-+			/* Only !prot_numa always clears the pte */
-+			if (!prot_numa)
-+				ptep_modify_prot_commit(mm, addr, pte, ptent);
- 		} else if (IS_ENABLED(CONFIG_MIGRATION) && !pte_file(oldpte)) {
- 			swp_entry_t entry = pte_to_swp_entry(oldpte);
- 
+ 	/*
+ 	 * Migrate the THP to the requested node, returns with page unlocked
+ 	 * and pmd_numa cleared.
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
