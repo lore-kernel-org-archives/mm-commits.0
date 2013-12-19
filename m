@@ -1,43 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
- removed from -mm tree
-Date: Thu, 19 Dec 2013 11:53:35 -0800
-Message-ID: <52b34ebf.EGfisZ59LcC9/0T9%akpm@linux-foundation.org>
+Subject: [merged] sched-numa-skip-inaccessible-vmas.patch removed from -mm tree
+Date: Thu, 19 Dec 2013 11:53:39 -0800
+Message-ID: <52b34ec3.OZlDrz/Eh2iZA30r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45485 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45493 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756065Ab3LSTxg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:36 -0500
+	with ESMTP id S1756135Ab3LSTxj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: [merged] mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch removed from -mm tree
+Subject: [merged] sched-numa-skip-inaccessible-vmas.patch removed from -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:35 -0800
+Date: Thu, 19 Dec 2013 11:53:39 -0800
 
 
 The patch titled
-     Subject: mm: numa: ensure anon_vma is locked to prevent parallel THP splits
+     Subject: sched: numa: skip inaccessible VMAs
 has been removed from the -mm tree.  Its filename was
-     mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits.patch
+     sched-numa-skip-inaccessible-vmas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: ensure anon_vma is locked to prevent parallel THP splits
+Subject: sched: numa: skip inaccessible VMAs
 
-The anon_vma lock prevents parallel THP splits and any associated
-complexity that arises when handling splits during THP migration.  This
-patch checks if the lock was successfully acquired and bails from THP
-migration if it failed for any reason.
+Inaccessible VMA should not be trapping NUMA hint faults. Skip them.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -46,26 +41,26 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 +++++++
+ kernel/sched/fair.c |    7 +++++++
  1 file changed, 7 insertions(+)
 
-diff -puN mm/huge_memory.c~mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-ensure-anon_vma-is-locked-to-prevent-parallel-thp-splits
-+++ a/mm/huge_memory.c
-@@ -1359,6 +1359,13 @@ int do_huge_pmd_numa_page(struct mm_stru
- 		goto out_unlock;
- 	}
+diff -puN kernel/sched/fair.c~sched-numa-skip-inaccessible-vmas kernel/sched/fair.c
+--- a/kernel/sched/fair.c~sched-numa-skip-inaccessible-vmas
++++ a/kernel/sched/fair.c
+@@ -1738,6 +1738,13 @@ void task_numa_work(struct callback_head
+ 		    (vma->vm_file && (vma->vm_flags & (VM_READ|VM_WRITE)) == (VM_READ)))
+ 			continue;
  
-+	/* Bail if we fail to protect against THP splits for any reason */
-+	if (unlikely(!anon_vma)) {
-+		put_page(page);
-+		page_nid = -1;
-+		goto clear_pmdnuma;
-+	}
++		/*
++		 * Skip inaccessible VMAs to avoid any confusion between
++		 * PROT_NONE and NUMA hinting ptes
++		 */
++		if (!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)))
++			continue;
 +
- 	/*
- 	 * Migrate the THP to the requested node, returns with page unlocked
- 	 * and pmd_numa cleared.
+ 		do {
+ 			start = max(start, vma->vm_start);
+ 			end = ALIGN(start + (pages << PAGE_SHIFT), HPAGE_SIZE);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
