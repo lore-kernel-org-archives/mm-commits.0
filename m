@@ -1,39 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-numa-avoid-unnecessary-work-on-the-failure-path.patch removed from -mm tree
-Date: Thu, 19 Dec 2013 11:53:37 -0800
-Message-ID: <52b34ec1.X8ChawvLd/EQJ4CD%akpm@linux-foundation.org>
+Subject: [merged] mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
+ removed from -mm tree
+Date: Thu, 19 Dec 2013 11:53:31 -0800
+Message-ID: <52b34ebb.OPQufKFPF2OyeujN%akpm__5125.20933193645$1387482830$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45477 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756135Ab3LSTxh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:37 -0500
+	with ESMTP id S1756065Ab3LSTxc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: [merged] mm-numa-avoid-unnecessary-work-on-the-failure-path.patch removed from -mm tree
+Subject: [merged] mm-numa-do-not-clear-pmd-during-pte-update-scan.patch removed from -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:37 -0800
+Date: Thu, 19 Dec 2013 11:53:31 -0800
 
 
 The patch titled
-     Subject: mm: numa: avoid unnecessary work on the failure path
+     Subject: mm: numa: do not clear PMD during PTE update scan
 has been removed from the -mm tree.  Its filename was
-     mm-numa-avoid-unnecessary-work-on-the-failure-path.patch
+     mm-numa-do-not-clear-pmd-during-pte-update-scan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: avoid unnecessary work on the failure path
+Subject: mm: numa: do not clear PMD during PTE update scan
 
-If a PMD changes during a THP migration then migration aborts but the
-failure path is doing more work than is necessary.
+If the PMD is flushed then a parallel fault in handle_mm_fault() will
+enter the pmd_none and do_huge_pmd_anonymous_page() path where it'll
+attempt to insert a huge zero page.  This is wasteful so the patch avoids
+clearing the PMD when setting pmd_numa.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -42,30 +45,21 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-numa-avoid-unnecessary-work-on-the-failure-path mm/migrate.c
---- a/mm/migrate.c~mm-numa-avoid-unnecessary-work-on-the-failure-path
-+++ a/mm/migrate.c
-@@ -1780,7 +1780,8 @@ fail_putback:
- 		putback_lru_page(page);
- 		mod_zone_page_state(page_zone(page),
- 			 NR_ISOLATED_ANON + page_lru, -HPAGE_PMD_NR);
--		goto out_fail;
-+
-+		goto out_unlock;
- 	}
- 
- 	/*
-@@ -1854,6 +1855,7 @@ out_dropref:
- 	}
- 	spin_unlock(ptl);
- 
-+out_unlock:
- 	unlock_page(page);
- 	put_page(page);
- 	return 0;
+diff -puN mm/huge_memory.c~mm-numa-do-not-clear-pmd-during-pte-update-scan mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-do-not-clear-pmd-during-pte-update-scan
++++ a/mm/huge_memory.c
+@@ -1539,7 +1539,7 @@ int change_huge_pmd(struct vm_area_struc
+ 			 */
+ 			if (!is_huge_zero_page(page) &&
+ 			    !pmd_numa(*pmd)) {
+-				entry = pmdp_get_and_clear(mm, addr, pmd);
++				entry = *pmd;
+ 				entry = pmd_mknuma(entry);
+ 				ret = HPAGE_PMD_NR;
+ 			}
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
