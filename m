@@ -1,69 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-missing-dependency-in-kconfig.patch removed from
- -mm tree
-Date: Thu, 19 Dec 2013 11:53:55 -0800
-Message-ID: <52b34ed3.xYRwwTpt0ers8b/+%akpm@linux-foundation.org>
+Subject: [merged] maintainers-add-myself-as-gpt-maintainer.patch removed
+ from -mm tree
+Date: Thu, 19 Dec 2013 11:54:03 -0800
+Message-ID: <52b34edb.iqr9OEBpIf9dS6xA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45526 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45552 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756200Ab3LSTxz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:55 -0500
+	with ESMTP id S1756210Ab3LSTyD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:54:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, sima.baymani@gmail.com
+To: mm-commits@vger.kernel.org, matt.fleming@intel.com, axboe@kernel.dk, Matt_Domsch@dell.com, davidlohr@hp.com
 
-Subject: [merged] mm-add-missing-dependency-in-kconfig.patch removed from -mm tree
-To: sima.baymani@gmail.com,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: [merged] maintainers-add-myself-as-gpt-maintainer.patch removed from -mm tree
+To: davidlohr@hp.com,Matt_Domsch@dell.com,axboe@kernel.dk,matt.fleming@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:55 -0800
+Date: Thu, 19 Dec 2013 11:54:03 -0800
 
 
 The patch titled
-     Subject: mm: add missing dependency in Kconfig
+     Subject: MAINTAINERS: add Davidlohr as GPT maintainer
 has been removed from the -mm tree.  Its filename was
-     mm-add-missing-dependency-in-kconfig.patch
+     maintainers-add-myself-as-gpt-maintainer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sima Baymani <sima.baymani@gmail.com>
-Subject: mm: add missing dependency in Kconfig
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: MAINTAINERS: add Davidlohr as GPT maintainer
 
-Eliminate the following (rand)config warning by adding missing PROC_FS
-dependency:
+Add a new entry for the GPT standard. Any future changes will now be routed
+through linux-efi.
 
-warning: (HWPOISON_INJECT && MEM_SOFT_DIRTY) selects PROC_PAGE_MONITOR
-which has unmet direct dependencies (PROC_FS && MMU)
-
-Signed-off-by: Sima Baymani <sima.baymani@gmail.com>
-Suggested-by: David Rientjes <rientjes@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Acked-by: Matt Fleming <matt.fleming@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Acked-by: Matt Domsch <Matt_Domsch@dell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/Kconfig~mm-add-missing-dependency-in-kconfig mm/Kconfig
---- a/mm/Kconfig~mm-add-missing-dependency-in-kconfig
-+++ a/mm/Kconfig
-@@ -543,7 +543,7 @@ config ZSWAP
+diff -puN MAINTAINERS~maintainers-add-myself-as-gpt-maintainer MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-myself-as-gpt-maintainer
++++ a/MAINTAINERS
+@@ -3833,6 +3833,12 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/usb/gspca/
  
- config MEM_SOFT_DIRTY
- 	bool "Track memory changes"
--	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY
-+	depends on CHECKPOINT_RESTORE && HAVE_ARCH_SOFT_DIRTY && PROC_FS
- 	select PROC_PAGE_MONITOR
- 	help
- 	  This option enables memory changes tracking by introducing a
++GUID PARTITION TABLE (GPT)
++M:	Davidlohr Bueso <davidlohr@hp.com>
++L:	linux-efi@vger.kernel.org
++S:	Maintained
++F:	block/partitions/efi.*
++
+ STK1160 USB VIDEO CAPTURE DRIVER
+ M:	Ezequiel Garcia <elezegarcia@gmail.com>
+ L:	linux-media@vger.kernel.org
 _
 
-Patches currently in -mm which might be from sima.baymani@gmail.com are
+Patches currently in -mm which might be from davidlohr@hp.com are
 
 origin.patch
-linux-next.patch
+mm-mmapc-add-mlock_future_check-helper.patch
+mm-mlock-prepare-params-outside-critical-region.patch
+partitions-efi-complete-documentation-of-gpt-kernel-param-purpose.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix-2.patch
 
