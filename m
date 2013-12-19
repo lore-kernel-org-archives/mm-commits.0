@@ -1,83 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch removed
- from -mm tree
-Date: Thu, 19 Dec 2013 11:54:15 -0800
-Message-ID: <52b34ee7.SmchQlcurYDRlBQ7%akpm@linux-foundation.org>
+Subject: [merged] eisa-call-put_device-if-device_register-fails.patch
+ removed from -mm tree
+Date: Thu, 19 Dec 2013 11:54:13 -0800
+Message-ID: <52b34ee5.Zz6z7gQM+Ujgvj8J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45577 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756215Ab3LSTyQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:54:16 -0500
+	with ESMTP id S1756203Ab3LSTyN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:54:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, alexander.deucher@amd.com, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, bhelgaas@google.com, levex@linux.com
 
-Subject: [merged] drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch removed from -mm tree
-To: geert@linux-m68k.org,alexander.deucher@amd.com,mm-commits@vger.kernel.org
+Subject: [merged] eisa-call-put_device-if-device_register-fails.patch removed from -mm tree
+To: levex@linux.com,bhelgaas@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:54:15 -0800
+Date: Thu, 19 Dec 2013 11:54:13 -0800
 
 
 The patch titled
-     Subject: drivers/gpu/drm/drm_edid_load.c: make edid_load() return a void *
+     Subject: drivers/eisa/eisa-bus.c: call put_device if device_register fails
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void.patch
+     eisa-call-put_device-if-device_register-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: drivers/gpu/drm/drm_edid_load.c: make edid_load() return a void *
+From: Levente Kurusa <levex@linux.com>
+Subject: drivers/eisa/eisa-bus.c: call put_device if device_register fails
 
-Always use "void *" for arbitrary memory buffers, as this allows to drop
-casts in assignments.
+We need to give up the last reference to edev->dev, so we need to call
+put_device().
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Levente Kurusa <levex@linux.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_edid_load.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/eisa/eisa-bus.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/drm_edid_load.c~drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void drivers/gpu/drm/drm_edid_load.c
---- a/drivers/gpu/drm/drm_edid_load.c~drivers-gpu-drm-drm_edid_loadc-make-edid_load-return-a-void
-+++ a/drivers/gpu/drm/drm_edid_load.c
-@@ -141,7 +141,7 @@ static int edid_size(const u8 *edid, int
- 	return (edid[0x7e] + 1) * EDID_LENGTH;
- }
- 
--static u8 *edid_load(struct drm_connector *connector, const char *name,
-+static void *edid_load(struct drm_connector *connector, const char *name,
- 			const char *connector_name)
+diff -puN drivers/eisa/eisa-bus.c~eisa-call-put_device-if-device_register-fails drivers/eisa/eisa-bus.c
+--- a/drivers/eisa/eisa-bus.c~eisa-call-put_device-if-device_register-fails
++++ a/drivers/eisa/eisa-bus.c
+@@ -232,8 +232,10 @@ static int __init eisa_init_device(struc
+ static int __init eisa_register_device(struct eisa_device *edev)
  {
- 	const struct firmware *fw = NULL;
-@@ -263,7 +263,7 @@ int drm_load_edid_firmware(struct drm_co
- 	if (*last == '\n')
- 		*last = '\0';
+ 	int rc = device_register(&edev->dev);
+-	if (rc)
++	if (rc) {
++		put_device(&edev->dev);
+ 		return rc;
++	}
  
--	edid = (struct edid *) edid_load(connector, edidname, connector_name);
-+	edid = edid_load(connector, edidname, connector_name);
- 	if (IS_ERR_OR_NULL(edid))
- 		return 0;
- 
+ 	rc = device_create_file(&edev->dev, &dev_attr_signature);
+ 	if (rc)
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from levex@linux.com are
 
-origin.patch
-futex-switch-to-user_ds-for-futex-test.patch
-sh-add-export_symbolmin_low_pfn-and-export_symbolmax_low_pfn-to-sh_ksyms_32c.patch
-asm-typesh-remove-include-asm-generic-int-l64h.patch
-maintainers-add-an-entry-for-the-macintosh-hfsplus-filesystem.patch
-init-mainc-remove-unused-declaration-of-tc_init.patch
-rtc-rtc-cmos-remove-superfluous-name-cast.patch
-rtc-disable-rtc_drv_cmos-on-atari.patch
-proc-cleanup-simplify-get_task_state-task_state_array.patch
+kstrtox-remove-redundant-cleanup.patch
+lib-cmdlinec-declare-exported-symbols-immediately.patch
 linux-next.patch
+w1-call-put_device-if-device_register-fails.patch
+backlight-lcd-call-put_device-if-device_register-fails.patch
+net-phy-call-put_device-on-device_register-failure.patch
 
