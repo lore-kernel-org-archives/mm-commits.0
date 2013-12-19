@@ -1,112 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- keys-fix-uninitialized-persistent_keyring_register_sem.patch removed from
- -mm tree
-Date: Thu, 19 Dec 2013 11:54:11 -0800
-Message-ID: <52b34ee3./4IFo85Art4mi5Dr%akpm@linux-foundation.org>
+Subject: + mm-rmap-use-rmap_walk-in-page_referenced-fix.patch added to -mm tree
+Date: Thu, 19 Dec 2013 12:03:33 -0800
+Message-ID: <52b35115.LL1yjD+ER7LH6wUv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45573 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45809 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756215Ab3LSTyM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:54:12 -0500
+	with ESMTP id S932107Ab3LSUDe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 15:03:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jwboyer@fedoraproject.org, dhowells@redhat.com, xiaoguangrong@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mingo@kernel.org, mgorman@suse.de, iamjoonsoo.kim@lge.com, hughd@google.com, dhillf@gmail.com, bob.liu@oracle.com, liwanp@linux.vnet.ibm.com
 
-Subject: [merged] keys-fix-uninitialized-persistent_keyring_register_sem.patch removed from -mm tree
-To: xiaoguangrong@linux.vnet.ibm.com,dhowells@redhat.com,jwboyer@fedoraproject.org,mm-commits@vger.kernel.org
+Subject: + mm-rmap-use-rmap_walk-in-page_referenced-fix.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,bob.liu@oracle.com,dhillf@gmail.com,hughd@google.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mingo@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sasha.levin@oracle.com
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:54:11 -0800
+Date: Thu, 19 Dec 2013 12:03:33 -0800
 
 
 The patch titled
-     Subject: KEYS: fix uninitialized persistent_keyring_register_sem
-has been removed from the -mm tree.  Its filename was
-     keys-fix-uninitialized-persistent_keyring_register_sem.patch
+     Subject: mm/rmap: fix BUG at rmap_walk
+has been added to the -mm tree.  Its filename is
+     mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: KEYS: fix uninitialized persistent_keyring_register_sem
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: mm/rmap: fix BUG at rmap_walk
 
-We run into this bug:
-[ 2736.063245] Unable to handle kernel paging request for data at address 0x00000000
-[ 2736.063293] Faulting instruction address: 0xc00000000037efb0
-[ 2736.063300] Oops: Kernel access of bad area, sig: 11 [#1]
-[ 2736.063303] SMP NR_CPUS=2048 NUMA pSeries
-[ 2736.063310] Modules linked in: sg nfsv3 rpcsec_gss_krb5 nfsv4 dns_resolver nfs fscache nf_conntrack_netbios_ns nf_conntrack_broadcast ipt_MASQUERADE ip6table_mangle ip6table_security ip6table_raw ip6t_REJECT iptable_nat nf_nat_ipv4 iptable_mangle iptable_security iptable_raw ipt_REJECT nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack ebtable_filter ebtables ip6table_filter iptable_filter ip_tables ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 nf_nat nf_conntrack ip6_tables ibmveth pseries_rng nx_crypto nfsd auth_rpcgss nfs_acl lockd sunrpc binfmt_misc xfs libcrc32c dm_service_time sd_mod crc_t10dif crct10dif_common ibmvfc scsi_transport_fc scsi_tgt dm_mirror dm_region_hash dm_log dm_multipath dm_mod
-[ 2736.063383] CPU: 1 PID: 7128 Comm: ssh Not tainted 3.10.0-48.el7.ppc64 #1
-[ 2736.063389] task: c000000131930120 ti: c0000001319a0000 task.ti: c0000001319a0000
-[ 2736.063394] NIP: c00000000037efb0 LR: c0000000006c40f8 CTR: 0000000000000000
-[ 2736.063399] REGS: c0000001319a3870 TRAP: 0300   Not tainted  (3.10.0-48.el7.ppc64)
-[ 2736.063403] MSR: 8000000000009032 <SF,EE,ME,IR,DR,RI>  CR: 28824242  XER: 20000000
-[ 2736.063415] SOFTE: 0
-[ 2736.063418] CFAR: c00000000000908c
-[ 2736.063421] DAR: 0000000000000000, DSISR: 40000000
-[ 2736.063425]
-GPR00: c0000000006c40f8 c0000001319a3af0 c000000001074788 c0000001319a3bf0
-GPR04: 0000000000000000 0000000000000000 0000000000000020 000000000000000a
-GPR08: fffffffe00000002 00000000ffff0000 0000000080000001 c000000000924888
-GPR12: 0000000028824248 c000000007e00400 00001fffffa0f998 0000000000000000
-GPR16: 0000000000000022 00001fffffa0f998 0000010022e92470 0000000000000000
-GPR20: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-GPR24: 0000000000000000 c000000000f4a828 00003ffffe527108 0000000000000000
-GPR28: c000000000f4a730 c000000000f4a828 0000000000000000 c0000001319a3bf0
-[ 2736.063498] NIP [c00000000037efb0] .__list_add+0x30/0x110
-[ 2736.063504] LR [c0000000006c40f8] .rwsem_down_write_failed+0x78/0x264
-[ 2736.063508] PACATMSCRATCH [800000000280f032]
-[ 2736.063511] Call Trace:
-[ 2736.063516] [c0000001319a3af0] [c0000001319a3b80] 0xc0000001319a3b80 (unreliable)
-[ 2736.063523] [c0000001319a3b80] [c0000000006c40f8] .rwsem_down_write_failed+0x78/0x264
-[ 2736.063530] [c0000001319a3c50] [c0000000006c1bb0] .down_write+0x70/0x78
-[ 2736.063536] [c0000001319a3cd0] [c0000000002e5ffc] .keyctl_get_persistent+0x20c/0x320
-[ 2736.063542] [c0000001319a3dc0] [c0000000002e2388] .SyS_keyctl+0x238/0x260
-[ 2736.063548] [c0000001319a3e30] [c000000000009e7c] syscall_exit+0x0/0x7c
-[ 2736.063553] Instruction dump:
-[ 2736.063556] 7c0802a6 fba1ffe8 fbc1fff0 fbe1fff8 7cbd2b78 7c9e2378 7c7f1b78 f8010010
-[ 2736.063566] f821ff71 e8a50008 7fa52040 40de00c0 <e8be0000> 7fbd2840 40de0094 7fbff040
-[ 2736.063579] ---[ end trace 2708241785538296 ]---
+This bug is introduced by commit 37f093cdf(mm/rmap: use rmap_walk() in
+page_referenced()).  page_get_anon_vma() called in page_referenced_anon()
+will lock and increase the refcount of anon_vma.  PageLocked is not
+required by page_referenced_anon() and there is not any assertion before,
+commit 37f093cdf introduced this extra BUG_ON() checking for anon page by
+mistake.  This patch fix it by remove rmap_walk()'s VM_BUG_ON() and
+comment reason why the page must be locked for rmap_walk_ksm() and
+rmap_walk_file().
 
-It's caused by uninitialized persistent_keyring_register_sem.
+[  588.698828] kernel BUG at mm/rmap.c:1663!
+[  588.699380] invalid opcode: 0000 [#2] PREEMPT SMP DEBUG_PAGEALLOC
+[  588.700347] Dumping ftrace buffer:
+[  588.701186]    (ftrace buffer empty)
+[  588.702062] Modules linked in:
+[  588.702759] CPU: 0 PID: 4647 Comm: kswapd0 Tainted: G      D W    3.13.0-rc4-next-20131218-sasha-00012-g1962367-dirty #4155
+[  588.704330] task: ffff880062bcb000 ti: ffff880062450000 task.ti: ffff880062450000
+[  588.705507] RIP: 0010:[<ffffffff81289c80>]  [<ffffffff81289c80>] rmap_walk+0x10/0x50
+[  588.706800] RSP: 0018:ffff8800624518d8  EFLAGS: 00010246
+[  588.707515] RAX: 000fffff80080048 RBX: ffffea00000227c0 RCX: 0000000000000000
+[  588.707515] RDX: 0000000000000000 RSI: ffff8800624518e8 RDI: ffffea00000227c0
+[  588.707515] RBP: ffff8800624518d8 R08: ffff8800624518e8 R09: 0000000000000000
+[  588.707515] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8800624519d8
+[  588.707515] R13: 0000000000000000 R14: ffffea00000227e0 R15: 0000000000000000
+[  588.707515] FS:  0000000000000000(0000) GS:ffff880065200000(0000) knlGS:0000000000000000
+[  588.707515] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  588.707515] CR2: 00007fec40cbe0f8 CR3: 00000000c2382000 CR4: 00000000000006f0
+[  588.707515] Stack:
+[  588.707515]  ffff880062451958 ffffffff81289f4b ffff880062451918 ffffffff81289f80
+[  588.707515]  0000000000000000 0000000000000000 ffffffff8128af60 0000000000000000
+[  588.707515]  0000000000000024 0000000000000000 0000000000000000 0000000000000286
+[  588.707515] Call Trace:
+[  588.707515]  [<ffffffff81289f4b>] page_referenced+0xcb/0x100
+[  588.707515]  [<ffffffff81289f80>] ? page_referenced+0x100/0x100
+[  588.707515]  [<ffffffff8128af60>] ? invalid_page_referenced_vma+0x170/0x170
+[  588.707515]  [<ffffffff81264302>] shrink_active_list+0x212/0x330
+[  588.707515]  [<ffffffff81260e23>] ? inactive_file_is_low+0x33/0x50
+[  588.707515]  [<ffffffff812646f5>] shrink_lruvec+0x2d5/0x300
+[  588.707515]  [<ffffffff812647b6>] shrink_zone+0x96/0x1e0
+[  588.707515]  [<ffffffff81265b06>] kswapd_shrink_zone+0xf6/0x1c0
+[  588.707515]  [<ffffffff81265f43>] balance_pgdat+0x373/0x550
+[  588.707515]  [<ffffffff81266d63>] kswapd+0x2f3/0x350
+[  588.707515]  [<ffffffff81266a70>] ? perf_trace_mm_vmscan_lru_isolate_template+0x120/0x120
+[  588.707515]  [<ffffffff8115c9c5>] kthread+0x105/0x110
+[  588.707515]  [<ffffffff8115c8c0>] ? set_kthreadd_affinity+0x30/0x30
+[  588.707515]  [<ffffffff843a6a7c>] ret_from_fork+0x7c/0xb0
+[  588.707515]  [<ffffffff8115c8c0>] ? set_kthreadd_affinity+0x30/0x30
+[  588.707515] Code: c0 48 83 c4 18 89 d0 5b 41 5c 41 5d 41 5e 41 5f c9 c3 66 0f 1f 84
+00 00 00 00 00 55 48 89 e5 66 66 66 66 90 48 8b 07 a8 01 75 10 <0f> 0b 66 0f 1f 44 00 0
+0 eb fe 66 0f 1f 44 00 00 f6 47 08 01 74
+[  588.707515] RIP  [<ffffffff81289c80>] rmap_walk+0x10/0x50
+[  588.707515]  RSP <ffff8800624518d8>
 
-The bug was introduced by commit f36f8c75 ("KEYS: Add per-user_namespace
-registers for persistent per-UID kerberos caches").  Two typos are in that
-commit: CONFIG_KEYS_KERBEROS_CACHE should be CONFIG_PERSISTENT_KEYRINGS
-and krb_cache_register_sem should be persistent_keyring_register_sem.
-
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: David Howells <dhowells@redhat.com>
-Acked-by: Josh Boyer <jwboyer@fedoraproject.org>
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Bob Liu <bob.liu@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/ksm.c  |    5 +++++
+ mm/rmap.c |   10 ++++++++--
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN kernel/user.c~keys-fix-uninitialized-persistent_keyring_register_sem kernel/user.c
---- a/kernel/user.c~keys-fix-uninitialized-persistent_keyring_register_sem
-+++ a/kernel/user.c
-@@ -51,9 +51,9 @@ struct user_namespace init_user_ns = {
- 	.owner = GLOBAL_ROOT_UID,
- 	.group = GLOBAL_ROOT_GID,
- 	.proc_inum = PROC_USER_INIT_INO,
--#ifdef CONFIG_KEYS_KERBEROS_CACHE
--	.krb_cache_register_sem =
--	__RWSEM_INITIALIZER(init_user_ns.krb_cache_register_sem),
-+#ifdef CONFIG_PERSISTENT_KEYRINGS
-+	.persistent_keyring_register_sem =
-+	__RWSEM_INITIALIZER(init_user_ns.persistent_keyring_register_sem),
- #endif
- };
- EXPORT_SYMBOL_GPL(init_user_ns);
+diff -puN mm/ksm.c~mm-rmap-use-rmap_walk-in-page_referenced-fix mm/ksm.c
+--- a/mm/ksm.c~mm-rmap-use-rmap_walk-in-page_referenced-fix
++++ a/mm/ksm.c
+@@ -1899,6 +1899,11 @@ int rmap_walk_ksm(struct page *page, str
+ 	int search_new_forks = 0;
+ 
+ 	VM_BUG_ON(!PageKsm(page));
++
++	/*
++	 * Rely on the page lock to protect against concurrent modifications
++	 * to that page's node of the stable tree.
++	 */
+ 	VM_BUG_ON(!PageLocked(page));
+ 
+ 	stable_node = page_stable_node(page);
+diff -puN mm/rmap.c~mm-rmap-use-rmap_walk-in-page_referenced-fix mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-use-rmap_walk-in-page_referenced-fix
++++ a/mm/rmap.c
+@@ -1632,6 +1632,14 @@ static int rmap_walk_file(struct page *p
+ 	struct vm_area_struct *vma;
+ 	int ret = SWAP_AGAIN;
+ 
++	/*
++	 * The page lock not only makes sure that page->mapping cannot
++	 * suddenly be NULLified by truncation, it makes sure that the
++	 * structure at mapping cannot be freed and reused yet,
++	 * so we can safely take mapping->i_mmap_mutex.
++	 */
++	VM_BUG_ON(!PageLocked(page));
++
+ 	if (!mapping)
+ 		return ret;
+ 	mutex_lock(&mapping->i_mmap_mutex);
+@@ -1663,8 +1671,6 @@ done:
+ 
+ int rmap_walk(struct page *page, struct rmap_walk_control *rwc)
+ {
+-	VM_BUG_ON(!PageLocked(page));
+-
+ 	if (unlikely(PageKsm(page)))
+ 		return rmap_walk_ksm(page, rwc);
+ 	else if (PageAnon(page))
 _
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
 origin.patch
+x86-get-pg_data_ts-memory-from-other-node.patch
+memblock-numa-introduce-flags-field-into-memblock.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+memblock-make-memblock_set_node-support-different-memblock_type.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
+x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
+mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
+mm-hwpoison-add-to-hwpoison_inject.patch
+lib-show_memc-show-num_poisoned_pages-when-oom.patch
+mm-migrate-add-comment-about-permanent-failure-path.patch
+mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
+mm-migrate-remove-unused-function-fail_migrate_page.patch
+mm-documentation-remove-hopelessly-out-of-date-locking-doc.patch
+mm-remove-bug_on-from-mlock_vma_page.patch
+linux-next.patch
+mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
+mm-migratec-fix-setting-of-cpupid-on-page-migration-twice-against-normal-page.patch
 
