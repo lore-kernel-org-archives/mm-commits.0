@@ -1,42 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch removed from -mm tree
-Date: Thu, 19 Dec 2013 11:53:43 -0800
-Message-ID: <52b34ec7.2SdTNu6i5hBpxjDu%akpm__9615.66582923314$1387482837$gmane$org@linux-foundation.org>
+ mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch removed from -mm tree
+Date: Thu, 19 Dec 2013 11:53:49 -0800
+Message-ID: <52b34ecd.EkzxyxTbuazWRiSb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45501 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756135Ab3LSTxo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:44 -0500
+	with ESMTP id S1756135Ab3LSTxu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: [merged] mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch removed from -mm tree
+Subject: [merged] mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch removed from -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:43 -0800
+Date: Thu, 19 Dec 2013 11:53:49 -0800
 
 
 The patch titled
-     Subject: mm: numa: avoid unnecessary disruption of NUMA hinting during migration
+     Subject: mm: numa: defer TLB flush for THP migration as long as possible
 has been removed from the -mm tree.  Its filename was
-     mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration.patch
+     mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: avoid unnecessary disruption of NUMA hinting during migration
+Subject: mm: numa: defer TLB flush for THP migration as long as possible
 
-do_huge_pmd_numa_page() handles the case where there is parallel THP
-migration.  However, by the time it is checked the NUMA hinting
-information has already been disrupted.  This patch adds an earlier check
-with some helpers.
+THP migration can fail for a variety of reasons.  Avoid flushing the TLB
+to deal with THP migration races until the copy is ready to start.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -45,102 +43,40 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    9 +++++++++
- mm/huge_memory.c        |   22 ++++++++++++++++------
- mm/migrate.c            |   12 ++++++++++++
- 3 files changed, 37 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |    7 -------
+ mm/migrate.c     |    3 +++
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/migrate.h~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration include/linux/migrate.h
---- a/include/linux/migrate.h~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration
-+++ a/include/linux/migrate.h
-@@ -90,10 +90,19 @@ static inline int migrate_huge_page_move
- #endif /* CONFIG_MIGRATION */
- 
- #ifdef CONFIG_NUMA_BALANCING
-+extern bool pmd_trans_migrating(pmd_t pmd);
-+extern void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd);
- extern int migrate_misplaced_page(struct page *page,
- 				  struct vm_area_struct *vma, int node);
- extern bool migrate_ratelimited(int node);
- #else
-+static inline bool pmd_trans_migrating(pmd_t pmd)
-+{
-+	return false;
-+}
-+static inline void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd)
-+{
-+}
- static inline int migrate_misplaced_page(struct page *page,
- 					 struct vm_area_struct *vma, int node)
- {
-diff -puN mm/huge_memory.c~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration
+diff -puN mm/huge_memory.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible
 +++ a/mm/huge_memory.c
-@@ -882,6 +882,10 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		ret = 0;
- 		goto out_unlock;
- 	}
-+
-+	/* mmap_sem prevents this happening but warn if that changes */
-+	WARN_ON(pmd_trans_migrating(pmd));
-+
- 	if (unlikely(pmd_trans_splitting(pmd))) {
- 		/* split huge page running from under us */
- 		spin_unlock(src_ptl);
-@@ -1299,6 +1303,17 @@ int do_huge_pmd_numa_page(struct mm_stru
- 	if (unlikely(!pmd_same(pmd, *pmdp)))
- 		goto out_unlock;
- 
-+	/*
-+	 * If there are potential migrations, wait for completion and retry
-+	 * without disrupting NUMA hinting information. Do not relock and
-+	 * check_same as the page may no longer be mapped.
-+	 */
-+	if (unlikely(pmd_trans_migrating(*pmdp))) {
-+		spin_unlock(ptl);
-+		wait_migrate_huge_page(vma->anon_vma, pmdp);
-+		goto out;
-+	}
-+
- 	page = pmd_page(pmd);
- 	BUG_ON(is_huge_zero_page(page));
- 	page_nid = page_to_nid(page);
-@@ -1329,12 +1344,7 @@ int do_huge_pmd_numa_page(struct mm_stru
- 			goto clear_pmdnuma;
+@@ -1377,13 +1377,6 @@ int do_huge_pmd_numa_page(struct mm_stru
  	}
  
--	/*
--	 * If there are potential migrations, wait for completion and retry. We
--	 * do not relock and check_same as the page may no longer be mapped.
--	 * Furtermore, even if the page is currently misplaced, there is no
--	 * guarantee it is still misplaced after the migration completes.
+ 	/*
+-	 * The page_table_lock above provides a memory barrier
+-	 * with change_protection_range.
 -	 */
-+	/* Migration could have started since the pmd_trans_migrating check */
- 	if (!page_locked) {
- 		spin_unlock(ptl);
- 		wait_on_page_locked(page);
-diff -puN mm/migrate.c~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration mm/migrate.c
---- a/mm/migrate.c~mm-numa-avoid-unnecessary-disruption-of-numa-hinting-during-migration
+-	if (mm_tlb_flush_pending(mm))
+-		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
+-
+-	/*
+ 	 * Migrate the THP to the requested node, returns with page unlocked
+ 	 * and pmd_numa cleared.
+ 	 */
+diff -puN mm/migrate.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible mm/migrate.c
+--- a/mm/migrate.c~mm-numa-defer-tlb-flush-for-thp-migration-as-long-as-possible
 +++ a/mm/migrate.c
-@@ -1655,6 +1655,18 @@ int numamigrate_isolate_page(pg_data_t *
- 	return 1;
- }
+@@ -1759,6 +1759,9 @@ int migrate_misplaced_transhuge_page(str
+ 		goto out_fail;
+ 	}
  
-+bool pmd_trans_migrating(pmd_t pmd)
-+{
-+	struct page *page = pmd_page(pmd);
-+	return PageLocked(page);
-+}
++	if (mm_tlb_flush_pending(mm))
++		flush_tlb_range(vma, mmun_start, mmun_end);
 +
-+void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd)
-+{
-+	struct page *page = pmd_page(*pmd);
-+	wait_on_page_locked(page);
-+}
-+
- /*
-  * Attempt to migrate a misplaced page to the specified destination
-  * node. Caller is expected to have an elevated reference count on
+ 	/* Prepare a page as a migration target */
+ 	__set_page_locked(new_page);
+ 	SetPageSwapBacked(new_page);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
