@@ -1,89 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch removed from -mm tree
-Date: Thu, 19 Dec 2013 11:53:51 -0800
-Message-ID: <52b34ecf.YwcJg4WnAYm9qP1f%akpm@linux-foundation.org>
+ mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates.patch removed from -mm tree
+Date: Thu, 19 Dec 2013 11:53:47 -0800
+Message-ID: <52b34ecb.P0vxfxXbThrQPwR3%akpm__30508.2156941809$1387482839$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45519 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45508 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756135Ab3LSTxw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:52 -0500
+	with ESMTP id S1755213Ab3LSTxs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mgorman@suse.de, dave.hansen@intel.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, paulmck@linux.vnet.ibm.com, mgorman@suse.de
 
-Subject: [merged] mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch removed from -mm tree
-To: hannes@cmpxchg.org,dave.hansen@intel.com,mgorman@suse.de,riel@redhat.com,stable@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates.patch removed from -mm tree
+To: mgorman@suse.de,paulmck@linux.vnet.ibm.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:51 -0800
+Date: Thu, 19 Dec 2013 11:53:47 -0800
 
 
 The patch titled
-     Subject: mm: page_alloc: exclude unreclaimable allocations from zone fairness policy
+     Subject: mm: numa: guarantee that tlb_flush_pending updates are visible before page table updates
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch
+     mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: exclude unreclaimable allocations from zone fairness policy
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: numa: guarantee that tlb_flush_pending updates are visible before page table updates
 
-Dave Hansen noted a regression in a microbenchmark that loops around
-open() and close() on an 8-node NUMA machine and bisected it down to
-81c0a2bb515f ("mm: page_alloc: fair zone allocator policy").  That change
-forces the slab allocations of the file descriptor to spread out to all 8
-nodes, causing remote references in the page allocator and slab.
+According to documentation on barriers, stores issued before a LOCK can
+complete after the lock implying that it's possible tlb_flush_pending can
+be visible after a page table update.  As per revised documentation, this
+patch adds a smp_mb__before_spinlock to guarantee the correct ordering.
 
-The round-robin policy is only there to provide fairness among memory
-allocations that are reclaimed involuntarily based on pressure in each
-zone.  It does not make sense to apply it to unreclaimable kernel
-allocations that are freed manually, in this case instantly after the
-allocation, and incur the remote reference costs twice for no reason.
-
-Only round-robin allocations that are usually freed through page reclaim
-or slab shrinking.
-
-Bisected by Dave Hansen.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: <stable@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mm_types.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy
-+++ a/mm/page_alloc.c
-@@ -1920,7 +1920,8 @@ zonelist_scan:
- 		 * back to remote zones that do not partake in the
- 		 * fairness round-robin cycle of this zonelist.
- 		 */
--		if (alloc_flags & ALLOC_WMARK_LOW) {
-+		if ((alloc_flags & ALLOC_WMARK_LOW) &&
-+		    (gfp_mask & GFP_MOVABLE_MASK)) {
- 			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
- 				continue;
- 			if (zone_reclaim_mode &&
+diff -puN include/linux/mm_types.h~mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates
++++ a/include/linux/mm_types.h
+@@ -482,7 +482,12 @@ static inline bool mm_tlb_flush_pending(
+ static inline void set_tlb_flush_pending(struct mm_struct *mm)
+ {
+ 	mm->tlb_flush_pending = true;
+-	barrier();
++
++	/*
++	 * Guarantee that the tlb_flush_pending store does not leak into the
++	 * critical section updating the page tables
++	 */
++	smp_mb__before_spinlock();
+ }
+ /* Clearing is done after a TLB flush, which also provides a barrier. */
+ static inline void clear_tlb_flush_pending(struct mm_struct *mm)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-memcg-fix-memcg_size-calculation.patch
-mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch
-proc-meminfo-provide-estimated-available-memory.patch
-mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
-mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
+mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
+mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2.patch
+mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
+mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
+mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
+mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
+mm-thp-optimize-compound_trans_huge.patch
+mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
+mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
+mm-thp-turn-compound_head-into-bug_onpagetail-in-get_huge_page_tail.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
+mm-show_mem-remove-show_mem_filter_page_count.patch
+mm-show_mem-remove-show_mem_filter_page_count-fix.patch
 x86-get-pg_data_ts-memory-from-other-node.patch
 memblock-numa-introduce-flags-field-into-memblock.patch
 memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
@@ -92,12 +98,38 @@ acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
 acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
 memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
 x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
-memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
-memcg-make-memcg_update_cache_sizes-static.patch
-memcg-oom-lock-mem_cgroup_print_oom_info.patch
-memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
+mm-rmap-recompute-pgoff-for-huge-page.patch
+mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
+mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
+mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
+mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
+mm-rmap-use-rmap_walk-in-try_to_unmap.patch
+mm-rmap-use-rmap_walk-in-try_to_munlock.patch
+mm-rmap-use-rmap_walk-in-page_referenced.patch
+mm-rmap-use-rmap_walk-in-page_mkclean.patch
+mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
+mm-numa-make-numa-migrate-related-functions-static.patch
+mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
+mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
+mm-numa-do-not-automatically-migrate-ksm-pages.patch
+sched-add-tracepoints-related-to-numa-task-migration.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-compaction-trace-compaction-begin-and-end.patch
+mm-compaction-encapsulate-defer-reset-logic.patch
+mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
+mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
+mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+mm-migrate-add-comment-about-permanent-failure-path.patch
+mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
+mm-migrate-remove-unused-function-fail_migrate_page.patch
+mm-munlock-fix-potential-race-with-thp-page-split.patch
 mm-remove-bug_on-from-mlock_vma_page.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
+mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
+mm-migratec-fix-setting-of-cpupid-on-page-migration-twice-against-normal-page.patch
+zsmalloc-move-it-under-mm.patch
+zram-promote-zram-from-staging.patch
 
