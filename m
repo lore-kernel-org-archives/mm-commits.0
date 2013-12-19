@@ -1,139 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mempolicy-fix-vma-in-new_vma_page.patch removed from
- -mm tree
-Date: Thu, 19 Dec 2013 11:54:05 -0800
-Message-ID: <52b34edd.zJoFbuDeL20k4bar%akpm@linux-foundation.org>
+Subject: [merged] fix-build-with-make-380.patch removed from -mm tree
+Date: Thu, 19 Dec 2013 11:54:07 -0800
+Message-ID: <52b34edf.+mASIm+9Z3NBCOvY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45560 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45564 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756203Ab3LSTyG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:54:06 -0500
+	with ESMTP id S1756210Ab3LSTyH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:54:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, n-horiguchi@ah.jp.nec.com, davej@redhat.com, bob.liu@oracle.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, ppandit@redhat.com, jbeulich@suse.com, JBeulich@suse.com
 
-Subject: [merged] mm-mempolicy-fix-vma-in-new_vma_page.patch removed from -mm tree
-To: liwanp@linux.vnet.ibm.com,bob.liu@oracle.com,davej@redhat.com,n-horiguchi@ah.jp.nec.com,sasha.levin@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] fix-build-with-make-380.patch removed from -mm tree
+To: JBeulich@suse.com,jbeulich@suse.com,ppandit@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:54:05 -0800
+Date: Thu, 19 Dec 2013 11:54:07 -0800
 
 
 The patch titled
-     Subject: mm/mempolicy: fix !vma in new_vma_page()
+     Subject: fix build with make 3.80
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-fix-vma-in-new_vma_page.patch
+     fix-build-with-make-380.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/mempolicy: fix !vma in new_vma_page()
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: fix build with make 3.80
 
-BUG_ON(!vma) assumption is introduced by commit 0bf598d8 (mbind: add
-BUG_ON(!vma) in new_vma_page()), however, even if address =
-__vma_address(page, vma); and vma->start < address < vma->end;
-page_address_in_vma() may still return -EFAULT because of many other
-conditions in it.  As a result the while loop in new_vma_page() may end
-with vma=NULL.  This patch revert the commit and also fix the potential
-dereference NULL pointer reported by Dan. 
-http://marc.info/?l=linux-mm&m=137689530323257&w=2
+According to Documentation/Changes, make 3.80 is still being supported for
+building the kernel, hence make files must not make (unconditional) use of
+features introduced only in newer versions.  Commit 1bf49dd4 ("./Makefile:
+export initial ramdisk compression config option") however introduced
+"else ifeq" constructs which make 3.80 doesn't understand.  Replace the
+logic there with more conventional (in the kernel build infrastructure)
+list constructs (except that the list here is intentionally limited to
+exactly one element).
 
-kernel BUG at mm/mempolicy.c:1204!
-invalid opcode: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-CPU: 3 PID: 7056 Comm: trinity-child3 Not tainted 3.13.0-rc3+ #2
-task: ffff8801ca5295d0 ti: ffff88005ab20000 task.ti: ffff88005ab20000
-RIP: 0010:[<ffffffff8119f200>]  [<ffffffff8119f200>] new_vma_page+0x70/0x90
-RSP: 0000:ffff88005ab21db0  EFLAGS: 00010246
-RAX: fffffffffffffff2 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: 0000000008040075 RSI: ffff8801c3d74600 RDI: ffffea00079a8b80
-RBP: ffff88005ab21dc8 R08: 0000000000000004 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: fffffffffffffff2
-R13: ffffea00079a8b80 R14: 0000000000400000 R15: 0000000000400000
-
-FS:  00007ff49c6f4740(0000) GS:ffff880244e00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007ff49c68f994 CR3: 000000005a205000 CR4: 00000000001407e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Stack:
- ffffea00079a8b80 ffffea00079a8bc0 ffffea00079a8ba0 ffff88005ab21e50
- ffffffff811adc7a 0000000000000000 ffff8801ca5295d0 0000000464e224f8
- 0000000000000000 0000000000000002 0000000000000000 ffff88020ce75c00
-Call Trace:
- [<ffffffff811adc7a>] migrate_pages+0x12a/0x850
- [<ffffffff8119f190>] ? alloc_pages_vma+0x1b0/0x1b0
- [<ffffffff8119fa13>] SYSC_mbind+0x513/0x6a0
- [<ffffffff810aa7de>] ? lock_release_holdtime.part.29+0xee/0x170
- [<ffffffff8119fbae>] SyS_mbind+0xe/0x10
- [<ffffffff817626a9>] ia32_do_call+0x13/0x13
-Code: 85 c0 75 2f 4c 89 e1 48 89 da 31 f6 bf da 00 02 00 65 44 8b 04 25 08 f7 1c 00 e8 ec fd ff ff 5b 41 5c 41 5d 5d c3 0f 1f 44 00 00 <0f> 0b 66 0f 1f 44 00
-+00 4c 89 e6 48 89 df ba 01 00 00 00 e8 48
-RIP  [<ffffffff8119f200>] new_vma_page+0x70/0x90
- RSP <ffff88005ab21db0>
-
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reported-by: Dave Jones <davej@redhat.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Bob Liu <bob.liu@oracle.com>
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Cc: P J P <ppandit@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ Makefile |   20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-fix-vma-in-new_vma_page mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-fix-vma-in-new_vma_page
-+++ a/mm/mempolicy.c
-@@ -1197,14 +1197,16 @@ static struct page *new_vma_page(struct
- 			break;
- 		vma = vma->vm_next;
- 	}
-+
-+	if (PageHuge(page)) {
-+		if (vma)
-+			return alloc_huge_page_noerr(vma, address, 1);
-+		else
-+			return NULL;
-+	}
- 	/*
--	 * queue_pages_range() confirms that @page belongs to some vma,
--	 * so vma shouldn't be NULL.
-+	 * if !vma, alloc_page_vma() will use task or system default policy
- 	 */
--	BUG_ON(!vma);
--
--	if (PageHuge(page))
--		return alloc_huge_page_noerr(vma, address, 1);
- 	return alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
- }
- #else
+diff -puN Makefile~fix-build-with-make-380 Makefile
+--- a/Makefile~fix-build-with-make-380
++++ a/Makefile
+@@ -732,19 +732,13 @@ export mod_strip_cmd
+ # Select initial ramdisk compression format, default is gzip(1).
+ # This shall be used by the dracut(8) tool while creating an initramfs image.
+ #
+-INITRD_COMPRESS=gzip
+-ifeq ($(CONFIG_RD_BZIP2), y)
+-        INITRD_COMPRESS=bzip2
+-else ifeq ($(CONFIG_RD_LZMA), y)
+-        INITRD_COMPRESS=lzma
+-else ifeq ($(CONFIG_RD_XZ), y)
+-        INITRD_COMPRESS=xz
+-else ifeq ($(CONFIG_RD_LZO), y)
+-        INITRD_COMPRESS=lzo
+-else ifeq ($(CONFIG_RD_LZ4), y)
+-        INITRD_COMPRESS=lz4
+-endif
+-export INITRD_COMPRESS
++INITRD_COMPRESS-y                  := gzip
++INITRD_COMPRESS-$(CONFIG_RD_BZIP2) := bzip2
++INITRD_COMPRESS-$(CONFIG_RD_LZMA)  := lzma
++INITRD_COMPRESS-$(CONFIG_RD_XZ)    := xz
++INITRD_COMPRESS-$(CONFIG_RD_LZO)   := lzo
++INITRD_COMPRESS-$(CONFIG_RD_LZ4)   := lz4
++export INITRD_COMPRESS := $(INITRD_COMPRESS-y)
+ 
+ ifdef CONFIG_MODULE_SIG_ALL
+ MODSECKEY = ./signing_key.priv
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from JBeulich@suse.com are
 
 origin.patch
-x86-get-pg_data_ts-memory-from-other-node.patch
-memblock-numa-introduce-flags-field-into-memblock.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
-memblock-make-memblock_set_node-support-different-memblock_type.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
-acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
-x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
-mm-hwpoison-add-to-hwpoison_inject.patch
-lib-show_memc-show-num_poisoned_pages-when-oom.patch
-mm-migrate-add-comment-about-permanent-failure-path.patch
-mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
-mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
-mm-migrate-remove-unused-function-fail_migrate_page.patch
-mm-documentation-remove-hopelessly-out-of-date-locking-doc.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
+lib-decompress_unlz4c-always-set-an-error-return-code-on-failures.patch
 linux-next.patch
-mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
-mm-migratec-fix-setting-of-cpupid-on-page-migration-twice-against-normal-page.patch
 
