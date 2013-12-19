@@ -1,135 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates.patch removed from -mm tree
-Date: Thu, 19 Dec 2013 11:53:47 -0800
-Message-ID: <52b34ecb.P0vxfxXbThrQPwR3%akpm__30508.2156941809$1387482839$gmane$org@linux-foundation.org>
+ sh-always-link-in-helper-functions-extracted-from-libgcc.patch removed from -mm tree
+Date: Thu, 19 Dec 2013 11:53:53 -0800
+Message-ID: <52b34ed1.W568DAKvFF1ISYgm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45523 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755213Ab3LSTxs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:48 -0500
+	with ESMTP id S1756157Ab3LSTxy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, paulmck@linux.vnet.ibm.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, nobuhiro.iwamatsu.yj@renesas.com, lethal@linux-sh.org, geert@linux-m68k.org
 
-Subject: [merged] mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates.patch removed from -mm tree
-To: mgorman@suse.de,paulmck@linux.vnet.ibm.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] sh-always-link-in-helper-functions-extracted-from-libgcc.patch removed from -mm tree
+To: geert@linux-m68k.org,lethal@linux-sh.org,nobuhiro.iwamatsu.yj@renesas.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:47 -0800
+Date: Thu, 19 Dec 2013 11:53:53 -0800
 
 
 The patch titled
-     Subject: mm: numa: guarantee that tlb_flush_pending updates are visible before page table updates
+     Subject: sh: always link in helper functions extracted from libgcc
 has been removed from the -mm tree.  Its filename was
-     mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates.patch
+     sh-always-link-in-helper-functions-extracted-from-libgcc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: guarantee that tlb_flush_pending updates are visible before page table updates
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: sh: always link in helper functions extracted from libgcc
 
-According to documentation on barriers, stores issued before a LOCK can
-complete after the lock implying that it's possible tlb_flush_pending can
-be visible after a page table update.  As per revised documentation, this
-patch adds a smp_mb__before_spinlock to guarantee the correct ordering.
+E.g. landisk_defconfig, which has CONFIG_NTFS_FS=m:
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>
+ERROR: "__ashrdi3" [fs/ntfs/ntfs.ko] undefined!
+
+For "lib-y", if no symbols in a compilation unit are referenced by other
+units, the compilation unit will not be included in vmlinux.
+This breaks modules that do reference those symbols.
+
+Use "obj-y" instead to fix this.
+
+http://kisskb.ellerman.id.au/kisskb/buildresult/8838077/
+
+This doesn't fix all cases. There are others, e.g. udivsi3.
+This is also not limited to sh, many architectures handle this in the same
+way.
+
+A simple solution is to unconditionally include all helper functions.
+A more complex solution is to make the choice of "lib-y" or "obj-y" depend
+on CONFIG_MODULES:
+  obj-$(CONFIG_MODULES) += ...
+  lib-y($CONFIG_MODULES) += ...
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Tested-by: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
+Reviewed-by: Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/sh/lib/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm_types.h~mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-numa-guarantee-that-tlb_flush_pending-updates-are-visible-before-page-table-updates
-+++ a/include/linux/mm_types.h
-@@ -482,7 +482,12 @@ static inline bool mm_tlb_flush_pending(
- static inline void set_tlb_flush_pending(struct mm_struct *mm)
- {
- 	mm->tlb_flush_pending = true;
--	barrier();
-+
-+	/*
-+	 * Guarantee that the tlb_flush_pending store does not leak into the
-+	 * critical section updating the page tables
-+	 */
-+	smp_mb__before_spinlock();
- }
- /* Clearing is done after a TLB flush, which also provides a barrier. */
- static inline void clear_tlb_flush_pending(struct mm_struct *mm)
+diff -puN arch/sh/lib/Makefile~sh-always-link-in-helper-functions-extracted-from-libgcc arch/sh/lib/Makefile
+--- a/arch/sh/lib/Makefile~sh-always-link-in-helper-functions-extracted-from-libgcc
++++ a/arch/sh/lib/Makefile
+@@ -6,7 +6,7 @@ lib-y  = delay.o memmove.o memchr.o \
+ 	 checksum.o strlen.o div64.o div64-generic.o
+ 
+ # Extracted from libgcc
+-lib-y += movmem.o ashldi3.o ashrdi3.o lshrdi3.o \
++obj-y += movmem.o ashldi3.o ashrdi3.o lshrdi3.o \
+ 	 ashlsi3.o ashrsi3.o ashiftrt.o lshrsi3.o \
+ 	 udiv_qrnnd.o
+ 
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
-mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2.patch
-mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
-mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
-mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
-mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
-mm-thp-optimize-compound_trans_huge.patch
-mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
-mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
-mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
-mm-thp-turn-compound_head-into-bug_onpagetail-in-get_huge_page_tail.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
-mm-show_mem-remove-show_mem_filter_page_count.patch
-mm-show_mem-remove-show_mem_filter_page_count-fix.patch
-x86-get-pg_data_ts-memory-from-other-node.patch
-memblock-numa-introduce-flags-field-into-memblock.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
-memblock-make-memblock_set_node-support-different-memblock_type.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
-acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
-x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
-mm-rmap-recompute-pgoff-for-huge-page.patch
-mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
-mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
-mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
-mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
-mm-rmap-use-rmap_walk-in-try_to_unmap.patch
-mm-rmap-use-rmap_walk-in-try_to_munlock.patch
-mm-rmap-use-rmap_walk-in-page_referenced.patch
-mm-rmap-use-rmap_walk-in-page_mkclean.patch
-mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
-mm-numa-make-numa-migrate-related-functions-static.patch
-mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
-mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
-mm-numa-do-not-automatically-migrate-ksm-pages.patch
-sched-add-tracepoints-related-to-numa-task-migration.patch
-sched-add-tracepoints-related-to-numa-task-migration-fix.patch
-mm-compaction-trace-compaction-begin-and-end.patch
-mm-compaction-encapsulate-defer-reset-logic.patch
-mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
-mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
-mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
-mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
-mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
-mm-migrate-add-comment-about-permanent-failure-path.patch
-mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
-mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
-mm-migrate-remove-unused-function-fail_migrate_page.patch
-mm-munlock-fix-potential-race-with-thp-page-split.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
+futex-switch-to-user_ds-for-futex-test.patch
+sh-add-export_symbolmin_low_pfn-and-export_symbolmax_low_pfn-to-sh_ksyms_32c.patch
+asm-typesh-remove-include-asm-generic-int-l64h.patch
+maintainers-add-an-entry-for-the-macintosh-hfsplus-filesystem.patch
+init-mainc-remove-unused-declaration-of-tc_init.patch
+rtc-rtc-cmos-remove-superfluous-name-cast.patch
+rtc-disable-rtc_drv_cmos-on-atari.patch
+proc-cleanup-simplify-get_task_state-task_state_array.patch
 linux-next.patch
-mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
-mm-migratec-fix-setting-of-cpupid-on-page-migration-twice-against-normal-page.patch
-zsmalloc-move-it-under-mm.patch
-zram-promote-zram-from-staging.patch
 
