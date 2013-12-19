@@ -1,51 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-numa-serialise-parallel-get_user_page-against-thp-migration.patch
- removed from -mm tree
-Date: Thu, 19 Dec 2013 11:53:25 -0800
-Message-ID: <52b34eb5.X9TQuEYSprE5N5Jv%akpm@linux-foundation.org>
+Subject: [merged] mm-clear-pmd_numa-before-invalidating.patch removed from -mm tree
+Date: Thu, 19 Dec 2013 11:53:29 -0800
+Message-ID: <52b34eb9.MeyiFYtijXiL0F9F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45472 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755991Ab3LSTx0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:26 -0500
+	with ESMTP id S1755991Ab3LSTxa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: [merged] mm-numa-serialise-parallel-get_user_page-against-thp-migration.patch removed from -mm tree
+Subject: [merged] mm-clear-pmd_numa-before-invalidating.patch removed from -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:25 -0800
+Date: Thu, 19 Dec 2013 11:53:29 -0800
 
 
 The patch titled
-     Subject: mm: numa: serialise parallel get_user_page against THP migration
+     Subject: mm: clear pmd_numa before invalidating
 has been removed from the -mm tree.  Its filename was
-     mm-numa-serialise-parallel-get_user_page-against-thp-migration.patch
+     mm-clear-pmd_numa-before-invalidating.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: serialise parallel get_user_page against THP migration
+Subject: mm: clear pmd_numa before invalidating
 
-Base pages are unmapped and flushed from cache and TLB during normal page
-migration and replaced with a migration entry that causes any parallel
-NUMA hinting fault or gup to block until migration completes.  THP does
-not unmap pages due to a lack of support for migration entries at a PMD
-level.  This allows races with get_user_pages and get_user_pages_fast
-which commit 3f926ab94 ("mm: Close races between THP migration and PMD
-numa clearing") made worse by introducing a pmd_clear_flush().
+On x86, PMD entries are similar to _PAGE_PROTNONE protection and are
+handled as NUMA hinting faults.  The following two page table protection
+bits are what defines them
 
-This patch forces get_user_page (fast and normal) on a pmd_numa page to go
-through the slow get_user_page path where it will serialise against THP
-migration and properly account for the NUMA hinting fault.  On the
-migration side the page table lock is taken for each PTE update.
+	_PAGE_NUMA:set	_PAGE_PRESENT:clear
+
+A PMD is considered present if any of the _PAGE_PRESENT, _PAGE_PROTNONE,
+_PAGE_PSE or _PAGE_NUMA bits are set.  If pmdp_invalidate encounters a
+pmd_numa, it clears the present bit leaving _PAGE_NUMA which will be
+considered not present by the CPU but present by pmd_present.  The
+existing caller of pmdp_invalidate should handle it but it's an
+inconsistent state for a PMD.  This patch keeps the state consistent when
+calling pmdp_invalidate.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -54,167 +53,22 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/gup.c |   13 +++++++++++++
- mm/huge_memory.c  |   24 ++++++++++++++++--------
- mm/migrate.c      |   38 +++++++++++++++++++++++++++++++-------
- 3 files changed, 60 insertions(+), 15 deletions(-)
+ mm/pgtable-generic.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/x86/mm/gup.c~mm-numa-serialise-parallel-get_user_page-against-thp-migration arch/x86/mm/gup.c
---- a/arch/x86/mm/gup.c~mm-numa-serialise-parallel-get_user_page-against-thp-migration
-+++ a/arch/x86/mm/gup.c
-@@ -83,6 +83,12 @@ static noinline int gup_pte_range(pmd_t
- 		pte_t pte = gup_get_pte(ptep);
- 		struct page *page;
- 
-+		/* Similar to the PMD case, NUMA hinting must take slow path */
-+		if (pte_numa(pte)) {
-+			pte_unmap(ptep);
-+			return 0;
-+		}
-+
- 		if ((pte_flags(pte) & (mask | _PAGE_SPECIAL)) != mask) {
- 			pte_unmap(ptep);
- 			return 0;
-@@ -167,6 +173,13 @@ static int gup_pmd_range(pud_t pud, unsi
- 		if (pmd_none(pmd) || pmd_trans_splitting(pmd))
- 			return 0;
- 		if (unlikely(pmd_large(pmd))) {
-+			/*
-+			 * NUMA hinting faults need to be handled in the GUP
-+			 * slowpath for accounting purposes and so that they
-+			 * can be serialised against THP migration.
-+			 */
-+			if (pmd_numa(pmd))
-+				return 0;
- 			if (!gup_huge_pmd(pmd, addr, next, write, pages, nr))
- 				return 0;
- 		} else {
-diff -puN mm/huge_memory.c~mm-numa-serialise-parallel-get_user_page-against-thp-migration mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-serialise-parallel-get_user_page-against-thp-migration
-+++ a/mm/huge_memory.c
-@@ -1243,6 +1243,10 @@ struct page *follow_trans_huge_pmd(struc
- 	if ((flags & FOLL_DUMP) && is_huge_zero_pmd(*pmd))
- 		return ERR_PTR(-EFAULT);
- 
-+	/* Full NUMA hinting faults to serialise migration in fault paths */
-+	if ((flags & FOLL_NUMA) && pmd_numa(*pmd))
-+		goto out;
-+
- 	page = pmd_page(*pmd);
- 	VM_BUG_ON(!PageHead(page));
- 	if (flags & FOLL_TOUCH) {
-@@ -1323,23 +1327,27 @@ int do_huge_pmd_numa_page(struct mm_stru
- 		/* If the page was locked, there are no parallel migrations */
- 		if (page_locked)
- 			goto clear_pmdnuma;
-+	}
- 
--		/*
--		 * Otherwise wait for potential migrations and retry. We do
--		 * relock and check_same as the page may no longer be mapped.
--		 * As the fault is being retried, do not account for it.
--		 */
-+	/*
-+	 * If there are potential migrations, wait for completion and retry. We
-+	 * do not relock and check_same as the page may no longer be mapped.
-+	 * Furtermore, even if the page is currently misplaced, there is no
-+	 * guarantee it is still misplaced after the migration completes.
-+	 */
-+	if (!page_locked) {
- 		spin_unlock(ptl);
- 		wait_on_page_locked(page);
- 		page_nid = -1;
- 		goto out;
- 	}
- 
--	/* Page is misplaced, serialise migrations and parallel THP splits */
-+	/*
-+	 * Page is misplaced. Page lock serialises migrations. Acquire anon_vma
-+	 * to serialises splits
-+	 */
- 	get_page(page);
- 	spin_unlock(ptl);
--	if (!page_locked)
--		lock_page(page);
- 	anon_vma = page_lock_anon_vma_read(page);
- 
- 	/* Confirm the PMD did not change while page_table_lock was released */
-diff -puN mm/migrate.c~mm-numa-serialise-parallel-get_user_page-against-thp-migration mm/migrate.c
---- a/mm/migrate.c~mm-numa-serialise-parallel-get_user_page-against-thp-migration
-+++ a/mm/migrate.c
-@@ -1722,6 +1722,7 @@ int migrate_misplaced_transhuge_page(str
- 	struct page *new_page = NULL;
- 	struct mem_cgroup *memcg = NULL;
- 	int page_lru = page_is_file_cache(page);
-+	pmd_t orig_entry;
- 
- 	/*
- 	 * Rate-limit the amount of data that is being migrated to a node.
-@@ -1756,7 +1757,8 @@ int migrate_misplaced_transhuge_page(str
- 
- 	/* Recheck the target PMD */
- 	ptl = pmd_lock(mm, pmd);
--	if (unlikely(!pmd_same(*pmd, entry))) {
-+	if (unlikely(!pmd_same(*pmd, entry) || page_count(page) != 2)) {
-+fail_putback:
- 		spin_unlock(ptl);
- 
- 		/* Reverse changes made by migrate_page_copy() */
-@@ -1786,16 +1788,34 @@ int migrate_misplaced_transhuge_page(str
- 	 */
- 	mem_cgroup_prepare_migration(page, new_page, &memcg);
- 
-+	orig_entry = *pmd;
- 	entry = mk_pmd(new_page, vma->vm_page_prot);
--	entry = pmd_mknonnuma(entry);
--	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 	entry = pmd_mkhuge(entry);
-+	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 
-+	/*
-+	 * Clear the old entry under pagetable lock and establish the new PTE.
-+	 * Any parallel GUP will either observe the old page blocking on the
-+	 * page lock, block on the page table lock or observe the new page.
-+	 * The SetPageUptodate on the new page and page_add_new_anon_rmap
-+	 * guarantee the copy is visible before the pagetable update.
-+	 */
-+	flush_cache_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
-+	page_add_new_anon_rmap(new_page, vma, haddr);
- 	pmdp_clear_flush(vma, haddr, pmd);
- 	set_pmd_at(mm, haddr, pmd, entry);
--	page_add_new_anon_rmap(new_page, vma, haddr);
- 	update_mmu_cache_pmd(vma, address, &entry);
-+
-+	if (page_count(page) != 2) {
-+		set_pmd_at(mm, haddr, pmd, orig_entry);
-+		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
-+		update_mmu_cache_pmd(vma, address, &entry);
-+		page_remove_rmap(new_page);
-+		goto fail_putback;
-+	}
-+
- 	page_remove_rmap(page);
-+
- 	/*
- 	 * Finish the charge transaction under the page table lock to
- 	 * prevent split_huge_page() from dividing up the charge
-@@ -1820,9 +1840,13 @@ int migrate_misplaced_transhuge_page(str
- out_fail:
- 	count_vm_events(PGMIGRATE_FAIL, HPAGE_PMD_NR);
- out_dropref:
--	entry = pmd_mknonnuma(entry);
--	set_pmd_at(mm, haddr, pmd, entry);
--	update_mmu_cache_pmd(vma, address, &entry);
-+	ptl = pmd_lock(mm, pmd);
-+	if (pmd_same(*pmd, entry)) {
+diff -puN mm/pgtable-generic.c~mm-clear-pmd_numa-before-invalidating mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~mm-clear-pmd_numa-before-invalidating
++++ a/mm/pgtable-generic.c
+@@ -191,6 +191,9 @@ pgtable_t pgtable_trans_huge_withdraw(st
+ void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 		     pmd_t *pmdp)
+ {
++	pmd_t entry = *pmdp;
++	if (pmd_numa(entry))
 +		entry = pmd_mknonnuma(entry);
-+		set_pmd_at(mm, haddr, pmd, entry);
-+		update_mmu_cache_pmd(vma, address, &entry);
-+	}
-+	spin_unlock(ptl);
- 
- 	unlock_page(page);
- 	put_page(page);
+ 	set_pmd_at(vma->vm_mm, address, pmdp, pmd_mknotpresent(*pmdp));
+ 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ }
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
