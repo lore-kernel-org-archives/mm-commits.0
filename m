@@ -1,130 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-numa-call-mmu-notifiers-on-thp-migration.patch
+Subject: [merged] mm-numa-do-not-clear-pte-for-pte_numa-update.patch
  removed from -mm tree
-Date: Thu, 19 Dec 2013 11:53:27 -0800
-Message-ID: <52b34eb7.Dqbm6Yv9YKn9hY4i%akpm__33397.1240594566$1387482824$gmane$org@linux-foundation.org>
+Date: Thu, 19 Dec 2013 11:53:33 -0800
+Message-ID: <52b34ebd.JgLi3PUPo/+iYKzJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45468 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45480 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756000Ab3LSTx2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:28 -0500
+	with ESMTP id S1756065Ab3LSTxe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, chegu_vinod@hp.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: [merged] mm-numa-call-mmu-notifiers-on-thp-migration.patch removed from -mm tree
-To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-numa-do-not-clear-pte-for-pte_numa-update.patch removed from -mm tree
+To: mgorman@suse.de,athorlton@sgi.com,chegu_vinod@hp.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:27 -0800
+Date: Thu, 19 Dec 2013 11:53:33 -0800
 
 
 The patch titled
-     Subject: mm: numa: call MMU notifiers on THP migration
+     Subject: mm: numa: do not clear PTE for pte_numa update
 has been removed from the -mm tree.  Its filename was
-     mm-numa-call-mmu-notifiers-on-thp-migration.patch
+     mm-numa-do-not-clear-pte-for-pte_numa-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: call MMU notifiers on THP migration
+Subject: mm: numa: do not clear PTE for pte_numa update
 
-MMU notifiers must be called on THP page migration or secondary MMUs will
-get very confused.
+The TLB must be flushed if the PTE is updated but change_pte_range is
+clearing the PTE while marking PTEs pte_numa without necessarily flushing
+the TLB if it reinserts the same entry.  Without the flush, it's
+conceivable that two processors have different TLBs for the same virtual
+address and at the very least it would generate spurious faults.  This
+patch only unmaps the pages in change_pte_range for a full protection
+change.
 
+[riel@redhat.com: write pte_numa pte back to the page tables]
 Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Alex Thorlton <athorlton@sgi.com>
+Cc: Chegu Vinod <chegu_vinod@hp.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ mm/mprotect.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~mm-numa-call-mmu-notifiers-on-thp-migration mm/migrate.c
---- a/mm/migrate.c~mm-numa-call-mmu-notifiers-on-thp-migration
-+++ a/mm/migrate.c
-@@ -36,6 +36,7 @@
- #include <linux/hugetlb_cgroup.h>
- #include <linux/gfp.h>
- #include <linux/balloon_compaction.h>
-+#include <linux/mmu_notifier.h>
+diff -puN mm/mprotect.c~mm-numa-do-not-clear-pte-for-pte_numa-update mm/mprotect.c
+--- a/mm/mprotect.c~mm-numa-do-not-clear-pte-for-pte_numa-update
++++ a/mm/mprotect.c
+@@ -52,17 +52,19 @@ static unsigned long change_pte_range(st
+ 			pte_t ptent;
+ 			bool updated = false;
  
- #include <asm/tlbflush.h>
+-			ptent = ptep_modify_prot_start(mm, addr, pte);
+ 			if (!prot_numa) {
++				ptent = ptep_modify_prot_start(mm, addr, pte);
+ 				ptent = pte_modify(ptent, newprot);
+ 				updated = true;
+ 			} else {
+ 				struct page *page;
  
-@@ -1716,12 +1717,13 @@ int migrate_misplaced_transhuge_page(str
- 				struct page *page, int node)
- {
- 	spinlock_t *ptl;
--	unsigned long haddr = address & HPAGE_PMD_MASK;
- 	pg_data_t *pgdat = NODE_DATA(node);
- 	int isolated = 0;
- 	struct page *new_page = NULL;
- 	struct mem_cgroup *memcg = NULL;
- 	int page_lru = page_is_file_cache(page);
-+	unsigned long mmun_start = address & HPAGE_PMD_MASK;
-+	unsigned long mmun_end = mmun_start + HPAGE_PMD_SIZE;
- 	pmd_t orig_entry;
++				ptent = *pte;
+ 				page = vm_normal_page(vma, addr, oldpte);
+ 				if (page) {
+ 					if (!pte_numa(oldpte)) {
+ 						ptent = pte_mknuma(ptent);
++						set_pte_at(mm, addr, pte, ptent);
+ 						updated = true;
+ 					}
+ 				}
+@@ -79,7 +81,10 @@ static unsigned long change_pte_range(st
  
- 	/*
-@@ -1756,10 +1758,12 @@ int migrate_misplaced_transhuge_page(str
- 	WARN_ON(PageLRU(new_page));
+ 			if (updated)
+ 				pages++;
+-			ptep_modify_prot_commit(mm, addr, pte, ptent);
++
++			/* Only !prot_numa always clears the pte */
++			if (!prot_numa)
++				ptep_modify_prot_commit(mm, addr, pte, ptent);
+ 		} else if (IS_ENABLED(CONFIG_MIGRATION) && !pte_file(oldpte)) {
+ 			swp_entry_t entry = pte_to_swp_entry(oldpte);
  
- 	/* Recheck the target PMD */
-+	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	ptl = pmd_lock(mm, pmd);
- 	if (unlikely(!pmd_same(*pmd, entry) || page_count(page) != 2)) {
- fail_putback:
- 		spin_unlock(ptl);
-+		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 
- 		/* Reverse changes made by migrate_page_copy() */
- 		if (TestClearPageActive(new_page))
-@@ -1800,15 +1804,16 @@ fail_putback:
- 	 * The SetPageUptodate on the new page and page_add_new_anon_rmap
- 	 * guarantee the copy is visible before the pagetable update.
- 	 */
--	flush_cache_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
--	page_add_new_anon_rmap(new_page, vma, haddr);
--	pmdp_clear_flush(vma, haddr, pmd);
--	set_pmd_at(mm, haddr, pmd, entry);
-+	flush_cache_range(vma, mmun_start, mmun_end);
-+	page_add_new_anon_rmap(new_page, vma, mmun_start);
-+	pmdp_clear_flush(vma, mmun_start, pmd);
-+	set_pmd_at(mm, mmun_start, pmd, entry);
-+	flush_tlb_range(vma, mmun_start, mmun_end);
- 	update_mmu_cache_pmd(vma, address, &entry);
- 
- 	if (page_count(page) != 2) {
--		set_pmd_at(mm, haddr, pmd, orig_entry);
--		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
-+		set_pmd_at(mm, mmun_start, pmd, orig_entry);
-+		flush_tlb_range(vma, mmun_start, mmun_end);
- 		update_mmu_cache_pmd(vma, address, &entry);
- 		page_remove_rmap(new_page);
- 		goto fail_putback;
-@@ -1823,6 +1828,7 @@ fail_putback:
- 	 */
- 	mem_cgroup_end_migration(memcg, page, new_page, true);
- 	spin_unlock(ptl);
-+	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 
- 	unlock_page(new_page);
- 	unlock_page(page);
-@@ -1843,7 +1849,7 @@ out_dropref:
- 	ptl = pmd_lock(mm, pmd);
- 	if (pmd_same(*pmd, entry)) {
- 		entry = pmd_mknonnuma(entry);
--		set_pmd_at(mm, haddr, pmd, entry);
-+		set_pmd_at(mm, mmun_start, pmd, entry);
- 		update_mmu_cache_pmd(vma, address, &entry);
- 	}
- 	spin_unlock(ptl);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
