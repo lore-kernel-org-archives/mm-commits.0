@@ -1,101 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mmnumathp-initialize-hstate-for-thp-page-size.patch
- removed from -mm tree
-Date: Thu, 19 Dec 2013 14:25:14 -0800
-Message-ID: <52b3724a.30QdkllU/HATJLEI%akpm@linux-foundation.org>
+Subject: +
+ mm-memory-failurec-transfer-page-count-from-head-page-to-tail-page-after-split-thp.patch added to -mm tree
+Date: Thu, 19 Dec 2013 14:36:41 -0800
+Message-ID: <52b374f9.DMLcxm92U+v8KhZG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46498 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754078Ab3LSWZP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 17:25:15 -0500
+	with ESMTP id S1754124Ab3LSWgm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 17:36:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, chayang@redhat.com, riel@redhat.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, liwanp@linux.vnet.ibm.com, andi@firstfloor.org, n-horiguchi@ah.jp.nec.com
 
-Subject: [withdrawn] mmnumathp-initialize-hstate-for-thp-page-size.patch removed from -mm tree
-To: riel@redhat.com,chayang@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: + mm-memory-failurec-transfer-page-count-from-head-page-to-tail-page-after-split-thp.patch added to -mm tree
+To: n-horiguchi@ah.jp.nec.com,andi@firstfloor.org,liwanp@linux.vnet.ibm.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 14:25:14 -0800
+Date: Thu, 19 Dec 2013 14:36:41 -0800
 
 
 The patch titled
-     Subject: mm,numa,THP: initialize hstate for THP page size
-has been removed from the -mm tree.  Its filename was
-     mmnumathp-initialize-hstate-for-thp-page-size.patch
+     Subject: mm/memory-failure.c: transfer page count from head page to tail page after split thp
+has been added to the -mm tree.  Its filename is
+     mm-memory-failurec-transfer-page-count-from-head-page-to-tail-page-after-split-thp.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-transfer-page-count-from-head-page-to-tail-page-after-split-thp.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-transfer-page-count-from-head-page-to-tail-page-after-split-thp.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: mm,numa,THP: initialize hstate for THP page size
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/memory-failure.c: transfer page count from head page to tail page after split thp
 
-When hugetlbfs is started with a non-default page size, it is possible
-that no hstate is initialized for the page sized used by transparent huge
-pages.
+Memory failures on thp tail pages cause kernel panic like below:
 
-This causes copy_huge_page to crash on a null pointer.  Make sure we
-always have an hpage initialized for the page sized used by THP.
+  [  317.361821] mce: [Hardware Error]: Machine check events logged
+  [  317.361831] MCE exception done on CPU 7
+  [  317.362007] BUG: unable to handle kernel NULL pointer dereference at 0000000000000058
+  [  317.362015] IP: [<ffffffff811b7cd1>] dequeue_hwpoisoned_huge_page+0x131/0x1e0
+  [  317.362017] PGD bae42067 PUD ba47d067 PMD 0
+  [  317.362019] Oops: 0000 [#1] SMP
+  ...
+  [  317.362052] CPU: 7 PID: 128 Comm: kworker/7:2 Tainted: G   M       O 3.13.0-rc4-131217-1558-00003-g83b7df08e462 #25
+  ...
+  [  317.362083] Call Trace:
+  [  317.362091]  [<ffffffff811d9bae>] me_huge_page+0x3e/0x50
+  [  317.362094]  [<ffffffff811dab9b>] memory_failure+0x4bb/0xc20
+  [  317.362096]  [<ffffffff8106661e>] mce_process_work+0x3e/0x70
+  [  317.362100]  [<ffffffff810b1e21>] process_one_work+0x171/0x420
+  [  317.362102]  [<ffffffff810b2c1b>] worker_thread+0x11b/0x3a0
+  [  317.362105]  [<ffffffff810b2b00>] ? manage_workers.isra.25+0x2b0/0x2b0
+  [  317.362109]  [<ffffffff810b93c4>] kthread+0xe4/0x100
+  [  317.362112]  [<ffffffff810b92e0>] ? kthread_create_on_node+0x190/0x190
+  [  317.362117]  [<ffffffff816e3c6c>] ret_from_fork+0x7c/0xb0
+  [  317.362119]  [<ffffffff810b92e0>] ? kthread_create_on_node+0x190/0x190
+  ...
+  [  317.362162] RIP  [<ffffffff811b7cd1>] dequeue_hwpoisoned_huge_page+0x131/0x1e0
+  [  317.362163]  RSP <ffff880426699cf0>
+  [  317.362164] CR2: 0000000000000058
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Chao Yang <chayang@redhat.com>
+The reasoning of this problem is shown below:
+ - when we have a memory error on a thp tail page, the memory error
+   handler grabs a refcount of the head page to keep the thp under us.
+ - Before unmapping the error page from processes, we split the thp,
+   where page refcounts of both of head/tail pages don't change.
+ - Then we call try_to_unmap() over the error page (which was a tail
+   page before). We didn't pin the error page to handle the memory error,
+   this error page is freed and removed from LRU list.
+ - We never have the error page on LRU list, so the first page state
+   check returns "unknown page," then we move to the second check
+   with the saved page flag.
+ - The saved page flag have PG_tail set, so the second page state check
+   returns "hugepage."
+ - We call me_huge_page() for freed error page, then we hit the above panic.
+
+The root cause is that we didn't move refcount from the head page to the
+tail page after split thp.  So this patch suggests to do this.
+
+This panic was introduced by commit 524fca1e73 ("HWPOISON: fix
+misjudgement of page_action() for errors on mlocked pages").  Note that we
+did have the same refcount problem before this commit, but it was just
+ignored because we had only first page state check which returned "unknown
+page." The commit changed the refcount problem from "doesn't work" to
+"kernel panic."
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: <stable@vger.kernel.org>	[3.9+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/memory-failure.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN mm/huge_memory.c~mmnumathp-initialize-hstate-for-thp-page-size mm/huge_memory.c
---- a/mm/huge_memory.c~mmnumathp-initialize-hstate-for-thp-page-size
-+++ a/mm/huge_memory.c
-@@ -630,6 +630,13 @@ static int __init hugepage_init(void)
- 		return -EINVAL;
- 	}
- 
-+	/*
-+	 * Make sure an hstate is initialized for our page size,
-+	 * even if hugetlbfs is using a non-default page size.
-+	 */
-+	if (!size_to_hstate(PMD_PAGE_SIZE))
-+		hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
-+
- 	err = hugepage_init_sysfs(&hugepage_kobj);
- 	if (err)
- 		return err;
+diff -puN mm/memory-failure.c~mm-memory-failurec-transfer-page-count-from-head-page-to-tail-page-after-split-thp mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-transfer-page-count-from-head-page-to-tail-page-after-split-thp
++++ a/mm/memory-failure.c
+@@ -938,6 +938,16 @@ static int hwpoison_user_mappings(struct
+ 				BUG_ON(!PageHWPoison(p));
+ 				return SWAP_FAIL;
+ 			}
++			/*
++			 * We pinned the head page for hwpoison handling,
++			 * now we split the thp and we are interested in
++			 * the hwpoisoned raw page, so move the refcount
++			 * to it.
++			 */
++			if (hpage != p) {
++				put_page(hpage);
++				get_page(p);
++			}
+ 			/* THP is split, so ppage should be the real poisoned page. */
+ 			ppage = p;
+ 		}
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
-mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2.patch
-mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
-mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
-mm-fix-use-after-free-in-sys_remap_file_pages.patch
-mm-remove-bogus-warning-in-copy_huge_pmd.patch
-mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
-mm-thp-optimize-compound_trans_huge.patch
-mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
-mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
-proc-meminfo-provide-estimated-available-memory.patch
-mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
-mm-mmapc-add-mlock_future_check-helper.patch
-mm-mlock-prepare-params-outside-critical-region.patch
-x86-get-pg_data_ts-memory-from-other-node.patch
-memblock-numa-introduce-flags-field-into-memblock.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
-memblock-make-memblock_set_node-support-different-memblock_type.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
-acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
-x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
+mm-memory-failurec-transfer-page-count-from-head-page-to-tail-page-after-split-thp.patch
+mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
 mm-rmap-recompute-pgoff-for-huge-page.patch
 mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
 mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
@@ -106,29 +146,14 @@ mm-rmap-use-rmap_walk-in-try_to_munlock.patch
 mm-rmap-use-rmap_walk-in-page_referenced.patch
 mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
 mm-rmap-use-rmap_walk-in-page_mkclean.patch
-mm-numa-make-numa-migrate-related-functions-static.patch
-mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
-mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
-mm-numa-do-not-automatically-migrate-ksm-pages.patch
-sched-add-tracepoints-related-to-numa-task-migration.patch
-sched-add-tracepoints-related-to-numa-task-migration-fix.patch
-mm-compaction-trace-compaction-begin-and-end.patch
-mm-compaction-encapsulate-defer-reset-logic.patch
-mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
-mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
-mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
-mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
+mm-hwpoison-add-to-hwpoison_inject.patch
+lib-show_memc-show-num_poisoned_pages-when-oom.patch
 mm-migrate-add-comment-about-permanent-failure-path.patch
 mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
 mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
 mm-migrate-remove-unused-function-fail_migrate_page.patch
-mm-munlock-fix-potential-race-with-thp-page-split.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races.patch
-ipc-change-kern_ipc_permdeleted-type-to-bool.patch
+fs-proc-pagec-add-pageanon-check-to-surely-detect-thp.patch
 linux-next.patch
 mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
-zsmalloc-move-it-under-mm.patch
-zram-promote-zram-from-staging.patch
+mm-migratec-fix-setting-of-cpupid-on-page-migration-twice-against-normal-page.patch
 
