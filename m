@@ -1,89 +1,97 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch removed from -mm tree
-Date: Thu, 19 Dec 2013 11:54:01 -0800
-Message-ID: <52b34ed9.GWM9yLziRWTecJGR%akpm@linux-foundation.org>
+ mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
+ removed from -mm tree
+Date: Thu, 19 Dec 2013 11:53:57 -0800
+Message-ID: <52b34ed5.houV401SaZGIFcEJ%akpm__37884.7582302571$1387482856$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45550 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45536 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756200Ab3LSTyB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:54:01 -0500
+	with ESMTP id S1756200Ab3LSTx6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, wujianguo@huawei.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, stable@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
 
-Subject: [merged] mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch removed from -mm tree
-To: wujianguo@huawei.com,n-horiguchi@ah.jp.nec.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch removed from -mm tree
+To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,stable@vger.kernel.org,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:54:01 -0800
+Date: Thu, 19 Dec 2013 11:53:57 -0800
 
 
 The patch titled
-     Subject: mm/memory-failure.c: recheck PageHuge() after hugetlb page migrate successfully
+     Subject: mm/mempolicy: correct putback method for isolate pages if failed
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully.patch
+     mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: mm/memory-failure.c: recheck PageHuge() after hugetlb page migrate successfully
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/mempolicy: correct putback method for isolate pages if failed
 
-After a successful hugetlb page migration by soft offline, the source page
-will either be freed into hugepage_freelists or buddy(over-commit page). 
-If page is in buddy, page_hstate(page) will be NULL.  It will hit a NULL
-pointer dereference in dequeue_hwpoisoned_huge_page().
+queue_pages_range() isolates hugetlbfs pages and putback_lru_pages() can't
+handle these.  We should change it to putback_movable_pages().
 
-[  890.677918] BUG: unable to handle kernel NULL pointer dereference at
- 0000000000000058
-[  890.685741] IP: [<ffffffff81163761>]
-dequeue_hwpoisoned_huge_page+0x131/0x1d0
-[  890.692861] PGD c23762067 PUD c24be2067 PMD 0
-[  890.697314] Oops: 0000 [#1] SMP
+Naoya said that it is worth going into stable, because it can break in-use
+hugepage list.
 
-So check PageHuge(page) after call migrate_pages() successfully.
-
-Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-Tested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: <stable@vger.kernel.org>	[3.12.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failurec-recheck-pagehuge-after-hugetlb-page-migrate-successfully
-+++ a/mm/memory-failure.c
-@@ -1505,10 +1505,16 @@ static int soft_offline_huge_page(struct
- 		if (ret > 0)
- 			ret = -EIO;
- 	} else {
--		set_page_hwpoison_huge_page(hpage);
--		dequeue_hwpoisoned_huge_page(hpage);
--		atomic_long_add(1 << compound_order(hpage),
--				&num_poisoned_pages);
-+		/* overcommit hugetlb page will be freed to buddy */
-+		if (PageHuge(page)) {
-+			set_page_hwpoison_huge_page(hpage);
-+			dequeue_hwpoisoned_huge_page(hpage);
-+			atomic_long_add(1 << compound_order(hpage),
-+					&num_poisoned_pages);
-+		} else {
-+			SetPageHWPoison(page);
-+			atomic_long_inc(&num_poisoned_pages);
-+		}
- 	}
- 	return ret;
- }
+diff -puN mm/mempolicy.c~mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed
++++ a/mm/mempolicy.c
+@@ -1318,7 +1318,7 @@ static long do_mbind(unsigned long start
+ 		if (nr_failed && (flags & MPOL_MF_STRICT))
+ 			err = -EIO;
+ 	} else
+-		putback_lru_pages(&pagelist);
++		putback_movable_pages(&pagelist);
+ 
+ 	up_write(&mm->mmap_sem);
+  mpol_out:
 _
 
-Patches currently in -mm which might be from wujianguo@huawei.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 origin.patch
+mm-rmap-recompute-pgoff-for-huge-page.patch
+mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
+mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
+mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
+mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
+mm-rmap-use-rmap_walk-in-try_to_unmap.patch
+mm-rmap-use-rmap_walk-in-try_to_munlock.patch
+mm-rmap-use-rmap_walk-in-page_referenced.patch
+mm-rmap-use-rmap_walk-in-page_mkclean.patch
+mm-compaction-trace-compaction-begin-and-end.patch
+mm-compaction-encapsulate-defer-reset-logic.patch
+mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
+mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
+mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
+mm-migrate-add-comment-about-permanent-failure-path.patch
+mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
+mm-migrate-remove-unused-function-fail_migrate_page.patch
 
