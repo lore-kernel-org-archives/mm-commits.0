@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rmap-use-rmap_walk-in-page_referenced-fix.patch added to -mm tree
-Date: Thu, 19 Dec 2013 12:03:33 -0800
-Message-ID: <52b35115.LL1yjD+ER7LH6wUv%akpm@linux-foundation.org>
+Subject: + mm-remove-bogus-warning-in-copy_huge_pmd.patch added to -mm
+ tree
+Date: Thu, 19 Dec 2013 13:44:01 -0800
+Message-ID: <52b368a1.XUYdg3r6dJACHjWm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45809 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46199 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932107Ab3LSUDe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 15:03:34 -0500
+	with ESMTP id S1755747Ab3LSVoC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 16:44:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mingo@kernel.org, mgorman@suse.de, iamjoonsoo.kim@lge.com, hughd@google.com, dhillf@gmail.com, bob.liu@oracle.com, liwanp@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: + mm-rmap-use-rmap_walk-in-page_referenced-fix.patch added to -mm tree
-To: liwanp@linux.vnet.ibm.com,bob.liu@oracle.com,dhillf@gmail.com,hughd@google.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mingo@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sasha.levin@oracle.com
+Subject: + mm-remove-bogus-warning-in-copy_huge_pmd.patch added to -mm tree
+To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,sasha.levin@oracle.com
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 12:03:33 -0800
+Date: Thu, 19 Dec 2013 13:44:01 -0800
 
 
 The patch titled
-     Subject: mm/rmap: fix BUG at rmap_walk
+     Subject: mm: Remove bogus warning in copy_huge_pmd
 has been added to the -mm tree.  Its filename is
-     mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
+     mm-remove-bogus-warning-in-copy_huge_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-bogus-warning-in-copy_huge_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-bogus-warning-in-copy_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,125 +44,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/rmap: fix BUG at rmap_walk
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: Remove bogus warning in copy_huge_pmd
 
-This bug is introduced by commit 37f093cdf(mm/rmap: use rmap_walk() in
-page_referenced()).  page_get_anon_vma() called in page_referenced_anon()
-will lock and increase the refcount of anon_vma.  PageLocked is not
-required by page_referenced_anon() and there is not any assertion before,
-commit 37f093cdf introduced this extra BUG_ON() checking for anon page by
-mistake.  This patch fix it by remove rmap_walk()'s VM_BUG_ON() and
-comment reason why the page must be locked for rmap_walk_ksm() and
-rmap_walk_file().
+Sasha Levin reported the following warning being triggered
 
-[  588.698828] kernel BUG at mm/rmap.c:1663!
-[  588.699380] invalid opcode: 0000 [#2] PREEMPT SMP DEBUG_PAGEALLOC
-[  588.700347] Dumping ftrace buffer:
-[  588.701186]    (ftrace buffer empty)
-[  588.702062] Modules linked in:
-[  588.702759] CPU: 0 PID: 4647 Comm: kswapd0 Tainted: G      D W    3.13.0-rc4-next-20131218-sasha-00012-g1962367-dirty #4155
-[  588.704330] task: ffff880062bcb000 ti: ffff880062450000 task.ti: ffff880062450000
-[  588.705507] RIP: 0010:[<ffffffff81289c80>]  [<ffffffff81289c80>] rmap_walk+0x10/0x50
-[  588.706800] RSP: 0018:ffff8800624518d8  EFLAGS: 00010246
-[  588.707515] RAX: 000fffff80080048 RBX: ffffea00000227c0 RCX: 0000000000000000
-[  588.707515] RDX: 0000000000000000 RSI: ffff8800624518e8 RDI: ffffea00000227c0
-[  588.707515] RBP: ffff8800624518d8 R08: ffff8800624518e8 R09: 0000000000000000
-[  588.707515] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8800624519d8
-[  588.707515] R13: 0000000000000000 R14: ffffea00000227e0 R15: 0000000000000000
-[  588.707515] FS:  0000000000000000(0000) GS:ffff880065200000(0000) knlGS:0000000000000000
-[  588.707515] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[  588.707515] CR2: 00007fec40cbe0f8 CR3: 00000000c2382000 CR4: 00000000000006f0
-[  588.707515] Stack:
-[  588.707515]  ffff880062451958 ffffffff81289f4b ffff880062451918 ffffffff81289f80
-[  588.707515]  0000000000000000 0000000000000000 ffffffff8128af60 0000000000000000
-[  588.707515]  0000000000000024 0000000000000000 0000000000000000 0000000000000286
-[  588.707515] Call Trace:
-[  588.707515]  [<ffffffff81289f4b>] page_referenced+0xcb/0x100
-[  588.707515]  [<ffffffff81289f80>] ? page_referenced+0x100/0x100
-[  588.707515]  [<ffffffff8128af60>] ? invalid_page_referenced_vma+0x170/0x170
-[  588.707515]  [<ffffffff81264302>] shrink_active_list+0x212/0x330
-[  588.707515]  [<ffffffff81260e23>] ? inactive_file_is_low+0x33/0x50
-[  588.707515]  [<ffffffff812646f5>] shrink_lruvec+0x2d5/0x300
-[  588.707515]  [<ffffffff812647b6>] shrink_zone+0x96/0x1e0
-[  588.707515]  [<ffffffff81265b06>] kswapd_shrink_zone+0xf6/0x1c0
-[  588.707515]  [<ffffffff81265f43>] balance_pgdat+0x373/0x550
-[  588.707515]  [<ffffffff81266d63>] kswapd+0x2f3/0x350
-[  588.707515]  [<ffffffff81266a70>] ? perf_trace_mm_vmscan_lru_isolate_template+0x120/0x120
-[  588.707515]  [<ffffffff8115c9c5>] kthread+0x105/0x110
-[  588.707515]  [<ffffffff8115c8c0>] ? set_kthreadd_affinity+0x30/0x30
-[  588.707515]  [<ffffffff843a6a7c>] ret_from_fork+0x7c/0xb0
-[  588.707515]  [<ffffffff8115c8c0>] ? set_kthreadd_affinity+0x30/0x30
-[  588.707515] Code: c0 48 83 c4 18 89 d0 5b 41 5c 41 5d 41 5e 41 5f c9 c3 66 0f 1f 84
-00 00 00 00 00 55 48 89 e5 66 66 66 66 90 48 8b 07 a8 01 75 10 <0f> 0b 66 0f 1f 44 00 0
-0 eb fe 66 0f 1f 44 00 00 f6 47 08 01 74
-[  588.707515] RIP  [<ffffffff81289c80>] rmap_walk+0x10/0x50
-[  588.707515]  RSP <ffff8800624518d8>
+[ 1704.594807] WARNING: CPU: 28 PID: 35287 at mm/huge_memory.c:887 copy_huge_pmd+0x145/ 0x3a0()
+[ 1704.597258] Modules linked in:
+[ 1704.597844] CPU: 28 PID: 35287 Comm: trinity-main Tainted: G        W    3.13.0-rc4-next-20131217-sasha-00013-ga878504-dirty #4149
+[ 1704.599924]  0000000000000377e delta! pid slot 27 [36258]: old:2 now:537927697 diff: 537927695 ffff8803593ddb90 ffffffff8439501c ffffffff854722c1
+[ 1704.604846]  0000000000000000 ffff8803593ddbd0 ffffffff8112f8ac ffff8803593ddbe0
+[ 1704.606391]  ffff88034bc137f0 ffff880e41677000 8000000b47c009e4 ffff88034a638000
+[ 1704.608008] Call Trace:
+[ 1704.608511]  [<ffffffff8439501c>] dump_stack+0x52/0x7f
+[ 1704.609699]  [<ffffffff8112f8ac>] warn_slowpath_common+0x8c/0xc0
+[ 1704.612617]  [<ffffffff8112f8fa>] warn_slowpath_null+0x1a/0x20
+[ 1704.614043]  [<ffffffff812b91c5>] copy_huge_pmd+0x145/0x3a0
+[ 1704.615587]  [<ffffffff8127e032>] copy_page_range+0x3f2/0x560
+[ 1704.616869]  [<ffffffff81199ef1>] ? rwsem_wake+0x51/0x70
+[ 1704.617942]  [<ffffffff8112cf59>] dup_mmap+0x2c9/0x3d0
+[ 1704.619146]  [<ffffffff8112d54d>] dup_mm+0xad/0x150
+[ 1704.620051]  [<ffffffff8112e178>] copy_process+0xa68/0x12e0
+[ 1704.622976]  [<ffffffff81194eda>] ? __lock_release+0x1da/0x1f0
+[ 1704.624234]  [<ffffffff8112eee6>] do_fork+0x96/0x270
+[ 1704.624975]  [<ffffffff81249465>] ? context_tracking_user_exit+0x195/0x1d0
+[ 1704.626427]  [<ffffffff811930ed>] ? trace_hardirqs_on+0xd/0x10
+[ 1704.627681]  [<ffffffff8112f0d6>] SyS_clone+0x16/0x20
+[ 1704.628833]  [<ffffffff843a6309>] stub_clone+0x69/0x90
+[ 1704.629672]  [<ffffffff843a6150>] ? tracesys+0xdd/0xe2
 
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+This warning was introduced by "mm: numa: Avoid unnecessary disruption of
+NUMA hinting during migration" for paranoia reasons but the warning is
+bogus.  I was thinking of parallel races between NUMA hinting faults and
+forks but this warning would also be triggered by a parallel reclaim
+splitting a THP during a fork.  Remote the bogus warning.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Alex Thorlton <athorlton@sgi.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Bob Liu <bob.liu@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c  |    5 +++++
- mm/rmap.c |   10 ++++++++--
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/ksm.c~mm-rmap-use-rmap_walk-in-page_referenced-fix mm/ksm.c
---- a/mm/ksm.c~mm-rmap-use-rmap_walk-in-page_referenced-fix
-+++ a/mm/ksm.c
-@@ -1899,6 +1899,11 @@ int rmap_walk_ksm(struct page *page, str
- 	int search_new_forks = 0;
+diff -puN mm/huge_memory.c~mm-remove-bogus-warning-in-copy_huge_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-remove-bogus-warning-in-copy_huge_pmd
++++ a/mm/huge_memory.c
+@@ -890,9 +890,6 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		goto out_unlock;
+ 	}
  
- 	VM_BUG_ON(!PageKsm(page));
-+
-+	/*
-+	 * Rely on the page lock to protect against concurrent modifications
-+	 * to that page's node of the stable tree.
-+	 */
- 	VM_BUG_ON(!PageLocked(page));
- 
- 	stable_node = page_stable_node(page);
-diff -puN mm/rmap.c~mm-rmap-use-rmap_walk-in-page_referenced-fix mm/rmap.c
---- a/mm/rmap.c~mm-rmap-use-rmap_walk-in-page_referenced-fix
-+++ a/mm/rmap.c
-@@ -1632,6 +1632,14 @@ static int rmap_walk_file(struct page *p
- 	struct vm_area_struct *vma;
- 	int ret = SWAP_AGAIN;
- 
-+	/*
-+	 * The page lock not only makes sure that page->mapping cannot
-+	 * suddenly be NULLified by truncation, it makes sure that the
-+	 * structure at mapping cannot be freed and reused yet,
-+	 * so we can safely take mapping->i_mmap_mutex.
-+	 */
-+	VM_BUG_ON(!PageLocked(page));
-+
- 	if (!mapping)
- 		return ret;
- 	mutex_lock(&mapping->i_mmap_mutex);
-@@ -1663,8 +1671,6 @@ done:
- 
- int rmap_walk(struct page *page, struct rmap_walk_control *rwc)
- {
--	VM_BUG_ON(!PageLocked(page));
+-	/* mmap_sem prevents this happening but warn if that changes */
+-	WARN_ON(pmd_trans_migrating(pmd));
 -
- 	if (unlikely(PageKsm(page)))
- 		return rmap_walk_ksm(page, rwc);
- 	else if (PageAnon(page))
+ 	if (unlikely(pmd_trans_splitting(pmd))) {
+ 		/* split huge page running from under us */
+ 		spin_unlock(src_ptl);
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
+mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
+mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2.patch
+mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
+mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
+mm-remove-bogus-warning-in-copy_huge_pmd.patch
+mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
+mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
+mm-thp-optimize-compound_trans_huge.patch
+mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
+mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
+mm-thp-turn-compound_head-into-bug_onpagetail-in-get_huge_page_tail.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
+mm-show_mem-remove-show_mem_filter_page_count.patch
+mm-show_mem-remove-show_mem_filter_page_count-fix.patch
 x86-get-pg_data_ts-memory-from-other-node.patch
 memblock-numa-introduce-flags-field-into-memblock.patch
 memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
@@ -170,16 +136,39 @@ acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
 acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
 memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
 x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
+mm-rmap-recompute-pgoff-for-huge-page.patch
+mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
+mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
+mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
+mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
+mm-rmap-use-rmap_walk-in-try_to_unmap.patch
+mm-rmap-use-rmap_walk-in-try_to_munlock.patch
+mm-rmap-use-rmap_walk-in-page_referenced.patch
 mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
-mm-hwpoison-add-to-hwpoison_inject.patch
-lib-show_memc-show-num_poisoned_pages-when-oom.patch
+mm-rmap-use-rmap_walk-in-page_mkclean.patch
+mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
+mm-numa-make-numa-migrate-related-functions-static.patch
+mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
+mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
+mm-numa-do-not-automatically-migrate-ksm-pages.patch
+sched-add-tracepoints-related-to-numa-task-migration.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-compaction-trace-compaction-begin-and-end.patch
+mm-compaction-encapsulate-defer-reset-logic.patch
+mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
+mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
+mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
 mm-migrate-add-comment-about-permanent-failure-path.patch
 mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
 mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
 mm-migrate-remove-unused-function-fail_migrate_page.patch
-mm-documentation-remove-hopelessly-out-of-date-locking-doc.patch
+mm-munlock-fix-potential-race-with-thp-page-split.patch
 mm-remove-bug_on-from-mlock_vma_page.patch
 linux-next.patch
 mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
 mm-migratec-fix-setting-of-cpupid-on-page-migration-twice-against-normal-page.patch
+zsmalloc-move-it-under-mm.patch
+zram-promote-zram-from-staging.patch
 
