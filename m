@@ -1,38 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sched-numa-skip-inaccessible-vmas.patch removed from -mm tree
-Date: Thu, 19 Dec 2013 11:53:39 -0800
-Message-ID: <52b34ec3.OZlDrz/Eh2iZA30r%akpm@linux-foundation.org>
+Subject: [merged] mm-numa-avoid-unnecessary-work-on-the-failure-path.patch removed from -mm tree
+Date: Thu, 19 Dec 2013 11:53:37 -0800
+Message-ID: <52b34ec1.X8ChawvLd/EQJ4CD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45493 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45488 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756135Ab3LSTxj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:39 -0500
+	with ESMTP id S1756135Ab3LSTxh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: [merged] sched-numa-skip-inaccessible-vmas.patch removed from -mm tree
+Subject: [merged] mm-numa-avoid-unnecessary-work-on-the-failure-path.patch removed from -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:39 -0800
+Date: Thu, 19 Dec 2013 11:53:37 -0800
 
 
 The patch titled
-     Subject: sched: numa: skip inaccessible VMAs
+     Subject: mm: numa: avoid unnecessary work on the failure path
 has been removed from the -mm tree.  Its filename was
-     sched-numa-skip-inaccessible-vmas.patch
+     mm-numa-avoid-unnecessary-work-on-the-failure-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: sched: numa: skip inaccessible VMAs
+Subject: mm: numa: avoid unnecessary work on the failure path
 
-Inaccessible VMA should not be trapping NUMA hint faults. Skip them.
+If a PMD changes during a THP migration then migration aborts but the
+failure path is doing more work than is necessary.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -41,26 +42,30 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/migrate.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sched/fair.c~sched-numa-skip-inaccessible-vmas kernel/sched/fair.c
---- a/kernel/sched/fair.c~sched-numa-skip-inaccessible-vmas
-+++ a/kernel/sched/fair.c
-@@ -1738,6 +1738,13 @@ void task_numa_work(struct callback_head
- 		    (vma->vm_file && (vma->vm_flags & (VM_READ|VM_WRITE)) == (VM_READ)))
- 			continue;
- 
-+		/*
-+		 * Skip inaccessible VMAs to avoid any confusion between
-+		 * PROT_NONE and NUMA hinting ptes
-+		 */
-+		if (!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)))
-+			continue;
+diff -puN mm/migrate.c~mm-numa-avoid-unnecessary-work-on-the-failure-path mm/migrate.c
+--- a/mm/migrate.c~mm-numa-avoid-unnecessary-work-on-the-failure-path
++++ a/mm/migrate.c
+@@ -1780,7 +1780,8 @@ fail_putback:
+ 		putback_lru_page(page);
+ 		mod_zone_page_state(page_zone(page),
+ 			 NR_ISOLATED_ANON + page_lru, -HPAGE_PMD_NR);
+-		goto out_fail;
 +
- 		do {
- 			start = max(start, vma->vm_start);
- 			end = ALIGN(start + (pages << PAGE_SHIFT), HPAGE_SIZE);
++		goto out_unlock;
+ 	}
+ 
+ 	/*
+@@ -1854,6 +1855,7 @@ out_dropref:
+ 	}
+ 	spin_unlock(ptl);
+ 
++out_unlock:
+ 	unlock_page(page);
+ 	put_page(page);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
