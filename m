@@ -1,75 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
+ mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
  removed from -mm tree
-Date: Thu, 19 Dec 2013 11:53:57 -0800
-Message-ID: <52b34ed5.houV401SaZGIFcEJ%akpm__37884.7582302571$1387482856$gmane$org@linux-foundation.org>
+Date: Thu, 19 Dec 2013 11:53:59 -0800
+Message-ID: <52b34ed7.g6hNnKNoZInzKxT8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45548 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756200Ab3LSTx6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:53:58 -0500
+	with ESMTP id S1756203Ab3LSTyA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Dec 2013 14:54:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, stable@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
 
-Subject: [merged] mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch removed from -mm tree
+Subject: [merged] mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch removed from -mm tree
 To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,stable@vger.kernel.org,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 19 Dec 2013 11:53:57 -0800
+Date: Thu, 19 Dec 2013 11:53:59 -0800
 
 
 The patch titled
-     Subject: mm/mempolicy: correct putback method for isolate pages if failed
+     Subject: mm/compaction: respect ignore_skip_hint in update_pageblock_skip
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed.patch
+     mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/mempolicy: correct putback method for isolate pages if failed
+Subject: mm/compaction: respect ignore_skip_hint in update_pageblock_skip
 
-queue_pages_range() isolates hugetlbfs pages and putback_lru_pages() can't
-handle these.  We should change it to putback_movable_pages().
-
-Naoya said that it is worth going into stable, because it can break in-use
-hugepage list.
+update_pageblock_skip() only fits to compaction which tries to isolate by
+pageblock unit.  If isolate_migratepages_range() is called by CMA, it try
+to isolate regardless of pageblock unit and it don't reference
+get_pageblock_skip() by ignore_skip_hint.  We should also respect it on
+update_pageblock_skip() to prevent from setting the wrong information.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: <stable@vger.kernel.org>	[3.12.x]
+Cc: <stable@vger.kernel.org>	[3.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-correct-putback-method-for-isolate-pages-if-failed
-+++ a/mm/mempolicy.c
-@@ -1318,7 +1318,7 @@ static long do_mbind(unsigned long start
- 		if (nr_failed && (flags & MPOL_MF_STRICT))
- 			err = -EIO;
- 	} else
--		putback_lru_pages(&pagelist);
-+		putback_movable_pages(&pagelist);
+diff -puN mm/compaction.c~mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-respect-ignore_skip_hint-in-update_pageblock_skip
++++ a/mm/compaction.c
+@@ -134,6 +134,10 @@ static void update_pageblock_skip(struct
+ 			bool migrate_scanner)
+ {
+ 	struct zone *zone = cc->zone;
++
++	if (cc->ignore_skip_hint)
++		return;
++
+ 	if (!page)
+ 		return;
  
- 	up_write(&mm->mmap_sem);
-  mpol_out:
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
