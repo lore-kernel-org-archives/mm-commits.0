@@ -1,52 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-revert-numa-aspect-of-fair-allocation-policy.patch added to
- -mm tree
-Date: Fri, 20 Dec 2013 14:27:02 -0800
-Message-ID: <52b4c436.06VmOHs7DvaOf8Nv%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-page_allocc-revert-numa-aspect-of-fair-allocation-policy.patch removed
+ from -mm tree
+Date: Fri, 20 Dec 2013 14:27:07 -0800
+Message-ID: <52b4c43b.c3VmRcVLKHQyo+FG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54988 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54996 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755355Ab3LTW1D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Dec 2013 17:27:03 -0500
+	with ESMTP id S1755355Ab3LTW1I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Dec 2013 17:27:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, dave.hansen@intel.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, dave.hansen@intel.com, hannes@cmpxchg.org
 
-Subject: + mm-page_alloc-revert-numa-aspect-of-fair-allocation-policy.patch added to -mm tree
-To: hannes@cmpxchg.org,dave.hansen@intel.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,stable@kernel.org
+Subject: [alternative-merged] mm-page_allocc-revert-numa-aspect-of-fair-allocation-policy.patch removed from -mm tree
+To: hannes@cmpxchg.org,dave.hansen@intel.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 20 Dec 2013 14:27:02 -0800
+Date: Fri, 20 Dec 2013 14:27:07 -0800
 
 
 The patch titled
-     Subject: mm: page_alloc: revert NUMA aspect of fair allocation policy
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-revert-numa-aspect-of-fair-allocation-policy.patch
+     Subject: mm/page_alloc.c: revert NUMA aspect of fair allocation policy
+has been removed from the -mm tree.  Its filename was
+     mm-page_allocc-revert-numa-aspect-of-fair-allocation-policy.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-revert-numa-aspect-of-fair-allocation-policy.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-revert-numa-aspect-of-fair-allocation-policy.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: revert NUMA aspect of fair allocation policy
+Subject: mm/page_alloc.c: revert NUMA aspect of fair allocation policy
 
 81c0a2bb ("mm: page_alloc: fair zone allocator policy") meant to bring
 aging fairness among zones in system, but it was overzealous and badly
@@ -64,34 +50,25 @@ utilization.  The original change assumed that zone_reclaim_mode would be
 a good enough predictor for that, but it turned out to be as indicative as
 a coin flip.
 
-Revert the NUMA aspect of the fairness until we can find a proper way to
-make it configurable and agree on a sane default.
+Revert the NUMA aspect of the fairness until we can find a proper way
+to make it configurable and agree on a sane default.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: <stable@kernel.org> # 3.12
+Cc: <stable@vger.kernel.org>		[3.12]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-revert-numa-aspect-of-fair-allocation-policy mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-revert-numa-aspect-of-fair-allocation-policy
+diff -puN mm/page_alloc.c~mm-page_allocc-revert-numa-aspect-of-fair-allocation-policy mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-revert-numa-aspect-of-fair-allocation-policy
 +++ a/mm/page_alloc.c
-@@ -1816,7 +1816,7 @@ static void zlc_clear_zones_full(struct
- 
- static bool zone_local(struct zone *local_zone, struct zone *zone)
- {
--	return node_distance(local_zone->node, zone->node) == LOCAL_DISTANCE;
-+	return local_zone->node == zone->node;
- }
- 
- static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
-@@ -1913,18 +1913,17 @@ zonelist_scan:
+@@ -1913,19 +1913,17 @@ zonelist_scan:
  		 * page was allocated in should have no effect on the
  		 * time the page has in memory before being reclaimed.
  		 *
@@ -101,14 +78,14 @@ diff -puN mm/page_alloc.c~mm-page_alloc-revert-numa-aspect-of-fair-allocation-po
 -		 * starting with the local zones, but ultimately fall
 -		 * back to remote zones that do not partake in the
 -		 * fairness round-robin cycle of this zonelist.
-+		 * Try to stay in local zones in the fastpath.  If
-+		 * that fails, the slowpath is entered, which will do
-+		 * another pass starting with the local zones, but
-+		 * ultimately fall back to remote zones that do not
-+		 * partake in the fairness round-robin cycle of this
-+		 * zonelist.
++		 * Try to stay in local zones in the fastpath.  If that fails,
++		 * the slowpath is entered, which will do another pass starting
++		 * with the local zones, but ultimately fall back to remote
++		 * zones that do not partake in the fairness round-robin cycle
++		 * of this zonelist.
  		 */
- 		if (alloc_flags & ALLOC_WMARK_LOW) {
+ 		if ((alloc_flags & ALLOC_WMARK_LOW) &&
+ 		    (gfp_mask & GFP_MOVABLE_MASK)) {
  			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
  				continue;
 -			if (zone_reclaim_mode &&
@@ -117,7 +94,7 @@ diff -puN mm/page_alloc.c~mm-page_alloc-revert-numa-aspect-of-fair-allocation-po
  				continue;
  		}
  		/*
-@@ -2390,7 +2389,7 @@ static void prepare_slowpath(gfp_t gfp_m
+@@ -2391,7 +2389,7 @@ static void prepare_slowpath(gfp_t gfp_m
  		 * thrash fairness information for zones that are not
  		 * actually part of this zonelist's round-robin cycle.
  		 */
@@ -134,7 +111,6 @@ origin.patch
 memcg-fix-memcg_size-calculation.patch
 revert-mm-page_alloc-exclude-unreclaimable-allocations-from-zone-fairness-policy.patch
 mm-page_alloc-revert-numa-aspect-of-fair-allocation-policy.patch
-mm-page_allocc-revert-numa-aspect-of-fair-allocation-policy.patch
 mm-memcg-avoid-oom-notification-when-current-needs-access-to-memory-reserves.patch
 proc-meminfo-provide-estimated-available-memory.patch
 mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
