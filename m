@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + microblaze-extable-sort-the-exception-table-at-build-time.patch added to -mm tree
-Date: Fri, 20 Dec 2013 15:33:33 -0800
-Message-ID: <52b4d3cd.4/k9eDSKDr1OUYZs%akpm@linux-foundation.org>
+Subject: + maintainers-update-rob-herrings-email-address.patch added to
+ -mm tree
+Date: Fri, 20 Dec 2013 15:36:59 -0800
+Message-ID: <52b4d49b.oPiB2eyJxb/T83+p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55989 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56049 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751039Ab3LTXde (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Dec 2013 18:33:34 -0500
+	with ESMTP id S1753252Ab3LTXhA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Dec 2013 18:37:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, will.deacon@arm.com, david.daney@cavium.com, catalin.marinas@arm.com, michal.simek@xilinx.com
+To: mm-commits@vger.kernel.org, robh@kernel.org, rob.herring@calxeda.com
 
-Subject: + microblaze-extable-sort-the-exception-table-at-build-time.patch added to -mm tree
-To: michal.simek@xilinx.com,catalin.marinas@arm.com,david.daney@cavium.com,will.deacon@arm.com
+Subject: + maintainers-update-rob-herrings-email-address.patch added to -mm tree
+To: rob.herring@calxeda.com,robh@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 20 Dec 2013 15:33:33 -0800
+Date: Fri, 20 Dec 2013 15:36:59 -0800
 
 
 The patch titled
-     Subject: microblaze: extable: sort the exception table at build time
+     Subject: MAINTAINERS: update Rob Herring's email address
 has been added to the -mm tree.  Its filename is
-     microblaze-extable-sort-the-exception-table-at-build-time.patch
+     maintainers-update-rob-herrings-email-address.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-extable-sort-the-exception-table-at-build-time.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-rob-herrings-email-address.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-extable-sort-the-exception-table-at-build-time.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-rob-herrings-email-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,67 +44,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Simek <michal.simek@xilinx.com>
-Subject: microblaze: extable: sort the exception table at build time
+From: Rob Herring <rob.herring@calxeda.com>
+Subject: MAINTAINERS: update Rob Herring's email address
 
-Sort the exception table at build-time rather than during boot.
+My Calxeda email address is going away.
 
-Microblaze is the same case as AARCH64 that's why EM_MICROBLAZE
-conditional check was added to allow cross-compilation on machines which
-are not running the latest libc-dev.
-
-Inspired by AARCH64 commit adace89562c7a9645b ("arm64: extable: sort the
-exception table at build time").
-
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Acked-by: David Daney <david.daney@cavium.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Rob Herring <rob.herring@calxeda.com>
+Signed-off-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/Kconfig |    1 +
- scripts/sortextable.c   |    5 +++++
- 2 files changed, 6 insertions(+)
+ MAINTAINERS |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/microblaze/Kconfig~microblaze-extable-sort-the-exception-table-at-build-time arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~microblaze-extable-sort-the-exception-table-at-build-time
-+++ a/arch/microblaze/Kconfig
-@@ -30,6 +30,7 @@ config MICROBLAZE
- 	select MODULES_USE_ELF_RELA
- 	select CLONE_BACKWARDS3
- 	select CLKSRC_OF
-+	select BUILDTIME_EXTABLE_SORT
+diff -puN MAINTAINERS~maintainers-update-rob-herrings-email-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-rob-herrings-email-address
++++ a/MAINTAINERS
+@@ -783,7 +783,7 @@ F:	arch/arm/boot/dts/sama*.dts
+ F:	arch/arm/boot/dts/sama*.dtsi
  
- config SWAP
- 	def_bool n
-diff -puN scripts/sortextable.c~microblaze-extable-sort-the-exception-table-at-build-time scripts/sortextable.c
---- a/scripts/sortextable.c~microblaze-extable-sort-the-exception-table-at-build-time
-+++ a/scripts/sortextable.c
-@@ -39,6 +39,10 @@
- #define EM_AARCH64	183
- #endif
+ ARM/CALXEDA HIGHBANK ARCHITECTURE
+-M:	Rob Herring <rob.herring@calxeda.com>
++M:	Rob Herring <robh@kernel.org>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
+ F:	arch/arm/mach-highbank/
+@@ -6257,7 +6257,7 @@ F:	drivers/i2c/busses/i2c-ocores.c
  
-+#ifndef EM_MICROBLAZE
-+#define EM_MICROBLAZE	189
-+#endif
-+
- static int fd_map;	/* File descriptor for file being modified. */
- static int mmap_failed; /* Boolean flag. */
- static void *ehdr_curr; /* current ElfXX_Ehdr *  for resource cleanup */
-@@ -275,6 +279,7 @@ do_file(char const *const fname)
- 	case EM_ARCOMPACT:
- 	case EM_ARM:
- 	case EM_AARCH64:
-+	case EM_MICROBLAZE:
- 	case EM_MIPS:
- 		break;
- 	}  /* end switch */
+ OPEN FIRMWARE AND FLATTENED DEVICE TREE
+ M:	Grant Likely <grant.likely@linaro.org>
+-M:	Rob Herring <rob.herring@calxeda.com>
++M:	Rob Herring <robh+dt@kernel.org>
+ L:	devicetree@vger.kernel.org
+ W:	http://fdt.secretlab.ca
+ T:	git git://git.secretlab.ca/git/linux-2.6.git
+@@ -6269,7 +6269,7 @@ K:	of_get_property
+ K:	of_match_table
+ 
+ OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS
+-M:	Rob Herring <rob.herring@calxeda.com>
++M:	Rob Herring <robh+dt@kernel.org>
+ M:	Pawel Moll <pawel.moll@arm.com>
+ M:	Mark Rutland <mark.rutland@arm.com>
+ M:	Ian Campbell <ijc+devicetree@hellion.org.uk>
 _
 
-Patches currently in -mm which might be from michal.simek@xilinx.com are
+Patches currently in -mm which might be from rob.herring@calxeda.com are
 
-maintainers-set-up-proper-record-for-xilinx-zynq.patch
-microblaze-extable-sort-the-exception-table-at-build-time.patch
+maintainers-update-rob-herrings-email-address.patch
+dt-bindings-add-hym8563-binding.patch
+rtc-add-hym8563-rtc-driver.patch
 linux-next.patch
 
