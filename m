@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-tests-for-function-pointer-style-misuses.patch
- added to -mm tree
-Date: Thu, 26 Dec 2013 14:16:10 -0800
-Message-ID: <52bcaaaa.D88khTPM+2orJGqY%akpm@linux-foundation.org>
+Subject: + checkpatch-improve-space-before-tab-fix-option.patch added to
+ -mm tree
+Date: Thu, 26 Dec 2013 14:16:12 -0800
+Message-ID: <52bcaaac.WOCa3yeALNvIQ+mg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39047 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39060 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752872Ab3LZWQL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:16:11 -0500
+	with ESMTP id S1752976Ab3LZWQN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:16:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, manfred@colorfullife.com, josh@joshtriplett.org, apw@canonical.com, joe@perches.com
 
-Subject: + checkpatch-add-tests-for-function-pointer-style-misuses.patch added to -mm tree
+Subject: + checkpatch-improve-space-before-tab-fix-option.patch added to -mm tree
 To: joe@perches.com,apw@canonical.com,josh@joshtriplett.org,manfred@colorfullife.com
 From: akpm@linux-foundation.org
-Date: Thu, 26 Dec 2013 14:16:10 -0800
+Date: Thu, 26 Dec 2013 14:16:12 -0800
 
 
 The patch titled
-     Subject: checkpatch: add tests for function pointer style misuses
+     Subject: checkpatch: improve space before tab --fix option
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-tests-for-function-pointer-style-misuses.patch
+     checkpatch-improve-space-before-tab-fix-option.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-tests-for-function-pointer-style-misuses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-space-before-tab-fix-option.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-tests-for-function-pointer-style-misuses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-space-before-tab-fix-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,92 +45,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add tests for function pointer style misuses
+Subject: checkpatch: improve space before tab --fix option
 
-Kernel style uses function pointers in this form:
-	"type (*funcptr)(args...)"
+This test should remove all the spaces before a tab not just one space.
 
-Emit warnings when this function pointer form isn't used.
+Substitute a tab for each 8 space block before a tab and remove less than
+8 spaces before a tab.
 
+This SPACE_BEFORE_TAB test is done after CODE_INDENT.
+
+If there are spaces used at the beginning of a line that should be
+converted to tabs, please make sure that the CODE_INDENT test and
+conversion is done before this SPACE_BEFORE_TAB test and conversion.
+
+Reported-by: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Manfred Spraul <manfred@colorfullife.com>
 Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   59 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
+ scripts/checkpatch.pl |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-tests-for-function-pointer-style-misuses scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-tests-for-function-pointer-style-misuses
+diff -puN scripts/checkpatch.pl~checkpatch-improve-space-before-tab-fix-option scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-space-before-tab-fix-option
 +++ a/scripts/checkpatch.pl
-@@ -2798,6 +2798,65 @@ sub process {
+@@ -2118,8 +2118,10 @@ sub process {
+ 			if (WARN("SPACE_BEFORE_TAB",
+ 				"please, no space before tabs\n" . $herevet) &&
+ 			    $fix) {
+-				$fixed[$linenr - 1] =~
+-				    s/(^\+.*) +\t/$1\t/;
++				while ($fixed[$linenr - 1] =~
++					   s/(^\+.*) {8,8}+\t/$1\t\t/) {}
++				while ($fixed[$linenr - 1] =~
++					   s/(^\+.*) +\t/$1\t/) {}
  			}
  		}
  
-+# Function pointer declarations
-+# check spacing between type, funcptr, and args
-+# canonical declaration is "type (*funcptr)(args...)"
-+#
-+# the $Declare variable will capture all spaces after the type
-+# so check it for multiple spaces
-+		if ($line =~ /^.\s*($Declare)\((\s*)\*(\s*)$Ident(\s*)\)(\s*)\(/) {
-+			my $declare = $1;
-+			my $pre_pointer_space = $2;
-+			my $post_pointer_space = $3;
-+			my $funcname = $4;
-+			my $post_funcname_space = $5;
-+			my $pre_args_space = $6;
-+
-+			if ($declare !~ /\s$/) {
-+				WARN("SPACING",
-+				     "missing space after return type\n" . $herecurr);
-+			}
-+
-+# unnecessary space "type  (*funcptr)(args...)"
-+			elsif ($declare =~ /\s{2,}$/) {
-+				WARN("SPACING",
-+				     "Multiple spaces after return type\n" . $herecurr);
-+			}
-+
-+# unnecessary space "type ( *funcptr)(args...)"
-+			if (defined $pre_pointer_space &&
-+			    $pre_pointer_space =~ /^\s/) {
-+				WARN("SPACING",
-+				     "Unnecessary space after function pointer open parenthesis\n" . $herecurr);
-+			}
-+
-+# unnecessary space "type (* funcptr)(args...)"
-+			if (defined $post_pointer_space &&
-+			    $post_pointer_space =~ /^\s/) {
-+				WARN("SPACING",
-+				     "Unnecessary space before function pointer name\n" . $herecurr);
-+			}
-+
-+# unnecessary space "type (*funcptr )(args...)"
-+			if (defined $post_funcname_space &&
-+			    $post_funcname_space =~ /^\s/) {
-+				WARN("SPACING",
-+				     "Unnecessary space after function pointer name\n" . $herecurr);
-+			}
-+
-+# unnecessary space "type (*funcptr) (args...)"
-+			if (defined $pre_args_space &&
-+			    $pre_args_space =~ /^\s/) {
-+				WARN("SPACING",
-+				     "Unnecessary space before function pointer name\n" . $herecurr);
-+			}
-+
-+			if (show_type("SPACING") && $fix) {
-+				$fixed[$linenr - 1] =~
-+				    s/^(.\s*$Declare)\(\s*\*\s*($Ident)\s*\)\s*\(/rtrim($1) . " " . "\(\*$2\)\("/ex;
-+			}
-+		}
-+
- # check for spacing round square brackets; allowed:
- #  1. with a type on the left -- int [] a;
- #  2. at the beginning of a line for slice initialisers -- [0...10] = 5,
 _
 
 Patches currently in -mm which might be from joe@perches.com are
