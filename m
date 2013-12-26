@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-improve-space-before-tab-fix-option.patch added to
- -mm tree
-Date: Thu, 26 Dec 2013 14:16:12 -0800
-Message-ID: <52bcaaac.WOCa3yeALNvIQ+mg%akpm@linux-foundation.org>
+Subject: + checkpatch-check-for-ifs-with-unnecessary-parentheses.patch
+ added to -mm tree
+Date: Thu, 26 Dec 2013 14:16:13 -0800
+Message-ID: <52bcaaad.1lT8CoBIHc+LYvjN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39066 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752976Ab3LZWQN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:16:13 -0500
+	with ESMTP id S1752976Ab3LZWQP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:16:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, manfred@colorfullife.com, josh@joshtriplett.org, apw@canonical.com, joe@perches.com
 
-Subject: + checkpatch-improve-space-before-tab-fix-option.patch added to -mm tree
+Subject: + checkpatch-check-for-ifs-with-unnecessary-parentheses.patch added to -mm tree
 To: joe@perches.com,apw@canonical.com,josh@joshtriplett.org,manfred@colorfullife.com
 From: akpm@linux-foundation.org
-Date: Thu, 26 Dec 2013 14:16:12 -0800
+Date: Thu, 26 Dec 2013 14:16:13 -0800
 
 
 The patch titled
-     Subject: checkpatch: improve space before tab --fix option
+     Subject: checkpatch: check for if's with unnecessary parentheses
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-space-before-tab-fix-option.patch
+     checkpatch-check-for-ifs-with-unnecessary-parentheses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-space-before-tab-fix-option.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-check-for-ifs-with-unnecessary-parentheses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-space-before-tab-fix-option.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-check-for-ifs-with-unnecessary-parentheses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,45 +45,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve space before tab --fix option
+Subject: checkpatch: check for if's with unnecessary parentheses
 
-This test should remove all the spaces before a tab not just one space.
+If statements don't need multiple parentheses around tested comparisons
+like "if ((foo == bar))".
 
-Substitute a tab for each 8 space block before a tab and remove less than
-8 spaces before a tab.
+An == comparison maybe a sign of an intended assignment, so emit a
+slightly different message if so.
 
-This SPACE_BEFORE_TAB test is done after CODE_INDENT.
-
-If there are spaces used at the beginning of a line that should be
-converted to tabs, please make sure that the CODE_INDENT test and
-conversion is done before this SPACE_BEFORE_TAB test and conversion.
-
-Reported-by: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-space-before-tab-fix-option scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-space-before-tab-fix-option
+diff -puN scripts/checkpatch.pl~checkpatch-check-for-ifs-with-unnecessary-parentheses scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-for-ifs-with-unnecessary-parentheses
 +++ a/scripts/checkpatch.pl
-@@ -2118,8 +2118,10 @@ sub process {
- 			if (WARN("SPACE_BEFORE_TAB",
- 				"please, no space before tabs\n" . $herevet) &&
- 			    $fix) {
--				$fixed[$linenr - 1] =~
--				    s/(^\+.*) +\t/$1\t/;
-+				while ($fixed[$linenr - 1] =~
-+					   s/(^\+.*) {8,8}+\t/$1\t\t/) {}
-+				while ($fixed[$linenr - 1] =~
-+					   s/(^\+.*) +\t/$1\t/) {}
+@@ -3310,6 +3310,20 @@ sub process {
  			}
  		}
  
++# if statements using unnecessary parentheses - ie: if ((foo == bar))
++		if ($^V && $^V ge 5.10.0 &&
++		    $line =~ /\bif\s*((?:\(\s*){2,})/) {
++			my $openparens = $1;
++			my $count = $openparens =~ tr@\(@\(@;
++			my $msg = "";
++			if ($line =~ /\bif\s*(?:\(\s*){$count,$count}$LvalOrFunc\s*($Compare)\s*$LvalOrFunc(?:\s*\)){$count,$count}/) {
++				my $comp = $4;	#Not $1 because of $LvalOrFunc
++				$msg = " - maybe == should be = ?" if ($comp eq "==");
++				WARN("UNNECESSARY_PARENTHESES",
++				     "Unnecessary parentheses$msg\n" . $herecurr);
++			}
++		}
++
+ # Return of what appears to be an errno should normally be -'ve
+ 		if ($line =~ /^.\s*return\s*(E[A-Z]*)\s*;/) {
+ 			my $name = $1;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
