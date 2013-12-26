@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-define-u8-s8-u32-etc-limits.patch added to -mm tree
-Date: Thu, 26 Dec 2013 14:34:46 -0800
-Message-ID: <52bcaf06.z5mvF+d5UHg42/gw%akpm@linux-foundation.org>
+Subject: + ocfs2-check-existence-of-old-dentry-in-ocfs2_link.patch added
+ to -mm tree
+Date: Thu, 26 Dec 2013 14:36:42 -0800
+Message-ID: <52bcaf7a.J0OUh2+Vt961XCez%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39179 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39190 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752551Ab3LZWer (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:34:47 -0500
+	with ESMTP id S1752551Ab3LZWgn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:36:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sage@inktank.com, elder@linaro.org, davem@davemloft.net, alex.elder@linaro.org
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: + kernelh-define-u8-s8-u32-etc-limits.patch added to -mm tree
-To: alex.elder@linaro.org,davem@davemloft.net,elder@linaro.org,sage@inktank.com
+Subject: + ocfs2-check-existence-of-old-dentry-in-ocfs2_link.patch added to -mm tree
+To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Thu, 26 Dec 2013 14:34:46 -0800
+Date: Thu, 26 Dec 2013 14:36:42 -0800
 
 
 The patch titled
-     Subject: kernel.h: define u8, s8, u32, etc. limits
+     Subject: ocfs2: check existence of old dentry in ocfs2_link()
 has been added to the -mm tree.  Its filename is
-     kernelh-define-u8-s8-u32-etc-limits.patch
+     ocfs2-check-existence-of-old-dentry-in-ocfs2_link.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernelh-define-u8-s8-u32-etc-limits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-check-existence-of-old-dentry-in-ocfs2_link.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernelh-define-u8-s8-u32-etc-limits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-check-existence-of-old-dentry-in-ocfs2_link.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,50 +44,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Elder <alex.elder@linaro.org>
-Subject: kernel.h: define u8, s8, u32, etc. limits
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: check existence of old dentry in ocfs2_link()
 
-Create constants that define the maximum and minimum values
-representable by the kernel types u8, s8, u16, s16, and so on.
+System call linkat first calls user_path_at(), check the existence of old
+dentry, and then calls vfs_link()->ocfs2_link() to do the actual work. 
+There may exist a race when Node A create a hard link for file while node
+B rm it.
 
-Signed-off-by: Alex Elder <elder@linaro.org>
-Cc: Sage Weil <sage@inktank.com>
-Cc: David Miller <davem@davemloft.net>
+         Node A                          Node B
+user_path_at()
+  ->ocfs2_lookup(),
+find old dentry exist
+                                rm file, add inode say inodeA
+                                to orphan_dir
+
+call ocfs2_link(),create a
+hard link for inodeA.
+
+                                rm the link, add inodeA to orphan_dir
+                                again
+
+When orphan_scan work start, it calls ocfs2_queue_orphans() to do the main
+work.  It first tranverses entrys in orphan_dir, linking all inodes in
+this orphan_dir to a list look like this:
+
+	inodeA->inodeB->...->inodeA
+
+When tranvering this list, it will fall into loop, calling iput() again
+and again.  And finally trigger BUG_ON(inode->i_state & I_CLEAR).
+
+Signed-off-by: joyce <xuejiufei@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   13 +++++++++++++
+ fs/ocfs2/namei.c |   13 +++++++++++++
  1 file changed, 13 insertions(+)
 
-diff -puN include/linux/kernel.h~kernelh-define-u8-s8-u32-etc-limits include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-define-u8-s8-u32-etc-limits
-+++ a/include/linux/kernel.h
-@@ -29,6 +29,19 @@
- #define ULLONG_MAX	(~0ULL)
- #define SIZE_MAX	(~(size_t)0)
+diff -puN fs/ocfs2/namei.c~ocfs2-check-existence-of-old-dentry-in-ocfs2_link fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-check-existence-of-old-dentry-in-ocfs2_link
++++ a/fs/ocfs2/namei.c
+@@ -644,6 +644,7 @@ static int ocfs2_link(struct dentry *old
+ 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
+ 	struct ocfs2_dir_lookup_result lookup = { NULL, };
+ 	sigset_t oldset;
++	u64 old_de_ino;
  
-+#define U8_MAX		((u8)~0U)
-+#define S8_MAX		((s8)(U8_MAX>>1))
-+#define S8_MIN		((s8)(-S8_MAX - 1))
-+#define U16_MAX		((u16)~0U)
-+#define S16_MAX		((s16)(U16_MAX>>1))
-+#define S16_MIN		((s16)(-S16_MAX - 1))
-+#define U32_MAX		((u32)~0U)
-+#define S32_MAX		((s32)(U32_MAX>>1))
-+#define S32_MIN		((s32)(-S32_MAX - 1))
-+#define U64_MAX		((u64)~0ULL)
-+#define S64_MAX		((s64)(U64_MAX>>1))
-+#define S64_MIN		((s64)(-S64_MAX - 1))
+ 	trace_ocfs2_link((unsigned long long)OCFS2_I(inode)->ip_blkno,
+ 			 old_dentry->d_name.len, old_dentry->d_name.name,
+@@ -665,6 +666,18 @@ static int ocfs2_link(struct dentry *old
+ 		err = -ENOENT;
+ 		goto out;
+ 	}
 +
- #define STACK_MAGIC	0xdeadbeef
++	err = ocfs2_lookup_ino_from_name(dir, old_dentry->d_name.name,
++			old_dentry->d_name.len, &old_de_ino);
++	if (err) {
++		err = -ENOENT;
++		goto out;
++	}
++
++	if (old_de_ino != OCFS2_I(inode)->ip_blkno) {
++		err = -ENOENT;
++		goto out;
++	}
  
- #define REPEAT_BYTE(x)	((~0ul / 0xff) * (x))
+ 	err = ocfs2_check_dir_for_entry(dir, dentry->d_name.name,
+ 					dentry->d_name.len);
 _
 
-Patches currently in -mm which might be from alex.elder@linaro.org are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-conditionally-define-u32_max.patch
-kernelh-define-u8-s8-u32-etc-limits.patch
-remove-extra-definitions-of-u32_max.patch
-linux-next.patch
+ocfs2-check-existence-of-old-dentry-in-ocfs2_link.patch
 
