@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-update-the-fsf-gpl-address-check.patch added to -mm
- tree
-Date: Thu, 26 Dec 2013 14:16:14 -0800
-Message-ID: <52bcaaae.3BMnjC5oGUgxL+Ex%akpm@linux-foundation.org>
+Subject: + epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch
+ added to -mm tree
+Date: Thu, 26 Dec 2013 14:19:21 -0800
+Message-ID: <52bcab69.OZ6L0ERTqrPvM/kq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39069 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39072 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753445Ab3LZWQP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:16:15 -0500
+	with ESMTP id S1753445Ab3LZWTW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:19:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, manfred@colorfullife.com, josh@joshtriplett.org, apw@canonical.com, joe@perches.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, paulmck@us.ibm.com, nzimmer@sgi.com, normalperson@yhbt.net, nelhage@nelhage.com, davidel@xmailserver.org, jbaron@akamai.com
 
-Subject: + checkpatch-update-the-fsf-gpl-address-check.patch added to -mm tree
-To: joe@perches.com,apw@canonical.com,josh@joshtriplett.org,manfred@colorfullife.com
+Subject: + epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch added to -mm tree
+To: jbaron@akamai.com,davidel@xmailserver.org,nelhage@nelhage.com,normalperson@yhbt.net,nzimmer@sgi.com,paulmck@us.ibm.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 26 Dec 2013 14:16:14 -0800
+Date: Thu, 26 Dec 2013 14:19:21 -0800
 
 
 The patch titled
-     Subject: checkpatch: update the FSF/GPL address check
+     Subject: epoll: do not take the nested ep->mtx on EPOLL_CTL_DEL
 has been added to the -mm tree.  Its filename is
-     checkpatch-update-the-fsf-gpl-address-check.patch
+     epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-update-the-fsf-gpl-address-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-update-the-fsf-gpl-address-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,77 +44,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: update the FSF/GPL address check
+From: Jason Baron <jbaron@akamai.com>
+Subject: epoll: do not take the nested ep->mtx on EPOLL_CTL_DEL
 
-The FSF address check is a bit too verbose looking for the GPL text. 
-Quiet it a bit by requiring --strict for the GPL bit.
+The EPOLL_CTL_DEL path of epoll contains a classic, ab-ba deadlock.  That
+is, epoll_ctl(a, EPOLL_CTL_DEL, b, x), will deadlock with epoll_ctl(b,
+EPOLL_CTL_DEL, a, x).  The deadlock was introduced with commmit
+67347fe4e6326 ("epoll: do not take global 'epmutex' for simple
+topologies").
 
-Also make the address tests match a few uses of abbreviations for street
-names and make it case insensitive.
+The acquistion of the ep->mtx for the destination 'ep' was added such that
+a concurrent EPOLL_CTL_ADD operation would see the correct state of the
+ep.  (Specifically, the check for '!list_empty(&f.file->f_ep_links'.)
+However, by simply not acquiring the lock, we do not serialize behind the
+ep->mtx from the add path, and thus may perform a full path check when if
+we had waited a little longer it may not have been necessary.  However,
+this is a transient state, and performing the full loop checking in this
+case is not harmful.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+The important point is that we wouldn't miss doing the full loop checking
+when required, since EPOLL_CTL_ADD always locks any 'ep's that its
+operating upon.  The reason we don't need to do lock ordering in the add
+path, is that we are already are holding the global 'epmutex' whenever we
+do the double lock.  Further, the original posting of this patch, which
+was tested for the intended performance gains, did not perform this
+additional locking.
+
+Signed-off-by: Jason Baron <jbaron@akamai.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Eric Wong <normalperson@yhbt.net>
+Cc: Nelson Elhage <nelhage@nelhage.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/eventpoll.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-update-the-fsf-gpl-address-check scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-update-the-fsf-gpl-address-check
-+++ a/scripts/checkpatch.pl
-@@ -1970,15 +1970,16 @@ sub process {
+diff -puN fs/eventpoll.c~epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del
++++ a/fs/eventpoll.c
+@@ -1907,10 +1907,6 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 			}
  		}
+ 	}
+-	if (op == EPOLL_CTL_DEL && is_file_epoll(tf.file)) {
+-		tep = tf.file->private_data;
+-		mutex_lock_nested(&tep->mtx, 1);
+-	}
  
- # Check for FSF mailing addresses.
--		if ($rawline =~ /You should have received a copy/ ||
--		    $rawline =~ /write to the Free Software/ ||
--		    $rawline =~ /59 Temple Place/ ||
--		    $rawline =~ /51 Franklin Street/) {
-+		if ($rawline =~ /\bYou should have received a copy/i ||
-+		    $rawline =~ /\bwrite to the Free/i ||
-+		    $rawline =~ /\b59\s+Temple\s+Pl/i ||
-+		    $rawline =~ /\b51\s+Franklin\s+St/i) {
- 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
- 			my $msg_type = \&ERROR;
- 			$msg_type = \&CHK if ($file);
-+			$msg_type = \&CHK if ($rawline =~ /\bYou should have received a copy/i);
- 			&{$msg_type}("FSF_MAILING_ADDRESS",
--				"Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.\n" . $herevet)
-+				     "Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.\n" . $herevet)
- 		}
- 
- # check for Kconfig help text having a real description
+ 	/*
+ 	 * Try to lookup the file inside our RB tree, Since we grabbed "mtx"
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jbaron@akamai.com are
 
+epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch
 lib-parserc-add-match_wildcard-function.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
 dynamic_debug-add-wildcard-support-to-filter-files-functions-modules.patch
 dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch
-vsprintf-add-%pad-extension-for-dma_addr_t-use.patch
-get_maintainer-add-commit-author-information-to-rolestats.patch
-test-add-minimal-module-for-verification-testing.patch
-test-check-copy_to-from_user-boundary-validation.patch
-test-check-copy_to-from_user-boundary-validation-fix.patch
-checkpatch-more-comprehensive-split-strings-warning.patch
-checkpatch-warn-only-on-space-before-semicolon-at-end-of-line.patch
-checkpatch-add-warning-of-future-__gfp_nofail-use.patch
-checkpatch-attempt-to-find-missing-switch-case-break.patch
-checkpatch-add-tests-for-function-pointer-style-misuses.patch
-checkpatch-add-a-fix-inplace-option.patch
-checkpatch-improve-space-before-tab-fix-option.patch
-checkpatch-check-for-ifs-with-unnecessary-parentheses.patch
-checkpatch-update-the-fsf-gpl-address-check.patch
 linux-next.patch
-softirq-use-ffs-in-__do_softirq.patch
-softirq-convert-printks-to-pr_level.patch
-softirq-use-const-char-const-for-softirq_to_name-whitespace-neatening.patch
-checkpatchpl-check-for-function-declarations-without-arguments.patch
 
