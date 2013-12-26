@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-a-fix-inplace-option.patch added to -mm tree
-Date: Thu, 26 Dec 2013 14:16:11 -0800
-Message-ID: <52bcaaab.iF6cseGsBWSSpkPk%akpm@linux-foundation.org>
+Subject: + checkpatch-add-tests-for-function-pointer-style-misuses.patch
+ added to -mm tree
+Date: Thu, 26 Dec 2013 14:16:10 -0800
+Message-ID: <52bcaaaa.D88khTPM+2orJGqY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39047 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752891Ab3LZWQM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:16:12 -0500
+	with ESMTP id S1752872Ab3LZWQL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:16:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, manfred@colorfullife.com, josh@joshtriplett.org, apw@canonical.com, joe@perches.com
 
-Subject: + checkpatch-add-a-fix-inplace-option.patch added to -mm tree
+Subject: + checkpatch-add-tests-for-function-pointer-style-misuses.patch added to -mm tree
 To: joe@perches.com,apw@canonical.com,josh@joshtriplett.org,manfred@colorfullife.com
 From: akpm@linux-foundation.org
-Date: Thu, 26 Dec 2013 14:16:11 -0800
+Date: Thu, 26 Dec 2013 14:16:10 -0800
 
 
 The patch titled
-     Subject: checkpatch: add a --fix-inplace option
+     Subject: checkpatch: add tests for function pointer style misuses
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-a-fix-inplace-option.patch
+     checkpatch-add-tests-for-function-pointer-style-misuses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-a-fix-inplace-option.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-tests-for-function-pointer-style-misuses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-a-fix-inplace-option.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-tests-for-function-pointer-style-misuses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,69 +45,92 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add a --fix-inplace option
+Subject: checkpatch: add tests for function pointer style misuses
 
-Add the ability to fix and overwrite existing files/patches instead of
-creating a new file "<filename>.EXPERIMENTAL-checkpatch-fixes".
+Kernel style uses function pointers in this form:
+	"type (*funcptr)(args...)"
 
-Suggested-by: Manfred Spraul <manfred@colorfullife.com>
+Emit warnings when this function pointer form isn't used.
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   59 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-a-fix-inplace-option scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-a-fix-inplace-option
+diff -puN scripts/checkpatch.pl~checkpatch-add-tests-for-function-pointer-style-misuses scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-tests-for-function-pointer-style-misuses
 +++ a/scripts/checkpatch.pl
-@@ -29,6 +29,7 @@ my $mailback = 0;
- my $summary_file = 0;
- my $show_types = 0;
- my $fix = 0;
-+my $fix_inplace = 0;
- my $root;
- my %debug;
- my %camelcase = ();
-@@ -76,6 +77,9 @@ Options:
-                              "<inputfile>.EXPERIMENTAL-checkpatch-fixes"
-                              with potential errors corrected to the preferred
-                              checkpatch style
-+  --fix-inplace              EXPERIMENTAL - may create horrible results
-+                             Is the same as --fix, but overwrites the input
-+                             file.  It's your fault if there's no backup or git
-   --ignore-perl-version      override checking of perl version.  expect
-                              runtime errors.
-   -h, --help, --version      display this help and exit
-@@ -131,6 +135,7 @@ GetOptions(
- 	'mailback!'	=> \$mailback,
- 	'summary-file!'	=> \$summary_file,
- 	'fix!'		=> \$fix,
-+	'fix-inplace!'	=> \$fix_inplace,
- 	'ignore-perl-version!' => \$ignore_perl_version,
- 	'debug=s'	=> \%debug,
- 	'test-only=s'	=> \$tst_only,
-@@ -140,6 +145,8 @@ GetOptions(
+@@ -2798,6 +2798,65 @@ sub process {
+ 			}
+ 		}
  
- help(0) if ($help);
- 
-+$fix = 1 if ($fix_inplace);
++# Function pointer declarations
++# check spacing between type, funcptr, and args
++# canonical declaration is "type (*funcptr)(args...)"
++#
++# the $Declare variable will capture all spaces after the type
++# so check it for multiple spaces
++		if ($line =~ /^.\s*($Declare)\((\s*)\*(\s*)$Ident(\s*)\)(\s*)\(/) {
++			my $declare = $1;
++			my $pre_pointer_space = $2;
++			my $post_pointer_space = $3;
++			my $funcname = $4;
++			my $post_funcname_space = $5;
++			my $pre_args_space = $6;
 +
- my $exit = 0;
- 
- if ($^V && $^V lt $minimum_perl_version) {
-@@ -4444,7 +4451,8 @@ sub process {
- 	hash_show_words(\%ignore_type, "Ignored");
- 
- 	if ($clean == 0 && $fix && "@rawlines" ne "@fixed") {
--		my $newfile = $filename . ".EXPERIMENTAL-checkpatch-fixes";
-+		my $newfile = $filename;
-+		$newfile .= ".EXPERIMENTAL-checkpatch-fixes" if (!$fix_inplace);
- 		my $linecount = 0;
- 		my $f;
- 
++			if ($declare !~ /\s$/) {
++				WARN("SPACING",
++				     "missing space after return type\n" . $herecurr);
++			}
++
++# unnecessary space "type  (*funcptr)(args...)"
++			elsif ($declare =~ /\s{2,}$/) {
++				WARN("SPACING",
++				     "Multiple spaces after return type\n" . $herecurr);
++			}
++
++# unnecessary space "type ( *funcptr)(args...)"
++			if (defined $pre_pointer_space &&
++			    $pre_pointer_space =~ /^\s/) {
++				WARN("SPACING",
++				     "Unnecessary space after function pointer open parenthesis\n" . $herecurr);
++			}
++
++# unnecessary space "type (* funcptr)(args...)"
++			if (defined $post_pointer_space &&
++			    $post_pointer_space =~ /^\s/) {
++				WARN("SPACING",
++				     "Unnecessary space before function pointer name\n" . $herecurr);
++			}
++
++# unnecessary space "type (*funcptr )(args...)"
++			if (defined $post_funcname_space &&
++			    $post_funcname_space =~ /^\s/) {
++				WARN("SPACING",
++				     "Unnecessary space after function pointer name\n" . $herecurr);
++			}
++
++# unnecessary space "type (*funcptr) (args...)"
++			if (defined $pre_args_space &&
++			    $pre_args_space =~ /^\s/) {
++				WARN("SPACING",
++				     "Unnecessary space before function pointer name\n" . $herecurr);
++			}
++
++			if (show_type("SPACING") && $fix) {
++				$fixed[$linenr - 1] =~
++				    s/^(.\s*$Declare)\(\s*\*\s*($Ident)\s*\)\s*\(/rtrim($1) . " " . "\(\*$2\)\("/ex;
++			}
++		}
++
+ # check for spacing round square brackets; allowed:
+ #  1. with a type on the left -- int [] a;
+ #  2. at the beginning of a line for slice initialisers -- [0...10] = 5,
 _
 
 Patches currently in -mm which might be from joe@perches.com are
