@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-fix-symlinks-arent-checked-for-expiry.patch added to -mm tree
-Date: Fri, 27 Dec 2013 14:02:55 -0800
-Message-ID: <52bdf90f.Rmgxj/j+MVJE3jBy%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-add-tests-for-function-pointer-style-misuses-fix.patch added to
+ -mm tree
+Date: Fri, 27 Dec 2013 14:05:45 -0800
+Message-ID: <52bdf9b9.KBmEZ44VNDg4442k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60175 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60181 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754786Ab3L0WC6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Dec 2013 17:02:58 -0500
+	with ESMTP id S1754786Ab3L0WFq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Dec 2013 17:05:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ikent@redhat.com
+To: mm-commits@vger.kernel.org, joe@perches.com, josh@joshtriplett.org
 
-Subject: + autofs-fix-symlinks-arent-checked-for-expiry.patch added to -mm tree
-To: ikent@redhat.com
+Subject: + checkpatch-add-tests-for-function-pointer-style-misuses-fix.patch added to -mm tree
+To: josh@joshtriplett.org,joe@perches.com
 From: akpm@linux-foundation.org
-Date: Fri, 27 Dec 2013 14:02:55 -0800
+Date: Fri, 27 Dec 2013 14:05:45 -0800
 
 
 The patch titled
-     Subject: autofs: fix symlinks aren't checked for expiry
+     Subject: checkpatch-add-tests-for-function-pointer-style-misuses-fix
 has been added to the -mm tree.  Its filename is
-     autofs-fix-symlinks-arent-checked-for-expiry.patch
+     checkpatch-add-tests-for-function-pointer-style-misuses-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-fix-symlinks-arent-checked-for-expiry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-tests-for-function-pointer-style-misuses-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-fix-symlinks-arent-checked-for-expiry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-tests-for-function-pointer-style-misuses-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,74 +45,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ian Kent <ikent@redhat.com>
-Subject: autofs: fix symlinks aren't checked for expiry
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: checkpatch-add-tests-for-function-pointer-style-misuses-fix
 
-The autofs4 module doesn't consider symlinks for expire as it did in the
-older autofs v3 module (so it's actually a long standing regression).
+Fix an ambiguity in one warning message and a copy/paste problem in
+another.
 
-The user space daemon has focused on the use of bind mounts instead of
-symlinks for a long time now and that's why this has not been noticed. 
-But with the future addition of amd map parsing to automount(8), not to
-mention amd itself (of am-utils), symlink expiry will be needed.
-
-The direct and offset mount types can't be symlinks and the tree mounts of
-version 4 were always real mounts so only indirect mounts need expire
-symlinks.
-
-Since the current users of the autofs4 module haven't reported this as a
-problem to date this patch probably isn't a candidate for backport to
-stable.
-
-Signed-off-by: Ian Kent <ikent@redhat.com>
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/expire.c  |   14 ++++++++++++++
- fs/autofs4/symlink.c |    4 ++++
- 2 files changed, 18 insertions(+)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/autofs4/expire.c~autofs-fix-symlinks-arent-checked-for-expiry fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs-fix-symlinks-arent-checked-for-expiry
-+++ a/fs/autofs4/expire.c
-@@ -402,6 +402,20 @@ struct dentry *autofs4_expire_indirect(s
- 			goto next;
- 		}
+diff -puN scripts/checkpatch.pl~checkpatch-add-tests-for-function-pointer-style-misuses-fix scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-tests-for-function-pointer-style-misuses-fix
++++ a/scripts/checkpatch.pl
+@@ -2827,7 +2827,7 @@ sub process {
+ 			if (defined $pre_pointer_space &&
+ 			    $pre_pointer_space =~ /^\s/) {
+ 				WARN("SPACING",
+-				     "Unnecessary space after function pointer open parenthesis\n" . $herecurr);
++				     "Unnecessary space between open parenthesis and '*' in function pointer declaration\n" . $herecurr);
+ 			}
  
-+		if (dentry->d_inode && S_ISLNK(dentry->d_inode->i_mode)) {
-+			DPRINTK("checking symlink %p %.*s",
-+				dentry, (int)dentry->d_name.len, dentry->d_name.name);
-+			/*
-+			 * A symlink can't be "busy" in the usual sense so
-+			 * just check last used for expire timeout.
-+			 */
-+			if (autofs4_can_expire(dentry, timeout, do_now)) {
-+				expired = dentry;
-+				goto found;
-+			}
-+			goto next;
-+		}
-+
- 		if (simple_empty(dentry))
- 			goto next;
+ # unnecessary space "type (* funcptr)(args...)"
+@@ -2848,7 +2848,7 @@ sub process {
+ 			if (defined $pre_args_space &&
+ 			    $pre_args_space =~ /^\s/) {
+ 				WARN("SPACING",
+-				     "Unnecessary space before function pointer name\n" . $herecurr);
++				     "Unnecessary space before function pointer argument list\n" . $herecurr);
+ 			}
  
-diff -puN fs/autofs4/symlink.c~autofs-fix-symlinks-arent-checked-for-expiry fs/autofs4/symlink.c
---- a/fs/autofs4/symlink.c~autofs-fix-symlinks-arent-checked-for-expiry
-+++ a/fs/autofs4/symlink.c
-@@ -14,6 +14,10 @@
- 
- static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
- {
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	if (ino && !autofs4_oz_mode(sbi))
-+		ino->last_used = jiffies;
- 	nd_set_link(nd, dentry->d_inode->i_private);
- 	return NULL;
- }
+ 			if (show_type("SPACING") && $fix) {
 _
 
-Patches currently in -mm which might be from ikent@redhat.com are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
-autofs-fix-symlinks-arent-checked-for-expiry.patch
+origin.patch
+checkpatch-more-comprehensive-split-strings-warning.patch
+checkpatch-add-tests-for-function-pointer-style-misuses.patch
+checkpatch-add-tests-for-function-pointer-style-misuses-fix.patch
+checkpatch-add-a-fix-inplace-option.patch
+checkpatch-improve-space-before-tab-fix-option.patch
+checkpatch-check-for-ifs-with-unnecessary-parentheses.patch
+checkpatch-update-the-fsf-gpl-address-check.patch
+coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
+coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
+coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
+linux-next.patch
 
