@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
 Subject: + autofs-fix-symlinks-arent-checked-for-expiry.patch added to -mm tree
-Date: Fri, 27 Dec 2013 14:02:34 -0800
-Message-ID: <52bdf8fa.TH0tYuuM9vYj9XfZ%akpm@linux-foundation.org>
+Date: Fri, 27 Dec 2013 14:02:55 -0800
+Message-ID: <52bdf90f.Rmgxj/j+MVJE3jBy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60173 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60175 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754786Ab3L0WCf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Dec 2013 17:02:35 -0500
+	with ESMTP id S1754786Ab3L0WC6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Dec 2013 17:02:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, ikent@redhat.com
@@ -18,7 +18,7 @@ To: mm-commits@vger.kernel.org, ikent@redhat.com
 Subject: + autofs-fix-symlinks-arent-checked-for-expiry.patch added to -mm tree
 To: ikent@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 27 Dec 2013 14:02:34 -0800
+Date: Fri, 27 Dec 2013 14:02:55 -0800
 
 
 The patch titled
@@ -47,7 +47,7 @@ From: Ian Kent <ikent@redhat.com>
 Subject: autofs: fix symlinks aren't checked for expiry
 
 The autofs4 module doesn't consider symlinks for expire as it did in the
-older autofs v3 module (so it's actually a long stnding regression).
+older autofs v3 module (so it's actually a long standing regression).
 
 The user space daemon has focused on the use of bind mounts instead of
 symlinks for a long time now and that's why this has not been noticed. 
@@ -58,7 +58,7 @@ The direct and offset mount types can't be symlinks and the tree mounts of
 version 4 were always real mounts so only indirect mounts need expire
 symlinks.
 
-Since the current users of the autofs4 module haven't reproted this as a
+Since the current users of the autofs4 module haven't reported this as a
 problem to date this patch probably isn't a candidate for backport to
 stable.
 
