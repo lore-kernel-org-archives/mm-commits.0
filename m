@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
- added to -mm tree
-Date: Fri, 27 Dec 2013 14:23:03 -0800
-Message-ID: <52bdfdc7.bXCzt8NXPGiCe+xW%akpm@linux-foundation.org>
+Subject: + jffs2-unlock-f-sem-on-error-in-jffs2_new_inode.patch added to
+ -mm tree
+Date: Fri, 27 Dec 2013 14:36:31 -0800
+Message-ID: <52be00ef.qG7d9Wc/7uukjixL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60289 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60318 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754821Ab3L0WXE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Dec 2013 17:23:04 -0500
+	with ESMTP id S1754840Ab3L0Wgc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Dec 2013 17:36:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, robh+dt@kernel.org, julia.lawall@lip6.fr, john.stultz@linaro.org, grant.likely@linaro.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, wangnan0@huawei.com, stable@vger.kernel.org, dwmw2@infradead.org, artem.bityutskiy@linux.intel.com, andy.wangguoli@huawei.com
 
-Subject: + drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch added to -mm tree
-To: akpm@linux-foundation.org,grant.likely@linaro.org,john.stultz@linaro.org,julia.lawall@lip6.fr,robh+dt@kernel.org
+Subject: + jffs2-unlock-f-sem-on-error-in-jffs2_new_inode.patch added to -mm tree
+To: andy.wangguoli@huawei.com,artem.bityutskiy@linux.intel.com,dwmw2@infradead.org,stable@vger.kernel.org,wangnan0@huawei.com
 From: akpm@linux-foundation.org
-Date: Fri, 27 Dec 2013 14:23:03 -0800
+Date: Fri, 27 Dec 2013 14:36:31 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-cmos.c: propagate hpet_register_irq_handler() failure
+     Subject: jffs2: unlock f->sem on error in jffs2_new_inode()
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+     jffs2-unlock-f-sem-on-error-in-jffs2_new_inode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/jffs2-unlock-f-sem-on-error-in-jffs2_new_inode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/jffs2-unlock-f-sem-on-error-in-jffs2_new_inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,81 +44,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/rtc/rtc-cmos.c: propagate hpet_register_irq_handler() failure
+From: Wang Guoli <andy.wangguoli@huawei.com>
+Subject: jffs2: unlock f->sem on error in jffs2_new_inode()
 
-If hpet_register_irq_handler() fails, cmos_do_probe() will incorrectly
-return 0.
+If jffs2_new_inode() succeeds, it returns with f->sem held, and the caller
+is responsible for releasing the lock.  If it fails, it still returns with
+the lock held, but the caller won't release the lock, which will lead to
+deadlock.
 
-Reported-by: Julia Lawall <julia.lawall@lip6.fr>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>
+Fix it by releasing the lock in jffs2_new_inode() on error.
+
+Signed-off-by: Wang Guoli <andy.wangguoli@huawei.com>
+Signed-off-by: Wang Nan <wangnan0@huawei.com>
+Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Wang Guoli <andy.wangguoli@huawei.com>
+Cc: <stable@vger.kernel.org> # 2.6.34+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/jffs2/fs.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -708,11 +708,9 @@ cmos_do_probe(struct device *dev, struct
- 		irq_handler_t rtc_cmos_int_handler;
+diff -puN fs/jffs2/fs.c~jffs2-unlock-f-sem-on-error-in-jffs2_new_inode fs/jffs2/fs.c
+--- a/fs/jffs2/fs.c~jffs2-unlock-f-sem-on-error-in-jffs2_new_inode
++++ a/fs/jffs2/fs.c
+@@ -456,12 +456,14 @@ struct inode *jffs2_new_inode (struct in
+ 	   The umask is only applied if there's no default ACL */
+ 	ret = jffs2_init_acl_pre(dir_i, inode, &mode);
+ 	if (ret) {
+-	    make_bad_inode(inode);
+-	    iput(inode);
+-	    return ERR_PTR(ret);
++		mutex_unlock(&f->sem);
++		make_bad_inode(inode);
++		iput(inode);
++		return ERR_PTR(ret);
+ 	}
+ 	ret = jffs2_do_new_inode (c, f, mode, ri);
+ 	if (ret) {
++		mutex_unlock(&f->sem);
+ 		make_bad_inode(inode);
+ 		iput(inode);
+ 		return ERR_PTR(ret);
+@@ -478,6 +480,7 @@ struct inode *jffs2_new_inode (struct in
+ 	inode->i_size = 0;
  
- 		if (is_hpet_enabled()) {
--			int err;
--
- 			rtc_cmos_int_handler = hpet_rtc_interrupt;
--			err = hpet_register_irq_handler(cmos_interrupt);
--			if (err != 0) {
-+			retval = hpet_register_irq_handler(cmos_interrupt);
-+			if (retval) {
- 				dev_warn(dev, "hpet_register_irq_handler "
- 						" failed in rtc_init().");
- 				goto cleanup1;
+ 	if (insert_inode_locked(inode) < 0) {
++		mutex_unlock(&f->sem);
+ 		make_bad_inode(inode);
+ 		iput(inode);
+ 		return ERR_PTR(-EINVAL);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andy.wangguoli@huawei.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
-dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path-fix-2.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-mm-show_mem-remove-show_mem_filter_page_count-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-sched-add-tracepoints-related-to-numa-task-migration-fix.patch
-mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
-mm-print-more-details-for-bad_page-fix.patch
-mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+jffs2-unlock-f-sem-on-error-in-jffs2_new_inode.patch
 
