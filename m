@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + doc-kmemcheck-add-kmemcheck-to-kernel-parameterstxt.patch added to -mm tree
-Date: Thu, 26 Dec 2013 14:46:26 -0800
-Message-ID: <52bcb1c2.O3codKV96oVT2Xlo%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix.patch added to -mm tree
+Date: Fri, 27 Dec 2013 13:58:37 -0800
+Message-ID: <52bdf80d.JdhsrV6tVYDuCcXf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39270 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60165 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752872Ab3LZWq1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Dec 2013 17:46:27 -0500
+	with ESMTP id S1754792Ab3L0V6i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Dec 2013 16:58:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, qiuxishi@huawei.com
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.de, jlbec@evilplan.org, dan.carpenter@oracle.com, rgoldwyn@suse.de
 
-Subject: + doc-kmemcheck-add-kmemcheck-to-kernel-parameterstxt.patch added to -mm tree
-To: qiuxishi@huawei.com
+Subject: + ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix.patch added to -mm tree
+To: rgoldwyn@suse.de,dan.carpenter@oracle.com,jlbec@evilplan.org,mfasheh@suse.de,rgoldwyn@suse.com
 From: akpm@linux-foundation.org
-Date: Thu, 26 Dec 2013 14:46:26 -0800
+Date: Fri, 27 Dec 2013 13:58:37 -0800
 
 
 The patch titled
-     Subject: doc/kmemcheck: add kmemcheck to kernel-parameters.txt
+     Subject: ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix
 has been added to the -mm tree.  Its filename is
-     doc-kmemcheck-add-kmemcheck-to-kernel-parameterstxt.patch
+     ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/doc-kmemcheck-add-kmemcheck-to-kernel-parameterstxt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/doc-kmemcheck-add-kmemcheck-to-kernel-parameterstxt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,40 +44,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: doc/kmemcheck: add kmemcheck to kernel-parameters.txt
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix
 
-Add kmemcheck to Documentation/kernel-parameters.txt.
+ New smatch warnings:
+ fs/ocfs2/stack_user.c:938 get_protocol_version() warn: impossible condition '(pv.pv_minor < 0) => (0-255 < 0)'
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/ocfs2/stack_user.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~doc-kmemcheck-add-kmemcheck-to-kernel-parameterstxt Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~doc-kmemcheck-add-kmemcheck-to-kernel-parameterstxt
-+++ a/Documentation/kernel-parameters.txt
-@@ -1415,6 +1415,13 @@ bytes respectively. Such letter suffixes
- 			Valid arguments: on, off
- 			Default: on
+diff -puN fs/ocfs2/stack_user.c~ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix
++++ a/fs/ocfs2/stack_user.c
+@@ -935,10 +935,6 @@ static int get_protocol_version(struct o
+ 			goto out;
+ 		lvb_to_version(lc->oc_lvb, &pv);
  
-+	kmemcheck=	[KNL] Boot-time kmemcheck enable/disable/one-shot mode
-+			Valid arguments: 0, 1, 2
-+			kmemcheck=0 (disabled)
-+			kmemcheck=1 (enabled)
-+			kmemcheck=2 (one-shot mode)
-+			Default: 2 (one-shot mode)
-+
- 	kstack=N	[X86] Print N words from the kernel stack
- 			in oops dumps.
- 
+-		if (pv.pv_minor < 0) {
+-			ret = -ERANGE;
+-			goto out;
+-		}
+ 		if ((pv.pv_major != running_proto.pv_major) ||
+ 				(pv.pv_minor > running_proto.pv_minor)) {
+ 			ret = -EINVAL;
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
-lib-show_memc-show-num_poisoned_pages-when-oom.patch
-doc-kmemcheck-add-kmemcheck-to-kernel-parameterstxt.patch
-linux-next.patch
+ocfs2-remove-versioning-information.patch
+ocfs2-add-clustername-to-cluster-connection.patch
+ocfs2-add-dlm-recovery-callbacks.patch
+ocfs2-shift-allocation-ocfs2_live_connection-to-user_connect.patch
+ocfs2-pass-ocfs2_cluster_connection-to-ocfs2_this_node.patch
+ocfs2-framework-for-version-lvb.patch
+ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
+ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix.patch
 
