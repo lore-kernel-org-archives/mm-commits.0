@@ -1,89 +1,112 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2.patch removed
- from -mm tree
-Date: Thu, 02 Jan 2014 12:56:10 -0800
-Message-ID: <52c5d26a.8c3Mlav/VuIBsGj7%akpm@linux-foundation.org>
+ mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch removed from -mm
+ tree
+Date: Thu, 02 Jan 2014 12:56:25 -0800
+Message-ID: <52c5d279.fJcpo/VmHQmlNjN8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42595 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42603 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750782AbaABU4L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jan 2014 15:56:11 -0500
+	with ESMTP id S1750782AbaABU4Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jan 2014 15:56:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, sasha.levin@oracle.com, riel@redhat.com, mgorman@suse.de, hughd@google.com, aarcange@redhat.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, walken@google.com, vbabka@suse.cz, stable@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, mgorman@suse.de, hughd@google.com, aarcange@redhat.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2.patch removed from -mm tree
-To: vbabka@suse.cz,aarcange@redhat.com,hughd@google.com,mgorman@suse.de,riel@redhat.com,sasha.levin@oracle.com,walken@google.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,aarcange@redhat.com,hughd@google.com,mgorman@suse.de,riel@redhat.com,sasha.levin@oracle.com,stable@vger.kernel.org,vbabka@suse.cz,walken@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 02 Jan 2014 12:56:10 -0800
+Date: Thu, 02 Jan 2014 12:56:25 -0800
 
 
 The patch titled
-     Subject: mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2
+     Subject: mm-munlock-fix-deadlock-in-__munlock_pagevec-fix
 has been removed from the -mm tree.  Its filename was
-     mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2.patch
+     mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
 
-This patch was dropped because it was folded into mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
+This patch was dropped because it was folded into mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-munlock-fix-deadlock-in-__munlock_pagevec-fix
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Michel Lespinasse <walken@google.com>
+Cc: <stable@vger.kernel.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/mlock.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/mlock.c~mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2 mm/mlock.c
---- a/mm/mlock.c~mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered-v2
+diff -puN mm/mlock.c~mm-munlock-fix-deadlock-in-__munlock_pagevec-fix mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-fix-deadlock-in-__munlock_pagevec-fix
 +++ a/mm/mlock.c
-@@ -133,7 +133,10 @@ static void __munlock_isolation_failed(s
+@@ -344,12 +344,9 @@ skip_munlock:
+ 	spin_unlock_irq(&zone->lru_lock);
  
- /**
-  * munlock_vma_page - munlock a vma page
-- * @page - page to be unlocked
-+ * @page - page to be unlocked, either a normal page or THP page head
-+ *
-+ * returns the size of the page as a page mask (0 for normal page,
-+ *         HPAGE_PMD_NR - 1 for THP head page)
-  *
-  * called from munlock()/munmap() path with page supposedly on the LRU.
-  * When we munlock a page, because the vma where we found the page is being
+ 	/* Now we can release pins of pages that we are not munlocking */
+-	for (i = 0; i < pagevec_count(&pvec_putback); i++) {
+-		put_page(pvec_putback.pages[i]);
+-	}
++	pagevec_release(&pvec_putback);
+ 
+ 	/* Phase 2: page munlock */
+-	pagevec_init(&pvec_putback, 0);
+ 	for (i = 0; i < nr; i++) {
+ 		struct page *page = pvec->pages[i];
+ 
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-munlock-fix-a-bug-where-thp-tail-page-is-encountered.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
 mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
-mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
-mm-mmapc-add-mlock_future_check-helper.patch
-mm-mlock-prepare-params-outside-critical-region.patch
-mm-compaction-trace-compaction-begin-and-end.patch
-mm-compaction-encapsulate-defer-reset-logic.patch
-mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
-mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
-mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
-mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
-mm-migrate-add-comment-about-permanent-failure-path.patch
-mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
-mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
-mm-migrate-remove-unused-function-fail_migrate_page.patch
-mm-documentation-remove-hopelessly-out-of-date-locking-doc.patch
-mm-munlock-fix-potential-race-with-thp-page-split.patch
+dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path-fix-2.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+mm-show_mem-remove-show_mem_filter_page_count-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
+mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+mm-print-more-details-for-bad_page-fix.patch
 mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
