@@ -1,77 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch removed from -mm
- tree
-Date: Thu, 02 Jan 2014 12:56:25 -0800
-Message-ID: <52c5d279.fJcpo/VmHQmlNjN8%akpm@linux-foundation.org>
+Subject: + mm-remap_file_pages-remove-unneeded-access_once.patch added to
+ -mm tree
+Date: Thu, 02 Jan 2014 13:22:45 -0800
+Message-ID: <52c5d8a5.nLrxytD4Uh/WrlPp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42603 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42716 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750782AbaABU4Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jan 2014 15:56:25 -0500
+	with ESMTP id S1751136AbaABVWq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jan 2014 16:22:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, vbabka@suse.cz, stable@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, mgorman@suse.de, hughd@google.com, aarcange@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, pageexec@freemail.hu, keescook@chromium.org, hughd@google.com, gorcunov@openvz.org, dvyukov@google.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,aarcange@redhat.com,hughd@google.com,mgorman@suse.de,riel@redhat.com,sasha.levin@oracle.com,stable@vger.kernel.org,vbabka@suse.cz,walken@google.com,mm-commits@vger.kernel.org
+Subject: + mm-remap_file_pages-remove-unneeded-access_once.patch added to -mm tree
+To: akpm@linux-foundation.org,dvyukov@google.com,gorcunov@openvz.org,hughd@google.com,keescook@chromium.org,pageexec@freemail.hu,riel@redhat.com,walken@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 02 Jan 2014 12:56:25 -0800
+Date: Thu, 02 Jan 2014 13:22:45 -0800
 
 
 The patch titled
-     Subject: mm-munlock-fix-deadlock-in-__munlock_pagevec-fix
-has been removed from the -mm tree.  Its filename was
-     mm-munlock-fix-deadlock-in-__munlock_pagevec-fix.patch
+     Subject: mm: remap_file_pages(): remove unneeded ACCESS_ONCE
+has been added to the -mm tree.  Its filename is
+     mm-remap_file_pages-remove-unneeded-access_once.patch
 
-This patch was dropped because it was folded into mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remap_file_pages-remove-unneeded-access_once.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remap_file_pages-remove-unneeded-access_once.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-munlock-fix-deadlock-in-__munlock_pagevec-fix
+Subject: mm: remap_file_pages(): remove unneeded ACCESS_ONCE
 
-Cc: <stable@vger.kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+This was included to make it clear that the memory at *vma is about to be
+freed, but the ACCESS_ONCE() isn't actually needed and we have a nice code
+comment in there.
+
+
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Michel Lespinasse <walken@google.com>
+Cc: PaX Team <pageexec@freemail.hu>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/fremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mlock.c~mm-munlock-fix-deadlock-in-__munlock_pagevec-fix mm/mlock.c
---- a/mm/mlock.c~mm-munlock-fix-deadlock-in-__munlock_pagevec-fix
-+++ a/mm/mlock.c
-@@ -344,12 +344,9 @@ skip_munlock:
- 	spin_unlock_irq(&zone->lru_lock);
+diff -puN mm/fremap.c~mm-remap_file_pages-remove-unneeded-access_once mm/fremap.c
+--- a/mm/fremap.c~mm-remap_file_pages-remove-unneeded-access_once
++++ a/mm/fremap.c
+@@ -209,7 +209,7 @@ get_write_lock:
+ 			unsigned long addr;
+ 			struct file *file = get_file(vma->vm_file);
+ 			/* mmap_region may free vma; grab the info now */
+-			vm_flags = ACCESS_ONCE(vma->vm_flags);
++			vm_flags = vma->vm_flags;
  
- 	/* Now we can release pins of pages that we are not munlocking */
--	for (i = 0; i < pagevec_count(&pvec_putback); i++) {
--		put_page(pvec_putback.pages[i]);
--	}
-+	pagevec_release(&pvec_putback);
- 
- 	/* Phase 2: page munlock */
--	pagevec_init(&pvec_putback, 0);
- 	for (i = 0; i < nr; i++) {
- 		struct page *page = pvec->pages[i];
- 
+ 			addr = mmap_region(file, start, size, vm_flags, pgoff);
+ 			fput(file);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
-mm-munlock-fix-deadlock-in-__munlock_pagevec.patch
+mm-remap_file_pages-remove-unneeded-access_once.patch
 dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
 input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
