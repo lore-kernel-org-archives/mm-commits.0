@@ -1,95 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch removed from -mm tree
-Date: Fri, 03 Jan 2014 12:38:12 -0800
-Message-ID: <52c71fb4.RSftIWE8H7cgdZkq%akpm@linux-foundation.org>
+Subject: +
+ mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch added to
+ -mm tree
+Date: Fri, 03 Jan 2014 13:00:37 -0800
+Message-ID: <52c724f5.2igc01a5jqVoAja8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50781 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754136AbaACUiN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jan 2014 15:38:13 -0500
+	with ESMTP id S1753892AbaACVAi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jan 2014 16:00:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, paulmck@us.ibm.com, nzimmer@sgi.com, normalperson@yhbt.net, nelhage@nelhage.com, davidel@xmailserver.org, jbaron@akamai.com
+To: mm-commits@vger.kernel.org, aarcange@redhat.com, oleg@redhat.com
 
-Subject: [merged] epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch removed from -mm tree
-To: jbaron@akamai.com,davidel@xmailserver.org,nelhage@nelhage.com,normalperson@yhbt.net,nzimmer@sgi.com,paulmck@us.ibm.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: + mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch added to -mm tree
+To: oleg@redhat.com,aarcange@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 03 Jan 2014 12:38:12 -0800
+Date: Fri, 03 Jan 2014 13:00:37 -0800
 
 
 The patch titled
-     Subject: epoll: do not take the nested ep->mtx on EPOLL_CTL_DEL
-has been removed from the -mm tree.  Its filename was
-     epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch
+     Subject: mm: fix the theoretical compound_lock() vs prep_new_page() race
+has been added to the -mm tree.  Its filename is
+     mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@akamai.com>
-Subject: epoll: do not take the nested ep->mtx on EPOLL_CTL_DEL
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm: fix the theoretical compound_lock() vs prep_new_page() race
 
-The EPOLL_CTL_DEL path of epoll contains a classic, ab-ba deadlock.  That
-is, epoll_ctl(a, EPOLL_CTL_DEL, b, x), will deadlock with epoll_ctl(b,
-EPOLL_CTL_DEL, a, x).  The deadlock was introduced with commmit
-67347fe4e6326 ("epoll: do not take global 'epmutex' for simple
-topologies").
+get/put_page(thp_tail) paths do get_page_unless_zero(page_head) +
+compound_lock().  In theory this page_head can be already freed and
+reallocated as alloc_pages(__GFP_COMP, smaller_order).  In this case
+get_page_unless_zero() can succeed right after set_page_refcounted(), and
+compound_lock() can race with the non-atomic __SetPageHead().
 
-The acquistion of the ep->mtx for the destination 'ep' was added such that
-a concurrent EPOLL_CTL_ADD operation would see the correct state of the
-ep.  (Specifically, the check for '!list_empty(&f.file->f_ep_links'.)
-However, by simply not acquiring the lock, we do not serialize behind the
-ep->mtx from the add path, and thus may perform a full path check when if
-we had waited a little longer it may not have been necessary.  However,
-this is a transient state, and performing the full loop checking in this
-case is not harmful.
+Perhaps we should rework the thp locking (under discussion), but until
+then this patch moves set_page_refcounted() and adds wmb() to ensure that
+page->_count != 0 comes as a last change.
 
-The important point is that we wouldn't miss doing the full loop checking
-when required, since EPOLL_CTL_ADD always locks any 'ep's that its
-operating upon.  The reason we don't need to do lock ordering in the add
-path, is that we are already are holding the global 'epmutex' whenever we
-do the double lock.  Further, the original posting of this patch, which
-was tested for the intended performance gains, did not perform this
-additional locking.
+I am not sure about other callers of set_page_refcounted(), but at first
+glance they look fine to me.
 
-Signed-off-by: Jason Baron <jbaron@akamai.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Eric Wong <normalperson@yhbt.net>
-Cc: Nelson Elhage <nelhage@nelhage.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/page_alloc.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del
-+++ a/fs/eventpoll.c
-@@ -1907,10 +1907,6 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 			}
- 		}
+diff -puN mm/page_alloc.c~mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race
++++ a/mm/page_alloc.c
+@@ -890,8 +890,6 @@ static int prep_new_page(struct page *pa
  	}
--	if (op == EPOLL_CTL_DEL && is_file_epoll(tf.file)) {
--		tep = tf.file->private_data;
--		mutex_lock_nested(&tep->mtx, 1);
--	}
  
- 	/*
- 	 * Try to lookup the file inside our RB tree, Since we grabbed "mtx"
+ 	set_page_private(page, 0);
+-	set_page_refcounted(page);
+-
+ 	arch_alloc_page(page, order);
+ 	kernel_map_pages(page, 1 << order, 1);
+ 
+@@ -901,6 +899,16 @@ static int prep_new_page(struct page *pa
+ 	if (order && (gfp_flags & __GFP_COMP))
+ 		prep_compound_page(page, order);
+ 
++	/*
++	 * Make sure the caller of get_page_unless_zero() will see the
++	 * fully initialized page. Say, to ensure that compound_lock()
++	 * can't race with the non-atomic __SetPage*() above.
++	 */
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	smp_wmb();
++#endif
++	set_page_refcounted(page);
++
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from jbaron@akamai.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-origin.patch
-lib-parserc-add-match_wildcard-function.patch
-dynamic_debug-add-wildcard-support-to-filter-files-functions-modules.patch
-dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
+mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
+mm-thp-turn-compound_head-into-bug_onpagetail-in-get_huge_page_tail.patch
+introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
+oom_kill-change-oom_killc-to-use-for_each_thread.patch
+oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
+oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
+mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch
+autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
+coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
+coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
+coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
+proc-cleanup-simplify-get_task_state-task_state_array.patch
+proc-fix-the-potential-use-after-free-in-first_tid.patch
+proc-change-first_tid-to-use-while_each_thread-rather-than-next_thread.patch
+proc-dont-abuse-group_leader-in-proc_task_readdir-paths.patch
+proc-fix-f_pos-overflows-in-first_tid.patch
+kernel-forkc-remove-redundant-null-check-in-dup_mm.patch
+exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
+exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
+exec-move-the-final-allow_write_access-fput-into-free_bprm.patch
+exec-kill-task_struct-did_exec.patch
+fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
+kernel-sysc-k_getrusage-can-use-while_each_thread.patch
+kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch
 linux-next.patch
 
