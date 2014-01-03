@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch added to -mm tree
-Date: Fri, 03 Jan 2014 14:44:14 -0800
-Message-ID: <52c73d3e.2RNOLYgFYPTEAqyE%akpm@linux-foundation.org>
+ drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch added to -mm tree
+Date: Fri, 03 Jan 2014 14:44:18 -0800
+Message-ID: <52c73d42./DzzBV8Rdv2pGXED%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51331 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51346 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753362AbaACWoP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jan 2014 17:44:15 -0500
+	with ESMTP id S1753719AbaACWoT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jan 2014 17:44:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gregkh@suse.de, alan@linux.intel.com, dhowells@redhat.com
+To: mm-commits@vger.kernel.org, paulus@samba.org, dhowells@redhat.com
 
-Subject: + drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch added to -mm tree
-To: dhowells@redhat.com,alan@linux.intel.com,gregkh@suse.de
+Subject: + drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch added to -mm tree
+To: dhowells@redhat.com,paulus@samba.org
 From: akpm@linux-foundation.org
-Date: Fri, 03 Jan 2014 14:44:14 -0800
+Date: Fri, 03 Jan 2014 14:44:18 -0800
 
 
 The patch titled
-     Subject: drivers/gpu/drm/gma500/backlight.c: fix a defined-but-not-used warning for do_gma_backlight_set()
+     Subject: drivers/video/aty/aty128fb.c: fix a warning pertaining to the aty128fb backlight variable
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch
+     drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,43 +45,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Howells <dhowells@redhat.com>
-Subject: drivers/gpu/drm/gma500/backlight.c: fix a defined-but-not-used warning for do_gma_backlight_set()
+Subject: drivers/video/aty/aty128fb.c: fix a warning pertaining to the aty128fb backlight variable
 
-Fix the following warning:
+Fix the following warning in the aty128fb driver:
 
-	drivers/gpu/drm/gma500/backlight.c:29:13: warning: 'do_gma_backlight_set' defined but not used [-Wunused-function]
+	drivers/video/aty/aty128fb.c:363:12: warning: 'backlight' defined but not used [-Wunused-variable]
+	 static int backlight = 0;
+		    ^
 
-by moving the entire function inside the conditional section currently inside
-of it.  All the places that call it are so conditionalised.
+as the variable's value is only read if CONFIG_FB_ATY128_BACKLIGHT=y.  The
+variable is also set if MODULE is unset[*].
+
+[*] I wonder if the conditional wrapper around aty128fb_setup() should be
+    using CONFIG_MODULE rather than MODULE.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/gma500/backlight.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/aty/aty128fb.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/gpu/drm/gma500/backlight.c~drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set drivers/gpu/drm/gma500/backlight.c
---- a/drivers/gpu/drm/gma500/backlight.c~drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set
-+++ a/drivers/gpu/drm/gma500/backlight.c
-@@ -26,13 +26,13 @@
- #include "intel_bios.h"
- #include "power.h"
+diff -puN drivers/video/aty/aty128fb.c~drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable drivers/video/aty/aty128fb.c
+--- a/drivers/video/aty/aty128fb.c~drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable
++++ a/drivers/video/aty/aty128fb.c
+@@ -357,11 +357,13 @@ static int default_lcd_on = 1;
+ static bool mtrr = true;
+ #endif
  
-+#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
- static void do_gma_backlight_set(struct drm_device *dev)
- {
--#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
- 	struct drm_psb_private *dev_priv = dev->dev_private;
- 	backlight_update_status(dev_priv->backlight_device);
--#endif	
- }
++#ifdef CONFIG_FB_ATY128_BACKLIGHT
+ #ifdef CONFIG_PMAC_BACKLIGHT
+ static int backlight = 1;
+ #else
+ static int backlight = 0;
+ #endif
 +#endif
  
- void gma_backlight_enable(struct drm_device *dev)
- {
+ /* PLL constants */
+ struct aty128_constants {
+@@ -1671,7 +1673,9 @@ static int aty128fb_setup(char *options)
+ 			default_crt_on = simple_strtoul(this_opt+4, NULL, 0);
+ 			continue;
+ 		} else if (!strncmp(this_opt, "backlight:", 10)) {
++#ifdef CONFIG_FB_ATY128_BACKLIGHT
+ 			backlight = simple_strtoul(this_opt+10, NULL, 0);
++#endif
+ 			continue;
+ 		}
+ #ifdef CONFIG_MTRR
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
