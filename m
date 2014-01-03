@@ -1,112 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remap_file_pages-remove-unneeded-access_once.patch
- removed from -mm tree
-Date: Fri, 03 Jan 2014 12:38:14 -0800
-Message-ID: <52c71fb6.YuRBIIIoIfHehrDp%akpm@linux-foundation.org>
+Subject: [merged]
+ epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch removed from -mm tree
+Date: Fri, 03 Jan 2014 12:38:12 -0800
+Message-ID: <52c71fb4.RSftIWE8H7cgdZkq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50604 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753649AbaACUiP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jan 2014 15:38:15 -0500
+	with ESMTP id S1754136AbaACUiN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jan 2014 15:38:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, riel@redhat.com, pageexec@freemail.hu, keescook@chromium.org, hughd@google.com, gorcunov@openvz.org, dvyukov@google.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, paulmck@us.ibm.com, nzimmer@sgi.com, normalperson@yhbt.net, nelhage@nelhage.com, davidel@xmailserver.org, jbaron@akamai.com
 
-Subject: [merged] mm-remap_file_pages-remove-unneeded-access_once.patch removed from -mm tree
-To: akpm@linux-foundation.org,dvyukov@google.com,gorcunov@openvz.org,hughd@google.com,keescook@chromium.org,pageexec@freemail.hu,riel@redhat.com,walken@google.com,mm-commits@vger.kernel.org
+Subject: [merged] epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch removed from -mm tree
+To: jbaron@akamai.com,davidel@xmailserver.org,nelhage@nelhage.com,normalperson@yhbt.net,nzimmer@sgi.com,paulmck@us.ibm.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 03 Jan 2014 12:38:14 -0800
+Date: Fri, 03 Jan 2014 12:38:12 -0800
 
 
 The patch titled
-     Subject: mm: remap_file_pages(): remove unneeded ACCESS_ONCE
+     Subject: epoll: do not take the nested ep->mtx on EPOLL_CTL_DEL
 has been removed from the -mm tree.  Its filename was
-     mm-remap_file_pages-remove-unneeded-access_once.patch
+     epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm: remap_file_pages(): remove unneeded ACCESS_ONCE
+From: Jason Baron <jbaron@akamai.com>
+Subject: epoll: do not take the nested ep->mtx on EPOLL_CTL_DEL
 
-This was included to make it clear that the memory at *vma is about to be
-freed, but the ACCESS_ONCE() isn't actually needed and we have a nice code
-comment in there.
+The EPOLL_CTL_DEL path of epoll contains a classic, ab-ba deadlock.  That
+is, epoll_ctl(a, EPOLL_CTL_DEL, b, x), will deadlock with epoll_ctl(b,
+EPOLL_CTL_DEL, a, x).  The deadlock was introduced with commmit
+67347fe4e6326 ("epoll: do not take global 'epmutex' for simple
+topologies").
 
+The acquistion of the ep->mtx for the destination 'ep' was added such that
+a concurrent EPOLL_CTL_ADD operation would see the correct state of the
+ep.  (Specifically, the check for '!list_empty(&f.file->f_ep_links'.)
+However, by simply not acquiring the lock, we do not serialize behind the
+ep->mtx from the add path, and thus may perform a full path check when if
+we had waited a little longer it may not have been necessary.  However,
+this is a transient state, and performing the full loop checking in this
+case is not harmful.
 
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: PaX Team <pageexec@freemail.hu>
-Cc: Rik van Riel <riel@redhat.com>
+The important point is that we wouldn't miss doing the full loop checking
+when required, since EPOLL_CTL_ADD always locks any 'ep's that its
+operating upon.  The reason we don't need to do lock ordering in the add
+path, is that we are already are holding the global 'epmutex' whenever we
+do the double lock.  Further, the original posting of this patch, which
+was tested for the intended performance gains, did not perform this
+additional locking.
+
+Signed-off-by: Jason Baron <jbaron@akamai.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Eric Wong <normalperson@yhbt.net>
+Cc: Nelson Elhage <nelhage@nelhage.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/eventpoll.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/fremap.c~mm-remap_file_pages-remove-unneeded-access_once mm/fremap.c
---- a/mm/fremap.c~mm-remap_file_pages-remove-unneeded-access_once
-+++ a/mm/fremap.c
-@@ -209,7 +209,7 @@ get_write_lock:
- 			unsigned long addr;
- 			struct file *file = get_file(vma->vm_file);
- 			/* mmap_region may free vma; grab the info now */
--			vm_flags = ACCESS_ONCE(vma->vm_flags);
-+			vm_flags = vma->vm_flags;
+diff -puN fs/eventpoll.c~epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-do-not-take-the-nested-ep-mtx-on-epoll_ctl_del
++++ a/fs/eventpoll.c
+@@ -1907,10 +1907,6 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 			}
+ 		}
+ 	}
+-	if (op == EPOLL_CTL_DEL && is_file_epoll(tf.file)) {
+-		tep = tf.file->private_data;
+-		mutex_lock_nested(&tep->mtx, 1);
+-	}
  
- 			addr = mmap_region(file, start, size, vm_flags, pgoff);
- 			fput(file);
+ 	/*
+ 	 * Try to lookup the file inside our RB tree, Since we grabbed "mtx"
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jbaron@akamai.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path-fix-2.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-mm-show_mem-remove-show_mem_filter_page_count-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-sched-add-tracepoints-related-to-numa-task-migration-fix.patch
-mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
-mm-print-more-details-for-bad_page-fix.patch
-mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
-mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix-fix.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-printk-flush-conflicting-continuation-line-fix.patch
-drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+lib-parserc-add-match_wildcard-function.patch
+dynamic_debug-add-wildcard-support-to-filter-files-functions-modules.patch
+dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
 linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
