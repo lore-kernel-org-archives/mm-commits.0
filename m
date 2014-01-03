@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch added to -mm tree
-Date: Fri, 03 Jan 2014 14:44:18 -0800
-Message-ID: <52c73d42./DzzBV8Rdv2pGXED%akpm@linux-foundation.org>
+ drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe.patch added to -mm tree
+Date: Fri, 03 Jan 2014 14:44:16 -0800
+Message-ID: <52c73d40.anN9+Zk1+yGAL+dN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51341 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753719AbaACWoT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jan 2014 17:44:19 -0500
+	with ESMTP id S1753362AbaACWoR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jan 2014 17:44:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paulus@samba.org, dhowells@redhat.com
+To: mm-commits@vger.kernel.org, sameo@linux.intel.com, anilkumar@ti.com, dhowells@redhat.com
 
-Subject: + drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch added to -mm tree
-To: dhowells@redhat.com,paulus@samba.org
+Subject: + drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe.patch added to -mm tree
+To: dhowells@redhat.com,anilkumar@ti.com,sameo@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Fri, 03 Jan 2014 14:44:18 -0800
+Date: Fri, 03 Jan 2014 14:44:16 -0800
 
 
 The patch titled
-     Subject: drivers/video/aty/aty128fb.c: fix a warning pertaining to the aty128fb backlight variable
+     Subject: drivers/mfd/tps65217.c: fix pointer-integer size mismatch warning in tps65217_probe()
 has been added to the -mm tree.  Its filename is
-     drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch
+     drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,55 +45,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Howells <dhowells@redhat.com>
-Subject: drivers/video/aty/aty128fb.c: fix a warning pertaining to the aty128fb backlight variable
+Subject: drivers/mfd/tps65217.c: fix pointer-integer size mismatch warning in tps65217_probe()
 
-Fix the following warning in the aty128fb driver:
+Fix up the following pointer-integer size mismatch warning in tps65217_probe():
 
-	drivers/video/aty/aty128fb.c:363:12: warning: 'backlight' defined but not used [-Wunused-variable]
-	 static int backlight = 0;
-		    ^
-
-as the variable's value is only read if CONFIG_FB_ATY128_BACKLIGHT=y.  The
-variable is also set if MODULE is unset[*].
-
-[*] I wonder if the conditional wrapper around aty128fb_setup() should be
-    using CONFIG_MODULE rather than MODULE.
+	drivers/mfd/tps65217.c: In function 'tps65217_probe':
+	drivers/mfd/tps65217.c:173:13: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+	   chip_id = (unsigned int)match->data;
+		     ^
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: AnilKumar Ch <anilkumar@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/aty128fb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/mfd/tps65217.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/aty/aty128fb.c~drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable drivers/video/aty/aty128fb.c
---- a/drivers/video/aty/aty128fb.c~drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable
-+++ a/drivers/video/aty/aty128fb.c
-@@ -357,11 +357,13 @@ static int default_lcd_on = 1;
- static bool mtrr = true;
- #endif
- 
-+#ifdef CONFIG_FB_ATY128_BACKLIGHT
- #ifdef CONFIG_PMAC_BACKLIGHT
- static int backlight = 1;
- #else
- static int backlight = 0;
- #endif
-+#endif
- 
- /* PLL constants */
- struct aty128_constants {
-@@ -1671,7 +1673,9 @@ static int aty128fb_setup(char *options)
- 			default_crt_on = simple_strtoul(this_opt+4, NULL, 0);
- 			continue;
- 		} else if (!strncmp(this_opt, "backlight:", 10)) {
-+#ifdef CONFIG_FB_ATY128_BACKLIGHT
- 			backlight = simple_strtoul(this_opt+10, NULL, 0);
-+#endif
- 			continue;
+diff -puN drivers/mfd/tps65217.c~drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe drivers/mfd/tps65217.c
+--- a/drivers/mfd/tps65217.c~drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe
++++ a/drivers/mfd/tps65217.c
+@@ -170,7 +170,7 @@ static int tps65217_probe(struct i2c_cli
+ 				"Failed to find matching dt id\n");
+ 			return -EINVAL;
  		}
- #ifdef CONFIG_MTRR
+-		chip_id = (unsigned int)match->data;
++		chip_id = (unsigned int)(unsigned long)match->data;
+ 		status_off = of_property_read_bool(client->dev.of_node,
+ 					"ti,pmic-shutdown-controller");
+ 	}
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
