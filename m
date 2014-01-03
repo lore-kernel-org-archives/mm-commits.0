@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n.patch added to -mm tree
-Date: Fri, 03 Jan 2014 14:44:13 -0800
-Message-ID: <52c73d3d.uC0HOJN5Pp1X240R%akpm@linux-foundation.org>
+ drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch added to -mm tree
+Date: Fri, 03 Jan 2014 14:44:14 -0800
+Message-ID: <52c73d3e.2RNOLYgFYPTEAqyE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51331 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753362AbaACWoO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jan 2014 17:44:14 -0500
+	with ESMTP id S1753362AbaACWoP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jan 2014 17:44:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, robh+dt@kernel.org, grant.likely@linaro.org, dhowells@redhat.com
+To: mm-commits@vger.kernel.org, gregkh@suse.de, alan@linux.intel.com, dhowells@redhat.com
 
-Subject: + include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n.patch added to -mm tree
-To: dhowells@redhat.com,grant.likely@linaro.org,robh+dt@kernel.org
+Subject: + drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch added to -mm tree
+To: dhowells@redhat.com,alan@linux.intel.com,gregkh@suse.de
 From: akpm@linux-foundation.org
-Date: Fri, 03 Jan 2014 14:44:13 -0800
+Date: Fri, 03 Jan 2014 14:44:14 -0800
 
 
 The patch titled
-     Subject: include/linux/of.h: make for_each_child_of_node() reference its args when CONFIG_OF=n
+     Subject: drivers/gpu/drm/gma500/backlight.c: fix a defined-but-not-used warning for do_gma_backlight_set()
 has been added to the -mm tree.  Its filename is
-     include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n.patch
+     drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,42 +45,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Howells <dhowells@redhat.com>
-Subject: include/linux/of.h: make for_each_child_of_node() reference its args when CONFIG_OF=n
+Subject: drivers/gpu/drm/gma500/backlight.c: fix a defined-but-not-used warning for do_gma_backlight_set()
 
-Make for_each_child_of_node() reference its args when CONFIG_OF=n to avoid
-warnings like:
+Fix the following warning:
 
-	drivers/leds/leds-pwm.c:88:22: warning: unused variable 'node' [-Wunused-variable]
-	  struct device_node *node = pdev->dev.of_node;
-			      ^
+	drivers/gpu/drm/gma500/backlight.c:29:13: warning: 'do_gma_backlight_set' defined but not used [-Wunused-function]
+
+by moving the entire function inside the conditional section currently inside
+of it.  All the places that call it are so conditionalised.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/of.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/gma500/backlight.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/of.h~include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n include/linux/of.h
---- a/include/linux/of.h~include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n
-+++ a/include/linux/of.h
-@@ -377,8 +377,13 @@ static inline bool of_have_populated_dt(
- 	return false;
+diff -puN drivers/gpu/drm/gma500/backlight.c~drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set drivers/gpu/drm/gma500/backlight.c
+--- a/drivers/gpu/drm/gma500/backlight.c~drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set
++++ a/drivers/gpu/drm/gma500/backlight.c
+@@ -26,13 +26,13 @@
+ #include "intel_bios.h"
+ #include "power.h"
+ 
++#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
+ static void do_gma_backlight_set(struct drm_device *dev)
+ {
+-#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
+ 	struct drm_psb_private *dev_priv = dev->dev_private;
+ 	backlight_update_status(dev_priv->backlight_device);
+-#endif	
  }
++#endif
  
-+/* Kill an unused variable warning on a device_node pointer */
-+static inline void __of_use_dn(const struct device_node *np)
-+{
-+}
-+
- #define for_each_child_of_node(parent, child) \
--	while (0)
-+	while (__of_use_dn(parent), __of_use_dn(child), 0)
- 
- #define for_each_available_child_of_node(parent, child) \
- 	while (0)
+ void gma_backlight_enable(struct drm_device *dev)
+ {
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
