@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-kmem_accounted_activated-flag.patch added to -mm
- tree
-Date: Mon, 06 Jan 2014 14:56:29 -0800
-Message-ID: <52cb349d.h0ILJHoeyDUgm4kP%akpm@linux-foundation.org>
+Subject: + memcg-slab-rcu-protect-memcg_params-for-root-caches.patch added to -mm tree
+Date: Mon, 06 Jan 2014 14:56:28 -0800
+Message-ID: <52cb349c.dlFkAaokm1lNO9K/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49001 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933617AbaAFW4a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jan 2014 17:56:30 -0500
+	with ESMTP id S932501AbaAFW43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jan 2014 17:56:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@gmail.com, bsingharora@gmail.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, penberg@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@gmail.com, cl@linux.com, bsingharora@gmail.com, vdavydov@parallels.com
 
-Subject: + memcg-remove-kmem_accounted_activated-flag.patch added to -mm tree
-To: vdavydov@parallels.com,bsingharora@gmail.com,glommer@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
+Subject: + memcg-slab-rcu-protect-memcg_params-for-root-caches.patch added to -mm tree
+To: vdavydov@parallels.com,bsingharora@gmail.com,cl@linux.com,glommer@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,penberg@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 06 Jan 2014 14:56:29 -0800
+Date: Mon, 06 Jan 2014 14:56:28 -0800
 
 
 The patch titled
-     Subject: memcg: remove KMEM_ACCOUNTED_ACTIVATED flag
+     Subject: memcg, slab: RCU protect memcg_params for root caches
 has been added to the -mm tree.  Its filename is
-     memcg-remove-kmem_accounted_activated-flag.patch
+     memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-remove-kmem_accounted_activated-flag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-remove-kmem_accounted_activated-flag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,69 +44,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: remove KMEM_ACCOUNTED_ACTIVATED flag
+Subject: memcg, slab: RCU protect memcg_params for root caches
 
-Currently we have two state bits in mem_cgroup::kmem_account_flags
-regarding kmem accounting activation, ACTIVATED and ACTIVE.  We start kmem
-accounting only if both flags are set (memcg_can_account_kmem()), plus
-throughout the code there are several places where we check only the
-ACTIVE flag, but we never check the ACTIVATED flag alone.  These flags are
-both set from memcg_update_kmem_limit() under the set_limit_mutex, the
-ACTIVE flag always being set after ACTIVATED, and they never get cleared. 
-That said checking if both flags are set is equivalent to checking only
-for the ACTIVE flag, and since there is no ACTIVATED flag checks, we can
-safely remove the ACTIVATED flag, and nothing will change.
-
-Let's try to understand what was the reason for introducing these flags. 
-The purpose of the ACTIVE flag is clear - it states that kmem should be
-accounting to the cgroup.  The only requirement for it is that it should
-be set after we have fully initialized kmem accounting bits for the cgroup
-and patched all static branches relating to kmem accounting.  Since we
-always check if static branch is enabled before actually considering if we
-should account (otherwise we wouldn't benefit from static branching), this
-guarantees us that we won't skip a commit or uncharge after a charge due
-to an unpatched static branch.
-
-Now let's move on to the ACTIVATED bit.  As I proved in the beginning of
-this message, it is absolutely useless, and removing it will change
-nothing.  So what was the reason introducing it?
-
-The ACTIVATED flag was introduced by commit a8964b9b ("memcg: use static
-branches when code not in use") in order to guarantee that
-static_key_slow_inc(&memcg_kmem_enabled_key) would be called only once for
-each memory cgroup when its kmem accounting was activated.  The point was
-that at that time the memcg_update_kmem_limit() function's work-flow
-looked like this:
-
-        bool must_inc_static_branch = false;
-
-        cgroup_lock();
-        mutex_lock(&set_limit_mutex);
-        if (!memcg->kmem_account_flags && val != RESOURCE_MAX) {
-                /* The kmem limit is set for the first time */
-                ret = res_counter_set_limit(&memcg->kmem, val);
-
-                memcg_kmem_set_activated(memcg);
-                must_inc_static_branch = true;
-        } else
-                ret = res_counter_set_limit(&memcg->kmem, val);
-        mutex_unlock(&set_limit_mutex);
-        cgroup_unlock();
-
-        if (must_inc_static_branch) {
-                /* We can't do this under cgroup_lock */
-                static_key_slow_inc(&memcg_kmem_enabled_key);
-                memcg_kmem_set_active(memcg);
-        }
-
-So that without the ACTIVATED flag we could race with other threads trying
-to set the limit and increment the static branching ref-counter more than
-once.  Today we call the whole memcg_update_kmem_limit() function under
-the set_limit_mutex and this race is impossible.
-
-As now we understand why the ACTIVATED bit was introduced and why we don't
-need it now, and know that removing it will change nothing anyway, let's
-get rid of it.
+We relocate root cache's memcg_params whenever we need to grow the
+memcg_caches array to accommodate all kmem-active memory cgroups. 
+Currently on relocation we free the old version immediately, which can
+lead to use-after-free, because the memcg_caches array is accessed
+lock-free (see cache_from_memcg_idx()).  This patch fixes this by making
+memcg_params RCU-protected for root caches.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -115,79 +59,121 @@ Cc: Glauber Costa <glommer@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   29 ++---------------------------
- 1 file changed, 2 insertions(+), 27 deletions(-)
+ include/linux/slab.h |    9 +++++++--
+ mm/memcontrol.c      |   15 ++++++++-------
+ mm/slab.h            |   16 +++++++++++++++-
+ 3 files changed, 30 insertions(+), 10 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-kmem_accounted_activated-flag mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-kmem_accounted_activated-flag
+diff -puN include/linux/slab.h~memcg-slab-rcu-protect-memcg_params-for-root-caches include/linux/slab.h
+--- a/include/linux/slab.h~memcg-slab-rcu-protect-memcg_params-for-root-caches
++++ a/include/linux/slab.h
+@@ -513,7 +513,9 @@ static __always_inline void *kmalloc_nod
+  *
+  * Both the root cache and the child caches will have it. For the root cache,
+  * this will hold a dynamically allocated array large enough to hold
+- * information about the currently limited memcgs in the system.
++ * information about the currently limited memcgs in the system. To allow the
++ * array to be accessed without taking any locks, on relocation we free the old
++ * version only after a grace period.
+  *
+  * Child caches will hold extra metadata needed for its operation. Fields are:
+  *
+@@ -528,7 +530,10 @@ static __always_inline void *kmalloc_nod
+ struct memcg_cache_params {
+ 	bool is_root_cache;
+ 	union {
+-		struct kmem_cache *memcg_caches[0];
++		struct {
++			struct rcu_head rcu_head;
++			struct kmem_cache *memcg_caches[0];
++		};
+ 		struct {
+ 			struct mem_cgroup *memcg;
+ 			struct list_head list;
+diff -puN mm/memcontrol.c~memcg-slab-rcu-protect-memcg_params-for-root-caches mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-slab-rcu-protect-memcg_params-for-root-caches
 +++ a/mm/memcontrol.c
-@@ -336,15 +336,10 @@ struct mem_cgroup {
+@@ -3138,18 +3138,17 @@ int memcg_update_cache_size(struct kmem_
  
- /* internal only representation about the status of kmem accounting. */
- enum {
--	KMEM_ACCOUNTED_ACTIVE = 0, /* accounted by this cgroup itself */
--	KMEM_ACCOUNTED_ACTIVATED, /* static key enabled. */
-+	KMEM_ACCOUNTED_ACTIVE, /* accounted by this cgroup itself */
- 	KMEM_ACCOUNTED_DEAD, /* dead memcg with pending kmem charges */
- };
+ 	if (num_groups > memcg_limited_groups_array_size) {
+ 		int i;
++		struct memcg_cache_params *new_params;
+ 		ssize_t size = memcg_caches_array_size(num_groups);
  
--/* We account when limit is on, but only after call sites are patched */
--#define KMEM_ACCOUNTED_MASK \
--		((1 << KMEM_ACCOUNTED_ACTIVE) | (1 << KMEM_ACCOUNTED_ACTIVATED))
--
- #ifdef CONFIG_MEMCG_KMEM
- static inline void memcg_kmem_set_active(struct mem_cgroup *memcg)
- {
-@@ -356,16 +351,6 @@ static bool memcg_kmem_is_active(struct
- 	return test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
- }
+ 		size *= sizeof(void *);
+ 		size += offsetof(struct memcg_cache_params, memcg_caches);
  
--static void memcg_kmem_set_activated(struct mem_cgroup *memcg)
--{
--	set_bit(KMEM_ACCOUNTED_ACTIVATED, &memcg->kmem_account_flags);
--}
--
--static void memcg_kmem_clear_activated(struct mem_cgroup *memcg)
--{
--	clear_bit(KMEM_ACCOUNTED_ACTIVATED, &memcg->kmem_account_flags);
--}
--
- static void memcg_kmem_mark_dead(struct mem_cgroup *memcg)
- {
- 	/*
-@@ -2954,8 +2939,7 @@ static DEFINE_MUTEX(set_limit_mutex);
- static inline bool memcg_can_account_kmem(struct mem_cgroup *memcg)
- {
- 	return !mem_cgroup_disabled() && !mem_cgroup_is_root(memcg) &&
--		(memcg->kmem_account_flags & KMEM_ACCOUNTED_MASK) ==
--							KMEM_ACCOUNTED_MASK;
-+		memcg_kmem_is_active(memcg);
- }
+-		s->memcg_params = kzalloc(size, GFP_KERNEL);
+-		if (!s->memcg_params) {
+-			s->memcg_params = cur_params;
++		new_params = kzalloc(size, GFP_KERNEL);
++		if (!new_params)
+ 			return -ENOMEM;
+-		}
  
- /*
-@@ -3080,19 +3064,10 @@ static int memcg_update_cache_sizes(stru
- 				0, MEMCG_CACHES_MAX_SIZE, GFP_KERNEL);
- 	if (num < 0)
- 		return num;
--	/*
--	 * After this point, kmem_accounted (that we test atomically in
--	 * the beginning of this conditional), is no longer 0. This
--	 * guarantees only one process will set the following boolean
--	 * to true. We don't need test_and_set because we're protected
--	 * by the set_limit_mutex anyway.
--	 */
--	memcg_kmem_set_activated(memcg);
+-		s->memcg_params->is_root_cache = true;
++		new_params->is_root_cache = true;
  
- 	ret = memcg_update_all_caches(num+1);
- 	if (ret) {
- 		ida_simple_remove(&kmem_limited_groups, num);
--		memcg_kmem_clear_activated(memcg);
- 		return ret;
+ 		/*
+ 		 * There is the chance it will be bigger than
+@@ -3163,7 +3162,7 @@ int memcg_update_cache_size(struct kmem_
+ 		for (i = 0; i < memcg_limited_groups_array_size; i++) {
+ 			if (!cur_params->memcg_caches[i])
+ 				continue;
+-			s->memcg_params->memcg_caches[i] =
++			new_params->memcg_caches[i] =
+ 						cur_params->memcg_caches[i];
+ 		}
+ 
+@@ -3176,7 +3175,9 @@ int memcg_update_cache_size(struct kmem_
+ 		 * bigger than the others. And all updates will reset this
+ 		 * anyway.
+ 		 */
+-		kfree(cur_params);
++		rcu_assign_pointer(s->memcg_params, new_params);
++		if (cur_params)
++			kfree_rcu(cur_params, rcu_head);
  	}
+ 	return 0;
+ }
+diff -puN mm/slab.h~memcg-slab-rcu-protect-memcg_params-for-root-caches mm/slab.h
+--- a/mm/slab.h~memcg-slab-rcu-protect-memcg_params-for-root-caches
++++ a/mm/slab.h
+@@ -160,14 +160,28 @@ static inline const char *cache_name(str
+ 	return s->name;
+ }
  
++/*
++ * Note, we protect with RCU only the memcg_caches array, not per-memcg caches.
++ * That said the caller must assure the memcg's cache won't go away. Since once
++ * created a memcg's cache is destroyed only along with the root cache, it is
++ * true if we are going to allocate from the cache or hold a reference to the
++ * root cache by other means. Otherwise, we should hold either the slab_mutex
++ * or the memcg's slab_caches_mutex while calling this function and accessing
++ * the returned value.
++ */
+ static inline struct kmem_cache *
+ cache_from_memcg_idx(struct kmem_cache *s, int idx)
+ {
+ 	struct kmem_cache *cachep;
++	struct memcg_cache_params *params;
+ 
+ 	if (!s->memcg_params)
+ 		return NULL;
+-	cachep = s->memcg_params->memcg_caches[idx];
++
++	rcu_read_lock();
++	params = rcu_dereference(s->memcg_params);
++	cachep = params->memcg_caches[idx];
++	rcu_read_unlock();
+ 
+ 	/*
+ 	 * Make sure we will access the up-to-date value. The code updating
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
