@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch
+Subject: + slab-clean-up-kmem_cache_create_memcg-error-handling.patch
  added to -mm tree
-Date: Mon, 06 Jan 2014 14:19:35 -0800
-Message-ID: <52cb2bf7.WfClNfOmlA1itNfc%akpm@linux-foundation.org>
+Date: Mon, 06 Jan 2014 14:56:16 -0800
+Message-ID: <52cb3490.Pf4/5gzZeIqAFYWD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47114 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48941 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755289AbaAFWTg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jan 2014 17:19:36 -0500
+	with ESMTP id S932501AbaAFW4S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jan 2014 17:56:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, santosh.shilimkar@ti.com, rmk+kernel@arm.linux.org.uk
+To: mm-commits@vger.kernel.org, penberg@kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, glommer@gmail.com, cl@linux.com, vdavydov@parallels.com
 
-Subject: + mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch added to -mm tree
-To: rmk+kernel@arm.linux.org.uk,santosh.shilimkar@ti.com,sfr@canb.auug.org.au
+Subject: + slab-clean-up-kmem_cache_create_memcg-error-handling.patch added to -mm tree
+To: vdavydov@parallels.com,cl@linux.com,glommer@gmail.com,hannes@cmpxchg.org,mhocko@suse.cz,penberg@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 06 Jan 2014 14:19:35 -0800
+Date: Mon, 06 Jan 2014 14:56:16 -0800
 
 
 The patch titled
-     Subject: ARM: mm: change further appearance of arm_dma_zone_size to phys_addr_t
+     Subject: slab: clean up kmem_cache_create_memcg() error handling
 has been added to the -mm tree.  Its filename is
-     mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch
+     slab-clean-up-kmem_cache_create_memcg-error-handling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-clean-up-kmem_cache_create_memcg-error-handling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-clean-up-kmem_cache_create_memcg-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,51 +44,155 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: ARM: mm: change further appearance of arm_dma_zone_size to phys_addr_t
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: slab: clean up kmem_cache_create_memcg() error handling
 
-The definition was chagned in commit 364230b995214 ("ARM: use phys_addr_t
-for DMA zone sizes").
+Currently kmem_cache_create_memcg() backoffs on failure inside
+conditionals, without using gotos.  This results in the rollback code
+duplication, which makes the function look cumbersome even though on error
+we should only free the allocated cache.  Since in the next patch I am
+going to add yet another rollback function call on error path there, let's
+employ labels instead of conditionals for undoing any changes on failure
+to keep things clean.
 
-Fixes this build error:
-
-arch/arm/mm/init.c:199:13: error: conflicting types for 'arm_dma_zone_size'
-include/linux/bootmem.h:259:11: note: previous declaration of 'arm_dma_zone_size' was here
-
-While changing the type, we also need to limit MAX_DMA_ADDRESS if
-PAGE_OFFSET + arm_dma_zone_size is greater than 4GB.  The MAX_DMA_ADDRESS
-is a virtual address and we really don't want the 32-bit value of this
-wrapping.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Glauber Costa <glommer@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/dma.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slab_common.c |   69 +++++++++++++++++++++------------------------
+ 1 file changed, 33 insertions(+), 36 deletions(-)
 
-diff -puN arch/arm/include/asm/dma.h~mm-memblock-add-memblock-memory-allocation-apis-fix-4 arch/arm/include/asm/dma.h
---- a/arch/arm/include/asm/dma.h~mm-memblock-add-memblock-memory-allocation-apis-fix-4
-+++ a/arch/arm/include/asm/dma.h
-@@ -8,8 +8,8 @@
- #define MAX_DMA_ADDRESS	0xffffffffUL
- #else
- #define MAX_DMA_ADDRESS	({ \
--	extern unsigned long arm_dma_zone_size; \
--	arm_dma_zone_size ? \
-+	extern phys_addr_t arm_dma_zone_size; \
-+	arm_dma_zone_size && arm_dma_zone_size < (0x10000000 - PAGE_OFFSET) ? \
- 		(PAGE_OFFSET + arm_dma_zone_size) : 0xffffffffUL; })
- #endif
+diff -puN mm/slab_common.c~slab-clean-up-kmem_cache_create_memcg-error-handling mm/slab_common.c
+--- a/mm/slab_common.c~slab-clean-up-kmem_cache_create_memcg-error-handling
++++ a/mm/slab_common.c
+@@ -171,13 +171,14 @@ kmem_cache_create_memcg(struct mem_cgrou
+ 			struct kmem_cache *parent_cache)
+ {
+ 	struct kmem_cache *s = NULL;
+-	int err = 0;
++	int err;
  
+ 	get_online_cpus();
+ 	mutex_lock(&slab_mutex);
+ 
+-	if (!kmem_cache_sanity_check(memcg, name, size) == 0)
+-		goto out_locked;
++	err = kmem_cache_sanity_check(memcg, name, size);
++	if (err)
++		goto out_unlock;
+ 
+ 	/*
+ 	 * Some allocators will constraint the set of valid flags to a subset
+@@ -189,45 +190,38 @@ kmem_cache_create_memcg(struct mem_cgrou
+ 
+ 	s = __kmem_cache_alias(memcg, name, size, align, flags, ctor);
+ 	if (s)
+-		goto out_locked;
++		goto out_unlock;
+ 
++	err = -ENOMEM;
+ 	s = kmem_cache_zalloc(kmem_cache, GFP_KERNEL);
+-	if (s) {
+-		s->object_size = s->size = size;
+-		s->align = calculate_alignment(flags, align, size);
+-		s->ctor = ctor;
+-
+-		if (memcg_register_cache(memcg, s, parent_cache)) {
+-			kmem_cache_free(kmem_cache, s);
+-			err = -ENOMEM;
+-			goto out_locked;
+-		}
+-
+-		s->name = kstrdup(name, GFP_KERNEL);
+-		if (!s->name) {
+-			kmem_cache_free(kmem_cache, s);
+-			err = -ENOMEM;
+-			goto out_locked;
+-		}
++	if (!s)
++		goto out_unlock;
+ 
+-		err = __kmem_cache_create(s, flags);
+-		if (!err) {
+-			s->refcount = 1;
+-			list_add(&s->list, &slab_caches);
+-			memcg_cache_list_add(memcg, s);
+-		} else {
+-			kfree(s->name);
+-			kmem_cache_free(kmem_cache, s);
+-		}
+-	} else
+-		err = -ENOMEM;
++	s->object_size = s->size = size;
++	s->align = calculate_alignment(flags, align, size);
++	s->ctor = ctor;
++
++	s->name = kstrdup(name, GFP_KERNEL);
++	if (!s->name)
++		goto out_free_cache;
++
++	err = memcg_register_cache(memcg, s, parent_cache);
++	if (err)
++		goto out_free_cache;
++
++	err = __kmem_cache_create(s, flags);
++	if (err)
++		goto out_free_cache;
++
++	s->refcount = 1;
++	list_add(&s->list, &slab_caches);
++	memcg_cache_list_add(memcg, s);
+ 
+-out_locked:
++out_unlock:
+ 	mutex_unlock(&slab_mutex);
+ 	put_online_cpus();
+ 
+ 	if (err) {
+-
+ 		if (flags & SLAB_PANIC)
+ 			panic("kmem_cache_create: Failed to create slab '%s'. Error %d\n",
+ 				name, err);
+@@ -236,11 +230,14 @@ out_locked:
+ 				name, err);
+ 			dump_stack();
+ 		}
+-
+ 		return NULL;
+ 	}
+-
+ 	return s;
++
++out_free_cache:
++	kfree(s->name);
++	kmem_cache_free(kmem_cache, s);
++	goto out_unlock;
+ }
+ 
+ struct kmem_cache *
 _
 
-Patches currently in -mm which might be from rmk+kernel@arm.linux.org.uk are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch
-mm-arm-fix-arms-__ffs-to-conform-to-avoid-warning-with-no_bootmem.patch
+memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
+memcg-make-memcg_update_cache_sizes-static.patch
+memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
+slab-clean-up-kmem_cache_create_memcg-error-handling.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
+memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
+memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
+memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
+memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
+memcg-get-rid-of-kmem_cache_dup.patch
+slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
+memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
+memcg-remove-kmem_accounted_activated-flag.patch
+memcg-rework-memcg_update_kmem_limit-synchronization.patch
 linux-next.patch
 
