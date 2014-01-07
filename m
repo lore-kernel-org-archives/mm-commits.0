@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- backlight-kb3886_bl-fix-incorrect-placement-of-__initdata-marker.patch
- added to -mm tree
-Date: Tue, 07 Jan 2014 14:11:37 -0800
-Message-ID: <52cc7b99.QawpIVMf6nM6fEXH%akpm@linux-foundation.org>
+Subject: + backlight-lp8788-remove-unnecessary-parentheses.patch added to
+ -mm tree
+Date: Tue, 07 Jan 2014 14:11:39 -0800
+Message-ID: <52cc7b9b.77gVtCjBC1d19SAc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59649 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59653 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754518AbaAGWLi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 17:11:38 -0500
+	with ESMTP id S1754528AbaAGWLk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 17:11:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-kb3886_bl-fix-incorrect-placement-of-__initdata-marker.patch added to -mm tree
+Subject: + backlight-lp8788-remove-unnecessary-parentheses.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Tue, 07 Jan 2014 14:11:37 -0800
+Date: Tue, 07 Jan 2014 14:11:39 -0800
 
 
 The patch titled
-     Subject: backlight: kb3886_bl: fix incorrect placement of __initdata marker
+     Subject: backlight: lp8788: remove unnecessary parentheses
 has been added to the -mm tree.  Its filename is
-     backlight-kb3886_bl-fix-incorrect-placement-of-__initdata-marker.patch
+     backlight-lp8788-remove-unnecessary-parentheses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-kb3886_bl-fix-incorrect-placement-of-__initdata-marker.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lp8788-remove-unnecessary-parentheses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-kb3886_bl-fix-incorrect-placement-of-__initdata-marker.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lp8788-remove-unnecessary-parentheses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,34 +45,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: kb3886_bl: fix incorrect placement of __initdata marker
+Subject: backlight: lp8788: remove unnecessary parentheses
 
-The __initdata marker can be virtually anywhere on the line, EXCEPT right
-after "struct".  The preferred location is before the "=" sign if there is
-one, or before the trailing ";" otherwise.  It also fixes the following
-chechpatch warning.
+Remove unnecessary parentheses in order to fix the following checkpatch
+error.
 
-  WARNING: __initdata should be placed after kb3886bl_device_table[]
+  ERROR: return is not a function, parentheses are not required
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/kb3886_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/lp8788_bl.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/kb3886_bl.c~backlight-kb3886_bl-fix-incorrect-placement-of-__initdata-marker drivers/video/backlight/kb3886_bl.c
---- a/drivers/video/backlight/kb3886_bl.c~backlight-kb3886_bl-fix-incorrect-placement-of-__initdata-marker
-+++ a/drivers/video/backlight/kb3886_bl.c
-@@ -78,7 +78,7 @@ static struct kb3886bl_machinfo *bl_mach
- static unsigned long kb3886bl_flags;
- #define KB3886BL_SUSPENDED     0x01
+diff -puN drivers/video/backlight/lp8788_bl.c~backlight-lp8788-remove-unnecessary-parentheses drivers/video/backlight/lp8788_bl.c
+--- a/drivers/video/backlight/lp8788_bl.c~backlight-lp8788-remove-unnecessary-parentheses
++++ a/drivers/video/backlight/lp8788_bl.c
+@@ -63,13 +63,13 @@ static struct lp8788_bl_config default_b
  
--static struct dmi_system_id __initdata kb3886bl_device_table[] = {
-+static struct dmi_system_id kb3886bl_device_table[] __initdata = {
- 	{
- 		.ident = "Sahara Touch-iT",
- 		.matches = {
+ static inline bool is_brightness_ctrl_by_pwm(enum lp8788_bl_ctrl_mode mode)
+ {
+-	return (mode == LP8788_BL_COMB_PWM_BASED);
++	return mode == LP8788_BL_COMB_PWM_BASED;
+ }
+ 
+ static inline bool is_brightness_ctrl_by_register(enum lp8788_bl_ctrl_mode mode)
+ {
+-	return (mode == LP8788_BL_REGISTER_ONLY ||
+-		mode == LP8788_BL_COMB_REGISTER_BASED);
++	return mode == LP8788_BL_REGISTER_ONLY ||
++		mode == LP8788_BL_COMB_REGISTER_BASED;
+ }
+ 
+ static int lp8788_backlight_configure(struct lp8788_bl *bl)
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
