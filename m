@@ -1,107 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-percpu_counterc-disable-local-irq-when-updating-percpu-couter.patch
- added to -mm tree
-Date: Tue, 07 Jan 2014 14:29:01 -0800
-Message-ID: <52cc7fad.OGxGIKzcmDnCkmY9%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch removed from -mm tree
+Date: Tue, 07 Jan 2014 14:33:51 -0800
+Message-ID: <52cc80cf.b+5IC7ZylHI6cegB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59776 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59865 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753596AbaAGW3C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 17:29:02 -0500
+	with ESMTP id S1752045AbaAGWdw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 17:33:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org, shli@fusionio.com, paul.gortmaker@windriver.com, fan.du@windriver.com, axboe@kernel.dk, akpm@linux-foundation.org, tom.leiming@gmail.com
+To: mm-commits@vger.kernel.org, shuah.kh@samsung.com, joro@8bytes.org, dan.carpenter@oracle.com, alexander.h.duyck@intel.com, akpm@linux-foundation.org
 
-Subject: + lib-percpu_counterc-disable-local-irq-when-updating-percpu-couter.patch added to -mm tree
-To: tom.leiming@gmail.com,akpm@linux-foundation.org,axboe@kernel.dk,fan.du@windriver.com,paul.gortmaker@windriver.com,shli@fusionio.com,stable@vger.kernel.org,tj@kernel.org
+Subject: [to-be-updated] dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,alexander.h.duyck@intel.com,dan.carpenter@oracle.com,joro@8bytes.org,shuah.kh@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 07 Jan 2014 14:29:01 -0800
+Date: Tue, 07 Jan 2014 14:33:51 -0800
 
 
 The patch titled
-     Subject: lib/percpu_counter.c: disable local irq when updating percpu couter
-has been added to the -mm tree.  Its filename is
-     lib-percpu_counterc-disable-local-irq-when-updating-percpu-couter.patch
+     Subject: dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix
+has been removed from the -mm tree.  Its filename was
+     dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-percpu_counterc-disable-local-irq-when-updating-percpu-couter.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-percpu_counterc-disable-local-irq-when-updating-percpu-couter.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: lib/percpu_counter.c: disable local irq when updating percpu couter
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix
 
-__percpu_counter_add() may be called in softirq/hardirq handler (such as,
-blk_mq_queue_exit() is typically called in hardirq/softirq handler), so we
-need to disable local irq when updating the percpu counter, otherwise
-counts may be lost.
+Per Shuah: "dev_warn() on line 740 should use dev not entry->dev"
 
-The patch fixes problem that 'rmmod null_blk' may hang in blk_cleanup_queue()
-because of miscounting of request_queue->mq_usage_counter.
-
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shaohua Li <shli@fusionio.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Fan Du <fan.du@windriver.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Alexander Duyck <alexander.h.duyck@intel.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Shuah Khan <shuah.kh@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_counter.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ lib/dma-debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/percpu_counter.c~lib-percpu_counterc-disable-local-irq-when-updating-percpu-couter lib/percpu_counter.c
---- a/lib/percpu_counter.c~lib-percpu_counterc-disable-local-irq-when-updating-percpu-couter
-+++ a/lib/percpu_counter.c
-@@ -75,19 +75,19 @@ EXPORT_SYMBOL(percpu_counter_set);
- void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch)
- {
- 	s64 count;
-+	unsigned long flags;
+diff -puN lib/dma-debug.c~dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-enhance-dma_debug_device_change-to-check-for-mapping-errors-fix
++++ a/lib/dma-debug.c
+@@ -737,7 +737,7 @@ static int device_dma_allocations(struct
+ 	local_irq_restore(flags);
  
--	preempt_disable();
-+	raw_local_irq_save(flags);
- 	count = __this_cpu_read(*fbc->counters) + amount;
- 	if (count >= batch || count <= -batch) {
--		unsigned long flags;
--		raw_spin_lock_irqsave(&fbc->lock, flags);
-+		raw_spin_lock(&fbc->lock);
- 		fbc->count += count;
--		raw_spin_unlock_irqrestore(&fbc->lock, flags);
-+		raw_spin_unlock(&fbc->lock);
- 		__this_cpu_write(*fbc->counters, 0);
- 	} else {
- 		__this_cpu_write(*fbc->counters, count);
- 	}
--	preempt_enable();
-+	raw_local_irq_restore(flags);
- }
- EXPORT_SYMBOL(__percpu_counter_add);
- 
+ 	if (map_err_cnt)
+-		dev_warn(entry->dev,
++		dev_warn(dev,
+ 			"DMA-API: device driver failed to check map errors: "
+ 			"[count] = %d\n", map_err_cnt);
+ 	return count;
 _
 
-Patches currently in -mm which might be from tom.leiming@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path-fix-2.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+mm-show_mem-remove-show_mem_filter_page_count-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
+mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+mm-print-more-details-for-bad_page-fix.patch
+mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
+mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix-fix.patch
+numa-add-a-sysctl-for-numa_balancing-fix.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+printk-flush-conflicting-continuation-line-fix.patch
 lib-percpu_counterc-disable-local-irq-when-updating-percpu-couter.patch
+drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
