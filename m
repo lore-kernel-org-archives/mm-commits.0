@@ -1,78 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-regulator-tps62360-regulatorc-fix-pointer-integer-size-mismatch-warning-in-tps62360_probe.patch removed from -mm tree
-Date: Tue, 07 Jan 2014 12:47:11 -0800
-Message-ID: <52cc67cf.v79n0H5ezklbyL9R%akpm@linux-foundation.org>
+Subject: +
+ mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
+ added to -mm tree
+Date: Tue, 07 Jan 2014 13:40:06 -0800
+Message-ID: <52cc7436.6+SR79j0E9pE44Du%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59129 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59507 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753893AbaAGUrM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 15:47:12 -0500
+	with ESMTP id S1754496AbaAGVkI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 16:40:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ldewangan@nvidia.com, broonie@opensource.wolfsonmicro.com, dhowells@redhat.com
+To: mm-commits@vger.kernel.org, toshi.kani@hp.com, tj@kernel.org, tangchen@cn.fujitsu.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, phacht@linux.vnet.ibm.com
 
-Subject: [merged] drivers-regulator-tps62360-regulatorc-fix-pointer-integer-size-mismatch-warning-in-tps62360_probe.patch removed from -mm tree
-To: dhowells@redhat.com,broonie@opensource.wolfsonmicro.com,ldewangan@nvidia.com,mm-commits@vger.kernel.org
+Subject: + mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch added to -mm tree
+To: phacht@linux.vnet.ibm.com,hannes@cmpxchg.org,iamjoonsoo.kim@lge.com,tangchen@cn.fujitsu.com,tj@kernel.org,toshi.kani@hp.com
 From: akpm@linux-foundation.org
-Date: Tue, 07 Jan 2014 12:47:11 -0800
+Date: Tue, 07 Jan 2014 13:40:06 -0800
 
 
 The patch titled
-     Subject: drivers/regulator/tps62360-regulator.c: fix pointer-integer size mismatch warning in tps62360_probe()
-has been removed from the -mm tree.  Its filename was
-     drivers-regulator-tps62360-regulatorc-fix-pointer-integer-size-mismatch-warning-in-tps62360_probe.patch
+     Subject: mm/nobootmem.c: add return value check in __alloc_memory_core_early()
+has been added to the -mm tree.  Its filename is
+     mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: drivers/regulator/tps62360-regulator.c: fix pointer-integer size mismatch warning in tps62360_probe()
+From: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+Subject: mm/nobootmem.c: add return value check in __alloc_memory_core_early()
 
-Fix up the following pointer-integer size mismatch warning in tps62360_probe():
+When memblock_reserve() fails because memblock.reserved.regions cannot be
+resized, the caller (e.g.  alloc_bootmem()) is not informed of the failed
+allocation.  Therefore alloc_bootmem() silently returns the same pointer
+again and again.
 
-	drivers/regulator/tps62360-regulator.c: In function 'tps62360_probe':
-	drivers/regulator/tps62360-regulator.c:363:13: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-	   chip_id = (int)match->data;
-		     ^
+This patch adds a check for the return value of memblock_reserve() in
+__alloc_memory_core().
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Laxman Dewangan <ldewangan@nvidia.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/tps62360-regulator.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/nobootmem.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/regulator/tps62360-regulator.c~drivers-regulator-tps62360-regulatorc-fix-pointer-integer-size-mismatch-warning-in-tps62360_probe drivers/regulator/tps62360-regulator.c
---- a/drivers/regulator/tps62360-regulator.c~drivers-regulator-tps62360-regulatorc-fix-pointer-integer-size-mismatch-warning-in-tps62360_probe
-+++ a/drivers/regulator/tps62360-regulator.c
-@@ -360,7 +360,7 @@ static int tps62360_probe(struct i2c_cli
- 			dev_err(&client->dev, "Error: No device match found\n");
- 			return -ENODEV;
- 		}
--		chip_id = (int)match->data;
-+		chip_id = (int)(long)match->data;
- 		if (!pdata)
- 			pdata = of_get_tps62360_platform_data(&client->dev);
- 	} else if (id) {
+diff -puN mm/nobootmem.c~mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early
++++ a/mm/nobootmem.c
+@@ -45,7 +45,9 @@ static void * __init __alloc_memory_core
+ 	if (!addr)
+ 		return NULL;
+ 
+-	memblock_reserve(addr, size);
++	if (memblock_reserve(addr, size))
++		return NULL;
++
+ 	ptr = phys_to_virt(addr);
+ 	memset(ptr, 0, size);
+ 	/*
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from phacht@linux.vnet.ibm.com are
 
-include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n.patch
-drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch
-drivers-mfd-max8998c-fix-pointer-integer-size-mismatch-warning-in-max8998_i2c_get_driver_data.patch
-drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe.patch
-drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch
-documentation-misc-devices-mei-mei-amt-versionc-remove-unneeded-call-of-mei_deinit.patch
-lib-assoc_arrayc-remove-global-variable.patch
-afs-proc-cells-and-rootcell-are-writeable.patch
-linux-next.patch
-mutex-subsystem-synchro-test-module.patch
+mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
 
