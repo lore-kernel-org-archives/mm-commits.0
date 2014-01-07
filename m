@@ -1,139 +1,334 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- x86-get-pg_data_ts-memory-from-other-node.patch removed from -mm tree
-Date: Tue, 07 Jan 2014 12:40:26 -0800
-Message-ID: <52cc663a.fzeDsbO9SKIDzO4J%akpm@linux-foundation.org>
+Subject: [merged]
+ stack-protector-create-have_cc_stackprotector-for-centralized-use.patch
+ removed from -mm tree
+Date: Tue, 07 Jan 2014 12:47:13 -0800
+Message-ID: <52cc67d1.faphjlZ872+lR8u8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59110 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59138 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751541AbaAGUk2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 15:40:28 -0500
+	with ESMTP id S1753999AbaAGUrP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 15:47:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, zhangyanfei.yes@gmail.com, yinghai@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, tangchen@cn.fujitsu.com, rjw@sisk.pl, riel@redhat.com, prarit@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, lwoodman@redhat.com, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, imtangchen@gmail.com, hpa@zytor.com, hannes@cmpxchg.org, gong.chen@linux.intel.com, isimatu.yasuaki@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, shawn.guo@linaro.org, sfr@canb.auug.org.au, ralf@linux-mips.org, mmarek@suse.cz, mingo@redhat.com, linux@arm.linux.org.uk, lethal@linux-sh.org, james.hogan@imgtec.com, hpa@zytor.com, keescook@chromium.org
 
-Subject: [alternative-merged] x86-get-pg_data_ts-memory-from-other-node.patch removed from -mm tree
-To: isimatu.yasuaki@jp.fujitsu.com,gong.chen@linux.intel.com,hannes@cmpxchg.org,hpa@zytor.com,imtangchen@gmail.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,lwoodman@redhat.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,prarit@redhat.com,riel@redhat.com,rjw@sisk.pl,tangchen@cn.fujitsu.com,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,vasilis.liaskovitis@profitbricks.com,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei.yes@gmail.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] stack-protector-create-have_cc_stackprotector-for-centralized-use.patch removed from -mm tree
+To: keescook@chromium.org,hpa@zytor.com,james.hogan@imgtec.com,lethal@linux-sh.org,linux@arm.linux.org.uk,mingo@redhat.com,mmarek@suse.cz,ralf@linux-mips.org,sfr@canb.auug.org.au,shawn.guo@linaro.org,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 07 Jan 2014 12:40:26 -0800
+Date: Tue, 07 Jan 2014 12:47:13 -0800
 
 
 The patch titled
-     Subject: x86: get pg_data_t's memory from other node
+     Subject: stack protector: create HAVE_CC_STACKPROTECTOR for centralized use
 has been removed from the -mm tree.  Its filename was
-     x86-get-pg_data_ts-memory-from-other-node.patch
+     stack-protector-create-have_cc_stackprotector-for-centralized-use.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: x86: get pg_data_t's memory from other node
+From: Kees Cook <keescook@chromium.org>
+Subject: stack protector: create HAVE_CC_STACKPROTECTOR for centralized use
 
-If system can create movable node which all memory of the node is
-allocated as ZONE_MOVABLE, setup_node_data() cannot allocate memory for
-the node's pg_data_t.  So, invoke memblock_alloc_nid(...MAX_NUMNODES)
-again to retry when the first allocation fails.  Otherwise, the system
-could failed to boot.  (We don't use memblock_alloc_try_nid() to retry
-because in this function, if the allocation fails, it will panic the
-system.)
+Instead of duplicating the CC_STACKPROTECTOR Kconfig and Makefile logic in
+each architecture, switch to using HAVE_CC_STACKPROTECTOR and keep
+everything in one place.  This retains the x86-specific bug verification
+scripts.
 
-The node_data could be on hotpluggable node.  And so could pagetable and
-vmemmap.  But for now, doing so will break memory hot-remove path.
-
-A node could have several memory devices.  And the device who holds node
-data should be hot-removed in the last place.  But in NUMA level, we don't
-know which memory_block (/sys/devices/system/node/nodeX/memoryXXX) belongs
-to which memory device.  We only have node.  So we can only do node
-hotplug.
-
-But in virtualization, developers are now developing memory hotplug in
-qemu, which support a single memory device hotplug.  So a whole node
-hotplug will not satisfy virtualization users.
-
-So at last, we concluded that we'd better do memory hotplug and local node
-things (local node node data, pagetable, vmemmap, ...) in two steps. 
-Please refer to https://lkml.org/lkml/2013/6/19/73
-
-For now, we put node_data of movable node to another node, and then
-improve it in the future.
-
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Acked-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Tejun Heo <tj@kernel.org>
-CC: "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Gong Chen <gong.chen@linux.intel.com>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Chen Tang <imtangchen@gmail.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei.yes@gmail.com>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Shawn Guo <shawn.guo@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ Makefile           |   14 +++++++++++---
+ arch/Kconfig       |   22 ++++++++++++++++++++++
+ arch/arm/Kconfig   |   13 +------------
+ arch/arm/Makefile  |    4 ----
+ arch/mips/Kconfig  |   14 +-------------
+ arch/mips/Makefile |    4 ----
+ arch/sh/Kconfig    |   15 +--------------
+ arch/sh/Makefile   |    4 ----
+ arch/x86/Kconfig   |   17 +----------------
+ arch/x86/Makefile  |    8 +++-----
+ 10 files changed, 40 insertions(+), 75 deletions(-)
 
-diff -puN arch/x86/mm/numa.c~x86-get-pg_data_ts-memory-from-other-node arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~x86-get-pg_data_ts-memory-from-other-node
-+++ a/arch/x86/mm/numa.c
-@@ -211,9 +211,14 @@ static void __init setup_node_data(int n
- 	 */
- 	nd_pa = memblock_alloc_nid(nd_size, SMP_CACHE_BYTES, nid);
- 	if (!nd_pa) {
--		pr_err("Cannot find %zu bytes in node %d\n",
--		       nd_size, nid);
--		return;
-+		pr_warn("Cannot find %zu bytes in node %d, so try other nodes",
-+			nd_size, nid);
-+		nd_pa = memblock_alloc_nid(nd_size, SMP_CACHE_BYTES,
-+					   MAX_NUMNODES);
-+		if (!nd_pa) {
-+			pr_err("Cannot find %zu bytes in any node\n", nd_size);
-+			return;
-+		}
- 	}
- 	nd = __va(nd_pa);
+diff -puN Makefile~stack-protector-create-have_cc_stackprotector-for-centralized-use Makefile
+--- a/Makefile~stack-protector-create-have_cc_stackprotector-for-centralized-use
++++ a/Makefile
+@@ -595,10 +595,18 @@ ifneq ($(CONFIG_FRAME_WARN),0)
+ KBUILD_CFLAGS += $(call cc-option,-Wframe-larger-than=${CONFIG_FRAME_WARN})
+ endif
+ 
+-# Force gcc to behave correct even for buggy distributions
+-ifndef CONFIG_CC_STACKPROTECTOR
+-KBUILD_CFLAGS += $(call cc-option, -fno-stack-protector)
++# Handle stack protector mode.
++ifdef CONFIG_CC_STACKPROTECTOR
++  stackp-flag := -fstack-protector
++  ifeq ($(call cc-option, $(stackp-flag)),)
++    $(warning Cannot use CONFIG_CC_STACKPROTECTOR: \
++	      -fstack-protector not supported by compiler))
++  endif
++else
++  # Force off for distro compilers that enable stack protector by default.
++  stackp-flag := $(call cc-option, -fno-stack-protector)
+ endif
++KBUILD_CFLAGS += $(stackp-flag)
+ 
+ # This warning generated too much noise in a regular build.
+ # Use make W=1 to enable this warning (see scripts/Makefile.build)
+diff -puN arch/Kconfig~stack-protector-create-have_cc_stackprotector-for-centralized-use arch/Kconfig
+--- a/arch/Kconfig~stack-protector-create-have_cc_stackprotector-for-centralized-use
++++ a/arch/Kconfig
+@@ -336,6 +336,28 @@ config SECCOMP_FILTER
+ 
+ 	  See Documentation/prctl/seccomp_filter.txt for details.
+ 
++config HAVE_CC_STACKPROTECTOR
++	bool
++	help
++	  An arch should select this symbol if:
++	  - its compiler supports the -fstack-protector option
++	  - it has implemented a stack canary (e.g. __stack_chk_guard)
++
++config CC_STACKPROTECTOR
++	bool "Enable -fstack-protector buffer overflow detection"
++	depends on HAVE_CC_STACKPROTECTOR
++	help
++	  This option turns on the -fstack-protector GCC feature. This
++	  feature puts, at the beginning of functions, a canary value on
++	  the stack just before the return address, and validates
++	  the value just before actually returning.  Stack based buffer
++	  overflows (that need to overwrite this return address) now also
++	  overwrite the canary, which gets detected and the attack is then
++	  neutralized via a kernel panic.
++
++	  This feature requires gcc version 4.2 or above, or a distribution
++	  gcc with the feature backported.
++
+ config HAVE_CONTEXT_TRACKING
+ 	bool
+ 	help
+diff -puN arch/arm/Kconfig~stack-protector-create-have_cc_stackprotector-for-centralized-use arch/arm/Kconfig
+--- a/arch/arm/Kconfig~stack-protector-create-have_cc_stackprotector-for-centralized-use
++++ a/arch/arm/Kconfig
+@@ -30,6 +30,7 @@ config ARM
+ 	select HAVE_BPF_JIT
+ 	select HAVE_CONTEXT_TRACKING
+ 	select HAVE_C_RECORDMCOUNT
++	select HAVE_CC_STACKPROTECTOR
+ 	select HAVE_DEBUG_KMEMLEAK
+ 	select HAVE_DMA_API_DEBUG
+ 	select HAVE_DMA_ATTRS
+@@ -1856,18 +1857,6 @@ config SECCOMP
+ 	  and the task is only allowed to execute a few safe syscalls
+ 	  defined by each seccomp mode.
+ 
+-config CC_STACKPROTECTOR
+-	bool "Enable -fstack-protector buffer overflow detection (EXPERIMENTAL)"
+-	help
+-	  This option turns on the -fstack-protector GCC feature. This
+-	  feature puts, at the beginning of functions, a canary value on
+-	  the stack just before the return address, and validates
+-	  the value just before actually returning.  Stack based buffer
+-	  overflows (that need to overwrite this return address) now also
+-	  overwrite the canary, which gets detected and the attack is then
+-	  neutralized via a kernel panic.
+-	  This feature requires gcc version 4.2 or above.
+-
+ config SWIOTLB
+ 	def_bool y
+ 
+diff -puN arch/arm/Makefile~stack-protector-create-have_cc_stackprotector-for-centralized-use arch/arm/Makefile
+--- a/arch/arm/Makefile~stack-protector-create-have_cc_stackprotector-for-centralized-use
++++ a/arch/arm/Makefile
+@@ -40,10 +40,6 @@ ifeq ($(CONFIG_FRAME_POINTER),y)
+ KBUILD_CFLAGS	+=-fno-omit-frame-pointer -mapcs -mno-sched-prolog
+ endif
+ 
+-ifeq ($(CONFIG_CC_STACKPROTECTOR),y)
+-KBUILD_CFLAGS	+=-fstack-protector
+-endif
+-
+ ifeq ($(CONFIG_CPU_BIG_ENDIAN),y)
+ KBUILD_CPPFLAGS	+= -mbig-endian
+ AS		+= -EB
+diff -puN arch/mips/Kconfig~stack-protector-create-have_cc_stackprotector-for-centralized-use arch/mips/Kconfig
+--- a/arch/mips/Kconfig~stack-protector-create-have_cc_stackprotector-for-centralized-use
++++ a/arch/mips/Kconfig
+@@ -47,6 +47,7 @@ config MIPS
+ 	select MODULES_USE_ELF_RELA if MODULES && 64BIT
+ 	select CLONE_BACKWARDS
+ 	select HAVE_DEBUG_STACKOVERFLOW
++	select HAVE_CC_STACKPROTECTOR
+ 
+ menu "Machine selection"
+ 
+@@ -2322,19 +2323,6 @@ config SECCOMP
+ 
+ 	  If unsure, say Y. Only embedded should say N here.
+ 
+-config CC_STACKPROTECTOR
+-	bool "Enable -fstack-protector buffer overflow detection (EXPERIMENTAL)"
+-	help
+-	  This option turns on the -fstack-protector GCC feature. This
+-	  feature puts, at the beginning of functions, a canary value on
+-	  the stack just before the return address, and validates
+-	  the value just before actually returning.  Stack based buffer
+-	  overflows (that need to overwrite this return address) now also
+-	  overwrite the canary, which gets detected and the attack is then
+-	  neutralized via a kernel panic.
+-
+-	  This feature requires gcc version 4.2 or above.
+-
+ config USE_OF
+ 	bool
+ 	select OF
+diff -puN arch/mips/Makefile~stack-protector-create-have_cc_stackprotector-for-centralized-use arch/mips/Makefile
+--- a/arch/mips/Makefile~stack-protector-create-have_cc_stackprotector-for-centralized-use
++++ a/arch/mips/Makefile
+@@ -232,10 +232,6 @@ bootvars-y	= VMLINUX_LOAD_ADDRESS=$(load
+ 
+ LDFLAGS			+= -m $(ld-emul)
+ 
+-ifdef CONFIG_CC_STACKPROTECTOR
+-  KBUILD_CFLAGS += -fstack-protector
+-endif
+-
+ ifdef CONFIG_MIPS
+ CHECKFLAGS += $(shell $(CC) $(KBUILD_CFLAGS) -dM -E -x c /dev/null | \
+ 	egrep -vw '__GNUC_(|MINOR_|PATCHLEVEL_)_' | \
+diff -puN arch/sh/Kconfig~stack-protector-create-have_cc_stackprotector-for-centralized-use arch/sh/Kconfig
+--- a/arch/sh/Kconfig~stack-protector-create-have_cc_stackprotector-for-centralized-use
++++ a/arch/sh/Kconfig
+@@ -66,6 +66,7 @@ config SUPERH32
+ 	select PERF_EVENTS
+ 	select ARCH_HIBERNATION_POSSIBLE if MMU
+ 	select SPARSE_IRQ
++	select HAVE_CC_STACKPROTECTOR
+ 
+ config SUPERH64
+ 	def_bool ARCH = "sh64"
+@@ -695,20 +696,6 @@ config SECCOMP
+ 
+ 	  If unsure, say N.
+ 
+-config CC_STACKPROTECTOR
+-	bool "Enable -fstack-protector buffer overflow detection (EXPERIMENTAL)"
+-	depends on SUPERH32
+-	help
+-	  This option turns on the -fstack-protector GCC feature. This
+-	  feature puts, at the beginning of functions, a canary value on
+-	  the stack just before the return address, and validates
+-	  the value just before actually returning.  Stack based buffer
+-	  overflows (that need to overwrite this return address) now also
+-	  overwrite the canary, which gets detected and the attack is then
+-	  neutralized via a kernel panic.
+-
+-	  This feature requires gcc version 4.2 or above.
+-
+ config SMP
+ 	bool "Symmetric multi-processing support"
+ 	depends on SYS_SUPPORTS_SMP
+diff -puN arch/sh/Makefile~stack-protector-create-have_cc_stackprotector-for-centralized-use arch/sh/Makefile
+--- a/arch/sh/Makefile~stack-protector-create-have_cc_stackprotector-for-centralized-use
++++ a/arch/sh/Makefile
+@@ -199,10 +199,6 @@ ifeq ($(CONFIG_DWARF_UNWINDER),y)
+   KBUILD_CFLAGS += -fasynchronous-unwind-tables
+ endif
+ 
+-ifeq ($(CONFIG_CC_STACKPROTECTOR),y)
+-  KBUILD_CFLAGS += -fstack-protector
+-endif
+-
+ libs-$(CONFIG_SUPERH32)		:= arch/sh/lib/	$(libs-y)
+ libs-$(CONFIG_SUPERH64)		:= arch/sh/lib64/ $(libs-y)
+ 
+diff -puN arch/x86/Kconfig~stack-protector-create-have_cc_stackprotector-for-centralized-use arch/x86/Kconfig
+--- a/arch/x86/Kconfig~stack-protector-create-have_cc_stackprotector-for-centralized-use
++++ a/arch/x86/Kconfig
+@@ -125,6 +125,7 @@ config X86
+ 	select RTC_LIB
+ 	select HAVE_DEBUG_STACKOVERFLOW
+ 	select HAVE_IRQ_EXIT_ON_IRQ_STACK if X86_64
++	select HAVE_CC_STACKPROTECTOR
+ 
+ config INSTRUCTION_DECODER
+ 	def_bool y
+@@ -1617,22 +1618,6 @@ config SECCOMP
+ 
+ 	  If unsure, say Y. Only embedded should say N here.
+ 
+-config CC_STACKPROTECTOR
+-	bool "Enable -fstack-protector buffer overflow detection"
+-	---help---
+-	  This option turns on the -fstack-protector GCC feature. This
+-	  feature puts, at the beginning of functions, a canary value on
+-	  the stack just before the return address, and validates
+-	  the value just before actually returning.  Stack based buffer
+-	  overflows (that need to overwrite this return address) now also
+-	  overwrite the canary, which gets detected and the attack is then
+-	  neutralized via a kernel panic.
+-
+-	  This feature requires gcc version 4.2 or above, or a distribution
+-	  gcc with the feature backported. Older versions are automatically
+-	  detected and for those versions, this configuration option is
+-	  ignored. (and a warning is printed during bootup)
+-
+ source kernel/Kconfig.hz
+ 
+ config KEXEC
+diff -puN arch/x86/Makefile~stack-protector-create-have_cc_stackprotector-for-centralized-use arch/x86/Makefile
+--- a/arch/x86/Makefile~stack-protector-create-have_cc_stackprotector-for-centralized-use
++++ a/arch/x86/Makefile
+@@ -89,13 +89,11 @@ else
+         KBUILD_CFLAGS += -maccumulate-outgoing-args
+ endif
+ 
++# Make sure compiler does not have buggy stack-protector support.
+ ifdef CONFIG_CC_STACKPROTECTOR
+ 	cc_has_sp := $(srctree)/scripts/gcc-x86_$(BITS)-has-stack-protector.sh
+-        ifeq ($(shell $(CONFIG_SHELL) $(cc_has_sp) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
+-                stackp-y := -fstack-protector
+-                KBUILD_CFLAGS += $(stackp-y)
+-        else
+-                $(warning stack protector enabled but no compiler support)
++        ifneq ($(shell $(CONFIG_SHELL) $(cc_has_sp) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
++                $(warning stack-protector enabled but compiler support broken)
+         endif
+ endif
  
 _
 
-Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
+origin.patch
+test-add-minimal-module-for-verification-testing.patch
+test-check-copy_to-from_user-boundary-validation.patch
+test-check-copy_to-from_user-boundary-validation-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
+coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
+coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
+exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
+exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
+exec-move-the-final-allow_write_access-fput-into-free_bprm.patch
+exec-kill-task_struct-did_exec.patch
+fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
+kernel-sysc-k_getrusage-can-use-while_each_thread.patch
+kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch
 linux-next.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-memblock-numa-introduce-flags-field-into-memblock.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
-memblock-make-memblock_set_node-support-different-memblock_type.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
-acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
-x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
 
