@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-free-memblockmemory-in-free_all_bootmem.patch added to -mm
- tree
-Date: Tue, 07 Jan 2014 13:43:07 -0800
-Message-ID: <52cc74eb.tpIlcV2KRPHtVZqb%akpm@linux-foundation.org>
+Subject: + numa-add-a-sysctl-for-numa_balancing.patch added to -mm tree
+Date: Tue, 07 Jan 2014 13:58:26 -0800
+Message-ID: <52cc7882.hA5hF5kd14nYAmMh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59521 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59558 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752691AbaAGVnJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 16:43:09 -0500
+	with ESMTP id S1754070AbaAGV61 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 16:58:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, toshi.kani@hp.com, tj@kernel.org, tangchen@cn.fujitsu.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, phacht@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, mingo@elte.hu, mgorman@suse.de, ak@linux.intel.com
 
-Subject: + mm-free-memblockmemory-in-free_all_bootmem.patch added to -mm tree
-To: phacht@linux.vnet.ibm.com,hannes@cmpxchg.org,iamjoonsoo.kim@lge.com,tangchen@cn.fujitsu.com,tj@kernel.org,toshi.kani@hp.com
+Subject: + numa-add-a-sysctl-for-numa_balancing.patch added to -mm tree
+To: ak@linux.intel.com,mgorman@suse.de,mingo@elte.hu
 From: akpm@linux-foundation.org
-Date: Tue, 07 Jan 2014 13:43:07 -0800
+Date: Tue, 07 Jan 2014 13:58:26 -0800
 
 
 The patch titled
-     Subject: mm: free memblock.memory in free_all_bootmem
+     Subject: numa: add a sysctl for numa_balancing
 has been added to the -mm tree.  Its filename is
-     mm-free-memblockmemory-in-free_all_bootmem.patch
+     numa-add-a-sysctl-for-numa_balancing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-free-memblockmemory-in-free_all_bootmem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/numa-add-a-sysctl-for-numa_balancing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-free-memblockmemory-in-free_all_bootmem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/numa-add-a-sysctl-for-numa_balancing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,86 +43,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
-Subject: mm: free memblock.memory in free_all_bootmem
+From: Andi Kleen <ak@linux.intel.com>
+Subject: numa: add a sysctl for numa_balancing
 
-When calling free_all_bootmem() the free areas under memblock's control
-are released to the buddy allocator.  Additionally the reserved list is
-freed if it was reallocated by memblock.  The same should apply for the
-memory list.
+Add a working sysctl to enable/disable automatic numa memory balancing at
+runtime.
 
-Signed-off-by: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
+This allows us to track down performance problems with this feature and is
+generally a good idea.
+
+This was possible earlier through debugfs, but only with special debugging
+options set.  Also fix the boot message.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    1 +
- mm/memblock.c            |   12 ++++++++++++
- mm/nobootmem.c           |    7 ++++++-
- 3 files changed, 19 insertions(+), 1 deletion(-)
+ include/linux/sched/sysctl.h |    4 ++++
+ kernel/sched/core.c          |   24 +++++++++++++++++++++++-
+ kernel/sysctl.c              |    9 +++++++++
+ mm/mempolicy.c               |    2 +-
+ 4 files changed, 37 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memblock.h~mm-free-memblockmemory-in-free_all_bootmem include/linux/memblock.h
---- a/include/linux/memblock.h~mm-free-memblockmemory-in-free_all_bootmem
-+++ a/include/linux/memblock.h
-@@ -61,6 +61,7 @@ phys_addr_t memblock_find_in_range_node(
- phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
- 				   phys_addr_t size, phys_addr_t align);
- phys_addr_t get_allocated_memblock_reserved_regions_info(phys_addr_t *addr);
-+phys_addr_t get_allocated_memblock_memory_regions_info(phys_addr_t *addr);
- void memblock_allow_resize(void);
- int memblock_add_node(phys_addr_t base, phys_addr_t size, int nid);
- int memblock_add(phys_addr_t base, phys_addr_t size);
-diff -puN mm/memblock.c~mm-free-memblockmemory-in-free_all_bootmem mm/memblock.c
---- a/mm/memblock.c~mm-free-memblockmemory-in-free_all_bootmem
-+++ a/mm/memblock.c
-@@ -291,6 +291,18 @@ phys_addr_t __init_memblock get_allocate
- 			  memblock.reserved.max);
- }
+diff -puN include/linux/sched/sysctl.h~numa-add-a-sysctl-for-numa_balancing include/linux/sched/sysctl.h
+--- a/include/linux/sched/sysctl.h~numa-add-a-sysctl-for-numa_balancing
++++ a/include/linux/sched/sysctl.h
+@@ -100,4 +100,8 @@ extern int sched_rt_handler(struct ctl_t
+ 		void __user *buffer, size_t *lenp,
+ 		loff_t *ppos);
  
-+phys_addr_t __init_memblock get_allocated_memblock_memory_regions_info(
-+					phys_addr_t *addr)
++extern int sched_numa_balancing(struct ctl_table *table, int write,
++				 void __user *buffer, size_t *lenp,
++				 loff_t *ppos);
++
+ #endif /* _SCHED_SYSCTL_H */
+diff -puN kernel/sched/core.c~numa-add-a-sysctl-for-numa_balancing kernel/sched/core.c
+--- a/kernel/sched/core.c~numa-add-a-sysctl-for-numa_balancing
++++ a/kernel/sched/core.c
+@@ -1764,7 +1764,29 @@ void set_numabalancing_state(bool enable
+ 	numabalancing_enabled = enabled;
+ }
+ #endif /* CONFIG_SCHED_DEBUG */
+-#endif /* CONFIG_NUMA_BALANCING */
++
++#ifdef CONFIG_PROC_SYSCTL
++int sched_numa_balancing(struct ctl_table *table, int write,
++			 void __user *buffer, size_t *lenp, loff_t *ppos)
 +{
-+	if (memblock.memory.regions == memblock_memory_init_regions)
-+		return 0;
++	struct ctl_table t;
++	int err;
++	int state = numabalancing_enabled;
 +
-+	*addr = __pa(memblock.memory.regions);
++	if (write && !capable(CAP_SYS_ADMIN))
++		return -EPERM;
 +
-+	return PAGE_ALIGN(sizeof(struct memblock_region) *
-+			  memblock.memory.max);
++	t = *table;
++	t.data = &state;
++	err = proc_dointvec_minmax(&t, write, buffer, lenp, ppos);
++	if (err < 0)
++		return err;
++	if (write)
++		set_numabalancing_state(state);
++	return err;
 +}
-+
- /**
-  * memblock_double_array - double the size of the memblock regions array
-  * @type: memblock type of the regions array being doubled
-diff -puN mm/nobootmem.c~mm-free-memblockmemory-in-free_all_bootmem mm/nobootmem.c
---- a/mm/nobootmem.c~mm-free-memblockmemory-in-free_all_bootmem
-+++ a/mm/nobootmem.c
-@@ -122,11 +122,16 @@ static unsigned long __init free_low_mem
- 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
- 		count += __free_memory_core(start, end);
++#endif
++#endif
  
--	/* free range that is used for reserved array if we allocate it */
-+	/* Free memblock.reserved array if it was allocated */
- 	size = get_allocated_memblock_reserved_regions_info(&start);
- 	if (size)
- 		count += __free_memory_core(start, start + size);
+ /*
+  * fork()/clone()-time setup:
+diff -puN kernel/sysctl.c~numa-add-a-sysctl-for-numa_balancing kernel/sysctl.c
+--- a/kernel/sysctl.c~numa-add-a-sysctl-for-numa_balancing
++++ a/kernel/sysctl.c
+@@ -396,6 +396,15 @@ static struct ctl_table kern_table[] = {
+ 		.mode           = 0644,
+ 		.proc_handler   = proc_dointvec,
+ 	},
++	{
++		.procname	= "numa_balancing",
++		.data		= NULL, /* filled in by handler */
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= sched_numa_balancing,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
+ #endif /* CONFIG_NUMA_BALANCING */
+ #endif /* CONFIG_SCHED_DEBUG */
+ 	{
+diff -puN mm/mempolicy.c~numa-add-a-sysctl-for-numa_balancing mm/mempolicy.c
+--- a/mm/mempolicy.c~numa-add-a-sysctl-for-numa_balancing
++++ a/mm/mempolicy.c
+@@ -2668,7 +2668,7 @@ static void __init check_numabalancing_e
  
-+	/* Free memblock.memory array if it was allocated */
-+	size = get_allocated_memblock_memory_regions_info(&start);
-+	if (size)
-+		count += __free_memory_core(start, start + size);
-+
- 	return count;
+ 	if (nr_node_ids > 1 && !numabalancing_override) {
+ 		printk(KERN_INFO "Enabling automatic NUMA balancing. "
+-			"Configure with numa_balancing= or sysctl");
++			"Configure with numa_balancing= or the kernel.numa_balancing sysctl");
+ 		set_numabalancing_state(numabalancing_default);
+ 	}
  }
- 
 _
 
-Patches currently in -mm which might be from phacht@linux.vnet.ibm.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
-mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
-mm-free-memblockmemory-in-free_all_bootmem.patch
+numa-add-a-sysctl-for-numa_balancing.patch
+numa-add-a-sysctl-for-numa_balancing-fix.patch
+linux-next.patch
 
