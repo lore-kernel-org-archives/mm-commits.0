@@ -2,25 +2,25 @@ From: akpm@linux-foundation.org
 Subject: +
  lib-percpu_counterc-disable-local-irq-when-updating-percpu-couter.patch
  added to -mm tree
-Date: Tue, 07 Jan 2014 14:28:34 -0800
-Message-ID: <52cc7f92.zuJBYU73waXmCOFC%akpm@linux-foundation.org>
+Date: Tue, 07 Jan 2014 14:29:01 -0800
+Message-ID: <52cc7fad.OGxGIKzcmDnCkmY9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59769 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59776 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753493AbaAGW2f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 17:28:35 -0500
+	with ESMTP id S1753596AbaAGW3C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 17:29:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, shli@fusionio.com, paul.gortmaker@windriver.com, fan.du@windriver.com, axboe@kernel.dk, akpm@linux-foundation.org, tom.leiming@gmail.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org, shli@fusionio.com, paul.gortmaker@windriver.com, fan.du@windriver.com, axboe@kernel.dk, akpm@linux-foundation.org, tom.leiming@gmail.com
 
 Subject: + lib-percpu_counterc-disable-local-irq-when-updating-percpu-couter.patch added to -mm tree
-To: tom.leiming@gmail.com,akpm@linux-foundation.org,axboe@kernel.dk,fan.du@windriver.com,paul.gortmaker@windriver.com,shli@fusionio.com,tj@kernel.org
+To: tom.leiming@gmail.com,akpm@linux-foundation.org,axboe@kernel.dk,fan.du@windriver.com,paul.gortmaker@windriver.com,shli@fusionio.com,stable@vger.kernel.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 07 Jan 2014 14:28:34 -0800
+Date: Tue, 07 Jan 2014 14:29:01 -0800
 
 
 The patch titled
@@ -63,6 +63,7 @@ Cc: Shaohua Li <shli@fusionio.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Fan Du <fan.du@windriver.com>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
