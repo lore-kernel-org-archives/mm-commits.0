@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-proc-proc_devtreec-remove-empty-proc-device-tree-when-no-openfirmware-exists.patch added to -mm tree
-Date: Tue, 07 Jan 2014 16:37:37 -0800
-Message-ID: <52cc9dd1.Weo1ESBme0SRjKJ0%akpm@linux-foundation.org>
+Subject: + nilfs2-fix-segctor-bug-that-causes-file-system-corruption.patch added to -mm tree
+Date: Wed, 08 Jan 2014 12:47:17 -0800
+Message-ID: <52cdb955.lYpO177hDQ62LLmB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60885 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42373 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754411AbaAHAhi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jan 2014 19:37:38 -0500
+	with ESMTP id S1756559AbaAHUrS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 15:47:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, paulus@samba.org, jwboyer@fedoraproject.org, benh@kernel.crashing.org, davej@redhat.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp, andreas.rohner@gmx.net
 
-Subject: + fs-proc-proc_devtreec-remove-empty-proc-device-tree-when-no-openfirmware-exists.patch added to -mm tree
-To: davej@redhat.com,benh@kernel.crashing.org,jwboyer@fedoraproject.org,paulus@samba.org,viro@ZenIV.linux.org.uk
+Subject: + nilfs2-fix-segctor-bug-that-causes-file-system-corruption.patch added to -mm tree
+To: andreas.rohner@gmx.net,konishi.ryusuke@lab.ntt.co.jp,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 07 Jan 2014 16:37:37 -0800
+Date: Wed, 08 Jan 2014 12:47:17 -0800
 
 
 The patch titled
-     Subject: fs/proc/proc_devtree.c: remove empty /proc/device-tree when no openfirmware exists.
+     Subject: nilfs2: fix segctor bug that causes file system corruption
 has been added to the -mm tree.  Its filename is
-     fs-proc-proc_devtreec-remove-empty-proc-device-tree-when-no-openfirmware-exists.patch
+     nilfs2-fix-segctor-bug-that-causes-file-system-corruption.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-proc_devtreec-remove-empty-proc-device-tree-when-no-openfirmware-exists.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-segctor-bug-that-causes-file-system-corruption.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-proc_devtreec-remove-empty-proc-device-tree-when-no-openfirmware-exists.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-segctor-bug-that-causes-file-system-corruption.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,51 +43,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Jones <davej@redhat.com>
-Subject: fs/proc/proc_devtree.c: remove empty /proc/device-tree when no openfirmware exists.
+From: Andreas Rohner <andreas.rohner@gmx.net>
+Subject: nilfs2: fix segctor bug that causes file system corruption
 
-Distribution kernels might want to build in support for /proc/device-tree
-for kernels that might end up running on hardware that doesn't support
-openfirmware.  This results in an empty /proc/device-tree existing. 
-Remove it if the OFW root node doesn't exist.
+There is a bug in the function nilfs_segctor_collect, which results in
+active data being written to a segment, that is marked as clean.  It is
+possible, that this segment is selected for a later segment construction,
+whereby the old data is overwritten.
 
-This situation actually confuses grub2, resulting in install failures. 
-grub2 sees the /proc/device-tree and picks the wrong install target cf. 
-http://bzr.savannah.gnu.org/lh/grub/trunk/grub/annotate/4300/util/grub-install.in#L311
-grub should be more robust, but still, leaving an empty proc dir seems
-pointless.
+The problem shows itself with the following kernel log message:
 
-Addresses https://bugzilla.redhat.com/show_bug.cgi?id=818378.
+nilfs_sufile_do_cancel_free: segment 6533 must be clean
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Josh Boyer <jwboyer@fedoraproject.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Usually a few hours later the file system gets corrupted:
+
+NILFS: bad btree node (blocknr=8748107): level = 0, flags = 0x0,
+nchildren = 0
+NILFS error (device sdc1): nilfs_bmap_last_key: broken bmap
+(inode number=114660)
+
+The issue can be reproduced with a file system that is nearly full and
+with the cleaner running, while some IO intensive task is running. 
+Although it is quite hard to reproduce.
+
+This is what happens:
+
+1. The cleaner starts the segment construction
+2. nilfs_segctor_collect is called
+3. sc_stage is on NILFS_ST_SUFILE and segments are freed
+4. sc_stage is on NILFS_ST_DAT current segment is full
+5. nilfs_segctor_extend_segments is called, which
+   allocates a new segment
+6. The new segment is one of the segments freed in step 3
+7. nilfs_sufile_cancel_freev is called and produces an error message
+8. Loop around and the collection starts again
+9. sc_stage is on NILFS_ST_SUFILE and segments are freed
+   including the newly allocated segment, which will contain active data
+   and can be allocated at a later time
+10. A few hours later another segment construction allocates the segment
+    and causes file system corruption
+
+This can be prevented by simply reordering the statements.  If
+nilfs_sufile_cancel_freev is called before nilfs_segctor_extend_segments
+the freed segments are marked as dirty and cannot be allocated any more.
+
+Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
+Reviewed-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Tested-by: Andreas Rohner <andreas.rohner@gmx.net>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_devtree.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/nilfs2/segment.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/proc_devtree.c~fs-proc-proc_devtreec-remove-empty-proc-device-tree-when-no-openfirmware-exists fs/proc/proc_devtree.c
---- a/fs/proc/proc_devtree.c~fs-proc-proc_devtreec-remove-empty-proc-device-tree-when-no-openfirmware-exists
-+++ a/fs/proc/proc_devtree.c
-@@ -232,6 +232,7 @@ void __init proc_device_tree_init(void)
- 		return;
- 	root = of_find_node_by_path("/");
- 	if (root == NULL) {
-+		remove_proc_entry("device-tree", NULL);
- 		pr_debug("/proc/device-tree: can't find root\n");
- 		return;
- 	}
-_
-
-Patches currently in -mm which might be from davej@redhat.com are
-
-mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
-mm-thp-turn-compound_head-into-bug_onpagetail-in-get_huge_page_tail.patch
-checkpatch-attempt-to-find-missing-switch-case-break.patch
-fs-proc-proc_devtreec-remove-empty-proc-device-tree-when-no-openfirmware-exists.patch
-linux-next.patch
-
+diff -puN fs/nilfs2/segment.c~nilfs2-fix-segctor-bug-that-causes-file-system-corruption fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-fix-segctor-bug-that-causes-file-system-corruption
++++ a/fs/nilfs2/segment.c
+@@ -1440,17 +1440,19 @@ static int nilfs_segctor_collect(struct
+ 
+ 		nilfs_clear_logs(&sci->sc_segbufs);
+ 
+-		err = nilfs_segctor_extend_segments(sci, nilfs, nadd);
+-		if (unlikely(err))
+-			return err;
