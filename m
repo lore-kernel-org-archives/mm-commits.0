@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + zram-add-zram-maintainers.patch added to -mm tree
-Date: Wed, 08 Jan 2014 15:22:33 -0800
-Message-ID: <52cdddb9.zxHd/lCUYKIteVEi%akpm@linux-foundation.org>
+Subject: + zram-add-copyright.patch added to -mm tree
+Date: Wed, 08 Jan 2014 15:22:31 -0800
+Message-ID: <52cdddb7./K/2ysDf54WgvTHm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43750 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43744 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757789AbaAHXWe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 18:22:34 -0500
+	with ESMTP id S1757268AbaAHXWc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 18:22:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org
 
-Subject: + zram-add-zram-maintainers.patch added to -mm tree
+Subject: + zram-add-copyright.patch added to -mm tree
 To: minchan@kernel.org,ngupta@vflare.org
 From: akpm@linux-foundation.org
-Date: Wed, 08 Jan 2014 15:22:33 -0800
+Date: Wed, 08 Jan 2014 15:22:31 -0800
 
 
 The patch titled
-     Subject: zram: add zram maintainers
+     Subject: zram: add copyright
 has been added to the -mm tree.  Its filename is
-     zram-add-zram-maintainers.patch
+     zram-add-copyright.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-add-zram-maintainers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-add-copyright.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-add-zram-maintainers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-add-copyright.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,36 +44,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: add zram maintainers
+Subject: zram: add copyright
 
-Add maintainer information for zram into the MAINTAINERS file.
+Add my copyright to the zram source code which I maintain.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/block/zram/zram_drv.c |    1 +
+ drivers/block/zram/zram_drv.h |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN MAINTAINERS~zram-add-zram-maintainers MAINTAINERS
---- a/MAINTAINERS~zram-add-zram-maintainers
-+++ a/MAINTAINERS
-@@ -9766,6 +9766,14 @@ T:	Mercurial http://linuxtv.org/hg/v4l-d
- S:	Odd Fixes
- F:	drivers/media/pci/zoran/
- 
-+ZRAM COMPRESSED RAM BLOCK DEVICE DRVIER
-+M:	Minchan Kim <minchan@kernel.org>
-+M:	Nitin Gupta <ngupta@vflare.org>
-+L:	linux-kernel@vger.kernel.org
-+S:	Maintained
-+F:	drivers/block/zram/
-+F:	Documentation/blockdev/zram.txt
-+
- ZS DECSTATION Z85C30 SERIAL DRIVER
- M:	"Maciej W. Rozycki" <macro@linux-mips.org>
- S:	Maintained
+diff -puN drivers/block/zram/zram_drv.c~zram-add-copyright drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-add-copyright
++++ a/drivers/block/zram/zram_drv.c
+@@ -2,6 +2,7 @@
+  * Compressed RAM block device
+  *
+  * Copyright (C) 2008, 2009, 2010  Nitin Gupta
++ *               2012, 2013 Minchan Kim
+  *
+  * This code is released using a dual license strategy: BSD/GPL
+  * You can choose the licence that better fits your requirements.
+diff -puN drivers/block/zram/zram_drv.h~zram-add-copyright drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-add-copyright
++++ a/drivers/block/zram/zram_drv.h
+@@ -2,6 +2,7 @@
+  * Compressed RAM block device
+  *
+  * Copyright (C) 2008, 2009, 2010  Nitin Gupta
++ *               2012, 2013 Minchan Kim
+  *
+  * This code is released using a dual license strategy: BSD/GPL
+  * You can choose the licence that better fits your requirements.
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
