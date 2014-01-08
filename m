@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-fix-segctor-bug-that-causes-file-system-corruption.patch added to -mm tree
-Date: Wed, 08 Jan 2014 12:47:17 -0800
-Message-ID: <52cdb955.lYpO177hDQ62LLmB%akpm@linux-foundation.org>
+Subject: + mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
+ added to -mm tree
+Date: Wed, 08 Jan 2014 12:49:19 -0800
+Message-ID: <52cdb9cf.vHndWhdJLMAgsnrZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42373 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42380 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756559AbaAHUrS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 15:47:18 -0500
+	with ESMTP id S1752116AbaAHUtU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 15:49:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp, andreas.rohner@gmx.net
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, n-horiguchi@ah.jp.nec.com, liwanp@linux.vnet.ibm.com, bob.liu@oracle.com, mhocko@suse.cz
 
-Subject: + nilfs2-fix-segctor-bug-that-causes-file-system-corruption.patch added to -mm tree
-To: andreas.rohner@gmx.net,konishi.ryusuke@lab.ntt.co.jp,stable@vger.kernel.org
+Subject: + mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch added to -mm tree
+To: mhocko@suse.cz,bob.liu@oracle.com,liwanp@linux.vnet.ibm.com,n-horiguchi@ah.jp.nec.com,sasha.levin@oracle.com
 From: akpm@linux-foundation.org
-Date: Wed, 08 Jan 2014 12:47:17 -0800
+Date: Wed, 08 Jan 2014 12:49:19 -0800
 
 
 The patch titled
-     Subject: nilfs2: fix segctor bug that causes file system corruption
+     Subject: mm: new_vma_page() cannot see NULL vma for hugetlb pages
 has been added to the -mm tree.  Its filename is
-     nilfs2-fix-segctor-bug-that-causes-file-system-corruption.patch
+     mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-segctor-bug-that-causes-file-system-corruption.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-segctor-bug-that-causes-file-system-corruption.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,68 +44,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andreas Rohner <andreas.rohner@gmx.net>
-Subject: nilfs2: fix segctor bug that causes file system corruption
+From: Michal Hocko <mhocko@suse.cz>
+Subject: mm: new_vma_page() cannot see NULL vma for hugetlb pages
 
-There is a bug in the function nilfs_segctor_collect, which results in
-active data being written to a segment, that is marked as clean.  It is
-possible, that this segment is selected for a later segment construction,
-whereby the old data is overwritten.
+11c731e81bb0 ("mm/mempolicy: fix !vma in new_vma_page()") has removed
+BUG_ON(!vma) from new_vma_page which is partially correct because
+page_address_in_vma will return EFAULT for non-linear mappings and at
+least shared shmem might be mapped this way.
 
-The problem shows itself with the following kernel log message:
+The patch also tried to prevent NULL ptr for hugetlb pages which is not
+correct AFAICS because hugetlb pages cannot be mapped as VM_NONLINEAR and
+other conditions in page_address_in_vma seem to be legit and catch real
+bugs.
 
-nilfs_sufile_do_cancel_free: segment 6533 must be clean
+This patch restores BUG_ON for PageHuge to catch potential issues when the
+to-be-migrated page is not setup properly.
 
-Usually a few hours later the file system gets corrupted:
-
-NILFS: bad btree node (blocknr=8748107): level = 0, flags = 0x0,
-nchildren = 0
-NILFS error (device sdc1): nilfs_bmap_last_key: broken bmap
-(inode number=114660)
-
-The issue can be reproduced with a file system that is nearly full and
-with the cleaner running, while some IO intensive task is running. 
-Although it is quite hard to reproduce.
-
-This is what happens:
-
-1. The cleaner starts the segment construction
-2. nilfs_segctor_collect is called
-3. sc_stage is on NILFS_ST_SUFILE and segments are freed
-4. sc_stage is on NILFS_ST_DAT current segment is full
-5. nilfs_segctor_extend_segments is called, which
-   allocates a new segment
-6. The new segment is one of the segments freed in step 3
-7. nilfs_sufile_cancel_freev is called and produces an error message
-8. Loop around and the collection starts again
-9. sc_stage is on NILFS_ST_SUFILE and segments are freed
-   including the newly allocated segment, which will contain active data
-   and can be allocated at a later time
-10. A few hours later another segment construction allocates the segment
-    and causes file system corruption
-
-This can be prevented by simply reordering the statements.  If
-nilfs_sufile_cancel_freev is called before nilfs_segctor_extend_segments
-the freed segments are marked as dirty and cannot be allocated any more.
-
-Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
-Reviewed-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Tested-by: Andreas Rohner <andreas.rohner@gmx.net>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Bob Liu <bob.liu@oracle.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/mempolicy.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/nilfs2/segment.c~nilfs2-fix-segctor-bug-that-causes-file-system-corruption fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-fix-segctor-bug-that-causes-file-system-corruption
-+++ a/fs/nilfs2/segment.c
-@@ -1440,17 +1440,19 @@ static int nilfs_segctor_collect(struct
+diff -puN mm/mempolicy.c~mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages
++++ a/mm/mempolicy.c
+@@ -1199,10 +1199,8 @@ static struct page *new_vma_page(struct
+ 	}
  
- 		nilfs_clear_logs(&sci->sc_segbufs);
- 
--		err = nilfs_segctor_extend_segments(sci, nilfs, nadd);
--		if (unlikely(err))
--			return err;
+ 	if (PageHuge(page)) {
+-		if (vma)
+-			return alloc_huge_page_noerr(vma, address, 1);
+-		else
+-			return NULL;
++		BUG_ON(!vma);
++		return alloc_huge_page_noerr(vma, address, 1);
+ 	}
+ 	/*
+ 	 * if !vma, alloc_page_vma() will use task or system default policy
+_
+
+Patches currently in -mm which might be from mhocko@suse.cz are
+
+mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
+mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
+memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
+memcg-make-memcg_update_cache_sizes-static.patch
+introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
+oom_kill-change-oom_killc-to-use-for_each_thread.patch
+oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
+oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
+mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
+x86-memblock-set-current-limit-to-max-low-memory-address.patch
+mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
+mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
+mm-memblock-remove-unnecessary-inclusions-of-bootmemh.patch
+mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
+mm-memblock-reorder-parameters-of-memblock_find_in_range_node.patch
+mm-memblock-switch-to-use-numa_no_node-instead-of-max_numnodes.patch
+mm-memblock-add-memblock-memory-allocation-apis.patch
+mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+mm-init-use-memblock-apis-for-early-memory-allocations.patch
+mm-printk-use-memblock-apis-for-early-memory-allocations.patch
+mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
+mm-power-use-memblock-apis-for-early-memory-allocations.patch
+lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
+lib-cpumaskc-use-memblock-apis-for-early-memory-allocations.patch
+mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
+mm-hugetlb-use-memblock-apis-for-early-memory-allocations.patch
+mm-page_cgroup-use-memblock-apis-for-early-memory-allocations.patch
+mm-percpu-use-memblock-apis-for-early-memory-allocations.patch
+mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
+drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
+lib-show_memc-show-num_poisoned_pages-when-oom.patch
+memcg-oom-lock-mem_cgroup_print_oom_info.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
+slab-clean-up-kmem_cache_create_memcg-error-handling.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
+memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
+memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
+memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
+memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
+memcg-get-rid-of-kmem_cache_dup.patch
+slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
+memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
+memcg-remove-kmem_accounted_activated-flag.patch
+memcg-rework-memcg_update_kmem_limit-synchronization.patch
+mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
+proc-fix-the-potential-use-after-free-in-first_tid.patch
+proc-change-first_tid-to-use-while_each_thread-rather-than-next_thread.patch
+proc-dont-abuse-group_leader-in-proc_task_readdir-paths.patch
+proc-fix-f_pos-overflows-in-first_tid.patch
+linux-next.patch
+
