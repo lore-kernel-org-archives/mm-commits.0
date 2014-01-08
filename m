@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
- added to -mm tree
-Date: Wed, 08 Jan 2014 12:49:19 -0800
-Message-ID: <52cdb9cf.vHndWhdJLMAgsnrZ%akpm@linux-foundation.org>
+Subject: + mm-fix-crash-when-using-xfs-on-loopback.patch added to -mm tree
+Date: Wed, 08 Jan 2014 14:01:58 -0800
+Message-ID: <52cdcad6.gNYYXrZncvUXJRU2%akpm__19965.0261122317$1389218530$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42380 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43133 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752116AbaAHUtU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 15:49:20 -0500
+	with ESMTP id S932133AbaAHWB7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 17:01:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, n-horiguchi@ah.jp.nec.com, liwanp@linux.vnet.ibm.com, bob.liu@oracle.com, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, penberg@kernel.org, iamjoonsoo.kim@lge.com, deller@gmx.de, dave.anglin@bell.net, cl@linux.com, ak@linux.intel.com, mpatocka@redhat.com
 
-Subject: + mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch added to -mm tree
-To: mhocko@suse.cz,bob.liu@oracle.com,liwanp@linux.vnet.ibm.com,n-horiguchi@ah.jp.nec.com,sasha.levin@oracle.com
+Subject: + mm-fix-crash-when-using-xfs-on-loopback.patch added to -mm tree
+To: mpatocka@redhat.com,ak@linux.intel.com,cl@linux.com,dave.anglin@bell.net,deller@gmx.de,iamjoonsoo.kim@lge.com,penberg@kernel.org,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 08 Jan 2014 12:49:19 -0800
+Date: Wed, 08 Jan 2014 14:01:58 -0800
 
 
 The patch titled
-     Subject: mm: new_vma_page() cannot see NULL vma for hugetlb pages
+     Subject: mm: fix crash when using XFS on loopback
 has been added to the -mm tree.  Its filename is
-     mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
+     mm-fix-crash-when-using-xfs-on-loopback.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-crash-when-using-xfs-on-loopback.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-crash-when-using-xfs-on-loopback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,105 +43,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm: new_vma_page() cannot see NULL vma for hugetlb pages
+From: Mikulas Patocka <mpatocka@redhat.com>
+Subject: mm: fix crash when using XFS on loopback
 
-11c731e81bb0 ("mm/mempolicy: fix !vma in new_vma_page()") has removed
-BUG_ON(!vma) from new_vma_page which is partially correct because
-page_address_in_vma will return EFAULT for non-linear mappings and at
-least shared shmem might be mapped this way.
+The patch 8456a648cf44f ("slab: use struct page for slab management")
+causes a crash in the LVM2 testsuite on PA-RISC (the crashing test is
+fsadm.sh).  The testsuite doesn't crash on 3.12, crashes on 3.13-rc1 and
+later.
 
-The patch also tried to prevent NULL ptr for hugetlb pages which is not
-correct AFAICS because hugetlb pages cannot be mapped as VM_NONLINEAR and
-other conditions in page_address_in_vma seem to be legit and catch real
-bugs.
+ Bad Address (null pointer deref?): Code=15 regs=000000413edd89a0 (Addr=000006202224647d)
+ CPU: 3 PID: 24008 Comm: loop0 Not tainted 3.13.0-rc6 #5
+ task: 00000001bf3c0048 ti: 000000413edd8000 task.ti: 000000413edd8000
 
-This patch restores BUG_ON for PageHuge to catch potential issues when the
-to-be-migrated page is not setup properly.
+      YZrvWESTHLNXBCVMcbcbcbcbOGFRQPDI
+ PSW: 00001000000001101111100100001110 Not tainted
+ r00-03  000000ff0806f90e 00000000405c8de0 000000004013e6c0 000000413edd83f0
+ r04-07  00000000405a95e0 0000000000000200 00000001414735f0 00000001bf349e40
+ r08-11  0000000010fe3d10 0000000000000001 00000040829c7778 000000413efd9000
+ r12-15  0000000000000000 000000004060d800 0000000010fe3000 0000000010fe3000
+ r16-19  000000413edd82a0 00000041078ddbc0 0000000000000010 0000000000000001
+ r20-23  0008f3d0d83a8000 0000000000000000 00000040829c7778 0000000000000080
+ r24-27  00000001bf349e40 00000001bf349e40 202d66202224640d 00000000405a95e0
+ r28-31  202d662022246465 000000413edd88f0 000000413edd89a0 0000000000000001
+ sr00-03  000000000532c000 0000000000000000 0000000000000000 000000000532c000
+ sr04-07  0000000000000000 0000000000000000 0000000000000000 0000000000000000
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Bob Liu <bob.liu@oracle.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+ IASQ: 0000000000000000 0000000000000000 IAOQ: 00000000401fe42c 00000000401fe430
+  IIR: 539c0030    ISR: 00000000202d6000  IOR: 000006202224647d
+  CPU:        3   CR30: 000000413edd8000 CR31: 0000000000000000
+  ORIG_R28: 00000000405a95e0
+  IAOQ[0]: vma_interval_tree_iter_first+0x14/0x48
+  IAOQ[1]: vma_interval_tree_iter_first+0x18/0x48
+  RP(r2): flush_dcache_page+0x128/0x388
+ Backtrace:
+  [<000000004013e6c0>] flush_dcache_page+0x128/0x388
+  [<0000000010fe6ca0>] lo_splice_actor+0x90/0x148 [loop]
+  [<00000000402579b0>] splice_from_pipe_feed+0xc0/0x1d0
+  [<00000000402580a4>] __splice_from_pipe+0xac/0xc0
+  [<0000000010fe6bbc>] lo_direct_splice_actor+0x1c/0x70 [loop]
+  [<000000004025854c>] splice_direct_to_actor+0xec/0x228
+  [<0000000010fe63ac>] lo_receive+0xe4/0x298 [loop]
+  [<0000000010fe69d8>] loop_thread+0x478/0x640 [loop]
+  [<000000004018975c>] kthread+0x134/0x168
+  [<000000004012c020>] end_fault_vector+0x20/0x28
+  [<00000000115e0098>] xfs_setsize_buftarg+0x0/0x90 [xfs]
+
+ Kernel panic - not syncing: Bad Address (null pointer deref?)
+
+The patch 8456a648cf44f14365f1f44de90a3da2526a4776 changes the page
+structure so that the slab subsystem reuses the page->mapping field.
+
+The crash happens in the following way:
+* XFS allocates some memory from slab and issues a bio to read data into
+  it.
+* the bio is sent to the loopback device.
+* lo_receive creates an actor and calls splice_direct_to_actor.
+* lo_splice_actor copies data to the target page.
+* lo_splice_actor calls flush_dcache_page because the page may be mapped
+  by userspace. In that case we need to flush the kernel cache.
+* flush_dcache_page asks for the list of userspace mappings, however that
+  page->mapping field is reused by the slab subsystem for a different
+  purpose. This causes the crash.
+
+Note that other architectures without coherent caches (sparc, arm, mips)
+also call page_mapping from flush_dcache_page, so they may crash in the
+same way.
+
+This patch fixes this bug by testing if the page is a slab page in
+page_mapping and returning NULL if it is.
+
+The patch also fixes VM_BUG_ON(PageSlab(page)) that could happen in
+earlier kernels in the same scenario on architectures without cache
+coherence when CONFIG_DEBUG_VM is enabled - so it should be backported to
+stable kernels.
+
+In the old kernels, the function page_mapping is placed in
+include/linux/mm.h, so you should modify the patch accordingly when
+backporting it.
+
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Cc: John David Anglin <dave.anglin@bell.net>]
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Christoph Lameter <cl@linux.com>
+Acked-by: Pekka Enberg <penberg@kernel.org>
+Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/util.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/mempolicy.c~mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages mm/mempolicy.c
---- a/mm/mempolicy.c~mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages
-+++ a/mm/mempolicy.c
-@@ -1199,10 +1199,8 @@ static struct page *new_vma_page(struct
- 	}
+diff -puN mm/util.c~mm-fix-crash-when-using-xfs-on-loopback mm/util.c
+--- a/mm/util.c~mm-fix-crash-when-using-xfs-on-loopback
++++ a/mm/util.c
+@@ -390,7 +390,10 @@ struct address_space *page_mapping(struc
+ {
+ 	struct address_space *mapping = page->mapping;
  
- 	if (PageHuge(page)) {
--		if (vma)
--			return alloc_huge_page_noerr(vma, address, 1);
--		else
--			return NULL;
-+		BUG_ON(!vma);
-+		return alloc_huge_page_noerr(vma, address, 1);
- 	}
- 	/*
- 	 * if !vma, alloc_page_vma() will use task or system default policy
+-	VM_BUG_ON(PageSlab(page));
++	/* This happens if someone calls flush_dcache_page on slab page */
++	if (unlikely(PageSlab(page)))
++		return NULL;
++
+ 	if (unlikely(PageSwapCache(page))) {
+ 		swp_entry_t entry;
+ 
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from mpatocka@redhat.com are
 
-mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
-mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
-memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
-memcg-make-memcg_update_cache_sizes-static.patch
-introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
-oom_kill-change-oom_killc-to-use-for_each_thread.patch
-oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
-oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
-mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
-x86-memblock-set-current-limit-to-max-low-memory-address.patch
-mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
-mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
-mm-memblock-remove-unnecessary-inclusions-of-bootmemh.patch
-mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
-mm-memblock-reorder-parameters-of-memblock_find_in_range_node.patch
-mm-memblock-switch-to-use-numa_no_node-instead-of-max_numnodes.patch
-mm-memblock-add-memblock-memory-allocation-apis.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-mm-init-use-memblock-apis-for-early-memory-allocations.patch
-mm-printk-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
-mm-power-use-memblock-apis-for-early-memory-allocations.patch
-lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
-lib-cpumaskc-use-memblock-apis-for-early-memory-allocations.patch
-mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
-mm-hugetlb-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_cgroup-use-memblock-apis-for-early-memory-allocations.patch
-mm-percpu-use-memblock-apis-for-early-memory-allocations.patch
-mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
-drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
-lib-show_memc-show-num_poisoned_pages-when-oom.patch
-memcg-oom-lock-mem_cgroup_print_oom_info.patch
-mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
-memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
-slab-clean-up-kmem_cache_create_memcg-error-handling.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
-memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
-memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
-memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
-memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
-memcg-get-rid-of-kmem_cache_dup.patch
-slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
-memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
-memcg-remove-kmem_accounted_activated-flag.patch
-memcg-rework-memcg_update_kmem_limit-synchronization.patch
-mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
-proc-fix-the-potential-use-after-free-in-first_tid.patch
-proc-change-first_tid-to-use-while_each_thread-rather-than-next_thread.patch
-proc-dont-abuse-group_leader-in-proc_task_readdir-paths.patch
-proc-fix-f_pos-overflows-in-first_tid.patch
+mm-fix-crash-when-using-xfs-on-loopback.patch
 linux-next.patch
 
