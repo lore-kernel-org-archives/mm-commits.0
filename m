@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + zram-remove-old-private-project-comment.patch added to -mm tree
-Date: Wed, 08 Jan 2014 15:22:30 -0800
-Message-ID: <52cdddb6.7XVCKkdppmtJOEvz%akpm@linux-foundation.org>
+Subject: + zsmalloc-add-copyright.patch added to -mm tree
+Date: Wed, 08 Jan 2014 15:22:32 -0800
+Message-ID: <52cdddb8.T5B48kjnee4AGQbT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43741 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43747 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757268AbaAHXWb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 18:22:31 -0500
+	with ESMTP id S1757268AbaAHXWd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 18:22:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org
 
-Subject: + zram-remove-old-private-project-comment.patch added to -mm tree
+Subject: + zsmalloc-add-copyright.patch added to -mm tree
 To: minchan@kernel.org,ngupta@vflare.org
 From: akpm@linux-foundation.org
-Date: Wed, 08 Jan 2014 15:22:30 -0800
+Date: Wed, 08 Jan 2014 15:22:32 -0800
 
 
 The patch titled
-     Subject: zram: remove old private project comment
+     Subject: zsmalloc: add copyright
 has been added to the -mm tree.  Its filename is
-     zram-remove-old-private-project-comment.patch
+     zsmalloc-add-copyright.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-remove-old-private-project-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-add-copyright.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-remove-old-private-project-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-add-copyright.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,77 +44,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: remove old private project comment
+Subject: zsmalloc: add copyright
 
-Remove the old private compcache project address so upcoming patches
-should be sent to LKML because we Linux kernel community will take care.
+Add my copyright to the zsmalloc source code which I maintain.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/blockdev/zram.txt |    6 ------
- drivers/block/zram/Kconfig      |    1 -
- drivers/block/zram/zram_drv.c   |    1 -
- drivers/block/zram/zram_drv.h   |    1 -
- 4 files changed, 9 deletions(-)
+ include/linux/zsmalloc.h |    1 +
+ mm/zsmalloc.c            |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN Documentation/blockdev/zram.txt~zram-remove-old-private-project-comment Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-remove-old-private-project-comment
-+++ a/Documentation/blockdev/zram.txt
-@@ -1,8 +1,6 @@
- zram: Compressed RAM based block devices
- ----------------------------------------
- 
--Project home: http://compcache.googlecode.com/
--
- * Introduction
- 
- The zram module creates RAM based block devices named /dev/zram<id>
-@@ -69,9 +67,5 @@ Following shows a typical sequence of st
- 	resets the disksize to zero. You must set the disksize again
- 	before reusing the device.
- 
--Please report any problems at:
-- - Mailing list: linux-mm-cc at laptop dot org
-- - Issue tracker: http://code.google.com/p/compcache/issues/list
--
- Nitin Gupta
- ngupta@vflare.org
-diff -puN drivers/block/zram/Kconfig~zram-remove-old-private-project-comment drivers/block/zram/Kconfig
---- a/drivers/block/zram/Kconfig~zram-remove-old-private-project-comment
-+++ a/drivers/block/zram/Kconfig
-@@ -14,7 +14,6 @@ config ZRAM
- 	  disks and maybe many more.
- 
- 	  See zram.txt for more information.
--	  Project home: <https://compcache.googlecode.com/>
- 
- config ZRAM_DEBUG
- 	bool "Compressed RAM block device debug support"
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-old-private-project-comment drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-old-private-project-comment
-+++ a/drivers/block/zram/zram_drv.c
-@@ -9,7 +9,6 @@
-  * Released under the terms of 3-clause BSD License
-  * Released under the terms of GNU General Public License Version 2.0
+diff -puN include/linux/zsmalloc.h~zsmalloc-add-copyright include/linux/zsmalloc.h
+--- a/include/linux/zsmalloc.h~zsmalloc-add-copyright
++++ a/include/linux/zsmalloc.h
+@@ -2,6 +2,7 @@
+  * zsmalloc memory allocator
   *
-- * Project home: http://compcache.googlecode.com
-  */
- 
- #define KMSG_COMPONENT "zram"
-diff -puN drivers/block/zram/zram_drv.h~zram-remove-old-private-project-comment drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-remove-old-private-project-comment
-+++ a/drivers/block/zram/zram_drv.h
-@@ -9,7 +9,6 @@
-  * Released under the terms of 3-clause BSD License
-  * Released under the terms of GNU General Public License Version 2.0
+  * Copyright (C) 2011  Nitin Gupta
++ * Copyright (C) 2012, 2013 Minchan Kim
   *
-- * Project home: http://compcache.googlecode.com
-  */
- 
- #ifndef _ZRAM_DRV_H_
+  * This code is released using a dual license strategy: BSD/GPL
+  * You can choose the license that better fits your requirements.
+diff -puN mm/zsmalloc.c~zsmalloc-add-copyright mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-add-copyright
++++ a/mm/zsmalloc.c
+@@ -2,6 +2,7 @@
+  * zsmalloc memory allocator
+  *
+  * Copyright (C) 2011  Nitin Gupta
++ * Copyright (C) 2012, 2013 Minchan Kim
+  *
+  * This code is released using a dual license strategy: BSD/GPL
+  * You can choose the license that better fits your requirements.
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
