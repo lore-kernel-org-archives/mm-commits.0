@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + zram-add-copyright.patch added to -mm tree
-Date: Wed, 08 Jan 2014 15:22:31 -0800
-Message-ID: <52cdddb7./K/2ysDf54WgvTHm%akpm@linux-foundation.org>
+Subject: + zsmalloc-add-maintainers.patch added to -mm tree
+Date: Wed, 08 Jan 2014 15:22:34 -0800
+Message-ID: <52cdddba.Q4XzO9XWoZYEG6fE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43744 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43753 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757268AbaAHXWc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 18:22:32 -0500
+	with ESMTP id S1757790AbaAHXWf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 18:22:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org
 
-Subject: + zram-add-copyright.patch added to -mm tree
+Subject: + zsmalloc-add-maintainers.patch added to -mm tree
 To: minchan@kernel.org,ngupta@vflare.org
 From: akpm@linux-foundation.org
-Date: Wed, 08 Jan 2014 15:22:31 -0800
+Date: Wed, 08 Jan 2014 15:22:34 -0800
 
 
 The patch titled
-     Subject: zram: add copyright
+     Subject: zsmalloc: add maintainers
 has been added to the -mm tree.  Its filename is
-     zram-add-copyright.patch
+     zsmalloc-add-maintainers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-add-copyright.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-add-maintainers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-add-copyright.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-add-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,41 +44,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: add copyright
+Subject: zsmalloc: add maintainers
 
-Add my copyright to the zram source code which I maintain.
+tAdd adds maintainer information for zsmalloc into the MAINTAINERS file.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    1 +
- drivers/block/zram/zram_drv.h |    1 +
- 2 files changed, 2 insertions(+)
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-add-copyright drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-add-copyright
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2,6 +2,7 @@
-  * Compressed RAM block device
-  *
-  * Copyright (C) 2008, 2009, 2010  Nitin Gupta
-+ *               2012, 2013 Minchan Kim
-  *
-  * This code is released using a dual license strategy: BSD/GPL
-  * You can choose the licence that better fits your requirements.
-diff -puN drivers/block/zram/zram_drv.h~zram-add-copyright drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-add-copyright
-+++ a/drivers/block/zram/zram_drv.h
-@@ -2,6 +2,7 @@
-  * Compressed RAM block device
-  *
-  * Copyright (C) 2008, 2009, 2010  Nitin Gupta
-+ *               2012, 2013 Minchan Kim
-  *
-  * This code is released using a dual license strategy: BSD/GPL
-  * You can choose the licence that better fits your requirements.
+diff -puN MAINTAINERS~zsmalloc-add-maintainers MAINTAINERS
+--- a/MAINTAINERS~zsmalloc-add-maintainers
++++ a/MAINTAINERS
+@@ -9779,6 +9779,14 @@ M:	"Maciej W. Rozycki" <macro@linux-mips
+ S:	Maintained
+ F:	drivers/tty/serial/zs.*
+ 
++ZSMALLOC COMPRESSED SLAB MEMORY ALLOCATOR
++M:	Minchan Kim <minchan@kernel.org>
++M:	Nitin Gupta <ngupta@vflare.org>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	mm/zsmalloc.c
++F:	include/linux/zsmalloc.h
++
+ ZSWAP COMPRESSED SWAP CACHING
+ M:	Seth Jennings <sjenning@linux.vnet.ibm.com>
+ L:	linux-mm@kvack.org
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
