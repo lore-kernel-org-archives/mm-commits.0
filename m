@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mips-fix-case-mismatch-in-local_r4k_flush_icache_range.patch
- added to -mm tree
-Date: Wed, 08 Jan 2014 14:17:55 -0800
-Message-ID: <52cdce93.UGPCxfzTkGDQd3VT%akpm@linux-foundation.org>
+Subject: + checkpatch-only-flag-fsf-address-not-gnuorg-url.patch added to
+ -mm tree
+Date: Wed, 08 Jan 2014 14:20:45 -0800
+Message-ID: <52cdcf3d.iYNfSxt1Ag1cLbc8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43269 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43282 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932277AbaAHWR4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 17:17:56 -0500
+	with ESMTP id S932177AbaAHWUq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 17:20:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ralf@linux-mips.org, blogic@openwrt.org, aurelien@aurel32.net, aaro.koskinen@iki.fi, chenhc@lemote.com
+To: mm-commits@vger.kernel.org, joe@perches.com, alexander.h.duyck@intel.com
 
-Subject: + mips-fix-case-mismatch-in-local_r4k_flush_icache_range.patch added to -mm tree
-To: chenhc@lemote.com,aaro.koskinen@iki.fi,aurelien@aurel32.net,blogic@openwrt.org,ralf@linux-mips.org
+Subject: + checkpatch-only-flag-fsf-address-not-gnuorg-url.patch added to -mm tree
+To: alexander.h.duyck@intel.com,joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 08 Jan 2014 14:17:55 -0800
+Date: Wed, 08 Jan 2014 14:20:45 -0800
 
 
 The patch titled
-     Subject: MIPS: Fix case mismatch in local_r4k_flush_icache_range()
+     Subject: checkpatch: only flag FSF address, not gnu.org URL
 has been added to the -mm tree.  Its filename is
-     mips-fix-case-mismatch-in-local_r4k_flush_icache_range.patch
+     checkpatch-only-flag-fsf-address-not-gnuorg-url.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mips-fix-case-mismatch-in-local_r4k_flush_icache_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-only-flag-fsf-address-not-gnuorg-url.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mips-fix-case-mismatch-in-local_r4k_flush_icache_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-only-flag-fsf-address-not-gnuorg-url.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,95 +44,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huacai Chen <chenhc@lemote.com>
-Subject: MIPS: Fix case mismatch in local_r4k_flush_icache_range()
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: checkpatch: only flag FSF address, not gnu.org URL
 
-Currently, Loongson-2 call protected_blast_icache_range() and others call
-protected_loongson23_blast_icache_range(), but I think the correct
-behavior should be the opposite.  BTW, Loongson-3's cache-ops is
-compatible with MIPS64, but not compatible with Loongson-2.  So, rename
-xxx_loongson23_yyy things to xxx_loongson2_yyy.
+This change restricts the check for the for the FSF address in the GPL
+copyright statement so that it only flags the address, not the references
+to the gnu.org/licenses URL which appears to be used in numerous drivers. 
+The idea is to still allow some reference to an external copy of the GPL
+in the event that files are copied out of the kernel tree without the
+COPYING file.
 
-The patch fixes early boot hang with 3.13-rc1, introduced in the commit
-14bd8c082016cd1f67 ("MIPS: Loongson: Get rid of Loongson 2 #ifdefery all
-over arch/mips").
+So for example this statement will still return an error:
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-Signed-off-by: Huacai Chen <chenhc@lemote.com>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Reviewed-by: Aurelien Jarno <aurelien@aurel32.net>
-Acked-by: John Crispin <blogic@openwrt.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+However, this statement will not return an error after this patch:
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/cacheops.h |    2 +-
- arch/mips/include/asm/r4kcache.h |    8 ++++----
- arch/mips/mm/c-r4k.c             |    4 ++--
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ scripts/checkpatch.pl |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/mips/include/asm/cacheops.h~mips-fix-case-mismatch-in-local_r4k_flush_icache_range arch/mips/include/asm/cacheops.h
---- a/arch/mips/include/asm/cacheops.h~mips-fix-case-mismatch-in-local_r4k_flush_icache_range
-+++ a/arch/mips/include/asm/cacheops.h
-@@ -83,6 +83,6 @@
- /*
-  * Loongson2-specific cacheops
-  */
--#define Hit_Invalidate_I_Loongson23	0x00
-+#define Hit_Invalidate_I_Loongson2	0x00
- 
- #endif	/* __ASM_CACHEOPS_H */
-diff -puN arch/mips/include/asm/r4kcache.h~mips-fix-case-mismatch-in-local_r4k_flush_icache_range arch/mips/include/asm/r4kcache.h
---- a/arch/mips/include/asm/r4kcache.h~mips-fix-case-mismatch-in-local_r4k_flush_icache_range
-+++ a/arch/mips/include/asm/r4kcache.h
-@@ -165,7 +165,7 @@ static inline void flush_icache_line(uns
- 	__iflush_prologue
- 	switch (boot_cpu_type()) {
- 	case CPU_LOONGSON2:
--		cache_op(Hit_Invalidate_I_Loongson23, addr);
-+		cache_op(Hit_Invalidate_I_Loongson2, addr);
- 		break;
- 
- 	default:
-@@ -219,7 +219,7 @@ static inline void protected_flush_icach
- {
- 	switch (boot_cpu_type()) {
- 	case CPU_LOONGSON2:
--		protected_cache_op(Hit_Invalidate_I_Loongson23, addr);
-+		protected_cache_op(Hit_Invalidate_I_Loongson2, addr);
- 		break;
- 
- 	default:
-@@ -452,8 +452,8 @@ static inline void prot##extra##blast_##
- __BUILD_BLAST_CACHE_RANGE(d, dcache, Hit_Writeback_Inv_D, protected_, )
- __BUILD_BLAST_CACHE_RANGE(s, scache, Hit_Writeback_Inv_SD, protected_, )
- __BUILD_BLAST_CACHE_RANGE(i, icache, Hit_Invalidate_I, protected_, )
--__BUILD_BLAST_CACHE_RANGE(i, icache, Hit_Invalidate_I_Loongson23, \
--	protected_, loongson23_)
-+__BUILD_BLAST_CACHE_RANGE(i, icache, Hit_Invalidate_I_Loongson2, \
-+	protected_, loongson2_)
- __BUILD_BLAST_CACHE_RANGE(d, dcache, Hit_Writeback_Inv_D, , )
- __BUILD_BLAST_CACHE_RANGE(s, scache, Hit_Writeback_Inv_SD, , )
- /* blast_inv_dcache_range */
-diff -puN arch/mips/mm/c-r4k.c~mips-fix-case-mismatch-in-local_r4k_flush_icache_range arch/mips/mm/c-r4k.c
---- a/arch/mips/mm/c-r4k.c~mips-fix-case-mismatch-in-local_r4k_flush_icache_range
-+++ a/arch/mips/mm/c-r4k.c
-@@ -580,11 +580,11 @@ static inline void local_r4k_flush_icach
- 	else {
- 		switch (boot_cpu_type()) {
- 		case CPU_LOONGSON2:
--			protected_blast_icache_range(start, end);
-+			protected_loongson2_blast_icache_range(start, end);
- 			break;
- 
- 		default:
--			protected_loongson23_blast_icache_range(start, end);
-+			protected_blast_icache_range(start, end);
- 			break;
+diff -puN scripts/checkpatch.pl~checkpatch-only-flag-fsf-address-not-gnuorg-url scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-only-flag-fsf-address-not-gnuorg-url
++++ a/scripts/checkpatch.pl
+@@ -1970,14 +1970,12 @@ sub process {
  		}
- 	}
+ 
+ # Check for FSF mailing addresses.
+-		if ($rawline =~ /\bYou should have received a copy/i ||
+-		    $rawline =~ /\bwrite to the Free/i ||
++		if ($rawline =~ /\bwrite to the Free/i ||
+ 		    $rawline =~ /\b59\s+Temple\s+Pl/i ||
+ 		    $rawline =~ /\b51\s+Franklin\s+St/i) {
+ 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+ 			my $msg_type = \&ERROR;
+ 			$msg_type = \&CHK if ($file);
+-			$msg_type = \&CHK if ($rawline =~ /\bYou should have received a copy/i);
+ 			&{$msg_type}("FSF_MAILING_ADDRESS",
+ 				     "Do not include the paragraph about writing to the Free Software Foundation's mailing address from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. Linux already includes a copy of the GPL.\n" . $herevet)
+ 		}
 _
 
-Patches currently in -mm which might be from chenhc@lemote.com are
+Patches currently in -mm which might be from alexander.h.duyck@intel.com are
 
-mips-fix-case-mismatch-in-local_r4k_flush_icache_range.patch
+checkpatch-only-flag-fsf-address-not-gnuorg-url.patch
+linux-next.patch
 
