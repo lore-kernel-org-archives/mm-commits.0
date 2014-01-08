@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-free-memblockmemory-in-free_all_bootmem-fix.patch added to
- -mm tree
-Date: Wed, 08 Jan 2014 14:07:00 -0800
-Message-ID: <52cdcc04.6RhbLXXSeCcAssaC%akpm@linux-foundation.org>
+Subject: + fs-superc-fix-warn-on-alloc_super-fail-path.patch added to -mm
+ tree
+Date: Wed, 08 Jan 2014 14:16:05 -0800
+Message-ID: <52cdce25.cVmaoZQPUh7Ampyq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43263 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753532AbaAHWHB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 17:07:01 -0500
+	with ESMTP id S932351AbaAHWQG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 17:16:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wujianguo@huawei.com, toshi.kani@hp.com, tj@kernel.org, tangchen@cn.fujitsu.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, phacht@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, vdavydov@parallels.com
 
-Subject: + mm-free-memblockmemory-in-free_all_bootmem-fix.patch added to -mm tree
-To: phacht@linux.vnet.ibm.com,hannes@cmpxchg.org,iamjoonsoo.kim@lge.com,tangchen@cn.fujitsu.com,tj@kernel.org,toshi.kani@hp.com,wujianguo@huawei.com
+Subject: + fs-superc-fix-warn-on-alloc_super-fail-path.patch added to -mm tree
+To: vdavydov@parallels.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Wed, 08 Jan 2014 14:07:00 -0800
+Date: Wed, 08 Jan 2014 14:16:05 -0800
 
 
 The patch titled
-     Subject: mm-free-memblockmemory-in-free_all_bootmem-fix
+     Subject: fs/super.c: fix WARN on alloc_super() fail path
 has been added to the -mm tree.  Its filename is
-     mm-free-memblockmemory-in-free_all_bootmem-fix.patch
+     fs-superc-fix-warn-on-alloc_super-fail-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-free-memblockmemory-in-free_all_bootmem-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-superc-fix-warn-on-alloc_super-fail-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-free-memblockmemory-in-free_all_bootmem-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-superc-fix-warn-on-alloc_super-fail-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,73 +44,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
-Subject: mm-free-memblockmemory-in-free_all_bootmem-fix
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: fs/super.c: fix WARN on alloc_super() fail path
 
-Am Wed, 8 Jan 2014 12:08:04 +0800
-schrieb Jianguo Wu <wujianguo@huawei.com>:
+On fail path alloc_super() calls destroy_super(), which issues a warning
+if the sb's s_mounts list is not empty, in particular if it has not been
+initialized.  That said s_mounts must be initialized in alloc_super()
+before any possible failure, but currently it is initialized close to the
+end of the function leading to a useless warning dumped to log if either
+percpu_counter_init() or list_lru_init() fails.  Let's fix this.
 
-> For some archs, like arm64, would use memblock.memory after system
-> booting, so we can not simply released to the buddy allocator, maybe
-> need !defined(CONFIG_ARCH_DISCARD_MEMBLOCK).
-
-Signed-off-by: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c  |    4 ++++
- mm/nobootmem.c |    3 +++
- 2 files changed, 7 insertions(+)
+ fs/super.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mm-free-memblockmemory-in-free_all_bootmem-fix mm/memblock.c
---- a/mm/memblock.c~mm-free-memblockmemory-in-free_all_bootmem-fix
-+++ a/mm/memblock.c
-@@ -291,6 +291,8 @@ phys_addr_t __init_memblock get_allocate
- 			  memblock.reserved.max);
- }
+diff -puN fs/super.c~fs-superc-fix-warn-on-alloc_super-fail-path fs/super.c
+--- a/fs/super.c~fs-superc-fix-warn-on-alloc_super-fail-path
++++ a/fs/super.c
+@@ -166,6 +166,8 @@ static struct super_block *alloc_super(s
+ 	if (!s)
+ 		return NULL;
  
-+#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
++	INIT_LIST_HEAD(&s->s_mounts);
 +
- phys_addr_t __init_memblock get_allocated_memblock_memory_regions_info(
- 					phys_addr_t *addr)
- {
-@@ -303,6 +305,8 @@ phys_addr_t __init_memblock get_allocate
- 			  memblock.memory.max);
- }
+ 	if (security_sb_alloc(s))
+ 		goto fail;
  
-+#endif
-+
- /**
-  * memblock_double_array - double the size of the memblock regions array
-  * @type: memblock type of the regions array being doubled
-diff -puN mm/nobootmem.c~mm-free-memblockmemory-in-free_all_bootmem-fix mm/nobootmem.c
---- a/mm/nobootmem.c~mm-free-memblockmemory-in-free_all_bootmem-fix
-+++ a/mm/nobootmem.c
-@@ -127,10 +127,13 @@ static unsigned long __init free_low_mem
- 	if (size)
- 		count += __free_memory_core(start, start + size);
+@@ -188,7 +190,6 @@ static struct super_block *alloc_super(s
+ 	if (list_lru_init(&s->s_inode_lru))
+ 		goto fail;
  
-+#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
-+
- 	/* Free memblock.memory array if it was allocated */
- 	size = get_allocated_memblock_memory_regions_info(&start);
- 	if (size)
- 		count += __free_memory_core(start, start + size);
-+#endif
- 
- 	return count;
- }
+-	INIT_LIST_HEAD(&s->s_mounts);
+ 	init_rwsem(&s->s_umount);
+ 	lockdep_set_class(&s->s_umount, &type->s_umount_key);
+ 	/*
 _
 
-Patches currently in -mm which might be from phacht@linux.vnet.ibm.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
-mm-free-memblockmemory-in-free_all_bootmem.patch
-mm-free-memblockmemory-in-free_all_bootmem-fix.patch
+memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
+memcg-make-memcg_update_cache_sizes-static.patch
+memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
+slab-clean-up-kmem_cache_create_memcg-error-handling.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
+memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
+memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
+memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
+memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
+memcg-get-rid-of-kmem_cache_dup.patch
+slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
+memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
+memcg-remove-kmem_accounted_activated-flag.patch
+memcg-rework-memcg_update_kmem_limit-synchronization.patch
+linux-next.patch
+fs-superc-fix-warn-on-alloc_super-fail-path.patch
 
