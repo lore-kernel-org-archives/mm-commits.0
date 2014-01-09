@@ -1,36 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch added to -mm tree
-Date: Thu, 09 Jan 2014 14:29:53 -0800
-Message-ID: <52cf22e1.Ak9JGeyn6mUGktkZ%akpm@linux-foundation.org>
+Subject: + net-ipv6-ip6_vtic-fix-build.patch added to -mm tree
+Date: Thu, 09 Jan 2014 15:01:16 -0800
+Message-ID: <20140110000117.E64035A4310@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52739 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741AbaAIW3y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jan 2014 17:29:54 -0500
+Received: from mail-pb0-f73.google.com ([209.85.160.73]:33317 "EHLO
+	mail-pb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754760AbaAJABU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jan 2014 19:01:20 -0500
+Received: by mail-pb0-f73.google.com with SMTP id rq2so529731pbb.4
+        for <mm-commits@vger.kernel.org>; Thu, 09 Jan 2014 16:01:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vdavydov@parallels.com, penberg@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@gmail.com, cl@linux.com, bsingharora@gmail.com, akpm@linux-foundation.org
-
-Subject: + memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,bsingharora@gmail.com,cl@linux.com,glommer@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,penberg@kernel.org,vdavydov@parallels.com
-From: akpm@linux-foundation.org
-Date: Thu, 09 Jan 2014 14:29:53 -0800
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net, herbert@gondor.apana.org.au, steffen.klassert@secunet.com
 
 
 The patch titled
-     Subject: memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix
+     Subject: net/ipv6/ip6_vti.c: fix build
 has been added to the -mm tree.  Its filename is
-     memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
-
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
+     net-ipv6-ip6_vtic-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,36 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix
+Subject: net/ipv6/ip6_vti.c: fix build
 
-fix build
+net/ipv6/ip6_vti.c: In function 'vti6_dev_init_gen':
+net/ipv6/ip6_vti.c:743: warning: assignment from incompatible pointer type
+net/ipv6/ip6_vti.c:744: error: dereferencing pointer to incomplete type
 
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Glauber Costa <glommer@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
+ net/ipv6/ip6_vti.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix
-+++ a/include/linux/memcontrol.h
-@@ -647,7 +647,7 @@ static inline int memcg_alloc_cache_para
- 	return 0;
- }
- 
--static inline void memcg_free_cache_params(struct kmem_cache *s);
-+static inline void memcg_free_cache_params(struct kmem_cache *s)
- {
- }
- 
+diff -puN net/ipv6/ip6_vti.c~net-ipv6-ip6_vtic-fix-build net/ipv6/ip6_vti.c
+--- a/net/ipv6/ip6_vti.c~net-ipv6-ip6_vtic-fix-build
++++ a/net/ipv6/ip6_vti.c
+@@ -739,7 +739,7 @@ static inline int vti6_dev_init_gen(stru
+ 	if (!dev->tstats)
+ 		return -ENOMEM;
+ 	for_each_possible_cpu(i) {
+-		struct pcpu_tstats *stats;
++		struct pcpu_sw_netstats *stats;
+ 		stats = per_cpu_ptr(dev->tstats, i);
+ 		u64_stats_init(&stats->syncp);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,4 +107,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+net-ipv6-ip6_vtic-fix-build.patch
 
