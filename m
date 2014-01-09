@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex.patch added to -mm tree
-Date: Wed, 08 Jan 2014 16:01:53 -0800
-Message-ID: <52cde6f1.hGN8YETIBwNtOyBk%akpm@linux-foundation.org>
+ mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch
+ added to -mm tree
+Date: Wed, 08 Jan 2014 16:10:22 -0800
+Message-ID: <52cde8ee.hrB5M9k8o4mG7jZE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44295 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44348 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757429AbaAIABy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 19:01:54 -0500
+	with ESMTP id S1757266AbaAIAKX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 19:10:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mel@csn.ul.ie, vinayakm.list@gmail.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com
 
-Subject: + documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex.patch added to -mm tree
-To: vinayakm.list@gmail.com,mel@csn.ul.ie
+Subject: + mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch added to -mm tree
+To: aneesh.kumar@linux.vnet.ibm.com,benh@kernel.crashing.org,mgorman@suse.de,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 08 Jan 2014 16:01:53 -0800
+Date: Wed, 08 Jan 2014 16:10:22 -0800
 
 
 The patch titled
-     Subject: Documentation/trace/postprocess/trace-vmscan-postprocess.pl: fix the traceevent regex
+     Subject: mm: move change_prot_numa outside CONFIG_ARCH_USES_NUMA_PROT_NONE
 has been added to the -mm tree.  Its filename is
-     documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex.patch
+     mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,103 +45,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vinayak Menon <vinayakm.list@gmail.com>
-Subject: Documentation/trace/postprocess/trace-vmscan-postprocess.pl: fix the traceevent regex
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm: move change_prot_numa outside CONFIG_ARCH_USES_NUMA_PROT_NONE
 
-When irq, preempt and lockdep fields are printed (field 3 in the e.g. 
-below) in the trace output, the script fails.
+change_prot_numa should work even if _PAGE_NUMA != _PAGE_PROTNONE.  On
+archs like ppc64 that don't use _PAGE_PROTNONE and also have a separate
+page table outside linux pagetable, we just need to make sure that when
+calling change_prot_numa we flush the hardware page table entry so that
+next page access result in a numa fault.
 
-An e.g. entry.
-kswapd0-610   [000] ...1   158.112152: mm_vmscan_kswapd_wake: nid=0 order=0
+We still need to make sure we use the numa faulting logic only when
+CONFIG_NUMA_BALANCING is set.  This implies the migrate-on-fault (Lazy
+migration) via mbind will only work if CONFIG_NUMA_BALANCING is set.
 
-Signed-off-by: Vinayak Menon <vinayakm.list@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Previous discussion around the patch can be found at
+http://article.gmane.org/gmane.linux.kernel.mm/109305
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/trace/postprocess/trace-vmscan-postprocess.pl |   18 +++++-----
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/linux/mm.h |    2 +-
+ mm/mempolicy.c     |    5 ++---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/trace/postprocess/trace-vmscan-postprocess.pl~documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex Documentation/trace/postprocess/trace-vmscan-postprocess.pl
---- a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl~documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex
-+++ a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl
-@@ -123,7 +123,7 @@ my $regex_writepage;
+diff -puN include/linux/mm.h~mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none include/linux/mm.h
+--- a/include/linux/mm.h~mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none
++++ a/include/linux/mm.h
+@@ -1892,7 +1892,7 @@ static inline pgprot_t vm_get_page_prot(
+ }
+ #endif
  
- # Static regex used. Specified like this for readability and for use with /o
- #                      (process_pid)     (cpus      )   ( time  )   (tpoint    ) (details)
--my $regex_traceevent = '\s*([a-zA-Z0-9-]*)\s*(\[[0-9]*\])\s*([0-9.]*):\s*([a-zA-Z_]*):\s*(.*)';
-+my $regex_traceevent = '\s*([a-zA-Z0-9-]*)\s*(\[[0-9]*\])(\s*[dX.][Nnp.][Hhs.][0-9a-fA-F.]*|)\s*([0-9.]*):\s*([a-zA-Z_]*):\s*(.*)';
- my $regex_statname = '[-0-9]*\s\((.*)\).*';
- my $regex_statppid = '[-0-9]*\s\(.*\)\s[A-Za-z]\s([0-9]*).*';
+-#ifdef CONFIG_ARCH_USES_NUMA_PROT_NONE
++#ifdef CONFIG_NUMA_BALANCING
+ unsigned long change_prot_numa(struct vm_area_struct *vma,
+ 			unsigned long start, unsigned long end);
+ #endif
+diff -puN mm/mempolicy.c~mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none
++++ a/mm/mempolicy.c
+@@ -613,7 +613,7 @@ static inline int queue_pages_pgd_range(
+ 	return 0;
+ }
  
-@@ -270,8 +270,8 @@ EVENT_PROCESS:
- 	while ($traceevent = <STDIN>) {
- 		if ($traceevent =~ /$regex_traceevent/o) {
- 			$process_pid = $1;
--			$timestamp = $3;
--			$tracepoint = $4;
-+			$timestamp = $4;
-+			$tracepoint = $5;
+-#ifdef CONFIG_ARCH_USES_NUMA_PROT_NONE
++#ifdef CONFIG_NUMA_BALANCING
+ /*
+  * This is used to mark a range of virtual addresses to be inaccessible.
+  * These are later cleared by a NUMA hinting fault. Depending on these
+@@ -627,7 +627,6 @@ unsigned long change_prot_numa(struct vm
+ 			unsigned long addr, unsigned long end)
+ {
+ 	int nr_updated;
+-	BUILD_BUG_ON(_PAGE_NUMA != _PAGE_PROTNONE);
  
- 			$process_pid =~ /(.*)-([0-9]*)$/;
- 			my $process = $1;
-@@ -299,7 +299,7 @@ EVENT_PROCESS:
- 			$perprocesspid{$process_pid}->{MM_VMSCAN_DIRECT_RECLAIM_BEGIN}++;
- 			$perprocesspid{$process_pid}->{STATE_DIRECT_BEGIN} = $timestamp;
+ 	nr_updated = change_protection(vma, addr, end, vma->vm_page_prot, 0, 1);
+ 	if (nr_updated)
+@@ -641,7 +640,7 @@ static unsigned long change_prot_numa(st
+ {
+ 	return 0;
+ }
+-#endif /* CONFIG_ARCH_USES_NUMA_PROT_NONE */
++#endif /* CONFIG_NUMA_BALANCING */
  
--			$details = $5;
-+			$details = $6;
- 			if ($details !~ /$regex_direct_begin/o) {
- 				print "WARNING: Failed to parse mm_vmscan_direct_reclaim_begin as expected\n";
- 				print "         $details\n";
-@@ -322,7 +322,7 @@ EVENT_PROCESS:
- 				$perprocesspid{$process_pid}->{HIGH_DIRECT_RECLAIM_LATENCY}[$index] = "$order-$latency";
- 			}
- 		} elsif ($tracepoint eq "mm_vmscan_kswapd_wake") {
--			$details = $5;
-+			$details = $6;
- 			if ($details !~ /$regex_kswapd_wake/o) {
- 				print "WARNING: Failed to parse mm_vmscan_kswapd_wake as expected\n";
- 				print "         $details\n";
-@@ -356,7 +356,7 @@ EVENT_PROCESS:
- 		} elsif ($tracepoint eq "mm_vmscan_wakeup_kswapd") {
- 			$perprocesspid{$process_pid}->{MM_VMSCAN_WAKEUP_KSWAPD}++;
- 
--			$details = $5;
-+			$details = $6;
- 			if ($details !~ /$regex_wakeup_kswapd/o) {
- 				print "WARNING: Failed to parse mm_vmscan_wakeup_kswapd as expected\n";
- 				print "         $details\n";
-@@ -366,7 +366,7 @@ EVENT_PROCESS:
- 			my $order = $3;
- 			$perprocesspid{$process_pid}->{MM_VMSCAN_WAKEUP_KSWAPD_PERORDER}[$order]++;
- 		} elsif ($tracepoint eq "mm_vmscan_lru_isolate") {
--			$details = $5;
-+			$details = $6;
- 			if ($details !~ /$regex_lru_isolate/o) {
- 				print "WARNING: Failed to parse mm_vmscan_lru_isolate as expected\n";
- 				print "         $details\n";
-@@ -387,7 +387,7 @@ EVENT_PROCESS:
- 			}
- 			$perprocesspid{$process_pid}->{HIGH_NR_CONTIG_DIRTY} += $nr_contig_dirty;
- 		} elsif ($tracepoint eq "mm_vmscan_lru_shrink_inactive") {
--			$details = $5;
-+			$details = $6;
- 			if ($details !~ /$regex_lru_shrink_inactive/o) {
- 				print "WARNING: Failed to parse mm_vmscan_lru_shrink_inactive as expected\n";
- 				print "         $details\n";
-@@ -397,7 +397,7 @@ EVENT_PROCESS:
- 			my $nr_reclaimed = $4;
- 			$perprocesspid{$process_pid}->{HIGH_NR_RECLAIMED} += $nr_reclaimed;
- 		} elsif ($tracepoint eq "mm_vmscan_writepage") {
--			$details = $5;
-+			$details = $6;
- 			if ($details !~ /$regex_writepage/o) {
- 				print "WARNING: Failed to parse mm_vmscan_writepage as expected\n";
- 				print "         $details\n";
+ /*
+  * Walk through page tables and collect pages to be migrated.
 _
 
-Patches currently in -mm which might be from vinayakm.list@gmail.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex.patch
+mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch
+linux-next.patch
 
