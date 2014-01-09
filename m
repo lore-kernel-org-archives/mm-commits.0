@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge.patch added to -mm tree
-Date: Thu, 09 Jan 2014 14:02:05 -0800
-Message-ID: <52cf1c5d.WEF37HOpOQ9AjTt0%akpm@linux-foundation.org>
+Subject: + x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges.patch
+ added to -mm tree
+Date: Thu, 09 Jan 2014 14:02:01 -0800
+Message-ID: <52cf1c59.CPjaf8PlFvqvXgf0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52576 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751929AbaAIWCG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jan 2014 17:02:06 -0500
+	with ESMTP id S1751236AbaAIWCC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jan 2014 17:02:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tglx@linutronix.de, riel@redhat.com, mingo@kernel.org, hpa@zytor.com, alex.shi@linaro.org, mgorman@suse.de
 
-Subject: + mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge.patch added to -mm tree
+Subject: + x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges.patch added to -mm tree
 To: mgorman@suse.de,alex.shi@linaro.org,hpa@zytor.com,mingo@kernel.org,riel@redhat.com,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Thu, 09 Jan 2014 14:02:05 -0800
+Date: Thu, 09 Jan 2014 14:02:01 -0800
 
 
 The patch titled
-     Subject: mm: x86: revisit tlb_flushall_shift tuning for page flushes except on IvyBridge
+     Subject: x86: mm: clean up inconsistencies when flushing TLB ranges
 has been added to the -mm tree.  Its filename is
-     mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge.patch
+     x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,83 +45,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: x86: revisit tlb_flushall_shift tuning for page flushes except on IvyBridge
+Subject: x86: mm: clean up inconsistencies when flushing TLB ranges
 
-There was a large ebizzy performance regression that was bisected to
-commit 611ae8e3 (x86/tlb: enable tlb flush range support for x86).  The
-problem was related to the tlb_flushall_shift tuning for IvyBridge which
-was altered.  The problem is that it is not clear if the tuning values for
-each CPU family is correct as the methodology used to tune the values is
-unclear.
-
-This patch uses a conservative tlb_flushall_shift value for all CPU
-families except IvyBridge so the decision can be revisited if any
-regression is found as a result of this change.  IvyBridge is an exception
-as testing with one methodology determined that the value of 2 is
-acceptable.  Details are in the changelog for the patch "x86: mm: Change
-tlb_flushall_shift for IvyBridge".
-
-One important aspect of this to watch out for is Xen.  The original commit
-log mentioned large performance gains on Xen.  It's possible Xen is more
-sensitive to this value if it flushes small ranges of pages more
-frequently than workloads on bare metal typically do.
+NR_TLB_LOCAL_FLUSH_ALL is not always accounted for correctly and the
+comparison with total_vm is done before taking tlb_flushall_shift into
+account.  Clean it up.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Alex Shi <alex.shi@linaro.org>
 Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Alex Shi <alex.shi@linaro.org>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: H Peter Anvin <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/amd.c   |    5 +----
- arch/x86/kernel/cpu/intel.c |   10 +++-------
- 2 files changed, 4 insertions(+), 11 deletions(-)
+ arch/x86/mm/tlb.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/amd.c~mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge arch/x86/kernel/cpu/amd.c
---- a/arch/x86/kernel/cpu/amd.c~mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge
-+++ a/arch/x86/kernel/cpu/amd.c
-@@ -758,10 +758,7 @@ static unsigned int amd_size_cache(struc
- 
- static void cpu_set_tlb_flushall_shift(struct cpuinfo_x86 *c)
+diff -puN arch/x86/mm/tlb.c~x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges arch/x86/mm/tlb.c
+--- a/arch/x86/mm/tlb.c~x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges
++++ a/arch/x86/mm/tlb.c
+@@ -189,6 +189,7 @@ void flush_tlb_mm_range(struct mm_struct
  {
--	tlb_flushall_shift = 5;
--
--	if (c->x86 <= 0x11)
--		tlb_flushall_shift = 4;
-+	tlb_flushall_shift = 6;
- }
+ 	unsigned long addr;
+ 	unsigned act_entries, tlb_entries = 0;
++	unsigned long nr_base_pages;
  
- static void cpu_detect_tlb_amd(struct cpuinfo_x86 *c)
-diff -puN arch/x86/kernel/cpu/intel.c~mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge arch/x86/kernel/cpu/intel.c
---- a/arch/x86/kernel/cpu/intel.c~mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge
-+++ a/arch/x86/kernel/cpu/intel.c
-@@ -615,21 +615,17 @@ static void intel_tlb_flushall_shift_set
- 	case 0x61d: /* six-core 45 nm xeon "Dunnington" */
- 		tlb_flushall_shift = -1;
- 		break;
-+	case 0x63a: /* Ivybridge */
-+		tlb_flushall_shift = 2;
-+		break;
- 	case 0x61a: /* 45 nm nehalem, "Bloomfield" */
- 	case 0x61e: /* 45 nm nehalem, "Lynnfield" */
- 	case 0x625: /* 32 nm nehalem, "Clarkdale" */
- 	case 0x62c: /* 32 nm nehalem, "Gulftown" */
- 	case 0x62e: /* 45 nm nehalem-ex, "Beckton" */
- 	case 0x62f: /* 32 nm Xeon E7 */
--		tlb_flushall_shift = 6;
--		break;
- 	case 0x62a: /* SandyBridge */
- 	case 0x62d: /* SandyBridge, "Romely-EP" */
--		tlb_flushall_shift = 5;
--		break;
--	case 0x63a: /* Ivybridge */
--		tlb_flushall_shift = 2;
--		break;
- 	default:
- 		tlb_flushall_shift = 6;
- 	}
+ 	preempt_disable();
+ 	if (current->active_mm != mm)
+@@ -210,18 +211,17 @@ void flush_tlb_mm_range(struct mm_struct
+ 		tlb_entries = tlb_lli_4k[ENTRIES];
+ 	else
+ 		tlb_entries = tlb_lld_4k[ENTRIES];
++
+ 	/* Assume all of TLB entries was occupied by this task */
+-	act_entries = mm->total_vm > tlb_entries ? tlb_entries : mm->total_vm;
++	act_entries = tlb_entries >> tlb_flushall_shift;
++	act_entries = mm->total_vm > act_entries ? act_entries : mm->total_vm;
++	nr_base_pages = (end - start) >> PAGE_SHIFT;
+ 
+ 	/* tlb_flushall_shift is on balance point, details in commit log */
+-	if ((end - start) >> PAGE_SHIFT > act_entries >> tlb_flushall_shift) {
++	if (nr_base_pages > act_entries || has_large_page(mm, start, end)) {
+ 		count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
+ 		local_flush_tlb();
+ 	} else {
+-		if (has_large_page(mm, start, end)) {
+-			local_flush_tlb();
+-			goto flush_all;
+-		}
+ 		/* flush range by one by one 'invlpg' */
+ 		for (addr = start; addr < end;	addr += PAGE_SIZE) {
+ 			count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ONE);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
