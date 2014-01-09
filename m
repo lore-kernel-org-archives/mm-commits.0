@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch added to -mm tree
-Date: Thu, 09 Jan 2014 13:57:54 -0800
-Message-ID: <52cf1b62.8DNvGlxpYZb2WQgt%akpm__27046.011950779$1389304686$gmane$org@linux-foundation.org>
+Subject: + x86-mm-change-tlb_flushall_shift-for-ivybridge.patch added to
+ -mm tree
+Date: Thu, 09 Jan 2014 14:02:03 -0800
+Message-ID: <52cf1c5b.q2IyCH9fQZVNY/nb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52557 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52588 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751330AbaAIV5z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jan 2014 16:57:55 -0500
+	with ESMTP id S1751836AbaAIWCF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jan 2014 17:02:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, ebiederm@xmission.com, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, riel@redhat.com, mingo@kernel.org, hpa@zytor.com, alex.shi@linaro.org, mgorman@suse.de
 
-Subject: + memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch added to -mm tree
-To: mhocko@suse.cz,ebiederm@xmission.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,rientjes@google.com,stable@vger.kernel.org
+Subject: + x86-mm-change-tlb_flushall_shift-for-ivybridge.patch added to -mm tree
+To: mgorman@suse.de,alex.shi@linaro.org,hpa@zytor.com,mingo@kernel.org,riel@redhat.com,tglx@linutronix.de
 From: akpm@linux-foundation.org
-Date: Thu, 09 Jan 2014 13:57:54 -0800
+Date: Thu, 09 Jan 2014 14:02:03 -0800
 
 
 The patch titled
-     Subject: memcg: do not hang on OOM when killed by userspace OOM access to memory reserves
+     Subject: x86: mm: Change tlb_flushall_shift for IvyBridge
 has been added to the -mm tree.  Its filename is
-     memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
+     x86-mm-change-tlb_flushall_shift-for-ivybridge.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-change-tlb_flushall_shift-for-ivybridge.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-change-tlb_flushall_shift-for-ivybridge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,137 +44,216 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: do not hang on OOM when killed by userspace OOM access to memory reserves
+From: Mel Gorman <mgorman@suse.de>
+Subject: x86: mm: Change tlb_flushall_shift for IvyBridge
 
-Eric has reported that he can see task(s) stuck in memcg OOM handler
-regularly.  The only way out is to
+There was a large performance regression that was bisected to commit
+611ae8e3 (x86/tlb: enable tlb flush range support for x86).  This patch
+simply changes the default balance point between a local and global flush
+for IvyBridge.
 
-	echo 0 > $GROUP/memory.oom_controll
+In the interest of allowing the tests to be reproduced, this patch was
+tested using mmtests 0.15 with the following configurations
 
-His usecase is:
+	configs/config-global-dhp__tlbflush-performance
+	configs/config-global-dhp__scheduler-performance
+	configs/config-global-dhp__network-performance
 
-- Setup a hierarchy with memory and the freezer (disable kernel oom and
-  have a process watch for oom).
+Results are from two machines
 
-- In that memory cgroup add a process with one thread per cpu.
+Ivybridge   4 threads:  Intel(R) Core(TM) i3-3240 CPU @ 3.40GHz
+Ivybridge   8 threads:  Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz
 
-- In one thread slowly allocate once per second I think it is 16M of ram
-  and mlock and dirty it (just to force the pages into ram and stay
-  there).
+Page fault microbenchmark showed nothing interesting.
 
-- When oom is achieved loop:
-  * attempt to freeze all of the tasks.
-  * if frozen send every task SIGKILL, unfreeze, remove the directory in
-    cgroupfs.
+Ebizzy was configured to run multiple iterations and threads. Thread counts
+ranged from 1 to NR_CPUS*2. For each thread count, it ran 100 iterations and
+each iteration lasted 10 seconds.
 
-Eric has then pinpointed the issue to be memcg specific.
+Ivybridge 4 threads
+                    3.13.0-rc7            3.13.0-rc7
+                       vanilla           altshift-v3
+Mean   1     6395.44 (  0.00%)     6789.09 (  6.16%)
+Mean   2     7012.85 (  0.00%)     8052.16 ( 14.82%)
+Mean   3     6403.04 (  0.00%)     6973.74 (  8.91%)
+Mean   4     6135.32 (  0.00%)     6582.33 (  7.29%)
+Mean   5     6095.69 (  0.00%)     6526.68 (  7.07%)
+Mean   6     6114.33 (  0.00%)     6416.64 (  4.94%)
+Mean   7     6085.10 (  0.00%)     6448.51 (  5.97%)
+Mean   8     6120.62 (  0.00%)     6462.97 (  5.59%)
 
-All tasks are sitting on the memcg_oom_waitq when memcg oom is disabled. 
-Those that have received fatal signal will bypass the charge and should
-continue on their way out.  The tricky part is that the exit path might
-trigger a page fault (e.g.  exit_robust_list), thus the memcg charge,
-while its memcg is still under OOM because nobody has released any charges
-yet.
+Ivybridge 8 threads
+                     3.13.0-rc7            3.13.0-rc7
+                        vanilla           altshift-v3
+Mean   1      7336.65 (  0.00%)     7787.02 (  6.14%)
+Mean   2      8218.41 (  0.00%)     9484.13 ( 15.40%)
+Mean   3      7973.62 (  0.00%)     8922.01 ( 11.89%)
+Mean   4      7798.33 (  0.00%)     8567.03 (  9.86%)
+Mean   5      7158.72 (  0.00%)     8214.23 ( 14.74%)
+Mean   6      6852.27 (  0.00%)     7952.45 ( 16.06%)
+Mean   7      6774.65 (  0.00%)     7536.35 ( 11.24%)
+Mean   8      6510.50 (  0.00%)     6894.05 (  5.89%)
+Mean   12     6182.90 (  0.00%)     6661.29 (  7.74%)
+Mean   16     6100.09 (  0.00%)     6608.69 (  8.34%)
 
-Unlike with the in-kernel OOM handler the exiting task doesn't get
-TIF_MEMDIE set so it doesn't shortcut futher charges of the killed task
-and falls to the memcg OOM again without any way out of it as there are no
-fatal signals pending anymore.
+Ebizzy hits the worst case scenario for TLB range flushing every time and
+it shows for these Ivybridge CPUs at least that the default choice is a
+poor on.  The patch addresses the problem.
 
-This patch fixes the issue by checking PF_EXITING early in
-__mem_cgroup_try_charge and bypass the charge same as if it had fatal
-signal pending or TIF_MEMDIE set.
+Next was a tlbflush microbenchmark written by Alex Shi at
+http://marc.info/?l=linux-kernel&m=133727348217113 .  It measures access
+costs while the TLB is being flushed.  The expectation is that if there
+are always full TLB flushes that the benchmark would suffer and it
+benefits from range flushing
 
-Normally exiting tasks (aka not killed) will bypass the charge now but
-this should be OK as the task is leaving and will release memory and
-increasing the memory pressure just to release it in a moment seems
-dubious wasting of cycles.  Besides that charges after exit_signals should
-be rare.
+There are 320 iterations of the test per thread count.  The number of
+entries is randomly selected with a min of 1 and max of 512.  To ensure a
+reasonably even spread of entries, the full range is broken up into 8
+sections and a random number selected within that section.
 
-Reported-by: Eric W. Biederman <ebiederm@xmission.com>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@vger.kernel.org>
+iteration 1, random number between 0-64
+iteration 2, random number between 64-128 etc
+
+This is still a very weak methodology.  When you do not know what are
+typical ranges, random is a reasonable choice but it can be easily argued
+that the opimisation was for smaller ranges and an even spread is not
+representative of any workload that matters.  To improve this, we'd need
+to know the probability distribution of TLB flush range sizes for a set of
+workloads that are considered "common", build a synthetic trace and feed
+that into this benchmark.  Even that is not perfect because it would not
+account for the time between flushes but there are limits of what can be
+reasonably done and still be doing something useful.  If a representative
+synthetic trace is provided then this benchmark could be revisited and the
+shift values retuned.
+
+Ivybridge 4 threads
+                        3.13.0-rc7            3.13.0-rc7
+                           vanilla           altshift-v3
+Mean       1       10.50 (  0.00%)       10.50 (  0.03%)
+Mean       2       17.59 (  0.00%)       17.18 (  2.34%)
+Mean       3       22.98 (  0.00%)       21.74 (  5.41%)
+Mean       5       47.13 (  0.00%)       46.23 (  1.92%)
+Mean       8       43.30 (  0.00%)       42.56 (  1.72%)
+
+Ivybridge 8 threads
+                         3.13.0-rc7            3.13.0-rc7
+                            vanilla           altshift-v3
+Mean       1         9.45 (  0.00%)        9.36 (  0.93%)
+Mean       2         9.37 (  0.00%)        9.70 ( -3.54%)
+Mean       3         9.36 (  0.00%)        9.29 (  0.70%)
+Mean       5        14.49 (  0.00%)       15.04 ( -3.75%)
+Mean       8        41.08 (  0.00%)       38.73 (  5.71%)
+Mean       13       32.04 (  0.00%)       31.24 (  2.49%)
+Mean       16       40.05 (  0.00%)       39.04 (  2.51%)
+
+For both CPUs, average access time is reduced which is good as this is the
+benchmark that was used to tune the shift values in the first place albeit
+it is now known *how* the benchmark was used.
+
+The scheduler benchmarks were somewhat inconclusive.  They showed gains
+and losses and makes me reconsider how stable those benchmarks really are
+or if something else might be interfering with the test results recently.
+
+Network benchmarks were inconclusive.  Almost all results were flat except
+for netperf-udp tests on the 4 thread machine.  These results were
+unstable and showed large variations between reboots.  It is unknown if
+this is a recent problems but I've noticed before that netperf-udp results
+tend to vary.
+
+Based on these results, changing the default for Ivybridge seems like a
+logical choice.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Alex Shi <alex.shi@linaro.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: H Peter Anvin <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/kernel/cpu/intel.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves
-+++ a/mm/memcontrol.c
-@@ -2670,7 +2670,8 @@ static int __mem_cgroup_try_charge(struc
- 	 * MEMDIE process.
- 	 */
- 	if (unlikely(test_thread_flag(TIF_MEMDIE)
--		     || fatal_signal_pending(current)))
-+		     || fatal_signal_pending(current))
-+		     || current->flags & PF_EXITING)
- 		goto bypass;
- 
- 	if (unlikely(task_in_memcg_oom(current)))
+diff -puN arch/x86/kernel/cpu/intel.c~x86-mm-change-tlb_flushall_shift-for-ivybridge arch/x86/kernel/cpu/intel.c
+--- a/arch/x86/kernel/cpu/intel.c~x86-mm-change-tlb_flushall_shift-for-ivybridge
++++ a/arch/x86/kernel/cpu/intel.c
+@@ -628,7 +628,7 @@ static void intel_tlb_flushall_shift_set
+ 		tlb_flushall_shift = 5;
+ 		break;
+ 	case 0x63a: /* Ivybridge */
+-		tlb_flushall_shift = 1;
++		tlb_flushall_shift = 2;
+ 		break;
+ 	default:
+ 		tlb_flushall_shift = 6;
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
-mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
-memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
-memcg-make-memcg_update_cache_sizes-static.patch
-introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
-oom_kill-change-oom_killc-to-use-for_each_thread.patch
-oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
-oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
+mm-remove-bug_on-from-mlock_vma_page.patch
+x86-mm-account-for-tlb-flushes-only-when-debugging.patch
+x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges.patch
+x86-mm-eliminate-redundant-page-table-walk-during-tlb-range-flushing.patch
+x86-mm-change-tlb_flushall_shift-for-ivybridge.patch
+mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge.patch
+mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
+mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
+mm-thp-optimize-compound_trans_huge.patch
+mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
+mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+mm-thp-__get_page_tail_foll-can-use-get_huge_page_tail.patch
+mm-thp-turn-compound_head-into-bug_onpagetail-in-get_huge_page_tail.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
+mm-show_mem-remove-show_mem_filter_page_count.patch
+mm-show_mem-remove-show_mem_filter_page_count-fix.patch
+memblock-numa-introduce-flags-field-into-memblock.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+memblock-make-memblock_set_node-support-different-memblock_type.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
+x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
+mm-rmap-recompute-pgoff-for-huge-page.patch
+mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
+mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
+mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
+mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
+mm-rmap-use-rmap_walk-in-try_to_unmap.patch
+mm-rmap-use-rmap_walk-in-try_to_munlock.patch
+mm-rmap-use-rmap_walk-in-page_referenced.patch
+mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
+mm-rmap-use-rmap_walk-in-page_mkclean.patch
 mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
-x86-memblock-set-current-limit-to-max-low-memory-address.patch
-mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
-mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
-mm-memblock-remove-unnecessary-inclusions-of-bootmemh.patch
-mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
-mm-memblock-reorder-parameters-of-memblock_find_in_range_node.patch
-mm-memblock-switch-to-use-numa_no_node-instead-of-max_numnodes.patch
-mm-memblock-add-memblock-memory-allocation-apis.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-mm-init-use-memblock-apis-for-early-memory-allocations.patch
-mm-printk-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
-mm-power-use-memblock-apis-for-early-memory-allocations.patch
-lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
-lib-cpumaskc-use-memblock-apis-for-early-memory-allocations.patch
-mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
-mm-hugetlb-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_cgroup-use-memblock-apis-for-early-memory-allocations.patch
-mm-percpu-use-memblock-apis-for-early-memory-allocations.patch
-mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
-drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
-lib-show_memc-show-num_poisoned_pages-when-oom.patch
-memcg-oom-lock-mem_cgroup_print_oom_info.patch
+mm-numa-make-numa-migrate-related-functions-static.patch
+mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
+mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
+mm-numa-do-not-automatically-migrate-ksm-pages.patch
+sched-add-tracepoints-related-to-numa-task-migration.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-compaction-trace-compaction-begin-and-end.patch
+mm-compaction-encapsulate-defer-reset-logic.patch
+mm-compaction-reset-cached-scanner-pfns-before-reading-them.patch
+mm-compaction-detect-when-scanners-meet-in-isolate_freepages.patch
+mm-compaction-do-not-mark-unmovable-pageblocks-as-skipped-in-async-compaction.patch
+mm-compaction-reset-scanner-positions-immediately-when-they-meet.patch
 mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
-memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
-slab-clean-up-kmem_cache_create_memcg-error-handling.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
-memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
-memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
-memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
-memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
-memcg-get-rid-of-kmem_cache_dup.patch
-slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
-memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
-memcg-remove-kmem_accounted_activated-flag.patch
-memcg-rework-memcg_update_kmem_limit-synchronization.patch
-mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
-mm-prevent-setting-of-a-value-less-than-0-to-min_free_kbytes.patch
-memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-proc-fix-the-potential-use-after-free-in-first_tid.patch
-proc-change-first_tid-to-use-while_each_thread-rather-than-next_thread.patch
-proc-dont-abuse-group_leader-in-proc_task_readdir-paths.patch
-proc-fix-f_pos-overflows-in-first_tid.patch
+mm-migrate-add-comment-about-permanent-failure-path.patch
+mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
+mm-migrate-remove-unused-function-fail_migrate_page.patch
+mm-munlock-fix-potential-race-with-thp-page-split.patch
+numa-add-a-sysctl-for-numa_balancing.patch
+numa-add-a-sysctl-for-numa_balancing-fix.patch
 linux-next.patch
+mm-migratec-fix-set-cpupid-on-page-migration-twice-against-thp.patch
+mm-migratec-fix-setting-of-cpupid-on-page-migration-twice-against-normal-page.patch
+zsmalloc-move-it-under-mm.patch
+zram-promote-zram-from-staging.patch
 
