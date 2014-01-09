@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch
- added to -mm tree
-Date: Wed, 08 Jan 2014 16:10:22 -0800
-Message-ID: <52cde8ee.hrB5M9k8o4mG7jZE%akpm@linux-foundation.org>
+ fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf.patch added to -mm tree
+Date: Wed, 08 Jan 2014 16:10:59 -0800
+Message-ID: <52cde913.8SNr8B32+gxtlweM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44348 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44352 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757266AbaAIAKX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 19:10:23 -0500
+	with ESMTP id S1757266AbaAIALA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jan 2014 19:11:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, todor@minchev.co.uk
 
-Subject: + mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch added to -mm tree
-To: aneesh.kumar@linux.vnet.ibm.com,benh@kernel.crashing.org,mgorman@suse.de,riel@redhat.com
+Subject: + fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf.patch added to -mm tree
+To: todor@minchev.co.uk
 From: akpm@linux-foundation.org
-Date: Wed, 08 Jan 2014 16:10:22 -0800
+Date: Wed, 08 Jan 2014 16:10:59 -0800
 
 
 The patch titled
-     Subject: mm: move change_prot_numa outside CONFIG_ARCH_USES_NUMA_PROT_NONE
+     Subject: fs: binfmt_elf: remove unused defines INTERPRETER_NONE and INTERPRETER_ELF
 has been added to the -mm tree.  Its filename is
-     mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch
+     fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,78 +44,25 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm: move change_prot_numa outside CONFIG_ARCH_USES_NUMA_PROT_NONE
+From: Todor Minchev <todor@minchev.co.uk>
+Subject: fs: binfmt_elf: remove unused defines INTERPRETER_NONE and INTERPRETER_ELF
 
-change_prot_numa should work even if _PAGE_NUMA != _PAGE_PROTNONE.  On
-archs like ppc64 that don't use _PAGE_PROTNONE and also have a separate
-page table outside linux pagetable, we just need to make sure that when
-calling change_prot_numa we flush the hardware page table entry so that
-next page access result in a numa fault.
+These two defines are unused since the removal of the a.out interpreter
+support in the ELF loader in kernel 2.6.25
 
-We still need to make sure we use the numa faulting logic only when
-CONFIG_NUMA_BALANCING is set.  This implies the migrate-on-fault (Lazy
-migration) via mbind will only work if CONFIG_NUMA_BALANCING is set.
-
-Previous discussion around the patch can be found at
-http://article.gmane.org/gmane.linux.kernel.mm/109305
-
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Todor Minchev <todor@minchev.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/mempolicy.c     |    5 ++---
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ fs/binfmt_elf.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/mm.h~mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none include/linux/mm.h
---- a/include/linux/mm.h~mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none
-+++ a/include/linux/mm.h
-@@ -1892,7 +1892,7 @@ static inline pgprot_t vm_get_page_prot(
- }
- #endif
+diff -puN fs/binfmt_elf.c~fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf
++++ a/fs/binfmt_elf.c
+@@ -543,9 +543,6 @@ out:
+  * libraries.  There is no binary dependent code anywhere else.
+  */
  
--#ifdef CONFIG_ARCH_USES_NUMA_PROT_NONE
-+#ifdef CONFIG_NUMA_BALANCING
- unsigned long change_prot_numa(struct vm_area_struct *vma,
- 			unsigned long start, unsigned long end);
- #endif
-diff -puN mm/mempolicy.c~mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none mm/mempolicy.c
---- a/mm/mempolicy.c~mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none
-+++ a/mm/mempolicy.c
-@@ -613,7 +613,7 @@ static inline int queue_pages_pgd_range(
- 	return 0;
- }
- 
--#ifdef CONFIG_ARCH_USES_NUMA_PROT_NONE
-+#ifdef CONFIG_NUMA_BALANCING
- /*
-  * This is used to mark a range of virtual addresses to be inaccessible.
-  * These are later cleared by a NUMA hinting fault. Depending on these
-@@ -627,7 +627,6 @@ unsigned long change_prot_numa(struct vm
- 			unsigned long addr, unsigned long end)
- {
- 	int nr_updated;
--	BUILD_BUG_ON(_PAGE_NUMA != _PAGE_PROTNONE);
- 
- 	nr_updated = change_protection(vma, addr, end, vma->vm_page_prot, 0, 1);
- 	if (nr_updated)
-@@ -641,7 +640,7 @@ static unsigned long change_prot_numa(st
- {
- 	return 0;
- }
--#endif /* CONFIG_ARCH_USES_NUMA_PROT_NONE */
-+#endif /* CONFIG_NUMA_BALANCING */
- 
- /*
-  * Walk through page tables and collect pages to be migrated.
-_
-
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
-
-mm-move-change_prot_numa-outside-config_arch_uses_numa_prot_none.patch
-linux-next.patch
-
+-#define INTERPRETER_NONE 0
+-#define INTERPRETER_ELF 2
