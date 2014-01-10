@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-simplify-sysvipc_proc_open-return.patch added to -mm tree
-Date: Fri, 10 Jan 2014 15:19:33 -0800
-Message-ID: <52d08005.SXi7g9xZWc+oswpP%akpm@linux-foundation.org>
+Subject: + ipc-share-ids-rwsem-when-possible-in-ipcget_public.patch added
+ to -mm tree
+Date: Fri, 10 Jan 2014 15:19:35 -0800
+Message-ID: <52d08007.BtydNV+o+BiRv8gM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33554 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33564 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752226AbaAJXTe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 18:19:34 -0500
+	with ESMTP id S1752226AbaAJXTg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 18:19:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, manfred@colorfullife.com, aswin@hp.com, davidlohr@hp.com
 
-Subject: + ipc-simplify-sysvipc_proc_open-return.patch added to -mm tree
+Subject: + ipc-share-ids-rwsem-when-possible-in-ipcget_public.patch added to -mm tree
 To: davidlohr@hp.com,aswin@hp.com,manfred@colorfullife.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 10 Jan 2014 15:19:33 -0800
+Date: Fri, 10 Jan 2014 15:19:35 -0800
 
 
 The patch titled
-     Subject: ipc: simplify sysvipc_proc_open() return
+     Subject: ipc: share ids rwsem when possible in ipcget_public
 has been added to the -mm tree.  Its filename is
-     ipc-simplify-sysvipc_proc_open-return.patch
+     ipc-share-ids-rwsem-when-possible-in-ipcget_public.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-simplify-sysvipc_proc_open-return.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-share-ids-rwsem-when-possible-in-ipcget_public.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-simplify-sysvipc_proc_open-return.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-share-ids-rwsem-when-possible-in-ipcget_public.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,9 +45,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipc: simplify sysvipc_proc_open() return
+Subject: ipc: share ids rwsem when possible in ipcget_public
 
-Get rid of silly/useless label jumping.
+...  and rewrite the function.  For scenarios where the key is found and
+we end up just doing different routinary checks, we can downgrade the
+ids->rwsem and share it among concurrent readers.  These checks include
+the following, which are all safe to share the lock:
+
+ops->more_checks() >>  sem_more_checks(), shm_more_checks()
+ipc_check_perms()  >>  ipcperms(),ops->associate() >> [lsm]_[ipctype]_associate()
 
 Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
 Cc: Aswin Chandramouleeswaran <aswin@hp.com>
@@ -55,35 +62,101 @@ Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ ipc/util.c |   58 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 32 insertions(+), 26 deletions(-)
 
-diff -puN ipc/util.c~ipc-simplify-sysvipc_proc_open-return ipc/util.c
---- a/ipc/util.c~ipc-simplify-sysvipc_proc_open-return
+diff -puN ipc/util.c~ipc-share-ids-rwsem-when-possible-in-ipcget_public ipc/util.c
+--- a/ipc/util.c~ipc-share-ids-rwsem-when-possible-in-ipcget_public
 +++ a/ipc/util.c
-@@ -911,8 +911,10 @@ static int sysvipc_proc_open(struct inod
- 		goto out;
+@@ -183,7 +183,7 @@ void __init ipc_init_proc_interface(cons
+  * ipc_findkey	- find a key in an ipc identifier set
+  * @ids: ipc identifier set
+  * @key: key to find
+- *	
++ *
+  * Returns the locked pointer to the ipc structure if found or NULL
+  * otherwise. If key is found ipc points to the owning ipc structure
+  *
+@@ -375,48 +375,54 @@ static int ipc_check_perms(struct ipc_na
+  * On success, the ipc id is returned.
+  */
+ static int ipcget_public(struct ipc_namespace *ns, struct ipc_ids *ids,
+-		struct ipc_ops *ops, struct ipc_params *params)
++			 struct ipc_ops *ops, struct ipc_params *params)
+ {
+ 	struct kern_ipc_perm *ipcp;
+ 	int flg = params->flg;
+-	int err;
++	int err = 0;
  
- 	ret = seq_open(file, &sysvipc_proc_seqops);
--	if (ret)
--		goto out_kfree;
-+	if (ret) {
-+		kfree(iter);
-+		goto out;
+-	/*
+-	 * Take the lock as a writer since we are potentially going to add
+-	 * a new entry + read locks are not "upgradable"
+-	 */
+ 	down_write(&ids->rwsem);
+ 	ipcp = ipc_findkey(ids, params->key);
+-	if (ipcp == NULL) {
++
++	if (!ipcp) {
+ 		/* key not used */
+ 		if (!(flg & IPC_CREAT))
+ 			err = -ENOENT;
+-		else
++		else /* create new ipc object */
+ 			err = ops->getnew(ns, params);
+-	} else {
+-		/* ipc object has been locked by ipc_findkey() */
+ 
+-		if (flg & IPC_CREAT && flg & IPC_EXCL)
+-			err = -EEXIST;
+-		else {
+-			err = 0;
+-			if (ops->more_checks)
+-				err = ops->more_checks(ipcp, params);
+-			if (!err)
+-				/*
+-				 * ipc_check_perms returns the IPC id on
+-				 * success
+-				 */
+-				err = ipc_check_perms(ns, ipcp, ops, params);
+-		}
++		goto done_write;
 +	}
++
++	if ((flg & IPC_CREAT) && (flg & IPC_EXCL)) {
++		/* ipc object was locked by successful ipc_findkey() lookup */
+ 		ipc_unlock(ipcp);
++		err = -ENOENT;
++
++		goto done_write;
+ 	}
+-	up_write(&ids->rwsem);
  
- 	seq = file->private_data;
- 	seq->private = iter;
-@@ -921,9 +923,6 @@ static int sysvipc_proc_open(struct inod
- 	iter->ns    = get_ipc_ns(current->nsproxy->ipc_ns);
- out:
- 	return ret;
--out_kfree:
--	kfree(iter);
--	goto out;
++	/*
++	 * The key was found, so we will just perform routinary checks on
++	 * ipc the object. Share the lock among other readers.
++	 */
++	downgrade_write(&ids->rwsem);
++
++	if (ops->more_checks)
++		err = ops->more_checks(ipcp, params);
++	if (!err)
++		/* returns the IPC id on success */
++		err = ipc_check_perms(ns, ipcp, ops, params);
++
++	ipc_unlock(ipcp);
++
++	up_read(&ids->rwsem);
++	return err;
++done_write:
++	up_write(&ids->rwsem);
+ 	return err;
  }
  
- static int sysvipc_proc_release(struct inode *inode, struct file *file)
+-
+ /**
+  * ipc_rmid - remove an ipc identifier
+  * @ids: ipc identifier set
 _
 
 Patches currently in -mm which might be from davidlohr@hp.com are
