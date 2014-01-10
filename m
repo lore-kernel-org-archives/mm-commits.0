@@ -1,98 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] drivers-misc-mei-ratelimit-several-error-messages.patch removed from -mm tree
-Date: Fri, 10 Jan 2014 14:01:06 -0800
-Message-ID: <52d06da2.yYZZaGfCdp/kd5VB%akpm@linux-foundation.org>
+Subject: + include-linux-genalloch-spinlock_t-needs-spinlock_typesh.patch
+ added to -mm tree
+Date: Fri, 10 Jan 2014 15:04:06 -0800
+Message-ID: <52d07c66.w8TGkYjsnU64J0ai%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32775 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33448 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751263AbaAJWBH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 17:01:07 -0500
+	with ESMTP id S1751950AbaAJXEH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 18:04:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tomas.winkler@intel.com, greg@kroah.com, imunsie@au1.ibm.com
+To: mm-commits@vger.kernel.org, shawn.guo@linaro.org
 
-Subject: [wrecked] drivers-misc-mei-ratelimit-several-error-messages.patch removed from -mm tree
-To: imunsie@au1.ibm.com,greg@kroah.com,tomas.winkler@intel.com,mm-commits@vger.kernel.org
+Subject: + include-linux-genalloch-spinlock_t-needs-spinlock_typesh.patch added to -mm tree
+To: shawn.guo@linaro.org
 From: akpm@linux-foundation.org
-Date: Fri, 10 Jan 2014 14:01:06 -0800
+Date: Fri, 10 Jan 2014 15:04:06 -0800
 
 
 The patch titled
-     Subject: drivers/misc/mei: ratelimit several error messages
-has been removed from the -mm tree.  Its filename was
-     drivers-misc-mei-ratelimit-several-error-messages.patch
+     Subject: include/linux/genalloc.h: spinlock_t needs spinlock_types.h
+has been added to the -mm tree.  Its filename is
+     include-linux-genalloch-spinlock_t-needs-spinlock_typesh.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-genalloch-spinlock_t-needs-spinlock_typesh.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-genalloch-spinlock_t-needs-spinlock_typesh.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Ian Munsie <imunsie@au1.ibm.com>
-Subject: drivers/misc/mei: ratelimit several error messages
+From: Shawn Guo <shawn.guo@linaro.org>
+Subject: include/linux/genalloc.h: spinlock_t needs spinlock_types.h
 
-I'm unsure of the cause, but I found irq/40-mei_me consuming 100% CPU and
-my disk full due to kern.log, syslog and messages rapidly growing in size
-filled with these messages:
+Compiling a C file which includes genalloc.h but without spinlock_types.h
+being included before, we will see the compile error below.
 
-Dec 23 12:29:57 dukhat kernel: [336224.363138] mei_me 0000:00:16.0: reset: wrong host start response
-Dec 23 12:29:57 dukhat kernel: [336224.363140] mei_me 0000:00:16.0: unexpected reset: dev_state = RESETTING
-Dec 23 12:29:57 dukhat kernel: [336224.363152] mei_me 0000:00:16.0: reset: unexpected enumeration response hbm.
-Dec 23 12:29:57 dukhat kernel: [336224.363155] mei_me 0000:00:16.0: unexpected reset: dev_state = RESETTING
-Dec 23 12:29:57 dukhat kernel: [336224.363185] mei_me 0000:00:16.0: reset: wrong host start response
-Dec 23 12:29:57 dukhat kernel: [336224.363187] mei_me 0000:00:16.0: unexpected reset: dev_state = RESETTING
-Dec 23 12:29:57 dukhat kernel: [336224.363199] mei_me 0000:00:16.0: reset: unexpected enumeration response hbm.
-Dec 23 12:29:57 dukhat kernel: [336224.363201] mei_me 0000:00:16.0: unexpected reset: dev_state = RESETTING
+ include/linux/genalloc.h:54:2: error: unknown type name `spinlock_t'
 
-This patch ratelimits those specific messages to reduce the impact if this
-problem ever recurs.
+Include spinlock_types.h from genalloc.h to fix the problem.
 
-Signed-off-by: Ian Munsie <imunsie@au1.ibm.com>
-Cc: Tomas Winkler <tomas.winkler@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/mei/hbm.c  |    4 ++--
- drivers/misc/mei/init.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/genalloc.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/misc/mei/hbm.c~drivers-misc-mei-ratelimit-several-error-messages drivers/misc/mei/hbm.c
---- a/drivers/misc/mei/hbm.c~drivers-misc-mei-ratelimit-several-error-messages
-+++ a/drivers/misc/mei/hbm.c
-@@ -613,7 +613,7 @@ void mei_hbm_dispatch(struct mei_device
- 			dev->init_clients_timer = 0;
- 			mei_hbm_enum_clients_req(dev);
- 		} else {
--			dev_err(&dev->pdev->dev, "reset: wrong host start response\n");
-+			dev_err_ratelimited(&dev->pdev->dev, "reset: wrong host start response\n");
- 			mei_reset(dev, 1);
- 			return;
- 		}
-@@ -690,7 +690,7 @@ void mei_hbm_dispatch(struct mei_device
- 				/* first property reqeust */
- 				mei_hbm_prop_req(dev);
- 		} else {
--			dev_err(&dev->pdev->dev, "reset: unexpected enumeration response hbm.\n");
-+			dev_err_ratelimited(&dev->pdev->dev, "reset: unexpected enumeration response hbm.\n");
- 			mei_reset(dev, 1);
- 			return;
- 		}
-diff -puN drivers/misc/mei/init.c~drivers-misc-mei-ratelimit-several-error-messages drivers/misc/mei/init.c
---- a/drivers/misc/mei/init.c~drivers-misc-mei-ratelimit-several-error-messages
-+++ a/drivers/misc/mei/init.c
-@@ -148,7 +148,7 @@ void mei_reset(struct mei_device *dev, i
- 			dev->dev_state != MEI_DEV_POWER_UP);
+diff -puN include/linux/genalloc.h~include-linux-genalloch-spinlock_t-needs-spinlock_typesh include/linux/genalloc.h
+--- a/include/linux/genalloc.h~include-linux-genalloch-spinlock_t-needs-spinlock_typesh
++++ a/include/linux/genalloc.h
+@@ -30,6 +30,8 @@
+ #ifndef __GENALLOC_H__
+ #define __GENALLOC_H__
  
- 	if (unexpected)
--		dev_warn(&dev->pdev->dev, "unexpected reset: dev_state = %s\n",
-+		dev_warn_ratelimited(&dev->pdev->dev, "unexpected reset: dev_state = %s\n",
- 			 mei_dev_state_str(dev->dev_state));
++#include <linux/spinlock_types.h>
++
+ struct device;
+ struct device_node;
  
- 	ret = mei_hw_reset(dev, interrupts_enabled);
 _
 
-Patches currently in -mm which might be from imunsie@au1.ibm.com are
+Patches currently in -mm which might be from shawn.guo@linaro.org are
 
+include-linux-genalloch-spinlock_t-needs-spinlock_typesh.patch
+linux-next.patch
 
