@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-remove-useless-return-statement.patch added to -mm tree
-Date: Fri, 10 Jan 2014 15:19:32 -0800
-Message-ID: <52d08004.Kb7TtqEa9W13cYPb%akpm@linux-foundation.org>
+Subject: + ipc-simplify-sysvipc_proc_open-return.patch added to -mm tree
+Date: Fri, 10 Jan 2014 15:19:33 -0800
+Message-ID: <52d08005.SXi7g9xZWc+oswpP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33549 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33554 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720AbaAJXTd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 18:19:33 -0500
+	with ESMTP id S1752226AbaAJXTe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 18:19:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, manfred@colorfullife.com, aswin@hp.com, davidlohr@hp.com
 
-Subject: + ipc-remove-useless-return-statement.patch added to -mm tree
+Subject: + ipc-simplify-sysvipc_proc_open-return.patch added to -mm tree
 To: davidlohr@hp.com,aswin@hp.com,manfred@colorfullife.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 10 Jan 2014 15:19:32 -0800
+Date: Fri, 10 Jan 2014 15:19:33 -0800
 
 
 The patch titled
-     Subject: ipc: remove useless return statement
+     Subject: ipc: simplify sysvipc_proc_open() return
 has been added to the -mm tree.  Its filename is
-     ipc-remove-useless-return-statement.patch
+     ipc-simplify-sysvipc_proc_open-return.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-remove-useless-return-statement.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-simplify-sysvipc_proc_open-return.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-remove-useless-return-statement.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-simplify-sysvipc_proc_open-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,9 +44,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipc: remove useless return statement
+Subject: ipc: simplify sysvipc_proc_open() return
 
-Only found in ipc_rmid().
+Get rid of silly/useless label jumping.
 
 Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
 Cc: Aswin Chandramouleeswaran <aswin@hp.com>
@@ -55,25 +55,35 @@ Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    4 ----
- 1 file changed, 4 deletions(-)
+ ipc/util.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN ipc/util.c~ipc-remove-useless-return-statement ipc/util.c
---- a/ipc/util.c~ipc-remove-useless-return-statement
+diff -puN ipc/util.c~ipc-simplify-sysvipc_proc_open-return ipc/util.c
+--- a/ipc/util.c~ipc-simplify-sysvipc_proc_open-return
 +++ a/ipc/util.c
-@@ -439,12 +439,8 @@ void ipc_rmid(struct ipc_ids *ids, struc
- 	int lid = ipcid_to_idx(ipcp->id);
+@@ -911,8 +911,10 @@ static int sysvipc_proc_open(struct inod
+ 		goto out;
  
- 	idr_remove(&ids->ipcs_idr, lid);
--
- 	ids->in_use--;
--
- 	ipcp->deleted = true;
--
--	return;
+ 	ret = seq_open(file, &sysvipc_proc_seqops);
+-	if (ret)
+-		goto out_kfree;
++	if (ret) {
++		kfree(iter);
++		goto out;
++	}
+ 
+ 	seq = file->private_data;
+ 	seq->private = iter;
+@@ -921,9 +923,6 @@ static int sysvipc_proc_open(struct inod
+ 	iter->ns    = get_ipc_ns(current->nsproxy->ipc_ns);
+ out:
+ 	return ret;
+-out_kfree:
+-	kfree(iter);
+-	goto out;
  }
  
- /**
+ static int sysvipc_proc_release(struct inode *inode, struct file *file)
 _
 
 Patches currently in -mm which might be from davidlohr@hp.com are
