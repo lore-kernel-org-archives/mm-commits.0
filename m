@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-delete-seq_max-field-in-struct-ipc_ids.patch added to -mm
- tree
-Date: Fri, 10 Jan 2014 15:19:34 -0800
-Message-ID: <52d08006.yXJhwsQ+wO0Sy+KQ%akpm@linux-foundation.org>
+Subject: + ipcmsg-document-barriers.patch added to -mm tree
+Date: Fri, 10 Jan 2014 15:19:36 -0800
+Message-ID: <52d08008.Xzy0g46qzu8Y8iXH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33558 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33567 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752226AbaAJXTf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 18:19:35 -0500
+	with ESMTP id S1752226AbaAJXTh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 18:19:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, manfred@colorfullife.com, jgonzalez@linets.cl, aswin@hp.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, manfred@colorfullife.com, aswin@hp.com, davidlohr@hp.com
 
-Subject: + ipc-delete-seq_max-field-in-struct-ipc_ids.patch added to -mm tree
-To: davidlohr@hp.com,aswin@hp.com,jgonzalez@linets.cl,manfred@colorfullife.com,riel@redhat.com
+Subject: + ipcmsg-document-barriers.patch added to -mm tree
+To: davidlohr@hp.com,aswin@hp.com,manfred@colorfullife.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 10 Jan 2014 15:19:34 -0800
+Date: Fri, 10 Jan 2014 15:19:36 -0800
 
 
 The patch titled
-     Subject: ipc: delete seq_max field in struct ipc_ids
+     Subject: ipc,msg: document barriers
 has been added to the -mm tree.  Its filename is
-     ipc-delete-seq_max-field-in-struct-ipc_ids.patch
+     ipcmsg-document-barriers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-delete-seq_max-field-in-struct-ipc_ids.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-document-barriers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-delete-seq_max-field-in-struct-ipc_ids.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-document-barriers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,86 +44,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipc: delete seq_max field in struct ipc_ids
+Subject: ipc,msg: document barriers
 
-This field is only used to reset the ids seq number if it exceeds the
-smaller of INT_MAX/SEQ_MULTIPLIER and USHRT_MAX, and can therefore be
-moved out of the structure and into its own macro.  Since each
-ipc_namespace contains a table of 3 pointers to struct ipc_ids we can save
-space in instruction text:
-
-   text    data     bss     dec     hex filename
-  56232    2348      24   58604    e4ec ipc/built-in.o
-  56216    2348      24   58588    e4dc ipc/built-in.o-after
+Both expunge_all() and pipeline_send() rely on both a nil msg value and a
+full barrier to guarantee the correct ordering when waking up a task. 
+While its counter part at the receiving end is well documented for the
+lockless recv algorithm, we still need to document these specific smp_mb()
+calls.
 
 Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Reviewed-by: Jonathan Gonzalez <jgonzalez@linets.cl>
 Cc: Aswin Chandramouleeswaran <aswin@hp.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    1 -
- ipc/util.c                    |   13 ++-----------
- ipc/util.h                    |    1 +
- 3 files changed, 3 insertions(+), 12 deletions(-)
+ ipc/msg.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~ipc-delete-seq_max-field-in-struct-ipc_ids include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~ipc-delete-seq_max-field-in-struct-ipc_ids
-+++ a/include/linux/ipc_namespace.h
-@@ -21,7 +21,6 @@ struct user_namespace;
- struct ipc_ids {
- 	int in_use;
- 	unsigned short seq;
--	unsigned short seq_max;
- 	struct rw_semaphore rwsem;
- 	struct idr ipcs_idr;
- 	int next_id;
-diff -puN ipc/util.c~ipc-delete-seq_max-field-in-struct-ipc_ids ipc/util.c
---- a/ipc/util.c~ipc-delete-seq_max-field-in-struct-ipc_ids
-+++ a/ipc/util.c
-@@ -139,19 +139,10 @@ __initcall(ipc_init);
-  */
- void ipc_init_ids(struct ipc_ids *ids)
- {
--	init_rwsem(&ids->rwsem);
--
- 	ids->in_use = 0;
- 	ids->seq = 0;
- 	ids->next_id = -1;
--	{
--		int seq_limit = INT_MAX/SEQ_MULTIPLIER;
--		if (seq_limit > USHRT_MAX)
--			ids->seq_max = USHRT_MAX;
--		 else
--			ids->seq_max = seq_limit;
--	}
--
-+	init_rwsem(&ids->rwsem);
- 	idr_init(&ids->ipcs_idr);
+diff -puN ipc/msg.c~ipcmsg-document-barriers ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-document-barriers
++++ a/ipc/msg.c
+@@ -253,8 +253,14 @@ static void expunge_all(struct msg_queue
+ 	struct msg_receiver *msr, *t;
+ 
+ 	list_for_each_entry_safe(msr, t, &msq->q_receivers, r_list) {
+-		msr->r_msg = NULL;
++		msr->r_msg = NULL; /* initialize expunge ordering */
+ 		wake_up_process(msr->r_tsk);
++		/*
++		 * Ensure that the wakeup is visible before setting r_msg as
++		 * the receiving end depends on it: either spinning on a nil,
++		 * or dealing with -EAGAIN cases. See lockless reveice part 1
++		 * and 2 in do_msgrcv().
++		 */
+ 		smp_mb();
+ 		msr->r_msg = ERR_PTR(res);
+ 	}
+@@ -638,15 +644,22 @@ static inline int pipelined_send(struct
+ 
+ 			list_del(&msr->r_list);
+ 			if (msr->r_maxsize < msg->m_ts) {
++				/* initialize pipelined send ordering */
+ 				msr->r_msg = NULL;
+ 				wake_up_process(msr->r_tsk);
+-				smp_mb();
++				smp_mb(); /* see barrier comment below */
+ 				msr->r_msg = ERR_PTR(-E2BIG);
+ 			} else {
+ 				msr->r_msg = NULL;
+ 				msq->q_lrpid = task_pid_vnr(msr->r_tsk);
+ 				msq->q_rtime = get_seconds();
+ 				wake_up_process(msr->r_tsk);
++				/*
++				 * Ensure that the wakeup is visible before
++				 * setting r_msg, as the receiving end depends
++				 * on it. See lockless reveice part 1 and 2 in
++				 * do_msgrcv().
++				 */
+ 				smp_mb();
+ 				msr->r_msg = msg;
+ 
+@@ -654,6 +667,7 @@ static inline int pipelined_send(struct
+ 			}
+ 		}
+ 	}
++
+ 	return 0;
  }
  
-@@ -304,7 +295,7 @@ int ipc_addid(struct ipc_ids *ids, struc
+@@ -716,6 +730,7 @@ long do_msgsnd(int msqid, long mtype, vo
+ 			goto out_unlock0;
+ 		}
  
- 	if (next_id < 0) {
- 		new->seq = ids->seq++;
--		if (ids->seq > ids->seq_max)
-+		if (ids->seq > IPCID_SEQ_MAX)
- 			ids->seq = 0;
- 	} else {
- 		new->seq = ipcid_to_seqx(next_id);
-diff -puN ipc/util.h~ipc-delete-seq_max-field-in-struct-ipc_ids ipc/util.h
---- a/ipc/util.h~ipc-delete-seq_max-field-in-struct-ipc_ids
-+++ a/ipc/util.h
-@@ -100,6 +100,7 @@ void __init ipc_init_proc_interface(cons
++		/* enqueue the sender and prepare to block */
+ 		ss_add(msq, &s);
  
- #define ipcid_to_idx(id) ((id) % SEQ_MULTIPLIER)
- #define ipcid_to_seqx(id) ((id) / SEQ_MULTIPLIER)
-+#define IPCID_SEQ_MAX min_t(int, INT_MAX/SEQ_MULTIPLIER, USHRT_MAX)
- 
- /* must be called with ids->rwsem acquired for writing */
- int ipc_addid(struct ipc_ids *, struct kern_ipc_perm *, int);
+ 		if (!ipc_rcu_getref(msq)) {
 _
 
 Patches currently in -mm which might be from davidlohr@hp.com are
