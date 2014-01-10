@@ -1,96 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-rework-memcg_update_kmem_limit-synchronization-fix.patch
- added to -mm tree
-Date: Fri, 10 Jan 2014 13:57:21 -0800
-Message-ID: <52d06cc1.vz8oPBtE5fgOnBoQ%akpm@linux-foundation.org>
+Subject: [wrecked] drivers-misc-mei-ratelimit-several-error-messages.patch removed from -mm tree
+Date: Fri, 10 Jan 2014 14:01:06 -0800
+Message-ID: <52d06da2.yYZZaGfCdp/kd5VB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32769 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32775 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751343AbaAJV5W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 16:57:22 -0500
+	with ESMTP id S1751263AbaAJWBH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 17:01:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, tomas.winkler@intel.com, greg@kroah.com, imunsie@au1.ibm.com
 
-Subject: + memcg-rework-memcg_update_kmem_limit-synchronization-fix.patch added to -mm tree
-To: vdavydov@parallels.com,fengguang.wu@intel.com
+Subject: [wrecked] drivers-misc-mei-ratelimit-several-error-messages.patch removed from -mm tree
+To: imunsie@au1.ibm.com,greg@kroah.com,tomas.winkler@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 10 Jan 2014 13:57:21 -0800
+Date: Fri, 10 Jan 2014 14:01:06 -0800
 
 
 The patch titled
-     Subject: memcg-rework-memcg_update_kmem_limit-synchronization-fix
-has been added to the -mm tree.  Its filename is
-     memcg-rework-memcg_update_kmem_limit-synchronization-fix.patch
+     Subject: drivers/misc/mei: ratelimit several error messages
+has been removed from the -mm tree.  Its filename was
+     drivers-misc-mei-ratelimit-several-error-messages.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-rework-memcg_update_kmem_limit-synchronization-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-rework-memcg_update_kmem_limit-synchronization-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg-rework-memcg_update_kmem_limit-synchronization-fix
+From: Ian Munsie <imunsie@au1.ibm.com>
+Subject: drivers/misc/mei: ratelimit several error messages
 
-mm/memcontrol.c: In function 'mem_cgroup_css_online':
-mm/memcontrol.c:5884:5: warning: 'ret' may be used uninitialized in this
-function [-Wmaybe-uninitialized]
+I'm unsure of the cause, but I found irq/40-mei_me consuming 100% CPU and
+my disk full due to kern.log, syslog and messages rapidly growing in size
+filled with these messages:
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Dec 23 12:29:57 dukhat kernel: [336224.363138] mei_me 0000:00:16.0: reset: wrong host start response
+Dec 23 12:29:57 dukhat kernel: [336224.363140] mei_me 0000:00:16.0: unexpected reset: dev_state = RESETTING
+Dec 23 12:29:57 dukhat kernel: [336224.363152] mei_me 0000:00:16.0: reset: unexpected enumeration response hbm.
+Dec 23 12:29:57 dukhat kernel: [336224.363155] mei_me 0000:00:16.0: unexpected reset: dev_state = RESETTING
+Dec 23 12:29:57 dukhat kernel: [336224.363185] mei_me 0000:00:16.0: reset: wrong host start response
+Dec 23 12:29:57 dukhat kernel: [336224.363187] mei_me 0000:00:16.0: unexpected reset: dev_state = RESETTING
+Dec 23 12:29:57 dukhat kernel: [336224.363199] mei_me 0000:00:16.0: reset: unexpected enumeration response hbm.
+Dec 23 12:29:57 dukhat kernel: [336224.363201] mei_me 0000:00:16.0: unexpected reset: dev_state = RESETTING
+
+This patch ratelimits those specific messages to reduce the impact if this
+problem ever recurs.
+
+Signed-off-by: Ian Munsie <imunsie@au1.ibm.com>
+Cc: Tomas Winkler <tomas.winkler@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/mei/hbm.c  |    4 ++--
+ drivers/misc/mei/init.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-rework-memcg_update_kmem_limit-synchronization-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-rework-memcg_update_kmem_limit-synchronization-fix
-+++ a/mm/memcontrol.c
-@@ -5189,7 +5189,7 @@ static int memcg_update_kmem_limit(struc
+diff -puN drivers/misc/mei/hbm.c~drivers-misc-mei-ratelimit-several-error-messages drivers/misc/mei/hbm.c
+--- a/drivers/misc/mei/hbm.c~drivers-misc-mei-ratelimit-several-error-messages
++++ a/drivers/misc/mei/hbm.c
+@@ -613,7 +613,7 @@ void mei_hbm_dispatch(struct mei_device
+ 			dev->init_clients_timer = 0;
+ 			mei_hbm_enum_clients_req(dev);
+ 		} else {
+-			dev_err(&dev->pdev->dev, "reset: wrong host start response\n");
++			dev_err_ratelimited(&dev->pdev->dev, "reset: wrong host start response\n");
+ 			mei_reset(dev, 1);
+ 			return;
+ 		}
+@@ -690,7 +690,7 @@ void mei_hbm_dispatch(struct mei_device
+ 				/* first property reqeust */
+ 				mei_hbm_prop_req(dev);
+ 		} else {
+-			dev_err(&dev->pdev->dev, "reset: unexpected enumeration response hbm.\n");
++			dev_err_ratelimited(&dev->pdev->dev, "reset: unexpected enumeration response hbm.\n");
+ 			mei_reset(dev, 1);
+ 			return;
+ 		}
+diff -puN drivers/misc/mei/init.c~drivers-misc-mei-ratelimit-several-error-messages drivers/misc/mei/init.c
+--- a/drivers/misc/mei/init.c~drivers-misc-mei-ratelimit-several-error-messages
++++ a/drivers/misc/mei/init.c
+@@ -148,7 +148,7 @@ void mei_reset(struct mei_device *dev, i
+ 			dev->dev_state != MEI_DEV_POWER_UP);
  
- static int memcg_propagate_kmem(struct mem_cgroup *memcg)
- {
--	int ret;
-+	int ret = 0;
- 	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
+ 	if (unexpected)
+-		dev_warn(&dev->pdev->dev, "unexpected reset: dev_state = %s\n",
++		dev_warn_ratelimited(&dev->pdev->dev, "unexpected reset: dev_state = %s\n",
+ 			 mei_dev_state_str(dev->dev_state));
  
- 	if (!parent)
+ 	ret = mei_hw_reset(dev, interrupts_enabled);
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from imunsie@au1.ibm.com are
 
-fs-superc-fix-warn-on-alloc_super-fail-path.patch
-memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
-memcg-make-memcg_update_cache_sizes-static.patch
-memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
-slab-clean-up-kmem_cache_create_memcg-error-handling.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
-memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
-memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
-memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
-memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
-memcg-get-rid-of-kmem_cache_dup.patch
-slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
-memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
-memcg-remove-kmem_accounted_activated-flag.patch
-memcg-rework-memcg_update_kmem_limit-synchronization.patch
-memcg-rework-memcg_update_kmem_limit-synchronization-fix.patch
-linux-next.patch
 
