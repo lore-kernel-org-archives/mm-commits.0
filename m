@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-remove-braces-for-single-statements.patch added to -mm tree
-Date: Fri, 10 Jan 2014 15:19:31 -0800
-Message-ID: <52d08003.AKgcFUUNAjTYTcer%akpm@linux-foundation.org>
+Subject: + ipc-remove-useless-return-statement.patch added to -mm tree
+Date: Fri, 10 Jan 2014 15:19:32 -0800
+Message-ID: <52d08004.Kb7TtqEa9W13cYPb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33547 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33549 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720AbaAJXTc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 18:19:32 -0500
+	with ESMTP id S1751720AbaAJXTd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jan 2014 18:19:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, manfred@colorfullife.com, aswin@hp.com, davidlohr@hp.com
 
-Subject: + ipc-remove-braces-for-single-statements.patch added to -mm tree
+Subject: + ipc-remove-useless-return-statement.patch added to -mm tree
 To: davidlohr@hp.com,aswin@hp.com,manfred@colorfullife.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 10 Jan 2014 15:19:31 -0800
+Date: Fri, 10 Jan 2014 15:19:32 -0800
 
 
 The patch titled
-     Subject: ipc: remove braces for single statements
+     Subject: ipc: remove useless return statement
 has been added to the -mm tree.  Its filename is
-     ipc-remove-braces-for-single-statements.patch
+     ipc-remove-useless-return-statement.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-remove-braces-for-single-statements.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-remove-useless-return-statement.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-remove-braces-for-single-statements.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-remove-useless-return-statement.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,10 +44,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipc: remove braces for single statements
+Subject: ipc: remove useless return statement
 
-Deal with checkpatch messages:
-     WARNING: braces {} are not necessary for single statement blocks
+Only found in ipc_rmid().
 
 Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
 Cc: Aswin Chandramouleeswaran <aswin@hp.com>
@@ -56,119 +55,25 @@ Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/compat.c |   18 +++++++++---------
- ipc/mqueue.c |    6 +++---
- ipc/sem.c    |    8 +++-----
- ipc/util.c   |    3 +--
- 4 files changed, 16 insertions(+), 19 deletions(-)
+ ipc/util.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN ipc/compat.c~ipc-remove-braces-for-single-statements ipc/compat.c
---- a/ipc/compat.c~ipc-remove-braces-for-single-statements
-+++ a/ipc/compat.c
-@@ -288,11 +288,11 @@ static long do_compat_semctl(int first,
- 		break;
- 
- 	case IPC_SET:
--		if (version == IPC_64) {
-+		if (version == IPC_64)
- 			err = get_compat_semid64_ds(&s64, compat_ptr(pad));
--		} else {
-+		else
- 			err = get_compat_semid_ds(&s64, compat_ptr(pad));
--		}
-+
- 		up64 = compat_alloc_user_space(sizeof(s64));
- 		if (copy_to_user(up64, &s64, sizeof(s64)))
- 			err = -EFAULT;
-@@ -515,11 +515,11 @@ long compat_sys_msgctl(int first, int se
- 		break;
- 
- 	case IPC_SET:
--		if (version == IPC_64) {
-+		if (version == IPC_64)
- 			err = get_compat_msqid64(&m64, uptr);
--		} else {
-+		else
- 			err = get_compat_msqid(&m64, uptr);
--		}
-+
- 		if (err)
- 			break;
- 		p = compat_alloc_user_space(sizeof(m64));
-@@ -702,11 +702,11 @@ long compat_sys_shmctl(int first, int se
- 
- 
- 	case IPC_SET:
--		if (version == IPC_64) {
-+		if (version == IPC_64)
- 			err = get_compat_shmid64_ds(&s64, uptr);
--		} else {
-+		else
- 			err = get_compat_shmid_ds(&s64, uptr);
--		}
-+
- 		if (err)
- 			break;
- 		p = compat_alloc_user_space(sizeof(s64));
-diff -puN ipc/mqueue.c~ipc-remove-braces-for-single-statements ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-remove-braces-for-single-statements
-+++ a/ipc/mqueue.c
-@@ -1303,11 +1303,11 @@ retry:
- out_fput:
- 	fdput(f);
- out:
--	if (sock) {
-+	if (sock)
- 		netlink_detachskb(sock, nc);
--	} else if (nc) {
-+	else if (nc)
- 		dev_kfree_skb(nc);
--	}
-+
- 	return ret;
- }
- 
-diff -puN ipc/sem.c~ipc-remove-braces-for-single-statements ipc/sem.c
---- a/ipc/sem.c~ipc-remove-braces-for-single-statements
-+++ a/ipc/sem.c
-@@ -492,9 +492,9 @@ static int newary(struct ipc_namespace *
- 
- 	size = sizeof(*sma) + nsems * sizeof(struct sem);
- 	sma = ipc_rcu_alloc(size);
--	if (!sma) {
-+	if (!sma)
- 		return -ENOMEM;
--	}
-+
- 	memset(sma, 0, size);
- 
- 	sma->sem_perm.mode = (semflg & S_IRWXUGO);
-@@ -1967,10 +1967,8 @@ sleep_again:
- 	 * If queue.status != -EINTR we are woken up by another process.
- 	 * Leave without unlink_queue(), but with sem_unlock().
- 	 */
--
--	if (error != -EINTR) {
-+	if (error != -EINTR)
- 		goto out_unlock_free;
--	}
- 
- 	/*
- 	 * If an interrupt occurred we have to clean up the queue
-diff -puN ipc/util.c~ipc-remove-braces-for-single-statements ipc/util.c
---- a/ipc/util.c~ipc-remove-braces-for-single-statements
+diff -puN ipc/util.c~ipc-remove-useless-return-statement ipc/util.c
+--- a/ipc/util.c~ipc-remove-useless-return-statement
 +++ a/ipc/util.c
-@@ -183,9 +183,8 @@ void __init ipc_init_proc_interface(cons
- 			       NULL,           /* parent dir */
- 			       &sysvipc_proc_fops,
- 			       iface);
--	if (!pde) {
-+	if (!pde)
- 		kfree(iface);
--	}
- }
- #endif
+@@ -439,12 +439,8 @@ void ipc_rmid(struct ipc_ids *ids, struc
+ 	int lid = ipcid_to_idx(ipcp->id);
  
+ 	idr_remove(&ids->ipcs_idr, lid);
+-
+ 	ids->in_use--;
+-
+ 	ipcp->deleted = true;
+-
+-	return;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from davidlohr@hp.com are
