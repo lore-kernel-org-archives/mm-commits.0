@@ -1,119 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: + ipcmsg-document-barriers-fix.patch added to -mm tree
-Date: Mon, 13 Jan 2014 13:44:39 -0800
-Message-ID: <52d45e47.lp06LyqEXggW4fxS%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
+ removed from -mm tree
+Date: Mon, 13 Jan 2014 13:45:44 -0800
+Message-ID: <52d45e88.gV43HMB3kEpubvG9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52700 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52707 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbaAMVok (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 16:44:40 -0500
+	with ESMTP id S1750962AbaAMVpp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 16:45:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, davidlohr@hp.com, bitbucket@online.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, weijie.yang.kh@gmail.com, shli@fusionio.com, minchan@kernel.org, konrad.wilk@oracle.com, hughd@google.com, bob.liu@oracle.com, k.kozlowski@samsung.com
 
-Subject: + ipcmsg-document-barriers-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,bitbucket@online.de,davidlohr@hp.com
+Subject: [alternative-merged] swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch removed from -mm tree
+To: k.kozlowski@samsung.com,bob.liu@oracle.com,hughd@google.com,konrad.wilk@oracle.com,minchan@kernel.org,shli@fusionio.com,weijie.yang.kh@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 13:44:39 -0800
+Date: Mon, 13 Jan 2014 13:45:44 -0800
 
 
 The patch titled
-     Subject: ipcmsg-document-barriers-fix
-has been added to the -mm tree.  Its filename is
-     ipcmsg-document-barriers-fix.patch
+     Subject: swap: fix setting PAGE_SIZE blocksize during swapoff/swapon race
+has been removed from the -mm tree.  Its filename was
+     swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-document-barriers-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-document-barriers-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipcmsg-document-barriers-fix
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: swap: fix setting PAGE_SIZE blocksize during swapoff/swapon race
 
-fix typo, per Mike
+Fix race between swapoff and swapon resulting in setting blocksize of
+PAGE_SIZE for block devices during swapoff.
 
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Mike Galbraith <bitbucket@online.de>
+The swapon modifies swap_info->old_block_size before acquiring
+swapon_mutex.  It reads block_size of bdev, stores it under
+swap_info->old_block_size and sets new block_size to PAGE_SIZE.
+
+On the other hand the swapoff sets the device's block_size to
+old_block_size after releasing swapon_mutex.
+
+This patch locks the swapon_mutex much earlier during swapon. It also
+releases the swapon_mutex later during swapoff.
+
+The effect of race can be triggered by following scenario:
+ - One block swap device with block size of 512
+ - thread 1: Swapon is called, swap is activated,
+   p->old_block_size = block_size(p->bdev); /512/
+   block_size(p->bdev) = PAGE_SIZE;
+   Thread ends.
+
+ - thread 2: Swapoff is called and it goes just after releasing the
+   swapon_mutex. The swap is now fully disabled except of setting the
+   block size to old value. The p->bdev->block_size is still equal to
+   PAGE_SIZE.
+
+ - thread 3: New swapon is called. This swap is disabled so without
+   acquiring the swapon_mutex:
+   - p->old_block_size = block_size(p->bdev); /PAGE_SIZE (!!!)/
+   - block_size(p->bdev) = PAGE_SIZE;
+   Swap is activated and thread ends.
+
+ - thread 2: resumes work and sets blocksize to old value:
+   - set_blocksize(bdev, p->old_block_size)
+   But now the p->old_block_size is equal to PAGE_SIZE.
+
+The patch swap-fix-set_blocksize-race-during-swapon-swapoff does not fix
+this particular issue.  It reduces the possibility of races as the swapon
+must overwrite p->old_block_size before acquiring swapon_mutex in swapoff.
+
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Weijie Yang <weijie.yang.kh@gmail.com>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN ipc/msg.c~ipcmsg-document-barriers-fix ipc/msg.c
---- a/ipc/msg.c~ipcmsg-document-barriers-fix
-+++ a/ipc/msg.c
-@@ -258,7 +258,7 @@ static void expunge_all(struct msg_queue
- 		/*
- 		 * Ensure that the wakeup is visible before setting r_msg as
- 		 * the receiving end depends on it: either spinning on a nil,
--		 * or dealing with -EAGAIN cases. See lockless reveice part 1
-+		 * or dealing with -EAGAIN cases. See lockless receive part 1
- 		 * and 2 in do_msgrcv().
- 		 */
- 		smp_mb();
+diff -puN mm/swapfile.c~swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race mm/swapfile.c
+--- a/mm/swapfile.c~swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race
++++ a/mm/swapfile.c
+@@ -1927,7 +1927,6 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	spin_unlock(&swap_lock);
+ 	frontswap_invalidate_area(type);
+ 	frontswap_map_set(p, NULL);
+-	mutex_unlock(&swapon_mutex);
+ 	free_percpu(p->percpu_cluster);
+ 	p->percpu_cluster = NULL;
+ 	vfree(swap_map);
+@@ -1947,6 +1946,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 		mutex_unlock(&inode->i_mutex);
+ 	}
+ 	filp_close(swap_file, NULL);
++	mutex_unlock(&swapon_mutex);
+ 
+ 	/*
+ 	 * Clear the SWP_USED flag after all resources are freed so that swapon
+@@ -2413,37 +2413,38 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		}
+ 	}
+ 
++	mutex_lock(&swapon_mutex);
+ 	inode = mapping->host;
+ 	/* If S_ISREG(inode->i_mode) will do mutex_lock(&inode->i_mutex); */
+ 	error = claim_swapfile(p, inode);
+ 	if (unlikely(error))
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 
+ 	/*
+ 	 * Read the swap header.
+ 	 */
+ 	if (!mapping->a_ops->readpage) {
+ 		error = -EINVAL;
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 	}
+ 	page = read_mapping_page(mapping, 0, swap_file);
+ 	if (IS_ERR(page)) {
+ 		error = PTR_ERR(page);
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 	}
+ 	swap_header = kmap(page);
+ 
+ 	maxpages = read_swap_header(p, swap_header, inode);
+ 	if (unlikely(!maxpages)) {
+ 		error = -EINVAL;
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 	}
+ 
+ 	/* OK, set up the swap map and apply the bad block list */
+ 	swap_map = vzalloc(maxpages);
+ 	if (!swap_map) {
+ 		error = -ENOMEM;
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 	}
+ 	if (p->bdev && blk_queue_nonrot(bdev_get_queue(p->bdev))) {
+ 		p->flags |= SWP_SOLIDSTATE;
+@@ -2473,13 +2474,13 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 
+ 	error = swap_cgroup_swapon(p->type, maxpages);
+ 	if (error)
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 
+ 	nr_extents = setup_swap_map_and_extents(p, swap_header, swap_map,
+ 		cluster_info, maxpages, &span);
+ 	if (unlikely(nr_extents < 0)) {
+ 		error = nr_extents;
+-		goto bad_swap;
++		goto bad_swap_wmutex;
+ 	}
+ 	/* frontswap enabled? set up bit-per-page map for frontswap */
+ 	if (frontswap_enabled)
+@@ -2515,7 +2516,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		}
+ 	}
+ 
+-	mutex_lock(&swapon_mutex);
+ 	prio = -1;
+ 	if (swap_flags & SWAP_FLAG_PREFER)
+ 		prio =
+@@ -2540,6 +2540,8 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		inode->i_flags |= S_SWAPFILE;
+ 	error = 0;
+ 	goto out;
++bad_swap_wmutex:
++	mutex_unlock(&swapon_mutex);
+ bad_swap:
+ 	free_percpu(p->percpu_cluster);
+ 	p->percpu_cluster = NULL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-posix_acl-uninlining.patch
-mm.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path-fix-2.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
-mm-show_mem-remove-show_mem_filter_page_count-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-sched-add-tracepoints-related-to-numa-task-migration-fix.patch
-mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
-mm-print-more-details-for-bad_page-fix.patch
-mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
-mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix-fix.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
-numa-add-a-sysctl-for-numa_balancing-fix.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-printk-flush-conflicting-continuation-line-fix.patch
-drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
-ipcmsg-document-barriers-fix.patch
 linux-next.patch
-net-ipv6-ip6_vtic-fix-build.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
