@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc_namespacec-simplify-testing-nsp-and-nsp-mnt_ns.patch
+Subject: + fs-ramfs-dont-use-module_init-for-non-modular-core-code.patch
  added to -mm tree
-Date: Mon, 13 Jan 2014 12:03:12 -0800
-Message-ID: <52d44680.xdA0TZW85glk/bLW%akpm@linux-foundation.org>
+Date: Mon, 13 Jan 2014 12:03:13 -0800
+Message-ID: <52d44681.sBiJUbFIDgMoIg/n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52057 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52059 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751694AbaAMUDO (ORCPT
+	with ESMTP id S1751642AbaAMUDO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 15:03:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, axel.lin@ingics.com
+To: mm-commits@vger.kernel.org, paul.gortmaker@windriver.com
 
-Subject: + fs-proc_namespacec-simplify-testing-nsp-and-nsp-mnt_ns.patch added to -mm tree
-To: axel.lin@ingics.com
+Subject: + fs-ramfs-dont-use-module_init-for-non-modular-core-code.patch added to -mm tree
+To: paul.gortmaker@windriver.com
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 12:03:12 -0800
+Date: Mon, 13 Jan 2014 12:03:13 -0800
 
 
 The patch titled
-     Subject: fs/proc_namespace.c: simplify testing nsp and nsp->mnt_ns
+     Subject: fs/ramfs: don't use module_init for non-modular core code
 has been added to the -mm tree.  Its filename is
-     fs-proc_namespacec-simplify-testing-nsp-and-nsp-mnt_ns.patch
+     fs-ramfs-dont-use-module_init-for-non-modular-core-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc_namespacec-simplify-testing-nsp-and-nsp-mnt_ns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ramfs-dont-use-module_init-for-non-modular-core-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc_namespacec-simplify-testing-nsp-and-nsp-mnt_ns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ramfs-dont-use-module_init-for-non-modular-core-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,46 +44,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Axel Lin <axel.lin@ingics.com>
-Subject: fs/proc_namespace.c: simplify testing nsp and nsp->mnt_ns
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: fs/ramfs: don't use module_init for non-modular core code
 
-Trivial cleanup to eliminate a goto.
+The ramfs is always built in.  It will never be modular, so using
+module_init as an alias for __initcall is rather misleading.
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
+Fix this up now, so that we can relocate module_init from init.h into
+module.h in the future.  If we don't do this, we'd have to add module.h to
+obviously non-modular code, and that would be a worse thing.
+
+Note that direct use of __initcall is discouraged, vs.  one of the
+priority categorized subgroups.  As __initcall gets mapped onto
+device_initcall, our use of fs_initcall (which makes sense for fs code)
+will thus change this registration from level 6-device to level 5-fs (i.e.
+ slightly earlier).  However no observable impact of that small difference
+has been observed during testing, or is expected.
+
+Also note that this change uncovers a missing semicolon bug in the
+registration of the initcall.
+
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc_namespace.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ fs/ramfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc_namespace.c~fs-proc_namespacec-simplify-testing-nsp-and-nsp-mnt_ns fs/proc_namespace.c
---- a/fs/proc_namespace.c~fs-proc_namespacec-simplify-testing-nsp-and-nsp-mnt_ns
-+++ a/fs/proc_namespace.c
-@@ -234,17 +234,12 @@ static int mounts_open_common(struct ino
+diff -puN fs/ramfs/inode.c~fs-ramfs-dont-use-module_init-for-non-modular-core-code fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~fs-ramfs-dont-use-module_init-for-non-modular-core-code
++++ a/fs/ramfs/inode.c
+@@ -275,4 +275,4 @@ int __init init_ramfs_fs(void)
  
- 	rcu_read_lock();
- 	nsp = task_nsproxy(task);
--	if (!nsp) {
-+	if (!nsp || !nsp->mnt_ns) {
- 		rcu_read_unlock();
- 		put_task_struct(task);
- 		goto err;
- 	}
- 	ns = nsp->mnt_ns;
--	if (!ns) {
--		rcu_read_unlock();
--		put_task_struct(task);
--		goto err;
--	}
- 	get_mnt_ns(ns);
- 	rcu_read_unlock();
- 	task_lock(task);
+ 	return err;
+ }
+-module_init(init_ramfs_fs)
++fs_initcall(init_ramfs_fs);
 _
 
-Patches currently in -mm which might be from axel.lin@ingics.com are
+Patches currently in -mm which might be from paul.gortmaker@windriver.com are
 
-fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch
-fs-ramfs-move-ramfs_aops-to-inodec.patch
-fs-proc_namespacec-simplify-testing-nsp-and-nsp-mnt_ns.patch
+fs-ramfs-dont-use-module_init-for-non-modular-core-code.patch
+printk-flush-conflicting-continuation-line.patch
+printk-flush-conflicting-continuation-line-fix.patch
 linux-next.patch
 
