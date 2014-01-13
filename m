@@ -1,140 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- documentation-update-firewire-debugging-documentation.patch removed from
- -mm tree
-Date: Mon, 13 Jan 2014 13:21:54 -0800
-Message-ID: <52d458f2.wo/YSsFlYWOXSe9d%akpm@linux-foundation.org>
+Subject: +
+ drivers-vlynq-vlynqc-fix-another-resource-size-off-by-1-error.patch added
+ to -mm tree
+Date: Mon, 13 Jan 2014 13:36:21 -0800
+Message-ID: <52d45c55.YT1FlX6tSvZYIs6w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52633 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52682 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752332AbaAMVVz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 16:21:55 -0500
+	with ESMTP id S1751453AbaAMVgW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 16:36:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stefanr@s5r6.in-berlin.de, rob@landley.net, justinmattock@gmail.com, bk@suse.de, lkundrak@v3.sk
+To: mm-commits@vger.kernel.org, florian@openwrt.org, dan.carpenter@oracle.com
 
-Subject: [merged] documentation-update-firewire-debugging-documentation.patch removed from -mm tree
-To: lkundrak@v3.sk,bk@suse.de,justinmattock@gmail.com,rob@landley.net,stefanr@s5r6.in-berlin.de,mm-commits@vger.kernel.org
+Subject: + drivers-vlynq-vlynqc-fix-another-resource-size-off-by-1-error.patch added to -mm tree
+To: dan.carpenter@oracle.com,florian@openwrt.org
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 13:21:54 -0800
+Date: Mon, 13 Jan 2014 13:36:21 -0800
 
 
 The patch titled
-     Subject: Documentation/: update FireWire debugging documentation
-has been removed from the -mm tree.  Its filename was
-     documentation-update-firewire-debugging-documentation.patch
+     Subject: drivers/vlynq/vlynq.c: fix another resource size off by 1 error
+has been added to the -mm tree.  Its filename is
+     drivers-vlynq-vlynqc-fix-another-resource-size-off-by-1-error.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-vlynq-vlynqc-fix-another-resource-size-off-by-1-error.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-vlynq-vlynqc-fix-another-resource-size-off-by-1-error.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Lubomir Rintel <lkundrak@v3.sk>
-Subject: Documentation/: update FireWire debugging documentation
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/vlynq/vlynq.c: fix another resource size off by 1 error
 
-The old firewire stack is long dead now and a new version firescope has
-been released with support for current kernels.
+We fixed the call to request_mem_region() patch 3354f73
+("drivers/vlynq/vlynq.c: fix resource size off by 1 error").  But we need
+to fix the call the release_mem_region() as well.
 
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
-Cc: Rob Landley <rob@landley.net>
-Cc: Justin P. Mattock <justinmattock@gmail.com>
-Cc: Bernhard Kaindl <bk@suse.de>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Florian Fainelli <florian@openwrt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/debugging-via-ohci1394.txt   |   24 +++++++------------
- Documentation/power/basic-pm-debugging.txt |    2 -
- 2 files changed, 10 insertions(+), 16 deletions(-)
+ drivers/vlynq/vlynq.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/debugging-via-ohci1394.txt~documentation-update-firewire-debugging-documentation Documentation/debugging-via-ohci1394.txt
---- a/Documentation/debugging-via-ohci1394.txt~documentation-update-firewire-debugging-documentation
-+++ a/Documentation/debugging-via-ohci1394.txt
-@@ -36,17 +36,13 @@ available (notebooks) or too slow for ex
- Drivers
- -------
+diff -puN drivers/vlynq/vlynq.c~drivers-vlynq-vlynqc-fix-another-resource-size-off-by-1-error drivers/vlynq/vlynq.c
+--- a/drivers/vlynq/vlynq.c~drivers-vlynq-vlynqc-fix-another-resource-size-off-by-1-error
++++ a/drivers/vlynq/vlynq.c
+@@ -762,7 +762,8 @@ static int vlynq_remove(struct platform_
  
--The ohci1394 driver in drivers/ieee1394 initializes the OHCI-1394 controllers
--to a working state and enables physical DMA by default for all remote nodes.
--This can be turned off by ohci1394's module parameter phys_dma=0.
--
--The alternative firewire-ohci driver in drivers/firewire uses filtered physical
-+The firewire-ohci driver in drivers/firewire uses filtered physical
- DMA by default, which is more secure but not suitable for remote debugging.
- Compile the driver with CONFIG_FIREWIRE_OHCI_REMOTE_DMA (Kernel hacking menu:
- Remote debugging over FireWire with firewire-ohci) to get unfiltered physical
- DMA.
+ 	device_unregister(&dev->dev);
+ 	iounmap(dev->local);
+-	release_mem_region(dev->regs_start, dev->regs_end - dev->regs_start);
++	release_mem_region(dev->regs_start,
++			   dev->regs_end - dev->regs_start + 1);
  
--Because ohci1394 and firewire-ohci depend on the PCI enumeration to be
-+Because the firewire-ohci driver depends on the PCI enumeration to be
- completed, an initialization routine which runs pretty early has been
- implemented for x86.  This routine runs long before console_init() can be
- called, i.e. before the printk buffer appears on the console.
-@@ -64,7 +60,7 @@ be used to view the printk buffer of a r
+ 	kfree(dev);
  
- Bernhard Kaindl enhanced firescope to support accessing 64-bit machines
- from 32-bit firescope and vice versa:
--- http://halobates.de/firewire/firescope-0.2.2.tar.bz2
-+- http://v3.sk/~lkundrak/firescope/
- 
- and he implemented fast system dump (alpha version - read README.txt):
- - http://halobates.de/firewire/firedump-0.1.tar.bz2
-@@ -92,11 +88,11 @@ Step-by-step instructions for using fire
- 
- 1) Verify that your hardware is supported:
- 
--   Load the ohci1394 or the fw-ohci module and check your kernel logs.
-+   Load the firewire-ohci module and check your kernel logs.
-    You should see a line similar to
- 
--   ohci1394: fw-host0: OHCI-1394 1.1 (PCI): IRQ=[18]  MMIO=[fe9ff800-fe9fffff]
--   ... Max Packet=[2048]  IR/IT contexts=[4/8]
-+   firewire_ohci 0000:15:00.1: added OHCI v1.0 device as card 2, 4 IR + 4 IT
-+   ... contexts, quirks 0x11
- 
-    when loading the driver. If you have no supported controller, many PCI,
-    CardBus and even some Express cards which are fully compliant to OHCI-1394
-@@ -113,20 +109,18 @@ Step-by-step instructions for using fire
- 
-    If an driver is running on both machines you should see a line like
- 
--   ieee1394: Node added: ID:BUS[0-01:1023]  GUID[0090270001b84bba]
-+   firewire_core 0000:15:00.1: created device fw1: GUID 00061b0020105917, S400
- 
-    on both machines in the kernel log when the cable is plugged in
-    and connects the two machines.
- 
- 3) Test physical DMA using firescope:
- 
--   On the debug host,
--	- load the raw1394 module,
--	- make sure that /dev/raw1394 is accessible,
-+   On the debug host, make sure that /dev/fw* is accessible,
-    then start firescope:
- 
- 	$ firescope
--	Port 0 (ohci1394) opened, 2 nodes detected
-+	Port 0 (/dev/fw1) opened, 2 nodes detected
- 
- 	FireScope
- 	---------
-diff -puN Documentation/power/basic-pm-debugging.txt~documentation-update-firewire-debugging-documentation Documentation/power/basic-pm-debugging.txt
---- a/Documentation/power/basic-pm-debugging.txt~documentation-update-firewire-debugging-documentation
-+++ a/Documentation/power/basic-pm-debugging.txt
-@@ -172,7 +172,7 @@ you can boot the kernel with the 'no_con
- kernel messages using the serial console.  This may provide you with some
- information about the reasons of the suspend (resume) failure.  Alternatively,
- it may be possible to use a FireWire port for debugging with firescope
--(ftp://ftp.firstfloor.org/pub/ak/firescope/).  On x86 it is also possible to
-+(http://v3.sk/~lkundrak/firescope/).  On x86 it is also possible to
- use the PM_TRACE mechanism documented in Documentation/power/s2ram.txt .
- 
- 2. Testing suspend to RAM (STR)
 _
 
-Patches currently in -mm which might be from lkundrak@v3.sk are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
+ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
+ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix.patch
+drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
+drivers-block-paride-pgc-underflow-bug-in-pg_write.patch
+fs-compat_ioctlc-fix-an-underflow-issue-harmless.patch
+drivers-mailbox-omap-make-mbox-irq-signed-for-error-handling.patch
+drivers-vlynq-vlynqc-fix-another-resource-size-off-by-1-error.patch
+checkpatch-warn-only-on-space-before-semicolon-at-end-of-line.patch
 linux-next.patch
 
