@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + zram-delay-pending-free-request-in-read-path.patch added to -mm tree
-Date: Mon, 13 Jan 2014 15:59:58 -0800
-Message-ID: <52d47dfe.ivU/guKPwlYxgXkd%akpm@linux-foundation.org>
+Subject: + zram-remove-unnecessary-free.patch added to -mm tree
+Date: Mon, 13 Jan 2014 15:59:59 -0800
+Message-ID: <52d47dff.ATxspoayoYyuabia%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53672 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53673 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbaAMX77 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 18:59:59 -0500
+	with ESMTP id S1751414AbaANAAA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 19:00:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, ngupta@vflare.org, jmarchan@redhat.com, minchan@kernel.org
 
-Subject: + zram-delay-pending-free-request-in-read-path.patch added to -mm tree
+Subject: + zram-remove-unnecessary-free.patch added to -mm tree
 To: minchan@kernel.org,jmarchan@redhat.com,ngupta@vflare.org,sergey.senozhatsky@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 15:59:58 -0800
+Date: Mon, 13 Jan 2014 15:59:59 -0800
 
 
 The patch titled
-     Subject: zram: delay pending free request in read path
+     Subject: zram: remove unnecessary free
 has been added to the -mm tree.  Its filename is
-     zram-delay-pending-free-request-in-read-path.patch
+     zram-remove-unnecessary-free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-delay-pending-free-request-in-read-path.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-remove-unnecessary-free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-delay-pending-free-request-in-read-path.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-remove-unnecessary-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,42 +44,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: delay pending free request in read path
+Subject: zram: remove unnecessary free
 
-Sergey reported we don't need to handle pending free request every I/O so
-that this patch removes it in read path while we remain it in write path.
-
-Let's consider below example.
-
-Swap subsystem ask to zram "A" block free by swap_slot_free_notify but
-zram had been pended it without real freeing.  Swap subsystem allocates
-"A" block for new data but request pended for a long time just handled and
-zram blindly free new data on the "A" block.  :(
-
-That's why we couldn't remove handle pending free request right before
-zram-write.
+a0c516cbfc ("zram: don't grab mutex in zram_slot_free_noity") introduced
+pending zram slot free in zram's write path in case of missing slot free
+by memory allocation failure in zram_slot_free_notify but it is not
+necessary because we have already freed the slot right before overwriting.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/block/zram/zram_drv.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-delay-pending-free-request-in-read-path drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-delay-pending-free-request-in-read-path
+diff -puN drivers/block/zram/zram_drv.c~zram-remove-unnecessary-free drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-remove-unnecessary-free
 +++ a/drivers/block/zram/zram_drv.c
-@@ -535,7 +535,6 @@ static int zram_bvec_rw(struct zram *zra
+@@ -441,14 +441,6 @@ static int zram_bvec_write(struct zram *
+ 		goto out;
+ 	}
  
- 	if (rw == READ) {
- 		down_read(&zram->lock);
--		handle_pending_slot_free(zram);
- 		ret = zram_bvec_read(zram, bvec, index, offset, bio);
- 		up_read(&zram->lock);
- 	} else {
+-	/*
+-	 * zram_slot_free_notify could miss free so that let's
+-	 * double check.
+-	 */
+-	if (unlikely(meta->table[index].handle ||
+-			zram_test_flag(meta, index, ZRAM_ZERO)))
+-		zram_free_page(zram, index);
+-
+ 	ret = lzo1x_1_compress(uncmem, PAGE_SIZE, src, &clen,
+ 			       meta->compress_workmem);
+ 
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
