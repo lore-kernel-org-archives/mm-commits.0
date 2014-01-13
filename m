@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- fsnotify-do-not-share-events-between-notification-groups-fix.patch added to -mm tree
-Date: Mon, 13 Jan 2014 13:42:52 -0800
-Message-ID: <52d45ddc.6fyDQCxfMyR5dXRl%akpm@linux-foundation.org>
+Subject: + ipcmsg-document-barriers-fix.patch added to -mm tree
+Date: Mon, 13 Jan 2014 13:44:39 -0800
+Message-ID: <52d45e47.lp06LyqEXggW4fxS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52694 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52700 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752198AbaAMVmx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 16:42:53 -0500
+	with ESMTP id S1751236AbaAMVok (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 16:44:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, jack@suse.cz, hch@lst.de, eparis@parisplace.org, hughd@google.com
+To: mm-commits@vger.kernel.org, davidlohr@hp.com, bitbucket@online.de, akpm@linux-foundation.org
 
-Subject: + fsnotify-do-not-share-events-between-notification-groups-fix.patch added to -mm tree
-To: hughd@google.com,eparis@parisplace.org,hch@lst.de,jack@suse.cz,viro@zeniv.linux.org.uk
+Subject: + ipcmsg-document-barriers-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,bitbucket@online.de,davidlohr@hp.com
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 13:42:52 -0800
+Date: Mon, 13 Jan 2014 13:44:39 -0800
 
 
 The patch titled
-     Subject: fanotify: fix corruption preventing startup
+     Subject: ipcmsg-document-barriers-fix
 has been added to the -mm tree.  Its filename is
-     fsnotify-do-not-share-events-between-notification-groups-fix.patch
+     ipcmsg-document-barriers-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-do-not-share-events-between-notification-groups-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-document-barriers-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-do-not-share-events-between-notification-groups-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-document-barriers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,74 +43,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: fanotify: fix corruption preventing startup
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipcmsg-document-barriers-fix
 
-Two of my machines couldn't boot mmotm with fanotify enabled:
-0x40000020 was being or'ed into a group's notification_waitq next
-pointer, with sad results.  It comes from an over-simplification in
-fanotify_merge(): test_event isn't NULL when the loop finds no merge.
+fix typo, per Mike
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Mike Galbraith <bitbucket@online.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ ipc/msg.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/notify/fanotify/fanotify.c~fsnotify-do-not-share-events-between-notification-groups-fix fs/notify/fanotify/fanotify.c
---- a/fs/notify/fanotify/fanotify.c~fsnotify-do-not-share-events-between-notification-groups-fix
-+++ a/fs/notify/fanotify/fanotify.c
-@@ -37,16 +37,19 @@ static bool should_merge(struct fsnotify
- static struct fsnotify_event *fanotify_merge(struct list_head *list,
- 					     struct fsnotify_event *event)
- {
--	struct fsnotify_event *test_event = NULL;
-+	struct fsnotify_event *test_event;
-+	bool do_merge = false;
- 
- 	pr_debug("%s: list=%p event=%p\n", __func__, list, event);
- 
- 	list_for_each_entry_reverse(test_event, list, list) {
--		if (should_merge(test_event, event))
-+		if (should_merge(test_event, event)) {
-+			do_merge = true;
- 			break;
-+		}
- 	}
- 
--	if (!test_event)
-+	if (!do_merge)
- 		return NULL;
- 
- 	test_event->mask |= event->mask;
+diff -puN ipc/msg.c~ipcmsg-document-barriers-fix ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-document-barriers-fix
++++ a/ipc/msg.c
+@@ -258,7 +258,7 @@ static void expunge_all(struct msg_queue
+ 		/*
+ 		 * Ensure that the wakeup is visible before setting r_msg as
+ 		 * the receiving end depends on it: either spinning on a nil,
+-		 * or dealing with -EAGAIN cases. See lockless reveice part 1
++		 * or dealing with -EAGAIN cases. See lockless receive part 1
+ 		 * and 2 in do_msgrcv().
+ 		 */
+ 		smp_mb();
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-remove-bug_on-from-mlock_vma_page.patch
-fsnotify-do-not-share-events-between-notification-groups-fix.patch
-mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
-mm-rmap-recompute-pgoff-for-huge-page.patch
-mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
-mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
-mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
-mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
-mm-rmap-use-rmap_walk-in-try_to_unmap.patch
-mm-rmap-use-rmap_walk-in-try_to_munlock.patch
-mm-rmap-use-rmap_walk-in-page_referenced.patch
-mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
-mm-rmap-use-rmap_walk-in-page_mkclean.patch
-mm-documentation-remove-hopelessly-out-of-date-locking-doc.patch
-mm-munlock-fix-potential-race-with-thp-page-split.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path-fix-2.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+mm-show_mem-remove-show_mem_filter_page_count-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
+mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+mm-print-more-details-for-bad_page-fix.patch
+mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
+mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix-fix.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
+numa-add-a-sysctl-for-numa_balancing-fix.patch
 mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
-swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-zsmalloc-move-it-under-mm.patch
-zram-promote-zram-from-staging.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+printk-flush-conflicting-continuation-line-fix.patch
+drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+ipcmsg-document-barriers-fix.patch
+linux-next.patch
+net-ipv6-ip6_vtic-fix-build.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
