@@ -1,128 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-arm-fix-arms-__ffs-to-conform-to-avoid-warning-with-no_bootmem.patch
- removed from -mm tree
-Date: Mon, 13 Jan 2014 15:31:33 -0800
-Message-ID: <52d47755.kVsvgxGfAkNrDCn0%akpm@linux-foundation.org>
+Subject: + zram-fix-race-between-reset-and-flushing-pending-work.patch
+ added to -mm tree
+Date: Mon, 13 Jan 2014 15:59:57 -0800
+Message-ID: <52d47dfd.I4WK2es+hGBGyJB8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53478 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53667 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974AbaAMXbe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 18:31:34 -0500
+	with ESMTP id S1750821AbaAMX76 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 18:59:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rmk+kernel@arm.linux.org.uk, santosh.shilimkar@ti.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, sergey.senozhatsky@gmail.com, ngupta@vflare.org, jmarchan@redhat.com, minchan@kernel.org
 
-Subject: [to-be-updated] mm-arm-fix-arms-__ffs-to-conform-to-avoid-warning-with-no_bootmem.patch removed from -mm tree
-To: santosh.shilimkar@ti.com,rmk+kernel@arm.linux.org.uk,mm-commits@vger.kernel.org
+Subject: + zram-fix-race-between-reset-and-flushing-pending-work.patch added to -mm tree
+To: minchan@kernel.org,jmarchan@redhat.com,ngupta@vflare.org,sergey.senozhatsky@gmail.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 15:31:33 -0800
+Date: Mon, 13 Jan 2014 15:59:57 -0800
 
 
 The patch titled
-     Subject: mm/ARM: fix ARMs __ffs() to conform to avoid warning with NO_BOOTMEM
-has been removed from the -mm tree.  Its filename was
-     mm-arm-fix-arms-__ffs-to-conform-to-avoid-warning-with-no_bootmem.patch
+     Subject: zram: fix race between reset and flushing pending work
+has been added to the -mm tree.  Its filename is
+     zram-fix-race-between-reset-and-flushing-pending-work.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-fix-race-between-reset-and-flushing-pending-work.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-fix-race-between-reset-and-flushing-pending-work.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: mm/ARM: fix ARMs __ffs() to conform to avoid warning with NO_BOOTMEM
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: fix race between reset and flushing pending work
 
-Building ARM with NO_BOOTMEM generates below warning.
+Dan and Sergey reported that there is a racy between reset and flushing of
+pending work so that it could make oops by freeing zram->meta in reset
+while zram_slot_free can access zram->meta if new request is adding during
+the race window.
 
-mm/nobootmem.c: In function _____free_pages_memory___:
-mm/nobootmem.c:88:11: warning: comparison of distinct pointer types lacks a cast
+This patch moves flush after taking init_lock so it prevents new request
+so that it closes the race.
 
-	order = min(MAX_ORDER - 1UL, __ffs(start));
-
-ARM's __ffs() differs from other architectures in that it ends up being
-an int, whereas almost everyone else is unsigned long.
-
-So fix ARMs __ffs() to conform to other architectures.  Suggested by
-Russell King.
-
-Some more details in below thread -
-	https://lkml.org/lkml/2013/12/9/807
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: stable <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/bitops.h |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ drivers/block/zram/zram_drv.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/include/asm/bitops.h~mm-arm-fix-arms-__ffs-to-conform-to-avoid-warning-with-no_bootmem arch/arm/include/asm/bitops.h
---- a/arch/arm/include/asm/bitops.h~mm-arm-fix-arms-__ffs-to-conform-to-avoid-warning-with-no_bootmem
-+++ a/arch/arm/include/asm/bitops.h
-@@ -270,10 +270,25 @@ static inline int fls(int x)
- 	return ret;
- }
+diff -puN drivers/block/zram/zram_drv.c~zram-fix-race-between-reset-and-flushing-pending-work drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-fix-race-between-reset-and-flushing-pending-work
++++ a/drivers/block/zram/zram_drv.c
+@@ -553,14 +553,14 @@ static void zram_reset_device(struct zra
+ 	size_t index;
+ 	struct zram_meta *meta;
  
--#define __fls(x) (fls(x) - 1)
--#define ffs(x) ({ unsigned long __t = (x); fls(__t & -__t); })
--#define __ffs(x) (ffs(x) - 1)
--#define ffz(x) __ffs( ~(x) )
-+static inline unsigned long __fls(unsigned long x)
-+{
-+	return fls(x) - 1;
-+}
-+
-+static inline int ffs(int x)
-+{
-+	return fls(x & -x);
-+}
-+
-+static inline unsigned long __ffs(unsigned long x)
-+{
-+	return ffs(x) - 1;
-+}
-+
-+static inline unsigned long ffz(unsigned long x)
-+{
-+	return __ffs(~x);
-+}
+-	flush_work(&zram->free_work);
+-
+ 	down_write(&zram->init_lock);
+ 	if (!zram->init_done) {
+ 		up_write(&zram->init_lock);
+ 		return;
+ 	}
  
- #endif
++	flush_work(&zram->free_work);
++
+ 	meta = zram->meta;
+ 	zram->init_done = 0;
  
 _
 
-Patches currently in -mm which might be from santosh.shilimkar@ti.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
-x86-memblock-set-current-limit-to-max-low-memory-address.patch
-mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
-mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
-mm-memblock-remove-unnecessary-inclusions-of-bootmemh.patch
-mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
-mm-memblock-reorder-parameters-of-memblock_find_in_range_node.patch
-mm-memblock-switch-to-use-numa_no_node-instead-of-max_numnodes.patch
-mm-memblock-add-memblock-memory-allocation-apis.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch
-mm-init-use-memblock-apis-for-early-memory-allocations.patch
-mm-printk-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
-mm-power-use-memblock-apis-for-early-memory-allocations.patch
-lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
-lib-cpumaskc-use-memblock-apis-for-early-memory-allocations.patch
-mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
-mm-hugetlb-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_cgroup-use-memblock-apis-for-early-memory-allocations.patch
-mm-percpu-use-memblock-apis-for-early-memory-allocations.patch
-mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
-drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
-x86-mm-memblock-switch-to-use-numa_no_node.patch
-mm-memblock-use-warn_once-when-max_numnodes-passed-as-input-parameter.patch
+mm-remove-bug_on-from-mlock_vma_page.patch
+mm-hugetlb-use-get_page_foll-in-follow_hugetlb_page.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
+mm-thp-optimize-compound_trans_huge.patch
+mm-tail-page-refcounting-optimization-for-slab-and-hugetlbfs.patch
+mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
+memblock-numa-introduce-flags-field-into-memblock.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+memblock-make-memblock_set_node-support-different-memblock_type.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
+x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
+mm-zswapc-change-params-from-hidden-to-ro.patch
+mm-zswap-check-all-pool-pages-instead-of-one-pools-pages.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 linux-next.patch
+zsmalloc-move-it-under-mm.patch
+zram-promote-zram-from-staging.patch
+zram-remove-old-private-project-comment.patch
+zram-add-copyright.patch
+zsmalloc-add-copyright.patch
+zram-add-zram-maintainers.patch
+zsmalloc-add-maintainers.patch
+zram-fix-race-between-reset-and-flushing-pending-work.patch
+zram-delay-pending-free-request-in-read-path.patch
+zram-remove-unnecessary-free.patch
+debugging-keep-track-of-page-owners.patch
+zram-use-atomic-operation-for-stat.patch
 
