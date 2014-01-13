@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch added
+Subject: + mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch added
  to -mm tree
-Date: Mon, 13 Jan 2014 15:15:28 -0800
-Message-ID: <52d47390.DHVTzFczqDiPEbr6%akpm@linux-foundation.org>
+Date: Mon, 13 Jan 2014 15:15:30 -0800
+Message-ID: <52d47392.vBCzlHVcXIJPUq84%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53324 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53337 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752214AbaAMXP3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 18:15:29 -0500
+	with ESMTP id S1752336AbaAMXPb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 18:15:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, hannes@cmpxchg.org, glommer@gmail.com, dchinner@redhat.com, vdavydov@parallels.com
 
-Subject: + mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch added to -mm tree
+Subject: + mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch added to -mm tree
 To: vdavydov@parallels.com,dchinner@redhat.com,glommer@gmail.com,hannes@cmpxchg.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 15:15:28 -0800
+Date: Mon, 13 Jan 2014 15:15:30 -0800
 
 
 The patch titled
-     Subject: mm: vmscan: call NUMA-unaware shrinkers irrespective of nodemask
+     Subject: mm: vmscan: move call to shrink_slab() to shrink_zones()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
+     mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,57 +45,132 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: mm: vmscan: call NUMA-unaware shrinkers irrespective of nodemask
+Subject: mm: vmscan: move call to shrink_slab() to shrink_zones()
 
-If a shrinker is not NUMA-aware, shrink_slab() should call it exactly once
-with nid=0, but currently it is not true: if node 0 is not set in the
-nodemask or if it is not online, we will not call such shrinkers at all. 
-As a result some slabs will be left untouched under some circumstances. 
-Let us fix it.
+This reduces the indentation level of do_try_to_free_pages() and removes
+extra loop over all eligible zones counting the number of on-LRU pages.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Reported-by: Dave Chinner <dchinner@redhat.com>
+Reviewed-by: Glauber Costa <glommer@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Glauber Costa <glommer@gmail.com>
+Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ mm/vmscan.c |   56 ++++++++++++++++++++++----------------------------
+ 1 file changed, 25 insertions(+), 31 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask
+diff -puN mm/vmscan.c~mm-vmscan-move-call-to-shrink_slab-to-shrink_zones mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-move-call-to-shrink_slab-to-shrink_zones
 +++ a/mm/vmscan.c
-@@ -369,16 +369,17 @@ unsigned long shrink_slab(struct shrink_
- 	}
+@@ -2291,13 +2291,16 @@ static inline bool compaction_ready(stru
+  * the caller that it should consider retrying the allocation instead of
+  * further reclaim.
+  */
+-static bool shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
++static bool shrink_zones(struct zonelist *zonelist, struct scan_control *sc,
++			 struct shrink_control *shrink)
+ {
+ 	struct zoneref *z;
+ 	struct zone *zone;
+ 	unsigned long nr_soft_reclaimed;
+ 	unsigned long nr_soft_scanned;
++	unsigned long lru_pages = 0;
+ 	bool aborted_reclaim = false;
++	struct reclaim_state *reclaim_state = current->reclaim_state;
  
- 	list_for_each_entry(shrinker, &shrinker_list, list) {
--		for_each_node_mask(shrinkctl->nid, shrinkctl->nodes_to_scan) {
--			if (!node_online(shrinkctl->nid))
--				continue;
--
--			if (!(shrinker->flags & SHRINKER_NUMA_AWARE) &&
--			    (shrinkctl->nid != 0))
--				break;
--
-+		if (!(shrinker->flags & SHRINKER_NUMA_AWARE)) {
-+			shrinkctl->nid = 0;
- 			freed += shrink_slab_node(shrinkctl, shrinker,
--				 nr_pages_scanned, lru_pages);
-+					nr_pages_scanned, lru_pages);
-+			continue;
-+		}
+ 	/*
+ 	 * If the number of buffer_heads in the machine exceeds the maximum
+@@ -2307,6 +2310,8 @@ static bool shrink_zones(struct zonelist
+ 	if (buffer_heads_over_limit)
+ 		sc->gfp_mask |= __GFP_HIGHMEM;
+ 
++	nodes_clear(shrink->nodes_to_scan);
 +
-+		for_each_node_mask(shrinkctl->nid, shrinkctl->nodes_to_scan) {
-+			if (node_online(shrinkctl->nid))
-+				freed += shrink_slab_node(shrinkctl, shrinker,
-+						nr_pages_scanned, lru_pages);
- 
- 		}
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+ 					gfp_zone(sc->gfp_mask), sc->nodemask) {
+ 		if (!populated_zone(zone))
+@@ -2318,6 +2323,10 @@ static bool shrink_zones(struct zonelist
+ 		if (global_reclaim(sc)) {
+ 			if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+ 				continue;
++
++			lru_pages += zone_reclaimable_pages(zone);
++			node_set(zone_to_nid(zone), shrink->nodes_to_scan);
++
+ 			if (sc->priority != DEF_PRIORITY &&
+ 			    !zone_reclaimable(zone))
+ 				continue;	/* Let kswapd poll it */
+@@ -2354,6 +2363,20 @@ static bool shrink_zones(struct zonelist
+ 		shrink_zone(zone, sc);
  	}
+ 
++	/*
++	 * Don't shrink slabs when reclaiming memory from over limit cgroups
++	 * but do shrink slab at least once when aborting reclaim for
++	 * compaction to avoid unevenly scanning file/anon LRU pages over slab
++	 * pages.
++	 */
++	if (global_reclaim(sc)) {
++		shrink_slab(shrink, sc->nr_scanned, lru_pages);
++		if (reclaim_state) {
++			sc->nr_reclaimed += reclaim_state->reclaimed_slab;
++			reclaim_state->reclaimed_slab = 0;
++		}
++	}
++
+ 	return aborted_reclaim;
+ }
+ 
+@@ -2398,9 +2421,6 @@ static unsigned long do_try_to_free_page
+ 					struct shrink_control *shrink)
+ {
+ 	unsigned long total_scanned = 0;
+-	struct reclaim_state *reclaim_state = current->reclaim_state;
+-	struct zoneref *z;
+-	struct zone *zone;
+ 	unsigned long writeback_threshold;
+ 	bool aborted_reclaim;
+ 
+@@ -2413,34 +2433,8 @@ static unsigned long do_try_to_free_page
+ 		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
+ 				sc->priority);
+ 		sc->nr_scanned = 0;
+-		aborted_reclaim = shrink_zones(zonelist, sc);
++		aborted_reclaim = shrink_zones(zonelist, sc, shrink);
+ 
+-		/*
+-		 * Don't shrink slabs when reclaiming memory from over limit
+-		 * cgroups but do shrink slab at least once when aborting
+-		 * reclaim for compaction to avoid unevenly scanning file/anon
+-		 * LRU pages over slab pages.
+-		 */
+-		if (global_reclaim(sc)) {
+-			unsigned long lru_pages = 0;
+-
+-			nodes_clear(shrink->nodes_to_scan);
+-			for_each_zone_zonelist_nodemask(zone, z, zonelist,
+-					gfp_zone(sc->gfp_mask), sc->nodemask) {
+-				if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
+-					continue;
+-
+-				lru_pages += zone_reclaimable_pages(zone);
+-				node_set(zone_to_nid(zone),
+-					 shrink->nodes_to_scan);
+-			}
+-
+-			shrink_slab(shrink, sc->nr_scanned, lru_pages);
+-			if (reclaim_state) {
+-				sc->nr_reclaimed += reclaim_state->reclaimed_slab;
+-				reclaim_state->reclaimed_slab = 0;
+-			}
+-		}
+ 		total_scanned += sc->nr_scanned;
+ 		if (sc->nr_reclaimed >= sc->nr_to_reclaim)
+ 			goto out;
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
