@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + zram-fix-race-between-reset-and-flushing-pending-work.patch
- added to -mm tree
-Date: Mon, 13 Jan 2014 15:59:57 -0800
-Message-ID: <52d47dfd.I4WK2es+hGBGyJB8%akpm@linux-foundation.org>
+Subject: + zram-delay-pending-free-request-in-read-path.patch added to -mm tree
+Date: Mon, 13 Jan 2014 15:59:58 -0800
+Message-ID: <52d47dfe.ivU/guKPwlYxgXkd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53667 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53672 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbaAMX76 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 18:59:58 -0500
+	with ESMTP id S1750821AbaAMX77 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 18:59:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, sergey.senozhatsky@gmail.com, ngupta@vflare.org, jmarchan@redhat.com, minchan@kernel.org
+To: mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, ngupta@vflare.org, jmarchan@redhat.com, minchan@kernel.org
 
-Subject: + zram-fix-race-between-reset-and-flushing-pending-work.patch added to -mm tree
-To: minchan@kernel.org,jmarchan@redhat.com,ngupta@vflare.org,sergey.senozhatsky@gmail.com,stable@vger.kernel.org
+Subject: + zram-delay-pending-free-request-in-read-path.patch added to -mm tree
+To: minchan@kernel.org,jmarchan@redhat.com,ngupta@vflare.org,sergey.senozhatsky@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 15:59:57 -0800
+Date: Mon, 13 Jan 2014 15:59:58 -0800
 
 
 The patch titled
-     Subject: zram: fix race between reset and flushing pending work
+     Subject: zram: delay pending free request in read path
 has been added to the -mm tree.  Its filename is
-     zram-fix-race-between-reset-and-flushing-pending-work.patch
+     zram-delay-pending-free-request-in-read-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-fix-race-between-reset-and-flushing-pending-work.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-delay-pending-free-request-in-read-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-fix-race-between-reset-and-flushing-pending-work.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-delay-pending-free-request-in-read-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,47 +44,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: fix race between reset and flushing pending work
+Subject: zram: delay pending free request in read path
 
-Dan and Sergey reported that there is a racy between reset and flushing of
-pending work so that it could make oops by freeing zram->meta in reset
-while zram_slot_free can access zram->meta if new request is adding during
-the race window.
+Sergey reported we don't need to handle pending free request every I/O so
+that this patch removes it in read path while we remain it in write path.
 
-This patch moves flush after taking init_lock so it prevents new request
-so that it closes the race.
+Let's consider below example.
+
+Swap subsystem ask to zram "A" block free by swap_slot_free_notify but
+zram had been pended it without real freeing.  Swap subsystem allocates
+"A" block for new data but request pended for a long time just handled and
+zram blindly free new data on the "A" block.  :(
+
+That's why we couldn't remove handle pending free request right before
+zram-write.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: stable <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-fix-race-between-reset-and-flushing-pending-work drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-fix-race-between-reset-and-flushing-pending-work
+diff -puN drivers/block/zram/zram_drv.c~zram-delay-pending-free-request-in-read-path drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-delay-pending-free-request-in-read-path
 +++ a/drivers/block/zram/zram_drv.c
-@@ -553,14 +553,14 @@ static void zram_reset_device(struct zra
- 	size_t index;
- 	struct zram_meta *meta;
+@@ -535,7 +535,6 @@ static int zram_bvec_rw(struct zram *zra
  
--	flush_work(&zram->free_work);
--
- 	down_write(&zram->init_lock);
- 	if (!zram->init_done) {
- 		up_write(&zram->init_lock);
- 		return;
- 	}
- 
-+	flush_work(&zram->free_work);
-+
- 	meta = zram->meta;
- 	zram->init_done = 0;
- 
+ 	if (rw == READ) {
+ 		down_read(&zram->lock);
+-		handle_pending_slot_free(zram);
+ 		ret = zram_bvec_read(zram, bvec, index, offset, bio);
+ 		up_read(&zram->lock);
+ 	} else {
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
