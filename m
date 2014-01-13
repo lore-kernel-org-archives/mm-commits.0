@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch added to -mm tree
-Date: Mon, 13 Jan 2014 15:15:29 -0800
-Message-ID: <52d47391.H/A/gwEQaZIZuh5V%akpm@linux-foundation.org>
+ mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch added
+ to -mm tree
+Date: Mon, 13 Jan 2014 15:15:28 -0800
+Message-ID: <52d47390.DHVTzFczqDiPEbr6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53333 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53324 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752419AbaAMXPa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 18:15:30 -0500
+	with ESMTP id S1752214AbaAMXP3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 18:15:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, hannes@cmpxchg.org, glommer@gmail.com, dchinner@redhat.com, vdavydov@parallels.com
 
-Subject: + mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch added to -mm tree
+Subject: + mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch added to -mm tree
 To: vdavydov@parallels.com,dchinner@redhat.com,glommer@gmail.com,hannes@cmpxchg.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 15:15:29 -0800
+Date: Mon, 13 Jan 2014 15:15:28 -0800
 
 
 The patch titled
-     Subject: mm: vmscan: respect NUMA policy mask when shrinking slab on direct reclaim
+     Subject: mm: vmscan: call NUMA-unaware shrinkers irrespective of nodemask
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+     mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,42 +46,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: mm: vmscan: respect NUMA policy mask when shrinking slab on direct reclaim
+Subject: mm: vmscan: call NUMA-unaware shrinkers irrespective of nodemask
 
-When direct reclaim is executed by a process bound to a set of NUMA nodes,
-we should scan only those nodes when possible, but currently we will scan
-kmem from all online nodes even if the kmem shrinker is NUMA aware.  That
-said, binding a process to a particular NUMA node won't prevent it from
-shrinking inode/dentry caches from other nodes, which is not good.  Fix
-this.
+If a shrinker is not NUMA-aware, shrink_slab() should call it exactly once
+with nid=0, but currently it is not true: if node 0 is not set in the
+nodemask or if it is not online, we will not call such shrinkers at all. 
+As a result some slabs will be left untouched under some circumstances. 
+Let us fix it.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Reported-by: Dave Chinner <dchinner@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Glauber Costa <glommer@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim
+diff -puN mm/vmscan.c~mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask
 +++ a/mm/vmscan.c
-@@ -2425,8 +2425,8 @@ static unsigned long do_try_to_free_page
- 			unsigned long lru_pages = 0;
+@@ -369,16 +369,17 @@ unsigned long shrink_slab(struct shrink_
+ 	}
  
- 			nodes_clear(shrink->nodes_to_scan);
--			for_each_zone_zonelist(zone, z, zonelist,
--					gfp_zone(sc->gfp_mask)) {
-+			for_each_zone_zonelist_nodemask(zone, z, zonelist,
-+					gfp_zone(sc->gfp_mask), sc->nodemask) {
- 				if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
- 					continue;
+ 	list_for_each_entry(shrinker, &shrinker_list, list) {
+-		for_each_node_mask(shrinkctl->nid, shrinkctl->nodes_to_scan) {
+-			if (!node_online(shrinkctl->nid))
+-				continue;
+-
+-			if (!(shrinker->flags & SHRINKER_NUMA_AWARE) &&
+-			    (shrinkctl->nid != 0))
+-				break;
+-
++		if (!(shrinker->flags & SHRINKER_NUMA_AWARE)) {
++			shrinkctl->nid = 0;
+ 			freed += shrink_slab_node(shrinkctl, shrinker,
+-				 nr_pages_scanned, lru_pages);
++					nr_pages_scanned, lru_pages);
++			continue;
++		}
++
++		for_each_node_mask(shrinkctl->nid, shrinkctl->nodes_to_scan) {
++			if (node_online(shrinkctl->nid))
++				freed += shrink_slab_node(shrinkctl, shrinker,
++						nr_pages_scanned, lru_pages);
  
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
