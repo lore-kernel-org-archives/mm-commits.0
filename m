@@ -1,97 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-virtio-dev-ml-for-virtio.patch added to -mm
- tree
-Date: Mon, 13 Jan 2014 12:03:13 -0800
-Message-ID: <52d44681.CwtDPE05QZSyONmV%akpm@linux-foundation.org>
+Subject: [merged] mm-blk-mq-uses-page-list-incorrectly.patch removed from
+ -mm tree
+Date: Mon, 13 Jan 2014 13:21:45 -0800
+Message-ID: <52d458e9.gB1LdVdMwUbo3jm2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52069 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52615 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925AbaAMUDO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 15:03:14 -0500
+	with ESMTP id S1751584AbaAMVVq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 16:21:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, greg@kroah.com, mst@redhat.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, kirill.shutemov@linux.intel.com, axboe@kernel.dk, dave.hansen@linux.intel.com
 
-Subject: + maintainers-add-virtio-dev-ml-for-virtio.patch added to -mm tree
-To: mst@redhat.com,greg@kroah.com,rusty@rustcorp.com.au
+Subject: [merged] mm-blk-mq-uses-page-list-incorrectly.patch removed from -mm tree
+To: dave.hansen@linux.intel.com,axboe@kernel.dk,kirill.shutemov@linux.intel.com,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 12:03:13 -0800
+Date: Mon, 13 Jan 2014 13:21:45 -0800
 
 
 The patch titled
-     Subject: MAINTAINERS: add virtio-dev ML for virtio
-has been added to the -mm tree.  Its filename is
-     maintainers-add-virtio-dev-ml-for-virtio.patch
+     Subject: mm: blk-mq: uses page->list incorrectly
+has been removed from the -mm tree.  Its filename was
+     mm-blk-mq-uses-page-list-incorrectly.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-virtio-dev-ml-for-virtio.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-virtio-dev-ml-for-virtio.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: MAINTAINERS: add virtio-dev ML for virtio
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm: blk-mq: uses page->list incorrectly
 
-Since virtio is an OASIS standard draft now, virtio implementation
-discussions are taking place on the virtio-dev OASIS mailing list.
-Update MAINTAINERS.
+'struct page' has two list_head fields: 'lru' and 'list'.  Conveniently,
+they are unioned together.  This means that code can use them
+interchangably, which gets horribly confusing.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Greg KH <greg@kroah.com>
+The blk-mq made the logical decision to try to use page->list.  But, that
+field was actually introduced just for the slub code.  ->lru is the right
+field to use outside of slab/slub.
+
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +++
- 1 file changed, 3 insertions(+)
+ block/blk-mq.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-virtio-dev-ml-for-virtio MAINTAINERS
---- a/MAINTAINERS~maintainers-add-virtio-dev-ml-for-virtio
-+++ a/MAINTAINERS
-@@ -9242,6 +9242,7 @@ F:	include/media/videobuf2-*
+diff -puN block/blk-mq.c~mm-blk-mq-uses-page-list-incorrectly block/blk-mq.c
+--- a/block/blk-mq.c~mm-blk-mq-uses-page-list-incorrectly
++++ a/block/blk-mq.c
+@@ -1091,8 +1091,8 @@ static void blk_mq_free_rq_map(struct bl
+ 	struct page *page;
  
- VIRTIO CONSOLE DRIVER
- M:	Amit Shah <amit.shah@redhat.com>
-+L:	virtio-dev@lists.oasis-open.org
- L:	virtualization@lists.linux-foundation.org
- S:	Maintained
- F:	drivers/char/virtio_console.c
-@@ -9251,6 +9252,7 @@ F:	include/uapi/linux/virtio_console.h
- VIRTIO CORE, NET AND BLOCK DRIVERS
- M:	Rusty Russell <rusty@rustcorp.com.au>
- M:	"Michael S. Tsirkin" <mst@redhat.com>
-+L:	virtio-dev@lists.oasis-open.org
- L:	virtualization@lists.linux-foundation.org
- S:	Maintained
- F:	drivers/virtio/
-@@ -9263,6 +9265,7 @@ F:	include/uapi/linux/virtio_*.h
- VIRTIO HOST (VHOST)
- M:	"Michael S. Tsirkin" <mst@redhat.com>
- L:	kvm@vger.kernel.org
-+L:	virtio-dev@lists.oasis-open.org
- L:	virtualization@lists.linux-foundation.org
- L:	netdev@vger.kernel.org
- S:	Maintained
+ 	while (!list_empty(&hctx->page_list)) {
+-		page = list_first_entry(&hctx->page_list, struct page, list);
+-		list_del_init(&page->list);
++		page = list_first_entry(&hctx->page_list, struct page, lru);
++		list_del_init(&page->lru);
+ 		__free_pages(page, page->private);
+ 	}
+ 
+@@ -1156,7 +1156,7 @@ static int blk_mq_init_rq_map(struct blk
+ 			break;
+ 
+ 		page->private = this_order;
+-		list_add_tail(&page->list, &hctx->page_list);
++		list_add_tail(&page->lru, &hctx->page_list);
+ 
+ 		p = page_address(page);
+ 		entries_per_page = order_to_size(this_order) / rq_size;
 _
 
-Patches currently in -mm which might be from mst@redhat.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
-origin.patch
-maintainers-add-virtio-dev-ml-for-virtio.patch
+mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
+mm-add-overcommit_kbytes-sysctl-variable.patch
+mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
+mm-print-more-details-for-bad_page.patch
+mm-print-more-details-for-bad_page-fix.patch
 linux-next.patch
 
