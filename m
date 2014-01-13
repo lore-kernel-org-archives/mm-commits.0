@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-percpu_counterc-fix-__percpu_counter_add.patch added to -mm tree
-Date: Mon, 13 Jan 2014 13:39:52 -0800
-Message-ID: <52d45d28.eXWr5R9oTfrsOBtW%akpm@linux-foundation.org>
+Subject: +
+ fsnotify-do-not-share-events-between-notification-groups-fix.patch added to -mm tree
+Date: Mon, 13 Jan 2014 13:42:52 -0800
+Message-ID: <52d45ddc.6fyDQCxfMyR5dXRl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52687 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751437AbaAMVjx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 16:39:53 -0500
+	with ESMTP id S1752198AbaAMVmx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jan 2014 16:42:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shli@fusionio.com, paul.gortmaker@windriver.com, fan.du@windriver.com, axboe@kernel.dk, tom.leiming@gmail.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, jack@suse.cz, hch@lst.de, eparis@parisplace.org, hughd@google.com
 
-Subject: + lib-percpu_counterc-fix-__percpu_counter_add.patch added to -mm tree
-To: tom.leiming@gmail.com,axboe@kernel.dk,fan.du@windriver.com,paul.gortmaker@windriver.com,shli@fusionio.com
+Subject: + fsnotify-do-not-share-events-between-notification-groups-fix.patch added to -mm tree
+To: hughd@google.com,eparis@parisplace.org,hch@lst.de,jack@suse.cz,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Mon, 13 Jan 2014 13:39:52 -0800
+Date: Mon, 13 Jan 2014 13:42:52 -0800
 
 
 The patch titled
-     Subject: lib/percpu_counter.c: fix __percpu_counter_add
+     Subject: fanotify: fix corruption preventing startup
 has been added to the -mm tree.  Its filename is
-     lib-percpu_counterc-fix-__percpu_counter_add.patch
+     fsnotify-do-not-share-events-between-notification-groups-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-percpu_counterc-fix-__percpu_counter_add.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-do-not-share-events-between-notification-groups-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-percpu_counterc-fix-__percpu_counter_add.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-do-not-share-events-between-notification-groups-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,53 +44,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: lib/percpu_counter.c: fix __percpu_counter_add
+From: Hugh Dickins <hughd@google.com>
+Subject: fanotify: fix corruption preventing startup
 
-__percpu_counter_add() may be called in softirq/hardirq handler (such as,
-blk_mq_queue_exit() is typically called in hardirq/softirq handler), so we
-need to call this_cpu_add()(irq safe helper) to update percpu counter,
-otherwise counts may be lost.
+Two of my machines couldn't boot mmotm with fanotify enabled:
+0x40000020 was being or'ed into a group's notification_waitq next
+pointer, with sad results.  It comes from an over-simplification in
+fanotify_merge(): test_event isn't NULL when the loop finds no merge.
 
-The patch fixes problem that 'rmmod null_blk' hangs in blk_cleanup_queue()
-because of miscounting of request_queue->mq_usage_counter.
-
-This patch is the v1 of previous one of "lib/percpu_counter.c:
-disable local irq when updating percpu couter", and takes Andrew's
-approach which may be more efficient for ARCHs(x86, s390) that
-have optimized this_cpu_add().
-
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Shaohua Li <shli@fusionio.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Fan Du <fan.du@windriver.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_counter.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/notify/fanotify/fanotify.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN lib/percpu_counter.c~lib-percpu_counterc-fix-__percpu_counter_add lib/percpu_counter.c
---- a/lib/percpu_counter.c~lib-percpu_counterc-fix-__percpu_counter_add
-+++ a/lib/percpu_counter.c
-@@ -82,10 +82,10 @@ void __percpu_counter_add(struct percpu_
- 		unsigned long flags;
- 		raw_spin_lock_irqsave(&fbc->lock, flags);
- 		fbc->count += count;
-+		 __this_cpu_sub(*fbc->counters, count);
- 		raw_spin_unlock_irqrestore(&fbc->lock, flags);
--		__this_cpu_write(*fbc->counters, 0);
- 	} else {
--		__this_cpu_write(*fbc->counters, count);
-+		this_cpu_add(*fbc->counters, amount);
+diff -puN fs/notify/fanotify/fanotify.c~fsnotify-do-not-share-events-between-notification-groups-fix fs/notify/fanotify/fanotify.c
+--- a/fs/notify/fanotify/fanotify.c~fsnotify-do-not-share-events-between-notification-groups-fix
++++ a/fs/notify/fanotify/fanotify.c
+@@ -37,16 +37,19 @@ static bool should_merge(struct fsnotify
+ static struct fsnotify_event *fanotify_merge(struct list_head *list,
+ 					     struct fsnotify_event *event)
+ {
+-	struct fsnotify_event *test_event = NULL;
++	struct fsnotify_event *test_event;
++	bool do_merge = false;
+ 
+ 	pr_debug("%s: list=%p event=%p\n", __func__, list, event);
+ 
+ 	list_for_each_entry_reverse(test_event, list, list) {
+-		if (should_merge(test_event, event))
++		if (should_merge(test_event, event)) {
++			do_merge = true;
+ 			break;
++		}
  	}
- 	preempt_enable();
- }
+ 
+-	if (!test_event)
++	if (!do_merge)
+ 		return NULL;
+ 
+ 	test_event->mask |= event->mask;
 _
 
-Patches currently in -mm which might be from tom.leiming@gmail.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-lib-percpu_counterc-fix-__percpu_counter_add.patch
-linux-next.patch
+mm-remove-bug_on-from-mlock_vma_page.patch
+fsnotify-do-not-share-events-between-notification-groups-fix.patch
+mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
+mm-rmap-recompute-pgoff-for-huge-page.patch
+mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
+mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
+mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
+mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
+mm-rmap-use-rmap_walk-in-try_to_unmap.patch
+mm-rmap-use-rmap_walk-in-try_to_munlock.patch
+mm-rmap-use-rmap_walk-in-page_referenced.patch
+mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
+mm-rmap-use-rmap_walk-in-page_mkclean.patch
+mm-documentation-remove-hopelessly-out-of-date-locking-doc.patch
+mm-munlock-fix-potential-race-with-thp-page-split.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
+swap-fix-setting-page_size-blocksize-during-swapoff-swapon-race.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+zsmalloc-move-it-under-mm.patch
+zram-promote-zram-from-staging.patch
 
