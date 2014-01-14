@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-fix-exported-size-of-vmcoreinfo-note.patch added to -mm
- tree
-Date: Tue, 14 Jan 2014 15:37:19 -0800
-Message-ID: <52d5ca2f.3fDa14J6lBOGitLX%akpm@linux-foundation.org>
+Subject: + mm-show-message-when-updating-min_free_kbytes-in-thp.patch
+ added to -mm tree
+Date: Tue, 14 Jan 2014 15:52:50 -0800
+Message-ID: <52d5cdd2.vGXWEo54eLPZ2Ka5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34863 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34977 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751841AbaANXhU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jan 2014 18:37:20 -0500
+	with ESMTP id S1752094AbaANXwv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jan 2014 18:52:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, oomichi@mxs.nes.nec.co.jp, greg@kroah.com, da-x@monatomic.org, vgoyal@redhat.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, mgorman@suse.de, dave.hansen@intel.com, hanpt@linux.vnet.ibm.com
 
-Subject: + kdump-fix-exported-size-of-vmcoreinfo-note.patch added to -mm tree
-To: vgoyal@redhat.com,da-x@monatomic.org,greg@kroah.com,oomichi@mxs.nes.nec.co.jp
+Subject: + mm-show-message-when-updating-min_free_kbytes-in-thp.patch added to -mm tree
+To: hanpt@linux.vnet.ibm.com,dave.hansen@intel.com,mgorman@suse.de,mhocko@suse.cz,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 14 Jan 2014 15:37:19 -0800
+Date: Tue, 14 Jan 2014 15:52:50 -0800
 
 
 The patch titled
-     Subject: kdump: fix exported size of vmcoreinfo note
+     Subject: mm: show message when updating min_free_kbytes in thp
 has been added to the -mm tree.  Its filename is
-     kdump-fix-exported-size-of-vmcoreinfo-note.patch
+     mm-show-message-when-updating-min_free_kbytes-in-thp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kdump-fix-exported-size-of-vmcoreinfo-note.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-show-message-when-updating-min_free_kbytes-in-thp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kdump-fix-exported-size-of-vmcoreinfo-note.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-show-message-when-updating-min_free_kbytes-in-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,46 +44,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: kdump: fix exported size of vmcoreinfo note
+From: Han Pingtian <hanpt@linux.vnet.ibm.com>
+Subject: mm: show message when updating min_free_kbytes in thp
 
-Right now we seem to be exporting the max data size contained inside
-vmcoreinfo note.  But this does not include the size of meta data around
-vmcore info data.  Like name of the note and starting and ending elf_note.
+min_free_kbytes may be raised during THP's initialization.  Sometimes,
+this will change the value which was set by the user.  Showing this
+message will clarify this confusion.
 
-I think user space expects total size and that size is put in PT_NOTE elf
-header.  Things seem to be fine so far because we are not using vmcoreinfo
-note to the maximum capacity.  But as it starts filling up, to capacity,
-at some point of time, problem will be visible.
+Only show this message when changing a value which was set by the user
+according to Michal Hocko's suggestion.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
-Cc: Dan Aloni <da-x@monatomic.org>
-Cc: Greg KH <greg@kroah.com>
+Show the old value of min_free_kbytes according to Dave Hansen's
+suggestion.  This will give user the chance to restore old value of
+min_free_kbytes.
+
+Signed-off-by: Han Pingtian <hanpt@linux.vnet.ibm.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ksysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    8 +++++++-
+ mm/internal.h    |    1 +
+ mm/page_alloc.c  |    2 +-
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN kernel/ksysfs.c~kdump-fix-exported-size-of-vmcoreinfo-note kernel/ksysfs.c
---- a/kernel/ksysfs.c~kdump-fix-exported-size-of-vmcoreinfo-note
-+++ a/kernel/ksysfs.c
-@@ -126,7 +126,7 @@ static ssize_t vmcoreinfo_show(struct ko
- {
- 	return sprintf(buf, "%lx %x\n",
- 		       paddr_vmcoreinfo_note(),
--		       (unsigned int)vmcoreinfo_max_size);
-+		       (unsigned int)sizeof(vmcoreinfo_note));
- }
- KERNEL_ATTR_RO(vmcoreinfo);
+diff -puN mm/huge_memory.c~mm-show-message-when-updating-min_free_kbytes-in-thp mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-show-message-when-updating-min_free_kbytes-in-thp
++++ a/mm/huge_memory.c
+@@ -130,8 +130,14 @@ static int set_recommended_min_free_kbyt
+ 			      (unsigned long) nr_free_buffer_pages() / 20);
+ 	recommended_min <<= (PAGE_SHIFT-10);
  
+-	if (recommended_min > min_free_kbytes)
++	if (recommended_min > min_free_kbytes) {
++		if (user_min_free_kbytes >= 0)
++			pr_info("raising min_free_kbytes from %d to %lu "
++				"to help transparent hugepage allocations\n",
++				min_free_kbytes, recommended_min);
++
+ 		min_free_kbytes = recommended_min;
++	}
+ 	setup_per_zone_wmarks();
+ 	return 0;
+ }
+diff -puN mm/internal.h~mm-show-message-when-updating-min_free_kbytes-in-thp mm/internal.h
+--- a/mm/internal.h~mm-show-message-when-updating-min_free_kbytes-in-thp
++++ a/mm/internal.h
+@@ -99,6 +99,7 @@ extern void prep_compound_page(struct pa
+ #ifdef CONFIG_MEMORY_FAILURE
+ extern bool is_free_buddy_page(struct page *page);
+ #endif
++extern int user_min_free_kbytes;
+ 
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+ 
+diff -puN mm/page_alloc.c~mm-show-message-when-updating-min_free_kbytes-in-thp mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-show-message-when-updating-min_free_kbytes-in-thp
++++ a/mm/page_alloc.c
+@@ -205,7 +205,7 @@ static char * const zone_names[MAX_NR_ZO
+ };
+ 
+ int min_free_kbytes = 1024;
+-int user_min_free_kbytes;
++int user_min_free_kbytes = -1;
+ 
+ static unsigned long __meminitdata nr_kernel_pages;
+ static unsigned long __meminitdata nr_all_pages;
 _
 
-Patches currently in -mm which might be from vgoyal@redhat.com are
+Patches currently in -mm which might be from hanpt@linux.vnet.ibm.com are
 
-crash_dump-fix-compilation-error-on-mips-at-least.patch
-kexec-add-sysctl-to-disable-kexec_load.patch
-kdump-fix-exported-size-of-vmcoreinfo-note.patch
-linux-next.patch
+mm-prevent-setting-of-a-value-less-than-0-to-min_free_kbytes.patch
+mm-show-message-when-updating-min_free_kbytes-in-thp.patch
 
