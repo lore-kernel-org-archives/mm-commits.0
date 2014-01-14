@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-audit-fix-non-modular-users-of-module_init-in-core-code.patch added to
- -mm tree
-Date: Tue, 14 Jan 2014 15:56:48 -0800
-Message-ID: <52d5cec0.xiicnkph9JguKtF9%akpm@linux-foundation.org>
+ kernel-audit-fix-non-modular-users-of-module_init-in-core-code.patch added
+ to -mm tree
+Date: Tue, 14 Jan 2014 15:56:47 -0800
+Message-ID: <52d5cebf.lDeNzidjPIZ+8ojX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34987 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559AbaANX4t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jan 2014 18:56:49 -0500
+	with ESMTP id S1751068AbaANX4s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jan 2014 18:56:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paul.gortmaker@windriver.com
+To: mm-commits@vger.kernel.org, peterz@infradead.org, mingo@redhat.com, ebiederm@xmission.com, paul.gortmaker@windriver.com
 
-Subject: + mm-audit-fix-non-modular-users-of-module_init-in-core-code.patch added to -mm tree
-To: paul.gortmaker@windriver.com
+Subject: + kernel-audit-fix-non-modular-users-of-module_init-in-core-code.patch added to -mm tree
+To: paul.gortmaker@windriver.com,ebiederm@xmission.com,mingo@redhat.com,peterz@infradead.org
 From: akpm@linux-foundation.org
-Date: Tue, 14 Jan 2014 15:56:48 -0800
+Date: Tue, 14 Jan 2014 15:56:47 -0800
 
 
 The patch titled
-     Subject: mm: audit/fix non-modular users of module_init in core code
+     Subject: kernel: audit/fix non-modular users of module_init in core code
 has been added to the -mm tree.  Its filename is
-     mm-audit-fix-non-modular-users-of-module_init-in-core-code.patch
+     kernel-audit-fix-non-modular-users-of-module_init-in-core-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-audit-fix-non-modular-users-of-module_init-in-core-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-audit-fix-non-modular-users-of-module_init-in-core-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-audit-fix-non-modular-users-of-module_init-in-core-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-audit-fix-non-modular-users-of-module_init-in-core-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,7 +46,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: mm: audit/fix non-modular users of module_init in core code
+Subject: kernel: audit/fix non-modular users of module_init in core code
 
 Code that is obj-y (always built-in) or dependent on a bool Kconfig
 (built-in or absent) can never be modular.  So using module_init as an
@@ -57,96 +57,117 @@ module.h in the future.  If we don't do this, we'd have to add module.h to
 obviously non-modular code, and that would be a worse thing.
 
 The audit targets the following module_init users for change:
- mm/ksm.c                       bool KSM
- mm/mmap.c                      bool MMU
- mm/huge_memory.c               bool TRANSPARENT_HUGEPAGE
- mm/mmu_notifier.c              bool MMU_NOTIFIER
+ kernel/user.c                  obj-y
+ kernel/kexec.c                 bool KEXEC (one instance per arch)
+ kernel/profile.c               bool PROFILING
+ kernel/hung_task.c             bool DETECT_HUNG_TASK
+ kernel/sched/stats.c           bool SCHEDSTATS
+ kernel/user_namespace.c        bool USER_NS
 
 Note that direct use of __initcall is discouraged, vs.  one of the
 priority categorized subgroups.  As __initcall gets mapped onto
 device_initcall, our use of subsys_initcall (which makes sense for these
 files) will thus change this registration from level 6-device to level
-4-subsys (i.e.  slightly earlier).
+4-subsys (i.e.  slightly earlier).  However no observable impact of that
+difference has been observed during testing.
 
-However no observable impact of that difference has been observed
-during testing.
-
-One might think that core_initcall (l2) or postcore_initcall (l3) would be
-more appropriate for anything in mm/ but if we look at some actual init
-functions themselves, we see things like:
-
-mm/huge_memory.c --> hugepage_init     --> hugepage_init_sysfs
-mm/mmap.c        --> init_user_reserve --> sysctl_user_reserve_kbytes
-mm/ksm.c         --> ksm_init          --> sysfs_create_group
-
-and hence the choice of subsys_initcall (l4) seems reasonable, and at the
-same time minimizes the risk of changing the priority too drastically all
-at once.  We can adjust further in the future.
-
-Also, several instances of missing ";" at EOL are fixed.
+Also, two instances of missing ";" at EOL are fixed in kexec.
 
 Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c  |    2 +-
- mm/ksm.c          |    2 +-
- mm/mmap.c         |    6 +++---
- mm/mmu_notifier.c |    3 +--
- 4 files changed, 6 insertions(+), 7 deletions(-)
+ kernel/hung_task.c      |    3 +--
+ kernel/kexec.c          |    4 ++--
+ kernel/profile.c        |    2 +-
+ kernel/sched/stats.c    |    2 +-
+ kernel/user.c           |    3 +--
+ kernel/user_namespace.c |    2 +-
+ 6 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code mm/huge_memory.c
---- a/mm/huge_memory.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code
-+++ a/mm/huge_memory.c
-@@ -661,7 +661,7 @@ out:
- 	hugepage_exit_sysfs(hugepage_kobj);
- 	return err;
- }
--module_init(hugepage_init)
-+subsys_initcall(hugepage_init);
+diff -puN kernel/hung_task.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code kernel/hung_task.c
+--- a/kernel/hung_task.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code
++++ a/kernel/hung_task.c
+@@ -244,5 +244,4 @@ static int __init hung_task_init(void)
  
- static int __init setup_transparent_hugepage(char *str)
- {
-diff -puN mm/ksm.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code mm/ksm.c
---- a/mm/ksm.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code
-+++ a/mm/ksm.c
-@@ -2345,4 +2345,4 @@ out_free:
- out:
- 	return err;
- }
--module_init(ksm_init)
-+subsys_initcall(ksm_init);
-diff -puN mm/mmap.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code mm/mmap.c
---- a/mm/mmap.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code
-+++ a/mm/mmap.c
-@@ -3142,7 +3142,7 @@ static int init_user_reserve(void)
- 	sysctl_user_reserve_kbytes = min(free_kbytes / 32, 1UL << 17);
  	return 0;
  }
--module_init(init_user_reserve)
-+subsys_initcall(init_user_reserve);
+-
+-module_init(hung_task_init);
++subsys_initcall(hung_task_init);
+diff -puN kernel/kexec.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code kernel/kexec.c
+--- a/kernel/kexec.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code
++++ a/kernel/kexec.c
+@@ -1235,7 +1235,7 @@ static int __init crash_notes_memory_ini
+ 	}
+ 	return 0;
+ }
+-module_init(crash_notes_memory_init)
++subsys_initcall(crash_notes_memory_init);
+ 
  
  /*
-  * Initialise sysctl_admin_reserve_kbytes.
-@@ -3163,7 +3163,7 @@ static int init_admin_reserve(void)
- 	sysctl_admin_reserve_kbytes = min(free_kbytes / 32, 1UL << 13);
+@@ -1629,7 +1629,7 @@ static int __init crash_save_vmcoreinfo_
  	return 0;
  }
--module_init(init_admin_reserve)
-+subsys_initcall(init_admin_reserve);
+ 
+-module_init(crash_save_vmcoreinfo_init)
++subsys_initcall(crash_save_vmcoreinfo_init);
  
  /*
-  * Reinititalise user and admin reserves if memory is added or removed.
-@@ -3233,4 +3233,4 @@ static int __meminit init_reserve_notifi
+  * Move into place and start executing a preloaded standalone
+diff -puN kernel/profile.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code kernel/profile.c
+--- a/kernel/profile.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code
++++ a/kernel/profile.c
+@@ -604,5 +604,5 @@ int __ref create_proc_profile(void) /* f
+ 	hotcpu_notifier(profile_cpu_callback, 0);
+ 	return 0;
+ }
+-module_init(create_proc_profile);
++subsys_initcall(create_proc_profile);
+ #endif /* CONFIG_PROC_FS */
+diff -puN kernel/sched/stats.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code kernel/sched/stats.c
+--- a/kernel/sched/stats.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code
++++ a/kernel/sched/stats.c
+@@ -142,4 +142,4 @@ static int __init proc_schedstat_init(vo
+ 	proc_create("schedstat", 0, NULL, &proc_schedstat_operations);
+ 	return 0;
+ }
+-module_init(proc_schedstat_init);
++subsys_initcall(proc_schedstat_init);
+diff -puN kernel/user.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code kernel/user.c
+--- a/kernel/user.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code
++++ a/kernel/user.c
+@@ -222,5 +222,4 @@ static int __init uid_cache_init(void)
  
  	return 0;
  }
--module_init(init_reserve_notifier)
-+subsys_initcall(init_reserve_notifier);
-diff -puN mm/mmu_notifier.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code
-+++ a/mm/mmu_notifier.c
-@@ -329,5 +329,4 @@ static int __init mmu_notifier_init(void
- {
- 	return init_srcu_struct(&srcu);
+-
+-module_init(uid_cache_init);
++subsys_initcall(uid_cache_init);
+diff -puN kernel/user_namespace.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code kernel/user_namespace.c
+--- a/kernel/user_namespace.c~kernel-audit-fix-non-modular-users-of-module_init-in-core-code
++++ a/kernel/user_namespace.c
+@@ -902,4 +902,4 @@ static __init int user_namespaces_init(v
+ 	user_ns_cachep = KMEM_CACHE(user_namespace, SLAB_PANIC);
+ 	return 0;
  }
+-module_init(user_namespaces_init);
++subsys_initcall(user_namespaces_init);
+_
+
+Patches currently in -mm which might be from paul.gortmaker@windriver.com are
+
+lib-percpu_counterc-fix-__percpu_counter_add.patch
+fs-ramfs-dont-use-module_init-for-non-modular-core-code.patch
+mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall.patch
+printk-flush-conflicting-continuation-line.patch
+printk-flush-conflicting-continuation-line-fix.patch
+fs-proc-dont-use-module_init-for-non-modular-core-code.patch
+linux-next.patch
+kernel-audit-fix-non-modular-users-of-module_init-in-core-code.patch
+mm-audit-fix-non-modular-users-of-module_init-in-core-code.patch
+
