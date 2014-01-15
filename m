@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-rx8581c-add-smbus-only-adapters-support.patch
+Subject: + documentation-cpu-hotplug-fix-the-typo-in-example-code.patch
  added to -mm tree
-Date: Wed, 15 Jan 2014 15:23:30 -0800
-Message-ID: <52d71872.4woac2cE8tP2JNhQ%akpm@linux-foundation.org>
+Date: Wed, 15 Jan 2014 15:33:34 -0800
+Message-ID: <52d71ace.az550RD+ckzvIRdN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44744 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44880 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752158AbaAOXXb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jan 2014 18:23:31 -0500
+	with ESMTP id S1752685AbaAOXde (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jan 2014 18:33:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, andreas.werner@men.de
+To: mm-commits@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, sangjung.woo@samsung.com
 
-Subject: + drivers-rtc-rtc-rx8581c-add-smbus-only-adapters-support.patch added to -mm tree
-To: andreas.werner@men.de
+Subject: + documentation-cpu-hotplug-fix-the-typo-in-example-code.patch added to -mm tree
+To: sangjung.woo@samsung.com,srivatsa.bhat@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Wed, 15 Jan 2014 15:23:30 -0800
+Date: Wed, 15 Jan 2014 15:33:34 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-rx8581.c: add SMBus-only adapters support
+     Subject: Documentation/cpu-hotplug.txt: fix a typo in example code
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-rx8581c-add-smbus-only-adapters-support.patch
+     documentation-cpu-hotplug-fix-the-typo-in-example-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-rx8581c-add-smbus-only-adapters-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-cpu-hotplug-fix-the-typo-in-example-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-rx8581c-add-smbus-only-adapters-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-cpu-hotplug-fix-the-typo-in-example-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,152 +44,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andreas Werner <andreas.werner@men.de>
-Subject: drivers/rtc/rtc-rx8581.c: add SMBus-only adapters support
+From: Sangjung Woo <sangjung.woo@samsung.com>
+Subject: Documentation/cpu-hotplug.txt: fix a typo in example code
 
-Add support for SMBus-only adapters (e.g.  i2c-piix4).  The driver has
-implemented only support for I2C adapters which implement the
-I2C_FUNC_SMBUS_I2C_BLOCK functionality before.
+As the notifier_block name (i.e.  foobar_cpu_notifer) is different from
+the parameter (i.e.foobar_cpu_notifier) of register function, that is
+definitely error and it also makes readers confused.
 
-With this patch it is possible to load and use the RTC driver with I2C and
-SMBUS adapters like the rtc-ds1307 does.
-
-Tested on AMD G Series Platform (i2c-piix4 adapter driver).
-
-Signed-off-by: Andreas Werner <andreas.werner@men.de>
+Signed-off-by: Sangjung Woo <sangjung.woo@samsung.com>
+Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rx8581.c |   81 +++++++++++++++++++++++++++++++------
- 1 file changed, 68 insertions(+), 13 deletions(-)
+ Documentation/cpu-hotplug.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-rx8581.c~drivers-rtc-rtc-rx8581c-add-smbus-only-adapters-support drivers/rtc/rtc-rx8581.c
---- a/drivers/rtc/rtc-rx8581.c~drivers-rtc-rtc-rx8581c-add-smbus-only-adapters-support
-+++ a/drivers/rtc/rtc-rx8581.c
-@@ -52,8 +52,45 @@
- #define RX8581_CTRL_STOP	0x02 /* STOP bit */
- #define RX8581_CTRL_RESET	0x01 /* RESET bit */
- 
-+struct rx8581 {
-+	struct i2c_client	*client;
-+	struct rtc_device	*rtc;
-+	s32 (*read_block_data)(const struct i2c_client *client, u8 command,
-+				u8 length, u8 *values);
-+	s32 (*write_block_data)(const struct i2c_client *client, u8 command,
-+				u8 length, const u8 *values);
-+};
-+
- static struct i2c_driver rx8581_driver;
- 
-+static int rx8581_read_block_data(const struct i2c_client *client, u8 command,
-+					u8 length, u8 *values)
-+{
-+	s32 i, data;
-+
-+	for (i = 0; i < length; i++) {
-+		data = i2c_smbus_read_byte_data(client, command + i);
-+		if (data < 0)
-+			return data;
-+		values[i] = data;
-+	}
-+	return i;
-+}
-+
-+static int rx8581_write_block_data(const struct i2c_client *client, u8 command,
-+					u8 length, const u8 *values)
-+{
-+	s32 i, ret;
-+
-+	for (i = 0; i < length; i++) {
-+		ret = i2c_smbus_write_byte_data(client, command + i,
-+						values[i]);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	return length;
-+}
-+
- /*
-  * In the routines that deal directly with the rx8581 hardware, we use
-  * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch.
-@@ -62,6 +99,7 @@ static int rx8581_get_datetime(struct i2
- {
- 	unsigned char date[7];
- 	int data, err;
-+	struct rx8581 *rx8581 = i2c_get_clientdata(client);
- 
- 	/* First we ensure that the "update flag" is not set, we read the
- 	 * time and date then re-read the "update flag". If the update flag
-@@ -80,14 +118,13 @@ static int rx8581_get_datetime(struct i2
- 			err = i2c_smbus_write_byte_data(client,
- 				RX8581_REG_FLAG, (data & ~RX8581_FLAG_UF));
- 			if (err != 0) {
--				dev_err(&client->dev, "Unable to write device "
--					"flags\n");
-+				dev_err(&client->dev, "Unable to write device flags\n");
- 				return -EIO;
- 			}
- 		}
- 
- 		/* Now read time and date */
--		err = i2c_smbus_read_i2c_block_data(client, RX8581_REG_SC,
-+		err = rx8581->read_block_data(client, RX8581_REG_SC,
- 			7, date);
- 		if (err < 0) {
- 			dev_err(&client->dev, "Unable to read date\n");
-@@ -140,6 +177,7 @@ static int rx8581_set_datetime(struct i2
- {
- 	int data, err;
- 	unsigned char buf[7];
-+	struct rx8581 *rx8581 = i2c_get_clientdata(client);
- 
- 	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
- 		"mday=%d, mon=%d, year=%d, wday=%d\n",
-@@ -176,7 +214,7 @@ static int rx8581_set_datetime(struct i2
+diff -puN Documentation/cpu-hotplug.txt~documentation-cpu-hotplug-fix-the-typo-in-example-code Documentation/cpu-hotplug.txt
+--- a/Documentation/cpu-hotplug.txt~documentation-cpu-hotplug-fix-the-typo-in-example-code
++++ a/Documentation/cpu-hotplug.txt
+@@ -285,7 +285,7 @@ A: This is what you would need in your k
+ 		return NOTIFY_OK;
  	}
  
- 	/* write register's data */
--	err = i2c_smbus_write_i2c_block_data(client, RX8581_REG_SC, 7, buf);
-+	err = rx8581->write_block_data(client, RX8581_REG_SC, 7, buf);
- 	if (err < 0) {
- 		dev_err(&client->dev, "Unable to write to date registers\n");
- 		return -EIO;
-@@ -231,22 +269,39 @@ static const struct rtc_class_ops rx8581
- static int rx8581_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
--	struct rtc_device *rtc;
-+	struct rx8581	  *rx8581;
- 
- 	dev_dbg(&client->dev, "%s\n", __func__);
- 
--	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
--		return -ENODEV;
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA)
-+		&& !i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
-+		return -EIO;
-+
-+	rx8581 = devm_kzalloc(&client->dev, sizeof(struct rx8581), GFP_KERNEL);
-+	if (!rx8581)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, rx8581);
-+	rx8581->client = client;
-+
-+	if (i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_I2C_BLOCK)) {
-+		rx8581->read_block_data = i2c_smbus_read_i2c_block_data;
-+		rx8581->write_block_data = i2c_smbus_write_i2c_block_data;
-+	} else {
-+		rx8581->read_block_data = rx8581_read_block_data;
-+		rx8581->write_block_data = rx8581_write_block_data;
-+	}
- 
- 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
- 
--	rtc = devm_rtc_device_register(&client->dev, rx8581_driver.driver.name,
--					&rx8581_rtc_ops, THIS_MODULE);
-+	rx8581->rtc = devm_rtc_device_register(&client->dev,
-+		rx8581_driver.driver.name, &rx8581_rtc_ops, THIS_MODULE);
- 
--	if (IS_ERR(rtc))
--		return PTR_ERR(rtc);
+-	static struct notifier_block foobar_cpu_notifer =
++	static struct notifier_block foobar_cpu_notifier =
+ 	{
+ 	   .notifier_call = foobar_cpu_callback,
+ 	};
+_
+
+Patches currently in -mm which might be from sangjung.woo@samsung.com are
+
+documentation-cpu-hotplug-fix-the-typo-in-example-code.patch
+
