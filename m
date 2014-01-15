@@ -1,75 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] crash_dump-fix-compilation-error-on-mips-at-least.patch
+Subject: [merged] lib-percpu_counterc-fix-__percpu_counter_add.patch
  removed from -mm tree
-Date: Wed, 15 Jan 2014 12:28:48 -0800
-Message-ID: <52d6ef80.wPWaXGv4R4FuSiYL%akpm@linux-foundation.org>
+Date: Wed, 15 Jan 2014 12:28:50 -0800
+Message-ID: <52d6ef82.uxEN3KWordRqLOmn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43099 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43103 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751650AbaAOU2t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jan 2014 15:28:49 -0500
+	with ESMTP id S1751650AbaAOU2v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jan 2014 15:28:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgoyal@redhat.com, stable@vger.kernel.org, james.hogan@imgtec.com, holzheu@linux.vnet.ibm.com, qais.yousef@imgtec.com
+To: mm-commits@vger.kernel.org, shli@fusionio.com, paul.gortmaker@windriver.com, fan.du@windriver.com, axboe@kernel.dk, tom.leiming@gmail.com
 
-Subject: [merged] crash_dump-fix-compilation-error-on-mips-at-least.patch removed from -mm tree
-To: qais.yousef@imgtec.com,holzheu@linux.vnet.ibm.com,james.hogan@imgtec.com,stable@vger.kernel.org,vgoyal@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] lib-percpu_counterc-fix-__percpu_counter_add.patch removed from -mm tree
+To: tom.leiming@gmail.com,axboe@kernel.dk,fan.du@windriver.com,paul.gortmaker@windriver.com,shli@fusionio.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 15 Jan 2014 12:28:48 -0800
+Date: Wed, 15 Jan 2014 12:28:50 -0800
 
 
 The patch titled
-     Subject: crash_dump: fix compilation error (on MIPS at least)
+     Subject: lib/percpu_counter.c: fix __percpu_counter_add()
 has been removed from the -mm tree.  Its filename was
-     crash_dump-fix-compilation-error-on-mips-at-least.patch
+     lib-percpu_counterc-fix-__percpu_counter_add.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Qais Yousef <qais.yousef@imgtec.com>
-Subject: crash_dump: fix compilation error (on MIPS at least)
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: lib/percpu_counter.c: fix __percpu_counter_add()
 
-  In file included from kernel/crash_dump.c:2:0:
-  include/linux/crash_dump.h:22:27: error: unknown type name `pgprot_t'
+__percpu_counter_add() may be called in softirq/hardirq handler (such as,
+blk_mq_queue_exit() is typically called in hardirq/softirq handler), so we
+need to call this_cpu_add()(irq safe helper) to update percpu counter,
+otherwise counts may be lost.
 
-when CONFIG_CRASH_DUMP=y
+The patch fixes problem that 'rmmod null_blk' hangs in blk_cleanup_queue()
+because of miscounting of request_queue->mq_usage_counter.
 
-The error was traced back to this commit:
+This patch is the v1 of previous one of "lib/percpu_counter.c:
+disable local irq when updating percpu couter", and takes Andrew's
+approach which may be more efficient for ARCHs(x86, s390) that
+have optimized this_cpu_add().
 
-  9cb218131de1 vmcore: introduce remap_oldmem_pfn_range()
-
-include <asm/pgtable.h> to get the missing definition
-
-Signed-off-by: Qais Yousef <qais.yousef@imgtec.com>
-Reviewed-by: James Hogan <james.hogan@imgtec.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: <stable@vger.kernel.org>	[3.12+]
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Fan Du <fan.du@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_dump.h |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/percpu_counter.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/crash_dump.h~crash_dump-fix-compilation-error-on-mips-at-least include/linux/crash_dump.h
---- a/include/linux/crash_dump.h~crash_dump-fix-compilation-error-on-mips-at-least
-+++ a/include/linux/crash_dump.h
-@@ -6,6 +6,8 @@
- #include <linux/proc_fs.h>
- #include <linux/elf.h>
- 
-+#include <asm/pgtable.h> /* for pgprot_t */
-+
- #define ELFCORE_ADDR_MAX	(-1ULL)
- #define ELFCORE_ADDR_ERR	(-2ULL)
- 
+diff -puN lib/percpu_counter.c~lib-percpu_counterc-fix-__percpu_counter_add lib/percpu_counter.c
+--- a/lib/percpu_counter.c~lib-percpu_counterc-fix-__percpu_counter_add
++++ a/lib/percpu_counter.c
+@@ -82,10 +82,10 @@ void __percpu_counter_add(struct percpu_
+ 		unsigned long flags;
+ 		raw_spin_lock_irqsave(&fbc->lock, flags);
+ 		fbc->count += count;
++		 __this_cpu_sub(*fbc->counters, count);
+ 		raw_spin_unlock_irqrestore(&fbc->lock, flags);
+-		__this_cpu_write(*fbc->counters, 0);
+ 	} else {
+-		__this_cpu_write(*fbc->counters, count);
++		this_cpu_add(*fbc->counters, amount);
+ 	}
+ 	preempt_enable();
+ }
 _
 
-Patches currently in -mm which might be from qais.yousef@imgtec.com are
+Patches currently in -mm which might be from tom.leiming@gmail.com are
 
 origin.patch
 linux-next.patch
