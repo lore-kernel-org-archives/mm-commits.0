@@ -1,82 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-percpu_counterc-fix-__percpu_counter_add.patch
- removed from -mm tree
-Date: Wed, 15 Jan 2014 12:28:50 -0800
-Message-ID: <52d6ef82.uxEN3KWordRqLOmn%akpm@linux-foundation.org>
+Subject: [merged] net-ipv6-ip6_vtic-fix-build.patch removed from -mm tree
+Date: Wed, 15 Jan 2014 12:28:52 -0800
+Message-ID: <52d6ef84.3vHySkGY6PHFGCTQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43103 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43107 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751650AbaAOU2v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jan 2014 15:28:51 -0500
+	with ESMTP id S1751511AbaAOU2w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jan 2014 15:28:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shli@fusionio.com, paul.gortmaker@windriver.com, fan.du@windriver.com, axboe@kernel.dk, tom.leiming@gmail.com
+To: mm-commits@vger.kernel.org, steffen.klassert@secunet.com, herbert@gondor.apana.org.au, davem@davemloft.net, akpm@linux-foundation.org
 
-Subject: [merged] lib-percpu_counterc-fix-__percpu_counter_add.patch removed from -mm tree
-To: tom.leiming@gmail.com,axboe@kernel.dk,fan.du@windriver.com,paul.gortmaker@windriver.com,shli@fusionio.com,mm-commits@vger.kernel.org
+Subject: [merged] net-ipv6-ip6_vtic-fix-build.patch removed from -mm tree
+To: akpm@linux-foundation.org,davem@davemloft.net,herbert@gondor.apana.org.au,steffen.klassert@secunet.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 15 Jan 2014 12:28:50 -0800
+Date: Wed, 15 Jan 2014 12:28:52 -0800
 
 
 The patch titled
-     Subject: lib/percpu_counter.c: fix __percpu_counter_add()
+     Subject: net/ipv6/ip6_vti.c: fix build
 has been removed from the -mm tree.  Its filename was
-     lib-percpu_counterc-fix-__percpu_counter_add.patch
+     net-ipv6-ip6_vtic-fix-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: lib/percpu_counter.c: fix __percpu_counter_add()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: net/ipv6/ip6_vti.c: fix build
 
-__percpu_counter_add() may be called in softirq/hardirq handler (such as,
-blk_mq_queue_exit() is typically called in hardirq/softirq handler), so we
-need to call this_cpu_add()(irq safe helper) to update percpu counter,
-otherwise counts may be lost.
+net/ipv6/ip6_vti.c: In function 'vti6_dev_init_gen':
+net/ipv6/ip6_vti.c:743: warning: assignment from incompatible pointer type
+net/ipv6/ip6_vti.c:744: error: dereferencing pointer to incomplete type
 
-The patch fixes problem that 'rmmod null_blk' hangs in blk_cleanup_queue()
-because of miscounting of request_queue->mq_usage_counter.
-
-This patch is the v1 of previous one of "lib/percpu_counter.c:
-disable local irq when updating percpu couter", and takes Andrew's
-approach which may be more efficient for ARCHs(x86, s390) that
-have optimized this_cpu_add().
-
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Shaohua Li <shli@fusionio.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Fan Du <fan.du@windriver.com>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_counter.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/ipv6/ip6_vti.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/percpu_counter.c~lib-percpu_counterc-fix-__percpu_counter_add lib/percpu_counter.c
---- a/lib/percpu_counter.c~lib-percpu_counterc-fix-__percpu_counter_add
-+++ a/lib/percpu_counter.c
-@@ -82,10 +82,10 @@ void __percpu_counter_add(struct percpu_
- 		unsigned long flags;
- 		raw_spin_lock_irqsave(&fbc->lock, flags);
- 		fbc->count += count;
-+		 __this_cpu_sub(*fbc->counters, count);
- 		raw_spin_unlock_irqrestore(&fbc->lock, flags);
--		__this_cpu_write(*fbc->counters, 0);
- 	} else {
--		__this_cpu_write(*fbc->counters, count);
-+		this_cpu_add(*fbc->counters, amount);
+diff -puN net/ipv6/ip6_vti.c~net-ipv6-ip6_vtic-fix-build net/ipv6/ip6_vti.c
+--- a/net/ipv6/ip6_vti.c~net-ipv6-ip6_vtic-fix-build
++++ a/net/ipv6/ip6_vti.c
+@@ -739,7 +739,7 @@ static inline int vti6_dev_init_gen(stru
+ 	if (!dev->tstats)
+ 		return -ENOMEM;
+ 	for_each_possible_cpu(i) {
+-		struct pcpu_tstats *stats;
++		struct pcpu_sw_netstats *stats;
+ 		stats = per_cpu_ptr(dev->tstats, i);
+ 		u64_stats_init(&stats->syncp);
  	}
- 	preempt_enable();
- }
 _
 
-Patches currently in -mm which might be from tom.leiming@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+posix_acl-uninlining.patch
+mm.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path-fix-2.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve-fix.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+mm-show_mem-remove-show_mem_filter_page_count-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix.patch
+mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
+mm-memblock-add-memblock-memory-allocation-apis-fix.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+mm-print-more-details-for-bad_page-fix.patch
+mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
+mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix-fix.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
+numa-add-a-sysctl-for-numa_balancing-fix.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+printk-flush-conflicting-continuation-line-fix.patch
+drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+ipcmsg-document-barriers-fix.patch
+ipcmsg-document-barriers-fix-fix.patch
 linux-next.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
