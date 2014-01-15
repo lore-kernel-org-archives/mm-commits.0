@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-fix-last_dead_count-memory-wastage.patch added to -mm
- tree
-Date: Tue, 14 Jan 2014 16:14:34 -0800
-Message-ID: <52d5d2ea.SQ1SyO4Uj/mB3LnM%akpm@linux-foundation.org>
+Subject: + mm-memcg-iteration-skip-memcgs-not-yet-fully-initialized.patch
+ added to -mm tree
+Date: Tue, 14 Jan 2014 16:15:46 -0800
+Message-ID: <52d5d332.Ph1rSZyD6FeQ0AO+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35081 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35163 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559AbaAOAOf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jan 2014 19:14:35 -0500
+	with ESMTP id S1750918AbaAOAPq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jan 2014 19:15:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, hughd@google.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, hughd@google.com
 
-Subject: + mm-memcg-fix-last_dead_count-memory-wastage.patch added to -mm tree
-To: hughd@google.com,hannes@cmpxchg.org,mhocko@suse.cz
+Subject: + mm-memcg-iteration-skip-memcgs-not-yet-fully-initialized.patch added to -mm tree
+To: hughd@google.com,hannes@cmpxchg.org,mhocko@suse.cz,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 14 Jan 2014 16:14:34 -0800
+Date: Tue, 14 Jan 2014 16:15:46 -0800
 
 
 The patch titled
-     Subject: mm/memcg: fix last_dead_count memory wastage
+     Subject: mm/memcg: iteration skip memcgs not yet fully initialized
 has been added to the -mm tree.  Its filename is
-     mm-memcg-fix-last_dead_count-memory-wastage.patch
+     mm-memcg-iteration-skip-memcgs-not-yet-fully-initialized.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-fix-last_dead_count-memory-wastage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-iteration-skip-memcgs-not-yet-fully-initialized.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-fix-last_dead_count-memory-wastage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-iteration-skip-memcgs-not-yet-fully-initialized.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,34 +45,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/memcg: fix last_dead_count memory wastage
+Subject: mm/memcg: iteration skip memcgs not yet fully initialized
 
-Shorten mem_cgroup_reclaim_iter.last_dead_count from unsigned long to int:
-it's assigned from an int and compared with an int, and adjacent to an
-unsigned int: so there's no point to it being unsigned long, which wasted
-104 bytes in every mem_cgroup_per_zone.
+It is surprising that the mem_cgroup iterator can return memcgs which have
+not yet been fully initialized.  By accident (or trial and error?) this
+appears not to present an actual problem; but it may be better to prevent
+such surprises, by skipping memcgs not yet online.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-fix-last_dead_count-memory-wastage mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-fix-last_dead_count-memory-wastage
+diff -puN mm/memcontrol.c~mm-memcg-iteration-skip-memcgs-not-yet-fully-initialized mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-iteration-skip-memcgs-not-yet-fully-initialized
 +++ a/mm/memcontrol.c
-@@ -147,7 +147,7 @@ struct mem_cgroup_reclaim_iter {
- 	 * matches memcg->dead_count of the hierarchy root group.
+@@ -1078,10 +1078,8 @@ skip_node:
+ 	 * protected by css_get and the tree walk is rcu safe.
  	 */
- 	struct mem_cgroup *last_visited;
--	unsigned long last_dead_count;
-+	int last_dead_count;
- 
- 	/* scan generation, increased every round-trip */
- 	unsigned int generation;
+ 	if (next_css) {
+-		struct mem_cgroup *mem = mem_cgroup_from_css(next_css);
+-
+-		if (css_tryget(&mem->css))
+-			return mem;
++		if ((next_css->flags & CSS_ONLINE) && css_tryget(next_css))
++			return mem_cgroup_from_css(next_css);
+ 		else {
+ 			prev_css = next_css;
+ 			goto skip_node;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -95,6 +100,7 @@ mm-munlock-fix-potential-race-with-thp-page-split.patch
 mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
 mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
 mm-memcg-fix-last_dead_count-memory-wastage.patch
+mm-memcg-iteration-skip-memcgs-not-yet-fully-initialized.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 linux-next.patch
 zsmalloc-move-it-under-mm.patch
