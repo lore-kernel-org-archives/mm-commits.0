@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-remove-unused-code-from-kmem_cache_destroy_work_func.patch added to
- -mm tree
-Date: Tue, 21 Jan 2014 12:02:48 -0800
-Message-ID: <52ded268.WzTZAs1C4NGHPmoy%akpm@linux-foundation.org>
+Subject: + ocfs2-code-cleanup-remove-unused-functions.patch added to -mm
+ tree
+Date: Tue, 21 Jan 2014 12:05:06 -0800
+Message-ID: <52ded2f2.JOt6X7VJufC3BjxI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44160 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167AbaAUUCt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 15:02:49 -0500
+	with ESMTP id S1751014AbaAUUFH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 15:05:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: + memcg-remove-unused-code-from-kmem_cache_destroy_work_func.patch added to -mm tree
-To: vdavydov@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz
+Subject: + ocfs2-code-cleanup-remove-unused-functions.patch added to -mm tree
+To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 21 Jan 2014 12:02:48 -0800
+Date: Tue, 21 Jan 2014 12:05:06 -0800
 
 
 The patch titled
-     Subject: memcg: remove unused code from kmem_cache_destroy_work_func
+     Subject: ocfs2: code cleanup: remove unused functions
 has been added to the -mm tree.  Its filename is
-     memcg-remove-unused-code-from-kmem_cache_destroy_work_func.patch
+     ocfs2-code-cleanup-remove-unused-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-remove-unused-code-from-kmem_cache_destroy_work_func.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-code-cleanup-remove-unused-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-remove-unused-code-from-kmem_cache_destroy_work_func.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-code-cleanup-remove-unused-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,61 +44,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: remove unused code from kmem_cache_destroy_work_func
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: ocfs2: code cleanup: remove unused functions
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+These functions are either coded in individual files as static or not used
+at all.  Remove them.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/ocfs2/ocfs2_fs.h |   40 ----------------------------------------
+ 1 file changed, 40 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-unused-code-from-kmem_cache_destroy_work_func mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-unused-code-from-kmem_cache_destroy_work_func
-+++ a/mm/memcontrol.c
-@@ -3320,11 +3320,9 @@ static void kmem_cache_destroy_work_func
- 	 * So if we aren't down to zero, we'll just schedule a worker and try
- 	 * again
- 	 */
--	if (atomic_read(&cachep->memcg_params->nr_pages) != 0) {
-+	if (atomic_read(&cachep->memcg_params->nr_pages) != 0)
- 		kmem_cache_shrink(cachep);
--		if (atomic_read(&cachep->memcg_params->nr_pages) == 0)
--			return;
--	} else
-+	else
- 		kmem_cache_destroy(cachep);
+diff -puN fs/ocfs2/ocfs2_fs.h~ocfs2-code-cleanup-remove-unused-functions fs/ocfs2/ocfs2_fs.h
+--- a/fs/ocfs2/ocfs2_fs.h~ocfs2-code-cleanup-remove-unused-functions
++++ a/fs/ocfs2/ocfs2_fs.h
+@@ -1325,16 +1325,6 @@ static inline int ocfs2_extent_recs_per_
+ 	return size / sizeof(struct ocfs2_extent_rec);
  }
+ 
+-static inline int ocfs2_chain_recs_per_inode(struct super_block *sb)
+-{
+-	int size;
+-
+-	size = sb->s_blocksize -
+-		offsetof(struct ocfs2_dinode, id2.i_chain.cl_recs);
+-
+-	return size / sizeof(struct ocfs2_chain_rec);
+-}
+-
+ static inline u16 ocfs2_extent_recs_per_eb(struct super_block *sb)
+ {
+ 	int size;
+@@ -1493,16 +1483,6 @@ static inline int ocfs2_extent_recs_per_
+ 	return size / sizeof(struct ocfs2_extent_rec);
+ }
+ 
+-static inline int ocfs2_chain_recs_per_inode(int blocksize)
+-{
+-	int size;
+-
+-	size = blocksize -
+-		offsetof(struct ocfs2_dinode, id2.i_chain.cl_recs);
+-
+-	return size / sizeof(struct ocfs2_chain_rec);
+-}
+-
+ static inline int ocfs2_extent_recs_per_eb(int blocksize)
+ {
+ 	int size;
+@@ -1589,12 +1569,6 @@ static inline int ocfs2_xattr_recs_per_x
+ #endif  /* __KERNEL__ */
+ 
+ 
+-static inline int ocfs2_system_inode_is_global(int type)
+-{
+-	return ((type >= 0) &&
+-		(type <= OCFS2_LAST_GLOBAL_SYSTEM_INODE));
+-}
+-
+ static inline int ocfs2_sprintf_system_inode_name(char *buf, int len,
+ 						  int type, int slot)
+ {
+@@ -1622,19 +1596,5 @@ static inline void ocfs2_set_de_type(str
+ 	de->file_type = ocfs2_type_by_mode[(mode & S_IFMT)>>S_SHIFT];
+ }
+ 
+-static inline int ocfs2_gd_is_discontig(struct ocfs2_group_desc *gd)
+-{
+-	if ((offsetof(struct ocfs2_group_desc, bg_bitmap) +
+-	     le16_to_cpu(gd->bg_size)) !=
+-	    offsetof(struct ocfs2_group_desc, bg_list))
+-		return 0;
+-	/*
+-	 * Only valid to check l_next_free_rec if
+-	 * bg_bitmap + bg_size == bg_list.
+-	 */
+-	if (!gd->bg_list.l_next_free_rec)
+-		return 0;
+-	return 1;
+-}
+ #endif  /* _OCFS2_FS_H */
  
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
-fs-superc-fix-warn-on-alloc_super-fail-path.patch
-memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
-memcg-make-memcg_update_cache_sizes-static.patch
-memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
-slab-clean-up-kmem_cache_create_memcg-error-handling.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
-memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
-memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
-memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
-memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
-memcg-get-rid-of-kmem_cache_dup.patch
-slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
-memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
-memcg-remove-kmem_accounted_activated-flag.patch
-memcg-rework-memcg_update_kmem_limit-synchronization.patch
-memcg-rework-memcg_update_kmem_limit-synchronization-fix.patch
-mm-vmscan-shrink-all-slab-objects-if-tight-on-memory.patch
-mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-memcg-remove-unused-code-from-kmem_cache_destroy_work_func.patch
-linux-next.patch
+ocfs2-remove-versioning-information.patch
+ocfs2-add-clustername-to-cluster-connection.patch
+ocfs2-add-dlm-recovery-callbacks.patch
+ocfs2-shift-allocation-ocfs2_live_connection-to-user_connect.patch
+ocfs2-pass-ocfs2_cluster_connection-to-ocfs2_this_node.patch
+ocfs2-framework-for-version-lvb.patch
+ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
+ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace-fix.patch
+ocfs2-code-cleanup-remove-unused-functions.patch
 
