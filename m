@@ -1,72 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- input-route-kbd-leds-through-the-generic-leds-layer-fix.patch removed from
- -mm tree
-Date: Tue, 21 Jan 2014 14:35:19 -0800
-Message-ID: <52def627.owkZl0qqtdQWTuhI%akpm@linux-foundation.org>
+ fsnotify-do-not-share-events-between-notification-groups-fix.patch removed
+ from -mm tree
+Date: Tue, 21 Jan 2014 15:27:32 -0800
+Message-ID: <52df0264.xcTNFiuaBNWPDAJR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45148 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45470 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753769AbaAUWfU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 17:35:20 -0500
+	with ESMTP id S1752191AbaAUX1d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 18:27:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, samuel.thibault@ens-lyon.org, fengguang.wu@intel.com, dmitry.torokhov@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, jack@suse.cz, hch@lst.de, eparis@parisplace.org, hughd@google.com
 
-Subject: [folded-merged] input-route-kbd-leds-through-the-generic-leds-layer-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,dmitry.torokhov@gmail.com,fengguang.wu@intel.com,samuel.thibault@ens-lyon.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] fsnotify-do-not-share-events-between-notification-groups-fix.patch removed from -mm tree
+To: hughd@google.com,eparis@parisplace.org,hch@lst.de,jack@suse.cz,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 21 Jan 2014 14:35:19 -0800
+Date: Tue, 21 Jan 2014 15:27:32 -0800
 
 
 The patch titled
-     Subject: input-route-kbd-leds-through-the-generic-leds-layer-fix
+     Subject: fanotify: fix corruption preventing startup
 has been removed from the -mm tree.  Its filename was
-     input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+     fsnotify-do-not-share-events-between-notification-groups-fix.patch
 
-This patch was dropped because it was folded into input-route-kbd-leds-through-the-generic-leds-layer.patch
+This patch was dropped because it was folded into fsnotify-do-not-share-events-between-notification-groups.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: input-route-kbd-leds-through-the-generic-leds-layer-fix
+From: Hugh Dickins <hughd@google.com>
+Subject: fanotify: fix corruption preventing startup
 
-remove unneeded `extern', fix comment layout
+Two of my machines couldn't boot mmotm with fanotify enabled:
+0x40000020 was being or'ed into a group's notification_waitq next
+pointer, with sad results.  It comes from an over-simplification in
+fanotify_merge(): test_event isn't NULL when the loop finds no merge.
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/leds.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/notify/fanotify/fanotify.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/input/leds.c~input-route-kbd-leds-through-the-generic-leds-layer-fix drivers/input/leds.c
---- a/drivers/input/leds.c~input-route-kbd-leds-through-the-generic-leds-layer-fix
-+++ a/drivers/input/leds.c
-@@ -211,9 +211,11 @@ err:
- 	return error;
- }
- 
--/* Disconnected input device. Clean it, and deregister now-useless VT LEDs
-- * and triggers.  */
--extern void input_led_disconnect(struct input_dev *dev)
-+/*
-+ * Disconnected input device. Clean it, and deregister now-useless VT LEDs and
-+ * triggers.
-+ */
-+void input_led_disconnect(struct input_dev *dev)
+diff -puN fs/notify/fanotify/fanotify.c~fsnotify-do-not-share-events-between-notification-groups-fix fs/notify/fanotify/fanotify.c
+--- a/fs/notify/fanotify/fanotify.c~fsnotify-do-not-share-events-between-notification-groups-fix
++++ a/fs/notify/fanotify/fanotify.c
+@@ -37,16 +37,19 @@ static bool should_merge(struct fsnotify
+ static struct fsnotify_event *fanotify_merge(struct list_head *list,
+ 					     struct fsnotify_event *event)
  {
- 	int i;
- 	struct led_classdev *leds = dev->leds;
+-	struct fsnotify_event *test_event = NULL;
++	struct fsnotify_event *test_event;
++	bool do_merge = false;
+ 
+ 	pr_debug("%s: list=%p event=%p\n", __func__, list, event);
+ 
+ 	list_for_each_entry_reverse(test_event, list, list) {
+-		if (should_merge(test_event, event))
++		if (should_merge(test_event, event)) {
++			do_merge = true;
+ 			break;
++		}
+ 	}
+ 
+-	if (!test_event)
++	if (!do_merge)
+ 		return NULL;
+ 
+ 	test_event->mask |= event->mask;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-origin.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
+fsnotify-do-not-share-events-between-notification-groups.patch
+mm-call-mmu-notifiers-when-copying-a-hugetlb-page-range.patch
+mm-rmap-recompute-pgoff-for-huge-page.patch
+mm-rmap-factor-nonlinear-handling-out-of-try_to_unmap_file.patch
+mm-rmap-factor-lock-function-out-of-rmap_walk_anon.patch
+mm-rmap-make-rmap_walk-to-get-the-rmap_walk_control-argument.patch
+mm-rmap-extend-rmap_walk_xxx-to-cope-with-different-cases.patch
+mm-rmap-use-rmap_walk-in-try_to_unmap.patch
+mm-rmap-use-rmap_walk-in-try_to_munlock.patch
+mm-rmap-use-rmap_walk-in-page_referenced.patch
+mm-rmap-use-rmap_walk-in-page_referenced-fix.patch
+mm-rmap-use-rmap_walk-in-page_mkclean.patch
 
