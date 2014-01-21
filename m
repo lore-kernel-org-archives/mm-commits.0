@@ -1,91 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 21 Jan 2014 15:31:07 -0800
-Message-ID: <52df033b.Wwp7X7pj2zM1gI3u%akpm@linux-foundation.org>
+ memblock-make-memblock_set_node-support-different-memblock_type-fix.patch
+ removed from -mm tree
+Date: Tue, 21 Jan 2014 15:31:24 -0800
+Message-ID: <52df034c.ks+y1GvjMVqvtds9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45587 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752447AbaAUXbI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 18:31:08 -0500
+	with ESMTP id S1752447AbaAUXbZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 18:31:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, tangchen@cn.fujitsu.com, hpa@zytor.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com, sfr@canb.auug.org.au
 
-Subject: [folded-merged] memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,hpa@zytor.com,tangchen@cn.fujitsu.com,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] memblock-make-memblock_set_node-support-different-memblock_type-fix.patch removed from -mm tree
+To: sfr@canb.auug.org.au,tangchen@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 21 Jan 2014 15:31:07 -0800
+Date: Tue, 21 Jan 2014 15:31:24 -0800
 
 
 The patch titled
-     Subject: memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes
+     Subject: memblock-make-memblock_set_node-support-different-memblock_type-fix
 has been removed from the -mm tree.  Its filename was
-     memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
+     memblock-make-memblock_set_node-support-different-memblock_type-fix.patch
 
-This patch was dropped because it was folded into memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+This patch was dropped because it was folded into memblock-make-memblock_set_node-support-different-memblock_type.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: memblock-make-memblock_set_node-support-different-memblock_type-fix
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+After merging the final tree, today's linux-next build (powerpc
+allnoconfig) failed like this:
 
-WARNING: line over 80 characters
-#141: FILE: mm/memblock.c:731:
-+		memblock_clear_region_flags(&type->regions[i], MEMBLOCK_HOTPLUG);
+arch/powerpc/mm/mem.c: In function 'do_init_bootmem':
+arch/powerpc/mm/mem.c:212:49: error: 'memblock_memory' undeclared (first us=
+e in this function)
+  memblock_set_node(0, (phys_addr_t)ULLONG_MAX, &memblock_memory, 0);
+                                                 ^
 
-total: 0 errors, 1 warnings, 93 lines checked
+Caused by commit 3a543893d46a ("memblock: make memblock_set_node()
+support different memblock_type") from the apm-current tree.
 
-./patches/memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/powerpc/mm/mem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes mm/memblock.c
---- a/mm/memblock.c~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes
-+++ a/mm/memblock.c
-@@ -728,7 +728,8 @@ int __init_memblock memblock_clear_hotpl
- 		return ret;
+diff -puN arch/powerpc/mm/mem.c~memblock-make-memblock_set_node-support-different-memblock_type-fix arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~memblock-make-memblock_set_node-support-different-memblock_type-fix
++++ a/arch/powerpc/mm/mem.c
+@@ -209,7 +209,7 @@ void __init do_init_bootmem(void)
+ 	/* Place all memblock_regions in the same node and merge contiguous
+ 	 * memblock_regions
+ 	 */
+-	memblock_set_node(0, (phys_addr_t)ULLONG_MAX, &memblock_memory, 0);
++	memblock_set_node(0, (phys_addr_t)ULLONG_MAX, &memblock.memory, 0);
  
- 	for (i = start_rgn; i < end_rgn; i++)
--		memblock_clear_region_flags(&type->regions[i], MEMBLOCK_HOTPLUG);
-+		memblock_clear_region_flags(&type->regions[i],
-+					    MEMBLOCK_HOTPLUG);
- 
- 	memblock_merge_regions(type);
- 	return 0;
+ 	/* Add all physical memory to the bootmem map, mark each area
+ 	 * present.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
-posix_acl-uninlining.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty.patch
-mm-show_mem-remove-show_mem_filter_page_count.patch
-mm-add-overcommit_kbytes-sysctl-variable.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-sched-add-tracepoints-related-to-numa-task-migration-fix.patch
-mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+memblock-make-memblock_set_node-support-different-memblock_type.patch
+mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch
+x86-mm-memblock-switch-to-use-numa_no_node.patch
 
