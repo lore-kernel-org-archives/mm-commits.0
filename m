@@ -1,78 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch removed from -mm tree
-Date: Tue, 21 Jan 2014 15:29:15 -0800
-Message-ID: <52df02cb.Xq2F4hFONJJ1wgAL%akpm@linux-foundation.org>
+ mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage-fix.patch
+ removed from -mm tree
+Date: Tue, 21 Jan 2014 15:29:36 -0800
+Message-ID: <52df02e0.83YW1XXKSKi9t2ry%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45559 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45561 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbaAUX3Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 18:29:16 -0500
+	with ESMTP id S1750862AbaAUX3h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 18:29:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wuzhy@linux.vnet.ibm.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, murzin.v@gmail.com, nasa4836@gmail.com
 
-Subject: [folded-merged] mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,wuzhy@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage-fix.patch removed from -mm tree
+To: nasa4836@gmail.com,murzin.v@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 21 Jan 2014 15:29:15 -0800
+Date: Tue, 21 Jan 2014 15:29:36 -0800
 
 
 The patch titled
-     Subject: mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix
+     Subject: Re: mm/vmalloc: interchage the implementation of vmalloc_to_{pfn,page}
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix.patch
+     mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage-fix.patch
 
-This patch was dropped because it was folded into mm-memory-failure-fix-the-typo-in-me_pagecache_dirty.patch
+This patch was dropped because it was folded into mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix
+From: Jianyu Zhan <nasa4836@gmail.com>
+Subject: Re: mm/vmalloc: interchage the implementation of vmalloc_to_{pfn,page}
 
-s/cache/pagecache/
+I just sent the incorrect patch...
 
-Cc: Zhi Yong Wu <wuzhy@linux.vnet.ibm.com>
+it should be
+ -   page = pte_page(pte);
+ +  pfn = pte_pfn(pte);;
+
+Cc: Vladimir Murzin <murzin.v@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-fix-the-typo-in-me_pagecache_dirty-fix
-+++ a/mm/memory-failure.c
-@@ -611,7 +611,7 @@ static int me_pagecache_clean(struct pag
- }
+diff -puN mm/vmalloc.c~mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage-fix
++++ a/mm/vmalloc.c
+@@ -225,7 +225,7 @@ int is_vmalloc_or_module_addr(const void
+ unsigned long vmalloc_to_pfn(const void *vmalloc_addr)
+ {
+ 	unsigned long addr = (unsigned long) vmalloc_addr;
+-	unsigned long pfn;
++	unsigned long pfn = 0;
+ 	pgd_t *pgd = pgd_offset_k(addr);
  
- /*
-- * Dirty cache page
-+ * Dirty pagecache page
-  * Issues: when the error hit a hole page the error is not properly
-  * propagated.
-  */
+ 	/*
+@@ -244,7 +244,7 @@ unsigned long vmalloc_to_pfn(const void
+ 				ptep = pte_offset_map(pmd, addr);
+ 				pte = *ptep;
+ 				if (pte_present(pte))
+-					pfn = pte_page(pte);
++					pfn = pte_pfn(pte);
+ 				pte_unmap(ptep);
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nasa4836@gmail.com are
 
-origin.patch
-posix_acl-uninlining.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty.patch
-mm-show_mem-remove-show_mem_filter_page_count-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-checkpatch-fixes.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix.patch
-mm-add-overcommit_kbytes-sysctl-variable-fix-2.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions-checkpatch-fixes.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock-checkpatch-fixes.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed-checkpatch-fixes.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix.patch
-sched-add-tracepoints-related-to-numa-task-migration-fix.patch
-mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
+mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch
 
