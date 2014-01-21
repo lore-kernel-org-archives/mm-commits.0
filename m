@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-endless-loop-caused-by-mem_cgroup_iter.patch added to -mm tree
-Date: Tue, 21 Jan 2014 11:41:21 -0800
-Message-ID: <52decd61.wsGpky4Jc8IhqX6B%akpm@linux-foundation.org>
+Subject: +
+ memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter.patch
+ added to -mm tree
+Date: Tue, 21 Jan 2014 11:41:22 -0800
+Message-ID: <52decd62.3qumuqTCQTjvMmmX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44035 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750773AbaAUTlW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 14:41:22 -0500
+	with ESMTP id S1750773AbaAUTlX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 14:41:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@vger.kernel.org, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz
 
-Subject: + memcg-fix-endless-loop-caused-by-mem_cgroup_iter.patch added to -mm tree
+Subject: + memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter.patch added to -mm tree
 To: mhocko@suse.cz,gthelen@google.com,hannes@cmpxchg.org,hughd@google.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 21 Jan 2014 11:41:21 -0800
+Date: Tue, 21 Jan 2014 11:41:22 -0800
 
 
 The patch titled
-     Subject: memcg: fix endless loop caused by mem_cgroup_iter
+     Subject: memcg: fix css reference leak and endless loop in mem_cgroup_iter
 has been added to the -mm tree.  Its filename is
-     memcg-fix-endless-loop-caused-by-mem_cgroup_iter.patch
+     memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-endless-loop-caused-by-mem_cgroup_iter.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-endless-loop-caused-by-mem_cgroup_iter.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,96 +46,77 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: fix endless loop caused by mem_cgroup_iter
+Subject: memcg: fix css reference leak and endless loop in mem_cgroup_iter
 
-Hugh has reported an endless loop when the hardlimit reclaim sees the same
-group all the time.  This might happen when the reclaim races with the
-memcg removal.
+19f39402864e ("memcg: simplify mem_cgroup_iter") has reorganized
+mem_cgroup_iter code in order to simplify it.  A part of that change was
+dropping an optimization which didn't call css_tryget on the root of the
+walked tree.  The patch however didn't change the css_put part in
+mem_cgroup_iter which excludes root.
 
-shrink_zone
-                                                [rmdir root]
-  mem_cgroup_iter(root, NULL, reclaim)
-    // prev = NULL
-    rcu_read_lock()
-    mem_cgroup_iter_load
-      last_visited = iter->last_visited   // gets root || NULL
-      css_tryget(last_visited)            // failed
-      last_visited = NULL                 [1]
-    memcg = root = __mem_cgroup_iter_next(root, NULL)
-    mem_cgroup_iter_update
-      iter->last_visited = root;
-    reclaim->generation = iter->generation
+This wasn't an issue at the time because __mem_cgroup_iter_next bailed out
+for root early without taking a reference as cgroup iterators
+(css_next_descendant_pre) didn't visit root themselves.
 
- mem_cgroup_iter(root, root, reclaim)
-   // prev = root
-   rcu_read_lock
-    mem_cgroup_iter_load
-      last_visited = iter->last_visited   // gets root
-      css_tryget(last_visited)            // failed
-    [1]
+Nevertheless cgroup iterators have been reworked to visit root by
+bd8815a6d802 ("cgroup: make css_for_each_descendant() and friends include
+the origin css in the iteration") when the root bypass have been dropped
+in __mem_cgroup_iter_next.  This means that css_put is not called for root
+and so css along with mem_cgroup and other cgroup internal object tied by
+css lifetime are never freed.
 
-The issue seemed to be introduced by 5f5781619718 ("memcg: relax memcg
-iter caching") which has replaced unconditional css_get/css_put by
-css_tryget/css_put for the cached iterator.
+Fix the issue by reintroducing root check in __mem_cgroup_iter_next and do
+not take css reference for it.
 
-This patch fixes the issue by skipping css_tryget on the root of the tree
-walk in mem_cgroup_iter_load and symmetrically doesn't release it in
-mem_cgroup_iter_update.
+This reference counting magic protects us also from another issue, an
+endless loop reported by Hugh Dickins when reclaim races with root removal
+and css_tryget called by iterator internally would fail.  There would be
+no other nodes to visit so __mem_cgroup_iter_next would return NULL and
+mem_cgroup_iter would interpret it as "start looping from root again" and
+so mem_cgroup_iter would loop forever internally.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Reported-by: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Greg Thelen <gthelen@google.com>
-Cc: <stable@vger.kernel.org>	[3.10+]
+Cc: <stable@vger.kernel.org>	[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-endless-loop-caused-by-mem_cgroup_iter mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-endless-loop-caused-by-mem_cgroup_iter
+diff -puN mm/memcontrol.c~memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter
 +++ a/mm/memcontrol.c
-@@ -1117,7 +1117,15 @@ mem_cgroup_iter_load(struct mem_cgroup_r
- 	if (iter->last_dead_count == *sequence) {
- 		smp_rmb();
- 		position = iter->last_visited;
--		if (position && !css_tryget(&position->css))
+@@ -1076,14 +1076,22 @@ skip_node:
+ 	 * skipped and we should continue the tree walk.
+ 	 * last_visited css is safe to use because it is
+ 	 * protected by css_get and the tree walk is rcu safe.
++	 *
++	 * We do not take a reference on the root of the tree walk
++	 * because we might race with the root removal when it would
++	 * be the only node in the iterated hierarchy and mem_cgroup_iter
++	 * would end up in an endless loop because it expects that at
++	 * least one valid node will be returned. Root cannot disappear
++	 * because caller of the iterator should hold it already so
++	 * skipping css reference should be safe.
+ 	 */
+ 	if (next_css) {
+-		if ((next_css->flags & CSS_ONLINE) && css_tryget(next_css))
++		if ((next_css->flags & CSS_ONLINE) &&
++				(next_css == &root->css || css_tryget(next_css)))
+ 			return mem_cgroup_from_css(next_css);
+-		else {
+-			prev_css = next_css;
+-			goto skip_node;
+-		}
 +
-+		/*
-+		 * We cannot take a reference to root because we might race
-+		 * with root removal and returning NULL would end up in
-+		 * an endless loop on the iterator user level when root
-+		 * would be returned all the time.
-+		 */
-+		if (position && position != root &&
-+				!css_tryget(&position->css))
- 			position = NULL;
++		prev_css = next_css;
++		goto skip_node;
  	}
- 	return position;
-@@ -1126,9 +1134,11 @@ mem_cgroup_iter_load(struct mem_cgroup_r
- static void mem_cgroup_iter_update(struct mem_cgroup_reclaim_iter *iter,
- 				   struct mem_cgroup *last_visited,
- 				   struct mem_cgroup *new_position,
-+				   struct mem_cgroup *root,
- 				   int sequence)
- {
--	if (last_visited)
-+	/* root reference counting symmetric to mem_cgroup_iter_load */
-+	if (last_visited && last_visited != root)
- 		css_put(&last_visited->css);
- 	/*
- 	 * We store the sequence count from the time @last_visited was
-@@ -1203,7 +1213,8 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		memcg = __mem_cgroup_iter_next(root, last_visited);
  
- 		if (reclaim) {
--			mem_cgroup_iter_update(iter, last_visited, memcg, seq);
-+			mem_cgroup_iter_update(iter, last_visited, memcg, root,
-+					seq);
- 
- 			if (!memcg)
- 				iter->generation++;
+ 	return NULL;
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
