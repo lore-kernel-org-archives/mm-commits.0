@@ -1,80 +1,107 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch removed from
+ mm-memblock-add-memblock-memory-allocation-apis-fix-3.patch removed from
  -mm tree
-Date: Tue, 21 Jan 2014 15:33:47 -0800
-Message-ID: <52df03db.qEXZwz24uV9AWvNT%akpm@linux-foundation.org>
+Date: Tue, 21 Jan 2014 15:33:45 -0800
+Message-ID: <52df03d9.yPkmyPj3Ngy27g28%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45629 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751071AbaAUXds (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 18:33:48 -0500
+	with ESMTP id S1751071AbaAUXdp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 18:33:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, santosh.shilimkar@ti.com, rmk+kernel@arm.linux.org.uk
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, tj@kernel.org, grygorii.strashko@ti.com
 
-Subject: [folded-merged] mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch removed from -mm tree
-To: rmk+kernel@arm.linux.org.uk,santosh.shilimkar@ti.com,sfr@canb.auug.org.au,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-memblock-add-memblock-memory-allocation-apis-fix-3.patch removed from -mm tree
+To: grygorii.strashko@ti.com,tj@kernel.org,yinghai@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 21 Jan 2014 15:33:47 -0800
+Date: Tue, 21 Jan 2014 15:33:45 -0800
 
 
 The patch titled
-     Subject: ARM: mm: change further appearance of arm_dma_zone_size to phys_addr_t
+     Subject: mm/memblock: add more comments in code
 has been removed from the -mm tree.  Its filename was
-     mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch
+     mm-memblock-add-memblock-memory-allocation-apis-fix-3.patch
 
 This patch was dropped because it was folded into mm-memblock-add-memblock-memory-allocation-apis.patch
 
 ------------------------------------------------------
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: ARM: mm: change further appearance of arm_dma_zone_size to phys_addr_t
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: mm/memblock: add more comments in code
 
-The definition was chagned in commit 364230b995214 ("ARM: use phys_addr_t
-for DMA zone sizes").
+Add additional description on:
+- why warning is produced in case if slab is ready
+- why kmemleak_alloc is called for each allocated memory block
 
-Fixes this build error:
-
-arch/arm/mm/init.c:199:13: error: conflicting types for 'arm_dma_zone_size'
-include/linux/bootmem.h:259:11: note: previous declaration of 'arm_dma_zone_size' was here
-
-While changing the type, we also need to limit MAX_DMA_ADDRESS if
-PAGE_OFFSET + arm_dma_zone_size is greater than 4GB.  The MAX_DMA_ADDRESS
-is a virtual address and we really don't want the 32-bit value of this
-wrapping.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/dma.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memblock.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/include/asm/dma.h~mm-memblock-add-memblock-memory-allocation-apis-fix-4 arch/arm/include/asm/dma.h
---- a/arch/arm/include/asm/dma.h~mm-memblock-add-memblock-memory-allocation-apis-fix-4
-+++ a/arch/arm/include/asm/dma.h
-@@ -8,8 +8,8 @@
- #define MAX_DMA_ADDRESS	0xffffffffUL
- #else
- #define MAX_DMA_ADDRESS	({ \
--	extern unsigned long arm_dma_zone_size; \
--	arm_dma_zone_size ? \
-+	extern phys_addr_t arm_dma_zone_size; \
-+	arm_dma_zone_size && arm_dma_zone_size < (0x10000000 - PAGE_OFFSET) ? \
- 		(PAGE_OFFSET + arm_dma_zone_size) : 0xffffffffUL; })
- #endif
+diff -puN mm/memblock.c~mm-memblock-add-memblock-memory-allocation-apis-fix-3 mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-add-memblock-memory-allocation-apis-fix-3
++++ a/mm/memblock.c
+@@ -1071,6 +1071,11 @@ static void * __init memblock_virt_alloc
+ 		pr_warn("%s: usage of MAX_NUMNODES is deprecated. Use NUMA_NO_NODE\n",
+ 			__func__);
+ 
++	/*
++	 * Detect any accidental use of these APIs after slab is ready, as at
++	 * this moment memblock may be deinitialized already and its
++	 * internal data may be destroyed (after execution of free_all_bootmem)
++	 */
+ 	if (WARN_ON_ONCE(slab_is_available()))
+ 		return kzalloc_node(size, GFP_NOWAIT, nid);
+ 
+@@ -1107,7 +1112,9 @@ done:
+ 
+ 	/*
+ 	 * The min_count is set to 0 so that bootmem allocated blocks
+-	 * are never reported as leaks.
++	 * are never reported as leaks. This is because many of these blocks
++	 * are only referred via the physical address which is not
++	 * looked up by kmemleak.
+ 	 */
+ 	kmemleak_alloc(ptr, size, 0, 0);
  
 _
 
-Patches currently in -mm which might be from rmk+kernel@arm.linux.org.uk are
+Patches currently in -mm which might be from grygorii.strashko@ti.com are
 
 origin.patch
-dma-debug-introduce-debug_dma_assert_idle.patch
+mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
+x86-memblock-set-current-limit-to-max-low-memory-address.patch
+mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
+mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
+mm-memblock-remove-unnecessary-inclusions-of-bootmemh.patch
+mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
+mm-memblock-reorder-parameters-of-memblock_find_in_range_node.patch
+mm-memblock-switch-to-use-numa_no_node-instead-of-max_numnodes.patch
 mm-memblock-add-memblock-memory-allocation-apis.patch
+mm-init-use-memblock-apis-for-early-memory-allocations.patch
+mm-printk-use-memblock-apis-for-early-memory-allocations.patch
+mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
+mm-power-use-memblock-apis-for-early-memory-allocations.patch
+lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
+lib-cpumaskc-use-memblock-apis-for-early-memory-allocations.patch
+mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
+mm-hugetlb-use-memblock-apis-for-early-memory-allocations.patch
+mm-page_cgroup-use-memblock-apis-for-early-memory-allocations.patch
+mm-percpu-use-memblock-apis-for-early-memory-allocations.patch
+mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
+drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
+arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
+x86-mm-memblock-switch-to-use-numa_no_node.patch
+mm-memblock-use-warn_once-when-max_numnodes-passed-as-input-parameter.patch
 
