@@ -1,122 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch removed from
- -mm tree
-Date: Tue, 21 Jan 2014 15:33:43 -0800
-Message-ID: <52df03d7.76KQRw0Hh1oiToUd%akpm@linux-foundation.org>
+ mm-memblock-add-memblock-memory-allocation-apis-fix.patch removed from -mm
+ tree
+Date: Tue, 21 Jan 2014 15:33:41 -0800
+Message-ID: <52df03d5.5dkCgozJjWlxv+mL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45612 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
 	with ESMTP id S1750862AbaAUXdn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 18:33:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, tj@kernel.org, grygorii.strashko@ti.com, santosh.shilimkar@ti.com
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, santosh.shilimkar@ti.com, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, grygorii.strashko@ti.com, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch removed from -mm tree
-To: santosh.shilimkar@ti.com,grygorii.strashko@ti.com,tj@kernel.org,yinghai@kernel.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-memblock-add-memblock-memory-allocation-apis-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,grygorii.strashko@ti.com,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,santosh.shilimkar@ti.com,tj@kernel.org,tony@atomide.com,yinghai@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 21 Jan 2014 15:33:43 -0800
+Date: Tue, 21 Jan 2014 15:33:41 -0800
 
 
 The patch titled
-     Subject: mm/memblock: fix buld of "cris" arch
+     Subject: mm-memblock-add-memblock-memory-allocation-apis-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memblock-add-memblock-memory-allocation-apis-fix-2.patch
+     mm-memblock-add-memblock-memory-allocation-apis-fix.patch
 
 This patch was dropped because it was folded into mm-memblock-add-memblock-memory-allocation-apis.patch
 
 ------------------------------------------------------
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: mm/memblock: fix buld of "cris" arch
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memblock-add-memblock-memory-allocation-apis-fix
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
+s/depricated/deprecated/
 
-The build of "criss" arch is broken after applying new memblock API
-series.
-
-In file included from arch/cris/mm/init.c:13:0:
-include/linux/bootmem.h: In function 'memblock_virt_alloc':
-include/linux/bootmem.h:229:55: error: 'KSEG_C' undeclared (first use in this function)
-include/linux/bootmem.h:229:55: note: each undeclared identifier is reported only once for each function it appears in
-include/linux/bootmem.h: In function 'memblock_virt_alloc_nopanic':
-include/linux/bootmem.h:237:63: error: 'KSEG_C' undeclared (first use in this function)
-include/linux/bootmem.h: In function 'memblock_virt_alloc_node':
-include/linux/bootmem.h:250:27: error: 'KSEG_C' undeclared (first use in this function)
-include/linux/bootmem.h: In function 'memblock_virt_alloc_node_nopanic':
-include/linux/bootmem.h:258:28: error: 'KSEG_C' undeclared (first use in this function)
-
-In file included from mm/bootmem.c:14:0:
-include/linux/bootmem.h: In function 'memblock_virt_alloc':
-include/linux/bootmem.h:229:55: error: 'KSEG_C' undeclared (first use in this function)
-include/linux/bootmem.h:229:55: note: each undeclared identifier is reported only once for each function it appears in
-include/linux/bootmem.h: In function 'memblock_virt_alloc_nopanic':
-include/linux/bootmem.h:237:63: error: 'KSEG_C' undeclared (first use in this function)
-include/linux/bootmem.h: In function 'memblock_virt_alloc_node':
-include/linux/bootmem.h:250:27: error: 'KSEG_C' undeclared (first use in this function)
-
-The "cris" arch defines memory parameters in a different manner than other
-arch's and they are splitted between 2 headers: <asm/page.h> and <asm/mmu.h>
-
-As result, now build is failed if "bootmem.h" included before
-<asm/page.h> and <asm/mmu.h>. Hence, fix it by including additional
-header in bootmem.h.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memblock.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/bootmem.h~mm-memblock-add-memblock-memory-allocation-apis-fix-2 include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-memblock-add-memblock-memory-allocation-apis-fix-2
-+++ a/include/linux/bootmem.h
-@@ -5,6 +5,7 @@
- #define _LINUX_BOOTMEM_H
+diff -puN mm/memblock.c~mm-memblock-add-memblock-memory-allocation-apis-fix mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-add-memblock-memory-allocation-apis-fix
++++ a/mm/memblock.c
+@@ -788,7 +788,7 @@ void __init_memblock __next_free_mem_ran
+ 	bool check_node = (nid != NUMA_NO_NODE) && (nid != MAX_NUMNODES);
  
- #include <linux/mmzone.h>
-+#include <linux/mm_types.h>
- #include <asm/dma.h>
+ 	if (nid == MAX_NUMNODES)
+-		pr_warn_once("%s: Usage of MAX_NUMNODES is depricated. Use NUMA_NO_NODE instead\n",
++		pr_warn_once("%s: Usage of MAX_NUMNODES is deprecated. Use NUMA_NO_NODE instead\n",
+ 			     __func__);
  
- /*
+ 	for ( ; mi < mem->cnt; mi++) {
+@@ -861,7 +861,7 @@ void __init_memblock __next_free_mem_ran
+ 	bool check_node = (nid != NUMA_NO_NODE) && (nid != MAX_NUMNODES);
+ 
+ 	if (nid == MAX_NUMNODES)
+-		pr_warn_once("%s: Usage of MAX_NUMNODES is depricated. Use NUMA_NO_NODE instead\n",
++		pr_warn_once("%s: Usage of MAX_NUMNODES is deprecated. Use NUMA_NO_NODE instead\n",
+ 			     __func__);
+ 
+ 	if (*idx == (u64)ULLONG_MAX) {
+@@ -1068,7 +1068,7 @@ static void * __init memblock_virt_alloc
+ 	void *ptr;
+ 
+ 	if (nid == MAX_NUMNODES)
+-		pr_warn("%s: usage of MAX_NUMNODES is depricated. Use NUMA_NO_NODE\n",
++		pr_warn("%s: usage of MAX_NUMNODES is deprecated. Use NUMA_NO_NODE\n",
+ 			__func__);
+ 
+ 	if (WARN_ON_ONCE(slab_is_available()))
 _
 
-Patches currently in -mm which might be from santosh.shilimkar@ti.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
-x86-memblock-set-current-limit-to-max-low-memory-address.patch
-mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
-mm-bootmem-remove-duplicated-declaration-of-__free_pages_bootmem.patch
-mm-memblock-remove-unnecessary-inclusions-of-bootmemh.patch
-mm-memblock-drop-warn-and-use-smp_cache_bytes-as-a-default-alignment.patch
-mm-memblock-reorder-parameters-of-memblock_find_in_range_node.patch
-mm-memblock-switch-to-use-numa_no_node-instead-of-max_numnodes.patch
+posix_acl-uninlining.patch
+mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
+mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+mm-swapc-reorganize-put_compound_page.patch
+mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
+mm-memory-failure-fix-the-typo-in-me_pagecache_dirty.patch
+mm-show_mem-remove-show_mem_filter_page_count.patch
+mm-add-overcommit_kbytes-sysctl-variable.patch
+memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
 mm-memblock-add-memblock-memory-allocation-apis.patch
-mm-memblock-add-memblock-memory-allocation-apis-fix-4.patch
-mm-init-use-memblock-apis-for-early-memory-allocations.patch
-mm-printk-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
-mm-power-use-memblock-apis-for-early-memory-allocations.patch
-lib-swiotlbc-use-memblock-apis-for-early-memory-allocations.patch
-lib-cpumaskc-use-memblock-apis-for-early-memory-allocations.patch
-mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
-mm-hugetlb-use-memblock-apis-for-early-memory-allocations.patch
-mm-page_cgroup-use-memblock-apis-for-early-memory-allocations.patch
-mm-percpu-use-memblock-apis-for-early-memory-allocations.patch
-mm-memory_hotplug-use-memblock-apis-for-early-memory-allocations.patch
-drivers-firmware-memmapc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mm-initc-use-memblock-apis-for-early-memory-allocations.patch
-arch-arm-mach-omap2-omap_hwmodc-use-memblock-apis-for-early-memory-allocations.patch
-x86-mm-memblock-switch-to-use-numa_no_node.patch
-mm-memblock-use-warn_once-when-max_numnodes-passed-as-input-parameter.patch
+sched-add-tracepoints-related-to-numa-task-migration-fix.patch
+mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
 
