@@ -1,160 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch removed from -mm tree
-Date: Wed, 22 Jan 2014 12:13:08 -0800
-Message-ID: <52e02654.8pOXfrdJgVOwr/aQ%akpm@linux-foundation.org>
+Subject: [merged] mm-rmap-recompute-pgoff-for-huge-page.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:13:18 -0800
+Message-ID: <52e0265e.gmbYmnDeQ43oioaL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54474 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54522 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755685AbaAVUNK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:10 -0500
+	with ESMTP id S1752662AbaAVUNT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, prarit@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, lwoodman@redhat.com, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, imtangchen@gmail.com, hpa@zytor.com, hannes@cmpxchg.org, gong.chen@linux.intel.com, tangchen@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mingo@kernel.org, mgorman@suse.de, hughd@google.com, dhillf@gmail.com, iamjoonsoo.kim@lge.com
 
-Subject: [merged] acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch removed from -mm tree
-To: tangchen@cn.fujitsu.com,gong.chen@linux.intel.com,hannes@cmpxchg.org,hpa@zytor.com,imtangchen@gmail.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,lwoodman@redhat.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,prarit@redhat.com,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,vasilis.liaskovitis@profitbricks.com,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-rmap-recompute-pgoff-for-huge-page.patch removed from -mm tree
+To: iamjoonsoo.kim@lge.com,dhillf@gmail.com,hughd@google.com,mgorman@suse.de,mingo@kernel.org,n-horiguchi@ah.jp.nec.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:13:08 -0800
+Date: Wed, 22 Jan 2014 12:13:18 -0800
 
 
 The patch titled
-     Subject: acpi, numa, mem_hotplug: mark all nodes the kernel resides un-hotpluggable
+     Subject: mm/rmap: recompute pgoff for huge page
 has been removed from the -mm tree.  Its filename was
-     acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
+     mm-rmap-recompute-pgoff-for-huge-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: acpi, numa, mem_hotplug: mark all nodes the kernel resides un-hotpluggable
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/rmap: recompute pgoff for huge page
 
-At very early time, the kernel have to use some memory such as loading the
-kernel image.  We cannot prevent this anyway.  So any node the kernel
-resides in should be un-hotpluggable.
+Rmap traversing is used in five different cases, try_to_unmap(),
+try_to_munlock(), page_referenced(), page_mkclean() and
+remove_migration_ptes().  Each one implements its own traversing functions
+for the cases, anon, file, ksm, respectively.  These cause lots of
+duplications and cause maintenance overhead.  They also make codes being
+hard to understand and error-prone.  One example is hugepage handling. 
+There is a code to compute hugepage offset correctly in
+try_to_unmap_file(), but, there isn't a code to compute hugepage offset in
+rmap_walk_file().  These are used pairwise in migration context, but we
+missed to modify pairwise.
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Chen Tang <imtangchen@gmail.com>
-Cc: Gong Chen <gong.chen@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Liu Jiang <jiang.liu@huawei.com>
+To overcome these drawbacks, we should unify these through one unified
+function.  I decide rmap_walk() as main function since it has no
+unnecessity.  And to control behavior of rmap_walk(), I introduce struct
+rmap_walk_control having some function pointers.  These makes rmap_walk()
+working for their specific needs.
+
+This patchset remove a lot of duplicated code as you can see in below
+short-stat and kernel text size also decrease slightly.
+
+   text    data     bss     dec     hex filename
+  10640       1      16   10657    29a1 mm/rmap.o
+  10047       1      16   10064    2750 mm/rmap.o
+
+  13823     705    8288   22816    5920 mm/ksm.o
+  13199     705    8288   22192    56b0 mm/ksm.o
+
+
+
+This patch (of 9):
+
+We have to recompute pgoff if the given page is huge, since result based
+on HPAGE_SIZE is not approapriate for scanning the vma interval tree, as
+shown by commit 36e4f20af833 ("hugetlb: do not use vma_hugecache_offset()
+for vma_prio_tree_foreach") and commit 369a713e ("rmap: recompute pgoff
+for unmapping huge page").
+
+To handle both the cases, normal page for page cache and hugetlb page, by
+same way, we can use compound_page().  It returns 0 on non-compound page
+and it also returns proper value on compound page.
+
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Hillf Danton <dhillf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |   44 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ mm/rmap.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/mm/numa.c~acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable
-+++ a/arch/x86/mm/numa.c
-@@ -493,6 +493,14 @@ static int __init numa_register_memblks(
- 		struct numa_memblk *mb = &mi->blk[i];
- 		memblock_set_node(mb->start, mb->end - mb->start,
- 				  &memblock.memory, mb->nid);
-+
-+		/*
-+		 * At this time, all memory regions reserved by memblock are
-+		 * used by the kernel. Set the nid in memblock.reserved will
-+		 * mark out all the nodes the kernel resides in.
-+		 */
-+		memblock_set_node(mb->start, mb->end - mb->start,
-+				  &memblock.reserved, mb->nid);
- 	}
- 
- 	/*
-@@ -554,6 +562,30 @@ static void __init numa_init_array(void)
- 	}
- }
- 
-+static void __init numa_clear_kernel_node_hotplug(void)
-+{
-+	int i, nid;
-+	nodemask_t numa_kernel_nodes;
-+	unsigned long start, end;
-+	struct memblock_type *type = &memblock.reserved;
-+
-+	/* Mark all kernel nodes. */
-+	for (i = 0; i < type->cnt; i++)
-+		node_set(type->regions[i].nid, numa_kernel_nodes);
-+
-+	/* Clear MEMBLOCK_HOTPLUG flag for memory in kernel nodes. */
-+	for (i = 0; i < numa_meminfo.nr_blks; i++) {
-+		nid = numa_meminfo.blk[i].nid;
-+		if (!node_isset(nid, numa_kernel_nodes))
-+			continue;
-+
-+		start = numa_meminfo.blk[i].start;
-+		end = numa_meminfo.blk[i].end;
-+
-+		memblock_clear_hotplug(start, end - start);
-+	}
-+}
-+
- static int __init numa_init(int (*init_func)(void))
+diff -puN mm/rmap.c~mm-rmap-recompute-pgoff-for-huge-page mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-recompute-pgoff-for-huge-page
++++ a/mm/rmap.c
+@@ -1512,7 +1512,7 @@ static int try_to_unmap_anon(struct page
+ static int try_to_unmap_file(struct page *page, enum ttu_flags flags)
  {
- 	int i;
-@@ -568,6 +600,8 @@ static int __init numa_init(int (*init_f
- 	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
- 	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.memory,
- 				  MAX_NUMNODES));
-+	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.reserved,
-+				  MAX_NUMNODES));
- 	/* In case that parsing SRAT failed. */
- 	WARN_ON(memblock_clear_hotplug(0, ULLONG_MAX));
- 	numa_reset_distance();
-@@ -605,6 +639,16 @@ static int __init numa_init(int (*init_f
- 			numa_clear_node(i);
- 	}
- 	numa_init_array();
-+
-+	/*
-+	 * At very early time, the kernel have to use some memory such as
-+	 * loading the kernel image. We cannot prevent this anyway. So any
-+	 * node the kernel resides in should be un-hotpluggable.
-+	 *
-+	 * And when we come here, numa_init() won't fail.
-+	 */
-+	numa_clear_kernel_node_hotplug();
-+
- 	return 0;
- }
+ 	struct address_space *mapping = page->mapping;
+-	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	pgoff_t pgoff = page->index << compound_order(page);
+ 	struct vm_area_struct *vma;
+ 	int ret = SWAP_AGAIN;
+ 	unsigned long cursor;
+@@ -1520,9 +1520,6 @@ static int try_to_unmap_file(struct page
+ 	unsigned long max_nl_size = 0;
+ 	unsigned int mapcount;
  
-_
-
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
-
-origin.patch
-mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
-mm-free-memblockmemory-in-free_all_bootmem.patch
-mm-free-memblockmemory-in-free_all_bootmem-fix.patch
-mm-nobootmem-free_all_bootmem-again.patch
-mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch
-linux-next.patch
-
+-	if (PageHuge(page))
+-		pgoff = page->index << compound_order(page);
