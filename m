@@ -1,120 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fsnotify-remove-pointless-null-initializers.patch
+Subject: [merged] intel-iommu-fix-off-by-one-in-pagetable-freeing.patch
  removed from -mm tree
-Date: Wed, 22 Jan 2014 12:11:29 -0800
-Message-ID: <52e025f1.rRMzuSlV4HHz1Vgf%akpm@linux-foundation.org>
+Date: Wed, 22 Jan 2014 12:11:31 -0800
+Message-ID: <52e025f3.q2DJNaPmizL+L+Ba%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54136 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753040AbaAVUL3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:11:29 -0500
+	with ESMTP id S1753046AbaAVULc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:11:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, hch@lst.de, eparis@parisplace.org, jack@suse.cz
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, joro@8bytes.org, dwmw2@infradead.org, alex.williamson@redhat.com
 
-Subject: [merged] fsnotify-remove-pointless-null-initializers.patch removed from -mm tree
-To: jack@suse.cz,eparis@parisplace.org,hch@lst.de,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] intel-iommu-fix-off-by-one-in-pagetable-freeing.patch removed from -mm tree
+To: alex.williamson@redhat.com,dwmw2@infradead.org,joro@8bytes.org,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:11:29 -0800
+Date: Wed, 22 Jan 2014 12:11:31 -0800
 
 
 The patch titled
-     Subject: fsnotify: remove pointless NULL initializers
+     Subject: intel-iommu: fix off-by-one in pagetable freeing
 has been removed from the -mm tree.  Its filename was
-     fsnotify-remove-pointless-null-initializers.patch
+     intel-iommu-fix-off-by-one-in-pagetable-freeing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fsnotify: remove pointless NULL initializers
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: intel-iommu: fix off-by-one in pagetable freeing
 
-We usually rely on the fact that struct members not specified in the
-initializer are set to NULL.  So do that with fsnotify function pointers
-as well.
+dma_pte_free_level() has an off-by-one error when checking whether a pte
+is completely covered by a range.  Take for example the case of attempting
+to free pfn 0x0 - 0x1ff, ie.  512 entries covering the first 2M superpage.
+ The level_size() is 0x200 and we test:
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+static void dma_pte_free_level(...
+	...
+
+	if (!(0 > 0 || 0x1ff < 0 + 0x200)) {
+		...
+	}
+
+Clearly the 2nd test is true, which means we fail to take the branch to
+clear and free the pagetable entry.  As a result, we're leaking pagetables
+and failing to install new pages over the range.
+
+This was found with a PCI device assigned to a QEMU guest using vfio-pci
+without a VGA device present.  The first 1M of guest address space is
+mapped with various combinations of 4K pages, but eventually the range is
+entirely freed and replaced with a 2M contiguous mapping.  intel-iommu
+errors out with something like:
+
+ERROR: DMA PTE for vPFN 0x0 already set (to 5c2b8003 not 849c00083)
+
+In this case 5c2b8003 is the pointer to the previous leaf page that was
+neither freed nor cleared and 849c00083 is the superpage entry that we're
+trying to replace it with.
+
+Signed-off-by: Alex Williamson <alex.williamson@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/dnotify/dnotify.c   |    3 ---
- fs/notify/fanotify/fanotify.c |    1 -
- kernel/audit_tree.c           |    2 --
- kernel/audit_watch.c          |    3 ---
- 4 files changed, 9 deletions(-)
+ drivers/iommu/intel-iommu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/notify/dnotify/dnotify.c~fsnotify-remove-pointless-null-initializers fs/notify/dnotify/dnotify.c
---- a/fs/notify/dnotify/dnotify.c~fsnotify-remove-pointless-null-initializers
-+++ a/fs/notify/dnotify/dnotify.c
-@@ -138,9 +138,6 @@ static void dnotify_free_mark(struct fsn
+diff -puN drivers/iommu/intel-iommu.c~intel-iommu-fix-off-by-one-in-pagetable-freeing drivers/iommu/intel-iommu.c
+--- a/drivers/iommu/intel-iommu.c~intel-iommu-fix-off-by-one-in-pagetable-freeing
++++ a/drivers/iommu/intel-iommu.c
+@@ -917,7 +917,7 @@ static void dma_pte_free_level(struct dm
  
- static struct fsnotify_ops dnotify_fsnotify_ops = {
- 	.handle_event = dnotify_handle_event,
--	.free_group_priv = NULL,
--	.freeing_mark = NULL,
--	.free_event = NULL,
- };
- 
- /*
-diff -puN fs/notify/fanotify/fanotify.c~fsnotify-remove-pointless-null-initializers fs/notify/fanotify/fanotify.c
---- a/fs/notify/fanotify/fanotify.c~fsnotify-remove-pointless-null-initializers
-+++ a/fs/notify/fanotify/fanotify.c
-@@ -230,5 +230,4 @@ const struct fsnotify_ops fanotify_fsnot
- 	.handle_event = fanotify_handle_event,
- 	.free_group_priv = fanotify_free_group_priv,
- 	.free_event = fanotify_free_event,
--	.freeing_mark = NULL,
- };
-diff -puN kernel/audit_tree.c~fsnotify-remove-pointless-null-initializers kernel/audit_tree.c
---- a/kernel/audit_tree.c~fsnotify-remove-pointless-null-initializers
-+++ a/kernel/audit_tree.c
-@@ -936,8 +936,6 @@ static void audit_tree_freeing_mark(stru
- 
- static const struct fsnotify_ops audit_tree_ops = {
- 	.handle_event = audit_tree_handle_event,
--	.free_group_priv = NULL,
--	.free_event = NULL,
- 	.freeing_mark = audit_tree_freeing_mark,
- };
- 
-diff -puN kernel/audit_watch.c~fsnotify-remove-pointless-null-initializers kernel/audit_watch.c
---- a/kernel/audit_watch.c~fsnotify-remove-pointless-null-initializers
-+++ a/kernel/audit_watch.c
-@@ -505,9 +505,6 @@ static int audit_watch_handle_event(stru
- 
- static const struct fsnotify_ops audit_watch_fsnotify_ops = {
- 	.handle_event = 	audit_watch_handle_event,
--	.free_group_priv = 	NULL,
--	.freeing_mark = 	NULL,
--	.free_event = 		NULL,
- };
- 
- static int __init audit_watch_init(void)
+ 		/* If range covers entire pagetable, free it */
+ 		if (!(start_pfn > level_pfn ||
+-		      last_pfn < level_pfn + level_size(level))) {
++		      last_pfn < level_pfn + level_size(level) - 1)) {
+ 			dma_clear_pte(pte);
+ 			domain_flush_cache(domain, pte, sizeof(*pte));
+ 			free_pgtable_page(level_pte);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from alex.williamson@redhat.com are
 
 origin.patch
-fs-pipec-skip-file_update_time-on-frozen-fs.patch
-rbtree-test-move-rb_node-to-the-middle-of-the-test-struct.patch
-rbtree-test-test-rbtree_postorder_for_each_entry_safe.patch
-net-netfilter-ipset-ip_set_hash_netifacec-use-rbtree-postorder-iteration-instead-of-opencoding.patch
-fs-ubifs-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
-fs-ext4-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
-fs-jffs2-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-arch-sh-kernel-dwarfc-use-rbtree-postorder-iteration-helper-instead-of-solution-using-repeated-rb_erase.patch
-userns-relax-the-posix_acl_valid-checks.patch
 linux-next.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-kernel-use-lockless-list-for-smp_call_function_single.patch
-mm-add-strictlimit-knob-v2.patch
 
