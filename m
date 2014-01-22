@@ -1,99 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-make-setpage_address-static-inline-if-want_page_virtual.patch removed
- from -mm tree
-Date: Wed, 22 Jan 2014 12:12:15 -0800
-Message-ID: <52e0261f.ZuoXxZw/m7ZFjDAP%akpm@linux-foundation.org>
+ mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:12:17 -0800
+Message-ID: <52e02621.Ylj8DdG4NmyJrc+m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54229 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755764AbaAVUMQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:16 -0500
+	with ESMTP id S1755449AbaAVUMS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, mst@redhat.com, linux@roeck-us.net, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, dave.jiang@intel.com, dave.hansen@linux.intel.com
 
-Subject: [merged] mm-make-setpage_address-static-inline-if-want_page_virtual.patch removed from -mm tree
-To: geert@linux-m68k.org,linux@roeck-us.net,mst@redhat.com,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch removed from -mm tree
+To: dave.hansen@linux.intel.com,dave.jiang@intel.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:12:15 -0800
+Date: Wed, 22 Jan 2014 12:12:17 -0800
 
 
 The patch titled
-     Subject: mm: Make {,set}page_address() static inline if WANT_PAGE_VIRTUAL
+     Subject: mm: hugetlbfs: Add some VM_BUG_ON()s to catch non-hugetlbfs pages
 has been removed from the -mm tree.  Its filename was
-     mm-make-setpage_address-static-inline-if-want_page_virtual.patch
+     mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: mm: Make {,set}page_address() static inline if WANT_PAGE_VIRTUAL
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm: hugetlbfs: Add some VM_BUG_ON()s to catch non-hugetlbfs pages
 
-{,set}page_address() are macros if WANT_PAGE_VIRTUAL.  If
-!WANT_PAGE_VIRTUAL, they're plain C functions.
+Dave Jiang reported that he was seeing oopses when running NUMA systems
+and default_hugepagesz=1G.  I traced the issue down to migrate_page_copy()
+trying to use the same code for hugetlb pages and transparent hugepages. 
+It should not have been trying to pass thp pages in there.
 
-If someone calls them with a void *, this pointer is auto-converted to
-struct page * if !WANT_PAGE_VIRTUAL, but causes a build failure on
-architectures using WANT_PAGE_VIRTUAL (arc, m68k and sparc64):
+So, add some VM_BUG_ON()s for the next hapless VM developer that tries the
+same thing.
 
-drivers/md/bcache/bset.c: In function `__btree_sort':
-drivers/md/bcache/bset.c:1190: warning: dereferencing `void *' pointer
-drivers/md/bcache/bset.c:1190: error: request for member `virtual' in something not a structure or union
-
-Convert them to static inline functions to fix this.  There are already
-plenty of users of struct page members inside <linux/mm.h>, so there's no
-reason to keep them as macros.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Tested-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Tested-by: Dave Jiang <dave.jiang@intel.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/linux/hugetlb.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/mm.h~mm-make-setpage_address-static-inline-if-want_page_virtual include/linux/mm.h
---- a/include/linux/mm.h~mm-make-setpage_address-static-inline-if-want_page_virtual
-+++ a/include/linux/mm.h
-@@ -846,11 +846,14 @@ static __always_inline void *lowmem_page
- #endif
+diff -puN include/linux/hugetlb.h~mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlbfs-add-some-vm_bug_ons-to-catch-non-hugetlbfs-pages
++++ a/include/linux/hugetlb.h
+@@ -360,6 +360,7 @@ static inline pte_t arch_make_huge_pte(p
  
- #if defined(WANT_PAGE_VIRTUAL)
--#define page_address(page) ((page)->virtual)
--#define set_page_address(page, address)			\
--	do {						\
--		(page)->virtual = (address);		\
--	} while(0)
-+static inline void *page_address(const struct page *page)
-+{
-+	return page->virtual;
-+}
-+static inline void set_page_address(struct page *page, void *address)
-+{
-+	page->virtual = address;
-+}
- #define page_address_init()  do { } while(0)
- #endif
+ static inline struct hstate *page_hstate(struct page *page)
+ {
++	VM_BUG_ON(!PageHuge(page));
+ 	return size_to_hstate(PAGE_SIZE << compound_order(page));
+ }
  
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
 origin.patch
-cris-provide-inout_p.patch
-asm-typesh-remove-include-asm-generic-int-l64h.patch
-maintainers-add-an-entry-for-the-macintosh-hfsplus-filesystem.patch
-init-mainc-remove-unused-declaration-of-tc_init.patch
-rtc-rtc-cmos-remove-superfluous-name-cast.patch
-rtc-disable-rtc_drv_cmos-on-atari.patch
-drivers-rtc-rtc-s5mc-s5m_rtc_suspendresume-should-depend-on-config_pm_sleep.patch
-proc-cleanup-simplify-get_task_state-task_state_array.patch
+mm-print-more-details-for-bad_page.patch
+mm-print-more-details-for-bad_page-fix.patch
 linux-next.patch
 
