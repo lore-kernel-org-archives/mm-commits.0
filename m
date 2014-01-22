@@ -1,76 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [merged] score-remove-select-have_generic_hardirqs-again.patch
+Subject: [merged] ocfs2-add-clustername-to-cluster-connection.patch
  removed from -mm tree
-Date: Wed, 22 Jan 2014 12:11:33 -0800
-Message-ID: <52e025f5.+Pa7pA5PHqK9LXVO%akpm@linux-foundation.org>
+Date: Wed, 22 Jan 2014 12:11:37 -0800
+Message-ID: <52e025f9.D4EGrIZ4RoSbRR/m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54138 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54148 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753040AbaAVULd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:11:33 -0500
+	with ESMTP id S1753043AbaAVULh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:11:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, schwidefsky@de.ibm.com, liqin.linux@gmail.com, lennox.wu@gmail.com, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.de, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: [merged] score-remove-select-have_generic_hardirqs-again.patch removed from -mm tree
-To: geert@linux-m68k.org,lennox.wu@gmail.com,liqin.linux@gmail.com,schwidefsky@de.ibm.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-add-clustername-to-cluster-connection.patch removed from -mm tree
+To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.de,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:11:33 -0800
+Date: Wed, 22 Jan 2014 12:11:37 -0800
 
 
 The patch titled
-     Subject: score: remove "select HAVE_GENERIC_HARDIRQS" again
+     Subject: ocfs2: add clustername to cluster connection
 has been removed from the -mm tree.  Its filename was
-     score-remove-select-have_generic_hardirqs-again.patch
+     ocfs2-add-clustername-to-cluster-connection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: score: remove "select HAVE_GENERIC_HARDIRQS" again
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: ocfs2: add clustername to cluster connection
 
-5fbbf8a1a93 ("Score: The commit is for compiling successfully.")
-re-introduced "select HAVE_GENERIC_HARDIRQS" in v3.12-rc4, which had just
-been removed in v3.12-rc1 by 0244ad004a5 ("Remove GENERIC_HARDIRQ config
-option").
+This is an effort of removing ocfs2_controld.pcmk and getting ocfs2 DLM
+handling up to the times with respect to DLM (>=4.0.1) and corosync
+(2.3.x).  AFAIK, cman also is being phased out for a unified corosync
+cluster stack.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Chen Liqin <liqin.linux@gmail.com>
-Cc: Lennox Wu <lennox.wu@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+fs/dlm performs all the functions with respect to fencing and node
+management and provides the API's to do so for ocfs2.  For all future
+references, DLM stands for fs/dlm code.
+
+The advantages are:
+ + No need to run an additional userspace daemon (ocfs2_controld)
+ + No controld device handling and controld protocol
+ + Shifting responsibilities of node management to DLM layer
+
+For backward compatibility, we are keeping the controld handling code. Once
+enough time has passed we can remove a significant portion of the code. This
+was tested by using the kernel with changes on older unmodified tools. The
+kernel used ocfs2_controld as expected, and displayed the appropriate
+warning message.
+
+This feature requires modification in the userspace ocfs2-tools.  The
+changes can be found at: https://github.com/goldwynr/ocfs2-tools branch:
+nocontrold Currently, not many checks are present in the userspace code,
+but that would change soon.
+
+
+This patch (of 6):
+
+Add clustername to cluster connection.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/score/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ocfs2/dlmglue.c   |    2 ++
+ fs/ocfs2/ocfs2.h     |    1 +
+ fs/ocfs2/stackglue.c |   11 ++++++++---
+ fs/ocfs2/stackglue.h |    9 ++++++++-
+ fs/ocfs2/super.c     |    8 +++++---
+ 5 files changed, 24 insertions(+), 7 deletions(-)
 
-diff -puN arch/score/Kconfig~score-remove-select-have_generic_hardirqs-again arch/score/Kconfig
---- a/arch/score/Kconfig~score-remove-select-have_generic_hardirqs-again
-+++ a/arch/score/Kconfig
-@@ -2,7 +2,6 @@ menu "Machine selection"
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-add-clustername-to-cluster-connection fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-add-clustername-to-cluster-connection
++++ a/fs/ocfs2/dlmglue.c
+@@ -2996,6 +2996,8 @@ int ocfs2_dlm_init(struct ocfs2_super *o
  
- config SCORE
-        def_bool y
--       select HAVE_GENERIC_HARDIRQS
-        select GENERIC_IRQ_SHOW
-        select GENERIC_IOMAP
-        select GENERIC_ATOMIC64
+ 	/* for now, uuid == domain */
+ 	status = ocfs2_cluster_connect(osb->osb_cluster_stack,
++				       osb->osb_cluster_name,
++				       strlen(osb->osb_cluster_name),
+ 				       osb->uuid_str,
+ 				       strlen(osb->uuid_str),
+ 				       &lproto, ocfs2_do_node_down, osb,
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-add-clustername-to-cluster-connection fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-add-clustername-to-cluster-connection
++++ a/fs/ocfs2/ocfs2.h
+@@ -387,6 +387,7 @@ struct ocfs2_super
+ 	u8 osb_stackflags;
+ 
+ 	char osb_cluster_stack[OCFS2_STACK_LABEL_LEN + 1];
++	char osb_cluster_name[OCFS2_CLUSTER_NAME_LEN + 1];
+ 	struct ocfs2_cluster_connection *cconn;
+ 	struct ocfs2_lock_res osb_super_lockres;
+ 	struct ocfs2_lock_res osb_rename_lockres;
+diff -puN fs/ocfs2/stackglue.c~ocfs2-add-clustername-to-cluster-connection fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-add-clustername-to-cluster-connection
++++ a/fs/ocfs2/stackglue.c
+@@ -309,6 +309,8 @@ int ocfs2_plock(struct ocfs2_cluster_con
+ EXPORT_SYMBOL_GPL(ocfs2_plock);
+ 
+ int ocfs2_cluster_connect(const char *stack_name,
++			  const char *cluster_name,
++			  int cluster_name_len,
+ 			  const char *group,
+ 			  int grouplen,
+ 			  struct ocfs2_locking_protocol *lproto,
+@@ -342,8 +344,10 @@ int ocfs2_cluster_connect(const char *st
+ 		goto out;
+ 	}
+ 
+-	memcpy(new_conn->cc_name, group, grouplen);
++	strlcpy(new_conn->cc_name, group, GROUP_NAME_MAX + 1);
+ 	new_conn->cc_namelen = grouplen;
++	strlcpy(new_conn->cc_cluster_name, cluster_name, CLUSTER_NAME_MAX + 1);
++	new_conn->cc_cluster_name_len = cluster_name_len;
+ 	new_conn->cc_recovery_handler = recovery_handler;
+ 	new_conn->cc_recovery_data = recovery_data;
+ 
+@@ -386,8 +390,9 @@ int ocfs2_cluster_connect_agnostic(const
+ 
+ 	if (cluster_stack_name[0])
+ 		stack_name = cluster_stack_name;
+-	return ocfs2_cluster_connect(stack_name, group, grouplen, lproto,
+-				     recovery_handler, recovery_data, conn);
++	return ocfs2_cluster_connect(stack_name, NULL, 0, group, grouplen,
++				     lproto, recovery_handler, recovery_data,
++				     conn);
+ }
+ EXPORT_SYMBOL_GPL(ocfs2_cluster_connect_agnostic);
+ 
+diff -puN fs/ocfs2/stackglue.h~ocfs2-add-clustername-to-cluster-connection fs/ocfs2/stackglue.h
+--- a/fs/ocfs2/stackglue.h~ocfs2-add-clustername-to-cluster-connection
++++ a/fs/ocfs2/stackglue.h
+@@ -45,6 +45,9 @@ struct file_lock;
+  */
+ #define GROUP_NAME_MAX		64
+ 
++/* This shadows  OCFS2_CLUSTER_NAME_LEN */
++#define CLUSTER_NAME_MAX	16
++
+ 
+ /*
+  * ocfs2_protocol_version changes when ocfs2 does something different in
+@@ -97,8 +100,10 @@ struct ocfs2_locking_protocol {
+  * locking compatibility.
+  */
+ struct ocfs2_cluster_connection {
+-	char cc_name[GROUP_NAME_MAX];
++	char cc_name[GROUP_NAME_MAX + 1];
+ 	int cc_namelen;
++	char cc_cluster_name[CLUSTER_NAME_MAX + 1];
++	int cc_cluster_name_len;
+ 	struct ocfs2_protocol_version cc_version;
+ 	struct ocfs2_locking_protocol *cc_proto;
+ 	void (*cc_recovery_handler)(int node_num, void *recovery_data);
+@@ -239,6 +244,8 @@ struct ocfs2_stack_plugin {
+ 
+ /* Used by the filesystem */
+ int ocfs2_cluster_connect(const char *stack_name,
++			  const char *cluster_name,
++			  int cluster_name_len,
+ 			  const char *group,
+ 			  int grouplen,
+ 			  struct ocfs2_locking_protocol *lproto,
+diff -puN fs/ocfs2/super.c~ocfs2-add-clustername-to-cluster-connection fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-add-clustername-to-cluster-connection
++++ a/fs/ocfs2/super.c
+@@ -2223,10 +2223,9 @@ static int ocfs2_initialize_super(struct
+ 	if (ocfs2_clusterinfo_valid(osb)) {
+ 		osb->osb_stackflags =
+ 			OCFS2_RAW_SB(di)->s_cluster_info.ci_stackflags;
+-		memcpy(osb->osb_cluster_stack,
++		strlcpy(osb->osb_cluster_stack,
+ 		       OCFS2_RAW_SB(di)->s_cluster_info.ci_stack,
+-		       OCFS2_STACK_LABEL_LEN);
+-		osb->osb_cluster_stack[OCFS2_STACK_LABEL_LEN] = '\0';
++		       OCFS2_STACK_LABEL_LEN + 1);
+ 		if (strlen(osb->osb_cluster_stack) != OCFS2_STACK_LABEL_LEN) {
+ 			mlog(ML_ERROR,
+ 			     "couldn't mount because of an invalid "
+@@ -2235,6 +2234,9 @@ static int ocfs2_initialize_super(struct
+ 			status = -EINVAL;
+ 			goto bail;
+ 		}
++		strlcpy(osb->osb_cluster_name,
++			OCFS2_RAW_SB(di)->s_cluster_info.ci_cluster,
++			OCFS2_CLUSTER_NAME_LEN + 1);
+ 	} else {
+ 		/* The empty string is identical with classic tools that
+ 		 * don't know about s_cluster_info. */
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
 origin.patch
-cris-provide-inout_p.patch
-asm-typesh-remove-include-asm-generic-int-l64h.patch
-maintainers-add-an-entry-for-the-macintosh-hfsplus-filesystem.patch
-init-mainc-remove-unused-declaration-of-tc_init.patch
-rtc-rtc-cmos-remove-superfluous-name-cast.patch
-rtc-disable-rtc_drv_cmos-on-atari.patch
-drivers-rtc-rtc-s5mc-s5m_rtc_suspendresume-should-depend-on-config_pm_sleep.patch
-proc-cleanup-simplify-get_task_state-task_state_array.patch
-linux-next.patch
+ocfs2-code-cleanup-remove-unused-functions.patch
 
