@@ -1,42 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-numa-do-not-automatically-migrate-ksm-pages.patch
- removed from -mm tree
-Date: Wed, 22 Jan 2014 12:14:44 -0800
-Message-ID: <52e026b4.pkDkEWHomjkKDrWY%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch removed
+ from -mm tree
+Date: Wed, 22 Jan 2014 12:14:42 -0800
+Message-ID: <52e026b2.h30GKWiMK/NaIZSz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54990 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54987 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331AbaAVUOo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:14:44 -0500
+	with ESMTP id S1755804AbaAVUOm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:14:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: [merged] mm-numa-do-not-automatically-migrate-ksm-pages.patch removed from -mm tree
+Subject: [merged] mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch removed from -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:14:44 -0800
+Date: Wed, 22 Jan 2014 12:14:42 -0800
 
 
 The patch titled
-     Subject: mm: numa: do not automatically migrate KSM pages
+     Subject: mm: numa: trace tasks that fail migration due to rate limiting
 has been removed from the -mm tree.  Its filename was
-     mm-numa-do-not-automatically-migrate-ksm-pages.patch
+     mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: do not automatically migrate KSM pages
+Subject: mm: numa: trace tasks that fail migration due to rate limiting
 
-KSM pages can be shared between tasks that are not necessarily related to
-each other from a NUMA perspective.  This patch causes those pages to be
-ignored by automatic NUMA balancing so they do not migrate and do not
-cause unrelated tasks to be grouped together.
+A low local/remote numa hinting fault ratio is potentially explained by
+failed migrations.  This patch adds a tracepoint that fires when migration
+fails due to migration rate limitation.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -44,29 +44,62 @@ Cc: Alex Thorlton <athorlton@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/trace/events/migrate.h |   26 ++++++++++++++++++++++++++
+ mm/migrate.c                   |    5 ++++-
+ 2 files changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN mm/mprotect.c~mm-numa-do-not-automatically-migrate-ksm-pages mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-do-not-automatically-migrate-ksm-pages
-+++ a/mm/mprotect.c
-@@ -23,6 +23,7 @@
- #include <linux/mmu_notifier.h>
- #include <linux/migrate.h>
- #include <linux/perf_event.h>
-+#include <linux/ksm.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
- #include <asm/cacheflush.h>
-@@ -63,7 +64,7 @@ static unsigned long change_pte_range(st
+diff -puN include/trace/events/migrate.h~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting include/trace/events/migrate.h
+--- a/include/trace/events/migrate.h~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting
++++ a/include/trace/events/migrate.h
+@@ -45,6 +45,32 @@ TRACE_EVENT(mm_migrate_pages,
+ 		__print_symbolic(__entry->reason, MIGRATE_REASON))
+ );
  
- 				ptent = *pte;
- 				page = vm_normal_page(vma, addr, oldpte);
--				if (page) {
-+				if (page && !PageKsm(page)) {
- 					if (!pte_numa(oldpte)) {
- 						ptent = pte_mknuma(ptent);
- 						set_pte_at(mm, addr, pte, ptent);
++TRACE_EVENT(mm_numa_migrate_ratelimit,
++
++	TP_PROTO(struct task_struct *p, int dst_nid, unsigned long nr_pages),
++
++	TP_ARGS(p, dst_nid, nr_pages),
++
++	TP_STRUCT__entry(
++		__array(	char,		comm,	TASK_COMM_LEN)
++		__field(	pid_t,		pid)
++		__field(	int,		dst_nid)
++		__field(	unsigned long,	nr_pages)
++	),
++
++	TP_fast_assign(
++		memcpy(__entry->comm, p->comm, TASK_COMM_LEN);
++		__entry->pid		= p->pid;
++		__entry->dst_nid	= dst_nid;
++		__entry->nr_pages	= nr_pages;
++	),
++
++	TP_printk("comm=%s pid=%d dst_nid=%d nr_pages=%lu",
++		__entry->comm,
++		__entry->pid,
++		__entry->dst_nid,
++		__entry->nr_pages)
++);
+ #endif /* _TRACE_MIGRATE_H */
+ 
+ /* This part must be outside protection */
+diff -puN mm/migrate.c~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting mm/migrate.c
+--- a/mm/migrate.c~mm-numa-trace-tasks-that-fail-migration-due-to-rate-limiting
++++ a/mm/migrate.c
+@@ -1614,8 +1614,11 @@ static bool numamigrate_update_ratelimit
+ 			msecs_to_jiffies(migrate_interval_millisecs);
+ 		spin_unlock(&pgdat->numabalancing_migrate_lock);
+ 	}
+-	if (pgdat->numabalancing_migrate_nr_pages > ratelimit_pages)
++	if (pgdat->numabalancing_migrate_nr_pages > ratelimit_pages) {
++		trace_mm_numa_migrate_ratelimit(current, pgdat->node_id,
++								nr_pages);
+ 		return true;
++	}
+ 
+ 	/*
+ 	 * This is an unlocked non-atomic update so errors are possible.
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
