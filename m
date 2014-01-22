@@ -1,42 +1,46 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch removed
- from -mm tree
-Date: Wed, 22 Jan 2014 12:13:06 -0800
-Message-ID: <52e02652.Cb6RL2xFBCVfqqcF%akpm@linux-foundation.org>
+ memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:13:02 -0800
+Message-ID: <52e0264e.aQNCvnlzYnAlIu6x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54458 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54416 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755685AbaAVUNI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:08 -0500
+	with ESMTP id S1755685AbaAVUNE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, prarit@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, lwoodman@redhat.com, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, imtangchen@gmail.com, hpa@zytor.com, hannes@cmpxchg.org, gong.chen@linux.intel.com, tangchen@cn.fujitsu.com
 
-Subject: [merged] acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch removed from -mm tree
+Subject: [merged] memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch removed from -mm tree
 To: tangchen@cn.fujitsu.com,gong.chen@linux.intel.com,hannes@cmpxchg.org,hpa@zytor.com,imtangchen@gmail.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,lwoodman@redhat.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,prarit@redhat.com,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,vasilis.liaskovitis@profitbricks.com,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:13:06 -0800
+Date: Wed, 22 Jan 2014 12:13:02 -0800
 
 
 The patch titled
-     Subject: acpi, numa, mem_hotplug: mark hotpluggable memory in memblock
+     Subject: memblock, mem_hotplug: introduce MEMBLOCK_HOTPLUG flag to mark hotpluggable regions
 has been removed from the -mm tree.  Its filename was
-     acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
+     memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: acpi, numa, mem_hotplug: mark hotpluggable memory in memblock
+Subject: memblock, mem_hotplug: introduce MEMBLOCK_HOTPLUG flag to mark hotpluggable regions
 
-When parsing SRAT, we know that which memory area is hotpluggable.  So we
-invoke function memblock_mark_hotplug() introduced by previous patch to
-mark hotpluggable memory in memblock.
+In find_hotpluggable_memory, once we find out a memory region which is
+hotpluggable, we want to mark them in memblock.memory.  So that we could
+control memblock allocator not to allocte hotpluggable memory for the
+kernel later.
+
+To achieve this goal, we introduce MEMBLOCK_HOTPLUG flag to indicate the
+hotpluggable memory regions in memblock and a function
+memblock_mark_hotplug() to mark hotpluggable memory if we find one.
 
 [akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
@@ -70,37 +74,114 @@ Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |    2 ++
- arch/x86/mm/srat.c |    5 +++++
- 2 files changed, 7 insertions(+)
+ include/linux/memblock.h |   17 +++++++++++
+ mm/memblock.c            |   53 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 70 insertions(+)
 
-diff -puN arch/x86/mm/numa.c~acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock
-+++ a/arch/x86/mm/numa.c
-@@ -568,6 +568,8 @@ static int __init numa_init(int (*init_f
- 	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
- 	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.memory,
- 				  MAX_NUMNODES));
-+	/* In case that parsing SRAT failed. */
-+	WARN_ON(memblock_clear_hotplug(0, ULLONG_MAX));
- 	numa_reset_distance();
+diff -puN include/linux/memblock.h~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions include/linux/memblock.h
+--- a/include/linux/memblock.h~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions
++++ a/include/linux/memblock.h
+@@ -19,6 +19,9 @@
  
- 	ret = init_func();
-diff -puN arch/x86/mm/srat.c~acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock arch/x86/mm/srat.c
---- a/arch/x86/mm/srat.c~acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock
-+++ a/arch/x86/mm/srat.c
-@@ -181,6 +181,11 @@ acpi_numa_memory_affinity_init(struct ac
- 		(unsigned long long) start, (unsigned long long) end - 1,
- 		hotpluggable ? " hotplug" : "");
+ #define INIT_MEMBLOCK_REGIONS	128
  
-+	/* Mark hotplug range in memblock. */
-+	if (hotpluggable && memblock_mark_hotplug(start, ma->length))
-+		pr_warn("SRAT: Failed to mark hotplug range [mem %#010Lx-%#010Lx] in memblock\n",
-+			(unsigned long long)start, (unsigned long long)end - 1);
++/* Definition of memblock flags. */
++#define MEMBLOCK_HOTPLUG	0x1	/* hotpluggable region */
 +
- 	return 0;
- out_err_bad_srat:
- 	bad_srat();
+ struct memblock_region {
+ 	phys_addr_t base;
+ 	phys_addr_t size;
+@@ -60,6 +63,8 @@ int memblock_remove(phys_addr_t base, ph
+ int memblock_free(phys_addr_t base, phys_addr_t size);
+ int memblock_reserve(phys_addr_t base, phys_addr_t size);
+ void memblock_trim_memory(phys_addr_t align);
++int memblock_mark_hotplug(phys_addr_t base, phys_addr_t size);
++int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
+ 
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ int memblock_search_pfn_nid(unsigned long pfn, unsigned long *start_pfn,
+@@ -122,6 +127,18 @@ void __next_free_mem_range_rev(u64 *idx,
+ 	     i != (u64)ULLONG_MAX;					\
+ 	     __next_free_mem_range_rev(&i, nid, p_start, p_end, p_nid))
+ 
++static inline void memblock_set_region_flags(struct memblock_region *r,
++					     unsigned long flags)
++{
++	r->flags |= flags;
++}
++
++static inline void memblock_clear_region_flags(struct memblock_region *r,
++					       unsigned long flags)
++{
++	r->flags &= ~flags;
++}
++
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ int memblock_set_node(phys_addr_t base, phys_addr_t size, int nid);
+ 
+diff -puN mm/memblock.c~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions mm/memblock.c
+--- a/mm/memblock.c~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions
++++ a/mm/memblock.c
+@@ -683,6 +683,59 @@ int __init_memblock memblock_reserve(phy
+ }
+ 
+ /**
++ * memblock_mark_hotplug - Mark hotpluggable memory with flag MEMBLOCK_HOTPLUG.
++ * @base: the base phys addr of the region
++ * @size: the size of the region
++ *
++ * This function isolates region [@base, @base + @size), and mark it with flag
++ * MEMBLOCK_HOTPLUG.
++ *
++ * Return 0 on succees, -errno on failure.
++ */
++int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
++{
++	struct memblock_type *type = &memblock.memory;
++	int i, ret, start_rgn, end_rgn;
++
++	ret = memblock_isolate_range(type, base, size, &start_rgn, &end_rgn);
++	if (ret)
++		return ret;
++
++	for (i = start_rgn; i < end_rgn; i++)
++		memblock_set_region_flags(&type->regions[i], MEMBLOCK_HOTPLUG);
++
++	memblock_merge_regions(type);
++	return 0;
++}
++
++/**
++ * memblock_clear_hotplug - Clear flag MEMBLOCK_HOTPLUG for a specified region.
++ * @base: the base phys addr of the region
++ * @size: the size of the region
++ *
++ * This function isolates region [@base, @base + @size), and clear flag
++ * MEMBLOCK_HOTPLUG for the isolated regions.
++ *
++ * Return 0 on succees, -errno on failure.
++ */
++int __init_memblock memblock_clear_hotplug(phys_addr_t base, phys_addr_t size)
++{
++	struct memblock_type *type = &memblock.memory;
++	int i, ret, start_rgn, end_rgn;
++
++	ret = memblock_isolate_range(type, base, size, &start_rgn, &end_rgn);
++	if (ret)
++		return ret;
++
++	for (i = start_rgn; i < end_rgn; i++)
++		memblock_clear_region_flags(&type->regions[i],
++					    MEMBLOCK_HOTPLUG);
++
++	memblock_merge_regions(type);
++	return 0;
++}
++
++/**
+  * __next_free_mem_range - next function for for_each_free_mem_range()
+  * @idx: pointer to u64 loop variable
+  * @nid: node selector, %MAX_NUMNODES for all nodes
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
