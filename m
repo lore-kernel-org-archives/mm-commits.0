@@ -1,71 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-punch-hole-should-return-einval-if-the-length-argument-in-ioctl-is-negative.patch removed from -mm tree
-Date: Wed, 22 Jan 2014 12:11:59 -0800
-Message-ID: <52e0260f.dY/hF6MKI8rmmBPP%akpm@linux-foundation.org>
+ ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl.patch
+ removed from -mm tree
+Date: Wed, 22 Jan 2014 12:11:55 -0800
+Message-ID: <52e0260b.x2uiCNMBz3N3n72f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54185 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54180 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753764AbaAVUL7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:11:59 -0500
+	with ESMTP id S1753764AbaAVULz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:11:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.com, jlbec@evilplan.org, tariq.x.saeed@oracle.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com
 
-Subject: [merged] ocfs2-punch-hole-should-return-einval-if-the-length-argument-in-ioctl-is-negative.patch removed from -mm tree
-To: tariq.x.saeed@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,srinivas.eeda@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl.patch removed from -mm tree
+To: jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:11:59 -0800
+Date: Wed, 22 Jan 2014 12:11:55 -0800
 
 
 The patch titled
-     Subject: ocfs2: punch hole should return EINVAL if the length argument in ioctl is negative
+     Subject: ocfs2: adjust minlen with discard_granularity in the FITRIM ioctl
 has been removed from the -mm tree.  Its filename was
-     ocfs2-punch-hole-should-return-einval-if-the-length-argument-in-ioctl-is-negative.patch
+     ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tariq Saeed <tariq.x.saeed@oracle.com>
-Subject: ocfs2: punch hole should return EINVAL if the length argument in ioctl is negative
+From: Jie Liu <jeff.liu@oracle.com>
+Subject: ocfs2: adjust minlen with discard_granularity in the FITRIM ioctl
 
-An unreserve space ioctl OCFS2_IOC_UNRESVSP/64 should reject a negative
-length.
+Adjust minlen with discard_granularity for FITRIM ioctl(2) if the given
+minimum size in bytes is less than it because, discard granularity is used
+to tell us that the minimum size of extent that can be discarded by the
+storage device.
 
-Orabug:14789508
+This is inspired by ext4 commit 5c2ed62fd4 ("ext4: Adjust minlen with
+discard_granularity in the FITRIM ioctl") from Lukas Czerner.
 
-Signed-off-by: Tariq Saseed <tariq.x.saeed@oracle.com>
-Signed-off-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Jie Liu <jeff.liu@oracle.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/ioctl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ocfs2/file.c~ocfs2-punch-hole-should-return-einval-if-the-length-argument-in-ioctl-is-negative fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-punch-hole-should-return-einval-if-the-length-argument-in-ioctl-is-negative
-+++ a/fs/ocfs2/file.c
-@@ -1869,7 +1869,8 @@ static int __ocfs2_change_file_space(str
- 	}
- 	size = sr->l_start + sr->l_len;
+diff -puN fs/ocfs2/ioctl.c~ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl fs/ocfs2/ioctl.c
+--- a/fs/ocfs2/ioctl.c~ocfs2-adjust-minlen-with-discard_granularity-in-the-fitrim-ioctl
++++ a/fs/ocfs2/ioctl.c
+@@ -980,6 +980,8 @@ long ocfs2_ioctl(struct file *filp, unsi
+ 		if (copy_from_user(&range, argp, sizeof(range)))
+ 			return -EFAULT;
  
--	if (cmd == OCFS2_IOC_RESVSP || cmd == OCFS2_IOC_RESVSP64) {
-+	if (cmd == OCFS2_IOC_RESVSP || cmd == OCFS2_IOC_RESVSP64 ||
-+	    cmd == OCFS2_IOC_UNRESVSP || cmd == OCFS2_IOC_UNRESVSP64) {
- 		if (sr->l_len <= 0) {
- 			ret = -EINVAL;
- 			goto out_inode_unlock;
++		range.minlen = max_t(u64, q->limits.discard_granularity,
++				     range.minlen);
+ 		ret = ocfs2_trim_fs(sb, &range);
+ 		if (ret < 0)
+ 			return ret;
 _
 
-Patches currently in -mm which might be from tariq.x.saeed@oracle.com are
+Patches currently in -mm which might be from jeff.liu@oracle.com are
 
 origin.patch
-ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
-ocfs2-o2net-o2net_listen_data_ready-should-do-nothing-if-socket-state-is-not-tcp_listen.patch
+ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
+ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch
+ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+linux-next.patch
 
