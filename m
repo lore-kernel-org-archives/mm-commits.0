@@ -1,196 +1,102 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch removed from -mm tree
-Date: Wed, 22 Jan 2014 12:13:02 -0800
-Message-ID: <52e0264e.aQNCvnlzYnAlIu6x%akpm@linux-foundation.org>
+ memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch removed
+ from -mm tree
+Date: Wed, 22 Jan 2014 12:13:14 -0800
+Message-ID: <52e0265a.D/+Zd8z9nq84+q9a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54416 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755685AbaAVUNE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:04 -0500
+	with ESMTP id S1755685AbaAVUNP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, prarit@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, lwoodman@redhat.com, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, imtangchen@gmail.com, hpa@zytor.com, hannes@cmpxchg.org, gong.chen@linux.intel.com, tangchen@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@parallels.com, bsingharora@gmail.com, vdavydov@parallels.com
 
-Subject: [merged] memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch removed from -mm tree
-To: tangchen@cn.fujitsu.com,gong.chen@linux.intel.com,hannes@cmpxchg.org,hpa@zytor.com,imtangchen@gmail.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,lwoodman@redhat.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,prarit@redhat.com,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,vasilis.liaskovitis@profitbricks.com,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch removed from -mm tree
+To: vdavydov@parallels.com,bsingharora@gmail.com,glommer@parallels.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:13:02 -0800
+Date: Wed, 22 Jan 2014 12:13:14 -0800
 
 
 The patch titled
-     Subject: memblock, mem_hotplug: introduce MEMBLOCK_HOTPLUG flag to mark hotpluggable regions
+     Subject: memcg: fix kmem_account_flags check in memcg_can_account_kmem()
 has been removed from the -mm tree.  Its filename was
-     memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
+     memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: memblock, mem_hotplug: introduce MEMBLOCK_HOTPLUG flag to mark hotpluggable regions
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: memcg: fix kmem_account_flags check in memcg_can_account_kmem()
 
-In find_hotpluggable_memory, once we find out a memory region which is
-hotpluggable, we want to mark them in memblock.memory.  So that we could
-control memblock allocator not to allocte hotpluggable memory for the
-kernel later.
+We should start kmem accounting for a memory cgroup only after both its
+kmem limit is set (KMEM_ACCOUNTED_ACTIVE) and related call sites are
+patched (KMEM_ACCOUNTED_ACTIVATED).  Currently memcg_can_account_kmem()
+allows kmem accounting even if only one of the conditions is true.  Fix
+it.
 
-To achieve this goal, we introduce MEMBLOCK_HOTPLUG flag to indicate the
-hotpluggable memory regions in memblock and a function
-memblock_mark_hotplug() to mark hotpluggable memory if we find one.
+This means that a page might get charged by memcg_kmem_newpage_charge
+which would see its static key patched already but
+memcg_kmem_commit_charge would still see it unpatched and so the charge
+won't be committed.  The result would be charge inconsistency (page_cgroup
+not marked as PageCgroupUsed) and the charge would leak because
+__memcg_kmem_uncharge_pages would ignore it.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Chen Tang <imtangchen@gmail.com>
-Cc: Gong Chen <gong.chen@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jiang Liu <jiang.liu@huawei.com>
+[mhocko@suse.cz: augment changelog]
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Liu Jiang <jiang.liu@huawei.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |   17 +++++++++++
- mm/memblock.c            |   53 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 70 insertions(+)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memblock.h~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions
-+++ a/include/linux/memblock.h
-@@ -19,6 +19,9 @@
- 
- #define INIT_MEMBLOCK_REGIONS	128
- 
-+/* Definition of memblock flags. */
-+#define MEMBLOCK_HOTPLUG	0x1	/* hotpluggable region */
-+
- struct memblock_region {
- 	phys_addr_t base;
- 	phys_addr_t size;
-@@ -60,6 +63,8 @@ int memblock_remove(phys_addr_t base, ph
- int memblock_free(phys_addr_t base, phys_addr_t size);
- int memblock_reserve(phys_addr_t base, phys_addr_t size);
- void memblock_trim_memory(phys_addr_t align);
-+int memblock_mark_hotplug(phys_addr_t base, phys_addr_t size);
-+int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
- 
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- int memblock_search_pfn_nid(unsigned long pfn, unsigned long *start_pfn,
-@@ -122,6 +127,18 @@ void __next_free_mem_range_rev(u64 *idx,
- 	     i != (u64)ULLONG_MAX;					\
- 	     __next_free_mem_range_rev(&i, nid, p_start, p_end, p_nid))
- 
-+static inline void memblock_set_region_flags(struct memblock_region *r,
-+					     unsigned long flags)
-+{
-+	r->flags |= flags;
-+}
-+
-+static inline void memblock_clear_region_flags(struct memblock_region *r,
-+					       unsigned long flags)
-+{
-+	r->flags &= ~flags;
-+}
-+
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- int memblock_set_node(phys_addr_t base, phys_addr_t size, int nid);
- 
-diff -puN mm/memblock.c~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions mm/memblock.c
---- a/mm/memblock.c~memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions
-+++ a/mm/memblock.c
-@@ -683,6 +683,59 @@ int __init_memblock memblock_reserve(phy
+diff -puN mm/memcontrol.c~memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem
++++ a/mm/memcontrol.c
+@@ -2959,7 +2959,8 @@ static DEFINE_MUTEX(set_limit_mutex);
+ static inline bool memcg_can_account_kmem(struct mem_cgroup *memcg)
+ {
+ 	return !mem_cgroup_disabled() && !mem_cgroup_is_root(memcg) &&
+-		(memcg->kmem_account_flags & KMEM_ACCOUNTED_MASK);
++		(memcg->kmem_account_flags & KMEM_ACCOUNTED_MASK) ==
++							KMEM_ACCOUNTED_MASK;
  }
  
- /**
-+ * memblock_mark_hotplug - Mark hotpluggable memory with flag MEMBLOCK_HOTPLUG.
-+ * @base: the base phys addr of the region
-+ * @size: the size of the region
-+ *
-+ * This function isolates region [@base, @base + @size), and mark it with flag
-+ * MEMBLOCK_HOTPLUG.
-+ *
-+ * Return 0 on succees, -errno on failure.
-+ */
-+int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
-+{
-+	struct memblock_type *type = &memblock.memory;
-+	int i, ret, start_rgn, end_rgn;
-+
-+	ret = memblock_isolate_range(type, base, size, &start_rgn, &end_rgn);
-+	if (ret)
-+		return ret;
-+
-+	for (i = start_rgn; i < end_rgn; i++)
-+		memblock_set_region_flags(&type->regions[i], MEMBLOCK_HOTPLUG);
-+
-+	memblock_merge_regions(type);
-+	return 0;
-+}
-+
-+/**
-+ * memblock_clear_hotplug - Clear flag MEMBLOCK_HOTPLUG for a specified region.
-+ * @base: the base phys addr of the region
-+ * @size: the size of the region
-+ *
-+ * This function isolates region [@base, @base + @size), and clear flag
-+ * MEMBLOCK_HOTPLUG for the isolated regions.
-+ *
-+ * Return 0 on succees, -errno on failure.
-+ */
-+int __init_memblock memblock_clear_hotplug(phys_addr_t base, phys_addr_t size)
-+{
-+	struct memblock_type *type = &memblock.memory;
-+	int i, ret, start_rgn, end_rgn;
-+
-+	ret = memblock_isolate_range(type, base, size, &start_rgn, &end_rgn);
-+	if (ret)
-+		return ret;
-+
-+	for (i = start_rgn; i < end_rgn; i++)
-+		memblock_clear_region_flags(&type->regions[i],
-+					    MEMBLOCK_HOTPLUG);
-+
-+	memblock_merge_regions(type);
-+	return 0;
-+}
-+
-+/**
-  * __next_free_mem_range - next function for for_each_free_mem_range()
-  * @idx: pointer to u64 loop variable
-  * @nid: node selector, %MAX_NUMNODES for all nodes
+ /*
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
-mm-free-memblockmemory-in-free_all_bootmem.patch
-mm-free-memblockmemory-in-free_all_bootmem-fix.patch
-mm-nobootmem-free_all_bootmem-again.patch
-mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch
+memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
+slab-clean-up-kmem_cache_create_memcg-error-handling.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
+memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
+memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
+memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
+memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
+memcg-get-rid-of-kmem_cache_dup.patch
+slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
+memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
+memcg-remove-kmem_accounted_activated-flag.patch
+memcg-rework-memcg_update_kmem_limit-synchronization.patch
+memcg-rework-memcg_update_kmem_limit-synchronization-fix.patch
+mm-vmscan-shrink-all-slab-objects-if-tight-on-memory.patch
+mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
+mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
+mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
+memcg-remove-unused-code-from-kmem_cache_destroy_work_func.patch
 linux-next.patch
 
