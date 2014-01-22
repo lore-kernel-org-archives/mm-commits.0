@@ -1,97 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-superc-fix-warn-on-alloc_super-fail-path.patch
- removed from -mm tree
-Date: Wed, 22 Jan 2014 12:12:11 -0800
-Message-ID: <52e0261b.5MuJulT0pGQLYJXg%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-make-setpage_address-static-inline-if-want_page_virtual.patch removed
+ from -mm tree
+Date: Wed, 22 Jan 2014 12:12:15 -0800
+Message-ID: <52e0261f.ZuoXxZw/m7ZFjDAP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54213 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755764AbaAVUMM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:12 -0500
+	with ESMTP id S1755764AbaAVUMQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, mst@redhat.com, linux@roeck-us.net, geert@linux-m68k.org
 
-Subject: [merged] fs-superc-fix-warn-on-alloc_super-fail-path.patch removed from -mm tree
-To: vdavydov@parallels.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] mm-make-setpage_address-static-inline-if-want_page_virtual.patch removed from -mm tree
+To: geert@linux-m68k.org,linux@roeck-us.net,mst@redhat.com,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:12:11 -0800
+Date: Wed, 22 Jan 2014 12:12:15 -0800
 
 
 The patch titled
-     Subject: fs/super.c: fix WARN on alloc_super() fail path
+     Subject: mm: Make {,set}page_address() static inline if WANT_PAGE_VIRTUAL
 has been removed from the -mm tree.  Its filename was
-     fs-superc-fix-warn-on-alloc_super-fail-path.patch
+     mm-make-setpage_address-static-inline-if-want_page_virtual.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: fs/super.c: fix WARN on alloc_super() fail path
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: mm: Make {,set}page_address() static inline if WANT_PAGE_VIRTUAL
 
-On fail path alloc_super() calls destroy_super(), which issues a warning
-if the sb's s_mounts list is not empty, in particular if it has not been
-initialized.  That said s_mounts must be initialized in alloc_super()
-before any possible failure, but currently it is initialized close to the
-end of the function leading to a useless warning dumped to log if either
-percpu_counter_init() or list_lru_init() fails.  Let's fix this.
+{,set}page_address() are macros if WANT_PAGE_VIRTUAL.  If
+!WANT_PAGE_VIRTUAL, they're plain C functions.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+If someone calls them with a void *, this pointer is auto-converted to
+struct page * if !WANT_PAGE_VIRTUAL, but causes a build failure on
+architectures using WANT_PAGE_VIRTUAL (arc, m68k and sparc64):
+
+drivers/md/bcache/bset.c: In function `__btree_sort':
+drivers/md/bcache/bset.c:1190: warning: dereferencing `void *' pointer
+drivers/md/bcache/bset.c:1190: error: request for member `virtual' in something not a structure or union
+
+Convert them to static inline functions to fix this.  There are already
+plenty of users of struct page members inside <linux/mm.h>, so there's no
+reason to keep them as macros.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Tested-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mm.h |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN fs/super.c~fs-superc-fix-warn-on-alloc_super-fail-path fs/super.c
---- a/fs/super.c~fs-superc-fix-warn-on-alloc_super-fail-path
-+++ a/fs/super.c
-@@ -166,6 +166,8 @@ static struct super_block *alloc_super(s
- 	if (!s)
- 		return NULL;
+diff -puN include/linux/mm.h~mm-make-setpage_address-static-inline-if-want_page_virtual include/linux/mm.h
+--- a/include/linux/mm.h~mm-make-setpage_address-static-inline-if-want_page_virtual
++++ a/include/linux/mm.h
+@@ -846,11 +846,14 @@ static __always_inline void *lowmem_page
+ #endif
  
-+	INIT_LIST_HEAD(&s->s_mounts);
-+
- 	if (security_sb_alloc(s))
- 		goto fail;
+ #if defined(WANT_PAGE_VIRTUAL)
+-#define page_address(page) ((page)->virtual)
+-#define set_page_address(page, address)			\
+-	do {						\
+-		(page)->virtual = (address);		\
+-	} while(0)
++static inline void *page_address(const struct page *page)
++{
++	return page->virtual;
++}
++static inline void set_page_address(struct page *page, void *address)
++{
++	page->virtual = address;
++}
+ #define page_address_init()  do { } while(0)
+ #endif
  
-@@ -188,7 +190,6 @@ static struct super_block *alloc_super(s
- 	if (list_lru_init(&s->s_inode_lru))
- 		goto fail;
- 
--	INIT_LIST_HEAD(&s->s_mounts);
- 	init_rwsem(&s->s_umount);
- 	lockdep_set_class(&s->s_umount, &type->s_umount_key);
- 	/*
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
-slab-clean-up-kmem_cache_create_memcg-error-handling.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
-memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
-memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
-memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
-memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
-memcg-get-rid-of-kmem_cache_dup.patch
-slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
-memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
-memcg-remove-kmem_accounted_activated-flag.patch
-memcg-rework-memcg_update_kmem_limit-synchronization.patch
-memcg-rework-memcg_update_kmem_limit-synchronization-fix.patch
-mm-vmscan-shrink-all-slab-objects-if-tight-on-memory.patch
-mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-memcg-remove-unused-code-from-kmem_cache_destroy_work_func.patch
+cris-provide-inout_p.patch
+asm-typesh-remove-include-asm-generic-int-l64h.patch
+maintainers-add-an-entry-for-the-macintosh-hfsplus-filesystem.patch
+init-mainc-remove-unused-declaration-of-tc_init.patch
+rtc-rtc-cmos-remove-superfluous-name-cast.patch
+rtc-disable-rtc_drv_cmos-on-atari.patch
+drivers-rtc-rtc-s5mc-s5m_rtc_suspendresume-should-depend-on-config_pm_sleep.patch
+proc-cleanup-simplify-get_task_state-task_state_array.patch
 linux-next.patch
 
