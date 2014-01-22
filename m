@@ -1,136 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mlock-prepare-params-outside-critical-region.patch
- removed from -mm tree
-Date: Wed, 22 Jan 2014 12:12:56 -0800
-Message-ID: <52e02648.wXZe6Vjg+4h0coLy%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:12:58 -0800
+Message-ID: <52e0264a.JOH58KGKf64Xp2Ss%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54370 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54377 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755685AbaAVUM4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:56 -0500
+	with ESMTP id S1756038AbaAVUM7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, vbabka@suse.cz, riel@redhat.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, santosh.shilimkar@ti.com, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, grygorii.strashko@ti.com
 
-Subject: [merged] mm-mlock-prepare-params-outside-critical-region.patch removed from -mm tree
-To: davidlohr@hp.com,riel@redhat.com,vbabka@suse.cz,walken@google.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch removed from -mm tree
+To: grygorii.strashko@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,santosh.shilimkar@ti.com,tj@kernel.org,tony@atomide.com,yinghai@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:12:56 -0800
+Date: Wed, 22 Jan 2014 12:12:58 -0800
 
 
 The patch titled
-     Subject: mm/mlock: prepare params outside critical region
+     Subject: mm/memblock: debug: correct displaying of upper memory boundary
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-prepare-params-outside-critical-region.patch
+     mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: mm/mlock: prepare params outside critical region
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: mm/memblock: debug: correct displaying of upper memory boundary
 
-All mlock related syscalls prepare lock limits, lengths and start
-parameters with the mmap_sem held.  Move this logic outside of the
-critical region.  For the case of mlock, continue incrementing the amount
-already locked by mm->locked_vm with the rwsem taken.
+Current memblock APIs don't work on 32 PAE or LPAE extension arches where
+the physical memory start address beyond 4GB.  The problem was discussed
+here [3] where Tejun, Yinghai(thanks) proposed a way forward with memblock
+interfaces.  Based on the proposal, this series adds necessary memblock
+interfaces and convert the core kernel code to use them.  Architectures
+already converted to NO_BOOTMEM use these new interfaces and other which
+still uses bootmem, these new interfaces just fallback to exiting bootmem
+APIs.
 
-Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Reviewed-by: Michel Lespinasse <walken@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+So no functional change in behavior.  In long run, once all the
+architectures moves to NO_BOOTMEM, we can get rid of bootmem layer
+completely.  This is one step to remove the core code dependency with
+bootmem and also gives path for architectures to move away from bootmem.
+
+Testing is done on ARM architecture with 32 bit ARM LAPE machines
+with normal as well sparse(faked) memory model.
+
+
+
+This patch (of 23):
+
+When debugging is enabled (cmdline has "memblock=debug") the memblock will
+display upper memory boundary per each allocated/freed memory range
+wrongly.  For example:
+
+ memblock_reserve: [0x0000009e7e8000-0x0000009e7ed000] _memblock_early_alloc_try_nid_nopanic+0xfc/0x12c
+
+The 0x0000009e7ed000 is displayed instead of 0x0000009e7ecfff
+
+Hence, correct this by changing formula used to calculate upper memory
+boundary to (u64)base + size - 1 instead of  (u64)base + size everywhere
+in the debug messages.
+
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ mm/memblock.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-prepare-params-outside-critical-region mm/mlock.c
---- a/mm/mlock.c~mm-mlock-prepare-params-outside-critical-region
-+++ a/mm/mlock.c
-@@ -709,19 +709,21 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
- 
- 	lru_add_drain_all();	/* flush pagevec */
- 
--	down_write(&current->mm->mmap_sem);
- 	len = PAGE_ALIGN(len + (start & ~PAGE_MASK));
- 	start &= PAGE_MASK;
- 
--	locked = len >> PAGE_SHIFT;
--	locked += current->mm->locked_vm;
--
- 	lock_limit = rlimit(RLIMIT_MEMLOCK);
- 	lock_limit >>= PAGE_SHIFT;
-+	locked = len >> PAGE_SHIFT;
-+
-+	down_write(&current->mm->mmap_sem);
-+
-+	locked += current->mm->locked_vm;
- 
- 	/* check against resource limits */
- 	if ((locked <= lock_limit) || capable(CAP_IPC_LOCK))
- 		error = do_mlock(start, len, 1);
-+
- 	up_write(&current->mm->mmap_sem);
- 	if (!error)
- 		error = __mm_populate(start, len, 0);
-@@ -732,11 +734,13 @@ SYSCALL_DEFINE2(munlock, unsigned long,
+diff -puN mm/memblock.c~mm-memblock-debug-correct-displaying-of-upper-memory-boundary mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-debug-correct-displaying-of-upper-memory-boundary
++++ a/mm/memblock.c
+@@ -643,7 +643,7 @@ int __init_memblock memblock_free(phys_a
  {
- 	int ret;
+ 	memblock_dbg("   memblock_free: [%#016llx-%#016llx] %pF\n",
+ 		     (unsigned long long)base,
+-		     (unsigned long long)base + size,
++		     (unsigned long long)base + size - 1,
+ 		     (void *)_RET_IP_);
  
--	down_write(&current->mm->mmap_sem);
- 	len = PAGE_ALIGN(len + (start & ~PAGE_MASK));
- 	start &= PAGE_MASK;
-+
-+	down_write(&current->mm->mmap_sem);
- 	ret = do_mlock(start, len, 0);
- 	up_write(&current->mm->mmap_sem);
-+
- 	return ret;
- }
+ 	return __memblock_remove(&memblock.reserved, base, size);
+@@ -655,7 +655,7 @@ int __init_memblock memblock_reserve(phy
  
-@@ -781,12 +785,12 @@ SYSCALL_DEFINE1(mlockall, int, flags)
- 	if (flags & MCL_CURRENT)
- 		lru_add_drain_all();	/* flush pagevec */
+ 	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] %pF\n",
+ 		     (unsigned long long)base,
+-		     (unsigned long long)base + size,
++		     (unsigned long long)base + size - 1,
+ 		     (void *)_RET_IP_);
  
--	down_write(&current->mm->mmap_sem);
--
- 	lock_limit = rlimit(RLIMIT_MEMLOCK);
- 	lock_limit >>= PAGE_SHIFT;
- 
- 	ret = -ENOMEM;
-+	down_write(&current->mm->mmap_sem);
-+
- 	if (!(flags & MCL_CURRENT) || (current->mm->total_vm <= lock_limit) ||
- 	    capable(CAP_IPC_LOCK))
- 		ret = do_mlockall(flags);
+ 	return memblock_add_region(_rgn, base, size, MAX_NUMNODES);
 _
 
-Patches currently in -mm which might be from davidlohr@hp.com are
+Patches currently in -mm which might be from grygorii.strashko@ti.com are
 
 origin.patch
-x86-mm-account-for-tlb-flushes-only-when-debugging.patch
-x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges.patch
-x86-mm-eliminate-redundant-page-table-walk-during-tlb-range-flushing.patch
-x86-mm-change-tlb_flushall_shift-for-ivybridge.patch
-mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge.patch
-partitions-efi-complete-documentation-of-gpt-kernel-param-purpose.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix-2.patch
-ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races.patch
-ipc-change-kern_ipc_permdeleted-type-to-bool.patch
-ipc-whitespace-cleanup.patch
-ipc-standardize-code-comments.patch
-ipc-remove-braces-for-single-statements.patch
-ipc-remove-useless-return-statement.patch
-ipc-simplify-sysvipc_proc_open-return.patch
-ipc-delete-seq_max-field-in-struct-ipc_ids.patch
-ipcmsg-document-barriers.patch
-ipcmsg-document-barriers-fix.patch
-ipcmsg-document-barriers-fix-fix.patch
-ipc-fix-compat-msgrcv-with-negative-msgtyp.patch
+mm-nobootmem-free_all_bootmem-again.patch
+rtc-rtc-twl-use-devm_-functions.patch
+rtc-rtc-vr41xx-use-devm_-functions.patch
+linux-next.patch
 
