@@ -1,214 +1,283 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits.patch removed from -mm tree
-Date: Wed, 22 Jan 2014 12:11:49 -0800
-Message-ID: <52e02605.lQSHZohfzmCvHOwn%akpm@linux-foundation.org>
+ ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:11:47 -0800
+Message-ID: <52e02603.8fSII0yALSFdZTKE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54170 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54167 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753043AbaAVULt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:11:49 -0500
+	with ESMTP id S1753043AbaAVULs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:11:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, younger.liucn@gmail.com, mfasheh@suse.com, jlbec@evilplan.org, liuyiyang@hisense.com
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.de, jlbec@evilplan.org, dan.carpenter@oracle.com, rgoldwyn@suse.de
 
-Subject: [merged] ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits.patch removed from -mm tree
-To: liuyiyang@hisense.com,jlbec@evilplan.org,mfasheh@suse.com,younger.liucn@gmail.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch removed from -mm tree
+To: rgoldwyn@suse.de,dan.carpenter@oracle.com,jlbec@evilplan.org,mfasheh@suse.de,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:11:49 -0800
+Date: Wed, 22 Jan 2014 12:11:47 -0800
 
 
 The patch titled
-     Subject: ocfs2: remove redundant ocfs2_alloc_dinode_update_counts() and ocfs2_block_group_set_bits()
+     Subject: ocfs2: use the new DLM operation callbacks while requesting new lockspace
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits.patch
+     ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Younger Liu <liuyiyang@hisense.com>
-Subject: ocfs2: remove redundant ocfs2_alloc_dinode_update_counts() and ocfs2_block_group_set_bits()
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: ocfs2: use the new DLM operation callbacks while requesting new lockspace
 
-ocfs2_alloc_dinode_update_counts() and ocfs2_block_group_set_bits() are
-already provided in suballoc.c.  So, the same functions in move_extents.c
-are not needed any more.
+Attempt to use the new DLM operations.  If it is not supported, use the
+traditional ocfs2_controld.
 
-Declare the functions in suballoc.h and remove redundant functions in
-move_extents.c.
+To exchange ocfs2 versioning, we use the LVB of the version dlm lock.  It
+first attempts to take the lock in EX mode (non-blocking).  If successful
+(which means it is the first mount), it writes the version number and
+downconverts to PR lock.  If it is unsuccessful, it reads the version from
+the lock.
 
-Signed-off-by: Younger Liu <liuyiyang@hisense.com>
-Cc: Younger Liu <younger.liucn@gmail.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+If this becomes the standard (with o2cb as well), it could simplify
+userspace tools to check if the filesystem is mounted on other nodes.
+
+Dan: Since ocfs2_protocol_version are two u8 values, the additional
+checks with LONG* don't make sense.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |   77 --------------------------------------
- fs/ocfs2/suballoc.c     |   12 -----
- fs/ocfs2/suballoc.h     |   12 +++++
- 3 files changed, 14 insertions(+), 87 deletions(-)
+ fs/ocfs2/stack_user.c |  126 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 102 insertions(+), 24 deletions(-)
 
-diff -puN fs/ocfs2/move_extents.c~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits fs/ocfs2/move_extents.c
---- a/fs/ocfs2/move_extents.c~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits
-+++ a/fs/ocfs2/move_extents.c
-@@ -561,83 +561,6 @@ static void ocfs2_probe_alloc_group(stru
- 	mlog(0, "found phys_cpos: %u to fit the wanted moving.\n", *phys_cpos);
+diff -puN fs/ocfs2/stack_user.c~ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~ocfs2-use-the-new-dlm-operation-callbacks-while-requesting-new-lockspace
++++ a/fs/ocfs2/stack_user.c
+@@ -23,6 +23,7 @@
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+ #include <linux/reboot.h>
++#include <linux/sched.h>
+ #include <asm/uaccess.h>
+ 
+ #include "stackglue.h"
+@@ -122,6 +123,7 @@ struct ocfs2_live_connection {
+ 	struct dlm_lksb                 oc_version_lksb;
+ 	char                            oc_lvb[DLM_LVB_LEN];
+ 	struct completion               oc_sync_wait;
++	wait_queue_head_t		oc_wait;
+ };
+ 
+ struct ocfs2_control_private {
+@@ -218,7 +220,7 @@ static int ocfs2_live_connection_attach(
+ 	mutex_lock(&ocfs2_control_lock);
+ 	c->oc_conn = conn;
+ 
+-	if (atomic_read(&ocfs2_control_opened))
++	if ((c->oc_type == NO_CONTROLD) || atomic_read(&ocfs2_control_opened))
+ 		list_add(&c->oc_list, &ocfs2_live_connection_list);
+ 	else {
+ 		printk(KERN_ERR
+@@ -897,6 +899,55 @@ static int version_unlock(struct ocfs2_c
+ 	return sync_unlock(conn, &lc->oc_version_lksb, VERSION_LOCK);
  }
  
--static int ocfs2_alloc_dinode_update_counts(struct inode *inode,
--				       handle_t *handle,
--				       struct buffer_head *di_bh,
--				       u32 num_bits,
--				       u16 chain)
--{
--	int ret;
--	u32 tmp_used;
--	struct ocfs2_dinode *di = (struct ocfs2_dinode *) di_bh->b_data;
--	struct ocfs2_chain_list *cl =
--				(struct ocfs2_chain_list *) &di->id2.i_chain;
--
--	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), di_bh,
--				      OCFS2_JOURNAL_ACCESS_WRITE);
--	if (ret < 0) {
--		mlog_errno(ret);
++/* get_protocol_version()
++ *
++ * To exchange ocfs2 versioning, we use the LVB of the version dlm lock.
++ * The algorithm is:
++ * 1. Attempt to take the lock in EX mode (non-blocking).
++ * 2. If successful (which means it is the first mount), write the
++ *    version number and downconvert to PR lock.
++ * 3. If unsuccessful (returns -EAGAIN), read the version from the LVB after
++ *    taking the PR lock.
++ */
++
++static int get_protocol_version(struct ocfs2_cluster_connection *conn)
++{
++	int ret;
++	struct ocfs2_live_connection *lc = conn->cc_private;
++	struct ocfs2_protocol_version pv;
++
++	running_proto.pv_major =
++		ocfs2_user_plugin.sp_max_proto.pv_major;
++	running_proto.pv_minor =
++		ocfs2_user_plugin.sp_max_proto.pv_minor;
++
++	lc->oc_version_lksb.sb_lvbptr = lc->oc_lvb;
++	ret = version_lock(conn, DLM_LOCK_EX,
++			DLM_LKF_VALBLK|DLM_LKF_NOQUEUE);
++	if (!ret) {
++		conn->cc_version.pv_major = running_proto.pv_major;
++		conn->cc_version.pv_minor = running_proto.pv_minor;
++		version_to_lvb(&running_proto, lc->oc_lvb);
++		version_lock(conn, DLM_LOCK_PR, DLM_LKF_CONVERT|DLM_LKF_VALBLK);
++	} else if (ret == -EAGAIN) {
++		ret = version_lock(conn, DLM_LOCK_PR, DLM_LKF_VALBLK);
++		if (ret)
++			goto out;
++		lvb_to_version(lc->oc_lvb, &pv);
++
++		if ((pv.pv_major != running_proto.pv_major) ||
++				(pv.pv_minor > running_proto.pv_minor)) {
++			ret = -EINVAL;
++			goto out;
++		}
++
++		conn->cc_version.pv_major = pv.pv_major;
++		conn->cc_version.pv_minor = pv.pv_minor;
++	}
++out:
++	return ret;
++}
++
+ static void user_recover_prep(void *arg)
+ {
+ }
+@@ -925,6 +976,7 @@ static void user_recover_done(void *arg,
+ 		}
+ 
+ 	lc->oc_our_slot = our_slot;
++	wake_up(&lc->oc_wait);
+ }
+ 
+ const struct dlm_lockspace_ops ocfs2_ls_ops = {
+@@ -933,11 +985,21 @@ const struct dlm_lockspace_ops ocfs2_ls_
+ 	.recover_done = user_recover_done,
+ };
+ 
++static int user_cluster_disconnect(struct ocfs2_cluster_connection *conn)
++{
++	version_unlock(conn);
++	dlm_release_lockspace(conn->cc_lockspace, 2);
++	conn->cc_lockspace = NULL;
++	ocfs2_live_connection_drop(conn->cc_private);
++	conn->cc_private = NULL;
++	return 0;
++}
++
+ static int user_cluster_connect(struct ocfs2_cluster_connection *conn)
+ {
+ 	dlm_lockspace_t *fsdlm;
+ 	struct ocfs2_live_connection *lc;
+-	int rc;
++	int rc, ops_rv;
+ 
+ 	BUG_ON(conn == NULL);
+ 
+@@ -947,11 +1009,44 @@ static int user_cluster_connect(struct o
+ 		goto out;
+ 	}
+ 
+-	lc->oc_type = WITH_CONTROLD;
++	init_waitqueue_head(&lc->oc_wait);
++	init_completion(&lc->oc_sync_wait);
++	atomic_set(&lc->oc_this_node, 0);
++	conn->cc_private = lc;
++	lc->oc_type = NO_CONTROLD;
++
++	rc = dlm_new_lockspace(conn->cc_name, conn->cc_cluster_name,
++			       DLM_LSFL_FS, DLM_LVB_LEN,
++			       &ocfs2_ls_ops, conn, &ops_rv, &fsdlm);
++	if (rc)
++		goto out;
++
++	if (ops_rv == -EOPNOTSUPP) {
++		lc->oc_type = WITH_CONTROLD;
++		printk(KERN_NOTICE "ocfs2: You seem to be using an older "
++				"version of dlm_controld and/or ocfs2-tools."
++				" Please consider upgrading.\n");
++	} else if (ops_rv) {
++		rc = ops_rv;
++		goto out;
++	}
++	conn->cc_lockspace = fsdlm;
++
+ 	rc = ocfs2_live_connection_attach(conn, lc);
+ 	if (rc)
+ 		goto out;
+ 
++	if (lc->oc_type == NO_CONTROLD) {
++		rc = get_protocol_version(conn);
++		if (rc) {
++			printk(KERN_ERR "ocfs2: Could not determine"
++					" locking version\n");
++			user_cluster_disconnect(conn);
++			goto out;
++		}
++		wait_event(lc->oc_wait, (atomic_read(&lc->oc_this_node) > 0));
++	}
++
+ 	/*
+ 	 * running_proto must have been set before we allowed any mounts
+ 	 * to proceed.
+@@ -959,40 +1054,20 @@ static int user_cluster_connect(struct o
+ 	if (fs_protocol_compare(&running_proto, &conn->cc_version)) {
+ 		printk(KERN_ERR
+ 		       "Unable to mount with fs locking protocol version "
+-		       "%u.%u because the userspace control daemon has "
+-		       "negotiated %u.%u\n",
++		       "%u.%u because negotiated protocol is %u.%u\n",
+ 		       conn->cc_version.pv_major, conn->cc_version.pv_minor,
+ 		       running_proto.pv_major, running_proto.pv_minor);
+ 		rc = -EPROTO;
+ 		ocfs2_live_connection_drop(lc);
+ 		lc = NULL;
+-		goto out;
+ 	}
+ 
+-	rc = dlm_new_lockspace(conn->cc_name, NULL, DLM_LSFL_FS, DLM_LVB_LEN,
+-			       NULL, NULL, NULL, &fsdlm);
+-	if (rc) {
+-		ocfs2_live_connection_drop(lc);
+-		lc = NULL;
 -		goto out;
 -	}
 -
--	tmp_used = le32_to_cpu(di->id1.bitmap1.i_used);
--	di->id1.bitmap1.i_used = cpu_to_le32(num_bits + tmp_used);
--	le32_add_cpu(&cl->cl_recs[chain].c_free, -num_bits);
--	ocfs2_journal_dirty(handle, di_bh);
--
--out:
--	return ret;
--}
--
--static inline int ocfs2_block_group_set_bits(handle_t *handle,
--					     struct inode *alloc_inode,
--					     struct ocfs2_group_desc *bg,
--					     struct buffer_head *group_bh,
--					     unsigned int bit_off,
--					     unsigned int num_bits)
+-	conn->cc_private = lc;
+-	conn->cc_lockspace = fsdlm;
+ out:
+ 	if (rc && lc)
+ 		kfree(lc);
+ 	return rc;
+ }
+ 
+-static int user_cluster_disconnect(struct ocfs2_cluster_connection *conn)
 -{
--	int status;
--	void *bitmap = bg->bg_bitmap;
--	int journal_type = OCFS2_JOURNAL_ACCESS_WRITE;
--
--	/* All callers get the descriptor via
--	 * ocfs2_read_group_descriptor().  Any corruption is a code bug. */
--	BUG_ON(!OCFS2_IS_VALID_GROUP_DESC(bg));
--	BUG_ON(le16_to_cpu(bg->bg_free_bits_count) < num_bits);
--
--	mlog(0, "block_group_set_bits: off = %u, num = %u\n", bit_off,
--	     num_bits);
--
--	if (ocfs2_is_cluster_bitmap(alloc_inode))
--		journal_type = OCFS2_JOURNAL_ACCESS_UNDO;
--
--	status = ocfs2_journal_access_gd(handle,
--					 INODE_CACHE(alloc_inode),
--					 group_bh,
--					 journal_type);
--	if (status < 0) {
--		mlog_errno(status);
--		goto bail;
--	}
--
--	le16_add_cpu(&bg->bg_free_bits_count, -num_bits);
--	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
--		ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
--			    " count %u but claims %u are freed. num_bits %d",
--			    (unsigned long long)le64_to_cpu(bg->bg_blkno),
--			    le16_to_cpu(bg->bg_bits),
--			    le16_to_cpu(bg->bg_free_bits_count), num_bits);
--		return -EROFS;
--	}
--	while (num_bits--)
--		ocfs2_set_bit(bit_off++, bitmap);
--
--	ocfs2_journal_dirty(handle, group_bh);
--
--bail:
--	return status;
+-	dlm_release_lockspace(conn->cc_lockspace, 2);
+-	conn->cc_lockspace = NULL;
+-	ocfs2_live_connection_drop(conn->cc_private);
+-	conn->cc_private = NULL;
+-	return 0;
 -}
--
- static int ocfs2_move_extent(struct ocfs2_move_extents_context *context,
- 			     u32 cpos, u32 phys_cpos, u32 *new_phys_cpos,
- 			     u32 len, int ext_flags)
-diff -puN fs/ocfs2/suballoc.c~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits
-+++ a/fs/ocfs2/suballoc.c
-@@ -113,12 +113,6 @@ static int ocfs2_claim_suballoc_bits(str
- 				     struct ocfs2_suballoc_result *res);
- static int ocfs2_test_bg_bit_allocatable(struct buffer_head *bg_bh,
- 					 int nr);
--static inline int ocfs2_block_group_set_bits(handle_t *handle,
--					     struct inode *alloc_inode,
--					     struct ocfs2_group_desc *bg,
--					     struct buffer_head *group_bh,
--					     unsigned int bit_off,
--					     unsigned int num_bits);
- static int ocfs2_relink_block_group(handle_t *handle,
- 				    struct inode *alloc_inode,
- 				    struct buffer_head *fe_bh,
-@@ -1343,7 +1337,7 @@ static int ocfs2_block_group_find_clear_
- 	return status;
- }
  
--static inline int ocfs2_block_group_set_bits(handle_t *handle,
-+int ocfs2_block_group_set_bits(handle_t *handle,
- 					     struct inode *alloc_inode,
- 					     struct ocfs2_group_desc *bg,
- 					     struct buffer_head *group_bh,
-@@ -1388,8 +1382,6 @@ static inline int ocfs2_block_group_set_
- 	ocfs2_journal_dirty(handle, group_bh);
+ static int user_cluster_this_node(struct ocfs2_cluster_connection *conn,
+ 				  unsigned int *this_node)
+@@ -1002,8 +1077,11 @@ static int user_cluster_this_node(struct
  
- bail:
--	if (status)
--		mlog_errno(status);
- 	return status;
- }
- 
-@@ -1588,7 +1580,7 @@ static int ocfs2_block_group_search(stru
- 	return ret;
- }
- 
--static int ocfs2_alloc_dinode_update_counts(struct inode *inode,
-+int ocfs2_alloc_dinode_update_counts(struct inode *inode,
- 				       handle_t *handle,
- 				       struct buffer_head *di_bh,
- 				       u32 num_bits,
-diff -puN fs/ocfs2/suballoc.h~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits fs/ocfs2/suballoc.h
---- a/fs/ocfs2/suballoc.h~ocfs2-remove-redundant-ocfs2_alloc_dinode_update_counts-and-ocfs2_block_group_set_bits
-+++ a/fs/ocfs2/suballoc.h
-@@ -86,6 +86,18 @@ int ocfs2_reserve_clusters(struct ocfs2_
- 			   u32 bits_wanted,
- 			   struct ocfs2_alloc_context **ac);
- 
-+int ocfs2_alloc_dinode_update_counts(struct inode *inode,
-+			 handle_t *handle,
-+			 struct buffer_head *di_bh,
-+			 u32 num_bits,
-+			 u16 chain);
-+int ocfs2_block_group_set_bits(handle_t *handle,
-+			 struct inode *alloc_inode,
-+			 struct ocfs2_group_desc *bg,
-+			 struct buffer_head *group_bh,
-+			 unsigned int bit_off,
-+			 unsigned int num_bits);
+ 	if (lc->oc_type == WITH_CONTROLD)
+ 		rc = ocfs2_control_get_this_node();
++	else if (lc->oc_type == NO_CONTROLD)
++		rc = atomic_read(&lc->oc_this_node);
+ 	else
+ 		rc = -EINVAL;
 +
- int ocfs2_claim_metadata(handle_t *handle,
- 			 struct ocfs2_alloc_context *ac,
- 			 u32 bits_wanted,
+ 	if (rc < 0)
+ 		return rc;
+ 
 _
 
-Patches currently in -mm which might be from liuyiyang@hisense.com are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
 origin.patch
-logfs-check-for-the-return-value-after-calling-find_or_create_page.patch
-linux-next.patch
+ocfs2-code-cleanup-remove-unused-functions.patch
 
