@@ -1,102 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] gpio-hack.patch removed from -mm tree
-Date: Tue, 21 Jan 2014 16:03:35 -0800
-Message-ID: <52df0ad7.MBi0MNUWL8dD7DKa%akpm@linux-foundation.org>
+Subject: +
+ mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch added to
+ -mm tree
+Date: Tue, 21 Jan 2014 16:18:46 -0800
+Message-ID: <52df0e66.4I7W9crnhLrruIPE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45821 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45837 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751071AbaAVADg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 19:03:36 -0500
+	with ESMTP id S1751996AbaAVASr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 19:18:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, gthelen@google.com, rientjes@google.com
 
-Subject: [obsolete] gpio-hack.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: + mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch added to -mm tree
+To: rientjes@google.com,gthelen@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 21 Jan 2014 16:03:35 -0800
+Date: Tue, 21 Jan 2014 16:18:46 -0800
 
 
 The patch titled
-     Subject: a
-has been removed from the -mm tree.  Its filename was
-     gpio-hack.patch
+     Subject: mm, oom: prefer thread group leaders for display purposes fix
+has been added to the -mm tree.  Its filename is
+     mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: a
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: prefer thread group leaders for display purposes fix
 
+If oom_badness() returns 0 for an oom disabled process before a process
+has actually been chosen for kill, there will be a NULL pointer
+dereference when doing thread_group_leader(chosen).
+
+Make sure oom disabled processes aren't even considered to prevent the
+bug.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |    2 +-
+ mm/oom_kill.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-hack drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-hack
-+++ a/drivers/gpio/Kconfig
-@@ -733,6 +733,7 @@ config GPIO_MAX7301
- config GPIO_MCP23S08
- 	tristate "Microchip MCP23xxx I/O expander"
- 	depends on (SPI_MASTER && !I2C) || I2C && OF_GPIO
-+	depends on OF_GPIO
- 	help
- 	  SPI/I2C driver for Microchip MCP23S08/MCP23S17/MCP23008/MCP23017
- 	  I/O expanders.
+diff -puN mm/memcontrol.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix
++++ a/mm/memcontrol.c
+@@ -1800,7 +1800,7 @@ static void mem_cgroup_out_of_memory(str
+ 				break;
+ 			};
+ 			points = oom_badness(task, memcg, NULL, totalpages);
+-			if (points < chosen_points)
++			if (!points || points < chosen_points)
+ 				continue;
+ 			/* Prefer thread group leaders for display purposes */
+ 			if (points == chosen_points &&
+diff -puN mm/oom_kill.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix
++++ a/mm/oom_kill.c
+@@ -327,7 +327,7 @@ static struct task_struct *select_bad_pr
+ 			break;
+ 		};
+ 		points = oom_badness(p, NULL, nodemask, totalpages);
+-		if (points < chosen_points)
++		if (!points || points < chosen_points)
+ 			continue;
+ 		/* Prefer thread group leaders for display purposes */
+ 		if (points == chosen_points && thread_group_leader(chosen))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-posix_acl-uninlining.patch
-mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
-mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
-mm-swapc-reorganize-put_compound_page.patch
-mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
-mm-memory-failure-fix-the-typo-in-me_pagecache_dirty.patch
+mm-make-setpage_address-static-inline-if-want_page_virtual.patch
+mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
 mm-show_mem-remove-show_mem_filter_page_count.patch
-mm-add-overcommit_kbytes-sysctl-variable.patch
-memblock-mem_hotplug-introduce-memblock_hotplug-flag-to-mark-hotpluggable-regions.patch
-acpi-numa-mem_hotplug-mark-hotpluggable-memory-in-memblock.patch
-memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
-mm-memblock-add-memblock-memory-allocation-apis.patch
-sched-add-tracepoints-related-to-numa-task-migration.patch
+introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
+oom_kill-change-oom_killc-to-use-for_each_thread.patch
+oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
+oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
+x86-mm-memblock-switch-to-use-numa_no_node.patch
+lib-show_memc-show-num_poisoned_pages-when-oom.patch
+memcg-oom-lock-mem_cgroup_print_oom_info.patch
 mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-mm.patch
-mm-print-more-details-for-bad_page-fix.patch
-mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
-mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix-fix.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
-numa-add-a-sysctl-for-numa_balancing-fix.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
+mm-remove-bug_on-from-mlock_vma_page.patch
+arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit.patch
+mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
+fs-proc-pagec-add-pageanon-check-to-surely-detect-thp.patch
+mm-prevent-setting-of-a-value-less-than-0-to-min_free_kbytes.patch
+memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
+mm-nobootmem-free_all_bootmem-again-fix.patch
 mm-nobootmem-free_all_bootmem-again-fix-fix.patch
-mm-improve-documentation-of-page_order-v2-fix.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-printk-flush-conflicting-continuation-line-fix.patch
-drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
-ipcmsg-document-barriers-fix.patch
-ipcmsg-document-barriers-fix-fix.patch
+mm-show-message-when-updating-min_free_kbytes-in-thp.patch
+mm-oom-prefer-thread-group-leaders-for-display-purposes.patch
+mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
+checkpatch-add-warning-of-future-__gfp_nofail-use.patch
 linux-next.patch
-linux-next-git-rejects.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
