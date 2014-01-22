@@ -1,43 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch removed
- from -mm tree
-Date: Wed, 22 Jan 2014 12:14:40 -0800
-Message-ID: <52e026b0.iKyKSOBLEr/djziZ%akpm@linux-foundation.org>
+Subject: [merged] mm-numa-do-not-automatically-migrate-ksm-pages.patch
+ removed from -mm tree
+Date: Wed, 22 Jan 2014 12:14:44 -0800
+Message-ID: <52e026b4.pkDkEWHomjkKDrWY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54981 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54990 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755804AbaAVUOk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:14:40 -0500
+	with ESMTP id S1752331AbaAVUOo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:14:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
 
-Subject: [merged] mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch removed from -mm tree
+Subject: [merged] mm-numa-do-not-automatically-migrate-ksm-pages.patch removed from -mm tree
 To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:14:40 -0800
+Date: Wed, 22 Jan 2014 12:14:44 -0800
 
 
 The patch titled
-     Subject: mm: numa: limit scope of lock for NUMA migrate rate limiting
+     Subject: mm: numa: do not automatically migrate KSM pages
 has been removed from the -mm tree.  Its filename was
-     mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting.patch
+     mm-numa-do-not-automatically-migrate-ksm-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: limit scope of lock for NUMA migrate rate limiting
+Subject: mm: numa: do not automatically migrate KSM pages
 
-NUMA migrate rate limiting protects a migration counter and window using a
-lock but in some cases this can be a contended lock.  It is not critical
-that the number of pages be perfect, lost updates are acceptable.  Reduce
-the importance of this lock.
+KSM pages can be shared between tasks that are not necessarily related to
+each other from a NUMA perspective.  This patch causes those pages to be
+ignored by automatic NUMA balancing so they do not migrate and do not
+cause unrelated tasks to be grouped together.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -45,67 +44,29 @@ Cc: Alex Thorlton <athorlton@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 +----
- mm/migrate.c           |   21 ++++++++++++---------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ mm/mprotect.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting
-+++ a/include/linux/mmzone.h
-@@ -764,10 +764,7 @@ typedef struct pglist_data {
- 	int kswapd_max_order;
- 	enum zone_type classzone_idx;
- #ifdef CONFIG_NUMA_BALANCING
--	/*
--	 * Lock serializing the per destination node AutoNUMA memory
--	 * migration rate limiting data.
--	 */
-+	/* Lock serializing the migrate rate limiting window */
- 	spinlock_t numabalancing_migrate_lock;
+diff -puN mm/mprotect.c~mm-numa-do-not-automatically-migrate-ksm-pages mm/mprotect.c
+--- a/mm/mprotect.c~mm-numa-do-not-automatically-migrate-ksm-pages
++++ a/mm/mprotect.c
+@@ -23,6 +23,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/migrate.h>
+ #include <linux/perf_event.h>
++#include <linux/ksm.h>
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+ #include <asm/cacheflush.h>
+@@ -63,7 +64,7 @@ static unsigned long change_pte_range(st
  
- 	/* Rate limiting time interval */
-diff -puN mm/migrate.c~mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting mm/migrate.c
---- a/mm/migrate.c~mm-numa-limit-scope-of-lock-for-numa-migrate-rate-limiting
-+++ a/mm/migrate.c
-@@ -1602,26 +1602,29 @@ bool migrate_ratelimited(int node)
- static bool numamigrate_update_ratelimit(pg_data_t *pgdat,
- 					unsigned long nr_pages)
- {
--	bool rate_limited = false;
--
- 	/*
- 	 * Rate-limit the amount of data that is being migrated to a node.
- 	 * Optimal placement is no good if the memory bus is saturated and
- 	 * all the time is being spent migrating!
- 	 */
--	spin_lock(&pgdat->numabalancing_migrate_lock);
- 	if (time_after(jiffies, pgdat->numabalancing_migrate_next_window)) {
-+		spin_lock(&pgdat->numabalancing_migrate_lock);
- 		pgdat->numabalancing_migrate_nr_pages = 0;
- 		pgdat->numabalancing_migrate_next_window = jiffies +
- 			msecs_to_jiffies(migrate_interval_millisecs);
-+		spin_unlock(&pgdat->numabalancing_migrate_lock);
- 	}
- 	if (pgdat->numabalancing_migrate_nr_pages > ratelimit_pages)
--		rate_limited = true;
--	else
--		pgdat->numabalancing_migrate_nr_pages += nr_pages;
--	spin_unlock(&pgdat->numabalancing_migrate_lock);
--	
--	return rate_limited;
-+		return true;
-+
-+	/*
-+	 * This is an unlocked non-atomic update so errors are possible.
-+	 * The consequences are failing to migrate when we potentiall should
-+	 * have which is not severe enough to warrant locking. If it is ever
-+	 * a problem, it can be converted to a per-cpu counter.
-+	 */
-+	pgdat->numabalancing_migrate_nr_pages += nr_pages;
-+	return false;
- }
- 
- static int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
+ 				ptent = *pte;
+ 				page = vm_normal_page(vma, addr, oldpte);
+-				if (page) {
++				if (page && !PageKsm(page)) {
+ 					if (!pte_numa(oldpte)) {
+ 						ptent = pte_mknuma(ptent);
+ 						set_pte_at(mm, addr, pte, ptent);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
