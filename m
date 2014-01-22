@@ -1,373 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-swapc-reorganize-put_compound_page.patch removed from -mm tree
-Date: Wed, 22 Jan 2014 12:12:29 -0800
-Message-ID: <52e0262d.+URPgH06gYGA24GC%akpm@linux-foundation.org>
+Subject: [merged] proc-meminfo-provide-estimated-available-memory.patch
+ removed from -mm tree
+Date: Wed, 22 Jan 2014 12:12:36 -0800
+Message-ID: <52e02634.J51SpRgUwoarpyHK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54303 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54327 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755810AbaAVUMa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:30 -0500
+	with ESMTP id S1755810AbaAVUMg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, pshelar@nicira.com, minchan@kernel.org, mgorman@suse.de, khalid.aziz@oracle.com, jweiner@redhat.com, gregkh@linuxfoundation.org, cl@linux.com, bhutchings@solarflare.com, andi@firstfloor.org, aarcange@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, erik.mouw_2@nxp.com, riel@redhat.com
 
-Subject: [merged] mm-swapc-reorganize-put_compound_page.patch removed from -mm tree
-To: akpm@linux-foundation.org,aarcange@redhat.com,andi@firstfloor.org,bhutchings@solarflare.com,cl@linux.com,gregkh@linuxfoundation.org,jweiner@redhat.com,khalid.aziz@oracle.com,mgorman@suse.de,minchan@kernel.org,pshelar@nicira.com,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] proc-meminfo-provide-estimated-available-memory.patch removed from -mm tree
+To: riel@redhat.com,erik.mouw_2@nxp.com,hannes@cmpxchg.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:12:29 -0800
+Date: Wed, 22 Jan 2014 12:12:36 -0800
 
 
 The patch titled
-     Subject: mm/swap.c: reorganize put_compound_page()
+     Subject: /proc/meminfo: provide estimated available memory
 has been removed from the -mm tree.  Its filename was
-     mm-swapc-reorganize-put_compound_page.patch
+     proc-meminfo-provide-estimated-available-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/swap.c: reorganize put_compound_page()
+From: Rik van Riel <riel@redhat.com>
+Subject: /proc/meminfo: provide estimated available memory
 
-Tweak it so save a tab stop, make code layout slightly less nutty.
+Many load balancing and workload placing programs check /proc/meminfo to
+estimate how much free memory is available.  They generally do this by
+adding up "free" and "cached", which was fine ten years ago, but is pretty
+much guaranteed to be wrong today.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Pravin Shelar <pshelar@nicira.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ben Hutchings <bhutchings@solarflare.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Minchan Kim <minchan@kernel.org>
+It is wrong because Cached includes memory that is not freeable as page
+cache, for example shared memory segments, tmpfs, and ramfs, and it does
+not include reclaimable slab memory, which can take up a large fraction of
+system memory on mostly idle systems with lots of files.
+
+Currently, the amount of memory that is available for a new workload,
+without pushing the system into swap, can be estimated from MemFree,
+Active(file), Inactive(file), and SReclaimable, as well as the "low"
+watermarks from /proc/zoneinfo.
+
+However, this may change in the future, and user space really should not
+be expected to know kernel internals to come up with an estimate for the
+amount of free memory.
+
+It is more convenient to provide such an estimate in /proc/meminfo.  If
+things change in the future, we only have to change it in one place.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Reported-by: Erik Mouw <erik.mouw_2@nxp.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |  254 +++++++++++++++++++++++++---------------------------
- 1 file changed, 125 insertions(+), 129 deletions(-)
+ Documentation/filesystems/proc.txt |    9 ++++++
+ fs/proc/meminfo.c                  |   37 +++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
 
-diff -puN mm/swap.c~mm-swapc-reorganize-put_compound_page mm/swap.c
---- a/mm/swap.c~mm-swapc-reorganize-put_compound_page
-+++ a/mm/swap.c
-@@ -81,154 +81,150 @@ static void __put_compound_page(struct p
+diff -puN Documentation/filesystems/proc.txt~proc-meminfo-provide-estimated-available-memory Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~proc-meminfo-provide-estimated-available-memory
++++ a/Documentation/filesystems/proc.txt
+@@ -767,6 +767,7 @@ The "Locked" indicates whether the mappi
  
- static void put_compound_page(struct page *page)
- {
--	if (unlikely(PageTail(page))) {
--		/* __split_huge_page_refcount can run under us */
--		struct page *page_head = compound_trans_head(page);
-+	struct page *page_head;
+ MemTotal:     16344972 kB
+ MemFree:      13634064 kB
++MemAvailable: 14836172 kB
+ Buffers:          3656 kB
+ Cached:        1195708 kB
+ SwapCached:          0 kB
+@@ -799,6 +800,14 @@ AnonHugePages:   49152 kB
+     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
+               bits and the kernel binary code)
+      MemFree: The sum of LowFree+HighFree
++MemAvailable: An estimate of how much memory is available for starting new
++              applications, without swapping. Calculated from MemFree,
++              SReclaimable, the size of the file LRU lists, and the low
++              watermarks in each zone.
++              The estimate takes into account that the system needs some
++              page cache to function well, and that not all reclaimable
++              slab will be reclaimable, due to items being in use. The
++              impact of those factors will vary from system to system.
+      Buffers: Relatively temporary storage for raw disk blocks
+               shouldn't get tremendously large (20MB or so)
+       Cached: in-memory cache for files read from the disk (the
+diff -puN fs/proc/meminfo.c~proc-meminfo-provide-estimated-available-memory fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~proc-meminfo-provide-estimated-available-memory
++++ a/fs/proc/meminfo.c
+@@ -26,7 +26,11 @@ static int meminfo_proc_show(struct seq_
+ 	unsigned long committed;
+ 	struct vmalloc_info vmi;
+ 	long cached;
++	long available;
++	unsigned long pagecache;
++	unsigned long wmark_low = 0;
+ 	unsigned long pages[NR_LRU_LISTS];
++	struct zone *zone;
+ 	int lru;
  
--		/*
--		 * THP can not break up slab pages so avoid taking
--		 * compound_lock() and skip the tail page refcounting
--		 * (in _mapcount) too. Slab performs non-atomic bit
--		 * ops on page->flags for better performance. In
--		 * particular slab_unlock() in slub used to be a hot
--		 * path. It is still hot on arches that do not support
--		 * this_cpu_cmpxchg_double().
--		 *
--		 * If "page" is part of a slab or hugetlbfs page it
--		 * cannot be splitted and the head page cannot change
--		 * from under us. And if "page" is part of a THP page
--		 * under splitting, if the head page pointed by the
--		 * THP tail isn't a THP head anymore, we'll find
--		 * PageTail clear after smp_rmb() and we'll treat it
--		 * as a single page.
--		 */
--		if (!__compound_tail_refcounted(page_head)) {
-+	if (likely(!PageTail(page))) {
-+		if (put_page_testzero(page)) {
- 			/*
--			 * If "page" is a THP tail, we must read the tail page
--			 * flags after the head page flags. The
--			 * split_huge_page side enforces write memory
--			 * barriers between clearing PageTail and before the
--			 * head page can be freed and reallocated.
-+			 * By the time all refcounts have been released
-+			 * split_huge_page cannot run anymore from under us.
- 			 */
--			smp_rmb();
--			if (likely(PageTail(page))) {
--				/*
--				 * __split_huge_page_refcount
--				 * cannot race here.
--				 */
--				VM_BUG_ON(!PageHead(page_head));
--				VM_BUG_ON(page_mapcount(page) != 0);
--				if (put_page_testzero(page_head)) {
--					/*
--					 * If this is the tail of a
--					 * slab compound page, the
--					 * tail pin must not be the
--					 * last reference held on the
--					 * page, because the PG_slab
--					 * cannot be cleared before
--					 * all tail pins (which skips
--					 * the _mapcount tail
--					 * refcounting) have been
--					 * released. For hugetlbfs the
--					 * tail pin may be the last
--					 * reference on the page
--					 * instead, because
--					 * PageHeadHuge will not go
--					 * away until the compound
--					 * page enters the buddy
--					 * allocator.
--					 */
--					VM_BUG_ON(PageSlab(page_head));
--					__put_compound_page(page_head);
--				}
--				return;
--			} else
--				/*
--				 * __split_huge_page_refcount
--				 * run before us, "page" was a
--				 * THP tail. The split
--				 * page_head has been freed
--				 * and reallocated as slab or
--				 * hugetlbfs page of smaller
--				 * order (only possible if
--				 * reallocated as slab on
--				 * x86).
--				 */
--				goto out_put_single;
-+			if (PageHead(page))
-+				__put_compound_page(page);
-+			else
-+				__put_single_page(page);
- 		}
-+		return;
-+	}
+ /*
+@@ -47,12 +51,44 @@ static int meminfo_proc_show(struct seq_
+ 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
+ 		pages[lru] = global_page_state(NR_LRU_BASE + lru);
  
--		if (likely(page != page_head &&
--			   get_page_unless_zero(page_head))) {
--			unsigned long flags;
-+	/* __split_huge_page_refcount can run under us */
-+	page_head = compound_trans_head(page);
- 
++	for_each_zone(zone)
++		wmark_low += zone->watermark[WMARK_LOW];
++
 +	/*
-+	 * THP can not break up slab pages so avoid taking
-+	 * compound_lock() and skip the tail page refcounting (in
-+	 * _mapcount) too. Slab performs non-atomic bit ops on
-+	 * page->flags for better performance. In particular
-+	 * slab_unlock() in slub used to be a hot path. It is still
-+	 * hot on arches that do not support
-+	 * this_cpu_cmpxchg_double().
++	 * Estimate the amount of memory available for userspace allocations,
++	 * without causing swapping.
 +	 *
-+	 * If "page" is part of a slab or hugetlbfs page it cannot be
-+	 * splitted and the head page cannot change from under us. And
-+	 * if "page" is part of a THP page under splitting, if the
-+	 * head page pointed by the THP tail isn't a THP head anymore,
-+	 * we'll find PageTail clear after smp_rmb() and we'll treat
-+	 * it as a single page.
++	 * Free memory cannot be taken below the low watermark, before the
++	 * system starts swapping.
 +	 */
-+	if (!__compound_tail_refcounted(page_head)) {
-+		/*
-+		 * If "page" is a THP tail, we must read the tail page
-+		 * flags after the head page flags. The
-+		 * split_huge_page side enforces write memory barriers
-+		 * between clearing PageTail and before the head page
-+		 * can be freed and reallocated.
-+		 */
-+		smp_rmb();
-+		if (likely(PageTail(page))) {
- 			/*
--			 * page_head wasn't a dangling pointer but it
--			 * may not be a head page anymore by the time
--			 * we obtain the lock. That is ok as long as it
--			 * can't be freed from under us.
-+			 * __split_huge_page_refcount cannot race
-+			 * here.
- 			 */
--			flags = compound_lock_irqsave(page_head);
--			if (unlikely(!PageTail(page))) {
--				/* __split_huge_page_refcount run before us */
--				compound_unlock_irqrestore(page_head, flags);
--				if (put_page_testzero(page_head)) {
--					/*
--					 * The head page may have been
--					 * freed and reallocated as a
--					 * compound page of smaller
--					 * order and then freed again.
--					 * All we know is that it
--					 * cannot have become: a THP
--					 * page, a compound page of
--					 * higher order, a tail page.
--					 * That is because we still
--					 * hold the refcount of the
--					 * split THP tail and
--					 * page_head was the THP head
--					 * before the split.
--					 */
--					if (PageHead(page_head))
--						__put_compound_page(page_head);
--					else
--						__put_single_page(page_head);
--				}
--out_put_single:
--				if (put_page_testzero(page))
--					__put_single_page(page);
--				return;
-+			VM_BUG_ON(!PageHead(page_head));
-+			VM_BUG_ON(page_mapcount(page) != 0);
-+			if (put_page_testzero(page_head)) {
-+				/*
-+				 * If this is the tail of a slab
-+				 * compound page, the tail pin must
-+				 * not be the last reference held on
-+				 * the page, because the PG_slab
-+				 * cannot be cleared before all tail
-+				 * pins (which skips the _mapcount
-+				 * tail refcounting) have been
-+				 * released. For hugetlbfs the tail
-+				 * pin may be the last reference on
-+				 * the page instead, because
-+				 * PageHeadHuge will not go away until
-+				 * the compound page enters the buddy
-+				 * allocator.
-+				 */
-+				VM_BUG_ON(PageSlab(page_head));
-+				__put_compound_page(page_head);
- 			}
--			VM_BUG_ON(page_head != page->first_page);
-+			return;
-+		} else
- 			/*
--			 * We can release the refcount taken by
--			 * get_page_unless_zero() now that
--			 * __split_huge_page_refcount() is blocked on
--			 * the compound_lock.
-+			 * __split_huge_page_refcount run before us,
-+			 * "page" was a THP tail. The split page_head
-+			 * has been freed and reallocated as slab or
-+			 * hugetlbfs page of smaller order (only
-+			 * possible if reallocated as slab on x86).
- 			 */
--			if (put_page_testzero(page_head))
--				VM_BUG_ON(1);
--			/* __split_huge_page_refcount will wait now */
--			VM_BUG_ON(page_mapcount(page) <= 0);
--			atomic_dec(&page->_mapcount);
--			VM_BUG_ON(atomic_read(&page_head->_count) <= 0);
--			VM_BUG_ON(atomic_read(&page->_count) != 0);
--			compound_unlock_irqrestore(page_head, flags);
-+			goto out_put_single;
-+	}
++	available = i.freeram - wmark_low;
 +
-+	if (likely(page != page_head && get_page_unless_zero(page_head))) {
-+		unsigned long flags;
- 
-+		/*
-+		 * page_head wasn't a dangling pointer but it may not
-+		 * be a head page anymore by the time we obtain the
-+		 * lock. That is ok as long as it can't be freed from
-+		 * under us.
-+		 */
-+		flags = compound_lock_irqsave(page_head);
-+		if (unlikely(!PageTail(page))) {
-+			/* __split_huge_page_refcount run before us */
-+			compound_unlock_irqrestore(page_head, flags);
- 			if (put_page_testzero(page_head)) {
-+				/*
-+				 * The head page may have been freed
-+				 * and reallocated as a compound page
-+				 * of smaller order and then freed
-+				 * again.  All we know is that it
-+				 * cannot have become: a THP page, a
-+				 * compound page of higher order, a
-+				 * tail page.  That is because we
-+				 * still hold the refcount of the
-+				 * split THP tail and page_head was
-+				 * the THP head before the split.
-+				 */
- 				if (PageHead(page_head))
- 					__put_compound_page(page_head);
- 				else
- 					__put_single_page(page_head);
- 			}
--		} else {
--			/* page_head is a dangling pointer */
--			VM_BUG_ON(PageTail(page));
--			goto out_put_single;
-+out_put_single:
-+			if (put_page_testzero(page))
-+				__put_single_page(page);
-+			return;
-+		}
-+		VM_BUG_ON(page_head != page->first_page);
-+		/*
-+		 * We can release the refcount taken by
-+		 * get_page_unless_zero() now that
-+		 * __split_huge_page_refcount() is blocked on the
-+		 * compound_lock.
-+		 */
-+		if (put_page_testzero(page_head))
-+			VM_BUG_ON(1);
-+		/* __split_huge_page_refcount will wait now */
-+		VM_BUG_ON(page_mapcount(page) <= 0);
-+		atomic_dec(&page->_mapcount);
-+		VM_BUG_ON(atomic_read(&page_head->_count) <= 0);
-+		VM_BUG_ON(atomic_read(&page->_count) != 0);
-+		compound_unlock_irqrestore(page_head, flags);
++	/*
++	 * Not all the page cache can be freed, otherwise the system will
++	 * start swapping. Assume at least half of the page cache, or the
++	 * low watermark worth of cache, needs to stay.
++	 */
++	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
++	pagecache -= min(pagecache / 2, wmark_low);
++	available += pagecache;
 +
-+		if (put_page_testzero(page_head)) {
-+			if (PageHead(page_head))
-+				__put_compound_page(page_head);
-+			else
-+				__put_single_page(page_head);
- 		}
--	} else if (put_page_testzero(page)) {
--		if (PageHead(page))
--			__put_compound_page(page);
--		else
--			__put_single_page(page);
-+	} else {
-+		/* page_head is a dangling pointer */
-+		VM_BUG_ON(PageTail(page));
-+		goto out_put_single;
- 	}
- }
- 
++	/*
++	 * Part of the reclaimable swap consists of items that are in use,
++	 * and cannot be freed. Cap this estimate at the low watermark.
++	 */
++	available += global_page_state(NR_SLAB_RECLAIMABLE) -
++		     min(global_page_state(NR_SLAB_RECLAIMABLE) / 2, wmark_low);
++
++	if (available < 0)
++		available = 0;
++
+ 	/*
+ 	 * Tagged format, for easy grepping and expansion.
+ 	 */
+ 	seq_printf(m,
+ 		"MemTotal:       %8lu kB\n"
+ 		"MemFree:        %8lu kB\n"
++		"MemAvailable:   %8lu kB\n"
+ 		"Buffers:        %8lu kB\n"
+ 		"Cached:         %8lu kB\n"
+ 		"SwapCached:     %8lu kB\n"
+@@ -105,6 +141,7 @@ static int meminfo_proc_show(struct seq_
+ 		,
+ 		K(i.totalram),
+ 		K(i.freeram),
++		K(available),
+ 		K(i.bufferram),
+ 		K(cached),
+ 		K(total_swapcache_pages()),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from riel@redhat.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
-mm.patch
-mm-print-more-details-for-bad_page-fix.patch
-mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
-mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix-fix.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
-numa-add-a-sysctl-for-numa_balancing-fix.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
-mm-nobootmem-free_all_bootmem-again-fix-fix.patch
-mm-improve-documentation-of-page_order-v2-fix.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-printk-flush-conflicting-continuation-line-fix.patch
-drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
-ipcmsg-document-barriers-fix.patch
-ipcmsg-document-barriers-fix-fix.patch
+mm-remove-bug_on-from-mlock_vma_page.patch
+x86-mm-account-for-tlb-flushes-only-when-debugging.patch
+x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges.patch
+x86-mm-eliminate-redundant-page-table-walk-during-tlb-range-flushing.patch
+x86-mm-change-tlb_flushall_shift-for-ivybridge.patch
+mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge.patch
+mm-munlock-fix-potential-race-with-thp-page-split.patch
+mm-vmscan-shrink-all-slab-objects-if-tight-on-memory.patch
+mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
+mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
+mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+kexec-add-sysctl-to-disable-kexec_load.patch
+ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races.patch
+ipc-change-kern_ipc_permdeleted-type-to-bool.patch
+ipc-standardize-code-comments.patch
+ipc-remove-braces-for-single-statements.patch
+ipc-remove-useless-return-statement.patch
+ipc-simplify-sysvipc_proc_open-return.patch
+ipc-delete-seq_max-field-in-struct-ipc_ids.patch
+ipcmsg-document-barriers.patch
 linux-next.patch
-linux-next-git-rejects.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+zsmalloc-move-it-under-mm.patch
+zram-promote-zram-from-staging.patch
 
