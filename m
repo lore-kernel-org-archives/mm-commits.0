@@ -1,122 +1,306 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch removed from -mm tree
-Date: Wed, 22 Jan 2014 12:12:58 -0800
-Message-ID: <52e0264a.JOH58KGKf64Xp2Ss%akpm@linux-foundation.org>
+Subject: [merged] memblock-numa-introduce-flags-field-into-memblock.patch
+ removed from -mm tree
+Date: Wed, 22 Jan 2014 12:13:00 -0800
+Message-ID: <52e0264c.foJbfdtum5V6xV30%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54377 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54399 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756038AbaAVUM7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:59 -0500
+	with ESMTP id S1756061AbaAVUNC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, santosh.shilimkar@ti.com, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, grygorii.strashko@ti.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, prarit@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, lwoodman@redhat.com, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, imtangchen@gmail.com, hpa@zytor.com, hannes@cmpxchg.org, gong.chen@linux.intel.com, tangchen@cn.fujitsu.com
 
-Subject: [merged] mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch removed from -mm tree
-To: grygorii.strashko@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,santosh.shilimkar@ti.com,tj@kernel.org,tony@atomide.com,yinghai@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] memblock-numa-introduce-flags-field-into-memblock.patch removed from -mm tree
+To: tangchen@cn.fujitsu.com,gong.chen@linux.intel.com,hannes@cmpxchg.org,hpa@zytor.com,imtangchen@gmail.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,lwoodman@redhat.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,prarit@redhat.com,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,vasilis.liaskovitis@profitbricks.com,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:12:58 -0800
+Date: Wed, 22 Jan 2014 12:13:00 -0800
 
 
 The patch titled
-     Subject: mm/memblock: debug: correct displaying of upper memory boundary
+     Subject: memblock, numa: introduce flags field into memblock
 has been removed from the -mm tree.  Its filename was
-     mm-memblock-debug-correct-displaying-of-upper-memory-boundary.patch
+     memblock-numa-introduce-flags-field-into-memblock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: mm/memblock: debug: correct displaying of upper memory boundary
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: memblock, numa: introduce flags field into memblock
 
-Current memblock APIs don't work on 32 PAE or LPAE extension arches where
-the physical memory start address beyond 4GB.  The problem was discussed
-here [3] where Tejun, Yinghai(thanks) proposed a way forward with memblock
-interfaces.  Based on the proposal, this series adds necessary memblock
-interfaces and convert the core kernel code to use them.  Architectures
-already converted to NO_BOOTMEM use these new interfaces and other which
-still uses bootmem, these new interfaces just fallback to exiting bootmem
-APIs.
+There is no flag in memblock to describe what type the memory is. 
+Sometimes, we may use memblock to reserve some memory for special usage. 
+And we want to know what kind of memory it is.  So we need a way to
 
-So no functional change in behavior.  In long run, once all the
-architectures moves to NO_BOOTMEM, we can get rid of bootmem layer
-completely.  This is one step to remove the core code dependency with
-bootmem and also gives path for architectures to move away from bootmem.
+In hotplug environment, we want to reserve hotpluggable memory so the
+kernel won't be able to use it.  And when the system is up, we have to
+free these hotpluggable memory to buddy.  So we need to mark these memory
+first.
 
-Testing is done on ARM architecture with 32 bit ARM LAPE machines
-with normal as well sparse(faked) memory model.
+In order to do so, we need to mark out these special memory in memblock.
+In this patch, we introduce a new "flags" member into memblock_region:
+   struct memblock_region {
+           phys_addr_t base;
+           phys_addr_t size;
+           unsigned long flags;		/* This is new. */
+   #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+           int nid;
+   #endif
+   };
 
+This patch does the following things:
+1) Add "flags" member to memblock_region.
+2) Modify the following APIs' prototype:
+	memblock_add_region()
+	memblock_insert_region()
+3) Add memblock_reserve_region() to support reserve memory with flags, and keep
+   memblock_reserve()'s prototype unmodified.
+4) Modify other APIs to support flags, but keep their prototype unmodified.
 
+The idea is from Wen Congyang <wency@cn.fujitsu.com> and Liu Jiang <jiang.liu@huawei.com>.
 
-This patch (of 23):
-
-When debugging is enabled (cmdline has "memblock=debug") the memblock will
-display upper memory boundary per each allocated/freed memory range
-wrongly.  For example:
-
- memblock_reserve: [0x0000009e7e8000-0x0000009e7ed000] _memblock_early_alloc_try_nid_nopanic+0xfc/0x12c
-
-The 0x0000009e7ed000 is displayed instead of 0x0000009e7ecfff
-
-Hence, correct this by changing formula used to calculate upper memory
-boundary to (u64)base + size - 1 instead of  (u64)base + size everywhere
-in the debug messages.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Suggested-by: Wen Congyang <wency@cn.fujitsu.com>
+Suggested-by: Liu Jiang <jiang.liu@huawei.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: Chen Tang <imtangchen@gmail.com>
+Cc: Gong Chen <gong.chen@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jiang Liu <jiang.liu@huawei.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/memblock.h |    1 
+ mm/memblock.c            |   53 ++++++++++++++++++++++++++-----------
+ 2 files changed, 39 insertions(+), 15 deletions(-)
 
-diff -puN mm/memblock.c~mm-memblock-debug-correct-displaying-of-upper-memory-boundary mm/memblock.c
---- a/mm/memblock.c~mm-memblock-debug-correct-displaying-of-upper-memory-boundary
+diff -puN include/linux/memblock.h~memblock-numa-introduce-flags-field-into-memblock include/linux/memblock.h
+--- a/include/linux/memblock.h~memblock-numa-introduce-flags-field-into-memblock
++++ a/include/linux/memblock.h
+@@ -22,6 +22,7 @@
+ struct memblock_region {
+ 	phys_addr_t base;
+ 	phys_addr_t size;
++	unsigned long flags;
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 	int nid;
+ #endif
+diff -puN mm/memblock.c~memblock-numa-introduce-flags-field-into-memblock mm/memblock.c
+--- a/mm/memblock.c~memblock-numa-introduce-flags-field-into-memblock
 +++ a/mm/memblock.c
-@@ -643,7 +643,7 @@ int __init_memblock memblock_free(phys_a
+@@ -255,6 +255,7 @@ static void __init_memblock memblock_rem
+ 		type->cnt = 1;
+ 		type->regions[0].base = 0;
+ 		type->regions[0].size = 0;
++		type->regions[0].flags = 0;
+ 		memblock_set_region_node(&type->regions[0], MAX_NUMNODES);
+ 	}
+ }
+@@ -405,7 +406,8 @@ static void __init_memblock memblock_mer
+ 
+ 		if (this->base + this->size != next->base ||
+ 		    memblock_get_region_node(this) !=
+-		    memblock_get_region_node(next)) {
++		    memblock_get_region_node(next) ||
++		    this->flags != next->flags) {
+ 			BUG_ON(this->base + this->size > next->base);
+ 			i++;
+ 			continue;
+@@ -425,13 +427,15 @@ static void __init_memblock memblock_mer
+  * @base:	base address of the new region
+  * @size:	size of the new region
+  * @nid:	node id of the new region
++ * @flags:	flags of the new region
+  *
+  * Insert new memblock region [@base,@base+@size) into @type at @idx.
+  * @type must already have extra room to accomodate the new region.
+  */
+ static void __init_memblock memblock_insert_region(struct memblock_type *type,
+ 						   int idx, phys_addr_t base,
+-						   phys_addr_t size, int nid)
++						   phys_addr_t size,
++						   int nid, unsigned long flags)
  {
- 	memblock_dbg("   memblock_free: [%#016llx-%#016llx] %pF\n",
- 		     (unsigned long long)base,
--		     (unsigned long long)base + size,
-+		     (unsigned long long)base + size - 1,
- 		     (void *)_RET_IP_);
+ 	struct memblock_region *rgn = &type->regions[idx];
  
+@@ -439,6 +443,7 @@ static void __init_memblock memblock_ins
+ 	memmove(rgn + 1, rgn, (type->cnt - idx) * sizeof(*rgn));
+ 	rgn->base = base;
+ 	rgn->size = size;
++	rgn->flags = flags;
+ 	memblock_set_region_node(rgn, nid);
+ 	type->cnt++;
+ 	type->total_size += size;
+@@ -450,6 +455,7 @@ static void __init_memblock memblock_ins
+  * @base: base address of the new region
+  * @size: size of the new region
+  * @nid: nid of the new region
++ * @flags: flags of the new region
+  *
+  * Add new memblock region [@base,@base+@size) into @type.  The new region
+  * is allowed to overlap with existing ones - overlaps don't affect already
+@@ -460,7 +466,8 @@ static void __init_memblock memblock_ins
+  * 0 on success, -errno on failure.
+  */
+ static int __init_memblock memblock_add_region(struct memblock_type *type,
+-				phys_addr_t base, phys_addr_t size, int nid)
++				phys_addr_t base, phys_addr_t size,
++				int nid, unsigned long flags)
+ {
+ 	bool insert = false;
+ 	phys_addr_t obase = base;
+@@ -475,6 +482,7 @@ static int __init_memblock memblock_add_
+ 		WARN_ON(type->cnt != 1 || type->total_size);
+ 		type->regions[0].base = base;
+ 		type->regions[0].size = size;
++		type->regions[0].flags = flags;
+ 		memblock_set_region_node(&type->regions[0], nid);
+ 		type->total_size = size;
+ 		return 0;
+@@ -505,7 +513,8 @@ repeat:
+ 			nr_new++;
+ 			if (insert)
+ 				memblock_insert_region(type, i++, base,
+-						       rbase - base, nid);
++						       rbase - base, nid,
++						       flags);
+ 		}
+ 		/* area below @rend is dealt with, forget about it */
+ 		base = min(rend, end);
+@@ -515,7 +524,8 @@ repeat:
+ 	if (base < end) {
+ 		nr_new++;
+ 		if (insert)
+-			memblock_insert_region(type, i, base, end - base, nid);
++			memblock_insert_region(type, i, base, end - base,
++					       nid, flags);
+ 	}
+ 
+ 	/*
+@@ -537,12 +547,13 @@ repeat:
+ int __init_memblock memblock_add_node(phys_addr_t base, phys_addr_t size,
+ 				       int nid)
+ {
+-	return memblock_add_region(&memblock.memory, base, size, nid);
++	return memblock_add_region(&memblock.memory, base, size, nid, 0);
+ }
+ 
+ int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
+ {
+-	return memblock_add_region(&memblock.memory, base, size, MAX_NUMNODES);
++	return memblock_add_region(&memblock.memory, base, size,
++				   MAX_NUMNODES, 0);
+ }
+ 
+ /**
+@@ -597,7 +608,8 @@ static int __init_memblock memblock_isol
+ 			rgn->size -= base - rbase;
+ 			type->total_size -= base - rbase;
+ 			memblock_insert_region(type, i, rbase, base - rbase,
+-					       memblock_get_region_node(rgn));
++					       memblock_get_region_node(rgn),
++					       rgn->flags);
+ 		} else if (rend > end) {
+ 			/*
+ 			 * @rgn intersects from above.  Split and redo the
+@@ -607,7 +619,8 @@ static int __init_memblock memblock_isol
+ 			rgn->size -= end - rbase;
+ 			type->total_size -= end - rbase;
+ 			memblock_insert_region(type, i--, rbase, end - rbase,
+-					       memblock_get_region_node(rgn));
++					       memblock_get_region_node(rgn),
++					       rgn->flags);
+ 		} else {
+ 			/* @rgn is fully contained, record it */
+ 			if (!*end_rgn)
+@@ -649,16 +662,24 @@ int __init_memblock memblock_free(phys_a
  	return __memblock_remove(&memblock.reserved, base, size);
-@@ -655,7 +655,7 @@ int __init_memblock memblock_reserve(phy
+ }
  
- 	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] %pF\n",
+-int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
++static int __init_memblock memblock_reserve_region(phys_addr_t base,
++						   phys_addr_t size,
++						   int nid,
++						   unsigned long flags)
+ {
+ 	struct memblock_type *_rgn = &memblock.reserved;
+ 
+-	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] %pF\n",
++	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] flags %#02lx %pF\n",
  		     (unsigned long long)base,
--		     (unsigned long long)base + size,
-+		     (unsigned long long)base + size - 1,
- 		     (void *)_RET_IP_);
+ 		     (unsigned long long)base + size - 1,
+-		     (void *)_RET_IP_);
++		     flags, (void *)_RET_IP_);
++
++	return memblock_add_region(_rgn, base, size, nid, flags);
++}
  
- 	return memblock_add_region(_rgn, base, size, MAX_NUMNODES);
+-	return memblock_add_region(_rgn, base, size, MAX_NUMNODES);
++int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
++{
++	return memblock_reserve_region(base, size, MAX_NUMNODES, 0);
+ }
+ 
+ /**
+@@ -1101,6 +1122,7 @@ void __init_memblock memblock_set_curren
+ static void __init_memblock memblock_dump(struct memblock_type *type, char *name)
+ {
+ 	unsigned long long base, size;
++	unsigned long flags;
+ 	int i;
+ 
+ 	pr_info(" %s.cnt  = 0x%lx\n", name, type->cnt);
+@@ -1111,13 +1133,14 @@ static void __init_memblock memblock_dum
+ 
+ 		base = rgn->base;
+ 		size = rgn->size;
++		flags = rgn->flags;
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 		if (memblock_get_region_node(rgn) != MAX_NUMNODES)
+ 			snprintf(nid_buf, sizeof(nid_buf), " on node %d",
+ 				 memblock_get_region_node(rgn));
+ #endif
+-		pr_info(" %s[%#x]\t[%#016llx-%#016llx], %#llx bytes%s\n",
+-			name, i, base, base + size - 1, size, nid_buf);
++		pr_info(" %s[%#x]\t[%#016llx-%#016llx], %#llx bytes%s flags: %#lx\n",
++			name, i, base, base + size - 1, size, nid_buf, flags);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from grygorii.strashko@ti.com are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
 origin.patch
+mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
+mm-free-memblockmemory-in-free_all_bootmem.patch
+mm-free-memblockmemory-in-free_all_bootmem-fix.patch
 mm-nobootmem-free_all_bootmem-again.patch
-rtc-rtc-twl-use-devm_-functions.patch
-rtc-rtc-vr41xx-use-devm_-functions.patch
+mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch
 linux-next.patch
 
