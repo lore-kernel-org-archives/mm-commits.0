@@ -1,54 +1,44 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
- removed from -mm tree
-Date: Wed, 22 Jan 2014 12:13:12 -0800
-Message-ID: <52e02658.JYxq5wiLEIXdp9HJ%akpm@linux-foundation.org>
+ acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:13:08 -0800
+Message-ID: <52e02654.8pOXfrdJgVOwr/aQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54503 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54474 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755685AbaAVUNO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:14 -0500
+	with ESMTP id S1755685AbaAVUNK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, prarit@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, lwoodman@redhat.com, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, imtangchen@gmail.com, hpa@zytor.com, hannes@cmpxchg.org, gong.chen@linux.intel.com, tangchen@cn.fujitsu.com
 
-Subject: [merged] x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch removed from -mm tree
+Subject: [merged] acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch removed from -mm tree
 To: tangchen@cn.fujitsu.com,gong.chen@linux.intel.com,hannes@cmpxchg.org,hpa@zytor.com,imtangchen@gmail.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,lwoodman@redhat.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,prarit@redhat.com,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,vasilis.liaskovitis@profitbricks.com,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:13:12 -0800
+Date: Wed, 22 Jan 2014 12:13:08 -0800
 
 
 The patch titled
-     Subject: x86, numa, acpi, memory-hotplug: make movable_node have higher priority
+     Subject: acpi, numa, mem_hotplug: mark all nodes the kernel resides un-hotpluggable
 has been removed from the -mm tree.  Its filename was
-     x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority.patch
+     acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: x86, numa, acpi, memory-hotplug: make movable_node have higher priority
+Subject: acpi, numa, mem_hotplug: mark all nodes the kernel resides un-hotpluggable
 
-If users specify the original movablecore=nn@ss boot option, the kernel
-will arrange [ss, ss+nn) as ZONE_MOVABLE.  The kernelcore=nn@ss boot
-option is similar except it specifies ZONE_NORMAL ranges.
-
-Now, if users specify "movable_node" in kernel commandline, the kernel
-will arrange hotpluggable memory in SRAT as ZONE_MOVABLE.  And if users do
-this, all the other movablecore=nn@ss and kernelcore=nn@ss options should
-be ignored.
-
-For those who don't want this, just specify nothing.  The kernel will act
-as before.
+At very early time, the kernel have to use some memory such as loading the
+kernel image.  We cannot prevent this anyway.  So any node the kernel
+resides in should be un-hotpluggable.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
 Cc: Chen Tang <imtangchen@gmail.com>
@@ -71,69 +61,91 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Thomas Renninger <trenn@suse.de>
 Cc: Toshi Kani <toshi.kani@hp.com>
 Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Wen Congyang <wency@cn.fujitsu.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   28 ++++++++++++++++++++++++++--
- 1 file changed, 26 insertions(+), 2 deletions(-)
+ arch/x86/mm/numa.c |   44 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff -puN mm/page_alloc.c~x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority mm/page_alloc.c
---- a/mm/page_alloc.c~x86-numa-acpi-memory-hotplug-make-movable_node-have-higher-priority
-+++ a/mm/page_alloc.c
-@@ -5018,9 +5018,33 @@ static void __init find_zone_movable_pfn
- 	nodemask_t saved_node_state = node_states[N_MEMORY];
- 	unsigned long totalpages = early_calculate_totalpages();
- 	int usable_nodes = nodes_weight(node_states[N_MEMORY]);
-+	struct memblock_type *type = &memblock.memory;
+diff -puN arch/x86/mm/numa.c~acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~acpi-numa-mem_hotplug-mark-all-nodes-the-kernel-resides-un-hotpluggable
++++ a/arch/x86/mm/numa.c
+@@ -493,6 +493,14 @@ static int __init numa_register_memblks(
+ 		struct numa_memblk *mb = &mi->blk[i];
+ 		memblock_set_node(mb->start, mb->end - mb->start,
+ 				  &memblock.memory, mb->nid);
 +
-+	/* Need to find movable_zone earlier when movable_node is specified. */
-+	find_usable_zone_for_movable();
-+
-+	/*
-+	 * If movable_node is specified, ignore kernelcore and movablecore
-+	 * options.
-+	 */
-+	if (movable_node_is_enabled()) {
-+		for (i = 0; i < type->cnt; i++) {
-+			if (!memblock_is_hotpluggable(&type->regions[i]))
-+				continue;
-+
-+			nid = type->regions[i].nid;
-+
-+			usable_startpfn = PFN_DOWN(type->regions[i].base);
-+			zone_movable_pfn[nid] = zone_movable_pfn[nid] ?
-+				min(usable_startpfn, zone_movable_pfn[nid]) :
-+				usable_startpfn;
-+		}
-+
-+		goto out2;
-+	}
++		/*
++		 * At this time, all memory regions reserved by memblock are
++		 * used by the kernel. Set the nid in memblock.reserved will
++		 * mark out all the nodes the kernel resides in.
++		 */
++		memblock_set_node(mb->start, mb->end - mb->start,
++				  &memblock.reserved, mb->nid);
+ 	}
  
  	/*
--	 * If movablecore was specified, calculate what size of
-+	 * If movablecore=nn[KMG] was specified, calculate what size of
- 	 * kernelcore that corresponds so that memory usable for
- 	 * any allocation type is evenly spread. If both kernelcore
- 	 * and movablecore are specified, then the value of kernelcore
-@@ -5046,7 +5070,6 @@ static void __init find_zone_movable_pfn
- 		goto out;
+@@ -554,6 +562,30 @@ static void __init numa_init_array(void)
+ 	}
+ }
  
- 	/* usable_startpfn is the lowest possible pfn ZONE_MOVABLE can be at */
--	find_usable_zone_for_movable();
- 	usable_startpfn = arch_zone_lowest_possible_pfn[movable_zone];
++static void __init numa_clear_kernel_node_hotplug(void)
++{
++	int i, nid;
++	nodemask_t numa_kernel_nodes;
++	unsigned long start, end;
++	struct memblock_type *type = &memblock.reserved;
++
++	/* Mark all kernel nodes. */
++	for (i = 0; i < type->cnt; i++)
++		node_set(type->regions[i].nid, numa_kernel_nodes);
++
++	/* Clear MEMBLOCK_HOTPLUG flag for memory in kernel nodes. */
++	for (i = 0; i < numa_meminfo.nr_blks; i++) {
++		nid = numa_meminfo.blk[i].nid;
++		if (!node_isset(nid, numa_kernel_nodes))
++			continue;
++
++		start = numa_meminfo.blk[i].start;
++		end = numa_meminfo.blk[i].end;
++
++		memblock_clear_hotplug(start, end - start);
++	}
++}
++
+ static int __init numa_init(int (*init_func)(void))
+ {
+ 	int i;
+@@ -568,6 +600,8 @@ static int __init numa_init(int (*init_f
+ 	memset(&numa_meminfo, 0, sizeof(numa_meminfo));
+ 	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.memory,
+ 				  MAX_NUMNODES));
++	WARN_ON(memblock_set_node(0, ULLONG_MAX, &memblock.reserved,
++				  MAX_NUMNODES));
+ 	/* In case that parsing SRAT failed. */
+ 	WARN_ON(memblock_clear_hotplug(0, ULLONG_MAX));
+ 	numa_reset_distance();
+@@ -605,6 +639,16 @@ static int __init numa_init(int (*init_f
+ 			numa_clear_node(i);
+ 	}
+ 	numa_init_array();
++
++	/*
++	 * At very early time, the kernel have to use some memory such as
++	 * loading the kernel image. We cannot prevent this anyway. So any
++	 * node the kernel resides in should be un-hotpluggable.
++	 *
++	 * And when we come here, numa_init() won't fail.
++	 */
++	numa_clear_kernel_node_hotplug();
++
+ 	return 0;
+ }
  
- restart:
-@@ -5137,6 +5160,7 @@ restart:
- 	if (usable_nodes && required_kernelcore > usable_nodes)
- 		goto restart;
- 
-+out2:
- 	/* Align start of ZONE_MOVABLE on all nids to MAX_ORDER_NR_PAGES */
- 	for (nid = 0; nid < MAX_NUMNODES; nid++)
- 		zone_movable_pfn[nid] =
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
