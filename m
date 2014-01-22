@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + include-uapi-linux-dnh-pull-in-ioctlh-header.patch added to -mm tree
-Date: Wed, 22 Jan 2014 13:13:49 -0800
-Message-ID: <52e0348d.8ah5Vw/YUsVTXu5P%akpm@linux-foundation.org>
+Subject: + uapi-convert-u64-to-__u64-in-exported-headers.patch added to
+ -mm tree
+Date: Wed, 22 Jan 2014 13:21:08 -0800
+Message-ID: <52e03644.O9xGTqSs4gVQEOVL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55657 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55667 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751788AbaAVVNu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 16:13:50 -0500
+	with ESMTP id S1752668AbaAVVVK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 16:21:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, davem@davemloft.net, vapier@gentoo.org
+To: mm-commits@vger.kernel.org, rientjes@google.com, vapier@gentoo.org
 
-Subject: + include-uapi-linux-dnh-pull-in-ioctlh-header.patch added to -mm tree
-To: vapier@gentoo.org,davem@davemloft.net
+Subject: + uapi-convert-u64-to-__u64-in-exported-headers.patch added to -mm tree
+To: vapier@gentoo.org,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 13:13:49 -0800
+Date: Wed, 22 Jan 2014 13:21:08 -0800
 
 
 The patch titled
-     Subject: include/uapi/linux/dn.h: pull in ioctl.h header
+     Subject: uapi: convert u64 to __u64 in exported headers
 has been added to the -mm tree.  Its filename is
-     include-uapi-linux-dnh-pull-in-ioctlh-header.patch
+     uapi-convert-u64-to-__u64-in-exported-headers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-uapi-linux-dnh-pull-in-ioctlh-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/uapi-convert-u64-to-__u64-in-exported-headers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-uapi-linux-dnh-pull-in-ioctlh-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/uapi-convert-u64-to-__u64-in-exported-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,37 +45,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Frysinger <vapier@gentoo.org>
-Subject: include/uapi/linux/dn.h: pull in ioctl.h header
+Subject: uapi: convert u64 to __u64 in exported headers
 
-This header uses _IOW/_IOR defines but doesn't include ioctl.h for it.  If
-you try to use this w/out including ioctl.h yourself, it can fail to
-build, so add the explicit include.
+The u64 type is not defined in any exported kernel headers, so trying to
+use it will lead to build failures.
 
 Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: David Miller <davem@davemloft.net>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/dn.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/uapi/linux/nfs4.h       |    2 +-
+ include/uapi/linux/perf_event.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/uapi/linux/dn.h~include-uapi-linux-dnh-pull-in-ioctlh-header include/uapi/linux/dn.h
---- a/include/uapi/linux/dn.h~include-uapi-linux-dnh-pull-in-ioctlh-header
-+++ a/include/uapi/linux/dn.h
-@@ -1,6 +1,7 @@
- #ifndef _LINUX_DN_H
- #define _LINUX_DN_H
+diff -puN include/uapi/linux/nfs4.h~uapi-convert-u64-to-__u64-in-exported-headers include/uapi/linux/nfs4.h
+--- a/include/uapi/linux/nfs4.h~uapi-convert-u64-to-__u64-in-exported-headers
++++ a/include/uapi/linux/nfs4.h
+@@ -150,7 +150,7 @@
+ #define NFS4_SECINFO_STYLE4_CURRENT_FH	0
+ #define NFS4_SECINFO_STYLE4_PARENT	1
  
-+#include <linux/ioctl.h>
- #include <linux/types.h>
- #include <linux/if_ether.h>
+-#define NFS4_MAX_UINT64	(~(u64)0)
++#define NFS4_MAX_UINT64	(~(__u64)0)
  
+ /* An NFS4 sessions server must support at least NFS4_MAX_OPS operations.
+  * If a compound requires more operations, adjust NFS4_MAX_OPS accordingly.
+diff -puN include/uapi/linux/perf_event.h~uapi-convert-u64-to-__u64-in-exported-headers include/uapi/linux/perf_event.h
+--- a/include/uapi/linux/perf_event.h~uapi-convert-u64-to-__u64-in-exported-headers
++++ a/include/uapi/linux/perf_event.h
+@@ -788,7 +788,7 @@ union perf_mem_data_src {
+ #define PERF_MEM_TLB_SHIFT	26
+ 
+ #define PERF_MEM_S(a, s) \
+-	(((u64)PERF_MEM_##a##_##s) << PERF_MEM_##a##_SHIFT)
++	(((__u64)PERF_MEM_##a##_##s) << PERF_MEM_##a##_SHIFT)
+ 
+ /*
+  * single taken branch record layout:
 _
 
 Patches currently in -mm which might be from vapier@gentoo.org are
 
 include-uapi-linux-ppp-ioctlh-pull-in-ppp_defsh.patch
 include-uapi-linux-dnh-pull-in-ioctlh-header.patch
+uapi-convert-u64-to-__u64-in-exported-headers.patch
 kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
 kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
 linux-next.patch
