@@ -1,43 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch removed from -mm tree
-Date: Wed, 22 Jan 2014 12:12:21 -0800
-Message-ID: <52e02625.hjfV7/PtE5Nnl+BG%akpm@linux-foundation.org>
+Subject: [merged] mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
+ removed from -mm tree
+Date: Wed, 22 Jan 2014 12:12:28 -0800
+Message-ID: <52e0262c.8dj01RiUygCdXyVo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54252 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54290 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755810AbaAVUMW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:22 -0500
+	with ESMTP id S1755810AbaAVUM3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, pshelar@nicira.com, minchan@kernel.org, mgorman@suse.de, khalid.aziz@oracle.com, jweiner@redhat.com, gregkh@linuxfoundation.org, cl@linux.com, bhutchings@solarflare.com, andi@firstfloor.org, aarcange@redhat.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, pshelar@nicira.com, minchan@kernel.org, mgorman@suse.de, khalid.aziz@oracle.com, jweiner@redhat.com, gregkh@linuxfoundation.org, cl@linux.com, bhutchings@solarflare.com, andi@firstfloor.org, aarcange@redhat.com, akpm@linux-foundation.org
 
-Subject: [merged] mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch removed from -mm tree
-To: aarcange@redhat.com,andi@firstfloor.org,bhutchings@solarflare.com,cl@linux.com,gregkh@linuxfoundation.org,jweiner@redhat.com,khalid.aziz@oracle.com,mgorman@suse.de,minchan@kernel.org,pshelar@nicira.com,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch removed from -mm tree
+To: akpm@linux-foundation.org,aarcange@redhat.com,andi@firstfloor.org,bhutchings@solarflare.com,cl@linux.com,gregkh@linuxfoundation.org,jweiner@redhat.com,khalid.aziz@oracle.com,mgorman@suse.de,minchan@kernel.org,pshelar@nicira.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:12:21 -0800
+Date: Wed, 22 Jan 2014 12:12:28 -0800
 
 
 The patch titled
-     Subject: mm: hugetlbfs: move the put/get_page slab and hugetlbfs optimization in a faster path
+     Subject: mm/hugetlb.c: simplify PageHeadHuge() and PageHuge()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path.patch
+     mm-hugetlbc-simplify-pageheadhuge-and-pagehuge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: hugetlbfs: move the put/get_page slab and hugetlbfs optimization in a faster path
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/hugetlb.c: simplify PageHeadHuge() and PageHuge()
 
-We don't actually need a reference on the head page in the slab and
-hugetlbfs paths, as long as we add a smp_rmb() which should be faster
-than get_page_unless_zero.
-
-[akpm@linux-foundation.org: fix typo in comment]
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Khalid Aziz <khalid.aziz@oracle.com>
 Cc: Pravin Shelar <pshelar@nicira.com>
@@ -52,187 +47,79 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |  140 ++++++++++++++++++++++++++++------------------------
- 1 file changed, 78 insertions(+), 62 deletions(-)
+ mm/hugetlb.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN mm/swap.c~mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path mm/swap.c
---- a/mm/swap.c~mm-hugetlbfs-move-the-put-get_page-slab-and-hugetlbfs-optimization-in-a-faster-path
-+++ a/mm/swap.c
-@@ -86,46 +86,62 @@ static void put_compound_page(struct pag
- 		/* __split_huge_page_refcount can run under us */
- 		struct page *page_head = compound_trans_head(page);
+diff -puN mm/hugetlb.c~mm-hugetlbc-simplify-pageheadhuge-and-pagehuge mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-simplify-pageheadhuge-and-pagehuge
++++ a/mm/hugetlb.c
+@@ -690,15 +690,11 @@ static void prep_compound_gigantic_page(
+  */
+ int PageHuge(struct page *page)
+ {
+-	compound_page_dtor *dtor;
+-
+ 	if (!PageCompound(page))
+ 		return 0;
  
-+		/*
-+		 * THP can not break up slab pages so avoid taking
-+		 * compound_lock(). Slab performs non-atomic bit ops
-+		 * on page->flags for better performance. In
-+		 * particular slab_unlock() in slub used to be a hot
-+		 * path. It is still hot on arches that do not support
-+		 * this_cpu_cmpxchg_double().
-+		 *
-+		 * If "page" is part of a slab or hugetlbfs page it
-+		 * cannot be splitted and the head page cannot change
-+		 * from under us. And if "page" is part of a THP page
-+		 * under splitting, if the head page pointed by the
-+		 * THP tail isn't a THP head anymore, we'll find
-+		 * PageTail clear after smp_rmb() and we'll treat it
-+		 * as a single page.
-+		 */
-+		if (PageSlab(page_head) || PageHeadHuge(page_head)) {
-+			/*
-+			 * If "page" is a THP tail, we must read the tail page
-+			 * flags after the head page flags. The
-+			 * split_huge_page side enforces write memory
-+			 * barriers between clearing PageTail and before the
-+			 * head page can be freed and reallocated.
-+			 */
-+			smp_rmb();
-+			if (likely(PageTail(page))) {
-+				/*
-+				 * __split_huge_page_refcount
-+				 * cannot race here.
-+				 */
-+				VM_BUG_ON(!PageHead(page_head));
-+				VM_BUG_ON(page_mapcount(page) <= 0);
-+				atomic_dec(&page->_mapcount);
-+				if (put_page_testzero(page_head))
-+					__put_compound_page(page_head);
-+				return;
-+			} else
-+				/*
-+				 * __split_huge_page_refcount
-+				 * run before us, "page" was a
-+				 * THP tail. The split
-+				 * page_head has been freed
-+				 * and reallocated as slab or
-+				 * hugetlbfs page of smaller
-+				 * order (only possible if
-+				 * reallocated as slab on
-+				 * x86).
-+				 */
-+				goto out_put_single;
-+		}
-+
- 		if (likely(page != page_head &&
- 			   get_page_unless_zero(page_head))) {
- 			unsigned long flags;
+ 	page = compound_head(page);
+-	dtor = get_compound_page_dtor(page);
+-
+-	return dtor == free_huge_page;
++	return get_compound_page_dtor(page) == free_huge_page;
+ }
+ EXPORT_SYMBOL_GPL(PageHuge);
  
- 			/*
--			 * THP can not break up slab pages so avoid taking
--			 * compound_lock().  Slab performs non-atomic bit ops
--			 * on page->flags for better performance.  In particular
--			 * slab_unlock() in slub used to be a hot path.  It is
--			 * still hot on arches that do not support
--			 * this_cpu_cmpxchg_double().
--			 */
--			if (PageSlab(page_head) || PageHeadHuge(page_head)) {
--				if (likely(PageTail(page))) {
--					/*
--					 * __split_huge_page_refcount
--					 * cannot race here.
--					 */
--					VM_BUG_ON(!PageHead(page_head));
--					atomic_dec(&page->_mapcount);
--					if (put_page_testzero(page_head))
--						VM_BUG_ON(1);
--					if (put_page_testzero(page_head))
--						__put_compound_page(page_head);
--					return;
--				} else
--					/*
--					 * __split_huge_page_refcount
--					 * run before us, "page" was a
--					 * THP tail. The split
--					 * page_head has been freed
--					 * and reallocated as slab or
--					 * hugetlbfs page of smaller
--					 * order (only possible if
--					 * reallocated as slab on
--					 * x86).
--					 */
--					goto skip_lock;
--			}
--			/*
- 			 * page_head wasn't a dangling pointer but it
- 			 * may not be a head page anymore by the time
- 			 * we obtain the lock. That is ok as long as it
-@@ -135,7 +151,6 @@ static void put_compound_page(struct pag
- 			if (unlikely(!PageTail(page))) {
- 				/* __split_huge_page_refcount run before us */
- 				compound_unlock_irqrestore(page_head, flags);
--skip_lock:
- 				if (put_page_testzero(page_head)) {
- 					/*
- 					 * The head page may have been
-@@ -221,36 +236,37 @@ bool __get_page_tail(struct page *page)
- 	 * split_huge_page().
- 	 */
- 	unsigned long flags;
--	bool got = false;
-+	bool got;
- 	struct page *page_head = compound_trans_head(page);
+@@ -708,14 +704,10 @@ EXPORT_SYMBOL_GPL(PageHuge);
+  */
+ int PageHeadHuge(struct page *page_head)
+ {
+-	compound_page_dtor *dtor;
+-
+ 	if (!PageHead(page_head))
+ 		return 0;
  
--	if (likely(page != page_head && get_page_unless_zero(page_head))) {
--		/* Ref to put_compound_page() comment. */
--		if (PageSlab(page_head) || PageHeadHuge(page_head)) {
--			if (likely(PageTail(page))) {
--				/*
--				 * This is a hugetlbfs page or a slab
--				 * page. __split_huge_page_refcount
--				 * cannot race here.
--				 */
--				VM_BUG_ON(!PageHead(page_head));
--				__get_page_tail_foll(page, false);
--				return true;
--			} else {
--				/*
--				 * __split_huge_page_refcount run
--				 * before us, "page" was a THP
--				 * tail. The split page_head has been
--				 * freed and reallocated as slab or
--				 * hugetlbfs page of smaller order
--				 * (only possible if reallocated as
--				 * slab on x86).
--				 */
--				put_page(page_head);
--				return false;
--			}
-+	/* Ref to put_compound_page() comment. */
-+	if (PageSlab(page_head) || PageHeadHuge(page_head)) {
-+		smp_rmb();
-+		if (likely(PageTail(page))) {
-+			/*
-+			 * This is a hugetlbfs page or a slab
-+			 * page. __split_huge_page_refcount
-+			 * cannot race here.
-+			 */
-+			VM_BUG_ON(!PageHead(page_head));
-+			__get_page_tail_foll(page, true);
-+			return true;
-+		} else {
-+			/*
-+			 * __split_huge_page_refcount run
-+			 * before us, "page" was a THP
-+			 * tail. The split page_head has been
-+			 * freed and reallocated as slab or
-+			 * hugetlbfs page of smaller order
-+			 * (only possible if reallocated as
-+			 * slab on x86).
-+			 */
-+			return false;
- 		}
-+	}
+-	dtor = get_compound_page_dtor(page_head);
+-
+-	return dtor == free_huge_page;
++	return get_compound_page_dtor(page_head) == free_huge_page;
+ }
+ EXPORT_SYMBOL_GPL(PageHeadHuge);
  
-+	got = false;
-+	if (likely(page != page_head && get_page_unless_zero(page_head))) {
- 		/*
- 		 * page_head wasn't a dangling pointer but it
- 		 * may not be a head page anymore by the time
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-munlock-fix-potential-race-with-thp-page-split.patch
-mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+drivers-block-ccissc-cciss_init_one-use-proper-errnos.patch
+mm.patch
+mm-print-more-details-for-bad_page-fix.patch
+mm-munlock-fix-potential-race-with-thp-page-split-fix.patch
+mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix-fix.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
+numa-add-a-sysctl-for-numa_balancing-fix.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
+mm-nobootmem-free_all_bootmem-again-fix-fix.patch
+mm-improve-documentation-of-page_order-v2-fix.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+printk-flush-conflicting-continuation-line-fix.patch
+drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+ipcmsg-document-barriers-fix.patch
+ipcmsg-document-barriers-fix-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
