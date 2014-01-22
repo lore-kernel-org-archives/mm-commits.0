@@ -1,236 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- sched-add-tracepoints-related-to-numa-task-migration.patch removed from -mm tree
-Date: Wed, 22 Jan 2014 12:14:46 -0800
-Message-ID: <52e026b6.ui8My4UMboTTxoZp%akpm@linux-foundation.org>
+Subject: [merged] memcg-oom-lock-mem_cgroup_print_oom_info.patch removed
+ from -mm tree
+Date: Wed, 22 Jan 2014 12:14:48 -0800
+Message-ID: <52e026b8.qeJu9xJz6S29y1ro%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54995 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55001 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331AbaAVUOr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:14:47 -0500
+	with ESMTP id S1752786AbaAVUOt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:14:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, athorlton@sgi.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, mhocko@suse.cz
 
-Subject: [merged] sched-add-tracepoints-related-to-numa-task-migration.patch removed from -mm tree
-To: mgorman@suse.de,athorlton@sgi.com,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] memcg-oom-lock-mem_cgroup_print_oom_info.patch removed from -mm tree
+To: mhocko@suse.cz,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:14:46 -0800
+Date: Wed, 22 Jan 2014 12:14:48 -0800
 
 
 The patch titled
-     Subject: sched: add tracepoints related to NUMA task migration
+     Subject: memcg, oom: lock mem_cgroup_print_oom_info
 has been removed from the -mm tree.  Its filename was
-     sched-add-tracepoints-related-to-numa-task-migration.patch
+     memcg-oom-lock-mem_cgroup_print_oom_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: sched: add tracepoints related to NUMA task migration
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg, oom: lock mem_cgroup_print_oom_info
 
-This patch adds three tracepoints
- o trace_sched_move_numa	when a task is moved to a node
- o trace_sched_swap_numa	when a task is swapped with another task
- o trace_sched_stick_numa	when a numa-related migration fails
+mem_cgroup_print_oom_info uses a static buffer (memcg_name) to store the
+name of the cgroup.  This is not safe as pointed out by David Rientjes
+because memcg oom is locked only for its hierarchy and nothing prevents
+another parallel hierarchy to trigger oom as well and overwrite the
+already in-use buffer.
 
-The tracepoints allow the NUMA scheduler activity to be monitored and the
-following high-level metrics can be calculated
+This patch introduces oom_info_lock hidden inside
+mem_cgroup_print_oom_info which is held throughout the function.  It makes
+access to memcg_name safe and as a bonus it also prevents parallel memcg
+ooms to interleave their statistics which would make the printed data hard
+to analyze otherwise.
 
- o NUMA migrated stuck	 nr trace_sched_stick_numa
- o NUMA migrated idle	 nr trace_sched_move_numa
- o NUMA migrated swapped nr trace_sched_swap_numa
- o NUMA local swapped	 trace_sched_swap_numa src_nid == dst_nid (should never happen)
- o NUMA remote swapped	 trace_sched_swap_numa src_nid != dst_nid (should == NUMA migrated swapped)
- o NUMA group swapped	 trace_sched_swap_numa src_ngid == dst_ngid
-			 Maybe a small number of these are acceptable
-			 but a high number would be a major surprise.
-			 It would be even worse if bounces are frequent.
- o NUMA avg task migs.	 Average number of migrations for tasks
- o NUMA stddev task mig	 Self-explanatory
- o NUMA max task migs.	 Maximum number of migrations for a single task
-
-In general the intent of the tracepoints is to help diagnose problems
-where automatic NUMA balancing appears to be doing an excessive amount of
-useless work.
-
-[akpm@linux-foundation.org: remove semicolon-after-if, repair coding-style]
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Alex Thorlton <athorlton@sgi.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/sched.h |   87 +++++++++++++++++++++++++++++++++
- kernel/sched/core.c          |    2 
- kernel/sched/fair.c          |    6 +-
- 3 files changed, 94 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN include/trace/events/sched.h~sched-add-tracepoints-related-to-numa-task-migration include/trace/events/sched.h
---- a/include/trace/events/sched.h~sched-add-tracepoints-related-to-numa-task-migration
-+++ a/include/trace/events/sched.h
-@@ -443,6 +443,93 @@ TRACE_EVENT(sched_process_hang,
- );
- #endif /* CONFIG_DETECT_HUNG_TASK */
+diff -puN mm/memcontrol.c~memcg-oom-lock-mem_cgroup_print_oom_info mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-oom-lock-mem_cgroup_print_oom_info
++++ a/mm/memcontrol.c
+@@ -1647,13 +1647,13 @@ static void move_unlock_mem_cgroup(struc
+  */
+ void mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
+ {
+-	struct cgroup *task_cgrp;
+-	struct cgroup *mem_cgrp;
+ 	/*
+-	 * Need a buffer in BSS, can't rely on allocations. The code relies
+-	 * on the assumption that OOM is serialized for memory controller.
+-	 * If this assumption is broken, revisit this code.
++	 * protects memcg_name and makes sure that parallel ooms do not
++	 * interleave
+ 	 */
++	static DEFINE_SPINLOCK(oom_info_lock);
++	struct cgroup *task_cgrp;
++	struct cgroup *mem_cgrp;
+ 	static char memcg_name[PATH_MAX];
+ 	int ret;
+ 	struct mem_cgroup *iter;
+@@ -1662,6 +1662,7 @@ void mem_cgroup_print_oom_info(struct me
+ 	if (!p)
+ 		return;
  
-+DECLARE_EVENT_CLASS(sched_move_task_template,
-+
-+	TP_PROTO(struct task_struct *tsk, int src_cpu, int dst_cpu),
-+
-+	TP_ARGS(tsk, src_cpu, dst_cpu),
-+
-+	TP_STRUCT__entry(
-+		__field( pid_t,	pid			)
-+		__field( pid_t,	tgid			)
-+		__field( pid_t,	ngid			)
-+		__field( int,	src_cpu			)
-+		__field( int,	src_nid			)
-+		__field( int,	dst_cpu			)
-+		__field( int,	dst_nid			)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->pid		= task_pid_nr(tsk);
-+		__entry->tgid		= task_tgid_nr(tsk);
-+		__entry->ngid		= task_numa_group_id(tsk);
-+		__entry->src_cpu	= src_cpu;
-+		__entry->src_nid	= cpu_to_node(src_cpu);
-+		__entry->dst_cpu	= dst_cpu;
-+		__entry->dst_nid	= cpu_to_node(dst_cpu);
-+	),
-+
-+	TP_printk("pid=%d tgid=%d ngid=%d src_cpu=%d src_nid=%d dst_cpu=%d dst_nid=%d",
-+			__entry->pid, __entry->tgid, __entry->ngid,
-+			__entry->src_cpu, __entry->src_nid,
-+			__entry->dst_cpu, __entry->dst_nid)
-+);
-+
-+/*
-+ * Tracks migration of tasks from one runqueue to another. Can be used to
-+ * detect if automatic NUMA balancing is bouncing between nodes
-+ */
-+DEFINE_EVENT(sched_move_task_template, sched_move_numa,
-+	TP_PROTO(struct task_struct *tsk, int src_cpu, int dst_cpu),
-+
-+	TP_ARGS(tsk, src_cpu, dst_cpu)
-+);
-+
-+DEFINE_EVENT(sched_move_task_template, sched_stick_numa,
-+	TP_PROTO(struct task_struct *tsk, int src_cpu, int dst_cpu),
-+
-+	TP_ARGS(tsk, src_cpu, dst_cpu)
-+);
-+
-+TRACE_EVENT(sched_swap_numa,
-+
-+	TP_PROTO(struct task_struct *src_tsk, int src_cpu,
-+		 struct task_struct *dst_tsk, int dst_cpu),
-+
-+	TP_ARGS(src_tsk, src_cpu, dst_tsk, dst_cpu),
-+
-+	TP_STRUCT__entry(
-+		__field( pid_t,	src_pid			)
-+		__field( pid_t,	src_tgid		)
-+		__field( pid_t,	src_ngid		)
-+		__field( int,	src_cpu			)
-+		__field( int,	src_nid			)
-+		__field( pid_t,	dst_pid			)
-+		__field( pid_t,	dst_tgid		)
-+		__field( pid_t,	dst_ngid		)
-+		__field( int,	dst_cpu			)
-+		__field( int,	dst_nid			)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->src_pid	= task_pid_nr(src_tsk);
-+		__entry->src_tgid	= task_tgid_nr(src_tsk);
-+		__entry->src_ngid	= task_numa_group_id(src_tsk);
-+		__entry->src_cpu	= src_cpu;
-+		__entry->src_nid	= cpu_to_node(src_cpu);
-+		__entry->dst_pid	= task_pid_nr(dst_tsk);
-+		__entry->dst_tgid	= task_tgid_nr(dst_tsk);
-+		__entry->dst_ngid	= task_numa_group_id(dst_tsk);
-+		__entry->dst_cpu	= dst_cpu;
-+		__entry->dst_nid	= cpu_to_node(dst_cpu);
-+	),
-+
-+	TP_printk("src_pid=%d src_tgid=%d src_ngid=%d src_cpu=%d src_nid=%d dst_pid=%d dst_tgid=%d dst_ngid=%d dst_cpu=%d dst_nid=%d",
-+			__entry->src_pid, __entry->src_tgid, __entry->src_ngid,
-+			__entry->src_cpu, __entry->src_nid,
-+			__entry->dst_pid, __entry->dst_tgid, __entry->dst_ngid,
-+			__entry->dst_cpu, __entry->dst_nid)
-+);
- #endif /* _TRACE_SCHED_H */
++	spin_lock(&oom_info_lock);
+ 	rcu_read_lock();
  
- /* This part must be outside protection */
-diff -puN kernel/sched/core.c~sched-add-tracepoints-related-to-numa-task-migration kernel/sched/core.c
---- a/kernel/sched/core.c~sched-add-tracepoints-related-to-numa-task-migration
-+++ a/kernel/sched/core.c
-@@ -1108,6 +1108,7 @@ int migrate_swap(struct task_struct *cur
- 	if (!cpumask_test_cpu(arg.src_cpu, tsk_cpus_allowed(arg.dst_task)))
- 		goto out;
+ 	mem_cgrp = memcg->css.cgroup;
+@@ -1730,6 +1731,7 @@ done:
  
-+	trace_sched_swap_numa(cur, arg.src_cpu, p, arg.dst_cpu);
- 	ret = stop_two_cpus(arg.dst_cpu, arg.src_cpu, migrate_swap_stop, &arg);
- 
- out:
-@@ -4603,6 +4604,7 @@ int migrate_task_to(struct task_struct *
- 
- 	/* TODO: This is not properly updating schedstats */
- 
-+	trace_sched_move_numa(p, curr_cpu, target_cpu);
- 	return stop_one_cpu(curr_cpu, migration_cpu_stop, &arg);
- }
- 
-diff -puN kernel/sched/fair.c~sched-add-tracepoints-related-to-numa-task-migration kernel/sched/fair.c
---- a/kernel/sched/fair.c~sched-add-tracepoints-related-to-numa-task-migration
-+++ a/kernel/sched/fair.c
-@@ -1250,11 +1250,15 @@ static int task_numa_migrate(struct task
- 	p->numa_scan_period = task_scan_min(p);
- 
- 	if (env.best_task == NULL) {
--		int ret = migrate_task_to(p, env.best_cpu);
-+		ret = migrate_task_to(p, env.best_cpu);
-+		if (ret != 0)
-+			trace_sched_stick_numa(p, env.src_cpu, env.best_cpu);
- 		return ret;
+ 		pr_cont("\n");
  	}
- 
- 	ret = migrate_swap(p, env.best_task);
-+	if (ret != 0)
-+		trace_sched_stick_numa(p, env.src_cpu, task_cpu(env.best_task));
- 	put_task_struct(env.best_task);
- 	return ret;
++	spin_unlock(&oom_info_lock);
  }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
-x86-mm-account-for-tlb-flushes-only-when-debugging.patch
-x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges.patch
-x86-mm-eliminate-redundant-page-table-walk-during-tlb-range-flushing.patch
-x86-mm-change-tlb_flushall_shift-for-ivybridge.patch
-mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge.patch
 mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
-mm-munlock-fix-potential-race-with-thp-page-split.patch
-numa-add-a-sysctl-for-numa_balancing.patch
-numa-add-a-sysctl-for-numa_balancing-fix.patch
+memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
+slab-clean-up-kmem_cache_create_memcg-error-handling.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
+memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
+memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
+memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
+memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
+memcg-get-rid-of-kmem_cache_dup.patch
+slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
+memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
+memcg-remove-kmem_accounted_activated-flag.patch
+memcg-rework-memcg_update_kmem_limit-synchronization.patch
+mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
+mm-prevent-setting-of-a-value-less-than-0-to-min_free_kbytes.patch
+memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
 mm-vmscan-shrink-all-slab-objects-if-tight-on-memory.patch
 mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
 mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
 mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
 mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
 mm-show-message-when-updating-min_free_kbytes-in-thp.patch
-mm-improve-documentation-of-page_order-v2.patch
-mm-improve-documentation-of-page_order-v2-fix.patch
+mm-memcg-fix-last_dead_count-memory-wastage.patch
+mm-memcg-iteration-skip-memcgs-not-yet-fully-initialized.patch
+mm-oom-prefer-thread-group-leaders-for-display-purposes.patch
+mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
+memcg-fix-endless-loop-caused-by-mem_cgroup_iter.patch
+memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter.patch
+memcg-remove-unused-code-from-kmem_cache_destroy_work_func.patch
+proc-fix-the-potential-use-after-free-in-first_tid.patch
+proc-change-first_tid-to-use-while_each_thread-rather-than-next_thread.patch
+proc-dont-abuse-group_leader-in-proc_task_readdir-paths.patch
+proc-fix-f_pos-overflows-in-first_tid.patch
 linux-next.patch
-mm-migratec-fix-setting-of-cpupid-on-page-migration-twice-against-normal-page.patch
-zsmalloc-move-it-under-mm.patch
-zram-promote-zram-from-staging.patch
 
