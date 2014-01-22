@@ -1,140 +1,158 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch removed from -mm tree
-Date: Wed, 22 Jan 2014 12:12:38 -0800
-Message-ID: <52e02636.JKv86tX2mhZR2ooV%akpm@linux-foundation.org>
+ mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch removed
+ from -mm tree
+Date: Wed, 22 Jan 2014 12:12:40 -0800
+Message-ID: <52e02638.X6vvh/JEp38oKmeK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54334 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755810AbaAVUMj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:39 -0500
+	with ESMTP id S1755810AbaAVUMk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
 
-Subject: [merged] mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch removed from -mm tree
-To: isimatu.yasuaki@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de,mm-commits@vger.kernel.org
+Subject: [merged] mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:12:38 -0800
+Date: Wed, 22 Jan 2014 12:12:40 -0800
 
 
 The patch titled
-     Subject: mm: get rid of unnecessary pageblock scanning in setup_zone_migrate_reserve
+     Subject: mm: create a separate slab for page->ptl allocation
 has been removed from the -mm tree.  Its filename was
-     mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
+     mm-create-a-separate-slab-for-page-ptl-allocation-try-two.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: mm: get rid of unnecessary pageblock scanning in setup_zone_migrate_reserve
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: create a separate slab for page->ptl allocation
 
-Yasuaki Ishimatsu reported memory hot-add spent more than 5 _hours_ on 9TB
-memory machine since onlining memory sections is too slow.  And we found
-out setup_zone_migrate_reserve spent >90% of the time.
+If DEBUG_SPINLOCK and DEBUG_LOCK_ALLOC are enabled spinlock_t on x86_64 is
+72 bytes.  For page->ptl they will be allocated from kmalloc-96 slab, so
+we loose 24 on each.  An average system can easily allocate few tens
+thousands of page->ptl and overhead is significant.
 
-The problem is, setup_zone_migrate_reserve scans all pageblocks
-unconditionally, but it is only necessary if the number of reserved block
-was reduced (i.e.  memory hot remove).
+Let's create a separate slab for page->ptl allocation to solve this.
 
-Moreover, maximum MIGRATE_RESERVE per zone is currently 2.  It means that
-the number of reserved pageblocks is almost always unchanged.
+To make sure that it really works this time, some numbers from my test
+machine (just booted, no load):
 
-This patch adds zone->nr_migrate_reserve_block to maintain the number of
-MIGRATE_RESERVE pageblocks and it reduces the overhead of
-setup_zone_migrate_reserve dramatically.  The following table shows time
-of onlining a memory section.
+Before:
+  # grep '^\(kmalloc-96\|page->ptl\)' /proc/slabinfo
+  kmalloc-96         31987  32190    128   30    1 : tunables  120   60    8 : slabdata   1073   1073     92
+After:
+  # grep '^\(kmalloc-96\|page->ptl\)' /proc/slabinfo
+  page->ptl          27516  28143     72   53    1 : tunables  120   60    8 : slabdata    531    531      9
+  kmalloc-96          3853   5280    128   30    1 : tunables  120   60    8 : slabdata    176    176      0
 
-  Amount of memory     | 128GB | 192GB | 256GB|
-  ---------------------------------------------
-  linux-3.12           |  23.9 |  31.4 | 44.5 |
-  This patch           |   8.3 |   8.3 |  8.6 |
-  Mel's proposal patch |  10.9 |  19.2 | 31.3 |
-  ---------------------------------------------
-                                   (millisecond)
+Note that the patch is useful not only for debug case, but also for
+PREEMPT_RT, where spinlock_t is always bloated.
 
-  128GB : 4 nodes and each node has 32GB of memory
-  192GB : 6 nodes and each node has 32GB of memory
-  256GB : 8 nodes and each node has 32GB of memory
-
-  (*1) Mel proposed his idea by the following threads.
-       https://lkml.org/lkml/2013/10/30/272
-
-[akpm@linux-foundation.org: tweak comment]
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reported-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 ++++++
- mm/page_alloc.c        |   13 +++++++++++++
- 2 files changed, 19 insertions(+)
+ include/linux/mm.h |   12 ++++++++++++
+ init/main.c        |    2 +-
+ mm/memory.c        |   13 +++++++++++--
+ 3 files changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve
-+++ a/include/linux/mmzone.h
-@@ -490,6 +490,12 @@ struct zone {
- 	unsigned long		managed_pages;
+diff -puN include/linux/mm.h~mm-create-a-separate-slab-for-page-ptl-allocation-try-two include/linux/mm.h
+--- a/include/linux/mm.h~mm-create-a-separate-slab-for-page-ptl-allocation-try-two
++++ a/include/linux/mm.h
+@@ -1350,6 +1350,7 @@ static inline pmd_t *pmd_alloc(struct mm
  
- 	/*
-+	 * Number of MIGRATE_RESEVE page block. To maintain for just
-+	 * optimization. Protected by zone->lock.
-+	 */
-+	int			nr_migrate_reserve_block;
+ #if USE_SPLIT_PTE_PTLOCKS
+ #if ALLOC_SPLIT_PTLOCKS
++void __init ptlock_cache_init(void);
+ extern bool ptlock_alloc(struct page *page);
+ extern void ptlock_free(struct page *page);
+ 
+@@ -1358,6 +1359,10 @@ static inline spinlock_t *ptlock_ptr(str
+ 	return page->ptl;
+ }
+ #else /* ALLOC_SPLIT_PTLOCKS */
++static inline void ptlock_cache_init(void)
++{
++}
 +
-+	/*
- 	 * rarely used fields:
- 	 */
- 	const char		*name;
-diff -puN mm/page_alloc.c~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve mm/page_alloc.c
---- a/mm/page_alloc.c~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve
-+++ a/mm/page_alloc.c
-@@ -3901,6 +3901,7 @@ static void setup_zone_migrate_reserve(s
- 	struct page *page;
- 	unsigned long block_migratetype;
- 	int reserve;
-+	int old_reserve;
+ static inline bool ptlock_alloc(struct page *page)
+ {
+ 	return true;
+@@ -1410,10 +1415,17 @@ static inline spinlock_t *pte_lockptr(st
+ {
+ 	return &mm->page_table_lock;
+ }
++static inline void ptlock_cache_init(void) {}
+ static inline bool ptlock_init(struct page *page) { return true; }
+ static inline void pte_lock_deinit(struct page *page) {}
+ #endif /* USE_SPLIT_PTE_PTLOCKS */
  
- 	/*
- 	 * Get the start pfn, end pfn and the number of blocks to reserve
-@@ -3922,6 +3923,12 @@ static void setup_zone_migrate_reserve(s
- 	 * future allocation of hugepages at runtime.
- 	 */
- 	reserve = min(2, reserve);
-+	old_reserve = zone->nr_migrate_reserve_block;
++static inline void pgtable_init(void)
++{
++	ptlock_cache_init();
++	pgtable_cache_init();
++}
 +
-+	/* When memory hot-add, we almost always need to do nothing */
-+	if (reserve == old_reserve)
-+		return;
-+	zone->nr_migrate_reserve_block = reserve;
+ static inline bool pgtable_page_ctor(struct page *page)
+ {
+ 	inc_zone_page_state(page, NR_PAGETABLE);
+diff -puN init/main.c~mm-create-a-separate-slab-for-page-ptl-allocation-try-two init/main.c
+--- a/init/main.c~mm-create-a-separate-slab-for-page-ptl-allocation-try-two
++++ a/init/main.c
+@@ -476,7 +476,7 @@ static void __init mm_init(void)
+ 	mem_init();
+ 	kmem_cache_init();
+ 	percpu_init_late();
+-	pgtable_cache_init();
++	pgtable_init();
+ 	vmalloc_init();
+ }
  
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
- 		if (!pfn_valid(pfn))
-@@ -3959,6 +3966,12 @@ static void setup_zone_migrate_reserve(s
- 				reserve--;
- 				continue;
- 			}
-+		} else if (!old_reserve) {
-+			/*
-+			 * At boot time we don't need to scan the whole zone
-+			 * for turning off MIGRATE_RESERVE.
-+			 */
-+			break;
- 		}
+diff -puN mm/memory.c~mm-create-a-separate-slab-for-page-ptl-allocation-try-two mm/memory.c
+--- a/mm/memory.c~mm-create-a-separate-slab-for-page-ptl-allocation-try-two
++++ a/mm/memory.c
+@@ -4275,11 +4275,20 @@ void copy_user_huge_page(struct page *ds
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
  
- 		/*
+ #if USE_SPLIT_PTE_PTLOCKS && ALLOC_SPLIT_PTLOCKS
++
++static struct kmem_cache *page_ptl_cachep;
++
++void __init ptlock_cache_init(void)
++{
++	page_ptl_cachep = kmem_cache_create("page->ptl", sizeof(spinlock_t), 0,
++			SLAB_PANIC, NULL);
++}
++
+ bool ptlock_alloc(struct page *page)
+ {
+ 	spinlock_t *ptl;
+ 
+-	ptl = kmalloc(sizeof(spinlock_t), GFP_KERNEL);
++	ptl = kmem_cache_alloc(page_ptl_cachep, GFP_KERNEL);
+ 	if (!ptl)
+ 		return false;
+ 	page->ptl = ptl;
+@@ -4288,6 +4297,6 @@ bool ptlock_alloc(struct page *page)
+ 
+ void ptlock_free(struct page *page)
+ {
+-	kfree(page->ptl);
++	kmem_cache_free(page_ptl_cachep, page->ptl);
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch
 linux-next.patch
 
