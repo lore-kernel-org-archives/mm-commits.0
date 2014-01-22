@@ -1,102 +1,186 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch removed
- from -mm tree
-Date: Wed, 22 Jan 2014 12:13:14 -0800
-Message-ID: <52e0265a.D/+Zd8z9nq84+q9a%akpm@linux-foundation.org>
+ memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:13:10 -0800
+Message-ID: <52e02656.BlKqq0YCpU/RJ/FF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54513 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54489 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755685AbaAVUNP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:15 -0500
+	with ESMTP id S1755685AbaAVUNM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@parallels.com, bsingharora@gmail.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com, trenn@suse.de, toshi.kani@hp.com, tj@kernel.org, tglx@linutronix.de, rjw@sisk.pl, riel@redhat.com, prarit@redhat.com, mingo@elte.hu, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, lwoodman@redhat.com, liwanp@linux.vnet.ibm.com, lenb@kernel.org, laijs@cn.fujitsu.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, imtangchen@gmail.com, hpa@zytor.com, hannes@cmpxchg.org, gong.chen@linux.intel.com, tangchen@cn.fujitsu.com
 
-Subject: [merged] memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch removed from -mm tree
-To: vdavydov@parallels.com,bsingharora@gmail.com,glommer@parallels.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch removed from -mm tree
+To: tangchen@cn.fujitsu.com,gong.chen@linux.intel.com,hannes@cmpxchg.org,hpa@zytor.com,imtangchen@gmail.com,isimatu.yasuaki@jp.fujitsu.com,izumi.taku@jp.fujitsu.com,jiang.liu@huawei.com,laijs@cn.fujitsu.com,lenb@kernel.org,liwanp@linux.vnet.ibm.com,lwoodman@redhat.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,mingo@elte.hu,prarit@redhat.com,riel@redhat.com,rjw@sisk.pl,tglx@linutronix.de,tj@kernel.org,toshi.kani@hp.com,trenn@suse.de,vasilis.liaskovitis@profitbricks.com,wency@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:13:14 -0800
+Date: Wed, 22 Jan 2014 12:13:10 -0800
 
 
 The patch titled
-     Subject: memcg: fix kmem_account_flags check in memcg_can_account_kmem()
+     Subject: memblock, mem_hotplug: make memblock skip hotpluggable regions if needed
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem.patch
+     memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: fix kmem_account_flags check in memcg_can_account_kmem()
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: memblock, mem_hotplug: make memblock skip hotpluggable regions if needed
 
-We should start kmem accounting for a memory cgroup only after both its
-kmem limit is set (KMEM_ACCOUNTED_ACTIVE) and related call sites are
-patched (KMEM_ACCOUNTED_ACTIVATED).  Currently memcg_can_account_kmem()
-allows kmem accounting even if only one of the conditions is true.  Fix
-it.
+Linux kernel cannot migrate pages used by the kernel.  As a result,
+hotpluggable memory used by the kernel won't be able to be hot-removed. 
+To solve this problem, the basic idea is to prevent memblock from
+allocating hotpluggable memory for the kernel at early time, and arrange
+all hotpluggable memory in ACPI SRAT(System Resource Affinity Table) as
+ZONE_MOVABLE when initializing zones.
 
-This means that a page might get charged by memcg_kmem_newpage_charge
-which would see its static key patched already but
-memcg_kmem_commit_charge would still see it unpatched and so the charge
-won't be committed.  The result would be charge inconsistency (page_cgroup
-not marked as PageCgroupUsed) and the charge would leak because
-__memcg_kmem_uncharge_pages would ignore it.
+In the previous patches, we have marked hotpluggable memory regions with
+MEMBLOCK_HOTPLUG flag in memblock.memory.
 
-[mhocko@suse.cz: augment changelog]
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+In this patch, we make memblock skip these hotpluggable memory regions in
+the default top-down allocation function if movable_node boot option is
+specified.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: Chen Tang <imtangchen@gmail.com>
+Cc: Gong Chen <gong.chen@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jiang Liu <jiang.liu@huawei.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Glauber Costa <glommer@parallels.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Liu Jiang <jiang.liu@huawei.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/memblock.h |   24 ++++++++++++++++++++++++
+ mm/memblock.c            |   12 ++++++++++++
+ mm/memory_hotplug.c      |    1 +
+ 3 files changed, 37 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-kmem_account_flags-check-in-memcg_can_account_kmem
-+++ a/mm/memcontrol.c
-@@ -2959,7 +2959,8 @@ static DEFINE_MUTEX(set_limit_mutex);
- static inline bool memcg_can_account_kmem(struct mem_cgroup *memcg)
- {
- 	return !mem_cgroup_disabled() && !mem_cgroup_is_root(memcg) &&
--		(memcg->kmem_account_flags & KMEM_ACCOUNTED_MASK);
-+		(memcg->kmem_account_flags & KMEM_ACCOUNTED_MASK) ==
-+							KMEM_ACCOUNTED_MASK;
- }
+diff -puN include/linux/memblock.h~memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed include/linux/memblock.h
+--- a/include/linux/memblock.h~memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed
++++ a/include/linux/memblock.h
+@@ -47,6 +47,10 @@ struct memblock {
  
- /*
+ extern struct memblock memblock;
+ extern int memblock_debug;
++#ifdef CONFIG_MOVABLE_NODE
++/* If movable_node boot option specified */
++extern bool movable_node_enabled;
++#endif /* CONFIG_MOVABLE_NODE */
+ 
+ #define memblock_dbg(fmt, ...) \
+ 	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+@@ -65,6 +69,26 @@ int memblock_reserve(phys_addr_t base, p
+ void memblock_trim_memory(phys_addr_t align);
+ int memblock_mark_hotplug(phys_addr_t base, phys_addr_t size);
+ int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
++#ifdef CONFIG_MOVABLE_NODE
++static inline bool memblock_is_hotpluggable(struct memblock_region *m)
++{
++	return m->flags & MEMBLOCK_HOTPLUG;
++}
++
++static inline bool movable_node_is_enabled(void)
++{
++	return movable_node_enabled;
++}
++#else
++static inline bool memblock_is_hotpluggable(struct memblock_region *m)
++{
++	return false;
++}
++static inline bool movable_node_is_enabled(void)
++{
++	return false;
++}
++#endif
+ 
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ int memblock_search_pfn_nid(unsigned long pfn, unsigned long *start_pfn,
+diff -puN mm/memblock.c~memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed mm/memblock.c
+--- a/mm/memblock.c~memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed
++++ a/mm/memblock.c
+@@ -39,6 +39,9 @@ struct memblock memblock __initdata_memb
+ };
+ 
+ int memblock_debug __initdata_memblock;
++#ifdef CONFIG_MOVABLE_NODE
++bool movable_node_enabled __initdata_memblock = false;
++#endif
+ static int memblock_can_resize __initdata_memblock;
+ static int memblock_memory_in_slab __initdata_memblock = 0;
+ static int memblock_reserved_in_slab __initdata_memblock = 0;
+@@ -820,6 +823,11 @@ void __init_memblock __next_free_mem_ran
+  * @out_nid: ptr to int for nid of the range, can be %NULL
+  *
+  * Reverse of __next_free_mem_range().
++ *
++ * Linux kernel cannot migrate pages used by itself. Memory hotplug users won't
++ * be able to hot-remove hotpluggable memory used by the kernel. So this
++ * function skip hotpluggable regions if needed when allocating memory for the
++ * kernel.
+  */
+ void __init_memblock __next_free_mem_range_rev(u64 *idx, int nid,
+ 					   phys_addr_t *out_start,
+@@ -844,6 +852,10 @@ void __init_memblock __next_free_mem_ran
+ 		if (nid != MAX_NUMNODES && nid != memblock_get_region_node(m))
+ 			continue;
+ 
++		/* skip hotpluggable memory regions if needed */
++		if (movable_node_is_enabled() && memblock_is_hotpluggable(m))
++			continue;
++
+ 		/* scan areas before each reservation for intersection */
+ 		for ( ; ri >= 0; ri--) {
+ 			struct memblock_region *r = &rsv->regions[ri];
+diff -puN mm/memory_hotplug.c~memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memblock-mem_hotplug-make-memblock-skip-hotpluggable-regions-if-needed
++++ a/mm/memory_hotplug.c
+@@ -1446,6 +1446,7 @@ static int __init cmdline_parse_movable_
+ 	 * the kernel away from hotpluggable memory.
+ 	 */
+ 	memblock_set_bottom_up(true);
++	movable_node_enabled = true;
+ #else
+ 	pr_warn("movable_node option not supported\n");
+ #endif
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
 origin.patch
-memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
-slab-clean-up-kmem_cache_create_memcg-error-handling.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
-memcg-slab-clean-up-memcg-cache-initialization-destruction.patch
-memcg-slab-fix-barrier-usage-when-accessing-memcg_caches.patch
-memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
-memcg-slab-fix-races-in-per-memcg-cache-creation-destruction.patch
-memcg-get-rid-of-kmem_cache_dup.patch
-slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
-memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
-memcg-remove-kmem_accounted_activated-flag.patch
-memcg-rework-memcg_update_kmem_limit-synchronization.patch
-memcg-rework-memcg_update_kmem_limit-synchronization-fix.patch
-mm-vmscan-shrink-all-slab-objects-if-tight-on-memory.patch
-mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-memcg-remove-unused-code-from-kmem_cache_destroy_work_func.patch
+mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
+mm-free-memblockmemory-in-free_all_bootmem.patch
+mm-free-memblockmemory-in-free_all_bootmem-fix.patch
+mm-nobootmem-free_all_bootmem-again.patch
+mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch
 linux-next.patch
 
