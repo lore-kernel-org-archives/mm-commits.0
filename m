@@ -1,192 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-meminfo-provide-estimated-available-memory.patch
- removed from -mm tree
-Date: Wed, 22 Jan 2014 12:12:36 -0800
-Message-ID: <52e02634.J51SpRgUwoarpyHK%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:12:38 -0800
+Message-ID: <52e02636.JKv86tX2mhZR2ooV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54327 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54332 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755810AbaAVUMg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:36 -0500
+	with ESMTP id S1755810AbaAVUMj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, erik.mouw_2@nxp.com, riel@redhat.com
+To: mm-commits@vger.kernel.org, mgorman@suse.de, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
 
-Subject: [merged] proc-meminfo-provide-estimated-available-memory.patch removed from -mm tree
-To: riel@redhat.com,erik.mouw_2@nxp.com,hannes@cmpxchg.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch removed from -mm tree
+To: isimatu.yasuaki@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,mgorman@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:12:36 -0800
+Date: Wed, 22 Jan 2014 12:12:38 -0800
 
 
 The patch titled
-     Subject: /proc/meminfo: provide estimated available memory
+     Subject: mm: get rid of unnecessary pageblock scanning in setup_zone_migrate_reserve
 has been removed from the -mm tree.  Its filename was
-     proc-meminfo-provide-estimated-available-memory.patch
+     mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: /proc/meminfo: provide estimated available memory
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: mm: get rid of unnecessary pageblock scanning in setup_zone_migrate_reserve
 
-Many load balancing and workload placing programs check /proc/meminfo to
-estimate how much free memory is available.  They generally do this by
-adding up "free" and "cached", which was fine ten years ago, but is pretty
-much guaranteed to be wrong today.
+Yasuaki Ishimatsu reported memory hot-add spent more than 5 _hours_ on 9TB
+memory machine since onlining memory sections is too slow.  And we found
+out setup_zone_migrate_reserve spent >90% of the time.
 
-It is wrong because Cached includes memory that is not freeable as page
-cache, for example shared memory segments, tmpfs, and ramfs, and it does
-not include reclaimable slab memory, which can take up a large fraction of
-system memory on mostly idle systems with lots of files.
+The problem is, setup_zone_migrate_reserve scans all pageblocks
+unconditionally, but it is only necessary if the number of reserved block
+was reduced (i.e.  memory hot remove).
 
-Currently, the amount of memory that is available for a new workload,
-without pushing the system into swap, can be estimated from MemFree,
-Active(file), Inactive(file), and SReclaimable, as well as the "low"
-watermarks from /proc/zoneinfo.
+Moreover, maximum MIGRATE_RESERVE per zone is currently 2.  It means that
+the number of reserved pageblocks is almost always unchanged.
 
-However, this may change in the future, and user space really should not
-be expected to know kernel internals to come up with an estimate for the
-amount of free memory.
+This patch adds zone->nr_migrate_reserve_block to maintain the number of
+MIGRATE_RESERVE pageblocks and it reduces the overhead of
+setup_zone_migrate_reserve dramatically.  The following table shows time
+of onlining a memory section.
 
-It is more convenient to provide such an estimate in /proc/meminfo.  If
-things change in the future, we only have to change it in one place.
+  Amount of memory     | 128GB | 192GB | 256GB|
+  ---------------------------------------------
+  linux-3.12           |  23.9 |  31.4 | 44.5 |
+  This patch           |   8.3 |   8.3 |  8.6 |
+  Mel's proposal patch |  10.9 |  19.2 | 31.3 |
+  ---------------------------------------------
+                                   (millisecond)
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Reported-by: Erik Mouw <erik.mouw_2@nxp.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+  128GB : 4 nodes and each node has 32GB of memory
+  192GB : 6 nodes and each node has 32GB of memory
+  256GB : 8 nodes and each node has 32GB of memory
+
+  (*1) Mel proposed his idea by the following threads.
+       https://lkml.org/lkml/2013/10/30/272
+
+[akpm@linux-foundation.org: tweak comment]
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Reported-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    9 ++++++
- fs/proc/meminfo.c                  |   37 +++++++++++++++++++++++++++
- 2 files changed, 46 insertions(+)
+ include/linux/mmzone.h |    6 ++++++
+ mm/page_alloc.c        |   13 +++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff -puN Documentation/filesystems/proc.txt~proc-meminfo-provide-estimated-available-memory Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-meminfo-provide-estimated-available-memory
-+++ a/Documentation/filesystems/proc.txt
-@@ -767,6 +767,7 @@ The "Locked" indicates whether the mappi
+diff -puN include/linux/mmzone.h~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve
++++ a/include/linux/mmzone.h
+@@ -490,6 +490,12 @@ struct zone {
+ 	unsigned long		managed_pages;
  
- MemTotal:     16344972 kB
- MemFree:      13634064 kB
-+MemAvailable: 14836172 kB
- Buffers:          3656 kB
- Cached:        1195708 kB
- SwapCached:          0 kB
-@@ -799,6 +800,14 @@ AnonHugePages:   49152 kB
-     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
-               bits and the kernel binary code)
-      MemFree: The sum of LowFree+HighFree
-+MemAvailable: An estimate of how much memory is available for starting new
-+              applications, without swapping. Calculated from MemFree,
-+              SReclaimable, the size of the file LRU lists, and the low
-+              watermarks in each zone.
-+              The estimate takes into account that the system needs some
-+              page cache to function well, and that not all reclaimable
-+              slab will be reclaimable, due to items being in use. The
-+              impact of those factors will vary from system to system.
-      Buffers: Relatively temporary storage for raw disk blocks
-               shouldn't get tremendously large (20MB or so)
-       Cached: in-memory cache for files read from the disk (the
-diff -puN fs/proc/meminfo.c~proc-meminfo-provide-estimated-available-memory fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~proc-meminfo-provide-estimated-available-memory
-+++ a/fs/proc/meminfo.c
-@@ -26,7 +26,11 @@ static int meminfo_proc_show(struct seq_
- 	unsigned long committed;
- 	struct vmalloc_info vmi;
- 	long cached;
-+	long available;
-+	unsigned long pagecache;
-+	unsigned long wmark_low = 0;
- 	unsigned long pages[NR_LRU_LISTS];
-+	struct zone *zone;
- 	int lru;
- 
- /*
-@@ -47,12 +51,44 @@ static int meminfo_proc_show(struct seq_
- 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
- 		pages[lru] = global_page_state(NR_LRU_BASE + lru);
- 
-+	for_each_zone(zone)
-+		wmark_low += zone->watermark[WMARK_LOW];
-+
-+	/*
-+	 * Estimate the amount of memory available for userspace allocations,
-+	 * without causing swapping.
-+	 *
-+	 * Free memory cannot be taken below the low watermark, before the
-+	 * system starts swapping.
-+	 */
-+	available = i.freeram - wmark_low;
-+
-+	/*
-+	 * Not all the page cache can be freed, otherwise the system will
-+	 * start swapping. Assume at least half of the page cache, or the
-+	 * low watermark worth of cache, needs to stay.
-+	 */
-+	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
-+	pagecache -= min(pagecache / 2, wmark_low);
-+	available += pagecache;
-+
-+	/*
-+	 * Part of the reclaimable swap consists of items that are in use,
-+	 * and cannot be freed. Cap this estimate at the low watermark.
-+	 */
-+	available += global_page_state(NR_SLAB_RECLAIMABLE) -
-+		     min(global_page_state(NR_SLAB_RECLAIMABLE) / 2, wmark_low);
-+
-+	if (available < 0)
-+		available = 0;
-+
  	/*
- 	 * Tagged format, for easy grepping and expansion.
++	 * Number of MIGRATE_RESEVE page block. To maintain for just
++	 * optimization. Protected by zone->lock.
++	 */
++	int			nr_migrate_reserve_block;
++
++	/*
+ 	 * rarely used fields:
  	 */
- 	seq_printf(m,
- 		"MemTotal:       %8lu kB\n"
- 		"MemFree:        %8lu kB\n"
-+		"MemAvailable:   %8lu kB\n"
- 		"Buffers:        %8lu kB\n"
- 		"Cached:         %8lu kB\n"
- 		"SwapCached:     %8lu kB\n"
-@@ -105,6 +141,7 @@ static int meminfo_proc_show(struct seq_
- 		,
- 		K(i.totalram),
- 		K(i.freeram),
-+		K(available),
- 		K(i.bufferram),
- 		K(cached),
- 		K(total_swapcache_pages()),
+ 	const char		*name;
+diff -puN mm/page_alloc.c~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-get-rid-of-unnecessary-pageblock-scanning-in-setup_zone_migrate_reserve
++++ a/mm/page_alloc.c
+@@ -3901,6 +3901,7 @@ static void setup_zone_migrate_reserve(s
+ 	struct page *page;
+ 	unsigned long block_migratetype;
+ 	int reserve;
++	int old_reserve;
+ 
+ 	/*
+ 	 * Get the start pfn, end pfn and the number of blocks to reserve
+@@ -3922,6 +3923,12 @@ static void setup_zone_migrate_reserve(s
+ 	 * future allocation of hugepages at runtime.
+ 	 */
+ 	reserve = min(2, reserve);
++	old_reserve = zone->nr_migrate_reserve_block;
++
++	/* When memory hot-add, we almost always need to do nothing */
++	if (reserve == old_reserve)
++		return;
++	zone->nr_migrate_reserve_block = reserve;
+ 
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
+ 		if (!pfn_valid(pfn))
+@@ -3959,6 +3966,12 @@ static void setup_zone_migrate_reserve(s
+ 				reserve--;
+ 				continue;
+ 			}
++		} else if (!old_reserve) {
++			/*
++			 * At boot time we don't need to scan the whole zone
++			 * for turning off MIGRATE_RESERVE.
++			 */
++			break;
+ 		}
+ 
+ 		/*
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
 
 origin.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
-x86-mm-account-for-tlb-flushes-only-when-debugging.patch
-x86-mm-clean-up-inconsistencies-when-flushing-tlb-ranges.patch
-x86-mm-eliminate-redundant-page-table-walk-during-tlb-range-flushing.patch
-x86-mm-change-tlb_flushall_shift-for-ivybridge.patch
-mm-x86-revisit-tlb_flushall_shift-tuning-for-page-flushes-except-on-ivybridge.patch
-mm-munlock-fix-potential-race-with-thp-page-split.patch
-mm-vmscan-shrink-all-slab-objects-if-tight-on-memory.patch
-mm-vmscan-call-numa-unaware-shrinkers-irrespective-of-nodemask.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-kexec-add-sysctl-to-disable-kexec_load.patch
-ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races.patch
-ipc-change-kern_ipc_permdeleted-type-to-bool.patch
-ipc-standardize-code-comments.patch
-ipc-remove-braces-for-single-statements.patch
-ipc-remove-useless-return-statement.patch
-ipc-simplify-sysvipc_proc_open-return.patch
-ipc-delete-seq_max-field-in-struct-ipc_ids.patch
-ipcmsg-document-barriers.patch
+mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch
 linux-next.patch
-zsmalloc-move-it-under-mm.patch
-zram-promote-zram-from-staging.patch
 
