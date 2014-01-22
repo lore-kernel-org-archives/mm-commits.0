@@ -1,100 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
- removed from -mm tree
-Date: Wed, 22 Jan 2014 12:14:24 -0800
-Message-ID: <52e026a0.JSkio6R2pE1VUTL8%akpm@linux-foundation.org>
+Subject: [merged] x86-mm-memblock-switch-to-use-numa_no_node.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:14:30 -0800
+Message-ID: <52e026a6.nd/7JtUJ7R0bKaol%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54919 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756041AbaAVUOZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:14:25 -0500
+	with ESMTP id S1755804AbaAVUOb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:14:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, grygorii.strashko@ti.com, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, santosh.shilimkar@ti.com
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, tj@kernel.org, tglx@linutronix.de, sfr@canb.auug.org.au, santosh.shilimkar@ti.com, rientjes@google.com, mingo@redhat.com, hpa@zytor.com, grygorii.strashko@ti.com
 
-Subject: [merged] arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch removed from -mm tree
-To: santosh.shilimkar@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,grygorii.strashko@ti.com,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,tj@kernel.org,tony@atomide.com,yinghai@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] x86-mm-memblock-switch-to-use-numa_no_node.patch removed from -mm tree
+To: grygorii.strashko@ti.com,hpa@zytor.com,mingo@redhat.com,rientjes@google.com,santosh.shilimkar@ti.com,sfr@canb.auug.org.au,tglx@linutronix.de,tj@kernel.org,yinghai@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:14:24 -0800
+Date: Wed, 22 Jan 2014 12:14:30 -0800
 
 
 The patch titled
-     Subject: arch/arm/kernel/: use memblock apis for early memory allocations
+     Subject: x86/mm: memblock: switch to use NUMA_NO_NODE
 has been removed from the -mm tree.  Its filename was
-     arch-arm-kernel-use-memblock-apis-for-early-memory-allocations.patch
+     x86-mm-memblock-switch-to-use-numa_no_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: arch/arm/kernel/: use memblock apis for early memory allocations
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: x86/mm: memblock: switch to use NUMA_NO_NODE
 
-Switch to memblock interfaces for early memory allocator instead of
-bootmem allocator.  No functional change in beahvior than what it is in
-current code from bootmem users points of view.
+Update X86 code to use NUMA_NO_NODE instead of MAX_NUMNODES while calling
+memblock APIs, because memblock API will be changed to use NUMA_NO_NODE
+and will produce warning during boot otherwise.
 
-Archs already converted to NO_BOOTMEM now directly use memblock interfaces
-instead of bootmem wrappers build on top of memblock.  And the archs which
-still uses bootmem, these new apis just fallback to exiting bootmem APIs.
+See:
+ https://lkml.org/lkml/2013/12/9/898
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
 Cc: Yinghai Lu <yinghai@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/devtree.c |    2 +-
- arch/arm/kernel/setup.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/check.c |    2 +-
+ arch/x86/kernel/e820.c  |    2 +-
+ arch/x86/mm/memtest.c   |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/kernel/devtree.c~arch-arm-kernel-use-memblock-apis-for-early-memory-allocations arch/arm/kernel/devtree.c
---- a/arch/arm/kernel/devtree.c~arch-arm-kernel-use-memblock-apis-for-early-memory-allocations
-+++ a/arch/arm/kernel/devtree.c
-@@ -33,7 +33,7 @@ void __init early_init_dt_add_memory_arc
+diff -puN arch/x86/kernel/check.c~x86-mm-memblock-switch-to-use-numa_no_node arch/x86/kernel/check.c
+--- a/arch/x86/kernel/check.c~x86-mm-memblock-switch-to-use-numa_no_node
++++ a/arch/x86/kernel/check.c
+@@ -91,7 +91,7 @@ void __init setup_bios_corruption_check(
  
- void * __init early_init_dt_alloc_memory_arch(u64 size, u64 align)
- {
--	return alloc_bootmem_align(size, align);
-+	return memblock_virt_alloc(size, align);
- }
+ 	corruption_check_size = round_up(corruption_check_size, PAGE_SIZE);
  
- void __init arm_dt_memblock_reserve(void)
-diff -puN arch/arm/kernel/setup.c~arch-arm-kernel-use-memblock-apis-for-early-memory-allocations arch/arm/kernel/setup.c
---- a/arch/arm/kernel/setup.c~arch-arm-kernel-use-memblock-apis-for-early-memory-allocations
-+++ a/arch/arm/kernel/setup.c
-@@ -717,7 +717,7 @@ static void __init request_standard_reso
- 	kernel_data.end     = virt_to_phys(_end - 1);
+-	for_each_free_mem_range(i, MAX_NUMNODES, &start, &end, NULL) {
++	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL) {
+ 		start = clamp_t(phys_addr_t, round_up(start, PAGE_SIZE),
+ 				PAGE_SIZE, corruption_check_size);
+ 		end = clamp_t(phys_addr_t, round_down(end, PAGE_SIZE),
+diff -puN arch/x86/kernel/e820.c~x86-mm-memblock-switch-to-use-numa_no_node arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~x86-mm-memblock-switch-to-use-numa_no_node
++++ a/arch/x86/kernel/e820.c
+@@ -1120,7 +1120,7 @@ void __init memblock_find_dma_reserve(vo
+ 		nr_pages += end_pfn - start_pfn;
+ 	}
  
- 	for_each_memblock(memory, region) {
--		res = alloc_bootmem_low(sizeof(*res));
-+		res = memblock_virt_alloc(sizeof(*res), 0);
- 		res->name  = "System RAM";
- 		res->start = __pfn_to_phys(memblock_region_memory_base_pfn(region));
- 		res->end = __pfn_to_phys(memblock_region_memory_end_pfn(region)) - 1;
+-	for_each_free_mem_range(u, MAX_NUMNODES, &start, &end, NULL) {
++	for_each_free_mem_range(u, NUMA_NO_NODE, &start, &end, NULL) {
+ 		start_pfn = min_t(unsigned long, PFN_UP(start), MAX_DMA_PFN);
+ 		end_pfn = min_t(unsigned long, PFN_DOWN(end), MAX_DMA_PFN);
+ 		if (start_pfn < end_pfn)
+diff -puN arch/x86/mm/memtest.c~x86-mm-memblock-switch-to-use-numa_no_node arch/x86/mm/memtest.c
+--- a/arch/x86/mm/memtest.c~x86-mm-memblock-switch-to-use-numa_no_node
++++ a/arch/x86/mm/memtest.c
+@@ -74,7 +74,7 @@ static void __init do_one_pass(u64 patte
+ 	u64 i;
+ 	phys_addr_t this_start, this_end;
+ 
+-	for_each_free_mem_range(i, MAX_NUMNODES, &this_start, &this_end, NULL) {
++	for_each_free_mem_range(i, NUMA_NO_NODE, &this_start, &this_end, NULL) {
+ 		this_start = clamp_t(phys_addr_t, this_start, start, end);
+ 		this_end = clamp_t(phys_addr_t, this_end, start, end);
+ 		if (this_start < this_end) {
 _
 
-Patches currently in -mm which might be from santosh.shilimkar@ti.com are
+Patches currently in -mm which might be from grygorii.strashko@ti.com are
 
 origin.patch
 mm-nobootmem-free_all_bootmem-again.patch
+rtc-rtc-twl-use-devm_-functions.patch
+rtc-rtc-vr41xx-use-devm_-functions.patch
 linux-next.patch
 
