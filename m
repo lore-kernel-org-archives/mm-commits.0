@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + uapi-convert-u64-to-__u64-in-exported-headers.patch added to
- -mm tree
-Date: Wed, 22 Jan 2014 13:21:08 -0800
-Message-ID: <52e03644.O9xGTqSs4gVQEOVL%akpm@linux-foundation.org>
+Subject: +
+ mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch added
+ to -mm tree
+Date: Wed, 22 Jan 2014 13:22:20 -0800
+Message-ID: <52e0368c.v27OUQIyLOwuwguT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55667 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55673 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752668AbaAVVVK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 16:21:10 -0500
+	with ESMTP id S1752437AbaAVVWV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 16:22:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, vapier@gentoo.org
+To: mm-commits@vger.kernel.org, shli@fusionio.com, minchan@kernel.org, hughd@google.com, akinobu.mita@gmail.com, jamieliu@google.com
 
-Subject: + uapi-convert-u64-to-__u64-in-exported-headers.patch added to -mm tree
-To: vapier@gentoo.org,rientjes@google.com
+Subject: + mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch added to -mm tree
+To: jamieliu@google.com,akinobu.mita@gmail.com,hughd@google.com,minchan@kernel.org,shli@fusionio.com
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 13:21:08 -0800
+Date: Wed, 22 Jan 2014 13:22:20 -0800
 
 
 The patch titled
-     Subject: uapi: convert u64 to __u64 in exported headers
+     Subject: mm/swapfile.c: do not skip lowest_bit in scan_swap_map() scan loop
 has been added to the -mm tree.  Its filename is
-     uapi-convert-u64-to-__u64-in-exported-headers.patch
+     mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/uapi-convert-u64-to-__u64-in-exported-headers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/uapi-convert-u64-to-__u64-in-exported-headers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,53 +45,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: uapi: convert u64 to __u64 in exported headers
+From: Jamie Liu <jamieliu@google.com>
+Subject: mm/swapfile.c: do not skip lowest_bit in scan_swap_map() scan loop
 
-The u64 type is not defined in any exported kernel headers, so trying to
-use it will lead to build failures.
+In the second half of scan_swap_map()'s scan loop, offset is set to
+si->lowest_bit and then incremented before entering the loop for the first
+time, causing si->swap_map[si->lowest_bit] to be skipped.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Jamie Liu <jamieliu@google.com>
+Cc: Shaohua Li <shli@fusionio.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/nfs4.h       |    2 +-
- include/uapi/linux/perf_event.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/uapi/linux/nfs4.h~uapi-convert-u64-to-__u64-in-exported-headers include/uapi/linux/nfs4.h
---- a/include/uapi/linux/nfs4.h~uapi-convert-u64-to-__u64-in-exported-headers
-+++ a/include/uapi/linux/nfs4.h
-@@ -150,7 +150,7 @@
- #define NFS4_SECINFO_STYLE4_CURRENT_FH	0
- #define NFS4_SECINFO_STYLE4_PARENT	1
+diff -puN mm/swapfile.c~mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop mm/swapfile.c
+--- a/mm/swapfile.c~mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop
++++ a/mm/swapfile.c
+@@ -616,7 +616,7 @@ scan:
+ 		}
+ 	}
+ 	offset = si->lowest_bit;
+-	while (++offset < scan_base) {
++	while (offset < scan_base) {
+ 		if (!si->swap_map[offset]) {
+ 			spin_lock(&si->lock);
+ 			goto checks;
+@@ -629,6 +629,7 @@ scan:
+ 			cond_resched();
+ 			latency_ration = LATENCY_LIMIT;
+ 		}
++		offset++;
+ 	}
+ 	spin_lock(&si->lock);
  
--#define NFS4_MAX_UINT64	(~(u64)0)
-+#define NFS4_MAX_UINT64	(~(__u64)0)
- 
- /* An NFS4 sessions server must support at least NFS4_MAX_OPS operations.
-  * If a compound requires more operations, adjust NFS4_MAX_OPS accordingly.
-diff -puN include/uapi/linux/perf_event.h~uapi-convert-u64-to-__u64-in-exported-headers include/uapi/linux/perf_event.h
---- a/include/uapi/linux/perf_event.h~uapi-convert-u64-to-__u64-in-exported-headers
-+++ a/include/uapi/linux/perf_event.h
-@@ -788,7 +788,7 @@ union perf_mem_data_src {
- #define PERF_MEM_TLB_SHIFT	26
- 
- #define PERF_MEM_S(a, s) \
--	(((u64)PERF_MEM_##a##_##s) << PERF_MEM_##a##_SHIFT)
-+	(((__u64)PERF_MEM_##a##_##s) << PERF_MEM_##a##_SHIFT)
- 
- /*
-  * single taken branch record layout:
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from jamieliu@google.com are
 
-include-uapi-linux-ppp-ioctlh-pull-in-ppp_defsh.patch
-include-uapi-linux-dnh-pull-in-ioctlh-header.patch
-uapi-convert-u64-to-__u64-in-exported-headers.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-linux-next.patch
+mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch
 
