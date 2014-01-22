@@ -1,51 +1,49 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
- removed from -mm tree
-Date: Wed, 22 Jan 2014 12:15:06 -0800
-Message-ID: <52e026ca.1tApOht6PCtpt4qy%akpm@linux-foundation.org>
+ mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:15:08 -0800
+Message-ID: <52e026cc.weVr2E57mEWSdv51%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55061 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55070 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752737AbaAVUPH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:15:07 -0500
+	with ESMTP id S1756142AbaAVUPJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:15:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
 
-Subject: [merged] mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch removed from -mm tree
+Subject: [merged] mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch removed from -mm tree
 To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:15:06 -0800
+Date: Wed, 22 Jan 2014 12:15:08 -0800
 
 
 The patch titled
-     Subject: mm/migrate: correct failure handling if !hugepage_migration_support()
+     Subject: mm/migrate: remove putback_lru_pages, fix comment on putback_movable_pages
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-correct-failure-handling-if-hugepage_migration_support.patch
+     mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/migrate: correct failure handling if !hugepage_migration_support()
+Subject: mm/migrate: remove putback_lru_pages, fix comment on putback_movable_pages
 
-We should remove the page from the list if we fail with ENOSYS, since
-migrate_pages() consider error cases except -ENOMEM and -EAGAIN as
-permanent failure and it assumes that the page would be removed from the
-list.  Without this patch, we could overcount number of failure.
+Some part of putback_lru_pages() and putback_movable_pages() is
+duplicated, so it could confuse us what we should use.  We can remove
+putback_lru_pages() since it is not really needed now.  This makes us
+undestand and maintain the code more easily.
 
-In addition, we should put back the new hugepage if
-!hugepage_migration_support().  If not, we would leak hugepage memory.
+And comment on putback_movable_pages() is stale now, so fix it.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Christoph Lameter <cl@linux.com>
 Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Rafael Aquini <aquini@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
@@ -56,35 +54,97 @@ Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/migrate.h |    2 --
+ mm/memory-failure.c     |    8 +++++++-
+ mm/migrate.c            |   29 +++++++++--------------------
+ 3 files changed, 16 insertions(+), 23 deletions(-)
 
-diff -puN mm/migrate.c~mm-migrate-correct-failure-handling-if-hugepage_migration_support mm/migrate.c
---- a/mm/migrate.c~mm-migrate-correct-failure-handling-if-hugepage_migration_support
+diff -puN include/linux/migrate.h~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages
++++ a/include/linux/migrate.h
+@@ -35,7 +35,6 @@ enum migrate_reason {
+ 
+ #ifdef CONFIG_MIGRATION
+ 
+-extern void putback_lru_pages(struct list_head *l);
+ extern void putback_movable_pages(struct list_head *l);
+ extern int migrate_page(struct address_space *,
+ 			struct page *, struct page *, enum migrate_mode);
+@@ -59,7 +58,6 @@ extern int migrate_page_move_mapping(str
+ 		int extra_count);
+ #else
+ 
+-static inline void putback_lru_pages(struct list_head *l) {}
+ static inline void putback_movable_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+ 		unsigned long private, enum migrate_mode mode, int reason)
+diff -puN mm/memory-failure.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages
++++ a/mm/memory-failure.c
+@@ -1585,7 +1585,13 @@ static int __soft_offline_page(struct pa
+ 		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL,
+ 					MIGRATE_SYNC, MR_MEMORY_FAILURE);
+ 		if (ret) {
+-			putback_lru_pages(&pagelist);
++			if (!list_empty(&pagelist)) {
++				list_del(&page->lru);
++				dec_zone_page_state(page, NR_ISOLATED_ANON +
++						page_is_file_cache(page));
++				putback_lru_page(page);
++			}
++
+ 			pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
+ 				pfn, ret, page->flags);
+ 			if (ret > 0)
+diff -puN mm/migrate.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-remove-putback_lru_pages-fix-comment-on-putback_movable_pages
 +++ a/mm/migrate.c
-@@ -1013,7 +1013,7 @@ static int unmap_and_move_huge_page(new_
+@@ -72,28 +72,12 @@ int migrate_prep_local(void)
+ }
+ 
+ /*
+- * Add isolated pages on the list back to the LRU under page lock
+- * to avoid leaking evictable pages back onto unevictable list.
+- */
+-void putback_lru_pages(struct list_head *l)
+-{
+-	struct page *page;
+-	struct page *page2;
+-
+-	list_for_each_entry_safe(page, page2, l, lru) {
+-		list_del(&page->lru);
+-		dec_zone_page_state(page, NR_ISOLATED_ANON +
+-				page_is_file_cache(page));
+-			putback_lru_page(page);
+-	}
+-}
+-
+-/*
+  * Put previously isolated pages back onto the appropriate lists
+  * from where they were once taken off for compaction/migration.
+  *
+- * This function shall be used instead of putback_lru_pages(),
+- * whenever the isolated pageset has been built by isolate_migratepages_range()
++ * This function shall be used whenever the isolated pageset has been
++ * built from lru, balloon, hugetlbfs page. See isolate_migratepages_range()
++ * and isolate_huge_page().
+  */
+ void putback_movable_pages(struct list_head *l)
  {
- 	int rc = 0;
- 	int *result = NULL;
--	struct page *new_hpage = get_new_page(hpage, private, &result);
-+	struct page *new_hpage;
- 	struct anon_vma *anon_vma = NULL;
- 
- 	/*
-@@ -1023,9 +1023,12 @@ static int unmap_and_move_huge_page(new_
- 	 * tables or check whether the hugepage is pmd-based or not before
- 	 * kicking migration.
- 	 */
--	if (!hugepage_migration_support(page_hstate(hpage)))
-+	if (!hugepage_migration_support(page_hstate(hpage))) {
-+		putback_active_hugepage(hpage);
- 		return -ENOSYS;
-+	}
- 
-+	new_hpage = get_new_page(hpage, private, &result);
- 	if (!new_hpage)
- 		return -ENOMEM;
- 
+@@ -1725,7 +1709,12 @@ int migrate_misplaced_page(struct page *
+ 	nr_remaining = migrate_pages(&migratepages, alloc_misplaced_dst_page,
+ 				     node, MIGRATE_ASYNC, MR_NUMA_MISPLACED);
+ 	if (nr_remaining) {
+-		putback_lru_pages(&migratepages);
++		if (!list_empty(&migratepages)) {
++			list_del(&page->lru);
++			dec_zone_page_state(page, NR_ISOLATED_ANON +
++					page_is_file_cache(page));
++			putback_lru_page(page);
++		}
+ 		isolated = 0;
+ 	} else
+ 		count_vm_numa_event(NUMA_PAGE_MIGRATE);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
