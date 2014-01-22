@@ -1,38 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch removed
- from -mm tree
-Date: Wed, 22 Jan 2014 12:14:04 -0800
-Message-ID: <52e0268c.KalMfg3K/EwDKPl5%akpm@linux-foundation.org>
+ mm-sparse-use-memblock-apis-for-early-memory-allocations.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:14:12 -0800
+Message-ID: <52e02694.Lvzbf1qQuIngFIY9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54839 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755848AbaAVUOF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:14:05 -0500
+	with ESMTP id S1753134AbaAVUON (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:14:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, grygorii.strashko@ti.com, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, santosh.shilimkar@ti.com
 
-Subject: [merged] mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch removed from -mm tree
+Subject: [merged] mm-sparse-use-memblock-apis-for-early-memory-allocations.patch removed from -mm tree
 To: santosh.shilimkar@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,grygorii.strashko@ti.com,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,tj@kernel.org,tony@atomide.com,yinghai@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:14:04 -0800
+Date: Wed, 22 Jan 2014 12:14:12 -0800
 
 
 The patch titled
-     Subject: mm/page_alloc.c: use memblock apis for early memory allocations
+     Subject: mm/sparse: use memblock apis for early memory allocations
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-use-memblock-apis-for-early-memory-allocations.patch
+     mm-sparse-use-memblock-apis-for-early-memory-allocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: mm/page_alloc.c: use memblock apis for early memory allocations
+Subject: mm/sparse: use memblock apis for early memory allocations
 
 Switch to memblock interfaces for early memory allocator instead of
 bootmem allocator.  No functional change in beahvior than what it is in
@@ -42,14 +41,12 @@ Archs already converted to NO_BOOTMEM now directly use memblock interfaces
 instead of bootmem wrappers build on top of memblock.  And the archs which
 still uses bootmem, these new apis just fallback to exiting bootmem APIs.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
 Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -58,96 +55,126 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Pavel Machek <pavel@ucw.cz>
 Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ mm/sparse-vmemmap.c |    6 ++++--
+ mm/sparse.c         |   27 +++++++++++++++------------
+ 2 files changed, 19 insertions(+), 14 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-use-memblock-apis-for-early-memory-allocations mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-use-memblock-apis-for-early-memory-allocations
-+++ a/mm/page_alloc.c
-@@ -4215,7 +4215,6 @@ static noinline __init_refok
- int zone_wait_table_init(struct zone *zone, unsigned long zone_size_pages)
+diff -puN mm/sparse-vmemmap.c~mm-sparse-use-memblock-apis-for-early-memory-allocations mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~mm-sparse-use-memblock-apis-for-early-memory-allocations
++++ a/mm/sparse-vmemmap.c
+@@ -40,7 +40,8 @@ static void * __init_refok __earlyonly_b
+ 				unsigned long align,
+ 				unsigned long goal)
  {
- 	int i;
--	struct pglist_data *pgdat = zone->zone_pgdat;
- 	size_t alloc_size;
+-	return __alloc_bootmem_node_high(NODE_DATA(node), size, align, goal);
++	return memblock_virt_alloc_try_nid(size, align, goal,
++					    BOOTMEM_ALLOC_ACCESSIBLE, node);
+ }
  
- 	/*
-@@ -4231,7 +4230,8 @@ int zone_wait_table_init(struct zone *zo
+ static void *vmemmap_buf;
+@@ -226,7 +227,8 @@ void __init sparse_mem_maps_populate_nod
  
- 	if (!slab_is_available()) {
- 		zone->wait_table = (wait_queue_head_t *)
--			alloc_bootmem_node_nopanic(pgdat, alloc_size);
-+			memblock_virt_alloc_node_nopanic(
-+				alloc_size, zone->zone_pgdat->node_id);
+ 	if (vmemmap_buf_start) {
+ 		/* need to free left buf */
+-		free_bootmem(__pa(vmemmap_buf), vmemmap_buf_end - vmemmap_buf);
++		memblock_free_early(__pa(vmemmap_buf),
++				    vmemmap_buf_end - vmemmap_buf);
+ 		vmemmap_buf = NULL;
+ 		vmemmap_buf_end = NULL;
+ 	}
+diff -puN mm/sparse.c~mm-sparse-use-memblock-apis-for-early-memory-allocations mm/sparse.c
+--- a/mm/sparse.c~mm-sparse-use-memblock-apis-for-early-memory-allocations
++++ a/mm/sparse.c
+@@ -69,7 +69,7 @@ static struct mem_section noinline __ini
+ 		else
+ 			section = kzalloc(array_size, GFP_KERNEL);
  	} else {
- 		/*
- 		 * This case means that a zone whose size was 0 gets new memory
-@@ -4351,13 +4351,14 @@ bool __meminit early_pfn_in_nid(unsigned
- #endif
+-		section = alloc_bootmem_node(NODE_DATA(nid), array_size);
++		section = memblock_virt_alloc_node(array_size, nid);
+ 	}
  
- /**
-- * free_bootmem_with_active_regions - Call free_bootmem_node for each active range
-+ * free_bootmem_with_active_regions - Call memblock_free_early_nid for each active range
-  * @nid: The node to free memory on. If MAX_NUMNODES, all nodes are freed.
-- * @max_low_pfn: The highest PFN that will be passed to free_bootmem_node
-+ * @max_low_pfn: The highest PFN that will be passed to memblock_free_early_nid
-  *
-  * If an architecture guarantees that all ranges registered with
-  * add_active_ranges() contain no holes and may be freed, this
-- * this function may be used instead of calling free_bootmem() manually.
-+ * this function may be used instead of calling memblock_free_early_nid()
-+ * manually.
-  */
- void __init free_bootmem_with_active_regions(int nid, unsigned long max_low_pfn)
+ 	return section;
+@@ -279,8 +279,9 @@ sparse_early_usemaps_alloc_pgdat_section
+ 	limit = goal + (1UL << PA_SECTION_SHIFT);
+ 	nid = early_pfn_to_nid(goal >> PAGE_SHIFT);
+ again:
+-	p = ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size,
+-					  SMP_CACHE_BYTES, goal, limit);
++	p = memblock_virt_alloc_try_nid_nopanic(size,
++						SMP_CACHE_BYTES, goal, limit,
++						nid);
+ 	if (!p && limit) {
+ 		limit = 0;
+ 		goto again;
+@@ -331,7 +332,7 @@ static unsigned long * __init
+ sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
+ 					 unsigned long size)
  {
-@@ -4369,9 +4370,9 @@ void __init free_bootmem_with_active_reg
- 		end_pfn = min(end_pfn, max_low_pfn);
- 
- 		if (start_pfn < end_pfn)
--			free_bootmem_node(NODE_DATA(this_nid),
--					  PFN_PHYS(start_pfn),
--					  (end_pfn - start_pfn) << PAGE_SHIFT);
-+			memblock_free_early_nid(PFN_PHYS(start_pfn),
-+					(end_pfn - start_pfn) << PAGE_SHIFT,
-+					this_nid);
- 	}
+-	return alloc_bootmem_node_nopanic(pgdat, size);
++	return memblock_virt_alloc_node_nopanic(size, pgdat->node_id);
  }
  
-@@ -4642,8 +4643,9 @@ static void __init setup_usemap(struct p
- 	unsigned long usemapsize = usemap_size(zone_start_pfn, zonesize);
- 	zone->pageblock_flags = NULL;
- 	if (usemapsize)
--		zone->pageblock_flags = alloc_bootmem_node_nopanic(pgdat,
--								   usemapsize);
-+		zone->pageblock_flags =
-+			memblock_virt_alloc_node_nopanic(usemapsize,
-+							 pgdat->node_id);
+ static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
+@@ -376,8 +377,9 @@ struct page __init *sparse_mem_map_popul
+ 		return map;
+ 
+ 	size = PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
+-	map = __alloc_bootmem_node_high(NODE_DATA(nid), size,
+-					 PAGE_SIZE, __pa(MAX_DMA_ADDRESS));
++	map = memblock_virt_alloc_try_nid(size,
++					  PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
++					  BOOTMEM_ALLOC_ACCESSIBLE, nid);
+ 	return map;
  }
- #else
- static inline void setup_usemap(struct pglist_data *pgdat, struct zone *zone,
-@@ -4837,7 +4839,8 @@ static void __init_refok alloc_node_mem_
- 		size =  (end - start) * sizeof(struct page);
- 		map = alloc_remap(pgdat->node_id, size);
- 		if (!map)
--			map = alloc_bootmem_node_nopanic(pgdat, size);
-+			map = memblock_virt_alloc_node_nopanic(size,
-+							       pgdat->node_id);
- 		pgdat->node_mem_map = map + (pgdat->node_start_pfn - start);
+ void __init sparse_mem_maps_populate_node(struct page **map_map,
+@@ -401,8 +403,9 @@ void __init sparse_mem_maps_populate_nod
  	}
- #ifndef CONFIG_NEED_MULTIPLE_NODES
-@@ -5887,7 +5890,7 @@ void *__init alloc_large_system_hash(con
- 	do {
- 		size = bucketsize << log2qty;
- 		if (flags & HASH_EARLY)
--			table = alloc_bootmem_nopanic(size);
-+			table = memblock_virt_alloc_nopanic(size, 0);
- 		else if (hashdist)
- 			table = __vmalloc(size, GFP_ATOMIC, PAGE_KERNEL);
- 		else {
+ 
+ 	size = PAGE_ALIGN(size);
+-	map = __alloc_bootmem_node_high(NODE_DATA(nodeid), size * map_count,
+-					 PAGE_SIZE, __pa(MAX_DMA_ADDRESS));
++	map = memblock_virt_alloc_try_nid(size * map_count,
++					  PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
++					  BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
+ 	if (map) {
+ 		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
+ 			if (!present_section_nr(pnum))
+@@ -545,7 +548,7 @@ void __init sparse_init(void)
+ 	 * sparse_early_mem_map_alloc, so allocate usemap_map at first.
+ 	 */
+ 	size = sizeof(unsigned long *) * NR_MEM_SECTIONS;
+-	usemap_map = alloc_bootmem(size);
++	usemap_map = memblock_virt_alloc(size, 0);
+ 	if (!usemap_map)
+ 		panic("can not allocate usemap_map\n");
+ 	alloc_usemap_and_memmap(sparse_early_usemaps_alloc_node,
+@@ -553,7 +556,7 @@ void __init sparse_init(void)
+ 
+ #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
+ 	size2 = sizeof(struct page *) * NR_MEM_SECTIONS;
+-	map_map = alloc_bootmem(size2);
++	map_map = memblock_virt_alloc(size2, 0);
+ 	if (!map_map)
+ 		panic("can not allocate map_map\n");
+ 	alloc_usemap_and_memmap(sparse_early_mem_maps_alloc_node,
+@@ -583,9 +586,9 @@ void __init sparse_init(void)
+ 	vmemmap_populate_print_last();
+ 
+ #ifdef CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER
+-	free_bootmem(__pa(map_map), size2);
++	memblock_free_early(__pa(map_map), size2);
+ #endif
+-	free_bootmem(__pa(usemap_map), size);
++	memblock_free_early(__pa(usemap_map), size);
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
 _
 
 Patches currently in -mm which might be from santosh.shilimkar@ti.com are
