@@ -1,142 +1,114 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch removed from -mm tree
-Date: Wed, 22 Jan 2014 12:13:40 -0800
-Message-ID: <52e02674.3ojhIzxEDDLd5Ocd%akpm@linux-foundation.org>
+ mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
+ removed from -mm tree
+Date: Wed, 22 Jan 2014 12:13:46 -0800
+Message-ID: <52e0267a.72ZGpomq0OPOImMr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54629 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54663 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752861AbaAVUNl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:41 -0500
+	with ESMTP id S1756108AbaAVUNr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:13:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xindong.ma@intel.com, xiaobing.tu@intel.com, snanda@chromium.org, rientjes@google.com, msb@chromium.org, mhocko@suse.cz, fweisbec@gmail.com, ebiederm@xmission.com, dserrg@gmail.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, tony@atomide.com, tj@kernel.org, santosh.shilimkar@ti.com, rjw@sisk.pl, pavel@ucw.cz, paul@pwsan.com, mhocko@suse.cz, linux@arm.linux.org.uk, konrad.wilk@oracle.com, kamezawa.hiroyu@jp.fujitsu.com, hpa@zytor.com, hannes@cmpxchg.org, gregkh@linuxfoundation.org, cl@linux-foundation.org, arnd@arndb.de, grygorii.strashko@ti.com
 
-Subject: [merged] oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch removed from -mm tree
-To: oleg@redhat.com,dserrg@gmail.com,ebiederm@xmission.com,fweisbec@gmail.com,mhocko@suse.cz,msb@chromium.org,rientjes@google.com,snanda@chromium.org,xiaobing.tu@intel.com,xindong.ma@intel.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch removed from -mm tree
+To: grygorii.strashko@ti.com,arnd@arndb.de,cl@linux-foundation.org,gregkh@linuxfoundation.org,hannes@cmpxchg.org,hpa@zytor.com,kamezawa.hiroyu@jp.fujitsu.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mhocko@suse.cz,paul@pwsan.com,pavel@ucw.cz,rjw@sisk.pl,santosh.shilimkar@ti.com,tj@kernel.org,tony@atomide.com,yinghai@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:13:40 -0800
+Date: Wed, 22 Jan 2014 12:13:46 -0800
 
 
 The patch titled
-     Subject: oom_kill: has_intersects_mems_allowed() needs rcu_read_lock()
+     Subject: mm/memblock: debug: don't free reserved array if !ARCH_DISCARD_MEMBLOCK
 has been removed from the -mm tree.  Its filename was
-     oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
+     mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: oom_kill: has_intersects_mems_allowed() needs rcu_read_lock()
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: mm/memblock: debug: don't free reserved array if !ARCH_DISCARD_MEMBLOCK
 
-At least out_of_memory() calls has_intersects_mems_allowed() without even
-rcu_read_lock(), this is obviously buggy.
+Now the Nobootmem allocator will always try to free memory allocated for
+reserved memory regions (free_low_memory_core_early()) without taking into
+to account current memblock debugging configuration
+(CONFIG_ARCH_DISCARD_MEMBLOCK and CONFIG_DEBUG_FS state).  As result if:
 
-Add the necessary rcu_read_lock().  This means that we can not simply
-return from the loop, we need "bool ret" and "break".
+ - CONFIG_DEBUG_FS defined
+ - CONFIG_ARCH_DISCARD_MEMBLOCK not defined;
+-  reserved memory regions array have been resized during boot
 
-While at it, swap the names of task_struct's (the argument and the local).
-This cleans up the code a little bit and avoids the unnecessary
-initialization.
+then:
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Sergey Dyasly <dserrg@gmail.com>
-Tested-by: Sergey Dyasly <dserrg@gmail.com>
-Reviewed-by: Sameer Nanda <snanda@chromium.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Mandeep Singh Baines <msb@chromium.org>
-Cc: "Ma, Xindong" <xindong.ma@intel.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: "Tu, Xiaobing" <xiaobing.tu@intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
+- memory allocated for reserved memory regions array will be freed to
+  buddy allocator;
+- debug_fs entry "sys/kernel/debug/memblock/reserved" will show garbage
+  instead of state of memory reservations. like:
+   0: 0x98393bc0..0x9a393bbf
+   1: 0xff120000..0xff11ffff
+   2: 0x00000000..0xffffffff
+
+Hence, do not free memory allocated for reserved memory regions if
+defined(CONFIG_DEBUG_FS) && !defined(CONFIG_ARCH_DISCARD_MEMBLOCK).
+
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ mm/memblock.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN mm/oom_kill.c~oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock mm/oom_kill.c
---- a/mm/oom_kill.c~oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock
-+++ a/mm/oom_kill.c
-@@ -47,18 +47,20 @@ static DEFINE_SPINLOCK(zone_scan_lock);
- #ifdef CONFIG_NUMA
- /**
-  * has_intersects_mems_allowed() - check task eligiblity for kill
-- * @tsk: task struct of which task to consider
-+ * @start: task struct of which task to consider
-  * @mask: nodemask passed to page allocator for mempolicy ooms
-  *
-  * Task eligibility is determined by whether or not a candidate task, @tsk,
-  * shares the same mempolicy nodes as current if it is bound by such a policy
-  * and whether or not it has the same set of allowed cpuset nodes.
-  */
--static bool has_intersects_mems_allowed(struct task_struct *tsk,
-+static bool has_intersects_mems_allowed(struct task_struct *start,
- 					const nodemask_t *mask)
- {
--	struct task_struct *start = tsk;
-+	struct task_struct *tsk;
-+	bool ret = false;
+diff -puN mm/memblock.c~mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-debug-dont-free-reserved-array-if-arch_discard_memblock
++++ a/mm/memblock.c
+@@ -269,6 +269,19 @@ phys_addr_t __init_memblock get_allocate
+ 	if (memblock.reserved.regions == memblock_reserved_init_regions)
+ 		return 0;
  
-+	rcu_read_lock();
- 	for_each_thread(start, tsk) {
- 		if (mask) {
- 			/*
-@@ -67,19 +69,20 @@ static bool has_intersects_mems_allowed(
- 			 * mempolicy intersects current, otherwise it may be
- 			 * needlessly killed.
- 			 */
--			if (mempolicy_nodemask_intersects(tsk, mask))
--				return true;
-+			ret = mempolicy_nodemask_intersects(tsk, mask);
- 		} else {
- 			/*
- 			 * This is not a mempolicy constrained oom, so only
- 			 * check the mems of tsk's cpuset.
- 			 */
--			if (cpuset_mems_allowed_intersects(current, tsk))
--				return true;
-+			ret = cpuset_mems_allowed_intersects(current, tsk);
- 		}
-+		if (ret)
-+			break;
- 	}
-+	rcu_read_unlock();
++	/*
++	 * Don't allow nobootmem allocator to free reserved memory regions
++	 * array if
++	 *  - CONFIG_DEBUG_FS is enabled;
++	 *  - CONFIG_ARCH_DISCARD_MEMBLOCK is not enabled;
++	 *  - reserved memory regions array have been resized during boot.
++	 * Otherwise debug_fs entry "sys/kernel/debug/memblock/reserved"
++	 * will show garbage instead of state of memory reservations.
++	 */
++	if (IS_ENABLED(CONFIG_DEBUG_FS) &&
++	    !IS_ENABLED(CONFIG_ARCH_DISCARD_MEMBLOCK))
++		return 0;
++
+ 	*addr = __pa(memblock.reserved.regions);
  
--	return false;
-+	return ret;
- }
- #else
- static bool has_intersects_mems_allowed(struct task_struct *tsk,
+ 	return PAGE_ALIGN(sizeof(struct memblock_region) *
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from grygorii.strashko@ti.com are
 
 origin.patch
-mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch
-autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
-autofs4-translate-pids-to-the-right-namespace-for-the-daemon.patch
-coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
-coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
-coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
-proc-cleanup-simplify-get_task_state-task_state_array.patch
-proc-fix-the-potential-use-after-free-in-first_tid.patch
-proc-change-first_tid-to-use-while_each_thread-rather-than-next_thread.patch
-proc-dont-abuse-group_leader-in-proc_task_readdir-paths.patch
-proc-fix-f_pos-overflows-in-first_tid.patch
-kernel-forkc-remove-redundant-null-check-in-dup_mm.patch
-exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
-exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
-exec-move-the-final-allow_write_access-fput-into-free_bprm.patch
-exec-kill-task_struct-did_exec.patch
-fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
-kernel-sysc-k_getrusage-can-use-while_each_thread.patch
-kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch
-exec-avoid-propagating-pf_no_setaffinity-into-userspace-child.patch
+mm-nobootmem-free_all_bootmem-again.patch
+rtc-rtc-twl-use-devm_-functions.patch
+rtc-rtc-vr41xx-use-devm_-functions.patch
 linux-next.patch
 
