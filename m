@@ -1,123 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch added to
- -mm tree
-Date: Tue, 21 Jan 2014 16:18:46 -0800
-Message-ID: <52df0e66.4I7W9crnhLrruIPE%akpm@linux-foundation.org>
+Subject: [merged]
+ drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress.patch removed from -mm tree
+Date: Wed, 22 Jan 2014 12:00:21 -0800
+Message-ID: <52e02355.ZxeiVoVD51uKgV2I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45837 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996AbaAVASr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jan 2014 19:18:47 -0500
+	with ESMTP id S1752523AbaAVUAW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:00:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, gthelen@google.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, robdclark@gmail.com, khlebnikov@openvz.org, airlied@gmail.com, daniel.vetter@ffwll.ch
 
-Subject: + mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch added to -mm tree
-To: rientjes@google.com,gthelen@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz
+Subject: [merged] drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress.patch removed from -mm tree
+To: daniel.vetter@ffwll.ch,airlied@gmail.com,khlebnikov@openvz.org,robdclark@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 21 Jan 2014 16:18:46 -0800
+Date: Wed, 22 Jan 2014 12:00:21 -0800
 
 
 The patch titled
-     Subject: mm, oom: prefer thread group leaders for display purposes fix
-has been added to the -mm tree.  Its filename is
-     mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
+     Subject: drm/fb-helper: don't sleep for screen unblank when an oops is in progress
+has been removed from the -mm tree.  Its filename was
+     drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: prefer thread group leaders for display purposes fix
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: drm/fb-helper: don't sleep for screen unblank when an oops is in progress
 
-If oom_badness() returns 0 for an oom disabled process before a process
-has actually been chosen for kill, there will be a NULL pointer
-dereference when doing thread_group_leader(chosen).
+Otherwise the system will burn even brighter and worse, leave the user
+wondering what's going on exactly.
 
-Make sure oom disabled processes aren't even considered to prevent the
-bug.
+Since we already have a panic handler which will (try) to restore the
+entire fbdev console mode, we can just bail out.  Inspired by a patch from
+Konstantin Khlebnikov.  The callchain leading to this, cut&pasted from
+Konstantin's original patch:
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+callstack:
+panic()
+bust_spinlocks(1)
+unblank_screen()
+vc->vc_sw->con_blank()
+fbcon_blank()
+fb_blank()
+info->fbops->fb_blank()
+drm_fb_helper_blank()
+drm_fb_helper_dpms()
+drm_modeset_lock_all()
+mutex_lock(&dev->mode_config.mutex)
+
+Note that the entire locking in the fb helper around panic/sysrq and kdbg
+is ...  non-existant.  So we have a decent change of blowing up
+everything.  But since reworking this ties in with funny concepts like the
+fbdev notifier chain or the impressive things which happen around
+console_lock while oopsing, I'll leave that as an exercise for braver
+souls than me.
+
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Dave Airlie <airlied@gmail.com>
+Reviewed-by: Rob Clark <robdclark@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- mm/oom_kill.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/drm_fb_helper.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/memcontrol.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix
-+++ a/mm/memcontrol.c
-@@ -1800,7 +1800,7 @@ static void mem_cgroup_out_of_memory(str
- 				break;
- 			};
- 			points = oom_badness(task, memcg, NULL, totalpages);
--			if (points < chosen_points)
-+			if (!points || points < chosen_points)
- 				continue;
- 			/* Prefer thread group leaders for display purposes */
- 			if (points == chosen_points &&
-diff -puN mm/oom_kill.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix
-+++ a/mm/oom_kill.c
-@@ -327,7 +327,7 @@ static struct task_struct *select_bad_pr
- 			break;
- 		};
- 		points = oom_badness(p, NULL, nodemask, totalpages);
--		if (points < chosen_points)
-+		if (!points || points < chosen_points)
- 			continue;
- 		/* Prefer thread group leaders for display purposes */
- 		if (points == chosen_points && thread_group_leader(chosen))
+diff -puN drivers/gpu/drm/drm_fb_helper.c~drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress drivers/gpu/drm/drm_fb_helper.c
+--- a/drivers/gpu/drm/drm_fb_helper.c~drm-fb-helper-dont-sleep-for-screen-unblank-when-an-oopps-is-in-progress
++++ a/drivers/gpu/drm/drm_fb_helper.c
+@@ -412,6 +412,14 @@ static void drm_fb_helper_dpms(struct fb
+ 		return;
+ 
+ 	/*
++	 * fbdev->blank can be called from irq context in case of a panic.
++	 * Since we already have our own special panic handler which will
++	 * restore the fbdev console mode completely, just bail out early.
++	 */
++	if (oops_in_progress)
++		return;
++
++	/*
+ 	 * For each CRTC in this fb, turn the connectors on/off.
+ 	 */
+ 	drm_modeset_lock_all(dev);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
 
 origin.patch
-mm-make-setpage_address-static-inline-if-want_page_virtual.patch
-mm-mempolicy-remove-unneeded-functions-for-uma-configs.patch
-mm-show_mem-remove-show_mem_filter_page_count.patch
-introduce-for_each_thread-to-replace-the-buggy-while_each_thread.patch
-oom_kill-change-oom_killc-to-use-for_each_thread.patch
-oom_kill-has_intersects_mems_allowed-needs-rcu_read_lock.patch
-oom_kill-add-rcu_read_lock-into-find_lock_task_mm.patch
-x86-mm-memblock-switch-to-use-numa_no_node.patch
-lib-show_memc-show-num_poisoned_pages-when-oom.patch
-memcg-oom-lock-mem_cgroup_print_oom_info.patch
-mm-page_alloc-warn-for-non-blockable-__gfp_nofail-allocation-failure.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
-arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit.patch
-mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
-fs-proc-pagec-add-pageanon-check-to-surely-detect-thp.patch
-mm-prevent-setting-of-a-value-less-than-0-to-min_free_kbytes.patch
-memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-mm-nobootmem-free_all_bootmem-again-fix.patch
-mm-nobootmem-free_all_bootmem-again-fix-fix.patch
-mm-show-message-when-updating-min_free_kbytes-in-thp.patch
-mm-oom-prefer-thread-group-leaders-for-display-purposes.patch
-mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
-checkpatch-add-warning-of-future-__gfp_nofail-use.patch
 linux-next.patch
 
