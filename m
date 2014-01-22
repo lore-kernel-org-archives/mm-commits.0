@@ -1,143 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-shift-allocation-ocfs2_live_connection-to-user_connect.patch removed
- from -mm tree
-Date: Wed, 22 Jan 2014 12:11:41 -0800
-Message-ID: <52e025fd.Phgvr608mZyPmGio%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-framework-for-version-lvb.patch removed from -mm
+ tree
+Date: Wed, 22 Jan 2014 12:11:45 -0800
+Message-ID: <52e02601.3Mv+D4cjGql5/7QZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54164 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753043AbaAVULl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:11:41 -0500
+	with ESMTP id S1753043AbaAVULp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:11:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.de, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: [merged] ocfs2-shift-allocation-ocfs2_live_connection-to-user_connect.patch removed from -mm tree
+Subject: [merged] ocfs2-framework-for-version-lvb.patch removed from -mm tree
 To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.de,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:11:41 -0800
+Date: Wed, 22 Jan 2014 12:11:45 -0800
 
 
 The patch titled
-     Subject: ocfs2: shift allocation ocfs2_live_connection to user_connect()
+     Subject: ocfs2: framework for version LVB
 has been removed from the -mm tree.  Its filename was
-     ocfs2-shift-allocation-ocfs2_live_connection-to-user_connect.patch
+     ocfs2-framework-for-version-lvb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: ocfs2: shift allocation ocfs2_live_connection to user_connect()
+Subject: ocfs2: framework for version LVB
 
-We perform this because the DLM recovery callbacks will require the
-ocfs2_live_connection structure to record the node information when
-dlm_new_lockspace() is updated (in the last patch of the series).
-
-Before calling dlm_new_lockspace(), we need the structure ready for the
-.recover_done() callback, which would set oc_this_node.  This is the
-reason we allocate ocfs2_live_connection beforehand in user_connect().
-
-[AKPM] rc initialization is not required because it assigned in case of
-errors.  It will be cleared by compiler anyways.
+Use the native DLM locks for version control negotiation.  Most of the
+framework is taken from gfs2/lock_dlm.c
 
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Reveiwed-by: Mark Fasheh <mfasheh@suse.de>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_user.c |   37 ++++++++++++++++++-------------------
- 1 file changed, 18 insertions(+), 19 deletions(-)
+ fs/ocfs2/stack_user.c |  101 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 101 insertions(+)
 
-diff -puN fs/ocfs2/stack_user.c~ocfs2-shift-allocation-ocfs2_live_connection-to-user_connect fs/ocfs2/stack_user.c
---- a/fs/ocfs2/stack_user.c~ocfs2-shift-allocation-ocfs2_live_connection-to-user_connect
+diff -puN fs/ocfs2/stack_user.c~ocfs2-framework-for-version-lvb fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~ocfs2-framework-for-version-lvb
 +++ a/fs/ocfs2/stack_user.c
-@@ -200,15 +200,10 @@ static struct ocfs2_live_connection *ocf
-  * mount path.  Since the VFS prevents multiple calls to
-  * fill_super(), we can't get dupes here.
-  */
--static int ocfs2_live_connection_new(struct ocfs2_cluster_connection *conn,
--				     struct ocfs2_live_connection **c_ret)
-+static int ocfs2_live_connection_attach(struct ocfs2_cluster_connection *conn,
-+				     struct ocfs2_live_connection *c)
- {
- 	int rc = 0;
--	struct ocfs2_live_connection *c;
--
--	c = kzalloc(sizeof(struct ocfs2_live_connection), GFP_KERNEL);
--	if (!c)
--		return -ENOMEM;
+@@ -102,6 +102,7 @@
+ #define OCFS2_TEXT_UUID_LEN			32
+ #define OCFS2_CONTROL_MESSAGE_VERNUM_LEN	2
+ #define OCFS2_CONTROL_MESSAGE_NODENUM_LEN	8
++#define VERSION_LOCK				"version_lock"
  
- 	mutex_lock(&ocfs2_control_lock);
- 	c->oc_conn = conn;
-@@ -222,12 +217,6 @@ static int ocfs2_live_connection_new(str
- 	}
+ enum ocfs2_connection_type {
+ 	WITH_CONTROLD,
+@@ -118,6 +119,9 @@ struct ocfs2_live_connection {
+ 	enum ocfs2_connection_type	oc_type;
+ 	atomic_t                        oc_this_node;
+ 	int                             oc_our_slot;
++	struct dlm_lksb                 oc_version_lksb;
++	char                            oc_lvb[DLM_LVB_LEN];
++	struct completion               oc_sync_wait;
+ };
  
- 	mutex_unlock(&ocfs2_control_lock);
--
--	if (!rc)
--		*c_ret = c;
--	else
--		kfree(c);
--
- 	return rc;
+ struct ocfs2_control_private {
+@@ -796,6 +800,103 @@ static int fs_protocol_compare(struct oc
+ 	return 0;
  }
  
-@@ -840,12 +829,18 @@ const struct dlm_lockspace_ops ocfs2_ls_
- static int user_cluster_connect(struct ocfs2_cluster_connection *conn)
- {
- 	dlm_lockspace_t *fsdlm;
--	struct ocfs2_live_connection *uninitialized_var(control);
--	int rc = 0;
-+	struct ocfs2_live_connection *lc;
-+	int rc;
- 
- 	BUG_ON(conn == NULL);
- 
--	rc = ocfs2_live_connection_new(conn, &control);
-+	lc = kzalloc(sizeof(struct ocfs2_live_connection), GFP_KERNEL);
-+	if (!lc) {
-+		rc = -ENOMEM;
-+		goto out;
++static void lvb_to_version(char *lvb, struct ocfs2_protocol_version *ver)
++{
++	struct ocfs2_protocol_version *pv =
++		(struct ocfs2_protocol_version *)lvb;
++	/*
++	 * ocfs2_protocol_version has two u8 variables, so we don't
++	 * need any endian conversion.
++	 */
++	ver->pv_major = pv->pv_major;
++	ver->pv_minor = pv->pv_minor;
++}
++
++static void version_to_lvb(struct ocfs2_protocol_version *ver, char *lvb)
++{
++	struct ocfs2_protocol_version *pv =
++		(struct ocfs2_protocol_version *)lvb;
++	/*
++	 * ocfs2_protocol_version has two u8 variables, so we don't
++	 * need any endian conversion.
++	 */
++	pv->pv_major = ver->pv_major;
++	pv->pv_minor = ver->pv_minor;
++}
++
++static void sync_wait_cb(void *arg)
++{
++	struct ocfs2_cluster_connection *conn = arg;
++	struct ocfs2_live_connection *lc = conn->cc_private;
++	complete(&lc->oc_sync_wait);
++}
++
++static int sync_unlock(struct ocfs2_cluster_connection *conn,
++		struct dlm_lksb *lksb, char *name)
++{
++	int error;
++	struct ocfs2_live_connection *lc = conn->cc_private;
++
++	error = dlm_unlock(conn->cc_lockspace, lksb->sb_lkid, 0, lksb, conn);
++	if (error) {
++		printk(KERN_ERR "%s lkid %x error %d\n",
++				name, lksb->sb_lkid, error);
++		return error;
 +	}
 +
-+	rc = ocfs2_live_connection_attach(conn, lc);
- 	if (rc)
- 		goto out;
- 
-@@ -861,20 +856,24 @@ static int user_cluster_connect(struct o
- 		       conn->cc_version.pv_major, conn->cc_version.pv_minor,
- 		       running_proto.pv_major, running_proto.pv_minor);
- 		rc = -EPROTO;
--		ocfs2_live_connection_drop(control);
-+		ocfs2_live_connection_drop(lc);
-+		lc = NULL;
- 		goto out;
- 	}
- 
- 	rc = dlm_new_lockspace(conn->cc_name, NULL, DLM_LSFL_FS, DLM_LVB_LEN,
- 			       NULL, NULL, NULL, &fsdlm);
- 	if (rc) {
--		ocfs2_live_connection_drop(control);
-+		ocfs2_live_connection_drop(lc);
-+		lc = NULL;
- 		goto out;
- 	}
- 
--	conn->cc_private = control;
-+	conn->cc_private = lc;
- 	conn->cc_lockspace = fsdlm;
- out:
-+	if (rc && lc)
-+		kfree(lc);
- 	return rc;
++	wait_for_completion(&lc->oc_sync_wait);
++
++	if (lksb->sb_status != -DLM_EUNLOCK) {
++		printk(KERN_ERR "%s lkid %x status %d\n",
++				name, lksb->sb_lkid, lksb->sb_status);
++		return -1;
++	}
++	return 0;
++}
++
++static int sync_lock(struct ocfs2_cluster_connection *conn,
++		int mode, uint32_t flags,
++		struct dlm_lksb *lksb, char *name)
++{
++	int error, status;
++	struct ocfs2_live_connection *lc = conn->cc_private;
++
++	error = dlm_lock(conn->cc_lockspace, mode, lksb, flags,
++			name, strlen(name),
++			0, sync_wait_cb, conn, NULL);
++	if (error) {
++		printk(KERN_ERR "%s lkid %x flags %x mode %d error %d\n",
++				name, lksb->sb_lkid, flags, mode, error);
++		return error;
++	}
++
++	wait_for_completion(&lc->oc_sync_wait);
++
++	status = lksb->sb_status;
++
++	if (status && status != -EAGAIN) {
++		printk(KERN_ERR "%s lkid %x flags %x mode %d status %d\n",
++				name, lksb->sb_lkid, flags, mode, status);
++	}
++
++	return status;
++}
++
++
++static int version_lock(struct ocfs2_cluster_connection *conn, int mode,
++		int flags)
++{
++	struct ocfs2_live_connection *lc = conn->cc_private;
++	return sync_lock(conn, mode, flags,
++			&lc->oc_version_lksb, VERSION_LOCK);
++}
++
++static int version_unlock(struct ocfs2_cluster_connection *conn)
++{
++	struct ocfs2_live_connection *lc = conn->cc_private;
++	return sync_unlock(conn, &lc->oc_version_lksb, VERSION_LOCK);
++}
++
+ static void user_recover_prep(void *arg)
+ {
  }
- 
 _
 
 Patches currently in -mm which might be from rgoldwyn@suse.de are
