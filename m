@@ -1,90 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-migrate-remove-unused-function-fail_migrate_page.patch removed from -mm
- tree
-Date: Wed, 22 Jan 2014 12:15:10 -0800
-Message-ID: <52e026ce.JqbWW+1IxcQHC+uD%akpm@linux-foundation.org>
+Subject: + sched-numa-fix-set-cpupid-on-page-migration-twice.patch added
+ to -mm tree
+Date: Wed, 22 Jan 2014 12:27:45 -0800
+Message-ID: <52e029c1.UFUZmck34omjOqgU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55082 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55295 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753415AbaAVUPL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:15:11 -0500
+	with ESMTP id S1752310AbaAVU1q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:27:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, vbabka@suse.cz, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com, cl@linux.com, aquini@redhat.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, peterz@infradead.org, n-horiguchi@ah.jp.nec.com, mingo@redhat.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com
 
-Subject: [merged] mm-migrate-remove-unused-function-fail_migrate_page.patch removed from -mm tree
-To: iamjoonsoo.kim@lge.com,aquini@redhat.com,cl@linux.com,liwanp@linux.vnet.ibm.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,vbabka@suse.cz,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: + sched-numa-fix-set-cpupid-on-page-migration-twice.patch added to -mm tree
+To: liwanp@linux.vnet.ibm.com,mgorman@suse.de,mingo@redhat.com,n-horiguchi@ah.jp.nec.com,peterz@infradead.org,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:15:10 -0800
+Date: Wed, 22 Jan 2014 12:27:45 -0800
 
 
 The patch titled
-     Subject: mm/migrate: remove unused function, fail_migrate_page()
-has been removed from the -mm tree.  Its filename was
-     mm-migrate-remove-unused-function-fail_migrate_page.patch
+     Subject: sched/numa: fix setting of cpupid on page migration twice
+has been added to the -mm tree.  Its filename is
+     sched-numa-fix-set-cpupid-on-page-migration-twice.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/sched-numa-fix-set-cpupid-on-page-migration-twice.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/sched-numa-fix-set-cpupid-on-page-migration-twice.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/migrate: remove unused function, fail_migrate_page()
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: sched/numa: fix setting of cpupid on page migration twice
 
-fail_migrate_page() isn't used anywhere, so remove it.
+commit 7851a45cd3 ("mm: numa: Copy cpupid on page migration") copys over
+the cpupid at page migration time.  It is unnecessary to set it again in
+migrate_misplaced_transhuge_page().
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    4 ----
- mm/migrate.c            |    8 --------
- 2 files changed, 12 deletions(-)
+ mm/migrate.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/migrate.h~mm-migrate-remove-unused-function-fail_migrate_page include/linux/migrate.h
---- a/include/linux/migrate.h~mm-migrate-remove-unused-function-fail_migrate_page
-+++ a/include/linux/migrate.h
-@@ -41,9 +41,6 @@ extern int migrate_page(struct address_s
- extern int migrate_pages(struct list_head *l, new_page_t x,
- 		unsigned long private, enum migrate_mode mode, int reason);
- 
--extern int fail_migrate_page(struct address_space *,
--			struct page *, struct page *);
--
- extern int migrate_prep(void);
- extern int migrate_prep_local(void);
- extern int migrate_vmas(struct mm_struct *mm,
-@@ -84,7 +81,6 @@ static inline int migrate_huge_page_move
- 
- /* Possible settings for the migrate_page() method in address_operations */
- #define migrate_page NULL
--#define fail_migrate_page NULL
- 
- #endif /* CONFIG_MIGRATION */
- 
-diff -puN mm/migrate.c~mm-migrate-remove-unused-function-fail_migrate_page mm/migrate.c
---- a/mm/migrate.c~mm-migrate-remove-unused-function-fail_migrate_page
+diff -puN mm/migrate.c~sched-numa-fix-set-cpupid-on-page-migration-twice mm/migrate.c
+--- a/mm/migrate.c~sched-numa-fix-set-cpupid-on-page-migration-twice
 +++ a/mm/migrate.c
-@@ -552,14 +552,6 @@ void migrate_page_copy(struct page *newp
-  *                    Migration functions
-  ***********************************************************/
+@@ -1753,8 +1753,6 @@ int migrate_misplaced_transhuge_page(str
+ 	if (!new_page)
+ 		goto out_fail;
  
--/* Always fail migration. Used for mappings that are not movable */
--int fail_migrate_page(struct address_space *mapping,
--			struct page *newpage, struct page *page)
--{
--	return -EIO;
--}
--EXPORT_SYMBOL(fail_migrate_page);
+-	page_cpupid_xchg_last(new_page, page_cpupid_last(page));
