@@ -1,41 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+Subject: [merged] mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
  removed from -mm tree
-Date: Wed, 22 Jan 2014 12:12:26 -0800
-Message-ID: <52e0262a.SPlMPsZ34iKrXnUD%akpm@linux-foundation.org>
+Date: Wed, 22 Jan 2014 12:12:30 -0800
+Message-ID: <52e0262e.hNAKOEGNPwgbAHhe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54282 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54309 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755810AbaAVUM1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:27 -0500
+	with ESMTP id S1755810AbaAVUMb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 15:12:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, pshelar@nicira.com, minchan@kernel.org, mgorman@suse.de, khalid.aziz@oracle.com, jweiner@redhat.com, gregkh@linuxfoundation.org, cl@linux.com, bhutchings@solarflare.com, andi@firstfloor.org, aarcange@redhat.com
 
-Subject: [merged] mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch removed from -mm tree
+Subject: [merged] mm-hugetlbc-defer-pageheadhuge-symbol-export.patch removed from -mm tree
 To: aarcange@redhat.com,andi@firstfloor.org,bhutchings@solarflare.com,cl@linux.com,gregkh@linuxfoundation.org,jweiner@redhat.com,khalid.aziz@oracle.com,mgorman@suse.de,minchan@kernel.org,pshelar@nicira.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 12:12:26 -0800
+Date: Wed, 22 Jan 2014 12:12:30 -0800
 
 
 The patch titled
-     Subject: mm: hugetlbfs: use __compound_tail_refcounted in __get_page_tail too
+     Subject: mm/hugetlb.c: defer PageHeadHuge() symbol export
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too.patch
+     mm-hugetlbc-defer-pageheadhuge-symbol-export.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: hugetlbfs: use __compound_tail_refcounted in __get_page_tail too
+Subject: mm/hugetlb.c: defer PageHeadHuge() symbol export
 
-Also remove hugetlb.h which isn't needed anymore as PageHeadHuge is
-handled in mm.h.
+No actual need of it. So keep it internal.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Khalid Aziz <khalid.aziz@oracle.com>
@@ -51,29 +49,20 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/hugetlb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/swap.c~mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too mm/swap.c
---- a/mm/swap.c~mm-hugetlbfs-use-__compound_tail_refcounted-in-__get_page_tail-too
-+++ a/mm/swap.c
-@@ -31,7 +31,6 @@
- #include <linux/memcontrol.h>
- #include <linux/gfp.h>
- #include <linux/uio.h>
--#include <linux/hugetlb.h>
+diff -puN mm/hugetlb.c~mm-hugetlbc-defer-pageheadhuge-symbol-export mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-defer-pageheadhuge-symbol-export
++++ a/mm/hugetlb.c
+@@ -709,7 +709,6 @@ int PageHeadHuge(struct page *page_head)
  
- #include "internal.h"
+ 	return get_compound_page_dtor(page_head) == free_huge_page;
+ }
+-EXPORT_SYMBOL_GPL(PageHeadHuge);
  
-@@ -261,7 +260,7 @@ bool __get_page_tail(struct page *page)
- 	struct page *page_head = compound_trans_head(page);
- 
- 	/* Ref to put_compound_page() comment. */
--	if (PageSlab(page_head) || PageHeadHuge(page_head)) {
-+	if (!__compound_tail_refcounted(page_head)) {
- 		smp_rmb();
- 		if (likely(PageTail(page))) {
- 			/*
+ pgoff_t __basepage_index(struct page *page)
+ {
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
