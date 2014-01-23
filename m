@@ -1,69 +1,82 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix.patch
+ memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
  removed from -mm tree
-Date: Thu, 23 Jan 2014 15:17:40 -0800
-Message-ID: <52e1a314.OacZXu0HaokMoBJy%akpm@linux-foundation.org>
+Date: Thu, 23 Jan 2014 15:18:33 -0800
+Message-ID: <52e1a349.0nAcW/fClPs+BX7L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37169 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37176 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490AbaAWXRl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:17:41 -0500
+	with ESMTP id S1751979AbaAWXSf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:18:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com
+To: mm-commits@vger.kernel.org, vdavydov@parallels.com, penberg@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@gmail.com, cl@linux.com, bsingharora@gmail.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix.patch removed from -mm tree
-To: sasha.levin@oracle.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,bsingharora@gmail.com,cl@linux.com,glommer@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,penberg@kernel.org,vdavydov@parallels.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 Jan 2014 15:17:40 -0800
+Date: Thu, 23 Jan 2014 15:18:33 -0800
 
 
 The patch titled
-     Subject: mm: dump page when hitting a VM_BUG_ON using VM_BUG_ON_PAGE fix
+     Subject: memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix
 has been removed from the -mm tree.  Its filename was
-     mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix.patch
+     memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix.patch
 
-This patch was dropped because it was folded into mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page.patch
+This patch was dropped because it was folded into memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: mm: dump page when hitting a VM_BUG_ON using VM_BUG_ON_PAGE fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix
 
-I messed up and forgot to commit this fix before sending out the original
-patch.
+fix build
 
-It fixes build issues in various files using VM_BUG_ON_PAGE.
-
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Glauber Costa <glommer@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memcontrol.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmdebug.h~mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix include/linux/mmdebug.h
---- a/include/linux/mmdebug.h~mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix
-+++ a/include/linux/mmdebug.h
-@@ -2,6 +2,7 @@
- #define LINUX_MM_DEBUG_H 1
+diff -puN include/linux/memcontrol.h~memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path-fix
++++ a/include/linux/memcontrol.h
+@@ -647,7 +647,7 @@ static inline int memcg_alloc_cache_para
+ 	return 0;
+ }
  
- #ifdef CONFIG_DEBUG_VM
-+extern void dump_page(struct page *page);
- #define VM_BUG_ON(cond) BUG_ON(cond)
- #define VM_BUG_ON_PAGE(cond, page) \
- 	do { if (unlikely(cond)) { dump_page(page); BUG(); } } while(0)
+-static inline void memcg_free_cache_params(struct kmem_cache *s);
++static inline void memcg_free_cache_params(struct kmem_cache *s)
+ {
+ }
+ 
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-print-more-details-for-bad_page.patch
 mm-munlock-fix-potential-race-with-thp-page-split.patch
 mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page.patch
-mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page-fix-fix.patch
-mm-new_vma_page-cannot-see-null-vma-for-hugetlb-pages.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
+numa-add-a-sysctl-for-numa_balancing-fix.patch
+mm-nobootmem-free_all_bootmem-again-fix-fix.patch
+mm-improve-documentation-of-page_order-v2-fix.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+printk-flush-conflicting-continuation-line-fix.patch
+lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null-fix.patch
+drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
 
