@@ -1,91 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch removed
- from -mm tree
-Date: Thu, 23 Jan 2014 15:20:52 -0800
-Message-ID: <52e1a3d4.46BVSUxayfaObJAS%akpm@linux-foundation.org>
+ mm-improve-documentation-of-page_order-v2-fix.patch removed from -mm tree
+Date: Thu, 23 Jan 2014 15:21:17 -0800
+Message-ID: <52e1a3ed.BBpzQl75VG5vOz4s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37210 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37215 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753275AbaAWXUx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:20:53 -0500
+	with ESMTP id S1753275AbaAWXVS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:21:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, gthelen@google.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, mgorman@suse.de, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch removed from -mm tree
-To: rientjes@google.com,gthelen@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-improve-documentation-of-page_order-v2-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,mgorman@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 Jan 2014 15:20:52 -0800
+Date: Thu, 23 Jan 2014 15:21:17 -0800
 
 
 The patch titled
-     Subject: mm, oom: prefer thread group leaders for display purposes fix
+     Subject: mm-improve-documentation-of-page_order-v2-fix
 has been removed from the -mm tree.  Its filename was
-     mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
+     mm-improve-documentation-of-page_order-v2-fix.patch
 
-This patch was dropped because it was folded into mm-oom-prefer-thread-group-leaders-for-display-purposes.patch
+This patch was dropped because it was folded into mm-improve-documentation-of-page_order-v2.patch
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: prefer thread group leaders for display purposes fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-improve-documentation-of-page_order-v2-fix
 
-If oom_badness() returns 0 for an oom disabled process before a process
-has actually been chosen for kill, there will be a NULL pointer
-dereference when doing thread_group_leader(chosen).
+tweaks
 
-Make sure oom disabled processes aren't even considered to prevent the
-bug.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- mm/oom_kill.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/internal.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix
-+++ a/mm/memcontrol.c
-@@ -1841,7 +1841,7 @@ static void mem_cgroup_out_of_memory(str
- 				break;
- 			};
- 			points = oom_badness(task, memcg, NULL, totalpages);
--			if (points < chosen_points)
-+			if (!points || points < chosen_points)
- 				continue;
- 			/* Prefer thread group leaders for display purposes */
- 			if (points == chosen_points &&
-diff -puN mm/oom_kill.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix
-+++ a/mm/oom_kill.c
-@@ -327,7 +327,7 @@ static struct task_struct *select_bad_pr
- 			break;
- 		};
- 		points = oom_badness(p, NULL, nodemask, totalpages);
--		if (points < chosen_points)
-+		if (!points || points < chosen_points)
- 			continue;
- 		/* Prefer thread group leaders for display purposes */
- 		if (points == chosen_points && thread_group_leader(chosen))
+diff -puN mm/internal.h~mm-improve-documentation-of-page_order-v2-fix mm/internal.h
+--- a/mm/internal.h~mm-improve-documentation-of-page_order-v2-fix
++++ a/mm/internal.h
+@@ -143,10 +143,10 @@ isolate_migratepages_range(struct zone *
+ #endif
+ 
+ /*
+- * This functions returns the order of a free page in the buddy system. In
++ * This function returns the order of a free page in the buddy system. In
+  * general, page_zone(page)->lock must be held by the caller to prevent the
+- * page being allocated in parallel and returning garbage as the order. If the
+- * caller does not hold page_zone(page)->lock, they must guarantee that the
++ * page from being allocated in parallel and returning garbage as the order.
++ * If a caller does not hold page_zone(page)->lock, it must guarantee that the
+  * page cannot be allocated or merged in parallel.
+  */
+ static inline unsigned long page_order(struct page *page)
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fs-proc-pagec-add-pageanon-check-to-surely-detect-thp.patch
-mm-prevent-setting-of-a-value-less-than-0-to-min_free_kbytes.patch
-mm-show-message-when-updating-min_free_kbytes-in-thp.patch
-mm-oom-prefer-thread-group-leaders-for-display-purposes.patch
-uapi-convert-u64-to-__u64-in-exported-headers.patch
-checkpatch-add-warning-of-future-__gfp_nofail-use.patch
+mm-print-more-details-for-bad_page.patch
+mm-munlock-fix-potential-race-with-thp-page-split.patch
+mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
+numa-add-a-sysctl-for-numa_balancing.patch
+mm-nobootmem-free_all_bootmem-again.patch
+mm-improve-documentation-of-page_order-v2.patch
+lib-parserc-put-export_symbols-in-the-conventional-place.patch
+printk-flush-conflicting-continuation-line-fix.patch
+lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null-fix.patch
+drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
 
