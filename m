@@ -1,95 +1,104 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- printk-flush-conflicting-continuation-line-fix.patch removed from -mm tree
-Date: Thu, 23 Jan 2014 15:22:39 -0800
-Message-ID: <52e1a43f.+hL+p2Ao2ArCOfVh%akpm@linux-foundation.org>
+ test-check-copy_to-from_user-boundary-validation-fix.patch removed from -mm tree
+Date: Thu, 23 Jan 2014 15:23:14 -0800
+Message-ID: <52e1a462.ijieByTSHtne04zz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37221 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37228 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751499AbaAWXWk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:22:40 -0500
+	with ESMTP id S1751490AbaAWXXP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:23:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, paul.gortmaker@windriver.com, kay@vrfy.org, joe@perches.com, getarunks@gmail.com, fweisbec@gmail.com, arunks.linux@gmail.com, arun.ks@broadcom.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, joe@perches.com, keescook@chromium.org
 
-Subject: [folded-merged] printk-flush-conflicting-continuation-line-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,arun.ks@broadcom.com,arunks.linux@gmail.com,fweisbec@gmail.com,getarunks@gmail.com,joe@perches.com,kay@vrfy.org,paul.gortmaker@windriver.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] test-check-copy_to-from_user-boundary-validation-fix.patch removed from -mm tree
+To: keescook@chromium.org,joe@perches.com,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 Jan 2014 15:22:39 -0800
+Date: Thu, 23 Jan 2014 15:23:14 -0800
 
 
 The patch titled
-     Subject: printk-flush-conflicting-continuation-line-fix
+     Subject: test: fix sparse warnings in user_copy tests
 has been removed from the -mm tree.  Its filename was
-     printk-flush-conflicting-continuation-line-fix.patch
+     test-check-copy_to-from_user-boundary-validation-fix.patch
 
-This patch was dropped because it was folded into printk-flush-conflicting-continuation-line.patch
+This patch was dropped because it was folded into test-check-copy_to-from_user-boundary-validation.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: printk-flush-conflicting-continuation-line-fix
+From: Kees Cook <keescook@chromium.org>
+Subject: test: fix sparse warnings in user_copy tests
 
-simplify and condense the code
+Sparse fix for "test: check copy_to/from_user boundary validation":
 
+To keep sparse happy with the horrible things being done with the user
+memory pointers, declare both __user and non-__user cases ahead of time to
+avoid needing to do the casts later.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Joe Perches <joe@perches.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Arun KS <arun.ks@broadcom.com>
-Cc: Arun KS <arunks.linux@gmail.com>
-Cc: Arun KS <getarunks@gmail.com>
-Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ lib/test_user_copy.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-flush-conflicting-continuation-line-fix kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-flush-conflicting-continuation-line-fix
-+++ a/kernel/printk/printk.c
-@@ -1595,15 +1595,15 @@ asmlinkage int vprintk_emit(int facility
- 		 * either merge it with the current buffer and flush, or if
- 		 * there was a race with interrupts (prefix == true) then just
- 		 * flush it out and store this line separately.
-+		 * If the preceding printk was from a different task and missed
-+		 * a newline, flush and append the newline.
- 		 */
--		if (cont.len && cont.owner == current) {
--			if (!(lflags & LOG_PREFIX))
--				stored = cont_add(facility, level, text, text_len);
--			cont_flush(LOG_NEWLINE);
--		/* Flush conflicting buffer. An earlier newline was missing
--		* and current print is from different task */
--		} else if (cont.len && cont.owner != current)
-+		if (cont.len) {
-+			if (cont.owner == current && !(lflags & LOG_PREFIX))
-+				stored = cont_add(facility, level, text,
-+						  text_len);
- 			cont_flush(LOG_NEWLINE);
-+		}
+diff -puN lib/test_user_copy.c~test-check-copy_to-from_user-boundary-validation-fix lib/test_user_copy.c
+--- a/lib/test_user_copy.c~test-check-copy_to-from_user-boundary-validation-fix
++++ a/lib/test_user_copy.c
+@@ -38,6 +38,7 @@ static int __init test_user_copy_init(vo
+ 	int ret = 0;
+ 	char *kmem;
+ 	char __user *usermem;
++	char *bad_usermem;
+ 	unsigned long user_addr;
+ 	unsigned long value = 0x5A;
  
- 		if (!stored)
- 			log_store(facility, level, lflags, 0,
+@@ -55,6 +56,7 @@ static int __init test_user_copy_init(vo
+ 	}
+ 
+ 	usermem = (char __user *)user_addr;
++	bad_usermem = (char *)user_addr;
+ 
+ 	/* Legitimate usage: none of these should fail. */
+ 	ret |= test(copy_from_user(kmem, usermem, PAGE_SIZE),
+@@ -70,13 +72,13 @@ static int __init test_user_copy_init(vo
+ 	ret |= test(!copy_from_user(kmem, (char __user *)(kmem + PAGE_SIZE),
+ 				    PAGE_SIZE),
+ 		    "illegal all-kernel copy_from_user passed");
+-	ret |= test(!copy_from_user((char *)usermem, (char __user *)kmem,
++	ret |= test(!copy_from_user(bad_usermem, (char __user *)kmem,
+ 				    PAGE_SIZE),
+ 		    "illegal reversed copy_from_user passed");
+ 	ret |= test(!copy_to_user((char __user *)kmem, kmem + PAGE_SIZE,
+ 				  PAGE_SIZE),
+ 		    "illegal all-kernel copy_to_user passed");
+-	ret |= test(!copy_to_user((char __user *)kmem, (char *)usermem,
++	ret |= test(!copy_to_user((char __user *)kmem, bad_usermem,
+ 				  PAGE_SIZE),
+ 		    "illegal reversed copy_to_user passed");
+ 	ret |= test(!get_user(value, (unsigned long __user *)kmem),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 origin.patch
-mm-print-more-details-for-bad_page.patch
-mm-munlock-fix-potential-race-with-thp-page-split.patch
-mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
-numa-add-a-sysctl-for-numa_balancing.patch
-mm-nobootmem-free_all_bootmem-again.patch
-mm-improve-documentation-of-page_order-v2.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-printk-flush-conflicting-continuation-line.patch
-lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null-fix.patch
-drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+test-add-minimal-module-for-verification-testing.patch
+test-check-copy_to-from_user-boundary-validation.patch
+coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
+coredump-kill-mmf_dumpable-and-mmf_dump_securely.patch
+coredump-make-__get_dumpable-get_dumpable-inline-kill-fs-coredumph.patch
+exec-check_unsafe_exec-use-while_each_thread-rather-than-next_thread.patch
+exec-check_unsafe_exec-kill-the-dead-eagain-and-clear_in_exec-logic.patch
+exec-move-the-final-allow_write_access-fput-into-free_bprm.patch
+exec-kill-task_struct-did_exec.patch
+fs-proc-arrayc-change-do_task_stat-to-use-while_each_thread.patch
+kernel-sysc-k_getrusage-can-use-while_each_thread.patch
+kernel-signalc-change-do_signal_stop-do_sigaction-to-use-while_each_thread.patch
+kexec-add-sysctl-to-disable-kexec_load.patch
 
