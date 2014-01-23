@@ -1,102 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] numa-add-a-sysctl-for-numa_balancing-fix.patch
+Subject: [folded-merged] mm-nobootmem-free_all_bootmem-again-fix.patch
  removed from -mm tree
-Date: Thu, 23 Jan 2014 15:19:53 -0800
-Message-ID: <52e1a399.BiM3k16vu4C97pZr%akpm@linux-foundation.org>
+Date: Thu, 23 Jan 2014 15:20:19 -0800
+Message-ID: <52e1a3b3.eyrlimoLpJs8TXvh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37194 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37199 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752323AbaAWXTy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:19:54 -0500
+	with ESMTP id S1751499AbaAWXUT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:20:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mingo@elte.hu, mgorman@suse.de, ak@linux.intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, robinmholt@gmail.com, rientjes@google.com, phacht@linux.vnet.ibm.com
 
-Subject: [folded-merged] numa-add-a-sysctl-for-numa_balancing-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,ak@linux.intel.com,mgorman@suse.de,mingo@elte.hu,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-nobootmem-free_all_bootmem-again-fix.patch removed from -mm tree
+To: phacht@linux.vnet.ibm.com,rientjes@google.com,robinmholt@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 Jan 2014 15:19:53 -0800
+Date: Thu, 23 Jan 2014 15:20:19 -0800
 
 
 The patch titled
-     Subject: numa-add-a-sysctl-for-numa_balancing-fix
+     Subject: mm-nobootmem-free_all_bootmem-again-fix
 has been removed from the -mm tree.  Its filename was
-     numa-add-a-sysctl-for-numa_balancing-fix.patch
+     mm-nobootmem-free_all_bootmem-again-fix.patch
 
-This patch was dropped because it was folded into numa-add-a-sysctl-for-numa_balancing.patch
+This patch was dropped because it was folded into mm-nobootmem-free_all_bootmem-again.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: numa-add-a-sysctl-for-numa_balancing-fix
+From: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+Subject: mm-nobootmem-free_all_bootmem-again-fix
 
-s/sched_numa_balancing/sysctl_numa_balancing/
+This fixes an unused variable warning in nobootmem.c
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+Cc: Robin Holt <robinmholt@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/sysctl.h |    2 +-
- kernel/sched/core.c          |    2 +-
- kernel/sysctl.c              |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ mm/nobootmem.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sched/sysctl.h~numa-add-a-sysctl-for-numa_balancing-fix include/linux/sched/sysctl.h
---- a/include/linux/sched/sysctl.h~numa-add-a-sysctl-for-numa_balancing-fix
-+++ a/include/linux/sched/sysctl.h
-@@ -99,7 +99,7 @@ extern int sched_rt_handler(struct ctl_t
- 		void __user *buffer, size_t *lenp,
- 		loff_t *ppos);
- 
--extern int sched_numa_balancing(struct ctl_table *table, int write,
-+extern int sysctl_numa_balancing(struct ctl_table *table, int write,
- 				 void __user *buffer, size_t *lenp,
- 				 loff_t *ppos);
- 
-diff -puN kernel/sched/core.c~numa-add-a-sysctl-for-numa_balancing-fix kernel/sched/core.c
---- a/kernel/sched/core.c~numa-add-a-sysctl-for-numa_balancing-fix
-+++ a/kernel/sched/core.c
-@@ -1772,7 +1772,7 @@ void set_numabalancing_state(bool enable
- #endif /* CONFIG_SCHED_DEBUG */
- 
- #ifdef CONFIG_PROC_SYSCTL
--int sched_numa_balancing(struct ctl_table *table, int write,
-+int sysctl_numa_balancing(struct ctl_table *table, int write,
- 			 void __user *buffer, size_t *lenp, loff_t *ppos)
+diff -puN mm/nobootmem.c~mm-nobootmem-free_all_bootmem-again-fix mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-nobootmem-free_all_bootmem-again-fix
++++ a/mm/nobootmem.c
+@@ -116,9 +116,13 @@ static unsigned long __init __free_memor
+ static unsigned long __init free_low_memory_core_early(void)
  {
- 	struct ctl_table t;
-diff -puN kernel/sysctl.c~numa-add-a-sysctl-for-numa_balancing-fix kernel/sysctl.c
---- a/kernel/sysctl.c~numa-add-a-sysctl-for-numa_balancing-fix
-+++ a/kernel/sysctl.c
-@@ -394,7 +394,7 @@ static struct ctl_table kern_table[] = {
- 		.data		= NULL, /* filled in by handler */
- 		.maxlen		= sizeof(unsigned int),
- 		.mode		= 0644,
--		.proc_handler	= sched_numa_balancing,
-+		.proc_handler	= sysctl_numa_balancing,
- 		.extra1		= &zero,
- 		.extra2		= &one,
- 	},
+ 	unsigned long count = 0;
+-	phys_addr_t start, end, size;
++	phys_addr_t start, end;
+ 	u64 i;
+ 
++#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
++	phys_addr_t size;
++#endif
++
+ 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
+ 		count += __free_memory_core(start, end);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from phacht@linux.vnet.ibm.com are
 
-origin.patch
-mm-print-more-details-for-bad_page.patch
-mm-munlock-fix-potential-race-with-thp-page-split.patch
-mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
-numa-add-a-sysctl-for-numa_balancing.patch
+mm-nobootmemc-add-return-value-check-in-__alloc_memory_core_early.patch
+mm-free-memblockmemory-in-free_all_bootmem.patch
+mm-nobootmem-free_all_bootmem-again.patch
 mm-nobootmem-free_all_bootmem-again-fix-fix.patch
-mm-improve-documentation-of-page_order-v2-fix.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-printk-flush-conflicting-continuation-line-fix.patch
-lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null-fix.patch
-drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
 
