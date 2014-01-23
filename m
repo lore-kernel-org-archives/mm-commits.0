@@ -1,89 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch removed from -mm tree
-Date: Thu, 23 Jan 2014 15:22:04 -0800
-Message-ID: <52e1a41c.IRA0vqUlUcyzT6s1%akpm@linux-foundation.org>
+ printk-flush-conflicting-continuation-line-fix.patch removed from -mm tree
+Date: Thu, 23 Jan 2014 15:22:39 -0800
+Message-ID: <52e1a43f.+hL+p2Ao2ArCOfVh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37216 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37221 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751499AbaAWXWF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:22:05 -0500
+	with ESMTP id S1751499AbaAWXWk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:22:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, james.hogan@imgtec.com, fengguang.wu@intel.com, joe@perches.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, paul.gortmaker@windriver.com, kay@vrfy.org, joe@perches.com, getarunks@gmail.com, fweisbec@gmail.com, arunks.linux@gmail.com, arun.ks@broadcom.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch removed from -mm tree
-To: joe@perches.com,fengguang.wu@intel.com,james.hogan@imgtec.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] printk-flush-conflicting-continuation-line-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,arun.ks@broadcom.com,arunks.linux@gmail.com,fweisbec@gmail.com,getarunks@gmail.com,joe@perches.com,kay@vrfy.org,paul.gortmaker@windriver.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 Jan 2014 15:22:04 -0800
+Date: Thu, 23 Jan 2014 15:22:39 -0800
 
 
 The patch titled
-     Subject: printk-cache-mark-printk_once-test-variable-__read_mostly-fix
+     Subject: printk-flush-conflicting-continuation-line-fix
 has been removed from the -mm tree.  Its filename was
-     printk-cache-mark-printk_once-test-variable-__read_mostly-fix.patch
+     printk-flush-conflicting-continuation-line-fix.patch
 
-This patch was dropped because it was folded into printk-cache-mark-printk_once-test-variable-__read_mostly.patch
+This patch was dropped because it was folded into printk-flush-conflicting-continuation-line.patch
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk-cache-mark-printk_once-test-variable-__read_mostly-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: printk-flush-conflicting-continuation-line-fix
 
-fix ia64 build
+simplify and condense the code
 
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Arun KS <arun.ks@broadcom.com>
+Cc: Arun KS <arunks.linux@gmail.com>
+Cc: Arun KS <getarunks@gmail.com>
+Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/processor.h |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/printk/printk.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/ia64/include/asm/processor.h~printk-cache-mark-printk_once-test-variable-__read_mostly-fix arch/ia64/include/asm/processor.h
---- a/arch/ia64/include/asm/processor.h~printk-cache-mark-printk_once-test-variable-__read_mostly-fix
-+++ a/arch/ia64/include/asm/processor.h
-@@ -71,6 +71,7 @@
- #include <linux/compiler.h>
- #include <linux/threads.h>
- #include <linux/types.h>
-+#include <linux/bitops.h>
+diff -puN kernel/printk/printk.c~printk-flush-conflicting-continuation-line-fix kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-flush-conflicting-continuation-line-fix
++++ a/kernel/printk/printk.c
+@@ -1595,15 +1595,15 @@ asmlinkage int vprintk_emit(int facility
+ 		 * either merge it with the current buffer and flush, or if
+ 		 * there was a race with interrupts (prefix == true) then just
+ 		 * flush it out and store this line separately.
++		 * If the preceding printk was from a different task and missed
++		 * a newline, flush and append the newline.
+ 		 */
+-		if (cont.len && cont.owner == current) {
+-			if (!(lflags & LOG_PREFIX))
+-				stored = cont_add(facility, level, text, text_len);
+-			cont_flush(LOG_NEWLINE);
+-		/* Flush conflicting buffer. An earlier newline was missing
+-		* and current print is from different task */
+-		} else if (cont.len && cont.owner != current)
++		if (cont.len) {
++			if (cont.owner == current && !(lflags & LOG_PREFIX))
++				stored = cont_add(facility, level, text,
++						  text_len);
+ 			cont_flush(LOG_NEWLINE);
++		}
  
- #include <asm/fpu.h>
- #include <asm/page.h>
+ 		if (!stored)
+ 			log_store(facility, level, lflags, 0,
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-lib-parserc-add-match_wildcard-function.patch
+mm-print-more-details-for-bad_page.patch
+mm-munlock-fix-potential-race-with-thp-page-split.patch
+mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page.patch
+memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
+numa-add-a-sysctl-for-numa_balancing.patch
+mm-nobootmem-free_all_bootmem-again.patch
+mm-improve-documentation-of-page_order-v2.patch
 lib-parserc-put-export_symbols-in-the-conventional-place.patch
-dynamic_debug-add-wildcard-support-to-filter-files-functions-modules.patch
-dynamic-debug-howtotxt-update-since-new-wildcard-support.patch
-printk-cache-mark-printk_once-test-variable-__read_mostly.patch
-vsprintf-add-%pad-extension-for-dma_addr_t-use.patch
 printk-flush-conflicting-continuation-line.patch
-printk-flush-conflicting-continuation-line-fix.patch
-get_maintainer-add-commit-author-information-to-rolestats.patch
-maintainers-describe-differences-between-f-and-n-patterns.patch
-test-add-minimal-module-for-verification-testing.patch
-test-check-copy_to-from_user-boundary-validation.patch
-test-check-copy_to-from_user-boundary-validation-fix.patch
-lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null.patch
 lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null-fix.patch
-checkpatch-more-comprehensive-split-strings-warning.patch
-checkpatch-warn-only-on-space-before-semicolon-at-end-of-line.patch
-checkpatch-add-warning-of-future-__gfp_nofail-use.patch
-checkpatch-attempt-to-find-missing-switch-case-break.patch
-checkpatch-add-a-fix-inplace-option.patch
-checkpatch-improve-space-before-tab-fix-option.patch
-checkpatch-check-for-ifs-with-unnecessary-parentheses.patch
-checkpatch-update-the-fsf-gpl-address-check.patch
-checkpatch-add-tests-for-function-pointer-style-misuses.patch
-checkpatch-only-flag-fsf-address-not-gnuorg-url.patch
-checkpatch-add-dt-compatible-string-documentation-checks.patch
-checkpatch-prefer-ether_addr_copy-to-memcpyfoo-bar-eth_alen.patch
+drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
+fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
 
