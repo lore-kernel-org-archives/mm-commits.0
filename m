@@ -1,103 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-nobootmem-free_all_bootmem-again-fix-fix.patch removed from -mm tree
-Date: Thu, 23 Jan 2014 15:20:21 -0800
-Message-ID: <52e1a3b5.EY3HWcDwnBpMe8W6%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch removed
+ from -mm tree
+Date: Thu, 23 Jan 2014 15:20:52 -0800
+Message-ID: <52e1a3d4.46BVSUxayfaObJAS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37210 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753275AbaAWXUW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:20:22 -0500
+	with ESMTP id S1753275AbaAWXUx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:20:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, robinmholt@gmail.com, rientjes@google.com, phacht@linux.vnet.ibm.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, gthelen@google.com, rientjes@google.com
 
-Subject: [folded-merged] mm-nobootmem-free_all_bootmem-again-fix-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,phacht@linux.vnet.ibm.com,rientjes@google.com,robinmholt@gmail.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch removed from -mm tree
+To: rientjes@google.com,gthelen@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 Jan 2014 15:20:21 -0800
+Date: Thu, 23 Jan 2014 15:20:52 -0800
 
 
 The patch titled
-     Subject: mm-nobootmem-free_all_bootmem-again-fix-fix
+     Subject: mm, oom: prefer thread group leaders for display purposes fix
 has been removed from the -mm tree.  Its filename was
-     mm-nobootmem-free_all_bootmem-again-fix-fix.patch
+     mm-oom-prefer-thread-group-leaders-for-display-purposes-fix.patch
 
-This patch was dropped because it was folded into mm-nobootmem-free_all_bootmem-again.patch
+This patch was dropped because it was folded into mm-oom-prefer-thread-group-leaders-for-display-purposes.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-nobootmem-free_all_bootmem-again-fix-fix
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: prefer thread group leaders for display purposes fix
 
-cleanup
+If oom_badness() returns 0 for an oom disabled process before a process
+has actually been chosen for kill, there will be a NULL pointer
+dereference when doing thread_group_leader(chosen).
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
-Cc: Robin Holt <robinmholt@gmail.com>
+Make sure oom disabled processes aren't even considered to prevent the
+bug.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nobootmem.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ mm/memcontrol.c |    2 +-
+ mm/oom_kill.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/nobootmem.c~mm-nobootmem-free_all_bootmem-again-fix-fix mm/nobootmem.c
---- a/mm/nobootmem.c~mm-nobootmem-free_all_bootmem-again-fix-fix
-+++ a/mm/nobootmem.c
-@@ -119,24 +119,23 @@ static unsigned long __init free_low_mem
- 	phys_addr_t start, end;
- 	u64 i;
- 
--#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
--	phys_addr_t size;
--#endif
--
- 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
- 		count += __free_memory_core(start, end);
- 
- #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
-+	{
-+		phys_addr_t size;
- 
--	/* Free memblock.reserved array if it was allocated */
--	size = get_allocated_memblock_reserved_regions_info(&start);
--	if (size)
--		count += __free_memory_core(start, start + size);
--
--	/* Free memblock.memory array if it was allocated */
--	size = get_allocated_memblock_memory_regions_info(&start);
--	if (size)
--		count += __free_memory_core(start, start + size);
-+		/* Free memblock.reserved array if it was allocated */
-+		size = get_allocated_memblock_reserved_regions_info(&start);
-+		if (size)
-+			count += __free_memory_core(start, start + size);
-+
-+		/* Free memblock.memory array if it was allocated */
-+		size = get_allocated_memblock_memory_regions_info(&start);
-+		if (size)
-+			count += __free_memory_core(start, start + size);
-+	}
- #endif
- 
- 	return count;
+diff -puN mm/memcontrol.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix
++++ a/mm/memcontrol.c
+@@ -1841,7 +1841,7 @@ static void mem_cgroup_out_of_memory(str
+ 				break;
+ 			};
+ 			points = oom_badness(task, memcg, NULL, totalpages);
+-			if (points < chosen_points)
++			if (!points || points < chosen_points)
+ 				continue;
+ 			/* Prefer thread group leaders for display purposes */
+ 			if (points == chosen_points &&
+diff -puN mm/oom_kill.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-prefer-thread-group-leaders-for-display-purposes-fix
++++ a/mm/oom_kill.c
+@@ -327,7 +327,7 @@ static struct task_struct *select_bad_pr
+ 			break;
+ 		};
+ 		points = oom_badness(p, NULL, nodemask, totalpages);
+-		if (points < chosen_points)
++		if (!points || points < chosen_points)
+ 			continue;
+ 		/* Prefer thread group leaders for display purposes */
+ 		if (points == chosen_points && thread_group_leader(chosen))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-mm-print-more-details-for-bad_page.patch
-mm-munlock-fix-potential-race-with-thp-page-split.patch
-mm-dump-page-when-hitting-a-vm_bug_on-using-vm_bug_on_page.patch
-memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
-numa-add-a-sysctl-for-numa_balancing.patch
-mm-nobootmem-free_all_bootmem-again.patch
-mm-improve-documentation-of-page_order-v2-fix.patch
-lib-parserc-put-export_symbols-in-the-conventional-place.patch
-printk-flush-conflicting-continuation-line-fix.patch
-lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null-fix.patch
-drivers-rtc-rtc-cmosc-propagate-hpet_register_irq_handler-failure.patch
-fs-ext3-use-rbtree-postorder-iteration-helper-instead-of-opencoding-fix.patch
+fs-proc-pagec-add-pageanon-check-to-surely-detect-thp.patch
+mm-prevent-setting-of-a-value-less-than-0-to-min_free_kbytes.patch
+mm-show-message-when-updating-min_free_kbytes-in-thp.patch
+mm-oom-prefer-thread-group-leaders-for-display-purposes.patch
+uapi-convert-u64-to-__u64-in-exported-headers.patch
+checkpatch-add-warning-of-future-__gfp_nofail-use.patch
 
