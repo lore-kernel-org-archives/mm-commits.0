@@ -1,91 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch added
- to -mm tree
-Date: Wed, 22 Jan 2014 13:22:20 -0800
-Message-ID: <52e0368c.v27OUQIyLOwuwguT%akpm@linux-foundation.org>
+Subject: [merged] drivers-block-sx8c-use-module_pci_driver.patch removed
+ from -mm tree
+Date: Thu, 23 Jan 2014 12:42:38 -0800
+Message-ID: <52e17ebe.NofYPY42q7u4QAX6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55673 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36053 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752437AbaAVVWV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jan 2014 16:22:21 -0500
+	with ESMTP id S1751108AbaAWUmi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 15:42:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shli@fusionio.com, minchan@kernel.org, hughd@google.com, akinobu.mita@gmail.com, jamieliu@google.com
+To: mm-commits@vger.kernel.org, axboe@kernel.dk, jg1.han@samsung.com
 
-Subject: + mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch added to -mm tree
-To: jamieliu@google.com,akinobu.mita@gmail.com,hughd@google.com,minchan@kernel.org,shli@fusionio.com
+Subject: [merged] drivers-block-sx8c-use-module_pci_driver.patch removed from -mm tree
+To: jg1.han@samsung.com,axboe@kernel.dk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 22 Jan 2014 13:22:20 -0800
+Date: Thu, 23 Jan 2014 12:42:38 -0800
 
 
 The patch titled
-     Subject: mm/swapfile.c: do not skip lowest_bit in scan_swap_map() scan loop
-has been added to the -mm tree.  Its filename is
-     mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch
+     Subject: drivers/block/sx8.c: use module_pci_driver()
+has been removed from the -mm tree.  Its filename was
+     drivers-block-sx8c-use-module_pci_driver.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jamie Liu <jamieliu@google.com>
-Subject: mm/swapfile.c: do not skip lowest_bit in scan_swap_map() scan loop
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/block/sx8.c: use module_pci_driver()
 
-In the second half of scan_swap_map()'s scan loop, offset is set to
-si->lowest_bit and then incremented before entering the loop for the first
-time, causing si->swap_map[si->lowest_bit] to be skipped.
+Use module_pci_driver() macro which makes the code smaller and simpler.
 
-Signed-off-by: Jamie Liu <jamieliu@google.com>
-Cc: Shaohua Li <shli@fusionio.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/sx8.c |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop mm/swapfile.c
---- a/mm/swapfile.c~mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop
-+++ a/mm/swapfile.c
-@@ -616,7 +616,7 @@ scan:
- 		}
- 	}
- 	offset = si->lowest_bit;
--	while (++offset < scan_base) {
-+	while (offset < scan_base) {
- 		if (!si->swap_map[offset]) {
- 			spin_lock(&si->lock);
- 			goto checks;
-@@ -629,6 +629,7 @@ scan:
- 			cond_resched();
- 			latency_ration = LATENCY_LIMIT;
- 		}
-+		offset++;
- 	}
- 	spin_lock(&si->lock);
+diff -puN drivers/block/sx8.c~drivers-block-sx8c-use-module_pci_driver drivers/block/sx8.c
+--- a/drivers/block/sx8.c~drivers-block-sx8c-use-module_pci_driver
++++ a/drivers/block/sx8.c
+@@ -1747,17 +1747,4 @@ static void carm_remove_one (struct pci_
+ 	pci_set_drvdata(pdev, NULL);
+ }
  
+-static int __init carm_init(void)
+-{
+-	return pci_register_driver(&carm_driver);
+-}
+-
+-static void __exit carm_exit(void)
+-{
+-	pci_unregister_driver(&carm_driver);
+-}
+-
+-module_init(carm_init);
+-module_exit(carm_exit);
+-
+-
++module_pci_driver(carm_driver);
 _
 
-Patches currently in -mm which might be from jamieliu@google.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-mm-swapfilec-do-not-skip-lowest_bit-in-scan_swap_map-scan-loop.patch
+origin.patch
+maintainers-remove-unnecessary-exynos-dp-driver-f-pattern.patch
+backlight-jornada720-use-devm_backlight_device_register.patch
+backlight-hp680_bl-use-devm_backlight_device_register.patch
+backlight-omap1-use-devm_backlight_device_register.patch
+backlight-ot200_bl-use-devm_backlight_device_register.patch
+backlight-tosa-use-devm_backlight_device_register.patch
+backlight-jornada720-use-devm_lcd_device_register.patch
+backlight-l4f00242t03-use-devm_lcd_device_register.patch
+backlight-tosa-use-devm_lcd_device_register.patch
+drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
+backlight-kb3886_bl-fix-incorrect-placement-of-__initdata-marker.patch
+backlight-lp855x-remove-unnecessary-parentheses.patch
+backlight-lp8788-remove-unnecessary-parentheses.patch
+drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch
+rtc-ds1305-remove-unnecessary-spi_set_drvdata.patch
+rtc-rtc-twl-use-devm_-functions.patch
+rtc-rtc-vr41xx-use-devm_-functions.patch
+linux-next.patch
+backlight-lcd-call-put_device-if-device_register-fails.patch
 
