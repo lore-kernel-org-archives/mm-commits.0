@@ -1,97 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] rtc-add-hym8563-rtc-driver-fix.patch removed from -mm tree
-Date: Thu, 23 Jan 2014 15:27:06 -0800
-Message-ID: <52e1a54a.6bIbeN4PX/17QYhj%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ rtc-honor-device-tree-alias-entries-when-assigning-ids-v2.patch removed
+ from -mm tree
+Date: Thu, 23 Jan 2014 15:27:35 -0800
+Message-ID: <52e1a567.Mr6HYUELpkx/iDn2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37241 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37245 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753000AbaAWX1H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:27:07 -0500
+	with ESMTP id S1753000AbaAWX1g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jan 2014 18:27:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, fengguang.wu@intel.com, heiko@sntech.de
+To: mm-commits@vger.kernel.org, swarren@nvidia.com
 
-Subject: [folded-merged] rtc-add-hym8563-rtc-driver-fix.patch removed from -mm tree
-To: heiko@sntech.de,fengguang.wu@intel.com,sfr@canb.auug.org.au,mm-commits@vger.kernel.org
+Subject: [folded-merged] rtc-honor-device-tree-alias-entries-when-assigning-ids-v2.patch removed from -mm tree
+To: swarren@nvidia.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 23 Jan 2014 15:27:06 -0800
+Date: Thu, 23 Jan 2014 15:27:35 -0800
 
 
 The patch titled
-     Subject: rtc: hym8563: include clkout code only if COMMON_CLK active
+     Subject: rtc-honor-device-tree-alias-entries-when-assigning-ids-v2
 has been removed from the -mm tree.  Its filename was
-     rtc-add-hym8563-rtc-driver-fix.patch
+     rtc-honor-device-tree-alias-entries-when-assigning-ids-v2.patch
 
-This patch was dropped because it was folded into rtc-add-hym8563-rtc-driver.patch
+This patch was dropped because it was folded into rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
 
 ------------------------------------------------------
-From: Heiko Stuebner <heiko@sntech.de>
-Subject: rtc: hym8563: include clkout code only if COMMON_CLK active
+From: Stephen Warren <swarren@nvidia.com>
+Subject: rtc-honor-device-tree-alias-entries-when-assigning-ids-v2
 
-The contents of clk-provide.h, struct clk_hw etc, are only available if
-CONFIG_COMMON_CLK is selected.  Therefore IS_ENABLED(COMMON_CLK) is not
-sufficient and real preprocessor conditions are necessary to keep the code
-in question from being compiled on non-COMMON_CLK systems.
+v2: Explicitly check for both dev->of_node and dev->parent->of_node.
+    This covers the MFD case, without the MFD core having to set
+    child MFD devices' of_node pointer to the same node as the top-
+    level MFD device, which causes problems such as:
+    http://www.spinics.net/lists/arm-kernel/msg295854.html
 
-Signed-off-by: Heiko Stuebner <heiko@sntech.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Stephen Warren <swarren@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hym8563.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/rtc/class.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-hym8563.c~rtc-add-hym8563-rtc-driver-fix drivers/rtc/rtc-hym8563.c
---- a/drivers/rtc/rtc-hym8563.c~rtc-add-hym8563-rtc-driver-fix
-+++ a/drivers/rtc/rtc-hym8563.c
-@@ -87,7 +87,9 @@ struct hym8563 {
- 	struct i2c_client	*client;
- 	struct rtc_device	*rtc;
- 	bool			valid;
-+#ifdef CONFIG_COMMON_CLK
- 	struct clk_hw		clkout_hw;
-+#endif
- };
+diff -puN drivers/rtc/class.c~rtc-honor-device-tree-alias-entries-when-assigning-ids-v2 drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc-honor-device-tree-alias-entries-when-assigning-ids-v2
++++ a/drivers/rtc/class.c
+@@ -158,17 +158,19 @@ struct rtc_device *rtc_device_register(c
+ {
+ 	struct rtc_device *rtc;
+ 	struct rtc_wkalrm alrm;
+-	int of_id, id = -1, err;
++	int of_id = -1, id = -1, err;
  
- /*
-@@ -290,6 +292,7 @@ static const struct rtc_class_ops hym856
-  * Handling of the clkout
-  */
+-	if (dev->of_node) {
++	if (dev->of_node)
+ 		of_id = of_alias_get_id(dev->of_node, "rtc");
+-		if (of_id >= 0) {
+-			id = ida_simple_get(&rtc_ida, of_id, of_id + 1,
+-					    GFP_KERNEL);
+-			if (id < 0)
+-				dev_warn(dev, "/aliases ID %d not available\n",
+-					 of_id);
+-		}
++	else if (dev->parent && dev->parent->of_node)
++		of_id = of_alias_get_id(dev->parent->of_node, "rtc");
++
++	if (of_id >= 0) {
++		id = ida_simple_get(&rtc_ida, of_id, of_id + 1,
++				    GFP_KERNEL);
++		if (id < 0)
++			dev_warn(dev, "/aliases ID %d not available\n",
++				    of_id);
+ 	}
  
-+#ifdef CONFIG_COMMON_CLK
- #define clkout_hw_to_hym8563(_hw) container_of(_hw, struct hym8563, clkout_hw)
- 
- static int clkout_rates[] = {
-@@ -423,6 +426,7 @@ static struct clk *hym8563_clkout_regist
- 
- 	return clk;
- }
-+#endif
- 
- /*
-  * The alarm interrupt is implemented as a level-low interrupt in the
-@@ -565,8 +569,9 @@ static int hym8563_probe(struct i2c_clie
- 	if (IS_ERR(hym8563->rtc))
- 		return PTR_ERR(hym8563->rtc);
- 
--	if (IS_ENABLED(CONFIG_COMMON_CLK))
--		hym8563_clkout_register_clk(hym8563);
-+#ifdef CONFIG_COMMON_CLK
-+	hym8563_clkout_register_clk(hym8563);
-+#endif
- 
- 	return 0;
- }
+ 	if (id < 0) {
 _
 
-Patches currently in -mm which might be from heiko@sntech.de are
+Patches currently in -mm which might be from swarren@nvidia.com are
 
 origin.patch
-dt-bindings-add-hym8563-binding.patch
-rtc-add-hym8563-rtc-driver.patch
+rtc-honor-device-tree-alias-entries-when-assigning-ids.patch
+rtc-max8907-weekday-encoding-fixes.patch
 
