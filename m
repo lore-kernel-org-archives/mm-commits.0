@@ -1,73 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 10:58:49 -0800
-Message-ID: <52e2b7e9.W8Lccs9Sw52KrI1p%akpm@linux-foundation.org>
+Subject: [merged]
+ memcg-slab-rcu-protect-memcg_params-for-root-caches.patch removed from -mm
+ tree
+Date: Fri, 24 Jan 2014 10:58:51 -0800
+Message-ID: <52e2b7eb.BX73P4HB6Deyu/Ki%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43222 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43232 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS6u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:58:50 -0500
+	with ESMTP id S1752484AbaAXS6w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:58:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, glommer@gmail.com, cl@linux.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, penberg@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@gmail.com, cl@linux.com, bsingharora@gmail.com, vdavydov@parallels.com
 
-Subject: [merged] slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch removed from -mm tree
-To: vdavydov@parallels.com,cl@linux.com,glommer@gmail.com,hannes@cmpxchg.org,mhocko@suse.cz,penberg@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] memcg-slab-rcu-protect-memcg_params-for-root-caches.patch removed from -mm tree
+To: vdavydov@parallels.com,bsingharora@gmail.com,cl@linux.com,glommer@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,penberg@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:58:49 -0800
+Date: Fri, 24 Jan 2014 10:58:51 -0800
 
 
 The patch titled
-     Subject: slab: do not panic if we fail to create memcg cache
+     Subject: memcg, slab: RCU protect memcg_params for root caches
 has been removed from the -mm tree.  Its filename was
-     slab-do-not-panic-if-we-fail-to-create-memcg-cache.patch
+     memcg-slab-rcu-protect-memcg_params-for-root-caches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slab: do not panic if we fail to create memcg cache
+Subject: memcg, slab: RCU protect memcg_params for root caches
 
-There is no point in flooding logs with warnings or especially crashing
-the system if we fail to create a cache for a memcg.  In this case we will
-be accounting the memcg allocation to the root cgroup until we succeed to
-create its own cache, but it isn't that critical.
+We relocate root cache's memcg_params whenever we need to grow the
+memcg_caches array to accommodate all kmem-active memory cgroups. 
+Currently on relocation we free the old version immediately, which can
+lead to use-after-free, because the memcg_caches array is accessed
+lock-free (see cache_from_memcg_idx()).  This patch fixes this by making
+memcg_params RCU-protected for root caches.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Glauber Costa <glommer@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ include/linux/slab.h |    9 +++++++--
+ mm/memcontrol.c      |   15 ++++++++-------
+ mm/slab.h            |   16 +++++++++++++++-
+ 3 files changed, 30 insertions(+), 10 deletions(-)
 
-diff -puN mm/slab_common.c~slab-do-not-panic-if-we-fail-to-create-memcg-cache mm/slab_common.c
---- a/mm/slab_common.c~slab-do-not-panic-if-we-fail-to-create-memcg-cache
-+++ a/mm/slab_common.c
-@@ -233,7 +233,14 @@ out_unlock:
- 	mutex_unlock(&slab_mutex);
- 	put_online_cpus();
+diff -puN include/linux/slab.h~memcg-slab-rcu-protect-memcg_params-for-root-caches include/linux/slab.h
+--- a/include/linux/slab.h~memcg-slab-rcu-protect-memcg_params-for-root-caches
++++ a/include/linux/slab.h
+@@ -513,7 +513,9 @@ static __always_inline void *kmalloc_nod
+  *
+  * Both the root cache and the child caches will have it. For the root cache,
+  * this will hold a dynamically allocated array large enough to hold
+- * information about the currently limited memcgs in the system.
++ * information about the currently limited memcgs in the system. To allow the
++ * array to be accessed without taking any locks, on relocation we free the old
++ * version only after a grace period.
+  *
+  * Child caches will hold extra metadata needed for its operation. Fields are:
+  *
+@@ -528,7 +530,10 @@ static __always_inline void *kmalloc_nod
+ struct memcg_cache_params {
+ 	bool is_root_cache;
+ 	union {
+-		struct kmem_cache *memcg_caches[0];
++		struct {
++			struct rcu_head rcu_head;
++			struct kmem_cache *memcg_caches[0];
++		};
+ 		struct {
+ 			struct mem_cgroup *memcg;
+ 			struct list_head list;
+diff -puN mm/memcontrol.c~memcg-slab-rcu-protect-memcg_params-for-root-caches mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-slab-rcu-protect-memcg_params-for-root-caches
++++ a/mm/memcontrol.c
+@@ -3178,18 +3178,17 @@ int memcg_update_cache_size(struct kmem_
  
--	if (err) {
-+	/*
-+	 * There is no point in flooding logs with warnings or especially
-+	 * crashing the system if we fail to create a cache for a memcg. In
-+	 * this case we will be accounting the memcg allocation to the root
-+	 * cgroup until we succeed to create its own cache, but it isn't that
-+	 * critical.
-+	 */
-+	if (err && !memcg) {
- 		if (flags & SLAB_PANIC)
- 			panic("kmem_cache_create: Failed to create slab '%s'. Error %d\n",
- 				name, err);
+ 	if (num_groups > memcg_limited_groups_array_size) {
+ 		int i;
++		struct memcg_cache_params *new_params;
+ 		ssize_t size = memcg_caches_array_size(num_groups);
+ 
+ 		size *= sizeof(void *);
+ 		size += offsetof(struct memcg_cache_params, memcg_caches);
+ 
+-		s->memcg_params = kzalloc(size, GFP_KERNEL);
+-		if (!s->memcg_params) {
+-			s->memcg_params = cur_params;
++		new_params = kzalloc(size, GFP_KERNEL);
++		if (!new_params)
+ 			return -ENOMEM;
+-		}
+ 
+-		s->memcg_params->is_root_cache = true;
++		new_params->is_root_cache = true;
+ 
+ 		/*
+ 		 * There is the chance it will be bigger than
+@@ -3203,7 +3202,7 @@ int memcg_update_cache_size(struct kmem_
+ 		for (i = 0; i < memcg_limited_groups_array_size; i++) {
+ 			if (!cur_params->memcg_caches[i])
+ 				continue;
+-			s->memcg_params->memcg_caches[i] =
++			new_params->memcg_caches[i] =
+ 						cur_params->memcg_caches[i];
+ 		}
+ 
+@@ -3216,7 +3215,9 @@ int memcg_update_cache_size(struct kmem_
+ 		 * bigger than the others. And all updates will reset this
+ 		 * anyway.
+ 		 */
+-		kfree(cur_params);
++		rcu_assign_pointer(s->memcg_params, new_params);
++		if (cur_params)
++			kfree_rcu(cur_params, rcu_head);
+ 	}
+ 	return 0;
+ }
+diff -puN mm/slab.h~memcg-slab-rcu-protect-memcg_params-for-root-caches mm/slab.h
+--- a/mm/slab.h~memcg-slab-rcu-protect-memcg_params-for-root-caches
++++ a/mm/slab.h
+@@ -160,14 +160,28 @@ static inline const char *cache_name(str
+ 	return s->name;
+ }
+ 
++/*
++ * Note, we protect with RCU only the memcg_caches array, not per-memcg caches.
++ * That said the caller must assure the memcg's cache won't go away. Since once
++ * created a memcg's cache is destroyed only along with the root cache, it is
++ * true if we are going to allocate from the cache or hold a reference to the
++ * root cache by other means. Otherwise, we should hold either the slab_mutex
++ * or the memcg's slab_caches_mutex while calling this function and accessing
++ * the returned value.
++ */
+ static inline struct kmem_cache *
+ cache_from_memcg_idx(struct kmem_cache *s, int idx)
+ {
+ 	struct kmem_cache *cachep;
++	struct memcg_cache_params *params;
+ 
+ 	if (!s->memcg_params)
+ 		return NULL;
+-	cachep = s->memcg_params->memcg_caches[idx];
++
++	rcu_read_lock();
++	params = rcu_dereference(s->memcg_params);
++	cachep = params->memcg_caches[idx];
++	rcu_read_unlock();
+ 
+ 	/*
+ 	 * Make sure we will access the up-to-date value. The code updating
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
