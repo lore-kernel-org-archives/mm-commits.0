@@ -1,72 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 11:00:33 -0800
-Message-ID: <52e2b851.272BGTey/Se2165L%akpm@linux-foundation.org>
+Subject: [merged] headers_check-special-case-seqbuf_dump.patch removed
+ from -mm tree
+Date: Fri, 24 Jan 2014 11:00:39 -0800
+Message-ID: <52e2b857.3Fkfe0UlBb+UIL3S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43493 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43504 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbaAXTAd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:33 -0500
+	with ESMTP id S1752340AbaAXTAk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sameo@linux.intel.com, anilkumar@ti.com, dhowells@redhat.com
+To: mm-commits@vger.kernel.org, tiwai@suse.de, mmarek@suse.cz, arnd@arndb.de, pebolle@tiscali.nl
 
-Subject: [merged] drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe.patch removed from -mm tree
-To: dhowells@redhat.com,anilkumar@ti.com,sameo@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [merged] headers_check-special-case-seqbuf_dump.patch removed from -mm tree
+To: pebolle@tiscali.nl,arnd@arndb.de,mmarek@suse.cz,tiwai@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:00:33 -0800
+Date: Fri, 24 Jan 2014 11:00:39 -0800
 
 
 The patch titled
-     Subject: drivers/mfd/tps65217.c: fix pointer-integer size mismatch warning in tps65217_probe()
+     Subject: headers_check: special case seqbuf_dump()
 has been removed from the -mm tree.  Its filename was
-     drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe.patch
+     headers_check-special-case-seqbuf_dump.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: drivers/mfd/tps65217.c: fix pointer-integer size mismatch warning in tps65217_probe()
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: headers_check: special case seqbuf_dump()
 
-Fix up the following pointer-integer size mismatch warning in tps65217_probe():
+"make headers_check" warns about soundcard.h for (at least) five years
+now:
+    [...]/usr/include/linux/soundcard.h:1054: userspace cannot reference function or variable defined in the kernel
 
-	drivers/mfd/tps65217.c: In function 'tps65217_probe':
-	drivers/mfd/tps65217.c:173:13: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-	   chip_id = (unsigned int)match->data;
-		     ^
+We're apparently stuck with providing OSSlib-3.8 compatibility, so let's
+special case this declaration just to silence it.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: AnilKumar Ch <anilkumar@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Notes:
+
+0) Support for OSSlib post 3.8 was already removed in commit 43a990765a
+   ("sound: Remove OSSlib stuff from linux/soundcard.h").  Five years have
+   passed since that commit: do people still care about OSSlib-3.8?  If
+   not, quite a bit of code could be remove from soundcard.h (and probably
+   ultrasound.h).
+
+2) By the way, what is actually meant by:
+    It is no longer possible to actually link against OSSlib with this
+    header, but we still provide these macros for programs using them.
+
+Doesn't that mean compatibility to OSSlib isn't even useful?
+
+3) Anyhow, a previous discussion soundcard.h, which led to that commit,
+   starts at https://lkml.org/lkml/2009/1/20/349 .
+
+4) And, yes, I sneaked in a whitespace fix.
+
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Cc: Takashi Iwai <tiwai@suse.de>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/tps65217.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/headers_check.pl |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mfd/tps65217.c~drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe drivers/mfd/tps65217.c
---- a/drivers/mfd/tps65217.c~drivers-mfd-tps65217c-fix-pointer-integer-size-mismatch-warning-in-tps65217_probe
-+++ a/drivers/mfd/tps65217.c
-@@ -170,7 +170,7 @@ static int tps65217_probe(struct i2c_cli
- 				"Failed to find matching dt id\n");
- 			return -EINVAL;
- 		}
--		chip_id = (unsigned int)match->data;
-+		chip_id = (unsigned int)(unsigned long)match->data;
- 		status_off = of_property_read_bool(client->dev.of_node,
- 					"ti,pmic-shutdown-controller");
- 	}
+diff -puN scripts/headers_check.pl~headers_check-special-case-seqbuf_dump scripts/headers_check.pl
+--- a/scripts/headers_check.pl~headers_check-special-case-seqbuf_dump
++++ a/scripts/headers_check.pl
+@@ -65,7 +65,11 @@ sub check_include
+ 
+ sub check_declarations
+ {
+-	if ($line =~m/^(\s*extern|unsigned|char|short|int|long|void)\b/) {
++	# soundcard.h is what it is
++	if ($line =~ m/^void seqbuf_dump\(void\);/) {
++		return;
++	}
++	if ($line =~ m/^(\s*extern|unsigned|char|short|int|long|void)\b/) {
+ 		printf STDERR "$filename:$lineno: " .
+ 			      "userspace cannot reference function or " .
+ 			      "variable defined in the kernel\n";
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from pebolle@tiscali.nl are
 
 origin.patch
-afs-proc-cells-and-rootcell-are-writeable.patch
 linux-next.patch
-mutex-subsystem-synchro-test-module.patch
 
