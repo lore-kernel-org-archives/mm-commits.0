@@ -1,132 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch removed
- from -mm tree
-Date: Fri, 24 Jan 2014 11:03:24 -0800
-Message-ID: <52e2b8fc.10UWxxLbVaijrtn5%akpm@linux-foundation.org>
+Subject: + x86-fix-numa-by-reverting-wrong-memblock-setting.patch added to -mm tree
+Date: Fri, 24 Jan 2014 11:17:37 -0800
+Message-ID: <52e2bc51.Y3EA+1oW6gb9K0iy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43823 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43956 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753093AbaAXTDZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:03:25 -0500
+	with ESMTP id S1752094AbaAXTRi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:17:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, segoon@openwall.com, pmatouse@redhat.com, keescook@chromium.org, josh@joshtriplett.org, ebiederm@xmission.com, alex.page.kelly@gmail.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, santosh.shilimkar@ti.com, mingo@elte.hu, hpa@zytor.com, grygorii.strashko@ti.com, dave.hansen@intel.com, yinghai@kernel.org
 
-Subject: [merged] coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch removed from -mm tree
-To: oleg@redhat.com,alex.page.kelly@gmail.com,ebiederm@xmission.com,josh@joshtriplett.org,keescook@chromium.org,pmatouse@redhat.com,segoon@openwall.com,mm-commits@vger.kernel.org
+Subject: + x86-fix-numa-by-reverting-wrong-memblock-setting.patch added to -mm tree
+To: yinghai@kernel.org,dave.hansen@intel.com,grygorii.strashko@ti.com,hpa@zytor.com,mingo@elte.hu,santosh.shilimkar@ti.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:03:24 -0800
+Date: Fri, 24 Jan 2014 11:17:37 -0800
 
 
 The patch titled
-     Subject: coredump: set_dumpable: fix the theoretical race with itself
-has been removed from the -mm tree.  Its filename was
-     coredump-set_dumpable-fix-the-theoretical-race-with-itself.patch
+     Subject: x86: fix numa by reverting wrong memblock setting
+has been added to the -mm tree.  Its filename is
+     x86-fix-numa-by-reverting-wrong-memblock-setting.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-fix-numa-by-reverting-wrong-memblock-setting.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-fix-numa-by-reverting-wrong-memblock-setting.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: set_dumpable: fix the theoretical race with itself
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: x86: fix numa by reverting wrong memblock setting
 
-set_dumpable() updates MMF_DUMPABLE_MASK in a non-trivial way to ensure
-that get_dumpable() can't observe the intermediate state, but this all
-can't help if multiple threads call set_dumpable() at the same time.
+Dave reported Numa on x86 is broken on system with 1T memory.
 
-And in theory commit_creds()->set_dumpable(SUID_DUMP_ROOT) racing with
-sys_prctl()->set_dumpable(SUID_DUMP_DISABLE) can result in SUID_DUMP_USER.
+It turns out
+| commit 5b6e529521d35e1bcaa0fe43456d1bbb335cae5d
+| Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
+| Date:   Tue Jan 21 15:50:03 2014 -0800
+|
+|    x86: memblock: set current limit to max low memory address
 
-Change this code to update both bits atomically via cmpxchg().
+set limit to low wrongly.
 
-Note: this assumes that it is safe to mix bitops and cmpxchg.  IOW, if,
-say, an architecture implements cmpxchg() using the locking (like
-arch/parisc/lib/bitops.c does), then it should use the same locks for
-set_bit/etc.
+max_low_pfn_mapped is different from max_pfn_mapped.
+max_low_pfn_mapped is always under 4G.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Alex Kelly <alex.page.kelly@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Petr Matousek <pmatouse@redhat.com>
-Cc: Vasily Kulikov <segoon@openwall.com>
+That will memblock_alloc_nid all go under 4G.
+
+Revert that offending patch.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Reported-by: Dave Hansen <dave.hansen@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   49 +++++++++++++++----------------------------------
- 1 file changed, 15 insertions(+), 34 deletions(-)
+ arch/x86/include/asm/page_types.h |    4 ++--
+ arch/x86/kernel/setup.c           |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/exec.c~coredump-set_dumpable-fix-the-theoretical-race-with-itself fs/exec.c
---- a/fs/exec.c~coredump-set_dumpable-fix-the-theoretical-race-with-itself
-+++ a/fs/exec.c
-@@ -1614,43 +1614,24 @@ EXPORT_SYMBOL(set_binfmt);
+diff -puN arch/x86/include/asm/page_types.h~x86-fix-numa-by-reverting-wrong-memblock-setting arch/x86/include/asm/page_types.h
+--- a/arch/x86/include/asm/page_types.h~x86-fix-numa-by-reverting-wrong-memblock-setting
++++ a/arch/x86/include/asm/page_types.h
+@@ -51,9 +51,9 @@ extern int devmem_is_allowed(unsigned lo
+ extern unsigned long max_low_pfn_mapped;
+ extern unsigned long max_pfn_mapped;
  
- /*
-  * set_dumpable converts traditional three-value dumpable to two flags and
-- * stores them into mm->flags.  It modifies lower two bits of mm->flags, but
-- * these bits are not changed atomically.  So get_dumpable can observe the
-- * intermediate state.  To avoid doing unexpected behavior, get get_dumpable
-- * return either old dumpable or new one by paying attention to the order of
-- * modifying the bits.
-- *
-- * dumpable |   mm->flags (binary)
-- * old  new | initial interim  final
-- * ---------+-----------------------
-- *  0    1  |   00      01      01
-- *  0    2  |   00      10(*)   11
-- *  1    0  |   01      00      00
-- *  1    2  |   01      11      11
-- *  2    0  |   11      10(*)   00
-- *  2    1  |   11      11      01
-- *
-- * (*) get_dumpable regards interim value of 10 as 11.
-+ * stores them into mm->flags.
-  */
- void set_dumpable(struct mm_struct *mm, int value)
+-static inline phys_addr_t get_max_low_mapped(void)
++static inline phys_addr_t get_max_mapped(void)
  {
--	switch (value) {
--	case SUID_DUMP_DISABLE:
--		clear_bit(MMF_DUMPABLE, &mm->flags);
--		smp_wmb();
--		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
--		break;
--	case SUID_DUMP_USER:
--		set_bit(MMF_DUMPABLE, &mm->flags);
--		smp_wmb();
--		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
--		break;
--	case SUID_DUMP_ROOT:
--		set_bit(MMF_DUMP_SECURELY, &mm->flags);
--		smp_wmb();
--		set_bit(MMF_DUMPABLE, &mm->flags);
--		break;
--	}
-+	unsigned long old, new;
-+
-+	do {
-+		old = ACCESS_ONCE(mm->flags);
-+		new = old & ~MMF_DUMPABLE_MASK;
-+
-+		switch (value) {
-+		case SUID_DUMP_ROOT:
-+			new |= (1 << MMF_DUMP_SECURELY);
-+		case SUID_DUMP_USER:
-+			new |= (1<< MMF_DUMPABLE);
-+		}
-+
-+	} while (cmpxchg(&mm->flags, old, new) != old);
+-	return (phys_addr_t)max_low_pfn_mapped << PAGE_SHIFT;
++	return (phys_addr_t)max_pfn_mapped << PAGE_SHIFT;
  }
  
- int __get_dumpable(unsigned long mm_flags)
+ bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn);
+diff -puN arch/x86/kernel/setup.c~x86-fix-numa-by-reverting-wrong-memblock-setting arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~x86-fix-numa-by-reverting-wrong-memblock-setting
++++ a/arch/x86/kernel/setup.c
+@@ -1119,7 +1119,7 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	setup_real_mode();
+ 
+-	memblock_set_current_limit(get_max_low_mapped());
++	memblock_set_current_limit(get_max_mapped());
+ 	dma_contiguous_reserve(0);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
 origin.patch
-mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch
+revert-xxx.patch
+x86-fix-numa-by-reverting-wrong-memblock-setting.patch
 
