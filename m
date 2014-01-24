@@ -1,67 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- maintainers-remove-unnecessary-exynos-dp-driver-f-pattern.patch removed
- from -mm tree
-Date: Fri, 24 Jan 2014 11:01:07 -0800
-Message-ID: <52e2b873.P5SFXytIdhfMX/tv%akpm@linux-foundation.org>
+ backlight-jornada720-use-devm_backlight_device_register.patch removed from
+ -mm tree
+Date: Fri, 24 Jan 2014 11:01:09 -0800
+Message-ID: <52e2b875.jIats/mFIUQ2Aq/3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43569 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbaAXTBH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:01:07 -0500
+	with ESMTP id S1752340AbaAXTBJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, jg1.han@samsung.com
 
-Subject: [merged] maintainers-remove-unnecessary-exynos-dp-driver-f-pattern.patch removed from -mm tree
-To: jg1.han@samsung.com,mm-commits@vger.kernel.org
+Subject: [merged] backlight-jornada720-use-devm_backlight_device_register.patch removed from -mm tree
+To: jg1.han@samsung.com,tomi.valkeinen@ti.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:01:07 -0800
+Date: Fri, 24 Jan 2014 11:01:09 -0800
 
 
 The patch titled
-     Subject: MAINTAINERS: remove unnecessary EXYNOS DP DRIVER F: pattern
+     Subject: backlight: jornada720: use devm_backlight_device_register()
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-unnecessary-exynos-dp-driver-f-pattern.patch
+     backlight-jornada720-use-devm_backlight_device_register.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: MAINTAINERS: remove unnecessary EXYNOS DP DRIVER F: pattern
+Subject: backlight: jornada720: use devm_backlight_device_register()
 
-Remove unnecessary pattern for Exynos DP header from MAINTAINERS file. 
-After f9b1e01 ("video: exynos_dp: remove non-DT support for Exynos Display
-Port"), 'exynos_dp.h' has not been used.
+Use devm_backlight_device_register() to make cleanup paths simpler,
+and remove unnecessary remove().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/video/backlight/jornada720_bl.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-unnecessary-exynos-dp-driver-f-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-unnecessary-exynos-dp-driver-f-pattern
-+++ a/MAINTAINERS
-@@ -3349,7 +3349,6 @@ M:	Jingoo Han <jg1.han@samsung.com>
- L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	drivers/video/exynos/exynos_dp*
--F:	include/video/exynos_dp*
+diff -puN drivers/video/backlight/jornada720_bl.c~backlight-jornada720-use-devm_backlight_device_register drivers/video/backlight/jornada720_bl.c
+--- a/drivers/video/backlight/jornada720_bl.c~backlight-jornada720-use-devm_backlight_device_register
++++ a/drivers/video/backlight/jornada720_bl.c
+@@ -115,9 +115,10 @@ static int jornada_bl_probe(struct platf
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = BL_MAX_BRIGHT;
+-	bd = backlight_device_register(S1D_DEVICENAME, &pdev->dev, NULL,
+-				       &jornada_bl_ops, &props);
  
- EXYNOS MIPI DISPLAY DRIVERS
- M:	Inki Dae <inki.dae@samsung.com>
-_
-
-Patches currently in -mm which might be from jg1.han@samsung.com are
-
-origin.patch
-drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
-linux-next.patch
-backlight-lcd-call-put_device-if-device_register-fails.patch
-
++	bd = devm_backlight_device_register(&pdev->dev, S1D_DEVICENAME,
++					&pdev->dev, NULL, &jornada_bl_ops,
++					&props);
+ 	if (IS_ERR(bd)) {
+ 		ret = PTR_ERR(bd);
+ 		dev_err(&pdev->dev, "failed to register device, err=%x\n", ret);
+@@ -139,18 +140,8 @@ static int jornada_bl_probe(struct platf
+ 	return 0;
+ }
+ 
+-static int jornada_bl_remove(struct platform_device *pdev)
+-{
+-	struct backlight_device *bd = platform_get_drvdata(pdev);
+-
+-	backlight_device_unregister(bd);
+-
+-	return 0;
+-}
