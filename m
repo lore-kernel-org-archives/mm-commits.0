@@ -1,141 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-vmscan-shrink-all-slab-objects-if-tight-on-memory.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 10:59:17 -0800
-Message-ID: <52e2b805.pBGMcNrF8KzxhhnO%akpm@linux-foundation.org>
+Subject: [merged] mm-nobootmem-free_all_bootmem-again.patch removed from
+ -mm tree
+Date: Fri, 24 Jan 2014 10:59:21 -0800
+Message-ID: <52e2b809.iekdYW5QBJUAQG+p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43303 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43319 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752739AbaAXS7S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:18 -0500
+	with ESMTP id S1752484AbaAXS7X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, hannes@cmpxchg.org, glommer@gmail.com, dchinner@redhat.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, tangchen@cn.fujitsu.com, schwidefsky@de.ibm.com, santosh.shilimkar@ti.com, qiuxishi@huawei.com, liuj97@gmail.com, grygorii.strashko@ti.com, dhowells@redhat.com, daeseok.youn@gmail.com, phacht@linux.vnet.ibm.com
 
-Subject: [merged] mm-vmscan-shrink-all-slab-objects-if-tight-on-memory.patch removed from -mm tree
-To: vdavydov@parallels.com,dchinner@redhat.com,glommer@gmail.com,hannes@cmpxchg.org,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-nobootmem-free_all_bootmem-again.patch removed from -mm tree
+To: phacht@linux.vnet.ibm.com,daeseok.youn@gmail.com,dhowells@redhat.com,grygorii.strashko@ti.com,liuj97@gmail.com,qiuxishi@huawei.com,santosh.shilimkar@ti.com,schwidefsky@de.ibm.com,tangchen@cn.fujitsu.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:59:17 -0800
+Date: Fri, 24 Jan 2014 10:59:21 -0800
 
 
 The patch titled
-     Subject: mm: vmscan: shrink all slab objects if tight on memory
+     Subject: mm/nobootmem: free_all_bootmem again
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-shrink-all-slab-objects-if-tight-on-memory.patch
+     mm-nobootmem-free_all_bootmem-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: mm: vmscan: shrink all slab objects if tight on memory
+From: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+Subject: mm/nobootmem: free_all_bootmem again
 
-When reclaiming kmem, we currently don't scan slabs that have less than
-batch_size objects (see shrink_slab_node()):
+get_allocated_memblock_reserved_regions_info() should work if it is
+compiled in.  Extended the ifdef around
+get_allocated_memblock_memory_regions_info() to include
+get_allocated_memblock_reserved_regions_info() as well.  Similar changes
+in nobootmem.c/free_low_memory_core_early() where the two functions are
+called.
 
-        while (total_scan >= batch_size) {
-                shrinkctl->nr_to_scan = batch_size;
-                shrinker->scan_objects(shrinker, shrinkctl);
-                total_scan -= batch_size;
-        }
-
-If there are only a few shrinkers available, such a behavior won't cause
-any problems, because the batch_size is usually small, but if we have a
-lot of slab shrinkers, which is perfectly possible since FS shrinkers
-are now per-superblock, we can end up with hundreds of megabytes of
-practically unreclaimable kmem objects. For instance, mounting a
-thousand of ext2 FS images with a hundred of files in each and iterating
-over all the files using du(1) will result in about 200 Mb of FS caches
-that cannot be dropped even with the aid of the vm.drop_caches sysctl!
-
-This problem was initially pointed out by Glauber Costa [*]. Glauber
-proposed to fix it by making the shrink_slab() always take at least one
-pass, to put it simply, turning the scan loop above to a do{}while()
-loop. However, this proposal was rejected, because it could result in
-more aggressive and frequent slab shrinking even under low memory
-pressure when total_scan is naturally very small.
-
-This patch is a slightly modified version of Glauber's approach.
-Similarly to Glauber's patch, it makes shrink_slab() scan less than
-batch_size objects, but only if the total number of objects we want to
-scan (total_scan) is greater than the total number of objects available
-(max_pass). Since total_scan is biased as half max_pass if the current
-delta change is small:
-
-        if (delta < max_pass / 4)
-                total_scan = min(total_scan, max_pass / 2);
-
-this is only possible if we are scanning at high prio. That said, this
-patch shouldn't change the vmscan behaviour if the memory pressure is
-low, but if we are tight on memory, we will do our best by trying to
-reclaim all available objects, which sounds reasonable.
-
-[*] http://www.spinics.net/lists/cgroups/msg06913.html
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Glauber Costa <glommer@gmail.com>
+[akpm@linux-foundation.org: cleanup]
+Signed-off-by: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+Cc: qiuxishi <qiuxishi@huawei.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Daeseok Youn <daeseok.youn@gmail.com>
+Cc: Jiang Liu <liuj97@gmail.com>
+Acked-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+ mm/memblock.c  |   17 ++---------------
+ mm/nobootmem.c |   23 +++++++++++++----------
+ 2 files changed, 15 insertions(+), 25 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-shrink-all-slab-objects-if-tight-on-memory mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-shrink-all-slab-objects-if-tight-on-memory
-+++ a/mm/vmscan.c
-@@ -281,17 +281,34 @@ shrink_slab_node(struct shrink_control *
- 				nr_pages_scanned, lru_pages,
- 				max_pass, delta, total_scan);
- 
--	while (total_scan >= batch_size) {
-+	/*
-+	 * Normally, we should not scan less than batch_size objects in one
-+	 * pass to avoid too frequent shrinker calls, but if the slab has less
-+	 * than batch_size objects in total and we are really tight on memory,
-+	 * we will try to reclaim all available objects, otherwise we can end
-+	 * up failing allocations although there are plenty of reclaimable
-+	 * objects spread over several slabs with usage less than the
-+	 * batch_size.
-+	 *
-+	 * We detect the "tight on memory" situations by looking at the total
-+	 * number of objects we want to scan (total_scan). If it is greater
-+	 * than the total number of objects on slab (max_pass), we must be
-+	 * scanning at high prio and therefore should try to reclaim as much as
-+	 * possible.
-+	 */
-+	while (total_scan >= batch_size ||
-+	       total_scan >= max_pass) {
- 		unsigned long ret;
-+		unsigned long nr_to_scan = min(batch_size, total_scan);
- 
--		shrinkctl->nr_to_scan = batch_size;
-+		shrinkctl->nr_to_scan = nr_to_scan;
- 		ret = shrinker->scan_objects(shrinker, shrinkctl);
- 		if (ret == SHRINK_STOP)
- 			break;
- 		freed += ret;
- 
--		count_vm_events(SLABS_SCANNED, batch_size);
--		total_scan -= batch_size;
-+		count_vm_events(SLABS_SCANNED, nr_to_scan);
-+		total_scan -= nr_to_scan;
- 
- 		cond_resched();
+diff -puN mm/memblock.c~mm-nobootmem-free_all_bootmem-again mm/memblock.c
+--- a/mm/memblock.c~mm-nobootmem-free_all_bootmem-again
++++ a/mm/memblock.c
+@@ -266,33 +266,20 @@ static void __init_memblock memblock_rem
  	}
+ }
+ 
++#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
++
+ phys_addr_t __init_memblock get_allocated_memblock_reserved_regions_info(
+ 					phys_addr_t *addr)
+ {
+ 	if (memblock.reserved.regions == memblock_reserved_init_regions)
+ 		return 0;
+ 
+-	/*
+-	 * Don't allow nobootmem allocator to free reserved memory regions
+-	 * array if
+-	 *  - CONFIG_DEBUG_FS is enabled;
+-	 *  - CONFIG_ARCH_DISCARD_MEMBLOCK is not enabled;
+-	 *  - reserved memory regions array have been resized during boot.
+-	 * Otherwise debug_fs entry "sys/kernel/debug/memblock/reserved"
+-	 * will show garbage instead of state of memory reservations.
+-	 */
+-	if (IS_ENABLED(CONFIG_DEBUG_FS) &&
+-	    !IS_ENABLED(CONFIG_ARCH_DISCARD_MEMBLOCK))
+-		return 0;
+-
+ 	*addr = __pa(memblock.reserved.regions);
+ 
+ 	return PAGE_ALIGN(sizeof(struct memblock_region) *
+ 			  memblock.reserved.max);
+ }
+ 
+-#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
+-
+ phys_addr_t __init_memblock get_allocated_memblock_memory_regions_info(
+ 					phys_addr_t *addr)
+ {
+diff -puN mm/nobootmem.c~mm-nobootmem-free_all_bootmem-again mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-nobootmem-free_all_bootmem-again
++++ a/mm/nobootmem.c
+@@ -116,23 +116,26 @@ static unsigned long __init __free_memor
+ static unsigned long __init free_low_memory_core_early(void)
+ {
+ 	unsigned long count = 0;
+-	phys_addr_t start, end, size;
++	phys_addr_t start, end;
+ 	u64 i;
+ 
+ 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
+ 		count += __free_memory_core(start, end);
+ 
+-	/* Free memblock.reserved array if it was allocated */
+-	size = get_allocated_memblock_reserved_regions_info(&start);
+-	if (size)
+-		count += __free_memory_core(start, start + size);
+-
+ #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
++	{
++		phys_addr_t size;
++
++		/* Free memblock.reserved array if it was allocated */
++		size = get_allocated_memblock_reserved_regions_info(&start);
++		if (size)
++			count += __free_memory_core(start, start + size);
+ 
+-	/* Free memblock.memory array if it was allocated */
+-	size = get_allocated_memblock_memory_regions_info(&start);
+-	if (size)
+-		count += __free_memory_core(start, start + size);
++		/* Free memblock.memory array if it was allocated */
++		size = get_allocated_memblock_memory_regions_info(&start);
++		if (size)
++			count += __free_memory_core(start, start + size);
++	}
+ #endif
+ 
+ 	return count;
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from phacht@linux.vnet.ibm.com are
 
 origin.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
 
