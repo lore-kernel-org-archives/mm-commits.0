@@ -1,94 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 11:02:08 -0800
-Message-ID: <52e2b8b0.94fZd0ZzLKgs8IqJ%akpm@linux-foundation.org>
+Subject: [merged] fs-ramfs-move-ramfs_aops-to-inodec.patch removed from
+ -mm tree
+Date: Fri, 24 Jan 2014 11:02:10 -0800
+Message-ID: <52e2b8b2.NN0Ahgp2RfxmYG5m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43677 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43682 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950AbaAXTCI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:08 -0500
+	with ESMTP id S1752950AbaAXTCK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, axel.lin@ingics.com
 
-Subject: [merged] fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch removed from -mm tree
+Subject: [merged] fs-ramfs-move-ramfs_aops-to-inodec.patch removed from -mm tree
 To: axel.lin@ingics.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:02:08 -0800
+Date: Fri, 24 Jan 2014 11:02:10 -0800
 
 
 The patch titled
-     Subject: fs/ramfs/file-nommu.c: make ramfs_nommu_get_unmapped_area() and ramfs_nommu_mmap() static
+     Subject: fs/ramfs: move ramfs_aops to inode.c
 has been removed from the -mm tree.  Its filename was
-     fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch
+     fs-ramfs-move-ramfs_aops-to-inodec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Axel Lin <axel.lin@ingics.com>
-Subject: fs/ramfs/file-nommu.c: make ramfs_nommu_get_unmapped_area() and ramfs_nommu_mmap() static
+Subject: fs/ramfs: move ramfs_aops to inode.c
 
-Since commit 853ac43ab194f "shmem: unify regular and tiny shmem",
-ramfs_nommu_get_unmapped_area() and ramfs_nommu_mmap() are not directly
-referenced outside of file-nommu.c.  Thus make them static.
+ramfs_aops is identical in file-mmu.c and file-nommu.c.  Thus move it to
+fs/ramfs/inode.c and make it static.
 
 Signed-off-by: Axel Lin <axel.lin@ingics.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |   10 ++++++++--
- include/linux/ramfs.h |    7 -------
- 2 files changed, 8 insertions(+), 9 deletions(-)
+ fs/ramfs/file-mmu.c   |    7 -------
+ fs/ramfs/file-nommu.c |    7 -------
+ fs/ramfs/inode.c      |    7 +++++++
+ fs/ramfs/internal.h   |    1 -
+ 4 files changed, 7 insertions(+), 15 deletions(-)
 
-diff -puN fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static
-+++ a/fs/ramfs/file-nommu.c
-@@ -27,6 +27,12 @@
+diff -puN fs/ramfs/file-mmu.c~fs-ramfs-move-ramfs_aops-to-inodec fs/ramfs/file-mmu.c
+--- a/fs/ramfs/file-mmu.c~fs-ramfs-move-ramfs_aops-to-inodec
++++ a/fs/ramfs/file-mmu.c
+@@ -30,13 +30,6 @@
+ 
  #include "internal.h"
  
- static int ramfs_nommu_setattr(struct dentry *, struct iattr *);
-+static unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
-+						   unsigned long addr,
-+						   unsigned long len,
-+						   unsigned long pgoff,
-+						   unsigned long flags);
-+static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma);
+-const struct address_space_operations ramfs_aops = {
+-	.readpage	= simple_readpage,
+-	.write_begin	= simple_write_begin,
+-	.write_end	= simple_write_end,
+-	.set_page_dirty = __set_page_dirty_no_writeback,
+-};
+-
+ const struct file_operations ramfs_file_operations = {
+ 	.read		= do_sync_read,
+ 	.aio_read	= generic_file_aio_read,
+diff -puN fs/ramfs/file-nommu.c~fs-ramfs-move-ramfs_aops-to-inodec fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~fs-ramfs-move-ramfs_aops-to-inodec
++++ a/fs/ramfs/file-nommu.c
+@@ -34,13 +34,6 @@ static unsigned long ramfs_nommu_get_unm
+ 						   unsigned long flags);
+ static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma);
  
- const struct address_space_operations ramfs_aops = {
- 	.readpage		= simple_readpage,
-@@ -197,7 +203,7 @@ static int ramfs_nommu_setattr(struct de
-  *   - the pages to be mapped must exist
-  *   - the pages be physically contiguous in sequence
+-const struct address_space_operations ramfs_aops = {
+-	.readpage		= simple_readpage,
+-	.write_begin		= simple_write_begin,
+-	.write_end		= simple_write_end,
+-	.set_page_dirty		= __set_page_dirty_no_writeback,
+-};
+-
+ const struct file_operations ramfs_file_operations = {
+ 	.mmap			= ramfs_nommu_mmap,
+ 	.get_unmapped_area	= ramfs_nommu_get_unmapped_area,
+diff -puN fs/ramfs/inode.c~fs-ramfs-move-ramfs_aops-to-inodec fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~fs-ramfs-move-ramfs_aops-to-inodec
++++ a/fs/ramfs/inode.c
+@@ -43,6 +43,13 @@
+ static const struct super_operations ramfs_ops;
+ static const struct inode_operations ramfs_dir_inode_operations;
+ 
++static const struct address_space_operations ramfs_aops = {
++	.readpage	= simple_readpage,
++	.write_begin	= simple_write_begin,
++	.write_end	= simple_write_end,
++	.set_page_dirty	= __set_page_dirty_no_writeback,
++};
++
+ static struct backing_dev_info ramfs_backing_dev_info = {
+ 	.name		= "ramfs",
+ 	.ra_pages	= 0,	/* No readahead */
+diff -puN fs/ramfs/internal.h~fs-ramfs-move-ramfs_aops-to-inodec fs/ramfs/internal.h
+--- a/fs/ramfs/internal.h~fs-ramfs-move-ramfs_aops-to-inodec
++++ a/fs/ramfs/internal.h
+@@ -10,5 +10,4 @@
   */
--unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
-+static unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
- 					    unsigned long addr, unsigned long len,
- 					    unsigned long pgoff, unsigned long flags)
- {
-@@ -256,7 +262,7 @@ out:
- /*
-  * set up a mapping for shared memory segments
-  */
--int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
-+static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	if (!(vma->vm_flags & VM_SHARED))
- 		return -ENOSYS;
-diff -puN include/linux/ramfs.h~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static include/linux/ramfs.h
---- a/include/linux/ramfs.h~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static
-+++ a/include/linux/ramfs.h
-@@ -14,13 +14,6 @@ ramfs_nommu_expand_for_mapping(struct in
- }
- #else
- extern int ramfs_nommu_expand_for_mapping(struct inode *inode, size_t newsize);
--extern unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
--						   unsigned long addr,
--						   unsigned long len,
--						   unsigned long pgoff,
--						   unsigned long flags);
+ 
+ 
+-extern const struct address_space_operations ramfs_aops;
+ extern const struct inode_operations ramfs_file_inode_operations;
+_
+
+Patches currently in -mm which might be from axel.lin@ingics.com are
+
+origin.patch
+linux-next.patch
+
