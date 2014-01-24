@@ -1,78 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-warning-of-future-__gfp_nofail-use.patch
- removed from -mm tree
-Date: Fri, 24 Jan 2014 11:01:47 -0800
-Message-ID: <52e2b89b.hVIFppRgQkUQVW85%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-warn-only-on-space-before-semicolon-at-end-of-line.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 11:01:45 -0800
+Message-ID: <52e2b899.M0gXeKvjl8ROkM+2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43626 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43623 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752915AbaAXTBr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:01:47 -0500
+	with ESMTP id S1752915AbaAXTBp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:01:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com, joe@perches.com
 
-Subject: [merged] checkpatch-add-warning-of-future-__gfp_nofail-use.patch removed from -mm tree
-To: rientjes@google.com,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-warn-only-on-space-before-semicolon-at-end-of-line.patch removed from -mm tree
+To: joe@perches.com,dan.carpenter@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:01:47 -0800
+Date: Fri, 24 Jan 2014 11:01:45 -0800
 
 
 The patch titled
-     Subject: checkpatch: add warning of future __GFP_NOFAIL use
+     Subject: checkpatch: warn only on "space before semicolon" at end of line
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-warning-of-future-__gfp_nofail-use.patch
+     checkpatch-warn-only-on-space-before-semicolon-at-end-of-line.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: checkpatch: add warning of future __GFP_NOFAIL use
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn only on "space before semicolon" at end of line
 
-gfp.h and page_alloc.c already specify that __GFP_NOFAIL is deprecated and
-no new users should be added.
+The "space before a non-naked semicolon" test has unwanted output when
+used in "for ( ;; )" loops.
 
-Add a warning to checkpatch to catch this.
+Make the test work only on end-of-line statement
+termination semicolons.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-warning-of-future-__gfp_nofail-use scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-warning-of-future-__gfp_nofail-use
+diff -puN scripts/checkpatch.pl~checkpatch-warn-only-on-space-before-semicolon-at-end-of-line scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-only-on-space-before-semicolon-at-end-of-line
 +++ a/scripts/checkpatch.pl
-@@ -4113,6 +4113,12 @@ sub process {
- 			     "$1 uses number as first arg, sizeof is generally wrong\n" . $herecurr);
+@@ -3121,7 +3121,7 @@ sub process {
  		}
  
-+# check for GFP_NOWAIT use
-+		if ($line =~ /\b__GFP_NOFAIL\b/) {
-+			WARN("__GFP_NOFAIL",
-+			     "Use of __GFP_NOFAIL is deprecated, no new users should be added\n" . $herecurr);
-+		}
-+
- # check for multiple semicolons
- 		if ($line =~ /;\s*;\s*$/) {
- 			if (WARN("ONE_SEMICOLON",
+ # check for whitespace before a non-naked semicolon
+-		if ($line =~ /^\+.*\S\s+;/) {
++		if ($line =~ /^\+.*\S\s+;\s*$/) {
+ 			if (WARN("SPACING",
+ 				 "space prohibited before semicolon\n" . $herecurr) &&
+ 			    $fix) {
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
-arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit.patch
-mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
-memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
-cpusets-allocate-heap-only-when-required.patch
+lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null.patch
+ipc-whitespace-cleanup.patch
 linux-next.patch
-firmware-google-drop-select-efi-to-avoid-recursive-dependency.patch
+softirq-use-ffs-in-__do_softirq.patch
+softirq-convert-printks-to-pr_level.patch
+softirq-use-const-char-const-for-softirq_to_name-whitespace-neatening.patch
+checkpatchpl-check-for-function-declarations-without-arguments.patch
 
