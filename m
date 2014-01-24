@@ -1,129 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- printk-cache-mark-printk_once-test-variable-__read_mostly.patch removed
- from -mm tree
-Date: Fri, 24 Jan 2014 11:00:55 -0800
-Message-ID: <52e2b867.PI7vkGSjwPxfHJR7%akpm@linux-foundation.org>
+Subject: [merged] vsprintf-add-%pad-extension-for-dma_addr_t-use.patch
+ removed from -mm tree
+Date: Fri, 24 Jan 2014 11:00:57 -0800
+Message-ID: <52e2b869.FwCi4sO5VIGOVyoY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbaAXTAz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:55 -0500
+	with ESMTP id S1752340AbaAXTA6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, james.hogan@imgtec.com, fengguang.wu@intel.com, joe@perches.com
+To: mm-commits@vger.kernel.org, rob@landley.net, laurent.pinchart+renesas@ideasonboard.com, julia.lawall@lip6.fr, andriy.shevchenko@intel.com, joe@perches.com
 
-Subject: [merged] printk-cache-mark-printk_once-test-variable-__read_mostly.patch removed from -mm tree
-To: joe@perches.com,fengguang.wu@intel.com,james.hogan@imgtec.com,mm-commits@vger.kernel.org
+Subject: [merged] vsprintf-add-%pad-extension-for-dma_addr_t-use.patch removed from -mm tree
+To: joe@perches.com,andriy.shevchenko@intel.com,julia.lawall@lip6.fr,laurent.pinchart+renesas@ideasonboard.com,rob@landley.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:00:55 -0800
+Date: Fri, 24 Jan 2014 11:00:57 -0800
 
 
 The patch titled
-     Subject: printk/cache: mark printk_once test variable __read_mostly
+     Subject: vsprintf: add %pad extension for dma_addr_t use
 has been removed from the -mm tree.  Its filename was
-     printk-cache-mark-printk_once-test-variable-__read_mostly.patch
+     vsprintf-add-%pad-extension-for-dma_addr_t-use.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: printk/cache: mark printk_once test variable __read_mostly
+Subject: vsprintf: add %pad extension for dma_addr_t use
 
-Add #include <linux/cache.h> to define __read_mostly.
+dma_addr_t's can be either u32 or u64 depending on a CONFIG option.
 
-Convert cache.h to use uapi/linux/kernel.h instead
-of linux/kernel.h to avoid recursive #includes.
+There are a few hundred dma_addr_t's printed via either cast to unsigned
+long long, unsigned long or no cast at all.
 
-Convert the ALIGN macro to __ALIGN_KERNEL.
+Add %pad to be able to emit them without the cast.
 
-printk_once only sets the bool variable tested
-once so mark it __read_mostly.
-
-Neaten the alignment so it matches the rest of the
-pr_<level>_once #defines too.
+Update Documentation/printk-formats.txt too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: James Hogan <james.hogan@imgtec.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/processor.h |    1 +
- include/linux/cache.h             |    4 ++--
- include/linux/printk.h            |   19 ++++++++++---------
- 3 files changed, 13 insertions(+), 11 deletions(-)
+ Documentation/printk-formats.txt |   11 +++++++--
+ lib/vsprintf.c                   |   33 +++++++++++++++++++++++------
+ 2 files changed, 36 insertions(+), 8 deletions(-)
 
-diff -puN arch/ia64/include/asm/processor.h~printk-cache-mark-printk_once-test-variable-__read_mostly arch/ia64/include/asm/processor.h
---- a/arch/ia64/include/asm/processor.h~printk-cache-mark-printk_once-test-variable-__read_mostly
-+++ a/arch/ia64/include/asm/processor.h
-@@ -71,6 +71,7 @@
- #include <linux/compiler.h>
- #include <linux/threads.h>
- #include <linux/types.h>
-+#include <linux/bitops.h>
+diff -puN Documentation/printk-formats.txt~vsprintf-add-%pad-extension-for-dma_addr_t-use Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~vsprintf-add-%pad-extension-for-dma_addr_t-use
++++ a/Documentation/printk-formats.txt
+@@ -55,14 +55,21 @@ Struct Resources:
+ 	For printing struct resources. The 'R' and 'r' specifiers result in a
+ 	printed resource with ('R') or without ('r') a decoded flags member.
  
- #include <asm/fpu.h>
- #include <asm/page.h>
-diff -puN include/linux/cache.h~printk-cache-mark-printk_once-test-variable-__read_mostly include/linux/cache.h
---- a/include/linux/cache.h~printk-cache-mark-printk_once-test-variable-__read_mostly
-+++ a/include/linux/cache.h
-@@ -1,11 +1,11 @@
- #ifndef __LINUX_CACHE_H
- #define __LINUX_CACHE_H
+-Physical addresses:
++Physical addresses types phys_addr_t:
  
--#include <linux/kernel.h>
-+#include <uapi/linux/kernel.h>
- #include <asm/cache.h>
+-	%pa	0x01234567 or 0x0123456789abcdef
++	%pa[p]	0x01234567 or 0x0123456789abcdef
  
- #ifndef L1_CACHE_ALIGN
--#define L1_CACHE_ALIGN(x) ALIGN(x, L1_CACHE_BYTES)
-+#define L1_CACHE_ALIGN(x) __ALIGN_KERNEL(x, L1_CACHE_BYTES)
- #endif
+ 	For printing a phys_addr_t type (and its derivatives, such as
+ 	resource_size_t) which can vary based on build options, regardless of
+ 	the width of the CPU data path. Passed by reference.
  
- #ifndef SMP_CACHE_BYTES
-diff -puN include/linux/printk.h~printk-cache-mark-printk_once-test-variable-__read_mostly include/linux/printk.h
---- a/include/linux/printk.h~printk-cache-mark-printk_once-test-variable-__read_mostly
-+++ a/include/linux/printk.h
-@@ -5,6 +5,7 @@
- #include <linux/init.h>
- #include <linux/kern_levels.h>
- #include <linux/linkage.h>
-+#include <linux/cache.h>
++DMA addresses types dma_addr_t:
++
++	%pad	0x01234567 or 0x0123456789abcdef
++
++	For printing a dma_addr_t type which can vary based on build options,
++	regardless of the width of the CPU data path. Passed by reference.
++
+ Raw buffer as a hex string:
+ 	%*ph	00 01 02  ...  3f
+ 	%*phC	00:01:02: ... :3f
+diff -puN lib/vsprintf.c~vsprintf-add-%pad-extension-for-dma_addr_t-use lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-add-%pad-extension-for-dma_addr_t-use
++++ a/lib/vsprintf.c
+@@ -1155,6 +1155,30 @@ char *netdev_feature_string(char *buf, c
+ 	return number(buf, end, *(const netdev_features_t *)addr, spec);
+ }
  
- extern const char linux_banner[];
- extern const char linux_proc_banner[];
-@@ -253,17 +254,17 @@ extern asmlinkage void dump_stack(void)
-  */
++static noinline_for_stack
++char *address_val(char *buf, char *end, const void *addr,
++		  struct printf_spec spec, const char *fmt)
++{
++	unsigned long long num;
++
++	spec.flags |= SPECIAL | SMALL | ZEROPAD;
++	spec.base = 16;
++
++	switch (fmt[1]) {
++	case 'd':
++		num = *(const dma_addr_t *)addr;
++		spec.field_width = sizeof(dma_addr_t) * 2 + 2;
++		break;
++	case 'p':
++	default:
++		num = *(const phys_addr_t *)addr;
++		spec.field_width = sizeof(phys_addr_t) * 2 + 2;
++		break;
++	}
++
++	return number(buf, end, num, spec);
++}
++
+ int kptr_restrict __read_mostly;
  
- #ifdef CONFIG_PRINTK
--#define printk_once(fmt, ...)			\
--({						\
--	static bool __print_once;		\
--						\
--	if (!__print_once) {			\
--		__print_once = true;		\
--		printk(fmt, ##__VA_ARGS__);	\
--	}					\
-+#define printk_once(fmt, ...)					\
-+({								\
-+	static bool __print_once __read_mostly;			\
-+								\
-+	if (!__print_once) {					\
-+		__print_once = true;				\
-+		printk(fmt, ##__VA_ARGS__);			\
-+	}							\
- })
- #else
--#define printk_once(fmt, ...)			\
-+#define printk_once(fmt, ...)					\
- 	no_printk(fmt, ##__VA_ARGS__)
- #endif
- 
+ /*
+@@ -1218,7 +1242,8 @@ int kptr_restrict __read_mostly;
+  *              N no separator
+  *            The maximum supported length is 64 bytes of the input. Consider
+  *            to use print_hex_dump() for the larger input.
+- * - 'a' For a phys_addr_t type and its derivative types (passed by reference)
++ * - 'a[pd]' For address types [p] phys_addr_t, [d] dma_addr_t and derivatives
++ *           (default assumed to be phys_addr_t, passed by reference)
+  * - 'd[234]' For a dentry name (optionally 2-4 last components)
+  * - 'D[234]' Same as 'd' but for a struct file
+  *
+@@ -1353,11 +1378,7 @@ char *pointer(const char *fmt, char *buf
+ 		}
+ 		break;
+ 	case 'a':
+-		spec.flags |= SPECIAL | SMALL | ZEROPAD;
+-		spec.field_width = sizeof(phys_addr_t) * 2 + 2;
+-		spec.base = 16;
+-		return number(buf, end,
+-			      (unsigned long long) *((phys_addr_t *)ptr), spec);
++		return address_val(buf, end, ptr, spec, fmt);
+ 	case 'd':
+ 		return dentry_name(buf, end, ptr, spec, fmt);
+ 	case 'D':
 _
 
 Patches currently in -mm which might be from joe@perches.com are
