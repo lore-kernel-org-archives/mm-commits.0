@@ -1,90 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] um-use-generic-fixmaph.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 11:00:19 -0800
-Message-ID: <52e2b843.GUxXew5sPN2luRd5%akpm@linux-foundation.org>
+Subject: [merged] kernelh-define-u8-s8-u32-etc-limits.patch removed from
+ -mm tree
+Date: Fri, 24 Jan 2014 11:00:23 -0800
+Message-ID: <52e2b847.wPv3zzJ2ym7iMAvN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43470 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXTAT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:19 -0500
+	with ESMTP id S1752340AbaAXTAY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, richard@nod.at, jdike@addtoit.com, msalter@redhat.com
+To: mm-commits@vger.kernel.org, sage@inktank.com, elder@linaro.org, davem@davemloft.net, alex.elder@linaro.org
 
-Subject: [merged] um-use-generic-fixmaph.patch removed from -mm tree
-To: msalter@redhat.com,jdike@addtoit.com,richard@nod.at,mm-commits@vger.kernel.org
+Subject: [merged] kernelh-define-u8-s8-u32-etc-limits.patch removed from -mm tree
+To: alex.elder@linaro.org,davem@davemloft.net,elder@linaro.org,sage@inktank.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:00:19 -0800
+Date: Fri, 24 Jan 2014 11:00:23 -0800
 
 
 The patch titled
-     Subject: um: use generic fixmap.h
+     Subject: kernel.h: define u8, s8, u32, etc. limits
 has been removed from the -mm tree.  Its filename was
-     um-use-generic-fixmaph.patch
+     kernelh-define-u8-s8-u32-etc-limits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mark Salter <msalter@redhat.com>
-Subject: um: use generic fixmap.h
+From: Alex Elder <alex.elder@linaro.org>
+Subject: kernel.h: define u8, s8, u32, etc. limits
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Acked-by: Richard Weinberger <richard@nod.at>
-Cc: Jeff Dike <jdike@addtoit.com>
+Create constants that define the maximum and minimum values
+representable by the kernel types u8, s8, u16, s16, and so on.
+
+Signed-off-by: Alex Elder <elder@linaro.org>
+Cc: Sage Weil <sage@inktank.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/fixmap.h |   40 ---------------------------------
- 1 file changed, 1 insertion(+), 39 deletions(-)
+ include/linux/kernel.h |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN arch/um/include/asm/fixmap.h~um-use-generic-fixmaph arch/um/include/asm/fixmap.h
---- a/arch/um/include/asm/fixmap.h~um-use-generic-fixmaph
-+++ a/arch/um/include/asm/fixmap.h
-@@ -43,13 +43,6 @@ enum fixed_addresses {
- extern void __set_fixmap (enum fixed_addresses idx,
- 			  unsigned long phys, pgprot_t flags);
+diff -puN include/linux/kernel.h~kernelh-define-u8-s8-u32-etc-limits include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-define-u8-s8-u32-etc-limits
++++ a/include/linux/kernel.h
+@@ -29,6 +29,19 @@
+ #define ULLONG_MAX	(~0ULL)
+ #define SIZE_MAX	(~(size_t)0)
  
--#define set_fixmap(idx, phys) \
--		__set_fixmap(idx, phys, PAGE_KERNEL)
--/*
-- * Some hardware wants to get fixmapped without caching.
-- */
--#define set_fixmap_nocache(idx, phys) \
--		__set_fixmap(idx, phys, PAGE_KERNEL_NOCACHE)
- /*
-  * used by vmalloc.c.
-  *
-@@ -62,37 +55,6 @@ extern void __set_fixmap (enum fixed_add
- #define FIXADDR_SIZE	(__end_of_fixed_addresses << PAGE_SHIFT)
- #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)
++#define U8_MAX		((u8)~0U)
++#define S8_MAX		((s8)(U8_MAX>>1))
++#define S8_MIN		((s8)(-S8_MAX - 1))
++#define U16_MAX		((u16)~0U)
++#define S16_MAX		((s16)(U16_MAX>>1))
++#define S16_MIN		((s16)(-S16_MAX - 1))
++#define U32_MAX		((u32)~0U)
++#define S32_MAX		((s32)(U32_MAX>>1))
++#define S32_MIN		((s32)(-S32_MAX - 1))
++#define U64_MAX		((u64)~0ULL)
++#define S64_MAX		((s64)(U64_MAX>>1))
++#define S64_MIN		((s64)(-S64_MAX - 1))
++
+ #define STACK_MAGIC	0xdeadbeef
  
--#define __fix_to_virt(x)	(FIXADDR_TOP - ((x) << PAGE_SHIFT))
--#define __virt_to_fix(x)      ((FIXADDR_TOP - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
--
--extern void __this_fixmap_does_not_exist(void);
--
--/*
-- * 'index to address' translation. If anyone tries to use the idx
-- * directly without tranlation, we catch the bug with a NULL-deference
-- * kernel oops. Illegal ranges of incoming indices are caught too.
-- */
--static inline unsigned long fix_to_virt(const unsigned int idx)
--{
--	/*
--	 * this branch gets completely eliminated after inlining,
--	 * except when someone tries to use fixaddr indices in an
--	 * illegal way. (such as mixing up address types or using
--	 * out-of-range indices).
--	 *
--	 * If it doesn't get removed, the linker will complain
--	 * loudly with a reasonably clear error message..
--	 */
--	if (idx >= __end_of_fixed_addresses)
--		__this_fixmap_does_not_exist();
--
--        return __fix_to_virt(idx);
--}
+ #define REPEAT_BYTE(x)	((~0ul / 0xff) * (x))
+_
+
+Patches currently in -mm which might be from alex.elder@linaro.org are
+
+origin.patch
+linux-next.patch
+
