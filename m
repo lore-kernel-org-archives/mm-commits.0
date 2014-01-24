@@ -1,74 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 10:59:23 -0800
-Message-ID: <52e2b80b.oT2J1juXHT9aht9G%akpm@linux-foundation.org>
+ mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall.patch
+ removed from -mm tree
+Date: Fri, 24 Jan 2014 10:59:27 -0800
+Message-ID: <52e2b80f.xvMrvrBsv5qDxf7t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43324 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43334 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS7Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:24 -0500
+	with ESMTP id S1752484AbaAXS71 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wency@cn.fujitsu.com, travis@sgi.com, tangchen@cn.fujitsu.com, rafael.j.wysocki@intel.com, kamezawa.hiroyu@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hedi@sgi.com, nzimmer@sgi.com
+To: mm-commits@vger.kernel.org, paul.gortmaker@windriver.com
 
-Subject: [merged] mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch removed from -mm tree
-To: nzimmer@sgi.com,hedi@sgi.com,isimatu.yasuaki@jp.fujitsu.com,kamezawa.hiroyu@jp.fujitsu.com,rafael.j.wysocki@intel.com,tangchen@cn.fujitsu.com,travis@sgi.com,wency@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall.patch removed from -mm tree
+To: paul.gortmaker@windriver.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:59:23 -0800
+Date: Fri, 24 Jan 2014 10:59:27 -0800
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: move register_memory_resource out of the lock_memory_hotplug
+     Subject: mm/mm_init.c: make creation of the mm_kobj happen earlier than device_initcall
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch
+     mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: mm/memory_hotplug.c: move register_memory_resource out of the lock_memory_hotplug
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: mm/mm_init.c: make creation of the mm_kobj happen earlier than device_initcall
 
-We don't need to do register_memory_resource() under lock_memory_hotplug()
-since it has its own lock and doesn't make any callbacks.
+The use of __initcall is to be eventually replaced by choosing one from
+the prioritized groupings laid out in init.h header:
 
-Also register_memory_resource return NULL on failure so we don't have
-anything to cleanup at this point.
+	pure_initcall               0
+	core_initcall               1
+	postcore_initcall           2
+	arch_initcall               3
+	subsys_initcall             4
+	fs_initcall                 5
+	device_initcall             6
+	late_initcall               7
 
-The reason for this rfc is I was doing some experiments with hotplugging
-of memory on some of our larger systems.  While it seems to work, it can
-be quite slow.  With some preliminary digging I found that
-lock_memory_hotplug is clearly ripe for breakup.
+In the interim, all __initcall are mapped onto device_initcall, which as
+can be seen above, comes quite late in the ordering.
 
-It could be broken up per nid or something but it also covers the
-online_page_callback.  The online_page_callback shouldn't be very hard to
-break out.
+Currently the mm_kobj is created with __initcall in mm_sysfs_init().  This
+means that any other initcalls that want to reference the mm_kobj have to
+be device_initcall (or later), otherwise we will for example, trip the
+BUG_ON(!kobj) in sysfs's internal_create_group().  This unfairly restricts
+those users; for example something that clearly makes sense to be an
+arch_initcall will not be able to choose that.
 
-Also there is the issue of various structures(wmarks come to mind) that are
-only updated under the lock_memory_hotplug that would need to be dealt with.
+However, upon examination, it is only this way for historical reasons
+(i.e.  simply not reprioritized yet).  We see that sysfs is ready quite
+earlier in init/main.c via:
 
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Hedi <hedi@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
+ vfs_caches_init
+ |_ mnt_init
+    |_ sysfs_init
+
+well ahead of the processing of the prioritized calls listed above.
+
+So we can recategorize mm_sysfs_init to be a pure_initcall, which in turn
+allows any mm_kobj initcall users a wider range (1 --> 7) of initcall
+priorities to choose from.
+
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/mm_init.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug
-+++ a/mm/memory_hotplug.c
-@@ -1107,17 +1107,18 @@ int __ref add_memory(int nid, u64 start,
- 	if (ret)
- 		return ret;
+diff -puN mm/mm_init.c~mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall mm/mm_init.c
+--- a/mm/mm_init.c~mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall
++++ a/mm/mm_init.c
+@@ -202,5 +202,4 @@ static int __init mm_sysfs_init(void)
  
--	lock_memory_hotplug();
+ 	return 0;
+ }
