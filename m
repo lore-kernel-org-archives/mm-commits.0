@@ -1,95 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: [merged] init-fix-possible-format-string-bug.patch removed from
- -mm tree
-Date: Fri, 24 Jan 2014 11:02:14 -0800
-Message-ID: <52e2b8b6.UF/lfKurXzy/M6D0%akpm@linux-foundation.org>
+Subject: [merged]
+ autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
+ removed from -mm tree
+Date: Fri, 24 Jan 2014 11:02:16 -0800
+Message-ID: <52e2b8b8.37jObeNL8iS0X+Sn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43691 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752961AbaAXTCO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:14 -0500
+	with ESMTP id S1752961AbaAXTCR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, penguin-kernel@i-love.sakura.ne.jp
+To: mm-commits@vger.kernel.org, serge.hallyn@canonical.com, raven@themaw.net, oleg@redhat.com, mszeredi@suse.cz, ebiederm@xmission.com, sukadev@us.ibm.com
 
-Subject: [merged] init-fix-possible-format-string-bug.patch removed from -mm tree
-To: penguin-kernel@i-love.sakura.ne.jp,penguin-kernel@I-love.SAKURA.ne.jp,mm-commits@vger.kernel.org
+Subject: [merged] autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch removed from -mm tree
+To: sukadev@us.ibm.com,ebiederm@xmission.com,mszeredi@suse.cz,oleg@redhat.com,raven@themaw.net,serge.hallyn@canonical.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:02:14 -0800
+Date: Fri, 24 Jan 2014 11:02:16 -0800
 
 
 The patch titled
-     Subject: init: fix possible format string bug
+     Subject: autofs4: allow autofs to work outside the initial PID namespace
 has been removed from the -mm tree.  Its filename was
-     init-fix-possible-format-string-bug.patch
+     autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Subject: init: fix possible format string bug
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: autofs4: allow autofs to work outside the initial PID namespace
 
-Use constant format string in case message changes.
+Enable autofs4 to work in a "container".  oz_pgrp is converted from pid_t
+to struct pid and this is stored at mount time based on the "pgrp=" option
+or if the option is missing then the current pgrp.
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+The "pgrp=" option is interpreted in the PID namespace of the current
+process.  This option is flawed in that it doesn't carry the namespace
+information, so it should be deprecated.  AFAICS the autofs daemon always
+sends the current pgrp, which is the default anyway.
+
+The oz_pgrp is also set from the AUTOFS_DEV_IOCTL_SETPIPEFD_CMD ioctl. 
+This ioctl sets oz_pgrp to the current pgrp.  It is not allowed to change
+the pid namespace.
+
+oz_pgrp is used mainly to determine whether the process traversing the
+autofs mount tree is the autofs daemon itself or not.  This function now
+compares the pid pointers instead of the pid_t values.
+
+One other use of oz_pgrp is in autofs4_show_options.  There is shows the
+virtual pid number (i.e.  the one that is valid inside the PID namespace
+of the calling process)
+
+For debugging printk convert oz_pgrp to the value in the initial pid
+namespace.
+
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Acked-by: Ian Kent <raven@themaw.net>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |    2 +-
- init/main.c      |    7 ++++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ fs/autofs4/autofs_i.h  |    4 ++--
+ fs/autofs4/dev-ioctl.c |   16 ++++++++++++++--
+ fs/autofs4/inode.c     |   36 +++++++++++++++++++++++++++---------
+ 3 files changed, 43 insertions(+), 13 deletions(-)
 
-diff -puN init/initramfs.c~init-fix-possible-format-string-bug init/initramfs.c
---- a/init/initramfs.c~init-fix-possible-format-string-bug
-+++ a/init/initramfs.c
-@@ -583,7 +583,7 @@ static int __init populate_rootfs(void)
+diff -puN fs/autofs4/autofs_i.h~autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace
++++ a/fs/autofs4/autofs_i.h
+@@ -104,7 +104,7 @@ struct autofs_sb_info {
+ 	u32 magic;
+ 	int pipefd;
+ 	struct file *pipe;
+-	pid_t oz_pgrp;
++	struct pid *oz_pgrp;
+ 	int catatonic;
+ 	int version;
+ 	int sub_version;
+@@ -140,7 +140,7 @@ static inline struct autofs_info *autofs
+    filesystem without "magic".) */
+ 
+ static inline int autofs4_oz_mode(struct autofs_sb_info *sbi) {
+-	return sbi->catatonic || task_pgrp_nr(current) == sbi->oz_pgrp;
++	return sbi->catatonic || task_pgrp(current) == sbi->oz_pgrp;
+ }
+ 
+ /* Does a dentry have some pending activity? */
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace
++++ a/fs/autofs4/dev-ioctl.c
+@@ -346,6 +346,7 @@ static int autofs_dev_ioctl_setpipefd(st
  {
- 	char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);
- 	if (err)
--		panic(err);	/* Failed to decompress INTERNAL initramfs */
-+		panic("%s", err); /* Failed to decompress INTERNAL initramfs */
- 	if (initrd_start) {
- #ifdef CONFIG_BLK_DEV_RAM
- 		int fd;
-diff -puN init/main.c~init-fix-possible-format-string-bug init/main.c
---- a/init/main.c~init-fix-possible-format-string-bug
-+++ a/init/main.c
-@@ -278,7 +278,7 @@ static int __init unknown_bootoption(cha
- 		unsigned int i;
- 		for (i = 0; envp_init[i]; i++) {
- 			if (i == MAX_INIT_ENVS) {
--				panic_later = "Too many boot env vars at `%s'";
-+				panic_later = "env";
- 				panic_param = param;
- 			}
- 			if (!strncmp(param, envp_init[i], val - param))
-@@ -290,7 +290,7 @@ static int __init unknown_bootoption(cha
- 		unsigned int i;
- 		for (i = 0; argv_init[i]; i++) {
- 			if (i == MAX_INIT_ARGS) {
--				panic_later = "Too many boot init vars at `%s'";
-+				panic_later = "init";
- 				panic_param = param;
- 			}
+ 	int pipefd;
+ 	int err = 0;
++	struct pid *new_pid = NULL;
+ 
+ 	if (param->setpipefd.pipefd == -1)
+ 		return -EINVAL;
+@@ -357,7 +358,17 @@ static int autofs_dev_ioctl_setpipefd(st
+ 		mutex_unlock(&sbi->wq_mutex);
+ 		return -EBUSY;
+ 	} else {
+-		struct file *pipe = fget(pipefd);
++		struct file *pipe;
++
++		new_pid = get_task_pid(current, PIDTYPE_PGID);
++
++		if (ns_of_pid(new_pid) != ns_of_pid(sbi->oz_pgrp)) {
++			AUTOFS_WARN("Not allowed to change PID namespace");
++			err = -EINVAL;
++			goto out;
++		}
++
++		pipe = fget(pipefd);
+ 		if (!pipe) {
+ 			err = -EBADF;
+ 			goto out;
+@@ -367,12 +378,13 @@ static int autofs_dev_ioctl_setpipefd(st
+ 			fput(pipe);
+ 			goto out;
  		}
-@@ -582,7 +582,8 @@ asmlinkage void __init start_kernel(void
+-		sbi->oz_pgrp = task_pgrp_nr(current);
++		swap(sbi->oz_pgrp, new_pid);
+ 		sbi->pipefd = pipefd;
+ 		sbi->pipe = pipe;
+ 		sbi->catatonic = 0;
+ 	}
+ out:
++	put_pid(new_pid);
+ 	mutex_unlock(&sbi->wq_mutex);
+ 	return err;
+ }
+diff -puN fs/autofs4/inode.c~autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~autofs4-allow-autofs-to-work-outside-the-initial-pid-namespace
++++ a/fs/autofs4/inode.c
+@@ -56,8 +56,11 @@ void autofs4_kill_sb(struct super_block
+ 	 * just call kill_anon_super when we are called from
+ 	 * deactivate_super.
  	 */
- 	console_init();
- 	if (panic_later)
--		panic(panic_later, panic_param);
-+		panic("Too many boot %s vars at `%s'", panic_later,
-+		      panic_param);
+-	if (sbi) /* Free wait queues, close pipe */
++	if (sbi) {
++		/* Free wait queues, close pipe */
+ 		autofs4_catatonic_mode(sbi);
++		put_pid(sbi->oz_pgrp);
++	}
  
- 	lockdep_info();
+ 	DPRINTK("shutting down");
+ 	kill_litter_super(sb);
+@@ -80,7 +83,7 @@ static int autofs4_show_options(struct s
+ 	if (!gid_eq(root_inode->i_gid, GLOBAL_ROOT_GID))
+ 		seq_printf(m, ",gid=%u",
+ 			from_kgid_munged(&init_user_ns, root_inode->i_gid));
+-	seq_printf(m, ",pgrp=%d", sbi->oz_pgrp);
++	seq_printf(m, ",pgrp=%d", pid_vnr(sbi->oz_pgrp));
+ 	seq_printf(m, ",timeout=%lu", sbi->exp_timeout/HZ);
+ 	seq_printf(m, ",minproto=%d", sbi->min_proto);
+ 	seq_printf(m, ",maxproto=%d", sbi->max_proto);
+@@ -124,7 +127,8 @@ static const match_table_t tokens = {
+ };
  
+ static int parse_options(char *options, int *pipefd, kuid_t *uid, kgid_t *gid,
+-		pid_t *pgrp, unsigned int *type, int *minproto, int *maxproto)
++			 int *pgrp, bool *pgrp_set, unsigned int *type,
++			 int *minproto, int *maxproto)
+ {
+ 	char *p;
+ 	substring_t args[MAX_OPT_ARGS];
+@@ -132,7 +136,6 @@ static int parse_options(char *options,
+ 
+ 	*uid = current_uid();
+ 	*gid = current_gid();
+-	*pgrp = task_pgrp_nr(current);
+ 
+ 	*minproto = AUTOFS_MIN_PROTO_VERSION;
+ 	*maxproto = AUTOFS_MAX_PROTO_VERSION;
+@@ -171,6 +174,7 @@ static int parse_options(char *options,
+ 			if (match_int(args, &option))
+ 				return 1;
+ 			*pgrp = option;
++			*pgrp_set = true;
+ 			break;
+ 		case Opt_minproto:
+ 			if (match_int(args, &option))
+@@ -206,6 +210,8 @@ int autofs4_fill_super(struct super_bloc
+ 	int pipefd;
+ 	struct autofs_sb_info *sbi;
+ 	struct autofs_info *ino;
++	int pgrp;
++	bool pgrp_set = false;
+ 
+ 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+@@ -218,7 +224,7 @@ int autofs4_fill_super(struct super_bloc
+ 	sbi->pipe = NULL;
+ 	sbi->catatonic = 1;
+ 	sbi->exp_timeout = 0;
+-	sbi->oz_pgrp = task_pgrp_nr(current);
++	sbi->oz_pgrp = NULL;
+ 	sbi->sb = s;
+ 	sbi->version = 0;
+ 	sbi->sub_version = 0;
+@@ -255,12 +261,23 @@ int autofs4_fill_super(struct super_bloc
+ 
+ 	/* Can this call block? */
+ 	if (parse_options(data, &pipefd, &root_inode->i_uid, &root_inode->i_gid,
+-				&sbi->oz_pgrp, &sbi->type, &sbi->min_proto,
+-				&sbi->max_proto)) {
++			  &pgrp, &pgrp_set, &sbi->type, &sbi->min_proto,
++			  &sbi->max_proto)) {
+ 		printk("autofs: called with bogus options\n");
+ 		goto fail_dput;
+ 	}
+ 
++	if (pgrp_set) {
++		sbi->oz_pgrp = find_get_pid(pgrp);
++		if (!sbi->oz_pgrp) {
++			pr_warn("autofs: could not find process group %d\n",
++				pgrp);
++			goto fail_dput;
++		}
++	} else {
++		sbi->oz_pgrp = get_task_pid(current, PIDTYPE_PGID);
++	}
++
+ 	if (autofs_type_trigger(sbi->type))
+ 		__managed_dentry_set_managed(root);
+ 
+@@ -284,9 +301,9 @@ int autofs4_fill_super(struct super_bloc
+ 		sbi->version = sbi->max_proto;
+ 	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
+ 
+-	DPRINTK("pipe fd = %d, pgrp = %u", pipefd, sbi->oz_pgrp);
++	DPRINTK("pipe fd = %d, pgrp = %u", pipefd, pid_nr(sbi->oz_pgrp));
+ 	pipe = fget(pipefd);
+-	
++
+ 	if (!pipe) {
+ 		printk("autofs: could not open pipe file descriptor\n");
+ 		goto fail_dput;
+@@ -316,6 +333,7 @@ fail_dput:
+ fail_ino:
+ 	kfree(ino);
+ fail_free:
++	put_pid(sbi->oz_pgrp);
+ 	kfree(sbi);
+ 	s->s_fs_info = NULL;
+ fail_unlock:
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
 origin.patch
-lib-vsprintf-add-%pt-format-specifier.patch
 
