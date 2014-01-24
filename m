@@ -1,66 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] microblaze-use-generic-fixmaph.patch removed from -mm
- tree
-Date: Fri, 24 Jan 2014 11:00:09 -0800
-Message-ID: <52e2b839.+j1mwLvcQDCbZGw6%akpm@linux-foundation.org>
+Subject: [merged] mips-use-generic-fixmaph.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 11:00:11 -0800
+Message-ID: <52e2b83b.45up4gXvNhfdlvbd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43439 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43442 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXTAK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:10 -0500
+	with ESMTP id S1752484AbaAXTAL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, monstr@monstr.eu, msalter@redhat.com
+To: mm-commits@vger.kernel.org, ralf@linux-mips.org, msalter@redhat.com
 
-Subject: [merged] microblaze-use-generic-fixmaph.patch removed from -mm tree
-To: msalter@redhat.com,monstr@monstr.eu,mm-commits@vger.kernel.org
+Subject: [merged] mips-use-generic-fixmaph.patch removed from -mm tree
+To: msalter@redhat.com,ralf@linux-mips.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:00:09 -0800
+Date: Fri, 24 Jan 2014 11:00:11 -0800
 
 
 The patch titled
-     Subject: microblaze: use generic fixmap.h
+     Subject: mips: use generic fixmap.h
 has been removed from the -mm tree.  Its filename was
-     microblaze-use-generic-fixmaph.patch
+     mips-use-generic-fixmaph.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mark Salter <msalter@redhat.com>
-Subject: microblaze: use generic fixmap.h
+Subject: mips: use generic fixmap.h
 
 Signed-off-by: Mark Salter <msalter@redhat.com>
-Tested-by: Michal Simek <monstr@monstr.eu>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/include/asm/fixmap.h |   44 +------------------------
- 1 file changed, 2 insertions(+), 42 deletions(-)
+ arch/mips/include/asm/fixmap.h |   33 -------------------------------
+ 1 file changed, 1 insertion(+), 32 deletions(-)
 
-diff -puN arch/microblaze/include/asm/fixmap.h~microblaze-use-generic-fixmaph arch/microblaze/include/asm/fixmap.h
---- a/arch/microblaze/include/asm/fixmap.h~microblaze-use-generic-fixmaph
-+++ a/arch/microblaze/include/asm/fixmap.h
-@@ -58,52 +58,12 @@ enum fixed_addresses {
- extern void __set_fixmap(enum fixed_addresses idx,
- 					phys_addr_t phys, pgprot_t flags);
- 
--#define set_fixmap(idx, phys) \
--		__set_fixmap(idx, phys, PAGE_KERNEL)
--/*
-- * Some hardware wants to get fixmapped without caching.
-- */
--#define set_fixmap_nocache(idx, phys) \
--		__set_fixmap(idx, phys, PAGE_KERNEL_CI)
--
--#define clear_fixmap(idx) \
--		__set_fixmap(idx, 0, __pgprot(0))
--
- #define __FIXADDR_SIZE	(__end_of_fixed_addresses << PAGE_SHIFT)
- #define FIXADDR_START		(FIXADDR_TOP - __FIXADDR_SIZE)
+diff -puN arch/mips/include/asm/fixmap.h~mips-use-generic-fixmaph arch/mips/include/asm/fixmap.h
+--- a/arch/mips/include/asm/fixmap.h~mips-use-generic-fixmaph
++++ a/arch/mips/include/asm/fixmap.h
+@@ -71,38 +71,7 @@ enum fixed_addresses {
+ #define FIXADDR_SIZE	(__end_of_fixed_addresses << PAGE_SHIFT)
+ #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)
  
 -#define __fix_to_virt(x)	(FIXADDR_TOP - ((x) << PAGE_SHIFT))
 -#define __virt_to_fix(x)	((FIXADDR_TOP - ((x)&PAGE_MASK)) >> PAGE_SHIFT)
@@ -72,7 +57,7 @@ diff -puN arch/microblaze/include/asm/fixmap.h~microblaze-use-generic-fixmaph ar
 - * directly without tranlation, we catch the bug with a NULL-deference
 - * kernel oops. Illegal ranges of incoming indices are caught too.
 - */
--static __always_inline unsigned long fix_to_virt(const unsigned int idx)
+-static inline unsigned long fix_to_virt(const unsigned int idx)
 -{
 -	/*
 -	 * this branch gets completely eliminated after inlining,
@@ -85,3 +70,6 @@ diff -puN arch/microblaze/include/asm/fixmap.h~microblaze-use-generic-fixmaph ar
 -	 */
 -	if (idx >= __end_of_fixed_addresses)
 -		__this_fixmap_does_not_exist();
+-
+-	return __fix_to_virt(idx);
+-}
