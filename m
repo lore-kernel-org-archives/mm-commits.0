@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-twl-use-devm_-functions.patch removed from -mm
- tree
-Date: Fri, 24 Jan 2014 11:02:36 -0800
-Message-ID: <52e2b8cc.5130cJHjbXsyocIL%akpm@linux-foundation.org>
+Subject: [merged] rtc-rtc-vr41xx-use-devm_-functions.patch removed from
+ -mm tree
+Date: Fri, 24 Jan 2014 11:02:38 -0800
+Message-ID: <52e2b8ce.tFTG3U7JCBtX2mWa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43735 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753020AbaAXTCg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:36 -0500
+	with ESMTP id S1753022AbaAXTCi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, yuasa@linux-mips.org, grygorii.strashko@ti.com, jg1.han@samsung.com
 
-Subject: [merged] rtc-rtc-twl-use-devm_-functions.patch removed from -mm tree
+Subject: [merged] rtc-rtc-vr41xx-use-devm_-functions.patch removed from -mm tree
 To: jg1.han@samsung.com,grygorii.strashko@ti.com,yuasa@linux-mips.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:02:36 -0800
+Date: Fri, 24 Jan 2014 11:02:38 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-twl.c: use devm_*() functions
+     Subject: drivers/rtc/rtc-vr41xx.c: use devm_*() functions
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-twl-use-devm_-functions.patch
+     rtc-rtc-vr41xx-use-devm_-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-twl.c: use devm_*() functions
+Subject: drivers/rtc/rtc-vr41xx.c: use devm_*() functions
 
 Use devm_*() functions to make cleanup paths simpler, and remove
 unnecessary remove().
@@ -42,105 +42,106 @@ Cc: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-twl.c |   38 +++++++++++++-------------------------
- 1 file changed, 13 insertions(+), 25 deletions(-)
+ drivers/rtc/rtc-vr41xx.c |   50 ++++++++-----------------------------
+ 1 file changed, 12 insertions(+), 38 deletions(-)
 
-diff -puN drivers/rtc/rtc-twl.c~rtc-rtc-twl-use-devm_-functions drivers/rtc/rtc-twl.c
---- a/drivers/rtc/rtc-twl.c~rtc-rtc-twl-use-devm_-functions
-+++ a/drivers/rtc/rtc-twl.c
-@@ -479,7 +479,7 @@ static int twl_rtc_probe(struct platform
- 	u8 rd_reg;
+diff -puN drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-use-devm_-functions drivers/rtc/rtc-vr41xx.c
+--- a/drivers/rtc/rtc-vr41xx.c~rtc-rtc-vr41xx-use-devm_-functions
++++ a/drivers/rtc/rtc-vr41xx.c
+@@ -293,7 +293,7 @@ static int rtc_probe(struct platform_dev
+ 	if (!res)
+ 		return -EBUSY;
  
- 	if (irq <= 0)
--		goto out1;
-+		return ret;
+-	rtc1_base = ioremap(res->start, resource_size(res));
++	rtc1_base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
+ 	if (!rtc1_base)
+ 		return -EBUSY;
  
- 	/* Initialize the register map */
- 	if (twl_class_is_4030())
-@@ -489,7 +489,7 @@ static int twl_rtc_probe(struct platform
+@@ -303,13 +303,14 @@ static int rtc_probe(struct platform_dev
+ 		goto err_rtc1_iounmap;
+ 	}
  
- 	ret = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
- 	if (ret < 0)
--		goto out1;
-+		return ret;
+-	rtc2_base = ioremap(res->start, resource_size(res));
++	rtc2_base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
+ 	if (!rtc2_base) {
+ 		retval = -EBUSY;
+ 		goto err_rtc1_iounmap;
+ 	}
  
- 	if (rd_reg & BIT_RTC_STATUS_REG_POWER_UP_M)
- 		dev_warn(&pdev->dev, "Power up reset detected.\n");
-@@ -500,7 +500,7 @@ static int twl_rtc_probe(struct platform
- 	/* Clear RTC Power up reset and pending alarm interrupts */
- 	ret = twl_rtc_write_u8(rd_reg, REG_RTC_STATUS_REG);
- 	if (ret < 0)
--		goto out1;
-+		return ret;
- 
- 	if (twl_class_is_6030()) {
- 		twl6030_interrupt_unmask(TWL6030_RTC_INT_MASK,
-@@ -512,7 +512,7 @@ static int twl_rtc_probe(struct platform
- 	dev_info(&pdev->dev, "Enabling TWL-RTC\n");
- 	ret = twl_rtc_write_u8(BIT_RTC_CTRL_REG_STOP_RTC_M, REG_RTC_CTRL_REG);
- 	if (ret < 0)
--		goto out1;
-+		return ret;
- 
- 	/* ensure interrupts are disabled, bootloaders can be strange */
- 	ret = twl_rtc_write_u8(0, REG_RTC_INTERRUPTS_REG);
-@@ -522,34 +522,29 @@ static int twl_rtc_probe(struct platform
- 	/* init cached IRQ enable bits */
- 	ret = twl_rtc_read_u8(&rtc_irq_bits, REG_RTC_INTERRUPTS_REG);
- 	if (ret < 0)
--		goto out1;
-+		return ret;
- 
- 	device_init_wakeup(&pdev->dev, 1);
- 
--	rtc = rtc_device_register(pdev->name,
--				  &pdev->dev, &twl_rtc_ops, THIS_MODULE);
-+	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-+					&twl_rtc_ops, THIS_MODULE);
+-	rtc = rtc_device_register(rtc_name, &pdev->dev, &vr41xx_rtc_ops, THIS_MODULE);
++	rtc = devm_rtc_device_register(&pdev->dev, rtc_name, &vr41xx_rtc_ops,
++					THIS_MODULE);
  	if (IS_ERR(rtc)) {
--		ret = PTR_ERR(rtc);
- 		dev_err(&pdev->dev, "can't register RTC device, err %ld\n",
- 			PTR_ERR(rtc));
--		goto out1;
-+		return PTR_ERR(rtc);
+ 		retval = PTR_ERR(rtc);
+ 		goto err_iounmap_all;
+@@ -330,24 +331,24 @@ static int rtc_probe(struct platform_dev
+ 	aie_irq = platform_get_irq(pdev, 0);
+ 	if (aie_irq <= 0) {
+ 		retval = -EBUSY;
+-		goto err_device_unregister;
++		goto err_iounmap_all;
  	}
  
--	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
--				   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
--				   dev_name(&rtc->dev), rtc);
-+	ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
-+					twl_rtc_interrupt,
-+					IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-+					dev_name(&rtc->dev), rtc);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "IRQ is not free.\n");
--		goto out2;
-+		return ret;
+-	retval = request_irq(aie_irq, elapsedtime_interrupt, 0,
+-			     "elapsed_time", pdev);
++	retval = devm_request_irq(&pdev->dev, aie_irq, elapsedtime_interrupt, 0,
++				"elapsed_time", pdev);
+ 	if (retval < 0)
+-		goto err_device_unregister;
++		goto err_iounmap_all;
+ 
+ 	pie_irq = platform_get_irq(pdev, 1);
+ 	if (pie_irq <= 0) {
+ 		retval = -EBUSY;
+-		goto err_free_irq;
++		goto err_iounmap_all;
  	}
+ 
+-	retval = request_irq(pie_irq, rtclong1_interrupt, 0,
+-			     "rtclong1", pdev);
++	retval = devm_request_irq(&pdev->dev, pie_irq, rtclong1_interrupt, 0,
++				"rtclong1", pdev);
+ 	if (retval < 0)
+-		goto err_free_irq;
++		goto err_iounmap_all;
  
  	platform_set_drvdata(pdev, rtc);
+ 
+@@ -358,47 +359,20 @@ static int rtc_probe(struct platform_dev
+ 
  	return 0;
+ 
+-err_free_irq:
+-	free_irq(aie_irq, pdev);
 -
--out2:
+-err_device_unregister:
 -	rtc_device_unregister(rtc);
--out1:
--	return ret;
+-
+ err_iounmap_all:
+-	iounmap(rtc2_base);
+ 	rtc2_base = NULL;
+ 
+ err_rtc1_iounmap:
+-	iounmap(rtc1_base);
+ 	rtc1_base = NULL;
+ 
+ 	return retval;
  }
  
- /*
-@@ -559,9 +554,6 @@ out1:
- static int twl_rtc_remove(struct platform_device *pdev)
- {
- 	/* leave rtc running, but disable irqs */
--	struct rtc_device *rtc = platform_get_drvdata(pdev);
--	int irq = platform_get_irq(pdev, 0);
+-static int rtc_remove(struct platform_device *pdev)
+-{
+-	struct rtc_device *rtc;
 -
- 	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
- 	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
- 	if (twl_class_is_6030()) {
-@@ -571,10 +563,6 @@ static int twl_rtc_remove(struct platfor
- 			REG_INT_MSK_STS_A);
- 	}
- 
+-	rtc = platform_get_drvdata(pdev);
+-	if (rtc)
+-		rtc_device_unregister(rtc);
 -
--	free_irq(irq, rtc);
+-	free_irq(aie_irq, pdev);
+-	free_irq(pie_irq, pdev);
+-	if (rtc1_base)
+-		iounmap(rtc1_base);
+-	if (rtc2_base)
+-		iounmap(rtc2_base);
+-
+-	return 0;
+-}
