@@ -1,140 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged] numa-add-a-sysctl-for-numa_balancing.patch removed from
- -mm tree
-Date: Fri, 24 Jan 2014 10:59:01 -0800
-Message-ID: <52e2b7f5.LWqRJo2bxZ84p+X6%akpm@linux-foundation.org>
+Subject: [merged]
+ documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 10:59:09 -0800
+Message-ID: <52e2b7fd.3c9oqAGZabA4cn/G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43261 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43280 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS7C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:02 -0500
+	with ESMTP id S1752484AbaAXS7J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mingo@elte.hu, mgorman@suse.de, ak@linux.intel.com
+To: mm-commits@vger.kernel.org, mel@csn.ul.ie, vinayakm.list@gmail.com
 
-Subject: [merged] numa-add-a-sysctl-for-numa_balancing.patch removed from -mm tree
-To: ak@linux.intel.com,mgorman@suse.de,mingo@elte.hu,mm-commits@vger.kernel.org
+Subject: [merged] documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex.patch removed from -mm tree
+To: vinayakm.list@gmail.com,mel@csn.ul.ie,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:59:01 -0800
+Date: Fri, 24 Jan 2014 10:59:09 -0800
 
 
 The patch titled
-     Subject: numa: add a sysctl for numa_balancing
+     Subject: Documentation/trace/postprocess/trace-vmscan-postprocess.pl: fix the traceevent regex
 has been removed from the -mm tree.  Its filename was
-     numa-add-a-sysctl-for-numa_balancing.patch
+     documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: numa: add a sysctl for numa_balancing
+From: Vinayak Menon <vinayakm.list@gmail.com>
+Subject: Documentation/trace/postprocess/trace-vmscan-postprocess.pl: fix the traceevent regex
 
-Add a working sysctl to enable/disable automatic numa memory balancing at
-runtime.
+When irq, preempt and lockdep fields are printed (field 3 in the e.g. 
+below) in the trace output, the script fails.
 
-This allows us to track down performance problems with this feature and is
-generally a good idea.
+An e.g. entry.
+kswapd0-610   [000] ...1   158.112152: mm_vmscan_kswapd_wake: nid=0 order=0
 
-This was possible earlier through debugfs, but only with special debugging
-options set.  Also fix the boot message.
-
-[akpm@linux-foundation.org: s/sched_numa_balancing/sysctl_numa_balancing/]
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Vinayak Menon <vinayakm.list@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/sysctl.h |    4 ++++
- kernel/sched/core.c          |   24 +++++++++++++++++++++++-
- kernel/sysctl.c              |    9 +++++++++
- mm/mempolicy.c               |    2 +-
- 4 files changed, 37 insertions(+), 2 deletions(-)
+ Documentation/trace/postprocess/trace-vmscan-postprocess.pl |   18 +++++-----
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/sched/sysctl.h~numa-add-a-sysctl-for-numa_balancing include/linux/sched/sysctl.h
---- a/include/linux/sched/sysctl.h~numa-add-a-sysctl-for-numa_balancing
-+++ a/include/linux/sched/sysctl.h
-@@ -99,4 +99,8 @@ extern int sched_rt_handler(struct ctl_t
- 		void __user *buffer, size_t *lenp,
- 		loff_t *ppos);
+diff -puN Documentation/trace/postprocess/trace-vmscan-postprocess.pl~documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex Documentation/trace/postprocess/trace-vmscan-postprocess.pl
+--- a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl~documentation-trace-postprocess-trace-vmscan-postprocesspl-fix-the-traceevent-regex
++++ a/Documentation/trace/postprocess/trace-vmscan-postprocess.pl
+@@ -123,7 +123,7 @@ my $regex_writepage;
  
-+extern int sysctl_numa_balancing(struct ctl_table *table, int write,
-+				 void __user *buffer, size_t *lenp,
-+				 loff_t *ppos);
-+
- #endif /* _SCHED_SYSCTL_H */
-diff -puN kernel/sched/core.c~numa-add-a-sysctl-for-numa_balancing kernel/sched/core.c
---- a/kernel/sched/core.c~numa-add-a-sysctl-for-numa_balancing
-+++ a/kernel/sched/core.c
-@@ -1770,7 +1770,29 @@ void set_numabalancing_state(bool enable
- 	numabalancing_enabled = enabled;
- }
- #endif /* CONFIG_SCHED_DEBUG */
--#endif /* CONFIG_NUMA_BALANCING */
-+
-+#ifdef CONFIG_PROC_SYSCTL
-+int sysctl_numa_balancing(struct ctl_table *table, int write,
-+			 void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct ctl_table t;
-+	int err;
-+	int state = numabalancing_enabled;
-+
-+	if (write && !capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	t = *table;
-+	t.data = &state;
-+	err = proc_dointvec_minmax(&t, write, buffer, lenp, ppos);
-+	if (err < 0)
-+		return err;
-+	if (write)
-+		set_numabalancing_state(state);
-+	return err;
-+}
-+#endif
-+#endif
+ # Static regex used. Specified like this for readability and for use with /o
+ #                      (process_pid)     (cpus      )   ( time  )   (tpoint    ) (details)
+-my $regex_traceevent = '\s*([a-zA-Z0-9-]*)\s*(\[[0-9]*\])\s*([0-9.]*):\s*([a-zA-Z_]*):\s*(.*)';
++my $regex_traceevent = '\s*([a-zA-Z0-9-]*)\s*(\[[0-9]*\])(\s*[dX.][Nnp.][Hhs.][0-9a-fA-F.]*|)\s*([0-9.]*):\s*([a-zA-Z_]*):\s*(.*)';
+ my $regex_statname = '[-0-9]*\s\((.*)\).*';
+ my $regex_statppid = '[-0-9]*\s\(.*\)\s[A-Za-z]\s([0-9]*).*';
  
- /*
-  * fork()/clone()-time setup:
-diff -puN kernel/sysctl.c~numa-add-a-sysctl-for-numa_balancing kernel/sysctl.c
---- a/kernel/sysctl.c~numa-add-a-sysctl-for-numa_balancing
-+++ a/kernel/sysctl.c
-@@ -389,6 +389,15 @@ static struct ctl_table kern_table[] = {
- 		.mode           = 0644,
- 		.proc_handler   = proc_dointvec,
- 	},
-+	{
-+		.procname	= "numa_balancing",
-+		.data		= NULL, /* filled in by handler */
-+		.maxlen		= sizeof(unsigned int),
-+		.mode		= 0644,
-+		.proc_handler	= sysctl_numa_balancing,
-+		.extra1		= &zero,
-+		.extra2		= &one,
-+	},
- #endif /* CONFIG_NUMA_BALANCING */
- #endif /* CONFIG_SCHED_DEBUG */
- 	{
-diff -puN mm/mempolicy.c~numa-add-a-sysctl-for-numa_balancing mm/mempolicy.c
---- a/mm/mempolicy.c~numa-add-a-sysctl-for-numa_balancing
-+++ a/mm/mempolicy.c
-@@ -2668,7 +2668,7 @@ static void __init check_numabalancing_e
+@@ -270,8 +270,8 @@ EVENT_PROCESS:
+ 	while ($traceevent = <STDIN>) {
+ 		if ($traceevent =~ /$regex_traceevent/o) {
+ 			$process_pid = $1;
+-			$timestamp = $3;
+-			$tracepoint = $4;
++			$timestamp = $4;
++			$tracepoint = $5;
  
- 	if (nr_node_ids > 1 && !numabalancing_override) {
- 		printk(KERN_INFO "Enabling automatic NUMA balancing. "
--			"Configure with numa_balancing= or sysctl");
-+			"Configure with numa_balancing= or the kernel.numa_balancing sysctl");
- 		set_numabalancing_state(numabalancing_default);
- 	}
- }
+ 			$process_pid =~ /(.*)-([0-9]*)$/;
+ 			my $process = $1;
+@@ -299,7 +299,7 @@ EVENT_PROCESS:
+ 			$perprocesspid{$process_pid}->{MM_VMSCAN_DIRECT_RECLAIM_BEGIN}++;
+ 			$perprocesspid{$process_pid}->{STATE_DIRECT_BEGIN} = $timestamp;
+ 
+-			$details = $5;
++			$details = $6;
+ 			if ($details !~ /$regex_direct_begin/o) {
+ 				print "WARNING: Failed to parse mm_vmscan_direct_reclaim_begin as expected\n";
+ 				print "         $details\n";
+@@ -322,7 +322,7 @@ EVENT_PROCESS:
+ 				$perprocesspid{$process_pid}->{HIGH_DIRECT_RECLAIM_LATENCY}[$index] = "$order-$latency";
+ 			}
+ 		} elsif ($tracepoint eq "mm_vmscan_kswapd_wake") {
+-			$details = $5;
++			$details = $6;
+ 			if ($details !~ /$regex_kswapd_wake/o) {
+ 				print "WARNING: Failed to parse mm_vmscan_kswapd_wake as expected\n";
+ 				print "         $details\n";
+@@ -356,7 +356,7 @@ EVENT_PROCESS:
+ 		} elsif ($tracepoint eq "mm_vmscan_wakeup_kswapd") {
+ 			$perprocesspid{$process_pid}->{MM_VMSCAN_WAKEUP_KSWAPD}++;
+ 
+-			$details = $5;
++			$details = $6;
+ 			if ($details !~ /$regex_wakeup_kswapd/o) {
+ 				print "WARNING: Failed to parse mm_vmscan_wakeup_kswapd as expected\n";
+ 				print "         $details\n";
+@@ -366,7 +366,7 @@ EVENT_PROCESS:
+ 			my $order = $3;
+ 			$perprocesspid{$process_pid}->{MM_VMSCAN_WAKEUP_KSWAPD_PERORDER}[$order]++;
+ 		} elsif ($tracepoint eq "mm_vmscan_lru_isolate") {
+-			$details = $5;
++			$details = $6;
+ 			if ($details !~ /$regex_lru_isolate/o) {
+ 				print "WARNING: Failed to parse mm_vmscan_lru_isolate as expected\n";
+ 				print "         $details\n";
+@@ -387,7 +387,7 @@ EVENT_PROCESS:
+ 			}
+ 			$perprocesspid{$process_pid}->{HIGH_NR_CONTIG_DIRTY} += $nr_contig_dirty;
+ 		} elsif ($tracepoint eq "mm_vmscan_lru_shrink_inactive") {
+-			$details = $5;
++			$details = $6;
+ 			if ($details !~ /$regex_lru_shrink_inactive/o) {
+ 				print "WARNING: Failed to parse mm_vmscan_lru_shrink_inactive as expected\n";
+ 				print "         $details\n";
+@@ -397,7 +397,7 @@ EVENT_PROCESS:
+ 			my $nr_reclaimed = $4;
+ 			$perprocesspid{$process_pid}->{HIGH_NR_RECLAIMED} += $nr_reclaimed;
+ 		} elsif ($tracepoint eq "mm_vmscan_writepage") {
+-			$details = $5;
++			$details = $6;
+ 			if ($details !~ /$regex_writepage/o) {
+ 				print "WARNING: Failed to parse mm_vmscan_writepage as expected\n";
+ 				print "         $details\n";
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from vinayakm.list@gmail.com are
 
 origin.patch
 
