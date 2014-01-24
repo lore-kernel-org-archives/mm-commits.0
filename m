@@ -1,54 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 11:02:06 -0800
-Message-ID: <52e2b8ae.b1jDZWFcsED2U0aH%akpm@linux-foundation.org>
+ fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 11:02:08 -0800
+Message-ID: <52e2b8b0.94fZd0ZzLKgs8IqJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43674 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43677 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950AbaAXTCG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:06 -0500
+	with ESMTP id S1752950AbaAXTCI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, todor@minchev.co.uk
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, axel.lin@ingics.com
 
-Subject: [merged] fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf.patch removed from -mm tree
-To: todor@minchev.co.uk,mm-commits@vger.kernel.org
+Subject: [merged] fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch removed from -mm tree
+To: axel.lin@ingics.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:02:06 -0800
+Date: Fri, 24 Jan 2014 11:02:08 -0800
 
 
 The patch titled
-     Subject: fs: binfmt_elf: remove unused defines INTERPRETER_NONE and INTERPRETER_ELF
+     Subject: fs/ramfs/file-nommu.c: make ramfs_nommu_get_unmapped_area() and ramfs_nommu_mmap() static
 has been removed from the -mm tree.  Its filename was
-     fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf.patch
+     fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Todor Minchev <todor@minchev.co.uk>
-Subject: fs: binfmt_elf: remove unused defines INTERPRETER_NONE and INTERPRETER_ELF
+From: Axel Lin <axel.lin@ingics.com>
+Subject: fs/ramfs/file-nommu.c: make ramfs_nommu_get_unmapped_area() and ramfs_nommu_mmap() static
 
-These two defines are unused since the removal of the a.out interpreter
-support in the ELF loader in kernel 2.6.25
+Since commit 853ac43ab194f "shmem: unify regular and tiny shmem",
+ramfs_nommu_get_unmapped_area() and ramfs_nommu_mmap() are not directly
+referenced outside of file-nommu.c.  Thus make them static.
 
-Signed-off-by: Todor Minchev <todor@minchev.co.uk>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/ramfs/file-nommu.c |   10 ++++++++--
+ include/linux/ramfs.h |    7 -------
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN fs/binfmt_elf.c~fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmt_elf-remove-unused-defines-interpreter_none-and-interpreter_elf
-+++ a/fs/binfmt_elf.c
-@@ -543,9 +543,6 @@ out:
-  * libraries.  There is no binary dependent code anywhere else.
-  */
+diff -puN fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static
++++ a/fs/ramfs/file-nommu.c
+@@ -27,6 +27,12 @@
+ #include "internal.h"
  
--#define INTERPRETER_NONE 0
--#define INTERPRETER_ELF 2
+ static int ramfs_nommu_setattr(struct dentry *, struct iattr *);
++static unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
++						   unsigned long addr,
++						   unsigned long len,
++						   unsigned long pgoff,
++						   unsigned long flags);
++static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma);
+ 
+ const struct address_space_operations ramfs_aops = {
+ 	.readpage		= simple_readpage,
+@@ -197,7 +203,7 @@ static int ramfs_nommu_setattr(struct de
+  *   - the pages to be mapped must exist
+  *   - the pages be physically contiguous in sequence
+  */
+-unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
++static unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
+ 					    unsigned long addr, unsigned long len,
+ 					    unsigned long pgoff, unsigned long flags)
+ {
+@@ -256,7 +262,7 @@ out:
+ /*
+  * set up a mapping for shared memory segments
+  */
+-int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
++static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	if (!(vma->vm_flags & VM_SHARED))
+ 		return -ENOSYS;
+diff -puN include/linux/ramfs.h~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static include/linux/ramfs.h
+--- a/include/linux/ramfs.h~fs-ramfs-file-nommuc-make-ramfs_nommu_get_unmapped_area-and-ramfs_nommu_mmap-static
++++ a/include/linux/ramfs.h
+@@ -14,13 +14,6 @@ ramfs_nommu_expand_for_mapping(struct in
+ }
+ #else
+ extern int ramfs_nommu_expand_for_mapping(struct inode *inode, size_t newsize);
+-extern unsigned long ramfs_nommu_get_unmapped_area(struct file *file,
+-						   unsigned long addr,
+-						   unsigned long len,
+-						   unsigned long pgoff,
+-						   unsigned long flags);
