@@ -1,103 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs-fix-symlinks-arent-checked-for-expiry.patch
- removed from -mm tree
-Date: Fri, 24 Jan 2014 11:02:24 -0800
-Message-ID: <52e2b8c0.+/5Ry+siVn8hb17a%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch removed
+ from -mm tree
+Date: Fri, 24 Jan 2014 11:02:26 -0800
+Message-ID: <52e2b8c2.SfNK7Z6kkN/q3/pG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43715 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752995AbaAXTCY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:24 -0500
+	with ESMTP id S1752999AbaAXTC0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ikent@redhat.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com, ldewangan@nvidia.com
 
-Subject: [merged] autofs-fix-symlinks-arent-checked-for-expiry.patch removed from -mm tree
-To: ikent@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch removed from -mm tree
+To: ldewangan@nvidia.com,jg1.han@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:02:24 -0800
+Date: Fri, 24 Jan 2014 11:02:26 -0800
 
 
 The patch titled
-     Subject: autofs: fix symlinks aren't checked for expiry
+     Subject: drivers/rtc/rtc-as3722: use devm for rtc and irq registration
 has been removed from the -mm tree.  Its filename was
-     autofs-fix-symlinks-arent-checked-for-expiry.patch
+     drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ian Kent <ikent@redhat.com>
-Subject: autofs: fix symlinks aren't checked for expiry
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Subject: drivers/rtc/rtc-as3722: use devm for rtc and irq registration
 
-The autofs4 module doesn't consider symlinks for expire as it did in the
-older autofs v3 module (so it's actually a long standing regression).
+Use devm_* calls for rtc and irq registration and get rid of
+remove callback for platform driver.
 
-The user space daemon has focused on the use of bind mounts instead of
-symlinks for a long time now and that's why this has not been noticed. 
-But with the future addition of amd map parsing to automount(8), not to
-mention amd itself (of am-utils), symlink expiry will be needed.
-
-The direct and offset mount types can't be symlinks and the tree mounts of
-version 4 were always real mounts so only indirect mounts need expire
-symlinks.
-
-Since the current users of the autofs4 module haven't reported this as a
-problem to date this patch probably isn't a candidate for backport to
-stable.
-
-Signed-off-by: Ian Kent <ikent@redhat.com>
+Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/expire.c  |   14 ++++++++++++++
- fs/autofs4/symlink.c |    4 ++++
- 2 files changed, 18 insertions(+)
+ drivers/rtc/rtc-as3722.c |   19 +++----------------
+ 1 file changed, 3 insertions(+), 16 deletions(-)
 
-diff -puN fs/autofs4/expire.c~autofs-fix-symlinks-arent-checked-for-expiry fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs-fix-symlinks-arent-checked-for-expiry
-+++ a/fs/autofs4/expire.c
-@@ -402,6 +402,20 @@ struct dentry *autofs4_expire_indirect(s
- 			goto next;
- 		}
+diff -puN drivers/rtc/rtc-as3722.c~drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration drivers/rtc/rtc-as3722.c
+--- a/drivers/rtc/rtc-as3722.c~drivers-rtc-rtc-as3722-use-devm-for-rtc-and-irq-registration
++++ a/drivers/rtc/rtc-as3722.c
+@@ -198,7 +198,7 @@ static int as3722_rtc_probe(struct platf
  
-+		if (dentry->d_inode && S_ISLNK(dentry->d_inode->i_mode)) {
-+			DPRINTK("checking symlink %p %.*s",
-+				dentry, (int)dentry->d_name.len, dentry->d_name.name);
-+			/*
-+			 * A symlink can't be "busy" in the usual sense so
-+			 * just check last used for expire timeout.
-+			 */
-+			if (autofs4_can_expire(dentry, timeout, do_now)) {
-+				expired = dentry;
-+				goto found;
-+			}
-+			goto next;
-+		}
-+
- 		if (simple_empty(dentry))
- 			goto next;
+ 	device_init_wakeup(&pdev->dev, 1);
  
-diff -puN fs/autofs4/symlink.c~autofs-fix-symlinks-arent-checked-for-expiry fs/autofs4/symlink.c
---- a/fs/autofs4/symlink.c~autofs-fix-symlinks-arent-checked-for-expiry
-+++ a/fs/autofs4/symlink.c
-@@ -14,6 +14,10 @@
+-	as3722_rtc->rtc = rtc_device_register("as3722", &pdev->dev,
++	as3722_rtc->rtc = devm_rtc_device_register(&pdev->dev, "as3722-rtc",
+ 				&as3722_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(as3722_rtc->rtc)) {
+ 		ret = PTR_ERR(as3722_rtc->rtc);
+@@ -209,28 +209,16 @@ static int as3722_rtc_probe(struct platf
+ 	as3722_rtc->alarm_irq = platform_get_irq(pdev, 0);
+ 	dev_info(&pdev->dev, "RTC interrupt %d\n", as3722_rtc->alarm_irq);
  
- static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
- {
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	if (ino && !autofs4_oz_mode(sbi))
-+		ino->last_used = jiffies;
- 	nd_set_link(nd, dentry->d_inode->i_private);
- 	return NULL;
- }
-_
-
-Patches currently in -mm which might be from ikent@redhat.com are
-
-origin.patch
-
+-	ret = request_threaded_irq(as3722_rtc->alarm_irq, NULL,
++	ret = devm_request_threaded_irq(&pdev->dev, as3722_rtc->alarm_irq, NULL,
+ 			as3722_alarm_irq, IRQF_ONESHOT | IRQF_EARLY_RESUME,
+ 			"rtc-alarm", as3722_rtc);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "Failed to request alarm IRQ %d: %d\n",
+ 				as3722_rtc->alarm_irq, ret);
+-		goto scrub;
++		return ret;
+ 	}
+ 	disable_irq(as3722_rtc->alarm_irq);
+ 	return 0;
+-scrub:
+-	rtc_device_unregister(as3722_rtc->rtc);
+-	return ret;
+-}
+-
+-static int as3722_rtc_remove(struct platform_device *pdev)
+-{
+-	struct as3722_rtc *as3722_rtc = platform_get_drvdata(pdev);
