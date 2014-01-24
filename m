@@ -1,80 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uapi-convert-u64-to-__u64-in-exported-headers.patch
- removed from -mm tree
-Date: Fri, 24 Jan 2014 11:00:45 -0800
-Message-ID: <52e2b85d.Y8+5k8wLnV9dv22E%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-parserc-put-export_symbols-in-the-conventional-place.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 11:00:49 -0800
+Message-ID: <52e2b861./eaRS/+Z9MfZXxWj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43523 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbaAXTAp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:45 -0500
+	with ESMTP id S1752340AbaAXTAt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, vapier@gentoo.org
+To: mm-commits@vger.kernel.org, joe@perches.com, changbin.du@gmail.com, akpm@linux-foundation.org
 
-Subject: [merged] uapi-convert-u64-to-__u64-in-exported-headers.patch removed from -mm tree
-To: vapier@gentoo.org,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: [merged] lib-parserc-put-export_symbols-in-the-conventional-place.patch removed from -mm tree
+To: akpm@linux-foundation.org,changbin.du@gmail.com,joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:00:45 -0800
+Date: Fri, 24 Jan 2014 11:00:49 -0800
 
 
 The patch titled
-     Subject: uapi: convert u64 to __u64 in exported headers
+     Subject: lib/parser.c: put EXPORT_SYMBOLs in the conventional place
 has been removed from the -mm tree.  Its filename was
-     uapi-convert-u64-to-__u64-in-exported-headers.patch
+     lib-parserc-put-export_symbols-in-the-conventional-place.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: uapi: convert u64 to __u64 in exported headers
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib/parser.c: put EXPORT_SYMBOLs in the conventional place
 
-The u64 type is not defined in any exported kernel headers, so trying to
-use it will lead to build failures.
-
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: Du, Changbin <changbin.du@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/nfs4.h       |    2 +-
- include/uapi/linux/perf_event.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ lib/parser.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN include/uapi/linux/nfs4.h~uapi-convert-u64-to-__u64-in-exported-headers include/uapi/linux/nfs4.h
---- a/include/uapi/linux/nfs4.h~uapi-convert-u64-to-__u64-in-exported-headers
-+++ a/include/uapi/linux/nfs4.h
-@@ -150,7 +150,7 @@
- #define NFS4_SECINFO_STYLE4_CURRENT_FH	0
- #define NFS4_SECINFO_STYLE4_PARENT	1
+diff -puN lib/parser.c~lib-parserc-put-export_symbols-in-the-conventional-place lib/parser.c
+--- a/lib/parser.c~lib-parserc-put-export_symbols-in-the-conventional-place
++++ a/lib/parser.c
+@@ -113,6 +113,7 @@ int match_token(char *s, const match_tab
  
--#define NFS4_MAX_UINT64	(~(u64)0)
-+#define NFS4_MAX_UINT64	(~(__u64)0)
+ 	return p->token;
+ }
++EXPORT_SYMBOL(match_token);
  
- /* An NFS4 sessions server must support at least NFS4_MAX_OPS operations.
-  * If a compound requires more operations, adjust NFS4_MAX_OPS accordingly.
-diff -puN include/uapi/linux/perf_event.h~uapi-convert-u64-to-__u64-in-exported-headers include/uapi/linux/perf_event.h
---- a/include/uapi/linux/perf_event.h~uapi-convert-u64-to-__u64-in-exported-headers
-+++ a/include/uapi/linux/perf_event.h
-@@ -788,7 +788,7 @@ union perf_mem_data_src {
- #define PERF_MEM_TLB_SHIFT	26
+ /**
+  * match_number: scan a number in the given base from a substring_t
+@@ -163,6 +164,7 @@ int match_int(substring_t *s, int *resul
+ {
+ 	return match_number(s, result, 0);
+ }
++EXPORT_SYMBOL(match_int);
  
- #define PERF_MEM_S(a, s) \
--	(((u64)PERF_MEM_##a##_##s) << PERF_MEM_##a##_SHIFT)
-+	(((__u64)PERF_MEM_##a##_##s) << PERF_MEM_##a##_SHIFT)
+ /**
+  * match_octal: - scan an octal representation of an integer from a substring_t
+@@ -177,6 +179,7 @@ int match_octal(substring_t *s, int *res
+ {
+ 	return match_number(s, result, 8);
+ }
++EXPORT_SYMBOL(match_octal);
  
- /*
-  * single taken branch record layout:
+ /**
+  * match_hex: - scan a hex representation of an integer from a substring_t
+@@ -191,6 +194,7 @@ int match_hex(substring_t *s, int *resul
+ {
+ 	return match_number(s, result, 16);
+ }
++EXPORT_SYMBOL(match_hex);
+ 
+ /**
+  * match_wildcard: - parse if a string matches given wildcard pattern
+@@ -241,6 +245,7 @@ bool match_wildcard(const char *pattern,
+ 		++p;
+ 	return !*p;
+ }
++EXPORT_SYMBOL(match_wildcard);
+ 
+ /**
+  * match_strlcpy: - Copy the characters from a substring_t to a sized buffer
+@@ -263,6 +268,7 @@ size_t match_strlcpy(char *dest, const s
+ 	}
+ 	return ret;
+ }
++EXPORT_SYMBOL(match_strlcpy);
+ 
+ /**
+  * match_strdup: - allocate a new string with the contents of a substring_t
+@@ -280,11 +286,4 @@ char *match_strdup(const substring_t *s)
+ 		match_strlcpy(p, s, sz);
+ 	return p;
+ }
+-
+-EXPORT_SYMBOL(match_token);
+-EXPORT_SYMBOL(match_int);
+-EXPORT_SYMBOL(match_octal);
+-EXPORT_SYMBOL(match_hex);
+-EXPORT_SYMBOL(match_wildcard);
+-EXPORT_SYMBOL(match_strlcpy);
+ EXPORT_SYMBOL(match_strdup);
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+mm.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
 kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+ipcmsg-document-barriers-fix.patch
+ipcmsg-document-barriers-fix-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
