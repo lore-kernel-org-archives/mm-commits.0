@@ -1,94 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-add-dt-compatible-string-documentation-checks.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 11:02:02 -0800
-Message-ID: <52e2b8aa.2JKf0xZ+D3yWmNeQ%akpm@linux-foundation.org>
+ checkpatch-prefer-ether_addr_copy-to-memcpyfoo-bar-eth_alen.patch removed
+ from -mm tree
+Date: Fri, 24 Jan 2014 11:02:04 -0800
+Message-ID: <52e2b8ac.UplLfH09NxfCBCEx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43666 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43672 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752961AbaAXTCC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:02 -0500
+	with ESMTP id S1751844AbaAXTCE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:02:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, grant.likely@linaro.org, apw@canonical.com, robh@kernel.org
+To: mm-commits@vger.kernel.org, davem@davemloft.net, apw@canonical.com, joe@perches.com
 
-Subject: [merged] checkpatch-add-dt-compatible-string-documentation-checks.patch removed from -mm tree
-To: robh@kernel.org,apw@canonical.com,grant.likely@linaro.org,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-prefer-ether_addr_copy-to-memcpyfoo-bar-eth_alen.patch removed from -mm tree
+To: joe@perches.com,apw@canonical.com,davem@davemloft.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:02:02 -0800
+Date: Fri, 24 Jan 2014 11:02:04 -0800
 
 
 The patch titled
-     Subject: checkpatch: add DT compatible string documentation checks
+     Subject: checkpatch: prefer ether_addr_copy to memcpy(foo, bar, ETH_ALEN)
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-dt-compatible-string-documentation-checks.patch
+     checkpatch-prefer-ether_addr_copy-to-memcpyfoo-bar-eth_alen.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rob Herring <robh@kernel.org>
-Subject: checkpatch: add DT compatible string documentation checks
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: prefer ether_addr_copy to memcpy(foo, bar, ETH_ALEN)
 
-This adds a simple check that any compatible strings in DeviceTree dts
-files are present in Documentation/devicetree/bindings.  Vendor prefixes
-are also checked for existing in vendor-prefixes.txt These should be
-temporary checks until we have more sophisticated binding schema checking.
+ether_addr_copy was added for kernel version 3.14.  It's slightly
+smaller/faster for some arches.  Encourage its use.
 
-Signed-off-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Grant Likely <grant.likely@linaro.org>
 Cc: Andy Whitcroft <apw@canonical.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ scripts/checkpatch.pl |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-dt-compatible-string-documentation-checks scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-dt-compatible-string-documentation-checks
+diff -puN scripts/checkpatch.pl~checkpatch-prefer-ether_addr_copy-to-memcpyfoo-bar-eth_alen scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-prefer-ether_addr_copy-to-memcpyfoo-bar-eth_alen
 +++ a/scripts/checkpatch.pl
-@@ -2040,6 +2040,33 @@ sub process {
- 			     "Use of $flag is deprecated, please use \`$replacement->{$flag} instead.\n" . $herecurr) if ($replacement->{$flag});
+@@ -4087,6 +4087,16 @@ sub process {
+ 			}
  		}
  
-+# check for DT compatible documentation
-+		if (defined $root && $realfile =~ /\.dts/ &&
-+		    $rawline =~ /^\+\s*compatible\s*=/) {
-+			my @compats = $rawline =~ /\"([a-zA-Z0-9\-\,\.\+_]+)\"/g;
-+
-+			foreach my $compat (@compats) {
-+				my $compat2 = $compat;
-+				my $dt_path =  $root . "/Documentation/devicetree/bindings/";
-+				$compat2 =~ s/\,[a-z]*\-/\,<\.\*>\-/;
-+				`grep -Erq "$compat|$compat2" $dt_path`;
-+				if ( $? >> 8 ) {
-+					WARN("UNDOCUMENTED_DT_STRING",
-+					     "DT compatible string \"$compat\" appears un-documented -- check $dt_path\n" . $herecurr);
-+				}
-+
-+				my $vendor = $compat;
-+				my $vendor_path = $dt_path . "vendor-prefixes.txt";
-+				next if (! -f $vendor_path);
-+				$vendor =~ s/^([a-zA-Z0-9]+)\,.*/$1/;
-+				`grep -Eq "$vendor" $vendor_path`;
-+				if ( $? >> 8 ) {
-+					WARN("UNDOCUMENTED_DT_STRING",
-+					     "DT compatible string vendor \"$vendor\" appears un-documented -- check $vendor_path\n" . $herecurr);
-+				}
++# Check for memcpy(foo, bar, ETH_ALEN) that could be ether_addr_copy(foo, bar)
++		if ($^V && $^V ge 5.10.0 &&
++		    $line =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/s) {
++			if (WARN("PREFER_ETHER_ADDR_COPY",
++				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
 +			}
 +		}
 +
- # check we are in a valid source file if not then ignore this hunk
- 		next if ($realfile !~ /\.(h|c|s|S|pl|sh)$/);
- 
+ # typecasts on min/max could be min_t/max_t
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    defined $stat &&
 _
 
-Patches currently in -mm which might be from robh@kernel.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null.patch
+ipc-whitespace-cleanup.patch
 linux-next.patch
+softirq-use-ffs-in-__do_softirq.patch
+softirq-convert-printks-to-pr_level.patch
+softirq-use-const-char-const-for-softirq_to_name-whitespace-neatening.patch
+checkpatchpl-check-for-function-declarations-without-arguments.patch
 
