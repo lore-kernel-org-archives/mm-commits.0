@@ -1,122 +1,117 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-oom-prefer-thread-group-leaders-for-display-purposes.patch removed from
- -mm tree
-Date: Fri, 24 Jan 2014 10:59:37 -0800
-Message-ID: <52e2b819.MaZji8qK90p3lPGT%akpm@linux-foundation.org>
+ memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter.patch
+ removed from -mm tree
+Date: Fri, 24 Jan 2014 10:59:41 -0800
+Message-ID: <52e2b81d.ZZ4Xj0q+eG5DQm4l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43355 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43362 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS7i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:38 -0500
+	with ESMTP id S1752484AbaAXS7m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, gthelen@google.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, hughd@google.com, hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz
 
-Subject: [merged] mm-oom-prefer-thread-group-leaders-for-display-purposes.patch removed from -mm tree
-To: rientjes@google.com,gthelen@google.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter.patch removed from -mm tree
+To: mhocko@suse.cz,gthelen@google.com,hannes@cmpxchg.org,hughd@google.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:59:37 -0800
+Date: Fri, 24 Jan 2014 10:59:41 -0800
 
 
 The patch titled
-     Subject: mm, oom: prefer thread group leaders for display purposes
+     Subject: memcg: fix css reference leak and endless loop in mem_cgroup_iter
 has been removed from the -mm tree.  Its filename was
-     mm-oom-prefer-thread-group-leaders-for-display-purposes.patch
+     memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: prefer thread group leaders for display purposes
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: fix css reference leak and endless loop in mem_cgroup_iter
 
-When two threads have the same badness score, it's preferable to kill the
-thread group leader so that the actual process name is printed to the
-kernel log rather than the thread group name which may be shared amongst
-several processes.
+19f39402864e ("memcg: simplify mem_cgroup_iter") has reorganized
+mem_cgroup_iter code in order to simplify it.  A part of that change was
+dropping an optimization which didn't call css_tryget on the root of the
+walked tree.  The patch however didn't change the css_put part in
+mem_cgroup_iter which excludes root.
 
-This was the behavior when select_bad_process() used to do
-for_each_process(), but it now iterates threads instead and leads to
-ambiguity.
+This wasn't an issue at the time because __mem_cgroup_iter_next bailed out
+for root early without taking a reference as cgroup iterators
+(css_next_descendant_pre) didn't visit root themselves.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+Nevertheless cgroup iterators have been reworked to visit root by
+bd8815a6d802 ("cgroup: make css_for_each_descendant() and friends include
+the origin css in the iteration") when the root bypass have been dropped
+in __mem_cgroup_iter_next.  This means that css_put is not called for root
+and so css along with mem_cgroup and other cgroup internal object tied by
+css lifetime are never freed.
+
+Fix the issue by reintroducing root check in __mem_cgroup_iter_next and do
+not take css reference for it.
+
+This reference counting magic protects us also from another issue, an
+endless loop reported by Hugh Dickins when reclaim races with root removal
+and css_tryget called by iterator internally would fail.  There would be
+no other nodes to visit so __mem_cgroup_iter_next would return NULL and
+mem_cgroup_iter would interpret it as "start looping from root again" and
+so mem_cgroup_iter would loop forever internally.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Hugh Dickins <hughd@google.com>
+Tested-by: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Greg Thelen <gthelen@google.com>
+Cc: <stable@vger.kernel.org>	[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   19 ++++++++++++-------
- mm/oom_kill.c   |   12 ++++++++----
- 2 files changed, 20 insertions(+), 11 deletions(-)
+ mm/memcontrol.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-oom-prefer-thread-group-leaders-for-display-purposes mm/memcontrol.c
---- a/mm/memcontrol.c~mm-oom-prefer-thread-group-leaders-for-display-purposes
+diff -puN mm/memcontrol.c~memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-css-reference-leak-and-endless-loop-in-mem_cgroup_iter
 +++ a/mm/memcontrol.c
-@@ -1841,13 +1841,18 @@ static void mem_cgroup_out_of_memory(str
- 				break;
- 			};
- 			points = oom_badness(task, memcg, NULL, totalpages);
--			if (points > chosen_points) {
--				if (chosen)
--					put_task_struct(chosen);
--				chosen = task;
--				chosen_points = points;
--				get_task_struct(chosen);
--			}
-+			if (!points || points < chosen_points)
-+				continue;
-+			/* Prefer thread group leaders for display purposes */
-+			if (points == chosen_points &&
-+			    thread_group_leader(chosen))
-+				continue;
-+
-+			if (chosen)
-+				put_task_struct(chosen);
-+			chosen = task;
-+			chosen_points = points;
-+			get_task_struct(chosen);
- 		}
- 		css_task_iter_end(&it);
- 	}
-diff -puN mm/oom_kill.c~mm-oom-prefer-thread-group-leaders-for-display-purposes mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-prefer-thread-group-leaders-for-display-purposes
-+++ a/mm/oom_kill.c
-@@ -327,10 +327,14 @@ static struct task_struct *select_bad_pr
- 			break;
- 		};
- 		points = oom_badness(p, NULL, nodemask, totalpages);
--		if (points > chosen_points) {
--			chosen = p;
--			chosen_points = points;
+@@ -1117,14 +1117,22 @@ skip_node:
+ 	 * skipped and we should continue the tree walk.
+ 	 * last_visited css is safe to use because it is
+ 	 * protected by css_get and the tree walk is rcu safe.
++	 *
++	 * We do not take a reference on the root of the tree walk
++	 * because we might race with the root removal when it would
++	 * be the only node in the iterated hierarchy and mem_cgroup_iter
++	 * would end up in an endless loop because it expects that at
++	 * least one valid node will be returned. Root cannot disappear
++	 * because caller of the iterator should hold it already so
++	 * skipping css reference should be safe.
+ 	 */
+ 	if (next_css) {
+-		if ((next_css->flags & CSS_ONLINE) && css_tryget(next_css))
++		if ((next_css->flags & CSS_ONLINE) &&
++				(next_css == &root->css || css_tryget(next_css)))
+ 			return mem_cgroup_from_css(next_css);
+-		else {
+-			prev_css = next_css;
+-			goto skip_node;
 -		}
-+		if (!points || points < chosen_points)
-+			continue;
-+		/* Prefer thread group leaders for display purposes */
-+		if (points == chosen_points && thread_group_leader(chosen))
-+			continue;
 +
-+		chosen = p;
-+		chosen_points = points;
++		prev_css = next_css;
++		goto skip_node;
  	}
- 	if (chosen)
- 		get_task_struct(chosen);
+ 
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
-arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit.patch
 mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
 memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
-cpusets-allocate-heap-only-when-required.patch
-linux-next.patch
-firmware-google-drop-select-efi-to-avoid-recursive-dependency.patch
+mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
+mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
 
