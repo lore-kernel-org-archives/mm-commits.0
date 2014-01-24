@@ -1,118 +1,153 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 10:58:43 -0800
-Message-ID: <52e2b7e3.OTv/Q1VZUne8MAmH%akpm@linux-foundation.org>
+ memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch removed
+ from -mm tree
+Date: Fri, 24 Jan 2014 10:58:37 -0800
+Message-ID: <52e2b7dd.69+ouPcAXIQTJwNg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43201 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43181 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS6o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:58:44 -0500
+	with ESMTP id S1752484AbaAXS6i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:58:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@gmail.com, bsingharora@gmail.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, penberg@kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@gmail.com, cl@linux.com, bsingharora@gmail.com, vdavydov@parallels.com
 
-Subject: [merged] memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch removed from -mm tree
-To: vdavydov@parallels.com,bsingharora@gmail.com,glommer@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch removed from -mm tree
+To: vdavydov@parallels.com,bsingharora@gmail.com,cl@linux.com,glommer@gmail.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,penberg@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:58:43 -0800
+Date: Fri, 24 Jan 2014 10:58:37 -0800
 
 
 The patch titled
-     Subject: memcg: fix possible NULL deref while traversing memcg_slab_caches list
+     Subject: memcg, slab: kmem_cache_create_memcg(): fix memleak on fail path
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list.patch
+     memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: fix possible NULL deref while traversing memcg_slab_caches list
+Subject: memcg, slab: kmem_cache_create_memcg(): fix memleak on fail path
 
-All caches of the same memory cgroup are linked in the memcg_slab_caches
-list via kmem_cache::memcg_params::list.  This list is traversed, for
-example, when we read memory.kmem.slabinfo.  Since the list actually
-consists of memcg_cache_params objects, we have to convert an element of
-the list to a kmem_cache object using memcg_params_to_cache(), which
-obtains the pointer to the cache from the memcg_params::memcg_caches array
-of the corresponding root cache.  That said the pointer to a kmem_cache in
-its parent's memcg_params must be initialized before adding the cache to
-the list, and cleared only after it has been unlinked.  Currently it is
-vice-versa, which can result in a NULL ptr dereference while traversing
-the memcg_slab_caches list.  This patch restores the correct order.
+We do not free the cache's memcg_params if __kmem_cache_create fails.  Fix
+this.
 
+Plus, rename memcg_register_cache() to memcg_alloc_cache_params(), because
+it actually does not register the cache anywhere, but simply initialize
+kmem_cache::memcg_params.
+
+[akpm@linux-foundation.org: fix build]
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Glauber Costa <glommer@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |   14 +++++++++-----
+ mm/memcontrol.c            |   11 ++++++++---
+ mm/slab_common.c           |    3 ++-
+ 3 files changed, 19 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-possible-null-deref-while-traversing-memcg_slab_caches-list
+diff -puN include/linux/memcontrol.h~memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path
++++ a/include/linux/memcontrol.h
+@@ -497,8 +497,9 @@ void __memcg_kmem_commit_charge(struct p
+ void __memcg_kmem_uncharge_pages(struct page *page, int order);
+ 
+ int memcg_cache_id(struct mem_cgroup *memcg);
+-int memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s,
+-			 struct kmem_cache *root_cache);
++int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
++			     struct kmem_cache *root_cache);
++void memcg_free_cache_params(struct kmem_cache *s);
+ void memcg_release_cache(struct kmem_cache *cachep);
+ void memcg_cache_list_add(struct mem_cgroup *memcg, struct kmem_cache *cachep);
+ 
+@@ -640,13 +641,16 @@ static inline int memcg_cache_id(struct
+ 	return -1;
+ }
+ 
+-static inline int
+-memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s,
+-		     struct kmem_cache *root_cache)
++static inline int memcg_alloc_cache_params(struct mem_cgroup *memcg,
++		struct kmem_cache *s, struct kmem_cache *root_cache)
+ {
+ 	return 0;
+ }
+ 
++static inline void memcg_free_cache_params(struct kmem_cache *s)
++{
++}
++
+ static inline void memcg_release_cache(struct kmem_cache *cachep)
+ {
+ }
+diff -puN mm/memcontrol.c~memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path
 +++ a/mm/memcontrol.c
-@@ -3270,9 +3270,6 @@ void memcg_register_cache(struct kmem_ca
- 
- 	css_get(&memcg->css);
- 
--	mutex_lock(&memcg->slab_caches_mutex);
--	list_add(&s->memcg_params->list, &memcg->memcg_slab_caches);
--	mutex_unlock(&memcg->slab_caches_mutex);
- 
- 	/*
- 	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
-@@ -3281,7 +3278,16 @@ void memcg_register_cache(struct kmem_ca
- 	 */
- 	smp_wmb();
- 
-+	/*
-+	 * Initialize the pointer to this cache in its parent's memcg_params
-+	 * before adding it to the memcg_slab_caches list, otherwise we can
-+	 * fail to convert memcg_params_to_cache() while traversing the list.
-+	 */
- 	root->memcg_params->memcg_caches[id] = s;
-+
-+	mutex_lock(&memcg->slab_caches_mutex);
-+	list_add(&s->memcg_params->list, &memcg->memcg_slab_caches);
-+	mutex_unlock(&memcg->slab_caches_mutex);
+@@ -3231,8 +3231,8 @@ int memcg_update_cache_size(struct kmem_
+ 	return 0;
  }
  
- void memcg_unregister_cache(struct kmem_cache *s)
-@@ -3293,16 +3299,21 @@ void memcg_unregister_cache(struct kmem_
- 	if (is_root_cache(s))
- 		return;
+-int memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s,
+-			 struct kmem_cache *root_cache)
++int memcg_alloc_cache_params(struct mem_cgroup *memcg, struct kmem_cache *s,
++			     struct kmem_cache *root_cache)
+ {
+ 	size_t size;
  
--	memcg = s->memcg_params->memcg;
--	id  = memcg_cache_id(memcg);
--
- 	root = s->memcg_params->root_cache;
--	root->memcg_params->memcg_caches[id] = NULL;
-+	memcg = s->memcg_params->memcg;
-+	id = memcg_cache_id(memcg);
+@@ -3260,6 +3260,11 @@ int memcg_register_cache(struct mem_cgro
+ 	return 0;
+ }
  
- 	mutex_lock(&memcg->slab_caches_mutex);
- 	list_del(&s->memcg_params->list);
- 	mutex_unlock(&memcg->slab_caches_mutex);
- 
-+	/*
-+	 * Clear the pointer to this cache in its parent's memcg_params only
-+	 * after removing it from the memcg_slab_caches list, otherwise we can
-+	 * fail to convert memcg_params_to_cache() while traversing the list.
-+	 */
-+	root->memcg_params->memcg_caches[id] = NULL;
++void memcg_free_cache_params(struct kmem_cache *s)
++{
++	kfree(s->memcg_params);
++}
 +
+ void memcg_release_cache(struct kmem_cache *s)
+ {
+ 	struct kmem_cache *root;
+@@ -3288,7 +3293,7 @@ void memcg_release_cache(struct kmem_cac
+ 
  	css_put(&memcg->css);
+ out:
+-	kfree(s->memcg_params);
++	memcg_free_cache_params(s);
  }
  
+ /*
+diff -puN mm/slab_common.c~memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path mm/slab_common.c
+--- a/mm/slab_common.c~memcg-slab-kmem_cache_create_memcg-fix-memleak-on-fail-path
++++ a/mm/slab_common.c
+@@ -205,7 +205,7 @@ kmem_cache_create_memcg(struct mem_cgrou
+ 	if (!s->name)
+ 		goto out_free_cache;
+ 
+-	err = memcg_register_cache(memcg, s, parent_cache);
++	err = memcg_alloc_cache_params(memcg, s, parent_cache);
+ 	if (err)
+ 		goto out_free_cache;
+ 
+@@ -235,6 +235,7 @@ out_unlock:
+ 	return s;
+ 
+ out_free_cache:
++	memcg_free_cache_params(s);
+ 	kfree(s->name);
+ 	kmem_cache_free(kmem_cache, s);
+ 	goto out_unlock;
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
