@@ -1,103 +1,207 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-more-comprehensive-split-strings-warning.patch removed from -mm
+ firmware-dmi_scan-generalize-for-use-by-other-archs.patch removed from -mm
  tree
-Date: Fri, 24 Jan 2014 11:01:43 -0800
-Message-ID: <52e2b897.bWvOJ8nUT3D78iLN%akpm@linux-foundation.org>
+Date: Fri, 24 Jan 2014 11:01:41 -0800
+Message-ID: <52e2b895.D2Tj6X9vavGHroAd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43616 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752913AbaAXTBn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:01:43 -0500
+	with ESMTP id S1752911AbaAXTBm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:01:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, josh@joshtriplett.org, joe@perches.com
+To: mm-commits@vger.kernel.org, mingo@elte.hu, grant.likely@linaro.org, ard.biesheuvel@linaro.org
 
-Subject: [merged] checkpatch-more-comprehensive-split-strings-warning.patch removed from -mm tree
-To: joe@perches.com,josh@joshtriplett.org,mm-commits@vger.kernel.org
+Subject: [merged] firmware-dmi_scan-generalize-for-use-by-other-archs.patch removed from -mm tree
+To: ard.biesheuvel@linaro.org,grant.likely@linaro.org,mingo@elte.hu,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:01:43 -0800
+Date: Fri, 24 Jan 2014 11:01:41 -0800
 
 
 The patch titled
-     Subject: checkpatch: more comprehensive split strings warning
+     Subject: firmware/dmi_scan: generalize for use by other archs
 has been removed from the -mm tree.  Its filename was
-     checkpatch-more-comprehensive-split-strings-warning.patch
+     firmware-dmi_scan-generalize-for-use-by-other-archs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: more comprehensive split strings warning
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: firmware/dmi_scan: generalize for use by other archs
 
-The current checkpatch test for split strings does not find several cases
-that should be found.
+This patch makes a couple of changes to the SMBIOS/DMI scanning
+code so it can be used on other archs (such as ARM and arm64):
+(a) wrap the calls to ioremap()/iounmap(), this allows the use of a
+    flavor of ioremap() more suitable for random unaligned access;
+(b) allow the non-EFI fallback probe into hardcoded physical address
+    0xF0000 to be disabled.
 
-For instance:
-
- 		/* Else poor success; go back to mode in "active" table */
- 		} else {
- 			IWL_DEBUG_RATE(mvm,
--				       "LQ: GOING BACK TO THE OLD TABLE suc=%d cur-tpt=%d old-tpt=%d\n",
-+				       "GOING BACK TO THE OLD TABLE: SR %d "
-+				       "cur-tpt %d old-tpt %d\n",
- 				       window->success_ratio,
- 				       window->average_tpt,
- 				      lq_sta->last_tpt);
-
-does not currently emit a warning.
-
-Improve the test to find these cases.
-
-Add more exceptions to reduce false positives for assembly and octal/hex
-string constants.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Acked-by: Grant Likely <grant.likely@linaro.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ arch/ia64/Kconfig           |    1 +
+ arch/ia64/include/asm/dmi.h |    8 +++++---
+ arch/x86/Kconfig            |    1 +
+ arch/x86/include/asm/dmi.h  |    6 ++++--
+ drivers/firmware/Kconfig    |    3 +++
+ drivers/firmware/dmi_scan.c |   20 ++++++++++----------
+ 6 files changed, 24 insertions(+), 15 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-more-comprehensive-split-strings-warning scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-more-comprehensive-split-strings-warning
-+++ a/scripts/checkpatch.pl
-@@ -2049,16 +2049,12 @@ sub process {
- 		}
+diff -puN arch/ia64/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/arch/ia64/Kconfig
+@@ -104,6 +104,7 @@ config HAVE_SETUP_PER_CPU_AREA
+ config DMI
+ 	bool
+ 	default y
++	select DMI_SCAN_MACHINE_NON_EFI_FALLBACK
  
- # Check for user-visible strings broken across lines, which breaks the ability
--# to grep for the string.  Limited to strings used as parameters (those
--# following an open parenthesis), which almost completely eliminates false
--# positives, as well as warning only once per parameter rather than once per
--# line of the string.  Make an exception when the previous string ends in a
--# newline (multiple lines in one string constant) or \n\t (common in inline
--# assembly to indent the instruction on the following line).
-+# to grep for the string.  Make exceptions when the previous string ends in a
-+# newline (multiple lines in one string constant) or '\t', '\r', ';', or '{'
-+# (common in inline assembly) or is a octal \123 or hexadecimal \xaf value
- 		if ($line =~ /^\+\s*"/ &&
- 		    $prevline =~ /"\s*$/ &&
--		    $prevline =~ /\(/ &&
--		    $prevrawline !~ /\\n(?:\\t)*"\s*$/) {
-+		    $prevrawline !~ /(?:\\(?:[ntr]|[0-7]{1,3}|x[0-9a-fA-F]{1,2})|;\s*|\{\s*)"\s*$/) {
- 			WARN("SPLIT_STRING",
- 			     "quoted string split across lines\n" . $hereprev);
+ config EFI
+ 	bool
+diff -puN arch/ia64/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs arch/ia64/include/asm/dmi.h
+--- a/arch/ia64/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/arch/ia64/include/asm/dmi.h
+@@ -5,8 +5,10 @@
+ #include <asm/io.h>
+ 
+ /* Use normal IO mappings for DMI */
+-#define dmi_ioremap ioremap
+-#define dmi_iounmap(x,l) iounmap(x)
+-#define dmi_alloc(l) kzalloc(l, GFP_ATOMIC)
++#define dmi_early_remap		ioremap
++#define dmi_early_unmap(x, l)	iounmap(x)
++#define dmi_remap		ioremap
++#define dmi_unmap		iounmap
++#define dmi_alloc(l)		kzalloc(l, GFP_ATOMIC)
+ 
+ #endif
+diff -puN arch/x86/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs arch/x86/Kconfig
+--- a/arch/x86/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/arch/x86/Kconfig
+@@ -731,6 +731,7 @@ config APB_TIMER
+ # The code disables itself when not needed.
+ config DMI
+ 	default y
++	select DMI_SCAN_MACHINE_NON_EFI_FALLBACK
+ 	bool "Enable DMI scanning" if EXPERT
+ 	---help---
+ 	  Enabled scanning of DMI to identify machine quirks. Say Y
+diff -puN arch/x86/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs arch/x86/include/asm/dmi.h
+--- a/arch/x86/include/asm/dmi.h~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/arch/x86/include/asm/dmi.h
+@@ -13,7 +13,9 @@ static __always_inline __init void *dmi_
+ }
+ 
+ /* Use early IO mappings for DMI because it's initialized early */
+-#define dmi_ioremap early_ioremap
+-#define dmi_iounmap early_iounmap
++#define dmi_early_remap		early_ioremap
++#define dmi_early_unmap		early_iounmap
++#define dmi_remap		ioremap
++#define dmi_unmap		iounmap
+ 
+ #endif /* _ASM_X86_DMI_H */
+diff -puN drivers/firmware/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs drivers/firmware/Kconfig
+--- a/drivers/firmware/Kconfig~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/drivers/firmware/Kconfig
+@@ -108,6 +108,9 @@ config DMI_SYSFS
+ 	  under /sys/firmware/dmi when this option is enabled and
+ 	  loaded.
+ 
++config DMI_SCAN_MACHINE_NON_EFI_FALLBACK
++	bool
++
+ config ISCSI_IBFT_FIND
+ 	bool "iSCSI Boot Firmware Table Attributes"
+ 	depends on X86
+diff -puN drivers/firmware/dmi_scan.c~firmware-dmi_scan-generalize-for-use-by-other-archs drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~firmware-dmi_scan-generalize-for-use-by-other-archs
++++ a/drivers/firmware/dmi_scan.c
+@@ -116,7 +116,7 @@ static int __init dmi_walk_early(void (*
+ {
+ 	u8 *buf;
+ 
+-	buf = dmi_ioremap(dmi_base, dmi_len);
++	buf = dmi_early_remap(dmi_base, dmi_len);
+ 	if (buf == NULL)
+ 		return -1;
+ 
+@@ -124,7 +124,7 @@ static int __init dmi_walk_early(void (*
+ 
+ 	add_device_randomness(buf, dmi_len);
+ 
+-	dmi_iounmap(buf, dmi_len);
++	dmi_early_unmap(buf, dmi_len);
+ 	return 0;
+ }
+ 
+@@ -527,18 +527,18 @@ void __init dmi_scan_machine(void)
+ 		 * needed during early boot.  This also means we can
+ 		 * iounmap the space when we're done with it.
+ 		 */
+-		p = dmi_ioremap(efi.smbios, 32);
++		p = dmi_early_remap(efi.smbios, 32);
+ 		if (p == NULL)
+ 			goto error;
+ 		memcpy_fromio(buf, p, 32);
+-		dmi_iounmap(p, 32);
++		dmi_early_unmap(p, 32);
+ 
+ 		if (!dmi_present(buf)) {
+ 			dmi_available = 1;
+ 			goto out;
  		}
+-	} else {
+-		p = dmi_ioremap(0xF0000, 0x10000);
++	} else if (IS_ENABLED(CONFIG_DMI_SCAN_MACHINE_NON_EFI_FALLBACK)) {
++		p = dmi_early_remap(0xF0000, 0x10000);
+ 		if (p == NULL)
+ 			goto error;
+ 
+@@ -554,12 +554,12 @@ void __init dmi_scan_machine(void)
+ 			memcpy_fromio(buf + 16, q, 16);
+ 			if (!dmi_present(buf)) {
+ 				dmi_available = 1;
+-				dmi_iounmap(p, 0x10000);
++				dmi_early_unmap(p, 0x10000);
+ 				goto out;
+ 			}
+ 			memcpy(buf, buf + 16, 16);
+ 		}
+-		dmi_iounmap(p, 0x10000);
++		dmi_early_unmap(p, 0x10000);
+ 	}
+  error:
+ 	pr_info("DMI not present or invalid.\n");
+@@ -831,13 +831,13 @@ int dmi_walk(void (*decode)(const struct
+ 	if (!dmi_available)
+ 		return -1;
+ 
+-	buf = ioremap(dmi_base, dmi_len);
++	buf = dmi_remap(dmi_base, dmi_len);
+ 	if (buf == NULL)
+ 		return -1;
+ 
+ 	dmi_table(buf, dmi_len, dmi_num, decode, private_data);
+ 
+-	iounmap(buf);
++	dmi_unmap(buf);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(dmi_walk);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
 
 origin.patch
-lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null.patch
-ipc-whitespace-cleanup.patch
-linux-next.patch
-softirq-use-ffs-in-__do_softirq.patch
-softirq-convert-printks-to-pr_level.patch
-softirq-use-const-char-const-for-softirq_to_name-whitespace-neatening.patch
-checkpatchpl-check-for-function-declarations-without-arguments.patch
+firmware-google-drop-select-efi-to-avoid-recursive-dependency.patch
 
