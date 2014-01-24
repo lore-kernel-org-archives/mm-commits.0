@@ -1,281 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kconfig-update-flightly-outdated-config_smp-documentation.patch removed
- from -mm tree
-Date: Fri, 24 Jan 2014 11:03:20 -0800
-Message-ID: <52e2b8f8.8Xk0G/V60N5lVTmq%akpm@linux-foundation.org>
+Subject: [merged] documentation-filesystems-00-index-updates.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 11:03:18 -0800
+Message-ID: <52e2b8f6.BlKj6vcb55DO7LeW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43815 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43813 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753086AbaAXTDU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:03:20 -0500
+	with ESMTP id S1753084AbaAXTDS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:03:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, psquid@psquid.net
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, fabf@skynet.be
 
-Subject: [merged] kconfig-update-flightly-outdated-config_smp-documentation.patch removed from -mm tree
-To: psquid@psquid.net,mm-commits@vger.kernel.org
+Subject: [merged] documentation-filesystems-00-index-updates.patch removed from -mm tree
+To: fabf@skynet.be,rdunlap@infradead.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:03:20 -0800
+Date: Fri, 24 Jan 2014 11:03:18 -0800
 
 
 The patch titled
-     Subject: Kconfig: update flightly outdated CONFIG_SMP documentation
+     Subject: Documentation/filesystems/00-INDEX: updates
 has been removed from the -mm tree.  Its filename was
-     kconfig-update-flightly-outdated-config_smp-documentation.patch
+     documentation-filesystems-00-index-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Robert Graffham <psquid@psquid.net>
-Subject: Kconfig: update flightly outdated CONFIG_SMP documentation
+From: Fabian Frederick <fabf@skynet.be>
+Subject: Documentation/filesystems/00-INDEX: updates
 
-Remove an outdated reference to "most personal computers" having only one
-CPU, and change the use of "singleprocessor" and "single processor" in
-CONFIG_SMP's documentation to "uniprocessor" across all arches where that
-documentation is present.
+Add the following documentation-files with description :
+ -autofs4-mount-control.txt
+ -btrfs.txt
+ -debugfs.txt
+ -devpts.txt
+ -fiemap.txt
+ -gfs2-glocks.txt
+ -gfs2-uevents.txt
+ -omfs.txt
+ -path-lookup.txt
+ -qnx6.txt
+ -quota.txt
+ -squashfs.txt
+ -sysfs-tagging.txt
+ -ubifs.txt
+ -xfs-delayed-logging-design.txt
+ -xfs-self-describing-metadata.txt
 
-Signed-off-by: Robert Graffham <psquid@psquid.net>
+Add the following documentation directories with description :
+ -caching
+ -cifs (replacing cifs.txt)
+ -pohmelfs
+
+Remove the following documentation-files reference:
+ -dentry-locking.txt
+ -reiser4.txt
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig   |    8 ++++----
- arch/arc/Kconfig     |    4 ++--
- arch/arm/Kconfig     |   12 ++++++------
- arch/m32r/Kconfig    |    8 ++++----
- arch/mips/Kconfig    |    8 ++++----
- arch/mn10300/Kconfig |    8 ++++----
- arch/parisc/Kconfig  |    8 ++++----
- arch/s390/Kconfig    |    4 ++--
- arch/sh/Kconfig      |    8 ++++----
- arch/sparc/Kconfig   |    4 ++--
- arch/x86/Kconfig     |    8 ++++----
- 11 files changed, 40 insertions(+), 40 deletions(-)
+ Documentation/filesystems/00-INDEX |   58 ++++++++++++++++++++-------
+ 1 file changed, 45 insertions(+), 13 deletions(-)
 
-diff -puN arch/alpha/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/alpha/Kconfig
-@@ -539,13 +539,13 @@ config SMP
- 	depends on ALPHA_SABLE || ALPHA_LYNX || ALPHA_RAWHIDE || ALPHA_DP264 || ALPHA_WILDFIRE || ALPHA_TITAN || ALPHA_GENERIC || ALPHA_SHARK || ALPHA_MARVEL
- 	---help---
- 	  This enables support for systems with more than one CPU. If you have
--	  a system with only one CPU, like most personal computers, say N. If
--	  you have a system with more than one CPU, say Y.
-+	  a system with only one CPU, say N. If you have a system with more
-+	  than one CPU, say Y.
- 
--	  If you say N here, the kernel will run on single and multiprocessor
-+	  If you say N here, the kernel will run on uni- and multiprocessor
- 	  machines, but will use only one CPU of a multiprocessor machine. If
- 	  you say Y here, the kernel will run on many, but not all,
--	  singleprocessor machines. On a singleprocessor machine, the kernel
-+	  uniprocessor machines. On a uniprocessor machine, the kernel
- 	  will run faster if you say N here.
- 
- 	  See also the SMP-HOWTO available at
-diff -puN arch/arc/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/arc/Kconfig
---- a/arch/arc/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/arc/Kconfig
-@@ -128,8 +128,8 @@ config SMP
- 	default n
- 	help
- 	  This enables support for systems with more than one CPU. If you have
--	  a system with only one CPU, like most personal computers, say N. If
--	  you have a system with more than one CPU, say Y.
-+	  a system with only one CPU, say N. If you have a system with more
-+	  than one CPU, say Y.
- 
- if SMP
- 
-diff -puN arch/arm/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/arm/Kconfig
---- a/arch/arm/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/arm/Kconfig
-@@ -1435,14 +1435,14 @@ config SMP
- 	depends on MMU || ARM_MPU
- 	help
- 	  This enables support for systems with more than one CPU. If you have
--	  a system with only one CPU, like most personal computers, say N. If
--	  you have a system with more than one CPU, say Y.
-+	  a system with only one CPU, say N. If you have a system with more
-+	  than one CPU, say Y.
- 
--	  If you say N here, the kernel will run on single and multiprocessor
-+	  If you say N here, the kernel will run on uni- and multiprocessor
- 	  machines, but will use only one CPU of a multiprocessor machine. If
--	  you say Y here, the kernel will run on many, but not all, single
--	  processor machines. On a single processor machine, the kernel will
--	  run faster if you say N here.
-+	  you say Y here, the kernel will run on many, but not all,
-+	  uniprocessor machines. On a uniprocessor machine, the kernel
-+	  will run faster if you say N here.
- 
- 	  See also <file:Documentation/x86/i386/IO-APIC.txt>,
- 	  <file:Documentation/nmi_watchdog.txt> and the SMP-HOWTO available at
-diff -puN arch/m32r/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/m32r/Kconfig
-@@ -277,13 +277,13 @@ config SMP
- 	bool "Symmetric multi-processing support"
- 	---help---
- 	  This enables support for systems with more than one CPU. If you have
--	  a system with only one CPU, like most personal computers, say N. If
--	  you have a system with more than one CPU, say Y.
-+	  a system with only one CPU, say N. If you have a system with more
-+	  than one CPU, say Y.
- 
--	  If you say N here, the kernel will run on single and multiprocessor
-+	  If you say N here, the kernel will run on uni- and multiprocessor
- 	  machines, but will use only one CPU of a multiprocessor machine. If
- 	  you say Y here, the kernel will run on many, but not all,
--	  singleprocessor machines. On a singleprocessor machine, the kernel
-+	  uniprocessor machines. On a uniprocessor machine, the kernel
- 	  will run faster if you say N here.
- 
- 	  People using multiprocessor machines who say Y here should also say
-diff -puN arch/mips/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/mips/Kconfig
---- a/arch/mips/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/mips/Kconfig
-@@ -2129,13 +2129,13 @@ config SMP
- 	depends on SYS_SUPPORTS_SMP
- 	help
- 	  This enables support for systems with more than one CPU. If you have
--	  a system with only one CPU, like most personal computers, say N. If
--	  you have a system with more than one CPU, say Y.
-+	  a system with only one CPU, say N. If you have a system with more
-+	  than one CPU, say Y.
- 
--	  If you say N here, the kernel will run on single and multiprocessor
-+	  If you say N here, the kernel will run on uni- and multiprocessor
- 	  machines, but will use only one CPU of a multiprocessor machine. If
- 	  you say Y here, the kernel will run on many, but not all,
--	  singleprocessor machines. On a singleprocessor machine, the kernel
-+	  uniprocessor machines. On a uniprocessor machine, the kernel
- 	  will run faster if you say N here.
- 
- 	  People using multiprocessor machines who say Y here should also say
-diff -puN arch/mn10300/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/mn10300/Kconfig
---- a/arch/mn10300/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/mn10300/Kconfig
-@@ -184,13 +184,13 @@ config SMP
- 	depends on MN10300_PROC_MN2WS0038 || MN10300_PROC_MN2WS0050
- 	---help---
- 	  This enables support for systems with more than one CPU. If you have
--	  a system with only one CPU, like most personal computers, say N. If
--	  you have a system with more than one CPU, say Y.
-+	  a system with only one CPU, say N. If you have a system with more
-+	  than one CPU, say Y.
- 
--	  If you say N here, the kernel will run on single and multiprocessor
-+	  If you say N here, the kernel will run on uni- and multiprocessor
- 	  machines, but will use only one CPU of a multiprocessor machine. If
- 	  you say Y here, the kernel will run on many, but not all,
--	  singleprocessor machines. On a singleprocessor machine, the kernel
-+	  uniprocessor machines. On a uniprocessor machine, the kernel
- 	  will run faster if you say N here.
- 
- 	  See also <file:Documentation/x86/i386/IO-APIC.txt>,
-diff -puN arch/parisc/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/parisc/Kconfig
-@@ -229,13 +229,13 @@ config SMP
- 	bool "Symmetric multi-processing support"
- 	---help---
- 	  This enables support for systems with more than one CPU. If you have
--	  a system with only one CPU, like most personal computers, say N. If
--	  you have a system with more than one CPU, say Y.
-+	  a system with only one CPU, say N. If you have a system with more
-+	  than one CPU, say Y.
- 
--	  If you say N here, the kernel will run on single and multiprocessor
-+	  If you say N here, the kernel will run on uni- and multiprocessor
- 	  machines, but will use only one CPU of a multiprocessor machine. If
- 	  you say Y here, the kernel will run on many, but not all,
--	  singleprocessor machines. On a singleprocessor machine, the kernel
-+	  uniprocessor machines. On a uniprocessor machine, the kernel
- 	  will run faster if you say N here.
- 
- 	  See also <file:Documentation/nmi_watchdog.txt> and the SMP-HOWTO
-diff -puN arch/s390/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/s390/Kconfig
---- a/arch/s390/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/s390/Kconfig
-@@ -334,10 +334,10 @@ config SMP
- 	  a system with only one CPU, like most personal computers, say N. If
- 	  you have a system with more than one CPU, say Y.
- 
--	  If you say N here, the kernel will run on single and multiprocessor
-+	  If you say N here, the kernel will run on uni- and multiprocessor
- 	  machines, but will use only one CPU of a multiprocessor machine. If
- 	  you say Y here, the kernel will run on many, but not all,
--	  singleprocessor machines. On a singleprocessor machine, the kernel
-+	  uniprocessor machines. On a uniprocessor machine, the kernel
- 	  will run faster if you say N here.
- 
- 	  See also the SMP-HOWTO available at
-diff -puN arch/sh/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/sh/Kconfig
---- a/arch/sh/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/sh/Kconfig
-@@ -701,13 +701,13 @@ config SMP
- 	depends on SYS_SUPPORTS_SMP
- 	---help---
- 	  This enables support for systems with more than one CPU. If you have
--	  a system with only one CPU, like most personal computers, say N. If
--	  you have a system with more than one CPU, say Y.
-+	  a system with only one CPU, say N. If you have a system with more
-+	  than one CPU, say Y.
- 
--	  If you say N here, the kernel will run on single and multiprocessor
-+	  If you say N here, the kernel will run on uni- and multiprocessor
- 	  machines, but will use only one CPU of a multiprocessor machine. If
- 	  you say Y here, the kernel will run on many, but not all,
--	  singleprocessor machines. On a singleprocessor machine, the kernel
-+	  uniprocessor machines. On a uniprocessor machine, the kernel
- 	  will run faster if you say N here.
- 
- 	  People using multiprocessor machines who say Y here should also say
-diff -puN arch/sparc/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/sparc/Kconfig
-@@ -152,10 +152,10 @@ config SMP
- 	  a system with only one CPU, say N. If you have a system with more
- 	  than one CPU, say Y.
- 
--	  If you say N here, the kernel will run on single and multiprocessor
-+	  If you say N here, the kernel will run on uni- and multiprocessor
- 	  machines, but will use only one CPU of a multiprocessor machine. If
- 	  you say Y here, the kernel will run on many, but not all,
--	  singleprocessor machines. On a singleprocessor machine, the kernel
-+	  uniprocessor machines. On a uniprocessor machine, the kernel
- 	  will run faster if you say N here.
- 
- 	  People using multiprocessor machines who say Y here should also say
-diff -puN arch/x86/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation arch/x86/Kconfig
---- a/arch/x86/Kconfig~kconfig-update-flightly-outdated-config_smp-documentation
-+++ a/arch/x86/Kconfig
-@@ -279,13 +279,13 @@ config SMP
- 	bool "Symmetric multi-processing support"
- 	---help---
- 	  This enables support for systems with more than one CPU. If you have
--	  a system with only one CPU, like most personal computers, say N. If
--	  you have a system with more than one CPU, say Y.
-+	  a system with only one CPU, say N. If you have a system with more
-+	  than one CPU, say Y.
- 
--	  If you say N here, the kernel will run on single and multiprocessor
-+	  If you say N here, the kernel will run on uni- and multiprocessor
- 	  machines, but will use only one CPU of a multiprocessor machine. If
- 	  you say Y here, the kernel will run on many, but not all,
--	  singleprocessor machines. On a singleprocessor machine, the kernel
-+	  uniprocessor machines. On a uniprocessor machine, the kernel
- 	  will run faster if you say N here.
- 
- 	  Note that if you say Y here and choose architecture "586" or
+diff -puN Documentation/filesystems/00-INDEX~documentation-filesystems-00-index-updates Documentation/filesystems/00-INDEX
+--- a/Documentation/filesystems/00-INDEX~documentation-filesystems-00-index-updates
++++ a/Documentation/filesystems/00-INDEX
+@@ -10,24 +10,32 @@ afs.txt
+ 	- info and examples for the distributed AFS (Andrew File System) fs.
+ affs.txt
+ 	- info and mount options for the Amiga Fast File System.
++autofs4-mount-control.txt
++	- info on device control operations for autofs4 module.
+ automount-support.txt
+ 	- information about filesystem automount support.
+ befs.txt
+ 	- information about the BeOS filesystem for Linux.
+ bfs.txt
+ 	- info for the SCO UnixWare Boot Filesystem (BFS).
++btrfs.txt
++	- info for the BTRFS filesystem.
++caching/
++	- directory containing filesystem cache documentation.
+ ceph.txt
+-	- info for the Ceph Distributed File System
+-cifs.txt
+-	- description of the CIFS filesystem.
++	- info for the Ceph Distributed File System.
++cifs/
++	- directory containing CIFS filesystem documentation and example code.
+ coda.txt
+ 	- description of the CODA filesystem.
+ configfs/
+ 	- directory containing configfs documentation and example code.
+ cramfs.txt
+ 	- info on the cram filesystem for small storage (ROMs etc).
+-dentry-locking.txt
+-	- info on the RCU-based dcache locking model.
++debugfs.txt
++	- info on the debugfs filesystem.
++devpts.txt
++	- info on the devpts filesystem.
+ directory-locking
+ 	- info about the locking scheme used for directory operations.
+ dlmfs.txt
+@@ -35,7 +43,7 @@ dlmfs.txt
+ dnotify.txt
+ 	- info about directory notification in Linux.
+ dnotify_test.c
+-	- example program for dnotify
++	- example program for dnotify.
+ ecryptfs.txt
+ 	- docs on eCryptfs: stacked cryptographic filesystem for Linux.
+ efivarfs.txt
+@@ -48,12 +56,18 @@ ext3.txt
+ 	- info, mount options and specifications for the Ext3 filesystem.
+ ext4.txt
+ 	- info, mount options and specifications for the Ext4 filesystem.
+-files.txt
+-	- info on file management in the Linux kernel.
+ f2fs.txt
+ 	- info and mount options for the F2FS filesystem.
++fiemap.txt
++	- info on fiemap ioctl.
++files.txt
++	- info on file management in the Linux kernel.
+ fuse.txt
+ 	- info on the Filesystem in User SpacE including mount options.
++gfs2-glocks.txt
++	- info on the Global File System 2 - Glock internal locking rules.
++gfs2-uevents.txt
++	- info on the Global File System 2 - uevents.
+ gfs2.txt
+ 	- info on the Global File System 2.
+ hfs.txt
+@@ -84,40 +98,58 @@ ntfs.txt
+ 	- info and mount options for the NTFS filesystem (Windows NT).
+ ocfs2.txt
+ 	- info and mount options for the OCFS2 clustered filesystem.
++omfs.txt
++	- info on the Optimized MPEG FileSystem.
++path-lookup.txt
++	- info on path walking and name lookup locking.
++pohmelfs/
++	- directory containing pohmelfs filesystem documentation.
+ porting
+ 	- various information on filesystem porting.
+ proc.txt
+ 	- info on Linux's /proc filesystem.
++qnx6.txt
++	- info on the QNX6 filesystem.
++quota.txt
++	- info on Quota subsystem.
+ ramfs-rootfs-initramfs.txt
+ 	- info on the 'in memory' filesystems ramfs, rootfs and initramfs.
+-reiser4.txt
+-	- info on the Reiser4 filesystem based on dancing tree algorithms.
+ relay.txt
+ 	- info on relay, for efficient streaming from kernel to user space.
+ romfs.txt
+ 	- description of the ROMFS filesystem.
+ seq_file.txt
+-	- how to use the seq_file API
++	- how to use the seq_file API.
+ sharedsubtree.txt
+ 	- a description of shared subtrees for namespaces.
+ spufs.txt
+ 	- info and mount options for the SPU filesystem used on Cell.
++squashfs.txt
++	- info on the squashfs filesystem.
+ sysfs-pci.txt
+ 	- info on accessing PCI device resources through sysfs.
++sysfs-tagging.txt
++	- info on sysfs tagging to avoid duplicates.
+ sysfs.txt
+ 	- info on sysfs, a ram-based filesystem for exporting kernel objects.
+ sysv-fs.txt
+ 	- info on the SystemV/V7/Xenix/Coherent filesystem.
+ tmpfs.txt
+ 	- info on tmpfs, a filesystem that holds all files in virtual memory.
++ubifs.txt
++	- info on the Unsorted Block Images FileSystem.
+ udf.txt
+ 	- info and mount options for the UDF filesystem.
+ ufs.txt
+ 	- info on the ufs filesystem.
+ vfat.txt
+-	- info on using the VFAT filesystem used in Windows NT and Windows 95
++	- info on using the VFAT filesystem used in Windows NT and Windows 95.
+ vfs.txt
+-	- overview of the Virtual File System
++	- overview of the Virtual File System.
++xfs-delayed-logging-design.txt
++	- info on the XFS Delayed Logging Design.
++xfs-self-describing-metadata.txt
++	- info on XFS Self Describing Metadata.
+ xfs.txt
+ 	- info and mount options for the XFS filesystem.
+ xip.txt
 _
 
-Patches currently in -mm which might be from psquid@psquid.net are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
