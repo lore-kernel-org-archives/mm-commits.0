@@ -1,73 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 11:00:29 -0800
-Message-ID: <52e2b84d.SYYx4p0Z0QuaMyUp%akpm@linux-foundation.org>
+ drivers-mfd-max8998c-fix-pointer-integer-size-mismatch-warning-in-max8998_i2c_get_driver_data.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 11:00:31 -0800
+Message-ID: <52e2b84f.WR6svZVH2K3M0ZRj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43487 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbaAXTAa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:30 -0500
+	with ESMTP id S1752340AbaAXTAc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gregkh@suse.de, alan@linux.intel.com, dhowells@redhat.com
+To: mm-commits@vger.kernel.org, t.figa@samsung.com, sameo@linux.intel.com, broonie@linaro.org, dhowells@redhat.com
 
-Subject: [merged] drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch removed from -mm tree
-To: dhowells@redhat.com,alan@linux.intel.com,gregkh@suse.de,mm-commits@vger.kernel.org
+Subject: [merged] drivers-mfd-max8998c-fix-pointer-integer-size-mismatch-warning-in-max8998_i2c_get_driver_data.patch removed from -mm tree
+To: dhowells@redhat.com,broonie@linaro.org,sameo@linux.intel.com,t.figa@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:00:29 -0800
+Date: Fri, 24 Jan 2014 11:00:31 -0800
 
 
 The patch titled
-     Subject: drivers/gpu/drm/gma500/backlight.c: fix a defined-but-not-used warning for do_gma_backlight_set()
+     Subject: drivers/mfd/max8998.c: fix pointer-integer size mismatch warning in max8998_i2c_get_driver_data()
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set.patch
+     drivers-mfd-max8998c-fix-pointer-integer-size-mismatch-warning-in-max8998_i2c_get_driver_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Howells <dhowells@redhat.com>
-Subject: drivers/gpu/drm/gma500/backlight.c: fix a defined-but-not-used warning for do_gma_backlight_set()
+Subject: drivers/mfd/max8998.c: fix pointer-integer size mismatch warning in max8998_i2c_get_driver_data()
 
-Fix the following warning:
+Fix up the following pointer-integer size mismatch warning in
+max8998_i2c_get_driver_data():
 
-	drivers/gpu/drm/gma500/backlight.c:29:13: warning: 'do_gma_backlight_set' defined but not used [-Wunused-function]
-
-by moving the entire function inside the conditional section currently inside
-of it.  All the places that call it are so conditionalised.
+	drivers/mfd/max8998.c: In function 'max8998_i2c_get_driver_data':
+	drivers/mfd/max8998.c:178:10: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+		return (int)match->data;
+		       ^
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Tomasz Figa <t.figa@samsung.com>
+Cc: Mark Brown <broonie@linaro.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/gma500/backlight.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/max8998.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/gma500/backlight.c~drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set drivers/gpu/drm/gma500/backlight.c
---- a/drivers/gpu/drm/gma500/backlight.c~drivers-gpu-drm-gma500-backlightc-fix-a-defined-but-not-used-warning-for-do_gma_backlight_set
-+++ a/drivers/gpu/drm/gma500/backlight.c
-@@ -26,13 +26,13 @@
- #include "intel_bios.h"
- #include "power.h"
+diff -puN drivers/mfd/max8998.c~drivers-mfd-max8998c-fix-pointer-integer-size-mismatch-warning-in-max8998_i2c_get_driver_data drivers/mfd/max8998.c
+--- a/drivers/mfd/max8998.c~drivers-mfd-max8998c-fix-pointer-integer-size-mismatch-warning-in-max8998_i2c_get_driver_data
++++ a/drivers/mfd/max8998.c
+@@ -175,7 +175,7 @@ static inline int max8998_i2c_get_driver
+ 	if (IS_ENABLED(CONFIG_OF) && i2c->dev.of_node) {
+ 		const struct of_device_id *match;
+ 		match = of_match_node(max8998_dt_match, i2c->dev.of_node);
+-		return (int)match->data;
++		return (int)(long)match->data;
+ 	}
  
-+#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
- static void do_gma_backlight_set(struct drm_device *dev)
- {
--#ifdef CONFIG_BACKLIGHT_CLASS_DEVICE
- 	struct drm_psb_private *dev_priv = dev->dev_private;
- 	backlight_update_status(dev_priv->backlight_device);
--#endif	
- }
-+#endif
- 
- void gma_backlight_enable(struct drm_device *dev)
- {
+ 	return (int)id->driver_data;
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
