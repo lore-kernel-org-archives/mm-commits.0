@@ -1,132 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-parserc-put-export_symbols-in-the-conventional-place.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 11:00:49 -0800
-Message-ID: <52e2b861./eaRS/+Z9MfZXxWj%akpm@linux-foundation.org>
+Subject: [merged] lib-parserc-add-match_wildcard-function.patch removed
+ from -mm tree
+Date: Fri, 24 Jan 2014 11:00:47 -0800
+Message-ID: <52e2b85f.6Qv+wQPQeQyvosKR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43523 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43518 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbaAXTAt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:49 -0500
+	with ESMTP id S1752340AbaAXTAr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, changbin.du@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, joe@perches.com, jbaron@akamai.com, changbin.du@gmail.com
 
-Subject: [merged] lib-parserc-put-export_symbols-in-the-conventional-place.patch removed from -mm tree
-To: akpm@linux-foundation.org,changbin.du@gmail.com,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] lib-parserc-add-match_wildcard-function.patch removed from -mm tree
+To: changbin.du@gmail.com,jbaron@akamai.com,joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:00:49 -0800
+Date: Fri, 24 Jan 2014 11:00:47 -0800
 
 
 The patch titled
-     Subject: lib/parser.c: put EXPORT_SYMBOLs in the conventional place
+     Subject: lib/parser.c: add match_wildcard() function
 has been removed from the -mm tree.  Its filename was
-     lib-parserc-put-export_symbols-in-the-conventional-place.patch
+     lib-parserc-add-match_wildcard-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/parser.c: put EXPORT_SYMBOLs in the conventional place
+From: "Du, Changbin" <changbin.du@gmail.com>
+Subject: lib/parser.c: add match_wildcard() function
 
-Cc: Du, Changbin <changbin.du@gmail.com>
+match_wildcard function is a simple implementation of wildcard
+matching algorithm. It only supports two usual wildcardes:
+    '*' - matches zero or more characters
+    '?' - matches one character
+This algorithm is safe since it is non-recursive.
+
+Signed-off-by: Du, Changbin <changbin.du@gmail.com>
+Cc: Jason Baron <jbaron@akamai.com>
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/parser.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ include/linux/parser.h |    1 
+ lib/parser.c           |   51 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 52 insertions(+)
 
-diff -puN lib/parser.c~lib-parserc-put-export_symbols-in-the-conventional-place lib/parser.c
---- a/lib/parser.c~lib-parserc-put-export_symbols-in-the-conventional-place
+diff -puN include/linux/parser.h~lib-parserc-add-match_wildcard-function include/linux/parser.h
+--- a/include/linux/parser.h~lib-parserc-add-match_wildcard-function
++++ a/include/linux/parser.h
+@@ -29,5 +29,6 @@ int match_token(char *, const match_tabl
+ int match_int(substring_t *, int *result);
+ int match_octal(substring_t *, int *result);
+ int match_hex(substring_t *, int *result);
++bool match_wildcard(const char *pattern, const char *str);
+ size_t match_strlcpy(char *, const substring_t *, size_t);
+ char *match_strdup(const substring_t *);
+diff -puN lib/parser.c~lib-parserc-add-match_wildcard-function lib/parser.c
+--- a/lib/parser.c~lib-parserc-add-match_wildcard-function
 +++ a/lib/parser.c
-@@ -113,6 +113,7 @@ int match_token(char *s, const match_tab
- 
- 	return p->token;
+@@ -193,6 +193,56 @@ int match_hex(substring_t *s, int *resul
  }
-+EXPORT_SYMBOL(match_token);
  
  /**
-  * match_number: scan a number in the given base from a substring_t
-@@ -163,6 +164,7 @@ int match_int(substring_t *s, int *resul
- {
- 	return match_number(s, result, 0);
- }
-+EXPORT_SYMBOL(match_int);
- 
- /**
-  * match_octal: - scan an octal representation of an integer from a substring_t
-@@ -177,6 +179,7 @@ int match_octal(substring_t *s, int *res
- {
- 	return match_number(s, result, 8);
- }
-+EXPORT_SYMBOL(match_octal);
- 
- /**
-  * match_hex: - scan a hex representation of an integer from a substring_t
-@@ -191,6 +194,7 @@ int match_hex(substring_t *s, int *resul
- {
- 	return match_number(s, result, 16);
- }
-+EXPORT_SYMBOL(match_hex);
- 
- /**
-  * match_wildcard: - parse if a string matches given wildcard pattern
-@@ -241,6 +245,7 @@ bool match_wildcard(const char *pattern,
- 		++p;
- 	return !*p;
- }
-+EXPORT_SYMBOL(match_wildcard);
- 
- /**
++ * match_wildcard: - parse if a string matches given wildcard pattern
++ * @pattern: wildcard pattern
++ * @str: the string to be parsed
++ *
++ * Description: Parse the string @str to check if matches wildcard
++ * pattern @pattern. The pattern may contain two type wildcardes:
++ *   '*' - matches zero or more characters
++ *   '?' - matches one character
++ * If it's matched, return true, else return false.
++ */
++bool match_wildcard(const char *pattern, const char *str)
++{
++	const char *s = str;
++	const char *p = pattern;
++	bool star = false;
++
++	while (*s) {
++		switch (*p) {
++		case '?':
++			s++;
++			p++;
++			break;
++		case '*':
++			star = true;
++			str = s;
++			if (!*++p)
++				return true;
++			pattern = p;
++			break;
++		default:
++			if (*s == *p) {
++				s++;
++				p++;
++			} else {
++				if (!star)
++					return false;
++				str++;
++				s = str;
++				p = pattern;
++			}
++			break;
++		}
++	}
++
++	if (*p == '*')
++		++p;
++	return !*p;
++}
++
++/**
   * match_strlcpy: - Copy the characters from a substring_t to a sized buffer
-@@ -263,6 +268,7 @@ size_t match_strlcpy(char *dest, const s
- 	}
- 	return ret;
- }
-+EXPORT_SYMBOL(match_strlcpy);
- 
- /**
-  * match_strdup: - allocate a new string with the contents of a substring_t
-@@ -280,11 +286,4 @@ char *match_strdup(const substring_t *s)
- 		match_strlcpy(p, s, sz);
- 	return p;
- }
--
--EXPORT_SYMBOL(match_token);
--EXPORT_SYMBOL(match_int);
--EXPORT_SYMBOL(match_octal);
--EXPORT_SYMBOL(match_hex);
--EXPORT_SYMBOL(match_wildcard);
--EXPORT_SYMBOL(match_strlcpy);
+  * @dest: where to copy to
+  * @src: &substring_t to copy
+@@ -235,5 +285,6 @@ EXPORT_SYMBOL(match_token);
+ EXPORT_SYMBOL(match_int);
+ EXPORT_SYMBOL(match_octal);
+ EXPORT_SYMBOL(match_hex);
++EXPORT_SYMBOL(match_wildcard);
+ EXPORT_SYMBOL(match_strlcpy);
  EXPORT_SYMBOL(match_strdup);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from changbin.du@gmail.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-mm.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
-ipcmsg-document-barriers-fix.patch
-ipcmsg-document-barriers-fix-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-block-blk-mq-cpuc-use-hotcpu_notifier.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
