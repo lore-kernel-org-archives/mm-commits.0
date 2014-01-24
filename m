@@ -1,257 +1,240 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-print-more-details-for-bad_page.patch removed from
- -mm tree
-Date: Fri, 24 Jan 2014 10:58:25 -0800
-Message-ID: <52e2b7d1.ZGVOwvcl+pGsFNjE%akpm@linux-foundation.org>
+Subject: [merged] mm-munlock-fix-potential-race-with-thp-page-split.patch
+ removed from -mm tree
+Date: Fri, 24 Jan 2014 10:58:27 -0800
+Message-ID: <52e2b7d3.iggCIvZHbgBlHrZt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43148 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS60 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:58:26 -0500
+	with ESMTP id S1752484AbaAXS62 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:58:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dave.hansen@linux.intel.com, cl@linux.com, andi@firstfloor.org, dave@sr71.net
+To: mm-commits@vger.kernel.org, walken@google.com, stable@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, mgorman@suse.de, hughd@google.com, aarcange@redhat.com, vbabka@suse.cz
 
-Subject: [merged] mm-print-more-details-for-bad_page.patch removed from -mm tree
-To: dave@sr71.net,andi@firstfloor.org,cl@linux.com,dave.hansen@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-munlock-fix-potential-race-with-thp-page-split.patch removed from -mm tree
+To: vbabka@suse.cz,aarcange@redhat.com,hughd@google.com,mgorman@suse.de,riel@redhat.com,sasha.levin@oracle.com,stable@vger.kernel.org,walken@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:58:25 -0800
+Date: Fri, 24 Jan 2014 10:58:27 -0800
 
 
 The patch titled
-     Subject: mm: print more details for bad_page()
+     Subject: mm: munlock: fix potential race with THP page split
 has been removed from the -mm tree.  Its filename was
-     mm-print-more-details-for-bad_page.patch
+     mm-munlock-fix-potential-race-with-thp-page-split.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave@sr71.net>
-Subject: mm: print more details for bad_page()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: munlock: fix potential race with THP page split
 
-bad_page() is cool in that it prints out a bunch of data about the page. 
-But, I can never remember which page flags are good and which are bad, or
-whether ->index or ->mapping is required to be NULL.
+Since commit ff6a6da60 ("mm: accelerate munlock() treatment of THP pages")
+munlock skips tail pages of a munlocked THP page.  There is some attempt
+to prevent bad consequences of racing with a THP page split, but code
+inspection indicates that there are two problems that may lead to a
+non-fatal, yet wrong outcome.
 
-This patch allows bad/dump_page() callers to specify a string about why
-they are dumping the page and adds explanation strings to a number of
-places.  It also adds a 'bad_flags' argument to bad_page(), which it then
-dumps out separately from the flags which are actually set.
+First, __split_huge_page_refcount() copies flags including PageMlocked
+from the head page to the tail pages.  Clearing PageMlocked by
+munlock_vma_page() in the middle of this operation might result in part of
+tail pages left with PageMlocked flag.  As the head page still appears to
+be a THP page until all tail pages are processed, munlock_vma_page() might
+think it munlocked the whole THP page and skip all the former tail pages. 
+Before ff6a6da60, those pages would be cleared in further iterations of
+munlock_vma_pages_range(), but NR_MLOCK would still become undercounted
+(related the next point).
 
-This way, the messages will show specifically why the page was bad,
-*specifically* which flags it is complaining about, if it was a page flag
-combination which was the problem.
+Second, NR_MLOCK accounting is based on call to hpage_nr_pages() after the
+PageMlocked is cleared.  The accounting might also become inconsistent due
+to race with __split_huge_page_refcount()
 
-[akpm@linux-foundation.org: switch to pr_alert]
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Christoph Lameter <cl@linux.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+- undercount when HUGE_PMD_NR is subtracted, but some tail pages are
+  left with PageMlocked set and counted again (only possible before
+  ff6a6da60)
+
+- overcount when hpage_nr_pages() sees a normal page (split has already
+  finished), but the parallel split has meanwhile cleared PageMlocked from
+  additional tail pages
+
+This patch prevents both problems via extending the scope of lru_lock in
+munlock_vma_page().  This is convenient because:
+
+- __split_huge_page_refcount() takes lru_lock for its whole operation
+
+- munlock_vma_page() typically takes lru_lock anyway for page isolation
+
+As this becomes a second function where page isolation is done with
+lru_lock already held, factor this out to a new
+__munlock_isolate_lru_page() function and clean up the code around.
+
+[akpm@linux-foundation.org: avoid a coding-style ugly]
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    4 +-
- mm/balloon_compaction.c |    4 +-
- mm/memory.c             |    2 -
- mm/memory_hotplug.c     |    2 -
- mm/page_alloc.c         |   73 ++++++++++++++++++++++++++++----------
- 5 files changed, 62 insertions(+), 23 deletions(-)
+ mm/mlock.c |  104 +++++++++++++++++++++++++++++----------------------
+ 1 file changed, 60 insertions(+), 44 deletions(-)
 
-diff -puN include/linux/mm.h~mm-print-more-details-for-bad_page include/linux/mm.h
---- a/include/linux/mm.h~mm-print-more-details-for-bad_page
-+++ a/include/linux/mm.h
-@@ -2029,7 +2029,9 @@ extern void shake_page(struct page *p, i
- extern atomic_long_t num_poisoned_pages;
- extern int soft_offline_page(struct page *page, int flags);
- 
--extern void dump_page(struct page *page);
-+extern void dump_page(struct page *page, char *reason);
-+extern void dump_page_badflags(struct page *page, char *reason,
-+			       unsigned long badflags);
- 
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
- extern void clear_huge_page(struct page *page,
-diff -puN mm/balloon_compaction.c~mm-print-more-details-for-bad_page mm/balloon_compaction.c
---- a/mm/balloon_compaction.c~mm-print-more-details-for-bad_page
-+++ a/mm/balloon_compaction.c
-@@ -267,7 +267,7 @@ void balloon_page_putback(struct page *p
- 		put_page(page);
- 	} else {
- 		WARN_ON(1);
--		dump_page(page);
-+		dump_page(page, "not movable balloon page");
- 	}
- 	unlock_page(page);
- }
-@@ -287,7 +287,7 @@ int balloon_page_migrate(struct page *ne
- 	BUG_ON(!trylock_page(newpage));
- 
- 	if (WARN_ON(!__is_movable_balloon_page(page))) {
--		dump_page(page);
-+		dump_page(page, "not movable balloon page");
- 		unlock_page(newpage);
- 		return rc;
- 	}
-diff -puN mm/memory.c~mm-print-more-details-for-bad_page mm/memory.c
---- a/mm/memory.c~mm-print-more-details-for-bad_page
-+++ a/mm/memory.c
-@@ -671,7 +671,7 @@ static void print_bad_pte(struct vm_area
- 		current->comm,
- 		(long long)pte_val(pte), (long long)pmd_val(*pmd));
- 	if (page)
--		dump_page(page);
-+		dump_page(page, "bad pte");
- 	printk(KERN_ALERT
- 		"addr:%p vm_flags:%08lx anon_vma:%p mapping:%p index:%lx\n",
- 		(void *)addr, vma->vm_flags, vma->anon_vma, mapping, index);
-diff -puN mm/memory_hotplug.c~mm-print-more-details-for-bad_page mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-print-more-details-for-bad_page
-+++ a/mm/memory_hotplug.c
-@@ -1309,7 +1309,7 @@ do_migrate_range(unsigned long start_pfn
- #ifdef CONFIG_DEBUG_VM
- 			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
- 			       pfn);
--			dump_page(page);
-+			dump_page(page, "failed to remove from LRU");
- #endif
- 			put_page(page);
- 			/* Because we don't have big zone->lock. we should
-diff -puN mm/page_alloc.c~mm-print-more-details-for-bad_page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-print-more-details-for-bad_page
-+++ a/mm/page_alloc.c
-@@ -295,7 +295,7 @@ static inline int bad_range(struct zone
- }
- #endif
- 
--static void bad_page(struct page *page)
-+static void bad_page(struct page *page, char *reason, unsigned long bad_flags)
- {
- 	static unsigned long resume;
- 	static unsigned long nr_shown;
-@@ -329,7 +329,7 @@ static void bad_page(struct page *page)
- 
- 	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
- 		current->comm, page_to_pfn(page));
--	dump_page(page);
-+	dump_page_badflags(page, reason, bad_flags);
- 
- 	print_modules();
- 	dump_stack();
-@@ -383,7 +383,7 @@ static int destroy_compound_page(struct
- 	int bad = 0;
- 
- 	if (unlikely(compound_order(page) != order)) {
--		bad_page(page);
-+		bad_page(page, "wrong compound order", 0);
- 		bad++;
- 	}
- 
-@@ -392,8 +392,11 @@ static int destroy_compound_page(struct
- 	for (i = 1; i < nr_pages; i++) {
- 		struct page *p = page + i;
- 
--		if (unlikely(!PageTail(p) || (p->first_page != page))) {
--			bad_page(page);
-+		if (unlikely(!PageTail(p))) {
-+			bad_page(page, "PageTail not set", 0);
-+			bad++;
-+		} else if (unlikely(p->first_page != page)) {
-+			bad_page(page, "first_page not consistent", 0);
- 			bad++;
- 		}
- 		__ClearPageTail(p);
-@@ -618,12 +621,23 @@ out:
- 
- static inline int free_pages_check(struct page *page)
- {
--	if (unlikely(page_mapcount(page) |
--		(page->mapping != NULL)  |
--		(atomic_read(&page->_count) != 0) |
--		(page->flags & PAGE_FLAGS_CHECK_AT_FREE) |
--		(mem_cgroup_bad_page_check(page)))) {
--		bad_page(page);
-+	char *bad_reason = NULL;
-+	unsigned long bad_flags = 0;
-+
-+	if (unlikely(page_mapcount(page)))
-+		bad_reason = "nonzero mapcount";
-+	if (unlikely(page->mapping != NULL))
-+		bad_reason = "non-NULL mapping";
-+	if (unlikely(atomic_read(&page->_count) != 0))
-+		bad_reason = "nonzero _count";
-+	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_FREE)) {
-+		bad_reason = "PAGE_FLAGS_CHECK_AT_FREE flag(s) set";
-+		bad_flags = PAGE_FLAGS_CHECK_AT_FREE;
-+	}
-+	if (unlikely(mem_cgroup_bad_page_check(page)))
-+		bad_reason = "cgroup check failed";
-+	if (unlikely(bad_reason)) {
-+		bad_page(page, bad_reason, bad_flags);
- 		return 1;
- 	}
- 	page_cpupid_reset_last(page);
-@@ -843,12 +857,23 @@ static inline void expand(struct zone *z
-  */
- static inline int check_new_page(struct page *page)
- {
--	if (unlikely(page_mapcount(page) |
--		(page->mapping != NULL)  |
--		(atomic_read(&page->_count) != 0)  |
--		(page->flags & PAGE_FLAGS_CHECK_AT_PREP) |
--		(mem_cgroup_bad_page_check(page)))) {
--		bad_page(page);
-+	char *bad_reason = NULL;
-+	unsigned long bad_flags = 0;
-+
-+	if (unlikely(page_mapcount(page)))
-+		bad_reason = "nonzero mapcount";
-+	if (unlikely(page->mapping != NULL))
-+		bad_reason = "non-NULL mapping";
-+	if (unlikely(atomic_read(&page->_count) != 0))
-+		bad_reason = "nonzero _count";
-+	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_PREP)) {
-+		bad_reason = "PAGE_FLAGS_CHECK_AT_PREP flag set";
-+		bad_flags = PAGE_FLAGS_CHECK_AT_PREP;
-+	}
-+	if (unlikely(mem_cgroup_bad_page_check(page)))
-+		bad_reason = "cgroup check failed";
-+	if (unlikely(bad_reason)) {
-+		bad_page(page, bad_reason, bad_flags);
- 		return 1;
- 	}
- 	return 0;
-@@ -6494,12 +6519,24 @@ static void dump_page_flags(unsigned lon
- 	printk(")\n");
+diff -puN mm/mlock.c~mm-munlock-fix-potential-race-with-thp-page-split mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-fix-potential-race-with-thp-page-split
++++ a/mm/mlock.c
+@@ -91,6 +91,26 @@ void mlock_vma_page(struct page *page)
  }
  
--void dump_page(struct page *page)
-+void dump_page_badflags(struct page *page, char *reason, unsigned long badflags)
- {
- 	printk(KERN_ALERT
- 	       "page:%p count:%d mapcount:%d mapping:%p index:%#lx\n",
- 		page, atomic_read(&page->_count), page_mapcount(page),
- 		page->mapping, page->index);
- 	dump_page_flags(page->flags);
-+	if (reason)
-+		pr_alert("page dumped because: %s\n", reason);
-+	if (page->flags & badflags) {
-+		pr_alert("bad because of flags:\n");
-+		dump_page_flags(page->flags & badflags);
-+	}
- 	mem_cgroup_print_bad_page(page);
- }
-+
-+void dump_page(struct page *page, char *reason)
+ /*
++ * Isolate a page from LRU with optional get_page() pin.
++ * Assumes lru_lock already held and page already pinned.
++ */
++static bool __munlock_isolate_lru_page(struct page *page, bool getpage)
 +{
-+	dump_page_badflags(page, reason, 0);
++	if (PageLRU(page)) {
++		struct lruvec *lruvec;
++
++		lruvec = mem_cgroup_page_lruvec(page, page_zone(page));
++		if (getpage)
++			get_page(page);
++		ClearPageLRU(page);
++		del_page_from_lru_list(page, lruvec, page_lru(page));
++		return true;
++	}
++
++	return false;
 +}
 +
++/*
+  * Finish munlock after successful page isolation
+  *
+  * Page must be locked. This is a wrapper for try_to_munlock()
+@@ -126,9 +146,9 @@ static void __munlock_isolated_page(stru
+ static void __munlock_isolation_failed(struct page *page)
+ {
+ 	if (PageUnevictable(page))
+-		count_vm_event(UNEVICTABLE_PGSTRANDED);
++		__count_vm_event(UNEVICTABLE_PGSTRANDED);
+ 	else
+-		count_vm_event(UNEVICTABLE_PGMUNLOCKED);
++		__count_vm_event(UNEVICTABLE_PGMUNLOCKED);
+ }
+ 
+ /**
+@@ -152,28 +172,34 @@ static void __munlock_isolation_failed(s
+ unsigned int munlock_vma_page(struct page *page)
+ {
+ 	unsigned int nr_pages;
++	struct zone *zone = page_zone(page);
+ 
+ 	BUG_ON(!PageLocked(page));
+ 
+-	if (TestClearPageMlocked(page)) {
+-		nr_pages = hpage_nr_pages(page);
+-		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
+-		if (!isolate_lru_page(page))
+-			__munlock_isolated_page(page);
+-		else
+-			__munlock_isolation_failed(page);
+-	} else {
+-		nr_pages = hpage_nr_pages(page);
+-	}
+-
+ 	/*
+-	 * Regardless of the original PageMlocked flag, we determine nr_pages
+-	 * after touching the flag. This leaves a possible race with a THP page
+-	 * split, such that a whole THP page was munlocked, but nr_pages == 1.
+-	 * Returning a smaller mask due to that is OK, the worst that can
+-	 * happen is subsequent useless scanning of the former tail pages.
+-	 * The NR_MLOCK accounting can however become broken.
++	 * Serialize with any parallel __split_huge_page_refcount() which
++	 * might otherwise copy PageMlocked to part of the tail pages before
++	 * we clear it in the head page. It also stabilizes hpage_nr_pages().
+ 	 */
++	spin_lock_irq(&zone->lru_lock);
++
++	nr_pages = hpage_nr_pages(page);
++	if (!TestClearPageMlocked(page))
++		goto unlock_out;
++
++	__mod_zone_page_state(zone, NR_MLOCK, -nr_pages);
++
++	if (__munlock_isolate_lru_page(page, true)) {
++		spin_unlock_irq(&zone->lru_lock);
++		__munlock_isolated_page(page);
++		goto out;
++	}
++	__munlock_isolation_failed(page);
++
++unlock_out:
++	spin_unlock_irq(&zone->lru_lock);
++
++out:
+ 	return nr_pages - 1;
+ }
+ 
+@@ -310,34 +336,24 @@ static void __munlock_pagevec(struct pag
+ 		struct page *page = pvec->pages[i];
+ 
+ 		if (TestClearPageMlocked(page)) {
+-			struct lruvec *lruvec;
+-			int lru;
+-
+-			if (PageLRU(page)) {
+-				lruvec = mem_cgroup_page_lruvec(page, zone);
+-				lru = page_lru(page);
+-				/*
+-				 * We already have pin from follow_page_mask()
+-				 * so we can spare the get_page() here.
+-				 */
+-				ClearPageLRU(page);
+-				del_page_from_lru_list(page, lruvec, lru);
+-			} else {
+-				__munlock_isolation_failed(page);
+-				goto skip_munlock;
+-			}
+-
+-		} else {
+-skip_munlock:
+ 			/*
+-			 * We won't be munlocking this page in the next phase
+-			 * but we still need to release the follow_page_mask()
+-			 * pin. We cannot do it under lru_lock however. If it's
+-			 * the last pin, __page_cache_release would deadlock.
++			 * We already have pin from follow_page_mask()
++			 * so we can spare the get_page() here.
+ 			 */
+-			pagevec_add(&pvec_putback, pvec->pages[i]);
+-			pvec->pages[i] = NULL;
++			if (__munlock_isolate_lru_page(page, false))
++				continue;
++			else
++				__munlock_isolation_failed(page);
+ 		}
++
++		/*
++		 * We won't be munlocking this page in the next phase
++		 * but we still need to release the follow_page_mask()
++		 * pin. We cannot do it under lru_lock however. If it's
++		 * the last pin, __page_cache_release() would deadlock.
++		 */
++		pagevec_add(&pvec_putback, pvec->pages[i]);
++		pvec->pages[i] = NULL;
+ 	}
+ 	delta_munlocked = -nr + pagevec_count(&pvec_putback);
+ 	__mod_zone_page_state(zone, NR_MLOCK, delta_munlocked);
 _
 
-Patches currently in -mm which might be from dave@sr71.net are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 origin.patch
+mm-remove-bug_on-from-mlock_vma_page.patch
 
