@@ -1,91 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 11:00:35 -0800
-Message-ID: <52e2b853.eo1MSztK13wOO2ku%akpm@linux-foundation.org>
+Subject: [merged] include-uapi-linux-ppp-ioctlh-pull-in-ppp_defsh.patch
+ removed from -mm tree
+Date: Fri, 24 Jan 2014 11:00:41 -0800
+Message-ID: <52e2b859.KAvtuO9SUS660ty7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43509 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbaAXTAf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:35 -0500
+	with ESMTP id S1752340AbaAXTAl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paulus@samba.org, dhowells@redhat.com
+To: mm-commits@vger.kernel.org, paulus@samba.org, davem@davemloft.net, vapier@gentoo.org
 
-Subject: [merged] drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch removed from -mm tree
-To: dhowells@redhat.com,paulus@samba.org,mm-commits@vger.kernel.org
+Subject: [merged] include-uapi-linux-ppp-ioctlh-pull-in-ppp_defsh.patch removed from -mm tree
+To: vapier@gentoo.org,davem@davemloft.net,paulus@samba.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:00:35 -0800
+Date: Fri, 24 Jan 2014 11:00:41 -0800
 
 
 The patch titled
-     Subject: drivers/video/aty/aty128fb.c: fix a warning pertaining to the aty128fb backlight variable
+     Subject: include/uapi/linux/ppp-ioctl.h: pull in ppp_defs.h
 has been removed from the -mm tree.  Its filename was
-     drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable.patch
+     include-uapi-linux-ppp-ioctlh-pull-in-ppp_defsh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: drivers/video/aty/aty128fb.c: fix a warning pertaining to the aty128fb backlight variable
+From: Mike Frysinger <vapier@gentoo.org>
+Subject: include/uapi/linux/ppp-ioctl.h: pull in ppp_defs.h
 
-Fix the following warning in the aty128fb driver:
+This header uses enum NPmode but doesn't include ppp_defs.h.  If you try
+to use this header w/out including the defs header first, it leads to a
+build failure.  So add the explicit include to fix it.
 
-	drivers/video/aty/aty128fb.c:363:12: warning: 'backlight' defined but not used [-Wunused-variable]
-	 static int backlight = 0;
-		    ^
+Don't know of any packages directly impacted, but noticed while building
+some ppp code by hand.
 
-as the variable's value is only read if CONFIG_FB_ATY128_BACKLIGHT=y.  The
-variable is also set if MODULE is unset[*].
-
-[*] I wonder if the conditional wrapper around aty128fb_setup() should be
-    using CONFIG_MODULE rather than MODULE.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/aty128fb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/uapi/linux/ppp-ioctl.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/aty/aty128fb.c~drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable drivers/video/aty/aty128fb.c
---- a/drivers/video/aty/aty128fb.c~drivers-video-aty-aty128fbc-fix-a-warning-pertaining-to-the-aty128fb-backlight-variable
-+++ a/drivers/video/aty/aty128fb.c
-@@ -357,11 +357,13 @@ static int default_lcd_on = 1;
- static bool mtrr = true;
- #endif
+diff -puN include/uapi/linux/ppp-ioctl.h~include-uapi-linux-ppp-ioctlh-pull-in-ppp_defsh include/uapi/linux/ppp-ioctl.h
+--- a/include/uapi/linux/ppp-ioctl.h~include-uapi-linux-ppp-ioctlh-pull-in-ppp_defsh
++++ a/include/uapi/linux/ppp-ioctl.h
+@@ -12,6 +12,7 @@
  
-+#ifdef CONFIG_FB_ATY128_BACKLIGHT
- #ifdef CONFIG_PMAC_BACKLIGHT
- static int backlight = 1;
- #else
- static int backlight = 0;
- #endif
-+#endif
+ #include <linux/types.h>
+ #include <linux/compiler.h>
++#include <linux/ppp_defs.h>
  
- /* PLL constants */
- struct aty128_constants {
-@@ -1671,7 +1673,9 @@ static int aty128fb_setup(char *options)
- 			default_crt_on = simple_strtoul(this_opt+4, NULL, 0);
- 			continue;
- 		} else if (!strncmp(this_opt, "backlight:", 10)) {
-+#ifdef CONFIG_FB_ATY128_BACKLIGHT
- 			backlight = simple_strtoul(this_opt+10, NULL, 0);
-+#endif
- 			continue;
- 		}
- #ifdef CONFIG_MTRR
+ /*
+  * Bit definitions for flags argument to PPPIOCGFLAGS/PPPIOCSFLAGS.
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-afs-proc-cells-and-rootcell-are-writeable.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
 linux-next.patch
-mutex-subsystem-synchro-test-module.patch
 
