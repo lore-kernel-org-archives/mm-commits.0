@@ -1,86 +1,138 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall.patch
- removed from -mm tree
-Date: Fri, 24 Jan 2014 10:59:27 -0800
-Message-ID: <52e2b80f.xvMrvrBsv5qDxf7t%akpm@linux-foundation.org>
+ mm-audit-fix-non-modular-users-of-module_init-in-core-code.patch removed
+ from -mm tree
+Date: Fri, 24 Jan 2014 10:59:29 -0800
+Message-ID: <52e2b811.5+kRmzeLUS3UF/vk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43336 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS71 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:27 -0500
+	with ESMTP id S1752484AbaAXS73 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, paul.gortmaker@windriver.com
 
-Subject: [merged] mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall.patch removed from -mm tree
+Subject: [merged] mm-audit-fix-non-modular-users-of-module_init-in-core-code.patch removed from -mm tree
 To: paul.gortmaker@windriver.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:59:27 -0800
+Date: Fri, 24 Jan 2014 10:59:29 -0800
 
 
 The patch titled
-     Subject: mm/mm_init.c: make creation of the mm_kobj happen earlier than device_initcall
+     Subject: mm: audit/fix non-modular users of module_init in core code
 has been removed from the -mm tree.  Its filename was
-     mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall.patch
+     mm-audit-fix-non-modular-users-of-module_init-in-core-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: mm/mm_init.c: make creation of the mm_kobj happen earlier than device_initcall
+Subject: mm: audit/fix non-modular users of module_init in core code
 
-The use of __initcall is to be eventually replaced by choosing one from
-the prioritized groupings laid out in init.h header:
+Code that is obj-y (always built-in) or dependent on a bool Kconfig
+(built-in or absent) can never be modular.  So using module_init as an
+alias for __initcall can be somewhat misleading.
 
-	pure_initcall               0
-	core_initcall               1
-	postcore_initcall           2
-	arch_initcall               3
-	subsys_initcall             4
-	fs_initcall                 5
-	device_initcall             6
-	late_initcall               7
+Fix these up now, so that we can relocate module_init from init.h into
+module.h in the future.  If we don't do this, we'd have to add module.h to
+obviously non-modular code, and that would be a worse thing.
 
-In the interim, all __initcall are mapped onto device_initcall, which as
-can be seen above, comes quite late in the ordering.
+The audit targets the following module_init users for change:
+ mm/ksm.c                       bool KSM
+ mm/mmap.c                      bool MMU
+ mm/huge_memory.c               bool TRANSPARENT_HUGEPAGE
+ mm/mmu_notifier.c              bool MMU_NOTIFIER
 
-Currently the mm_kobj is created with __initcall in mm_sysfs_init().  This
-means that any other initcalls that want to reference the mm_kobj have to
-be device_initcall (or later), otherwise we will for example, trip the
-BUG_ON(!kobj) in sysfs's internal_create_group().  This unfairly restricts
-those users; for example something that clearly makes sense to be an
-arch_initcall will not be able to choose that.
+Note that direct use of __initcall is discouraged, vs.  one of the
+priority categorized subgroups.  As __initcall gets mapped onto
+device_initcall, our use of subsys_initcall (which makes sense for these
+files) will thus change this registration from level 6-device to level
+4-subsys (i.e.  slightly earlier).
 
-However, upon examination, it is only this way for historical reasons
-(i.e.  simply not reprioritized yet).  We see that sysfs is ready quite
-earlier in init/main.c via:
+However no observable impact of that difference has been observed
+during testing.
 
- vfs_caches_init
- |_ mnt_init
-    |_ sysfs_init
+One might think that core_initcall (l2) or postcore_initcall (l3) would be
+more appropriate for anything in mm/ but if we look at some actual init
+functions themselves, we see things like:
 
-well ahead of the processing of the prioritized calls listed above.
+mm/huge_memory.c --> hugepage_init     --> hugepage_init_sysfs
+mm/mmap.c        --> init_user_reserve --> sysctl_user_reserve_kbytes
+mm/ksm.c         --> ksm_init          --> sysfs_create_group
 
-So we can recategorize mm_sysfs_init to be a pure_initcall, which in turn
-allows any mm_kobj initcall users a wider range (1 --> 7) of initcall
-priorities to choose from.
+and hence the choice of subsys_initcall (l4) seems reasonable, and at the
+same time minimizes the risk of changing the priority too drastically all
+at once.  We can adjust further in the future.
+
+Also, several instances of missing ";" at EOL are fixed.
 
 Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/huge_memory.c  |    2 +-
+ mm/ksm.c          |    2 +-
+ mm/mmap.c         |    6 +++---
+ mm/mmu_notifier.c |    3 +--
+ 4 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN mm/mm_init.c~mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall mm/mm_init.c
---- a/mm/mm_init.c~mm-make-creation-of-the-mm_kobj-happen-earlier-than-device_initcall
-+++ a/mm/mm_init.c
-@@ -202,5 +202,4 @@ static int __init mm_sysfs_init(void)
+diff -puN mm/huge_memory.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code
++++ a/mm/huge_memory.c
+@@ -661,7 +661,7 @@ out:
+ 	hugepage_exit_sysfs(hugepage_kobj);
+ 	return err;
+ }
+-module_init(hugepage_init)
++subsys_initcall(hugepage_init);
+ 
+ static int __init setup_transparent_hugepage(char *str)
+ {
+diff -puN mm/ksm.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code mm/ksm.c
+--- a/mm/ksm.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code
++++ a/mm/ksm.c
+@@ -2345,4 +2345,4 @@ out_free:
+ out:
+ 	return err;
+ }
+-module_init(ksm_init)
++subsys_initcall(ksm_init);
+diff -puN mm/mmap.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code mm/mmap.c
+--- a/mm/mmap.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code
++++ a/mm/mmap.c
+@@ -3142,7 +3142,7 @@ static int init_user_reserve(void)
+ 	sysctl_user_reserve_kbytes = min(free_kbytes / 32, 1UL << 17);
+ 	return 0;
+ }
+-module_init(init_user_reserve)
++subsys_initcall(init_user_reserve);
+ 
+ /*
+  * Initialise sysctl_admin_reserve_kbytes.
+@@ -3163,7 +3163,7 @@ static int init_admin_reserve(void)
+ 	sysctl_admin_reserve_kbytes = min(free_kbytes / 32, 1UL << 13);
+ 	return 0;
+ }
+-module_init(init_admin_reserve)
++subsys_initcall(init_admin_reserve);
+ 
+ /*
+  * Reinititalise user and admin reserves if memory is added or removed.
+@@ -3233,4 +3233,4 @@ static int __meminit init_reserve_notifi
  
  	return 0;
+ }
+-module_init(init_reserve_notifier)
++subsys_initcall(init_reserve_notifier);
+diff -puN mm/mmu_notifier.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code mm/mmu_notifier.c
+--- a/mm/mmu_notifier.c~mm-audit-fix-non-modular-users-of-module_init-in-core-code
++++ a/mm/mmu_notifier.c
+@@ -329,5 +329,4 @@ static int __init mmu_notifier_init(void
+ {
+ 	return init_srcu_struct(&srcu);
  }
