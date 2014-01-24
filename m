@@ -1,100 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- x86-fix-numa-by-reverting-wrong-memblock-setting.patch removed from -mm
- tree
-Date: Fri, 24 Jan 2014 11:47:23 -0800
-Message-ID: <52e2c34b.wCCiafI8DJRJsLde%akpm@linux-foundation.org>
+Subject: + memblock-nobootmem-add-memblock_virt_alloc_low.patch added to
+ -mm tree
+Date: Fri, 24 Jan 2014 11:55:39 -0800
+Message-ID: <52e2c53b.rawYzgIfdihOn3Mc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44093 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44218 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753049AbaAXTrY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:47:24 -0500
+	with ESMTP id S1751735AbaAXTzk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:55:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, santosh.shilimkar@ti.com, mingo@elte.hu, hpa@zytor.com, grygorii.strashko@ti.com, dave.hansen@intel.com, yinghai@kernel.org
+To: mm-commits@vger.kernel.org, santosh.shilimkar@ti.com, mingo@elte.hu, linux@arm.linux.org.uk, konrad.wilk@oracle.com, hpa@zytor.com, dave.hansen@intel.com, yinghai@kernel.org
 
-Subject: [to-be-updated] x86-fix-numa-by-reverting-wrong-memblock-setting.patch removed from -mm tree
-To: yinghai@kernel.org,dave.hansen@intel.com,grygorii.strashko@ti.com,hpa@zytor.com,mingo@elte.hu,santosh.shilimkar@ti.com,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: + memblock-nobootmem-add-memblock_virt_alloc_low.patch added to -mm tree
+To: yinghai@kernel.org,dave.hansen@intel.com,hpa@zytor.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mingo@elte.hu,santosh.shilimkar@ti.com
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:47:23 -0800
+Date: Fri, 24 Jan 2014 11:55:39 -0800
 
 
 The patch titled
-     Subject: x86: fix numa by reverting wrong memblock setting
-has been removed from the -mm tree.  Its filename was
-     x86-fix-numa-by-reverting-wrong-memblock-setting.patch
+     Subject: memblock, nobootmem: add memblock_virt_alloc_low()
+has been added to the -mm tree.  Its filename is
+     memblock-nobootmem-add-memblock_virt_alloc_low.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memblock-nobootmem-add-memblock_virt_alloc_low.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-nobootmem-add-memblock_virt_alloc_low.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: x86: fix numa by reverting wrong memblock setting
+Subject: memblock, nobootmem: add memblock_virt_alloc_low()
 
-Dave reported Numa on x86 is broken on system with 1T memory.
+The new memblock_virt APIs are used to replaced old bootmem API.
 
-It turns out
-| commit 5b6e529521d35e1bcaa0fe43456d1bbb335cae5d
-| Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
-| Date:   Tue Jan 21 15:50:03 2014 -0800
-|
-|    x86: memblock: set current limit to max low memory address
+We need to allocate page below 4G for swiotlb.
 
-set limit to low wrongly.
-
-max_low_pfn_mapped is different from max_pfn_mapped.
-max_low_pfn_mapped is always under 4G.
-
-That will memblock_alloc_nid all go under 4G.
-
-Revert that offending patch.
+That should fix regression on Andrew's system that is using swiotlb.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Reported-by: Dave Hansen <dave.hansen@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/page_types.h |    4 ++--
- arch/x86/kernel/setup.c           |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/kernel/setup.c |    2 +-
+ include/linux/bootmem.h |   37 +++++++++++++++++++++++++++++++++++++
+ lib/swiotlb.c           |    4 ++--
+ 3 files changed, 40 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/include/asm/page_types.h~x86-fix-numa-by-reverting-wrong-memblock-setting arch/x86/include/asm/page_types.h
---- a/arch/x86/include/asm/page_types.h~x86-fix-numa-by-reverting-wrong-memblock-setting
-+++ a/arch/x86/include/asm/page_types.h
-@@ -51,9 +51,9 @@ extern int devmem_is_allowed(unsigned lo
- extern unsigned long max_low_pfn_mapped;
- extern unsigned long max_pfn_mapped;
+diff -puN arch/arm/kernel/setup.c~memblock-nobootmem-add-memblock_virt_alloc_low arch/arm/kernel/setup.c
+--- a/arch/arm/kernel/setup.c~memblock-nobootmem-add-memblock_virt_alloc_low
++++ a/arch/arm/kernel/setup.c
+@@ -731,7 +731,7 @@ static void __init request_standard_reso
+ 	kernel_data.end     = virt_to_phys(_end - 1);
  
--static inline phys_addr_t get_max_low_mapped(void)
-+static inline phys_addr_t get_max_mapped(void)
- {
--	return (phys_addr_t)max_low_pfn_mapped << PAGE_SHIFT;
-+	return (phys_addr_t)max_pfn_mapped << PAGE_SHIFT;
+ 	for_each_memblock(memory, region) {
+-		res = memblock_virt_alloc(sizeof(*res), 0);
++		res = memblock_virt_alloc_low(sizeof(*res), 0);
+ 		res->name  = "System RAM";
+ 		res->start = __pfn_to_phys(memblock_region_memory_base_pfn(region));
+ 		res->end = __pfn_to_phys(memblock_region_memory_end_pfn(region)) - 1;
+diff -puN include/linux/bootmem.h~memblock-nobootmem-add-memblock_virt_alloc_low include/linux/bootmem.h
+--- a/include/linux/bootmem.h~memblock-nobootmem-add-memblock_virt_alloc_low
++++ a/include/linux/bootmem.h
+@@ -175,6 +175,27 @@ static inline void * __init memblock_vir
+ 						    NUMA_NO_NODE);
  }
  
- bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn);
-diff -puN arch/x86/kernel/setup.c~x86-fix-numa-by-reverting-wrong-memblock-setting arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~x86-fix-numa-by-reverting-wrong-memblock-setting
-+++ a/arch/x86/kernel/setup.c
-@@ -1119,7 +1119,7 @@ void __init setup_arch(char **cmdline_p)
++#ifndef ARCH_LOW_ADDRESS_LIMIT
++#define ARCH_LOW_ADDRESS_LIMIT  0xffffffffUL
++#endif
++
++static inline void * __init memblock_virt_alloc_low(
++					phys_addr_t size, phys_addr_t align)
++{
++	return memblock_virt_alloc_try_nid(size, align,
++						   BOOTMEM_LOW_LIMIT,
++						   ARCH_LOW_ADDRESS_LIMIT,
++						   NUMA_NO_NODE);
++}
++static inline void * __init memblock_virt_alloc_low_nopanic(
++					phys_addr_t size, phys_addr_t align)
++{
++	return memblock_virt_alloc_try_nid_nopanic(size, align,
++						   BOOTMEM_LOW_LIMIT,
++						   ARCH_LOW_ADDRESS_LIMIT,
++						   NUMA_NO_NODE);
++}
++
+ static inline void * __init memblock_virt_alloc_from_nopanic(
+ 		phys_addr_t size, phys_addr_t align, phys_addr_t min_addr)
+ {
+@@ -238,6 +259,22 @@ static inline void * __init memblock_vir
+ 	return __alloc_bootmem_nopanic(size, align, BOOTMEM_LOW_LIMIT);
+ }
  
- 	setup_real_mode();
- 
--	memblock_set_current_limit(get_max_low_mapped());
-+	memblock_set_current_limit(get_max_mapped());
- 	dma_contiguous_reserve(0);
- 
++static inline void * __init memblock_virt_alloc_low(
++					phys_addr_t size, phys_addr_t align)
++{
++	if (!align)
++		align = SMP_CACHE_BYTES;
++	return __alloc_bootmem_low(size, align, BOOTMEM_LOW_LIMIT);
++}
++
++static inline void * __init memblock_virt_alloc_low_nopanic(
++					phys_addr_t size, phys_addr_t align)
++{
++	if (!align)
++		align = SMP_CACHE_BYTES;
++	return __alloc_bootmem_low_nopanic(size, align, BOOTMEM_LOW_LIMIT);
++}
++
+ static inline void * __init memblock_virt_alloc_from_nopanic(
+ 		phys_addr_t size, phys_addr_t align, phys_addr_t min_addr)
+ {
+diff -puN lib/swiotlb.c~memblock-nobootmem-add-memblock_virt_alloc_low lib/swiotlb.c
+--- a/lib/swiotlb.c~memblock-nobootmem-add-memblock_virt_alloc_low
++++ a/lib/swiotlb.c
+@@ -172,7 +172,7 @@ int __init swiotlb_init_with_tbl(char *t
  	/*
+ 	 * Get the overflow emergency buffer
+ 	 */
+-	v_overflow_buffer = memblock_virt_alloc_nopanic(
++	v_overflow_buffer = memblock_virt_alloc_low_nopanic(
+ 						PAGE_ALIGN(io_tlb_overflow),
+ 						PAGE_SIZE);
+ 	if (!v_overflow_buffer)
+@@ -220,7 +220,7 @@ swiotlb_init(int verbose)
+ 	bytes = io_tlb_nslabs << IO_TLB_SHIFT;
+ 
+ 	/* Get IO TLB memory from the low pages */
+-	vstart = memblock_virt_alloc_nopanic(PAGE_ALIGN(bytes), PAGE_SIZE);
++	vstart = memblock_virt_alloc_low_nopanic(PAGE_ALIGN(bytes), PAGE_SIZE);
+ 	if (vstart && !swiotlb_init_with_tbl(vstart, io_tlb_nslabs, verbose))
+ 		return;
+ 
 _
 
 Patches currently in -mm which might be from yinghai@kernel.org are
 
 origin.patch
+memblock-nobootmem-add-memblock_virt_alloc_low.patch
+x86-revert-wrong-memblock-current-limit-setting.patch
+memblock-dont-align-size-silent-in-memblock_virt_alloc.patch
 
