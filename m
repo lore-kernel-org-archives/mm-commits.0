@@ -1,63 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-do_mincore-cleanup.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 10:59:13 -0800
-Message-ID: <52e2b801.cmQ8agwKDwPznRDP%akpm@linux-foundation.org>
+Subject: [merged] sched-numa-fix-set-cpupid-on-page-migration-twice.patch
+ removed from -mm tree
+Date: Fri, 24 Jan 2014 10:59:15 -0800
+Message-ID: <52e2b803.V9W/dCJH0VutY8pB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43287 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43293 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS7N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:13 -0500
+	with ESMTP id S1752484AbaAXS7Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, qiuxishi@huawei.com, n-horiguchi@ah.jp.nec.com, minchan.kim@gmail.com, hannes@cmpxchg.org, wujianguo@huawei.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, peterz@infradead.org, n-horiguchi@ah.jp.nec.com, mingo@redhat.com, mgorman@suse.de, liwanp@linux.vnet.ibm.com
 
-Subject: [merged] mm-do_mincore-cleanup.patch removed from -mm tree
-To: wujianguo@huawei.com,hannes@cmpxchg.org,minchan.kim@gmail.com,n-horiguchi@ah.jp.nec.com,qiuxishi@huawei.com,mm-commits@vger.kernel.org
+Subject: [merged] sched-numa-fix-set-cpupid-on-page-migration-twice.patch removed from -mm tree
+To: liwanp@linux.vnet.ibm.com,mgorman@suse.de,mingo@redhat.com,n-horiguchi@ah.jp.nec.com,peterz@infradead.org,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:59:13 -0800
+Date: Fri, 24 Jan 2014 10:59:15 -0800
 
 
 The patch titled
-     Subject: mm: do_mincore() cleanup
+     Subject: sched/numa: fix setting of cpupid on page migration twice
 has been removed from the -mm tree.  Its filename was
-     mm-do_mincore-cleanup.patch
+     sched-numa-fix-set-cpupid-on-page-migration-twice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: mm: do_mincore() cleanup
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: sched/numa: fix setting of cpupid on page migration twice
 
-Two cleanups:
-1. remove redundant codes for hugetlb pages.
-2. end = pmd_addr_end(addr, end) restricts [addr, end) within PMD_SIZE,
-   this may increase do_mincore() calls, remove it.
+commit 7851a45cd3 ("mm: numa: Copy cpupid on page migration") copys over
+the cpupid at page migration time.  It is unnecessary to set it again in
+migrate_misplaced_transhuge_page().
 
-Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: qiuxishi <qiuxishi@huawei.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/migrate.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/mincore.c~mm-do_mincore-cleanup mm/mincore.c
---- a/mm/mincore.c~mm-do_mincore-cleanup
-+++ a/mm/mincore.c
-@@ -225,13 +225,6 @@ static long do_mincore(unsigned long add
+diff -puN mm/migrate.c~sched-numa-fix-set-cpupid-on-page-migration-twice mm/migrate.c
+--- a/mm/migrate.c~sched-numa-fix-set-cpupid-on-page-migration-twice
++++ a/mm/migrate.c
+@@ -1753,8 +1753,6 @@ int migrate_misplaced_transhuge_page(str
+ 	if (!new_page)
+ 		goto out_fail;
  
- 	end = min(vma->vm_end, addr + (pages << PAGE_SHIFT));
- 
--	if (is_vm_hugetlb_page(vma)) {
--		mincore_hugetlb_page_range(vma, addr, end, vec);
--		return (end - addr) >> PAGE_SHIFT;
--	}
--
--	end = pmd_addr_end(addr, end);
+-	page_cpupid_xchg_last(new_page, page_cpupid_last(page));
