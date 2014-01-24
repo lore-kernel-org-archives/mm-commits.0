@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-dont-align-size-silent-in-memblock_virt_alloc.patch
- added to -mm tree
-Date: Fri, 24 Jan 2014 11:55:41 -0800
-Message-ID: <52e2c53d.Ed4c50Ql8FP958/3%akpm@linux-foundation.org>
+Subject: +
+ revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch added to -mm tree
+Date: Fri, 24 Jan 2014 12:23:55 -0800
+Message-ID: <52e2cbdb.0bXmDQPvojL3x6eL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44239 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44734 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751780AbaAXTzm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:55:42 -0500
+	with ESMTP id S1751896AbaAXUX4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 15:23:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, santosh.shilimkar@ti.com, mingo@elte.hu, linux@arm.linux.org.uk, konrad.wilk@oracle.com, hpa@zytor.com, dave.hansen@intel.com, yinghai@kernel.org
+To: mm-commits@vger.kernel.org, nasa4836@gmail.com, murzin.v@gmail.com, av1474@comtv.ru
 
-Subject: + memblock-dont-align-size-silent-in-memblock_virt_alloc.patch added to -mm tree
-To: yinghai@kernel.org,dave.hansen@intel.com,hpa@zytor.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mingo@elte.hu,santosh.shilimkar@ti.com
+Subject: + revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch added to -mm tree
+To: av1474@comtv.ru,murzin.v@gmail.com,nasa4836@gmail.com
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:55:41 -0800
+Date: Fri, 24 Jan 2014 12:23:55 -0800
 
 
 The patch titled
-     Subject: memblock: don't align size silent in memblock_virt_alloc()
+     Subject: Revert "mm/vmalloc: interchage the implementation of vmalloc_to_{pfn,page}"
 has been added to the -mm tree.  Its filename is
-     memblock-dont-align-size-silent-in-memblock_virt_alloc.patch
+     revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memblock-dont-align-size-silent-in-memblock_virt_alloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-dont-align-size-silent-in-memblock_virt_alloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,49 +44,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: memblock: don't align size silent in memblock_virt_alloc()
+From: malc <av1474@comtv.ru>
+Subject: Revert "mm/vmalloc: interchage the implementation of vmalloc_to_{pfn,page}"
 
-In original __alloc_memory_core_early() for bootmem wrapper, we do not
-align size silently.
+Revert ece86e222db48d04bda, which was intended as a small performance
+improvement.
 
-We should not do that, as later free with old size will leave some
-range not freed.
+Despite the claim that the patch doesn't introduce any functional changes
+in fact it does.
 
-It's obvious that code is copied from memblock_base_nid(), and that code
-is wrong for the same reason.
+The "no page" path behaves different now.  Originally, vmalloc_to_page
+might return NULL under some conditions, with new implementation it
+returns pfn_to_page(0) which is not the same as NULL.
 
-Also remove that in memblock_alloc_base.
+Simple test shows the difference.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+test.c
+
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/vmalloc.h>
+#include <linux/mm.h>
+
+int __init myi(void)
+{
+	struct page *p;
+	void *v;
+
+	v = vmalloc(PAGE_SIZE);
+	/* trigger the "no page" path in vmalloc_to_page*/
+	vfree(v);
+
+	p = vmalloc_to_page(v);
+
+	pr_err("expected val = NULL, returned val = %p", p);
+
+	return -EBUSY;
+}
+
+void __exit mye(void)
+{
+
+}
+module_init(myi)
+module_exit(mye)
+
+Before interchange:
+expected val = NULL, returned val =   (null)
+
+After interchange:
+expected val = NULL, returned val = c7ebe000
+
+Signed-off-by: Vladimir Murzin <murzin.v@gmail.com>
+Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/vmalloc.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/memblock.c~memblock-dont-align-size-silent-in-memblock_virt_alloc mm/memblock.c
---- a/mm/memblock.c~memblock-dont-align-size-silent-in-memblock_virt_alloc
-+++ a/mm/memblock.c
-@@ -984,9 +984,6 @@ static phys_addr_t __init memblock_alloc
- 	if (!align)
- 		align = SMP_CACHE_BYTES;
+diff -puN mm/vmalloc.c~revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage mm/vmalloc.c
+--- a/mm/vmalloc.c~revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage
++++ a/mm/vmalloc.c
+@@ -220,12 +220,12 @@ int is_vmalloc_or_module_addr(const void
+ }
  
--	/* align @size to avoid excessive fragmentation on reserved array */
--	size = round_up(size, align);
--
- 	found = memblock_find_in_range_node(size, align, 0, max_addr, nid);
- 	if (found && !memblock_reserve(found, size))
- 		return found;
-@@ -1080,9 +1077,6 @@ static void * __init memblock_virt_alloc
- 	if (!align)
- 		align = SMP_CACHE_BYTES;
+ /*
+- * Walk a vmap address to the physical pfn it maps to.
++ * Walk a vmap address to the struct page it maps.
+  */
+-unsigned long vmalloc_to_pfn(const void *vmalloc_addr)
++struct page *vmalloc_to_page(const void *vmalloc_addr)
+ {
+ 	unsigned long addr = (unsigned long) vmalloc_addr;
+-	unsigned long pfn = 0;
++	struct page *page = NULL;
+ 	pgd_t *pgd = pgd_offset_k(addr);
  
--	/* align @size to avoid excessive fragmentation on reserved array */
--	size = round_up(size, align);
+ 	/*
+@@ -244,23 +244,23 @@ unsigned long vmalloc_to_pfn(const void
+ 				ptep = pte_offset_map(pmd, addr);
+ 				pte = *ptep;
+ 				if (pte_present(pte))
+-					pfn = pte_pfn(pte);
++					page = pte_page(pte);
+ 				pte_unmap(ptep);
+ 			}
+ 		}
+ 	}
+-	return pfn;
++	return page;
+ }
+-EXPORT_SYMBOL(vmalloc_to_pfn);
++EXPORT_SYMBOL(vmalloc_to_page);
+ 
+ /*
+- * Map a vmalloc()-space virtual address to the struct page.
++ * Map a vmalloc()-space virtual address to the physical page frame number.
+  */
+-struct page *vmalloc_to_page(const void *vmalloc_addr)
++unsigned long vmalloc_to_pfn(const void *vmalloc_addr)
+ {
+-	return pfn_to_page(vmalloc_to_pfn(vmalloc_addr));
++	return page_to_pfn(vmalloc_to_page(vmalloc_addr));
+ }
+-EXPORT_SYMBOL(vmalloc_to_page);
++EXPORT_SYMBOL(vmalloc_to_pfn);
+ 
+ 
+ /*** Global kva allocator ***/
+_
+
+Patches currently in -mm which might be from av1474@comtv.ru are
+
+revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch
+arm-move-arm_dma_limit-to-setup_dma_zone.patch
+
