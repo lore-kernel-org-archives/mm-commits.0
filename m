@@ -1,84 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: + dynamic_debug-remove-wrong-error-message.patch added to -mm
- tree
-Date: Fri, 24 Jan 2014 13:49:30 -0800
-Message-ID: <52e2dfea.E3dhqCVtVmxWJvwI%akpm@linux-foundation.org>
+Subject: [nacked] ocfs2-code-cleanup-remove-unused-functions.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 14:13:02 -0800
+Message-ID: <52e2e56e.ieh+8NWiDkE7bx9k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45085 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45305 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633AbaAXVtb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 16:49:31 -0500
+	with ESMTP id S1751674AbaAXWND (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 17:13:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jbaron@akamai.com, a.ryabinin@samsung.com
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: + dynamic_debug-remove-wrong-error-message.patch added to -mm tree
-To: a.ryabinin@samsung.com,jbaron@akamai.com
+Subject: [nacked] ocfs2-code-cleanup-remove-unused-functions.patch removed from -mm tree
+To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 13:49:30 -0800
+Date: Fri, 24 Jan 2014 14:13:02 -0800
 
 
 The patch titled
-     Subject: dynamic_debug: remove wrong error message
-has been added to the -mm tree.  Its filename is
-     dynamic_debug-remove-wrong-error-message.patch
+     Subject: ocfs2: code cleanup: remove unused functions
+has been removed from the -mm tree.  Its filename was
+     ocfs2-code-cleanup-remove-unused-functions.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dynamic_debug-remove-wrong-error-message.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dynamic_debug-remove-wrong-error-message.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: dynamic_debug: remove wrong error message
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: ocfs2: code cleanup: remove unused functions
 
-parse_lineno() returns either negative error code or zero.  We don't need
-to print something here because if parse_lineno fails it will print error
-message.
+These functions are either coded in individual files as static or not used
+at all.  Remove them.
 
-Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
-Cc: Jason Baron <jbaron@akamai.com>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dynamic_debug.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/ocfs2/ocfs2_fs.h |   40 ----------------------------------------
+ 1 file changed, 40 deletions(-)
 
-diff -puN lib/dynamic_debug.c~dynamic_debug-remove-wrong-error-message lib/dynamic_debug.c
---- a/lib/dynamic_debug.c~dynamic_debug-remove-wrong-error-message
-+++ a/lib/dynamic_debug.c
-@@ -348,10 +348,8 @@ static int ddebug_parse_query(char *word
- 			}
- 			if (last)
- 				*last++ = '\0';
--			if (parse_lineno(first, &query->first_lineno) < 0) {
--				pr_err("line-number is <0\n");
-+			if (parse_lineno(first, &query->first_lineno) < 0)
- 				return -EINVAL;
--			}
- 			if (last) {
- 				/* range <first>-<last> */
- 				if (parse_lineno(last, &query->last_lineno)
+diff -puN fs/ocfs2/ocfs2_fs.h~ocfs2-code-cleanup-remove-unused-functions fs/ocfs2/ocfs2_fs.h
+--- a/fs/ocfs2/ocfs2_fs.h~ocfs2-code-cleanup-remove-unused-functions
++++ a/fs/ocfs2/ocfs2_fs.h
+@@ -1325,16 +1325,6 @@ static inline int ocfs2_extent_recs_per_
+ 	return size / sizeof(struct ocfs2_extent_rec);
+ }
+ 
+-static inline int ocfs2_chain_recs_per_inode(struct super_block *sb)
+-{
+-	int size;
+-
+-	size = sb->s_blocksize -
+-		offsetof(struct ocfs2_dinode, id2.i_chain.cl_recs);
+-
+-	return size / sizeof(struct ocfs2_chain_rec);
+-}
+-
+ static inline u16 ocfs2_extent_recs_per_eb(struct super_block *sb)
+ {
+ 	int size;
+@@ -1493,16 +1483,6 @@ static inline int ocfs2_extent_recs_per_
+ 	return size / sizeof(struct ocfs2_extent_rec);
+ }
+ 
+-static inline int ocfs2_chain_recs_per_inode(int blocksize)
+-{
+-	int size;
+-
+-	size = blocksize -
+-		offsetof(struct ocfs2_dinode, id2.i_chain.cl_recs);
+-
+-	return size / sizeof(struct ocfs2_chain_rec);
+-}
+-
+ static inline int ocfs2_extent_recs_per_eb(int blocksize)
+ {
+ 	int size;
+@@ -1589,12 +1569,6 @@ static inline int ocfs2_xattr_recs_per_x
+ #endif  /* __KERNEL__ */
+ 
+ 
+-static inline int ocfs2_system_inode_is_global(int type)
+-{
+-	return ((type >= 0) &&
+-		(type <= OCFS2_LAST_GLOBAL_SYSTEM_INODE));
+-}
+-
+ static inline int ocfs2_sprintf_system_inode_name(char *buf, int len,
+ 						  int type, int slot)
+ {
+@@ -1622,19 +1596,5 @@ static inline void ocfs2_set_de_type(str
+ 	de->file_type = ocfs2_type_by_mode[(mode & S_IFMT)>>S_SHIFT];
+ }
+ 
+-static inline int ocfs2_gd_is_discontig(struct ocfs2_group_desc *gd)
+-{
+-	if ((offsetof(struct ocfs2_group_desc, bg_bitmap) +
+-	     le16_to_cpu(gd->bg_size)) !=
+-	    offsetof(struct ocfs2_group_desc, bg_list))
+-		return 0;
+-	/*
+-	 * Only valid to check l_next_free_rec if
+-	 * bg_bitmap + bg_size == bg_list.
+-	 */
+-	if (!gd->bg_list.l_next_free_rec)
+-		return 0;
+-	return 1;
+-}
+ #endif  /* _OCFS2_FS_H */
+ 
 _
 
-Patches currently in -mm which might be from a.ryabinin@samsung.com are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
-dynamic_debug-remove-wrong-error-message.patch
-dynamic_debug-fix-ddebug_parse_query.patch
-dynamic_debug-replace-obselete-simple_strtoul-with-kstrtouint.patch
+origin.patch
 
