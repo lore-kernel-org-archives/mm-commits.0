@@ -1,68 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- drivers-block-kconfig-update-ram-block-device-module-name.patch removed
- from -mm tree
-Date: Fri, 24 Jan 2014 10:59:57 -0800
-Message-ID: <52e2b82d.vxS4wa7njU510xoJ%akpm@linux-foundation.org>
+ logfs-check-for-the-return-value-after-calling-find_or_create_page.patch
+ removed from -mm tree
+Date: Fri, 24 Jan 2014 10:59:59 -0800
+Message-ID: <52e2b82f.iaO4Orj68oR54uJY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43406 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS75 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:57 -0500
+	with ESMTP id S1752484AbaAXTAA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, younger.liucn@gmail.com, slava@dubeyko.com, prasadjoshi.linux@gmail.com, joern@logfs.org, liuyiyang@hisense.com
 
-Subject: [merged] drivers-block-kconfig-update-ram-block-device-module-name.patch removed from -mm tree
-To: fabf@skynet.be,rdunlap@infradead.org,mm-commits@vger.kernel.org
+Subject: [merged] logfs-check-for-the-return-value-after-calling-find_or_create_page.patch removed from -mm tree
+To: liuyiyang@hisense.com,joern@logfs.org,prasadjoshi.linux@gmail.com,slava@dubeyko.com,younger.liucn@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:59:57 -0800
+Date: Fri, 24 Jan 2014 10:59:59 -0800
 
 
 The patch titled
-     Subject: drivers/block/Kconfig: update RAM block device module name
+     Subject: logfs: check for the return value after calling find_or_create_page()
 has been removed from the -mm tree.  Its filename was
-     drivers-block-kconfig-update-ram-block-device-module-name.patch
+     logfs-check-for-the-return-value-after-calling-find_or_create_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: drivers/block/Kconfig: update RAM block device module name
+From: Younger Liu <liuyiyang@hisense.com>
+Subject: logfs: check for the return value after calling find_or_create_page()
 
-RAM block device support module name changed to brd.ko some years ago with
-an "rd" alias to match previous module implementation.  This patch updates
-its Kconfig definition.
+In get_mapping_page(), after calling find_or_create_page(), the return
+value should be checked.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+ This patch has been provided:
+http://www.spinics.net/lists/linux-fsdevel/msg66948.html but not been
+applied now.
+
+Signed-off-by: Younger Liu <liuyiyang@hisense.com>
+Cc: Younger Liu <younger.liucn@gmail.com>
+Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Reviewed-by: Prasad Joshi <prasadjoshi.linux@gmail.com>
+Cc: Jörn Engel <joern@logfs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/Kconfig |    3 ++-
+ fs/logfs/segment.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/Kconfig~drivers-block-kconfig-update-ram-block-device-module-name drivers/block/Kconfig
---- a/drivers/block/Kconfig~drivers-block-kconfig-update-ram-block-device-module-name
-+++ a/drivers/block/Kconfig
-@@ -368,7 +368,8 @@ config BLK_DEV_RAM
- 	  For details, read <file:Documentation/blockdev/ramdisk.txt>.
- 
- 	  To compile this driver as a module, choose M here: the
--	  module will be called rd.
-+	  module will be called brd. An alias "rd" has been defined
-+	  for historical reasons.
- 
- 	  Most normal users won't need the RAM disk functionality, and can
- 	  thus say N here.
+diff -puN fs/logfs/segment.c~logfs-check-for-the-return-value-after-calling-find_or_create_page fs/logfs/segment.c
+--- a/fs/logfs/segment.c~logfs-check-for-the-return-value-after-calling-find_or_create_page
++++ a/fs/logfs/segment.c
+@@ -62,7 +62,8 @@ static struct page *get_mapping_page(str
+ 		page = read_cache_page(mapping, index, filler, sb);
+ 	else {
+ 		page = find_or_create_page(mapping, index, GFP_NOFS);
+-		unlock_page(page);
++		if (page)
++			unlock_page(page);
+ 	}
+ 	return page;
+ }
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from liuyiyang@hisense.com are
 
 origin.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
 
