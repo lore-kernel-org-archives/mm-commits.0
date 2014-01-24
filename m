@@ -1,240 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-munlock-fix-potential-race-with-thp-page-split.patch
- removed from -mm tree
-Date: Fri, 24 Jan 2014 10:58:27 -0800
-Message-ID: <52e2b7d3.iggCIvZHbgBlHrZt%akpm@linux-foundation.org>
+Subject: [merged]
+ memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch removed from -mm
+ tree
+Date: Fri, 24 Jan 2014 10:58:29 -0800
+Message-ID: <52e2b7d5.7mWHWF00KGtrpCMy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43148 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43153 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS62 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:58:28 -0500
+	with ESMTP id S1752484AbaAXS6a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:58:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, stable@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, mgorman@suse.de, hughd@google.com, aarcange@redhat.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, glommer@openvz.org, bsingharora@gmail.com, vdavydov@parallels.com
 
-Subject: [merged] mm-munlock-fix-potential-race-with-thp-page-split.patch removed from -mm tree
-To: vbabka@suse.cz,aarcange@redhat.com,hughd@google.com,mgorman@suse.de,riel@redhat.com,sasha.levin@oracle.com,stable@vger.kernel.org,walken@google.com,mm-commits@vger.kernel.org
+Subject: [merged] memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch removed from -mm tree
+To: vdavydov@parallels.com,bsingharora@gmail.com,glommer@openvz.org,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:58:27 -0800
+Date: Fri, 24 Jan 2014 10:58:29 -0800
 
 
 The patch titled
-     Subject: mm: munlock: fix potential race with THP page split
+     Subject: memcg: do not use vmalloc for mem_cgroup allocations
 has been removed from the -mm tree.  Its filename was
-     mm-munlock-fix-potential-race-with-thp-page-split.patch
+     memcg-do-not-use-vmalloc-for-mem_cgroup-allocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: munlock: fix potential race with THP page split
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: memcg: do not use vmalloc for mem_cgroup allocations
 
-Since commit ff6a6da60 ("mm: accelerate munlock() treatment of THP pages")
-munlock skips tail pages of a munlocked THP page.  There is some attempt
-to prevent bad consequences of racing with a THP page split, but code
-inspection indicates that there are two problems that may lead to a
-non-fatal, yet wrong outcome.
+The vmalloc was introduced by 333279 ("memcgroup: use vmalloc for
+mem_cgroup allocation"), because at that time MAX_NUMNODES was used for
+defining the per-node array in the mem_cgroup structure so that the
+structure could be huge even if the system had the only NUMA node.
 
-First, __split_huge_page_refcount() copies flags including PageMlocked
-from the head page to the tail pages.  Clearing PageMlocked by
-munlock_vma_page() in the middle of this operation might result in part of
-tail pages left with PageMlocked flag.  As the head page still appears to
-be a THP page until all tail pages are processed, munlock_vma_page() might
-think it munlocked the whole THP page and skip all the former tail pages. 
-Before ff6a6da60, those pages would be cleared in further iterations of
-munlock_vma_pages_range(), but NR_MLOCK would still become undercounted
-(related the next point).
+The situation was significantly improved by patch 45cf7e ("memcg: reduce
+the size of struct memcg 244-fold"), which made the size of the mem_cgroup
+structure calculated dynamically depending on the real number of NUMA
+nodes installed on the system (nr_node_ids), so now there is no point in
+using vmalloc here: the structure is allocated rarely and on most systems
+its size is about 1K.
 
-Second, NR_MLOCK accounting is based on call to hpage_nr_pages() after the
-PageMlocked is cleared.  The accounting might also become inconsistent due
-to race with __split_huge_page_refcount()
-
-- undercount when HUGE_PMD_NR is subtracted, but some tail pages are
-  left with PageMlocked set and counted again (only possible before
-  ff6a6da60)
-
-- overcount when hpage_nr_pages() sees a normal page (split has already
-  finished), but the parallel split has meanwhile cleared PageMlocked from
-  additional tail pages
-
-This patch prevents both problems via extending the scope of lru_lock in
-munlock_vma_page().  This is convenient because:
-
-- __split_huge_page_refcount() takes lru_lock for its whole operation
-
-- munlock_vma_page() typically takes lru_lock anyway for page isolation
-
-As this becomes a second function where page isolation is done with
-lru_lock already held, factor this out to a new
-__munlock_isolate_lru_page() function and clean up the code around.
-
-[akpm@linux-foundation.org: avoid a coding-style ugly]
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Glauber Costa <glommer@openvz.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |  104 +++++++++++++++++++++++++++++----------------------
- 1 file changed, 60 insertions(+), 44 deletions(-)
+ mm/memcontrol.c |   28 ++++++----------------------
+ 1 file changed, 6 insertions(+), 22 deletions(-)
 
-diff -puN mm/mlock.c~mm-munlock-fix-potential-race-with-thp-page-split mm/mlock.c
---- a/mm/mlock.c~mm-munlock-fix-potential-race-with-thp-page-split
-+++ a/mm/mlock.c
-@@ -91,6 +91,26 @@ void mlock_vma_page(struct page *page)
+diff -puN mm/memcontrol.c~memcg-do-not-use-vmalloc-for-mem_cgroup-allocations mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-do-not-use-vmalloc-for-mem_cgroup-allocations
++++ a/mm/memcontrol.c
+@@ -49,7 +49,6 @@
+ #include <linux/sort.h>
+ #include <linux/fs.h>
+ #include <linux/seq_file.h>
+-#include <linux/vmalloc.h>
+ #include <linux/vmpressure.h>
+ #include <linux/mm_inline.h>
+ #include <linux/page_cgroup.h>
+@@ -381,12 +380,6 @@ struct mem_cgroup {
+ 	/* WARNING: nodeinfo must be the last member here */
+ };
+ 
+-static size_t memcg_size(void)
+-{
+-	return sizeof(struct mem_cgroup) +
+-		nr_node_ids * sizeof(struct mem_cgroup_per_node *);
+-}
+-
+ /* internal only representation about the status of kmem accounting. */
+ enum {
+ 	KMEM_ACCOUNTED_ACTIVE = 0, /* accounted by this cgroup itself */
+@@ -6405,14 +6398,12 @@ static void free_mem_cgroup_per_zone_inf
+ static struct mem_cgroup *mem_cgroup_alloc(void)
+ {
+ 	struct mem_cgroup *memcg;
+-	size_t size = memcg_size();
++	size_t size;
+ 
+-	/* Can be very big if nr_node_ids is very big */
+-	if (size < PAGE_SIZE)
+-		memcg = kzalloc(size, GFP_KERNEL);
+-	else
+-		memcg = vzalloc(size);
++	size = sizeof(struct mem_cgroup);
++	size += nr_node_ids * sizeof(struct mem_cgroup_per_node *);
+ 
++	memcg = kzalloc(size, GFP_KERNEL);
+ 	if (!memcg)
+ 		return NULL;
+ 
+@@ -6423,10 +6414,7 @@ static struct mem_cgroup *mem_cgroup_all
+ 	return memcg;
+ 
+ out_free:
+-	if (size < PAGE_SIZE)
+-		kfree(memcg);
+-	else
+-		vfree(memcg);
++	kfree(memcg);
+ 	return NULL;
+ }
+ 
+@@ -6444,7 +6432,6 @@ out_free:
+ static void __mem_cgroup_free(struct mem_cgroup *memcg)
+ {
+ 	int node;
+-	size_t size = memcg_size();
+ 
+ 	mem_cgroup_remove_from_trees(memcg);
+ 
+@@ -6465,10 +6452,7 @@ static void __mem_cgroup_free(struct mem
+ 	 * the cgroup_lock.
+ 	 */
+ 	disarm_static_keys(memcg);
+-	if (size < PAGE_SIZE)
+-		kfree(memcg);
+-	else
+-		vfree(memcg);
++	kfree(memcg);
  }
  
  /*
-+ * Isolate a page from LRU with optional get_page() pin.
-+ * Assumes lru_lock already held and page already pinned.
-+ */
-+static bool __munlock_isolate_lru_page(struct page *page, bool getpage)
-+{
-+	if (PageLRU(page)) {
-+		struct lruvec *lruvec;
-+
-+		lruvec = mem_cgroup_page_lruvec(page, page_zone(page));
-+		if (getpage)
-+			get_page(page);
-+		ClearPageLRU(page);
-+		del_page_from_lru_list(page, lruvec, page_lru(page));
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+/*
-  * Finish munlock after successful page isolation
-  *
-  * Page must be locked. This is a wrapper for try_to_munlock()
-@@ -126,9 +146,9 @@ static void __munlock_isolated_page(stru
- static void __munlock_isolation_failed(struct page *page)
- {
- 	if (PageUnevictable(page))
--		count_vm_event(UNEVICTABLE_PGSTRANDED);
-+		__count_vm_event(UNEVICTABLE_PGSTRANDED);
- 	else
--		count_vm_event(UNEVICTABLE_PGMUNLOCKED);
-+		__count_vm_event(UNEVICTABLE_PGMUNLOCKED);
- }
- 
- /**
-@@ -152,28 +172,34 @@ static void __munlock_isolation_failed(s
- unsigned int munlock_vma_page(struct page *page)
- {
- 	unsigned int nr_pages;
-+	struct zone *zone = page_zone(page);
- 
- 	BUG_ON(!PageLocked(page));
- 
--	if (TestClearPageMlocked(page)) {
--		nr_pages = hpage_nr_pages(page);
--		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
--		if (!isolate_lru_page(page))
--			__munlock_isolated_page(page);
--		else
--			__munlock_isolation_failed(page);
--	} else {
--		nr_pages = hpage_nr_pages(page);
--	}
--
- 	/*
--	 * Regardless of the original PageMlocked flag, we determine nr_pages
--	 * after touching the flag. This leaves a possible race with a THP page
--	 * split, such that a whole THP page was munlocked, but nr_pages == 1.
--	 * Returning a smaller mask due to that is OK, the worst that can
--	 * happen is subsequent useless scanning of the former tail pages.
--	 * The NR_MLOCK accounting can however become broken.
-+	 * Serialize with any parallel __split_huge_page_refcount() which
-+	 * might otherwise copy PageMlocked to part of the tail pages before
-+	 * we clear it in the head page. It also stabilizes hpage_nr_pages().
- 	 */
-+	spin_lock_irq(&zone->lru_lock);
-+
-+	nr_pages = hpage_nr_pages(page);
-+	if (!TestClearPageMlocked(page))
-+		goto unlock_out;
-+
-+	__mod_zone_page_state(zone, NR_MLOCK, -nr_pages);
-+
-+	if (__munlock_isolate_lru_page(page, true)) {
-+		spin_unlock_irq(&zone->lru_lock);
-+		__munlock_isolated_page(page);
-+		goto out;
-+	}
-+	__munlock_isolation_failed(page);
-+
-+unlock_out:
-+	spin_unlock_irq(&zone->lru_lock);
-+
-+out:
- 	return nr_pages - 1;
- }
- 
-@@ -310,34 +336,24 @@ static void __munlock_pagevec(struct pag
- 		struct page *page = pvec->pages[i];
- 
- 		if (TestClearPageMlocked(page)) {
--			struct lruvec *lruvec;
--			int lru;
--
--			if (PageLRU(page)) {
--				lruvec = mem_cgroup_page_lruvec(page, zone);
--				lru = page_lru(page);
--				/*
--				 * We already have pin from follow_page_mask()
--				 * so we can spare the get_page() here.
--				 */
--				ClearPageLRU(page);
--				del_page_from_lru_list(page, lruvec, lru);
--			} else {
--				__munlock_isolation_failed(page);
--				goto skip_munlock;
--			}
--
--		} else {
--skip_munlock:
- 			/*
--			 * We won't be munlocking this page in the next phase
--			 * but we still need to release the follow_page_mask()
--			 * pin. We cannot do it under lru_lock however. If it's
--			 * the last pin, __page_cache_release would deadlock.
-+			 * We already have pin from follow_page_mask()
-+			 * so we can spare the get_page() here.
- 			 */
--			pagevec_add(&pvec_putback, pvec->pages[i]);
--			pvec->pages[i] = NULL;
-+			if (__munlock_isolate_lru_page(page, false))
-+				continue;
-+			else
-+				__munlock_isolation_failed(page);
- 		}
-+
-+		/*
-+		 * We won't be munlocking this page in the next phase
-+		 * but we still need to release the follow_page_mask()
-+		 * pin. We cannot do it under lru_lock however. If it's
-+		 * the last pin, __page_cache_release() would deadlock.
-+		 */
-+		pagevec_add(&pvec_putback, pvec->pages[i]);
-+		pvec->pages[i] = NULL;
- 	}
- 	delta_munlocked = -nr + pagevec_count(&pvec_putback);
- 	__mod_zone_page_state(zone, NR_MLOCK, delta_munlocked);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
+mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
+mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
 
