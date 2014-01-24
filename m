@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- init-mainc-remove-unused-declaractions-of-mca_init-and-sbus_init.patch
- added to -mm tree
-Date: Fri, 24 Jan 2014 12:32:27 -0800
-Message-ID: <52e2cddb.WXZTvMUJXH3DBJER%akpm@linux-foundation.org>
+Subject: + ocfs2-do-not-log-enoent-in-unlink.patch added to -mm tree
+Date: Fri, 24 Jan 2014 12:34:33 -0800
+Message-ID: <52e2ce59.O6odfADNLNN3f4jf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44756 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44758 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751686AbaAXUc1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 15:32:27 -0500
+	with ESMTP id S1752530AbaAXUee (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 15:34:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hukangustc@gmail.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, joe.jin@oracle.com, jlbec@evilplan.org, xiaowei.hu@oracle.com
 
-Subject: + init-mainc-remove-unused-declaractions-of-mca_init-and-sbus_init.patch added to -mm tree
-To: hukangustc@gmail.com
+Subject: + ocfs2-do-not-log-enoent-in-unlink.patch added to -mm tree
+To: xiaowei.hu@oracle.com,jlbec@evilplan.org,joe.jin@oracle.com,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 12:32:27 -0800
+Date: Fri, 24 Jan 2014 12:34:33 -0800
 
 
 The patch titled
-     Subject: init/main.c: remove unused declaractions of mca_init() and sbus_init()
+     Subject: ocfs2: do not log ENOENT in unlink()
 has been added to the -mm tree.  Its filename is
-     init-mainc-remove-unused-declaractions-of-mca_init-and-sbus_init.patch
+     ocfs2-do-not-log-enoent-in-unlink.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-mainc-remove-unused-declaractions-of-mca_init-and-sbus_init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-log-enoent-in-unlink.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-remove-unused-declaractions-of-mca_init-and-sbus_init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-log-enoent-in-unlink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,35 +43,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kang Hu <hukangustc@gmail.com>
-Subject: init/main.c: remove unused declaractions of mca_init() and sbus_init()
+From: "Xiaowei.Hu" <xiaowei.hu@oracle.com>
+Subject: ocfs2: do not log ENOENT in unlink()
 
-mca_init() no longer exists.
-sbus_init() is defined in arch/sparc/kernel/sbus.c and is a subsys_initcall.
-both are not needed in main.c any more.
+Suppress log message like this: (open_delete,8328,0):ocfs2_unlink:951
+ERROR: status = -2
 
-Signed-off-by: Kang Hu <hukangustc@gmail.com>
+Orabug:17445485
+
+Cc: Joe Jin <joe.jin@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ocfs2/namei.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/main.c~init-mainc-remove-unused-declaractions-of-mca_init-and-sbus_init init/main.c
---- a/init/main.c~init-mainc-remove-unused-declaractions-of-mca_init-and-sbus_init
-+++ a/init/main.c
-@@ -92,8 +92,6 @@ static int kernel_init(void *);
+diff -puN fs/ocfs2/namei.c~ocfs2-do-not-log-enoent-in-unlink fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-do-not-log-enoent-in-unlink
++++ a/fs/ocfs2/namei.c
+@@ -948,7 +948,7 @@ leave:
+ 	ocfs2_free_dir_lookup_result(&orphan_insert);
+ 	ocfs2_free_dir_lookup_result(&lookup);
  
- extern void init_IRQ(void);
- extern void fork_init(unsigned long);
--extern void mca_init(void);
--extern void sbus_init(void);
- extern void radix_tree_init(void);
- #ifndef CONFIG_DEBUG_RODATA
- static inline void mark_rodata_ro(void) { }
+-	if (status && (status != -ENOTEMPTY))
++	if (status && (status != -ENOTEMPTY) && (status != -ENOENT))
+ 		mlog_errno(status);
+ 
+ 	return status;
 _
 
-Patches currently in -mm which might be from hukangustc@gmail.com are
+Patches currently in -mm which might be from xiaowei.hu@oracle.com are
 
-init-mainc-remove-unused-declaractions-of-mca_init-and-sbus_init.patch
+ocfs2-do-not-log-enoent-in-unlink.patch
 
