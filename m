@@ -1,46 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + revert-xxx.patch added to -mm tree
-Date: Fri, 24 Jan 2014 11:17:36 -0800
-Message-ID: <52e2bc50.72br1Wmndk5TwX2b%akpm@linux-foundation.org>
+Subject: [to-be-updated] revert-xxx.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 11:47:21 -0800
+Message-ID: <52e2c349.S8M+/fhvGCf7U56y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43949 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44085 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752094AbaAXTRh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:17:37 -0500
+	with ESMTP id S1752754AbaAXTrW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:47:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tj@kernel.org, santosh.shilimkar@ti.com, mingo@elte.hu, hpa@zytor.com, grygorii.strashko@ti.com, dave.hansen@intel.com, yinghai@kernel.org
 
-Subject: + revert-xxx.patch added to -mm tree
-To: yinghai@kernel.org,dave.hansen@intel.com,grygorii.strashko@ti.com,hpa@zytor.com,mingo@elte.hu,santosh.shilimkar@ti.com,tj@kernel.org
+Subject: [to-be-updated] revert-xxx.patch removed from -mm tree
+To: yinghai@kernel.org,dave.hansen@intel.com,grygorii.strashko@ti.com,hpa@zytor.com,mingo@elte.hu,santosh.shilimkar@ti.com,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:17:36 -0800
+Date: Fri, 24 Jan 2014 11:47:21 -0800
 
 
 The patch titled
      Subject: revert XXX
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      revert-xxx.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-xxx.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-xxx.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Yinghai Lu <yinghai@kernel.org>
@@ -152,6 +138,5 @@ _
 Patches currently in -mm which might be from yinghai@kernel.org are
 
 origin.patch
-revert-xxx.patch
 x86-fix-numa-by-reverting-wrong-memblock-setting.patch
 
