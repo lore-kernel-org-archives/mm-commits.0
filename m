@@ -1,101 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] conditionally-define-u32_max.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 11:00:21 -0800
-Message-ID: <52e2b845.Ca3kOeb1MnW/RJfD%akpm@linux-foundation.org>
+Subject: [merged]
+ include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 11:00:27 -0800
+Message-ID: <52e2b84b.Dp7KyGbbHOCWDeTR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43465 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43478 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340AbaAXTAV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:21 -0500
+	with ESMTP id S1752340AbaAXTA1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 14:00:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sage@inktank.com, elder@linaro.org, davem@davemloft.net, alex.elder@linaro.org
+To: mm-commits@vger.kernel.org, robh+dt@kernel.org, grant.likely@linaro.org, dhowells@redhat.com
 
-Subject: [merged] conditionally-define-u32_max.patch removed from -mm tree
-To: alex.elder@linaro.org,davem@davemloft.net,elder@linaro.org,sage@inktank.com,mm-commits@vger.kernel.org
+Subject: [merged] include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n.patch removed from -mm tree
+To: dhowells@redhat.com,grant.likely@linaro.org,robh+dt@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 11:00:21 -0800
+Date: Fri, 24 Jan 2014 11:00:27 -0800
 
 
 The patch titled
-     Subject: conditionally define U32_MAX
+     Subject: include/linux/of.h: make for_each_child_of_node() reference its args when CONFIG_OF=n
 has been removed from the -mm tree.  Its filename was
-     conditionally-define-u32_max.patch
+     include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Elder <alex.elder@linaro.org>
-Subject: conditionally define U32_MAX
+From: David Howells <dhowells@redhat.com>
+Subject: include/linux/of.h: make for_each_child_of_node() reference its args when CONFIG_OF=n
 
-The symbol U32_MAX is defined in several spots.  Change these definitions
-to be conditional.  This is in preparation for the next patch, which
-centralizes the definition in <linux/kernel.h>.
+Make for_each_child_of_node() reference its args when CONFIG_OF=n to avoid
+warnings like:
 
-Signed-off-by: Alex Elder <elder@linaro.org>
-Cc: Sage Weil <sage@inktank.com>
-Cc: David Miller <davem@davemloft.net>
+	drivers/leds/leds-pwm.c:88:22: warning: unused variable 'node' [-Wunused-variable]
+	  struct device_node *node = pdev->dev.of_node;
+			      ^
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <robh+dt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/reiserfs.h      |    2 ++
- include/linux/ceph/decode.h |    2 ++
- net/ipv4/tcp_illinois.c     |    2 ++
- 3 files changed, 6 insertions(+)
+ include/linux/of.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/reiserfs.h~conditionally-define-u32_max fs/reiserfs/reiserfs.h
---- a/fs/reiserfs/reiserfs.h~conditionally-define-u32_max
-+++ a/fs/reiserfs/reiserfs.h
-@@ -1958,7 +1958,9 @@ struct treepath var = {.path_length = IL
- #define MAX_US_INT 0xffff
+diff -puN include/linux/of.h~include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n include/linux/of.h
+--- a/include/linux/of.h~include-linux-ofh-make-for_each_child_of_node-reference-its-args-when-config_of=n
++++ a/include/linux/of.h
+@@ -377,8 +377,13 @@ static inline bool of_have_populated_dt(
+ 	return false;
+ }
  
- // reiserfs version 2 has max offset 60 bits. Version 1 - 32 bit offset
-+#ifndef U32_MAX
- #define U32_MAX (~(__u32)0)
-+#endif /* !U32_MAX */
++/* Kill an unused variable warning on a device_node pointer */
++static inline void __of_use_dn(const struct device_node *np)
++{
++}
++
+ #define for_each_child_of_node(parent, child) \
+-	while (0)
++	while (__of_use_dn(parent), __of_use_dn(child), 0)
  
- static inline loff_t max_reiserfs_offset(struct inode *inode)
- {
-diff -puN include/linux/ceph/decode.h~conditionally-define-u32_max include/linux/ceph/decode.h
---- a/include/linux/ceph/decode.h~conditionally-define-u32_max
-+++ a/include/linux/ceph/decode.h
-@@ -10,6 +10,7 @@
- 
- /* This seemed to be the easiest place to define these */
- 
-+#ifndef U32_MAX
- #define	U8_MAX	((u8)(~0U))
- #define	U16_MAX	((u16)(~0U))
- #define	U32_MAX	((u32)(~0U))
-@@ -24,6 +25,7 @@
- #define	S16_MIN	((s16)(-S16_MAX - 1))
- #define	S32_MIN	((s32)(-S32_MAX - 1))
- #define	S64_MIN	((s64)(-S64_MAX - 1LL))
-+#endif /* !U32_MAX */
- 
- /*
-  * in all cases,
-diff -puN net/ipv4/tcp_illinois.c~conditionally-define-u32_max net/ipv4/tcp_illinois.c
---- a/net/ipv4/tcp_illinois.c~conditionally-define-u32_max
-+++ a/net/ipv4/tcp_illinois.c
-@@ -23,7 +23,9 @@
- #define ALPHA_MIN	((3*ALPHA_SCALE)/10)	/* ~0.3 */
- #define ALPHA_MAX	(10*ALPHA_SCALE)	/* 10.0 */
- #define ALPHA_BASE	ALPHA_SCALE		/* 1.0 */
-+#ifndef U32_MAX
- #define U32_MAX		((u32)~0U)
-+#endif /* !U32_MAX */
- #define RTT_MAX		(U32_MAX / ALPHA_MAX)	/* 3.3 secs */
- 
- #define BETA_SHIFT	6
+ #define for_each_available_child_of_node(parent, child) \
+ 	while (0)
 _
 
-Patches currently in -mm which might be from alex.elder@linaro.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
+afs-proc-cells-and-rootcell-are-writeable.patch
 linux-next.patch
+mutex-subsystem-synchro-test-module.patch
 
