@@ -1,107 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-show-message-when-updating-min_free_kbytes-in-thp.patch removed from -mm tree
-Date: Fri, 24 Jan 2014 10:59:25 -0800
-Message-ID: <52e2b80d.Z5uO6DNxy167XNR3%akpm@linux-foundation.org>
+ mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch removed from -mm tree
+Date: Fri, 24 Jan 2014 10:59:23 -0800
+Message-ID: <52e2b80b.oT2J1juXHT9aht9G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43329 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43324 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbaAXS70 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:26 -0500
+	with ESMTP id S1752484AbaAXS7Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jan 2014 13:59:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, mgorman@suse.de, dave.hansen@intel.com, hanpt@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, wency@cn.fujitsu.com, travis@sgi.com, tangchen@cn.fujitsu.com, rafael.j.wysocki@intel.com, kamezawa.hiroyu@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, hedi@sgi.com, nzimmer@sgi.com
 
-Subject: [merged] mm-show-message-when-updating-min_free_kbytes-in-thp.patch removed from -mm tree
-To: hanpt@linux.vnet.ibm.com,dave.hansen@intel.com,mgorman@suse.de,mhocko@suse.cz,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch removed from -mm tree
+To: nzimmer@sgi.com,hedi@sgi.com,isimatu.yasuaki@jp.fujitsu.com,kamezawa.hiroyu@jp.fujitsu.com,rafael.j.wysocki@intel.com,tangchen@cn.fujitsu.com,travis@sgi.com,wency@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 24 Jan 2014 10:59:25 -0800
+Date: Fri, 24 Jan 2014 10:59:23 -0800
 
 
 The patch titled
-     Subject: mm: show message when updating min_free_kbytes in thp
+     Subject: mm/memory_hotplug.c: move register_memory_resource out of the lock_memory_hotplug
 has been removed from the -mm tree.  Its filename was
-     mm-show-message-when-updating-min_free_kbytes-in-thp.patch
+     mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Han Pingtian <hanpt@linux.vnet.ibm.com>
-Subject: mm: show message when updating min_free_kbytes in thp
+From: Nathan Zimmer <nzimmer@sgi.com>
+Subject: mm/memory_hotplug.c: move register_memory_resource out of the lock_memory_hotplug
 
-min_free_kbytes may be raised during THP's initialization.  Sometimes,
-this will change the value which was set by the user.  Showing this
-message will clarify this confusion.
+We don't need to do register_memory_resource() under lock_memory_hotplug()
+since it has its own lock and doesn't make any callbacks.
 
-Only show this message when changing a value which was set by the user
-according to Michal Hocko's suggestion.
+Also register_memory_resource return NULL on failure so we don't have
+anything to cleanup at this point.
 
-Show the old value of min_free_kbytes according to Dave Hansen's
-suggestion.  This will give user the chance to restore old value of
-min_free_kbytes.
+The reason for this rfc is I was doing some experiments with hotplugging
+of memory on some of our larger systems.  While it seems to work, it can
+be quite slow.  With some preliminary digging I found that
+lock_memory_hotplug is clearly ripe for breakup.
 
-Signed-off-by: Han Pingtian <hanpt@linux.vnet.ibm.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
+It could be broken up per nid or something but it also covers the
+online_page_callback.  The online_page_callback shouldn't be very hard to
+break out.
+
+Also there is the issue of various structures(wmarks come to mind) that are
+only updated under the lock_memory_hotplug that would need to be dealt with.
+
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Hedi <hedi@sgi.com>
+Cc: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 +++++++-
- mm/internal.h    |    1 +
- mm/page_alloc.c  |    2 +-
- 3 files changed, 9 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-show-message-when-updating-min_free_kbytes-in-thp mm/huge_memory.c
---- a/mm/huge_memory.c~mm-show-message-when-updating-min_free_kbytes-in-thp
-+++ a/mm/huge_memory.c
-@@ -130,8 +130,14 @@ static int set_recommended_min_free_kbyt
- 			      (unsigned long) nr_free_buffer_pages() / 20);
- 	recommended_min <<= (PAGE_SHIFT-10);
+diff -puN mm/memory_hotplug.c~mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplugc-move-register_memory_resource-out-of-the-lock_memory_hotplug
++++ a/mm/memory_hotplug.c
+@@ -1107,17 +1107,18 @@ int __ref add_memory(int nid, u64 start,
+ 	if (ret)
+ 		return ret;
  
--	if (recommended_min > min_free_kbytes)
-+	if (recommended_min > min_free_kbytes) {
-+		if (user_min_free_kbytes >= 0)
-+			pr_info("raising min_free_kbytes from %d to %lu "
-+				"to help transparent hugepage allocations\n",
-+				min_free_kbytes, recommended_min);
-+
- 		min_free_kbytes = recommended_min;
-+	}
- 	setup_per_zone_wmarks();
- 	return 0;
- }
-diff -puN mm/internal.h~mm-show-message-when-updating-min_free_kbytes-in-thp mm/internal.h
---- a/mm/internal.h~mm-show-message-when-updating-min_free_kbytes-in-thp
-+++ a/mm/internal.h
-@@ -99,6 +99,7 @@ extern void prep_compound_page(struct pa
- #ifdef CONFIG_MEMORY_FAILURE
- extern bool is_free_buddy_page(struct page *page);
- #endif
-+extern int user_min_free_kbytes;
- 
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
- 
-diff -puN mm/page_alloc.c~mm-show-message-when-updating-min_free_kbytes-in-thp mm/page_alloc.c
---- a/mm/page_alloc.c~mm-show-message-when-updating-min_free_kbytes-in-thp
-+++ a/mm/page_alloc.c
-@@ -205,7 +205,7 @@ static char * const zone_names[MAX_NR_ZO
- };
- 
- int min_free_kbytes = 1024;
--int user_min_free_kbytes;
-+int user_min_free_kbytes = -1;
- 
- static unsigned long __meminitdata nr_kernel_pages;
- static unsigned long __meminitdata nr_all_pages;
-_
-
-Patches currently in -mm which might be from hanpt@linux.vnet.ibm.com are
-
-origin.patch
-
+-	lock_memory_hotplug();
