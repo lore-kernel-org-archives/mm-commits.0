@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2.patch added
- to -mm tree
-Date: Mon, 27 Jan 2014 15:02:40 -0800
-Message-ID: <52e6e590.zV0du0nGWHx4UfWl%akpm@linux-foundation.org>
+ ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch added to -mm tree
+Date: Mon, 27 Jan 2014 15:06:27 -0800
+Message-ID: <52e6e673.St0uX4+xxhETT+x6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37049 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413AbaA0XCl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jan 2014 18:02:41 -0500
+	with ESMTP id S1753861AbaA0XG2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jan 2014 18:06:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vdavydov@parallels.com, penberg@kernel.org, davej@redhat.com, cl@linux.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, wangzongxun@huawei.com, mfasheh@suse.com, lizefan@huawei.com, joseph.qi@huawei.com, jlbec@evilplan.org, akpm@linux-foundation.org
 
-Subject: + slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2.patch added to -mm tree
-To: rientjes@google.com,cl@linux.com,davej@redhat.com,penberg@kernel.org,vdavydov@parallels.com
+Subject: + ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,jlbec@evilplan.org,joseph.qi@huawei.com,lizefan@huawei.com,mfasheh@suse.com,wangzongxun@huawei.com
 From: akpm@linux-foundation.org
-Date: Mon, 27 Jan 2014 15:02:40 -0800
+Date: Mon, 27 Jan 2014 15:06:27 -0800
 
 
 The patch titled
-     Subject: slab: fix wrong retval on kmem_cache_create_memcg error path
+     Subject: ocfs2: correctly update i_used in ocfs2_free_local_alloc_bits
 has been added to the -mm tree.  Its filename is
-     slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2.patch
+     ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,103 +44,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: slab: fix wrong retval on kmem_cache_create_memcg error path
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2: correctly update i_used in ocfs2_free_local_alloc_bits
 
-On kmem_cache_create_memcg() error path we set 'err', but leave 's' (the
-new cache ptr) undefined.  The latter can be NULL if we could not allocate
-the cache, or pointing to a freed area if we failed somewhere later while
-trying to initialize it.  Initially we checked 'err' immediately before
-exiting the function and returned NULL if it was set ignoring the value of
-'s':
+We should note down num of bits to be freed, so as to update i_used
+correspondingly after clearing those bits in bitmap.
 
-    out_unlock:
-        ...
-        if (err) {
-            /* report error */
-            return NULL;
-        }
-        return s;
-
-Recently this check was, in fact, broken by commit f717eb3abb5e ("slab: do
-not panic if we fail to create memcg cache"), which turned it to:
-
-    out_unlock:
-        ...
-        if (err && !memcg) {
-            /* report error */
-            return NULL;
-        }
-        return s;
-
-As a result, if we are failing creating a cache for a memcg, we will skip
-the check and return 's' that can contain crap.  Obviously, commit
-f717eb3abb5e intended not to return crap on error allocating a cache for a
-memcg, but only to remove the error reporting in this case, so the check
-should look like this:
-
-    out_unlock:
-        ...
-        if (err) {
-            if (!memcg)
-                return NULL;
-            /* report error */
-            return NULL;
-        }
-        return s;
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Reported-by: Dave Jones <davej@redhat.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Zongxun Wang <wangzongxun@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Li Zefan <lizefan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ fs/ocfs2/localalloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/slab_common.c~slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2 mm/slab_common.c
---- a/mm/slab_common.c~slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2
-+++ a/mm/slab_common.c
-@@ -233,14 +233,17 @@ out_unlock:
- 	mutex_unlock(&slab_mutex);
- 	put_online_cpus();
+diff -puN fs/ocfs2/localalloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix fs/ocfs2/localalloc.c
+--- a/fs/ocfs2/localalloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix
++++ a/fs/ocfs2/localalloc.c
+@@ -788,6 +788,7 @@ int ocfs2_free_local_alloc_bits(struct o
+ 				u32 num_bits)
+ {
+ 	int status, start;
++	u32 clear_bits;
+ 	struct inode *local_alloc_inode;
+ 	void *bitmap;
+ 	struct ocfs2_dinode *alloc;
+@@ -801,6 +802,7 @@ int ocfs2_free_local_alloc_bits(struct o
  
--	/*
--	 * There is no point in flooding logs with warnings or especially
--	 * crashing the system if we fail to create a cache for a memcg. In
--	 * this case we will be accounting the memcg allocation to the root
--	 * cgroup until we succeed to create its own cache, but it isn't that
--	 * critical.
--	 */
--	if (err && !memcg) {
-+	if (err) {
-+		/*
-+		 * There is no point in flooding logs with warnings or
-+		 * especially crashing the system if we fail to create a cache
-+		 * for a memcg. In this case we will be accounting the memcg
-+		 * allocation to the root cgroup until we succeed to create its
-+		 * own cache, but it isn't that critical.
-+		 */
-+		if (!memcg)
-+			return NULL;
-+
- 		if (flags & SLAB_PANIC)
- 			panic("kmem_cache_create: Failed to create slab '%s'. Error %d\n",
- 				name, err);
+ 	bitmap = la->la_bitmap;
+ 	start = bit_off - le32_to_cpu(la->la_bm_off);
++	clear_bits = num_bits;
+ 
+ 	status = ocfs2_journal_access_di(handle,
+ 			INODE_CACHE(local_alloc_inode),
+@@ -811,7 +813,7 @@ int ocfs2_free_local_alloc_bits(struct o
+ 		goto bail;
+ 	}
+ 
+-	while (num_bits--)
++	while (clear_bits--)
+ 		ocfs2_clear_bit(start++, bitmap);
+ 
+ 	le32_add_cpu(&alloc->id1.bitmap1.i_used, -num_bits);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
-slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2.patch
-arch-x86-mm-sratc-skip-numa_no_node-while-parsing-slit.patch
-mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
-memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
-mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
-cpusets-allocate-heap-only-when-required.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix.patch
+lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null.patch
+mm-document-improved-handling-of-swappiness==0-fix.patch
+mm-mempolicyc-convert-to-pr_foo.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch
+mm.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
+ipcmsg-document-barriers-fix.patch
+ipcmsg-document-barriers-fix-fix.patch
 linux-next.patch
-firmware-google-drop-select-efi-to-avoid-recursive-dependency.patch
+linux-next-git-rejects.patch
+block-blk-mq-cpuc-use-hotcpu_notifier.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
