@@ -1,106 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + fs-compat-fix-lookup_dcookie-parameter-handling.patch added to
- -mm tree
-Date: Mon, 27 Jan 2014 14:49:50 -0800
-Message-ID: <52e6e28e.uYu++uv03K07Kc0J%akpm__15841.5839229294$1390863011$gmane$org@linux-foundation.org>
+Subject: [alternative-merged]
+ slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path.patch removed
+ from -mm tree
+Date: Mon, 27 Jan 2014 15:01:45 -0800
+Message-ID: <52e6e559.pDz72LHlpSBVtO8+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36993 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37042 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754341AbaA0Wtv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jan 2014 17:49:51 -0500
+	with ESMTP id S1753826AbaA0XBq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jan 2014 18:01:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, schwidefsky@de.ibm.com, mingo@kernel.org, hpa@zytor.com, brueckner@linux.vnet.ibm.com, heiko.carstens@de.ibm.com
+To: mm-commits@vger.kernel.org, vdavydov@parallels.com, penberg@kernel.org, cl@linux.com, davej@redhat.com
 
-Subject: + fs-compat-fix-lookup_dcookie-parameter-handling.patch added to -mm tree
-To: heiko.carstens@de.ibm.com,brueckner@linux.vnet.ibm.com,hpa@zytor.com,mingo@kernel.org,schwidefsky@de.ibm.com,stable@vger.kernel.org,viro@zeniv.linux.org.uk
+Subject: [alternative-merged] slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path.patch removed from -mm tree
+To: davej@redhat.com,cl@linux.com,penberg@kernel.org,vdavydov@parallels.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 27 Jan 2014 14:49:50 -0800
+Date: Mon, 27 Jan 2014 15:01:45 -0800
 
 
 The patch titled
-     Subject: fs/compat: fix lookup_dcookie() parameter handling
-has been added to the -mm tree.  Its filename is
-     fs-compat-fix-lookup_dcookie-parameter-handling.patch
+     Subject: slab: fix wrong retval on kmem_cache_create_memcg error path
+has been removed from the -mm tree.  Its filename was
+     slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-compat-fix-lookup_dcookie-parameter-handling.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-compat-fix-lookup_dcookie-parameter-handling.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: fs/compat: fix lookup_dcookie() parameter handling
+From: Dave Jones <davej@redhat.com>
+Subject: slab: fix wrong retval on kmem_cache_create_memcg error path
 
-d5dc77bfeeab0 "consolidate compat lookup_dcookie()" coverted all
-architectures to the new compat_sys_lookup_dcookie() syscall.
+On kmem_cache_create_memcg() error path we set 'err', but leave 's' (the
+new cache ptr) undefined.  The latter can be NULL if we could not allocate
+the cache, or pointing to a freed area if we failed somewhere later while
+trying to initialize it.  Initially we checked 'err' immediately before
+exiting the function and returned NULL if it was set ignoring the value of
+'s':
 
-The "len" paramater of the new compat syscall must have the type
-compat_size_t in order to enforce zero extension for architectures where
-the ABI requires that the caller of a function performed zero and/or sign
-extension to 64 bit of all parameters.
+    out_unlock:
+        ...
+        if (err) {
+            ...
+            return NULL;
+        }
+        return s;
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: <stable@vger.kernel.org>	[v3.10+]
+Recently this check was, in fact, broken by commit f717eb3abb5e ("slab: do
+not panic if we fail to create memcg cache"), which turned it to:
+
+    out_unlock:
+        ...
+        if (err && !memcg) {
+            ...
+            return NULL;
+        }
+        return s;
+
+As a result, if we are failing creating a cache for a memcg, we will skip
+the check and return 's' that can contain crap.  Let's fix it by assuring
+that on error path there are always two conditions satisfied at the same
+time, err != 0 and s == NULL, by explicitly zeroing 's' after freeing it
+on error path.
+
+Signed-off-by: Dave Jones <davej@redhat.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcookies.c          |    2 +-
- include/linux/compat.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/slab_common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dcookies.c~fs-compat-fix-lookup_dcookie-parameter-handling fs/dcookies.c
---- a/fs/dcookies.c~fs-compat-fix-lookup_dcookie-parameter-handling
-+++ a/fs/dcookies.c
-@@ -204,7 +204,7 @@ out:
+diff -puN mm/slab_common.c~slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path mm/slab_common.c
+--- a/mm/slab_common.c~slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path
++++ a/mm/slab_common.c
+@@ -249,7 +249,6 @@ out_unlock:
+ 				name, err);
+ 			dump_stack();
+ 		}
+-		return NULL;
+ 	}
+ 	return s;
+ 
+@@ -257,6 +256,7 @@ out_free_cache:
+ 	memcg_free_cache_params(s);
+ 	kfree(s->name);
+ 	kmem_cache_free(kmem_cache, s);
++	s = NULL;
+ 	goto out_unlock;
  }
  
- #ifdef CONFIG_COMPAT
--COMPAT_SYSCALL_DEFINE4(lookup_dcookie, u32, w0, u32, w1, char __user *, buf, size_t, len)
-+COMPAT_SYSCALL_DEFINE4(lookup_dcookie, u32, w0, u32, w1, char __user *, buf, compat_size_t, len)
- {
- #ifdef __BIG_ENDIAN
- 	return sys_lookup_dcookie(((u64)w0 << 32) | w1, buf, len);
-diff -puN include/linux/compat.h~fs-compat-fix-lookup_dcookie-parameter-handling include/linux/compat.h
---- a/include/linux/compat.h~fs-compat-fix-lookup_dcookie-parameter-handling
-+++ a/include/linux/compat.h
-@@ -422,7 +422,7 @@ extern long compat_arch_ptrace(struct ta
- asmlinkage long compat_sys_ptrace(compat_long_t request, compat_long_t pid,
- 				  compat_long_t addr, compat_long_t data);
- 
--asmlinkage long compat_sys_lookup_dcookie(u32, u32, char __user *, size_t);
-+asmlinkage long compat_sys_lookup_dcookie(u32, u32, char __user *, compat_size_t);
- /*
-  * epoll (fs/eventpoll.c) compat bits follow ...
-  */
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
-fs-compat-fix-parameter-handling-for-compat-readv-writev-syscalls.patch
-fs-compat-fix-lookup_dcookie-parameter-handling.patch
-s390-compat-change-parameter-types-from-unsigned-long-to-compat_ulong_t.patch
-linux-next.patch
-compat-fix-sys_fanotify_mark.patch
 
