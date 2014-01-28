@@ -1,62 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix.patch removed from -mm tree
-Date: Mon, 27 Jan 2014 16:54:55 -0800
-Message-ID: <52e6ffdf.AReJ7LnZ8BUgE32u%akpm@linux-foundation.org>
+ ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch removed from
+ -mm tree
+Date: Mon, 27 Jan 2014 16:55:24 -0800
+Message-ID: <52e6fffc.Kpzw4FclOdO0Igke%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37798 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37803 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753428AbaA1Ay4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jan 2014 19:54:56 -0500
+	with ESMTP id S1753949AbaA1AzZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jan 2014 19:55:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xypron.glpk@gmx.de, paul.gortmaker@windriver.com, gxt@mprc.pku.edu.cn, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, pmladek@suse.cz, manfred@colorfullife.com, jkosina@suse.cz, davidlohr@hp.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,gxt@mprc.pku.edu.cn,paul.gortmaker@windriver.com,xypron.glpk@gmx.de,mm-commits@vger.kernel.org
+Subject: [folded-merged] ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,davidlohr@hp.com,jkosina@suse.cz,manfred@colorfullife.com,pmladek@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 27 Jan 2014 16:54:55 -0800
+Date: Mon, 27 Jan 2014 16:55:24 -0800
 
 
 The patch titled
-     Subject: arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix
+     Subject: ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix
 has been removed from the -mm tree.  Its filename was
-     arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix.patch
+     ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix.patch
 
-This patch was dropped because it was folded into arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization.patch
+This patch was dropped because it was folded into ipc-semc-avoid-overflow-of-semop-undo-semadj-value.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix
+Subject: ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix
 
-simplify code.
+restore lessened scope of local `undo'
 
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Petr Mladek <pmladek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/kernel/early_printk.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ ipc/sem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/unicore32/kernel/early_printk.c~arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix arch/unicore32/kernel/early_printk.c
---- a/arch/unicore32/kernel/early_printk.c~arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix
-+++ a/arch/unicore32/kernel/early_printk.c
-@@ -35,17 +35,11 @@ static struct console early_ocd_console
- 
- static int __init setup_early_printk(char *buf)
+diff -puN ipc/sem.c~ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-avoid-overflow-of-semop-undo-semadj-value-fix
++++ a/ipc/sem.c
+@@ -599,7 +599,7 @@ SYSCALL_DEFINE3(semget, key_t, key, int,
+ static int perform_atomic_semop(struct sem_array *sma, struct sembuf *sops,
+ 			     int nsops, struct sem_undo *un, int pid)
  {
--	int keep_early = 0;
--
- 	if (!buf || early_console)
- 		return 0;
+-	int result, undo, sem_op;
++	int result, sem_op;
+ 	struct sembuf *sop;
+ 	struct sem * curr;
  
--	if (strstr(buf, "keep"))
--		keep_early = 1;
--
- 	early_console = &early_ocd_console;
+@@ -618,7 +618,7 @@ static int perform_atomic_semop(struct s
+ 			goto out_of_range;
+ 
+ 		if (sop->sem_flg & SEM_UNDO) {
+-			undo = un->semadj[sop->sem_num] - sem_op;
++			int undo = un->semadj[sop->sem_num] - sem_op;
+ 			/* Exceeding the undo range is an error. */
+ 			if (undo < (-SEMAEM - 1) || undo > SEMAEM)
+ 				goto out_of_range;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization.patch
+ipc-semc-avoid-overflow-of-semop-undo-semadj-value.patch
+ipcmsg-document-barriers-fix.patch
+ipcmsg-document-barriers-fix-fix.patch
+
