@@ -1,66 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] ipcmsg-document-barriers-fix-fix.patch removed
- from -mm tree
-Date: Mon, 27 Jan 2014 16:56:13 -0800
-Message-ID: <52e7002d.eJzXemB4Tv2XClRl%akpm@linux-foundation.org>
+Subject: [merged] memblock-nobootmem-add-memblock_virt_alloc_low.patch
+ removed from -mm tree
+Date: Tue, 28 Jan 2014 11:09:00 -0800
+Message-ID: <52e8004c.aqwScSNUtJKEud17%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37816 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45442 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753929AbaA1A4O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jan 2014 19:56:14 -0500
+	with ESMTP id S1754321AbaA1TJC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:09:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, davidlohr@hp.com, bitbucket@online.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, santosh.shilimkar@ti.com, mingo@elte.hu, linux@arm.linux.org.uk, konrad.wilk@oracle.com, hpa@zytor.com, dave.hansen@intel.com, yinghai@kernel.org
 
-Subject: [folded-merged] ipcmsg-document-barriers-fix-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,bitbucket@online.de,davidlohr@hp.com,mm-commits@vger.kernel.org
+Subject: [merged] memblock-nobootmem-add-memblock_virt_alloc_low.patch removed from -mm tree
+To: yinghai@kernel.org,dave.hansen@intel.com,hpa@zytor.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mingo@elte.hu,santosh.shilimkar@ti.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 27 Jan 2014 16:56:13 -0800
+Date: Tue, 28 Jan 2014 11:09:00 -0800
 
 
 The patch titled
-     Subject: ipcmsg-document-barriers-fix-fix
+     Subject: memblock, nobootmem: add memblock_virt_alloc_low()
 has been removed from the -mm tree.  Its filename was
-     ipcmsg-document-barriers-fix-fix.patch
+     memblock-nobootmem-add-memblock_virt_alloc_low.patch
 
-This patch was dropped because it was folded into ipcmsg-document-barriers.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipcmsg-document-barriers-fix-fix
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: memblock, nobootmem: add memblock_virt_alloc_low()
 
-mroe tpyos
+The new memblock_virt APIs are used to replaced old bootmem API.
 
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Mike Galbraith <bitbucket@online.de>
+We need to allocate page below 4G for swiotlb.
+
+That should fix regression on Andrew's system that is using swiotlb.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/kernel/setup.c |    2 +-
+ include/linux/bootmem.h |   37 +++++++++++++++++++++++++++++++++++++
+ lib/swiotlb.c           |    4 ++--
+ 3 files changed, 40 insertions(+), 3 deletions(-)
 
-diff -puN ipc/msg.c~ipcmsg-document-barriers-fix-fix ipc/msg.c
---- a/ipc/msg.c~ipcmsg-document-barriers-fix-fix
-+++ a/ipc/msg.c
-@@ -657,7 +657,7 @@ static inline int pipelined_send(struct
- 				/*
- 				 * Ensure that the wakeup is visible before
- 				 * setting r_msg, as the receiving end depends
--				 * on it. See lockless reveice part 1 and 2 in
-+				 * on it. See lockless receive part 1 and 2 in
- 				 * do_msgrcv().
- 				 */
- 				smp_mb();
+diff -puN arch/arm/kernel/setup.c~memblock-nobootmem-add-memblock_virt_alloc_low arch/arm/kernel/setup.c
+--- a/arch/arm/kernel/setup.c~memblock-nobootmem-add-memblock_virt_alloc_low
++++ a/arch/arm/kernel/setup.c
+@@ -731,7 +731,7 @@ static void __init request_standard_reso
+ 	kernel_data.end     = virt_to_phys(_end - 1);
+ 
+ 	for_each_memblock(memory, region) {
+-		res = memblock_virt_alloc(sizeof(*res), 0);
++		res = memblock_virt_alloc_low(sizeof(*res), 0);
+ 		res->name  = "System RAM";
+ 		res->start = __pfn_to_phys(memblock_region_memory_base_pfn(region));
+ 		res->end = __pfn_to_phys(memblock_region_memory_end_pfn(region)) - 1;
+diff -puN include/linux/bootmem.h~memblock-nobootmem-add-memblock_virt_alloc_low include/linux/bootmem.h
+--- a/include/linux/bootmem.h~memblock-nobootmem-add-memblock_virt_alloc_low
++++ a/include/linux/bootmem.h
+@@ -175,6 +175,27 @@ static inline void * __init memblock_vir
+ 						    NUMA_NO_NODE);
+ }
+ 
++#ifndef ARCH_LOW_ADDRESS_LIMIT
++#define ARCH_LOW_ADDRESS_LIMIT  0xffffffffUL
++#endif
++
++static inline void * __init memblock_virt_alloc_low(
++					phys_addr_t size, phys_addr_t align)
++{
++	return memblock_virt_alloc_try_nid(size, align,
++						   BOOTMEM_LOW_LIMIT,
++						   ARCH_LOW_ADDRESS_LIMIT,
++						   NUMA_NO_NODE);
++}
++static inline void * __init memblock_virt_alloc_low_nopanic(
++					phys_addr_t size, phys_addr_t align)
++{
++	return memblock_virt_alloc_try_nid_nopanic(size, align,
++						   BOOTMEM_LOW_LIMIT,
++						   ARCH_LOW_ADDRESS_LIMIT,
++						   NUMA_NO_NODE);
++}
++
+ static inline void * __init memblock_virt_alloc_from_nopanic(
+ 		phys_addr_t size, phys_addr_t align, phys_addr_t min_addr)
+ {
+@@ -238,6 +259,22 @@ static inline void * __init memblock_vir
+ 	return __alloc_bootmem_nopanic(size, align, BOOTMEM_LOW_LIMIT);
+ }
+ 
++static inline void * __init memblock_virt_alloc_low(
++					phys_addr_t size, phys_addr_t align)
++{
++	if (!align)
++		align = SMP_CACHE_BYTES;
++	return __alloc_bootmem_low(size, align, BOOTMEM_LOW_LIMIT);
++}
++
++static inline void * __init memblock_virt_alloc_low_nopanic(
++					phys_addr_t size, phys_addr_t align)
++{
++	if (!align)
++		align = SMP_CACHE_BYTES;
++	return __alloc_bootmem_low_nopanic(size, align, BOOTMEM_LOW_LIMIT);
++}
++
+ static inline void * __init memblock_virt_alloc_from_nopanic(
+ 		phys_addr_t size, phys_addr_t align, phys_addr_t min_addr)
+ {
+diff -puN lib/swiotlb.c~memblock-nobootmem-add-memblock_virt_alloc_low lib/swiotlb.c
+--- a/lib/swiotlb.c~memblock-nobootmem-add-memblock_virt_alloc_low
++++ a/lib/swiotlb.c
+@@ -172,7 +172,7 @@ int __init swiotlb_init_with_tbl(char *t
+ 	/*
+ 	 * Get the overflow emergency buffer
+ 	 */
+-	v_overflow_buffer = memblock_virt_alloc_nopanic(
++	v_overflow_buffer = memblock_virt_alloc_low_nopanic(
+ 						PAGE_ALIGN(io_tlb_overflow),
+ 						PAGE_SIZE);
+ 	if (!v_overflow_buffer)
+@@ -220,7 +220,7 @@ swiotlb_init(int verbose)
+ 	bytes = io_tlb_nslabs << IO_TLB_SHIFT;
+ 
+ 	/* Get IO TLB memory from the low pages */
+-	vstart = memblock_virt_alloc_nopanic(PAGE_ALIGN(bytes), PAGE_SIZE);
++	vstart = memblock_virt_alloc_low_nopanic(PAGE_ALIGN(bytes), PAGE_SIZE);
+ 	if (vstart && !swiotlb_init_with_tbl(vstart, io_tlb_nslabs, verbose))
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
 origin.patch
-arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization.patch
-ipc-semc-avoid-overflow-of-semop-undo-semadj-value.patch
-ipcmsg-document-barriers.patch
+linux-next.patch
 
