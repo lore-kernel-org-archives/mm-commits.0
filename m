@@ -1,240 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races.patch
+Subject: [merged] ipc-change-kern_ipc_permdeleted-type-to-bool.patch
  removed from -mm tree
-Date: Tue, 28 Jan 2014 11:09:25 -0800
-Message-ID: <52e80065.KlkDuEXhHztqZTXZ%akpm@linux-foundation.org>
+Date: Tue, 28 Jan 2014 11:09:27 -0800
+Message-ID: <52e80067.Z2BI15Y1e5vydeCg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45498 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755143AbaA1TJ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:09:26 -0500
+	with ESMTP id S1755143AbaA1TJ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:09:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, manfred@colorfullife.com, gthelen@google.com, davidlohr@hp.com, aquini@redhat.com
 
-Subject: [merged] ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races.patch removed from -mm tree
+Subject: [merged] ipc-change-kern_ipc_permdeleted-type-to-bool.patch removed from -mm tree
 To: aquini@redhat.com,davidlohr@hp.com,gthelen@google.com,manfred@colorfullife.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 Jan 2014 11:09:25 -0800
+Date: Tue, 28 Jan 2014 11:09:27 -0800
 
 
 The patch titled
-     Subject: ipc: introduce ipc_valid_object() helper to sort out IPC_RMID races
+     Subject: ipc: change kern_ipc_perm.deleted type to bool
 has been removed from the -mm tree.  Its filename was
-     ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races.patch
+     ipc-change-kern_ipc_permdeleted-type-to-bool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rafael Aquini <aquini@redhat.com>
-Subject: ipc: introduce ipc_valid_object() helper to sort out IPC_RMID races
+Subject: ipc: change kern_ipc_perm.deleted type to bool
 
-After the locking semantics for the SysV IPC API got improved, a couple of
-IPC_RMID race windows were opened because we ended up dropping the
-'kern_ipc_perm.deleted' check performed way down in ipc_lock().  The
-spotted races got sorted out by re-introducing the old test within the
-racy critical sections.
-
-This patch introduces ipc_valid_object() to consolidate the way we cope
-with IPC_RMID races by using the same abstraction across the API
-implementation.
+struct kern_ipc_perm.deleted is meant to be used as a boolean toggle, and
+the changes introduced by this patch are just to make the case explicit.
 
 Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Greg Thelen <gthelen@google.com>
-Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Greg Thelen <gthelen@google.com>
+Acked-by: Davidlohr Bueso <davidlohr@hp.com>
 Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |    7 ++++---
- ipc/sem.c  |   24 ++++++++++++++++--------
- ipc/shm.c  |   16 ++++++++--------
- ipc/util.h |   13 +++++++++++++
- 4 files changed, 41 insertions(+), 19 deletions(-)
+ include/linux/ipc.h |    2 +-
+ ipc/sem.c           |    2 +-
+ ipc/util.c          |    6 +++---
+ ipc/util.h          |    2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN ipc/msg.c~ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races ipc/msg.c
---- a/ipc/msg.c~ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races
-+++ a/ipc/msg.c
-@@ -696,7 +696,7 @@ long do_msgsnd(int msqid, long mtype, vo
- 			goto out_unlock0;
- 
- 		/* raced with RMID? */
--		if (msq->q_perm.deleted) {
-+		if (!ipc_valid_object(&msq->q_perm)) {
- 			err = -EIDRM;
- 			goto out_unlock0;
- 		}
-@@ -731,7 +731,8 @@ long do_msgsnd(int msqid, long mtype, vo
- 		ipc_lock_object(&msq->q_perm);
- 
- 		ipc_rcu_putref(msq, ipc_rcu_free);
--		if (msq->q_perm.deleted) {
-+		/* raced with RMID? */
-+		if (!ipc_valid_object(&msq->q_perm)) {
- 			err = -EIDRM;
- 			goto out_unlock0;
- 		}
-@@ -909,7 +910,7 @@ long do_msgrcv(int msqid, void __user *b
- 		ipc_lock_object(&msq->q_perm);
- 
- 		/* raced with RMID? */
--		if (msq->q_perm.deleted) {
-+		if (!ipc_valid_object(&msq->q_perm)) {
- 			msg = ERR_PTR(-EIDRM);
- 			goto out_unlock0;
- 		}
-diff -puN ipc/sem.c~ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races ipc/sem.c
---- a/ipc/sem.c~ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races
+diff -puN include/linux/ipc.h~ipc-change-kern_ipc_permdeleted-type-to-bool include/linux/ipc.h
+--- a/include/linux/ipc.h~ipc-change-kern_ipc_permdeleted-type-to-bool
++++ a/include/linux/ipc.h
+@@ -11,7 +11,7 @@
+ struct kern_ipc_perm
+ {
+ 	spinlock_t	lock;
+-	int		deleted;
++	bool		deleted;
+ 	int		id;
+ 	key_t		key;
+ 	kuid_t		uid;
+diff -puN ipc/sem.c~ipc-change-kern_ipc_permdeleted-type-to-bool ipc/sem.c
+--- a/ipc/sem.c~ipc-change-kern_ipc_permdeleted-type-to-bool
 +++ a/ipc/sem.c
-@@ -1284,7 +1284,7 @@ static int semctl_setval(struct ipc_name
+@@ -394,7 +394,7 @@ static inline struct sem_array *sem_obta
+ 	/* ipc_rmid() may have already freed the ID while sem_lock
+ 	 * was spinning: verify that the structure is still valid
+ 	 */
+-	if (!ipcp->deleted)
++	if (ipc_valid_object(ipcp))
+ 		return container_of(ipcp, struct sem_array, sem_perm);
  
- 	sem_lock(sma, NULL, -1);
+ 	sem_unlock(sma, *locknum);
+diff -puN ipc/util.c~ipc-change-kern_ipc_permdeleted-type-to-bool ipc/util.c
+--- a/ipc/util.c~ipc-change-kern_ipc_permdeleted-type-to-bool
++++ a/ipc/util.c
+@@ -286,7 +286,7 @@ int ipc_addid(struct ipc_ids* ids, struc
+ 	idr_preload(GFP_KERNEL);
  
--	if (sma->sem_perm.deleted) {
-+	if (!ipc_valid_object(&sma->sem_perm)) {
- 		sem_unlock(sma, -1);
- 		rcu_read_unlock();
- 		return -EIDRM;
-@@ -1344,7 +1344,7 @@ static int semctl_main(struct ipc_namesp
- 		int i;
- 
- 		sem_lock(sma, NULL, -1);
--		if (sma->sem_perm.deleted) {
-+		if (!ipc_valid_object(&sma->sem_perm)) {
- 			err = -EIDRM;
- 			goto out_unlock;
- 		}
-@@ -1363,7 +1363,7 @@ static int semctl_main(struct ipc_namesp
- 
- 			rcu_read_lock();
- 			sem_lock_and_putref(sma);
--			if (sma->sem_perm.deleted) {
-+			if (!ipc_valid_object(&sma->sem_perm)) {
- 				err = -EIDRM;
- 				goto out_unlock;
- 			}
-@@ -1411,7 +1411,7 @@ static int semctl_main(struct ipc_namesp
- 		}
- 		rcu_read_lock();
- 		sem_lock_and_putref(sma);
--		if (sma->sem_perm.deleted) {
-+		if (!ipc_valid_object(&sma->sem_perm)) {
- 			err = -EIDRM;
- 			goto out_unlock;
- 		}
-@@ -1437,7 +1437,7 @@ static int semctl_main(struct ipc_namesp
- 		goto out_rcu_wakeup;
- 
- 	sem_lock(sma, NULL, -1);
--	if (sma->sem_perm.deleted) {
-+	if (!ipc_valid_object(&sma->sem_perm)) {
- 		err = -EIDRM;
- 		goto out_unlock;
- 	}
-@@ -1701,7 +1701,7 @@ static struct sem_undo *find_alloc_undo(
- 	/* step 3: Acquire the lock on semaphore array */
+ 	spin_lock_init(&new->lock);
+-	new->deleted = 0;
++	new->deleted = false;
  	rcu_read_lock();
- 	sem_lock_and_putref(sma);
--	if (sma->sem_perm.deleted) {
-+	if (!ipc_valid_object(&sma->sem_perm)) {
- 		sem_unlock(sma, -1);
- 		rcu_read_unlock();
- 		kfree(new);
-@@ -1848,7 +1848,15 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 	spin_lock(&new->lock);
  
- 	error = -EIDRM;
- 	locknum = sem_lock(sma, sops, nsops);
--	if (sma->sem_perm.deleted)
-+	/*
-+	 * We eventually might perform the following check in a lockless
-+	 * fashion, considering ipc_valid_object() locking constraints.
-+	 * If nsops == 1 and there is no contention for sem_perm.lock, then
-+	 * only a per-semaphore lock is held and it's OK to proceed with the
-+	 * check below. More details on the fine grained locking scheme
-+	 * entangled here and why it's RMID race safe on comments at sem_lock()
-+	 */
-+	if (!ipc_valid_object(&sma->sem_perm))
- 		goto out_unlock_free;
- 	/*
- 	 * semid identifiers are not unique - find_alloc_undo may have
-@@ -2070,7 +2078,7 @@ void exit_sem(struct task_struct *tsk)
+@@ -447,7 +447,7 @@ void ipc_rmid(struct ipc_ids *ids, struc
  
- 		sem_lock(sma, NULL, -1);
- 		/* exit_sem raced with IPC_RMID, nothing to do */
--		if (sma->sem_perm.deleted) {
-+		if (!ipc_valid_object(&sma->sem_perm)) {
- 			sem_unlock(sma, -1);
- 			rcu_read_unlock();
- 			continue;
-diff -puN ipc/shm.c~ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races ipc/shm.c
---- a/ipc/shm.c~ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races
-+++ a/ipc/shm.c
-@@ -975,6 +975,13 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 			goto out_unlock1;
+ 	ids->in_use--;
  
- 		ipc_lock_object(&shp->shm_perm);
-+
-+		/* check if shm_destroy() is tearing down shp */
-+		if (!ipc_valid_object(&shp->shm_perm)) {
-+			err = -EIDRM;
-+			goto out_unlock0;
-+		}
-+
- 		if (!ns_capable(ns->user_ns, CAP_IPC_LOCK)) {
- 			kuid_t euid = current_euid();
- 			if (!uid_eq(euid, shp->shm_perm.uid) &&
-@@ -989,13 +996,6 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 		}
+-	ipcp->deleted = 1;
++	ipcp->deleted = true;
  
- 		shm_file = shp->shm_file;
--
--		/* check if shm_destroy() is tearing down shp */
--		if (shm_file == NULL) {
--			err = -EIDRM;
--			goto out_unlock0;
--		}
--
- 		if (is_file_hugepages(shm_file))
- 			goto out_unlock0;
+ 	return;
+ }
+@@ -657,7 +657,7 @@ struct kern_ipc_perm *ipc_lock(struct ip
+ 	/* ipc_rmid() may have already freed the ID while ipc_lock
+ 	 * was spinning: here verify that the structure is still valid
+ 	 */
+-	if (!out->deleted)
++	if (ipc_valid_object(out))
+ 		return out;
  
-@@ -1116,7 +1116,7 @@ long do_shmat(int shmid, char __user *sh
- 	ipc_lock_object(&shp->shm_perm);
- 
- 	/* check if shm_destroy() is tearing down shp */
--	if (shp->shm_file == NULL) {
-+	if (!ipc_valid_object(&shp->shm_perm)) {
- 		ipc_unlock_object(&shp->shm_perm);
- 		err = -EIDRM;
- 		goto out_unlock;
-diff -puN ipc/util.h~ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races ipc/util.h
---- a/ipc/util.h~ipc-introduce-ipc_valid_object-helper-to-sort-out-ipc_rmid-races
+ 	spin_unlock(&out->lock);
+diff -puN ipc/util.h~ipc-change-kern_ipc_permdeleted-type-to-bool ipc/util.h
+--- a/ipc/util.h~ipc-change-kern_ipc_permdeleted-type-to-bool
 +++ a/ipc/util.h
-@@ -185,6 +185,19 @@ static inline void ipc_unlock(struct ker
- 	rcu_read_unlock();
+@@ -195,7 +195,7 @@ static inline void ipc_unlock(struct ker
+  */
+ static inline bool ipc_valid_object(struct kern_ipc_perm *perm)
+ {
+-	return perm->deleted == 0;
++	return !perm->deleted;
  }
  
-+/*
-+ * ipc_valid_object() - helper to sort out IPC_RMID races for codepaths
-+ * where the respective ipc_ids.rwsem is not being held down.
-+ * Checks whether the ipc object is still around or if it's gone already, as
-+ * ipc_rmid() may have already freed the ID while the ipc lock was spinning.
-+ * Needs to be called with kern_ipc_perm.lock held -- exception made for one
-+ * checkpoint case at sys_semtimedop() as noted in code commentary.
-+ */
-+static inline bool ipc_valid_object(struct kern_ipc_perm *perm)
-+{
-+	return perm->deleted == 0;
-+}
-+
  struct kern_ipc_perm *ipc_obtain_object_check(struct ipc_ids *ids, int id);
- int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
- 			struct ipc_ops *ops, struct ipc_params *params);
 _
 
 Patches currently in -mm which might be from aquini@redhat.com are
