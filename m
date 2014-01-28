@@ -1,67 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-do-not-log-enoent-in-unlink.patch removed from -mm tree
-Date: Tue, 28 Jan 2014 11:09:13 -0800
-Message-ID: <52e80059.QOl/khG7B9QWADDw%akpm@linux-foundation.org>
+Subject: [merged]
+ dynamic_debug-replace-obselete-simple_strtoul-with-kstrtouint.patch removed from -mm tree
+Date: Tue, 28 Jan 2014 11:09:19 -0800
+Message-ID: <52e8005f.ZjGJqh6JurjuoqJ3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45473 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45482 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755143AbaA1TJO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:09:14 -0500
+	with ESMTP id S1755143AbaA1TJT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:09:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, joe.jin@oracle.com, jlbec@evilplan.org, xiaowei.hu@oracle.com
+To: mm-commits@vger.kernel.org, jbaron@akamai.com, a.ryabinin@samsung.com
 
-Subject: [merged] ocfs2-do-not-log-enoent-in-unlink.patch removed from -mm tree
-To: xiaowei.hu@oracle.com,jlbec@evilplan.org,joe.jin@oracle.com,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] dynamic_debug-replace-obselete-simple_strtoul-with-kstrtouint.patch removed from -mm tree
+To: a.ryabinin@samsung.com,jbaron@akamai.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 Jan 2014 11:09:13 -0800
+Date: Tue, 28 Jan 2014 11:09:19 -0800
 
 
 The patch titled
-     Subject: ocfs2: do not log ENOENT in unlink()
+     Subject: dynamic_debug: replace obselete simple_strtoul() with kstrtouint()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-do-not-log-enoent-in-unlink.patch
+     dynamic_debug-replace-obselete-simple_strtoul-with-kstrtouint.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Xiaowei.Hu" <xiaowei.hu@oracle.com>
-Subject: ocfs2: do not log ENOENT in unlink()
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: dynamic_debug: replace obselete simple_strtoul() with kstrtouint()
 
-Suppress log message like this: (open_delete,8328,0):ocfs2_unlink:951
-ERROR: status = -2
-
-Orabug:17445485
-
-Signed-off-by: Xiaowei Hu <xiaowei.hu@oracle.com>
-Cc: Joe Jin <joe.jin@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Cc: Jason Baron <jbaron@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/dynamic_debug.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-do-not-log-enoent-in-unlink fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-do-not-log-enoent-in-unlink
-+++ a/fs/ocfs2/namei.c
-@@ -948,7 +948,7 @@ leave:
- 	ocfs2_free_dir_lookup_result(&orphan_insert);
- 	ocfs2_free_dir_lookup_result(&lookup);
- 
--	if (status && (status != -ENOTEMPTY))
-+	if (status && (status != -ENOTEMPTY) && (status != -ENOENT))
- 		mlog_errno(status);
- 
- 	return status;
+diff -puN lib/dynamic_debug.c~dynamic_debug-replace-obselete-simple_strtoul-with-kstrtouint lib/dynamic_debug.c
+--- a/lib/dynamic_debug.c~dynamic_debug-replace-obselete-simple_strtoul-with-kstrtouint
++++ a/lib/dynamic_debug.c
+@@ -268,14 +268,12 @@ static int ddebug_tokenize(char *buf, ch
+  */
+ static inline int parse_lineno(const char *str, unsigned int *val)
+ {
+-	char *end = NULL;
+ 	BUG_ON(str == NULL);
+ 	if (*str == '\0') {
+ 		*val = 0;
+ 		return 0;
+ 	}
+-	*val = simple_strtoul(str, &end, 10);
+-	if (end == NULL || end == str || *end != '\0') {
++	if (kstrtouint(str, 10, val) < 0) {
+ 		pr_err("bad line-number: %s\n", str);
+ 		return -EINVAL;
+ 	}
 _
 
-Patches currently in -mm which might be from xiaowei.hu@oracle.com are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
 origin.patch
 
