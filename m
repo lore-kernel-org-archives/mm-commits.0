@@ -1,248 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mm-account-for-tlb-flushes-only-when-debugging.patch removed from -mm tree
-Date: Tue, 28 Jan 2014 11:10:05 -0800
-Message-ID: <52e8008d.w9xT6JrgZ7EfP4KL%akpm@linux-foundation.org>
+Subject: [merged] ipc-delete-seq_max-field-in-struct-ipc_ids.patch removed from -mm tree
+Date: Tue, 28 Jan 2014 11:09:39 -0800
+Message-ID: <52e80073.3Wc5Gq4HIFZq+J2H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45523 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755636AbaA1TKG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:10:06 -0500
+	with ESMTP id S1755557AbaA1TJk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:09:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, riel@redhat.com, mingo@kernel.org, hughd@google.com, hpa@zytor.com, davidlohr@hp.com, alex.shi@linaro.org, mgorman@suse.de
+To: mm-commits@vger.kernel.org, riel@redhat.com, manfred@colorfullife.com, jgonzalez@linets.cl, aswin@hp.com, davidlohr@hp.com
 
-Subject: [merged] x86-mm-account-for-tlb-flushes-only-when-debugging.patch removed from -mm tree
-To: mgorman@suse.de,alex.shi@linaro.org,davidlohr@hp.com,hpa@zytor.com,hughd@google.com,mingo@kernel.org,riel@redhat.com,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: [merged] ipc-delete-seq_max-field-in-struct-ipc_ids.patch removed from -mm tree
+To: davidlohr@hp.com,aswin@hp.com,jgonzalez@linets.cl,manfred@colorfullife.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 Jan 2014 11:10:05 -0800
+Date: Tue, 28 Jan 2014 11:09:39 -0800
 
 
 The patch titled
-     Subject: x86: mm: account for TLB flushes only when debugging
+     Subject: ipc: delete seq_max field in struct ipc_ids
 has been removed from the -mm tree.  Its filename was
-     x86-mm-account-for-tlb-flushes-only-when-debugging.patch
+     ipc-delete-seq_max-field-in-struct-ipc_ids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: x86: mm: account for TLB flushes only when debugging
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: ipc: delete seq_max field in struct ipc_ids
 
-Bisection between 3.11 and 3.12 fingered commit 9824cf97 (mm: vmstats: tlb
-flush counters).  The counters are undeniably useful but how often do we
-really need to debug TLB flush related issues?  It does not justify taking
-the penalty everywhere so make it a debugging option.
+This field is only used to reset the ids seq number if it exceeds the
+smaller of INT_MAX/SEQ_MULTIPLIER and USHRT_MAX, and can therefore be
+moved out of the structure and into its own macro.  Since each
+ipc_namespace contains a table of 3 pointers to struct ipc_ids we can save
+space in instruction text:
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Alex Shi <alex.shi@linaro.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: H Peter Anvin <hpa@zytor.com>
-Tested-by: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Hugh Dickins <hughd@google.com>
+   text    data     bss     dec     hex filename
+  56232    2348      24   58604    e4ec ipc/built-in.o
+  56216    2348      24   58588    e4dc ipc/built-in.o-after
+
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Reviewed-by: Jonathan Gonzalez <jgonzalez@linets.cl>
+Cc: Aswin Chandramouleeswaran <aswin@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/tlbflush.h    |    6 +++---
- arch/x86/kernel/cpu/mtrr/generic.c |    4 ++--
- arch/x86/mm/tlb.c                  |   14 +++++++-------
- include/linux/vm_event_item.h      |    4 +++-
- include/linux/vmstat.h             |    8 ++++++++
- mm/vmstat.c                        |    4 +++-
- 6 files changed, 26 insertions(+), 14 deletions(-)
+ include/linux/ipc_namespace.h |    1 -
+ ipc/util.c                    |   13 ++-----------
+ ipc/util.h                    |    1 +
+ 3 files changed, 3 insertions(+), 12 deletions(-)
 
-diff -puN arch/x86/include/asm/tlbflush.h~x86-mm-account-for-tlb-flushes-only-when-debugging arch/x86/include/asm/tlbflush.h
---- a/arch/x86/include/asm/tlbflush.h~x86-mm-account-for-tlb-flushes-only-when-debugging
-+++ a/arch/x86/include/asm/tlbflush.h
-@@ -62,7 +62,7 @@ static inline void __flush_tlb_all(void)
- 
- static inline void __flush_tlb_one(unsigned long addr)
- {
--	count_vm_event(NR_TLB_LOCAL_FLUSH_ONE);
-+	count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ONE);
- 	__flush_tlb_single(addr);
- }
- 
-@@ -93,13 +93,13 @@ static inline void __flush_tlb_one(unsig
+diff -puN include/linux/ipc_namespace.h~ipc-delete-seq_max-field-in-struct-ipc_ids include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-delete-seq_max-field-in-struct-ipc_ids
++++ a/include/linux/ipc_namespace.h
+@@ -21,7 +21,6 @@ struct user_namespace;
+ struct ipc_ids {
+ 	int in_use;
+ 	unsigned short seq;
+-	unsigned short seq_max;
+ 	struct rw_semaphore rwsem;
+ 	struct idr ipcs_idr;
+ 	int next_id;
+diff -puN ipc/util.c~ipc-delete-seq_max-field-in-struct-ipc_ids ipc/util.c
+--- a/ipc/util.c~ipc-delete-seq_max-field-in-struct-ipc_ids
++++ a/ipc/util.c
+@@ -139,19 +139,10 @@ __initcall(ipc_init);
   */
- static inline void __flush_tlb_up(void)
+ void ipc_init_ids(struct ipc_ids *ids)
  {
--	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
-+	count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
- 	__flush_tlb();
+-	init_rwsem(&ids->rwsem);
+-
+ 	ids->in_use = 0;
+ 	ids->seq = 0;
+ 	ids->next_id = -1;
+-	{
+-		int seq_limit = INT_MAX/SEQ_MULTIPLIER;
+-		if (seq_limit > USHRT_MAX)
+-			ids->seq_max = USHRT_MAX;
+-		 else
+-			ids->seq_max = seq_limit;
+-	}
+-
++	init_rwsem(&ids->rwsem);
+ 	idr_init(&ids->ipcs_idr);
  }
  
- static inline void flush_tlb_all(void)
- {
--	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
-+	count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
- 	__flush_tlb_all();
- }
+@@ -304,7 +295,7 @@ int ipc_addid(struct ipc_ids *ids, struc
  
-diff -puN arch/x86/kernel/cpu/mtrr/generic.c~x86-mm-account-for-tlb-flushes-only-when-debugging arch/x86/kernel/cpu/mtrr/generic.c
---- a/arch/x86/kernel/cpu/mtrr/generic.c~x86-mm-account-for-tlb-flushes-only-when-debugging
-+++ a/arch/x86/kernel/cpu/mtrr/generic.c
-@@ -683,7 +683,7 @@ static void prepare_set(void) __acquires
- 	}
- 
- 	/* Flush all TLBs via a mov %cr3, %reg; mov %reg, %cr3 */
--	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
-+	count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
- 	__flush_tlb();
- 
- 	/* Save MTRR state */
-@@ -697,7 +697,7 @@ static void prepare_set(void) __acquires
- static void post_set(void) __releases(set_atomicity_lock)
- {
- 	/* Flush TLBs (no need to flush caches - they are disabled) */
--	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
-+	count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
- 	__flush_tlb();
- 
- 	/* Intel (P6) standard MTRRs */
-diff -puN arch/x86/mm/tlb.c~x86-mm-account-for-tlb-flushes-only-when-debugging arch/x86/mm/tlb.c
---- a/arch/x86/mm/tlb.c~x86-mm-account-for-tlb-flushes-only-when-debugging
-+++ a/arch/x86/mm/tlb.c
-@@ -103,7 +103,7 @@ static void flush_tlb_func(void *info)
- 	if (f->flush_mm != this_cpu_read(cpu_tlbstate.active_mm))
- 		return;
- 
--	count_vm_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
-+	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
- 	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK) {
- 		if (f->flush_end == TLB_FLUSH_ALL)
- 			local_flush_tlb();
-@@ -131,7 +131,7 @@ void native_flush_tlb_others(const struc
- 	info.flush_start = start;
- 	info.flush_end = end;
- 
--	count_vm_event(NR_TLB_REMOTE_FLUSH);
-+	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH);
- 	if (is_uv_system()) {
- 		unsigned int cpu;
- 
-@@ -151,7 +151,7 @@ void flush_tlb_current_task(void)
- 
- 	preempt_disable();
- 
--	count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
-+	count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
- 	local_flush_tlb();
- 	if (cpumask_any_but(mm_cpumask(mm), smp_processor_id()) < nr_cpu_ids)
- 		flush_tlb_others(mm_cpumask(mm), mm, 0UL, TLB_FLUSH_ALL);
-@@ -215,7 +215,7 @@ void flush_tlb_mm_range(struct mm_struct
- 
- 	/* tlb_flushall_shift is on balance point, details in commit log */
- 	if ((end - start) >> PAGE_SHIFT > act_entries >> tlb_flushall_shift) {
--		count_vm_event(NR_TLB_LOCAL_FLUSH_ALL);
-+		count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ALL);
- 		local_flush_tlb();
+ 	if (next_id < 0) {
+ 		new->seq = ids->seq++;
+-		if (ids->seq > ids->seq_max)
++		if (ids->seq > IPCID_SEQ_MAX)
+ 			ids->seq = 0;
  	} else {
- 		if (has_large_page(mm, start, end)) {
-@@ -224,7 +224,7 @@ void flush_tlb_mm_range(struct mm_struct
- 		}
- 		/* flush range by one by one 'invlpg' */
- 		for (addr = start; addr < end;	addr += PAGE_SIZE) {
--			count_vm_event(NR_TLB_LOCAL_FLUSH_ONE);
-+			count_vm_tlb_event(NR_TLB_LOCAL_FLUSH_ONE);
- 			__flush_tlb_single(addr);
- 		}
+ 		new->seq = ipcid_to_seqx(next_id);
+diff -puN ipc/util.h~ipc-delete-seq_max-field-in-struct-ipc_ids ipc/util.h
+--- a/ipc/util.h~ipc-delete-seq_max-field-in-struct-ipc_ids
++++ a/ipc/util.h
+@@ -100,6 +100,7 @@ void __init ipc_init_proc_interface(cons
  
-@@ -262,7 +262,7 @@ void flush_tlb_page(struct vm_area_struc
+ #define ipcid_to_idx(id) ((id) % SEQ_MULTIPLIER)
+ #define ipcid_to_seqx(id) ((id) / SEQ_MULTIPLIER)
++#define IPCID_SEQ_MAX min_t(int, INT_MAX/SEQ_MULTIPLIER, USHRT_MAX)
  
- static void do_flush_tlb_all(void *info)
- {
--	count_vm_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
-+	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
- 	__flush_tlb_all();
- 	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_LAZY)
- 		leave_mm(smp_processor_id());
-@@ -270,7 +270,7 @@ static void do_flush_tlb_all(void *info)
- 
- void flush_tlb_all(void)
- {
--	count_vm_event(NR_TLB_REMOTE_FLUSH);
-+	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH);
- 	on_each_cpu(do_flush_tlb_all, NULL, 1);
- }
- 
-diff -puN include/linux/vm_event_item.h~x86-mm-account-for-tlb-flushes-only-when-debugging include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~x86-mm-account-for-tlb-flushes-only-when-debugging
-+++ a/include/linux/vm_event_item.h
-@@ -71,12 +71,14 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		THP_ZERO_PAGE_ALLOC,
- 		THP_ZERO_PAGE_ALLOC_FAILED,
- #endif
-+#ifdef CONFIG_DEBUG_TLBFLUSH
- #ifdef CONFIG_SMP
- 		NR_TLB_REMOTE_FLUSH,	/* cpu tried to flush others' tlbs */
- 		NR_TLB_REMOTE_FLUSH_RECEIVED,/* cpu received ipi for flush */
--#endif
-+#endif /* CONFIG_SMP */
- 		NR_TLB_LOCAL_FLUSH_ALL,
- 		NR_TLB_LOCAL_FLUSH_ONE,
-+#endif /* CONFIG_DEBUG_TLBFLUSH */
- 		NR_VM_EVENT_ITEMS
- };
- 
-diff -puN include/linux/vmstat.h~x86-mm-account-for-tlb-flushes-only-when-debugging include/linux/vmstat.h
---- a/include/linux/vmstat.h~x86-mm-account-for-tlb-flushes-only-when-debugging
-+++ a/include/linux/vmstat.h
-@@ -83,6 +83,14 @@ static inline void vm_events_fold_cpu(in
- #define count_vm_numa_events(x, y) do { (void)(y); } while (0)
- #endif /* CONFIG_NUMA_BALANCING */
- 
-+#ifdef CONFIG_DEBUG_TLBFLUSH
-+#define count_vm_tlb_event(x)	   count_vm_event(x)
-+#define count_vm_tlb_events(x, y)  count_vm_events(x, y)
-+#else
-+#define count_vm_tlb_event(x)     do {} while (0)
-+#define count_vm_tlb_events(x, y) do { (void)(y); } while (0)
-+#endif
-+
- #define __count_zone_vm_events(item, zone, delta) \
- 		__count_vm_events(item##_NORMAL - ZONE_NORMAL + \
- 		zone_idx(zone), delta)
-diff -puN mm/vmstat.c~x86-mm-account-for-tlb-flushes-only-when-debugging mm/vmstat.c
---- a/mm/vmstat.c~x86-mm-account-for-tlb-flushes-only-when-debugging
-+++ a/mm/vmstat.c
-@@ -851,12 +851,14 @@ const char * const vmstat_text[] = {
- 	"thp_zero_page_alloc",
- 	"thp_zero_page_alloc_failed",
- #endif
-+#ifdef CONFIG_DEBUG_TLBFLUSH
- #ifdef CONFIG_SMP
- 	"nr_tlb_remote_flush",
- 	"nr_tlb_remote_flush_received",
--#endif
-+#endif /* CONFIG_SMP */
- 	"nr_tlb_local_flush_all",
- 	"nr_tlb_local_flush_one",
-+#endif /* CONFIG_DEBUG_TLBFLUSH */
- 
- #endif /* CONFIG_VM_EVENTS_COUNTERS */
- };
+ /* must be called with ids->rwsem acquired for writing */
+ int ipc_addid(struct ipc_ids *, struct kern_ipc_perm *, int);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from davidlohr@hp.com are
 
 origin.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
-mm-page-writebackc-fix-dirty_balance_reserve-subtraction-from-dirtyable-memory.patch
-mm-page-writebackc-do-not-count-anon-pages-as-dirtyable-memory.patch
-mm-numa-initialse-numa-balancing-after-jump-label-initialisation.patch
-mm-mempolicyc-convert-to-pr_foo.patch
-mm-page_alloc-allow-__gfp_nofail-to-allocate-below-watermarks-after-reclaim.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
 linux-next.patch
-zsmalloc-move-it-under-mm.patch
-zram-promote-zram-from-staging.patch
 
