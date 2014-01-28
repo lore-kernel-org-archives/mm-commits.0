@@ -1,77 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + vsprintf-bug-on-%n.patch added to -mm tree
-Date: Mon, 27 Jan 2014 15:10:45 -0800
-Message-ID: <52e6e775.9StRb6a9FXD0P/pN%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix.patch removed from -mm tree
+Date: Mon, 27 Jan 2014 16:54:55 -0800
+Message-ID: <52e6ffdf.AReJ7LnZ8BUgE32u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37067 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37798 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750829AbaA0XKp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jan 2014 18:10:45 -0500
+	with ESMTP id S1753428AbaA1Ay4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jan 2014 19:54:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, keescook@chromium.org
+To: mm-commits@vger.kernel.org, xypron.glpk@gmx.de, paul.gortmaker@windriver.com, gxt@mprc.pku.edu.cn, akpm@linux-foundation.org
 
-Subject: + vsprintf-bug-on-%n.patch added to -mm tree
-To: keescook@chromium.org
+Subject: [folded-merged] arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,gxt@mprc.pku.edu.cn,paul.gortmaker@windriver.com,xypron.glpk@gmx.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 27 Jan 2014 15:10:45 -0800
+Date: Mon, 27 Jan 2014 16:54:55 -0800
 
 
 The patch titled
-     Subject: vsprintf: BUG on %n
-has been added to the -mm tree.  Its filename is
-     vsprintf-bug-on-%n.patch
+     Subject: arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix
+has been removed from the -mm tree.  Its filename was
+     arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vsprintf-bug-on-%n.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vsprintf-bug-on-%n.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization.patch
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: vsprintf: BUG on %n
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix
 
-Now that there has been a full release of the kernel, and all users of %n
-have been dropped, switch to %n use triggering a BUG.  Ignoring arguments
-could be used to assist in information leaks if an arbitrary format string
-was under the control of an attacker.
+simplify code.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ arch/unicore32/kernel/early_printk.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN lib/vsprintf.c~vsprintf-bug-on-%n lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-bug-on-%n
-+++ a/lib/vsprintf.c
-@@ -1735,15 +1735,12 @@ int vsnprintf(char *buf, size_t size, co
- 		case FORMAT_TYPE_NRCHARS: {
- 			/*
- 			 * Since %n poses a greater security risk than
--			 * utility, ignore %n and skip its argument.
-+			 * utility, it should not be implemented. Instead,
-+			 * BUG when encountering %n, since there are no
-+			 * legitimate users and skipping arguments could
-+			 * assist information leak attacks.
- 			 */
--			void *skip_arg;
+diff -puN arch/unicore32/kernel/early_printk.c~arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix arch/unicore32/kernel/early_printk.c
+--- a/arch/unicore32/kernel/early_printk.c~arch-unicore32-kernel-early_printkc-setup_early_printk-missing-initialization-fix
++++ a/arch/unicore32/kernel/early_printk.c
+@@ -35,17 +35,11 @@ static struct console early_ocd_console
+ 
+ static int __init setup_early_printk(char *buf)
+ {
+-	int keep_early = 0;
 -
--			WARN_ONCE(1, "Please remove ignored %%n in '%s'\n",
--					old_fmt);
+ 	if (!buf || early_console)
+ 		return 0;
+ 
+-	if (strstr(buf, "keep"))
+-		keep_early = 1;
+-
+ 	early_console = &early_ocd_console;
