@@ -1,103 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-revert-wrong-memblock-current-limit-setting.patch
- removed from -mm tree
-Date: Tue, 28 Jan 2014 11:09:03 -0800
-Message-ID: <52e8004f.UjU85SvfmbmZGO1j%akpm@linux-foundation.org>
+Subject: [merged]
+ revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch removed from -mm tree
+Date: Tue, 28 Jan 2014 11:09:07 -0800
+Message-ID: <52e80053.qRwvih6Ou1M8nk5O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45453 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45463 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754779AbaA1TJE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:09:04 -0500
+	with ESMTP id S1755143AbaA1TJI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:09:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, santosh.shilimkar@ti.com, mingo@elte.hu, linux@arm.linux.org.uk, konrad.wilk@oracle.com, hpa@zytor.com, dave.hansen@intel.com, yinghai@kernel.org
+To: mm-commits@vger.kernel.org, nasa4836@gmail.com, murzin.v@gmail.com, av1474@comtv.ru
 
-Subject: [merged] x86-revert-wrong-memblock-current-limit-setting.patch removed from -mm tree
-To: yinghai@kernel.org,dave.hansen@intel.com,hpa@zytor.com,konrad.wilk@oracle.com,linux@arm.linux.org.uk,mingo@elte.hu,santosh.shilimkar@ti.com,mm-commits@vger.kernel.org
+Subject: [merged] revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch removed from -mm tree
+To: av1474@comtv.ru,murzin.v@gmail.com,nasa4836@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 Jan 2014 11:09:03 -0800
+Date: Tue, 28 Jan 2014 11:09:07 -0800
 
 
 The patch titled
-     Subject: x86: revert wrong memblock current limit setting
+     Subject: Revert "mm/vmalloc: interchage the implementation of vmalloc_to_{pfn,page}"
 has been removed from the -mm tree.  Its filename was
-     x86-revert-wrong-memblock-current-limit-setting.patch
+     revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: x86: revert wrong memblock current limit setting
+From: malc <av1474@comtv.ru>
+Subject: Revert "mm/vmalloc: interchage the implementation of vmalloc_to_{pfn,page}"
 
-Dave reported big numa system booting is broken.
+Revert ece86e222db48d04bda, which was intended as a small performance
+improvement.
 
-It turns out
-| commit 5b6e529521d35e1bcaa0fe43456d1bbb335cae5d
-| Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
-| Date:   Tue Jan 21 15:50:03 2014 -0800
-|
-|    x86: memblock: set current limit to max low memory address
+Despite the claim that the patch doesn't introduce any functional changes
+in fact it does.
 
-set limit to low wrongly.
+The "no page" path behaves different now.  Originally, vmalloc_to_page
+might return NULL under some conditions, with new implementation it
+returns pfn_to_page(0) which is not the same as NULL.
 
-max_low_pfn_mapped is different from max_pfn_mapped.
-max_low_pfn_mapped is always under 4G.
+Simple test shows the difference.
 
-That will memblock_alloc_nid all go under 4G.
+test.c
 
-Revert 5b6e529521d35e1bca to fix a no-boot regression which was triggered
-by 457ff1de2d247d ("lib/swiotlb.c: use memblock apis for early memory
-allocations").
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/vmalloc.h>
+#include <linux/mm.h>
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Reported-by: Dave Hansen <dave.hansen@intel.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+int __init myi(void)
+{
+	struct page *p;
+	void *v;
+
+	v = vmalloc(PAGE_SIZE);
+	/* trigger the "no page" path in vmalloc_to_page*/
+	vfree(v);
+
+	p = vmalloc_to_page(v);
+
+	pr_err("expected val = NULL, returned val = %p", p);
+
+	return -EBUSY;
+}
+
+void __exit mye(void)
+{
+
+}
+module_init(myi)
+module_exit(mye)
+
+Before interchange:
+expected val = NULL, returned val =   (null)
+
+After interchange:
+expected val = NULL, returned val = c7ebe000
+
+Signed-off-by: Vladimir Murzin <murzin.v@gmail.com>
+Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/page_types.h |    4 ++--
- arch/x86/kernel/setup.c           |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN arch/x86/include/asm/page_types.h~x86-revert-wrong-memblock-current-limit-setting arch/x86/include/asm/page_types.h
---- a/arch/x86/include/asm/page_types.h~x86-revert-wrong-memblock-current-limit-setting
-+++ a/arch/x86/include/asm/page_types.h
-@@ -51,9 +51,9 @@ extern int devmem_is_allowed(unsigned lo
- extern unsigned long max_low_pfn_mapped;
- extern unsigned long max_pfn_mapped;
- 
--static inline phys_addr_t get_max_low_mapped(void)
-+static inline phys_addr_t get_max_mapped(void)
- {
--	return (phys_addr_t)max_low_pfn_mapped << PAGE_SHIFT;
-+	return (phys_addr_t)max_pfn_mapped << PAGE_SHIFT;
+diff -puN mm/vmalloc.c~revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage mm/vmalloc.c
+--- a/mm/vmalloc.c~revert-mm-vmalloc-interchage-the-implementation-of-vmalloc_to_pfnpage
++++ a/mm/vmalloc.c
+@@ -220,12 +220,12 @@ int is_vmalloc_or_module_addr(const void
  }
  
- bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn);
-diff -puN arch/x86/kernel/setup.c~x86-revert-wrong-memblock-current-limit-setting arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~x86-revert-wrong-memblock-current-limit-setting
-+++ a/arch/x86/kernel/setup.c
-@@ -1119,7 +1119,7 @@ void __init setup_arch(char **cmdline_p)
- 
- 	setup_real_mode();
- 
--	memblock_set_current_limit(get_max_low_mapped());
-+	memblock_set_current_limit(get_max_mapped());
- 	dma_contiguous_reserve(0);
+ /*
+- * Walk a vmap address to the physical pfn it maps to.
++ * Walk a vmap address to the struct page it maps.
+  */
+-unsigned long vmalloc_to_pfn(const void *vmalloc_addr)
++struct page *vmalloc_to_page(const void *vmalloc_addr)
+ {
+ 	unsigned long addr = (unsigned long) vmalloc_addr;
+-	unsigned long pfn = 0;
++	struct page *page = NULL;
+ 	pgd_t *pgd = pgd_offset_k(addr);
  
  	/*
+@@ -244,23 +244,23 @@ unsigned long vmalloc_to_pfn(const void
+ 				ptep = pte_offset_map(pmd, addr);
+ 				pte = *ptep;
+ 				if (pte_present(pte))
+-					pfn = pte_pfn(pte);
++					page = pte_page(pte);
+ 				pte_unmap(ptep);
+ 			}
+ 		}
+ 	}
+-	return pfn;
++	return page;
+ }
+-EXPORT_SYMBOL(vmalloc_to_pfn);
++EXPORT_SYMBOL(vmalloc_to_page);
+ 
+ /*
+- * Map a vmalloc()-space virtual address to the struct page.
++ * Map a vmalloc()-space virtual address to the physical page frame number.
+  */
+-struct page *vmalloc_to_page(const void *vmalloc_addr)
++unsigned long vmalloc_to_pfn(const void *vmalloc_addr)
+ {
+-	return pfn_to_page(vmalloc_to_pfn(vmalloc_addr));
++	return page_to_pfn(vmalloc_to_page(vmalloc_addr));
+ }
+-EXPORT_SYMBOL(vmalloc_to_page);
++EXPORT_SYMBOL(vmalloc_to_pfn);
+ 
+ 
+ /*** Global kva allocator ***/
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from av1474@comtv.ru are
 
 origin.patch
-linux-next.patch
+arm-move-arm_dma_limit-to-setup_dma_zone.patch
 
