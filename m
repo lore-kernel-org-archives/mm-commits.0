@@ -1,75 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-bring-back-sys-kernel-mm.patch removed from -mm tree
-Date: Tue, 28 Jan 2014 11:09:11 -0800
-Message-ID: <52e80057.yRdFvihpQ2LaI8v2%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-do-not-log-enoent-in-unlink.patch removed from -mm tree
+Date: Tue, 28 Jan 2014 11:09:13 -0800
+Message-ID: <52e80059.QOl/khG7B9QWADDw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45473 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755143AbaA1TJL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:09:11 -0500
+	with ESMTP id S1755143AbaA1TJO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jan 2014 14:09:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paul.gortmaker@windriver.com, hughd@google.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, joe.jin@oracle.com, jlbec@evilplan.org, xiaowei.hu@oracle.com
 
-Subject: [merged] mm-bring-back-sys-kernel-mm.patch removed from -mm tree
-To: hughd@google.com,paul.gortmaker@windriver.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-do-not-log-enoent-in-unlink.patch removed from -mm tree
+To: xiaowei.hu@oracle.com,jlbec@evilplan.org,joe.jin@oracle.com,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 28 Jan 2014 11:09:11 -0800
+Date: Tue, 28 Jan 2014 11:09:13 -0800
 
 
 The patch titled
-     Subject: mm: bring back /sys/kernel/mm
+     Subject: ocfs2: do not log ENOENT in unlink()
 has been removed from the -mm tree.  Its filename was
-     mm-bring-back-sys-kernel-mm.patch
+     ocfs2-do-not-log-enoent-in-unlink.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: bring back /sys/kernel/mm
+From: "Xiaowei.Hu" <xiaowei.hu@oracle.com>
+Subject: ocfs2: do not log ENOENT in unlink()
 
-Commit da29bd36224b ("mm/mm_init.c: make creation of the mm_kobj happen
-earlier than device_initcall") changed to pure_initcall(mm_sysfs_init).
+Suppress log message like this: (open_delete,8328,0):ocfs2_unlink:951
+ERROR: status = -2
 
-That's too early: mm_sysfs_init() depends on core_initcall(ksysfs_init) to
-have made the kernel_kobj directory "kernel" in which to create "mm".
+Orabug:17445485
 
-Make it postcore_initcall(mm_sysfs_init).  We could use core_initcall(),
-and depend upon Makefile link order kernel/ mm/ fs/ ipc/ security/ ...  as
-core_initcall(debugfs_init) and core_initcall(securityfs_init) do; but
-better not.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Signed-off-by: Xiaowei Hu <xiaowei.hu@oracle.com>
+Cc: Joe Jin <joe.jin@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    2 +-
+ fs/ocfs2/namei.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mm_init.c~mm-bring-back-sys-kernel-mm mm/mm_init.c
---- a/mm/mm_init.c~mm-bring-back-sys-kernel-mm
-+++ a/mm/mm_init.c
-@@ -202,4 +202,4 @@ static int __init mm_sysfs_init(void)
+diff -puN fs/ocfs2/namei.c~ocfs2-do-not-log-enoent-in-unlink fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-do-not-log-enoent-in-unlink
++++ a/fs/ocfs2/namei.c
+@@ -948,7 +948,7 @@ leave:
+ 	ocfs2_free_dir_lookup_result(&orphan_insert);
+ 	ocfs2_free_dir_lookup_result(&lookup);
  
- 	return 0;
- }
--pure_initcall(mm_sysfs_init);
-+postcore_initcall(mm_sysfs_init);
+-	if (status && (status != -ENOTEMPTY))
++	if (status && (status != -ENOTEMPTY) && (status != -ENOENT))
+ 		mlog_errno(status);
+ 
+ 	return status;
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from xiaowei.hu@oracle.com are
 
 origin.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-linux-next.patch
-zsmalloc-move-it-under-mm.patch
-zram-promote-zram-from-staging.patch
 
