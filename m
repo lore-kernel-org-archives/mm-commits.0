@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion.patch added to -mm tree
-Date: Wed, 29 Jan 2014 12:04:01 -0800
-Message-ID: <52e95eb1.gdJTTkeieEwBERhZ%akpm@linux-foundation.org>
+ maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch added to -mm tree
+Date: Wed, 29 Jan 2014 12:16:04 -0800
+Message-ID: <52e96184.aoemybi5THruvv5w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33496 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875AbaA2UEC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jan 2014 15:04:02 -0500
+	with ESMTP id S1750942AbaA2UQF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jan 2014 15:16:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, greg@kroah.com, andrzej.p@samsung.com, ard.biesheuvel@linaro.org
+To: mm-commits@vger.kernel.org, vapier@gentoo.org, realmz6@gmail.com, michael.hennerich@analog.com, lars@metafoo.de, sonic.zhang@analog.com
 
-Subject: + documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion.patch added to -mm tree
-To: ard.biesheuvel@linaro.org,andrzej.p@samsung.com,greg@kroah.com
+Subject: + maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch added to -mm tree
+To: sonic.zhang@analog.com,lars@metafoo.de,michael.hennerich@analog.com,realmz6@gmail.com,vapier@gentoo.org
 From: akpm@linux-foundation.org
-Date: Wed, 29 Jan 2014 12:04:01 -0800
+Date: Wed, 29 Jan 2014 12:16:04 -0800
 
 
 The patch titled
-     Subject: Documentation: fix multiple typo occurences s/KenelVersion/KernelVersion/
+     Subject: MAINTAINERS: ADI Linux development mailing lists: change to the new server
 has been added to the -mm tree.  Its filename is
-     documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion.patch
+     maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,239 +44,195 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Documentation: fix multiple typo occurences s/KenelVersion/KernelVersion/
+From: Sonic Zhang <sonic.zhang@analog.com>
+Subject: MAINTAINERS: ADI Linux development mailing lists: change to the new server
 
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Greg KH <greg@kroah.com>
-Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Update Blackfin arch maintainer's email as well.
+
+Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
+Cc: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Steven Miao <realmz6@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/configfs-usb-gadget              |   12 +++++-----
- Documentation/ABI/testing/configfs-usb-gadget-acm          |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-ecm          |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-eem          |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-ffs          |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-loopback     |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-mass-storage |    4 +--
- Documentation/ABI/testing/configfs-usb-gadget-ncm          |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-obex         |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-phonet       |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-rndis        |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-serial       |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-sourcesink   |    2 -
- Documentation/ABI/testing/configfs-usb-gadget-subset       |    2 -
- 14 files changed, 20 insertions(+), 20 deletions(-)
+ MAINTAINERS |   42 ++++++++++++++++++++----------------------
+ 1 file changed, 20 insertions(+), 22 deletions(-)
 
-diff -puN Documentation/ABI/testing/configfs-usb-gadget~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget
---- a/Documentation/ABI/testing/configfs-usb-gadget~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget
-@@ -1,13 +1,13 @@
- What:		/config/usb-gadget
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
- 		This group contains sub-groups corresponding to created
- 		USB gadgets.
+diff -puN MAINTAINERS~maintainers-adi-linux-development-mailing-lists-change-to-the-new-server MAINTAINERS
+--- a/MAINTAINERS~maintainers-adi-linux-development-mailing-lists-change-to-the-new-server
++++ a/MAINTAINERS
+@@ -309,36 +309,36 @@ F:	sound/pci/ad1889.*
  
- What:		/config/usb-gadget/gadget
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
+ AD525X ANALOG DEVICES DIGITAL POTENTIOMETERS DRIVER
+ M:	Michael Hennerich <michael.hennerich@analog.com>
+-L:	device-drivers-devel@blackfin.uclinux.org
+ W:	http://wiki.analog.com/AD5254
++W:	http://ez.analog.com/community/linux-device-drivers
+ S:	Supported
+ F:	drivers/misc/ad525x_dpot.c
  
- 		The attributes of a gadget:
-@@ -27,7 +27,7 @@ Description:
+ AD5398 CURRENT REGULATOR DRIVER (AD5398/AD5821)
+ M:	Michael Hennerich <michael.hennerich@analog.com>
+-L:	device-drivers-devel@blackfin.uclinux.org
+ W:	http://wiki.analog.com/AD5398
++W:	http://ez.analog.com/community/linux-device-drivers
+ S:	Supported
+ F:	drivers/regulator/ad5398.c
  
- What:		/config/usb-gadget/gadget/configs
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
- 		This group contains a USB gadget's configurations
+ AD714X CAPACITANCE TOUCH SENSOR DRIVER (AD7142/3/7/8/7A)
+ M:	Michael Hennerich <michael.hennerich@analog.com>
+-L:	device-drivers-devel@blackfin.uclinux.org
+ W:	http://wiki.analog.com/AD7142
++W:	http://ez.analog.com/community/linux-device-drivers
+ S:	Supported
+ F:	drivers/input/misc/ad714x.c
  
-@@ -58,20 +58,20 @@ Description:
+ AD7877 TOUCHSCREEN DRIVER
+ M:	Michael Hennerich <michael.hennerich@analog.com>
+-L:	device-drivers-devel@blackfin.uclinux.org
+ W:	http://wiki.analog.com/AD7877
++W:	http://ez.analog.com/community/linux-device-drivers
+ S:	Supported
+ F:	drivers/input/touchscreen/ad7877.c
  
- What:		/config/usb-gadget/gadget/functions
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
- 		This group contains functions available to this USB gadget.
+ AD7879 TOUCHSCREEN DRIVER (AD7879/AD7889)
+ M:	Michael Hennerich <michael.hennerich@analog.com>
+-L:	device-drivers-devel@blackfin.uclinux.org
+ W:	http://wiki.analog.com/AD7879
++W:	http://ez.analog.com/community/linux-device-drivers
+ S:	Supported
+ F:	drivers/input/touchscreen/ad7879.c
  
- What:		/config/usb-gadget/gadget/strings
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
- 		This group contains subdirectories for language-specific
- 		strings for this gadget.
+@@ -374,8 +374,8 @@ F:	include/media/adp1653.h
  
- What:		/config/usb-gadget/gadget/strings/language
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
- 		The attributes:
+ ADP5520 BACKLIGHT DRIVER WITH IO EXPANDER (ADP5520/ADP5501)
+ M:	Michael Hennerich <michael.hennerich@analog.com>
+-L:	device-drivers-devel@blackfin.uclinux.org
+ W:	http://wiki.analog.com/ADP5520
++W:	http://ez.analog.com/community/linux-device-drivers
+ S:	Supported
+ F:	drivers/mfd/adp5520.c
+ F:	drivers/video/backlight/adp5520_bl.c
+@@ -385,16 +385,16 @@ F:	drivers/input/keyboard/adp5520-keys.c
  
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-acm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-acm
---- a/Documentation/ABI/testing/configfs-usb-gadget-acm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-acm
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/acm.name
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
+ ADP5588 QWERTY KEYPAD AND IO EXPANDER DRIVER (ADP5588/ADP5587)
+ M:	Michael Hennerich <michael.hennerich@analog.com>
+-L:	device-drivers-devel@blackfin.uclinux.org
+ W:	http://wiki.analog.com/ADP5588
++W:	http://ez.analog.com/community/linux-device-drivers
+ S:	Supported
+ F:	drivers/input/keyboard/adp5588-keys.c
+ F:	drivers/gpio/gpio-adp5588.c
  
- 		This item contains just one readonly attribute: port_num.
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-ecm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-ecm
---- a/Documentation/ABI/testing/configfs-usb-gadget-ecm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-ecm
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/ecm.name
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
- 		The attributes:
+ ADP8860 BACKLIGHT DRIVER (ADP8860/ADP8861/ADP8863)
+ M:	Michael Hennerich <michael.hennerich@analog.com>
+-L:	device-drivers-devel@blackfin.uclinux.org
+ W:	http://wiki.analog.com/ADP8860
++W:	http://ez.analog.com/community/linux-device-drivers
+ S:	Supported
+ F:	drivers/video/backlight/adp8860_bl.c
  
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-eem~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-eem
---- a/Documentation/ABI/testing/configfs-usb-gadget-eem~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-eem
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/eem.name
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
- 		The attributes:
+@@ -420,8 +420,8 @@ F:	drivers/hwmon/adt7475.c
  
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-ffs~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-ffs
---- a/Documentation/ABI/testing/configfs-usb-gadget-ffs~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-ffs
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/ffs.name
- Date:		Nov 2013
--KenelVersion:	3.13
-+KernelVersion:	3.13
- Description:	The purpose of this directory is to create and remove it.
+ ADXL34X THREE-AXIS DIGITAL ACCELEROMETER DRIVER (ADXL345/ADXL346)
+ M:	Michael Hennerich <michael.hennerich@analog.com>
+-L:	device-drivers-devel@blackfin.uclinux.org
+ W:	http://wiki.analog.com/ADXL345
++W:	http://ez.analog.com/community/linux-device-drivers
+ S:	Supported
+ F:	drivers/input/misc/adxl34x.c
  
- 		A corresponding USB function instance is created/removed.
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-loopback~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-loopback
---- a/Documentation/ABI/testing/configfs-usb-gadget-loopback~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-loopback
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/Loopback.name
- Date:		Nov 2013
--KenelVersion:	3.13
-+KernelVersion:	3.13
- Description:
- 		The attributes:
+@@ -627,9 +627,9 @@ F:	drivers/media/i2c/adv7842*
  
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-mass-storage~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-mass-storage
---- a/Documentation/ABI/testing/configfs-usb-gadget-mass-storage~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-mass-storage
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/mass_storage.name
- Date:		Oct 2013
--KenelVersion:	3.13
-+KernelVersion:	3.13
- Description:
- 		The attributes:
+ ANALOG DEVICES INC ASOC CODEC DRIVERS
+ M:	Lars-Peter Clausen <lars@metafoo.de>
+-L:	device-drivers-devel@blackfin.uclinux.org
+ L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
+ W:	http://wiki.analog.com/
++W:	http://ez.analog.com/community/linux-device-drivers
+ S:	Supported
+ F:	sound/soc/codecs/adau*
+ F:	sound/soc/codecs/adav*
+@@ -639,7 +639,7 @@ F:	sound/soc/codecs/ssm*
+ F:	sound/soc/codecs/sigmadsp.*
  
-@@ -13,7 +13,7 @@ Description:
+ ANALOG DEVICES INC ASOC DRIVERS
+-L:	uclinux-dist-devel@blackfin.uclinux.org
++L:	adi-buildroot-devel@lists.sourceforge.net
+ L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
+ W:	http://blackfin.uclinux.org/
+ S:	Supported
+@@ -1742,56 +1742,54 @@ F:	fs/bfs/
+ F:	include/uapi/linux/bfs_fs.h
  
- What:		/config/usb-gadget/gadget/functions/mass_storage.name/lun.name
- Date:		Oct 2013
--KenelVersion:	3.13
-+KernelVersion:	3.13
- Description:
- 		The attributes:
+ BLACKFIN ARCHITECTURE
+-M:	Mike Frysinger <vapier@gentoo.org>
+-L:	uclinux-dist-devel@blackfin.uclinux.org
++M:	Steven Miao <realmz6@gmail.com>
++L:	adi-buildroot-devel@lists.sourceforge.net
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	arch/blackfin/
  
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-ncm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-ncm
---- a/Documentation/ABI/testing/configfs-usb-gadget-ncm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-ncm
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/ncm.name
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
- 		The attributes:
+ BLACKFIN EMAC DRIVER
+-L:	uclinux-dist-devel@blackfin.uclinux.org
++L:	adi-buildroot-devel@lists.sourceforge.net
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/net/ethernet/adi/
  
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-obex~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-obex
---- a/Documentation/ABI/testing/configfs-usb-gadget-obex~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-obex
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/obex.name
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
+ BLACKFIN RTC DRIVER
+-M:	Mike Frysinger <vapier.adi@gmail.com>
+-L:	uclinux-dist-devel@blackfin.uclinux.org
++L:	adi-buildroot-devel@lists.sourceforge.net
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/rtc/rtc-bfin.c
  
- 		This item contains just one readonly attribute: port_num.
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-phonet~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-phonet
---- a/Documentation/ABI/testing/configfs-usb-gadget-phonet~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-phonet
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/phonet.name
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
+ BLACKFIN SDH DRIVER
+ M:	Sonic Zhang <sonic.zhang@analog.com>
+-L:	uclinux-dist-devel@blackfin.uclinux.org
++L:	adi-buildroot-devel@lists.sourceforge.net
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/mmc/host/bfin_sdh.c
  
- 		This item contains just one readonly attribute: ifname.
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-rndis~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-rndis
---- a/Documentation/ABI/testing/configfs-usb-gadget-rndis~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-rndis
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/rndis.name
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
- 		The attributes:
+ BLACKFIN SERIAL DRIVER
+ M:	Sonic Zhang <sonic.zhang@analog.com>
+-L:	uclinux-dist-devel@blackfin.uclinux.org
++L:	adi-buildroot-devel@lists.sourceforge.net
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/tty/serial/bfin_uart.c
  
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-serial~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-serial
---- a/Documentation/ABI/testing/configfs-usb-gadget-serial~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-serial
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/gser.name
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
+ BLACKFIN WATCHDOG DRIVER
+-M:	Mike Frysinger <vapier.adi@gmail.com>
+-L:	uclinux-dist-devel@blackfin.uclinux.org
++L:	adi-buildroot-devel@lists.sourceforge.net
+ W:	http://blackfin.uclinux.org
+ S:	Supported
+ F:	drivers/watchdog/bfin_wdt.c
  
- 		This item contains just one readonly attribute: port_num.
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-sourcesink~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-sourcesink
---- a/Documentation/ABI/testing/configfs-usb-gadget-sourcesink~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-sourcesink
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/SourceSink.name
- Date:		Nov 2013
--KenelVersion:	3.13
-+KernelVersion:	3.13
- Description:
- 		The attributes:
+ BLACKFIN I2C TWI DRIVER
+ M:	Sonic Zhang <sonic.zhang@analog.com>
+-L:	uclinux-dist-devel@blackfin.uclinux.org
++L:	adi-buildroot-devel@lists.sourceforge.net
+ W:	http://blackfin.uclinux.org/
+ S:	Supported
+ F:	drivers/i2c/busses/i2c-bfin-twi.c
  
-diff -puN Documentation/ABI/testing/configfs-usb-gadget-subset~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-subset
---- a/Documentation/ABI/testing/configfs-usb-gadget-subset~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
-+++ a/Documentation/ABI/testing/configfs-usb-gadget-subset
-@@ -1,6 +1,6 @@
- What:		/config/usb-gadget/gadget/functions/geth.name
- Date:		Jun 2013
--KenelVersion:	3.11
-+KernelVersion:	3.11
- Description:
- 		The attributes:
- 
+ BLACKFIN MEDIA DRIVER
+ M:	Scott Jiang <scott.jiang.linux@gmail.com>
+-L:	uclinux-dist-devel@blackfin.uclinux.org
++L:	adi-buildroot-devel@lists.sourceforge.net
+ W:	http://blackfin.uclinux.org/
+ S:	Supported
+ F:	drivers/media/platform/blackfin/
 _
 
-Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
+Patches currently in -mm which might be from sonic.zhang@analog.com are
 
-origin.patch
-documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion.patch
+maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch
 
