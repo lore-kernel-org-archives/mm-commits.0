@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch added to -mm tree
-Date: Wed, 29 Jan 2014 12:16:04 -0800
-Message-ID: <52e96184.aoemybi5THruvv5w%akpm@linux-foundation.org>
+Subject: + mm-dont-lose-the-soft_dirty-flag-on-mprotect.patch added to -mm tree
+Date: Wed, 29 Jan 2014 12:19:39 -0800
+Message-ID: <52e9625b.oYTsVYRkzB14RAdw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33518 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750942AbaA2UQF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jan 2014 15:16:05 -0500
+	with ESMTP id S1751398AbaA2UTk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jan 2014 15:19:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vapier@gentoo.org, realmz6@gmail.com, michael.hennerich@analog.com, lars@metafoo.de, sonic.zhang@analog.com
+To: mm-commits@vger.kernel.org, xemul@parallels.com, wency@cn.fujitsu.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, gorcunov@openvz.org, bp@suse.de, avagin@openvz.org
 
-Subject: + maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch added to -mm tree
-To: sonic.zhang@analog.com,lars@metafoo.de,michael.hennerich@analog.com,realmz6@gmail.com,vapier@gentoo.org
+Subject: + mm-dont-lose-the-soft_dirty-flag-on-mprotect.patch added to -mm tree
+To: avagin@openvz.org,bp@suse.de,gorcunov@openvz.org,hpa@zytor.com,mingo@redhat.com,tglx@linutronix.de,wency@cn.fujitsu.com,xemul@parallels.com
 From: akpm@linux-foundation.org
-Date: Wed, 29 Jan 2014 12:16:04 -0800
+Date: Wed, 29 Jan 2014 12:19:39 -0800
 
 
 The patch titled
-     Subject: MAINTAINERS: ADI Linux development mailing lists: change to the new server
+     Subject: mm: don't lose the SOFT_DIRTY flag on mprotect
 has been added to the -mm tree.  Its filename is
-     maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch
+     mm-dont-lose-the-soft_dirty-flag-on-mprotect.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-lose-the-soft_dirty-flag-on-mprotect.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-lose-the-soft_dirty-flag-on-mprotect.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,195 +43,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sonic Zhang <sonic.zhang@analog.com>
-Subject: MAINTAINERS: ADI Linux development mailing lists: change to the new server
+From: Andrey Vagin <avagin@openvz.org>
+Subject: mm: don't lose the SOFT_DIRTY flag on mprotect
 
-Update Blackfin arch maintainer's email as well.
+The SOFT_DIRTY bit shows that the content of memory was changed after a
+defined point in the past.  mprotect() doesn't change the content of
+memory, so it must not change the SOFT_DIRTY bit.
 
-Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Steven Miao <realmz6@gmail.com>
+This patch does nothing with _PAGE_SWP_SOFT_DIRTY, becase pte_modify() is
+called only for present pages.
+
+Fixes 0f8975ec4db2 ("mm: soft-dirty bits for user memory changes
+tracking").
+
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   42 ++++++++++++++++++++----------------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ arch/x86/include/asm/pgtable_types.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-adi-linux-development-mailing-lists-change-to-the-new-server MAINTAINERS
---- a/MAINTAINERS~maintainers-adi-linux-development-mailing-lists-change-to-the-new-server
-+++ a/MAINTAINERS
-@@ -309,36 +309,36 @@ F:	sound/pci/ad1889.*
+diff -puN arch/x86/include/asm/pgtable_types.h~mm-dont-lose-the-soft_dirty-flag-on-mprotect arch/x86/include/asm/pgtable_types.h
+--- a/arch/x86/include/asm/pgtable_types.h~mm-dont-lose-the-soft_dirty-flag-on-mprotect
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -121,7 +121,8 @@
  
- AD525X ANALOG DEVICES DIGITAL POTENTIOMETERS DRIVER
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/AD5254
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/misc/ad525x_dpot.c
+ /* Set of bits not changed in pte_modify */
+ #define _PAGE_CHG_MASK	(PTE_PFN_MASK | _PAGE_PCD | _PAGE_PWT |		\
+-			 _PAGE_SPECIAL | _PAGE_ACCESSED | _PAGE_DIRTY)
++			 _PAGE_SPECIAL | _PAGE_ACCESSED | _PAGE_DIRTY |	\
++			 _PAGE_SOFT_DIRTY)
+ #define _HPAGE_CHG_MASK (_PAGE_CHG_MASK | _PAGE_PSE)
  
- AD5398 CURRENT REGULATOR DRIVER (AD5398/AD5821)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/AD5398
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/regulator/ad5398.c
- 
- AD714X CAPACITANCE TOUCH SENSOR DRIVER (AD7142/3/7/8/7A)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/AD7142
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/input/misc/ad714x.c
- 
- AD7877 TOUCHSCREEN DRIVER
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/AD7877
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/input/touchscreen/ad7877.c
- 
- AD7879 TOUCHSCREEN DRIVER (AD7879/AD7889)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/AD7879
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/input/touchscreen/ad7879.c
- 
-@@ -374,8 +374,8 @@ F:	include/media/adp1653.h
- 
- ADP5520 BACKLIGHT DRIVER WITH IO EXPANDER (ADP5520/ADP5501)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/ADP5520
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/mfd/adp5520.c
- F:	drivers/video/backlight/adp5520_bl.c
-@@ -385,16 +385,16 @@ F:	drivers/input/keyboard/adp5520-keys.c
- 
- ADP5588 QWERTY KEYPAD AND IO EXPANDER DRIVER (ADP5588/ADP5587)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/ADP5588
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/input/keyboard/adp5588-keys.c
- F:	drivers/gpio/gpio-adp5588.c
- 
- ADP8860 BACKLIGHT DRIVER (ADP8860/ADP8861/ADP8863)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/ADP8860
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/video/backlight/adp8860_bl.c
- 
-@@ -420,8 +420,8 @@ F:	drivers/hwmon/adt7475.c
- 
- ADXL34X THREE-AXIS DIGITAL ACCELEROMETER DRIVER (ADXL345/ADXL346)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/ADXL345
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/input/misc/adxl34x.c
- 
-@@ -627,9 +627,9 @@ F:	drivers/media/i2c/adv7842*
- 
- ANALOG DEVICES INC ASOC CODEC DRIVERS
- M:	Lars-Peter Clausen <lars@metafoo.de>
--L:	device-drivers-devel@blackfin.uclinux.org
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
- W:	http://wiki.analog.com/
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	sound/soc/codecs/adau*
- F:	sound/soc/codecs/adav*
-@@ -639,7 +639,7 @@ F:	sound/soc/codecs/ssm*
- F:	sound/soc/codecs/sigmadsp.*
- 
- ANALOG DEVICES INC ASOC DRIVERS
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
- W:	http://blackfin.uclinux.org/
- S:	Supported
-@@ -1742,56 +1742,54 @@ F:	fs/bfs/
- F:	include/uapi/linux/bfs_fs.h
- 
- BLACKFIN ARCHITECTURE
--M:	Mike Frysinger <vapier@gentoo.org>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+M:	Steven Miao <realmz6@gmail.com>
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	arch/blackfin/
- 
- BLACKFIN EMAC DRIVER
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/net/ethernet/adi/
- 
- BLACKFIN RTC DRIVER
--M:	Mike Frysinger <vapier.adi@gmail.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/rtc/rtc-bfin.c
- 
- BLACKFIN SDH DRIVER
- M:	Sonic Zhang <sonic.zhang@analog.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/mmc/host/bfin_sdh.c
- 
- BLACKFIN SERIAL DRIVER
- M:	Sonic Zhang <sonic.zhang@analog.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/tty/serial/bfin_uart.c
- 
- BLACKFIN WATCHDOG DRIVER
--M:	Mike Frysinger <vapier.adi@gmail.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/watchdog/bfin_wdt.c
- 
- BLACKFIN I2C TWI DRIVER
- M:	Sonic Zhang <sonic.zhang@analog.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org/
- S:	Supported
- F:	drivers/i2c/busses/i2c-bfin-twi.c
- 
- BLACKFIN MEDIA DRIVER
- M:	Scott Jiang <scott.jiang.linux@gmail.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org/
- S:	Supported
- F:	drivers/media/platform/blackfin/
+ #define _PAGE_CACHE_MASK	(_PAGE_PCD | _PAGE_PWT)
 _
 
-Patches currently in -mm which might be from sonic.zhang@analog.com are
+Patches currently in -mm which might be from avagin@openvz.org are
 
-maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch
+mm-dont-lose-the-soft_dirty-flag-on-mprotect.patch
 
