@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + dma-debug-fix-overlap-detection.patch added to -mm tree
-Date: Wed, 29 Jan 2014 11:08:21 -0800
-Message-ID: <52e951a5.7r+KFjNjn2RjFRi/%akpm@linux-foundation.org>
+Subject: + mm-slb-fix-misleading-comments.patch added to -mm tree
+Date: Wed, 29 Jan 2014 11:25:46 -0800
+Message-ID: <52e955ba.SAa4IgUGafp8pBzj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33163 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33329 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753090AbaA2TIW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jan 2014 14:08:22 -0500
+	with ESMTP id S1752122AbaA2TZr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jan 2014 14:25:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, romieu@fr.zoreil.com, linux@eikelenboom.it, dan.j.williams@intel.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, mpm@selenic.com, cl@linux.com, dave.hansen@linux.intel.com
 
-Subject: + dma-debug-fix-overlap-detection.patch added to -mm tree
-To: dan.j.williams@intel.com,linux@eikelenboom.it,romieu@fr.zoreil.com
+Subject: + mm-slb-fix-misleading-comments.patch added to -mm tree
+To: dave.hansen@linux.intel.com,cl@linux.com,mpm@selenic.com,penberg@kernel.org,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Wed, 29 Jan 2014 11:08:21 -0800
+Date: Wed, 29 Jan 2014 11:25:46 -0800
 
 
 The patch titled
-     Subject: dma-debug: fix overlap detection
+     Subject: mm: sl[uo]b: fix misleading comments
 has been added to the -mm tree.  Its filename is
-     dma-debug-fix-overlap-detection.patch
+     mm-slb-fix-misleading-comments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-fix-overlap-detection.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slb-fix-misleading-comments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-fix-overlap-detection.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slb-fix-misleading-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,73 +43,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: dma-debug: fix overlap detection
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm: sl[uo]b: fix misleading comments
 
-0abdd7a81b7e ("dma-debug: introduce debug_dma_assert_idle()") was reworked
-to expand the overlap counter to the full range expressable by 3 tag bits,
-but it has a thinko in treating the overlap counter as a pure reference
-count for the entry.
+On x86, SLUB creates and handles <=8192-byte allocations internally.  It
+passes larger ones up to the allocator.  Saying "up to order 2" is, at
+best, ambiguous.  Is that order-1?  Or (order-2 bytes)?  Make it more
+clear.
 
-Instead of deleting when the reference-count drops to zero, we need to
-delete when the overlap-count drops below zero.  Also, when detecting
-overflow we can just test the overlap-count > MAX rather than applying
-special meaning to 0.
+SLOB commits a similar sin.  It *handles* page-size requests, but the
+comment says that it passes up "all page size and larger requests".
 
-Regression report available here:
-http://marc.info/?l=linux-netdev&m=139073373932386&w=2
+SLOB also swaps around the order of the very-similarly-named
+KMALLOC_SHIFT_HIGH and KMALLOC_SHIFT_MAX #defines.  Make it consistent
+with the order of the other two allocators.
 
-This patch, now tested on the original net_dma case, sees the expected
-handful of reports before the eventual data corruption occurs.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
-Cc: Francois Romieu <romieu@fr.zoreil.com>
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ include/linux/slab.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/dma-debug.c~dma-debug-fix-overlap-detection lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-fix-overlap-detection
-+++ a/lib/dma-debug.c
-@@ -463,7 +463,7 @@ static int active_pfn_set_overlap(unsign
- 	int i;
+diff -puN include/linux/slab.h~mm-slb-fix-misleading-comments include/linux/slab.h
+--- a/include/linux/slab.h~mm-slb-fix-misleading-comments
++++ a/include/linux/slab.h
+@@ -205,8 +205,8 @@ struct kmem_cache {
  
- 	if (overlap > ACTIVE_PFN_MAX_OVERLAP || overlap < 0)
--		return 0;
-+		return overlap;
+ #ifdef CONFIG_SLUB
+ /*
+- * SLUB allocates up to order 2 pages directly and otherwise
+- * passes the request to the page allocator.
++ * SLUB directly allocates requests fitting in to an order-1 page
++ * (PAGE_SIZE*2).  Larger requests are passed to the page allocator.
+  */
+ #define KMALLOC_SHIFT_HIGH	(PAGE_SHIFT + 1)
+ #define KMALLOC_SHIFT_MAX	(MAX_ORDER + PAGE_SHIFT)
+@@ -217,12 +217,12 @@ struct kmem_cache {
  
- 	for (i = RADIX_TREE_MAX_TAGS - 1; i >= 0; i--)
- 		if (overlap & 1 << i)
-@@ -486,7 +486,7 @@ static void active_pfn_inc_overlap(unsig
- 	 * debug_dma_assert_idle() as the pfn may be marked idle
- 	 * prematurely.
- 	 */
--	WARN_ONCE(overlap == 0,
-+	WARN_ONCE(overlap > ACTIVE_PFN_MAX_OVERLAP,
- 		  "DMA-API: exceeded %d overlapping mappings of pfn %lx\n",
- 		  ACTIVE_PFN_MAX_OVERLAP, pfn);
- }
-@@ -517,7 +517,11 @@ static void active_pfn_remove(struct dma
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&radix_lock, flags);
--	if (active_pfn_dec_overlap(entry->pfn) == 0)
-+	/* since we are counting overlaps the final put of the
-+	 * entry->pfn will occur when the overlap count is 0.
-+	 * active_pfn_dec_overlap() returns -1 in that case
-+	 */
-+	if (active_pfn_dec_overlap(entry->pfn) < 0)
- 		radix_tree_delete(&dma_active_pfn, entry->pfn);
- 	spin_unlock_irqrestore(&radix_lock, flags);
- }
+ #ifdef CONFIG_SLOB
+ /*
+- * SLOB passes all page size and larger requests to the page allocator.
++ * SLOB passes all requests larger than one page to the page allocator.
+  * No kmalloc array is necessary since objects of different sizes can
+  * be allocated from the same page.
+  */
+-#define KMALLOC_SHIFT_MAX	30
+ #define KMALLOC_SHIFT_HIGH	PAGE_SHIFT
++#define KMALLOC_SHIFT_MAX	30
+ #ifndef KMALLOC_SHIFT_LOW
+ #define KMALLOC_SHIFT_LOW	3
+ #endif
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
 origin.patch
-dma-debug-fix-overlap-detection.patch
+mm-slub-do-not-vm_bug_on_page-for-temporary-on-stack-pages.patch
+mm-slubc-fix-page-_count-corruption-again.patch
+mm-slb-fix-misleading-comments.patch
 linux-next.patch
 
