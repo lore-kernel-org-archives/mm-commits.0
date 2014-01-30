@@ -1,88 +1,267 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-compat-fix-lookup_dcookie-parameter-handling.patch
- removed from -mm tree
-Date: Thu, 30 Jan 2014 12:05:12 -0800
-Message-ID: <52eab078.54YUBuzTKeJOm9Zm%akpm__8180.41018578715$1391112331$gmane$org@linux-foundation.org>
+Subject: [merged]
+ documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion.patch removed from -mm tree
+Date: Thu, 30 Jan 2014 12:05:26 -0800
+Message-ID: <52eab086.1Se0SZX2I0REbWqk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42367 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42405 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752733AbaA3UFN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:13 -0500
+	with ESMTP id S1753417AbaA3UF0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, schwidefsky@de.ibm.com, mingo@kernel.org, hpa@zytor.com, brueckner@linux.vnet.ibm.com, heiko.carstens@de.ibm.com
+To: mm-commits@vger.kernel.org, greg@kroah.com, andrzej.p@samsung.com, ard.biesheuvel@linaro.org
 
-Subject: [merged] fs-compat-fix-lookup_dcookie-parameter-handling.patch removed from -mm tree
-To: heiko.carstens@de.ibm.com,brueckner@linux.vnet.ibm.com,hpa@zytor.com,mingo@kernel.org,schwidefsky@de.ibm.com,stable@vger.kernel.org,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion.patch removed from -mm tree
+To: ard.biesheuvel@linaro.org,andrzej.p@samsung.com,greg@kroah.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 30 Jan 2014 12:05:12 -0800
+Date: Thu, 30 Jan 2014 12:05:26 -0800
 
 
 The patch titled
-     Subject: fs/compat: fix lookup_dcookie() parameter handling
+     Subject: Documentation: fix multiple typo occurences s/KenelVersion/KernelVersion/
 has been removed from the -mm tree.  Its filename was
-     fs-compat-fix-lookup_dcookie-parameter-handling.patch
+     documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: fs/compat: fix lookup_dcookie() parameter handling
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Documentation: fix multiple typo occurences s/KenelVersion/KernelVersion/
 
-d5dc77bfeeab0 "consolidate compat lookup_dcookie()" coverted all
-architectures to the new compat_sys_lookup_dcookie() syscall.
-
-The "len" paramater of the new compat syscall must have the type
-compat_size_t in order to enforce zero extension for architectures where
-the ABI requires that the caller of a function performed zero and/or sign
-extension to 64 bit of all parameters.
-
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: <stable@vger.kernel.org>	[v3.10+]
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Greg KH <greg@kroah.com>
+Acked-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcookies.c          |    2 +-
- include/linux/compat.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ Documentation/ABI/testing/configfs-usb-gadget              |   12 +++++-----
+ Documentation/ABI/testing/configfs-usb-gadget-acm          |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-ecm          |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-eem          |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-ffs          |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-loopback     |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-mass-storage |    4 +--
+ Documentation/ABI/testing/configfs-usb-gadget-ncm          |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-obex         |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-phonet       |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-rndis        |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-serial       |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-sourcesink   |    2 -
+ Documentation/ABI/testing/configfs-usb-gadget-subset       |    2 -
+ 14 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN fs/dcookies.c~fs-compat-fix-lookup_dcookie-parameter-handling fs/dcookies.c
---- a/fs/dcookies.c~fs-compat-fix-lookup_dcookie-parameter-handling
-+++ a/fs/dcookies.c
-@@ -204,7 +204,7 @@ out:
- }
+diff -puN Documentation/ABI/testing/configfs-usb-gadget~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget
+--- a/Documentation/ABI/testing/configfs-usb-gadget~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget
+@@ -1,13 +1,13 @@
+ What:		/config/usb-gadget
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 		This group contains sub-groups corresponding to created
+ 		USB gadgets.
  
- #ifdef CONFIG_COMPAT
--COMPAT_SYSCALL_DEFINE4(lookup_dcookie, u32, w0, u32, w1, char __user *, buf, size_t, len)
-+COMPAT_SYSCALL_DEFINE4(lookup_dcookie, u32, w0, u32, w1, char __user *, buf, compat_size_t, len)
- {
- #ifdef __BIG_ENDIAN
- 	return sys_lookup_dcookie(((u64)w0 << 32) | w1, buf, len);
-diff -puN include/linux/compat.h~fs-compat-fix-lookup_dcookie-parameter-handling include/linux/compat.h
---- a/include/linux/compat.h~fs-compat-fix-lookup_dcookie-parameter-handling
-+++ a/include/linux/compat.h
-@@ -422,7 +422,7 @@ extern long compat_arch_ptrace(struct ta
- asmlinkage long compat_sys_ptrace(compat_long_t request, compat_long_t pid,
- 				  compat_long_t addr, compat_long_t data);
+ What:		/config/usb-gadget/gadget
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
  
--asmlinkage long compat_sys_lookup_dcookie(u32, u32, char __user *, size_t);
-+asmlinkage long compat_sys_lookup_dcookie(u32, u32, char __user *, compat_size_t);
- /*
-  * epoll (fs/eventpoll.c) compat bits follow ...
-  */
+ 		The attributes of a gadget:
+@@ -27,7 +27,7 @@ Description:
+ 
+ What:		/config/usb-gadget/gadget/configs
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 		This group contains a USB gadget's configurations
+ 
+@@ -58,20 +58,20 @@ Description:
+ 
+ What:		/config/usb-gadget/gadget/functions
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 		This group contains functions available to this USB gadget.
+ 
+ What:		/config/usb-gadget/gadget/strings
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 		This group contains subdirectories for language-specific
+ 		strings for this gadget.
+ 
+ What:		/config/usb-gadget/gadget/strings/language
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 		The attributes:
+ 
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-acm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-acm
+--- a/Documentation/ABI/testing/configfs-usb-gadget-acm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-acm
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/acm.name
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 
+ 		This item contains just one readonly attribute: port_num.
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-ecm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-ecm
+--- a/Documentation/ABI/testing/configfs-usb-gadget-ecm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-ecm
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/ecm.name
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 		The attributes:
+ 
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-eem~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-eem
+--- a/Documentation/ABI/testing/configfs-usb-gadget-eem~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-eem
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/eem.name
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 		The attributes:
+ 
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-ffs~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-ffs
+--- a/Documentation/ABI/testing/configfs-usb-gadget-ffs~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-ffs
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/ffs.name
+ Date:		Nov 2013
+-KenelVersion:	3.13
++KernelVersion:	3.13
+ Description:	The purpose of this directory is to create and remove it.
+ 
+ 		A corresponding USB function instance is created/removed.
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-loopback~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-loopback
+--- a/Documentation/ABI/testing/configfs-usb-gadget-loopback~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-loopback
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/Loopback.name
+ Date:		Nov 2013
+-KenelVersion:	3.13
++KernelVersion:	3.13
+ Description:
+ 		The attributes:
+ 
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-mass-storage~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-mass-storage
+--- a/Documentation/ABI/testing/configfs-usb-gadget-mass-storage~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-mass-storage
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/mass_storage.name
+ Date:		Oct 2013
+-KenelVersion:	3.13
++KernelVersion:	3.13
+ Description:
+ 		The attributes:
+ 
+@@ -13,7 +13,7 @@ Description:
+ 
+ What:		/config/usb-gadget/gadget/functions/mass_storage.name/lun.name
+ Date:		Oct 2013
+-KenelVersion:	3.13
++KernelVersion:	3.13
+ Description:
+ 		The attributes:
+ 
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-ncm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-ncm
+--- a/Documentation/ABI/testing/configfs-usb-gadget-ncm~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-ncm
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/ncm.name
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 		The attributes:
+ 
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-obex~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-obex
+--- a/Documentation/ABI/testing/configfs-usb-gadget-obex~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-obex
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/obex.name
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 
+ 		This item contains just one readonly attribute: port_num.
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-phonet~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-phonet
+--- a/Documentation/ABI/testing/configfs-usb-gadget-phonet~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-phonet
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/phonet.name
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 
+ 		This item contains just one readonly attribute: ifname.
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-rndis~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-rndis
+--- a/Documentation/ABI/testing/configfs-usb-gadget-rndis~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-rndis
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/rndis.name
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 		The attributes:
+ 
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-serial~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-serial
+--- a/Documentation/ABI/testing/configfs-usb-gadget-serial~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-serial
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/gser.name
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 
+ 		This item contains just one readonly attribute: port_num.
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-sourcesink~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-sourcesink
+--- a/Documentation/ABI/testing/configfs-usb-gadget-sourcesink~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-sourcesink
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/SourceSink.name
+ Date:		Nov 2013
+-KenelVersion:	3.13
++KernelVersion:	3.13
+ Description:
+ 		The attributes:
+ 
+diff -puN Documentation/ABI/testing/configfs-usb-gadget-subset~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion Documentation/ABI/testing/configfs-usb-gadget-subset
+--- a/Documentation/ABI/testing/configfs-usb-gadget-subset~documentation-fix-multiple-typo-occurences-s-kenelversion-kernelversion
++++ a/Documentation/ABI/testing/configfs-usb-gadget-subset
+@@ -1,6 +1,6 @@
+ What:		/config/usb-gadget/gadget/functions/geth.name
+ Date:		Jun 2013
+-KenelVersion:	3.11
++KernelVersion:	3.11
+ Description:
+ 		The attributes:
+ 
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
 
 origin.patch
-linux-next.patch
 
