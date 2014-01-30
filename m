@@ -1,224 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch removed from -mm tree
-Date: Thu, 30 Jan 2014 12:05:28 -0800
-Message-ID: <52eab088.IEdDGaf+dxNzRZ4r%akpm@linux-foundation.org>
+Subject: [merged] dma-debug-fix-overlap-detection.patch removed from -mm
+ tree
+Date: Thu, 30 Jan 2014 12:05:24 -0800
+Message-ID: <52eab084.91pNzKx3VBElQVh6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42409 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42401 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753417AbaA3UF3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:29 -0500
+	with ESMTP id S1753417AbaA3UFZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vapier@gentoo.org, realmz6@gmail.com, michael.hennerich@analog.com, lars@metafoo.de, sonic.zhang@analog.com
+To: mm-commits@vger.kernel.org, romieu@fr.zoreil.com, linux@eikelenboom.it, dan.j.williams@intel.com
 
-Subject: [merged] maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch removed from -mm tree
-To: sonic.zhang@analog.com,lars@metafoo.de,michael.hennerich@analog.com,realmz6@gmail.com,vapier@gentoo.org,mm-commits@vger.kernel.org
+Subject: [merged] dma-debug-fix-overlap-detection.patch removed from -mm tree
+To: dan.j.williams@intel.com,linux@eikelenboom.it,romieu@fr.zoreil.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 30 Jan 2014 12:05:28 -0800
+Date: Thu, 30 Jan 2014 12:05:24 -0800
 
 
 The patch titled
-     Subject: MAINTAINERS: ADI Linux development mailing lists: change to the new server
+     Subject: dma-debug: fix overlap detection
 has been removed from the -mm tree.  Its filename was
-     maintainers-adi-linux-development-mailing-lists-change-to-the-new-server.patch
+     dma-debug-fix-overlap-detection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sonic Zhang <sonic.zhang@analog.com>
-Subject: MAINTAINERS: ADI Linux development mailing lists: change to the new server
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: dma-debug: fix overlap detection
 
-Update Blackfin arch maintainer's email as well.
+0abdd7a81b7e ("dma-debug: introduce debug_dma_assert_idle()") was reworked
+to expand the overlap counter to the full range expressable by 3 tag bits,
+but it has a thinko in treating the overlap counter as a pure reference
+count for the entry.
 
-Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Steven Miao <realmz6@gmail.com>
+Instead of deleting when the reference-count drops to zero, we need to
+delete when the overlap-count drops below zero.  Also, when detecting
+overflow we can just test the overlap-count > MAX rather than applying
+special meaning to 0.
+
+Regression report available here:
+http://marc.info/?l=linux-netdev&m=139073373932386&w=2
+
+This patch, now tested on the original net_dma case, sees the expected
+handful of reports before the eventual data corruption occurs.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
+Cc: Francois Romieu <romieu@fr.zoreil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   42 ++++++++++++++++++++----------------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ lib/dma-debug.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-adi-linux-development-mailing-lists-change-to-the-new-server MAINTAINERS
---- a/MAINTAINERS~maintainers-adi-linux-development-mailing-lists-change-to-the-new-server
-+++ a/MAINTAINERS
-@@ -309,36 +309,36 @@ F:	sound/pci/ad1889.*
+diff -puN lib/dma-debug.c~dma-debug-fix-overlap-detection lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-fix-overlap-detection
++++ a/lib/dma-debug.c
+@@ -463,7 +463,7 @@ static int active_pfn_set_overlap(unsign
+ 	int i;
  
- AD525X ANALOG DEVICES DIGITAL POTENTIOMETERS DRIVER
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/AD5254
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/misc/ad525x_dpot.c
+ 	if (overlap > ACTIVE_PFN_MAX_OVERLAP || overlap < 0)
+-		return 0;
++		return overlap;
  
- AD5398 CURRENT REGULATOR DRIVER (AD5398/AD5821)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/AD5398
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/regulator/ad5398.c
+ 	for (i = RADIX_TREE_MAX_TAGS - 1; i >= 0; i--)
+ 		if (overlap & 1 << i)
+@@ -486,7 +486,7 @@ static void active_pfn_inc_overlap(unsig
+ 	 * debug_dma_assert_idle() as the pfn may be marked idle
+ 	 * prematurely.
+ 	 */
+-	WARN_ONCE(overlap == 0,
++	WARN_ONCE(overlap > ACTIVE_PFN_MAX_OVERLAP,
+ 		  "DMA-API: exceeded %d overlapping mappings of pfn %lx\n",
+ 		  ACTIVE_PFN_MAX_OVERLAP, pfn);
+ }
+@@ -517,7 +517,11 @@ static void active_pfn_remove(struct dma
+ 	unsigned long flags;
  
- AD714X CAPACITANCE TOUCH SENSOR DRIVER (AD7142/3/7/8/7A)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/AD7142
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/input/misc/ad714x.c
- 
- AD7877 TOUCHSCREEN DRIVER
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/AD7877
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/input/touchscreen/ad7877.c
- 
- AD7879 TOUCHSCREEN DRIVER (AD7879/AD7889)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/AD7879
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/input/touchscreen/ad7879.c
- 
-@@ -374,8 +374,8 @@ F:	include/media/adp1653.h
- 
- ADP5520 BACKLIGHT DRIVER WITH IO EXPANDER (ADP5520/ADP5501)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/ADP5520
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/mfd/adp5520.c
- F:	drivers/video/backlight/adp5520_bl.c
-@@ -385,16 +385,16 @@ F:	drivers/input/keyboard/adp5520-keys.c
- 
- ADP5588 QWERTY KEYPAD AND IO EXPANDER DRIVER (ADP5588/ADP5587)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/ADP5588
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/input/keyboard/adp5588-keys.c
- F:	drivers/gpio/gpio-adp5588.c
- 
- ADP8860 BACKLIGHT DRIVER (ADP8860/ADP8861/ADP8863)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/ADP8860
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/video/backlight/adp8860_bl.c
- 
-@@ -420,8 +420,8 @@ F:	drivers/hwmon/adt7475.c
- 
- ADXL34X THREE-AXIS DIGITAL ACCELEROMETER DRIVER (ADXL345/ADXL346)
- M:	Michael Hennerich <michael.hennerich@analog.com>
--L:	device-drivers-devel@blackfin.uclinux.org
- W:	http://wiki.analog.com/ADXL345
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	drivers/input/misc/adxl34x.c
- 
-@@ -627,9 +627,9 @@ F:	drivers/media/i2c/adv7842*
- 
- ANALOG DEVICES INC ASOC CODEC DRIVERS
- M:	Lars-Peter Clausen <lars@metafoo.de>
--L:	device-drivers-devel@blackfin.uclinux.org
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
- W:	http://wiki.analog.com/
-+W:	http://ez.analog.com/community/linux-device-drivers
- S:	Supported
- F:	sound/soc/codecs/adau*
- F:	sound/soc/codecs/adav*
-@@ -639,7 +639,7 @@ F:	sound/soc/codecs/ssm*
- F:	sound/soc/codecs/sigmadsp.*
- 
- ANALOG DEVICES INC ASOC DRIVERS
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
- W:	http://blackfin.uclinux.org/
- S:	Supported
-@@ -1742,56 +1742,54 @@ F:	fs/bfs/
- F:	include/uapi/linux/bfs_fs.h
- 
- BLACKFIN ARCHITECTURE
--M:	Mike Frysinger <vapier@gentoo.org>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+M:	Steven Miao <realmz6@gmail.com>
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	arch/blackfin/
- 
- BLACKFIN EMAC DRIVER
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/net/ethernet/adi/
- 
- BLACKFIN RTC DRIVER
--M:	Mike Frysinger <vapier.adi@gmail.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/rtc/rtc-bfin.c
- 
- BLACKFIN SDH DRIVER
- M:	Sonic Zhang <sonic.zhang@analog.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/mmc/host/bfin_sdh.c
- 
- BLACKFIN SERIAL DRIVER
- M:	Sonic Zhang <sonic.zhang@analog.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/tty/serial/bfin_uart.c
- 
- BLACKFIN WATCHDOG DRIVER
--M:	Mike Frysinger <vapier.adi@gmail.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org
- S:	Supported
- F:	drivers/watchdog/bfin_wdt.c
- 
- BLACKFIN I2C TWI DRIVER
- M:	Sonic Zhang <sonic.zhang@analog.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org/
- S:	Supported
- F:	drivers/i2c/busses/i2c-bfin-twi.c
- 
- BLACKFIN MEDIA DRIVER
- M:	Scott Jiang <scott.jiang.linux@gmail.com>
--L:	uclinux-dist-devel@blackfin.uclinux.org
-+L:	adi-buildroot-devel@lists.sourceforge.net
- W:	http://blackfin.uclinux.org/
- S:	Supported
- F:	drivers/media/platform/blackfin/
+ 	spin_lock_irqsave(&radix_lock, flags);
+-	if (active_pfn_dec_overlap(entry->pfn) == 0)
++	/* since we are counting overlaps the final put of the
++	 * entry->pfn will occur when the overlap count is 0.
++	 * active_pfn_dec_overlap() returns -1 in that case
++	 */
++	if (active_pfn_dec_overlap(entry->pfn) < 0)
+ 		radix_tree_delete(&dma_active_pfn, entry->pfn);
+ 	spin_unlock_irqrestore(&radix_lock, flags);
+ }
 _
 
-Patches currently in -mm which might be from sonic.zhang@analog.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 origin.patch
 linux-next.patch
