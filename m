@@ -1,114 +1,130 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-numa-initialse-numa-balancing-after-jump-label-initialisation.patch
- removed from -mm tree
-Date: Thu, 30 Jan 2014 12:05:06 -0800
-Message-ID: <52eab072.G9ZabDyD2bfcnUyd%akpm__39926.2155443013$1391112331$gmane$org@linux-foundation.org>
+ slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2.patch removed from -mm tree
+Date: Thu, 30 Jan 2014 12:05:16 -0800
+Message-ID: <52eab07c.kWZojNAQP9SWrl1l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42379 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753294AbaA3UFH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:07 -0500
+	with ESMTP id S1753417AbaA3UFR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, riel@redhat.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, vdavydov@parallels.com, rientjes@google.com, penberg@kernel.org, cl@linux.com, davej@redhat.com
 
-Subject: [merged] mm-numa-initialse-numa-balancing-after-jump-label-initialisation.patch removed from -mm tree
-To: mgorman@suse.de,riel@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2.patch removed from -mm tree
+To: davej@redhat.com,cl@linux.com,penberg@kernel.org,rientjes@google.com,vdavydov@parallels.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 30 Jan 2014 12:05:06 -0800
+Date: Thu, 30 Jan 2014 12:05:16 -0800
 
 
 The patch titled
-     Subject: mm: numa: initialise numa balancing after jump label initialisation
+     Subject: slab: fix wrong retval on kmem_cache_create_memcg error path
 has been removed from the -mm tree.  Its filename was
-     mm-numa-initialse-numa-balancing-after-jump-label-initialisation.patch
+     slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: initialise numa balancing after jump label initialisation
+From: Dave Jones <davej@redhat.com>
+Subject: slab: fix wrong retval on kmem_cache_create_memcg error path
 
-The command line parsing takes place before jump labels are initialised which
-generates a warning if numa_balancing= is specified and CONFIG_JUMP_LABEL
-is set. On older kernls before commit c4b2c0c5 (static_key: WARN on
-usage before jump_label_init was called) the kernel would have crashed.
-This patch enables automatic numa balancing later in the initialisation
-process if numa_balancing= is specified.
+On kmem_cache_create_memcg() error path we set 'err', but leave 's' (the
+new cache ptr) undefined.  The latter can be NULL if we could not allocate
+the cache, or pointing to a freed area if we failed somewhere later while
+trying to initialize it.  Initially we checked 'err' immediately before
+exiting the function and returned NULL if it was set ignoring the value of
+'s':
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: stable <stable@vger.kernel.org>
+    out_unlock:
+        ...
+        if (err) {
+            /* report error */
+            return NULL;
+        }
+        return s;
+
+Recently this check was, in fact, broken by commit f717eb3abb5e ("slab: do
+not panic if we fail to create memcg cache"), which turned it to:
+
+    out_unlock:
+        ...
+        if (err && !memcg) {
+            /* report error */
+            return NULL;
+        }
+        return s;
+
+As a result, if we are failing creating a cache for a memcg, we will skip
+the check and return 's' that can contain crap.  Obviously, commit
+f717eb3abb5e intended not to return crap on error allocating a cache for a
+memcg, but only to remove the error reporting in this case, so the check
+should look like this:
+
+    out_unlock:
+        ...
+        if (err) {
+            if (!memcg)
+                return NULL;
+            /* report error */
+            return NULL;
+        }
+        return s;
+
+[rientjes@google.com: despaghettification]
+[vdavydov@parallels.com: patch monkeying]
+Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Reported-by: Dave Jones <davej@redhat.com>
+Acked-by: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ mm/slab_common.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-numa-initialse-numa-balancing-after-jump-label-initialisation mm/mempolicy.c
---- a/mm/mempolicy.c~mm-numa-initialse-numa-balancing-after-jump-label-initialisation
-+++ a/mm/mempolicy.c
-@@ -2654,7 +2654,7 @@ void mpol_free_shared_policy(struct shar
- }
+diff -puN mm/slab_common.c~slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2 mm/slab_common.c
+--- a/mm/slab_common.c~slab-fix-wrong-retval-on-kmem_cache_create_memcg-error-path-2
++++ a/mm/slab_common.c
+@@ -233,14 +233,17 @@ out_unlock:
+ 	mutex_unlock(&slab_mutex);
+ 	put_online_cpus();
  
- #ifdef CONFIG_NUMA_BALANCING
--static bool __initdata numabalancing_override;
-+static int __initdata numabalancing_override;
- 
- static void __init check_numabalancing_enable(void)
- {
-@@ -2663,9 +2663,15 @@ static void __init check_numabalancing_e
- 	if (IS_ENABLED(CONFIG_NUMA_BALANCING_DEFAULT_ENABLED))
- 		numabalancing_default = true;
- 
-+	/* Parsed by setup_numabalancing. override == 1 enables, -1 disables */
-+	if (numabalancing_override)
-+		set_numabalancing_state(numabalancing_override == 1);
+-	/*
+-	 * There is no point in flooding logs with warnings or especially
+-	 * crashing the system if we fail to create a cache for a memcg. In
+-	 * this case we will be accounting the memcg allocation to the root
+-	 * cgroup until we succeed to create its own cache, but it isn't that
+-	 * critical.
+-	 */
+-	if (err && !memcg) {
++	if (err) {
++		/*
++		 * There is no point in flooding logs with warnings or
++		 * especially crashing the system if we fail to create a cache
++		 * for a memcg. In this case we will be accounting the memcg
++		 * allocation to the root cgroup until we succeed to create its
++		 * own cache, but it isn't that critical.
++		 */
++		if (!memcg)
++			return NULL;
 +
- 	if (nr_node_ids > 1 && !numabalancing_override) {
--		printk(KERN_INFO "Enabling automatic NUMA balancing. "
--			"Configure with numa_balancing= or the kernel.numa_balancing sysctl");
-+		printk(KERN_INFO "%s automatic NUMA balancing. "
-+			"Configure with numa_balancing= or the "
-+			"kernel.numa_balancing sysctl",
-+			numabalancing_default ? "Enabling" : "Disabling");
- 		set_numabalancing_state(numabalancing_default);
- 	}
- }
-@@ -2675,13 +2681,12 @@ static int __init setup_numabalancing(ch
- 	int ret = 0;
- 	if (!str)
- 		goto out;
--	numabalancing_override = true;
- 
- 	if (!strcmp(str, "enable")) {
--		set_numabalancing_state(true);
-+		numabalancing_override = 1;
- 		ret = 1;
- 	} else if (!strcmp(str, "disable")) {
--		set_numabalancing_state(false);
-+		numabalancing_override = -1;
- 		ret = 1;
- 	}
- out:
+ 		if (flags & SLAB_PANIC)
+ 			panic("kmem_cache_create: Failed to create slab '%s'. Error %d\n",
+ 				name, err);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
-mm-mempolicyc-fix-mempolicy-printing-in-numa_maps.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
-mm-optimize-put_mems_allowed-usage.patch
-mm-remove-bug_on-from-mlock_vma_page.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
+numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockreserved.patch
 linux-next.patch
-zsmalloc-move-it-under-mm.patch
-zram-promote-zram-from-staging.patch
 
