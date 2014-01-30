@@ -1,147 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-compat-fix-parameter-handling-for-compat-readv-writev-syscalls.patch
+Subject: [merged] mm-readaheadc-fix-do_readahead-for-no-readpages.patch
  removed from -mm tree
-Date: Thu, 30 Jan 2014 12:05:10 -0800
-Message-ID: <52eab076.nazmlMbOOMuptWjS%akpm@linux-foundation.org>
+Date: Thu, 30 Jan 2014 12:05:20 -0800
+Message-ID: <52eab080.DzLv9NynQCT391G/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42357 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42390 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753137AbaA3UFL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:11 -0500
+	with ESMTP id S1753417AbaA3UFU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, stable@vger.kernel.org, schwidefsky@de.ibm.com, mingo@kernel.org, hpa@zytor.com, brueckner@linux.vnet.ibm.com, heiko.carstens@de.ibm.com
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, mark.rutland@arm.com
 
-Subject: [merged] fs-compat-fix-parameter-handling-for-compat-readv-writev-syscalls.patch removed from -mm tree
-To: heiko.carstens@de.ibm.com,brueckner@linux.vnet.ibm.com,hpa@zytor.com,mingo@kernel.org,schwidefsky@de.ibm.com,stable@vger.kernel.org,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] mm-readaheadc-fix-do_readahead-for-no-readpages.patch removed from -mm tree
+To: mark.rutland@arm.com,kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 30 Jan 2014 12:05:10 -0800
+Date: Thu, 30 Jan 2014 12:05:20 -0800
 
 
 The patch titled
-     Subject: fs/compat: fix parameter handling for compat readv/writev syscalls
+     Subject: mm/readahead.c: fix do_readahead() for no readpage(s)
 has been removed from the -mm tree.  Its filename was
-     fs-compat-fix-parameter-handling-for-compat-readv-writev-syscalls.patch
+     mm-readaheadc-fix-do_readahead-for-no-readpages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: fs/compat: fix parameter handling for compat readv/writev syscalls
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: mm/readahead.c: fix do_readahead() for no readpage(s)
 
-We got a report that the pwritev syscall does not work correctly in compat
-mode on s390.
+63d0f0a3c7e1 (mm/readahead.c:do_readhead(): don't check for ->readpage)
+unintentionally made do_readahead return 0 for all valid files regardless
+of whether readahead was supported, rather than the expected -EINVAL. 
+This gets forwarded on to userspace, and results in sys_readahead
+appearing to succeed in cases that don't make sense (e.g.  when called on
+pipes or sockets).  This issue is detected by the LTP readahead01
+testcase.
 
-It turned out that with 72ec35163f9f "switch compat readv/writev variants
-to COMPAT_SYSCALL_DEFINE" we lost the zero extension of a couple of
-syscall parameters because the some parameter types haven't been converted
-from unsigned long to compat_ulong_t.
+As the exact return value of force_page_cache_readahead is currently never
+used, we can simplify it to return only 0 or -EINVAL (when readpage or
+readpages is missing).  With that in place we can simply forward on the
+return value of force_page_cache_readahead in do_readahead.
 
-This is needed for architectures where the ABI requires that the caller of
-a function performed zero and/or sign extension to 64 bit of all
-parameters.
+This patch performs said change, restoring the expected semantics.
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: <stable@vger.kernel.org>	[v3.10+]
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c        |   16 ++++++++--------
- include/linux/compat.h |   16 ++++++++--------
- 2 files changed, 16 insertions(+), 16 deletions(-)
+ mm/readahead.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN fs/read_write.c~fs-compat-fix-parameter-handling-for-compat-readv-writev-syscalls fs/read_write.c
---- a/fs/read_write.c~fs-compat-fix-parameter-handling-for-compat-readv-writev-syscalls
-+++ a/fs/read_write.c
-@@ -964,9 +964,9 @@ out:
- 	return ret;
+diff -puN mm/readahead.c~mm-readaheadc-fix-do_readahead-for-no-readpages mm/readahead.c
+--- a/mm/readahead.c~mm-readaheadc-fix-do_readahead-for-no-readpages
++++ a/mm/readahead.c
+@@ -211,8 +211,6 @@ out:
+ int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
+ 		pgoff_t offset, unsigned long nr_to_read)
+ {
+-	int ret = 0;
+-
+ 	if (unlikely(!mapping->a_ops->readpage && !mapping->a_ops->readpages))
+ 		return -EINVAL;
+ 
+@@ -226,15 +224,13 @@ int force_page_cache_readahead(struct ad
+ 			this_chunk = nr_to_read;
+ 		err = __do_page_cache_readahead(mapping, filp,
+ 						offset, this_chunk, 0);
+-		if (err < 0) {
+-			ret = err;
+-			break;
+-		}
+-		ret += err;
++		if (err < 0)
++			return err;
++
+ 		offset += this_chunk;
+ 		nr_to_read -= this_chunk;
+ 	}
+-	return ret;
++	return 0;
  }
  
--COMPAT_SYSCALL_DEFINE3(readv, unsigned long, fd,
-+COMPAT_SYSCALL_DEFINE3(readv, compat_ulong_t, fd,
- 		const struct compat_iovec __user *,vec,
--		unsigned long, vlen)
-+		compat_ulong_t, vlen)
- {
- 	struct fd f = fdget(fd);
- 	ssize_t ret;
-@@ -1001,9 +1001,9 @@ COMPAT_SYSCALL_DEFINE4(preadv64, unsigne
- 	return ret;
+ /*
+@@ -576,8 +572,7 @@ do_readahead(struct address_space *mappi
+ 	if (!mapping || !mapping->a_ops)
+ 		return -EINVAL;
+ 
+-	force_page_cache_readahead(mapping, filp, index, nr);
+-	return 0;
++	return force_page_cache_readahead(mapping, filp, index, nr);
  }
  
--COMPAT_SYSCALL_DEFINE5(preadv, unsigned long, fd,
-+COMPAT_SYSCALL_DEFINE5(preadv, compat_ulong_t, fd,
- 		const struct compat_iovec __user *,vec,
--		unsigned long, vlen, u32, pos_low, u32, pos_high)
-+		compat_ulong_t, vlen, u32, pos_low, u32, pos_high)
- {
- 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
- 	return compat_sys_preadv64(fd, vec, vlen, pos);
-@@ -1031,9 +1031,9 @@ out:
- 	return ret;
- }
- 
--COMPAT_SYSCALL_DEFINE3(writev, unsigned long, fd,
-+COMPAT_SYSCALL_DEFINE3(writev, compat_ulong_t, fd,
- 		const struct compat_iovec __user *, vec,
--		unsigned long, vlen)
-+		compat_ulong_t, vlen)
- {
- 	struct fd f = fdget(fd);
- 	ssize_t ret;
-@@ -1068,9 +1068,9 @@ COMPAT_SYSCALL_DEFINE4(pwritev64, unsign
- 	return ret;
- }
- 
--COMPAT_SYSCALL_DEFINE5(pwritev, unsigned long, fd,
-+COMPAT_SYSCALL_DEFINE5(pwritev, compat_ulong_t, fd,
- 		const struct compat_iovec __user *,vec,
--		unsigned long, vlen, u32, pos_low, u32, pos_high)
-+		compat_ulong_t, vlen, u32, pos_low, u32, pos_high)
- {
- 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
- 	return compat_sys_pwritev64(fd, vec, vlen, pos);
-diff -puN include/linux/compat.h~fs-compat-fix-parameter-handling-for-compat-readv-writev-syscalls include/linux/compat.h
---- a/include/linux/compat.h~fs-compat-fix-parameter-handling-for-compat-readv-writev-syscalls
-+++ a/include/linux/compat.h
-@@ -327,16 +327,16 @@ asmlinkage long compat_sys_keyctl(u32 op
- 			      u32 arg2, u32 arg3, u32 arg4, u32 arg5);
- asmlinkage long compat_sys_ustat(unsigned dev, struct compat_ustat __user *u32);
- 
--asmlinkage ssize_t compat_sys_readv(unsigned long fd,
--		const struct compat_iovec __user *vec, unsigned long vlen);
--asmlinkage ssize_t compat_sys_writev(unsigned long fd,
--		const struct compat_iovec __user *vec, unsigned long vlen);
--asmlinkage ssize_t compat_sys_preadv(unsigned long fd,
-+asmlinkage ssize_t compat_sys_readv(compat_ulong_t fd,
-+		const struct compat_iovec __user *vec, compat_ulong_t vlen);
-+asmlinkage ssize_t compat_sys_writev(compat_ulong_t fd,
-+		const struct compat_iovec __user *vec, compat_ulong_t vlen);
-+asmlinkage ssize_t compat_sys_preadv(compat_ulong_t fd,
- 		const struct compat_iovec __user *vec,
--		unsigned long vlen, u32 pos_low, u32 pos_high);
--asmlinkage ssize_t compat_sys_pwritev(unsigned long fd,
-+		compat_ulong_t vlen, u32 pos_low, u32 pos_high);
-+asmlinkage ssize_t compat_sys_pwritev(compat_ulong_t fd,
- 		const struct compat_iovec __user *vec,
--		unsigned long vlen, u32 pos_low, u32 pos_high);
-+		compat_ulong_t vlen, u32 pos_low, u32 pos_high);
- asmlinkage long comat_sys_lseek(unsigned int, compat_off_t, unsigned int);
- 
- asmlinkage long compat_sys_execve(const char __user *filename, const compat_uptr_t __user *argv,
+ SYSCALL_DEFINE3(readahead, int, fd, loff_t, offset, size_t, count)
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from mark.rutland@arm.com are
 
 origin.patch
 linux-next.patch
