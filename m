@@ -1,107 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-readaheadc-fix-do_readahead-for-no-readpages.patch
- removed from -mm tree
-Date: Thu, 30 Jan 2014 12:05:20 -0800
-Message-ID: <52eab080.DzLv9NynQCT391G/%akpm@linux-foundation.org>
+Subject: [merged] mm-mempolicyc-convert-to-pr_foo.patch removed from -mm
+ tree
+Date: Thu, 30 Jan 2014 12:05:08 -0800
+Message-ID: <52eab074.7bNy02TwGZH3h99/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42390 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42355 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753417AbaA3UFU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:20 -0500
+	with ESMTP id S1753137AbaA3UFI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, mark.rutland@arm.com
+To: mm-commits@vger.kernel.org, mgorman@suse.de, akpm@linux-foundation.org
 
-Subject: [merged] mm-readaheadc-fix-do_readahead-for-no-readpages.patch removed from -mm tree
-To: mark.rutland@arm.com,kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-mempolicyc-convert-to-pr_foo.patch removed from -mm tree
+To: akpm@linux-foundation.org,mgorman@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 30 Jan 2014 12:05:20 -0800
+Date: Thu, 30 Jan 2014 12:05:08 -0800
 
 
 The patch titled
-     Subject: mm/readahead.c: fix do_readahead() for no readpage(s)
+     Subject: mm/mempolicy.c: convert to pr_foo()
 has been removed from the -mm tree.  Its filename was
-     mm-readaheadc-fix-do_readahead-for-no-readpages.patch
+     mm-mempolicyc-convert-to-pr_foo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: mm/readahead.c: fix do_readahead() for no readpage(s)
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/mempolicy.c: convert to pr_foo()
 
-63d0f0a3c7e1 (mm/readahead.c:do_readhead(): don't check for ->readpage)
-unintentionally made do_readahead return 0 for all valid files regardless
-of whether readahead was supported, rather than the expected -EINVAL. 
-This gets forwarded on to userspace, and results in sys_readahead
-appearing to succeed in cases that don't make sense (e.g.  when called on
-pipes or sockets).  This issue is detected by the LTP readahead01
-testcase.
+A few printk(KERN_*'s have snuck in there.
 
-As the exact return value of force_page_cache_readahead is currently never
-used, we can simplify it to return only 0 or -EINVAL (when readpage or
-readpages is missing).  With that in place we can simply forward on the
-return value of force_page_cache_readahead in do_readahead.
-
-This patch performs said change, restoring the expected semantics.
-
-Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ mm/mempolicy.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/readahead.c~mm-readaheadc-fix-do_readahead-for-no-readpages mm/readahead.c
---- a/mm/readahead.c~mm-readaheadc-fix-do_readahead-for-no-readpages
-+++ a/mm/readahead.c
-@@ -211,8 +211,6 @@ out:
- int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
- 		pgoff_t offset, unsigned long nr_to_read)
- {
--	int ret = 0;
--
- 	if (unlikely(!mapping->a_ops->readpage && !mapping->a_ops->readpages))
- 		return -EINVAL;
+diff -puN mm/mempolicy.c~mm-mempolicyc-convert-to-pr_foo mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-convert-to-pr_foo
++++ a/mm/mempolicy.c
+@@ -2668,7 +2668,7 @@ static void __init check_numabalancing_e
+ 		set_numabalancing_state(numabalancing_override == 1);
  
-@@ -226,15 +224,13 @@ int force_page_cache_readahead(struct ad
- 			this_chunk = nr_to_read;
- 		err = __do_page_cache_readahead(mapping, filp,
- 						offset, this_chunk, 0);
--		if (err < 0) {
--			ret = err;
--			break;
--		}
--		ret += err;
-+		if (err < 0)
-+			return err;
-+
- 		offset += this_chunk;
- 		nr_to_read -= this_chunk;
+ 	if (nr_node_ids > 1 && !numabalancing_override) {
+-		printk(KERN_INFO "%s automatic NUMA balancing. "
++		pr_info("%s automatic NUMA balancing. "
+ 			"Configure with numa_balancing= or the "
+ 			"kernel.numa_balancing sysctl",
+ 			numabalancing_default ? "Enabling" : "Disabling");
+@@ -2691,7 +2691,7 @@ static int __init setup_numabalancing(ch
  	}
--	return ret;
-+	return 0;
+ out:
+ 	if (!ret)
+-		printk(KERN_WARNING "Unable to parse numa_balancing=\n");
++		pr_warn("Unable to parse numa_balancing=\n");
+ 
+ 	return ret;
  }
- 
- /*
-@@ -576,8 +572,7 @@ do_readahead(struct address_space *mappi
- 	if (!mapping || !mapping->a_ops)
- 		return -EINVAL;
- 
--	force_page_cache_readahead(mapping, filp, index, nr);
--	return 0;
-+	return force_page_cache_readahead(mapping, filp, index, nr);
- }
- 
- SYSCALL_DEFINE3(readahead, int, fd, loff_t, offset, size_t, count)
 _
 
-Patches currently in -mm which might be from mark.rutland@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch
+mm.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
 linux-next.patch
+linux-next-git-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
