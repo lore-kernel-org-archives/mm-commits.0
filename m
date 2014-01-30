@@ -1,88 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-page-writebackc-fix-dirty_balance_reserve-subtraction-from-dirtyable-memory-fix.patch removed from -mm tree
-Date: Wed, 29 Jan 2014 14:00:55 -0800
-Message-ID: <52e97a17.lgXA6jPAIThy0+NK%akpm@linux-foundation.org>
+Subject: [merged] mm-document-improved-handling-of-swappiness==0.patch
+ removed from -mm tree
+Date: Thu, 30 Jan 2014 12:05:00 -0800
+Message-ID: <52eab06c.Wzg+MeeTzaXqvLuw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34099 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42333 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750879AbaA2WA4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jan 2014 17:00:56 -0500
+	with ESMTP id S1752803AbaA3UFB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jan 2014 15:05:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, satoru.moriya@hds.com, riel@redhat.com, rdunlap@infradead.org, bmr@redhat.com, atomlin@redhat.com
 
-Subject: [folded-merged] mm-page-writebackc-fix-dirty_balance_reserve-subtraction-from-dirtyable-memory-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,hannes@cmpxchg.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-document-improved-handling-of-swappiness==0.patch removed from -mm tree
+To: atomlin@redhat.com,bmr@redhat.com,rdunlap@infradead.org,riel@redhat.com,satoru.moriya@hds.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 29 Jan 2014 14:00:55 -0800
+Date: Thu, 30 Jan 2014 12:05:00 -0800
 
 
 The patch titled
-     Subject: mm-page-writebackc-fix-dirty_balance_reserve-subtraction-from-dirtyable-memory-fix
+     Subject: mm: document improved handling of swappiness==0
 has been removed from the -mm tree.  Its filename was
-     mm-page-writebackc-fix-dirty_balance_reserve-subtraction-from-dirtyable-memory-fix.patch
+     mm-document-improved-handling-of-swappiness==0.patch
 
-This patch was dropped because it was folded into mm-page-writebackc-fix-dirty_balance_reserve-subtraction-from-dirtyable-memory.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page-writebackc-fix-dirty_balance_reserve-subtraction-from-dirtyable-memory-fix
+From: Aaron Tomlin <atomlin@redhat.com>
+Subject: mm: document improved handling of swappiness==0
 
-fix CONFIG_HIGHMEM build
+Prior to fe35004fbf9ea ("mm: avoid swapping out with swappiness==0")
+setting swappiness to 0, reclaim code could still evict recently used user
+anonymous memory to swap even though there is a significant amount of RAM
+used for page cache.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+The behaviour of setting swappiness to 0 has since changed.  When set, the
+reclaim code does not initiate swap until the amount of free pages and
+file-backed pages, is less than the high water mark in a zone.
+
+Let's update the documentation to reflect this.
+
+[akpm@linux-foundation.org: remove comma, per Randy]
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Bryn M. Reeves <bmr@redhat.com>
+Cc: Satoru Moriya <satoru.moriya@hds.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ Documentation/sysctl/vm.txt |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-page-writebackc-fix-dirty_balance_reserve-subtraction-from-dirtyable-memory-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-page-writebackc-fix-dirty_balance_reserve-subtraction-from-dirtyable-memory-fix
-+++ a/mm/page-writeback.c
-@@ -217,10 +217,9 @@ static unsigned long highmem_dirtyable_m
- 	unsigned long x = 0;
+diff -puN Documentation/sysctl/vm.txt~mm-document-improved-handling-of-swappiness==0 Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-document-improved-handling-of-swappiness==0
++++ a/Documentation/sysctl/vm.txt
+@@ -696,7 +696,9 @@ swappiness
  
- 	for_each_node_state(node, N_HIGH_MEMORY) {
--		struct zone *z =
--			&NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
-+		struct zone *z = &NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
+ This control is used to define how aggressive the kernel will swap
+ memory pages.  Higher values will increase agressiveness, lower values
+-decrease the amount of swap.
++decrease the amount of swap.  A value of 0 instructs the kernel not to
++initiate swap until the amount of free and file-backed pages is less
++than the high water mark in a zone.
  
--		x += zone_dirtyable_memory(zone);
-+		x += zone_dirtyable_memory(z);
- 	}
- 	/*
- 	 * Unreclaimable memory (kernel memory or anonymous memory
+ The default value is 60.
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from atomlin@redhat.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-lib-genallocc-add-check-gen_pool_dma_alloc-if-dma-pointer-is-not-null.patch
-mm-document-improved-handling-of-swappiness==0.patch
-mm-page-writebackc-fix-dirty_balance_reserve-subtraction-from-dirtyable-memory.patch
-mm-mempolicyc-convert-to-pr_foo.patch
-numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
-ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch
-mm.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
 linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
