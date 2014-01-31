@@ -1,136 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slubc-fix-page-_count-corruption-again.patch removed
- from -mm tree
-Date: Fri, 31 Jan 2014 11:16:38 -0800
-Message-ID: <52ebf696.bJpleHrPA363ggup%akpm@linux-foundation.org>
+Subject: [merged]
+ documentation-filesystems-vfstxt-update-file_operations-documentation.patch removed from -mm tree
+Date: Fri, 31 Jan 2014 11:16:44 -0800
+Message-ID: <52ebf69c.n1VGi0U4gj8bymCZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50649 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50666 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932651AbaAaTQj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 14:16:39 -0500
+	with ESMTP id S932862AbaAaTQo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 14:16:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pshelar@nicira.com, penberg@kernel.org, mpm@selenic.com, cl@linux-foundation.org, dave.hansen@linux.intel.com
+To: mm-commits@vger.kernel.org, ryao@gentoo.org
 
-Subject: [merged] mm-slubc-fix-page-_count-corruption-again.patch removed from -mm tree
-To: dave.hansen@linux.intel.com,cl@linux-foundation.org,mpm@selenic.com,penberg@kernel.org,pshelar@nicira.com,mm-commits@vger.kernel.org
+Subject: [merged] documentation-filesystems-vfstxt-update-file_operations-documentation.patch removed from -mm tree
+To: ryao@gentoo.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 31 Jan 2014 11:16:38 -0800
+Date: Fri, 31 Jan 2014 11:16:44 -0800
 
 
 The patch titled
-     Subject: mm/slub.c: fix page->_count corruption (again)
+     Subject: Documentation/filesystems/vfs.txt: update file_operations documentation
 has been removed from the -mm tree.  Its filename was
-     mm-slubc-fix-page-_count-corruption-again.patch
+     documentation-filesystems-vfstxt-update-file_operations-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm/slub.c: fix page->_count corruption (again)
+From: Richard Yao <ryao@gentoo.org>
+Subject: Documentation/filesystems/vfs.txt: update file_operations documentation
 
-abca7c496 ("mm: fix slab->page _count corruption when using slub") notes
-that we can not _set_ a page->counters directly, except when using a real
-double-cmpxchg.  Doing so can lose updates to ->_count.
+->readv, ->writev and ->sendfile have been removed while ->show_fdinfo
+has been added. The documentation should reflect this.
 
-That an absolute rule:
-
-        You may not *set* page->counters except via a cmpxchg.
-
-abca7c496 fixed this for the folks who have the slub cmpxchg_double code
-turned off at compile time, but it left the bad alone.  It can still be
-reached, and the same bug triggered in two cases:
-
-1. Turning on slub debugging at runtime, which is available on
-   the distro kernels that I looked at.
-2. On 64-bit CPUs with no CMPXCHG16B (some early AMD x86-64
-   cpus, evidently)
-
-There are at least 3 ways we could fix this:
-
-1. Take all of the exising calls to cmpxchg_double_slab() and
-   __cmpxchg_double_slab() and convert them to take an old, new
-   and target 'struct page'.
-2. Do (1), but with the newly-introduced 'slub_data'.
-3. Do some magic inside the two cmpxchg...slab() functions to
-   pull the counters out of new_counters and only set those
-   fields in page->{inuse,frozen,objects}.
-
-I've done (2) as well, but it's a bunch more code.  This patch is an
-attempt at (3).  This was the most straightforward and foolproof way that
-I could think to do this.
-
-This would also technically allow us to get rid of the ugly
-
-#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-       defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
-
-in 'struct page', but leaving it alone has the added benefit that
-'counters' stays 'unsigned' instead of 'unsigned long', so all the copies
-that the slub code does stay a bit smaller.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Pravin B Shelar <pshelar@nicira.com>
+Signed-off-by: Richard Yao <ryao@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ Documentation/filesystems/vfs.txt |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN mm/slub.c~mm-slubc-fix-page-_count-corruption-again mm/slub.c
---- a/mm/slub.c~mm-slubc-fix-page-_count-corruption-again
-+++ a/mm/slub.c
-@@ -355,6 +355,21 @@ static __always_inline void slab_unlock(
- 	__bit_spin_unlock(PG_locked, &page->flags);
- }
+diff -puN Documentation/filesystems/vfs.txt~documentation-filesystems-vfstxt-update-file_operations-documentation Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~documentation-filesystems-vfstxt-update-file_operations-documentation
++++ a/Documentation/filesystems/vfs.txt
+@@ -782,7 +782,7 @@ struct file_operations
+ ----------------------
  
-+static inline void set_page_slub_counters(struct page *page, unsigned long counters_new)
-+{
-+	struct page tmp;
-+	tmp.counters = counters_new;
-+	/*
-+	 * page->counters can cover frozen/inuse/objects as well
-+	 * as page->_count.  If we assign to ->counters directly
-+	 * we run the risk of losing updates to page->_count, so
-+	 * be careful and only assign to the fields we need.
-+	 */
-+	page->frozen  = tmp.frozen;
-+	page->inuse   = tmp.inuse;
-+	page->objects = tmp.objects;
-+}
-+
- /* Interrupts must be disabled (for the fallback code to work right) */
- static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
- 		void *freelist_old, unsigned long counters_old,
-@@ -376,7 +391,7 @@ static inline bool __cmpxchg_double_slab
- 		if (page->freelist == freelist_old &&
- 					page->counters == counters_old) {
- 			page->freelist = freelist_new;
--			page->counters = counters_new;
-+			set_page_slub_counters(page, counters_new);
- 			slab_unlock(page);
- 			return 1;
- 		}
-@@ -415,7 +430,7 @@ static inline bool cmpxchg_double_slab(s
- 		if (page->freelist == freelist_old &&
- 					page->counters == counters_old) {
- 			page->freelist = freelist_new;
--			page->counters = counters_new;
-+			set_page_slub_counters(page, counters_new);
- 			slab_unlock(page);
- 			local_irq_restore(flags);
- 			return 1;
-_
-
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
-
-origin.patch
-mm-slb-fix-misleading-comments.patch
-
+ This describes how the VFS can manipulate an open file. As of kernel
+-3.5, the following members are defined:
++3.12, the following members are defined:
+ 
+ struct file_operations {
+ 	struct module *owner;
+@@ -803,9 +803,6 @@ struct file_operations {
+ 	int (*aio_fsync) (struct kiocb *, int datasync);
+ 	int (*fasync) (int, struct file *, int);
+ 	int (*lock) (struct file *, int, struct file_lock *);
+-	ssize_t (*readv) (struct file *, const struct iovec *, unsigned long, loff_t *);
+-	ssize_t (*writev) (struct file *, const struct iovec *, unsigned long, loff_t *);
+-	ssize_t (*sendfile) (struct file *, loff_t *, size_t, read_actor_t, void *);
+ 	ssize_t (*sendpage) (struct file *, struct page *, int, size_t, loff_t *, int);
+ 	unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
+ 	int (*check_flags)(int);
+@@ -814,6 +811,7 @@ struct file_operations {
+ 	ssize_t (*splice_read)(struct file *, struct pipe_inode_info *, size_t, unsigned int);
+ 	int (*setlease)(struct file *, long arg, struct file_lock **);
+ 	long (*fallocate)(struct file *, int mode, loff_t offset, loff_t len);
++	int (*show_fdinfo)(struct seq_file *m, struct file *f);
+ };
+ 
+ Again, all methods are called without any locks being held, unless
+@@ -864,12 +862,6 @@ otherwise noted.
+   lock: called by the fcntl(2) system call for F_GETLK, F_SETLK, and F_SETLKW
+   	commands
+ 
+-  readv: called by the readv(2) system call
+-
+-  writev: called by the writev(2) system call
+-
+-  sendfile: called by the sendfile(2) system call
