@@ -1,63 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- backlight-lcd-call-put_device-if-device_register-fails.patch removed from
- -mm tree
-Date: Fri, 31 Jan 2014 11:15:59 -0800
-Message-ID: <52ebf66f.kAXATQPuG42X5EDR%akpm@linux-foundation.org>
+Subject: [merged] net-phy-call-put_device-on-device_register-failure.patch removed from -mm tree
+Date: Fri, 31 Jan 2014 11:16:01 -0800
+Message-ID: <52ebf671.A5bsQD3zA8I7hTr7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50547 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50552 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932662AbaAaTP7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 14:15:59 -0500
+	with ESMTP id S932412AbaAaTQC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 14:16:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com, levex@linux.com
+To: mm-commits@vger.kernel.org, gregkh@linuxfoundation.org, grant.likely@secretlab.ca, david.daney@cavium.com, davem@davemloft.net, levex@linux.com
 
-Subject: [merged] backlight-lcd-call-put_device-if-device_register-fails.patch removed from -mm tree
-To: levex@linux.com,jg1.han@samsung.com,mm-commits@vger.kernel.org
+Subject: [merged] net-phy-call-put_device-on-device_register-failure.patch removed from -mm tree
+To: levex@linux.com,davem@davemloft.net,david.daney@cavium.com,grant.likely@secretlab.ca,gregkh@linuxfoundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 31 Jan 2014 11:15:59 -0800
+Date: Fri, 31 Jan 2014 11:16:01 -0800
 
 
 The patch titled
-     Subject: drivers/video/backlight/lcd.c: call put_device if device_register fails
+     Subject: drivers/net/phy/mdio_bus.c: call put_device on device_register() failure
 has been removed from the -mm tree.  Its filename was
-     backlight-lcd-call-put_device-if-device_register-fails.patch
+     net-phy-call-put_device-on-device_register-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Levente Kurusa <levex@linux.com>
-Subject: drivers/video/backlight/lcd.c: call put_device if device_register fails
+Subject: drivers/net/phy/mdio_bus.c: call put_device on device_register() failure
 
-Currently we kfree the container of the device which failed to register. 
-This is wrong as the last reference is not given up with a put_device
-call.  Also, now that we have put_device() callen, we no longer need the
-kfree as the new_ld->dev.release function will take care of kfreeing the
-associated memory.
+It is required to call put_device() if device_register() fails, so that we
+give up the last reference to the device.  Calling put_device allows for
+mdiobus_release to be executed, kfreeing the bus.
 
 Signed-off-by: Levente Kurusa <levex@linux.com>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: David Daney <david.daney@cavium.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lcd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/phy/mdio_bus.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/backlight/lcd.c~backlight-lcd-call-put_device-if-device_register-fails drivers/video/backlight/lcd.c
---- a/drivers/video/backlight/lcd.c~backlight-lcd-call-put_device-if-device_register-fails
-+++ a/drivers/video/backlight/lcd.c
-@@ -228,7 +228,7 @@ struct lcd_device *lcd_device_register(c
- 
- 	rc = device_register(&new_ld->dev);
- 	if (rc) {
--		kfree(new_ld);
-+		put_device(&new_ld->dev);
- 		return ERR_PTR(rc);
+diff -puN drivers/net/phy/mdio_bus.c~net-phy-call-put_device-on-device_register-failure drivers/net/phy/mdio_bus.c
+--- a/drivers/net/phy/mdio_bus.c~net-phy-call-put_device-on-device_register-failure
++++ a/drivers/net/phy/mdio_bus.c
+@@ -150,6 +150,7 @@ int mdiobus_register(struct mii_bus *bus
+ 	err = device_register(&bus->dev);
+ 	if (err) {
+ 		pr_err("mii_bus %s failed to register\n", bus->id);
++		put_device(&bus->dev);
+ 		return -EINVAL;
  	}
  
 _
