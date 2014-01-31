@@ -1,117 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mm-memcontrolc-memcg_create_kmem_cache-tweaks.patch
- removed from -mm tree
-Date: Fri, 31 Jan 2014 11:18:24 -0800
-Message-ID: <52ebf700.hD05JTgDNLvNIah8%akpm@linux-foundation.org>
+Subject: +
+ net-core-rtnetlinkc-copy-paste-error-in-rtnl_bridge_notify.patch added to
+ -mm tree
+Date: Fri, 31 Jan 2014 12:26:08 -0800
+Message-ID: <52ec06e0.xIV4SSN6Rne4NTX6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50691 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51277 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932281AbaAaTSZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 14:18:25 -0500
+	with ESMTP id S932331AbaAaU0J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 15:26:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vdavydov@parallels.com, mhocko@suse.cz, hannes@cmpxchg.org, glommer@parallels.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, vyasevich@gmail.com, nicolas.dichtel@6wind.com, jiri@resnulli.us, davem@davemloft.net, yogeshgaur.83@gmail.com
 
-Subject: [withdrawn] mm-memcontrolc-memcg_create_kmem_cache-tweaks.patch removed from -mm tree
-To: akpm@linux-foundation.org,glommer@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz,vdavydov@parallels.com,mm-commits@vger.kernel.org
+Subject: + net-core-rtnetlinkc-copy-paste-error-in-rtnl_bridge_notify.patch added to -mm tree
+To: yogeshgaur.83@gmail.com,davem@davemloft.net,jiri@resnulli.us,nicolas.dichtel@6wind.com,vyasevich@gmail.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 Jan 2014 11:18:24 -0800
+Date: Fri, 31 Jan 2014 12:26:08 -0800
 
 
 The patch titled
-     Subject: mm/memcontrol.c: memcg_create_kmem_cache() tweaks
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrolc-memcg_create_kmem_cache-tweaks.patch
+     Subject: net/core/rtnetlink.c: copy paste error in rtnl_bridge_notify()
+has been added to the -mm tree.  Its filename is
+     net-core-rtnetlinkc-copy-paste-error-in-rtnl_bridge_notify.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/net-core-rtnetlinkc-copy-paste-error-in-rtnl_bridge_notify.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/net-core-rtnetlinkc-copy-paste-error-in-rtnl_bridge_notify.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/memcontrol.c: memcg_create_kmem_cache() tweaks
+From: Yogesh Gaur <yogeshgaur.83@gmail.com>
+Subject: net/core/rtnetlink.c: copy paste error in rtnl_bridge_notify()
 
-Allocate tmp_name on demand rather than permanently consuming PATH_MAX
-bytes of memory.  Remove the mutex which protected the static tmp_name.
+Seems to be copy paste error in calling ndo_bridge_getlink() func.
 
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Signed-off-by: Yogesh Gaur <yogeshgaur.83@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Vlad Yasevich <vyasevich@gmail.com>
+Cc: Jiri Pirko <jiri@resnulli.us>
+Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 ++++++++---------------
- 1 file changed, 8 insertions(+), 15 deletions(-)
+ net/core/rtnetlink.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrolc-memcg_create_kmem_cache-tweaks mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrolc-memcg_create_kmem_cache-tweaks
-+++ a/mm/memcontrol.c
-@@ -3400,24 +3400,18 @@ void mem_cgroup_destroy_cache(struct kme
- static struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *memcg,
- 						  struct kmem_cache *s)
- {
--	struct kmem_cache *new = NULL;
--	static char *tmp_name = NULL;
--	static DEFINE_MUTEX(mutex);	/* protects tmp_name */
-+	struct kmem_cache *new;
-+	char *tmp_name;
+diff -puN net/core/rtnetlink.c~net-core-rtnetlinkc-copy-paste-error-in-rtnl_bridge_notify net/core/rtnetlink.c
+--- a/net/core/rtnetlink.c~net-core-rtnetlinkc-copy-paste-error-in-rtnl_bridge_notify
++++ a/net/core/rtnetlink.c
+@@ -2571,7 +2571,7 @@ static int rtnl_bridge_notify(struct net
  
- 	BUG_ON(!memcg_can_account_kmem(memcg));
- 
--	mutex_lock(&mutex);
- 	/*
--	 * kmem_cache_create_memcg duplicates the given name and
--	 * cgroup_name for this name requires RCU context.
--	 * This static temporary buffer is used to prevent from
--	 * pointless shortliving allocation.
-+	 * kmem_cache_create_memcg duplicates the given name and cgroup_name()
-+	 * for this name requires rcu_read_lock().
- 	 */
--	if (!tmp_name) {
--		tmp_name = kmalloc(PATH_MAX, GFP_KERNEL);
--		if (!tmp_name)
--			goto out;
--	}
-+	tmp_name = kmalloc(PATH_MAX, GFP_KERNEL);
-+	if (!tmp_name)
-+		return NULL;
- 
- 	rcu_read_lock();
- 	snprintf(tmp_name, PATH_MAX, "%s(%d:%s)", s->name,
-@@ -3430,8 +3424,7 @@ static struct kmem_cache *memcg_create_k
- 		new->allocflags |= __GFP_KMEMCG;
- 	else
- 		new = s;
--out:
--	mutex_unlock(&mutex);
-+	kfree(tmp_name);
- 	return new;
- }
- 
+ 	if ((!flags || (flags & BRIDGE_FLAGS_MASTER)) &&
+ 	    br_dev && br_dev->netdev_ops->ndo_bridge_getlink) {
+-		err = br_dev->netdev_ops->ndo_bridge_getlink(skb, 0, 0, dev, 0);
++		err = br_dev->netdev_ops->ndo_bridge_getlink(skb, 0, 0, br_dev, 0);
+ 		if (err < 0)
+ 			goto errout;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yogeshgaur.83@gmail.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
-ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch
-mm.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+net-core-rtnetlinkc-copy-paste-error-in-rtnl_bridge_notify.patch
 
