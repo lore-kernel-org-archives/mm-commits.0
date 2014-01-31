@@ -1,94 +1,114 @@
 From: akpm@linux-foundation.org
 Subject: [obsolete]
- mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch removed
- from -mm tree
-Date: Fri, 31 Jan 2014 12:34:58 -0800
-Message-ID: <52ec08f2.3hVFuihKLXYrg7dT%akpm@linux-foundation.org>
+ memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch removed from -mm tree
+Date: Fri, 31 Jan 2014 12:36:20 -0800
+Message-ID: <52ec0944.Jls/DDBcAZrdEn12%akpm__17931.2209169895$1391200592$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51389 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51400 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754015AbaAaUe7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 15:34:59 -0500
+	with ESMTP id S1754015AbaAaUgV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 15:36:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, aarcange@redhat.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, ebiederm@xmission.com, mhocko@suse.cz
 
-Subject: [obsolete] mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch removed from -mm tree
-To: oleg@redhat.com,aarcange@redhat.com,mm-commits@vger.kernel.org
+Subject: [obsolete] memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch removed from -mm tree
+To: mhocko@suse.cz,ebiederm@xmission.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,rientjes@google.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 31 Jan 2014 12:34:58 -0800
+Date: Fri, 31 Jan 2014 12:36:20 -0800
 
 
 The patch titled
-     Subject: mm: fix the theoretical compound_lock() vs prep_new_page() race
+     Subject: memcg: do not hang on OOM when killed by userspace OOM access to memory reserves
 has been removed from the -mm tree.  Its filename was
-     mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race.patch
+     memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: mm: fix the theoretical compound_lock() vs prep_new_page() race
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: do not hang on OOM when killed by userspace OOM access to memory reserves
 
-get/put_page(thp_tail) paths do get_page_unless_zero(page_head) +
-compound_lock().  In theory this page_head can be already freed and
-reallocated as alloc_pages(__GFP_COMP, smaller_order).  In this case
-get_page_unless_zero() can succeed right after set_page_refcounted(), and
-compound_lock() can race with the non-atomic __SetPageHead() in
-prep_compound_page().
+Eric has reported that he can see task(s) stuck in memcg OOM handler
+regularly.  The only way out is to
 
-Perhaps we should rework the thp locking (under discussion), but until
-then this patch moves set_page_refcounted() and adds wmb() to ensure that
-page->_count != 0 comes as a last change.
+	echo 0 > $GROUP/memory.oom_controll
 
-I am not sure about other callers of set_page_refcounted(), but at first
-glance they look fine to me.
+His usecase is:
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+- Setup a hierarchy with memory and the freezer (disable kernel oom and
+  have a process watch for oom).
+
+- In that memory cgroup add a process with one thread per cpu.
+
+- In one thread slowly allocate once per second I think it is 16M of ram
+  and mlock and dirty it (just to force the pages into ram and stay
+  there).
+
+- When oom is achieved loop:
+  * attempt to freeze all of the tasks.
+  * if frozen send every task SIGKILL, unfreeze, remove the directory in
+    cgroupfs.
+
+Eric has then pinpointed the issue to be memcg specific.
+
+All tasks are sitting on the memcg_oom_waitq when memcg oom is disabled. 
+Those that have received fatal signal will bypass the charge and should
+continue on their way out.  The tricky part is that the exit path might
+trigger a page fault (e.g.  exit_robust_list), thus the memcg charge,
+while its memcg is still under OOM because nobody has released any charges
+yet.
+
+Unlike with the in-kernel OOM handler the exiting task doesn't get
+TIF_MEMDIE set so it doesn't shortcut futher charges of the killed task
+and falls to the memcg OOM again without any way out of it as there are no
+fatal signals pending anymore.
+
+This patch fixes the issue by checking PF_EXITING early in
+__mem_cgroup_try_charge and bypass the charge same as if it had fatal
+signal pending or TIF_MEMDIE set.
+
+Normally exiting tasks (aka not killed) will bypass the charge now but
+this should be OK as the task is leaving and will release memory and
+increasing the memory pressure just to release it in a moment seems
+dubious wasting of cycles.  Besides that charges after exit_signals should
+be rare.
+
+Reported-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-the-theoretical-compound_lock-vs-prep_new_page-race
-+++ a/mm/page_alloc.c
-@@ -890,8 +890,6 @@ static int prep_new_page(struct page *pa
- 	}
+diff -puN mm/memcontrol.c~memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-do-not-hang-on-oom-when-killed-by-userspace-oom-access-to-memory-reserves
++++ a/mm/memcontrol.c
+@@ -2670,7 +2670,8 @@ static int __mem_cgroup_try_charge(struc
+ 	 * MEMDIE process.
+ 	 */
+ 	if (unlikely(test_thread_flag(TIF_MEMDIE)
+-		     || fatal_signal_pending(current)))
++		     || fatal_signal_pending(current))
++		     || current->flags & PF_EXITING)
+ 		goto bypass;
  
- 	set_page_private(page, 0);
--	set_page_refcounted(page);
--
- 	arch_alloc_page(page, order);
- 	kernel_map_pages(page, 1 << order, 1);
- 
-@@ -901,6 +899,16 @@ static int prep_new_page(struct page *pa
- 	if (order && (gfp_flags & __GFP_COMP))
- 		prep_compound_page(page, order);
- 
-+	/*
-+	 * Make sure the caller of get_page_unless_zero() will see the
-+	 * fully initialized page. Say, to ensure that compound_lock()
-+	 * can't race with the non-atomic __SetPage*() above.
-+	 */
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	smp_wmb();
-+#endif
-+	set_page_refcounted(page);
-+
- 	return 0;
- }
- 
+ 	if (unlikely(task_in_memcg_oom(current)))
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-linux-next.patch
+mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
+mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
 
