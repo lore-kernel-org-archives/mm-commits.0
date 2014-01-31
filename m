@@ -1,85 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memcg-fix-mutex-not-unlocked-on-memcg_create_kmem_cache-fail-path.patch
+Subject: [withdrawn] mm-memcontrolc-memcg_create_kmem_cache-tweaks.patch
  removed from -mm tree
-Date: Fri, 31 Jan 2014 11:16:46 -0800
-Message-ID: <52ebf69e.TzMrgtbyU3PKSbkH%akpm@linux-foundation.org>
+Date: Fri, 31 Jan 2014 11:18:24 -0800
+Message-ID: <52ebf700.hD05JTgDNLvNIah8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50671 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50691 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932651AbaAaTQr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 14:16:47 -0500
+	with ESMTP id S932281AbaAaTSZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 14:18:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, hannes@cmpxchg.org, glommer@parallels.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, vdavydov@parallels.com, mhocko@suse.cz, hannes@cmpxchg.org, glommer@parallels.com, akpm@linux-foundation.org
 
-Subject: [merged] memcg-fix-mutex-not-unlocked-on-memcg_create_kmem_cache-fail-path.patch removed from -mm tree
-To: vdavydov@parallels.com,glommer@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: [withdrawn] mm-memcontrolc-memcg_create_kmem_cache-tweaks.patch removed from -mm tree
+To: akpm@linux-foundation.org,glommer@parallels.com,hannes@cmpxchg.org,mhocko@suse.cz,vdavydov@parallels.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 31 Jan 2014 11:16:46 -0800
+Date: Fri, 31 Jan 2014 11:18:24 -0800
 
 
 The patch titled
-     Subject: memcg: fix mutex not unlocked on memcg_create_kmem_cache fail path
+     Subject: mm/memcontrol.c: memcg_create_kmem_cache() tweaks
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-mutex-not-unlocked-on-memcg_create_kmem_cache-fail-path.patch
+     mm-memcontrolc-memcg_create_kmem_cache-tweaks.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: fix mutex not unlocked on memcg_create_kmem_cache fail path
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/memcontrol.c: memcg_create_kmem_cache() tweaks
 
-Commit 842e2873697e ("memcg: get rid of kmem_cache_dup()") introduced a
-mutex for memcg_create_kmem_cache() to protect the tmp_name buffer that
-holds the memcg name.  It failed to unlock the mutex if this buffer could
-not be allocated.
+Allocate tmp_name on demand rather than permanently consuming PATH_MAX
+bytes of memory.  Remove the mutex which protected the static tmp_name.
 
-This patch fixes the issue by appropriately unlocking the mutex if the
-allocation fails.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Glauber Costa <glommer@parallels.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-mutex-not-unlocked-on-memcg_create_kmem_cache-fail-path mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-mutex-not-unlocked-on-memcg_create_kmem_cache-fail-path
+diff -puN mm/memcontrol.c~mm-memcontrolc-memcg_create_kmem_cache-tweaks mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrolc-memcg_create_kmem_cache-tweaks
 +++ a/mm/memcontrol.c
-@@ -3400,7 +3400,7 @@ void mem_cgroup_destroy_cache(struct kme
+@@ -3400,24 +3400,18 @@ void mem_cgroup_destroy_cache(struct kme
  static struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *memcg,
  						  struct kmem_cache *s)
  {
--	struct kmem_cache *new;
-+	struct kmem_cache *new = NULL;
- 	static char *tmp_name = NULL;
- 	static DEFINE_MUTEX(mutex);	/* protects tmp_name */
+-	struct kmem_cache *new = NULL;
+-	static char *tmp_name = NULL;
+-	static DEFINE_MUTEX(mutex);	/* protects tmp_name */
++	struct kmem_cache *new;
++	char *tmp_name;
  
-@@ -3416,7 +3416,7 @@ static struct kmem_cache *memcg_create_k
- 	if (!tmp_name) {
- 		tmp_name = kmalloc(PATH_MAX, GFP_KERNEL);
- 		if (!tmp_name)
--			return NULL;
-+			goto out;
- 	}
+ 	BUG_ON(!memcg_can_account_kmem(memcg));
+ 
+-	mutex_lock(&mutex);
+ 	/*
+-	 * kmem_cache_create_memcg duplicates the given name and
+-	 * cgroup_name for this name requires RCU context.
+-	 * This static temporary buffer is used to prevent from
+-	 * pointless shortliving allocation.
++	 * kmem_cache_create_memcg duplicates the given name and cgroup_name()
++	 * for this name requires rcu_read_lock().
+ 	 */
+-	if (!tmp_name) {
+-		tmp_name = kmalloc(PATH_MAX, GFP_KERNEL);
+-		if (!tmp_name)
+-			goto out;
+-	}
++	tmp_name = kmalloc(PATH_MAX, GFP_KERNEL);
++	if (!tmp_name)
++		return NULL;
  
  	rcu_read_lock();
-@@ -3426,12 +3426,11 @@ static struct kmem_cache *memcg_create_k
- 
- 	new = kmem_cache_create_memcg(memcg, tmp_name, s->object_size, s->align,
- 				      (s->flags & ~SLAB_PANIC), s->ctor, s);
--
- 	if (new)
+ 	snprintf(tmp_name, PATH_MAX, "%s(%d:%s)", s->name,
+@@ -3430,8 +3424,7 @@ static struct kmem_cache *memcg_create_k
  		new->allocflags |= __GFP_KMEMCG;
  	else
  		new = s;
+-out:
+-	mutex_unlock(&mutex);
++	kfree(tmp_name);
+ 	return new;
+ }
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch
+mm.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
