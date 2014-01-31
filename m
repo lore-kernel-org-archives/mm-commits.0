@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-use-vma_resv_map-map-types.patch added to -mm tree
-Date: Fri, 31 Jan 2014 13:08:43 -0800
-Message-ID: <52ec10db.u4jzxPJw+ie6GBPe%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-improve-page-fault-scalability-fix.patch added to
+ -mm tree
+Date: Fri, 31 Jan 2014 13:08:45 -0800
+Message-ID: <52ec10dd.zBJSyImx6IxM6Btb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51605 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51618 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932599AbaAaVIo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 16:08:44 -0500
+	with ESMTP id S932599AbaAaVIq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Jan 2014 16:08:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, davidlohr@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, iamjoonsoo.kim@lge.com, davidlohr@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, akpm@linux-foundation.org
 
-Subject: + mm-hugetlb-use-vma_resv_map-map-types.patch added to -mm tree
-To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr@hp.com,n-horiguchi@ah.jp.nec.com
+Subject: + mm-hugetlb-improve-page-fault-scalability-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr@hp.com,iamjoonsoo.kim@lge.com,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Fri, 31 Jan 2014 13:08:43 -0800
+Date: Fri, 31 Jan 2014 13:08:45 -0800
 
 
 The patch titled
-     Subject: mm, hugetlb: use vma_resv_map() map types
+     Subject: mm-hugetlb-improve-page-fault-scalability-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-use-vma_resv_map-map-types.patch
+     mm-hugetlb-improve-page-fault-scalability-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-vma_resv_map-map-types.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-improve-page-fault-scalability-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-vma_resv_map-map-types.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-improve-page-fault-scalability-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,198 +44,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, hugetlb: use vma_resv_map() map types
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-improve-page-fault-scalability-fix
 
-Util now, we get a resv_map by two ways according to each mapping type. 
-This makes code dirty and unreadable.  Unify it.
+remove stray + characters, go BUG if hugetlb_init() kmalloc fails
 
-[davidlohr@hp.com: code cleanups]
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  105 +++++++++++++++++++++++--------------------------
- 1 file changed, 50 insertions(+), 55 deletions(-)
+ mm/hugetlb.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-use-vma_resv_map-map-types mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-vma_resv_map-map-types
+diff -puN mm/hugetlb.c~mm-hugetlb-improve-page-fault-scalability-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-improve-page-fault-scalability-fix
 +++ a/mm/hugetlb.c
-@@ -419,13 +419,24 @@ void resv_map_release(struct kref *ref)
- 	kfree(resv_map);
- }
+@@ -55,9 +55,9 @@ static unsigned long __initdata default_
+ DEFINE_SPINLOCK(hugetlb_lock);
  
-+static inline struct resv_map *inode_resv_map(struct inode *inode)
-+{
-+	return inode->i_mapping->private_data;
-+}
-+
- static struct resv_map *vma_resv_map(struct vm_area_struct *vma)
- {
- 	VM_BUG_ON(!is_vm_hugetlb_page(vma));
--	if (!(vma->vm_flags & VM_MAYSHARE))
-+	if (vma->vm_flags & VM_MAYSHARE) {
-+		struct address_space *mapping = vma->vm_file->f_mapping;
-+		struct inode *inode = mapping->host;
-+
-+		return inode_resv_map(inode);
-+
-+	} else {
- 		return (struct resv_map *)(get_vma_private_data(vma) &
- 							~HPAGE_RESV_MASK);
--	return NULL;
-+	}
- }
+ /*
+-+ * Serializes faults on the same logical page.  This is used to
+-+ * prevent spurious OOMs when the hugepage pool is fully utilized.
+-+ */
++ * Serializes faults on the same logical page.  This is used to
++ * prevent spurious OOMs when the hugepage pool is fully utilized.
++ */
+ static int num_fault_mutexes;
+ static struct mutex *htlb_fault_mutex_table ____cacheline_aligned_in_smp;
  
- static void set_vma_resv_map(struct vm_area_struct *vma, struct resv_map *map)
-@@ -1167,48 +1178,34 @@ static void return_unused_surplus_pages(
- static long vma_needs_reservation(struct hstate *h,
- 			struct vm_area_struct *vma, unsigned long addr)
- {
--	struct address_space *mapping = vma->vm_file->f_mapping;
--	struct inode *inode = mapping->host;
--
--	if (vma->vm_flags & VM_MAYSHARE) {
--		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
--		struct resv_map *resv = inode->i_mapping->private_data;
--
--		return region_chg(resv, idx, idx + 1);
-+	struct resv_map *resv;
-+	pgoff_t idx;
-+	long chg;
+@@ -2008,8 +2008,7 @@ static int __init hugetlb_init(void)
+ #endif
+ 	htlb_fault_mutex_table =
+ 		kmalloc(sizeof(struct mutex) * num_fault_mutexes, GFP_KERNEL);
+-	if (!htlb_fault_mutex_table)
+-		return -ENOMEM;
++	BUG_ON(!htlb_fault_mutex_table);
  
--	} else if (!is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
-+	resv = vma_resv_map(vma);
-+	if (!resv)
- 		return 1;
- 
--	} else  {
--		long err;
--		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
--		struct resv_map *resv = vma_resv_map(vma);
--
--		err = region_chg(resv, idx, idx + 1);
--		if (err < 0)
--			return err;
--		return 0;
--	}
-+	idx = vma_hugecache_offset(h, vma, addr);
-+	chg = region_chg(resv, idx, idx + 1);
-+
-+	if (vma->vm_flags & VM_MAYSHARE)
-+		return chg;
-+	else
-+		return chg < 0 ? chg : 0;
- }
- static void vma_commit_reservation(struct hstate *h,
- 			struct vm_area_struct *vma, unsigned long addr)
- {
--	struct address_space *mapping = vma->vm_file->f_mapping;
--	struct inode *inode = mapping->host;
--
--	if (vma->vm_flags & VM_MAYSHARE) {
--		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
--		struct resv_map *resv = inode->i_mapping->private_data;
--
--		region_add(resv, idx, idx + 1);
-+	struct resv_map *resv;
-+	pgoff_t idx;
- 
--	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
--		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
--		struct resv_map *resv = vma_resv_map(vma);
-+	resv = vma_resv_map(vma);
-+	if (!resv)
-+		return;
- 
--		/* Mark this page used in the map. */
--		region_add(resv, idx, idx + 1);
--	}
-+	idx = vma_hugecache_offset(h, vma, addr);
-+	region_add(resv, idx, idx + 1);
- }
- 
- static struct page *alloc_huge_page(struct vm_area_struct *vma,
-@@ -2271,7 +2268,7 @@ static void hugetlb_vm_op_open(struct vm
- 	 * after this open call completes.  It is therefore safe to take a
- 	 * new reference here without additional locking.
- 	 */
--	if (resv)
-+	if (resv && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
- 		kref_get(&resv->refs);
- }
- 
-@@ -2280,23 +2277,21 @@ static void hugetlb_vm_op_close(struct v
- 	struct hstate *h = hstate_vma(vma);
- 	struct resv_map *resv = vma_resv_map(vma);
- 	struct hugepage_subpool *spool = subpool_vma(vma);
--	unsigned long reserve;
--	unsigned long start;
--	unsigned long end;
--
--	if (resv) {
--		start = vma_hugecache_offset(h, vma, vma->vm_start);
--		end = vma_hugecache_offset(h, vma, vma->vm_end);
--
--		reserve = (end - start) -
--			region_count(resv, start, end);
--
--		kref_put(&resv->refs, resv_map_release);
--
--		if (reserve) {
--			hugetlb_acct_memory(h, -reserve);
--			hugepage_subpool_put_pages(spool, reserve);
--		}
-+	unsigned long reserve, start, end;
-+
-+	if (!resv || !is_vma_resv_set(vma, HPAGE_RESV_OWNER))
-+		return;
-+
-+	start = vma_hugecache_offset(h, vma, vma->vm_start);
-+	end = vma_hugecache_offset(h, vma, vma->vm_end);
-+
-+	reserve = (end - start) - region_count(resv, start, end);
-+
-+	kref_put(&resv->refs, resv_map_release);
-+
-+	if (reserve) {
-+		hugetlb_acct_memory(h, -reserve);
-+		hugepage_subpool_put_pages(spool, reserve);
- 	}
- }
- 
-@@ -3189,7 +3184,7 @@ int hugetlb_reserve_pages(struct inode *
- 	 * called to make the mapping read-write. Assume !vma is a shm mapping
- 	 */
- 	if (!vma || vma->vm_flags & VM_MAYSHARE) {
--		resv_map = inode->i_mapping->private_data;
-+		resv_map = inode_resv_map(inode);
- 
- 		chg = region_chg(resv_map, from, to);
- 
-@@ -3248,7 +3243,7 @@ out_err:
- void hugetlb_unreserve_pages(struct inode *inode, long offset, long freed)
- {
- 	struct hstate *h = hstate_inode(inode);
--	struct resv_map *resv_map = inode->i_mapping->private_data;
-+	struct resv_map *resv_map = inode_resv_map(inode);
- 	long chg = 0;
- 	struct hugepage_subpool *spool = subpool_inode(inode);
- 
+ 	for (i = 0; i < num_fault_mutexes; i++)
+ 		mutex_init(&htlb_fault_mutex_table[i]);
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-hugetlb-unify-region-structure-handling.patch
-mm-hugetlb-improve-cleanup-resv_map-parameters.patch
-mm-hugetlb-fix-race-in-region-tracking.patch
-mm-hugetlb-remove-resv_map_put.patch
-mm-hugetlb-use-vma_resv_map-map-types.patch
-mm-hugetlb-improve-page-fault-scalability.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters-fix.patch
+mm.patch
 mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
