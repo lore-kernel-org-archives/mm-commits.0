@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch added to
- -mm tree
-Date: Mon, 03 Feb 2014 13:41:14 -0800
-Message-ID: <52f00cfa.A/4LXGd50RgCfA4K%akpm@linux-foundation.org>
+ mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch added to -mm tree
+Date: Mon, 03 Feb 2014 13:59:38 -0800
+Message-ID: <52f0114a.POEl73CpZxaIO6vJ%akpm__36462.9468335353$1391464798$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46779 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46910 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752975AbaBCVlP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 16:41:15 -0500
+	with ESMTP id S1752556AbaBCV7j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 16:59:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp, andreas.rohner@gmx.net
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, riel@redhat.com, lwoodman@redhat.com, jweiner@redhat.com, kosaki.motohiro@jp.fujitsu.com
 
-Subject: + nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch added to -mm tree
-To: andreas.rohner@gmx.net,konishi.ryusuke@lab.ntt.co.jp
+Subject: + mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch added to -mm tree
+To: kosaki.motohiro@jp.fujitsu.com,jweiner@redhat.com,lwoodman@redhat.com,riel@redhat.com,rientjes@google.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 03 Feb 2014 13:41:14 -0800
+Date: Mon, 03 Feb 2014 13:59:38 -0800
 
 
 The patch titled
-     Subject: nilfs2: add nilfs_sufile_set_suinfo to update segment usage
+     Subject: mm: __set_page_dirty_nobuffers() uses spin_lock_irqsave() instead of spin_lock_irq()
 has been added to the -mm tree.  Its filename is
-     nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
+     mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,182 +44,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andreas Rohner <andreas.rohner@gmx.net>
-Subject: nilfs2: add nilfs_sufile_set_suinfo to update segment usage
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: __set_page_dirty_nobuffers() uses spin_lock_irqsave() instead of spin_lock_irq()
 
-Introduce nilfs_sufile_set_suinfo(), which expects an array of
-nilfs_suinfo_update structures and updates the segment usage information
-accordingly.
+During aio stress test, we observed the following lockdep warning.  This
+mean AIO+numa_balancing is currently deadlockable.
 
-This is basically a helper function for the newly introduced
-NILFS_IOCTL_SET_SUINFO ioctl.
+The problem is, aio_migratepage disable interrupt, but
+__set_page_dirty_nobuffers unintentionally enable it again.
 
-Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Generally, all helper function should use spin_lock_irqsave() instead of
+spin_lock_irq() because they don't know caller at all.
+
+[  599.843948] other info that might help us debug this:
+[  599.873748]  Possible unsafe locking scenario:
+[  599.873748]
+[  599.900902]        CPU0
+[  599.912701]        ----
+[  599.924929]   lock(&(&ctx->completion_lock)->rlock);
+[  599.950299]   <Interrupt>
+[  599.962576]     lock(&(&ctx->completion_lock)->rlock);
+[  599.985771]
+[  599.985771]  *** DEADLOCK ***
+
+[  600.375623]  [<ffffffff81678d3c>] dump_stack+0x19/0x1b
+[  600.398769]  [<ffffffff816731aa>] print_usage_bug+0x1f7/0x208
+[  600.425092]  [<ffffffff810df370>] ? print_shortest_lock_dependencies+0x1d0/0x1d0
+[  600.458981]  [<ffffffff810e08dd>] mark_lock+0x21d/0x2a0
+[  600.482910]  [<ffffffff810e0a19>] mark_held_locks+0xb9/0x140
+[  600.508956]  [<ffffffff8168201c>] ? _raw_spin_unlock_irq+0x2c/0x50
+[  600.536825]  [<ffffffff810e0ba5>] trace_hardirqs_on_caller+0x105/0x1d0
+[  600.566861]  [<ffffffff810e0c7d>] trace_hardirqs_on+0xd/0x10
+[  600.593210]  [<ffffffff8168201c>] _raw_spin_unlock_irq+0x2c/0x50
+[  600.620599]  [<ffffffff8117f72c>] __set_page_dirty_nobuffers+0x8c/0xf0
+[  600.649992]  [<ffffffff811d1094>] migrate_page_copy+0x434/0x540
+[  600.676635]  [<ffffffff8123f5b1>] aio_migratepage+0xb1/0x140
+[  600.703126]  [<ffffffff811d126d>] move_to_new_page+0x7d/0x230
+[  600.729022]  [<ffffffff811d1b45>] migrate_pages+0x5e5/0x700
+[  600.754705]  [<ffffffff811d0070>] ? buffer_migrate_lock_buffers+0xb0/0xb0
+[  600.785784]  [<ffffffff811d29cc>] migrate_misplaced_page+0xbc/0xf0
+[  600.814029]  [<ffffffff8119eb62>] do_numa_page+0x102/0x190
+[  600.839182]  [<ffffffff8119ee31>] handle_pte_fault+0x241/0x970
+[  600.865875]  [<ffffffff811a0345>] handle_mm_fault+0x265/0x370
+[  600.892071]  [<ffffffff81686d82>] __do_page_fault+0x172/0x5a0
+[  600.918065]  [<ffffffff81682cd8>] ? retint_swapgs+0x13/0x1b
+[  600.943493]  [<ffffffff816871ca>] do_page_fault+0x1a/0x70
+[  600.968081]  [<ffffffff81682ff8>] page_fault+0x28/0x30
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sufile.c |  131 +++++++++++++++++++++++++++++++++++++++++++
- fs/nilfs2/sufile.h |    1 
- 2 files changed, 132 insertions(+)
+ mm/page-writeback.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/nilfs2/sufile.c~nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage fs/nilfs2/sufile.c
---- a/fs/nilfs2/sufile.c~nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage
-+++ a/fs/nilfs2/sufile.c
-@@ -870,6 +870,137 @@ ssize_t nilfs_sufile_get_suinfo(struct i
- }
+diff -puN mm/page-writeback.c~mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq
++++ a/mm/page-writeback.c
+@@ -2173,11 +2173,12 @@ int __set_page_dirty_nobuffers(struct pa
+ 	if (!TestSetPageDirty(page)) {
+ 		struct address_space *mapping = page_mapping(page);
+ 		struct address_space *mapping2;
++		unsigned long flags;
  
- /**
-+ * nilfs_sufile_set_suinfo - sets segment usage info
-+ * @sufile: inode of segment usage file
-+ * @buf: array of suinfo_update
-+ * @supsz: byte size of suinfo_update
-+ * @nsup: size of suinfo_update array
-+ *
-+ * Description: Takes an array of nilfs_suinfo_update structs and updates
-+ * segment usage accordingly. Only the fields indicated by the sup_flags
-+ * are updated.
-+ *
-+ * Return Value: On success, 0 is returned. On error, one of the
-+ * following negative error codes is returned.
-+ *
-+ * %-EIO - I/O error.
-+ *
-+ * %-ENOMEM - Insufficient amount of memory available.
-+ *
-+ * %-EINVAL - Invalid values in input (segment number, flags or nblocks)
-+ */
-+ssize_t nilfs_sufile_set_suinfo(struct inode *sufile, void *buf,
-+				unsigned supsz, size_t nsup)
-+{
-+	struct the_nilfs *nilfs = sufile->i_sb->s_fs_info;
-+	struct buffer_head *header_bh, *bh;
-+	struct nilfs_suinfo_update *sup, *supend = buf + supsz * nsup;
-+	struct nilfs_segment_usage *su;
-+	void *kaddr;
-+	unsigned long blkoff, prev_blkoff;
-+	int cleansi, cleansu, dirtysi, dirtysu;
-+	long ncleaned = 0, ndirtied = 0;
-+	int ret = 0;
-+
-+	if (unlikely(nsup == 0))
-+		return ret;
-+
-+	for (sup = buf; sup < supend; sup = (void *)sup + supsz) {
-+		if (sup->sup_segnum >= nilfs->ns_nsegments
-+			|| (sup->sup_flags &
-+				(~0UL << __NR_NILFS_SUINFO_UPDATE_FIELDS))
-+			|| (nilfs_suinfo_update_nblocks(sup) &&
-+				sup->sup_sui.sui_nblocks >
-+				nilfs->ns_blocks_per_segment))
-+			return -EINVAL;
-+	}
-+
-+	down_write(&NILFS_MDT(sufile)->mi_sem);
-+
-+	ret = nilfs_sufile_get_header_block(sufile, &header_bh);
-+	if (ret < 0)
-+		goto out_sem;
-+
-+	sup = buf;
-+	blkoff = nilfs_sufile_get_blkoff(sufile, sup->sup_segnum);
-+	ret = nilfs_mdt_get_block(sufile, blkoff, 1, NULL, &bh);
-+	if (ret < 0)
-+		goto out_header;
-+
-+	for (;;) {
-+		kaddr = kmap_atomic(bh->b_page);
-+		su = nilfs_sufile_block_get_segment_usage(
-+			sufile, sup->sup_segnum, bh, kaddr);
-+
-+		if (nilfs_suinfo_update_lastmod(sup))
-+			su->su_lastmod = cpu_to_le64(sup->sup_sui.sui_lastmod);
-+
-+		if (nilfs_suinfo_update_nblocks(sup))
-+			su->su_nblocks = cpu_to_le32(sup->sup_sui.sui_nblocks);
-+
-+		if (nilfs_suinfo_update_flags(sup)) {
-+			/*
-+			 * Active flag is a virtual flag projected by running
-+			 * nilfs kernel code - drop it not to write it to
-+			 * disk.
-+			 */
-+			sup->sup_sui.sui_flags &=
-+					~(1UL << NILFS_SEGMENT_USAGE_ACTIVE);
-+
-+			cleansi = nilfs_suinfo_clean(&sup->sup_sui);
-+			cleansu = nilfs_segment_usage_clean(su);
-+			dirtysi = nilfs_suinfo_dirty(&sup->sup_sui);
-+			dirtysu = nilfs_segment_usage_dirty(su);
-+
-+			if (cleansi && !cleansu)
-+				++ncleaned;
-+			else if (!cleansi && cleansu)
-+				--ncleaned;
-+
-+			if (dirtysi && !dirtysu)
-+				++ndirtied;
-+			else if (!dirtysi && dirtysu)
-+				--ndirtied;
-+
-+			su->su_flags = cpu_to_le32(sup->sup_sui.sui_flags);
-+		}
-+
-+		kunmap_atomic(kaddr);
-+
-+		sup = (void *)sup + supsz;
-+		if (sup >= supend)
-+			break;
-+
-+		prev_blkoff = blkoff;
-+		blkoff = nilfs_sufile_get_blkoff(sufile, sup->sup_segnum);
-+		if (blkoff == prev_blkoff)
-+			continue;
-+
-+		/* get different block */
-+		mark_buffer_dirty(bh);
-+		brelse(bh);
-+		ret = nilfs_mdt_get_block(sufile, blkoff, 1, NULL, &bh);
-+		if (unlikely(ret < 0))
-+			goto out_mark;
-+	}
-+	mark_buffer_dirty(bh);
-+	brelse(bh);
-+
-+ out_mark:
-+	if (ncleaned || ndirtied) {
-+		nilfs_sufile_mod_counter(header_bh, (u64)ncleaned,
-+				(u64)ndirtied);
-+		NILFS_SUI(sufile)->ncleansegs += ncleaned;
-+	}
-+	nilfs_mdt_mark_dirty(sufile);
-+ out_header:
-+	brelse(header_bh);
-+ out_sem:
-+	up_write(&NILFS_MDT(sufile)->mi_sem);
-+	return ret;
-+}
-+
-+/**
-  * nilfs_sufile_read - read or get sufile inode
-  * @sb: super block instance
-  * @susize: size of a segment usage entry
-diff -puN fs/nilfs2/sufile.h~nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage fs/nilfs2/sufile.h
---- a/fs/nilfs2/sufile.h~nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage
-+++ a/fs/nilfs2/sufile.h
-@@ -44,6 +44,7 @@ int nilfs_sufile_set_segment_usage(struc
- int nilfs_sufile_get_stat(struct inode *, struct nilfs_sustat *);
- ssize_t nilfs_sufile_get_suinfo(struct inode *, __u64, void *, unsigned,
- 				size_t);
-+ssize_t nilfs_sufile_set_suinfo(struct inode *, void *, unsigned , size_t);
+ 		if (!mapping)
+ 			return 1;
  
- int nilfs_sufile_updatev(struct inode *, __u64 *, size_t, int, size_t *,
- 			 void (*dofunc)(struct inode *, __u64,
+-		spin_lock_irq(&mapping->tree_lock);
++		spin_lock_irqsave(&mapping->tree_lock, flags);
+ 		mapping2 = page_mapping(page);
+ 		if (mapping2) { /* Race with truncate? */
+ 			BUG_ON(mapping2 != mapping);
+@@ -2186,7 +2187,7 @@ int __set_page_dirty_nobuffers(struct pa
+ 			radix_tree_tag_set(&mapping->page_tree,
+ 				page_index(page), PAGECACHE_TAG_DIRTY);
+ 		}
+-		spin_unlock_irq(&mapping->tree_lock);
++		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+ 		if (mapping->host) {
+ 			/* !PageAnon && !swapper_space */
+ 			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
 _
 
-Patches currently in -mm which might be from andreas.rohner@gmx.net are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-nilfs2-add-struct-nilfs_suinfo_update-and-flags.patch
-nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
-nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl.patch
+mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch
 
