@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-avoid-isolating-pinned-pages.patch added to -mm
- tree
-Date: Mon, 03 Feb 2014 12:54:15 -0800
-Message-ID: <52f001f7.TpLJpjkNfO1kh+bR%akpm@linux-foundation.org>
+Subject: + arm-mm-fix-the-memblock-allocation-for-lpae-machines.patch
+ added to -mm tree
+Date: Mon, 03 Feb 2014 12:55:27 -0800
+Message-ID: <52f0023f.dURJK6YAe0eigDIq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46628 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750784AbaBCUyQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 15:54:16 -0500
+	with ESMTP id S1750844AbaBCUz2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 15:55:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, rientjes@google.com
+To: mm-commits@vger.kernel.org, yinghai@kernel.org, linux@arm.linux.org.uk, grygorii.strashko@ti.com, santosh.shilimkar@ti.com
 
-Subject: + mm-compaction-avoid-isolating-pinned-pages.patch added to -mm tree
-To: rientjes@google.com,mgorman@suse.de,riel@redhat.com
+Subject: + arm-mm-fix-the-memblock-allocation-for-lpae-machines.patch added to -mm tree
+To: santosh.shilimkar@ti.com,grygorii.strashko@ti.com,linux@arm.linux.org.uk,yinghai@kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 03 Feb 2014 12:54:15 -0800
+Date: Mon, 03 Feb 2014 12:55:27 -0800
 
 
 The patch titled
-     Subject: mm, compaction: avoid isolating pinned pages
+     Subject: ARM: mm: fix the memblock allocation for LPAE machines
 has been added to the -mm tree.  Its filename is
-     mm-compaction-avoid-isolating-pinned-pages.patch
+     arm-mm-fix-the-memblock-allocation-for-lpae-machines.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-avoid-isolating-pinned-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-mm-fix-the-memblock-allocation-for-lpae-machines.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-avoid-isolating-pinned-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-mm-fix-the-memblock-allocation-for-lpae-machines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,75 +44,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, compaction: avoid isolating pinned pages
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: ARM: mm: fix the memblock allocation for LPAE machines
 
-Page migration will fail for memory that is pinned in memory with, for
-example, get_user_pages().  In this case, it is unnecessary to take
-zone->lru_lock or isolating the page and passing it to page migration
-which will ultimately fail.
+Commit ad6492b8 added much needed memblock_virt_alloc_low() and further
+commit 07bacb3 {memblock, bootmem: restore goal for alloc_low} fixed the
+issue with low memory limit thansk to Yinghai.  But even after all these
+fixes, there is still one case where the limit check done with
+ARCH_LOW_ADDRESS_LIMIT for low memory fails.  Russell pointed out the
+issue with 32 bit LPAE machines in https://lkml.org/lkml/2014/1/28/364
 
-This is a racy check, the page can still change from under us, but in that
-case we'll just fail later when attempting to move the page.
+Since on some LPAE machines where memory start address is beyond 4GB, the
+low memory marker in memblock will be set to default
+ARCH_LOW_ADDRESS_LIMIT which is wrong.  We can fix this by letting
+architectures set the ARCH_LOW_ADDRESS_LIMIT using another export similar
+to memblock_set_current_limit() but am not sure whether its worth the
+trouble.  Tell me if you think otherwise.
 
-This avoids very expensive memory compaction when faulting transparent
-hugepages after pinning a lot of memory with a Mellanox driver.
+Rather am just trying to fix that one broken case using
+memblock_virt_alloc() in setup code since the memblock.current_limit is
+updated appropriately makes it work on all ARM 32 bit machines.
 
-On a 128GB machine and pinning ~120GB of memory, before this patch we
-see the enormous disparity in the number of page migration failures
-because of the pinning (from /proc/vmstat):
-
-compact_blocks_moved 7609
-compact_pages_moved 3431
-compact_pagemigrate_failed 133219
-compact_stall 13
-
-After the patch, it is much more efficient:
-
-compact_blocks_moved 7998
-compact_pages_moved 6403
-compact_pagemigrate_failed 3
-compact_stall 15
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Strashko, Grygorii <grygorii.strashko@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arm/kernel/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-avoid-isolating-pinned-pages mm/compaction.c
---- a/mm/compaction.c~mm-compaction-avoid-isolating-pinned-pages
-+++ a/mm/compaction.c
-@@ -578,6 +578,14 @@ isolate_migratepages_range(struct zone *
- 			continue;
- 		}
+diff -puN arch/arm/kernel/setup.c~arm-mm-fix-the-memblock-allocation-for-lpae-machines arch/arm/kernel/setup.c
+--- a/arch/arm/kernel/setup.c~arm-mm-fix-the-memblock-allocation-for-lpae-machines
++++ a/arch/arm/kernel/setup.c
+@@ -731,7 +731,7 @@ static void __init request_standard_reso
+ 	kernel_data.end     = virt_to_phys(_end - 1);
  
-+		/*
-+		 * Migration will fail if an anonymous page is pinned in memory,
-+		 * so avoid taking zone->lru_lock and isolating it unnecessarily
-+		 * in an admittedly racy check.
-+		 */
-+		if (!page_mapping(page) && page_count(page))
-+			continue;
-+
- 		/* Check if it is ok to still hold the lock */
- 		locked = compact_checklock_irqsave(&zone->lru_lock, &flags,
- 								locked, cc);
+ 	for_each_memblock(memory, region) {
+-		res = memblock_virt_alloc_low(sizeof(*res), 0);
++		res = memblock_virt_alloc(sizeof(*res), 0);
+ 		res->name  = "System RAM";
+ 		res->start = __pfn_to_phys(memblock_region_memory_base_pfn(region));
+ 		res->end = __pfn_to_phys(memblock_region_memory_end_pfn(region)) - 1;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from santosh.shilimkar@ti.com are
 
-documentation-kernel-parameterstxt-fix-memmap=-language.patch
-numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch
-numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
-numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockreserved.patch
-kthread-ensure-locality-of-task_struct-allocations.patch
-mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
-mm-compaction-avoid-isolating-pinned-pages.patch
-mm-utilc-add-kstrimdup.patch
-cpusets-allocate-heap-only-when-required.patch
+arm-mm-fix-the-memblock-allocation-for-lpae-machines.patch
 linux-next.patch
 
