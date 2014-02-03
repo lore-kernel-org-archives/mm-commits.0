@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-shrink_slab-rename-max_pass-freeable.patch added to
+Subject: +
+ arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch added to
  -mm tree
-Date: Mon, 03 Feb 2014 14:32:15 -0800
-Message-ID: <52f018ef.npQS3DOrgcmtEzNO%akpm@linux-foundation.org>
+Date: Mon, 03 Feb 2014 14:47:39 -0800
+Message-ID: <52f01c8b.ExcxiTlno1BIC/r9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47043 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47133 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbaBCWcQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 17:32:16 -0500
+	with ESMTP id S1752638AbaBCWrk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 17:47:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, ptesarik@suse.cz
 
-Subject: + mm-vmscan-shrink_slab-rename-max_pass-freeable.patch added to -mm tree
-To: vdavydov@parallels.com,rientjes@google.com
+Subject: + arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch added to -mm tree
+To: ptesarik@suse.cz
 From: akpm@linux-foundation.org
-Date: Mon, 03 Feb 2014 14:32:15 -0800
+Date: Mon, 03 Feb 2014 14:47:39 -0800
 
 
 The patch titled
-     Subject: mm: vmscan: shrink_slab: rename max_pass -> freeable
+     Subject: arch/x86/mm/numa_32.c: fix the initialization of physnode_map
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
+     arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,116 +45,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: mm: vmscan: shrink_slab: rename max_pass -> freeable
+From: Petr Tesarik <ptesarik@suse.cz>
+Subject: arch/x86/mm/numa_32.c: fix the initialization of physnode_map
 
-The name `max_pass' is misleading, because this variable actually keeps
-the estimate number of freeable objects, not the maximal number of objects
-we can scan in this pass, which can be twice that.  Rename it to reflect
-its actual meaning.
+With DISCONTIGMEM, the mapping between a pfn and its owning node is
+initialized using data provided by the BIOS.  However, the initialization
+may fail if the extents are not aligned to section boundary (64M).
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: David Rientjes <rientjes@google.com>
+The symptom of this bug is an early boot failure in pfn_to_page(), as it
+tries to access NODE_DATA(__nid) using index from an unitialized element
+of the physnode_map[] array.
+
+While the bug is always present, it is more likely to be hit in kdump
+kernels on large machines, because:
+
+1. The memory map for a kdump kernel is specified as exactmap, and
+   exactmap is more likely to be unaligned.
+
+2. Large reservations are more likely to span across a 64M boundary.
+
+Signed-off-by: Petr Tesarik <ptesarik@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ arch/x86/mm/numa_32.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/vmscan.c~mm-vmscan-shrink_slab-rename-max_pass-freeable mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-shrink_slab-rename-max_pass-freeable
-+++ a/mm/vmscan.c
-@@ -224,15 +224,15 @@ shrink_slab_node(struct shrink_control *
- 	unsigned long freed = 0;
- 	unsigned long long delta;
- 	long total_scan;
--	long max_pass;
-+	long freeable;
- 	long nr;
- 	long new_nr;
- 	int nid = shrinkctl->nid;
- 	long batch_size = shrinker->batch ? shrinker->batch
- 					  : SHRINK_BATCH;
- 
--	max_pass = shrinker->count_objects(shrinker, shrinkctl);
--	if (max_pass == 0)
-+	freeable = shrinker->count_objects(shrinker, shrinkctl);
-+	if (freeable == 0)
- 		return 0;
- 
- 	/*
-@@ -244,14 +244,14 @@ shrink_slab_node(struct shrink_control *
- 
- 	total_scan = nr;
- 	delta = (4 * nr_pages_scanned) / shrinker->seeks;
--	delta *= max_pass;
-+	delta *= freeable;
- 	do_div(delta, lru_pages + 1);
- 	total_scan += delta;
- 	if (total_scan < 0) {
- 		printk(KERN_ERR
- 		"shrink_slab: %pF negative objects to delete nr=%ld\n",
- 		       shrinker->scan_objects, total_scan);
--		total_scan = max_pass;
-+		total_scan = freeable;
- 	}
- 
- 	/*
-@@ -260,26 +260,26 @@ shrink_slab_node(struct shrink_control *
- 	 * shrinkers to return -1 all the time. This results in a large
- 	 * nr being built up so when a shrink that can do some work
- 	 * comes along it empties the entire cache due to nr >>>
--	 * max_pass.  This is bad for sustaining a working set in
-+	 * freeable. This is bad for sustaining a working set in
- 	 * memory.
- 	 *
- 	 * Hence only allow the shrinker to scan the entire cache when
- 	 * a large delta change is calculated directly.
- 	 */
--	if (delta < max_pass / 4)
--		total_scan = min(total_scan, max_pass / 2);
-+	if (delta < freeable / 4)
-+		total_scan = min(total_scan, freeable / 2);
- 
- 	/*
- 	 * Avoid risking looping forever due to too large nr value:
- 	 * never try to free more than twice the estimate number of
- 	 * freeable entries.
- 	 */
--	if (total_scan > max_pass * 2)
--		total_scan = max_pass * 2;
-+	if (total_scan > freeable * 2)
-+		total_scan = freeable * 2;
- 
- 	trace_mm_shrink_slab_start(shrinker, shrinkctl, nr,
- 				nr_pages_scanned, lru_pages,
--				max_pass, delta, total_scan);
-+				freeable, delta, total_scan);
- 
- 	/*
- 	 * Normally, we should not scan less than batch_size objects in one
-@@ -292,12 +292,12 @@ shrink_slab_node(struct shrink_control *
- 	 *
- 	 * We detect the "tight on memory" situations by looking at the total
- 	 * number of objects we want to scan (total_scan). If it is greater
--	 * than the total number of objects on slab (max_pass), we must be
-+	 * than the total number of objects on slab (freeable), we must be
- 	 * scanning at high prio and therefore should try to reclaim as much as
- 	 * possible.
- 	 */
- 	while (total_scan >= batch_size ||
--	       total_scan >= max_pass) {
-+	       total_scan >= freeable) {
- 		unsigned long ret;
- 		unsigned long nr_to_scan = min(batch_size, total_scan);
- 
+diff -puN arch/x86/mm/numa_32.c~arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map arch/x86/mm/numa_32.c
+--- a/arch/x86/mm/numa_32.c~arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map
++++ a/arch/x86/mm/numa_32.c
+@@ -52,6 +52,8 @@ void memory_present(int nid, unsigned lo
+ 			nid, start, end);
+ 	printk(KERN_DEBUG "  Setting physnode_map array to node %d for pfns:\n", nid);
+ 	printk(KERN_DEBUG "  ");
++	pfn = round_down(pfn, PAGES_PER_SECTION);
++	end = round_up(end, PAGES_PER_SECTION);
+ 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
+ 		physnode_map[pfn / PAGES_PER_SECTION] = nid;
+ 		printk(KERN_CONT "%lx ", pfn);
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from ptesarik@suse.cz are
 
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
+arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch
 linux-next.patch
 
