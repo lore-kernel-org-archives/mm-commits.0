@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch added to -mm tree
-Date: Mon, 03 Feb 2014 13:22:58 -0800
-Message-ID: <52f008b2.y0et87702oWogsu4%akpm@linux-foundation.org>
+Subject: + nilfs2-update-maintainers-file-entries.patch added to -mm tree
+Date: Mon, 03 Feb 2014 13:41:12 -0800
+Message-ID: <52f00cf8.L98s4p+o5Ncr8eo9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46744 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46772 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751195AbaBCVW6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 16:22:58 -0500
+	with ESMTP id S1750750AbaBCVlN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 16:41:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, bp@suse.de
+To: mm-commits@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp
 
-Subject: + lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch added to -mm tree
-To: bp@suse.de
+Subject: + nilfs2-update-maintainers-file-entries.patch added to -mm tree
+To: konishi.ryusuke@lab.ntt.co.jp
 From: akpm@linux-foundation.org
-Date: Mon, 03 Feb 2014 13:22:58 -0800
+Date: Mon, 03 Feb 2014 13:41:12 -0800
 
 
 The patch titled
-     Subject: lib/Kconfig.debug: clarify CONFIG_DEBUG_INFO's bloaty nature
+     Subject: nilfs2: update MAINTAINERS file entries
 has been added to the -mm tree.  Its filename is
-     lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch
+     nilfs2-update-maintainers-file-entries.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-update-maintainers-file-entries.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-update-maintainers-file-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,39 +43,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Borislav Petkov <bp@suse.de>
-Subject: lib/Kconfig.debug: clarify CONFIG_DEBUG_INFO's bloaty nature
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: update MAINTAINERS file entries
 
-Hold down when it makes sense to enable CONFIG_DEBUG_INFO and when
-CONFIG_KALLSYMS suffices.
+Update git repository entry of nilfs2 file system and maintainer's
+email description.
 
-Signed-off-by: Borislav Petkov <bp@suse.de>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/Kconfig.debug~lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature
-+++ a/lib/Kconfig.debug
-@@ -126,7 +126,11 @@ config DEBUG_INFO
- 	  This adds debug symbols to the kernel and modules (gcc -g), and
- 	  is needed if you intend to use kernel crashdump or binary object
- 	  tools like crash, kgdb, LKCD, gdb, etc on the kernel.
--	  Say Y here only if you plan to debug the kernel.
-+
-+	  If you only want to have resolved symbols in kernel traces and
-+	  are not going to need support for those tools above, you don't need
-+	  to enable this as it is a huge bloat and build slowdown;
-+	  enable CONFIG_KALLSYMS instead.
+diff -puN MAINTAINERS~nilfs2-update-maintainers-file-entries MAINTAINERS
+--- a/MAINTAINERS~nilfs2-update-maintainers-file-entries
++++ a/MAINTAINERS
+@@ -6085,10 +6085,10 @@ F:	include/uapi/linux/nfs*
+ F:	include/uapi/linux/sunrpc/
  
- 	  If unsure, say N.
- 
+ NILFS2 FILESYSTEM
+-M:	KONISHI Ryusuke <konishi.ryusuke@lab.ntt.co.jp>
++M:	Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+ L:	linux-nilfs@vger.kernel.org
+ W:	http://www.nilfs.org/en/
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ryusuke/nilfs2.git
++T:	git git://github.com/konis/nilfs2.git
+ S:	Supported
+ F:	Documentation/filesystems/nilfs2.txt
+ F:	fs/nilfs2/
 _
 
-Patches currently in -mm which might be from bp@suse.de are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch
-linux-next.patch
+nilfs2-update-maintainers-file-entries.patch
+nilfs2-add-struct-nilfs_suinfo_update-and-flags.patch
+nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
+nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl.patch
 
