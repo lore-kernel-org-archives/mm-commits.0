@@ -1,100 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix.patch added
- to -mm tree
-Date: Mon, 03 Feb 2014 14:58:21 -0800
-Message-ID: <52f01f0d.eTPhpgRxvkqd2TXN%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch removed
+ from -mm tree
+Date: Mon, 03 Feb 2014 15:42:45 -0800
+Message-ID: <52f02975.FmDjCr90Q5fTKDgq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47159 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47323 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753047AbaBCW6W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 17:58:22 -0500
+	with ESMTP id S1752666AbaBCXmq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 18:42:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, bp@suse.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, ptesarik@suse.cz
 
-Subject: + lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,bp@suse.de,rientjes@google.com
+Subject: [to-be-updated] arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch removed from -mm tree
+To: ptesarik@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 03 Feb 2014 14:58:21 -0800
+Date: Mon, 03 Feb 2014 15:42:45 -0800
 
 
 The patch titled
-     Subject: lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix
-has been added to the -mm tree.  Its filename is
-     lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix.patch
+     Subject: arch/x86/mm/numa_32.c: fix the initialization of physnode_map
+has been removed from the -mm tree.  Its filename was
+     arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix
+From: Petr Tesarik <ptesarik@suse.cz>
+Subject: arch/x86/mm/numa_32.c: fix the initialization of physnode_map
 
-clarify text
+With DISCONTIGMEM, the mapping between a pfn and its owning node is
+initialized using data provided by the BIOS.  However, the initialization
+may fail if the extents are not aligned to section boundary (64M).
 
-Cc: Borislav Petkov <bp@suse.de>
-Cc: David Rientjes <rientjes@google.com>
+The symptom of this bug is an early boot failure in pfn_to_page(), as it
+tries to access NODE_DATA(__nid) using index from an unitialized element
+of the physnode_map[] array.
+
+While the bug is always present, it is more likely to be hit in kdump
+kernels on large machines, because:
+
+1. The memory map for a kdump kernel is specified as exactmap, and
+   exactmap is more likely to be unaligned.
+
+2. Large reservations are more likely to span across a 64M boundary.
+
+Signed-off-by: Petr Tesarik <ptesarik@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/mm/numa_32.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN lib/Kconfig.debug~lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix lib/Kconfig.debug
---- a/lib/Kconfig.debug~lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix
-+++ a/lib/Kconfig.debug
-@@ -128,9 +128,9 @@ config DEBUG_INFO
- 	  tools like crash, kgdb, LKCD, gdb, etc on the kernel.
- 
- 	  If you only want to have resolved symbols in kernel traces and
--	  are not going to need support for those tools above, you don't need
--	  to enable this as it is a huge bloat and build slowdown;
--	  enable CONFIG_KALLSYMS instead.
-+	  are not going to need support for the above tools, you don't need
-+	  to enable this.  It hugely bloat object files' on-disk sizes and slows
-+	  the build.  Enable CONFIG_KALLSYMS instead.
- 
- 	  If unsure, say N.
- 
+diff -puN arch/x86/mm/numa_32.c~arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map arch/x86/mm/numa_32.c
+--- a/arch/x86/mm/numa_32.c~arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map
++++ a/arch/x86/mm/numa_32.c
+@@ -52,6 +52,8 @@ void memory_present(int nid, unsigned lo
+ 			nid, start, end);
+ 	printk(KERN_DEBUG "  Setting physnode_map array to node %d for pfns:\n", nid);
+ 	printk(KERN_DEBUG "  ");
++	pfn = round_down(pfn, PAGES_PER_SECTION);
++	end = round_up(end, PAGES_PER_SECTION);
+ 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
+ 		physnode_map[pfn / PAGES_PER_SECTION] = nid;
+ 		printk(KERN_CONT "%lx ", pfn);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ptesarik@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
-numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix.patch
 linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
