@@ -1,92 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slb-fix-misleading-comments.patch removed from -mm
+Subject: + mm-compaction-avoid-isolating-pinned-pages.patch added to -mm
  tree
-Date: Mon, 03 Feb 2014 12:17:09 -0800
-Message-ID: <52eff945.Xf7V8VaOC+2BOeHA%akpm@linux-foundation.org>
+Date: Mon, 03 Feb 2014 12:54:15 -0800
+Message-ID: <52f001f7.TpLJpjkNfO1kh+bR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46068 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751114AbaBCURK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 15:17:10 -0500
+	with ESMTP id S1750784AbaBCUyQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 15:54:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, mpm@selenic.com, cl@linux.com, dave.hansen@linux.intel.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, rientjes@google.com
 
-Subject: [merged] mm-slb-fix-misleading-comments.patch removed from -mm tree
-To: dave.hansen@linux.intel.com,cl@linux.com,mpm@selenic.com,penberg@kernel.org,rientjes@google.com,mm-commits@vger.kernel.org
+Subject: + mm-compaction-avoid-isolating-pinned-pages.patch added to -mm tree
+To: rientjes@google.com,mgorman@suse.de,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 03 Feb 2014 12:17:09 -0800
+Date: Mon, 03 Feb 2014 12:54:15 -0800
 
 
 The patch titled
-     Subject: mm: sl[uo]b: fix misleading comments
-has been removed from the -mm tree.  Its filename was
-     mm-slb-fix-misleading-comments.patch
+     Subject: mm, compaction: avoid isolating pinned pages
+has been added to the -mm tree.  Its filename is
+     mm-compaction-avoid-isolating-pinned-pages.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-avoid-isolating-pinned-pages.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-avoid-isolating-pinned-pages.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm: sl[uo]b: fix misleading comments
+From: David Rientjes <rientjes@google.com>
+Subject: mm, compaction: avoid isolating pinned pages
 
-On x86, SLUB creates and handles <=8192-byte allocations internally.  It
-passes larger ones up to the allocator.  Saying "up to order 2" is, at
-best, ambiguous.  Is that order-1?  Or (order-2 bytes)?  Make it more
-clear.
+Page migration will fail for memory that is pinned in memory with, for
+example, get_user_pages().  In this case, it is unnecessary to take
+zone->lru_lock or isolating the page and passing it to page migration
+which will ultimately fail.
 
-SLOB commits a similar sin.  It *handles* page-size requests, but the
-comment says that it passes up "all page size and larger requests".
+This is a racy check, the page can still change from under us, but in that
+case we'll just fail later when attempting to move the page.
 
-SLOB also swaps around the order of the very-similarly-named
-KMALLOC_SHIFT_HIGH and KMALLOC_SHIFT_MAX #defines.  Make it consistent
-with the order of the other two allocators.
+This avoids very expensive memory compaction when faulting transparent
+hugepages after pinning a lot of memory with a Mellanox driver.
 
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Acked-by: David Rientjes <rientjes@google.com>
+On a 128GB machine and pinning ~120GB of memory, before this patch we
+see the enormous disparity in the number of page migration failures
+because of the pinning (from /proc/vmstat):
+
+compact_blocks_moved 7609
+compact_pages_moved 3431
+compact_pagemigrate_failed 133219
+compact_stall 13
+
+After the patch, it is much more efficient:
+
+compact_blocks_moved 7998
+compact_pages_moved 6403
+compact_pagemigrate_failed 3
+compact_stall 15
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/compaction.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/linux/slab.h~mm-slb-fix-misleading-comments include/linux/slab.h
---- a/include/linux/slab.h~mm-slb-fix-misleading-comments
-+++ a/include/linux/slab.h
-@@ -205,8 +205,8 @@ struct kmem_cache {
+diff -puN mm/compaction.c~mm-compaction-avoid-isolating-pinned-pages mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-avoid-isolating-pinned-pages
++++ a/mm/compaction.c
+@@ -578,6 +578,14 @@ isolate_migratepages_range(struct zone *
+ 			continue;
+ 		}
  
- #ifdef CONFIG_SLUB
- /*
-- * SLUB allocates up to order 2 pages directly and otherwise
-- * passes the request to the page allocator.
-+ * SLUB directly allocates requests fitting in to an order-1 page
-+ * (PAGE_SIZE*2).  Larger requests are passed to the page allocator.
-  */
- #define KMALLOC_SHIFT_HIGH	(PAGE_SHIFT + 1)
- #define KMALLOC_SHIFT_MAX	(MAX_ORDER + PAGE_SHIFT)
-@@ -217,12 +217,12 @@ struct kmem_cache {
- 
- #ifdef CONFIG_SLOB
- /*
-- * SLOB passes all page size and larger requests to the page allocator.
-+ * SLOB passes all requests larger than one page to the page allocator.
-  * No kmalloc array is necessary since objects of different sizes can
-  * be allocated from the same page.
-  */
--#define KMALLOC_SHIFT_MAX	30
- #define KMALLOC_SHIFT_HIGH	PAGE_SHIFT
-+#define KMALLOC_SHIFT_MAX	30
- #ifndef KMALLOC_SHIFT_LOW
- #define KMALLOC_SHIFT_LOW	3
- #endif
++		/*
++		 * Migration will fail if an anonymous page is pinned in memory,
++		 * so avoid taking zone->lru_lock and isolating it unnecessarily
++		 * in an admittedly racy check.
++		 */
++		if (!page_mapping(page) && page_count(page))
++			continue;
++
+ 		/* Check if it is ok to still hold the lock */
+ 		locked = compact_checklock_irqsave(&zone->lru_lock, &flags,
+ 								locked, cc);
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
+documentation-kernel-parameterstxt-fix-memmap=-language.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
+numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockreserved.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
+mm-compaction-avoid-isolating-pinned-pages.patch
+mm-utilc-add-kstrimdup.patch
+cpusets-allocate-heap-only-when-required.patch
+linux-next.patch
 
