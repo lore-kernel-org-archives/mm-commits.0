@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch added to -mm tree
-Date: Mon, 03 Feb 2014 13:21:52 -0800
-Message-ID: <52f00870.16TjMMTdFI6Jd9xP%akpm@linux-foundation.org>
+Subject: + lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch added to -mm tree
+Date: Mon, 03 Feb 2014 13:22:58 -0800
+Message-ID: <52f008b2.y0et87702oWogsu4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46744 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752559AbaBCVV4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 16:21:56 -0500
+	with ESMTP id S1751195AbaBCVW6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 16:22:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgoyal@redhat.com, holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, d.hatayama@jp.fujitsu.com, greg.pearson@hp.com
+To: mm-commits@vger.kernel.org, bp@suse.de
 
-Subject: + vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch added to -mm tree
-To: greg.pearson@hp.com,d.hatayama@jp.fujitsu.com,ebiederm@xmission.com,holzheu@linux.vnet.ibm.com,vgoyal@redhat.com
+Subject: + lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch added to -mm tree
+To: bp@suse.de
 From: akpm@linux-foundation.org
-Date: Mon, 03 Feb 2014 13:21:52 -0800
+Date: Mon, 03 Feb 2014 13:22:58 -0800
 
 
 The patch titled
-     Subject: vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2
+     Subject: lib/Kconfig.debug: clarify CONFIG_DEBUG_INFO's bloaty nature
 has been added to the -mm tree.  Its filename is
-     vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch
+     lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,53 +43,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Pearson <greg.pearson@hp.com>
-Subject: vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2
+From: Borislav Petkov <bp@suse.de>
+Subject: lib/Kconfig.debug: clarify CONFIG_DEBUG_INFO's bloaty nature
 
-Signed-off-by: Greg Pearson <greg.pearson@hp.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Hold down when it makes sense to enable CONFIG_DEBUG_INFO and when
+CONFIG_KALLSYMS suffices.
+
+Signed-off-by: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ lib/Kconfig.debug |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2 fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2
-+++ a/fs/proc/vmcore.c
-@@ -472,9 +472,10 @@ static int __init update_note_header_siz
- 			sz = sizeof(Elf64_Nhdr) +
- 				((nhdr_ptr->n_namesz + 3) & ~3) +
- 				((nhdr_ptr->n_descsz + 3) & ~3);
--			/* Silently drop further PT_NOTE entries */
--			if ((real_sz + sz) > max_sz)
-+			if ((real_sz + sz) > max_sz) {
-+				pr_warn("Warning: dropping PT_NOTE entry\n");
- 				break;
-+			}
- 			real_sz += sz;
- 			nhdr_ptr = (Elf64_Nhdr*)((char*)nhdr_ptr + sz);
- 		}
-@@ -653,9 +654,10 @@ static int __init update_note_header_siz
- 			sz = sizeof(Elf32_Nhdr) +
- 				((nhdr_ptr->n_namesz + 3) & ~3) +
- 				((nhdr_ptr->n_descsz + 3) & ~3);
--			/* Silently drop further PT_NOTE entries */
--			if ((real_sz + sz) > max_sz)
-+			if ((real_sz + sz) > max_sz) {
-+				pr_warn("Warning: dropping PT_NOTE entry\n");
- 				break;
-+			}
- 			real_sz += sz;
- 			nhdr_ptr = (Elf32_Nhdr*)((char*)nhdr_ptr + sz);
- 		}
+diff -puN lib/Kconfig.debug~lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature
++++ a/lib/Kconfig.debug
+@@ -126,7 +126,11 @@ config DEBUG_INFO
+ 	  This adds debug symbols to the kernel and modules (gcc -g), and
+ 	  is needed if you intend to use kernel crashdump or binary object
+ 	  tools like crash, kgdb, LKCD, gdb, etc on the kernel.
+-	  Say Y here only if you plan to debug the kernel.
++
++	  If you only want to have resolved symbols in kernel traces and
++	  are not going to need support for those tools above, you don't need
++	  to enable this as it is a huge bloat and build slowdown;
++	  enable CONFIG_KALLSYMS instead.
+ 
+ 	  If unsure, say N.
+ 
 _
 
-Patches currently in -mm which might be from greg.pearson@hp.com are
+Patches currently in -mm which might be from bp@suse.de are
 
-vmcore-prevent-pt_note-p_memsz-overflow-during-header-update.patch
-vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch
+lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch
+linux-next.patch
 
