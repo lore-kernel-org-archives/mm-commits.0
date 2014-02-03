@@ -1,77 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch removed
+ lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch removed
  from -mm tree
-Date: Mon, 03 Feb 2014 15:42:45 -0800
-Message-ID: <52f02975.FmDjCr90Q5fTKDgq%akpm@linux-foundation.org>
+Date: Mon, 03 Feb 2014 15:53:27 -0800
+Message-ID: <52f02bf7.fiBqlPPDaNaXvnN9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47323 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47425 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752666AbaBCXmq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 18:42:46 -0500
+	with ESMTP id S1753338AbaBCXx2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 18:53:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ptesarik@suse.cz
+To: mm-commits@vger.kernel.org, rientjes@google.com, bp@suse.de
 
-Subject: [to-be-updated] arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch removed from -mm tree
-To: ptesarik@suse.cz,mm-commits@vger.kernel.org
+Subject: [to-be-updated] lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch removed from -mm tree
+To: bp@suse.de,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 03 Feb 2014 15:42:45 -0800
+Date: Mon, 03 Feb 2014 15:53:27 -0800
 
 
 The patch titled
-     Subject: arch/x86/mm/numa_32.c: fix the initialization of physnode_map
+     Subject: lib/Kconfig.debug: clarify CONFIG_DEBUG_INFO's bloaty nature
 has been removed from the -mm tree.  Its filename was
-     arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map.patch
+     lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Petr Tesarik <ptesarik@suse.cz>
-Subject: arch/x86/mm/numa_32.c: fix the initialization of physnode_map
+From: Borislav Petkov <bp@suse.de>
+Subject: lib/Kconfig.debug: clarify CONFIG_DEBUG_INFO's bloaty nature
 
-With DISCONTIGMEM, the mapping between a pfn and its owning node is
-initialized using data provided by the BIOS.  However, the initialization
-may fail if the extents are not aligned to section boundary (64M).
+Hold down when it makes sense to enable CONFIG_DEBUG_INFO and when
+CONFIG_KALLSYMS suffices.
 
-The symptom of this bug is an early boot failure in pfn_to_page(), as it
-tries to access NODE_DATA(__nid) using index from an unitialized element
-of the physnode_map[] array.
-
-While the bug is always present, it is more likely to be hit in kdump
-kernels on large machines, because:
-
-1. The memory map for a kdump kernel is specified as exactmap, and
-   exactmap is more likely to be unaligned.
-
-2. Large reservations are more likely to span across a 64M boundary.
-
-Signed-off-by: Petr Tesarik <ptesarik@suse.cz>
+Signed-off-by: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa_32.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/Kconfig.debug |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/numa_32.c~arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map arch/x86/mm/numa_32.c
---- a/arch/x86/mm/numa_32.c~arch-x86-mm-numa_32c-fix-the-initialization-of-physnode_map
-+++ a/arch/x86/mm/numa_32.c
-@@ -52,6 +52,8 @@ void memory_present(int nid, unsigned lo
- 			nid, start, end);
- 	printk(KERN_DEBUG "  Setting physnode_map array to node %d for pfns:\n", nid);
- 	printk(KERN_DEBUG "  ");
-+	pfn = round_down(pfn, PAGES_PER_SECTION);
-+	end = round_up(end, PAGES_PER_SECTION);
- 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
- 		physnode_map[pfn / PAGES_PER_SECTION] = nid;
- 		printk(KERN_CONT "%lx ", pfn);
+diff -puN lib/Kconfig.debug~lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature
++++ a/lib/Kconfig.debug
+@@ -126,7 +126,11 @@ config DEBUG_INFO
+ 	  This adds debug symbols to the kernel and modules (gcc -g), and
+ 	  is needed if you intend to use kernel crashdump or binary object
+ 	  tools like crash, kgdb, LKCD, gdb, etc on the kernel.
+-	  Say Y here only if you plan to debug the kernel.
++
++	  If you only want to have resolved symbols in kernel traces and
++	  are not going to need support for those tools above, you don't need
++	  to enable this as it is a huge bloat and build slowdown;
++	  enable CONFIG_KALLSYMS instead.
+ 
+ 	  If unsure, say N.
+ 
 _
 
-Patches currently in -mm which might be from ptesarik@suse.cz are
+Patches currently in -mm which might be from bp@suse.de are
 
+lib-kconfigdebug-clarify-config_debug_infos-bloaty-nature-fix.patch
 linux-next.patch
 
