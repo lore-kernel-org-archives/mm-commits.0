@@ -1,47 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch added to -mm tree
-Date: Mon, 03 Feb 2014 16:54:17 -0800
-Message-ID: <52f03a39.PJzspcIhZuAYk293%akpm@linux-foundation.org>
+Subject: [obsolete]
+ documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch removed from -mm tree
+Date: Mon, 03 Feb 2014 16:55:22 -0800
+Message-ID: <52f03a7a.mqNzkOQ6W8q6IFE3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47717 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47722 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317AbaBDAyS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 19:54:18 -0500
+	with ESMTP id S1751317AbaBDAzX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 19:55:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mingo@elte.hu, atomlin@redhat.com, akpm@linux-foundation.org
 
-Subject: + documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch added to -mm tree
-To: akpm@linux-foundation.org,atomlin@redhat.com,mingo@elte.hu
+Subject: [obsolete] documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch removed from -mm tree
+To: akpm@linux-foundation.org,atomlin@redhat.com,mingo@elte.hu,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 03 Feb 2014 16:54:17 -0800
+Date: Mon, 03 Feb 2014 16:55:22 -0800
 
 
 The patch titled
      Subject: Documentation/sysctl/kernel.txt: s/hung_task_warning/hung_task_warnings/
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -77,7 +63,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
-documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch
 numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
 ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
