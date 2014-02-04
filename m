@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- backlight-update-bd-state-fb_blank-properties-when-necessary.patch added to -mm tree
-Date: Mon, 03 Feb 2014 16:49:37 -0800
-Message-ID: <52f03921.qyQOHDv50UaXLn3q%akpm@linux-foundation.org>
+ documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch added to -mm tree
+Date: Mon, 03 Feb 2014 16:54:17 -0800
+Message-ID: <52f03a39.PJzspcIhZuAYk293%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47701 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317AbaBDAti (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 19:49:38 -0500
+	with ESMTP id S1751317AbaBDAyS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Feb 2014 19:54:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, jg1.han@samsung.com, jani.nikula@linux.intel.com, Ying.Liu@freescale.com
+To: mm-commits@vger.kernel.org, mingo@elte.hu, atomlin@redhat.com, akpm@linux-foundation.org
 
-Subject: + backlight-update-bd-state-fb_blank-properties-when-necessary.patch added to -mm tree
-To: Ying.Liu@freescale.com,jani.nikula@linux.intel.com,jg1.han@samsung.com,plagnioj@jcrosoft.com,tomi.valkeinen@ti.com
+Subject: + documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch added to -mm tree
+To: akpm@linux-foundation.org,atomlin@redhat.com,mingo@elte.hu
 From: akpm@linux-foundation.org
-Date: Mon, 03 Feb 2014 16:49:37 -0800
+Date: Mon, 03 Feb 2014 16:54:17 -0800
 
 
 The patch titled
-     Subject: backlight: update bd state & fb_blank properties when necessary
+     Subject: Documentation/sysctl/kernel.txt: s/hung_task_warning/hung_task_warnings/
 has been added to the -mm tree.  Its filename is
-     backlight-update-bd-state-fb_blank-properties-when-necessary.patch
+     documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-update-bd-state-fb_blank-properties-when-necessary.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-update-bd-state-fb_blank-properties-when-necessary.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,104 +44,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liu Ying <Ying.Liu@freescale.com>
-Subject: backlight: update bd state & fb_blank properties when necessary
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Documentation/sysctl/kernel.txt: s/hung_task_warning/hung_task_warnings/
 
-We don't have to update the state and fb_blank properties of a backlight
-device every time a blanking or unblanking event comes because they may
-have already been what we want.  Another thought is that one backlight
-device may be shared by multiple framebuffers.  The backlight driver
-should take the backlight device as a resource shared by all the
-associated framebuffers.
+Fix a documentation slipup.
 
-This patch adds some logic to record each framebuffer's backlight usage to
-determine the backlight device use count and whether the two properties
-should be updated or not.  To be more specific, only one unblank operation
-on a certain blanked framebuffer may increase the backlight device's use
-count by one, while one blank operation on a certain unblanked framebuffer
-may decrease the use count by one, because the userspace is likely to
-unblank an unblanked framebuffer or blank a blanked framebuffer.
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 
-Signed-off-by: Liu Ying <Ying.Liu@freescale.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |   23 ++++++++++++++++++-----
- include/linux/backlight.h           |    6 ++++++
- 2 files changed, 24 insertions(+), 5 deletions(-)
+ Documentation/sysctl/kernel.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-update-bd-state-fb_blank-properties-when-necessary drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-update-bd-state-fb_blank-properties-when-necessary
-+++ a/drivers/video/backlight/backlight.c
-@@ -41,6 +41,8 @@ static int fb_notifier_callback(struct n
- {
- 	struct backlight_device *bd;
- 	struct fb_event *evdata = data;
-+	int node = evdata->info->node;
-+	int fb_blank = 0;
+diff -puN Documentation/sysctl/kernel.txt~documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings
++++ a/Documentation/sysctl/kernel.txt
+@@ -320,7 +320,7 @@ This file shows up if CONFIG_DETECT_HUNG
  
- 	/* If we aren't interested in this event, skip it immediately ... */
- 	if (event != FB_EVENT_BLANK && event != FB_EVENT_CONBLANK)
-@@ -51,11 +53,22 @@ static int fb_notifier_callback(struct n
- 	if (bd->ops)
- 		if (!bd->ops->check_fb ||
- 		    bd->ops->check_fb(bd, evdata->info)) {
--			bd->props.fb_blank = *(int *)evdata->data;
--			if (bd->props.fb_blank == FB_BLANK_UNBLANK)
--				bd->props.state &= ~BL_CORE_FBBLANK;
--			else
--				bd->props.state |= BL_CORE_FBBLANK;
-+			fb_blank = *(int *)evdata->data;
-+			if (fb_blank == FB_BLANK_UNBLANK &&
-+			    !bd->fb_bl_on[node]) {
-+				bd->fb_bl_on[node] = true;
-+				if (!bd->use_count++) {
-+					bd->props.state &= ~BL_CORE_FBBLANK;
-+					bd->props.fb_blank = FB_BLANK_UNBLANK;
-+				}
-+			} else if (fb_blank != FB_BLANK_UNBLANK &&
-+				   bd->fb_bl_on[node]) {
-+				bd->fb_bl_on[node] = false;
-+				if (!(--bd->use_count)) {
-+					bd->props.state |= BL_CORE_FBBLANK;
-+					bd->props.fb_blank = fb_blank;
-+				}
-+			}
- 			backlight_update_status(bd);
- 		}
- 	mutex_unlock(&bd->ops_lock);
-diff -puN include/linux/backlight.h~backlight-update-bd-state-fb_blank-properties-when-necessary include/linux/backlight.h
---- a/include/linux/backlight.h~backlight-update-bd-state-fb_blank-properties-when-necessary
-+++ a/include/linux/backlight.h
-@@ -9,6 +9,7 @@
- #define _LINUX_BACKLIGHT_H
+ ==============================================================
  
- #include <linux/device.h>
-+#include <linux/fb.h>
- #include <linux/mutex.h>
- #include <linux/notifier.h>
+-hung_task_warning:
++hung_task_warnings:
  
-@@ -104,6 +105,11 @@ struct backlight_device {
- 	struct list_head entry;
- 
- 	struct device dev;
-+
-+	/* Multiple framebuffers may share one backlight device */
-+	bool fb_bl_on[FB_MAX];
-+
-+	int use_count;
- };
- 
- static inline void backlight_update_status(struct backlight_device *bd)
+ The maximum number of warnings to report. During a check interval
+ When this value is reached, no more the warnings will be reported.
 _
 
-Patches currently in -mm which might be from Ying.Liu@freescale.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-backlight-update-bd-state-fb_blank-properties-when-necessary.patch
-backlight-update-backlight-status-when-necessary.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
+documentation-sysctl-kerneltxt-s-hung_task_warning-hung_task_warnings.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
 linux-next.patch
+linux-next-git-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
