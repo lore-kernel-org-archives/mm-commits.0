@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + zram-remove-good-and-bad-compress-stats.patch added to -mm tree
-Date: Tue, 04 Feb 2014 14:19:12 -0800
-Message-ID: <52f16760.BRmcIy1xGhC2/gCB%akpm@linux-foundation.org>
+Subject: + hfsplus-rework-hfsplus_submit_bio-method.patch added to -mm
+ tree
+Date: Tue, 04 Feb 2014 14:33:32 -0800
+Message-ID: <52f16abc.QPn3eMketddyNxK+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57911 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58073 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934996AbaBDWTN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:19:13 -0500
+	with ESMTP id S933793AbaBDWdd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org, jmarchan@redhat.com, sergey.senozhatsky@gmail.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: + zram-remove-good-and-bad-compress-stats.patch added to -mm tree
-To: sergey.senozhatsky@gmail.com,jmarchan@redhat.com,minchan@kernel.org,ngupta@vflare.org
+Subject: + hfsplus-rework-hfsplus_submit_bio-method.patch added to -mm tree
+To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 04 Feb 2014 14:19:12 -0800
+Date: Tue, 04 Feb 2014 14:33:32 -0800
 
 
 The patch titled
-     Subject: zram: remove good and bad compress stats
+     Subject: hfsplus: rework hfsplus_submit_bio() method
 has been added to the -mm tree.  Its filename is
-     zram-remove-good-and-bad-compress-stats.patch
+     hfsplus-rework-hfsplus_submit_bio-method.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-remove-good-and-bad-compress-stats.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-rework-hfsplus_submit_bio-method.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-remove-good-and-bad-compress-stats.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-rework-hfsplus_submit_bio-method.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,95 +44,172 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: remove good and bad compress stats
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: hfsplus: rework hfsplus_submit_bio() method
 
-Remove `good' and `bad' compressed sub-requests stats.  RW request may
-cause a number of RW sub-requests.  zram used to account `good' compressed
-sub-queries (with compressed size less than 50% of original size), `bad'
-compressed sub-queries (with compressed size greater that 75% of original
-size), leaving sub-requests with compression size between 50% and 75% of
-original size not accounted and not reported.  zram already accounts each
-sub-request's compression size so we can calculate real device compression
-ratio.
+Rework hfsplus_submit_bio() method with the goal to get length of data
+from address of data pointer till the end of data block.
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
-Cc: Nitin Gupta <ngupta@vflare.org>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Tested-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   11 -----------
- drivers/block/zram/zram_drv.h |    2 --
- 2 files changed, 13 deletions(-)
+ fs/hfsplus/hfsplus_fs.h |    2 +-
+ fs/hfsplus/part_tbl.c   |    4 ++--
+ fs/hfsplus/super.c      |    5 +++--
+ fs/hfsplus/wrapper.c    |   28 +++++++++++++++++++++-------
+ 4 files changed, 27 insertions(+), 12 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-good-and-bad-compress-stats drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-good-and-bad-compress-stats
-+++ a/drivers/block/zram/zram_drv.c
-@@ -293,7 +293,6 @@ static void zram_free_page(struct zram *
- {
- 	struct zram_meta *meta = zram->meta;
- 	unsigned long handle = meta->table[index].handle;
--	u16 size = meta->table[index].size;
+diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-rework-hfsplus_submit_bio-method fs/hfsplus/hfsplus_fs.h
+--- a/fs/hfsplus/hfsplus_fs.h~hfsplus-rework-hfsplus_submit_bio-method
++++ a/fs/hfsplus/hfsplus_fs.h
+@@ -537,7 +537,7 @@ int hfsplus_compare_dentry(const struct
+ int hfsplus_read_wrapper(struct super_block *);
+ int hfs_part_find(struct super_block *, sector_t *, sector_t *);
+ int hfsplus_submit_bio(struct super_block *sb, sector_t sector,
+-		void *buf, void **data, int rw);
++			void *buf, void **data, int rw, size_t *data_len);
  
- 	if (unlikely(!handle)) {
- 		/*
-@@ -307,14 +306,8 @@ static void zram_free_page(struct zram *
- 		return;
- 	}
+ /* time macros */
+ #define __hfsp_mt2ut(t)		(be32_to_cpu(t) - 2082844800U)
+diff -puN fs/hfsplus/part_tbl.c~hfsplus-rework-hfsplus_submit_bio-method fs/hfsplus/part_tbl.c
+--- a/fs/hfsplus/part_tbl.c~hfsplus-rework-hfsplus_submit_bio-method
++++ a/fs/hfsplus/part_tbl.c
+@@ -112,7 +112,7 @@ static int hfs_parse_new_pmap(struct sup
+ 		if ((u8 *)pm - (u8 *)buf >= buf_size) {
+ 			res = hfsplus_submit_bio(sb,
+ 						 *part_start + HFS_PMAP_BLK + i,
+-						 buf, (void **)&pm, READ);
++						 buf, (void **)&pm, READ, NULL);
+ 			if (res)
+ 				return res;
+ 		}
+@@ -136,7 +136,7 @@ int hfs_part_find(struct super_block *sb
+ 		return -ENOMEM;
  
--	if (unlikely(size > max_zpage_size))
--		atomic_dec(&zram->stats.bad_compress);
--
- 	zs_free(meta->mem_pool, handle);
+ 	res = hfsplus_submit_bio(sb, *part_start + HFS_PMAP_BLK,
+-				 buf, &data, READ);
++				 buf, &data, READ, NULL);
+ 	if (res)
+ 		goto out;
  
--	if (size <= PAGE_SIZE / 2)
--		atomic_dec(&zram->stats.good_compress);
--
- 	atomic64_sub(meta->table[index].size, &zram->stats.compr_size);
- 	atomic_dec(&zram->stats.pages_stored);
+diff -puN fs/hfsplus/super.c~hfsplus-rework-hfsplus_submit_bio-method fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~hfsplus-rework-hfsplus_submit_bio-method
++++ a/fs/hfsplus/super.c
+@@ -217,7 +217,7 @@ static int hfsplus_sync_fs(struct super_
  
-@@ -478,7 +471,6 @@ static int zram_bvec_write(struct zram *
- 	}
+ 	error2 = hfsplus_submit_bio(sb,
+ 				   sbi->part_start + HFSPLUS_VOLHEAD_SECTOR,
+-				   sbi->s_vhdr_buf, NULL, WRITE_SYNC);
++				   sbi->s_vhdr_buf, NULL, WRITE_SYNC, NULL);
+ 	if (!error)
+ 		error = error2;
+ 	if (!write_backup)
+@@ -225,7 +225,8 @@ static int hfsplus_sync_fs(struct super_
  
- 	if (unlikely(clen > max_zpage_size)) {
--		atomic_inc(&zram->stats.bad_compress);
- 		clen = PAGE_SIZE;
- 		src = NULL;
- 		if (is_partial_io(bvec))
-@@ -518,9 +510,6 @@ static int zram_bvec_write(struct zram *
- 	/* Update stats */
- 	atomic64_add(clen, &zram->stats.compr_size);
- 	atomic_inc(&zram->stats.pages_stored);
--	if (clen <= PAGE_SIZE / 2)
--		atomic_inc(&zram->stats.good_compress);
--
+ 	error2 = hfsplus_submit_bio(sb,
+ 				  sbi->part_start + sbi->sect_count - 2,
+-				  sbi->s_backup_vhdr_buf, NULL, WRITE_SYNC);
++				  sbi->s_backup_vhdr_buf, NULL, WRITE_SYNC,
++				  NULL);
+ 	if (!error)
+ 		error2 = error;
  out:
- 	if (locked)
- 		mutex_unlock(&meta->buffer_lock);
-diff -puN drivers/block/zram/zram_drv.h~zram-remove-good-and-bad-compress-stats drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-remove-good-and-bad-compress-stats
-+++ a/drivers/block/zram/zram_drv.h
-@@ -78,8 +78,6 @@ struct zram_stats {
- 	atomic64_t notify_free;	/* no. of swap slot free notifications */
- 	atomic_t pages_zero;		/* no. of zero filled pages */
- 	atomic_t pages_stored;	/* no. of pages currently stored */
--	atomic_t good_compress;	/* % of pages with compression ratio<=50% */
--	atomic_t bad_compress;	/* % of pages with compression ratio>=75% */
- };
+diff -puN fs/hfsplus/wrapper.c~hfsplus-rework-hfsplus_submit_bio-method fs/hfsplus/wrapper.c
+--- a/fs/hfsplus/wrapper.c~hfsplus-rework-hfsplus_submit_bio-method
++++ a/fs/hfsplus/wrapper.c
+@@ -31,6 +31,7 @@ struct hfsplus_wd {
+  * @buf: buffer for I/O
+  * @data: output pointer for location of requested data
+  * @rw: direction of I/O
++ * @data_len: output pointer for length of requested data
+  *
+  * The unit of I/O is hfsplus_min_io_size(sb), which may be bigger than
+  * HFSPLUS_SECTOR_SIZE, and @buf must be sized accordingly. On reads
+@@ -44,13 +45,14 @@ struct hfsplus_wd {
+  * will work correctly.
+  */
+ int hfsplus_submit_bio(struct super_block *sb, sector_t sector,
+-		void *buf, void **data, int rw)
++			void *buf, void **data, int rw, size_t *data_len)
+ {
+ 	struct bio *bio;
+ 	int ret = 0;
+ 	u64 io_size;
+ 	loff_t start;
+ 	int offset;
++	unsigned int page_offset;
  
- struct zram_meta {
+ 	/*
+ 	 * Align sector to hardware sector size and find offset. We
+@@ -66,13 +68,25 @@ int hfsplus_submit_bio(struct super_bloc
+ 	bio->bi_iter.bi_sector = sector;
+ 	bio->bi_bdev = sb->s_bdev;
+ 
+-	if (!(rw & WRITE) && data)
++	if (!(rw & WRITE) && data) {
+ 		*data = (u8 *)buf + offset;
+ 
++		if (data_len) {
++			page_offset = offset_in_page(buf);
++
++			BUG_ON(offset > io_size);
++			BUG_ON((page_offset + offset) > PAGE_SIZE);
++
++			*data_len = min_t(size_t, io_size - offset,
++					  PAGE_SIZE - page_offset - offset);
++		}
++	}
++
+ 	while (io_size > 0) {
+-		unsigned int page_offset = offset_in_page(buf);
+-		unsigned int len = min_t(unsigned int, PAGE_SIZE - page_offset,
+-					 io_size);
++		unsigned int len;
++
++		page_offset = offset_in_page(buf);
++		len = min_t(unsigned int, PAGE_SIZE - page_offset, io_size);
+ 
+ 		ret = bio_add_page(bio, virt_to_page(buf), len, page_offset);
+ 		if (ret != len) {
+@@ -181,7 +195,7 @@ int hfsplus_read_wrapper(struct super_bl
+ reread:
+ 	error = hfsplus_submit_bio(sb, part_start + HFSPLUS_VOLHEAD_SECTOR,
+ 				   sbi->s_vhdr_buf, (void **)&sbi->s_vhdr,
+-				   READ);
++				   READ, NULL);
+ 	if (error)
+ 		goto out_free_backup_vhdr;
+ 
+@@ -213,7 +227,7 @@ reread:
+ 
+ 	error = hfsplus_submit_bio(sb, part_start + part_size - 2,
+ 				   sbi->s_backup_vhdr_buf,
+-				   (void **)&sbi->s_backup_vhdr, READ);
++				   (void **)&sbi->s_backup_vhdr, READ, NULL);
+ 	if (error)
+ 		goto out_free_backup_vhdr;
+ 
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
-zram-drop-init_done-struct-zram-member.patch
-zram-do-not-pass-rw-argument-to-__zram_make_request.patch
-zram-remove-good-and-bad-compress-stats.patch
-zram-use-atomic64_t-for-all-zram-stats.patch
-zram-remove-zram-stats-code-duplication.patch
-zram-report-failed-read-and-write-stats.patch
-zram-drop-not-used-table-count-member.patch
-zram-move-zram-size-warning-to-documentation.patch
+hfsplus-add-necessary-declarations-for-journal-replay.patch
+hfsplus-rework-hfsplus_submit_bio-method.patch
+hfsplus-implement-init-destroy-journal-object-functionality.patch
+hfsplus-implement-functionality-for-hfsplus_journal_need_init-flag.patch
+hfsplus-implement-norecovery-mount-option-support.patch
+hfsplus-fix-remount-issue.patch
+hfsplus-implement-check-consistency-of-journal-log-file.patch
+hfsplus-introduce-descriptor-of-block-list-buffer.patch
+hfsplus-implement-get-and-verify-block-list-header-functionality.patch
+hfsplus-implement-functionality-of-getting-transactions-block-info.patch
+hfsplus-implement-functionality-of-journal-log-wrapping.patch
+hfsplus-implement-functionality-of-transactions-block-check.patch
+hfsplus-implement-replay-transactions-block-functionality.patch
+hfsplus-implement-replay-journal-functionality.patch
+hfsplus-integrate-journal-replay-support-into-driver.patch
 
