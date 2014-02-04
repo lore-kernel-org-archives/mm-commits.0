@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + lib-radix-tree-radix_tree_delete_item.patch added to -mm tree
-Date: Tue, 04 Feb 2014 15:14:42 -0800
-Message-ID: <52f17462.B0cMtEJV7PipKGt+%akpm@linux-foundation.org>
+Subject: +
+ mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+ added to -mm tree
+Date: Tue, 04 Feb 2014 15:14:44 -0800
+Message-ID: <52f17464.AHA0EqonN0SWRQqw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58386 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58398 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933800AbaBDXOo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 18:14:44 -0500
+	with ESMTP id S933800AbaBDXOq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 18:14:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, walken@google.com, vbabka@suse.cz, tj@kernel.org, semenzato@google.com, rmallon@gmail.com, riel@redhat.com, peterz@infradead.org, ozgun@citusdata.com, minchan@kernel.org, mgorman@suse.de, metin@citusdata.com, kosaki.motohiro@jp.fujitsu.com, klamm@yandex-team.ru, jack@suse.cz, hughd@google.com, hch@infradead.org, gthelen@google.com, david@fromorbit.com, bob.liu@oracle.com, aarcange@redhat.com, hannes@cmpxchg.org
 
-Subject: + lib-radix-tree-radix_tree_delete_item.patch added to -mm tree
+Subject: + mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch added to -mm tree
 To: hannes@cmpxchg.org,aarcange@redhat.com,bob.liu@oracle.com,david@fromorbit.com,gthelen@google.com,hch@infradead.org,hughd@google.com,jack@suse.cz,klamm@yandex-team.ru,kosaki.motohiro@jp.fujitsu.com,metin@citusdata.com,mgorman@suse.de,minchan@kernel.org,ozgun@citusdata.com,peterz@infradead.org,riel@redhat.com,rmallon@gmail.com,semenzato@google.com,tj@kernel.org,vbabka@suse.cz,walken@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 04 Feb 2014 15:14:42 -0800
+Date: Tue, 04 Feb 2014 15:14:44 -0800
 
 
 The patch titled
-     Subject: lib: radix-tree: add radix_tree_delete_item()
+     Subject: mm: shmem: save one radix tree lookup when truncating swapped pages
 has been added to the -mm tree.  Its filename is
-     lib-radix-tree-radix_tree_delete_item.patch
+     mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-radix-tree-radix_tree_delete_item.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-radix-tree-radix_tree_delete_item.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,15 +46,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: lib: radix-tree: add radix_tree_delete_item()
+Subject: mm: shmem: save one radix tree lookup when truncating swapped pages
 
-Provide a function that does not just delete an entry at a given index,
-but also allows passing in an expected item.  Delete only if that item is
-still located at the specified index.
+Page cache radix tree slots are usually stabilized by the page lock, but
+shmem's swap cookies have no such thing.  Because the overall truncation
+loop is lockless, the swap entry is currently confirmed by a tree lookup
+and then deleted by another tree lookup under the same tree lock region.
 
-This is handy when lockless tree traversals want to delete entries as well
-because they don't have to do an second, locked lookup to verify the slot
-has not changed under them before deleting the entry.
+Use radix_tree_delete_item() instead, which does the verification and
+deletion with only one lookup.  This also allows removing the delete-only
+special case from shmem_radix_tree_replace().
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Minchan Kim <minchan@kernel.org>
@@ -78,81 +81,59 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    1 +
- lib/radix-tree.c           |   31 +++++++++++++++++++++++++++----
- 2 files changed, 28 insertions(+), 4 deletions(-)
+ mm/shmem.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/radix-tree.h~lib-radix-tree-radix_tree_delete_item include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~lib-radix-tree-radix_tree_delete_item
-+++ a/include/linux/radix-tree.h
-@@ -219,6 +219,7 @@ static inline void radix_tree_replace_sl
- int radix_tree_insert(struct radix_tree_root *, unsigned long, void *);
- void *radix_tree_lookup(struct radix_tree_root *, unsigned long);
- void **radix_tree_lookup_slot(struct radix_tree_root *, unsigned long);
-+void *radix_tree_delete_item(struct radix_tree_root *, unsigned long, void *);
- void *radix_tree_delete(struct radix_tree_root *, unsigned long);
- unsigned int
- radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
-diff -puN lib/radix-tree.c~lib-radix-tree-radix_tree_delete_item lib/radix-tree.c
---- a/lib/radix-tree.c~lib-radix-tree-radix_tree_delete_item
-+++ a/lib/radix-tree.c
-@@ -1335,15 +1335,18 @@ static inline void radix_tree_shrink(str
- }
- 
- /**
-- *	radix_tree_delete    -    delete an item from a radix tree
-+ *	radix_tree_delete_item    -    delete an item from a radix tree
-  *	@root:		radix tree root
-  *	@index:		index key
-+ *	@item:		expected item
-  *
-- *	Remove the item at @index from the radix tree rooted at @root.
-+ *	Remove @item at @index from the radix tree rooted at @root.
-  *
-- *	Returns the address of the deleted item, or NULL if it was not present.
-+ *	Returns the address of the deleted item, or NULL if it was not present
-+ *	or the entry at the given @index was not @item.
-  */
--void *radix_tree_delete(struct radix_tree_root *root, unsigned long index)
-+void *radix_tree_delete_item(struct radix_tree_root *root,
-+			     unsigned long index, void *item)
+diff -puN mm/shmem.c~mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages mm/shmem.c
+--- a/mm/shmem.c~mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages
++++ a/mm/shmem.c
+@@ -242,19 +242,17 @@ static int shmem_radix_tree_replace(stru
+ 			pgoff_t index, void *expected, void *replacement)
  {
- 	struct radix_tree_node *node = NULL;
- 	struct radix_tree_node *slot = NULL;
-@@ -1378,6 +1381,11 @@ void *radix_tree_delete(struct radix_tre
- 	if (slot == NULL)
- 		goto out;
+ 	void **pslot;
+-	void *item = NULL;
++	void *item;
  
-+	if (item && slot != item) {
-+		slot = NULL;
-+		goto out;
-+	}
-+
- 	/*
- 	 * Clear all tags associated with the item to be deleted.
- 	 * This way of doing it would be inefficient, but seldom is any set.
-@@ -1422,6 +1430,21 @@ void *radix_tree_delete(struct radix_tre
- out:
- 	return slot;
+ 	VM_BUG_ON(!expected);
++	VM_BUG_ON(!replacement);
+ 	pslot = radix_tree_lookup_slot(&mapping->page_tree, index);
+-	if (pslot)
+-		item = radix_tree_deref_slot_protected(pslot,
+-							&mapping->tree_lock);
++	if (!pslot)
++		return -ENOENT;
++	item = radix_tree_deref_slot_protected(pslot, &mapping->tree_lock);
+ 	if (item != expected)
+ 		return -ENOENT;
+-	if (replacement)
+-		radix_tree_replace_slot(pslot, replacement);
+-	else
+-		radix_tree_delete(&mapping->page_tree, index);
++	radix_tree_replace_slot(pslot, replacement);
+ 	return 0;
  }
-+EXPORT_SYMBOL(radix_tree_delete_item);
-+
-+/**
-+ *	radix_tree_delete    -    delete an item from a radix tree
-+ *	@root:		radix tree root
-+ *	@index:		index key
-+ *
-+ *	Remove the item at @index from the radix tree rooted at @root.
-+ *
-+ *	Returns the address of the deleted item, or NULL if it was not present.
-+ */
-+void *radix_tree_delete(struct radix_tree_root *root, unsigned long index)
-+{
-+	return radix_tree_delete_item(root, index, NULL);
-+}
- EXPORT_SYMBOL(radix_tree_delete);
  
- /**
+@@ -386,14 +384,15 @@ export:
+ static int shmem_free_swap(struct address_space *mapping,
+ 			   pgoff_t index, void *radswap)
+ {
+-	int error;
++	void *old;
+ 
+ 	spin_lock_irq(&mapping->tree_lock);
+-	error = shmem_radix_tree_replace(mapping, index, radswap, NULL);
++	old = radix_tree_delete_item(&mapping->page_tree, index, radswap);
+ 	spin_unlock_irq(&mapping->tree_lock);
+-	if (!error)
+-		free_swap_and_cache(radix_to_swp_entry(radswap));
+-	return error;
++	if (old != radswap)
++		return -ENOENT;
++	free_swap_and_cache(radix_to_swp_entry(radswap));
++	return 0;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
