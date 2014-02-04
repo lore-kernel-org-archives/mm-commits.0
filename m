@@ -1,621 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thrash-detection-based-file-cache-sizing.patch added to -mm
- tree
-Date: Tue, 04 Feb 2014 15:14:53 -0800
-Message-ID: <52f1746d.aH17IwHb7/5hXrgI%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch removed from -mm tree
+Date: Tue, 04 Feb 2014 15:31:06 -0800
+Message-ID: <52f1783a.wB+I+69OUYWBF3sg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58452 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58591 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934290AbaBDXOz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 18:14:55 -0500
+	with ESMTP id S1754728AbaBDXbI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 18:31:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, vbabka@suse.cz, tj@kernel.org, semenzato@google.com, rmallon@gmail.com, riel@redhat.com, peterz@infradead.org, ozgun@citusdata.com, minchan@kernel.org, mgorman@suse.de, metin@citusdata.com, kosaki.motohiro@jp.fujitsu.com, klamm@yandex-team.ru, jack@suse.cz, hughd@google.com, hch@infradead.org, gthelen@google.com, david@fromorbit.com, bob.liu@oracle.com, aarcange@redhat.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, tangchen@cn.fujitsu.com, rientjes@google.com, mingo@elte.hu, hpa@zytor.com, guz.fnst@cn.fujitsu.com, davej@redhat.com, akpm@linux-foundation.org
 
-Subject: + mm-thrash-detection-based-file-cache-sizing.patch added to -mm tree
-To: hannes@cmpxchg.org,aarcange@redhat.com,bob.liu@oracle.com,david@fromorbit.com,gthelen@google.com,hch@infradead.org,hughd@google.com,jack@suse.cz,klamm@yandex-team.ru,kosaki.motohiro@jp.fujitsu.com,metin@citusdata.com,mgorman@suse.de,minchan@kernel.org,ozgun@citusdata.com,peterz@infradead.org,riel@redhat.com,rmallon@gmail.com,semenzato@google.com,tj@kernel.org,vbabka@suse.cz,walken@google.com
+Subject: [folded-merged] numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,davej@redhat.com,guz.fnst@cn.fujitsu.com,hpa@zytor.com,mingo@elte.hu,rientjes@google.com,tangchen@cn.fujitsu.com,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Feb 2014 15:14:53 -0800
+Date: Tue, 04 Feb 2014 15:31:06 -0800
 
 
 The patch titled
-     Subject: mm: thrash detection-based file cache sizing
-has been added to the -mm tree.  Its filename is
-     mm-thrash-detection-based-file-cache-sizing.patch
+     Subject: numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix
+has been removed from the -mm tree.  Its filename was
+     numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thrash-detection-based-file-cache-sizing.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thrash-detection-based-file-cache-sizing.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: thrash detection-based file cache sizing
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix
 
-The VM maintains cached filesystem pages on two types of lists.  One list
-holds the pages recently faulted into the cache, the other list holds
-pages that have been referenced repeatedly on that first list.  The idea
-is to prefer reclaiming young pages over those that have shown to benefit
-from caching in the past.  We call the recently usedbut ultimately was not
-significantly better than a FIFO policy and still thrashed cache based on
-eviction speed, rather than actual demand for cache.
+use NODE_MASK_NONE, per David
 
-This patch solves one half of the problem by decoupling the ability to
-detect working set changes from the inactive list size.  By maintaining a
-history of recently evicted file pages it can detect frequently used pages
-with an arbitrarily small inactive list size, and subsequently apply
-pressure on the active list based on actual demand for cache, not just
-overall eviction speed.
-
-Every zone maintains a counter that tracks inactive list aging speed. 
-When a page is evicted, a snapshot of this counter is stored in the
-now-empty page cache radix tree slot.  On refault, the minimum access
-distance of the page can be assessed, to evaluate whether the page should
-be part of the active list or not.
-
-This fixes the VM's blindness towards working set changes in excess of the
-inactive list.  And it's the foundation to further improve the protection
-ability and reduce the minimum inactive list size of 50%.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Bob Liu <bob.liu@oracle.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Luigi Semenzato <semenzato@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Metin Doslu <metin@citusdata.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Ozgun Erdogan <ozgun@citusdata.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Roman Gushchin <klamm@yandex-team.ru>
-Cc: Ryan Mallon <rmallon@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 
- include/linux/swap.h   |    5 
- mm/Makefile            |    2 
- mm/filemap.c           |   61 ++++++---
- mm/swap.c              |    2 
- mm/vmscan.c            |   24 ++-
- mm/vmstat.c            |    2 
- mm/workingset.c        |  253 +++++++++++++++++++++++++++++++++++++++
- 8 files changed, 331 insertions(+), 23 deletions(-)
+ arch/x86/mm/numa.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-thrash-detection-based-file-cache-sizing include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-thrash-detection-based-file-cache-sizing
-+++ a/include/linux/mmzone.h
-@@ -142,6 +142,8 @@ enum zone_stat_item {
- 	NUMA_LOCAL,		/* allocation from local node */
- 	NUMA_OTHER,		/* allocation from other node */
- #endif
-+	WORKINGSET_REFAULT,
-+	WORKINGSET_ACTIVATE,
- 	NR_ANON_TRANSPARENT_HUGEPAGES,
- 	NR_FREE_CMA_PAGES,
- 	NR_VM_ZONE_STAT_ITEMS };
-@@ -392,6 +394,9 @@ struct zone {
- 	spinlock_t		lru_lock;
- 	struct lruvec		lruvec;
- 
-+	/* Evictions & activations on the inactive file list */
-+	atomic_long_t		inactive_age;
-+
- 	unsigned long		pages_scanned;	   /* since last reclaim */
- 	unsigned long		flags;		   /* zone flags, see below */
- 
-diff -puN include/linux/swap.h~mm-thrash-detection-based-file-cache-sizing include/linux/swap.h
---- a/include/linux/swap.h~mm-thrash-detection-based-file-cache-sizing
-+++ a/include/linux/swap.h
-@@ -260,6 +260,11 @@ struct swap_list_t {
- 	int next;	/* swapfile to be used next */
- };
- 
-+/* linux/mm/workingset.c */
-+void *workingset_eviction(struct address_space *mapping, struct page *page);
-+bool workingset_refault(void *shadow);
-+void workingset_activation(struct page *page);
-+
- /* linux/mm/page_alloc.c */
- extern unsigned long totalram_pages;
- extern unsigned long totalreserve_pages;
-diff -puN mm/Makefile~mm-thrash-detection-based-file-cache-sizing mm/Makefile
---- a/mm/Makefile~mm-thrash-detection-based-file-cache-sizing
-+++ a/mm/Makefile
-@@ -17,7 +17,7 @@ obj-y			:= filemap.o mempool.o oom_kill.
- 			   util.o mmzone.o vmstat.o backing-dev.o \
- 			   mm_init.o mmu_context.o percpu.o slab_common.o \
- 			   compaction.o balloon_compaction.o \
--			   interval_tree.o list_lru.o $(mmu-y)
-+			   interval_tree.o list_lru.o workingset.o $(mmu-y)
- 
- obj-y += init-mm.o
- 
-diff -puN mm/filemap.c~mm-thrash-detection-based-file-cache-sizing mm/filemap.c
---- a/mm/filemap.c~mm-thrash-detection-based-file-cache-sizing
-+++ a/mm/filemap.c
-@@ -469,7 +469,7 @@ int replace_page_cache_page(struct page
- EXPORT_SYMBOL_GPL(replace_page_cache_page);
- 
- static int page_cache_tree_insert(struct address_space *mapping,
--				  struct page *page)
-+				  struct page *page, void **shadowp)
+diff -puN arch/x86/mm/numa.c~numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix
++++ a/arch/x86/mm/numa.c
+@@ -565,12 +565,10 @@ static void __init numa_init_array(void)
+ static void __init numa_clear_kernel_node_hotplug(void)
  {
- 	void **slot;
- 	int error;
-@@ -484,6 +484,8 @@ static int page_cache_tree_insert(struct
- 		radix_tree_replace_slot(slot, page);
- 		mapping->nrshadows--;
- 		mapping->nrpages++;
-+		if (shadowp)
-+			*shadowp = p;
- 		return 0;
- 	}
- 	error = radix_tree_insert(&mapping->page_tree, page->index, page);
-@@ -492,18 +494,10 @@ static int page_cache_tree_insert(struct
- 	return error;
- }
+ 	int i, nid;
+-	nodemask_t numa_kernel_nodes;
++	nodemask_t numa_kernel_nodes = NODE_MASK_NONE;
+ 	unsigned long start, end;
+ 	struct memblock_type *type = &memblock.reserved;
  
--/**
-- * add_to_page_cache_locked - add a locked page to the pagecache
-- * @page:	page to add
-- * @mapping:	the page's address_space
-- * @offset:	page index
-- * @gfp_mask:	page allocation mode
-- *
-- * This function is used to add a page to the pagecache. It must be locked.
-- * This function does not add the page to the LRU.  The caller must do that.
-- */
--int add_to_page_cache_locked(struct page *page, struct address_space *mapping,
--		pgoff_t offset, gfp_t gfp_mask)
-+static int __add_to_page_cache_locked(struct page *page,
-+				      struct address_space *mapping,
-+				      pgoff_t offset, gfp_t gfp_mask,
-+				      void **shadowp)
- {
- 	int error;
- 
-@@ -526,7 +520,7 @@ int add_to_page_cache_locked(struct page
- 	page->index = offset;
- 
- 	spin_lock_irq(&mapping->tree_lock);
--	error = page_cache_tree_insert(mapping, page);
-+	error = page_cache_tree_insert(mapping, page, shadowp);
- 	radix_tree_preload_end();
- 	if (unlikely(error))
- 		goto err_insert;
-@@ -542,16 +536,49 @@ err_insert:
- 	page_cache_release(page);
- 	return error;
- }
-+
-+/**
-+ * add_to_page_cache_locked - add a locked page to the pagecache
-+ * @page:	page to add
-+ * @mapping:	the page's address_space
-+ * @offset:	page index
-+ * @gfp_mask:	page allocation mode
-+ *
-+ * This function is used to add a page to the pagecache. It must be locked.
-+ * This function does not add the page to the LRU.  The caller must do that.
-+ */
-+int add_to_page_cache_locked(struct page *page, struct address_space *mapping,
-+		pgoff_t offset, gfp_t gfp_mask)
-+{
-+	return __add_to_page_cache_locked(page, mapping, offset,
-+					  gfp_mask, NULL);
-+}
- EXPORT_SYMBOL(add_to_page_cache_locked);
- 
- int add_to_page_cache_lru(struct page *page, struct address_space *mapping,
- 				pgoff_t offset, gfp_t gfp_mask)
- {
-+	void *shadow = NULL;
- 	int ret;
- 
--	ret = add_to_page_cache(page, mapping, offset, gfp_mask);
--	if (ret == 0)
--		lru_cache_add_file(page);
-+	__set_page_locked(page);
-+	ret = __add_to_page_cache_locked(page, mapping, offset,
-+					 gfp_mask, &shadow);
-+	if (unlikely(ret))
-+		__clear_page_locked(page);
-+	else {
-+		/*
-+		 * The page might have been evicted from cache only
-+		 * recently, in which case it should be activated like
-+		 * any other repeatedly accessed page.
-+		 */
-+		if (shadow && workingset_refault(shadow)) {
-+			SetPageActive(page);
-+			workingset_activation(page);
-+		} else
-+			ClearPageActive(page);
-+		lru_cache_add(page);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(add_to_page_cache_lru);
-diff -puN mm/swap.c~mm-thrash-detection-based-file-cache-sizing mm/swap.c
---- a/mm/swap.c~mm-thrash-detection-based-file-cache-sizing
-+++ a/mm/swap.c
-@@ -574,6 +574,8 @@ void mark_page_accessed(struct page *pag
- 		else
- 			__lru_cache_activate_page(page);
- 		ClearPageReferenced(page);
-+		if (page_is_file_cache(page))
-+			workingset_activation(page);
- 	} else if (!PageReferenced(page)) {
- 		SetPageReferenced(page);
- 	}
-diff -puN mm/vmscan.c~mm-thrash-detection-based-file-cache-sizing mm/vmscan.c
---- a/mm/vmscan.c~mm-thrash-detection-based-file-cache-sizing
-+++ a/mm/vmscan.c
-@@ -523,7 +523,8 @@ static pageout_t pageout(struct page *pa
-  * Same as remove_mapping, but if the page is removed from the mapping, it
-  * gets returned with a refcount of 0.
-  */
--static int __remove_mapping(struct address_space *mapping, struct page *page)
-+static int __remove_mapping(struct address_space *mapping, struct page *page,
-+			    bool reclaimed)
- {
- 	BUG_ON(!PageLocked(page));
- 	BUG_ON(mapping != page_mapping(page));
-@@ -569,10 +570,23 @@ static int __remove_mapping(struct addre
- 		swapcache_free(swap, page);
- 	} else {
- 		void (*freepage)(struct page *);
-+		void *shadow = NULL;
- 
- 		freepage = mapping->a_ops->freepage;
+-	nodes_clear(numa_kernel_nodes);
 -
--		__delete_from_page_cache(page, NULL);
-+		/*
-+		 * Remember a shadow entry for reclaimed file cache in
-+		 * order to detect refaults, thus thrashing, later on.
-+		 *
-+		 * But don't store shadows in an address space that is
-+		 * already exiting.  This is not just an optizimation,
-+		 * inode reclaim needs to empty out the radix tree or
-+		 * the nodes are lost.  Don't plant shadows behind its
-+		 * back.
-+		 */
-+		if (reclaimed && page_is_file_cache(page) &&
-+		    !mapping_exiting(mapping))
-+			shadow = workingset_eviction(mapping, page);
-+		__delete_from_page_cache(page, shadow);
- 		spin_unlock_irq(&mapping->tree_lock);
- 		mem_cgroup_uncharge_cache_page(page);
- 
-@@ -595,7 +609,7 @@ cannot_free:
-  */
- int remove_mapping(struct address_space *mapping, struct page *page)
- {
--	if (__remove_mapping(mapping, page)) {
-+	if (__remove_mapping(mapping, page, false)) {
- 		/*
- 		 * Unfreezing the refcount with 1 rather than 2 effectively
- 		 * drops the pagecache ref for us without requiring another
-@@ -1065,7 +1079,7 @@ static unsigned long shrink_page_list(st
- 			}
- 		}
- 
--		if (!mapping || !__remove_mapping(mapping, page))
-+		if (!mapping || !__remove_mapping(mapping, page, true))
- 			goto keep_locked;
- 
- 		/*
-diff -puN mm/vmstat.c~mm-thrash-detection-based-file-cache-sizing mm/vmstat.c
---- a/mm/vmstat.c~mm-thrash-detection-based-file-cache-sizing
-+++ a/mm/vmstat.c
-@@ -770,6 +770,8 @@ const char * const vmstat_text[] = {
- 	"numa_local",
- 	"numa_other",
- #endif
-+	"workingset_refault",
-+	"workingset_activate",
- 	"nr_anon_transparent_hugepages",
- 	"nr_free_cma",
- 	"nr_dirty_threshold",
-diff -puN /dev/null mm/workingset.c
---- /dev/null
-+++ a/mm/workingset.c
-@@ -0,0 +1,253 @@
-+/*
-+ * Workingset detection
-+ *
-+ * Copyright (C) 2013 Red Hat, Inc., Johannes Weiner
-+ */
-+
-+#include <linux/memcontrol.h>
-+#include <linux/writeback.h>
-+#include <linux/pagemap.h>
-+#include <linux/atomic.h>
-+#include <linux/module.h>
-+#include <linux/swap.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+
-+/*
-+ *		Double CLOCK lists
-+ *
-+ * Per zone, two clock lists are maintained for file pages: the
-+ * inactive and the active list.  Freshly faulted pages start out at
-+ * the head of the inactive list and page reclaim scans pages from the
-+ * tail.  Pages that are accessed multiple times on the inactive list
-+ * are promoted to the active list, to protect them from reclaim,
-+ * whereas active pages are demoted to the inactive list when the
-+ * active list grows too big.
-+ *
-+ *   fault ------------------------+
-+ *                                 |
-+ *              +--------------+   |            +-------------+
-+ *   reclaim <- |   inactive   | <-+-- demotion |    active   | <--+
-+ *              +--------------+                +-------------+    |
-+ *                     |                                           |
-+ *                     +-------------- promotion ------------------+
-+ *
-+ *
-+ *		Access frequency and refault distance
-+ *
-+ * A workload is thrashing when its pages are frequently used but they
-+ * are evicted from the inactive list every time before another access
-+ * would have promoted them to the active list.
-+ *
-+ * In cases where the average access distance between thrashing pages
-+ * is bigger than the size of memory there is nothing that can be
-+ * done - the thrashing set could never fit into memory under any
-+ * circumstance.
-+ *
-+ * However, the average access distance could be bigger than the
-+ * inactive list, yet smaller than the size of memory.  In this case,
-+ * the set could fit into memory if it weren't for the currently
-+ * active pages - which may be used more, hopefully less frequently:
-+ *
-+ *      +-memory available to cache-+
-+ *      |                           |
-+ *      +-inactive------+-active----+
-+ *  a b | c d e f g h i | J K L M N |
-+ *      +---------------+-----------+
-+ *
-+ * It is prohibitively expensive to accurately track access frequency
-+ * of pages.  But a reasonable approximation can be made to measure
-+ * thrashing on the inactive list, after which refaulting pages can be
-+ * activated optimistically to compete with the existing active pages.
-+ *
-+ * Approximating inactive page access frequency - Observations:
-+ *
-+ * 1. When a page is accessed for the first time, it is added to the
-+ *    head of the inactive list, slides every existing inactive page
-+ *    towards the tail by one slot, and pushes the current tail page
-+ *    out of memory.
-+ *
-+ * 2. When a page is accessed for the second time, it is promoted to
-+ *    the active list, shrinking the inactive list by one slot.  This
-+ *    also slides all inactive pages that were faulted into the cache
-+ *    more recently than the activated page towards the tail of the
-+ *    inactive list.
-+ *
-+ * Thus:
-+ *
-+ * 1. The sum of evictions and activations between any two points in
-+ *    time indicate the minimum number of inactive pages accessed in
-+ *    between.
-+ *
-+ * 2. Moving one inactive page N page slots towards the tail of the
-+ *    list requires at least N inactive page accesses.
-+ *
-+ * Combining these:
-+ *
-+ * 1. When a page is finally evicted from memory, the number of
-+ *    inactive pages accessed while the page was in cache is at least
-+ *    the number of page slots on the inactive list.
-+ *
-+ * 2. In addition, measuring the sum of evictions and activations (E)
-+ *    at the time of a page's eviction, and comparing it to another
-+ *    reading (R) at the time the page faults back into memory tells
-+ *    the minimum number of accesses while the page was not cached.
-+ *    This is called the refault distance.
-+ *
-+ * Because the first access of the page was the fault and the second
-+ * access the refault, we combine the in-cache distance with the
-+ * out-of-cache distance to get the complete minimum access distance
-+ * of this page:
-+ *
-+ *      NR_inactive + (R - E)
-+ *
-+ * And knowing the minimum access distance of a page, we can easily
-+ * tell if the page would be able to stay in cache assuming all page
-+ * slots in the cache were available:
-+ *
-+ *   NR_inactive + (R - E) <= NR_inactive + NR_active
-+ *
-+ * which can be further simplified to
-+ *
-+ *   (R - E) <= NR_active
-+ *
-+ * Put into words, the refault distance (out-of-cache) can be seen as
-+ * a deficit in inactive list space (in-cache).  If the inactive list
-+ * had (R - E) more page slots, the page would not have been evicted
-+ * in between accesses, but activated instead.  And on a full system,
-+ * the only thing eating into inactive list space is active pages.
-+ *
-+ *
-+ *		Activating refaulting pages
-+ *
-+ * All that is known about the active list is that the pages have been
-+ * accessed more than once in the past.  This means that at any given
-+ * time there is actually a good chance that pages on the active list
-+ * are no longer in active use.
-+ *
-+ * So when a refault distance of (R - E) is observed and there are at
-+ * least (R - E) active pages, the refaulting page is activated
-+ * optimistically in the hope that (R - E) active pages are actually
-+ * used less frequently than the refaulting page - or even not used at
-+ * all anymore.
-+ *
-+ * If this is wrong and demotion kicks in, the pages which are truly
-+ * used more frequently will be reactivated while the less frequently
-+ * used once will be evicted from memory.
-+ *
-+ * But if this is right, the stale pages will be pushed out of memory
-+ * and the used pages get to stay in cache.
-+ *
-+ *
-+ *		Implementation
-+ *
-+ * For each zone's file LRU lists, a counter for inactive evictions
-+ * and activations is maintained (zone->inactive_age).
-+ *
-+ * On eviction, a snapshot of this counter (along with some bits to
-+ * identify the zone) is stored in the now empty page cache radix tree
-+ * slot of the evicted page.  This is called a shadow entry.
-+ *
-+ * On cache misses for which there are shadow entries, an eligible
-+ * refault distance will immediately activate the refaulting page.
-+ */
-+
-+static void *pack_shadow(unsigned long eviction, struct zone *zone)
-+{
-+	eviction = (eviction << NODES_SHIFT) | zone_to_nid(zone);
-+	eviction = (eviction << ZONES_SHIFT) | zone_idx(zone);
-+	eviction = (eviction << RADIX_TREE_EXCEPTIONAL_SHIFT);
-+
-+	return (void *)(eviction | RADIX_TREE_EXCEPTIONAL_ENTRY);
-+}
-+
-+static void unpack_shadow(void *shadow,
-+			  struct zone **zone,
-+			  unsigned long *distance)
-+{
-+	unsigned long entry = (unsigned long)shadow;
-+	unsigned long eviction;
-+	unsigned long refault;
-+	unsigned long mask;
-+	int zid, nid;
-+
-+	entry >>= RADIX_TREE_EXCEPTIONAL_SHIFT;
-+	zid = entry & ((1UL << ZONES_SHIFT) - 1);
-+	entry >>= ZONES_SHIFT;
-+	nid = entry & ((1UL << NODES_SHIFT) - 1);
-+	entry >>= NODES_SHIFT;
-+	eviction = entry;
-+
-+	*zone = NODE_DATA(nid)->node_zones + zid;
-+
-+	refault = atomic_long_read(&(*zone)->inactive_age);
-+	mask = ~0UL >> (NODES_SHIFT + ZONES_SHIFT +
-+			RADIX_TREE_EXCEPTIONAL_SHIFT);
-+	/*
-+	 * The unsigned subtraction here gives an accurate distance
-+	 * across inactive_age overflows in most cases.
-+	 *
-+	 * There is a special case: usually, shadow entries have a
-+	 * short lifetime and are either refaulted or reclaimed along
-+	 * with the inode before they get too old.  But it is not
-+	 * impossible for the inactive_age to lap a shadow entry in
-+	 * the field, which can then can result in a false small
-+	 * refault distance, leading to a false activation should this
-+	 * old entry actually refault again.  However, earlier kernels
-+	 * used to deactivate unconditionally with *every* reclaim
-+	 * invocation for the longest time, so the occasional
-+	 * inappropriate activation leading to pressure on the active
-+	 * list is not a problem.
-+	 */
-+	*distance = (refault - eviction) & mask;
-+}
-+
-+/**
-+ * workingset_eviction - note the eviction of a page from memory
-+ * @mapping: address space the page was backing
-+ * @page: the page being evicted
-+ *
-+ * Returns a shadow entry to be stored in @mapping->page_tree in place
-+ * of the evicted @page so that a later refault can be detected.
-+ */
-+void *workingset_eviction(struct address_space *mapping, struct page *page)
-+{
-+	struct zone *zone = page_zone(page);
-+	unsigned long eviction;
-+
-+	eviction = atomic_long_inc_return(&zone->inactive_age);
-+	return pack_shadow(eviction, zone);
-+}
-+
-+/**
-+ * workingset_refault - evaluate the refault of a previously evicted page
-+ * @shadow: shadow entry of the evicted page
-+ *
-+ * Calculates and evaluates the refault distance of the previously
-+ * evicted page in the context of the zone it was allocated in.
-+ *
-+ * Returns %true if the page should be activated, %false otherwise.
-+ */
-+bool workingset_refault(void *shadow)
-+{
-+	unsigned long refault_distance;
-+	struct zone *zone;
-+
-+	unpack_shadow(shadow, &zone, &refault_distance);
-+	inc_zone_state(zone, WORKINGSET_REFAULT);
-+
-+	if (refault_distance <= zone_page_state(zone, NR_ACTIVE_FILE)) {
-+		inc_zone_state(zone, WORKINGSET_ACTIVATE);
-+		return true;
-+	}
-+	return false;
-+}
-+
-+/**
-+ * workingset_activation - note a page activation
-+ * @page: page that is being activated
-+ */
-+void workingset_activation(struct page *page)
-+{
-+	atomic_long_inc(&page_zone(page)->inactive_age);
-+}
+ 	/* Mark all kernel nodes. */
+ 	for (i = 0; i < type->cnt; i++)
+ 		node_set(type->regions[i].nid, numa_kernel_nodes);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
+xen-properly-account-for-_page_numa-during-xen-pte-translations-fix.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
 linux-next.patch
 debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
