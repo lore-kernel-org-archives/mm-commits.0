@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- hfsplus-implement-init-destroy-journal-object-functionality.patch added to
- -mm tree
-Date: Tue, 04 Feb 2014 14:33:33 -0800
-Message-ID: <52f16abd.b3EivfMuxWDGkLiK%akpm@linux-foundation.org>
+ hfsplus-implement-functionality-for-hfsplus_journal_need_init-flag.patch
+ added to -mm tree
+Date: Tue, 04 Feb 2014 14:33:34 -0800
+Message-ID: <52f16abe.0wUYPzEYJoquwra2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58077 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58082 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933810AbaBDWde (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:34 -0500
+	with ESMTP id S934154AbaBDWdf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: + hfsplus-implement-init-destroy-journal-object-functionality.patch added to -mm tree
+Subject: + hfsplus-implement-functionality-for-hfsplus_journal_need_init-flag.patch added to -mm tree
 To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 04 Feb 2014 14:33:33 -0800
+Date: Tue, 04 Feb 2014 14:33:34 -0800
 
 
 The patch titled
-     Subject: hfsplus: implement init/destroy journal object functionality
+     Subject: hfsplus: implement functionality for HFSPLUS_JOURNAL_NEED_INIT flag
 has been added to the -mm tree.  Its filename is
-     hfsplus-implement-init-destroy-journal-object-functionality.patch
+     hfsplus-implement-functionality-for-hfsplus_journal_need_init-flag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-implement-init-destroy-journal-object-functionality.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-implement-functionality-for-hfsplus_journal_need_init-flag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-implement-init-destroy-journal-object-functionality.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-implement-functionality-for-hfsplus_journal_need_init-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,202 +46,207 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: implement init/destroy journal object functionality
+Subject: hfsplus: implement functionality for HFSPLUS_JOURNAL_NEED_INIT flag
 
-Implement functionality of initialization (hfsplus_init_journal() method)
-and destruction (hfsplus_destroy_journal() method) of HFS+ journal object
-in memory.
-
-The hfsplus_init_journal():
-(1) checks that HFS+ has journal;
-(2) allocate memory for main incapsulated objects;
-(3) check that journal is located inside file system's volume;
-(4) initialize journal's on-disk structures (in the case of necessity).
-
-The hfsplus_destroy_journal() method frees allocated memory.
+Implement functionality of creation of journal header, journal buffer and
+initialization of them.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Tested-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/journal.c |  168 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 168 insertions(+)
+ fs/hfsplus/journal.c |  168 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 167 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null fs/hfsplus/journal.c
---- /dev/null
+diff -puN fs/hfsplus/journal.c~hfsplus-implement-functionality-for-hfsplus_journal_need_init-flag fs/hfsplus/journal.c
+--- a/fs/hfsplus/journal.c~hfsplus-implement-functionality-for-hfsplus_journal_need_init-flag
 +++ a/fs/hfsplus/journal.c
-@@ -0,0 +1,168 @@
+@@ -8,6 +8,23 @@
+ 
+ #include "hfsplus_fs.h"
+ 
++#define HFSPLUS_1KB_SHIFT		10
++#define HFSPLUS_1MB_SHIFT		20
++#define HFSPLUS_1GB_SHIFT		30
++#define HFSPLUS_1TB_SHIFT		40
++
++#define HFSPLUS_JOURNAL_MIN_SIZE	(512 * 1024)
++#define HFSPLUS_JOURNAL_DEFAULT_SIZE	(8 * (1 << HFSPLUS_1MB_SHIFT))
++#define HFSPLUS_JOURNAL_MAX_SIZE	(512 * (1 << HFSPLUS_1MB_SHIFT))
++
++#define HFSPLUS_VOLUME_GRAIN		100 /* 100 GB*/
++#define HFSPLUS_JSCALE_MAX		64
++
++#define HFSPLUS_VOLUME_MIN_THRESHOLD	(128 * (1 << HFSPLUS_1MB_SHIFT))
++#define HFSPLUS_DEFAULT_JHDR_SIZE	(4 * 1024)
++#define HFSPLUS_BLHDR_SIZE_MIN		(4 * 1024)
++#define HFSPLUS_BLHDR_SIZE_MAX		(16 * 1024)
++
+ #define HFSPLUS_HAS_JOURNAL(sb) \
+ 	(HFSPLUS_SB(sb)->s_vhdr->attributes & \
+ 	 cpu_to_be32(HFSPLUS_VOL_JOURNALED))
+@@ -25,8 +42,157 @@
+ 	((sector_t)(blk) << \
+ 	 (HFSPLUS_SB(sb)->alloc_blksz_shift - HFSPLUS_SECTOR_SHIFT))
+ 
 +/*
-+ * linux/fs/hfsplus/journal.c
++ * We want at least 8 megs of journal for each 100 gigs of
++ * disk space.  We cap the size at 512 megs (64x default), unless
++ * the allocation block size is larger, in which case we use one
++ * allocation block.
 + *
-+ * Vyacheslav Dubeyko <slava@dubeyko.com>
-+ *
-+ * Logic of HFS+ journalling
++ * Volumes that are 128 megs or less in size have such
++ * a small bitmap (one 4k-block) and inherhently such
++ * a small btree that we can get by with a much smaller
++ * journal. Even in a worst case scenario of a catalog
++ * filled with very long korean file names we should
++ * never touch more than 256k of meta-data for a single
++ * transaction.  therefore we'll make the journal 512k
++ * which is safe and doesn't waste much space.
 + */
-+
-+#include "hfsplus_fs.h"
-+
-+#define HFSPLUS_HAS_JOURNAL(sb) \
-+	(HFSPLUS_SB(sb)->s_vhdr->attributes & \
-+	 cpu_to_be32(HFSPLUS_VOL_JOURNALED))
-+
-+#define JIB_BLOCK(sb) \
-+	(be32_to_cpu(HFSPLUS_SB(sb)->s_vhdr->journal_info_block))
-+#define JIB_FLAGS(jnl) \
-+	(be32_to_cpu(((struct hfsplus_journal *)(jnl))->jib->flags))
-+
-+#define JH_BLOCK(sb, jnl) \
-+	(be64_to_cpu(((struct hfsplus_journal *)(jnl))->jib->offset) >> \
-+	 HFSPLUS_SB(sb)->alloc_blksz_shift)
-+
-+#define BLOCK_TO_SEC(sb, blk) \
-+	((sector_t)(blk) << \
-+	 (HFSPLUS_SB(sb)->alloc_blksz_shift - HFSPLUS_SECTOR_SHIFT))
-+
-+static int hfsplus_create_journal(struct super_block *sb,
-+				  struct hfsplus_journal *jnl);
-+
-+/*
-+ * hfsplus_init_journal - initialize journal object
-+ *
-+ * @sb: superblock
-+ *
-+ * Check presence of journal on volume and initialize journal object.
-+ * It is assumed that superblock and volume header are initialized yet.
-+ */
-+int hfsplus_init_journal(struct super_block *sb)
++static u64 calc_journal_size(struct super_block *sb)
 +{
-+	struct hfsplus_journal *jnl;
-+	sector_t jib_blk;
-+	sector_t jh_blk;
-+	int err = 0;
++	u64 journal_size;
++	u64 jscale;
++	u64 volume_size = (u64)HFSPLUS_SB(sb)->sect_count *
++				HFSPLUS_SECTOR_SIZE;
++	u64 volume_grain = (u64)HFSPLUS_VOLUME_GRAIN *
++				((u64)1 << HFSPLUS_1GB_SHIFT);
 +
-+	HFSPLUS_SB(sb)->jnl = NULL;
++	jscale = volume_size / volume_grain;
 +
-+	if (!HFSPLUS_HAS_JOURNAL(sb))
-+		return 0; /* journal absent */
++	if (jscale > HFSPLUS_JSCALE_MAX)
++		jscale = HFSPLUS_JSCALE_MAX;
 +
-+	hfs_dbg(JOURNAL, "try to init journal subsystem\n");
++	journal_size = HFSPLUS_JOURNAL_DEFAULT_SIZE * (jscale + 1);
 +
-+	jnl = kzalloc(sizeof(*jnl), GFP_KERNEL);
-+	if (unlikely(!jnl))
-+		return -ENOMEM;
++	if (journal_size > HFSPLUS_JOURNAL_MAX_SIZE)
++		journal_size = HFSPLUS_JOURNAL_MAX_SIZE;
 +
-+	hfs_dbg(JOURNAL, "HFS+ filesystem has journal\n");
++	if (volume_size < HFSPLUS_VOLUME_MIN_THRESHOLD)
++		journal_size = HFSPLUS_JOURNAL_MIN_SIZE;
 +
-+	jnl->jib_buf = kmalloc(hfsplus_min_io_size(sb), GFP_KERNEL);
-+	if (unlikely(!jnl->jib_buf)) {
-+		pr_err("unable to allocate jib_buf\n");
-+		err = -ENOMEM;
-+		goto init_failed;
-+	}
-+
-+	jnl->jh_buf = kmalloc(hfsplus_min_io_size(sb), GFP_KERNEL);
-+	if (unlikely(!jnl->jh_buf)) {
-+		pr_err("unable to allocate jh_buf\n");
-+		err = -ENOMEM;
-+		goto free_jib_buf;
-+	}
-+
-+	jib_blk = HFSPLUS_SB(sb)->blockoffset + JIB_BLOCK(sb);
-+
-+	err = hfsplus_submit_bio(sb, BLOCK_TO_SEC(sb, jib_blk),
-+				 jnl->jib_buf, (void **)&jnl->jib, READ, NULL);
-+	if (err) {
-+		pr_err("unable to read journal info block %lu\n", jib_blk);
-+		goto free_jh_buf;
-+	}
-+
-+	hfs_dbg(JOURNAL, "jib_flags %#x\n", JIB_FLAGS(jnl));
-+	hfs_dbg(JOURNAL, "journal size %u\n", be32_to_cpu(jnl->jib->size));
-+
-+	if ((JIB_FLAGS(jnl) & HFSPLUS_JOURNAL_ON_OTHER_DEVICE) &&
-+	    !(JIB_FLAGS(jnl) & HFSPLUS_JOURNAL_IN_FS)) {
-+		err = -EOPNOTSUPP;
-+		goto free_jh_buf;
-+	}
-+
-+	jh_blk = JH_BLOCK(sb, jnl);
-+
-+	hfs_dbg(JOURNAL, "read journal header: jh_bkl %lu\n", jh_blk);
-+
-+	err = hfsplus_submit_bio(sb, BLOCK_TO_SEC(sb, jh_blk),
-+				 jnl->jh_buf, (void **)&jnl->jh, READ, NULL);
-+	if (err) {
-+		pr_err("unable to read journal header block %lu\n", jh_blk);
-+		goto free_jh_buf;
-+	}
-+
-+	if (JIB_FLAGS(jnl) & HFSPLUS_JOURNAL_NEED_INIT) {
-+		hfs_dbg(JOURNAL, "create HFS+ journal\n");
-+
-+		err = hfsplus_create_journal(sb, jnl);
-+		if (unlikely(err)) {
-+			pr_err("fail to create HFS+ journal\n");
-+			goto free_jh_buf;
-+		}
-+
-+		jnl->jib->flags &= be32_to_cpu(~HFSPLUS_JOURNAL_NEED_INIT);
-+
-+		err = hfsplus_submit_bio(sb, BLOCK_TO_SEC(sb, jh_blk),
-+					 jnl->jh_buf, NULL, WRITE_SYNC, NULL);
-+		if (err) {
-+			pr_err("unable to write journal header block %lu\n",
-+				jh_blk);
-+			goto free_jh_buf;
-+		}
-+
-+		err = hfsplus_submit_bio(sb, BLOCK_TO_SEC(sb, jib_blk),
-+					 jnl->jib_buf, NULL, WRITE_SYNC, NULL);
-+		if (err) {
-+			pr_err("unable to write journal info block %lu\n",
-+				jib_blk);
-+			goto free_jh_buf;
-+		}
-+	}
-+
-+	mutex_init(&jnl->jnl_lock);
-+	jnl->sbp = sb;
-+	HFSPLUS_SB(sb)->jnl = jnl;
-+
-+	return err;
-+
-+free_jh_buf:
-+	kfree(jnl->jh_buf);
-+
-+free_jib_buf:
-+	kfree(jnl->jib_buf);
-+
-+init_failed:
-+	kfree(jnl);
-+
-+	return err;
++	return journal_size;
 +}
 +
 +/*
-+ * hfsplus_destroy_journal - deinitialize journal (if it is present).
++ * Technical Note TN1150
++ *
++ * Checksums can be verified as part of a basic consistency check.
++ * To verify the checksum, temporarily set the checksum field to zero
++ * and then call the calc_checksum routine with the address and size of
++ * the header being checksummed. The function result should equal the
++ * original value of the checksum field.
++ *
++ * static int
++ * calc_checksum(unsigned char *ptr, int len)
++ * {
++ *    int i, cksum=0;
++ *
++ *    for(i=0; i < len; i++, ptr++) {
++ *        cksum = (cksum << 8) ^ (cksum + *ptr);
++ *    }
++ *
++ *    return (~cksum);
++ * }
++*/
++static u32 calc_internal_checksum(u32 seed, unsigned char *ptr, int len)
++{
++	int i;
++	u32 chksum = seed;
++
++	for (i = 0; i < len; i++, ptr++)
++		chksum = (chksum << 8) ^ (chksum + *ptr);
++
++	return chksum;
++}
++
++#define HFSPLUS_CHECKSUM(internal_checksum) \
++	(cpu_to_le32(~(u32)(internal_checksum)))
++
++#define HFSPLUS_CALC_CHECKSUM(ptr, len) \
++	HFSPLUS_CHECKSUM(calc_internal_checksum(0, ptr, len))
++
++/*
++ * hfsplus_create_journal - create journal
 + *
 + * @sb: superblock
++ *
++ * Create journal header, journal buffer and initialize them.
++ * It is assumed that presence of journal is already verified.
 + */
-+void hfsplus_destroy_journal(struct super_block *sb)
+ static int hfsplus_create_journal(struct super_block *sb,
+-				  struct hfsplus_journal *jnl);
++				  struct hfsplus_journal *jnl)
 +{
-+	struct hfsplus_sb_info *sbi = HFSPLUS_SB(sb);
-+	struct hfsplus_journal *jnl = sbi->jnl;
++	u64 offset = be64_to_cpu(jnl->jib->offset);
++	int blksz_bits = HFSPLUS_SB(sb)->alloc_blksz_shift;
++	u32 blksz = HFSPLUS_SB(sb)->alloc_blksz;
++	u64 journal_size = be64_to_cpu(jnl->jib->size);
++	u64 calculated_journal_size;
 +
-+	if (!jnl)
-+		return;
++	hfs_dbg(JOURNAL, "create HFS+ journal: blocksize %u, jib_hdr->offset %llu\n",
++		blksz, offset);
 +
-+	hfs_dbg(JOURNAL, "destroy journal subsystem\n");
++	if (((offset >> blksz_bits) << blksz_bits) != offset) {
++		pr_err("journal size is not aligned\n");
++		return -EIO;
++	}
 +
-+	/* TODO: stop journal thread */
++	if (journal_size < HFSPLUS_JOURNAL_MIN_SIZE ||
++	    journal_size > HFSPLUS_JOURNAL_MAX_SIZE) {
++		pr_err("journal size %llu looks bogus\n", journal_size);
++		return -EIO;
++	}
 +
-+	kfree(jnl->jh_buf);
-+	kfree(jnl->jib_buf);
-+	kfree(jnl);
++	if ((journal_size % blksz) != 0) {
++		pr_err("journal size %llu is not an even multiple of block size %u\n",
++			journal_size, blksz);
++		return -EIO;
++	}
++
++	calculated_journal_size = calc_journal_size(sb);
++	if (journal_size != calculated_journal_size) {
++		pr_warn("journal size %llu is different from calculated journal size %llu\n",
++			journal_size, calculated_journal_size);
++	}
++
++	jnl->jh->magic = cpu_to_le32(HFSPLUS_JOURNAL_HEADER_MAGIC);
++	jnl->jh->endian = cpu_to_le32(HFSPLUS_JOURNAL_HEADER_ENDIAN);
++
++	/*
++	 * The jhdr_size is a 512 byte for volumes are less than 1TB.
++	 * Otherwise, jhdr_size is 4096 bytes for 1+TB volumes.
++	 */
++	if (HFSPLUS_SB(sb)->sect_count >
++	    (((u64)1 << HFSPLUS_1TB_SHIFT) >> HFSPLUS_SECTOR_SHIFT))
++		jnl->jh->jhdr_size = cpu_to_le32(HFSPLUS_DEFAULT_JHDR_SIZE);
++	else
++		jnl->jh->jhdr_size = cpu_to_le32(HFSPLUS_SECTOR_SIZE);
++
++	if (blksz < HFSPLUS_BLHDR_SIZE_MIN)
++		jnl->jh->blhdr_size = cpu_to_le32(HFSPLUS_BLHDR_SIZE_MIN);
++	else if (blksz > HFSPLUS_BLHDR_SIZE_MAX)
++		jnl->jh->blhdr_size = cpu_to_le32(HFSPLUS_BLHDR_SIZE_MAX);
++	else
++		jnl->jh->blhdr_size = cpu_to_le32(sb->s_blocksize);
++
++	jnl->jh->start = cpu_to_le64(JHDR_SIZE(jnl->jh));
++	jnl->jh->end = cpu_to_le64(JHDR_SIZE(jnl->jh));
++	jnl->jh->size = cpu_to_le64(journal_size);
++
++	jnl->jh->checksum = 0;
++	jnl->jh->checksum = HFSPLUS_CALC_CHECKSUM((unsigned char *)(jnl->jh),
++						  sizeof(*(jnl->jh)));
++
++	return 0;
 +}
+ 
+ /*
+  * hfsplus_init_journal - initialize journal object
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
