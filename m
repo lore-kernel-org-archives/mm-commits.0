@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-add-necessary-declarations-for-journal-replay.patch
- added to -mm tree
-Date: Tue, 04 Feb 2014 14:33:31 -0800
-Message-ID: <52f16abb.P67rXmvvoTgbe2px%akpm@linux-foundation.org>
+Subject: + hfsplus-implement-replay-transactions-block-functionality.patch added to -mm tree
+Date: Tue, 04 Feb 2014 14:33:43 -0800
+Message-ID: <52f16ac7.yFN3TbcK5EcEAs5N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58067 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933745AbaBDWdc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:32 -0500
+	with ESMTP id S936014AbaBDWdo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: + hfsplus-add-necessary-declarations-for-journal-replay.patch added to -mm tree
+Subject: + hfsplus-implement-replay-transactions-block-functionality.patch added to -mm tree
 To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 04 Feb 2014 14:33:31 -0800
+Date: Tue, 04 Feb 2014 14:33:43 -0800
 
 
 The patch titled
-     Subject: hfsplus: add necessary declarations for journal replay
+     Subject: hfsplus: implement replay transaction's block functionality
 has been added to the -mm tree.  Its filename is
-     hfsplus-add-necessary-declarations-for-journal-replay.patch
+     hfsplus-implement-replay-transactions-block-functionality.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-add-necessary-declarations-for-journal-replay.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-implement-replay-transactions-block-functionality.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-add-necessary-declarations-for-journal-replay.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-implement-replay-transactions-block-functionality.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,29 +44,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: add necessary declarations for journal replay
+Subject: hfsplus: implement replay transaction's block functionality
 
-Add necessary declarations of HFS+ journal's on-disk structures,
-declaration of structure for journal's object in memory and different
-journal related flags.
-
-If HFSPLUS_VOL_JOURNALED is set in the volume header's attributes field,
-the volume has a journal.  The journal data stuctures consist of a journal
-info block, journal header, and journal buffer.  The journal info block
-indicates the location and size of the journal header and journal buffer. 
-The journal buffer is the space set aside to hold transactions.  The
-journal header describes which part of the journal buffer is active and
-contains transactions waiting to be committed.
+A group of related changes is called a transaction.  When all of the
+changes of a transaction have been written to their normal locations on
+disk, that transaction has been committed, and is removed from the
+journal.  The journal may contain several transactions.  Copying changes
+from all transactions to their normal locations on disk is called
+replaying the journal.
 
 A single transaction consists of several blocks, including both the data
 to be written, and the location where that data is to be written.  This is
 represented on disk by a block list header, which describes the number and
 sizes of the blocks, immediately followed by the contents of those blocks.
 
-The journal info block (struct hfsplus_journal_info_block) is big-endian
-structure.  The rest structures of HFS+ journal (struct
-hfsplus_journal_header, struct hfsplus_blhdr, struct hfsplus_block_info)
-are little-endian.
+This patch implements replaying of transaction's block in location is
+described by binfo in block list.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Tested-by: Hin-Tak Leung <htl10@users.sourceforge.net>
@@ -76,132 +68,106 @@ Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/hfsplus_fs.h  |   23 ++++++++++++++++
- fs/hfsplus/hfsplus_raw.h |   53 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 75 insertions(+), 1 deletion(-)
+ fs/hfsplus/journal.c |   87 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 87 insertions(+)
 
-diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-add-necessary-declarations-for-journal-replay fs/hfsplus/hfsplus_fs.h
---- a/fs/hfsplus/hfsplus_fs.h~hfsplus-add-necessary-declarations-for-journal-replay
-+++ a/fs/hfsplus/hfsplus_fs.h
-@@ -31,6 +31,11 @@
- #define DBG_BITMAP	0x00000040
- #define DBG_ATTR_MOD	0x00000080
- #define DBG_ACL_MOD	0x00000100
-+#define DBG_JOURNAL	0x00000200
-+#define DBG_JREPLAY	0x00000400
-+#define DBG_JTRANS	0x00000800
-+#define DBG_JCOMMIT	0x00001000
-+#define DBG_JCHKPT	0x00002000
+diff -puN fs/hfsplus/journal.c~hfsplus-implement-replay-transactions-block-functionality fs/hfsplus/journal.c
+--- a/fs/hfsplus/journal.c~hfsplus-implement-replay-transactions-block-functionality
++++ a/fs/hfsplus/journal.c
+@@ -590,6 +590,93 @@ static int hfsplus_check_transaction_blo
+ 	return 0;
+ }
  
- #if 0
- #define DBG_MASK	(DBG_EXTENT|DBG_INODE|DBG_BNODE_MOD)
-@@ -126,6 +131,23 @@ struct hfs_bnode {
- #define HFS_BNODE_DIRTY		3
- #define HFS_BNODE_DELETED	4
- 
-+/* An HFS+ Journal held in memory */
-+struct hfsplus_journal {
-+	struct mutex jnl_lock;
++static int hfsplus_replay_transaction_block(struct super_block *sb, int i,
++					    struct hfsplus_blist_desc *desc)
++{
++	struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
++	struct hfsplus_journal_header *jh = jnl->jh;
++	struct hfsplus_block_info *binfo;
++	u64 bnum;
++	u32 bsize;
++	sector_t src_sec, dst_sec;
 +
-+	/* Journal info block specific */
-+	void *jib_buf;
-+	struct hfsplus_journal_info_block *jib;
++	hfs_dbg(JREPLAY, "replay binfo[%u]\n", i);
 +
-+	/* Journal header specific */
-+	void *jh_buf;
-+	struct hfsplus_journal_header *jh;
++	binfo = hfsplus_get_binfo(sb, i, desc);
++	if (!binfo) {
++		pr_err("unable to get binfo[%u]\n", i);
++		return -EIO;
++	}
 +
-+	/* TODO: Pointer of JBD */
++	bnum = BNUM(binfo);
++	bsize = BSIZE(binfo);
 +
-+	struct super_block *sbp;
-+};
++	hfs_dbg(JREPLAY, "bnum: %llu, bsize: %u\n", bnum, bsize);
 +
- /*
-  * Attributes file states
-  */
-@@ -146,6 +168,7 @@ struct hfsplus_sb_info {
- 	struct hfsplus_vh *s_vhdr;
- 	void *s_backup_vhdr_buf;
- 	struct hfsplus_vh *s_backup_vhdr;
-+	struct hfsplus_journal *jnl;
- 	struct hfs_btree *ext_tree;
- 	struct hfs_btree *cat_tree;
- 	struct hfs_btree *attr_tree;
-diff -puN fs/hfsplus/hfsplus_raw.h~hfsplus-add-necessary-declarations-for-journal-replay fs/hfsplus/hfsplus_raw.h
---- a/fs/hfsplus/hfsplus_raw.h~hfsplus-add-necessary-declarations-for-journal-replay
-+++ a/fs/hfsplus/hfsplus_raw.h
-@@ -46,6 +46,7 @@
- #define HFSP_SYMLINK_CREATOR	0x72686170	/* 'rhap' */
- 
- #define HFSP_MOUNT_VERSION	0x482b4c78	/* 'H+Lx' */
-+#define HFSP_MOUNT_JOURNALED_VERSION 0x4846534A	/* 'HFSJ' */
- 
- /* Structures used on disk */
- 
-@@ -105,7 +106,7 @@ struct hfsplus_vh {
- 	__be16 version;
- 	__be32 attributes;
- 	__be32 last_mount_vers;
--	u32 reserved;
-+	__be32 journal_info_block;
- 
- 	__be32 create_date;
- 	__be32 modify_date;
-@@ -401,4 +402,54 @@ typedef union {
- 	struct hfsplus_attr_key attr;
- } __packed hfsplus_btree_key;
- 
-+/* HFS+ on-disk journal structures */
-+struct hfsplus_journal_info_block {
-+#define HFSPLUS_JOURNAL_IN_FS		0x01
-+#define HFSPLUS_JOURNAL_ON_OTHER_DEVICE	0x02
-+#define HFSPLUS_JOURNAL_NEED_INIT	0x04
-+	__be32 flags;
-+	__be32 device_signature[8];
-+	__be64 offset;
-+	__be64 size;
-+	u32 reserved[32];
-+} __packed;
++	if (bnum == ~(u64)0) {
++		hfs_dbg(JREPLAY, "don't add *killed* block %llu\n", bnum);
++		return 0; /* don't add "killed" blocks */
++	}
 +
-+/* Valid magic and endian value */
-+#define HFSPLUS_JOURNAL_HEADER_MAGIC	0x4A4E4C78
-+#define HFSPLUS_JOURNAL_HEADER_ENDIAN	0x12345678
++	src_sec = JOURNAL_OFF_TO_SEC(sb);
++	dst_sec = HFSPLUS_SB(sb)->blockoffset + bnum;
 +
-+/* !!! Litle-endian structure !!! */
-+struct hfsplus_journal_header {
-+	__le32 magic;
-+	__le32 endian;
-+	__le64 start;
-+	__le64 end;
-+	__le64 size; /* Includes the header and the buffer */
-+	__le32 blhdr_size;
-+	__le32 checksum;
-+	__le32 jhdr_size;
-+} __packed;
++	hfs_dbg(JREPLAY, "dst_sec: %lu, bsize: %u\n",
++		dst_sec, bsize);
 +
-+/* !!! Litle-endian structure !!! */
-+struct hfsplus_block_info {
-+	__le64 bnum;
-+	__le32 bsize;
-+	union {
-+		__le32 checksum;
-+		__le32 seq_num; /* only used in binfo[0] */
-+	} block;
-+} __packed;
++	while (bsize > 0) {
++		size_t buf_size = hfsplus_min_io_size(sb);
++		size_t dst_off = 0;
++		size_t rest_bytes;
++		int err;
 +
-+/* !!! Litle-endian structure !!! */
-+struct hfsplus_blhdr {
-+	__le16 max_blocks;
-+	__le16 num_blocks;
-+	__le32 bytes_used;
-+	__le32 checksum;
-+#define HFSPLUS_BLHDR_CHECK_CHECKSUMS	0x0001
-+#define HFSPLUS_BLHDR_FIRST_HEADER	0x0002
-+	__le32 flags;
-+	struct hfsplus_block_info binfo[1];
-+} __packed;
++		if (dst_sec >= HFSPLUS_SB(sb)->sect_count) {
++			pr_err("replay out of volume %lu\n", dst_sec);
++			return -EIO;
++		}
 +
- #endif
++		while (dst_off < buf_size) {
++			void *src_ptr;
++			size_t copy_size = HFSPLUS_SECTOR_SIZE;
++
++			if (need_to_wrap_journal(jh, TR_START(jh), copy_size)) {
++				hfsplus_wrap_journal(sb, TR_START(jh),
++							copy_size);
++				src_sec = JOURNAL_OFF_TO_SEC(sb);
++			}
++
++			err = hfsplus_submit_bio(sb, src_sec, desc->src_buf,
++						 &src_ptr, READ, &rest_bytes);
++			if (err) {
++				pr_err("unable to read sector %lu of blist\n",
++					src_sec);
++				return err;
++			}
++
++			BUG_ON(rest_bytes < HFSPLUS_SECTOR_SIZE);
++
++			memcpy((void *)((u8 *)desc->dst_buf + dst_off),
++				desc->src_buf, copy_size);
++
++			dst_off += copy_size;
++			bsize -= copy_size;
++			le64_add_cpu(&jh->start, copy_size);
++			src_sec = JOURNAL_OFF_TO_SEC(sb);
++		}
++
++		err = hfsplus_submit_bio(sb, dst_sec, desc->dst_buf, NULL,
++					 WRITE_SYNC, NULL);
++		if (err) {
++			pr_err("unable to replay sector %lu\n", dst_sec);
++			return err;
++		}
++
++		dst_sec += buf_size >> HFSPLUS_SECTOR_SHIFT;
++	}
++
++	return 0;
++}
++
+ static inline
+ bool hfsplus_journal_empty(struct hfsplus_journal_header *jh)
+ {
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
