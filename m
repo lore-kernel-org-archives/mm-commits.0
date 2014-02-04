@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-implement-functionality-of-journal-log-wrapping.patch
- added to -mm tree
-Date: Tue, 04 Feb 2014 14:33:41 -0800
-Message-ID: <52f16ac5.QTVRjaxvEwEKje7u%akpm@linux-foundation.org>
+Subject: + hfsplus-introduce-descriptor-of-block-list-buffer.patch added
+ to -mm tree
+Date: Tue, 04 Feb 2014 14:33:38 -0800
+Message-ID: <52f16ac2.woHDuZ68pvjTuOed%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58104 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58096 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936016AbaBDWdm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:42 -0500
+	with ESMTP id S936012AbaBDWdj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: + hfsplus-implement-functionality-of-journal-log-wrapping.patch added to -mm tree
+Subject: + hfsplus-introduce-descriptor-of-block-list-buffer.patch added to -mm tree
 To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 04 Feb 2014 14:33:41 -0800
+Date: Tue, 04 Feb 2014 14:33:38 -0800
 
 
 The patch titled
-     Subject: hfsplus: implement functionality of journal log wrapping
+     Subject: hfsplus: introduce descriptor of block list buffer
 has been added to the -mm tree.  Its filename is
-     hfsplus-implement-functionality-of-journal-log-wrapping.patch
+     hfsplus-introduce-descriptor-of-block-list-buffer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-implement-functionality-of-journal-log-wrapping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-introduce-descriptor-of-block-list-buffer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-implement-functionality-of-journal-log-wrapping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-introduce-descriptor-of-block-list-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,17 +45,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: implement functionality of journal log wrapping
+Subject: hfsplus: introduce descriptor of block list buffer
 
-The journal log is a circular buffer.  Thereby, journal log's content can
-be splitted by journal end on two parts in some situations.  When reading
-or writing the journal buffer, the I/O operation must stop at the end of
-the journal buffer and resume (wrap around) immediately following the
-journal header.
+Lis (binfo array) can have size from 4KB till 16KB.  Thereby, block list
+can be placed in several file system blocks.
 
-This patch implements functionality of wrapping of journal log for such
-situation. Namely, it means setting of "start" field of journal
-header by journal header size value.
+This patch introduces special structure that it incapsulates all necessary
+details and buffer's pointers for passing through binfo array, check binfo
+and replay transactions' blocks.
+
+Also, the patch implements functions that initialize and deinitialize
+hfsplus_blist_desc structure.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
@@ -64,49 +64,94 @@ Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/journal.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ fs/hfsplus/journal.c |   68 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
 
-diff -puN fs/hfsplus/journal.c~hfsplus-implement-functionality-of-journal-log-wrapping fs/hfsplus/journal.c
---- a/fs/hfsplus/journal.c~hfsplus-implement-functionality-of-journal-log-wrapping
+diff -puN fs/hfsplus/journal.c~hfsplus-introduce-descriptor-of-block-list-buffer fs/hfsplus/journal.c
+--- a/fs/hfsplus/journal.c~hfsplus-introduce-descriptor-of-block-list-buffer
 +++ a/fs/hfsplus/journal.c
-@@ -290,6 +290,36 @@ static inline bool need_to_wrap_journal(
- 	return (cur_off + req_size) > JOURNAL_SIZE(jh);
+@@ -50,6 +50,30 @@
+ 	(le32_to_cpu(((struct hfsplus_journal_header *)(jh))->jhdr_size))
+ 
+ /*
++ * struct hfsplus_blist_desc - descriptor of block list buffer
++ * @start_sec: start sector of block list
++ * @cur_sec: current sector of block list
++ * @cur_index: start block index for current sector
++ * @available_bytes: how many bytes of block list does contain buffer?
++ * @blist_buf: buffer for current part of block list
++ * @binfo: pointer on binfo[0]
++ * @blhdr: cached copy of block list header
++ * @src_buf: pointer on source block in journal buffer
++ * @dst_buf: pointer on buffer for destination block
++ */
++struct hfsplus_blist_desc {
++	sector_t start_sec;
++	sector_t cur_sec;
++	u16 cur_index;
++	size_t available_bytes;
++	void *blist_buf;
++	struct hfsplus_block_info *binfo;
++	struct hfsplus_blhdr blhdr;
++	void *src_buf;
++	void *dst_buf;
++};
++
++/*
+  * We want at least 8 megs of journal for each 100 gigs of
+  * disk space.  We cap the size at 512 megs (64x default), unless
+  * the allocation block size is larger, in which case we use one
+@@ -227,6 +251,50 @@ static int hfsplus_create_journal(struct
+ 	return 0;
  }
  
-+static inline void __hfsplus_wrap_journal(struct super_block *sb)
-+{
-+	struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
++static void hfsplus_deinit_block_list_desc(struct hfsplus_blist_desc *desc);
 +
-+	jnl->jh->start = jnl->jh->jhdr_size;
++static int hfsplus_init_block_list_desc(struct super_block *sb,
++					struct hfsplus_blist_desc *desc)
++{
++	int err;
++
++	memset((void *)desc, 0, sizeof(*desc));
++
++	desc->blist_buf = kmalloc(hfsplus_min_io_size(sb), GFP_KERNEL);
++	if (unlikely(!desc->blist_buf)) {
++		pr_err("unable to allocate blist_buf\n");
++		err = -ENOMEM;
++		goto failed_init;
++	}
++
++	desc->src_buf = kmalloc(hfsplus_min_io_size(sb), GFP_KERNEL);
++	if (unlikely(!desc->src_buf)) {
++		pr_err("unable to allocate src_buf\n");
++		err = -ENOMEM;
++		goto failed_init;
++	}
++
++	desc->dst_buf = kmalloc(hfsplus_min_io_size(sb), GFP_KERNEL);
++	if (unlikely(!desc->dst_buf)) {
++		pr_err("unable to allocate dst_buf\n");
++		err = -ENOMEM;
++		goto failed_init;
++	}
++
++	return 0;
++
++failed_init:
++	hfsplus_deinit_block_list_desc(desc);
++	return err;
 +}
 +
-+/* Return rest bytes of binfo or blhdr from the journal begin */
-+static inline u32 hfsplus_wrap_journal(struct super_block *sb,
-+					u64 cur_off, u32 req_size)
++static void hfsplus_deinit_block_list_desc(struct hfsplus_blist_desc *desc)
 +{
-+	struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
-+	struct hfsplus_journal_header *jh = jnl->jh;
-+	u32 used_bytes;
-+	u32 rest_bytes;
-+
-+	hfs_dbg(JOURNAL, "cur_off %llu, req_size %u, JOURNAL_SIZE(jh) %llu\n",
-+		cur_off, req_size, JOURNAL_SIZE(jh));
-+
-+	BUG_ON(cur_off > JOURNAL_SIZE(jh));
-+	BUG_ON((cur_off + req_size) < JOURNAL_SIZE(jh));
-+
-+	used_bytes = JOURNAL_SIZE(jh) - cur_off;
-+	rest_bytes = req_size - used_bytes;
-+
-+	__hfsplus_wrap_journal(sb);
-+
-+	return rest_bytes;
++	kfree(desc->blist_buf);
++	kfree(desc->src_buf);
++	kfree(desc->dst_buf);
 +}
 +
- static void hfsplus_deinit_block_list_desc(struct hfsplus_blist_desc *desc);
- 
- static int hfsplus_init_block_list_desc(struct super_block *sb,
+ static inline
+ bool hfsplus_journal_empty(struct hfsplus_journal_header *jh)
+ {
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
