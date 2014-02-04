@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-rework-hfsplus_submit_bio-method.patch added to -mm
- tree
-Date: Tue, 04 Feb 2014 14:33:32 -0800
-Message-ID: <52f16abc.QPn3eMketddyNxK+%akpm@linux-foundation.org>
+Subject: + hfsplus-add-necessary-declarations-for-journal-replay.patch
+ added to -mm tree
+Date: Tue, 04 Feb 2014 14:33:31 -0800
+Message-ID: <52f16abb.P67rXmvvoTgbe2px%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58073 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58067 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933793AbaBDWdd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:33 -0500
+	with ESMTP id S933745AbaBDWdc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: + hfsplus-rework-hfsplus_submit_bio-method.patch added to -mm tree
+Subject: + hfsplus-add-necessary-declarations-for-journal-replay.patch added to -mm tree
 To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 04 Feb 2014 14:33:32 -0800
+Date: Tue, 04 Feb 2014 14:33:31 -0800
 
 
 The patch titled
-     Subject: hfsplus: rework hfsplus_submit_bio() method
+     Subject: hfsplus: add necessary declarations for journal replay
 has been added to the -mm tree.  Its filename is
-     hfsplus-rework-hfsplus_submit_bio-method.patch
+     hfsplus-add-necessary-declarations-for-journal-replay.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-rework-hfsplus_submit_bio-method.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-add-necessary-declarations-for-journal-replay.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-rework-hfsplus_submit_bio-method.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-add-necessary-declarations-for-journal-replay.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,10 +45,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: rework hfsplus_submit_bio() method
+Subject: hfsplus: add necessary declarations for journal replay
 
-Rework hfsplus_submit_bio() method with the goal to get length of data
-from address of data pointer till the end of data block.
+Add necessary declarations of HFS+ journal's on-disk structures,
+declaration of structure for journal's object in memory and different
+journal related flags.
+
+If HFSPLUS_VOL_JOURNALED is set in the volume header's attributes field,
+the volume has a journal.  The journal data stuctures consist of a journal
+info block, journal header, and journal buffer.  The journal info block
+indicates the location and size of the journal header and journal buffer. 
+The journal buffer is the space set aside to hold transactions.  The
+journal header describes which part of the journal buffer is active and
+contains transactions waiting to be committed.
+
+A single transaction consists of several blocks, including both the data
+to be written, and the location where that data is to be written.  This is
+represented on disk by a block list header, which describes the number and
+sizes of the blocks, immediately followed by the contents of those blocks.
+
+The journal info block (struct hfsplus_journal_info_block) is big-endian
+structure.  The rest structures of HFS+ journal (struct
+hfsplus_journal_header, struct hfsplus_blhdr, struct hfsplus_block_info)
+are little-endian.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Tested-by: Hin-Tak Leung <htl10@users.sourceforge.net>
@@ -57,142 +76,132 @@ Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/hfsplus_fs.h |    2 +-
- fs/hfsplus/part_tbl.c   |    4 ++--
- fs/hfsplus/super.c      |    5 +++--
- fs/hfsplus/wrapper.c    |   28 +++++++++++++++++++++-------
- 4 files changed, 27 insertions(+), 12 deletions(-)
+ fs/hfsplus/hfsplus_fs.h  |   23 ++++++++++++++++
+ fs/hfsplus/hfsplus_raw.h |   53 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 75 insertions(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-rework-hfsplus_submit_bio-method fs/hfsplus/hfsplus_fs.h
---- a/fs/hfsplus/hfsplus_fs.h~hfsplus-rework-hfsplus_submit_bio-method
+diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-add-necessary-declarations-for-journal-replay fs/hfsplus/hfsplus_fs.h
+--- a/fs/hfsplus/hfsplus_fs.h~hfsplus-add-necessary-declarations-for-journal-replay
 +++ a/fs/hfsplus/hfsplus_fs.h
-@@ -537,7 +537,7 @@ int hfsplus_compare_dentry(const struct
- int hfsplus_read_wrapper(struct super_block *);
- int hfs_part_find(struct super_block *, sector_t *, sector_t *);
- int hfsplus_submit_bio(struct super_block *sb, sector_t sector,
--		void *buf, void **data, int rw);
-+			void *buf, void **data, int rw, size_t *data_len);
+@@ -31,6 +31,11 @@
+ #define DBG_BITMAP	0x00000040
+ #define DBG_ATTR_MOD	0x00000080
+ #define DBG_ACL_MOD	0x00000100
++#define DBG_JOURNAL	0x00000200
++#define DBG_JREPLAY	0x00000400
++#define DBG_JTRANS	0x00000800
++#define DBG_JCOMMIT	0x00001000
++#define DBG_JCHKPT	0x00002000
  
- /* time macros */
- #define __hfsp_mt2ut(t)		(be32_to_cpu(t) - 2082844800U)
-diff -puN fs/hfsplus/part_tbl.c~hfsplus-rework-hfsplus_submit_bio-method fs/hfsplus/part_tbl.c
---- a/fs/hfsplus/part_tbl.c~hfsplus-rework-hfsplus_submit_bio-method
-+++ a/fs/hfsplus/part_tbl.c
-@@ -112,7 +112,7 @@ static int hfs_parse_new_pmap(struct sup
- 		if ((u8 *)pm - (u8 *)buf >= buf_size) {
- 			res = hfsplus_submit_bio(sb,
- 						 *part_start + HFS_PMAP_BLK + i,
--						 buf, (void **)&pm, READ);
-+						 buf, (void **)&pm, READ, NULL);
- 			if (res)
- 				return res;
- 		}
-@@ -136,7 +136,7 @@ int hfs_part_find(struct super_block *sb
- 		return -ENOMEM;
+ #if 0
+ #define DBG_MASK	(DBG_EXTENT|DBG_INODE|DBG_BNODE_MOD)
+@@ -126,6 +131,23 @@ struct hfs_bnode {
+ #define HFS_BNODE_DIRTY		3
+ #define HFS_BNODE_DELETED	4
  
- 	res = hfsplus_submit_bio(sb, *part_start + HFS_PMAP_BLK,
--				 buf, &data, READ);
-+				 buf, &data, READ, NULL);
- 	if (res)
- 		goto out;
- 
-diff -puN fs/hfsplus/super.c~hfsplus-rework-hfsplus_submit_bio-method fs/hfsplus/super.c
---- a/fs/hfsplus/super.c~hfsplus-rework-hfsplus_submit_bio-method
-+++ a/fs/hfsplus/super.c
-@@ -217,7 +217,7 @@ static int hfsplus_sync_fs(struct super_
- 
- 	error2 = hfsplus_submit_bio(sb,
- 				   sbi->part_start + HFSPLUS_VOLHEAD_SECTOR,
--				   sbi->s_vhdr_buf, NULL, WRITE_SYNC);
-+				   sbi->s_vhdr_buf, NULL, WRITE_SYNC, NULL);
- 	if (!error)
- 		error = error2;
- 	if (!write_backup)
-@@ -225,7 +225,8 @@ static int hfsplus_sync_fs(struct super_
- 
- 	error2 = hfsplus_submit_bio(sb,
- 				  sbi->part_start + sbi->sect_count - 2,
--				  sbi->s_backup_vhdr_buf, NULL, WRITE_SYNC);
-+				  sbi->s_backup_vhdr_buf, NULL, WRITE_SYNC,
-+				  NULL);
- 	if (!error)
- 		error2 = error;
- out:
-diff -puN fs/hfsplus/wrapper.c~hfsplus-rework-hfsplus_submit_bio-method fs/hfsplus/wrapper.c
---- a/fs/hfsplus/wrapper.c~hfsplus-rework-hfsplus_submit_bio-method
-+++ a/fs/hfsplus/wrapper.c
-@@ -31,6 +31,7 @@ struct hfsplus_wd {
-  * @buf: buffer for I/O
-  * @data: output pointer for location of requested data
-  * @rw: direction of I/O
-+ * @data_len: output pointer for length of requested data
-  *
-  * The unit of I/O is hfsplus_min_io_size(sb), which may be bigger than
-  * HFSPLUS_SECTOR_SIZE, and @buf must be sized accordingly. On reads
-@@ -44,13 +45,14 @@ struct hfsplus_wd {
-  * will work correctly.
++/* An HFS+ Journal held in memory */
++struct hfsplus_journal {
++	struct mutex jnl_lock;
++
++	/* Journal info block specific */
++	void *jib_buf;
++	struct hfsplus_journal_info_block *jib;
++
++	/* Journal header specific */
++	void *jh_buf;
++	struct hfsplus_journal_header *jh;
++
++	/* TODO: Pointer of JBD */
++
++	struct super_block *sbp;
++};
++
+ /*
+  * Attributes file states
   */
- int hfsplus_submit_bio(struct super_block *sb, sector_t sector,
--		void *buf, void **data, int rw)
-+			void *buf, void **data, int rw, size_t *data_len)
- {
- 	struct bio *bio;
- 	int ret = 0;
- 	u64 io_size;
- 	loff_t start;
- 	int offset;
-+	unsigned int page_offset;
+@@ -146,6 +168,7 @@ struct hfsplus_sb_info {
+ 	struct hfsplus_vh *s_vhdr;
+ 	void *s_backup_vhdr_buf;
+ 	struct hfsplus_vh *s_backup_vhdr;
++	struct hfsplus_journal *jnl;
+ 	struct hfs_btree *ext_tree;
+ 	struct hfs_btree *cat_tree;
+ 	struct hfs_btree *attr_tree;
+diff -puN fs/hfsplus/hfsplus_raw.h~hfsplus-add-necessary-declarations-for-journal-replay fs/hfsplus/hfsplus_raw.h
+--- a/fs/hfsplus/hfsplus_raw.h~hfsplus-add-necessary-declarations-for-journal-replay
++++ a/fs/hfsplus/hfsplus_raw.h
+@@ -46,6 +46,7 @@
+ #define HFSP_SYMLINK_CREATOR	0x72686170	/* 'rhap' */
  
- 	/*
- 	 * Align sector to hardware sector size and find offset. We
-@@ -66,13 +68,25 @@ int hfsplus_submit_bio(struct super_bloc
- 	bio->bi_iter.bi_sector = sector;
- 	bio->bi_bdev = sb->s_bdev;
+ #define HFSP_MOUNT_VERSION	0x482b4c78	/* 'H+Lx' */
++#define HFSP_MOUNT_JOURNALED_VERSION 0x4846534A	/* 'HFSJ' */
  
--	if (!(rw & WRITE) && data)
-+	if (!(rw & WRITE) && data) {
- 		*data = (u8 *)buf + offset;
+ /* Structures used on disk */
  
-+		if (data_len) {
-+			page_offset = offset_in_page(buf);
+@@ -105,7 +106,7 @@ struct hfsplus_vh {
+ 	__be16 version;
+ 	__be32 attributes;
+ 	__be32 last_mount_vers;
+-	u32 reserved;
++	__be32 journal_info_block;
+ 
+ 	__be32 create_date;
+ 	__be32 modify_date;
+@@ -401,4 +402,54 @@ typedef union {
+ 	struct hfsplus_attr_key attr;
+ } __packed hfsplus_btree_key;
+ 
++/* HFS+ on-disk journal structures */
++struct hfsplus_journal_info_block {
++#define HFSPLUS_JOURNAL_IN_FS		0x01
++#define HFSPLUS_JOURNAL_ON_OTHER_DEVICE	0x02
++#define HFSPLUS_JOURNAL_NEED_INIT	0x04
++	__be32 flags;
++	__be32 device_signature[8];
++	__be64 offset;
++	__be64 size;
++	u32 reserved[32];
++} __packed;
 +
-+			BUG_ON(offset > io_size);
-+			BUG_ON((page_offset + offset) > PAGE_SIZE);
++/* Valid magic and endian value */
++#define HFSPLUS_JOURNAL_HEADER_MAGIC	0x4A4E4C78
++#define HFSPLUS_JOURNAL_HEADER_ENDIAN	0x12345678
 +
-+			*data_len = min_t(size_t, io_size - offset,
-+					  PAGE_SIZE - page_offset - offset);
-+		}
-+	}
++/* !!! Litle-endian structure !!! */
++struct hfsplus_journal_header {
++	__le32 magic;
++	__le32 endian;
++	__le64 start;
++	__le64 end;
++	__le64 size; /* Includes the header and the buffer */
++	__le32 blhdr_size;
++	__le32 checksum;
++	__le32 jhdr_size;
++} __packed;
 +
- 	while (io_size > 0) {
--		unsigned int page_offset = offset_in_page(buf);
--		unsigned int len = min_t(unsigned int, PAGE_SIZE - page_offset,
--					 io_size);
-+		unsigned int len;
++/* !!! Litle-endian structure !!! */
++struct hfsplus_block_info {
++	__le64 bnum;
++	__le32 bsize;
++	union {
++		__le32 checksum;
++		__le32 seq_num; /* only used in binfo[0] */
++	} block;
++} __packed;
 +
-+		page_offset = offset_in_page(buf);
-+		len = min_t(unsigned int, PAGE_SIZE - page_offset, io_size);
- 
- 		ret = bio_add_page(bio, virt_to_page(buf), len, page_offset);
- 		if (ret != len) {
-@@ -181,7 +195,7 @@ int hfsplus_read_wrapper(struct super_bl
- reread:
- 	error = hfsplus_submit_bio(sb, part_start + HFSPLUS_VOLHEAD_SECTOR,
- 				   sbi->s_vhdr_buf, (void **)&sbi->s_vhdr,
--				   READ);
-+				   READ, NULL);
- 	if (error)
- 		goto out_free_backup_vhdr;
- 
-@@ -213,7 +227,7 @@ reread:
- 
- 	error = hfsplus_submit_bio(sb, part_start + part_size - 2,
- 				   sbi->s_backup_vhdr_buf,
--				   (void **)&sbi->s_backup_vhdr, READ);
-+				   (void **)&sbi->s_backup_vhdr, READ, NULL);
- 	if (error)
- 		goto out_free_backup_vhdr;
- 
++/* !!! Litle-endian structure !!! */
++struct hfsplus_blhdr {
++	__le16 max_blocks;
++	__le16 num_blocks;
++	__le32 bytes_used;
++	__le32 checksum;
++#define HFSPLUS_BLHDR_CHECK_CHECKSUMS	0x0001
++#define HFSPLUS_BLHDR_FIRST_HEADER	0x0002
++	__le32 flags;
++	struct hfsplus_block_info binfo[1];
++} __packed;
++
+ #endif
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
