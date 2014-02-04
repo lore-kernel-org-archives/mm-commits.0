@@ -1,78 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 04 Feb 2014 12:03:44 -0800
-Message-ID: <52f147a0.QQxwHcQzECXk1VXA%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-compaction-avoid-isolating-pinned-pages.patch
+ removed from -mm tree
+Date: Tue, 04 Feb 2014 12:14:35 -0800
+Message-ID: <52f14a2b.1tEJCvmRQiLr26LX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55599 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55617 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932166AbaBDUDp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 15:03:45 -0500
+	with ESMTP id S1754969AbaBDUOh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 15:14:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, rientjes@google.com
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [to-be-updated] mm-compaction-avoid-isolating-pinned-pages.patch removed from -mm tree
+To: rientjes@google.com,mgorman@suse.de,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Feb 2014 12:03:44 -0800
+Date: Tue, 04 Feb 2014 12:14:35 -0800
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm, compaction: avoid isolating pinned pages
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     mm-compaction-avoid-isolating-pinned-pages.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: David Rientjes <rientjes@google.com>
+Subject: mm, compaction: avoid isolating pinned pages
 
+Page migration will fail for memory that is pinned in memory with, for
+example, get_user_pages().  In this case, it is unnecessary to take
+zone->lru_lock or isolating the page and passing it to page migration
+which will ultimately fail.
+
+This is a racy check, the page can still change from under us, but in that
+case we'll just fail later when attempting to move the page.
+
+This avoids very expensive memory compaction when faulting transparent
+hugepages after pinning a lot of memory with a Mellanox driver.
+
+On a 128GB machine and pinning ~120GB of memory, before this patch we
+see the enormous disparity in the number of page migration failures
+because of the pinning (from /proc/vmstat):
+
+compact_blocks_moved 7609
+compact_pages_moved 3431
+compact_pagemigrate_failed 133219
+compact_stall 13
+
+After the patch, it is much more efficient:
+
+compact_blocks_moved 7998
+compact_pages_moved 6403
+compact_pagemigrate_failed 3
+compact_stall 15
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/elf.h |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/compaction.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN arch/parisc/include/asm/elf.h~linux-next-git-rejects arch/parisc/include/asm/elf.h
---- a/arch/parisc/include/asm/elf.h~linux-next-git-rejects
-+++ a/arch/parisc/include/asm/elf.h
-@@ -348,12 +348,9 @@ struct pt_regs;	/* forward declaration..
+diff -puN mm/compaction.c~mm-compaction-avoid-isolating-pinned-pages mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-avoid-isolating-pinned-pages
++++ a/mm/compaction.c
+@@ -578,6 +578,14 @@ isolate_migratepages_range(struct zone *
+ 			continue;
+ 		}
  
- #define ELF_HWCAP	0
- 
--<<<<<<< HEAD
--=======
- /* Stack randomization: 1GB for 64bit, 8MB for 32bit */
- #define STACK_RND_MASK (is_32bit_task() ? 0x7ff : 0x3fffff)
- 
-->>>>>>> linux-next/akpm-base
- struct mm_struct;
- extern unsigned long arch_randomize_brk(struct mm_struct *);
- #define arch_randomize_brk arch_randomize_brk
++		/*
++		 * Migration will fail if an anonymous page is pinned in memory,
++		 * so avoid taking zone->lru_lock and isolating it unnecessarily
++		 * in an admittedly racy check.
++		 */
++		if (!page_mapping(page) && page_count(page))
++			continue;
++
+ 		/* Check if it is ok to still hold the lock */
+ 		locked = compact_checklock_irqsave(&zone->lru_lock, &flags,
+ 								locked, cc);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
+documentation-kernel-parameterstxt-fix-memmap=-language.patch
+mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch
+mm-slub-list_lock-may-not-be-held-in-some-circumstances.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch
 numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockreserved.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
+mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
+mm-utilc-add-kstrimdup.patch
+cpusets-allocate-heap-only-when-required.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
