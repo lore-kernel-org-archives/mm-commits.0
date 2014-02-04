@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- hfsplus-implement-get-and-verify-block-list-header-functionality.patch
- added to -mm tree
-Date: Tue, 04 Feb 2014 14:33:39 -0800
-Message-ID: <52f16ac3.K7hTjMLCSRlOkBZL%akpm@linux-foundation.org>
+ hfsplus-implement-functionality-of-transactions-block-check.patch added to
+ -mm tree
+Date: Tue, 04 Feb 2014 14:33:42 -0800
+Message-ID: <52f16ac6.V6QA6QlTqT6OBSDu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58106 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936014AbaBDWdk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:40 -0500
+	with ESMTP id S936015AbaBDWdn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 17:33:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: + hfsplus-implement-get-and-verify-block-list-header-functionality.patch added to -mm tree
+Subject: + hfsplus-implement-functionality-of-transactions-block-check.patch added to -mm tree
 To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 04 Feb 2014 14:33:39 -0800
+Date: Tue, 04 Feb 2014 14:33:42 -0800
 
 
 The patch titled
-     Subject: hfsplus: implement get and verify block list header functionality
+     Subject: hfsplus: implement functionality of transaction's block check
 has been added to the -mm tree.  Its filename is
-     hfsplus-implement-get-and-verify-block-list-header-functionality.patch
+     hfsplus-implement-functionality-of-transactions-block-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-implement-get-and-verify-block-list-header-functionality.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-implement-functionality-of-transactions-block-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-implement-get-and-verify-block-list-header-functionality.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-implement-functionality-of-transactions-block-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,10 +46,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: implement get and verify block list header functionality
+Subject: hfsplus: implement functionality of transaction's block check
 
-Implement functionality of reading of block list's header from journal log
-and veryfing of it.
+A group of related changes is called a transaction.  When all of the
+changes of a transaction have been written to their normal locations on
+disk, that transaction has been committed, and is removed from the
+journal.  The journal may contain several transactions.  Copying changes
+from all transactions to their normal locations on disk is called
+replaying the journal.
+
+A single transaction consists of several blocks, including both the data
+to be written, and the location where that data is to be written.  This is
+represented on disk by a block list header, which describes the number and
+sizes of the blocks, immediately followed by the contents of those blocks.
+
+This patch implements method of checking description of transaction's
+block before replaying of it.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Tested-by: Hin-Tak Leung <htl10@users.sourceforge.net>
@@ -58,134 +70,126 @@ Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/journal.c |  102 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 102 insertions(+)
+ fs/hfsplus/journal.c |  100 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 100 insertions(+)
 
-diff -puN fs/hfsplus/journal.c~hfsplus-implement-get-and-verify-block-list-header-functionality fs/hfsplus/journal.c
---- a/fs/hfsplus/journal.c~hfsplus-implement-get-and-verify-block-list-header-functionality
+diff -puN fs/hfsplus/journal.c~hfsplus-implement-functionality-of-transactions-block-check fs/hfsplus/journal.c
+--- a/fs/hfsplus/journal.c~hfsplus-implement-functionality-of-transactions-block-check
 +++ a/fs/hfsplus/journal.c
-@@ -49,6 +49,18 @@
- #define JHDR_SIZE(jh) \
- 	(le32_to_cpu(((struct hfsplus_journal_header *)(jh))->jhdr_size))
+@@ -38,6 +38,11 @@
+ 	(be64_to_cpu(((struct hfsplus_journal *)(jnl))->jib->offset) >> \
+ 	 HFSPLUS_SB(sb)->alloc_blksz_shift)
  
-+#define TR_MAX_BLOCKS(blhdr) \
-+	(le16_to_cpu(((struct hfsplus_blhdr *)(blhdr))->max_blocks))
-+#define TR_BLOCKS(blhdr) \
-+	(le16_to_cpu(((struct hfsplus_blhdr *)(blhdr))->num_blocks))
-+#define TR_BYTES(blhdr) \
-+	(le32_to_cpu(((struct hfsplus_blhdr *)(blhdr))->bytes_used))
-+#define TR_SEQ_NUM(blhdr) \
-+	(le32_to_cpu(((struct hfsplus_blhdr *)(blhdr))->binfo[0].block.seq_num))
-+#define NEED_CHECK_CSUM(blhdr) \
-+	(le32_to_cpu(((struct hfsplus_blhdr *)(blhdr))->flags) & \
-+	 HFSPLUS_BLHDR_CHECK_CHECKSUMS)
-+
- /*
-  * struct hfsplus_blist_desc - descriptor of block list buffer
-  * @start_sec: start sector of block list
-@@ -295,12 +307,102 @@ static void hfsplus_deinit_block_list_de
- 	kfree(desc->dst_buf);
++#define JOURNAL_OFF_TO_SEC(sb) \
++	(HFSPLUS_SB(sb)->blockoffset + \
++	 ((be64_to_cpu(HFSPLUS_SB(sb)->jnl->jib->offset) + \
++	   le64_to_cpu(HFSPLUS_SB(sb)->jnl->jh->start)) >> \
++	   HFSPLUS_SECTOR_SHIFT))
+ #define BLOCK_TO_SEC(sb, blk) \
+ 	((sector_t)(blk) << \
+ 	 (HFSPLUS_SB(sb)->alloc_blksz_shift - HFSPLUS_SECTOR_SHIFT))
+@@ -490,6 +495,101 @@ struct hfsplus_block_info *hfsplus_get_b
+ 	return &desc->binfo[diff];
  }
  
-+static struct hfsplus_blhdr *hfsplus_get_blhdr(struct super_block *sb,
-+						sector_t start_sector,
-+						struct hfsplus_blist_desc *desc)
++static int hfsplus_check_transaction_block(struct super_block *sb, int i,
++					   struct hfsplus_blist_desc *desc)
 +{
-+	struct hfsplus_blhdr *blhdr;
-+	int err;
++	struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
++	struct hfsplus_journal_header *jh = jnl->jh;
++	struct hfsplus_blhdr *blhdr = &desc->blhdr;
++	struct hfsplus_block_info *binfo;
++	sector_t sec;
++	u32 size;
++	u32 checksum = 0;
 +
-+	hfs_dbg(JREPLAY, "get block list header: start_sector %lu\n",
-+		start_sector);
++	hfs_dbg(JREPLAY, "check binfo[%u]\n", i);
 +
-+	BUG_ON(!desc->blist_buf);
-+
-+	if (desc->start_sec == start_sector && desc->cur_sec == start_sector)
-+		return &desc->blhdr;
-+
-+	err = hfsplus_submit_bio(sb, start_sector,
-+				 desc->blist_buf, (void **)&blhdr, READA,
-+				 &desc->available_bytes);
-+	if (err) {
-+		pr_err("unable to read block list header\n");
-+		return NULL;
++	binfo = hfsplus_get_binfo(sb, i, desc);
++	if (!binfo) {
++		pr_err("unable to get binfo[%u]\n", i);
++		return -EIO;
 +	}
 +
-+	desc->start_sec = start_sector;
-+	desc->cur_sec = start_sector;
-+	memcpy((void *)&desc->blhdr, (const void *)blhdr, sizeof(*blhdr));
-+	desc->binfo = &blhdr->binfo[0];
++	if (BNUM(binfo) == ~(u64)0) {
++		hfs_dbg(JREPLAY, "don't add *killed* block %llu\n",
++			BNUM(binfo));
++		return 0; /* don't add "killed" blocks */
++	}
 +
-+	return &desc->blhdr;
++	BUG_ON(BSIZE(binfo) % HFSPLUS_SECTOR_SIZE);
++
++	if ((BSIZE(binfo) / HFSPLUS_SECTOR_SIZE) == 0) {
++		pr_warn("transaction block size is not aligned\n");
++		return -EINVAL;
++	}
++
++	sec = JOURNAL_OFF_TO_SEC(sb);
++	size = BSIZE(binfo);
++	while (size > 0) {
++		void *block_ptr;
++		size_t check_size = HFSPLUS_SECTOR_SIZE;
++		size_t rest_bytes;
++		int err;
++
++		if (need_to_wrap_journal(jh, TR_START(jh), check_size)) {
++			hfsplus_wrap_journal(sb, TR_START(jh), check_size);
++			sec = JOURNAL_OFF_TO_SEC(sb);
++		}
++
++		err = hfsplus_submit_bio(sb, sec, desc->src_buf,
++					 (void **)&block_ptr,
++					 READA, &rest_bytes);
++		if (err) {
++			pr_err("unable to read sector %lu of blist\n", sec);
++			return err;
++		}
++
++		BUG_ON(rest_bytes < HFSPLUS_SECTOR_SIZE);
++
++		if (TR_START(jh) > LAST_TR_END(jh)) {
++			if ((TR_START(jh) + check_size) > JOURNAL_SIZE(jh))
++				err = -EIO;
++		} else if (TR_START(jh) < LAST_TR_END(jh)) {
++			if ((TR_START(jh) + check_size) > LAST_TR_END(jh))
++				err = -EIO;
++		} else /* start == end */
++			err = -EIO;
++
++		if (err) {
++			pr_err("invalid transaction: start %llu, end %llu, journal size %llu, bsize %zu\n",
++				TR_START(jh), LAST_TR_END(jh),
++				JOURNAL_SIZE(jh), check_size);
++			return err;
++		}
++
++		if (NEED_CHECK_CSUM(blhdr)) {
++			checksum = calc_internal_checksum(checksum,
++							  block_ptr,
++							  check_size);
++		}
++
++		size -= check_size;
++		le64_add_cpu(&jh->start, check_size);
++		sec = JOURNAL_OFF_TO_SEC(sb);
++	}
++
++	if (NEED_CHECK_CSUM(blhdr)) {
++		if (HFSPLUS_CHECKSUM(checksum) != binfo->block.checksum) {
++			pr_err("invalid transaction's checksum\n");
++			hfs_dbg(JREPLAY, "calc checksum: %#x, checksum: %#x\n",
++				le32_to_cpu(HFSPLUS_CHECKSUM(checksum)),
++				le32_to_cpu(binfo->block.checksum));
++			return -EIO;
++		}
++	}
++
++	return 0;
 +}
 +
  static inline
  bool hfsplus_journal_empty(struct hfsplus_journal_header *jh)
  {
- 	return TR_START(jh) == LAST_TR_END(jh);
- }
- 
-+static inline
-+bool hfsplus_transaction_seq_num_valid(u32 prev_seq_num,
-+					struct hfsplus_blhdr *blhdr)
-+{
-+	if (prev_seq_num != 0) {
-+		u32 seq = TR_SEQ_NUM(blhdr);
-+
-+		if ((seq != 0) && (seq != prev_seq_num) &&
-+		    (seq != (prev_seq_num + 1))) {
-+			pr_err("transaction seq number %u is invalid\n",
-+				TR_SEQ_NUM(blhdr));
-+			return false;
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static
-+int hfsplus_verify_blhdr(u32 prev_seq_num, struct hfsplus_blhdr *blhdr)
-+{
-+	__le32 blhdr_checksum, cksum;
-+
-+	if (!hfsplus_transaction_seq_num_valid(prev_seq_num, blhdr))
-+		return -EIO;
-+
-+	if (TR_BLOCKS(blhdr) == 0 || TR_BYTES(blhdr) == 0) {
-+		pr_err("corrupted block list header\n");
-+		hfs_dbg(JOURNAL, "num_blocks %u, max_blocks %u\n",
-+			TR_BLOCKS(blhdr), TR_BYTES(blhdr));
-+		return -EIO;
-+	}
-+
-+	if (TR_BLOCKS(blhdr) > TR_MAX_BLOCKS(blhdr)) {
-+		pr_err("corrupted block list header\n");
-+		hfs_dbg(JOURNAL, "num_blocks %u, max_blocks %u\n",
-+			TR_BLOCKS(blhdr), TR_MAX_BLOCKS(blhdr));
-+		return -EIO;
-+	}
-+
-+	if (!NEED_CHECK_CSUM(blhdr))
-+		return 0; /* don't check checksums */
-+
-+	blhdr_checksum = blhdr->checksum;
-+	blhdr->checksum = 0;
-+
-+	cksum = HFSPLUS_CALC_CHECKSUM((unsigned char *)blhdr, sizeof(*blhdr));
-+	if (le32_to_cpu(cksum) != le32_to_cpu(blhdr_checksum)) {
-+		blhdr->checksum = blhdr_checksum;
-+		pr_err("corrupted block list header\n");
-+		hfs_dbg(JOURNAL, "calculated CRC %#x, blhdr_checksum %#x\n",
-+			cksum, be32_to_cpu(blhdr_checksum));
-+		return -EIO;
-+	}
-+
-+	blhdr->checksum = blhdr_checksum;
-+	return 0;
-+}
-+
- static int hfsplus_replay_journal(struct super_block *sb);
- 
- static
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
