@@ -1,166 +1,242 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- hfsplus-implement-replay-transactions-block-functionality.patch removed
- from -mm tree
-Date: Wed, 05 Feb 2014 15:49:21 -0800
-Message-ID: <52f2ce01.wZHUiD91UAbt5fmU%akpm@linux-foundation.org>
+ hfsplus-integrate-journal-replay-support-into-driver.patch removed from -mm tree
+Date: Wed, 05 Feb 2014 15:49:27 -0800
+Message-ID: <52f2ce07.WlpCmP9xXsYW0jdP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39240 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952AbaBEXtW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 18:49:22 -0500
+	with ESMTP id S1753753AbaBEXt1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 18:49:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: [to-be-updated] hfsplus-implement-replay-transactions-block-functionality.patch removed from -mm tree
+Subject: [to-be-updated] hfsplus-integrate-journal-replay-support-into-driver.patch removed from -mm tree
 To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 05 Feb 2014 15:49:21 -0800
+Date: Wed, 05 Feb 2014 15:49:27 -0800
 
 
 The patch titled
-     Subject: hfsplus: implement replay transaction's block functionality
+     Subject: hfsplus: integrate journal replay support into driver
 has been removed from the -mm tree.  Its filename was
-     hfsplus-implement-replay-transactions-block-functionality.patch
+     hfsplus-integrate-journal-replay-support-into-driver.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: implement replay transaction's block functionality
+Subject: hfsplus: integrate journal replay support into driver
 
-A group of related changes is called a transaction.  When all of the
-changes of a transaction have been written to their normal locations on
-disk, that transaction has been committed, and is removed from the
-journal.  The journal may contain several transactions.  Copying changes
-from all transactions to their normal locations on disk is called
-replaying the journal.
-
-A single transaction consists of several blocks, including both the data
-to be written, and the location where that data is to be written.  This is
-represented on disk by a block list header, which describes the number and
-sizes of the blocks, immediately followed by the contents of those blocks.
-
-This patch implements replaying of transaction's block in location is
-described by binfo in block list.
+Integrate HFS+ journal replaying functionality into the file system
+driver.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Tested-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/journal.c |   87 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 87 insertions(+)
+ fs/hfsplus/Makefile     |    3 -
+ fs/hfsplus/hfsplus_fs.h |    5 ++
+ fs/hfsplus/super.c      |   90 +++++++++++++++++++++++++++++++-------
+ 3 files changed, 82 insertions(+), 16 deletions(-)
 
-diff -puN fs/hfsplus/journal.c~hfsplus-implement-replay-transactions-block-functionality fs/hfsplus/journal.c
---- a/fs/hfsplus/journal.c~hfsplus-implement-replay-transactions-block-functionality
-+++ a/fs/hfsplus/journal.c
-@@ -590,6 +590,93 @@ static int hfsplus_check_transaction_blo
- 	return 0;
- }
+diff -puN fs/hfsplus/Makefile~hfsplus-integrate-journal-replay-support-into-driver fs/hfsplus/Makefile
+--- a/fs/hfsplus/Makefile~hfsplus-integrate-journal-replay-support-into-driver
++++ a/fs/hfsplus/Makefile
+@@ -6,6 +6,7 @@ obj-$(CONFIG_HFSPLUS_FS) += hfsplus.o
  
-+static int hfsplus_replay_transaction_block(struct super_block *sb, int i,
-+					    struct hfsplus_blist_desc *desc)
-+{
-+	struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
-+	struct hfsplus_journal_header *jh = jnl->jh;
-+	struct hfsplus_block_info *binfo;
-+	u64 bnum;
-+	u32 bsize;
-+	sector_t src_sec, dst_sec;
+ hfsplus-objs := super.o options.o inode.o ioctl.o extents.o catalog.o dir.o btree.o \
+ 		bnode.o brec.o bfind.o tables.o unicode.o wrapper.o bitmap.o part_tbl.o \
+-		attributes.o xattr.o xattr_user.o xattr_security.o xattr_trusted.o
++		attributes.o xattr.o xattr_user.o xattr_security.o xattr_trusted.o \
++		journal.o
+ 
+ hfsplus-$(CONFIG_HFSPLUS_FS_POSIX_ACL)	+= posix_acl.o
+diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-integrate-journal-replay-support-into-driver fs/hfsplus/hfsplus_fs.h
+--- a/fs/hfsplus/hfsplus_fs.h~hfsplus-integrate-journal-replay-support-into-driver
++++ a/fs/hfsplus/hfsplus_fs.h
+@@ -489,6 +489,11 @@ int hfsplus_free_fork(struct super_block
+ int hfsplus_file_extend(struct inode *);
+ void hfsplus_file_truncate(struct inode *);
+ 
++/* journal.c */
++int hfsplus_init_journal(struct super_block *sb);
++void hfsplus_destroy_journal(struct super_block *sb);
++int hfsplus_check_journal(struct super_block *sb);
 +
-+	hfs_dbg(JREPLAY, "replay binfo[%u]\n", i);
+ /* inode.c */
+ extern const struct address_space_operations hfsplus_aops;
+ extern const struct address_space_operations hfsplus_btree_aops;
+diff -puN fs/hfsplus/super.c~hfsplus-integrate-journal-replay-support-into-driver fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~hfsplus-integrate-journal-replay-support-into-driver
++++ a/fs/hfsplus/super.c
+@@ -280,6 +280,8 @@ static void hfsplus_put_super(struct sup
+ 
+ 	cancel_delayed_work_sync(&sbi->sync_work);
+ 
++	hfsplus_destroy_journal(sb);
 +
-+	binfo = hfsplus_get_binfo(sb, i, desc);
-+	if (!binfo) {
-+		pr_err("unable to get binfo[%u]\n", i);
-+		return -EIO;
-+	}
-+
-+	bnum = BNUM(binfo);
-+	bsize = BSIZE(binfo);
-+
-+	hfs_dbg(JREPLAY, "bnum: %llu, bsize: %u\n", bnum, bsize);
-+
-+	if (bnum == ~(u64)0) {
-+		hfs_dbg(JREPLAY, "don't add *killed* block %llu\n", bnum);
-+		return 0; /* don't add "killed" blocks */
-+	}
-+
-+	src_sec = JOURNAL_OFF_TO_SEC(sb);
-+	dst_sec = HFSPLUS_SB(sb)->blockoffset + bnum;
-+
-+	hfs_dbg(JREPLAY, "dst_sec: %lu, bsize: %u\n",
-+		dst_sec, bsize);
-+
-+	while (bsize > 0) {
-+		size_t buf_size = hfsplus_min_io_size(sb);
-+		size_t dst_off = 0;
-+		size_t rest_bytes;
-+		int err;
-+
-+		if (dst_sec >= HFSPLUS_SB(sb)->sect_count) {
-+			pr_err("replay out of volume %lu\n", dst_sec);
-+			return -EIO;
-+		}
-+
-+		while (dst_off < buf_size) {
-+			void *src_ptr;
-+			size_t copy_size = HFSPLUS_SECTOR_SIZE;
-+
-+			if (need_to_wrap_journal(jh, TR_START(jh), copy_size)) {
-+				hfsplus_wrap_journal(sb, TR_START(jh),
-+							copy_size);
-+				src_sec = JOURNAL_OFF_TO_SEC(sb);
-+			}
-+
-+			err = hfsplus_submit_bio(sb, src_sec, desc->src_buf,
-+						 &src_ptr, READ, &rest_bytes);
-+			if (err) {
-+				pr_err("unable to read sector %lu of blist\n",
-+					src_sec);
-+				return err;
-+			}
-+
-+			BUG_ON(rest_bytes < HFSPLUS_SECTOR_SIZE);
-+
-+			memcpy((void *)((u8 *)desc->dst_buf + dst_off),
-+				desc->src_buf, copy_size);
-+
-+			dst_off += copy_size;
-+			bsize -= copy_size;
-+			le64_add_cpu(&jh->start, copy_size);
-+			src_sec = JOURNAL_OFF_TO_SEC(sb);
-+		}
-+
-+		err = hfsplus_submit_bio(sb, dst_sec, desc->dst_buf, NULL,
-+					 WRITE_SYNC, NULL);
-+		if (err) {
-+			pr_err("unable to replay sector %lu\n", dst_sec);
-+			return err;
-+		}
-+
-+		dst_sec += buf_size >> HFSPLUS_SECTOR_SHIFT;
-+	}
-+
-+	return 0;
-+}
-+
- static inline
- bool hfsplus_journal_empty(struct hfsplus_journal_header *jh)
+ 	if (!(sb->s_flags & MS_RDONLY) && sbi->s_vhdr) {
+ 		struct hfsplus_vh *vhdr = sbi->s_vhdr;
+ 
+@@ -325,6 +327,7 @@ static int hfsplus_statfs(struct dentry
+ static int hfsplus_remount(struct super_block *sb, int *flags, char *data)
  {
+ 	struct hfsplus_sb_info *sbi = HFSPLUS_SB(sb);
++	int err;
+ 
+ 	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
+ 		return 0;
+@@ -337,20 +340,38 @@ static int hfsplus_remount(struct super_
+ 
+ 		force = test_and_clear_bit(HFSPLUS_SB_FORCE, &sbi->flags);
+ 
++		if (vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_JOURNALED)) {
++			err = hfsplus_check_journal(sb);
++			if (err == -EROFS) {
++				if (force)
++					pr_warn("force mount option is ignored, norecovery is requested\n");
++				sb->s_flags |= MS_RDONLY;
++				*flags |= MS_RDONLY;
++				return 0;
++			} else if (unlikely(err)) {
++				pr_err("journal replay failed, remount read-only\n");
++				if (force)
++					pr_warn("force mount option is ignored for non-empty journal\n");
++				sb->s_flags |= MS_RDONLY;
++				*flags |= MS_RDONLY;
++				return 0;
++			}
++		} else if (test_and_clear_bit(HFSPLUS_SB_NORECOVERY,
++							&sbi->flags)) {
++			/* simply complain */
++			pr_warn("norecovery mount option is ignored for HFS+ volumes w/o journal\n");
++		}
++
+ 		if (!(vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_UNMNT))) {
+-			pr_warn("filesystem was not cleanly unmounted, running fsck.hfsplus is recommended.  leaving read-only.\n");
++			pr_warn("filesystem was not cleanly unmounted, remount read-only\n");
++			pr_warn("running fsck.hfsplus is recommended\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 			*flags |= MS_RDONLY;
+ 		} else if (force) {
+ 			/* nothing */
+ 		} else if (vhdr->attributes &
+ 				cpu_to_be32(HFSPLUS_VOL_SOFTLOCK)) {
+-			pr_warn("filesystem is marked locked, leaving read-only.\n");
+-			sb->s_flags |= MS_RDONLY;
+-			*flags |= MS_RDONLY;
+-		} else if (vhdr->attributes &
+-				cpu_to_be32(HFSPLUS_VOL_JOURNALED)) {
+-			pr_warn("filesystem is marked journaled, leaving read-only.\n");
++			pr_warn("filesystem is marked locked, remount read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+ 			*flags |= MS_RDONLY;
+ 		}
+@@ -423,6 +444,46 @@ static int hfsplus_fill_super(struct sup
+ 		pr_err("wrong filesystem version\n");
+ 		goto out_free_vhdr;
+ 	}
++
++	err = hfsplus_init_journal(sb);
++	if (err == -EROFS) {
++		/*
++		 * HFSPLUS_JOURNAL_NEED_INIT + norecovery option combination.
++		 * Do nothing.
++		 * Error code is checked before hfsplus_check_journal() call.
++		 */
++	} else if (unlikely(err)) {
++		pr_err("unable to initialize journal\n");
++		goto out_free_vhdr;
++	}
++
++	if (vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_JOURNALED)) {
++		int force;
++
++		if (err != -EROFS)
++			err = hfsplus_check_journal(sb);
++		if (err == -EROFS) {
++			force = test_and_clear_bit(HFSPLUS_SB_FORCE,
++							&sbi->flags);
++			if (!silent && force)
++				pr_warn("force mount option is ignored, norecovery is requested\n");
++			sb->s_flags |= MS_RDONLY;
++		} else if (unlikely(err)) {
++			force = test_and_clear_bit(HFSPLUS_SB_FORCE,
++							&sbi->flags);
++			if (!silent) {
++				pr_err("journal replay failed, mounting read-only\n");
++				if (force)
++					pr_warn("force mount option is ignored for non-empty journal\n");
++			}
++			sb->s_flags |= MS_RDONLY;
++		} /*else if (not read-only)
++			TODO: implement journalling thread start */
++	} else if (test_and_clear_bit(HFSPLUS_SB_NORECOVERY, &sbi->flags)) {
++		/* simply complain */
++		pr_warn("norecovery mount option is ignored for HFS+ volumes w/o journal\n");
++	}
++
+ 	sbi->total_blocks = be32_to_cpu(vhdr->total_blocks);
+ 	sbi->free_blocks = be32_to_cpu(vhdr->free_blocks);
+ 	sbi->next_cnid = be32_to_cpu(vhdr->next_cnid);
+@@ -445,7 +506,7 @@ static int hfsplus_fill_super(struct sup
+ 	if ((last_fs_block > (sector_t)(~0ULL) >> (sbi->alloc_blksz_shift - 9)) ||
+ 	    (last_fs_page > (pgoff_t)(~0ULL))) {
+ 		pr_err("filesystem size too large\n");
+-		goto out_free_vhdr;
++		goto out_destroy_journal;
+ 	}
+ 
+ 	/* Set up operations so we can load metadata */
+@@ -453,16 +514,13 @@ static int hfsplus_fill_super(struct sup
+ 	sb->s_maxbytes = MAX_LFS_FILESIZE;
+ 
+ 	if (!(vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_UNMNT))) {
+-		pr_warn("Filesystem was not cleanly unmounted, running fsck.hfsplus is recommended.  mounting read-only.\n");
++		pr_warn("filesystem was not cleanly unmounted, mounting read-only\n");
++		pr_warn("running fsck.hfsplus is recommended\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	} else if (test_and_clear_bit(HFSPLUS_SB_FORCE, &sbi->flags)) {
+ 		/* nothing */
+ 	} else if (vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_SOFTLOCK)) {
+-		pr_warn("Filesystem is marked locked, mounting read-only.\n");
+-		sb->s_flags |= MS_RDONLY;
+-	} else if ((vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_JOURNALED)) &&
+-			!(sb->s_flags & MS_RDONLY)) {
+-		pr_warn("write access to a journaled filesystem is not supported, use the force option at your own risk, mounting read-only.\n");
++		pr_warn("filesystem is marked locked, mounting read-only\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	}
+ 
+@@ -472,7 +530,7 @@ static int hfsplus_fill_super(struct sup
+ 	sbi->ext_tree = hfs_btree_open(sb, HFSPLUS_EXT_CNID);
+ 	if (!sbi->ext_tree) {
+ 		pr_err("failed to load extents file\n");
+-		goto out_free_vhdr;
++		goto out_destroy_journal;
+ 	}
+ 	sbi->cat_tree = hfs_btree_open(sb, HFSPLUS_CAT_CNID);
+ 	if (!sbi->cat_tree) {
+@@ -597,6 +655,8 @@ out_close_cat_tree:
+ 	hfs_btree_close(sbi->cat_tree);
+ out_close_ext_tree:
+ 	hfs_btree_close(sbi->ext_tree);
++out_destroy_journal:
++	hfsplus_destroy_journal(sb);
+ out_free_vhdr:
+ 	kfree(sbi->s_vhdr_buf);
+ 	kfree(sbi->s_backup_vhdr_buf);
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
 
-hfsplus-implement-replay-journal-functionality.patch
-hfsplus-implement-replay-journal-functionality-fix.patch
-hfsplus-integrate-journal-replay-support-into-driver.patch
 
