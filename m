@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch added
- to -mm tree
-Date: Wed, 05 Feb 2014 13:49:10 -0800
-Message-ID: <52f2b1d6.rY8djeO9sp19BTZH%akpm@linux-foundation.org>
+ vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch added to -mm tree
+Date: Wed, 05 Feb 2014 13:54:29 -0800
+Message-ID: <52f2b315.OyaRC7fw4rF47gZr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38564 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752067AbaBEVtL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 16:49:11 -0500
+	with ESMTP id S1752182AbaBEVya (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 16:54:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp
+To: mm-commits@vger.kernel.org, vgoyal@redhat.com, holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, d.hatayama@jp.fujitsu.com, greg.pearson@hp.com
 
-Subject: + nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch added to -mm tree
-To: konishi.ryusuke@lab.ntt.co.jp,andreas.rohner@gmx.net
+Subject: + vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch added to -mm tree
+To: greg.pearson@hp.com,d.hatayama@jp.fujitsu.com,ebiederm@xmission.com,holzheu@linux.vnet.ibm.com,vgoyal@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 05 Feb 2014 13:49:10 -0800
+Date: Wed, 05 Feb 2014 13:54:29 -0800
 
 
 The patch titled
-     Subject: nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix
+     Subject: vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3
 has been added to the -mm tree.  Its filename is
-     nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
+     vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,55 +44,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix
+From: Greg Pearson <greg.pearson@hp.com>
+Subject: vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3
 
-Use put_bh() instead of brelse() because we know bh != NULL.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Andreas Rohner <andreas.rohner@gmx.net>
+Signed-off-by: Greg Pearson <greg.pearson@hp.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sufile.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/proc/vmcore.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN fs/nilfs2/sufile.c~nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix fs/nilfs2/sufile.c
---- a/fs/nilfs2/sufile.c~nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix
-+++ a/fs/nilfs2/sufile.c
-@@ -978,13 +978,13 @@ ssize_t nilfs_sufile_set_suinfo(struct i
- 
- 		/* get different block */
- 		mark_buffer_dirty(bh);
--		brelse(bh);
-+		put_bh(bh);
- 		ret = nilfs_mdt_get_block(sufile, blkoff, 1, NULL, &bh);
- 		if (unlikely(ret < 0))
- 			goto out_mark;
+diff -puN fs/proc/vmcore.c~vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3 fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3
++++ a/fs/proc/vmcore.c
+@@ -473,7 +473,8 @@ static int __init update_note_header_siz
+ 				((nhdr_ptr->n_namesz + 3) & ~3) +
+ 				((nhdr_ptr->n_descsz + 3) & ~3);
+ 			if ((real_sz + sz) > max_sz) {
+-				pr_warn("Warning: dropping PT_NOTE entry\n");
++				pr_warn("Warning: Exceeded p_memsz, dropping PT_NOTE entry n_namesz=0x%x, n_descsz=0x%x\n",
++					nhdr_ptr->n_namesz, nhdr_ptr->n_descsz);
+ 				break;
+ 			}
+ 			real_sz += sz;
+@@ -481,6 +482,10 @@ static int __init update_note_header_siz
+ 		}
+ 		kfree(notes_section);
+ 		phdr_ptr->p_memsz = real_sz;
++		if (real_sz == 0) {
++			pr_warn("Warning: Zero PT_NOTE entries found\n");
++			return -EINVAL;
++		}
  	}
- 	mark_buffer_dirty(bh);
--	brelse(bh);
-+	put_bh(bh);
  
-  out_mark:
- 	if (ncleaned || ndirtied) {
-@@ -994,7 +994,7 @@ ssize_t nilfs_sufile_set_suinfo(struct i
+ 	return 0;
+@@ -655,7 +660,8 @@ static int __init update_note_header_siz
+ 				((nhdr_ptr->n_namesz + 3) & ~3) +
+ 				((nhdr_ptr->n_descsz + 3) & ~3);
+ 			if ((real_sz + sz) > max_sz) {
+-				pr_warn("Warning: dropping PT_NOTE entry\n");
++				pr_warn("Warning: Exceeded p_memsz, dropping PT_NOTE entry n_namesz=0x%x, n_descsz=0x%x\n",
++					nhdr_ptr->n_namesz, nhdr_ptr->n_descsz);
+ 				break;
+ 			}
+ 			real_sz += sz;
+@@ -663,6 +669,10 @@ static int __init update_note_header_siz
+ 		}
+ 		kfree(notes_section);
+ 		phdr_ptr->p_memsz = real_sz;
++		if (real_sz == 0) {
++			pr_warn("Warning: Zero PT_NOTE entries found\n");
++			return -EINVAL;
++		}
  	}
- 	nilfs_mdt_mark_dirty(sufile);
-  out_header:
--	brelse(header_bh);
-+	put_bh(header_bh);
-  out_sem:
- 	up_write(&NILFS_MDT(sufile)->mi_sem);
- 	return ret;
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from greg.pearson@hp.com are
 
-nilfs2-update-maintainers-file-entries.patch
-nilfs2-add-struct-nilfs_suinfo_update-and-flags.patch
-nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
-nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
-nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl.patch
-nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl-fix.patch
+vmcore-prevent-pt_note-p_memsz-overflow-during-header-update.patch
+vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch
+vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch
 
