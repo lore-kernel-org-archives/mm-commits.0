@@ -1,183 +1,103 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- hfsplus-implement-get-and-verify-block-list-header-functionality.patch
- removed from -mm tree
-Date: Wed, 05 Feb 2014 15:49:13 -0800
-Message-ID: <52f2cdf9.f7PnCRdbn2onmdwi%akpm@linux-foundation.org>
+ hfsplus-implement-functionality-of-journal-log-wrapping.patch removed from
+ -mm tree
+Date: Wed, 05 Feb 2014 15:49:17 -0800
+Message-ID: <52f2cdfd.VmOAeXG5kZ7EEgsQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39210 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39213 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753014AbaBEXtO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 18:49:14 -0500
+	with ESMTP id S1753623AbaBEXtS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 18:49:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: [to-be-updated] hfsplus-implement-get-and-verify-block-list-header-functionality.patch removed from -mm tree
+Subject: [to-be-updated] hfsplus-implement-functionality-of-journal-log-wrapping.patch removed from -mm tree
 To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 05 Feb 2014 15:49:13 -0800
+Date: Wed, 05 Feb 2014 15:49:17 -0800
 
 
 The patch titled
-     Subject: hfsplus: implement get and verify block list header functionality
+     Subject: hfsplus: implement functionality of journal log wrapping
 has been removed from the -mm tree.  Its filename was
-     hfsplus-implement-get-and-verify-block-list-header-functionality.patch
+     hfsplus-implement-functionality-of-journal-log-wrapping.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: implement get and verify block list header functionality
+Subject: hfsplus: implement functionality of journal log wrapping
 
-Implement functionality of reading of block list's header from journal log
-and veryfing of it.
+The journal log is a circular buffer.  Thereby, journal log's content can
+be splitted by journal end on two parts in some situations.  When reading
+or writing the journal buffer, the I/O operation must stop at the end of
+the journal buffer and resume (wrap around) immediately following the
+journal header.
+
+This patch implements functionality of wrapping of journal log for such
+situation. Namely, it means setting of "start" field of journal
+header by journal header size value.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Tested-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/journal.c |  102 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 102 insertions(+)
+ fs/hfsplus/journal.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN fs/hfsplus/journal.c~hfsplus-implement-get-and-verify-block-list-header-functionality fs/hfsplus/journal.c
---- a/fs/hfsplus/journal.c~hfsplus-implement-get-and-verify-block-list-header-functionality
+diff -puN fs/hfsplus/journal.c~hfsplus-implement-functionality-of-journal-log-wrapping fs/hfsplus/journal.c
+--- a/fs/hfsplus/journal.c~hfsplus-implement-functionality-of-journal-log-wrapping
 +++ a/fs/hfsplus/journal.c
-@@ -49,6 +49,18 @@
- #define JHDR_SIZE(jh) \
- 	(le32_to_cpu(((struct hfsplus_journal_header *)(jh))->jhdr_size))
- 
-+#define TR_MAX_BLOCKS(blhdr) \
-+	(le16_to_cpu(((struct hfsplus_blhdr *)(blhdr))->max_blocks))
-+#define TR_BLOCKS(blhdr) \
-+	(le16_to_cpu(((struct hfsplus_blhdr *)(blhdr))->num_blocks))
-+#define TR_BYTES(blhdr) \
-+	(le32_to_cpu(((struct hfsplus_blhdr *)(blhdr))->bytes_used))
-+#define TR_SEQ_NUM(blhdr) \
-+	(le32_to_cpu(((struct hfsplus_blhdr *)(blhdr))->binfo[0].block.seq_num))
-+#define NEED_CHECK_CSUM(blhdr) \
-+	(le32_to_cpu(((struct hfsplus_blhdr *)(blhdr))->flags) & \
-+	 HFSPLUS_BLHDR_CHECK_CHECKSUMS)
-+
- /*
-  * struct hfsplus_blist_desc - descriptor of block list buffer
-  * @start_sec: start sector of block list
-@@ -295,12 +307,102 @@ static void hfsplus_deinit_block_list_de
- 	kfree(desc->dst_buf);
+@@ -290,6 +290,36 @@ static inline bool need_to_wrap_journal(
+ 	return (cur_off + req_size) > JOURNAL_SIZE(jh);
  }
  
-+static struct hfsplus_blhdr *hfsplus_get_blhdr(struct super_block *sb,
-+						sector_t start_sector,
-+						struct hfsplus_blist_desc *desc)
++static inline void __hfsplus_wrap_journal(struct super_block *sb)
 +{
-+	struct hfsplus_blhdr *blhdr;
-+	int err;
++	struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
 +
-+	hfs_dbg(JREPLAY, "get block list header: start_sector %lu\n",
-+		start_sector);
-+
-+	BUG_ON(!desc->blist_buf);
-+
-+	if (desc->start_sec == start_sector && desc->cur_sec == start_sector)
-+		return &desc->blhdr;
-+
-+	err = hfsplus_submit_bio(sb, start_sector,
-+				 desc->blist_buf, (void **)&blhdr, READA,
-+				 &desc->available_bytes);
-+	if (err) {
-+		pr_err("unable to read block list header\n");
-+		return NULL;
-+	}
-+
-+	desc->start_sec = start_sector;
-+	desc->cur_sec = start_sector;
-+	memcpy((void *)&desc->blhdr, (const void *)blhdr, sizeof(*blhdr));
-+	desc->binfo = &blhdr->binfo[0];
-+
-+	return &desc->blhdr;
++	jnl->jh->start = jnl->jh->jhdr_size;
 +}
 +
- static inline
- bool hfsplus_journal_empty(struct hfsplus_journal_header *jh)
- {
- 	return TR_START(jh) == LAST_TR_END(jh);
- }
++/* Return rest bytes of binfo or blhdr from the journal begin */
++static inline u32 hfsplus_wrap_journal(struct super_block *sb,
++					u64 cur_off, u32 req_size)
++{
++	struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
++	struct hfsplus_journal_header *jh = jnl->jh;
++	u32 used_bytes;
++	u32 rest_bytes;
++
++	hfs_dbg(JOURNAL, "cur_off %llu, req_size %u, JOURNAL_SIZE(jh) %llu\n",
++		cur_off, req_size, JOURNAL_SIZE(jh));
++
++	BUG_ON(cur_off > JOURNAL_SIZE(jh));
++	BUG_ON((cur_off + req_size) < JOURNAL_SIZE(jh));
++
++	used_bytes = JOURNAL_SIZE(jh) - cur_off;
++	rest_bytes = req_size - used_bytes;
++
++	__hfsplus_wrap_journal(sb);
++
++	return rest_bytes;
++}
++
+ static void hfsplus_deinit_block_list_desc(struct hfsplus_blist_desc *desc);
  
-+static inline
-+bool hfsplus_transaction_seq_num_valid(u32 prev_seq_num,
-+					struct hfsplus_blhdr *blhdr)
-+{
-+	if (prev_seq_num != 0) {
-+		u32 seq = TR_SEQ_NUM(blhdr);
-+
-+		if ((seq != 0) && (seq != prev_seq_num) &&
-+		    (seq != (prev_seq_num + 1))) {
-+			pr_err("transaction seq number %u is invalid\n",
-+				TR_SEQ_NUM(blhdr));
-+			return false;
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static
-+int hfsplus_verify_blhdr(u32 prev_seq_num, struct hfsplus_blhdr *blhdr)
-+{
-+	__le32 blhdr_checksum, cksum;
-+
-+	if (!hfsplus_transaction_seq_num_valid(prev_seq_num, blhdr))
-+		return -EIO;
-+
-+	if (TR_BLOCKS(blhdr) == 0 || TR_BYTES(blhdr) == 0) {
-+		pr_err("corrupted block list header\n");
-+		hfs_dbg(JOURNAL, "num_blocks %u, max_blocks %u\n",
-+			TR_BLOCKS(blhdr), TR_BYTES(blhdr));
-+		return -EIO;
-+	}
-+
-+	if (TR_BLOCKS(blhdr) > TR_MAX_BLOCKS(blhdr)) {
-+		pr_err("corrupted block list header\n");
-+		hfs_dbg(JOURNAL, "num_blocks %u, max_blocks %u\n",
-+			TR_BLOCKS(blhdr), TR_MAX_BLOCKS(blhdr));
-+		return -EIO;
-+	}
-+
-+	if (!NEED_CHECK_CSUM(blhdr))
-+		return 0; /* don't check checksums */
-+
-+	blhdr_checksum = blhdr->checksum;
-+	blhdr->checksum = 0;
-+
-+	cksum = HFSPLUS_CALC_CHECKSUM((unsigned char *)blhdr, sizeof(*blhdr));
-+	if (le32_to_cpu(cksum) != le32_to_cpu(blhdr_checksum)) {
-+		blhdr->checksum = blhdr_checksum;
-+		pr_err("corrupted block list header\n");
-+		hfs_dbg(JOURNAL, "calculated CRC %#x, blhdr_checksum %#x\n",
-+			cksum, be32_to_cpu(blhdr_checksum));
-+		return -EIO;
-+	}
-+
-+	blhdr->checksum = blhdr_checksum;
-+	return 0;
-+}
-+
- static int hfsplus_replay_journal(struct super_block *sb);
- 
- static
+ static int hfsplus_init_block_list_desc(struct super_block *sb,
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
 
-hfsplus-implement-functionality-of-getting-transactions-block-info.patch
-hfsplus-implement-functionality-of-journal-log-wrapping.patch
 hfsplus-implement-functionality-of-transactions-block-check.patch
 hfsplus-implement-replay-transactions-block-functionality.patch
 hfsplus-implement-replay-journal-functionality.patch
