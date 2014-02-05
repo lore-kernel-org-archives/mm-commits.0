@@ -1,48 +1,48 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- hfsplus-implement-functionality-of-journal-log-wrapping.patch removed from
- -mm tree
-Date: Wed, 05 Feb 2014 15:49:17 -0800
-Message-ID: <52f2cdfd.VmOAeXG5kZ7EEgsQ%akpm@linux-foundation.org>
+ hfsplus-implement-functionality-of-getting-transactions-block-info.patch
+ removed from -mm tree
+Date: Wed, 05 Feb 2014 15:49:15 -0800
+Message-ID: <52f2cdfb.xkh3+KN8wEC/4Y2i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39213 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39212 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753623AbaBEXtS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 18:49:18 -0500
+	with ESMTP id S1753036AbaBEXtQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 18:49:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: [to-be-updated] hfsplus-implement-functionality-of-journal-log-wrapping.patch removed from -mm tree
+Subject: [to-be-updated] hfsplus-implement-functionality-of-getting-transactions-block-info.patch removed from -mm tree
 To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 05 Feb 2014 15:49:17 -0800
+Date: Wed, 05 Feb 2014 15:49:15 -0800
 
 
 The patch titled
-     Subject: hfsplus: implement functionality of journal log wrapping
+     Subject: hfsplus: implement functionality of getting transaction's block info
 has been removed from the -mm tree.  Its filename was
-     hfsplus-implement-functionality-of-journal-log-wrapping.patch
+     hfsplus-implement-functionality-of-getting-transactions-block-info.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: implement functionality of journal log wrapping
+Subject: hfsplus: implement functionality of getting transaction's block info
 
-The journal log is a circular buffer.  Thereby, journal log's content can
-be splitted by journal end on two parts in some situations.  When reading
-or writing the journal buffer, the I/O operation must stop at the end of
-the journal buffer and resume (wrap around) immediately following the
-journal header.
+Implement functionality of getting access to concrete binfo in index.  If
+cached portion of block list doesn't contain requested binfo then it will
+be read and be cached a sector that it contains binfo for requested index.
 
-This patch implements functionality of wrapping of journal log for such
-situation. Namely, it means setting of "start" field of journal
-header by journal header size value.
+The journal log is a circular buffer.  Thereby, block list can be splitted
+by journal end on two parts in some situations.  A first part will be
+located at end of journal buffer when second one will continue the block
+list from journal buffer's begin.  As a result, method of getting binfo by
+index wraps around reading from journal buffer in such case.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
@@ -51,53 +51,167 @@ Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/journal.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ fs/hfsplus/journal.c |  122 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 122 insertions(+)
 
-diff -puN fs/hfsplus/journal.c~hfsplus-implement-functionality-of-journal-log-wrapping fs/hfsplus/journal.c
---- a/fs/hfsplus/journal.c~hfsplus-implement-functionality-of-journal-log-wrapping
+diff -puN fs/hfsplus/journal.c~hfsplus-implement-functionality-of-getting-transactions-block-info fs/hfsplus/journal.c
+--- a/fs/hfsplus/journal.c~hfsplus-implement-functionality-of-getting-transactions-block-info
 +++ a/fs/hfsplus/journal.c
-@@ -290,6 +290,36 @@ static inline bool need_to_wrap_journal(
- 	return (cur_off + req_size) > JOURNAL_SIZE(jh);
- }
+@@ -46,6 +46,10 @@
+ 	(le64_to_cpu(((struct hfsplus_journal_header *)(jh))->start))
+ #define LAST_TR_END(jh) \
+ 	(le64_to_cpu(((struct hfsplus_journal_header *)(jh))->end))
++#define JOURNAL_SIZE(jh) \
++	(le64_to_cpu(((struct hfsplus_journal_header *)(jh))->size))
++#define BLHDR_SIZE(jh) \
++	(le32_to_cpu(((struct hfsplus_journal_header *)(jh))->blhdr_size))
+ #define JHDR_SIZE(jh) \
+ 	(le32_to_cpu(((struct hfsplus_journal_header *)(jh))->jhdr_size))
  
-+static inline void __hfsplus_wrap_journal(struct super_block *sb)
-+{
-+	struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
+@@ -61,6 +65,23 @@
+ 	(le32_to_cpu(((struct hfsplus_blhdr *)(blhdr))->flags) & \
+ 	 HFSPLUS_BLHDR_CHECK_CHECKSUMS)
+ 
++#define BNUM(binfo) \
++	(le64_to_cpu(((struct hfsplus_block_info *)(binfo))->bnum))
++#define BSIZE(binfo) \
++	(le32_to_cpu(((struct hfsplus_block_info *)(binfo))->bsize))
++#define BINFO_OFFSET(index) \
++	(offsetof(struct hfsplus_blhdr, binfo) + \
++	 (index * sizeof(struct hfsplus_block_info)))
 +
-+	jnl->jh->start = jnl->jh->jhdr_size;
++static inline u16 BINFO_INDEX(size_t offset)
++{
++	if (offset <= offsetof(struct hfsplus_blhdr, binfo))
++		return 0;
++
++	return (offset - offsetof(struct hfsplus_blhdr, binfo)) /
++		sizeof(struct hfsplus_block_info);
 +}
 +
-+/* Return rest bytes of binfo or blhdr from the journal begin */
-+static inline u32 hfsplus_wrap_journal(struct super_block *sb,
+ /*
+  * struct hfsplus_blist_desc - descriptor of block list buffer
+  * @start_sec: start sector of block list
+@@ -263,6 +284,12 @@ static int hfsplus_create_journal(struct
+ 	return 0;
+ }
+ 
++static inline bool need_to_wrap_journal(struct hfsplus_journal_header *jh,
 +					u64 cur_off, u32 req_size)
 +{
-+	struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
-+	struct hfsplus_journal_header *jh = jnl->jh;
-+	u32 used_bytes;
-+	u32 rest_bytes;
-+
-+	hfs_dbg(JOURNAL, "cur_off %llu, req_size %u, JOURNAL_SIZE(jh) %llu\n",
-+		cur_off, req_size, JOURNAL_SIZE(jh));
-+
-+	BUG_ON(cur_off > JOURNAL_SIZE(jh));
-+	BUG_ON((cur_off + req_size) < JOURNAL_SIZE(jh));
-+
-+	used_bytes = JOURNAL_SIZE(jh) - cur_off;
-+	rest_bytes = req_size - used_bytes;
-+
-+	__hfsplus_wrap_journal(sb);
-+
-+	return rest_bytes;
++	return (cur_off + req_size) > JOURNAL_SIZE(jh);
 +}
 +
  static void hfsplus_deinit_block_list_desc(struct hfsplus_blist_desc *desc);
  
  static int hfsplus_init_block_list_desc(struct super_block *sb,
+@@ -339,6 +366,101 @@ static struct hfsplus_blhdr *hfsplus_get
+ }
+ 
+ static inline
++bool is_binfo_available(u16 index, struct hfsplus_blist_desc *desc)
++{
++	size_t lower_bound;
++	size_t upper_bound;
++	size_t req_off;
++
++	lower_bound = BINFO_OFFSET(desc->cur_index);
++	upper_bound = ((lower_bound >> HFSPLUS_SECTOR_SHIFT) <<
++			HFSPLUS_SECTOR_SHIFT) + desc->available_bytes;
++	req_off = BINFO_OFFSET(index);
++
++	return lower_bound <= req_off && req_off < upper_bound;
++}
++
++static
++struct hfsplus_block_info *hfsplus_get_binfo(struct super_block *sb,
++					     u16 index,
++					     struct hfsplus_blist_desc *desc)
++{
++	u16 diff;
++
++	BUG_ON(!desc->blist_buf || !desc->binfo);
++
++	hfs_dbg(JOURNAL, "get binfo[%u], is_binfo_available %u\n",
++		index, is_binfo_available(index, desc));
++
++	if (index >= TR_MAX_BLOCKS(&desc->blhdr)) {
++		pr_err("invalid block index: index %u, max_blocks %u\n",
++			index, TR_MAX_BLOCKS(&desc->blhdr));
++		return NULL;
++	}
++
++	if (!is_binfo_available(index, desc)) {
++		struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
++		struct hfsplus_journal_header *jh = jnl->jh;
++		u64 jh_off;
++		sector_t jh_sec;
++		u64 blhdr_off;
++		sector_t start_sec;
++		size_t secs;
++		size_t secs_size;
++		struct hfsplus_block_info *binfo;
++		int err;
++
++		jh_off = be64_to_cpu(jnl->jib->offset);
++		jh_sec = (jh_off >> HFSPLUS_SECTOR_SHIFT) +
++				HFSPLUS_SB(sb)->blockoffset;
++		blhdr_off = (desc->start_sec - jh_sec) << HFSPLUS_SECTOR_SHIFT;
++
++		secs = BINFO_OFFSET(index) >> HFSPLUS_SECTOR_SHIFT;
++		secs_size = secs << HFSPLUS_SECTOR_SHIFT;
++
++		if (need_to_wrap_journal(jh, blhdr_off,
++					 secs_size + HFSPLUS_SECTOR_SIZE)) {
++			u64 end_bytes;
++			u64 begin_bytes;
++
++			BUG_ON(JOURNAL_SIZE(jh) < blhdr_off);
++			end_bytes = JOURNAL_SIZE(jh) - blhdr_off;
++			BUG_ON(secs_size < end_bytes);
++			begin_bytes = secs_size - end_bytes;
++
++			start_sec = jh_sec;
++			start_sec += JHDR_SIZE(jh) >> HFSPLUS_SECTOR_SHIFT;
++			start_sec += begin_bytes >> HFSPLUS_SECTOR_SHIFT;
++		} else
++			start_sec = desc->start_sec + secs;
++
++		hfs_dbg(JOURNAL, "start sector %lu of blist's part\n",
++			start_sec);
++
++		err = hfsplus_submit_bio(sb, start_sec,
++					 desc->blist_buf, (void **)&binfo,
++					 READ, &desc->available_bytes);
++		if (err) {
++			pr_err("unable to read sector %lu of block list\n",
++				start_sec);
++			return NULL;
++		}
++
++		desc->cur_sec = start_sec;
++		desc->cur_index = BINFO_INDEX((secs << HFSPLUS_SECTOR_SHIFT));
++
++		if (desc->cur_index == 0) {
++			desc->binfo =
++				&((struct hfsplus_blhdr *)binfo)->binfo[0];
++		} else
++			desc->binfo = binfo;
++	}
++
++	diff = (desc->cur_index == 0 ? index : index - desc->cur_index);
++	return &desc->binfo[diff];
++}
++
++static inline
+ bool hfsplus_journal_empty(struct hfsplus_journal_header *jh)
+ {
+ 	return TR_START(jh) == LAST_TR_END(jh);
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
 
+hfsplus-implement-functionality-of-journal-log-wrapping.patch
 hfsplus-implement-functionality-of-transactions-block-check.patch
 hfsplus-implement-replay-transactions-block-functionality.patch
 hfsplus-implement-replay-journal-functionality.patch
