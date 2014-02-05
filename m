@@ -1,252 +1,148 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- hfsplus-implement-check-consistency-of-journal-log-file.patch removed from
- -mm tree
-Date: Wed, 05 Feb 2014 15:49:09 -0800
-Message-ID: <52f2cdf5.xQl6li1wjCfTuBwr%akpm@linux-foundation.org>
+ hfsplus-introduce-descriptor-of-block-list-buffer.patch removed from -mm
+ tree
+Date: Wed, 05 Feb 2014 15:49:11 -0800
+Message-ID: <52f2cdf7.LLkhisK0CdJtG4GK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39207 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753014AbaBEXtK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 18:49:10 -0500
+	with ESMTP id S1753014AbaBEXtM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 18:49:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, htl10@users.sourceforge.net, hch@infradead.org, slava@dubeyko.com
 
-Subject: [to-be-updated] hfsplus-implement-check-consistency-of-journal-log-file.patch removed from -mm tree
+Subject: [to-be-updated] hfsplus-introduce-descriptor-of-block-list-buffer.patch removed from -mm tree
 To: slava@dubeyko.com,hch@infradead.org,htl10@users.sourceforge.net,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 05 Feb 2014 15:49:09 -0800
+Date: Wed, 05 Feb 2014 15:49:11 -0800
 
 
 The patch titled
-     Subject: hfsplus: implement check consistency of journal log file
+     Subject: hfsplus: introduce descriptor of block list buffer
 has been removed from the -mm tree.  Its filename was
-     hfsplus-implement-check-consistency-of-journal-log-file.patch
+     hfsplus-introduce-descriptor-of-block-list-buffer.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: implement check consistency of journal log file
+Subject: hfsplus: introduce descriptor of block list buffer
 
-Implement functionality of checking main HFS+ journal structures (journal
-info block and journal header) before replaying of journal buffer's
-transactions.
+Lis (binfo array) can have size from 4KB till 16KB.  Thereby, block list
+can be placed in several file system blocks.
+
+This patch introduces special structure that it incapsulates all necessary
+details and buffer's pointers for passing through binfo array, check binfo
+and replay transactions' blocks.
+
+Also, the patch implements functions that initialize and deinitialize
+hfsplus_blist_desc structure.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Tested-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/journal.c |  156 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 156 insertions(+)
+ fs/hfsplus/journal.c |   68 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
 
-diff -puN fs/hfsplus/journal.c~hfsplus-implement-check-consistency-of-journal-log-file fs/hfsplus/journal.c
---- a/fs/hfsplus/journal.c~hfsplus-implement-check-consistency-of-journal-log-file
+diff -puN fs/hfsplus/journal.c~hfsplus-introduce-descriptor-of-block-list-buffer fs/hfsplus/journal.c
+--- a/fs/hfsplus/journal.c~hfsplus-introduce-descriptor-of-block-list-buffer
 +++ a/fs/hfsplus/journal.c
-@@ -42,6 +42,13 @@
- 	((sector_t)(blk) << \
- 	 (HFSPLUS_SB(sb)->alloc_blksz_shift - HFSPLUS_SECTOR_SHIFT))
+@@ -50,6 +50,30 @@
+ 	(le32_to_cpu(((struct hfsplus_journal_header *)(jh))->jhdr_size))
  
-+#define TR_START(jh) \
-+	(le64_to_cpu(((struct hfsplus_journal_header *)(jh))->start))
-+#define LAST_TR_END(jh) \
-+	(le64_to_cpu(((struct hfsplus_journal_header *)(jh))->end))
-+#define JHDR_SIZE(jh) \
-+	(le32_to_cpu(((struct hfsplus_journal_header *)(jh))->jhdr_size))
-+
  /*
++ * struct hfsplus_blist_desc - descriptor of block list buffer
++ * @start_sec: start sector of block list
++ * @cur_sec: current sector of block list
++ * @cur_index: start block index for current sector
++ * @available_bytes: how many bytes of block list does contain buffer?
++ * @blist_buf: buffer for current part of block list
++ * @binfo: pointer on binfo[0]
++ * @blhdr: cached copy of block list header
++ * @src_buf: pointer on source block in journal buffer
++ * @dst_buf: pointer on buffer for destination block
++ */
++struct hfsplus_blist_desc {
++	sector_t start_sec;
++	sector_t cur_sec;
++	u16 cur_index;
++	size_t available_bytes;
++	void *blist_buf;
++	struct hfsplus_block_info *binfo;
++	struct hfsplus_blhdr blhdr;
++	void *src_buf;
++	void *dst_buf;
++};
++
++/*
   * We want at least 8 megs of journal for each 100 gigs of
   * disk space.  We cap the size at 512 megs (64x default), unless
-@@ -120,6 +127,32 @@ static u32 calc_internal_checksum(u32 se
- #define HFSPLUS_CALC_CHECKSUM(ptr, len) \
- 	HFSPLUS_CHECKSUM(calc_internal_checksum(0, ptr, len))
- 
-+static int hfsplus_replay_journal_header(struct super_block *sb)
-+{
-+	struct hfsplus_journal *jnl = HFSPLUS_SB(sb)->jnl;
-+	struct hfsplus_journal_header *jh = jnl->jh;
-+	sector_t jh_blk = JH_BLOCK(sb, jnl);
-+	int err;
-+
-+	hfs_dbg(JOURNAL, "replay journal header\n");
-+
-+	jh->start = cpu_to_le64((u64)JHDR_SIZE(jh));
-+	jh->end = cpu_to_le64((u64)JHDR_SIZE(jh));
-+
-+	jh->checksum = 0;
-+	jh->checksum = HFSPLUS_CALC_CHECKSUM((unsigned char *)jh, sizeof(*jh));
-+
-+	err = hfsplus_submit_bio(sb, BLOCK_TO_SEC(sb, jh_blk),
-+				 jnl->jh_buf, NULL, WRITE_SYNC, NULL);
-+	if (err) {
-+		pr_err("unable to write journal header block %lu\n",
-+			jh_blk);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
- /*
-  * hfsplus_create_journal - create journal
-  *
-@@ -194,6 +227,121 @@ static int hfsplus_create_journal(struct
+  * the allocation block size is larger, in which case we use one
+@@ -227,6 +251,50 @@ static int hfsplus_create_journal(struct
  	return 0;
  }
  
-+static inline
-+bool hfsplus_journal_empty(struct hfsplus_journal_header *jh)
++static void hfsplus_deinit_block_list_desc(struct hfsplus_blist_desc *desc);
++
++static int hfsplus_init_block_list_desc(struct super_block *sb,
++					struct hfsplus_blist_desc *desc)
 +{
-+	return TR_START(jh) == LAST_TR_END(jh);
-+}
-+
-+static int hfsplus_replay_journal(struct super_block *sb);
-+
-+static
-+int hfsplus_check_journal_info_block(struct hfsplus_journal_info_block *jib)
-+{
-+	u32 jib_flags;
-+
-+	jib_flags = be32_to_cpu(jib->flags);
-+	hfs_dbg(JOURNAL, "jib->flags: %#x\n", jib_flags);
-+
-+	/* Check that journal is on another volume */
-+	if (jib_flags & HFSPLUS_JOURNAL_ON_OTHER_DEVICE &&
-+	    !(jib_flags & HFSPLUS_JOURNAL_IN_FS)) {
-+		pr_err("unable to access the HFS+ journal\n");
-+		return -EOPNOTSUPP;
-+	}
-+
-+	/* Check that journal is created yet */
-+	if (jib_flags & HFSPLUS_JOURNAL_NEED_INIT) {
-+		pr_err("HFS+ journal is not created\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int hfsplus_verify_journal_header(struct hfsplus_journal_header *jh)
-+{
-+	__le32 jh_checksum;
-+	__le32 checksum;
-+
-+	if (jh->magic != cpu_to_le32(HFSPLUS_JOURNAL_HEADER_MAGIC) ||
-+	    jh->endian != cpu_to_le32(HFSPLUS_JOURNAL_HEADER_ENDIAN)) {
-+		pr_err("invalid journal header\n");
-+		return -EIO;
-+	}
-+
-+	jh_checksum = jh->checksum;
-+	jh->checksum = 0;
-+
-+	checksum = HFSPLUS_CALC_CHECKSUM((unsigned char *)jh, sizeof(*jh));
-+
-+	if (le32_to_cpu(checksum) != le32_to_cpu(jh_checksum)) {
-+		jh->checksum = jh_checksum;
-+		pr_err("invalid journal header\n");
-+		hfs_dbg(JOURNAL, "calculated CRC %#x, jh_checksum %#x\n",
-+			checksum, le32_to_cpu(jh_checksum));
-+		return -EIO;
-+	}
-+
-+	jh->checksum = jh_checksum;
-+
-+	return 0;
-+}
-+
-+/*
-+ * hfsplus_check_journal - check consistency of journal log file.
-+ *
-+ * @sb: superblock
-+ */
-+int hfsplus_check_journal(struct super_block *sb)
-+{
-+	struct hfsplus_journal_header *jh;
 +	int err;
 +
-+	if (!HFSPLUS_SB(sb)->jnl) {
-+		hfs_dbg(JOURNAL, "HFS+ journal absent");
-+		return 0;
++	memset((void *)desc, 0, sizeof(*desc));
++
++	desc->blist_buf = kmalloc(hfsplus_min_io_size(sb), GFP_KERNEL);
++	if (unlikely(!desc->blist_buf)) {
++		pr_err("unable to allocate blist_buf\n");
++		err = -ENOMEM;
++		goto failed_init;
 +	}
 +
-+	hfs_dbg(JOURNAL, "check HFS+ journal\n");
-+
-+	err = hfsplus_check_journal_info_block(HFSPLUS_SB(sb)->jnl->jib);
-+	if (err)
-+		return err;
-+
-+	jh = HFSPLUS_SB(sb)->jnl->jh;
-+	err = hfsplus_verify_journal_header(jh);
-+	if (err)
-+		return err;
-+
-+	if (test_and_clear_bit(HFSPLUS_SB_NORECOVERY, &HFSPLUS_SB(sb)->flags)) {
-+		pr_info("journal replay is skiped, mounting read-only.\n");
-+		sb->s_flags |= MS_RDONLY;
-+		return -EROFS;
++	desc->src_buf = kmalloc(hfsplus_min_io_size(sb), GFP_KERNEL);
++	if (unlikely(!desc->src_buf)) {
++		pr_err("unable to allocate src_buf\n");
++		err = -ENOMEM;
++		goto failed_init;
 +	}
 +
-+	if (hfsplus_journal_empty(jh)) {
-+		err = hfsplus_replay_journal_header(sb);
-+		if (unlikely(err)) {
-+			pr_err("journal replay failed, please run fsck.hfsplus\n");
-+			return err;
-+		}
-+		/* If they're the same, we can mount, it's clean */
-+		hfs_dbg(JOURNAL, "journal is empty\n");
-+		return 0;
-+	} else {
-+		/* Try to replay journal */
-+		err = hfsplus_replay_journal(sb);
-+		if (unlikely(err)) {
-+			pr_err("journal replay failed, please run fsck.hfsplus\n");
-+			return err;
-+		}
-+		hfs_dbg(JOURNAL, "journal replay is done\n");
++	desc->dst_buf = kmalloc(hfsplus_min_io_size(sb), GFP_KERNEL);
++	if (unlikely(!desc->dst_buf)) {
++		pr_err("unable to allocate dst_buf\n");
++		err = -ENOMEM;
++		goto failed_init;
 +	}
 +
 +	return 0;
++
++failed_init:
++	hfsplus_deinit_block_list_desc(desc);
++	return err;
 +}
 +
- /*
-  * hfsplus_init_journal - initialize journal object
-  *
-@@ -266,6 +414,13 @@ int hfsplus_init_journal(struct super_bl
- 	}
- 
- 	if (JIB_FLAGS(jnl) & HFSPLUS_JOURNAL_NEED_INIT) {
-+		if (test_and_clear_bit(HFSPLUS_SB_NORECOVERY,
-+					&HFSPLUS_SB(sb)->flags)) {
-+			sb->s_flags |= MS_RDONLY;
-+			err = -EROFS;
-+			goto finish_journal_init;
-+		}
++static void hfsplus_deinit_block_list_desc(struct hfsplus_blist_desc *desc)
++{
++	kfree(desc->blist_buf);
++	kfree(desc->src_buf);
++	kfree(desc->dst_buf);
++}
 +
- 		hfs_dbg(JOURNAL, "create HFS+ journal\n");
- 
- 		err = hfsplus_create_journal(sb, jnl);
-@@ -293,6 +448,7 @@ int hfsplus_init_journal(struct super_bl
- 		}
- 	}
- 
-+finish_journal_init:
- 	mutex_init(&jnl->jnl_lock);
- 	jnl->sbp = sb;
- 	HFSPLUS_SB(sb)->jnl = jnl;
+ static inline
+ bool hfsplus_journal_empty(struct hfsplus_journal_header *jh)
+ {
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
 
-hfsplus-introduce-descriptor-of-block-list-buffer.patch
 hfsplus-implement-get-and-verify-block-list-header-functionality.patch
 hfsplus-implement-functionality-of-getting-transactions-block-info.patch
 hfsplus-implement-functionality-of-journal-log-wrapping.patch
