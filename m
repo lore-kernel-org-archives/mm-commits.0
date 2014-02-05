@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq.patch
- added to -mm tree
-Date: Wed, 05 Feb 2014 13:37:52 -0800
-Message-ID: <52f2af30./IPP8H8hgNgBXmIN%akpm@linux-foundation.org>
+ nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch added
+ to -mm tree
+Date: Wed, 05 Feb 2014 13:49:10 -0800
+Message-ID: <52f2b1d6.rY8djeO9sp19BTZH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38470 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754557AbaBEVhx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 16:37:53 -0500
+	with ESMTP id S1752067AbaBEVtL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 16:49:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, kosaki.motohiro@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp
 
-Subject: + mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq.patch added to -mm tree
-To: kosaki.motohiro@jp.fujitsu.com,stable@vger.kernel.org
+Subject: + nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch added to -mm tree
+To: konishi.ryusuke@lab.ntt.co.jp,andreas.rohner@gmx.net
 From: akpm@linux-foundation.org
-Date: Wed, 05 Feb 2014 13:37:52 -0800
+Date: Wed, 05 Feb 2014 13:49:10 -0800
 
 
 The patch titled
-     Subject: mm: __set_page_dirty uses spin_lock_irqsave instead of spin_lock_irq
+     Subject: nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix
 has been added to the -mm tree.  Its filename is
-     mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq.patch
+     nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,69 +45,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: mm: __set_page_dirty uses spin_lock_irqsave instead of spin_lock_irq
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix
 
-To use spin_{un}lock_irq is dangerous if caller disabled interrupt. 
-During aio buffer migration, we have a possibility to see the following
-call stack.
+Use put_bh() instead of brelse() because we know bh != NULL.
 
-aio_migratepage  [disable interrupt]
-  migrate_page_copy
-    clear_page_dirty_for_io
-      set_page_dirty
-        __set_page_dirty_buffers
-          __set_page_dirty
-            spin_lock_irq
-
-This mean, current aio migration is a deadlockable.  spin_lock_irqsave is
-a safer alternative and we should use it.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reported-by: David Rientjes rientjes@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Andreas Rohner <andreas.rohner@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/nilfs2/sufile.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/buffer.c~mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq fs/buffer.c
---- a/fs/buffer.c~mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq
-+++ a/fs/buffer.c
-@@ -654,14 +654,16 @@ EXPORT_SYMBOL(mark_buffer_dirty_inode);
- static void __set_page_dirty(struct page *page,
- 		struct address_space *mapping, int warn)
- {
--	spin_lock_irq(&mapping->tree_lock);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&mapping->tree_lock, flags);
- 	if (page->mapping) {	/* Race with truncate? */
- 		WARN_ON_ONCE(warn && !PageUptodate(page));
- 		account_page_dirtied(page, mapping);
- 		radix_tree_tag_set(&mapping->page_tree,
- 				page_index(page), PAGECACHE_TAG_DIRTY);
- 	}
--	spin_unlock_irq(&mapping->tree_lock);
-+	spin_unlock_irqrestore(&mapping->tree_lock, flags);
- 	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
- }
+diff -puN fs/nilfs2/sufile.c~nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix fs/nilfs2/sufile.c
+--- a/fs/nilfs2/sufile.c~nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix
++++ a/fs/nilfs2/sufile.c
+@@ -978,13 +978,13 @@ ssize_t nilfs_sufile_set_suinfo(struct i
  
+ 		/* get different block */
+ 		mark_buffer_dirty(bh);
+-		brelse(bh);
++		put_bh(bh);
+ 		ret = nilfs_mdt_get_block(sufile, blkoff, 1, NULL, &bh);
+ 		if (unlikely(ret < 0))
+ 			goto out_mark;
+ 	}
+ 	mark_buffer_dirty(bh);
+-	brelse(bh);
++	put_bh(bh);
+ 
+  out_mark:
+ 	if (ncleaned || ndirtied) {
+@@ -994,7 +994,7 @@ ssize_t nilfs_sufile_set_suinfo(struct i
+ 	}
+ 	nilfs_mdt_mark_dirty(sufile);
+  out_header:
+-	brelse(header_bh);
++	put_bh(header_bh);
+  out_sem:
+ 	up_write(&NILFS_MDT(sufile)->mi_sem);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch
-mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
+nilfs2-update-maintainers-file-entries.patch
+nilfs2-add-struct-nilfs_suinfo_update-and-flags.patch
+nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
+nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
+nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl.patch
+nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl-fix.patch
 
