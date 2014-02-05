@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-make-first_page-visible-before-pagetail.patch
- added to -mm tree
-Date: Tue, 04 Feb 2014 16:33:05 -0800
-Message-ID: <52f186c1.LTwE9DaIbaUd8JOF%akpm__47605.7834028781$1391560397$gmane$org@linux-foundation.org>
+Subject: + mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch added
+ to -mm tree
+Date: Tue, 04 Feb 2014 16:34:08 -0800
+Message-ID: <52f18700.JeKec1NEkw3GYm6H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58903 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58908 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751219AbaBEAdH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 19:33:07 -0500
+	with ESMTP id S1750899AbaBEAeJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Feb 2014 19:34:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org, mhocko@suse.cz, mgorman@suse.de, cl@linux.com, aquini@redhat.com, Holger.Kiehl@dwd.de, rientjes@google.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, iamjoonsoo.kim@lge.com, davidlohr@hp.com, rientjes@google.com
 
-Subject: + mm-page_alloc-make-first_page-visible-before-pagetail.patch added to -mm tree
-To: rientjes@google.com,Holger.Kiehl@dwd.de,aquini@redhat.com,cl@linux.com,mgorman@suse.de,mhocko@suse.cz,stable@vger.kernel.org,vbabka@suse.cz
+Subject: + mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch added to -mm tree
+To: rientjes@google.com,davidlohr@hp.com,iamjoonsoo.kim@lge.com,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Tue, 04 Feb 2014 16:33:05 -0800
+Date: Tue, 04 Feb 2014 16:34:08 -0800
 
 
 The patch titled
-     Subject: mm, page_alloc: make first_page visible before PageTail
+     Subject: mm, hugetlb: mark some bootstrap functions as __init
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-make-first_page-visible-before-pagetail.patch
+     mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-make-first_page-visible-before-pagetail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-make-first_page-visible-before-pagetail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,49 +45,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, page_alloc: make first_page visible before PageTail
+Subject: mm, hugetlb: mark some bootstrap functions as __init
 
-Commit bf6bddf1924e ("mm: introduce compaction and migration for ballooned
-pages") introduces page_count(page) into memory compaction which
-dereferences page->first_page if PageTail(page).
+Both prep_compound_huge_page() and prep_compound_gigantic_page() are only
+called at bootstrap and can be marked as __init.
 
-This caused Holger to observe a very rare NULL pointer dereference on the
-aforementioned page_count(page).
-
-Introduce a store memory barrier to ensure page->first_page is properly
-initialized so that code that does page_count(page) on pages off the lru
-always have a valid p->first_page.
+The __SetPageTail(page) in prep_compound_gigantic_page() happening before
+page->first_page is initialized is not concerning since this is bootstrap.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Holger Kiehl <Holger.Kiehl@dwd.de>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: <stable@vger.kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-make-first_page-visible-before-pagetail mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-make-first_page-visible-before-pagetail
-+++ a/mm/page_alloc.c
-@@ -369,9 +369,11 @@ void prep_compound_page(struct page *pag
- 	__SetPageHead(page);
- 	for (i = 1; i < nr_pages; i++) {
- 		struct page *p = page + i;
--		__SetPageTail(p);
- 		set_page_count(p, 0);
- 		p->first_page = page;
-+		/* Make sure p->first_page is always valid for PageTail() */
-+		smp_wmb();
-+		__SetPageTail(p);
- 	}
+diff -puN mm/hugetlb.c~mm-hugetlb-mark-some-bootstrap-functions-as-__init mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-mark-some-bootstrap-functions-as-__init
++++ a/mm/hugetlb.c
+@@ -689,7 +689,8 @@ static void prep_new_huge_page(struct hs
+ 	put_page(page); /* free it into the hugepage allocator */
  }
  
+-static void prep_compound_gigantic_page(struct page *page, unsigned long order)
++static void __init prep_compound_gigantic_page(struct page *page,
++					       unsigned long order)
+ {
+ 	int i;
+ 	int nr_pages = 1 << order;
+@@ -1319,7 +1320,7 @@ found:
+ 	return 1;
+ }
+ 
+-static void prep_compound_huge_page(struct page *page, int order)
++static void __init prep_compound_huge_page(struct page *page, int order)
+ {
+ 	if (unlikely(order > (MAX_ORDER - 1)))
+ 		prep_compound_gigantic_page(page, order);
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -102,6 +99,7 @@ numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockrese
 kthread-ensure-locality-of-task_struct-allocations.patch
 mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
 mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
+mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
 mm-utilc-add-kstrimdup.patch
 cpusets-allocate-heap-only-when-required.patch
 linux-next.patch
