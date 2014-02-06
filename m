@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-l4f00242t03-remove-unnecessary-oom-messages.patch
- added to -mm tree
-Date: Thu, 06 Feb 2014 14:02:51 -0800
-Message-ID: <52f4068b.cKTMoa0vSwhNtUCW%akpm@linux-foundation.org>
+Subject: + backlight-adp8860-remove-unnecessary-oom-messages.patch added
+ to -mm tree
+Date: Thu, 06 Feb 2014 14:02:45 -0800
+Message-ID: <52f40685.xTxs6JnxQGSeuG8Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49391 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49376 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752708AbaBFWCw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 17:02:52 -0500
+	with ESMTP id S1752708AbaBFWCq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 17:02:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, michael.hennerich@analog.com, jg1.han@samsung.com
 
-Subject: + backlight-l4f00242t03-remove-unnecessary-oom-messages.patch added to -mm tree
-To: jg1.han@samsung.com
+Subject: + backlight-adp8860-remove-unnecessary-oom-messages.patch added to -mm tree
+To: jg1.han@samsung.com,michael.hennerich@analog.com
 From: akpm@linux-foundation.org
-Date: Thu, 06 Feb 2014 14:02:51 -0800
+Date: Thu, 06 Feb 2014 14:02:45 -0800
 
 
 The patch titled
-     Subject: backlight: l4f00242t03: remove unnecessary OOM messages
+     Subject: backlight: adp8860: remove unnecessary OOM messages
 has been added to the -mm tree.  Its filename is
-     backlight-l4f00242t03-remove-unnecessary-oom-messages.patch
+     backlight-adp8860-remove-unnecessary-oom-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-l4f00242t03-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-adp8860-remove-unnecessary-oom-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-l4f00242t03-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-adp8860-remove-unnecessary-oom-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,34 +45,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: l4f00242t03: remove unnecessary OOM messages
+Subject: backlight: adp8860: remove unnecessary OOM messages
 
 The site-specific OOM messages are unnecessary, because they duplicate the
 MM subsystem generic OOM message.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Michael Hennerich <michael.hennerich@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/l4f00242t03.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/video/backlight/adp8860_bl.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/l4f00242t03.c~backlight-l4f00242t03-remove-unnecessary-oom-messages drivers/video/backlight/l4f00242t03.c
---- a/drivers/video/backlight/l4f00242t03.c~backlight-l4f00242t03-remove-unnecessary-oom-messages
-+++ a/drivers/video/backlight/l4f00242t03.c
-@@ -181,11 +181,8 @@ static int l4f00242t03_probe(struct spi_
+diff -puN drivers/video/backlight/adp8860_bl.c~backlight-adp8860-remove-unnecessary-oom-messages drivers/video/backlight/adp8860_bl.c
+--- a/drivers/video/backlight/adp8860_bl.c~backlight-adp8860-remove-unnecessary-oom-messages
++++ a/drivers/video/backlight/adp8860_bl.c
+@@ -224,10 +224,8 @@ static int adp8860_led_probe(struct i2c_
  
- 	priv = devm_kzalloc(&spi->dev, sizeof(struct l4f00242t03_priv),
+ 	led = devm_kzalloc(&client->dev, sizeof(*led) * pdata->num_leds,
  				GFP_KERNEL);
--
--	if (priv == NULL) {
--		dev_err(&spi->dev, "No memory for this device.\n");
-+	if (priv == NULL)
+-	if (led == NULL) {
+-		dev_err(&client->dev, "failed to alloc memory\n");
++	if (led == NULL)
  		return -ENOMEM;
 -	}
  
- 	spi_set_drvdata(spi, priv);
- 	spi->bits_per_word = 9;
+ 	ret = adp8860_write(client, ADP8860_ISCFR, pdata->led_fade_law);
+ 	ret = adp8860_write(client, ADP8860_ISCT1,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
