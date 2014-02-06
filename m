@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lm3533_bl-remove-unnecessary-oom-messages.patch added to -mm tree
-Date: Thu, 06 Feb 2014 14:02:52 -0800
-Message-ID: <52f4068c.VwrDgoJr36TDnrRM%akpm@linux-foundation.org>
+Subject: + backlight-lms283gf05-remove-unnecessary-oom-messages.patch
+ added to -mm tree
+Date: Thu, 06 Feb 2014 14:02:53 -0800
+Message-ID: <52f4068d.VUOWNr6VHD6wO4hu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49393 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49395 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752708AbaBFWCx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 17:02:53 -0500
+	with ESMTP id S1752708AbaBFWCy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 17:02:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jhovold@gmail.com, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, marex@denx.de, jg1.han@samsung.com
 
-Subject: + backlight-lm3533_bl-remove-unnecessary-oom-messages.patch added to -mm tree
-To: jg1.han@samsung.com,jhovold@gmail.com
+Subject: + backlight-lms283gf05-remove-unnecessary-oom-messages.patch added to -mm tree
+To: jg1.han@samsung.com,marex@denx.de
 From: akpm@linux-foundation.org
-Date: Thu, 06 Feb 2014 14:02:52 -0800
+Date: Thu, 06 Feb 2014 14:02:53 -0800
 
 
 The patch titled
-     Subject: backlight: lm3533_bl: remove unnecessary OOM messages
+     Subject: backlight: lms283gf05: remove unnecessary OOM messages
 has been added to the -mm tree.  Its filename is
-     backlight-lm3533_bl-remove-unnecessary-oom-messages.patch
+     backlight-lms283gf05-remove-unnecessary-oom-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lm3533_bl-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-lms283gf05-remove-unnecessary-oom-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lm3533_bl-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-lms283gf05-remove-unnecessary-oom-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,35 +45,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: lm3533_bl: remove unnecessary OOM messages
+Subject: backlight: lms283gf05: remove unnecessary OOM messages
 
 The site-specific OOM messages are unnecessary, because they duplicate the
 MM subsystem generic OOM message.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Johan Hovold <jhovold@gmail.com>
+Acked-by: Marek Vasut <marex@denx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3533_bl.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/video/backlight/lms283gf05.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/lm3533_bl.c~backlight-lm3533_bl-remove-unnecessary-oom-messages drivers/video/backlight/lm3533_bl.c
---- a/drivers/video/backlight/lm3533_bl.c~backlight-lm3533_bl-remove-unnecessary-oom-messages
-+++ a/drivers/video/backlight/lm3533_bl.c
-@@ -296,11 +296,8 @@ static int lm3533_bl_probe(struct platfo
- 	}
+diff -puN drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-remove-unnecessary-oom-messages drivers/video/backlight/lms283gf05.c
+--- a/drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-remove-unnecessary-oom-messages
++++ a/drivers/video/backlight/lms283gf05.c
+@@ -168,10 +168,8 @@ static int lms283gf05_probe(struct spi_d
  
- 	bl = devm_kzalloc(&pdev->dev, sizeof(*bl), GFP_KERNEL);
--	if (!bl) {
--		dev_err(&pdev->dev,
--				"failed to allocate memory for backlight\n");
-+	if (!bl)
+ 	st = devm_kzalloc(&spi->dev, sizeof(struct lms283gf05_state),
+ 				GFP_KERNEL);
+-	if (st == NULL) {
+-		dev_err(&spi->dev, "No memory for device state\n");
++	if (st == NULL)
  		return -ENOMEM;
 -	}
  
- 	bl->lm3533 = lm3533;
- 	bl->id = pdev->id;
+ 	ld = devm_lcd_device_register(&spi->dev, "lms283gf05", &spi->dev, st,
+ 					&lms_ops);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
