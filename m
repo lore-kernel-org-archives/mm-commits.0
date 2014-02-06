@@ -1,81 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + fs-minix-inodec-add-__init-to-init_inodecache.patch added to
- -mm tree
-Date: Thu, 06 Feb 2014 12:47:50 -0800
-Message-ID: <52f3f4f6.kQAWPLzMRcehK+S7%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ bcache-drop-l-suffix-when-comparing-ssize_t-with-0.patch removed from -mm
+ tree
+Date: Thu, 06 Feb 2014 12:51:22 -0800
+Message-ID: <52f3f5ca.6w/gZymQyjmt5TpJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48955 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48965 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751297AbaBFUrv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 15:47:51 -0500
+	with ESMTP id S1752045AbaBFUvX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 15:51:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, neilb@suse.de, kmo@daterainc.com, geert@linux-m68k.org
 
-Subject: + fs-minix-inodec-add-__init-to-init_inodecache.patch added to -mm tree
-To: fabf@skynet.be
+Subject: [to-be-updated] bcache-drop-l-suffix-when-comparing-ssize_t-with-0.patch removed from -mm tree
+To: geert@linux-m68k.org,kmo@daterainc.com,neilb@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Feb 2014 12:47:50 -0800
+Date: Thu, 06 Feb 2014 12:51:22 -0800
 
 
 The patch titled
-     Subject: fs/minix/inode.c: add __init to init_inodecache()
-has been added to the -mm tree.  Its filename is
-     fs-minix-inodec-add-__init-to-init_inodecache.patch
+     Subject: drivers/md/bcache/btree.c: drop L-suffix when comparing ssize_t with 0
+has been removed from the -mm tree.  Its filename was
+     bcache-drop-l-suffix-when-comparing-ssize_t-with-0.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-minix-inodec-add-__init-to-init_inodecache.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-minix-inodec-add-__init-to-init_inodecache.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/minix/inode.c: add __init to init_inodecache()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: drivers/md/bcache/btree.c: drop L-suffix when comparing ssize_t with 0
 
-init_inodecache is only called by __init init_minix_fs.
+drivers/md/bcache/btree.c: In function `insert_u64s_remaining':
+drivers/md/bcache/btree.c:1816: warning: comparison of distinct pointer types lacks a cast
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kent Overstreet <kmo@daterainc.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/inode.c |    2 +-
+ drivers/md/bcache/btree.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/minix/inode.c~fs-minix-inodec-add-__init-to-init_inodecache fs/minix/inode.c
---- a/fs/minix/inode.c~fs-minix-inodec-add-__init-to-init_inodecache
-+++ a/fs/minix/inode.c
-@@ -86,7 +86,7 @@ static void init_once(void *foo)
- 	inode_init_once(&ei->vfs_inode);
+diff -puN drivers/md/bcache/btree.c~bcache-drop-l-suffix-when-comparing-ssize_t-with-0 drivers/md/bcache/btree.c
+--- a/drivers/md/bcache/btree.c~bcache-drop-l-suffix-when-comparing-ssize_t-with-0
++++ a/drivers/md/bcache/btree.c
+@@ -1813,7 +1813,7 @@ static size_t insert_u64s_remaining(stru
+ 	if (b->keys.ops->is_extents)
+ 		ret -= KEY_MAX_U64S;
+ 
+-	return max(ret, 0L);
++	return max(ret, 0);
  }
  
--static int init_inodecache(void)
-+static int __init init_inodecache(void)
- {
- 	minix_inode_cachep = kmem_cache_create("minix_inode_cache",
- 					     sizeof(struct minix_inode_info),
+ static bool bch_btree_insert_keys(struct btree *b, struct btree_op *op,
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-fs-minix-inodec-add-__init-to-init_inodecache.patch
-fs-ufs-superc-add-__init-to-init_inodecache.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-fs-adfs-superc-add-__init-to-init_inodecache.patch
+bcache-use-%zi-to-format-size_t.patch
+bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix.patch
 linux-next.patch
-fs-udf-superc-add-__init-to-init_inodecache.patch
 
