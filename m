@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-corgi_lcd-remove-unnecessary-oom-messages.patch added to -mm tree
-Date: Thu, 06 Feb 2014 14:02:47 -0800
-Message-ID: <52f40687.IC2HAsU97Kcm1/d2%akpm@linux-foundation.org>
+Subject: + backlight-l4f00242t03-remove-unnecessary-oom-messages.patch
+ added to -mm tree
+Date: Thu, 06 Feb 2014 14:02:51 -0800
+Message-ID: <52f4068b.cKTMoa0vSwhNtUCW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49382 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49391 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752708AbaBFWCs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 17:02:48 -0500
+	with ESMTP id S1752708AbaBFWCw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 17:02:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + backlight-corgi_lcd-remove-unnecessary-oom-messages.patch added to -mm tree
+Subject: + backlight-l4f00242t03-remove-unnecessary-oom-messages.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Thu, 06 Feb 2014 14:02:47 -0800
+Date: Thu, 06 Feb 2014 14:02:51 -0800
 
 
 The patch titled
-     Subject: backlight: corgi_lcd: remove unnecessary OOM messages
+     Subject: backlight: l4f00242t03: remove unnecessary OOM messages
 has been added to the -mm tree.  Its filename is
-     backlight-corgi_lcd-remove-unnecessary-oom-messages.patch
+     backlight-l4f00242t03-remove-unnecessary-oom-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backlight-corgi_lcd-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/backlight-l4f00242t03-remove-unnecessary-oom-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-corgi_lcd-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/backlight-l4f00242t03-remove-unnecessary-oom-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: corgi_lcd: remove unnecessary OOM messages
+Subject: backlight: l4f00242t03: remove unnecessary OOM messages
 
 The site-specific OOM messages are unnecessary, because they duplicate the
 MM subsystem generic OOM message.
@@ -53,24 +54,25 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/corgi_lcd.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/video/backlight/l4f00242t03.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-remove-unnecessary-oom-messages drivers/video/backlight/corgi_lcd.c
---- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-remove-unnecessary-oom-messages
-+++ a/drivers/video/backlight/corgi_lcd.c
-@@ -543,10 +543,8 @@ static int corgi_lcd_probe(struct spi_de
- 	}
+diff -puN drivers/video/backlight/l4f00242t03.c~backlight-l4f00242t03-remove-unnecessary-oom-messages drivers/video/backlight/l4f00242t03.c
+--- a/drivers/video/backlight/l4f00242t03.c~backlight-l4f00242t03-remove-unnecessary-oom-messages
++++ a/drivers/video/backlight/l4f00242t03.c
+@@ -181,11 +181,8 @@ static int l4f00242t03_probe(struct spi_
  
- 	lcd = devm_kzalloc(&spi->dev, sizeof(struct corgi_lcd), GFP_KERNEL);
--	if (!lcd) {
--		dev_err(&spi->dev, "failed to allocate memory\n");
-+	if (!lcd)
+ 	priv = devm_kzalloc(&spi->dev, sizeof(struct l4f00242t03_priv),
+ 				GFP_KERNEL);
+-
+-	if (priv == NULL) {
+-		dev_err(&spi->dev, "No memory for this device.\n");
++	if (priv == NULL)
  		return -ENOMEM;
 -	}
  
- 	lcd->spi_dev = spi;
- 
+ 	spi_set_drvdata(spi, priv);
+ 	spi->bits_per_word = 9;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
