@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-devresc-fix-some-sparse-warnings.patch added to -mm tree
-Date: Thu, 06 Feb 2014 14:29:47 -0800
-Message-ID: <52f40cdb.brd8oVjY1DfkFsW9%akpm@linux-foundation.org>
+Subject: +
+ mm-readaheadc-fix-readahead-fail-for-no-local-memory-and-limit-readahead-pages.patch added to -mm tree
+Date: Thu, 06 Feb 2014 14:53:17 -0800
+Message-ID: <52f4125d.ifqOHonEcxel4y5k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49520 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49566 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249AbaBFW3s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 17:29:48 -0500
+	with ESMTP id S1755098AbaBFWxS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 17:53:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, greg@kroah.com, rostedt@goodmis.org
+To: mm-commits@vger.kernel.org, jack@suse.cz, fengguang.wu@intel.com, raghavendra.kt@linux.vnet.ibm.com
 
-Subject: + lib-devresc-fix-some-sparse-warnings.patch added to -mm tree
-To: rostedt@goodmis.org,greg@kroah.com,tj@kernel.org
+Subject: + mm-readaheadc-fix-readahead-fail-for-no-local-memory-and-limit-readahead-pages.patch added to -mm tree
+To: raghavendra.kt@linux.vnet.ibm.com,fengguang.wu@intel.com,jack@suse.cz
 From: akpm@linux-foundation.org
-Date: Thu, 06 Feb 2014 14:29:47 -0800
+Date: Thu, 06 Feb 2014 14:53:17 -0800
 
 
 The patch titled
-     Subject: lib/devres.c: fix some sparse warnings
+     Subject: mm/readahead.c: fix readahead fail for no local memory and limit readahead pages
 has been added to the -mm tree.  Its filename is
-     lib-devresc-fix-some-sparse-warnings.patch
+     mm-readaheadc-fix-readahead-fail-for-no-local-memory-and-limit-readahead-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-devresc-fix-some-sparse-warnings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-readaheadc-fix-readahead-fail-for-no-local-memory-and-limit-readahead-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-devresc-fix-some-sparse-warnings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-readaheadc-fix-readahead-fail-for-no-local-memory-and-limit-readahead-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,101 +44,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: lib/devres.c: fix some sparse warnings
+From: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
+Subject: mm/readahead.c: fix readahead fail for no local memory and limit readahead pages
 
-Having a discussion about sparse warnings in the kernel, and that we
-should clean them up, I decided to pick a random file to do so.  This
-happened to be devres.c which gives the following warnings:
+max_sane_readahead() returns zero on the cpu having no local memory node. 
+Fix that by returning a sanitized number of pages viz., minimum of
+(requested pages, 4k)
 
-  CHECK   lib/devres.c
-lib/devres.c:83:9: warning: cast removes address space of expression
-lib/devres.c:117:31: warning: incorrect type in return expression (different address spaces)
-lib/devres.c:117:31:    expected void [noderef] <asn:2>*
-lib/devres.c:117:31:    got void *
-lib/devres.c:125:31: warning: incorrect type in return expression (different address spaces)
-lib/devres.c:125:31:    expected void [noderef] <asn:2>*
-lib/devres.c:125:31:    got void *
-lib/devres.c:136:26: warning: incorrect type in assignment (different address spaces)
-lib/devres.c:136:26:    expected void [noderef] <asn:2>*[assigned] dest_ptr
-lib/devres.c:136:26:    got void *
-lib/devres.c:226:9: warning: cast removes address space of expression
+Result:
+fadvise experiment with FADV_WILLNEED on a x240 machine with 1GB testfile
+32GB* 4G RAM  numa machine ( 12 iterations) yielded
 
-Mostly it's just the use of typecasting to void * without adding __force,
-or returning ERR_PTR(-ESOMEERR) without typecasting to a __iomem type.
+Kernel     Avg      Stddev
+base      7.2963    1.10 %
+patched   7.2972    1.18 %
 
-I added a helper macro IOMEM_ERR_PTR() that does the typecast to make the
-code a little nicer than adding ugly typecasts to the code.
-
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/devres.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/readahead.c |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN lib/devres.c~lib-devresc-fix-some-sparse-warnings lib/devres.c
---- a/lib/devres.c~lib-devresc-fix-some-sparse-warnings
-+++ a/lib/devres.c
-@@ -81,11 +81,13 @@ EXPORT_SYMBOL(devm_ioremap_nocache);
- void devm_iounmap(struct device *dev, void __iomem *addr)
- {
- 	WARN_ON(devres_destroy(dev, devm_ioremap_release, devm_ioremap_match,
--			       (void *)addr));
-+			       (__force void *)addr));
- 	iounmap(addr);
+diff -puN mm/readahead.c~mm-readaheadc-fix-readahead-fail-for-no-local-memory-and-limit-readahead-pages mm/readahead.c
+--- a/mm/readahead.c~mm-readaheadc-fix-readahead-fail-for-no-local-memory-and-limit-readahead-pages
++++ a/mm/readahead.c
+@@ -233,14 +233,32 @@ int force_page_cache_readahead(struct ad
+ 	return 0;
  }
- EXPORT_SYMBOL(devm_iounmap);
  
-+#define IOMEM_ERR_PTR(err) (__force void __iomem *)ERR_PTR(err)
++#define MAX_REMOTE_READAHEAD   4096UL
+ /*
+  * Given a desired number of PAGE_CACHE_SIZE readahead pages, return a
+  * sensible upper limit.
+  */
+ unsigned long max_sane_readahead(unsigned long nr)
+ {
+-	return min(nr, (node_page_state(numa_node_id(), NR_INACTIVE_FILE)
+-		+ node_page_state(numa_node_id(), NR_FREE_PAGES)) / 2);
++	unsigned long local_free_page;
++	int nid;
 +
- /**
-  * devm_ioremap_resource() - check, request region, and ioremap resource
-  * @dev: generic device to handle the resource for
-@@ -114,7 +116,7 @@ void __iomem *devm_ioremap_resource(stru
- 
- 	if (!res || resource_type(res) != IORESOURCE_MEM) {
- 		dev_err(dev, "invalid resource\n");
--		return ERR_PTR(-EINVAL);
-+		return IOMEM_ERR_PTR(-EINVAL);
- 	}
- 
- 	size = resource_size(res);
-@@ -122,7 +124,7 @@ void __iomem *devm_ioremap_resource(stru
- 
- 	if (!devm_request_mem_region(dev, res->start, size, name)) {
- 		dev_err(dev, "can't request region for resource %pR\n", res);
--		return ERR_PTR(-EBUSY);
-+		return IOMEM_ERR_PTR(-EBUSY);
- 	}
- 
- 	if (res->flags & IORESOURCE_CACHEABLE)
-@@ -133,7 +135,7 @@ void __iomem *devm_ioremap_resource(stru
- 	if (!dest_ptr) {
- 		dev_err(dev, "ioremap failed for resource %pR\n", res);
- 		devm_release_mem_region(dev, res->start, size);
--		dest_ptr = ERR_PTR(-ENOMEM);
-+		dest_ptr = IOMEM_ERR_PTR(-ENOMEM);
- 	}
- 
- 	return dest_ptr;
-@@ -224,7 +226,7 @@ void devm_ioport_unmap(struct device *de
- {
- 	ioport_unmap(addr);
- 	WARN_ON(devres_destroy(dev, devm_ioport_map_release,
--			       devm_ioport_map_match, (void *)addr));
-+			       devm_ioport_map_match, (__force void *)addr));
++	nid = numa_node_id();
++	if (node_present_pages(nid)) {
++		/*
++		 * We sanitize readahead size depending on free memory in
++		 * the local node.
++		 */
++		local_free_page = node_page_state(nid, NR_INACTIVE_FILE)
++				 + node_page_state(nid, NR_FREE_PAGES);
++		return min(nr, local_free_page / 2);
++	}
++	/*
++	 * Readahead onto remote memory is better than no readahead when local
++	 * numa node does not have memory. We limit the readahead to 4k
++	 * pages though to avoid trashing page cache.
++	 */
++	return min(nr, MAX_REMOTE_READAHEAD);
  }
- EXPORT_SYMBOL(devm_ioport_unmap);
- #endif /* CONFIG_HAS_IOPORT */
+ 
+ /*
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from raghavendra.kt@linux.vnet.ibm.com are
 
-origin.patch
-slub-do-not-assert-not-having-lock-in-removing-freed-partial.patch
-lib-devresc-fix-some-sparse-warnings.patch
-linux-next.patch
+mm-readaheadc-fix-readahead-fail-for-no-local-memory-and-limit-readahead-pages.patch
 
