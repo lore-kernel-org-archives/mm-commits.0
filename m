@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch added
- to -mm tree
-Date: Thu, 06 Feb 2014 12:54:16 -0800
-Message-ID: <52f3f678.XOuzuoEGitq9XE98%akpm@linux-foundation.org>
+Subject: + fs-efs-superc-add-__init-to-init_inodecache.patch added to -mm
+ tree
+Date: Thu, 06 Feb 2014 13:04:28 -0800
+Message-ID: <52f3f8dc.dunXVbUxisXmabPl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48973 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49078 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753178AbaBFUyQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 15:54:16 -0500
+	with ESMTP id S1752593AbaBFVE3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 16:04:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch added to -mm tree
+Subject: + fs-efs-superc-add-__init-to-init_inodecache.patch added to -mm tree
 To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Thu, 06 Feb 2014 12:54:16 -0800
+Date: Thu, 06 Feb 2014 13:04:28 -0800
 
 
 The patch titled
-     Subject: fs/cifs/cifsfs.c: add __init to cifs_init_inodecache()
+     Subject: fs/efs/super.c: add __init to init_inodecache()
 has been added to the -mm tree.  Its filename is
-     fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+     fs-efs-superc-add-__init-to-init_inodecache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-efs-superc-add-__init-to-init_inodecache.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-efs-superc-add-__init-to-init_inodecache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,34 +45,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/cifs/cifsfs.c: add __init to cifs_init_inodecache()
+Subject: fs/efs/super.c: add __init to init_inodecache()
 
-cifs_init_inodecache is only called by __init init_cifs.
+init_inodecache is only called by __init init_efs_fs.
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifsfs.c |    2 +-
+ fs/efs/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/cifs/cifsfs.c~fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache fs/cifs/cifsfs.c
---- a/fs/cifs/cifsfs.c~fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache
-+++ a/fs/cifs/cifsfs.c
-@@ -1005,7 +1005,7 @@ cifs_init_once(void *inode)
- 	init_rwsem(&cifsi->lock_sem);
+diff -puN fs/efs/super.c~fs-efs-superc-add-__init-to-init_inodecache fs/efs/super.c
+--- a/fs/efs/super.c~fs-efs-superc-add-__init-to-init_inodecache
++++ a/fs/efs/super.c
+@@ -91,7 +91,7 @@ static void init_once(void *foo)
+ 	inode_init_once(&ei->vfs_inode);
  }
  
--static int
-+static int __init
- cifs_init_inodecache(void)
+-static int init_inodecache(void)
++static int __init init_inodecache(void)
  {
- 	cifs_inode_cachep = kmem_cache_create("cifs_inode_cache",
+ 	efs_inode_cachep = kmem_cache_create("efs_inode_cache",
+ 				sizeof(struct efs_inode_info),
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
 
 fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
 fs-minix-inodec-add-__init-to-init_inodecache.patch
 fs-ufs-superc-add-__init-to-init_inodecache.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
