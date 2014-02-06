@@ -1,229 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2014-02-05-15-56 uploaded
-Date: Wed, 05 Feb 2014 15:57:19 -0800
-Message-ID: <20140205235719.A54A231C1DB@corp2gmr1-1.hot.corp.google.com>
+Subject: + bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix.patch
+ added to -mm tree
+Date: Thu, 06 Feb 2014 12:38:30 -0800
+Message-ID: <52f3f2c6.qbmkkpngbQ2nfEQJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:34953 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752787AbaBEX5V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Feb 2014 18:57:21 -0500
-Received: by mail-oa0-f74.google.com with SMTP id m1so355021oag.1
-        for <mm-commits@vger.kernel.org>; Wed, 05 Feb 2014 15:57:20 -0800 (PST)
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48914 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756204AbaBFUib (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Feb 2014 15:38:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org
+To: mm-commits@vger.kernel.org, neilb@suse.de, kmo@daterainc.com, geert@linux-m68k.org, akpm@linux-foundation.org
 
-The mm-of-the-moment snapshot 2014-02-05-15-56 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (3.x
-or 3.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+Subject: + bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,geert@linux-m68k.org,kmo@daterainc.com,neilb@suse.de
+From: akpm@linux-foundation.org
+Date: Thu, 06 Feb 2014 12:38:30 -0800
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix
+has been added to the -mm tree.  Its filename is
+     bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix.patch
 
-http://git.cmpxchg.org/?p=linux-mmotm.git;a=summary
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix.patch
 
-To develop on top of mmotm git:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-To rebase a branch with older patches to a new mmotm release:
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix
 
+fix sparse warning, make `ret' size_t
 
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kent Overstreet <kmo@daterainc.com>
+Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ drivers/md/bcache/btree.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+diff -puN drivers/md/bcache/btree.c~bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix drivers/md/bcache/btree.c
+--- a/drivers/md/bcache/btree.c~bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix
++++ a/drivers/md/bcache/btree.c
+@@ -1805,7 +1805,7 @@ static bool btree_insert_key(struct btre
+ 
+ static size_t insert_u64s_remaining(struct btree *b)
+ {
+-	ssize_t ret = bch_btree_keys_u64s_remaining(&b->keys);
++	size_t ret = bch_btree_keys_u64s_remaining(&b->keys);
+ 
+ 	/*
+ 	 * Might land in the middle of an existing extent and have to split it
+@@ -1813,7 +1813,7 @@ static size_t insert_u64s_remaining(stru
+ 	if (b->keys.ops->is_extents)
+ 		ret -= KEY_MAX_U64S;
+ 
+-	return max(ret, 0);
++	return max_t(size_t, ret, 0);
+ }
+ 
+ static bool bch_btree_insert_keys(struct btree *b, struct btree_op *op,
+_
 
-A git copy of this tree is available at
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-	http://git.cmpxchg.org/?p=linux-mmots.git;a=summary
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
+numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch
+bcache-drop-l-suffix-when-comparing-ssize_t-with-0-fix.patch
+xen-properly-account-for-_page_numa-during-xen-pte-translations-fix.patch
+ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
-and use of this tree is similar to
-http://git.cmpxchg.org/?p=linux-mmotm.git, described above.
-
-
-This mmotm tree contains the following patches against 3.14-rc1:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-  i-need-old-gcc.patch
-* documentation-kernel-parameterstxt-fix-memmap=-language.patch
-* ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
-* swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-* mm-swap-fix-race-on-swap_info-reuse-between-swapoff-and-swapon.patch
-* mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch
-* mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq.patch
-* gru-unlocking-should-be-conditional-in-gru_dump_context.patch
-* get_maintainer-fix-detection-of-git-repository.patch
-* checkpatch-fix-detection-of-git-repository.patch
-* documentation-update-00-index-files.patch
-* drivers-message-i2o-i2o_configc-fix-deadlock-in-compat_ioctli2ogetiops.patch
-* vmcore-prevent-pt_note-p_memsz-overflow-during-header-update.patch
-* vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch
-* vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch
-* bcache-use-%zi-to-format-size_t.patch
-* bcache-drop-l-suffix-when-comparing-ssize_t-with-0.patch
-* mm-slub-list_lock-may-not-be-held-in-some-circumstances.patch
-* xen-properly-account-for-_page_numa-during-xen-pte-translations.patch
-* xen-properly-account-for-_page_numa-during-xen-pte-translations-fix.patch
-* fs-filec-fdtable-avoid-triggering-ooms-from-alloc_fdmem.patch
-* drivers-edac-edac_mc_sysfsc-poll-timeout-cannot-be-zero.patch
-* mm-page_alloc-make-first_page-visible-before-pagetail.patch
-* ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly.patch
-* ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
-* arm-mm-fix-the-memblock-allocation-for-lpae-machines.patch
-* numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch
-* numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockreserved.patch
-* kthread-ensure-locality-of-task_struct-allocations.patch
-* arm-use-generic-fixmaph.patch
-* fanotify-remove-useless-bypass_perm-check.patch
-* fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
-* fanotify-remove-useless-test-from-event-initialization.patch
-* fanotify-convert-access_mutex-to-spinlock.patch
-* fanotify-reorganize-loop-in-fanotify_read.patch
-* fanotify-move-unrelated-handling-from-copy_event_to_user.patch
-* sched_clock-document-4mhz-vs-1mhz-decision.patch
-* input-route-kbd-leds-through-the-generic-leds-layer.patch
-* jffs2-unlock-f-sem-on-error-in-jffs2_new_inode.patch
-* drivers-net-irda-donauboe-convert-to-module_pci_driver.patch
-* net-core-rtnetlinkc-copy-paste-error-in-rtnl_bridge_notify.patch
-* ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
-* ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
-* ocfs2-o2net-o2net_listen_data_ready-should-do-nothing-if-socket-state-is-not-tcp_listen.patch
-* ocfs2-check-existence-of-old-dentry-in-ocfs2_link.patch
-* ocfs2-should-call-ocfs2_journal_access_di-before-ocfs2_delete_entry-in-ocfs2_orphan_del.patch
-* ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch
-* ocfs2-fix-issue-that-ocfs2_setattr-does-not-deal-with-new_i_size==i_size.patch
-* ocfs2-update-inode-size-after-zeronig-the-hole.patch
-* drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* kernel-watchdogc-touch_nmi_watchdog-should-only-touch-local-cpu-not-every-one.patch
-* watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
-* mm-slab-slub-use-page-list-consistently-instead-of-page-lru.patch
-  mm.patch
-* mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-* mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-* mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-* mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
-* mm-optimize-put_mems_allowed-usage.patch
-* mm-hugetlb-unify-region-structure-handling.patch
-* mm-hugetlb-improve-cleanup-resv_map-parameters.patch
-* mm-hugetlb-fix-race-in-region-tracking.patch
-* mm-hugetlb-remove-resv_map_put.patch
-* mm-hugetlb-use-vma_resv_map-map-types.patch
-* mm-hugetlb-improve-page-fault-scalability.patch
-* mm-hugetlb-improve-page-fault-scalability-fix.patch
-* mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
-* zram-drop-init_done-struct-zram-member.patch
-* zram-do-not-pass-rw-argument-to-__zram_make_request.patch
-* zram-remove-good-and-bad-compress-stats.patch
-* zram-use-atomic64_t-for-all-zram-stats.patch
-* zram-remove-zram-stats-code-duplication.patch
-* zram-report-failed-read-and-write-stats.patch
-* zram-drop-not-used-table-count-member.patch
-* zram-move-zram-size-warning-to-documentation.patch
-* zram-document-failed_reads-failed_writes-stats.patch
-* mm-vmstat-fix-up-zone-state-accounting.patch
-* mm-vmstat-fix-up-zone-state-accounting-fix.patch
-* fs-cachefiles-use-add_to_page_cache_lru.patch
-* lib-radix-tree-radix_tree_delete_item.patch
-* mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-* mm-filemap-move-radix-tree-hole-searching-here.patch
-* mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-* mm-fs-store-shadow-entries-in-page-cache.patch
-* mm-thrash-detection-based-file-cache-sizing.patch
-* lib-radix_tree-tree-node-interface.patch
-* mm-keep-page-cache-radix-tree-nodes-in-check.patch
-* mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
-* kernel-audit-fix-non-modular-users-of-module_init-in-core-code.patch
-* drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check.patch
-* vsprintf-remove-%n-handling.patch
-* lib-vsprintf-add-%pt-format-specifier.patch
-* backlight-update-bd-state-fb_blank-properties-when-necessary.patch
-* backlight-update-backlight-status-when-necessary.patch
-* drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
-* mm-utilc-add-kstrimdup.patch
-* lib-add-crc64-ecma-module.patch
-* checkpatch-add-test-for-long-udelay.patch
-* binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-* rtc-rtc-imxdi-check-the-return-value-from-clk_prepare_enable.patch
-* nilfs2-update-maintainers-file-entries.patch
-* nilfs2-add-struct-nilfs_suinfo_update-and-flags.patch
-* nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
-* nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
-* nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl.patch
-* nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl-fix.patch
-* fs-ufs-superc-add-__init-to-init_inodecache.patch
-* ufs-sb-mutex-merge-mutex_destroy.patch
-* fat-add-i_disksize-to-represent-uninitialized-size.patch
-* fat-add-fat_fallocate-operation.patch
-* fat-zero-out-seek-range-on-_fat_get_block.patch
-* fat-fallback-to-buffered-write-in-case-of-fallocated-region-on-direct-io.patch
-* fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
-* fat-update-the-limitation-for-fat-fallocate.patch
-* cpusets-allocate-heap-only-when-required.patch
-* kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
-* kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-* kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-* fs-adfs-superc-add-__init-to-init_inodecache.patch
-* pps-add-non-blocking-option-to-pps_fetch-ioctl.patch
-* drivers-misc-sgi-gru-grukdumpc-cleanup-gru_dump_context-a-little.patch
-  linux-next.patch
-* fs-udf-superc-add-__init-to-init_inodecache.patch
-* w1-call-put_device-if-device_register-fails.patch
-* arm-move-arm_dma_limit-to-setup_dma_zone.patch
-* mm-add-strictlimit-knob-v2.patch
-  debugging-keep-track-of-page-owners.patch
-  make-sure-nobodys-leaking-resources.patch
-  journal_add_journal_head-debug.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  put_bh-debug.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
-  single_open-seq_release-leak-diagnostics.patch
