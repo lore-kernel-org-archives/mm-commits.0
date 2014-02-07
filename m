@@ -1,240 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch removed from -mm tree
-Date: Fri, 07 Feb 2014 12:18:37 -0800
-Message-ID: <52f53f9d.gf6Oj58ZxLBlEPyV%akpm@linux-foundation.org>
+ numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch removed from -mm tree
+Date: Fri, 07 Feb 2014 12:18:45 -0800
+Message-ID: <52f53fa5.Nf+0qJ3wAaTlrGsv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58913 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751511AbaBGUSi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 15:18:38 -0500
+	with ESMTP id S1752509AbaBGUSq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 15:18:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, lizefan@huawei.com, joseph.qi@huawei.com, jlbec@evilplan.org, wangzongxun@huawei.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, rientjes@google.com, mingo@elte.hu, hpa@zytor.com, guz.fnst@cn.fujitsu.com, davej@redhat.com, tangchen@cn.fujitsu.com
 
-Subject: [merged] ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch removed from -mm tree
-To: wangzongxun@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,lizefan@huawei.com,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: [merged] numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch removed from -mm tree
+To: tangchen@cn.fujitsu.com,davej@redhat.com,guz.fnst@cn.fujitsu.com,hpa@zytor.com,mingo@elte.hu,rientjes@google.com,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 07 Feb 2014 12:18:37 -0800
+Date: Fri, 07 Feb 2014 12:18:45 -0800
 
 
 The patch titled
-     Subject: ocfs2: free allocated clusters if error occurs after ocfs2_claim_clusters
+     Subject: arch/x86/mm/numa.c: initialize numa_kernel_nodes in numa_clear_kernel_node_hotplug()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
+     numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zongxun Wang <wangzongxun@huawei.com>
-Subject: ocfs2: free allocated clusters if error occurs after ocfs2_claim_clusters
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: arch/x86/mm/numa.c: initialize numa_kernel_nodes in numa_clear_kernel_node_hotplug()
 
-Even if using the same jbd2 handle, we cannot rollback a transaction.  So
-once some error occurs after successfully allocating clusters, the
-allocated clusters will never be used and it means they are lost.  For
-example, call ocfs2_claim_clusters successfully when expanding a file, but
-failed in ocfs2_insert_extent.  So we need free the allocated clusters if
-they are not used indeed.
+On-stack variable numa_kernel_nodes in numa_clear_kernel_node_hotplug()
+was not initialized.  So we need to initialize it.
 
-Signed-off-by: Zongxun Wang <wangzongxun@huawei.com>
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Acked-by: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Li Zefan <lizefan@huawei.com>
+[akpm@linux-foundation.org: use NODE_MASK_NONE, per David]
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Tested-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Reported-by: Dave Jones <davej@redhat.com>
+Reported-by: David Rientjes <rientjes@google.com>
+Tested-by: Dave Jones <davej@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c      |   38 +++++++++++++++++++++++++++++++++---
- fs/ocfs2/localalloc.c |   42 ++++++++++++++++++++++++++++++++++++++++
- fs/ocfs2/localalloc.h |    6 +++++
- 3 files changed, 83 insertions(+), 3 deletions(-)
+ arch/x86/mm/numa.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
-+++ a/fs/ocfs2/alloc.c
-@@ -4742,6 +4742,7 @@ int ocfs2_add_clusters_in_btree(handle_t
- 				enum ocfs2_alloc_restarted *reason_ret)
+diff -puN arch/x86/mm/numa.c~numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug
++++ a/arch/x86/mm/numa.c
+@@ -565,7 +565,7 @@ static void __init numa_init_array(void)
+ static void __init numa_clear_kernel_node_hotplug(void)
  {
- 	int status = 0, err = 0;
-+	int need_free = 0;
- 	int free_extents;
- 	enum ocfs2_alloc_restarted reason = RESTART_NONE;
- 	u32 bit_off, num_bits;
-@@ -4796,7 +4797,8 @@ int ocfs2_add_clusters_in_btree(handle_t
- 					      OCFS2_JOURNAL_ACCESS_WRITE);
- 	if (status < 0) {
- 		mlog_errno(status);
--		goto leave;
-+		need_free = 1;
-+		goto bail;
- 	}
+ 	int i, nid;
+-	nodemask_t numa_kernel_nodes;
++	nodemask_t numa_kernel_nodes = NODE_MASK_NONE;
+ 	unsigned long start, end;
+ 	struct memblock_type *type = &memblock.reserved;
  
- 	block = ocfs2_clusters_to_blocks(osb->sb, bit_off);
-@@ -4807,7 +4809,8 @@ int ocfs2_add_clusters_in_btree(handle_t
- 				     num_bits, flags, meta_ac);
- 	if (status < 0) {
- 		mlog_errno(status);
--		goto leave;
-+		need_free = 1;
-+		goto bail;
- 	}
- 
- 	ocfs2_journal_dirty(handle, et->et_root_bh);
-@@ -4821,6 +4824,19 @@ int ocfs2_add_clusters_in_btree(handle_t
- 		reason = RESTART_TRANS;
- 	}
- 
-+bail:
-+	if (need_free) {
-+		if (data_ac->ac_which == OCFS2_AC_USE_LOCAL)
-+			ocfs2_free_local_alloc_bits(osb, handle, data_ac,
-+					bit_off, num_bits);
-+		else
-+			ocfs2_free_clusters(handle,
-+					data_ac->ac_inode,
-+					data_ac->ac_bh,
-+					ocfs2_clusters_to_blocks(osb->sb, bit_off),
-+					num_bits);
-+	}
-+
- leave:
- 	if (reason_ret)
- 		*reason_ret = reason;
-@@ -6805,6 +6821,8 @@ int ocfs2_convert_inline_data_to_extents
- 					 struct buffer_head *di_bh)
- {
- 	int ret, i, has_data, num_pages = 0;
-+	int need_free = 0;
-+	u32 bit_off, num;
- 	handle_t *handle;
- 	u64 uninitialized_var(block);
- 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
-@@ -6850,7 +6868,6 @@ int ocfs2_convert_inline_data_to_extents
- 	}
- 
- 	if (has_data) {
--		u32 bit_off, num;
- 		unsigned int page_end;
- 		u64 phys;
- 
-@@ -6886,6 +6903,7 @@ int ocfs2_convert_inline_data_to_extents
- 		ret = ocfs2_grab_eof_pages(inode, 0, end, pages, &num_pages);
- 		if (ret) {
- 			mlog_errno(ret);
-+			need_free = 1;
- 			goto out_commit;
- 		}
- 
-@@ -6896,6 +6914,7 @@ int ocfs2_convert_inline_data_to_extents
- 		ret = ocfs2_read_inline_data(inode, pages[0], di_bh);
- 		if (ret) {
- 			mlog_errno(ret);
-+			need_free = 1;
- 			goto out_commit;
- 		}
- 
-@@ -6927,6 +6946,7 @@ int ocfs2_convert_inline_data_to_extents
- 		ret = ocfs2_insert_extent(handle, &et, 0, block, 1, 0, NULL);
- 		if (ret) {
- 			mlog_errno(ret);
-+			need_free = 1;
- 			goto out_commit;
- 		}
- 
-@@ -6938,6 +6958,18 @@ out_commit:
- 		dquot_free_space_nodirty(inode,
- 					  ocfs2_clusters_to_bytes(osb->sb, 1));
- 
-+	if (need_free) {
-+		if (data_ac->ac_which == OCFS2_AC_USE_LOCAL)
-+			ocfs2_free_local_alloc_bits(osb, handle, data_ac,
-+					bit_off, num);
-+		else
-+			ocfs2_free_clusters(handle,
-+					data_ac->ac_inode,
-+					data_ac->ac_bh,
-+					ocfs2_clusters_to_blocks(osb->sb, bit_off),
-+					num);
-+	}
-+
- 	ocfs2_commit_trans(osb, handle);
- 
- out_unlock:
-diff -puN fs/ocfs2/localalloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/localalloc.c
---- a/fs/ocfs2/localalloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
-+++ a/fs/ocfs2/localalloc.c
-@@ -781,6 +781,48 @@ bail:
- 	return status;
- }
- 
-+int ocfs2_free_local_alloc_bits(struct ocfs2_super *osb,
-+				handle_t *handle,
-+				struct ocfs2_alloc_context *ac,
-+				u32 bit_off,
-+				u32 num_bits)
-+{
-+	int status, start;
-+	u32 clear_bits;
-+	struct inode *local_alloc_inode;
-+	void *bitmap;
-+	struct ocfs2_dinode *alloc;
-+	struct ocfs2_local_alloc *la;
-+
-+	BUG_ON(ac->ac_which != OCFS2_AC_USE_LOCAL);
-+
-+	local_alloc_inode = ac->ac_inode;
-+	alloc = (struct ocfs2_dinode *) osb->local_alloc_bh->b_data;
-+	la = OCFS2_LOCAL_ALLOC(alloc);
-+
-+	bitmap = la->la_bitmap;
-+	start = bit_off - le32_to_cpu(la->la_bm_off);
-+	clear_bits = num_bits;
-+
-+	status = ocfs2_journal_access_di(handle,
-+			INODE_CACHE(local_alloc_inode),
-+			osb->local_alloc_bh,
-+			OCFS2_JOURNAL_ACCESS_WRITE);
-+	if (status < 0) {
-+		mlog_errno(status);
-+		goto bail;
-+	}
-+
-+	while (clear_bits--)
-+		ocfs2_clear_bit(start++, bitmap);
-+
-+	le32_add_cpu(&alloc->id1.bitmap1.i_used, -num_bits);
-+	ocfs2_journal_dirty(handle, osb->local_alloc_bh);
-+
-+bail:
-+	return status;
-+}
-+
- static u32 ocfs2_local_alloc_count_bits(struct ocfs2_dinode *alloc)
- {
- 	u32 count;
-diff -puN fs/ocfs2/localalloc.h~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/localalloc.h
---- a/fs/ocfs2/localalloc.h~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
-+++ a/fs/ocfs2/localalloc.h
-@@ -55,6 +55,12 @@ int ocfs2_claim_local_alloc_bits(struct
- 				 u32 *bit_off,
- 				 u32 *num_bits);
- 
-+int ocfs2_free_local_alloc_bits(struct ocfs2_super *osb,
-+				handle_t *handle,
-+				struct ocfs2_alloc_context *ac,
-+				u32 bit_off,
-+				u32 num_bits);
-+
- void ocfs2_local_alloc_seen_free_bits(struct ocfs2_super *osb,
- 				      unsigned int num_clusters);
- void ocfs2_la_enable_worker(struct work_struct *work);
 _
 
-Patches currently in -mm which might be from wangzongxun@huawei.com are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
 origin.patch
 
