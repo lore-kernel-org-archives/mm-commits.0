@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-add-hfsx-subfolder-count-support.patch added to -mm
- tree
-Date: Fri, 07 Feb 2014 13:22:38 -0800
-Message-ID: <52f54e9e.DJXRg4BdJfZ55/Ey%akpm@linux-foundation.org>
+Subject: + mm-fix-page-leak-at-nfs_symlink.patch added to -mm tree
+Date: Fri, 07 Feb 2014 13:39:48 -0800
+Message-ID: <52f552a4.RMJfCXWVx2xOsbhQ%akpm__24432.727698195$1391809199$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59296 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59394 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576AbaBGVWj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 16:22:39 -0500
+	with ESMTP id S1752140AbaBGVjt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 16:39:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, slava@dubeyko.com, hch@infradead.org, saproj@gmail.com
+To: mm-commits@vger.kernel.org, trond.myklebust@primarydata.com, stable@vger.kernel.org, riel@redhat.com, mgorman@suse.de, jstancek@redhat.com, jlayton@redhat.com, aquini@redhat.com
 
-Subject: + hfsplus-add-hfsx-subfolder-count-support.patch added to -mm tree
-To: saproj@gmail.com,hch@infradead.org,slava@dubeyko.com,viro@zeniv.linux.org.uk
+Subject: + mm-fix-page-leak-at-nfs_symlink.patch added to -mm tree
+To: aquini@redhat.com,jlayton@redhat.com,jstancek@redhat.com,mgorman@suse.de,riel@redhat.com,stable@vger.kernel.org,trond.myklebust@primarydata.com
 From: akpm@linux-foundation.org
-Date: Fri, 07 Feb 2014 13:22:38 -0800
+Date: Fri, 07 Feb 2014 13:39:48 -0800
 
 
 The patch titled
-     Subject: hfsplus: add HFSX subfolder count support
+     Subject: mm: fix page leak at nfs_symlink()
 has been added to the -mm tree.  Its filename is
-     hfsplus-add-hfsx-subfolder-count-support.patch
+     mm-fix-page-leak-at-nfs_symlink.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-add-hfsx-subfolder-count-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-page-leak-at-nfs_symlink.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-add-hfsx-subfolder-count-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-page-leak-at-nfs_symlink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,211 +43,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergei Antonov <saproj@gmail.com>
-Subject: hfsplus: add HFSX subfolder count support
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm: fix page leak at nfs_symlink()
 
-tAdd adds support for HFSX 'HasFolderCount' flag and a corresponding
-'folderCount' field in folder records.  (For reference see HFS_FOLDERCOUNT
-and kHFSHasFolderCountBit/kHFSHasFolderCountMask in Apple's source code.)
+Changes committed by a0b8cab3 ("mm: remove lru parameter from
+__pagevec_lru_add and remove parts of pagevec API") have introduced a call
+to add_to_page_cache_lru() which causes a leak in nfs_symlink() as now the
+page gets an extra refcount that is not dropped.
 
-Ignoring subfolder count leads to fs errors found by Mac:
-...
-Checking catalog hierarchy.
-HasFolderCount flag needs to be set (id = 105)
-(It should be 0x10 instead of 0)
-Incorrect folder count in a directory (id = 2)
-(It should be 7 instead of 6)
-...
+Jan Stancek observed and reported the leak effect while running test8 from
+Connectathon Testsuite.  After several iterations over the test case,
+which creates several symlinks on a NFS mountpoint, the test system was
+quickly getting into an out-of-memory scenario.
 
-Steps to reproduce:
- Format with "newfs_hfs -s /dev/diskXXX".
- Mount in Linux.
- Create a new directory in root.
- Unmount.
- Run "fsck_hfs /dev/diskXXX".
+This patch fixes the page leak by dropping that extra refcount
+add_to_page_cache_lru() is grabbing.
 
-The patch handles directory creation, deletion, and rename.
-
-Signed-off-by: Sergei Antonov <saproj@gmail.com>
-Reviewed-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Jeff Layton <jlayton@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: <stable@vger.kernel.org>	[3.11.x+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/catalog.c     |   41 +++++++++++++++++++++++++++++++++++++
- fs/hfsplus/hfsplus_fs.h  |    1 
- fs/hfsplus/hfsplus_raw.h |    6 +++--
- fs/hfsplus/inode.c       |    9 ++++++++
- 4 files changed, 55 insertions(+), 2 deletions(-)
+ fs/nfs/dir.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/hfsplus/catalog.c~hfsplus-add-hfsx-subfolder-count-support fs/hfsplus/catalog.c
---- a/fs/hfsplus/catalog.c~hfsplus-add-hfsx-subfolder-count-support
-+++ a/fs/hfsplus/catalog.c
-@@ -103,6 +103,8 @@ static int hfsplus_cat_build_record(hfsp
- 		folder = &entry->folder;
- 		memset(folder, 0, sizeof(*folder));
- 		folder->type = cpu_to_be16(HFSPLUS_FOLDER);
-+		if (test_bit(HFSPLUS_SB_HFSX, &sbi->flags))
-+			folder->flags |= cpu_to_be16(HFSPLUS_HAS_FOLDER_COUNT);
- 		folder->id = cpu_to_be32(inode->i_ino);
- 		HFSPLUS_I(inode)->create_date =
- 			folder->create_date =
-@@ -203,6 +205,36 @@ int hfsplus_find_cat(struct super_block
- 	return hfs_brec_find(fd, hfs_find_rec_by_key);
- }
- 
-+static void hfsplus_subfolders_inc(struct inode *dir)
-+{
-+	struct hfsplus_sb_info *sbi = HFSPLUS_SB(dir->i_sb);
-+
-+	if (test_bit(HFSPLUS_SB_HFSX, &sbi->flags)) {
+diff -puN fs/nfs/dir.c~mm-fix-page-leak-at-nfs_symlink fs/nfs/dir.c
+--- a/fs/nfs/dir.c~mm-fix-page-leak-at-nfs_symlink
++++ a/fs/nfs/dir.c
+@@ -1846,6 +1846,11 @@ int nfs_symlink(struct inode *dir, struc
+ 							GFP_KERNEL)) {
+ 		SetPageUptodate(page);
+ 		unlock_page(page);
 +		/*
-+		 * Increment subfolder count. Note, the value is only meaningful
-+		 * for folders with HFSPLUS_HAS_FOLDER_COUNT flag set.
++		 * add_to_page_cache_lru() grabs an extra page refcount.
++		 * Drop it here to avoid leaking this page later.
 +		 */
-+		HFSPLUS_I(dir)->subfolders++;
-+	}
-+}
-+
-+static void hfsplus_subfolders_dec(struct inode *dir)
-+{
-+	struct hfsplus_sb_info *sbi = HFSPLUS_SB(dir->i_sb);
-+
-+	if (test_bit(HFSPLUS_SB_HFSX, &sbi->flags)) {
-+		/*
-+		 * Decrement subfolder count. Note, the value is only meaningful
-+		 * for folders with HFSPLUS_HAS_FOLDER_COUNT flag set.
-+		 *
-+		 * Check for zero. Some subfolders may have been created
-+		 * by an implementation ignorant of this counter.
-+		 */
-+		if (HFSPLUS_I(dir)->subfolders)
-+			HFSPLUS_I(dir)->subfolders--;
-+	}
-+}
-+
- int hfsplus_create_cat(u32 cnid, struct inode *dir,
- 		struct qstr *str, struct inode *inode)
- {
-@@ -247,6 +279,8 @@ int hfsplus_create_cat(u32 cnid, struct
- 		goto err1;
++		page_cache_release(page);
+ 	} else
+ 		__free_page(page);
  
- 	dir->i_size++;
-+	if (S_ISDIR(inode->i_mode))
-+		hfsplus_subfolders_inc(dir);
- 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
- 	hfsplus_mark_inode_dirty(dir, HFSPLUS_I_CAT_DIRTY);
- 
-@@ -336,6 +370,8 @@ int hfsplus_delete_cat(u32 cnid, struct
- 		goto out;
- 
- 	dir->i_size--;
-+	if (type == HFSPLUS_FOLDER)
-+		hfsplus_subfolders_dec(dir);
- 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
- 	hfsplus_mark_inode_dirty(dir, HFSPLUS_I_CAT_DIRTY);
- 
-@@ -380,6 +416,7 @@ int hfsplus_rename_cat(u32 cnid,
- 
- 	hfs_bnode_read(src_fd.bnode, &entry, src_fd.entryoffset,
- 				src_fd.entrylength);
-+	type = be16_to_cpu(entry.type);
- 
- 	/* create new dir entry with the data from the old entry */
- 	hfsplus_cat_build_key(sb, dst_fd.search_key, dst_dir->i_ino, dst_name);
-@@ -394,6 +431,8 @@ int hfsplus_rename_cat(u32 cnid,
- 	if (err)
- 		goto out;
- 	dst_dir->i_size++;
-+	if (type == HFSPLUS_FOLDER)
-+		hfsplus_subfolders_inc(dst_dir);
- 	dst_dir->i_mtime = dst_dir->i_ctime = CURRENT_TIME_SEC;
- 
- 	/* finally remove the old entry */
-@@ -405,6 +444,8 @@ int hfsplus_rename_cat(u32 cnid,
- 	if (err)
- 		goto out;
- 	src_dir->i_size--;
-+	if (type == HFSPLUS_FOLDER)
-+		hfsplus_subfolders_dec(src_dir);
- 	src_dir->i_mtime = src_dir->i_ctime = CURRENT_TIME_SEC;
- 
- 	/* remove old thread entry */
-diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-add-hfsx-subfolder-count-support fs/hfsplus/hfsplus_fs.h
---- a/fs/hfsplus/hfsplus_fs.h~hfsplus-add-hfsx-subfolder-count-support
-+++ a/fs/hfsplus/hfsplus_fs.h
-@@ -242,6 +242,7 @@ struct hfsplus_inode_info {
- 	 */
- 	sector_t fs_blocks;
- 	u8 userflags;		/* BSD user file flags */
-+	u32 subfolders;		/* Subfolder count (HFSX only) */
- 	struct list_head open_dir_list;
- 	loff_t phys_size;
- 
-diff -puN fs/hfsplus/hfsplus_raw.h~hfsplus-add-hfsx-subfolder-count-support fs/hfsplus/hfsplus_raw.h
---- a/fs/hfsplus/hfsplus_raw.h~hfsplus-add-hfsx-subfolder-count-support
-+++ a/fs/hfsplus/hfsplus_raw.h
-@@ -261,7 +261,7 @@ struct hfsplus_cat_folder {
- 	struct DInfo user_info;
- 	struct DXInfo finder_info;
- 	__be32 text_encoding;
--	u32 reserved;
-+	__be32 subfolders;	/* Subfolder count in HFSX. Reserved in HFS+. */
- } __packed;
- 
- /* HFS file info (stolen from hfs.h) */
-@@ -301,11 +301,13 @@ struct hfsplus_cat_file {
- 	struct hfsplus_fork_raw rsrc_fork;
- } __packed;
- 
--/* File attribute bits */
-+/* File and folder flag bits */
- #define HFSPLUS_FILE_LOCKED		0x0001
- #define HFSPLUS_FILE_THREAD_EXISTS	0x0002
- #define HFSPLUS_XATTR_EXISTS		0x0004
- #define HFSPLUS_ACL_EXISTS		0x0008
-+#define HFSPLUS_HAS_FOLDER_COUNT	0x0010	/* Folder has subfolder count
-+						 * (HFSX only) */
- 
- /* HFS+ catalog thread (part of a cat_entry) */
- struct hfsplus_cat_thread {
-diff -puN fs/hfsplus/inode.c~hfsplus-add-hfsx-subfolder-count-support fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~hfsplus-add-hfsx-subfolder-count-support
-+++ a/fs/hfsplus/inode.c
-@@ -375,6 +375,7 @@ struct inode *hfsplus_new_inode(struct s
- 	hip->extent_state = 0;
- 	hip->flags = 0;
- 	hip->userflags = 0;
-+	hip->subfolders = 0;
- 	memset(hip->first_extents, 0, sizeof(hfsplus_extent_rec));
- 	memset(hip->cached_extents, 0, sizeof(hfsplus_extent_rec));
- 	hip->alloc_blocks = 0;
-@@ -494,6 +495,10 @@ int hfsplus_cat_read_inode(struct inode
- 		inode->i_ctime = hfsp_mt2ut(folder->attribute_mod_date);
- 		HFSPLUS_I(inode)->create_date = folder->create_date;
- 		HFSPLUS_I(inode)->fs_blocks = 0;
-+		if (folder->flags & cpu_to_be16(HFSPLUS_HAS_FOLDER_COUNT)) {
-+			HFSPLUS_I(inode)->subfolders =
-+				be32_to_cpu(folder->subfolders);
-+		}
- 		inode->i_op = &hfsplus_dir_inode_operations;
- 		inode->i_fop = &hfsplus_dir_operations;
- 	} else if (type == HFSPLUS_FILE) {
-@@ -566,6 +571,10 @@ int hfsplus_cat_write_inode(struct inode
- 		folder->content_mod_date = hfsp_ut2mt(inode->i_mtime);
- 		folder->attribute_mod_date = hfsp_ut2mt(inode->i_ctime);
- 		folder->valence = cpu_to_be32(inode->i_size - 2);
-+		if (folder->flags & cpu_to_be16(HFSPLUS_HAS_FOLDER_COUNT)) {
-+			folder->subfolders =
-+				cpu_to_be32(HFSPLUS_I(inode)->subfolders);
-+		}
- 		hfs_bnode_write(fd.bnode, &entry, fd.entryoffset,
- 					 sizeof(struct hfsplus_cat_folder));
- 	} else if (HFSPLUS_IS_RSRC(inode)) {
 _
 
-Patches currently in -mm which might be from saproj@gmail.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
-hfsplus-add-hfsx-subfolder-count-support.patch
+mm-fix-page-leak-at-nfs_symlink.patch
+mm-page_alloc-make-first_page-visible-before-pagetail.patch
+linux-next.patch
 
