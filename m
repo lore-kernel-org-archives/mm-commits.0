@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-sirfsoc-remove-unnecessary-oom-messages.patch added to
+Subject: + rtc-rtc-spear-remove-unnecessary-oom-messages.patch added to
  -mm tree
-Date: Fri, 07 Feb 2014 14:42:11 -0800
-Message-ID: <52f56143.ktit6iexfqzbvCN0%akpm@linux-foundation.org>
+Date: Fri, 07 Feb 2014 14:42:13 -0800
+Message-ID: <52f56145.r3VqCZe8yE46HJah%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59771 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59776 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009AbaBGWmM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 17:42:12 -0500
+	with ESMTP id S1752009AbaBGWmO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 17:42:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, Baohua.Song@csr.com, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, viresh.kumar@linaro.org, jg1.han@samsung.com
 
-Subject: + rtc-rtc-sirfsoc-remove-unnecessary-oom-messages.patch added to -mm tree
-To: jg1.han@samsung.com,Baohua.Song@csr.com
+Subject: + rtc-rtc-spear-remove-unnecessary-oom-messages.patch added to -mm tree
+To: jg1.han@samsung.com,viresh.kumar@linaro.org
 From: akpm@linux-foundation.org
-Date: Fri, 07 Feb 2014 14:42:11 -0800
+Date: Fri, 07 Feb 2014 14:42:13 -0800
 
 
 The patch titled
-     Subject: rtc: rtc-sirfsoc: remove unnecessary OOM messages
+     Subject: rtc: rtc-spear: remove unnecessary OOM messages
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-sirfsoc-remove-unnecessary-oom-messages.patch
+     rtc-rtc-spear-remove-unnecessary-oom-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-sirfsoc-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-spear-remove-unnecessary-oom-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-sirfsoc-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-spear-remove-unnecessary-oom-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,36 +45,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-sirfsoc: remove unnecessary OOM messages
+Subject: rtc: rtc-spear: remove unnecessary OOM messages
 
 The site-specific OOM messages are unnecessary, because they duplicate the
 MM subsystem generic OOM message.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Barry Song <Baohua.Song@csr.com>
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sirfsoc.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/rtc/rtc-spear.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-sirfsoc.c~rtc-rtc-sirfsoc-remove-unnecessary-oom-messages drivers/rtc/rtc-sirfsoc.c
---- a/drivers/rtc/rtc-sirfsoc.c~rtc-rtc-sirfsoc-remove-unnecessary-oom-messages
-+++ a/drivers/rtc/rtc-sirfsoc.c
-@@ -264,12 +264,8 @@ static int sirfsoc_rtc_probe(struct plat
+diff -puN drivers/rtc/rtc-spear.c~rtc-rtc-spear-remove-unnecessary-oom-messages drivers/rtc/rtc-spear.c
+--- a/drivers/rtc/rtc-spear.c~rtc-rtc-spear-remove-unnecessary-oom-messages
++++ a/drivers/rtc/rtc-spear.c
+@@ -365,10 +365,8 @@ static int spear_rtc_probe(struct platfo
+ 	}
  
- 	rtcdrv = devm_kzalloc(&pdev->dev,
- 		sizeof(struct sirfsoc_rtc_drv), GFP_KERNEL);
--	if (rtcdrv == NULL) {
--		dev_err(&pdev->dev,
--			"%s: can't alloc mem for drv struct\n",
--			pdev->name);
-+	if (rtcdrv == NULL)
+ 	config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
+-	if (!config) {
+-		dev_err(&pdev->dev, "out of memory\n");
++	if (!config)
  		return -ENOMEM;
 -	}
  
- 	err = of_property_read_u32(np, "reg", &rtcdrv->rtc_base);
- 	if (err) {
+ 	/* alarm irqs */
+ 	irq = platform_get_irq(pdev, 0);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
