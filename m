@@ -1,133 +1,122 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch removed from -mm tree
-Date: Fri, 07 Feb 2014 12:18:43 -0800
-Message-ID: <52f53fa3.2IyVbNe3Mp9OglCz%akpm@linux-foundation.org>
+ numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockreserved.patch removed from -mm tree
+Date: Fri, 07 Feb 2014 12:18:47 -0800
+Message-ID: <52f53fa7.8RTJO3vr02TCrLVn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58924 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752376AbaBGUSo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 15:18:44 -0500
+	with ESMTP id S1752407AbaBGUSw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 15:18:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tangchen@cn.fujitsu.com, stable@vger.kernel.org, rientjes@google.com, riel@redhat.com, lwoodman@redhat.com, jweiner@redhat.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, rientjes@google.com, mingo@elte.hu, hpa@zytor.com, guz.fnst@cn.fujitsu.com, davej@redhat.com, tangchen@cn.fujitsu.com
 
-Subject: [merged] mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch removed from -mm tree
-To: kosaki.motohiro@jp.fujitsu.com,isimatu.yasuaki@jp.fujitsu.com,jweiner@redhat.com,lwoodman@redhat.com,riel@redhat.com,rientjes@google.com,stable@vger.kernel.org,tangchen@cn.fujitsu.com,mm-commits@vger.kernel.org
+Subject: [merged] numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockreserved.patch removed from -mm tree
+To: tangchen@cn.fujitsu.com,davej@redhat.com,guz.fnst@cn.fujitsu.com,hpa@zytor.com,mingo@elte.hu,rientjes@google.com,tglx@linutronix.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 07 Feb 2014 12:18:43 -0800
+Date: Fri, 07 Feb 2014 12:18:47 -0800
 
 
 The patch titled
-     Subject: mm: __set_page_dirty_nobuffers() uses spin_lock_irqsave() instead of spin_lock_irq()
+     Subject: arch/x86/mm/numa.c: fix array index overflow when synchronizing nid to memblock.reserved.
 has been removed from the -mm tree.  Its filename was
-     mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq.patch
+     numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockreserved.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: mm: __set_page_dirty_nobuffers() uses spin_lock_irqsave() instead of spin_lock_irq()
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: arch/x86/mm/numa.c: fix array index overflow when synchronizing nid to memblock.reserved.
 
-During aio stress test, we observed the following lockdep warning.  This
-mean AIO+numa_balancing is currently deadlockable.
+The following path will cause array out of bound.
 
-The problem is, aio_migratepage disable interrupt, but
-__set_page_dirty_nobuffers unintentionally enable it again.
+memblock_add_region() will always set nid in memblock.reserved to
+MAX_NUMNODES.  In numa_register_memblks(), after we set all nid to correct
+valus in memblock.reserved, we called setup_node_data(), and used
+memblock_alloc_nid() to allocate memory, with nid set to MAX_NUMNODES.
 
-Generally, all helper function should use spin_lock_irqsave() instead of
-spin_lock_irq() because they don't know caller at all.
+The nodemask_t type can be seen as a bit array.  And the index is 0 ~
+MAX_NUMNODES-1.
 
-[  599.843948] other info that might help us debug this:
-[  599.873748]  Possible unsafe locking scenario:
-[  599.873748]
-[  599.900902]        CPU0
-[  599.912701]        ----
-[  599.924929]   lock(&(&ctx->completion_lock)->rlock);
-[  599.950299]   <Interrupt>
-[  599.962576]     lock(&(&ctx->completion_lock)->rlock);
-[  599.985771]
-[  599.985771]  *** DEADLOCK ***
+After that, when we call node_set() in numa_clear_kernel_node_hotplug(),
+the nodemask_t got an index of value MAX_NUMNODES, which is out of [0 ~
+MAX_NUMNODES-1].
 
-[  600.375623]  [<ffffffff81678d3c>] dump_stack+0x19/0x1b
-[  600.398769]  [<ffffffff816731aa>] print_usage_bug+0x1f7/0x208
-[  600.425092]  [<ffffffff810df370>] ? print_shortest_lock_dependencies+0x1d0/0x1d0
-[  600.458981]  [<ffffffff810e08dd>] mark_lock+0x21d/0x2a0
-[  600.482910]  [<ffffffff810e0a19>] mark_held_locks+0xb9/0x140
-[  600.508956]  [<ffffffff8168201c>] ? _raw_spin_unlock_irq+0x2c/0x50
-[  600.536825]  [<ffffffff810e0ba5>] trace_hardirqs_on_caller+0x105/0x1d0
-[  600.566861]  [<ffffffff810e0c7d>] trace_hardirqs_on+0xd/0x10
-[  600.593210]  [<ffffffff8168201c>] _raw_spin_unlock_irq+0x2c/0x50
-[  600.620599]  [<ffffffff8117f72c>] __set_page_dirty_nobuffers+0x8c/0xf0
-[  600.649992]  [<ffffffff811d1094>] migrate_page_copy+0x434/0x540
-[  600.676635]  [<ffffffff8123f5b1>] aio_migratepage+0xb1/0x140
-[  600.703126]  [<ffffffff811d126d>] move_to_new_page+0x7d/0x230
-[  600.729022]  [<ffffffff811d1b45>] migrate_pages+0x5e5/0x700
-[  600.754705]  [<ffffffff811d0070>] ? buffer_migrate_lock_buffers+0xb0/0xb0
-[  600.785784]  [<ffffffff811d29cc>] migrate_misplaced_page+0xbc/0xf0
-[  600.814029]  [<ffffffff8119eb62>] do_numa_page+0x102/0x190
-[  600.839182]  [<ffffffff8119ee31>] handle_pte_fault+0x241/0x970
-[  600.865875]  [<ffffffff811a0345>] handle_mm_fault+0x265/0x370
-[  600.892071]  [<ffffffff81686d82>] __do_page_fault+0x172/0x5a0
-[  600.918065]  [<ffffffff81682cd8>] ? retint_swapgs+0x13/0x1b
-[  600.943493]  [<ffffffff816871ca>] do_page_fault+0x1a/0x70
-[  600.968081]  [<ffffffff81682ff8>] page_fault+0x28/0x30
+See below:
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>
+numa_init()
+ |---> numa_register_memblks()
+ |      |---> memblock_set_node(memory)		set correct nid in memblock.memory
+ |      |---> memblock_set_node(reserved)	set correct nid in memblock.reserved
+ |      |......
+ |      |---> setup_node_data()
+ |             |---> memblock_alloc_nid()	here, nid is set to MAX_NUMNODES (1024)
+ |......
+ |---> numa_clear_kernel_node_hotplug()
+        |---> node_set()			here, we have an index 1024, and overflowed
+
+This patch moves nid setting to numa_clear_kernel_node_hotplug() to fix
+this problem.
+
+Reported-by: Dave Jones <davej@redhat.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Tested-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Reported-by: Dave Jones <davej@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Tested-by: Dave Jones <davej@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/x86/mm/numa.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq mm/page-writeback.c
---- a/mm/page-writeback.c~mm-__set_page_dirty_nobuffers-uses-spin_lock_irqseve-instead-of-spin_lock_irq
-+++ a/mm/page-writeback.c
-@@ -2173,11 +2173,12 @@ int __set_page_dirty_nobuffers(struct pa
- 	if (!TestSetPageDirty(page)) {
- 		struct address_space *mapping = page_mapping(page);
- 		struct address_space *mapping2;
-+		unsigned long flags;
+diff -puN arch/x86/mm/numa.c~numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockreserved arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~numa-mem-hotplug-fix-array-index-overflow-when-synchronizing-nid-to-memblockreserved
++++ a/arch/x86/mm/numa.c
+@@ -493,14 +493,6 @@ static int __init numa_register_memblks(
+ 		struct numa_memblk *mb = &mi->blk[i];
+ 		memblock_set_node(mb->start, mb->end - mb->start,
+ 				  &memblock.memory, mb->nid);
+-
+-		/*
+-		 * At this time, all memory regions reserved by memblock are
+-		 * used by the kernel. Set the nid in memblock.reserved will
+-		 * mark out all the nodes the kernel resides in.
+-		 */
+-		memblock_set_node(mb->start, mb->end - mb->start,
+-				  &memblock.reserved, mb->nid);
+ 	}
  
- 		if (!mapping)
- 			return 1;
+ 	/*
+@@ -569,6 +561,17 @@ static void __init numa_clear_kernel_nod
+ 	unsigned long start, end;
+ 	struct memblock_type *type = &memblock.reserved;
  
--		spin_lock_irq(&mapping->tree_lock);
-+		spin_lock_irqsave(&mapping->tree_lock, flags);
- 		mapping2 = page_mapping(page);
- 		if (mapping2) { /* Race with truncate? */
- 			BUG_ON(mapping2 != mapping);
-@@ -2186,7 +2187,7 @@ int __set_page_dirty_nobuffers(struct pa
- 			radix_tree_tag_set(&mapping->page_tree,
- 				page_index(page), PAGECACHE_TAG_DIRTY);
- 		}
--		spin_unlock_irq(&mapping->tree_lock);
-+		spin_unlock_irqrestore(&mapping->tree_lock, flags);
- 		if (mapping->host) {
- 			/* !PageAnon && !swapper_space */
- 			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
++	/*
++	 * At this time, all memory regions reserved by memblock are
++	 * used by the kernel. Set the nid in memblock.reserved will
++	 * mark out all the nodes the kernel resides in.
++	 */
++	for (i = 0; i < numa_meminfo.nr_blks; i++) {
++		struct numa_memblk *mb = &numa_meminfo.blk[i];
++		memblock_set_node(mb->start, mb->end - mb->start,
++				  &memblock.reserved, mb->nid);
++	}
++
+ 	/* Mark all kernel nodes. */
+ 	for (i = 0; i < type->cnt; i++)
+ 		node_set(type->regions[i].nid, numa_kernel_nodes);
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
 origin.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
 
