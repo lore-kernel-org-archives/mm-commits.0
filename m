@@ -1,71 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch removed from -mm tree
-Date: Fri, 07 Feb 2014 12:18:45 -0800
-Message-ID: <52f53fa5.Nf+0qJ3wAaTlrGsv%akpm@linux-foundation.org>
+Subject: + mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+ added to -mm tree
+Date: Fri, 07 Feb 2014 12:52:45 -0800
+Message-ID: <52f5479d.66OOA8LLkfL/fi/r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58913 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59060 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509AbaBGUSq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 15:18:46 -0500
+	with ESMTP id S1753042AbaBGUwq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 15:52:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, rientjes@google.com, mingo@elte.hu, hpa@zytor.com, guz.fnst@cn.fujitsu.com, davej@redhat.com, tangchen@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, minchan@kernel.org, hughd@google.com, hannes@cmpxchg.org, akpm@linux-foundation.org
 
-Subject: [merged] numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch removed from -mm tree
-To: tangchen@cn.fujitsu.com,davej@redhat.com,guz.fnst@cn.fujitsu.com,hpa@zytor.com,mingo@elte.hu,rientjes@google.com,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: + mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,hannes@cmpxchg.org,hughd@google.com,minchan@kernel.org,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 07 Feb 2014 12:18:45 -0800
+Date: Fri, 07 Feb 2014 12:52:45 -0800
 
 
 The patch titled
-     Subject: arch/x86/mm/numa.c: initialize numa_kernel_nodes in numa_clear_kernel_node_hotplug()
-has been removed from the -mm tree.  Its filename was
-     numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug.patch
+     Subject: mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix
+has been added to the -mm tree.  Its filename is
+     mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: arch/x86/mm/numa.c: initialize numa_kernel_nodes in numa_clear_kernel_node_hotplug()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix
 
-On-stack variable numa_kernel_nodes in numa_clear_kernel_node_hotplug()
-was not initialized.  So we need to initialize it.
+export the right function
 
-[akpm@linux-foundation.org: use NODE_MASK_NONE, per David]
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Tested-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Reported-by: Dave Jones <davej@redhat.com>
-Reported-by: David Rientjes <rientjes@google.com>
-Tested-by: Dave Jones <davej@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |    2 +-
+ mm/list_lru.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/numa.c~numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~numa-mem-hotplug-initialize-numa_kernel_nodes-in-numa_clear_kernel_node_hotplug
-+++ a/arch/x86/mm/numa.c
-@@ -565,7 +565,7 @@ static void __init numa_init_array(void)
- static void __init numa_clear_kernel_node_hotplug(void)
- {
- 	int i, nid;
--	nodemask_t numa_kernel_nodes;
-+	nodemask_t numa_kernel_nodes = NODE_MASK_NONE;
- 	unsigned long start, end;
- 	struct memblock_type *type = &memblock.reserved;
+diff -puN mm/list_lru.c~mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix mm/list_lru.c
+--- a/mm/list_lru.c~mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix
++++ a/mm/list_lru.c
+@@ -143,7 +143,7 @@ int list_lru_init_key(struct list_lru *l
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(list_lru_init);
++EXPORT_SYMBOL_GPL(list_lru_init_key);
  
+ void list_lru_destroy(struct list_lru *lru)
+ {
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+xen-properly-account-for-_page_numa-during-xen-pte-translations-fix.patch
+ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
