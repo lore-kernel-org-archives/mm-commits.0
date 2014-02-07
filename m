@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch added
- to -mm tree
-Date: Fri, 07 Feb 2014 14:42:04 -0800
-Message-ID: <52f5613c.LUE3pk0uh9iHz1Yz%akpm@linux-foundation.org>
+Subject: + rtc-rtc-ds1390-remove-unnecessary-oom-messages.patch added to
+ -mm tree
+Date: Fri, 07 Feb 2014 14:42:06 -0800
+Message-ID: <52f5613e.tHmHRMNBbcOzzchb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59756 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59762 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751950AbaBGWmF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 17:42:05 -0500
+	with ESMTP id S1751689AbaBGWmH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 17:42:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, egtvedt@samfundet.no, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch added to -mm tree
-To: jg1.han@samsung.com,egtvedt@samfundet.no
+Subject: + rtc-rtc-ds1390-remove-unnecessary-oom-messages.patch added to -mm tree
+To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Fri, 07 Feb 2014 14:42:04 -0800
+Date: Fri, 07 Feb 2014 14:42:06 -0800
 
 
 The patch titled
-     Subject: rtc: rtc-at32ap700x: remove unnecessary OOM messages
+     Subject: rtc: rtc-ds1390: remove unnecessary OOM messages
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch
+     rtc-rtc-ds1390-remove-unnecessary-oom-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-ds1390-remove-unnecessary-oom-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-ds1390-remove-unnecessary-oom-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,34 +45,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-at32ap700x: remove unnecessary OOM messages
+Subject: rtc: rtc-ds1390: remove unnecessary OOM messages
 
 The site-specific OOM messages are unnecessary, because they duplicate the
 MM subsystem generic OOM message.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at32ap700x.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/rtc/rtc-ds1390.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-at32ap700x.c~rtc-rtc-at32ap700x-remove-unnecessary-oom-messages drivers/rtc/rtc-at32ap700x.c
---- a/drivers/rtc/rtc-at32ap700x.c~rtc-rtc-at32ap700x-remove-unnecessary-oom-messages
-+++ a/drivers/rtc/rtc-at32ap700x.c
-@@ -204,10 +204,8 @@ static int __init at32_rtc_probe(struct
+diff -puN drivers/rtc/rtc-ds1390.c~rtc-rtc-ds1390-remove-unnecessary-oom-messages drivers/rtc/rtc-ds1390.c
+--- a/drivers/rtc/rtc-ds1390.c~rtc-rtc-ds1390-remove-unnecessary-oom-messages
++++ a/drivers/rtc/rtc-ds1390.c
+@@ -132,10 +132,9 @@ static int ds1390_probe(struct spi_devic
+ 	spi_setup(spi);
  
- 	rtc = devm_kzalloc(&pdev->dev, sizeof(struct rtc_at32ap700x),
- 			   GFP_KERNEL);
--	if (!rtc) {
--		dev_dbg(&pdev->dev, "out of memory\n");
-+	if (!rtc)
+ 	chip = devm_kzalloc(&spi->dev, sizeof(*chip), GFP_KERNEL);
+-	if (!chip) {
+-		dev_err(&spi->dev, "unable to allocate device memory\n");
++	if (!chip)
  		return -ENOMEM;
 -	}
++
+ 	spi_set_drvdata(spi, chip);
  
- 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!regs) {
+ 	res = ds1390_get_reg(&spi->dev, DS1390_REG_SECONDS, &tmp);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
