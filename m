@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-coh901331-use-devm_ioremap_resource.patch added to -mm
+Subject: + rtc-rtc-vt8500-use-devm_ioremap_resource.patch added to -mm
  tree
-Date: Fri, 07 Feb 2014 14:47:00 -0800
-Message-ID: <52f56264.tADubm+1lTZd+dLP%akpm@linux-foundation.org>
+Date: Fri, 07 Feb 2014 14:47:02 -0800
+Message-ID: <52f56266.MNHvRqOh2t2xJDRg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59789 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59794 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750744AbaBGWrB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 17:47:01 -0500
+	with ESMTP id S1751897AbaBGWrD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 17:47:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linus.walleij@linaro.org, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, linux@prisktech.co.nz, jg1.han@samsung.com
 
-Subject: + rtc-rtc-coh901331-use-devm_ioremap_resource.patch added to -mm tree
-To: jg1.han@samsung.com,linus.walleij@linaro.org
+Subject: + rtc-rtc-vt8500-use-devm_ioremap_resource.patch added to -mm tree
+To: jg1.han@samsung.com,linux@prisktech.co.nz
 From: akpm@linux-foundation.org
-Date: Fri, 07 Feb 2014 14:47:00 -0800
+Date: Fri, 07 Feb 2014 14:47:02 -0800
 
 
 The patch titled
-     Subject: rtc: rtc-coh901331: use devm_ioremap_resource()
+     Subject: rtc: rtc-vt8500: use devm_ioremap_resource()
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-coh901331-use-devm_ioremap_resource.patch
+     rtc-rtc-vt8500-use-devm_ioremap_resource.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-coh901331-use-devm_ioremap_resource.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-vt8500-use-devm_ioremap_resource.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-coh901331-use-devm_ioremap_resource.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-vt8500-use-devm_ioremap_resource.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,55 +45,78 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-coh901331: use devm_ioremap_resource()
+Subject: rtc: rtc-vt8500: use devm_ioremap_resource()
 
-Use devm_ioremap_resource() in order to make the code simpler, and remove
-redundant return value check of platform_get_resource() because the value
-is checked by devm_ioremap_resource().
+Use devm_ioremap_resource() in order to make the code simpler, and move
+'struct resource *res' from 'struct vt8500_rtc' to vt8500_rtc_probe()
+because the 'res' variable is used only in vt8500_rtc_probe().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Tony Prisk <linux@prisktech.co.nz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-coh901331.c |   18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+ drivers/rtc/rtc-vt8500.c |   28 +++++-----------------------
+ 1 file changed, 5 insertions(+), 23 deletions(-)
 
-diff -puN drivers/rtc/rtc-coh901331.c~rtc-rtc-coh901331-use-devm_ioremap_resource drivers/rtc/rtc-coh901331.c
---- a/drivers/rtc/rtc-coh901331.c~rtc-rtc-coh901331-use-devm_ioremap_resource
-+++ a/drivers/rtc/rtc-coh901331.c
-@@ -43,8 +43,6 @@
- struct coh901331_port {
- 	struct rtc_device *rtc;
- 	struct clk *clk;
--	u32 phybase;
--	u32 physize;
- 	void __iomem *virtbase;
- 	int irq;
- #ifdef CONFIG_PM_SLEEP
-@@ -173,19 +171,9 @@ static int __init coh901331_probe(struct
- 		return -ENOMEM;
+diff -puN drivers/rtc/rtc-vt8500.c~rtc-rtc-vt8500-use-devm_ioremap_resource drivers/rtc/rtc-vt8500.c
+--- a/drivers/rtc/rtc-vt8500.c~rtc-rtc-vt8500-use-devm_ioremap_resource
++++ a/drivers/rtc/rtc-vt8500.c
+@@ -79,7 +79,6 @@
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENOENT;
+ struct vt8500_rtc {
+ 	void __iomem		*regbase;
+-	struct resource		*res;
+ 	int			irq_alarm;
+ 	struct rtc_device	*rtc;
+ 	spinlock_t		lock;		/* Protects this structure */
+@@ -209,6 +208,7 @@ static const struct rtc_class_ops vt8500
+ static int vt8500_rtc_probe(struct platform_device *pdev)
+ {
+ 	struct vt8500_rtc *vt8500_rtc;
++	struct resource	*res;
+ 	int ret;
+ 
+ 	vt8500_rtc = devm_kzalloc(&pdev->dev,
+@@ -219,34 +219,16 @@ static int vt8500_rtc_probe(struct platf
+ 	spin_lock_init(&vt8500_rtc->lock);
+ 	platform_set_drvdata(pdev, vt8500_rtc);
+ 
+-	vt8500_rtc->res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!vt8500_rtc->res) {
+-		dev_err(&pdev->dev, "No I/O memory resource defined\n");
+-		return -ENXIO;
+-	}
 -
--	rtap->phybase = res->start;
--	rtap->physize = resource_size(res);
--
--	if (devm_request_mem_region(&pdev->dev, rtap->phybase, rtap->physize,
--				    "rtc-coh901331") == NULL)
+ 	vt8500_rtc->irq_alarm = platform_get_irq(pdev, 0);
+ 	if (vt8500_rtc->irq_alarm < 0) {
+ 		dev_err(&pdev->dev, "No alarm IRQ resource defined\n");
+ 		return vt8500_rtc->irq_alarm;
+ 	}
+ 
+-	vt8500_rtc->res = devm_request_mem_region(&pdev->dev,
+-					vt8500_rtc->res->start,
+-					resource_size(vt8500_rtc->res),
+-					"vt8500-rtc");
+-	if (vt8500_rtc->res == NULL) {
+-		dev_err(&pdev->dev, "failed to request I/O memory\n");
 -		return -EBUSY;
+-	}
 -
--	rtap->virtbase = devm_ioremap(&pdev->dev, rtap->phybase, rtap->physize);
--	if (!rtap->virtbase)
--		return -ENOMEM;
-+	rtap->virtbase  = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(rtap->virtbase))
-+		return PTR_ERR(rtap->virtbase);
+-	vt8500_rtc->regbase = devm_ioremap(&pdev->dev, vt8500_rtc->res->start,
+-				      resource_size(vt8500_rtc->res));
+-	if (!vt8500_rtc->regbase) {
+-		dev_err(&pdev->dev, "Unable to map RTC I/O memory\n");
+-		ret = -EBUSY;
+-		goto err_return;
+-	}
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	vt8500_rtc->regbase = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(vt8500_rtc->regbase))
++		return PTR_ERR(vt8500_rtc->regbase);
  
- 	rtap->irq = platform_get_irq(pdev, 0);
- 	if (devm_request_irq(&pdev->dev, rtap->irq, coh901331_interrupt, 0,
+ 	/* Enable RTC and set it to 24-hour mode */
+ 	writel(VT8500_RTC_CR_ENABLE,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
