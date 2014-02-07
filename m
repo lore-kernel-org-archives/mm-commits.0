@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-mmh-remove-ifdef-condition.patch added to -mm
- tree
-Date: Fri, 07 Feb 2014 14:31:30 -0800
-Message-ID: <52f55ec2.OUkPd8rgR3fC8eh3%akpm@linux-foundation.org>
+Subject: + rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch added
+ to -mm tree
+Date: Fri, 07 Feb 2014 14:42:04 -0800
+Message-ID: <52f5613c.LUE3pk0uh9iHz1Yz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59641 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59756 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933AbaBGWbb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 17:31:31 -0500
+	with ESMTP id S1751950AbaBGWmF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 17:42:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, riel@redhat.com, josh@joshtriplett.org, rashika.kheria@gmail.com
+To: mm-commits@vger.kernel.org, egtvedt@samfundet.no, jg1.han@samsung.com
 
-Subject: + include-linux-mmh-remove-ifdef-condition.patch added to -mm tree
-To: rashika.kheria@gmail.com,josh@joshtriplett.org,riel@redhat.com,rientjes@google.com
+Subject: + rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch added to -mm tree
+To: jg1.han@samsung.com,egtvedt@samfundet.no
 From: akpm@linux-foundation.org
-Date: Fri, 07 Feb 2014 14:31:30 -0800
+Date: Fri, 07 Feb 2014 14:42:04 -0800
 
 
 The patch titled
-     Subject: include/linux/mm.h: remove ifdef condition
+     Subject: rtc: rtc-at32ap700x: remove unnecessary OOM messages
 has been added to the -mm tree.  Its filename is
-     include-linux-mmh-remove-ifdef-condition.patch
+     rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-mmh-remove-ifdef-condition.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-mmh-remove-ifdef-condition.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,61 +44,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rashika Kheria <rashika.kheria@gmail.com>
-Subject: include/linux/mm.h: remove ifdef condition
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: rtc: rtc-at32ap700x: remove unnecessary OOM messages
 
-The ifdef conditions in include/linux/mm.h presents three cases:
+The site-specific OOM messages are unnecessary, because they duplicate the
+MM subsystem generic OOM message.
 
-- !defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) && !defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID)
-There is no actual definition of function but include/linux/mm.h has a
-static inline stub defined.
-
-- defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) && !defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID)
-linux/mm.h does not define a prototype, but mm/page_alloc.c defines
-the function.
-Hence, compiler reports the following warning:
-mm/page_alloc.c:4300:15: warning: no previous prototype for `__early_pfn_to_nid' [-Wmissing-prototypes]
-
-- defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID)
-The architecture defines the function, and linux/mm.h has a prototype.
-
-Thus, join the conditions of Case 2 and 3 i.e.  eliminate the ifdef
-condition of CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID to eliminate the missing
-prototype warning from file mm/page_alloc.c.
-
-Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/rtc/rtc-at32ap700x.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~include-linux-mmh-remove-ifdef-condition include/linux/mm.h
---- a/include/linux/mm.h~include-linux-mmh-remove-ifdef-condition
-+++ a/include/linux/mm.h
-@@ -1650,10 +1650,8 @@ static inline int __early_pfn_to_nid(uns
- #else
- /* please see mm/page_alloc.c */
- extern int __meminit early_pfn_to_nid(unsigned long pfn);
--#ifdef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
- /* there is a per-arch backend function. */
- extern int __meminit __early_pfn_to_nid(unsigned long pfn);
--#endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
- #endif
+diff -puN drivers/rtc/rtc-at32ap700x.c~rtc-rtc-at32ap700x-remove-unnecessary-oom-messages drivers/rtc/rtc-at32ap700x.c
+--- a/drivers/rtc/rtc-at32ap700x.c~rtc-rtc-at32ap700x-remove-unnecessary-oom-messages
++++ a/drivers/rtc/rtc-at32ap700x.c
+@@ -204,10 +204,8 @@ static int __init at32_rtc_probe(struct
  
- extern void set_dma_reserve(unsigned long new_dma_reserve);
+ 	rtc = devm_kzalloc(&pdev->dev, sizeof(struct rtc_at32ap700x),
+ 			   GFP_KERNEL);
+-	if (!rtc) {
+-		dev_dbg(&pdev->dev, "out of memory\n");
++	if (!rtc)
+ 		return -ENOMEM;
+-	}
+ 
+ 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!regs) {
 _
 
-Patches currently in -mm which might be from rashika.kheria@gmail.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-mm-compactionc-mark-function-as-static.patch
-mm-memoryc-mark-functions-as-static.patch
-mm-mmapc-mark-function-as-static.patch
-mm-process_vm_accessc-mark-function-as-static.patch
-mm-page_cgroupc-mark-functions-as-static.patch
-mm-nobootmemc-mark-function-as-static.patch
-include-linux-mmh-remove-ifdef-condition.patch
+backlight-update-bd-state-fb_blank-properties-when-necessary.patch
+backlight-update-backlight-status-when-necessary.patch
+backlight-aat2870-remove-unnecessary-oom-messages.patch
+backlight-adp8860-remove-unnecessary-oom-messages.patch
+backlight-adp8870-remove-unnecessary-oom-messages.patch
+backlight-corgi_lcd-remove-unnecessary-oom-messages.patch
+backlight-hx8357-remove-unnecessary-oom-messages.patch
+backlight-ili922x-remove-unnecessary-oom-messages.patch
+backlight-ili9320-remove-unnecessary-oom-messages.patch
+backlight-l4f00242t03-remove-unnecessary-oom-messages.patch
+backlight-lm3533_bl-remove-unnecessary-oom-messages.patch
+backlight-lms283gf05-remove-unnecessary-oom-messages.patch
+backlight-platform_lcd-remove-unnecessary-oom-messages.patch
+backlight-tps65217_bl-remove-unnecessary-oom-messages.patch
+drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
+rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch
+rtc-rtc-davinci-remove-unnecessary-oom-messages.patch
+rtc-rtc-ds1390-remove-unnecessary-oom-messages.patch
+rtc-rtc-moxart-remove-unnecessary-oom-messages.patch
+rtc-rtc-nuc900-remove-unnecessary-oom-messages.patch
+rtc-rtc-pm8xxx-remove-unnecessary-oom-messages.patch
+rtc-rtc-rx8025-remove-unnecessary-oom-messages.patch
+rtc-rtc-sirfsoc-remove-unnecessary-oom-messages.patch
+rtc-rtc-lpc32xx-remove-unnecessary-oom-messages.patch
+rtc-rtc-spear-remove-unnecessary-oom-messages.patch
+linux-next.patch
 
