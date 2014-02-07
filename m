@@ -1,264 +1,240 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch removed from -mm tree
-Date: Fri, 07 Feb 2014 12:18:39 -0800
-Message-ID: <52f53f9f.u8pfvYAdyUsg6te5%akpm@linux-foundation.org>
+ ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch removed from -mm tree
+Date: Fri, 07 Feb 2014 12:18:37 -0800
+Message-ID: <52f53f9d.gf6Oj58ZxLBlEPyV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58901 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58894 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752144AbaBGUSk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 15:18:40 -0500
+	with ESMTP id S1751511AbaBGUSi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 15:18:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shli@fusionio.com, riel@redhat.com, minchan@kernel.org, khlebnikov@openvz.org, hughd@google.com, fengguang.wu@intel.com, shli@kernel.org
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, lizefan@huawei.com, joseph.qi@huawei.com, jlbec@evilplan.org, wangzongxun@huawei.com
 
-Subject: [merged] swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch removed from -mm tree
-To: shli@kernel.org,fengguang.wu@intel.com,hughd@google.com,khlebnikov@openvz.org,minchan@kernel.org,riel@redhat.com,shli@fusionio.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch removed from -mm tree
+To: wangzongxun@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,lizefan@huawei.com,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 07 Feb 2014 12:18:39 -0800
+Date: Fri, 07 Feb 2014 12:18:37 -0800
 
 
 The patch titled
-     Subject: swap: add a simple detector for inappropriate swapin readahead
+     Subject: ocfs2: free allocated clusters if error occurs after ocfs2_claim_clusters
 has been removed from the -mm tree.  Its filename was
-     swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+     ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shaohua Li <shli@kernel.org>
-Subject: swap: add a simple detector for inappropriate swapin readahead
+From: Zongxun Wang <wangzongxun@huawei.com>
+Subject: ocfs2: free allocated clusters if error occurs after ocfs2_claim_clusters
 
-This is a patch to improve swap readahead algorithm. It's from Hugh and I
-slightly changed it.
+Even if using the same jbd2 handle, we cannot rollback a transaction.  So
+once some error occurs after successfully allocating clusters, the
+allocated clusters will never be used and it means they are lost.  For
+example, call ocfs2_claim_clusters successfully when expanding a file, but
+failed in ocfs2_insert_extent.  So we need free the allocated clusters if
+they are not used indeed.
 
-Hugh's original changelog:
-
-swapin readahead does a blind readahead, whether or not the swapin
-is sequential.  This may be ok on harddisk, because large reads have
-relatively small costs, and if the readahead pages are unneeded they
-can be reclaimed easily - though, what if their allocation forced
-reclaim of useful pages?  But on SSD devices large reads are more
-expensive than small ones: if the readahead pages are unneeded,
-reading them in caused significant overhead.
-
-This patch adds very simplistic random read detection.  Stealing
-the PageReadahead technique from Konstantin Khlebnikov's patch,
-avoiding the vma/anon_vma sophistications of Shaohua Li's patch,
-swapin_nr_pages() simply looks at readahead's current success
-rate, and narrows or widens its readahead window accordingly.
-There is little science to its heuristic: it's about as stupid
-as can be whilst remaining effective.
-
-The table below shows elapsed times (in centiseconds) when running
-a single repetitive swapping load across a 1000MB mapping in 900MB
-ram with 1GB swap (the harddisk tests had taken painfully too long
-when I used mem=500M, but SSD shows similar results for that).
-
-Vanilla is the 3.6-rc7 kernel on which I started; Shaohua denotes
-his Sep 3 patch in mmotm and linux-next; HughOld denotes my Oct 1
-patch which Shaohua showed to be defective; HughNew this Nov 14
-patch, with page_cluster as usual at default of 3 (8-page reads);
-HughPC4 this same patch with page_cluster 4 (16-page reads);
-HughPC0 with page_cluster 0 (1-page reads: no readahead).
-
-HDD for swapping to harddisk, SSD for swapping to VertexII SSD.
-Seq for sequential access to the mapping, cycling five times around;
-Rand for the same number of random touches.  Anon for a MAP_PRIVATE
-anon mapping; Shmem for a MAP_SHARED anon mapping, equivalent to tmpfs.
-
-One weakness of Shaohua's vma/anon_vma approach was that it did
-not optimize Shmem: seen below.  Konstantin's approach was perhaps
-mistuned, 50% slower on Seq: did not compete and is not shown below.
-
-HDD        Vanilla Shaohua HughOld HughNew HughPC4 HughPC0
-Seq Anon     73921   76210   75611   76904   78191  121542
-Seq Shmem    73601   73176   73855   72947   74543  118322
-Rand Anon   895392  831243  871569  845197  846496  841680
-Rand Shmem 1058375 1053486  827935  764955  764376  756489
-
-SSD        Vanilla Shaohua HughOld HughNew HughPC4 HughPC0
-Seq Anon     24634   24198   24673   25107   21614   70018
-Seq Shmem    24959   24932   25052   25703   22030   69678
-Rand Anon    43014   26146   28075   25989   26935   25901
-Rand Shmem   45349   45215   28249   24268   24138   24332
-
-These tests are, of course, two extremes of a very simple case:
-under heavier mixed loads I've not yet observed any consistent
-improvement or degradation, and wider testing would be welcome.
-
-Shaohua Li:
-
-Test shows Vanilla is slightly better in sequential workload than Hugh's patch.
-I observed with Hugh's patch sometimes the readahead size is shrinked too fast
-(from 8 to 1 immediately) in sequential workload if there is no hit. And in
-such case, continuing doing readahead is good actually.
-
-I don't prepare a sophisticated algorithm for the sequential workload because
-so far we can't guarantee sequential accessed pages are swap out sequentially.
-So I slightly change Hugh's heuristic - don't shrink readahead size too fast.
-
-Here is my test result (unit second, 3 runs average):
-	Vanilla		Hugh		New
-Seq	356		370		360
-Random	4525		2447		2444
-
-Attached graph is the swapin/swapout throughput I collected with 'vmstat 2'.
-The first part is running a random workload (till around 1200 of the x-axis)
-and the second part is running a sequential workload. swapin and swapout
-throughput are almost identical in steady state in both workloads. These are
-expected behavior. while in Vanilla, swapin is much bigger than swapout
-especially in random workload (because wrong readahead).
-
-Original patches by: Shaohua Li and Konstantin Khlebnikov.
-
-[fengguang.wu@intel.com: swapin_nr_pages() can be static]
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Shaohua Li <shli@fusionio.com>
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Signed-off-by: Zongxun Wang <wangzongxun@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Li Zefan <lizefan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    4 +-
- mm/swap_state.c            |   63 +++++++++++++++++++++++++++++++++--
- 2 files changed, 62 insertions(+), 5 deletions(-)
+ fs/ocfs2/alloc.c      |   38 +++++++++++++++++++++++++++++++++---
+ fs/ocfs2/localalloc.c |   42 ++++++++++++++++++++++++++++++++++++++++
+ fs/ocfs2/localalloc.h |    6 +++++
+ 3 files changed, 83 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/page-flags.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead include/linux/page-flags.h
---- a/include/linux/page-flags.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
-+++ a/include/linux/page-flags.h
-@@ -228,9 +228,9 @@ PAGEFLAG(OwnerPriv1, owner_priv_1) TESTC
- TESTPAGEFLAG(Writeback, writeback) TESTSCFLAG(Writeback, writeback)
- PAGEFLAG(MappedToDisk, mappedtodisk)
- 
--/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
-+/* PG_readahead is only used for reads; PG_reclaim is only for writes */
- PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
--PAGEFLAG(Readahead, reclaim)		/* Reminder to do async read-ahead */
-+PAGEFLAG(Readahead, reclaim) TESTCLEARFLAG(Readahead, reclaim)
- 
- #ifdef CONFIG_HIGHMEM
- /*
-diff -puN mm/swap_state.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/swap_state.c
---- a/mm/swap_state.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
-+++ a/mm/swap_state.c
-@@ -63,6 +63,8 @@ unsigned long total_swapcache_pages(void
- 	return ret;
- }
- 
-+static atomic_t swapin_readahead_hits = ATOMIC_INIT(4);
-+
- void show_swap_cache_info(void)
+diff -puN fs/ocfs2/alloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
++++ a/fs/ocfs2/alloc.c
+@@ -4742,6 +4742,7 @@ int ocfs2_add_clusters_in_btree(handle_t
+ 				enum ocfs2_alloc_restarted *reason_ret)
  {
- 	printk("%lu pages in swap cache\n", total_swapcache_pages());
-@@ -286,8 +288,11 @@ struct page * lookup_swap_cache(swp_entr
+ 	int status = 0, err = 0;
++	int need_free = 0;
+ 	int free_extents;
+ 	enum ocfs2_alloc_restarted reason = RESTART_NONE;
+ 	u32 bit_off, num_bits;
+@@ -4796,7 +4797,8 @@ int ocfs2_add_clusters_in_btree(handle_t
+ 					      OCFS2_JOURNAL_ACCESS_WRITE);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		goto leave;
++		need_free = 1;
++		goto bail;
+ 	}
  
- 	page = find_get_page(swap_address_space(entry), entry.val);
+ 	block = ocfs2_clusters_to_blocks(osb->sb, bit_off);
+@@ -4807,7 +4809,8 @@ int ocfs2_add_clusters_in_btree(handle_t
+ 				     num_bits, flags, meta_ac);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		goto leave;
++		need_free = 1;
++		goto bail;
+ 	}
  
--	if (page)
-+	if (page) {
- 		INC_CACHE_INFO(find_success);
-+		if (TestClearPageReadahead(page))
-+			atomic_inc(&swapin_readahead_hits);
+ 	ocfs2_journal_dirty(handle, et->et_root_bh);
+@@ -4821,6 +4824,19 @@ int ocfs2_add_clusters_in_btree(handle_t
+ 		reason = RESTART_TRANS;
+ 	}
+ 
++bail:
++	if (need_free) {
++		if (data_ac->ac_which == OCFS2_AC_USE_LOCAL)
++			ocfs2_free_local_alloc_bits(osb, handle, data_ac,
++					bit_off, num_bits);
++		else
++			ocfs2_free_clusters(handle,
++					data_ac->ac_inode,
++					data_ac->ac_bh,
++					ocfs2_clusters_to_blocks(osb->sb, bit_off),
++					num_bits);
 +	}
++
+ leave:
+ 	if (reason_ret)
+ 		*reason_ret = reason;
+@@ -6805,6 +6821,8 @@ int ocfs2_convert_inline_data_to_extents
+ 					 struct buffer_head *di_bh)
+ {
+ 	int ret, i, has_data, num_pages = 0;
++	int need_free = 0;
++	u32 bit_off, num;
+ 	handle_t *handle;
+ 	u64 uninitialized_var(block);
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
+@@ -6850,7 +6868,6 @@ int ocfs2_convert_inline_data_to_extents
+ 	}
  
- 	INC_CACHE_INFO(find_total);
- 	return page;
-@@ -389,6 +394,50 @@ struct page *read_swap_cache_async(swp_e
- 	return found_page;
+ 	if (has_data) {
+-		u32 bit_off, num;
+ 		unsigned int page_end;
+ 		u64 phys;
+ 
+@@ -6886,6 +6903,7 @@ int ocfs2_convert_inline_data_to_extents
+ 		ret = ocfs2_grab_eof_pages(inode, 0, end, pages, &num_pages);
+ 		if (ret) {
+ 			mlog_errno(ret);
++			need_free = 1;
+ 			goto out_commit;
+ 		}
+ 
+@@ -6896,6 +6914,7 @@ int ocfs2_convert_inline_data_to_extents
+ 		ret = ocfs2_read_inline_data(inode, pages[0], di_bh);
+ 		if (ret) {
+ 			mlog_errno(ret);
++			need_free = 1;
+ 			goto out_commit;
+ 		}
+ 
+@@ -6927,6 +6946,7 @@ int ocfs2_convert_inline_data_to_extents
+ 		ret = ocfs2_insert_extent(handle, &et, 0, block, 1, 0, NULL);
+ 		if (ret) {
+ 			mlog_errno(ret);
++			need_free = 1;
+ 			goto out_commit;
+ 		}
+ 
+@@ -6938,6 +6958,18 @@ out_commit:
+ 		dquot_free_space_nodirty(inode,
+ 					  ocfs2_clusters_to_bytes(osb->sb, 1));
+ 
++	if (need_free) {
++		if (data_ac->ac_which == OCFS2_AC_USE_LOCAL)
++			ocfs2_free_local_alloc_bits(osb, handle, data_ac,
++					bit_off, num);
++		else
++			ocfs2_free_clusters(handle,
++					data_ac->ac_inode,
++					data_ac->ac_bh,
++					ocfs2_clusters_to_blocks(osb->sb, bit_off),
++					num);
++	}
++
+ 	ocfs2_commit_trans(osb, handle);
+ 
+ out_unlock:
+diff -puN fs/ocfs2/localalloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/localalloc.c
+--- a/fs/ocfs2/localalloc.c~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
++++ a/fs/ocfs2/localalloc.c
+@@ -781,6 +781,48 @@ bail:
+ 	return status;
  }
  
-+static unsigned long swapin_nr_pages(unsigned long offset)
++int ocfs2_free_local_alloc_bits(struct ocfs2_super *osb,
++				handle_t *handle,
++				struct ocfs2_alloc_context *ac,
++				u32 bit_off,
++				u32 num_bits)
 +{
-+	static unsigned long prev_offset;
-+	unsigned int pages, max_pages, last_ra;
-+	static atomic_t last_readahead_pages;
++	int status, start;
++	u32 clear_bits;
++	struct inode *local_alloc_inode;
++	void *bitmap;
++	struct ocfs2_dinode *alloc;
++	struct ocfs2_local_alloc *la;
 +
-+	max_pages = 1 << ACCESS_ONCE(page_cluster);
-+	if (max_pages <= 1)
-+		return 1;
++	BUG_ON(ac->ac_which != OCFS2_AC_USE_LOCAL);
 +
-+	/*
-+	 * This heuristic has been found to work well on both sequential and
-+	 * random loads, swapping to hard disk or to SSD: please don't ask
-+	 * what the "+ 2" means, it just happens to work well, that's all.
-+	 */
-+	pages = atomic_xchg(&swapin_readahead_hits, 0) + 2;
-+	if (pages == 2) {
-+		/*
-+		 * We can have no readahead hits to judge by: but must not get
-+		 * stuck here forever, so check for an adjacent offset instead
-+		 * (and don't even bother to check whether swap type is same).
-+		 */
-+		if (offset != prev_offset + 1 && offset != prev_offset - 1)
-+			pages = 1;
-+		prev_offset = offset;
-+	} else {
-+		unsigned int roundup = 4;
-+		while (roundup < pages)
-+			roundup <<= 1;
-+		pages = roundup;
++	local_alloc_inode = ac->ac_inode;
++	alloc = (struct ocfs2_dinode *) osb->local_alloc_bh->b_data;
++	la = OCFS2_LOCAL_ALLOC(alloc);
++
++	bitmap = la->la_bitmap;
++	start = bit_off - le32_to_cpu(la->la_bm_off);
++	clear_bits = num_bits;
++
++	status = ocfs2_journal_access_di(handle,
++			INODE_CACHE(local_alloc_inode),
++			osb->local_alloc_bh,
++			OCFS2_JOURNAL_ACCESS_WRITE);
++	if (status < 0) {
++		mlog_errno(status);
++		goto bail;
 +	}
 +
-+	if (pages > max_pages)
-+		pages = max_pages;
++	while (clear_bits--)
++		ocfs2_clear_bit(start++, bitmap);
 +
-+	/* Don't shrink readahead too fast */
-+	last_ra = atomic_read(&last_readahead_pages) / 2;
-+	if (pages < last_ra)
-+		pages = last_ra;
-+	atomic_set(&last_readahead_pages, pages);
++	le32_add_cpu(&alloc->id1.bitmap1.i_used, -num_bits);
++	ocfs2_journal_dirty(handle, osb->local_alloc_bh);
 +
-+	return pages;
++bail:
++	return status;
 +}
 +
- /**
-  * swapin_readahead - swap in pages in hope we need them soon
-  * @entry: swap entry of this memory
-@@ -412,11 +461,16 @@ struct page *swapin_readahead(swp_entry_
- 			struct vm_area_struct *vma, unsigned long addr)
+ static u32 ocfs2_local_alloc_count_bits(struct ocfs2_dinode *alloc)
  {
- 	struct page *page;
--	unsigned long offset = swp_offset(entry);
-+	unsigned long entry_offset = swp_offset(entry);
-+	unsigned long offset = entry_offset;
- 	unsigned long start_offset, end_offset;
--	unsigned long mask = (1UL << page_cluster) - 1;
-+	unsigned long mask;
- 	struct blk_plug plug;
+ 	u32 count;
+diff -puN fs/ocfs2/localalloc.h~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters fs/ocfs2/localalloc.h
+--- a/fs/ocfs2/localalloc.h~ocfs2-free-allocated-clusters-if-error-occurs-after-ocfs2_claim_clusters
++++ a/fs/ocfs2/localalloc.h
+@@ -55,6 +55,12 @@ int ocfs2_claim_local_alloc_bits(struct
+ 				 u32 *bit_off,
+ 				 u32 *num_bits);
  
-+	mask = swapin_nr_pages(offset) - 1;
-+	if (!mask)
-+		goto skip;
++int ocfs2_free_local_alloc_bits(struct ocfs2_super *osb,
++				handle_t *handle,
++				struct ocfs2_alloc_context *ac,
++				u32 bit_off,
++				u32 num_bits);
 +
- 	/* Read a page_cluster sized and aligned cluster around offset. */
- 	start_offset = offset & ~mask;
- 	end_offset = offset | mask;
-@@ -430,10 +484,13 @@ struct page *swapin_readahead(swp_entry_
- 						gfp_mask, vma, addr);
- 		if (!page)
- 			continue;
-+		if (offset != entry_offset)
-+			SetPageReadahead(page);
- 		page_cache_release(page);
- 	}
- 	blk_finish_plug(&plug);
- 
- 	lru_add_drain();	/* Push any new pages onto the LRU now */
-+skip:
- 	return read_swap_cache_async(entry, gfp_mask, vma, addr);
- }
+ void ocfs2_local_alloc_seen_free_bits(struct ocfs2_super *osb,
+ 				      unsigned int num_clusters);
+ void ocfs2_la_enable_worker(struct work_struct *work);
 _
 
-Patches currently in -mm which might be from shli@kernel.org are
+Patches currently in -mm which might be from wangzongxun@huawei.com are
 
 origin.patch
-linux-next.patch
 
