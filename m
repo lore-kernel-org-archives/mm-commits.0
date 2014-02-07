@@ -1,98 +1,264 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq.patch
- removed from -mm tree
-Date: Fri, 07 Feb 2014 12:18:49 -0800
-Message-ID: <52f53fa9.un2q3tbiN4/SdgoI%akpm@linux-foundation.org>
+ swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch removed from -mm tree
+Date: Fri, 07 Feb 2014 12:18:39 -0800
+Message-ID: <52f53f9f.u8pfvYAdyUsg6te5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58926 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58901 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532AbaBGUSt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 15:18:49 -0500
+	with ESMTP id S1752144AbaBGUSk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Feb 2014 15:18:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, kosaki.motohiro@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, shli@fusionio.com, riel@redhat.com, minchan@kernel.org, khlebnikov@openvz.org, hughd@google.com, fengguang.wu@intel.com, shli@kernel.org
 
-Subject: [merged] mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq.patch removed from -mm tree
-To: kosaki.motohiro@jp.fujitsu.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch removed from -mm tree
+To: shli@kernel.org,fengguang.wu@intel.com,hughd@google.com,khlebnikov@openvz.org,minchan@kernel.org,riel@redhat.com,shli@fusionio.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 07 Feb 2014 12:18:49 -0800
+Date: Fri, 07 Feb 2014 12:18:39 -0800
 
 
 The patch titled
-     Subject: mm: __set_page_dirty uses spin_lock_irqsave instead of spin_lock_irq
+     Subject: swap: add a simple detector for inappropriate swapin readahead
 has been removed from the -mm tree.  Its filename was
-     mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq.patch
+     swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: mm: __set_page_dirty uses spin_lock_irqsave instead of spin_lock_irq
+From: Shaohua Li <shli@kernel.org>
+Subject: swap: add a simple detector for inappropriate swapin readahead
 
-To use spin_{un}lock_irq is dangerous if caller disabled interrupt. 
-During aio buffer migration, we have a possibility to see the following
-call stack.
+This is a patch to improve swap readahead algorithm. It's from Hugh and I
+slightly changed it.
 
-aio_migratepage  [disable interrupt]
-  migrate_page_copy
-    clear_page_dirty_for_io
-      set_page_dirty
-        __set_page_dirty_buffers
-          __set_page_dirty
-            spin_lock_irq
+Hugh's original changelog:
 
-This mean, current aio migration is a deadlockable.  spin_lock_irqsave is
-a safer alternative and we should use it.
+swapin readahead does a blind readahead, whether or not the swapin
+is sequential.  This may be ok on harddisk, because large reads have
+relatively small costs, and if the readahead pages are unneeded they
+can be reclaimed easily - though, what if their allocation forced
+reclaim of useful pages?  But on SSD devices large reads are more
+expensive than small ones: if the readahead pages are unneeded,
+reading them in caused significant overhead.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reported-by: David Rientjes rientjes@google.com>
-Cc: <stable@vger.kernel.org>
+This patch adds very simplistic random read detection.  Stealing
+the PageReadahead technique from Konstantin Khlebnikov's patch,
+avoiding the vma/anon_vma sophistications of Shaohua Li's patch,
+swapin_nr_pages() simply looks at readahead's current success
+rate, and narrows or widens its readahead window accordingly.
+There is little science to its heuristic: it's about as stupid
+as can be whilst remaining effective.
+
+The table below shows elapsed times (in centiseconds) when running
+a single repetitive swapping load across a 1000MB mapping in 900MB
+ram with 1GB swap (the harddisk tests had taken painfully too long
+when I used mem=500M, but SSD shows similar results for that).
+
+Vanilla is the 3.6-rc7 kernel on which I started; Shaohua denotes
+his Sep 3 patch in mmotm and linux-next; HughOld denotes my Oct 1
+patch which Shaohua showed to be defective; HughNew this Nov 14
+patch, with page_cluster as usual at default of 3 (8-page reads);
+HughPC4 this same patch with page_cluster 4 (16-page reads);
+HughPC0 with page_cluster 0 (1-page reads: no readahead).
+
+HDD for swapping to harddisk, SSD for swapping to VertexII SSD.
+Seq for sequential access to the mapping, cycling five times around;
+Rand for the same number of random touches.  Anon for a MAP_PRIVATE
+anon mapping; Shmem for a MAP_SHARED anon mapping, equivalent to tmpfs.
+
+One weakness of Shaohua's vma/anon_vma approach was that it did
+not optimize Shmem: seen below.  Konstantin's approach was perhaps
+mistuned, 50% slower on Seq: did not compete and is not shown below.
+
+HDD        Vanilla Shaohua HughOld HughNew HughPC4 HughPC0
+Seq Anon     73921   76210   75611   76904   78191  121542
+Seq Shmem    73601   73176   73855   72947   74543  118322
+Rand Anon   895392  831243  871569  845197  846496  841680
+Rand Shmem 1058375 1053486  827935  764955  764376  756489
+
+SSD        Vanilla Shaohua HughOld HughNew HughPC4 HughPC0
+Seq Anon     24634   24198   24673   25107   21614   70018
+Seq Shmem    24959   24932   25052   25703   22030   69678
+Rand Anon    43014   26146   28075   25989   26935   25901
+Rand Shmem   45349   45215   28249   24268   24138   24332
+
+These tests are, of course, two extremes of a very simple case:
+under heavier mixed loads I've not yet observed any consistent
+improvement or degradation, and wider testing would be welcome.
+
+Shaohua Li:
+
+Test shows Vanilla is slightly better in sequential workload than Hugh's patch.
+I observed with Hugh's patch sometimes the readahead size is shrinked too fast
+(from 8 to 1 immediately) in sequential workload if there is no hit. And in
+such case, continuing doing readahead is good actually.
+
+I don't prepare a sophisticated algorithm for the sequential workload because
+so far we can't guarantee sequential accessed pages are swap out sequentially.
+So I slightly change Hugh's heuristic - don't shrink readahead size too fast.
+
+Here is my test result (unit second, 3 runs average):
+	Vanilla		Hugh		New
+Seq	356		370		360
+Random	4525		2447		2444
+
+Attached graph is the swapin/swapout throughput I collected with 'vmstat 2'.
+The first part is running a random workload (till around 1200 of the x-axis)
+and the second part is running a sequential workload. swapin and swapout
+throughput are almost identical in steady state in both workloads. These are
+expected behavior. while in Vanilla, swapin is much bigger than swapout
+especially in random workload (because wrong readahead).
+
+Original patches by: Shaohua Li and Konstantin Khlebnikov.
+
+[fengguang.wu@intel.com: swapin_nr_pages() can be static]
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/page-flags.h |    4 +-
+ mm/swap_state.c            |   63 +++++++++++++++++++++++++++++++++--
+ 2 files changed, 62 insertions(+), 5 deletions(-)
 
-diff -puN fs/buffer.c~mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq fs/buffer.c
---- a/fs/buffer.c~mm-__set_page_dirty-uses-spin_lock_irqsave-instead-of-spin_lock_irq
-+++ a/fs/buffer.c
-@@ -654,14 +654,16 @@ EXPORT_SYMBOL(mark_buffer_dirty_inode);
- static void __set_page_dirty(struct page *page,
- 		struct address_space *mapping, int warn)
- {
--	spin_lock_irq(&mapping->tree_lock);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&mapping->tree_lock, flags);
- 	if (page->mapping) {	/* Race with truncate? */
- 		WARN_ON_ONCE(warn && !PageUptodate(page));
- 		account_page_dirtied(page, mapping);
- 		radix_tree_tag_set(&mapping->page_tree,
- 				page_index(page), PAGECACHE_TAG_DIRTY);
- 	}
--	spin_unlock_irq(&mapping->tree_lock);
-+	spin_unlock_irqrestore(&mapping->tree_lock, flags);
- 	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+diff -puN include/linux/page-flags.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead include/linux/page-flags.h
+--- a/include/linux/page-flags.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
++++ a/include/linux/page-flags.h
+@@ -228,9 +228,9 @@ PAGEFLAG(OwnerPriv1, owner_priv_1) TESTC
+ TESTPAGEFLAG(Writeback, writeback) TESTSCFLAG(Writeback, writeback)
+ PAGEFLAG(MappedToDisk, mappedtodisk)
+ 
+-/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
++/* PG_readahead is only used for reads; PG_reclaim is only for writes */
+ PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
+-PAGEFLAG(Readahead, reclaim)		/* Reminder to do async read-ahead */
++PAGEFLAG(Readahead, reclaim) TESTCLEARFLAG(Readahead, reclaim)
+ 
+ #ifdef CONFIG_HIGHMEM
+ /*
+diff -puN mm/swap_state.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/swap_state.c
+--- a/mm/swap_state.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
++++ a/mm/swap_state.c
+@@ -63,6 +63,8 @@ unsigned long total_swapcache_pages(void
+ 	return ret;
  }
  
++static atomic_t swapin_readahead_hits = ATOMIC_INIT(4);
++
+ void show_swap_cache_info(void)
+ {
+ 	printk("%lu pages in swap cache\n", total_swapcache_pages());
+@@ -286,8 +288,11 @@ struct page * lookup_swap_cache(swp_entr
+ 
+ 	page = find_get_page(swap_address_space(entry), entry.val);
+ 
+-	if (page)
++	if (page) {
+ 		INC_CACHE_INFO(find_success);
++		if (TestClearPageReadahead(page))
++			atomic_inc(&swapin_readahead_hits);
++	}
+ 
+ 	INC_CACHE_INFO(find_total);
+ 	return page;
+@@ -389,6 +394,50 @@ struct page *read_swap_cache_async(swp_e
+ 	return found_page;
+ }
+ 
++static unsigned long swapin_nr_pages(unsigned long offset)
++{
++	static unsigned long prev_offset;
++	unsigned int pages, max_pages, last_ra;
++	static atomic_t last_readahead_pages;
++
++	max_pages = 1 << ACCESS_ONCE(page_cluster);
++	if (max_pages <= 1)
++		return 1;
++
++	/*
++	 * This heuristic has been found to work well on both sequential and
++	 * random loads, swapping to hard disk or to SSD: please don't ask
++	 * what the "+ 2" means, it just happens to work well, that's all.
++	 */
++	pages = atomic_xchg(&swapin_readahead_hits, 0) + 2;
++	if (pages == 2) {
++		/*
++		 * We can have no readahead hits to judge by: but must not get
++		 * stuck here forever, so check for an adjacent offset instead
++		 * (and don't even bother to check whether swap type is same).
++		 */
++		if (offset != prev_offset + 1 && offset != prev_offset - 1)
++			pages = 1;
++		prev_offset = offset;
++	} else {
++		unsigned int roundup = 4;
++		while (roundup < pages)
++			roundup <<= 1;
++		pages = roundup;
++	}
++
++	if (pages > max_pages)
++		pages = max_pages;
++
++	/* Don't shrink readahead too fast */
++	last_ra = atomic_read(&last_readahead_pages) / 2;
++	if (pages < last_ra)
++		pages = last_ra;
++	atomic_set(&last_readahead_pages, pages);
++
++	return pages;
++}
++
+ /**
+  * swapin_readahead - swap in pages in hope we need them soon
+  * @entry: swap entry of this memory
+@@ -412,11 +461,16 @@ struct page *swapin_readahead(swp_entry_
+ 			struct vm_area_struct *vma, unsigned long addr)
+ {
+ 	struct page *page;
+-	unsigned long offset = swp_offset(entry);
++	unsigned long entry_offset = swp_offset(entry);
++	unsigned long offset = entry_offset;
+ 	unsigned long start_offset, end_offset;
+-	unsigned long mask = (1UL << page_cluster) - 1;
++	unsigned long mask;
+ 	struct blk_plug plug;
+ 
++	mask = swapin_nr_pages(offset) - 1;
++	if (!mask)
++		goto skip;
++
+ 	/* Read a page_cluster sized and aligned cluster around offset. */
+ 	start_offset = offset & ~mask;
+ 	end_offset = offset | mask;
+@@ -430,10 +484,13 @@ struct page *swapin_readahead(swp_entry_
+ 						gfp_mask, vma, addr);
+ 		if (!page)
+ 			continue;
++		if (offset != entry_offset)
++			SetPageReadahead(page);
+ 		page_cache_release(page);
+ 	}
+ 	blk_finish_plug(&plug);
+ 
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
++skip:
+ 	return read_swap_cache_async(entry, gfp_mask, vma, addr);
+ }
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from shli@kernel.org are
 
 origin.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
+linux-next.patch
 
