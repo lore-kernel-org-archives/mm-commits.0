@@ -1,79 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-check-existence-of-old-dentry-in-ocfs2_link-v2.patch
- added to -mm tree
-Date: Mon, 10 Feb 2014 13:54:29 -0800
-Message-ID: <52f94a95.fFnY1wASvWL7pZOj%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch
+ removed from -mm tree
+Date: Mon, 10 Feb 2014 14:21:03 -0800
+Message-ID: <52f950cf.CbNugviCddlXAe0m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256AbaBJVyd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 16:54:33 -0500
+	with ESMTP id S1752392AbaBJWVE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 17:21:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
+To: mm-commits@vger.kernel.org, vgoyal@redhat.com, holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, d.hatayama@jp.fujitsu.com, greg.pearson@hp.com
 
-Subject: + ocfs2-check-existence-of-old-dentry-in-ocfs2_link-v2.patch added to -mm tree
-To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: [folded-merged] vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch removed from -mm tree
+To: greg.pearson@hp.com,d.hatayama@jp.fujitsu.com,ebiederm@xmission.com,holzheu@linux.vnet.ibm.com,vgoyal@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 10 Feb 2014 13:54:29 -0800
+Date: Mon, 10 Feb 2014 14:21:03 -0800
 
 
 The patch titled
-     Subject: ocfs2-check-existence-of-old-dentry-in-ocfs2_link-v2
-has been added to the -mm tree.  Its filename is
-     ocfs2-check-existence-of-old-dentry-in-ocfs2_link-v2.patch
+     Subject: vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3
+has been removed from the -mm tree.  Its filename was
+     vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-check-existence-of-old-dentry-in-ocfs2_link-v2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-check-existence-of-old-dentry-in-ocfs2_link-v2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into vmcore-prevent-pt_note-p_memsz-overflow-during-header-update.patch
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2-check-existence-of-old-dentry-in-ocfs2_link-v2
+From: Greg Pearson <greg.pearson@hp.com>
+Subject: vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3
 
-Signed-off-by: joyce <xuejiufei@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Greg Pearson <greg.pearson@hp.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/proc/vmcore.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-check-existence-of-old-dentry-in-ocfs2_link-v2 fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-check-existence-of-old-dentry-in-ocfs2_link-v2
-+++ a/fs/ocfs2/namei.c
-@@ -694,6 +694,10 @@ static int ocfs2_link(struct dentry *old
- 		goto out;
+diff -puN fs/proc/vmcore.c~vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3 fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3
++++ a/fs/proc/vmcore.c
+@@ -473,7 +473,8 @@ static int __init update_note_header_siz
+ 				((nhdr_ptr->n_namesz + 3) & ~3) +
+ 				((nhdr_ptr->n_descsz + 3) & ~3);
+ 			if ((real_sz + sz) > max_sz) {
+-				pr_warn("Warning: dropping PT_NOTE entry\n");
++				pr_warn("Warning: Exceeded p_memsz, dropping PT_NOTE entry n_namesz=0x%x, n_descsz=0x%x\n",
++					nhdr_ptr->n_namesz, nhdr_ptr->n_descsz);
+ 				break;
+ 			}
+ 			real_sz += sz;
+@@ -481,6 +482,10 @@ static int __init update_note_header_siz
+ 		}
+ 		kfree(notes_section);
+ 		phdr_ptr->p_memsz = real_sz;
++		if (real_sz == 0) {
++			pr_warn("Warning: Zero PT_NOTE entries found\n");
++			return -EINVAL;
++		}
  	}
  
-+	/*
-+	 * Check whether another node removed the source inode while we
-+	 * were in the vfs.
-+	 */
- 	if (old_de_ino != OCFS2_I(inode)->ip_blkno) {
- 		err = -ENOENT;
- 		goto out;
+ 	return 0;
+@@ -655,7 +660,8 @@ static int __init update_note_header_siz
+ 				((nhdr_ptr->n_namesz + 3) & ~3) +
+ 				((nhdr_ptr->n_descsz + 3) & ~3);
+ 			if ((real_sz + sz) > max_sz) {
+-				pr_warn("Warning: dropping PT_NOTE entry\n");
++				pr_warn("Warning: Exceeded p_memsz, dropping PT_NOTE entry n_namesz=0x%x, n_descsz=0x%x\n",
++					nhdr_ptr->n_namesz, nhdr_ptr->n_descsz);
+ 				break;
+ 			}
+ 			real_sz += sz;
+@@ -663,6 +669,10 @@ static int __init update_note_header_siz
+ 		}
+ 		kfree(notes_section);
+ 		phdr_ptr->p_memsz = real_sz;
++		if (real_sz == 0) {
++			pr_warn("Warning: Zero PT_NOTE entries found\n");
++			return -EINVAL;
++		}
+ 	}
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from greg.pearson@hp.com are
 
-ocfs2-check-existence-of-old-dentry-in-ocfs2_link.patch
-ocfs2-check-existence-of-old-dentry-in-ocfs2_link-v2.patch
+vmcore-prevent-pt_note-p_memsz-overflow-during-header-update.patch
 
