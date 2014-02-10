@@ -1,60 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- xen-properly-account-for-_page_numa-during-xen-pte-translations-fix.patch
- removed from -mm tree
-Date: Mon, 10 Feb 2014 14:21:24 -0800
-Message-ID: <52f950e4.Ivo/wpPx3ewcGOPS%akpm@linux-foundation.org>
+ ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch removed from
+ -mm tree
+Date: Mon, 10 Feb 2014 14:21:48 -0800
+Message-ID: <52f950fc.YDylUwKxdxi6cvm4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58962 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752787AbaBJWVZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 17:21:25 -0500
+	with ESMTP id S1752516AbaBJWVt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 17:21:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mgorman@suse.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, younger.liucn@gmail.com, mfasheh@suse.com, jlbec@evilplan.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] xen-properly-account-for-_page_numa-during-xen-pte-translations-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,mgorman@suse.de,mm-commits@vger.kernel.org
+Subject: [folded-merged] ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,jlbec@evilplan.org,mfasheh@suse.com,younger.liucn@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 10 Feb 2014 14:21:24 -0800
+Date: Mon, 10 Feb 2014 14:21:48 -0800
 
 
 The patch titled
-     Subject: xen-properly-account-for-_page_numa-during-xen-pte-translations-fix
+     Subject: ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix
 has been removed from the -mm tree.  Its filename was
-     xen-properly-account-for-_page_numa-during-xen-pte-translations-fix.patch
+     ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
 
-This patch was dropped because it was folded into xen-properly-account-for-_page_numa-during-xen-pte-translations.patch
+This patch was dropped because it was folded into ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: xen-properly-account-for-_page_numa-during-xen-pte-translations-fix
+Subject: ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix
 
-fix typo in comment
+return -EROFS, not 0
 
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Younger Liu <younger.liucn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    2 +-
+ fs/ocfs2/file.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/pgtable.h~xen-properly-account-for-_page_numa-during-xen-pte-translations-fix arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~xen-properly-account-for-_page_numa-during-xen-pte-translations-fix
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -449,7 +449,7 @@ static inline int pteval_present(pteval_
- {
- 	/*
- 	 * Yes Linus, _PAGE_PROTNONE == _PAGE_NUMA. Expressing it this
--	 * way clearly states that the intent is that a protnone and numa
-+	 * way clearly states that the intent is that protnone and numa
- 	 * hinting ptes are considered present for the purposes of
- 	 * pagetable operations like zapping, protection changes, gup etc.
- 	 */
+diff -puN fs/ocfs2/file.c~ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix
++++ a/fs/ocfs2/file.c
+@@ -186,7 +186,7 @@ static int ocfs2_sync_file(struct file *
+ 			      (unsigned long long)datasync);
+ 
+ 	if (ocfs2_is_hard_readonly(osb) || ocfs2_is_soft_readonly(osb))
+-		return 0;
++		return -EROFS;
+ 
+ 	err = filemap_write_and_wait_range(inode->i_mapping, start, end);
+ 	if (err)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +64,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 xen-properly-account-for-_page_numa-during-xen-pte-translations.patch
-ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly.patch
 mm-memory-failurec-move-refcount-only-in-mf_count_increased-fix.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
 mm.patch
