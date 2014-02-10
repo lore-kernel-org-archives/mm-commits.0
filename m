@@ -1,62 +1,63 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch removed from
- -mm tree
-Date: Mon, 10 Feb 2014 14:21:48 -0800
-Message-ID: <52f950fc.YDylUwKxdxi6cvm4%akpm@linux-foundation.org>
+ mm-memory-failurec-move-refcount-only-in-mf_count_increased-fix.patch
+ removed from -mm tree
+Date: Mon, 10 Feb 2014 14:22:08 -0800
+Message-ID: <52f95110.Tf5JiMJTbH9im+JK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58967 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752516AbaBJWVt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 17:21:49 -0500
+	with ESMTP id S1752926AbaBJWWJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 17:22:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, younger.liucn@gmail.com, mfasheh@suse.com, jlbec@evilplan.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, liwanp@linux.vnet.ibm.com, gong.chen@linux.intel.com, andi@firstfloor.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,jlbec@evilplan.org,mfasheh@suse.com,younger.liucn@gmail.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-memory-failurec-move-refcount-only-in-mf_count_increased-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,andi@firstfloor.org,gong.chen@linux.intel.com,liwanp@linux.vnet.ibm.com,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 10 Feb 2014 14:21:48 -0800
+Date: Mon, 10 Feb 2014 14:22:08 -0800
 
 
 The patch titled
-     Subject: ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix
+     Subject: mm-memory-failurec-move-refcount-only-in-mf_count_increased-fix
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+     mm-memory-failurec-move-refcount-only-in-mf_count_increased-fix.patch
 
-This patch was dropped because it was folded into ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly.patch
+This patch was dropped because it was folded into mm-memory-failurec-move-refcount-only-in-mf_count_increased.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix
+Subject: mm-memory-failurec-move-refcount-only-in-mf_count_increased-fix
 
-return -EROFS, not 0
+s/&&/&/
 
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Younger Liu <younger.liucn@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    2 +-
+ mm/memory-failure.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix
-+++ a/fs/ocfs2/file.c
-@@ -186,7 +186,7 @@ static int ocfs2_sync_file(struct file *
- 			      (unsigned long long)datasync);
- 
- 	if (ocfs2_is_hard_readonly(osb) || ocfs2_is_soft_readonly(osb))
--		return 0;
-+		return -EROFS;
- 
- 	err = filemap_write_and_wait_range(inode->i_mapping, start, end);
- 	if (err)
+diff -puN mm/memory-failure.c~mm-memory-failurec-move-refcount-only-in-mf_count_increased-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-move-refcount-only-in-mf_count_increased-fix
++++ a/mm/memory-failure.c
+@@ -945,7 +945,7 @@ static int hwpoison_user_mappings(struct
+ 			 * to it. Similarly, page lock is shifted.
+ 			 */
+ 			if (hpage != p) {
+-				if (!(flags && MF_COUNT_INCREASED)) {
++				if (!(flags & MF_COUNT_INCREASED)) {
+ 					put_page(hpage);
+ 					get_page(p);
+ 				}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +66,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 xen-properly-account-for-_page_numa-during-xen-pte-translations.patch
 ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly.patch
-mm-memory-failurec-move-refcount-only-in-mf_count_increased-fix.patch
+mm-memory-failurec-move-refcount-only-in-mf_count_increased.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
 mm.patch
 mm-hugetlb-improve-page-fault-scalability-fix.patch
