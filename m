@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch added to
- -mm tree
-Date: Mon, 10 Feb 2014 14:54:11 -0800
-Message-ID: <52f95893.PNHL6uRJHIMpoOM0%akpm@linux-foundation.org>
+Subject: + mm-consolidate-code-to-setup-pte.patch added to -mm tree
+Date: Mon, 10 Feb 2014 14:54:12 -0800
+Message-ID: <52f95894.S6lhLzAOvHv6D+Ck%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59381 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752635AbaBJWyM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 17:54:12 -0500
+	with ESMTP id S1752659AbaBJWyN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 17:54:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, matthew.r.wilcox@intel.com, dave.hansen@linux.intel.com, ak@linux.intel.com, kirill.shutemov@linux.intel.com
 
-Subject: + mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch added to -mm tree
+Subject: + mm-consolidate-code-to-setup-pte.patch added to -mm tree
 To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,dave.hansen@linux.intel.com,matthew.r.wilcox@intel.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Mon, 10 Feb 2014 14:54:11 -0800
+Date: Mon, 10 Feb 2014 14:54:12 -0800
 
 
 The patch titled
-     Subject: mm: consolidate code to call vm_ops->page_mkwrite()
+     Subject: mm: consolidate code to setup pte
 has been added to the -mm tree.  Its filename is
-     mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
+     mm-consolidate-code-to-setup-pte.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-consolidate-code-to-setup-pte.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consolidate-code-to-setup-pte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,10 +44,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: consolidate code to call vm_ops->page_mkwrite()
+Subject: mm: consolidate code to setup pte
 
-There are two functions which need to call vm_ops->page_mkwrite():
-do_shared_fault() and do_wp_page().  We can consolidate preparation code.
+Extract and consolidate code to setup pte from do_read_fault(),
+do_cow_fault() and do_shared_fault().
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -60,157 +59,128 @@ Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |  104 +++++++++++++++++++++-----------------------------
- 1 file changed, 44 insertions(+), 60 deletions(-)
+ mm/memory.c |   66 ++++++++++++++++++++++----------------------------
+ 1 file changed, 30 insertions(+), 36 deletions(-)
 
-diff -puN mm/memory.c~mm-consolidate-code-to-call-vm_ops-page_mkwrite mm/memory.c
---- a/mm/memory.c~mm-consolidate-code-to-call-vm_ops-page_mkwrite
+diff -puN mm/memory.c~mm-consolidate-code-to-setup-pte mm/memory.c
+--- a/mm/memory.c~mm-consolidate-code-to-setup-pte
 +++ a/mm/memory.c
-@@ -2587,6 +2587,37 @@ static inline void cow_user_page(struct
+@@ -3317,13 +3317,37 @@ static int __do_fault(struct vm_area_str
+ 	return ret;
  }
  
- /*
-+ * Notify the address space that the page is about to become writable so that
-+ * it can prohibit this or wait for the page to get into an appropriate state.
-+ *
-+ * We do this without the lock held, so that it can sleep if it needs to.
-+ */
-+static int do_page_mkwrite(struct vm_area_struct *vma, struct page *page,
-+	       unsigned long address)
++static void do_set_pte(struct vm_area_struct *vma, unsigned long address,
++		struct page *page, pte_t *pte, bool write, bool anon)
 +{
-+	struct vm_fault vmf;
-+	int ret;
++	pte_t entry;
 +
-+	vmf.virtual_address = (void __user *)(address & PAGE_MASK);
-+	vmf.pgoff = page->index;
-+	vmf.flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
-+	vmf.page = page;
++	flush_icache_page(vma, page);
++	entry = mk_pte(page, vma->vm_page_prot);
++	if (write)
++		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
++	else if (pte_file(*pte) && pte_file_soft_dirty(*pte))
++		pte_mksoft_dirty(entry);
++	if (anon) {
++		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
++		page_add_new_anon_rmap(page, vma, address);
++	} else {
++		inc_mm_counter_fast(vma->vm_mm, MM_FILEPAGES);
++		page_add_file_rmap(page);
++	}
++	set_pte_at(vma->vm_mm, address, pte, entry);
 +
-+	ret = vma->vm_ops->page_mkwrite(vma, &vmf);
-+	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))
-+		return ret;
-+	if (unlikely(!(ret & VM_FAULT_LOCKED))) {
-+		lock_page(page);
-+		if (!page->mapping) {
-+			unlock_page(page);
-+			return 0; /* retry */
-+		}
-+	} else
-+		VM_BUG_ON_PAGE(!PageLocked(page), page);
-+	return ret;
++	/* no need to invalidate: a not-present page won't be cached */
++	update_mmu_cache(vma, address, pte);
 +}
 +
-+/*
-  * This routine handles present pages, when users try to write
-  * to a shared page. It is done by copying the page to a new address
-  * and decrementing the shared-page counter for the old page.
-@@ -2668,42 +2699,15 @@ static int do_wp_page(struct mm_struct *
- 		 * get_user_pages(.write=1, .force=1).
- 		 */
- 		if (vma->vm_ops && vma->vm_ops->page_mkwrite) {
--			struct vm_fault vmf;
- 			int tmp;
--
--			vmf.virtual_address = (void __user *)(address &
--								PAGE_MASK);
--			vmf.pgoff = old_page->index;
--			vmf.flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
--			vmf.page = old_page;
--
--			/*
--			 * Notify the address space that the page is about to
--			 * become writable so that it can prohibit this or wait
--			 * for the page to get into an appropriate state.
--			 *
--			 * We do this without the lock held, so that it can
--			 * sleep if it needs to.
--			 */
- 			page_cache_get(old_page);
- 			pte_unmap_unlock(page_table, ptl);
--
--			tmp = vma->vm_ops->page_mkwrite(vma, &vmf);
--			if (unlikely(tmp &
--					(VM_FAULT_ERROR | VM_FAULT_NOPAGE))) {
--				ret = tmp;
--				goto unwritable_page;
-+			tmp = do_page_mkwrite(vma, old_page, address);
-+			if (unlikely(!tmp || (tmp &
-+					(VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
-+				page_cache_release(old_page);
-+				return tmp;
- 			}
--			if (unlikely(!(tmp & VM_FAULT_LOCKED))) {
--				lock_page(old_page);
--				if (!old_page->mapping) {
--					ret = 0; /* retry the fault */
--					unlock_page(old_page);
--					goto unwritable_page;
--				}
--			} else
--				VM_BUG_ON_PAGE(!PageLocked(old_page), old_page);
--
- 			/*
- 			 * Since we dropped the lock we need to revalidate
- 			 * the PTE as someone else may have changed it.  If
-@@ -2892,10 +2896,6 @@ oom:
- 	if (old_page)
- 		page_cache_release(old_page);
- 	return VM_FAULT_OOM;
--
--unwritable_page:
--	page_cache_release(old_page);
--	return ret;
- }
- 
- static void unmap_mapping_range_vma(struct vm_area_struct *vma,
-@@ -3418,7 +3418,6 @@ static int do_shared_fault(struct mm_str
+ static int do_read_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pmd_t *pmd,
+ 		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)
+ {
+ 	struct page *fault_page;
  	spinlock_t *ptl;
- 	pte_t entry, *pte;
- 	int dirtied = 0;
--	struct vm_fault vmf;
- 	int ret, tmp;
+-	pte_t entry, *pte;
++	pte_t *pte;
+ 	int ret;
  
  	ret = __do_fault(vma, address, pgoff, flags, &fault_page);
-@@ -3429,31 +3428,16 @@ static int do_shared_fault(struct mm_str
- 	 * Check if the backing address space wants to know that the page is
- 	 * about to become writable
- 	 */
--	if (!vma->vm_ops->page_mkwrite)
--		goto set_pte;
+@@ -3337,20 +3361,9 @@ static int do_read_fault(struct mm_struc
+ 		page_cache_release(fault_page);
+ 		return ret;
+ 	}
 -
--	unlock_page(fault_page);
--	vmf.virtual_address = (void __user *)(address & PAGE_MASK);
--	vmf.pgoff = pgoff;
--	vmf.flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
--	vmf.page = fault_page;
+-	flush_icache_page(vma, fault_page);
+-	entry = mk_pte(fault_page, vma->vm_page_prot);
+-	if (pte_file(orig_pte) && pte_file_soft_dirty(orig_pte))
+-		pte_mksoft_dirty(entry);
+-	inc_mm_counter_fast(mm, MM_FILEPAGES);
+-	page_add_file_rmap(fault_page);
+-	set_pte_at(mm, address, pte, entry);
 -
--	tmp = vma->vm_ops->page_mkwrite(vma, &vmf);
--	if (unlikely(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE))) {
--		page_cache_release(fault_page);
--		return tmp;
--	}
+-	/* no need to invalidate: a not-present page won't be cached */
+-	update_mmu_cache(vma, address, pte);
++	do_set_pte(vma, address, fault_page, pte, false, false);
+ 	pte_unmap_unlock(pte, ptl);
+ 	unlock_page(fault_page);
 -
--	if (unlikely(!(tmp & VM_FAULT_LOCKED))) {
--		lock_page(fault_page);
--		if (!fault_page->mapping) {
--			unlock_page(fault_page);
-+	if (vma->vm_ops->page_mkwrite) {
-+		unlock_page(fault_page);
-+		tmp = do_page_mkwrite(vma, fault_page, address);
-+		if (unlikely(!tmp ||
-+				(tmp & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))) {
- 			page_cache_release(fault_page);
--			return 0; /* retry */
-+			return tmp;
- 		}
--	} else
--		VM_BUG_ON_PAGE(!PageLocked(fault_page), fault_page);
--set_pte:
-+	}
-+
- 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
- 	if (unlikely(!pte_same(*pte, orig_pte))) {
- 		pte_unmap_unlock(pte, ptl);
+ 	return ret;
+ }
+ 
+@@ -3360,7 +3373,7 @@ static int do_cow_fault(struct mm_struct
+ {
+ 	struct page *fault_page, *new_page;
+ 	spinlock_t *ptl;
+-	pte_t entry, *pte;
++	pte_t *pte;
+ 	int ret;
+ 
+ 	if (unlikely(anon_vma_prepare(vma)))
+@@ -3389,17 +3402,7 @@ static int do_cow_fault(struct mm_struct
+ 		page_cache_release(fault_page);
+ 		goto uncharge_out;
+ 	}
+-
+-	flush_icache_page(vma, new_page);
+-	entry = mk_pte(new_page, vma->vm_page_prot);
+-	entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+-	inc_mm_counter_fast(mm, MM_ANONPAGES);
+-	page_add_new_anon_rmap(new_page, vma, address);
+-	set_pte_at(mm, address, pte, entry);
+-
+-	/* no need to invalidate: a not-present page won't be cached */
+-	update_mmu_cache(vma, address, pte);
+-
++	do_set_pte(vma, address, new_page, pte, true, true);
+ 	pte_unmap_unlock(pte, ptl);
+ 	unlock_page(fault_page);
+ 	page_cache_release(fault_page);
+@@ -3416,7 +3419,7 @@ static int do_shared_fault(struct mm_str
+ {
+ 	struct page *fault_page;
+ 	spinlock_t *ptl;
+-	pte_t entry, *pte;
++	pte_t *pte;
+ 	int dirtied = 0;
+ 	int ret, tmp;
+ 
+@@ -3445,16 +3448,7 @@ static int do_shared_fault(struct mm_str
+ 		page_cache_release(fault_page);
+ 		return ret;
+ 	}
+-
+-	flush_icache_page(vma, fault_page);
+-	entry = mk_pte(fault_page, vma->vm_page_prot);
+-	entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+-	inc_mm_counter_fast(mm, MM_FILEPAGES);
+-	page_add_file_rmap(fault_page);
+-	set_pte_at(mm, address, pte, entry);
+-
+-	/* no need to invalidate: a not-present page won't be cached */
+-	update_mmu_cache(vma, address, pte);
++	do_set_pte(vma, address, fault_page, pte, true, false);
+ 	pte_unmap_unlock(pte, ptl);
+ 
+ 	if (set_page_dirty(fault_page))
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
