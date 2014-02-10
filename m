@@ -1,83 +1,82 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch
+ xen-properly-account-for-_page_numa-during-xen-pte-translations-fix.patch
  removed from -mm tree
-Date: Mon, 10 Feb 2014 14:21:00 -0800
-Message-ID: <52f950cc.FbcG23umdunSO+KS%akpm@linux-foundation.org>
+Date: Mon, 10 Feb 2014 14:21:24 -0800
+Message-ID: <52f950e4.Ivo/wpPx3ewcGOPS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58945 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58958 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752111AbaBJWVC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 17:21:02 -0500
+	with ESMTP id S1752787AbaBJWVZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 17:21:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vgoyal@redhat.com, holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, d.hatayama@jp.fujitsu.com, greg.pearson@hp.com
+To: mm-commits@vger.kernel.org, mgorman@suse.de, akpm@linux-foundation.org
 
-Subject: [folded-merged] vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch removed from -mm tree
-To: greg.pearson@hp.com,d.hatayama@jp.fujitsu.com,ebiederm@xmission.com,holzheu@linux.vnet.ibm.com,vgoyal@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] xen-properly-account-for-_page_numa-during-xen-pte-translations-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,mgorman@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 10 Feb 2014 14:21:00 -0800
+Date: Mon, 10 Feb 2014 14:21:24 -0800
 
 
 The patch titled
-     Subject: vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2
+     Subject: xen-properly-account-for-_page_numa-during-xen-pte-translations-fix
 has been removed from the -mm tree.  Its filename was
-     vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2.patch
+     xen-properly-account-for-_page_numa-during-xen-pte-translations-fix.patch
 
-This patch was dropped because it was folded into vmcore-prevent-pt_note-p_memsz-overflow-during-header-update.patch
+This patch was dropped because it was folded into xen-properly-account-for-_page_numa-during-xen-pte-translations.patch
 
 ------------------------------------------------------
-From: Greg Pearson <greg.pearson@hp.com>
-Subject: vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: xen-properly-account-for-_page_numa-during-xen-pte-translations-fix
 
-Signed-off-by: Greg Pearson <greg.pearson@hp.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+fix typo in comment
+
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/vmcore.c~vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2 fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v2
-+++ a/fs/proc/vmcore.c
-@@ -472,9 +472,10 @@ static int __init update_note_header_siz
- 			sz = sizeof(Elf64_Nhdr) +
- 				((nhdr_ptr->n_namesz + 3) & ~3) +
- 				((nhdr_ptr->n_descsz + 3) & ~3);
--			/* Silently drop further PT_NOTE entries */
--			if ((real_sz + sz) > max_sz)
-+			if ((real_sz + sz) > max_sz) {
-+				pr_warn("Warning: dropping PT_NOTE entry\n");
- 				break;
-+			}
- 			real_sz += sz;
- 			nhdr_ptr = (Elf64_Nhdr*)((char*)nhdr_ptr + sz);
- 		}
-@@ -653,9 +654,10 @@ static int __init update_note_header_siz
- 			sz = sizeof(Elf32_Nhdr) +
- 				((nhdr_ptr->n_namesz + 3) & ~3) +
- 				((nhdr_ptr->n_descsz + 3) & ~3);
--			/* Silently drop further PT_NOTE entries */
--			if ((real_sz + sz) > max_sz)
-+			if ((real_sz + sz) > max_sz) {
-+				pr_warn("Warning: dropping PT_NOTE entry\n");
- 				break;
-+			}
- 			real_sz += sz;
- 			nhdr_ptr = (Elf32_Nhdr*)((char*)nhdr_ptr + sz);
- 		}
+diff -puN arch/x86/include/asm/pgtable.h~xen-properly-account-for-_page_numa-during-xen-pte-translations-fix arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~xen-properly-account-for-_page_numa-during-xen-pte-translations-fix
++++ a/arch/x86/include/asm/pgtable.h
+@@ -449,7 +449,7 @@ static inline int pteval_present(pteval_
+ {
+ 	/*
+ 	 * Yes Linus, _PAGE_PROTNONE == _PAGE_NUMA. Expressing it this
+-	 * way clearly states that the intent is that a protnone and numa
++	 * way clearly states that the intent is that protnone and numa
+ 	 * hinting ptes are considered present for the purposes of
+ 	 * pagetable operations like zapping, protection changes, gup etc.
+ 	 */
 _
 
-Patches currently in -mm which might be from greg.pearson@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmcore-prevent-pt_note-p_memsz-overflow-during-header-update.patch
-vmcore-prevent-pt_note-p_memsz-overflow-during-header-update-v3.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+xen-properly-account-for-_page_numa-during-xen-pte-translations.patch
+ocfs2-fix-ocfs2_sync_file-if-filesystem-is-readonly-fix.patch
+mm-memory-failurec-move-refcount-only-in-mf_count_increased-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
