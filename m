@@ -1,77 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Tue, 11 Feb 2014 11:23:08 -0800
-Message-ID: <52fa789c.loWZEGCZpSZ/7NGq%akpm@linux-foundation.org>
+Subject: [merged] get_maintainer-fix-detection-of-git-repository.patch
+ removed from -mm tree
+Date: Tue, 11 Feb 2014 11:23:18 -0800
+Message-ID: <52fa78a6.UTaaLfH+V3BUE5L1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40832 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754451AbaBKTXJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Feb 2014 14:23:09 -0500
+	with ESMTP id S1754919AbaBKTXT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Feb 2014 14:23:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, joe@perches.com, apw@canonical.com, richard.genoud@gmail.com
 
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [merged] get_maintainer-fix-detection-of-git-repository.patch removed from -mm tree
+To: richard.genoud@gmail.com,apw@canonical.com,joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Feb 2014 11:23:08 -0800
+Date: Tue, 11 Feb 2014 11:23:18 -0800
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: get_maintainer: fix detection of git repository
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     get_maintainer-fix-detection-of-git-repository.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Richard Genoud <richard.genoud@gmail.com>
+Subject: get_maintainer: fix detection of git repository
 
+Since git v1.7.7, the .git directory can be a file when, for example, the
+kernel is a submodule of another git super project.  So, the check "-d
+.git" is not working anymore in this case.  Using a more generic check
+like "-e .git" corrects this behaviour.
+
+Signed-off-by: Richard Genoud <richard.genoud@gmail.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/get_maintainer.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~linux-next-rejects mm/slub.c
---- a/mm/slub.c~linux-next-rejects
-+++ a/mm/slub.c
-@@ -1007,7 +1007,8 @@ static void add_full(struct kmem_cache *
- 	if (!(s->flags & SLAB_STORE_USER))
- 		return;
+diff -puN scripts/get_maintainer.pl~get_maintainer-fix-detection-of-git-repository scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-fix-detection-of-git-repository
++++ a/scripts/get_maintainer.pl
+@@ -95,7 +95,7 @@ my %VCS_cmds;
  
--	lockdep_assert_held(&n->list_lock);
-+	if (kmem_cache_debug(s))
-+		lockdep_assert_held(&n->list_lock);
- 	list_add(&page->lru, &n->full);
- }
- 
+ my %VCS_cmds_git = (
+     "execute_cmd" => \&git_execute_cmd,
+-    "available" => '(which("git") ne "") && (-d ".git")',
++    "available" => '(which("git") ne "") && (-e ".git")',
+     "find_signers_cmd" =>
+ 	"git log --no-color --follow --since=\$email_git_since " .
+ 	    '--numstat --no-merges ' .
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from richard.genoud@gmail.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
