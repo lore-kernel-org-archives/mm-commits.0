@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-jz4740-use-devm_ioremap_resource.patch added to -mm
+Subject: + maintainers-add-backlight-co-maintainers.patch added to -mm
  tree
-Date: Mon, 10 Feb 2014 16:11:03 -0800
-Message-ID: <52f96a97.SM3ThSK3kkK948y7%akpm@linux-foundation.org>
+Date: Mon, 10 Feb 2014 16:11:36 -0800
+Message-ID: <52f96ab8.+5qs2AwoKiDpzsGm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554AbaBKALE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 19:11:04 -0500
+	with ESMTP id S1752554AbaBKALg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Feb 2014 19:11:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, lars@metafoo.de, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, lee.jones@linaro.org, cooloney@gmail.com, jg1.han@samsung.com
 
-Subject: + rtc-rtc-jz4740-use-devm_ioremap_resource.patch added to -mm tree
-To: jg1.han@samsung.com,lars@metafoo.de
+Subject: + maintainers-add-backlight-co-maintainers.patch added to -mm tree
+To: jg1.han@samsung.com,cooloney@gmail.com,lee.jones@linaro.org
 From: akpm@linux-foundation.org
-Date: Mon, 10 Feb 2014 16:11:03 -0800
+Date: Mon, 10 Feb 2014 16:11:36 -0800
 
 
 The patch titled
-     Subject: rtc: rtc-jz4740: use devm_ioremap_resource()
+     Subject: MAINTAINERS: add backlight co-maintainers
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-jz4740-use-devm_ioremap_resource.patch
+     maintainers-add-backlight-co-maintainers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-jz4740-use-devm_ioremap_resource.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-backlight-co-maintainers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-jz4740-use-devm_ioremap_resource.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-backlight-co-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,75 +45,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-jz4740: use devm_ioremap_resource()
+Subject: MAINTAINERS: add backlight co-maintainers
 
-Use devm_ioremap_resource() in order to make the code simpler, and move
-'struct resource *mem' from 'struct jz4740_rtc' to jz4740_rtc_probe()
-because the 'mem' variable is used only in jz4740_rtc_probe().  Also the
-redundant return value check of platform_get_resource() is removed,
-because the value is checked by devm_ioremap_resource().
+Bryan Wu and Lee Jones volunteer to maintain backlight drivers and help to
+setup git-tree for backlight subsystem.  Thus, I add them as backlight
+co-maintainers.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
+Acked-by: Bryan Wu <cooloney@gmail.com>
+Acked-by: Lee Jones <lee.jones@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-jz4740.c |   25 +++++--------------------
- 1 file changed, 5 insertions(+), 20 deletions(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-jz4740.c~rtc-rtc-jz4740-use-devm_ioremap_resource drivers/rtc/rtc-jz4740.c
---- a/drivers/rtc/rtc-jz4740.c~rtc-rtc-jz4740-use-devm_ioremap_resource
-+++ a/drivers/rtc/rtc-jz4740.c
-@@ -38,7 +38,6 @@
- #define JZ_RTC_CTRL_ENABLE	BIT(0)
+diff -puN MAINTAINERS~maintainers-add-backlight-co-maintainers MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-backlight-co-maintainers
++++ a/MAINTAINERS
+@@ -1695,6 +1695,8 @@ F:	drivers/net/wireless/b43legacy/
  
- struct jz4740_rtc {
--	struct resource *mem;
- 	void __iomem *base;
- 
- 	struct rtc_device *rtc;
-@@ -216,6 +215,7 @@ static int jz4740_rtc_probe(struct platf
- 	int ret;
- 	struct jz4740_rtc *rtc;
- 	uint32_t scratchpad;
-+	struct resource *mem;
- 
- 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
- 	if (!rtc)
-@@ -227,25 +227,10 @@ static int jz4740_rtc_probe(struct platf
- 		return -ENOENT;
- 	}
- 
--	rtc->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!rtc->mem) {
--		dev_err(&pdev->dev, "Failed to get platform mmio memory\n");
--		return -ENOENT;
--	}
--
--	rtc->mem = devm_request_mem_region(&pdev->dev, rtc->mem->start,
--					resource_size(rtc->mem), pdev->name);
--	if (!rtc->mem) {
--		dev_err(&pdev->dev, "Failed to request mmio memory region\n");
--		return -EBUSY;
--	}
--
--	rtc->base = devm_ioremap_nocache(&pdev->dev, rtc->mem->start,
--					resource_size(rtc->mem));
--	if (!rtc->base) {
--		dev_err(&pdev->dev, "Failed to ioremap mmio memory\n");
--		return -EBUSY;
--	}
-+	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	rtc->base = devm_ioremap_resource(&pdev->dev, mem);
-+	if (IS_ERR(rtc->base))
-+		return PTR_ERR(rtc->base);
- 
- 	spin_lock_init(&rtc->lock);
- 
+ BACKLIGHT CLASS/SUBSYSTEM
+ M:	Jingoo Han <jg1.han@samsung.com>
++M:	Bryan Wu <cooloney@gmail.com>
++M:	Lee Jones <lee.jones@linaro.org>
+ S:	Maintained
+ F:	drivers/video/backlight/
+ F:	include/linux/backlight.h
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
+maintainers-add-backlight-co-maintainers.patch
 backlight-update-bd-state-fb_blank-properties-when-necessary.patch
 backlight-update-backlight-status-when-necessary.patch
 backlight-aat2870-remove-unnecessary-oom-messages.patch
