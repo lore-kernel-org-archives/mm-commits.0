@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + kobject-dont-block-for-each-kobject_uevent.patch added to -mm
- tree
-Date: Tue, 11 Feb 2014 15:00:21 -0800
-Message-ID: <52faab85.Rtct059qXBFKnOsn%akpm@linux-foundation.org>
+Subject: +
+ kernel-used-macros-from-compilerh-instead-of-__attribute__.patch added to
+ -mm tree
+Date: Tue, 11 Feb 2014 15:10:42 -0800
+Message-ID: <52faadf2.Dhovv0NDD24MP+7i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42053 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42109 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347AbaBKXAW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Feb 2014 18:00:22 -0500
+	with ESMTP id S1750978AbaBKXKn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Feb 2014 18:10:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, greg@kroah.com, cl@linux.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, rjw@sisk.pl, mingo@elte.hu, gidisrael@gmail.com
 
-Subject: + kobject-dont-block-for-each-kobject_uevent.patch added to -mm tree
-To: vdavydov@parallels.com,cl@linux.com,greg@kroah.com,penberg@kernel.org
+Subject: + kernel-used-macros-from-compilerh-instead-of-__attribute__.patch added to -mm tree
+To: gidisrael@gmail.com,mingo@elte.hu,rjw@sisk.pl
 From: akpm@linux-foundation.org
-Date: Tue, 11 Feb 2014 15:00:21 -0800
+Date: Tue, 11 Feb 2014 15:10:42 -0800
 
 
 The patch titled
-     Subject: kobject: don't block for each kobject_uevent
+     Subject: kernel: use macros from compiler.h instead of __attribute__((...))
 has been added to the -mm tree.  Its filename is
-     kobject-dont-block-for-each-kobject_uevent.patch
+     kernel-used-macros-from-compilerh-instead-of-__attribute__.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kobject-dont-block-for-each-kobject_uevent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-used-macros-from-compilerh-instead-of-__attribute__.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kobject-dont-block-for-each-kobject_uevent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-used-macros-from-compilerh-instead-of-__attribute__.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,140 +45,328 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: kobject: don't block for each kobject_uevent
+From: Gideon Israel Dsouza <gidisrael@gmail.com>
+Subject: kernel: use macros from compiler.h instead of __attribute__((...))
 
-Currently kobject_uevent has somewhat unpredictable semantics.  The point
-is, since it may call a usermode helper and wait for it to execute
-(UMH_WAIT_EXEC), it is impossible to say for sure what lock dependencies
-it will introduce for the caller - strictly speaking it depends on what fs
-the binary is located on and the set of locks fork may take.  There are
-quite a few kobject_uevent's users that do not take this into account and
-call it with various mutexes taken, e.g.  rtnl_mutex, net_mutex, which
-might potentially lead to a deadlock.
+To increase compiler portability there is <linux/compiler.h> which
+provides convenience macros for various gcc constructs.  Eg: __weak for
+__attribute__((weak)).  I've replaced all instances of gcc attributes with
+the right macro in the kernel subsystem.
 
-Since there is actually no reason to wait for the usermode helper to
-execute there, let's make kobject_uevent start the helper asynchronously
-with the aid of the UMH_NO_WAIT flag.
-
-Personally, I'm interested in this, because I really want kobject_uevent
-to be called under the slab_mutex in the slub implementation as it used to
-be some time ago, because it greatly simplifies synchronization and
-automatically fixes a kmemcg-related race.  However, there was a deadlock
-detected on an attempt to call kobject_uevent under the slab_mutex (see
-https://lkml.org/lkml/2012/1/14/45), which was reported to be fixed by
-releasing the slab_mutex for kobject_uevent.  Unfortunately, there was no
-information about who exactly blocked on the slab_mutex causing the
-usermode helper to stall, neither have I managed to find this out or
-reproduce the issue.
-
-BTW, this is not the first attempt to make kobject_uevent use UMH_NO_WAIT.
-Previous one was made by commit f520360d93c ("kobject: don't block for
-each kobject_uevent"), but it was wrong (it passed arguments allocated on
-stack to async thread) so it was reverted in 05f54c13cd0c ("Revert
-"kobject: don't block for each kobject_uevent".").  It targeted on
-speeding up the boot process though.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Gideon Israel Dsouza <gidisrael@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kobject.h |    1 
- lib/kobject_uevent.c    |   42 ++++++++++++++++++++++++++++++++------
- 2 files changed, 37 insertions(+), 6 deletions(-)
+ kernel/fork.c             |    3 ++-
+ kernel/kallsyms.c         |   11 ++++++-----
+ kernel/kexec.c            |    5 +++--
+ kernel/ksysfs.c           |    5 +++--
+ kernel/power/power.h      |    3 ++-
+ kernel/power/snapshot.c   |    3 ++-
+ kernel/power/suspend.c    |    5 +++--
+ kernel/power/swap.c       |    2 +-
+ kernel/sched/clock.c      |    3 ++-
+ kernel/sched/core.c       |    3 ++-
+ kernel/signal.c           |    4 +++-
+ kernel/time/timekeeping.c |    5 +++--
+ kernel/trace/trace.h      |    3 ++-
+ 13 files changed, 34 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/kobject.h~kobject-dont-block-for-each-kobject_uevent include/linux/kobject.h
---- a/include/linux/kobject.h~kobject-dont-block-for-each-kobject_uevent
-+++ a/include/linux/kobject.h
-@@ -119,6 +119,7 @@ struct kobj_type {
- };
+diff -puN kernel/fork.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/fork.c
+--- a/kernel/fork.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/fork.c
+@@ -71,6 +71,7 @@
+ #include <linux/signalfd.h>
+ #include <linux/uprobes.h>
+ #include <linux/aio.h>
++#include <linux/compiler.h>
  
- struct kobj_uevent_env {
-+	char *argv[3];
- 	char *envp[UEVENT_NUM_ENVP];
- 	int envp_idx;
- 	char buf[UEVENT_BUFFER_SIZE];
-diff -puN lib/kobject_uevent.c~kobject-dont-block-for-each-kobject_uevent lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~kobject-dont-block-for-each-kobject_uevent
-+++ a/lib/kobject_uevent.c
-@@ -124,6 +124,30 @@ static int kobj_usermode_filter(struct k
- 	return 0;
+ #include <asm/pgtable.h>
+ #include <asm/pgalloc.h>
+@@ -283,7 +284,7 @@ void __init fork_init(unsigned long memp
+ 		init_task.signal->rlim[RLIMIT_NPROC];
  }
  
-+static int init_uevent_argv(struct kobj_uevent_env *env, const char *subsystem)
-+{
-+	int len;
+-int __attribute__((weak)) arch_dup_task_struct(struct task_struct *dst,
++int __weak arch_dup_task_struct(struct task_struct *dst,
+ 					       struct task_struct *src)
+ {
+ 	*dst = *src;
+diff -puN kernel/kallsyms.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/kallsyms.c
+--- a/kernel/kallsyms.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/kallsyms.c
+@@ -23,6 +23,7 @@
+ #include <linux/mm.h>
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
++#include <linux/compiler.h>
+ 
+ #include <asm/sections.h>
+ 
+@@ -36,8 +37,8 @@
+  * These will be re-linked against their real values
+  * during the second link stage.
+  */
+-extern const unsigned long kallsyms_addresses[] __attribute__((weak));
+-extern const u8 kallsyms_names[] __attribute__((weak));
++extern const unsigned long kallsyms_addresses[] __weak;
++extern const u8 kallsyms_names[] __weak;
+ 
+ /*
+  * Tell the compiler that the count isn't in the small data section if the arch
+@@ -46,10 +47,10 @@ extern const u8 kallsyms_names[] __attri
+ extern const unsigned long kallsyms_num_syms
+ __attribute__((weak, section(".rodata")));
+ 
+-extern const u8 kallsyms_token_table[] __attribute__((weak));
+-extern const u16 kallsyms_token_index[] __attribute__((weak));
++extern const u8 kallsyms_token_table[] __weak;
++extern const u16 kallsyms_token_index[] __weak;
+ 
+-extern const unsigned long kallsyms_markers[] __attribute__((weak));
++extern const unsigned long kallsyms_markers[] __weak;
+ 
+ static inline int is_kernel_inittext(unsigned long addr)
+ {
+diff -puN kernel/kexec.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/kexec.c
+--- a/kernel/kexec.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/kexec.c
+@@ -32,6 +32,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/swap.h>
+ #include <linux/syscore_ops.h>
++#include <linux/compiler.h>
+ 
+ #include <asm/page.h>
+ #include <asm/uaccess.h>
+@@ -1551,10 +1552,10 @@ void vmcoreinfo_append_str(const char *f
+  * provide an empty default implementation here -- architecture
+  * code may override this
+  */
+-void __attribute__ ((weak)) arch_crash_save_vmcoreinfo(void)
++void __weak arch_crash_save_vmcoreinfo(void)
+ {}
+ 
+-unsigned long __attribute__ ((weak)) paddr_vmcoreinfo_note(void)
++unsigned long __weak paddr_vmcoreinfo_note(void)
+ {
+ 	return __pa((unsigned long)(char *)&vmcoreinfo_note);
+ }
+diff -puN kernel/ksysfs.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/ksysfs.c
+@@ -18,6 +18,7 @@
+ #include <linux/stat.h>
+ #include <linux/sched.h>
+ #include <linux/capability.h>
++#include <linux/compiler.h>
+ 
+ #define KERNEL_ATTR_RO(_name) \
+ static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
+@@ -160,8 +161,8 @@ KERNEL_ATTR_RW(rcu_expedited);
+ /*
+  * Make /sys/kernel/notes give the raw contents of our kernel .notes section.
+  */
+-extern const void __start_notes __attribute__((weak));
+-extern const void __stop_notes __attribute__((weak));
++extern const void __start_notes __weak;
++extern const void __stop_notes __weak;
+ #define	notes_size (&__stop_notes - &__start_notes)
+ 
+ static ssize_t notes_read(struct file *filp, struct kobject *kobj,
+diff -puN kernel/power/power.h~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/power/power.h
+--- a/kernel/power/power.h~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/power/power.h
+@@ -2,6 +2,7 @@
+ #include <linux/suspend_ioctls.h>
+ #include <linux/utsname.h>
+ #include <linux/freezer.h>
++#include <linux/compiler.h>
+ 
+ struct swsusp_info {
+ 	struct new_utsname	uts;
+@@ -11,7 +12,7 @@ struct swsusp_info {
+ 	unsigned long		image_pages;
+ 	unsigned long		pages;
+ 	unsigned long		size;
+-} __attribute__((aligned(PAGE_SIZE)));
++} __aligned(PAGE_SIZE);
+ 
+ #ifdef CONFIG_HIBERNATION
+ /* kernel/power/snapshot.c */
+diff -puN kernel/power/snapshot.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/power/snapshot.c
+@@ -27,6 +27,7 @@
+ #include <linux/highmem.h>
+ #include <linux/list.h>
+ #include <linux/slab.h>
++#include <linux/compiler.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/mmu_context.h>
+@@ -155,7 +156,7 @@ static inline void free_image_page(void
+ struct linked_page {
+ 	struct linked_page *next;
+ 	char data[LINKED_PAGE_DATA_SIZE];
+-} __attribute__((packed));
++} __packed;
+ 
+ static inline void
+ free_list_of_pages(struct linked_page *list, int clear_page_nosave)
+diff -puN kernel/power/suspend.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/power/suspend.c
+--- a/kernel/power/suspend.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/power/suspend.c
+@@ -26,6 +26,7 @@
+ #include <linux/syscore_ops.h>
+ #include <linux/ftrace.h>
+ #include <trace/events/power.h>
++#include <linux/compiler.h>
+ 
+ #include "power.h"
+ 
+@@ -156,13 +157,13 @@ static int suspend_prepare(suspend_state
+ }
+ 
+ /* default implementation */
+-void __attribute__ ((weak)) arch_suspend_disable_irqs(void)
++void __weak arch_suspend_disable_irqs(void)
+ {
+ 	local_irq_disable();
+ }
+ 
+ /* default implementation */
+-void __attribute__ ((weak)) arch_suspend_enable_irqs(void)
++void __weak arch_suspend_enable_irqs(void)
+ {
+ 	local_irq_enable();
+ }
+diff -puN kernel/power/swap.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/power/swap.c
+--- a/kernel/power/swap.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/power/swap.c
+@@ -101,7 +101,7 @@ struct swsusp_header {
+ 	unsigned int flags;	/* Flags to pass to the "boot" kernel */
+ 	char	orig_sig[10];
+ 	char	sig[10];
+-} __attribute__((packed));
++} __packed;
+ 
+ static struct swsusp_header *swsusp_header;
+ 
+diff -puN kernel/sched/clock.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/sched/clock.c
+--- a/kernel/sched/clock.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/sched/clock.c
+@@ -60,13 +60,14 @@
+ #include <linux/sched.h>
+ #include <linux/static_key.h>
+ #include <linux/workqueue.h>
++#include <linux/compiler.h>
+ 
+ /*
+  * Scheduler clock - returns current time in nanosec units.
+  * This is default implementation.
+  * Architectures and sub-architectures can override this.
+  */
+-unsigned long long __attribute__((weak)) sched_clock(void)
++unsigned long long __weak sched_clock(void)
+ {
+ 	return (unsigned long long)(jiffies - INITIAL_JIFFIES)
+ 					* (NSEC_PER_SEC / HZ);
+diff -puN kernel/sched/core.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/sched/core.c
+--- a/kernel/sched/core.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/sched/core.c
+@@ -73,6 +73,7 @@
+ #include <linux/init_task.h>
+ #include <linux/binfmts.h>
+ #include <linux/context_tracking.h>
++#include <linux/compiler.h>
+ 
+ #include <asm/switch_to.h>
+ #include <asm/tlb.h>
+@@ -6451,7 +6452,7 @@ static cpumask_var_t fallback_doms;
+  * cpu core maps. It is supposed to return 1 if the topology changed
+  * or 0 if it stayed the same.
+  */
+-int __attribute__((weak)) arch_update_cpu_topology(void)
++int __weak arch_update_cpu_topology(void)
+ {
+ 	return 0;
+ }
+diff -puN kernel/signal.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/signal.c
+--- a/kernel/signal.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/signal.c
+@@ -33,6 +33,8 @@
+ #include <linux/uprobes.h>
+ #include <linux/compat.h>
+ #include <linux/cn_proc.h>
++#include <linux/compiler.h>
 +
-+	len = strlcpy(&env->buf[env->buflen], subsystem,
-+		      sizeof(env->buf) - env->buflen);
-+	if (len >= (sizeof(env->buf) - env->buflen)) {
-+		WARN(1, KERN_ERR "init_uevent_argv: buffer size too small\n");
-+		return -ENOMEM;
-+	}
-+
-+	env->argv[0] = uevent_helper;
-+	env->argv[1] = &env->buf[env->buflen];
-+	env->argv[2] = NULL;
-+
-+	env->buflen += len + 1;
-+	return 0;
-+}
-+
-+static void cleanup_uevent_env(struct subprocess_info *info)
-+{
-+	kfree(info->data);
-+}
-+
- /**
-  * kobject_uevent_env - send an uevent with environmental data
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/signal.h>
+ 
+@@ -3618,7 +3620,7 @@ SYSCALL_DEFINE3(sigsuspend, int, unused1
+ }
+ #endif
+ 
+-__attribute__((weak)) const char *arch_vma_name(struct vm_area_struct *vma)
++__weak const char *arch_vma_name(struct vm_area_struct *vma)
+ {
+ 	return NULL;
+ }
+diff -puN kernel/time/timekeeping.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/time/timekeeping.c
+@@ -22,6 +22,7 @@
+ #include <linux/tick.h>
+ #include <linux/stop_machine.h>
+ #include <linux/pvclock_gtod.h>
++#include <linux/compiler.h>
+ 
+ #include "tick-internal.h"
+ #include "ntp_internal.h"
+@@ -760,7 +761,7 @@ u64 timekeeping_max_deferment(void)
   *
-@@ -301,11 +325,8 @@ int kobject_uevent_env(struct kobject *k
+  *  XXX - Do be sure to remove it once all arches implement it.
+  */
+-void __attribute__((weak)) read_persistent_clock(struct timespec *ts)
++void __weak read_persistent_clock(struct timespec *ts)
+ {
+ 	ts->tv_sec = 0;
+ 	ts->tv_nsec = 0;
+@@ -775,7 +776,7 @@ void __attribute__((weak)) read_persiste
+  *
+  *  XXX - Do be sure to remove it once all arches implement it.
+  */
+-void __attribute__((weak)) read_boot_clock(struct timespec *ts)
++void __weak read_boot_clock(struct timespec *ts)
+ {
+ 	ts->tv_sec = 0;
+ 	ts->tv_nsec = 0;
+diff -puN kernel/trace/trace.h~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/trace/trace.h
+--- a/kernel/trace/trace.h~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/trace/trace.h
+@@ -13,6 +13,7 @@
+ #include <linux/hw_breakpoint.h>
+ #include <linux/trace_seq.h>
+ #include <linux/ftrace_event.h>
++#include <linux/compiler.h>
  
- 	/* call uevent_helper, usually only enabled during early boot */
- 	if (uevent_helper[0] && !kobj_usermode_filter(kobj)) {
--		char *argv [3];
-+		struct subprocess_info *info;
- 
--		argv [0] = uevent_helper;
--		argv [1] = (char *)subsystem;
--		argv [2] = NULL;
- 		retval = add_uevent_var(env, "HOME=/");
- 		if (retval)
- 			goto exit;
-@@ -313,9 +334,18 @@ int kobject_uevent_env(struct kobject *k
- 					"PATH=/sbin:/bin:/usr/sbin:/usr/bin");
- 		if (retval)
- 			goto exit;
-+		retval = init_uevent_argv(env, subsystem);
-+		if (retval)
-+			goto exit;
- 
--		retval = call_usermodehelper(argv[0], argv,
--					     env->envp, UMH_WAIT_EXEC);
-+		retval = -ENOMEM;
-+		info = call_usermodehelper_setup(env->argv[0], env->argv,
-+						 env->envp, GFP_KERNEL,
-+						 NULL, cleanup_uevent_env, env);
-+		if (info)
-+			retval = call_usermodehelper_exec(info, UMH_NO_WAIT);
-+		if (!retval)
-+			env = NULL;	/* will be freed by cleanup_uevent_env */
- 	}
- 
- exit:
+ #ifdef CONFIG_FTRACE_SYSCALLS
+ #include <asm/unistd.h>		/* For NR_SYSCALLS	     */
+@@ -1249,7 +1250,7 @@ int set_tracer_flag(struct trace_array *
+ #undef FTRACE_ENTRY
+ #define FTRACE_ENTRY(call, struct_name, id, tstruct, print, filter)	\
+ 	extern struct ftrace_event_call					\
+-	__attribute__((__aligned__(4))) event_##call;
++	__aligned(4) event_##call;
+ #undef FTRACE_ENTRY_DUP
+ #define FTRACE_ENTRY_DUP(call, struct_name, id, tstruct, print, filter)	\
+ 	FTRACE_ENTRY(call, struct_name, id, PARAMS(tstruct), PARAMS(print), \
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from gidisrael@gmail.com are
 
-origin.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
-kobject-dont-block-for-each-kobject_uevent.patch
-slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
-linux-next.patch
+kernel-used-macros-from-compilerh-instead-of-__attribute__.patch
 
