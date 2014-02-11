@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-panicc-display-reason-at-end-pr_emerg-fix.patch added to -mm tree
-Date: Tue, 11 Feb 2014 15:34:55 -0800
-Message-ID: <52fab39f.9gmzAg9H4/4URy8a%akpm@linux-foundation.org>
+Subject: + kernel-panicc-display-reason-at-end-pr_emerg.patch added to -mm tree
+Date: Tue, 11 Feb 2014 15:34:54 -0800
+Message-ID: <52fab39e.fGFaT2oPLanVoJ0s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42310 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752228AbaBKXe4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Feb 2014 18:34:56 -0500
+	with ESMTP id S1752214AbaBKXez (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Feb 2014 18:34:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + kernel-panicc-display-reason-at-end-pr_emerg-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,fabf@skynet.be
+Subject: + kernel-panicc-display-reason-at-end-pr_emerg.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Tue, 11 Feb 2014 15:34:55 -0800
+Date: Tue, 11 Feb 2014 15:34:54 -0800
 
 
 The patch titled
-     Subject: kernel-panicc-display-reason-at-end-pr_emerg-fix
+     Subject: kernel/panic.c: display reason at end + pr_emerg
 has been added to the -mm tree.  Its filename is
-     kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+     kernel-panicc-display-reason-at-end-pr_emerg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-panicc-display-reason-at-end-pr_emerg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-panicc-display-reason-at-end-pr_emerg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,67 +43,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-panicc-display-reason-at-end-pr_emerg-fix
+From: Fabian Frederick <fabf@skynet.be>
+Subject: kernel/panic.c: display reason at end + pr_emerg
 
-missed a couple of pr_ conversions
+Currently, booting without initrd specified on 80x25 screen gives a call
+trace followed by atkbd : Spurious ACK.  Original message ("VFS: Unable to
+mount root fs") is not available.  Of course this could happen in other
+situations...
 
-Cc: Fabian Frederick <fabf@skynet.be>
+This patch displays panic reason after call trace which could help lot of
+people even if it's not the very last line on screen.
+
+Also, convert all panic.c printk(KERN_EMERG to pr_emerg(
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/panic.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN kernel/panic.c~kernel-panicc-display-reason-at-end-pr_emerg-fix kernel/panic.c
---- a/kernel/panic.c~kernel-panicc-display-reason-at-end-pr_emerg-fix
+diff -puN kernel/panic.c~kernel-panicc-display-reason-at-end-pr_emerg kernel/panic.c
+--- a/kernel/panic.c~kernel-panicc-display-reason-at-end-pr_emerg
 +++ a/kernel/panic.c
-@@ -275,8 +275,7 @@ unsigned long get_taint(void)
- void add_taint(unsigned flag, enum lockdep_ok lockdep_ok)
- {
- 	if (lockdep_ok == LOCKDEP_NOW_UNRELIABLE && __debug_locks_off())
--		printk(KERN_WARNING
--		       "Disabling lock debugging due to kernel taint\n");
-+		pr_warn("Disabling lock debugging due to kernel taint\n");
+@@ -100,7 +100,7 @@ void panic(const char *fmt, ...)
+ 	va_start(args, fmt);
+ 	vsnprintf(buf, sizeof(buf), fmt, args);
+ 	va_end(args);
+-	printk(KERN_EMERG "Kernel panic - not syncing: %s\n",buf);
++	pr_emerg("Kernel panic - not syncing: %s\n", buf);
+ #ifdef CONFIG_DEBUG_BUGVERBOSE
+ 	/*
+ 	 * Avoid nested stack-dumping if a panic occurs during oops processing
+@@ -141,7 +141,7 @@ void panic(const char *fmt, ...)
+ 		 * Delay timeout seconds before rebooting the machine.
+ 		 * We can't use the "normal" timers since we just panicked.
+ 		 */
+-		printk(KERN_EMERG "Rebooting in %d seconds..", panic_timeout);
++		pr_emerg("Rebooting in %d seconds..", panic_timeout);
  
- 	set_bit(flag, &tainted_mask);
- }
-@@ -381,8 +380,7 @@ late_initcall(init_oops_id);
- void print_oops_end_marker(void)
- {
- 	init_oops_id();
--	printk(KERN_WARNING "---[ end trace %016llx ]---\n",
--		(unsigned long long)oops_id);
-+	pr_warn("---[ end trace %016llx ]---\n", (unsigned long long)oops_id);
- }
- 
- /*
+ 		for (i = 0; i < panic_timeout * 1000; i += PANIC_TIMER_STEP) {
+ 			touch_nmi_watchdog();
+@@ -165,7 +165,7 @@ void panic(const char *fmt, ...)
+ 		extern int stop_a_enabled;
+ 		/* Make sure the user can actually press Stop-A (L1-A) */
+ 		stop_a_enabled = 1;
+-		printk(KERN_EMERG "Press Stop-A (L1-A) to return to the boot prom\n");
++		pr_emerg("Press Stop-A (L1-A) to return to the boot prom\n");
+ 	}
+ #endif
+ #if defined(CONFIG_S390)
+@@ -176,6 +176,7 @@ void panic(const char *fmt, ...)
+ 		disabled_wait(caller);
+ 	}
+ #endif
++	pr_emerg("---[ end Kernel panic - not syncing: %s\n", buf);
+ 	local_irq_enable();
+ 	for (i = 0; ; i += PANIC_TIMER_STEP) {
+ 		touch_softlockup_watchdog();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
+fs-minix-inodec-add-__init-to-init_inodecache.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
 kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
 linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+fs-udf-superc-add-__init-to-init_inodecache.patch
 
