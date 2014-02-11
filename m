@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-panicc-display-reason-at-end-pr_emerg.patch added to -mm tree
-Date: Tue, 11 Feb 2014 15:34:54 -0800
-Message-ID: <52fab39e.fGFaT2oPLanVoJ0s%akpm@linux-foundation.org>
+Subject: + jffs2-fix-unbalanced-locking.patch added to -mm tree
+Date: Tue, 11 Feb 2014 15:56:25 -0800
+Message-ID: <52fab8a9.zaz5HOufVEbGUyLO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42430 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752214AbaBKXez (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Feb 2014 18:34:55 -0500
+	with ESMTP id S1751435AbaBKX40 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Feb 2014 18:56:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, dwmw2@infradead.org, lizefan@huawei.com
 
-Subject: + kernel-panicc-display-reason-at-end-pr_emerg.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + jffs2-fix-unbalanced-locking.patch added to -mm tree
+To: lizefan@huawei.com,dwmw2@infradead.org,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Feb 2014 15:34:54 -0800
+Date: Tue, 11 Feb 2014 15:56:25 -0800
 
 
 The patch titled
-     Subject: kernel/panic.c: display reason at end + pr_emerg
+     Subject: jffs2: fix unbalanced locking
 has been added to the -mm tree.  Its filename is
-     kernel-panicc-display-reason-at-end-pr_emerg.patch
+     jffs2-fix-unbalanced-locking.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-panicc-display-reason-at-end-pr_emerg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/jffs2-fix-unbalanced-locking.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-panicc-display-reason-at-end-pr_emerg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/jffs2-fix-unbalanced-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,76 +43,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: kernel/panic.c: display reason at end + pr_emerg
+From: Li Zefan <lizefan@huawei.com>
+Subject: jffs2: fix unbalanced locking
 
-Currently, booting without initrd specified on 80x25 screen gives a call
-trace followed by atkbd : Spurious ACK.  Original message ("VFS: Unable to
-mount root fs") is not available.  Of course this could happen in other
-situations...
+This was found by our internal debugging feature on runtime, but this bug
+won't lead to deadlock, as the structure that this lock is embedded in is
+freed on error.
 
-This patch displays panic reason after call trace which could help lot of
-people even if it's not the very last line on screen.
-
-Also, convert all panic.c printk(KERN_EMERG to pr_emerg(
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Li Zefan <lizefan@huawei.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/jffs2/readinode.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/panic.c~kernel-panicc-display-reason-at-end-pr_emerg kernel/panic.c
---- a/kernel/panic.c~kernel-panicc-display-reason-at-end-pr_emerg
-+++ a/kernel/panic.c
-@@ -100,7 +100,7 @@ void panic(const char *fmt, ...)
- 	va_start(args, fmt);
- 	vsnprintf(buf, sizeof(buf), fmt, args);
- 	va_end(args);
--	printk(KERN_EMERG "Kernel panic - not syncing: %s\n",buf);
-+	pr_emerg("Kernel panic - not syncing: %s\n", buf);
- #ifdef CONFIG_DEBUG_BUGVERBOSE
- 	/*
- 	 * Avoid nested stack-dumping if a panic occurs during oops processing
-@@ -141,7 +141,7 @@ void panic(const char *fmt, ...)
- 		 * Delay timeout seconds before rebooting the machine.
- 		 * We can't use the "normal" timers since we just panicked.
- 		 */
--		printk(KERN_EMERG "Rebooting in %d seconds..", panic_timeout);
-+		pr_emerg("Rebooting in %d seconds..", panic_timeout);
+diff -puN fs/jffs2/readinode.c~jffs2-fix-unbalanced-locking fs/jffs2/readinode.c
+--- a/fs/jffs2/readinode.c~jffs2-fix-unbalanced-locking
++++ a/fs/jffs2/readinode.c
+@@ -1143,6 +1143,7 @@ static int jffs2_do_read_inode_internal(
+ 		JFFS2_ERROR("cannot read nodes for ino %u, returned error is %d\n", f->inocache->ino, ret);
+ 		if (f->inocache->state == INO_STATE_READING)
+ 			jffs2_set_inocache_state(c, f->inocache, INO_STATE_CHECKEDABSENT);
++		mutex_unlock(&f->sem);
+ 		return ret;
+ 	}
  
- 		for (i = 0; i < panic_timeout * 1000; i += PANIC_TIMER_STEP) {
- 			touch_nmi_watchdog();
-@@ -165,7 +165,7 @@ void panic(const char *fmt, ...)
- 		extern int stop_a_enabled;
- 		/* Make sure the user can actually press Stop-A (L1-A) */
- 		stop_a_enabled = 1;
--		printk(KERN_EMERG "Press Stop-A (L1-A) to return to the boot prom\n");
-+		pr_emerg("Press Stop-A (L1-A) to return to the boot prom\n");
+@@ -1159,6 +1160,7 @@ static int jffs2_do_read_inode_internal(
+ 			jffs2_free_tmp_dnode_info(rii.mdata_tn);
+ 			rii.mdata_tn = NULL;
+ 		}
++		mutex_unlock(&f->sem);
+ 		return ret;
  	}
- #endif
- #if defined(CONFIG_S390)
-@@ -176,6 +176,7 @@ void panic(const char *fmt, ...)
- 		disabled_wait(caller);
- 	}
- #endif
-+	pr_emerg("---[ end Kernel panic - not syncing: %s\n", buf);
- 	local_irq_enable();
- 	for (i = 0; ; i += PANIC_TIMER_STEP) {
- 		touch_softlockup_watchdog();
+ 
+@@ -1183,6 +1185,7 @@ static int jffs2_do_read_inode_internal(
+ 			if (!rii.fds) {
+ 				if (f->inocache->state == INO_STATE_READING)
+ 					jffs2_set_inocache_state(c, f->inocache, INO_STATE_CHECKEDABSENT);
++				mutex_unlock(&f->sem);
+ 				return -EIO;
+ 			}
+ 			JFFS2_NOTICE("but it has children so we fake some modes for it\n");
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from lizefan@huawei.com are
 
-fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
-fs-efs-superc-add-__init-to-init_inodecache.patch
-fs-minix-inodec-add-__init-to-init_inodecache.patch
-fs-ufs-superc-add-__init-to-init_inodecache.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-fs-adfs-superc-add-__init-to-init_inodecache.patch
-kernel-panicc-display-reason-at-end-pr_emerg.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+jffs2-fix-unbalanced-locking.patch
+jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
+jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc-fix.patch
+jffs2-remove-wait-queue-after-schedule.patch
 linux-next.patch
-fs-udf-superc-add-__init-to-init_inodecache.patch
 
