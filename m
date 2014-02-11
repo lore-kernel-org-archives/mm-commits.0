@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch added
- to -mm tree
-Date: Tue, 11 Feb 2014 12:04:28 -0800
-Message-ID: <52fa824c.joT6XaU3KTC127zB%akpm@linux-foundation.org>
+Subject: + drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch
+ added to -mm tree
+Date: Tue, 11 Feb 2014 12:26:07 -0800
+Message-ID: <52fa875f.HAJyMp6KM7t2AwKz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41065 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41223 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998AbaBKUE3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Feb 2014 15:04:29 -0500
+	with ESMTP id S1756386AbaBKU0I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Feb 2014 15:26:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, petr@vandrovec.name, joe@perches.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, joro@8bytes.org, Hiroshi.DOYU@nokia.com, joe@perches.com
 
-Subject: + ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,joe@perches.com,petr@vandrovec.name
+Subject: + drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch added to -mm tree
+To: joe@perches.com,Hiroshi.DOYU@nokia.com,joro@8bytes.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Feb 2014 12:04:28 -0800
+Date: Tue, 11 Feb 2014 12:26:07 -0800
 
 
 The patch titled
-     Subject: ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix
+     Subject: drivers/iommu/omap-iommu-debug.c: fix decimal permissions
 has been added to the -mm tree.  Its filename is
-     ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+     drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,51 +44,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix
+From: Joe Perches <joe@perches.com>
+Subject: drivers/iommu/omap-iommu-debug.c: fix decimal permissions
 
-Cc: Joe Perches <joe@perches.com>
-Cc: Petr Vandrovec <petr@vandrovec.name>
+These should have been octal
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ncp_fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/iommu/omap-iommu-debug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ncpfs/ncp_fs.h~ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix fs/ncpfs/ncp_fs.h
---- a/fs/ncpfs/ncp_fs.h~ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix
-+++ a/fs/ncpfs/ncp_fs.h
-@@ -22,7 +22,7 @@
+diff -puN drivers/iommu/omap-iommu-debug.c~drivers-iommu-omap-iommu-debugc-fix-decimal-permissions drivers/iommu/omap-iommu-debug.c
+--- a/drivers/iommu/omap-iommu-debug.c~drivers-iommu-omap-iommu-debugc-fix-decimal-permissions
++++ a/drivers/iommu/omap-iommu-debug.c
+@@ -354,8 +354,8 @@ DEBUG_FOPS(mem);
+ 			return -ENOMEM;					\
+ 	}
  
- #define ncp_dbg(level, fmt, ...)				\
- do {								\
--	if (level < DEBUG_NCP)					\
-+	if (level <= DEBUG_NCP)					\
- 		pr_debug(fmt, ##__VA_ARGS__);			\
- } while (0)
+-#define DEBUG_ADD_FILE(name) __DEBUG_ADD_FILE(name, 600)
+-#define DEBUG_ADD_FILE_RO(name) __DEBUG_ADD_FILE(name, 400)
++#define DEBUG_ADD_FILE(name) __DEBUG_ADD_FILE(name, 0600)
++#define DEBUG_ADD_FILE_RO(name) __DEBUG_ADD_FILE(name, 0400)
  
+ static int iommu_debug_register(struct device *dev, void *data)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch
+drivers-fmc-fmc-write-eepromc-fix-decimal-permissions.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-test-for-long-udelay.patch
+checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
 ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
 ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
 linux-next.patch
-linux-next-git-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
