@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
- added to -mm tree
-Date: Wed, 12 Feb 2014 13:32:42 -0800
-Message-ID: <52fbe87a.Xv014ABKpD++qhxc%akpm@linux-foundation.org>
+Subject: + checkpatch-warn-on-uses-of-__constant_foo-functions.patch added to -mm tree
+Date: Wed, 12 Feb 2014 13:53:17 -0800
+Message-ID: <52fbed4d.mbd1lVUHD6wQ6Kok%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52879 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52911 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754470AbaBLVcn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Feb 2014 16:32:43 -0500
+	with ESMTP id S1751703AbaBLVxS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Feb 2014 16:53:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, viro@zeniv.linux.org.uk, sfr@canb.auug.org.au, oleg@redhat.com, mtk.manpages@gmail.com, keescook@chromium.org, holt@sgi.com, gang.chen@asianux.com, ebiederm@xmission.com, adityakali@google.com, avagin@openvz.org
+To: mm-commits@vger.kernel.org, sw@simonwunderlich.de, apw@canonical.com, joe@perches.com
 
-Subject: + kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch added to -mm tree
-To: avagin@openvz.org,adityakali@google.com,ebiederm@xmission.com,gang.chen@asianux.com,holt@sgi.com,keescook@chromium.org,mtk.manpages@gmail.com,oleg@redhat.com,sfr@canb.auug.org.au,viro@zeniv.linux.org.uk,xemul@parallels.com
+Subject: + checkpatch-warn-on-uses-of-__constant_foo-functions.patch added to -mm tree
+To: joe@perches.com,apw@canonical.com,sw@simonwunderlich.de
 From: akpm@linux-foundation.org
-Date: Wed, 12 Feb 2014 13:32:42 -0800
+Date: Wed, 12 Feb 2014 13:53:17 -0800
 
 
 The patch titled
-     Subject: kernel/sys.c: reduce required permission for prctl_set_mm
+     Subject: checkpatch: warn on uses of __constant_<foo> functions
 has been added to the -mm tree.  Its filename is
-     kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
+     checkpatch-warn-on-uses-of-__constant_foo-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-on-uses-of-__constant_foo-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-on-uses-of-__constant_foo-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,67 +43,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Vagin <avagin@openvz.org>
-Subject: kernel/sys.c: reduce required permission for prctl_set_mm
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn on uses of __constant_<foo> functions
 
-Currently prctl_set_mm requires the global CAP_SYS_RESOURCE, this patch
-reduce requiremence to CAP_SYS_RESOURCE in the current namespace.
+Emit a warning when using any of these __constant_<foo> forms:
 
-When we restore a task we need to set up text, data and data heap sizes
-from userspace to the values a task had at checkpoint time.
+	__constant_cpu_to_be[x]
+	__constant_cpu_to_le[x]
+	__constant_be[x]_to_cpu
+	__constant_le[x]_to_cpu
+	__constant_htons
+	__constant_ntohs
 
-Currently we can not restore these parameters, if a task lives in a
-non-root user name space, because it has no capabilities in the parent
-namespace.
+Using any of these outside of include/uapi/ isn't preferred as using the
+function without __constant_ is identical when the argument is a constant.
 
-prctl_set_mm() changes parameters of the current task and doesn't affect
-other tasks.
-
-This patch affects the RLIMIT_DATA limit, because a consumtiuon is
-calculated relatively to mm->end_data, mm->start_data, mm->start_brk.
-
-rlim = rlimit(RLIMIT_DATA);
-if (rlim < RLIM_INFINITY && (brk - mm->start_brk) +
-		(mm->end_data - mm->start_data) > rlim)
-	goto out;
-
-This limit affects calls to brk() and sbrk(), but it doesn't affect
-mmap. So I think requirement of CAP_SYS_RESOURCE in the current
-namespace is enough for this limit.
-
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Chen Gang <gang.chen@asianux.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Aditya Kali <adityakali@google.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Simon Wunderlich <sw@simonwunderlich.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN kernel/sys.c~kernel-sysc-reduce-required-permission-for-prctl_set_mm kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-reduce-required-permission-for-prctl_set_mm
-+++ a/kernel/sys.c
-@@ -1701,7 +1701,7 @@ static int prctl_set_mm(int opt, unsigne
- 	if (arg5 || (arg4 && opt != PR_SET_MM_AUXV))
- 		return -EINVAL;
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-uses-of-__constant_foo-functions scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-uses-of-__constant_foo-functions
++++ a/scripts/checkpatch.pl
+@@ -3931,6 +3931,19 @@ sub process {
+ 			}
+ 		}
  
--	if (!capable(CAP_SYS_RESOURCE))
-+	if (!ns_capable(current_user_ns(), CAP_SYS_RESOURCE))
- 		return -EPERM;
- 
- 	if (opt == PR_SET_MM_EXE_FILE)
++# don't use __constant_<foo> functions outside of include/uapi/
++		if ($realfile !~ m@^include/uapi/@ &&
++		    $line =~ /(__constant_(?:htons|ntohs|[bl]e(?:16|32|64)_to_cpu|cpu_to_[bl]e(?:16|32|64)))\s*\(/) {
++			my $constant_func = $1;
++			my $func = $constant_func;
++			$func =~ s/^__constant_//;
++			if (WARN("CONSTANT_CONVERSION",
++				 "$constant_func should be $func\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/\b$constant_func\b/$func/g;
++			}
++		}
++
+ # prefer usleep_range over udelay
+ 		if ($line =~ /\budelay\s*\(\s*(\d+)\s*\)/) {
+ 			my $delay = $1;
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
+drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch
+drivers-fmc-fmc-write-eepromc-fix-decimal-permissions.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-test-for-long-udelay.patch
+checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
+checkpatch-add-checks-for-constant-non-octal-permissions.patch
+checkpatch-warn-on-uses-of-__constant_foo-functions.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
+linux-next.patch
 
