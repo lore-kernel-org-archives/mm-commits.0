@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- asm-systemh-sparc-sparc_cpu_model-isnt-in-asm-systemh-any-more.patch added
+Subject: + asm-systemh-um-arch_align_stack-moved-to-asm-exech.patch added
  to -mm tree
-Date: Wed, 12 Feb 2014 12:59:46 -0800
-Message-ID: <52fbe0c2.3M0+vZFR1FOH9vJF%akpm@linux-foundation.org>
+Date: Wed, 12 Feb 2014 12:59:47 -0800
+Message-ID: <52fbe0c3.dltBDVoKwiX3iHuw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52723 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52727 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752760AbaBLU7r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Feb 2014 15:59:47 -0500
+	with ESMTP id S1752699AbaBLU7s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Feb 2014 15:59:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, davem@davemloft.net, arnd@arndb.de, dhowells@redhat.com
+To: mm-commits@vger.kernel.org, richard@nod.at, jdike@addtoit.com, arnd@arndb.de, dhowells@redhat.com
 
-Subject: + asm-systemh-sparc-sparc_cpu_model-isnt-in-asm-systemh-any-more.patch added to -mm tree
-To: dhowells@redhat.com,arnd@arndb.de,davem@davemloft.net
+Subject: + asm-systemh-um-arch_align_stack-moved-to-asm-exech.patch added to -mm tree
+To: dhowells@redhat.com,arnd@arndb.de,jdike@addtoit.com,richard@nod.at
 From: akpm@linux-foundation.org
-Date: Wed, 12 Feb 2014 12:59:46 -0800
+Date: Wed, 12 Feb 2014 12:59:47 -0800
 
 
 The patch titled
-     Subject: asm/system.h: sparc: sparc_cpu_model isn't in asm/system.h any more
+     Subject: asm/system.h: um: arch_align_stack() moved to asm/exec.h
 has been added to the -mm tree.  Its filename is
-     asm-systemh-sparc-sparc_cpu_model-isnt-in-asm-systemh-any-more.patch
+     asm-systemh-um-arch_align_stack-moved-to-asm-exech.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/asm-systemh-sparc-sparc_cpu_model-isnt-in-asm-systemh-any-more.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/asm-systemh-um-arch_align_stack-moved-to-asm-exech.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/asm-systemh-sparc-sparc_cpu_model-isnt-in-asm-systemh-any-more.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/asm-systemh-um-arch_align_stack-moved-to-asm-exech.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,35 +45,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Howells <dhowells@redhat.com>
-Subject: asm/system.h: sparc: sparc_cpu_model isn't in asm/system.h any more
+Subject: asm/system.h: um: arch_align_stack() moved to asm/exec.h
 
-sparc_cpu_model isn't in asm/system.h any more, so remove a comment about it.
+arch_align_stack() moved to asm/exec.h, so change the comment referring to
+asm/system.h which no longer exists.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/sbus/char/jsflash.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/um/kernel/process.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/sbus/char/jsflash.c~asm-systemh-sparc-sparc_cpu_model-isnt-in-asm-systemh-any-more drivers/sbus/char/jsflash.c
---- a/drivers/sbus/char/jsflash.c~asm-systemh-sparc-sparc_cpu_model-isnt-in-asm-systemh-any-more
-+++ a/drivers/sbus/char/jsflash.c
-@@ -507,11 +507,9 @@ static int jsflash_init(void)
- 	}
- 
- 	/* Let us be really paranoid for modifications to probing code. */
--	/* extern enum sparc_cpu sparc_cpu_model; */ /* in <asm/system.h> */
--	if (sparc_cpu_model != sun4m) {
-+	if (sparc_cpu_model != sun4m)
- 		/* We must be on sun4m because we use MMU Bypass ASI. */
- 		return -ENXIO;
--	}
- 
- 	if (jsf0.base == 0) {
- 		jsf = &jsf0;
+diff -puN arch/um/kernel/process.c~asm-systemh-um-arch_align_stack-moved-to-asm-exech arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~asm-systemh-um-arch_align_stack-moved-to-asm-exech
++++ a/arch/um/kernel/process.c
+@@ -359,7 +359,7 @@ int singlestepping(void * t)
+ /*
+  * Only x86 and x86_64 have an arch_align_stack().
+  * All other arches have "#define arch_align_stack(x) (x)"
+- * in their asm/system.h
++ * in their asm/exec.h
+  * As this is included in UML from asm-um/system-generic.h,
+  * we can use it to behave as the subarch does.
+  */
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
