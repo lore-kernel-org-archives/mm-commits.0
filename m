@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + asm-systemh-arm-delete-asm-systemh.patch added to -mm tree
-Date: Wed, 12 Feb 2014 12:59:48 -0800
-Message-ID: <52fbe0c4.B2gk8jMOVo93OAIL%akpm@linux-foundation.org>
+Subject: + kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
+ added to -mm tree
+Date: Wed, 12 Feb 2014 13:32:42 -0800
+Message-ID: <52fbe87a.Xv014ABKpD++qhxc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52731 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52879 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753776AbaBLU7t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Feb 2014 15:59:49 -0500
+	with ESMTP id S1754470AbaBLVcn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Feb 2014 16:32:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux@arm.linux.org.uk, arnd@arndb.de, dhowells@redhat.com
+To: mm-commits@vger.kernel.org, xemul@parallels.com, viro@zeniv.linux.org.uk, sfr@canb.auug.org.au, oleg@redhat.com, mtk.manpages@gmail.com, keescook@chromium.org, holt@sgi.com, gang.chen@asianux.com, ebiederm@xmission.com, adityakali@google.com, avagin@openvz.org
 
-Subject: + asm-systemh-arm-delete-asm-systemh.patch added to -mm tree
-To: dhowells@redhat.com,arnd@arndb.de,linux@arm.linux.org.uk
+Subject: + kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch added to -mm tree
+To: avagin@openvz.org,adityakali@google.com,ebiederm@xmission.com,gang.chen@asianux.com,holt@sgi.com,keescook@chromium.org,mtk.manpages@gmail.com,oleg@redhat.com,sfr@canb.auug.org.au,viro@zeniv.linux.org.uk,xemul@parallels.com
 From: akpm@linux-foundation.org
-Date: Wed, 12 Feb 2014 12:59:48 -0800
+Date: Wed, 12 Feb 2014 13:32:42 -0800
 
 
 The patch titled
-     Subject: asm/system.h: arm: delete asm/system.h
+     Subject: kernel/sys.c: reduce required permission for prctl_set_mm
 has been added to the -mm tree.  Its filename is
-     asm-systemh-arm-delete-asm-systemh.patch
+     kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/asm-systemh-arm-delete-asm-systemh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/asm-systemh-arm-delete-asm-systemh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,105 +44,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: asm/system.h: arm: delete asm/system.h
+From: Andrey Vagin <avagin@openvz.org>
+Subject: kernel/sys.c: reduce required permission for prctl_set_mm
 
-Delete ARM's asm/system.h.  It's the last holdout and should be got rid of.
+Currently prctl_set_mm requires the global CAP_SYS_RESOURCE, this patch
+reduce requiremence to CAP_SYS_RESOURCE in the current namespace.
 
-This builds for defconfig, lpc32xx_defconfig, exynos_defconfig + XEN, the
-previous changed to a Gemini system and an omap3 config with TI_DAVINCI_EMAC.
+When we restore a task we need to set up text, data and data heap sizes
+from userspace to the values a task had at checkpoint time.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Currently we can not restore these parameters, if a task lives in a
+non-root user name space, because it has no capabilities in the parent
+namespace.
+
+prctl_set_mm() changes parameters of the current task and doesn't affect
+other tasks.
+
+This patch affects the RLIMIT_DATA limit, because a consumtiuon is
+calculated relatively to mm->end_data, mm->start_data, mm->start_brk.
+
+rlim = rlimit(RLIMIT_DATA);
+if (rlim < RLIM_INFINITY && (brk - mm->start_brk) +
+		(mm->end_data - mm->start_data) > rlim)
+	goto out;
+
+This limit affects calls to brk() and sbrk(), but it doesn't affect
+mmap. So I think requirement of CAP_SYS_RESOURCE in the current
+namespace is enough for this limit.
+
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Chen Gang <gang.chen@asianux.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Aditya Kali <adityakali@google.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/jump_label.h  |    1 -
- arch/arm/include/asm/sync_bitops.h |    1 -
- arch/arm/include/asm/system.h      |    7 -------
- arch/arm/mach-gemini/idle.c        |    2 +-
- arch/arm/mach-omap2/am35xx-emac.c  |    1 -
- drivers/usb/gadget/lpc32xx_udc.c   |    1 -
- 6 files changed, 1 insertion(+), 12 deletions(-)
+ kernel/sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/include/asm/jump_label.h~asm-systemh-arm-delete-asm-systemh arch/arm/include/asm/jump_label.h
---- a/arch/arm/include/asm/jump_label.h~asm-systemh-arm-delete-asm-systemh
-+++ a/arch/arm/include/asm/jump_label.h
-@@ -4,7 +4,6 @@
- #ifdef __KERNEL__
+diff -puN kernel/sys.c~kernel-sysc-reduce-required-permission-for-prctl_set_mm kernel/sys.c
+--- a/kernel/sys.c~kernel-sysc-reduce-required-permission-for-prctl_set_mm
++++ a/kernel/sys.c
+@@ -1701,7 +1701,7 @@ static int prctl_set_mm(int opt, unsigne
+ 	if (arg5 || (arg4 && opt != PR_SET_MM_AUXV))
+ 		return -EINVAL;
  
- #include <linux/types.h>
--#include <asm/system.h>
+-	if (!capable(CAP_SYS_RESOURCE))
++	if (!ns_capable(current_user_ns(), CAP_SYS_RESOURCE))
+ 		return -EPERM;
  
- #define JUMP_LABEL_NOP_SIZE 4
- 
-diff -puN arch/arm/include/asm/sync_bitops.h~asm-systemh-arm-delete-asm-systemh arch/arm/include/asm/sync_bitops.h
---- a/arch/arm/include/asm/sync_bitops.h~asm-systemh-arm-delete-asm-systemh
-+++ a/arch/arm/include/asm/sync_bitops.h
-@@ -2,7 +2,6 @@
- #define __ASM_SYNC_BITOPS_H__
- 
- #include <asm/bitops.h>
--#include <asm/system.h>
- 
- /* sync_bitops functions are equivalent to the SMP implementation of the
-  * original functions, independently from CONFIG_SMP being defined.
-diff -puN arch/arm/include/asm/system.h~asm-systemh-arm-delete-asm-systemh /dev/null
---- a/arch/arm/include/asm/system.h
-+++ /dev/null
-@@ -1,7 +0,0 @@
--/* FILE TO BE DELETED. DO NOT ADD STUFF HERE! */
--#include <asm/barrier.h>
--#include <asm/compiler.h>
--#include <asm/cmpxchg.h>
--#include <asm/switch_to.h>
--#include <asm/system_info.h>
--#include <asm/system_misc.h>
-diff -puN arch/arm/mach-gemini/idle.c~asm-systemh-arm-delete-asm-systemh arch/arm/mach-gemini/idle.c
---- a/arch/arm/mach-gemini/idle.c~asm-systemh-arm-delete-asm-systemh
-+++ a/arch/arm/mach-gemini/idle.c
-@@ -3,7 +3,7 @@
-  */
- 
- #include <linux/init.h>
--#include <asm/system.h>
-+#include <asm/system_misc.h>
- #include <asm/proc-fns.h>
- 
- static void gemini_idle(void)
-diff -puN arch/arm/mach-omap2/am35xx-emac.c~asm-systemh-arm-delete-asm-systemh arch/arm/mach-omap2/am35xx-emac.c
---- a/arch/arm/mach-omap2/am35xx-emac.c~asm-systemh-arm-delete-asm-systemh
-+++ a/arch/arm/mach-omap2/am35xx-emac.c
-@@ -17,7 +17,6 @@
- 
- #include <linux/err.h>
- #include <linux/davinci_emac.h>
--#include <asm/system.h>
- #include "omap_device.h"
- #include "am35xx.h"
- #include "control.h"
-diff -puN drivers/usb/gadget/lpc32xx_udc.c~asm-systemh-arm-delete-asm-systemh drivers/usb/gadget/lpc32xx_udc.c
---- a/drivers/usb/gadget/lpc32xx_udc.c~asm-systemh-arm-delete-asm-systemh
-+++ a/drivers/usb/gadget/lpc32xx_udc.c
-@@ -55,7 +55,6 @@
- #include <mach/hardware.h>
- #include <linux/io.h>
- #include <asm/irq.h>
--#include <asm/system.h>
- 
- #include <mach/platform.h>
- #include <mach/irqs.h>
+ 	if (opt == PR_SET_MM_EXE_FILE)
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from avagin@openvz.org are
 
 origin.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-asm-systemh-clean-asm-systemh-from-docs.patch
-asm-systemh-sparc-sparc_cpu_model-isnt-in-asm-systemh-any-more.patch
-asm-systemh-um-arch_align_stack-moved-to-asm-exech.patch
-asm-systemh-arm-delete-asm-systemh.patch
-linux-next.patch
-mutex-subsystem-synchro-test-module.patch
+kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
 
