@@ -1,88 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ufs-remove-unused-ufs_super_block_third-pointer.patch added
- to -mm tree
-Date: Wed, 12 Feb 2014 14:23:16 -0800
-Message-ID: <52fbf454.1oP0k1notp0kTc5z%akpm@linux-foundation.org>
+Subject: [nacked]
+ kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch removed from
+ -mm tree
+Date: Wed, 12 Feb 2014 15:24:35 -0800
+Message-ID: <52fc02b3.d/LfpkGSRRD9z/sT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53053 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53289 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753933AbaBLWXR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Feb 2014 17:23:17 -0500
+	with ESMTP id S1752878AbaBLXYh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Feb 2014 18:24:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dushistov@mail.ru, cengelma@gmx.at
+To: mm-commits@vger.kernel.org, xemul@parallels.com, viro@zeniv.linux.org.uk, sfr@canb.auug.org.au, oleg@redhat.com, mtk.manpages@gmail.com, keescook@chromium.org, holt@sgi.com, gang.chen@asianux.com, ebiederm@xmission.com, adityakali@google.com, avagin@openvz.org
 
-Subject: + fs-ufs-remove-unused-ufs_super_block_third-pointer.patch added to -mm tree
-To: cengelma@gmx.at,dushistov@mail.ru
+Subject: [nacked] kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch removed from -mm tree
+To: avagin@openvz.org,adityakali@google.com,ebiederm@xmission.com,gang.chen@asianux.com,holt@sgi.com,keescook@chromium.org,mtk.manpages@gmail.com,oleg@redhat.com,sfr@canb.auug.org.au,viro@zeniv.linux.org.uk,xemul@parallels.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 12 Feb 2014 14:23:16 -0800
+Date: Wed, 12 Feb 2014 15:24:35 -0800
 
 
 The patch titled
-     Subject: fs/ufs: remove unused ufs_super_block_third pointer
-has been added to the -mm tree.  Its filename is
-     fs-ufs-remove-unused-ufs_super_block_third-pointer.patch
+     Subject: kernel/sys.c: reduce required permission for prctl_set_mm
+has been removed from the -mm tree.  Its filename was
+     kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ufs-remove-unused-ufs_super_block_third-pointer.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ufs-remove-unused-ufs_super_block_third-pointer.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Christian Engelmayer <cengelma@gmx.at>
-Subject: fs/ufs: remove unused ufs_super_block_third pointer
+From: Andrey Vagin <avagin@openvz.org>
+Subject: kernel/sys.c: reduce required permission for prctl_set_mm
 
-Pointer 'usb3' to struct ufs_super_block_third acquired via
-ubh_get_usb_third() is never used in function
-ufs_read_cylinder_structures(= ).  Thus remove it.
+Currently prctl_set_mm requires the global CAP_SYS_RESOURCE, this patch
+reduce requiremence to CAP_SYS_RESOURCE in the current namespace.
 
-Detected by Coverity: CID 139939.
+When we restore a task we need to set up text, data and data heap sizes
+from userspace to the values a task had at checkpoint time.
 
-Signed-off-by: Christian Engelmayer <cengelma@gmx.at>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Currently we can not restore these parameters, if a task lives in a
+non-root user name space, because it has no capabilities in the parent
+namespace.
+
+prctl_set_mm() changes parameters of the current task and doesn't affect
+other tasks.
+
+This patch affects the RLIMIT_DATA limit, because a consumtiuon is
+calculated relatively to mm->end_data, mm->start_data, mm->start_brk.
+
+rlim = rlimit(RLIMIT_DATA);
+if (rlim < RLIM_INFINITY && (brk - mm->start_brk) +
+		(mm->end_data - mm->start_data) > rlim)
+	goto out;
+
+This limit affects calls to brk() and sbrk(), but it doesn't affect
+mmap. So I think requirement of CAP_SYS_RESOURCE in the current
+namespace is enough for this limit.
+
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Chen Gang <gang.chen@asianux.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Aditya Kali <adityakali@google.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ufs/super.c~fs-ufs-remove-unused-ufs_super_block_third-pointer fs/ufs/super.c
---- a/fs/ufs/super.c~fs-ufs-remove-unused-ufs_super_block_third-pointer
-+++ a/fs/ufs/super.c
-@@ -524,11 +524,9 @@ static int ufs_read_cylinder_structures(
- 	struct ufs_buffer_head * ubh;
- 	unsigned char * base, * space;
- 	unsigned size, blks, i;
--	struct ufs_super_block_third *usb3;
+diff -puN kernel/sys.c~kernel-sysc-reduce-required-permission-for-prctl_set_mm kernel/sys.c
+--- a/kernel/sys.c~kernel-sysc-reduce-required-permission-for-prctl_set_mm
++++ a/kernel/sys.c
+@@ -1701,7 +1701,7 @@ static int prctl_set_mm(int opt, unsigne
+ 	if (arg5 || (arg4 && opt != PR_SET_MM_AUXV))
+ 		return -EINVAL;
  
- 	UFSD("ENTER\n");
+-	if (!capable(CAP_SYS_RESOURCE))
++	if (!ns_capable(current_user_ns(), CAP_SYS_RESOURCE))
+ 		return -EPERM;
  
--	usb3 = ubh_get_usb_third(uspi);
- 	/*
- 	 * Read cs structures from (usually) first data block
- 	 * on the device. 
+ 	if (opt == PR_SET_MM_EXE_FILE)
 _
 
-Patches currently in -mm which might be from cengelma@gmx.at are
+Patches currently in -mm which might be from avagin@openvz.org are
 
 origin.patch
-fs-ufs-remove-unused-ufs_super_block_first-pointer.patch
-fs-ufs-remove-unused-ufs_super_block_second-pointer.patch
-fs-ufs-remove-unused-ufs_super_block_third-pointer.patch
-linux-next.patch
 
