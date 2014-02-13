@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch added to -mm tree
-Date: Thu, 13 Feb 2014 14:49:32 -0800
-Message-ID: <52fd4bfc.P9pBpdNDxv4uOJVF%akpm__46803.6253158518$1392331784$gmane$org@linux-foundation.org>
+Subject: +
+ memcg-reparent-charges-of-children-before-processing-parent.patch added to
+ -mm tree
+Date: Thu, 13 Feb 2014 14:58:00 -0800
+Message-ID: <52fd4df8.+MayerF3bu9cjhPh%akpm__12647.8155413226$1392332295$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36906 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36935 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323AbaBMWtd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 17:49:33 -0500
+	with ESMTP id S1751533AbaBMW6B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 17:58:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, gthelen@google.com, hughd@google.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org, mhocko@suse.cz, hughd@google.com, hannes@cmpxchg.org, filbranden@google.com
 
-Subject: + memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch added to -mm tree
-To: hughd@google.com,gthelen@google.com,hannes@cmpxchg.org,mhocko@suse.cz,stable@vger.kernel.org
+Subject: + memcg-reparent-charges-of-children-before-processing-parent.patch added to -mm tree
+To: filbranden@google.com,hannes@cmpxchg.org,hughd@google.com,mhocko@suse.cz,stable@vger.kernel.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Feb 2014 14:49:32 -0800
+Date: Thu, 13 Feb 2014 14:58:00 -0800
 
 
 The patch titled
-     Subject: memcg: fix endless loop in __mem_cgroup_iter_next()
+     Subject: memcg: reparent charges of children before processing parent
 has been added to the -mm tree.  Its filename is
-     memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch
+     memcg-reparent-charges-of-children-before-processing-parent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-reparent-charges-of-children-before-processing-parent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-reparent-charges-of-children-before-processing-parent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,68 +45,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg: fix endless loop in __mem_cgroup_iter_next()
+From: Filipe Brandenburger <filbranden@google.com>
+Subject: memcg: reparent charges of children before processing parent
 
-0eef615665ed ("memcg: fix css reference leak and endless loop in
-mem_cgroup_iter") got the interaction with the commit a few before it
-d8ad30559715 ("mm/memcg: iteration skip memcgs not yet fully initialized")
-slightly wrong, and we didn't notice at the time.
+Sometimes the cleanup after memcg hierarchy testing gets stuck in
+mem_cgroup_reparent_charges(), unable to bring non-kmem usage down to 0.
 
-It's elusive, and harder to get than the original, but for a couple of
-days before rc1, I several times saw a endless loop similar to that
-supposedly being fixed.
+There may turn out to be several causes, but a major cause is this: the
+workitem to offline parent can get run before workitem to offline child;
+parent's mem_cgroup_reparent_charges() circles around waiting for the
+child's pages to be reparented to its lrus, but it's holding cgroup_mutex
+which prevents the child from reaching its mem_cgroup_reparent_charges().
 
-This time it was a tighter loop in __mem_cgroup_iter_next(): because we
-can get here when our root has already been offlined, and the ordering of
-conditions was such that we then just cycled around forever.
+Further testing showed that an ordered workqueue for cgroup_destroy_wq is
+not always good enough: percpu_ref_kill_and_confirm's call_rcu_sched stage
+on the way can mess up the order before reaching the workqueue.
 
-Fixes 0eef615665ed ("memcg: fix css reference leak and endless loop in
-mem_cgroup_iter").
+Instead, when offlining a memcg, call mem_cgroup_reparent_charges() on all
+its children (and grandchildren, in the correct order) to have their
+charges reparented first.
 
+Fixes: e5fca243abae ("cgroup: use a dedicated workqueue for cgroup destruction")
+Signed-off-by: Filipe Brandenburger <filbranden@google.com>
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: <stable@vger.kernel.org>	[3.12+]
+Cc: <stable@vger.kernel.org>	[v3.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-endless-loop-in-__mem_cgroup_iter_next mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-endless-loop-in-__mem_cgroup_iter_next
+diff -puN mm/memcontrol.c~memcg-reparent-charges-of-children-before-processing-parent mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-reparent-charges-of-children-before-processing-parent
 +++ a/mm/memcontrol.c
-@@ -1127,8 +1127,8 @@ skip_node:
- 	 * skipping css reference should be safe.
- 	 */
- 	if (next_css) {
--		if ((next_css->flags & CSS_ONLINE) &&
--				(next_css == &root->css || css_tryget(next_css)))
-+		if ((next_css == &root->css) ||
-+		    ((next_css->flags & CSS_ONLINE) && css_tryget(next_css)))
- 			return mem_cgroup_from_css(next_css);
+@@ -6595,6 +6595,7 @@ static void mem_cgroup_css_offline(struc
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 	struct mem_cgroup_event *event, *tmp;
++	struct cgroup_subsys_state *iter;
  
- 		prev_css = next_css;
+ 	/*
+ 	 * Unregister events and notify userspace.
+@@ -6611,7 +6612,14 @@ static void mem_cgroup_css_offline(struc
+ 	kmem_cgroup_css_offline(memcg);
+ 
+ 	mem_cgroup_invalidate_reclaim_iterators(memcg);
+-	mem_cgroup_reparent_charges(memcg);
++
++	/*
++	 * This requires that offlining is serialized.  Right now that is
++	 * guaranteed because css_killed_work_fn() holds the cgroup_mutex.
++	 */
++	css_for_each_descendant_post(iter, css)
++		mem_cgroup_reparent_charges(mem_cgroup_from_css(iter));
++
+ 	mem_cgroup_destroy_all_caches(memcg);
+ 	vmpressure_cleanup(&memcg->vmpressure);
+ }
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from filbranden@google.com are
 
-swapoff-tmpfs-radix_tree-remember-to-rcu_read_unlock.patch
-memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-compaction-avoid-isolating-pinned-pages.patch
+memcg-reparent-charges-of-children-before-processing-parent.patch
 linux-next.patch
 
