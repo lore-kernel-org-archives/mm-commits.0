@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch added to -mm tree
-Date: Thu, 13 Feb 2014 15:06:50 -0800
-Message-ID: <52fd500a.5gT53txKacR5NP/3%akpm@linux-foundation.org>
+Subject: + mm-numa-bugfix-for-last_cpupid_not_in_page_flags.patch added to -mm tree
+Date: Thu, 13 Feb 2014 15:20:30 -0800
+Message-ID: <52fd533e.0xU6Tnl8rMBs/GMw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37035 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37085 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752225AbaBMXGv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 18:06:51 -0500
+	with ESMTP id S1751031AbaBMXUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 18:20:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, paulus@samba.org, mgorman@suse.de, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, pingfank@linux.vnet.ibm.com, peterz@infradead.org, paulus@samba.org, mel@csn.ul.ie, benh@kernel.crashing.org, qemulist@gmail.com
 
-Subject: + powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch added to -mm tree
-To: aneesh.kumar@linux.vnet.ibm.com,benh@kernel.crashing.org,mgorman@suse.de,paulus@samba.org,riel@redhat.com
+Subject: + mm-numa-bugfix-for-last_cpupid_not_in_page_flags.patch added to -mm tree
+To: qemulist@gmail.com,benh@kernel.crashing.org,mel@csn.ul.ie,paulus@samba.org,peterz@infradead.org,pingfank@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Thu, 13 Feb 2014 15:06:50 -0800
+Date: Thu, 13 Feb 2014 15:20:30 -0800
 
 
 The patch titled
-     Subject: powerpc: mm: add new set flag argument to pte/pmd update function
+     Subject: mm: numa: bugfix for LAST_CPUPID_NOT_IN_PAGE_FLAGS
 has been added to the -mm tree.  Its filename is
-     powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch
+     mm-numa-bugfix-for-last_cpupid_not_in_page_flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-bugfix-for-last_cpupid_not_in_page_flags.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-bugfix-for-last_cpupid_not_in_page_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,225 +43,123 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: powerpc: mm: add new set flag argument to pte/pmd update function
+From: Liu Ping Fan <qemulist@gmail.com>
+Subject: mm: numa: bugfix for LAST_CPUPID_NOT_IN_PAGE_FLAGS
 
-We will use this later to set the _PAGE_NUMA bit.
+When doing some numa tests on powerpc, I triggered an oops bug.  I find it
+is caused by using page->_last_cpupid.  It should be initialized as "-1 &
+LAST_CPUPID_MASK", but not "-1".  Otherwise, in task_numa_fault(), we will
+miss the checking (last_cpupid == (-1 & LAST_CPUPID_MASK)).  And finally
+cause an oops bug in task_numa_group(), since the online cpu is less than
+possible cpu.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
+PPC needs the LAST_CPUPID_NOT_IN_PAGE_FLAGS case because ppc needs to
+support a large physical address region, up to 2^46 but small section size
+(2^24).  So when NR_CPUS grows up, it is easily to cause
+not-in-page-flags.
+
+Call trace:
+[   55.978091] SMP NR_CPUS=64 NUMA PowerNV
+[   55.978118] Modules linked in:
+[   55.978145] CPU: 24 PID: 804 Comm: systemd-udevd Not tainted
+3.13.0-rc1+ #32
+[   55.978183] task: c000001e2746aa80 ti: c000001e32c50000 task.ti:
+c000001e32c50000
+[   55.978219] NIP: c0000000000f5ad0 LR: c0000000000f5ac8 CTR:
+c000000000913cf0
+[   55.978256] REGS: c000001e32c53510 TRAP: 0300   Not tainted
+(3.13.0-rc1+)
+[   55.978286] MSR: 9000000000009032 <SF,HV,EE,ME,IR,DR,RI>  CR:
+28024424  XER: 20000000
+[   55.978380] CFAR: c000000000009324 DAR: 7265717569726857 DSISR:
+40000000 SOFTE: 1
+GPR00: c0000000000f5ac8 c000001e32c53790 c000000001f34338
+0000000000000021
+GPR04: 0000000000000000 0000000000000031 c000000001f74338
+0000ffffffffffff
+GPR08: 0000000000000001 7265717569726573 0000000000000000
+0000000000000000
+GPR12: 0000000028024422 c00000000ffdd800 00000000296b2e64
+0000000000000020
+GPR16: 0000000000000002 0000000000000003 c000001e2f8e4658
+c000001e25c1c1d8
+GPR20: c000001e2f8e4000 c000000001f7a858 0000000000000658
+0000000040000392
+GPR24: 00000000000000a8 c000001e33c1a400 00000000000001d8
+c000001e25c1c000
+GPR28: c000001e33c37ff0 0007837840000392 000000000000003f
+c000001e32c53790
+[   55.978903] NIP [c0000000000f5ad0] .task_numa_fault+0x1470/0x2370
+[   55.978934] LR [c0000000000f5ac8] .task_numa_fault+0x1468/0x2370
+[   55.978964] Call Trace:
+[   55.978978] [c000001e32c53790] [c0000000000f5ac8]
+.task_numa_fault+0x1468/0x2370 (unreliable)
+[   55.979036] [c000001e32c539e0] [c00000000020a820]
+.do_numa_page+0x480/0x4a0
+[   55.979072] [c000001e32c53b10] [c00000000020bfec]
+.handle_mm_fault+0x4ec/0xc90
+[   55.979123] [c000001e32c53c00] [c000000000e88c98]
+.do_page_fault+0x3a8/0x890
+[   55.979161] [c000001e32c53e30] [c000000000009568]
+handle_page_fault+0x10/0x30
+[   55.979197] Instruction dump:
+[   55.979216] 3c82fefb 3884b138 48d9cff1 60000000 48000574 3c62fefb
+3863af78 3c82fefb
+[   55.979277] 3884b138 48d9cfd5 60000000 e93f0100 <812902e4> 7d2907b4
+5529063e 7d2a07b4
+[   55.979354] ---[ end trace 15f2510da5ae07cf ]---
+
+Signed-off-by: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/hugetlb.h       |    2 -
- arch/powerpc/include/asm/pgtable-ppc64.h |   26 ++++++++++++---------
- arch/powerpc/mm/pgtable_64.c             |   12 +++++----
- arch/powerpc/mm/subpage-prot.c           |    2 -
- 4 files changed, 24 insertions(+), 18 deletions(-)
+ include/linux/mm.h                |    2 +-
+ include/linux/page-flags-layout.h |   12 ++++--------
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN arch/powerpc/include/asm/hugetlb.h~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function arch/powerpc/include/asm/hugetlb.h
---- a/arch/powerpc/include/asm/hugetlb.h~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function
-+++ a/arch/powerpc/include/asm/hugetlb.h
-@@ -127,7 +127,7 @@ static inline pte_t huge_ptep_get_and_cl
- 					    unsigned long addr, pte_t *ptep)
+diff -puN include/linux/mm.h~mm-numa-bugfix-for-last_cpupid_not_in_page_flags include/linux/mm.h
+--- a/include/linux/mm.h~mm-numa-bugfix-for-last_cpupid_not_in_page_flags
++++ a/include/linux/mm.h
+@@ -776,7 +776,7 @@ static inline int page_cpupid_last(struc
+ }
+ static inline void page_cpupid_reset_last(struct page *page)
  {
- #ifdef CONFIG_PPC64
--	return __pte(pte_update(mm, addr, ptep, ~0UL, 1));
-+	return __pte(pte_update(mm, addr, ptep, ~0UL, 0, 1));
+-	page->_last_cpupid = -1;
++	page->_last_cpupid = -1 & LAST_CPUPID_MASK;
+ }
  #else
- 	return __pte(pte_update(ptep, ~0UL, 0));
- #endif
-diff -puN arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function arch/powerpc/include/asm/pgtable-ppc64.h
---- a/arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function
-+++ a/arch/powerpc/include/asm/pgtable-ppc64.h
-@@ -195,6 +195,7 @@ extern void hpte_need_flush(struct mm_st
- static inline unsigned long pte_update(struct mm_struct *mm,
- 				       unsigned long addr,
- 				       pte_t *ptep, unsigned long clr,
-+				       unsigned long set,
- 				       int huge)
- {
- #ifdef PTE_ATOMIC_UPDATES
-@@ -205,14 +206,15 @@ static inline unsigned long pte_update(s
- 	andi.	%1,%0,%6\n\
- 	bne-	1b \n\
- 	andc	%1,%0,%4 \n\
-+	or	%1,%1,%7\n\
- 	stdcx.	%1,0,%3 \n\
- 	bne-	1b"
- 	: "=&r" (old), "=&r" (tmp), "=m" (*ptep)
--	: "r" (ptep), "r" (clr), "m" (*ptep), "i" (_PAGE_BUSY)
-+	: "r" (ptep), "r" (clr), "m" (*ptep), "i" (_PAGE_BUSY), "r" (set)
- 	: "cc" );
+ static inline int page_cpupid_last(struct page *page)
+diff -puN include/linux/page-flags-layout.h~mm-numa-bugfix-for-last_cpupid_not_in_page_flags include/linux/page-flags-layout.h
+--- a/include/linux/page-flags-layout.h~mm-numa-bugfix-for-last_cpupid_not_in_page_flags
++++ a/include/linux/page-flags-layout.h
+@@ -69,15 +69,15 @@
+ #define LAST__CPU_MASK  ((1 << LAST__CPU_SHIFT)-1)
+ 
+ #define LAST_CPUPID_SHIFT (LAST__PID_SHIFT+LAST__CPU_SHIFT)
++
++#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT+LAST_CPUPID_SHIFT > BITS_PER_LONG - NR_PAGEFLAGS
++#define LAST_CPUPID_NOT_IN_PAGE_FLAGS
++#endif
  #else
- 	unsigned long old = pte_val(*ptep);
--	*ptep = __pte(old & ~clr);
-+	*ptep = __pte((old & ~clr) | set);
+ #define LAST_CPUPID_SHIFT 0
  #endif
- 	/* huge pages use the old page table lock */
- 	if (!huge)
-@@ -231,9 +233,9 @@ static inline int __ptep_test_and_clear_
- {
- 	unsigned long old;
  
--       	if ((pte_val(*ptep) & (_PAGE_ACCESSED | _PAGE_HASHPTE)) == 0)
-+	if ((pte_val(*ptep) & (_PAGE_ACCESSED | _PAGE_HASHPTE)) == 0)
- 		return 0;
--	old = pte_update(mm, addr, ptep, _PAGE_ACCESSED, 0);
-+	old = pte_update(mm, addr, ptep, _PAGE_ACCESSED, 0, 0);
- 	return (old & _PAGE_ACCESSED) != 0;
- }
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
-@@ -252,7 +254,7 @@ static inline void ptep_set_wrprotect(st
- 	if ((pte_val(*ptep) & _PAGE_RW) == 0)
- 		return;
- 
--	pte_update(mm, addr, ptep, _PAGE_RW, 0);
-+	pte_update(mm, addr, ptep, _PAGE_RW, 0, 0);
- }
- 
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
-@@ -261,7 +263,7 @@ static inline void huge_ptep_set_wrprote
- 	if ((pte_val(*ptep) & _PAGE_RW) == 0)
- 		return;
- 
--	pte_update(mm, addr, ptep, _PAGE_RW, 1);
-+	pte_update(mm, addr, ptep, _PAGE_RW, 0, 1);
- }
+-#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT+LAST_CPUPID_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
+ #define LAST_CPUPID_WIDTH LAST_CPUPID_SHIFT
+-#else
+-#define LAST_CPUPID_WIDTH 0
+-#endif
  
  /*
-@@ -284,14 +286,14 @@ static inline void huge_ptep_set_wrprote
- static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
- 				       unsigned long addr, pte_t *ptep)
- {
--	unsigned long old = pte_update(mm, addr, ptep, ~0UL, 0);
-+	unsigned long old = pte_update(mm, addr, ptep, ~0UL, 0, 0);
- 	return __pte(old);
- }
- 
- static inline void pte_clear(struct mm_struct *mm, unsigned long addr,
- 			     pte_t * ptep)
- {
--	pte_update(mm, addr, ptep, ~0UL, 0);
-+	pte_update(mm, addr, ptep, ~0UL, 0, 0);
- }
- 
- 
-@@ -506,7 +508,9 @@ extern int pmdp_set_access_flags(struct
- 
- extern unsigned long pmd_hugepage_update(struct mm_struct *mm,
- 					 unsigned long addr,
--					 pmd_t *pmdp, unsigned long clr);
-+					 pmd_t *pmdp,
-+					 unsigned long clr,
-+					 unsigned long set);
- 
- static inline int __pmdp_test_and_clear_young(struct mm_struct *mm,
- 					      unsigned long addr, pmd_t *pmdp)
-@@ -515,7 +519,7 @@ static inline int __pmdp_test_and_clear_
- 
- 	if ((pmd_val(*pmdp) & (_PAGE_ACCESSED | _PAGE_HASHPTE)) == 0)
- 		return 0;
--	old = pmd_hugepage_update(mm, addr, pmdp, _PAGE_ACCESSED);
-+	old = pmd_hugepage_update(mm, addr, pmdp, _PAGE_ACCESSED, 0);
- 	return ((old & _PAGE_ACCESSED) != 0);
- }
- 
-@@ -542,7 +546,7 @@ static inline void pmdp_set_wrprotect(st
- 	if ((pmd_val(*pmdp) & _PAGE_RW) == 0)
- 		return;
- 
--	pmd_hugepage_update(mm, addr, pmdp, _PAGE_RW);
-+	pmd_hugepage_update(mm, addr, pmdp, _PAGE_RW, 0);
- }
- 
- #define __HAVE_ARCH_PMDP_SPLITTING_FLUSH
-diff -puN arch/powerpc/mm/pgtable_64.c~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function arch/powerpc/mm/pgtable_64.c
---- a/arch/powerpc/mm/pgtable_64.c~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function
-+++ a/arch/powerpc/mm/pgtable_64.c
-@@ -510,7 +510,8 @@ int pmdp_set_access_flags(struct vm_area
- }
- 
- unsigned long pmd_hugepage_update(struct mm_struct *mm, unsigned long addr,
--				  pmd_t *pmdp, unsigned long clr)
-+				  pmd_t *pmdp, unsigned long clr,
-+				  unsigned long set)
- {
- 
- 	unsigned long old, tmp;
-@@ -526,14 +527,15 @@ unsigned long pmd_hugepage_update(struct
- 		andi.	%1,%0,%6\n\
- 		bne-	1b \n\
- 		andc	%1,%0,%4 \n\
-+		or	%1,%1,%7\n\
- 		stdcx.	%1,0,%3 \n\
- 		bne-	1b"
- 	: "=&r" (old), "=&r" (tmp), "=m" (*pmdp)
--	: "r" (pmdp), "r" (clr), "m" (*pmdp), "i" (_PAGE_BUSY)
-+	: "r" (pmdp), "r" (clr), "m" (*pmdp), "i" (_PAGE_BUSY), "r" (set)
- 	: "cc" );
- #else
- 	old = pmd_val(*pmdp);
--	*pmdp = __pmd(old & ~clr);
-+	*pmdp = __pmd((old & ~clr) | set);
+  * We are going to use the flags for the page to node mapping if its in
+@@ -87,8 +87,4 @@
+ #define NODE_NOT_IN_PAGE_FLAGS
  #endif
- 	if (old & _PAGE_HASHPTE)
- 		hpte_do_hugepage_flush(mm, addr, pmdp);
-@@ -708,7 +710,7 @@ void set_pmd_at(struct mm_struct *mm, un
- void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 		     pmd_t *pmdp)
- {
--	pmd_hugepage_update(vma->vm_mm, address, pmdp, _PAGE_PRESENT);
-+	pmd_hugepage_update(vma->vm_mm, address, pmdp, _PAGE_PRESENT, 0);
- }
  
- /*
-@@ -835,7 +837,7 @@ pmd_t pmdp_get_and_clear(struct mm_struc
- 	unsigned long old;
- 	pgtable_t *pgtable_slot;
- 
--	old = pmd_hugepage_update(mm, addr, pmdp, ~0UL);
-+	old = pmd_hugepage_update(mm, addr, pmdp, ~0UL, 0);
- 	old_pmd = __pmd(old);
- 	/*
- 	 * We have pmd == none and we are holding page_table_lock.
-diff -puN arch/powerpc/mm/subpage-prot.c~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function arch/powerpc/mm/subpage-prot.c
---- a/arch/powerpc/mm/subpage-prot.c~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function
-+++ a/arch/powerpc/mm/subpage-prot.c
-@@ -78,7 +78,7 @@ static void hpte_flush_range(struct mm_s
- 	pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
- 	arch_enter_lazy_mmu_mode();
- 	for (; npages > 0; --npages) {
--		pte_update(mm, addr, pte, 0, 0);
-+		pte_update(mm, addr, pte, 0, 0, 0);
- 		addr += PAGE_SIZE;
- 		++pte;
- 	}
-_
-
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
-
-powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch
-mm-dirty-accountable-change-only-apply-to-non-prot-numa-case.patch
-mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch
-mm-hugetlb-unify-region-structure-handling.patch
-mm-hugetlb-improve-cleanup-resv_map-parameters.patch
-mm-hugetlb-remove-resv_map_put.patch
-mm-hugetlb-use-vma_resv_map-map-types.patch
-mm-hugetlb-improve-page-fault-scalability.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-madvise-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-
+-#if defined(CONFIG_NUMA_BALANCING) && LAST_CPUPID_WIDTH == 0
+-#define LAST_CPUPID_NOT_IN_PAGE_FLAGS
+-#endif
