@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + lib-random32c-minor-cleanups-and-kdoc-fix.patch added to -mm
- tree
-Date: Thu, 13 Feb 2014 14:17:57 -0800
-Message-ID: <52fd4495.6HbIqOzHbZnBwV/5%akpm@linux-foundation.org>
+Subject: + sys_sysfs-add-config_sysfs_syscall.patch added to -mm tree
+Date: Thu, 13 Feb 2014 14:20:27 -0800
+Message-ID: <52fd452b.99leRtYpwtCOVQCv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36737 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36755 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932AbaBMWR6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 17:17:58 -0500
+	with ESMTP id S1751252AbaBMWU1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 17:20:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, dborkman@redhat.com
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + lib-random32c-minor-cleanups-and-kdoc-fix.patch added to -mm tree
-To: dborkman@redhat.com,joe@perches.com
+Subject: + sys_sysfs-add-config_sysfs_syscall.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Thu, 13 Feb 2014 14:17:57 -0800
+Date: Thu, 13 Feb 2014 14:20:27 -0800
 
 
 The patch titled
-     Subject: lib/random32.c: minor cleanups and kdoc fix
+     Subject: sys_sysfs: Add CONFIG_SYSFS_SYSCALL
 has been added to the -mm tree.  Its filename is
-     lib-random32c-minor-cleanups-and-kdoc-fix.patch
+     sys_sysfs-add-config_sysfs_syscall.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-random32c-minor-cleanups-and-kdoc-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sys_sysfs-add-config_sysfs_syscall.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-random32c-minor-cleanups-and-kdoc-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sys_sysfs-add-config_sysfs_syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,137 +43,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Borkmann <dborkman@redhat.com>
-Subject: lib/random32.c: minor cleanups and kdoc fix
+From: Fabian Frederick <fabf@skynet.be>
+Subject: sys_sysfs: Add CONFIG_SYSFS_SYSCALL
 
-These are just some very minor and misc cleanups in the PRNG.  In
-prandom_u32() we store the result in an unsigned long which is unnecessary
-as it should be u32 instead that we get from prandom_u32_state(). 
-prandom_bytes_state()'s comment is in kdoc format, so change it into such
-as it's done everywhere else.  Also, use the normal comment style for the
-header comment.  Last but not least for readability, add some newlines.
+sys_sysfs is an obsolete system call no longer supported by libc.
 
-Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
-Cc: Joe Perches <joe@perches.com>
+- This patch adds a default CONFIG_SYSFS_SYSCALL=y
+
+- Option can be turned off in expert mode.
+
+- cond_syscall added to kernel/sys_ni.c
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/random32.c |   76 ++++++++++++++++++++++++-----------------------
- 1 file changed, 39 insertions(+), 37 deletions(-)
+ fs/filesystems.c |    2 ++
+ init/Kconfig     |   10 ++++++++++
+ kernel/sys_ni.c  |    1 +
+ 3 files changed, 13 insertions(+)
 
-diff -puN lib/random32.c~lib-random32c-minor-cleanups-and-kdoc-fix lib/random32.c
---- a/lib/random32.c~lib-random32c-minor-cleanups-and-kdoc-fix
-+++ a/lib/random32.c
-@@ -1,37 +1,35 @@
- /*
--  This is a maximally equidistributed combined Tausworthe generator
--  based on code from GNU Scientific Library 1.5 (30 Jun 2004)
--
--  lfsr113 version:
--
--   x_n = (s1_n ^ s2_n ^ s3_n ^ s4_n)
--
--   s1_{n+1} = (((s1_n & 4294967294) << 18) ^ (((s1_n <<  6) ^ s1_n) >> 13))
--   s2_{n+1} = (((s2_n & 4294967288) <<  2) ^ (((s2_n <<  2) ^ s2_n) >> 27))
--   s3_{n+1} = (((s3_n & 4294967280) <<  7) ^ (((s3_n << 13) ^ s3_n) >> 21))
--   s4_{n+1} = (((s4_n & 4294967168) << 13) ^ (((s4_n <<  3) ^ s4_n) >> 12))
--
--   The period of this generator is about 2^113 (see erratum paper).
--
--   From: P. L'Ecuyer, "Maximally Equidistributed Combined Tausworthe
--   Generators", Mathematics of Computation, 65, 213 (1996), 203--213:
--   http://www.iro.umontreal.ca/~lecuyer/myftp/papers/tausme.ps
--   ftp://ftp.iro.umontreal.ca/pub/simulation/lecuyer/papers/tausme.ps
--
--   There is an erratum in the paper "Tables of Maximally
--   Equidistributed Combined LFSR Generators", Mathematics of
--   Computation, 68, 225 (1999), 261--269:
--   http://www.iro.umontreal.ca/~lecuyer/myftp/papers/tausme2.ps
--
--        ... the k_j most significant bits of z_j must be non-
--        zero, for each j. (Note: this restriction also applies to the
--        computer code given in [4], but was mistakenly not mentioned in
--        that paper.)
--
--   This affects the seeding procedure by imposing the requirement
--   s1 > 1, s2 > 7, s3 > 15, s4 > 127.
--
--*/
-+ * This is a maximally equidistributed combined Tausworthe generator
-+ * based on code from GNU Scientific Library 1.5 (30 Jun 2004)
-+ *
-+ * lfsr113 version:
-+ *
-+ * x_n = (s1_n ^ s2_n ^ s3_n ^ s4_n)
-+ *
-+ * s1_{n+1} = (((s1_n & 4294967294) << 18) ^ (((s1_n <<  6) ^ s1_n) >> 13))
-+ * s2_{n+1} = (((s2_n & 4294967288) <<  2) ^ (((s2_n <<  2) ^ s2_n) >> 27))
-+ * s3_{n+1} = (((s3_n & 4294967280) <<  7) ^ (((s3_n << 13) ^ s3_n) >> 21))
-+ * s4_{n+1} = (((s4_n & 4294967168) << 13) ^ (((s4_n <<  3) ^ s4_n) >> 12))
-+ *
-+ * The period of this generator is about 2^113 (see erratum paper).
-+ *
-+ * From: P. L'Ecuyer, "Maximally Equidistributed Combined Tausworthe
-+ * Generators", Mathematics of Computation, 65, 213 (1996), 203--213:
-+ * http://www.iro.umontreal.ca/~lecuyer/myftp/papers/tausme.ps
-+ * ftp://ftp.iro.umontreal.ca/pub/simulation/lecuyer/papers/tausme.ps
-+ *
-+ * There is an erratum in the paper "Tables of Maximally Equidistributed
-+ * Combined LFSR Generators", Mathematics of Computation, 68, 225 (1999),
-+ * 261--269: http://www.iro.umontreal.ca/~lecuyer/myftp/papers/tausme2.ps
-+ *
-+ *      ... the k_j most significant bits of z_j must be non-zero,
-+ *      for each j. (Note: this restriction also applies to the
-+ *      computer code given in [4], but was mistakenly not mentioned
-+ *      in that paper.)
-+ *
-+ * This affects the seeding procedure by imposing the requirement
-+ * s1 > 1, s2 > 7, s3 > 15, s4 > 127.
-+ */
+diff -puN fs/filesystems.c~sys_sysfs-add-config_sysfs_syscall fs/filesystems.c
+--- a/fs/filesystems.c~sys_sysfs-add-config_sysfs_syscall
++++ a/fs/filesystems.c
+@@ -121,6 +121,7 @@ int unregister_filesystem(struct file_sy
  
- #include <linux/types.h>
- #include <linux/percpu.h>
-@@ -75,15 +73,17 @@ EXPORT_SYMBOL(prandom_u32_state);
-  */
- u32 prandom_u32(void)
+ EXPORT_SYMBOL(unregister_filesystem);
+ 
++#ifdef CONFIG_SYSFS_SYSCALL
+ static int fs_index(const char __user * __name)
  {
--	unsigned long r;
- 	struct rnd_state *state = &get_cpu_var(net_rand_state);
--	r = prandom_u32_state(state);
-+	u32 res;
-+
-+	res = prandom_u32_state(state);
- 	put_cpu_var(state);
--	return r;
-+
-+	return res;
- }
- EXPORT_SYMBOL(prandom_u32);
- 
--/*
-+/**
-  *	prandom_bytes_state - get the requested number of pseudo-random bytes
-  *
-  *	@state: pointer to state structure holding seeded state.
-@@ -204,6 +204,7 @@ static int __init prandom_init(void)
- 		prandom_seed_very_weak(state, (i + jiffies) ^ random_get_entropy());
- 		prandom_warmup(state);
+ 	struct file_system_type * tmp;
+@@ -199,6 +200,7 @@ SYSCALL_DEFINE3(sysfs, int, option, unsi
  	}
-+
- 	return 0;
+ 	return retval;
  }
- core_initcall(prandom_init);
-@@ -248,6 +249,7 @@ static void __prandom_reseed(bool late)
- 	spin_lock_irqsave(&lock, flags);
- 	if (latch && !late)
- 		goto out;
-+
- 	latch = true;
++#endif
  
- 	for_each_possible_cpu(i) {
+ int __init get_filesystem_list(char *buf)
+ {
+diff -puN init/Kconfig~sys_sysfs-add-config_sysfs_syscall init/Kconfig
+--- a/init/Kconfig~sys_sysfs-add-config_sysfs_syscall
++++ a/init/Kconfig
+@@ -1290,6 +1290,16 @@ config UID16
+ 	help
+ 	  This enables the legacy 16-bit UID syscall wrappers.
+ 
++config SYSFS_SYSCALL
++	bool "Sysfs syscall support" if EXPERT
++	default y
++	---help---
++	  sys_sysfs is an obsolete system call no longer supported in
++	  libc.Note that disabling this option while being more secure breaks
++	  compatibility with other systems.
++
++	  If unsure say Y here.
++
+ config SYSCTL_SYSCALL
+ 	bool "Sysctl syscall support" if EXPERT
+ 	depends on PROC_SYSCTL
+diff -puN kernel/sys_ni.c~sys_sysfs-add-config_sysfs_syscall kernel/sys_ni.c
+--- a/kernel/sys_ni.c~sys_sysfs-add-config_sysfs_syscall
++++ a/kernel/sys_ni.c
+@@ -146,6 +146,7 @@ cond_syscall(sys_io_destroy);
+ cond_syscall(sys_io_submit);
+ cond_syscall(sys_io_cancel);
+ cond_syscall(sys_io_getevents);
++cond_syscall(sys_sysfs);
+ cond_syscall(sys_syslog);
+ cond_syscall(sys_process_vm_readv);
+ cond_syscall(sys_process_vm_writev);
 _
 
-Patches currently in -mm which might be from dborkman@redhat.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-lib-random32c-minor-cleanups-and-kdoc-fix.patch
+fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+fs-udf-superc-add-__init-to-init_inodecache.patch
+sys_sysfs-add-config_sysfs_syscall.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
+fs-minix-inodec-add-__init-to-init_inodecache.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+linux-next.patch
 
