@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch
- added to -mm tree
-Date: Thu, 13 Feb 2014 15:06:53 -0800
-Message-ID: <52fd500d.JpuQbaEMCmz0IOPS%akpm@linux-foundation.org>
+Subject: +
+ powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch added to -mm tree
+Date: Thu, 13 Feb 2014 15:06:50 -0800
+Message-ID: <52fd500a.5gT53txKacR5NP/3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37035 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752239AbaBMXGy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 18:06:54 -0500
+	with ESMTP id S1752225AbaBMXGv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 18:06:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, paulus@samba.org, mgorman@suse.de, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com
 
-Subject: + mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch added to -mm tree
+Subject: + powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch added to -mm tree
 To: aneesh.kumar@linux.vnet.ibm.com,benh@kernel.crashing.org,mgorman@suse.de,paulus@samba.org,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Thu, 13 Feb 2014 15:06:53 -0800
+Date: Thu, 13 Feb 2014 15:06:50 -0800
 
 
 The patch titled
-     Subject: mm: Use ptep/pmdp_set_numa for updating _PAGE_NUMA bit
+     Subject: powerpc: mm: add new set flag argument to pte/pmd update function
 has been added to the -mm tree.  Its filename is
-     mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch
+     powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,190 +45,202 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm: Use ptep/pmdp_set_numa for updating _PAGE_NUMA bit
+Subject: powerpc: mm: add new set flag argument to pte/pmd update function
 
-Archs like ppc64 don't do tlb flush in set_pte/pmd functions.  ppc64 also
-doesn't implement flush_tlb_range.  ppc64 require the tlb flushing to be
-batched within ptl locks.  The reason to do that is to ensure that the
-hash page table is in sync with linux page table.  We track the hpte index
-in linux pte and if we clear them without flushing hash and drop the ptl
-lock, we can have another cpu update the pte and can end up with double
-hash.  We also want to keep set_pte_at simpler by not requiring them to do
-hash flush for performance reason.  Hence cannot use them while updating
-_PAGE_NUMA bit.  Add new functions for marking pte/pmd numa
+We will use this later to set the _PAGE_NUMA bit.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
 Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/pgtable.h |   22 +++++++++++++++
- include/asm-generic/pgtable.h      |   39 +++++++++++++++++++++++++++
- mm/huge_memory.c                   |    9 +-----
- mm/mprotect.c                      |    4 --
- 4 files changed, 64 insertions(+), 10 deletions(-)
+ arch/powerpc/include/asm/hugetlb.h       |    2 -
+ arch/powerpc/include/asm/pgtable-ppc64.h |   26 ++++++++++++---------
+ arch/powerpc/mm/pgtable_64.c             |   12 +++++----
+ arch/powerpc/mm/subpage-prot.c           |    2 -
+ 4 files changed, 24 insertions(+), 18 deletions(-)
 
-diff -puN arch/powerpc/include/asm/pgtable.h~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit arch/powerpc/include/asm/pgtable.h
---- a/arch/powerpc/include/asm/pgtable.h~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit
-+++ a/arch/powerpc/include/asm/pgtable.h
-@@ -75,12 +75,34 @@ static inline pte_t pte_mknuma(pte_t pte
- 	return pte;
- }
- 
-+#define ptep_set_numa ptep_set_numa
-+static inline void ptep_set_numa(struct mm_struct *mm, unsigned long addr,
-+				 pte_t *ptep)
-+{
-+	if ((pte_val(*ptep) & _PAGE_PRESENT) == 0)
-+		VM_BUG_ON(1);
-+
-+	pte_update(mm, addr, ptep, _PAGE_PRESENT, _PAGE_NUMA, 0);
-+	return;
-+}
-+
- #define pmd_numa pmd_numa
- static inline int pmd_numa(pmd_t pmd)
+diff -puN arch/powerpc/include/asm/hugetlb.h~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function arch/powerpc/include/asm/hugetlb.h
+--- a/arch/powerpc/include/asm/hugetlb.h~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function
++++ a/arch/powerpc/include/asm/hugetlb.h
+@@ -127,7 +127,7 @@ static inline pte_t huge_ptep_get_and_cl
+ 					    unsigned long addr, pte_t *ptep)
  {
- 	return pte_numa(pmd_pte(pmd));
- }
- 
-+#define pmdp_set_numa pmdp_set_numa
-+static inline void pmdp_set_numa(struct mm_struct *mm, unsigned long addr,
-+				 pmd_t *pmdp)
-+{
-+	if ((pmd_val(*pmdp) & _PAGE_PRESENT) == 0)
-+		VM_BUG_ON(1);
-+
-+	pmd_hugepage_update(mm, addr, pmdp, _PAGE_PRESENT, _PAGE_NUMA);
-+	return;
-+}
-+
- #define pmd_mknonnuma pmd_mknonnuma
- static inline pmd_t pmd_mknonnuma(pmd_t pmd)
- {
-diff -puN include/asm-generic/pgtable.h~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit
-+++ a/include/asm-generic/pgtable.h
-@@ -701,6 +701,18 @@ static inline pte_t pte_mknuma(pte_t pte
- }
- #endif
- 
-+#ifndef ptep_set_numa
-+static inline void ptep_set_numa(struct mm_struct *mm, unsigned long addr,
-+				 pte_t *ptep)
-+{
-+	pte_t ptent = *ptep;
-+
-+	ptent = pte_mknuma(ptent);
-+	set_pte_at(mm, addr, ptep, ptent);
-+	return;
-+}
-+#endif
-+
- #ifndef pmd_mknuma
- static inline pmd_t pmd_mknuma(pmd_t pmd)
- {
-@@ -708,6 +720,18 @@ static inline pmd_t pmd_mknuma(pmd_t pmd
- 	return pmd_clear_flags(pmd, _PAGE_PRESENT);
- }
- #endif
-+
-+#ifndef pmdp_set_numa
-+static inline void pmdp_set_numa(struct mm_struct *mm, unsigned long addr,
-+				 pmd_t *pmdp)
-+{
-+	pmd_t pmd = *pmdp;
-+
-+	pmd = pmd_mknuma(pmd);
-+	set_pmd_at(mm, addr, pmdp, pmd);
-+	return;
-+}
-+#endif
+ #ifdef CONFIG_PPC64
+-	return __pte(pte_update(mm, addr, ptep, ~0UL, 1));
++	return __pte(pte_update(mm, addr, ptep, ~0UL, 0, 1));
  #else
- extern int pte_numa(pte_t pte);
- extern int pmd_numa(pmd_t pmd);
-@@ -715,6 +739,8 @@ extern pte_t pte_mknonnuma(pte_t pte);
- extern pmd_t pmd_mknonnuma(pmd_t pmd);
- extern pte_t pte_mknuma(pte_t pte);
- extern pmd_t pmd_mknuma(pmd_t pmd);
-+extern void ptep_set_numa(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
-+extern void pmdp_set_numa(struct mm_struct *mm, unsigned long addr, pmd_t *pmdp);
- #endif /* CONFIG_ARCH_USES_NUMA_PROT_NONE */
- #else
- static inline int pmd_numa(pmd_t pmd)
-@@ -742,10 +768,23 @@ static inline pte_t pte_mknuma(pte_t pte
- 	return pte;
- }
- 
-+static inline void ptep_set_numa(struct mm_struct *mm, unsigned long addr,
-+				 pte_t *ptep)
-+{
-+	return;
-+}
-+
-+
- static inline pmd_t pmd_mknuma(pmd_t pmd)
+ 	return __pte(pte_update(ptep, ~0UL, 0));
+ #endif
+diff -puN arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function arch/powerpc/include/asm/pgtable-ppc64.h
+--- a/arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function
++++ a/arch/powerpc/include/asm/pgtable-ppc64.h
+@@ -195,6 +195,7 @@ extern void hpte_need_flush(struct mm_st
+ static inline unsigned long pte_update(struct mm_struct *mm,
+ 				       unsigned long addr,
+ 				       pte_t *ptep, unsigned long clr,
++				       unsigned long set,
+ 				       int huge)
  {
- 	return pmd;
- }
-+
-+static inline void pmdp_set_numa(struct mm_struct *mm, unsigned long addr,
-+				 pmd_t *pmdp)
-+{
-+	return ;
-+}
- #endif /* CONFIG_NUMA_BALANCING */
+ #ifdef PTE_ATOMIC_UPDATES
+@@ -205,14 +206,15 @@ static inline unsigned long pte_update(s
+ 	andi.	%1,%0,%6\n\
+ 	bne-	1b \n\
+ 	andc	%1,%0,%4 \n\
++	or	%1,%1,%7\n\
+ 	stdcx.	%1,0,%3 \n\
+ 	bne-	1b"
+ 	: "=&r" (old), "=&r" (tmp), "=m" (*ptep)
+-	: "r" (ptep), "r" (clr), "m" (*ptep), "i" (_PAGE_BUSY)
++	: "r" (ptep), "r" (clr), "m" (*ptep), "i" (_PAGE_BUSY), "r" (set)
+ 	: "cc" );
+ #else
+ 	unsigned long old = pte_val(*ptep);
+-	*ptep = __pte(old & ~clr);
++	*ptep = __pte((old & ~clr) | set);
+ #endif
+ 	/* huge pages use the old page table lock */
+ 	if (!huge)
+@@ -231,9 +233,9 @@ static inline int __ptep_test_and_clear_
+ {
+ 	unsigned long old;
  
- #endif /* CONFIG_MMU */
-diff -puN mm/huge_memory.c~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit mm/huge_memory.c
---- a/mm/huge_memory.c~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit
-+++ a/mm/huge_memory.c
-@@ -1548,6 +1548,7 @@ int change_huge_pmd(struct vm_area_struc
- 				entry = pmd_mknonnuma(entry);
- 			entry = pmd_modify(entry, newprot);
- 			ret = HPAGE_PMD_NR;
-+			set_pmd_at(mm, addr, pmd, entry);
- 			BUG_ON(pmd_write(entry));
- 		} else {
- 			struct page *page = pmd_page(*pmd);
-@@ -1560,16 +1561,10 @@ int change_huge_pmd(struct vm_area_struc
- 			 */
- 			if (!is_huge_zero_page(page) &&
- 			    !pmd_numa(*pmd)) {
--				entry = *pmd;
--				entry = pmd_mknuma(entry);
-+				pmdp_set_numa(mm, addr, pmd);
- 				ret = HPAGE_PMD_NR;
- 			}
- 		}
--
--		/* Set PMD if cleared earlier */
--		if (ret == HPAGE_PMD_NR)
--			set_pmd_at(mm, addr, pmd, entry);
--
- 		spin_unlock(ptl);
+-       	if ((pte_val(*ptep) & (_PAGE_ACCESSED | _PAGE_HASHPTE)) == 0)
++	if ((pte_val(*ptep) & (_PAGE_ACCESSED | _PAGE_HASHPTE)) == 0)
+ 		return 0;
+-	old = pte_update(mm, addr, ptep, _PAGE_ACCESSED, 0);
++	old = pte_update(mm, addr, ptep, _PAGE_ACCESSED, 0, 0);
+ 	return (old & _PAGE_ACCESSED) != 0;
+ }
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+@@ -252,7 +254,7 @@ static inline void ptep_set_wrprotect(st
+ 	if ((pte_val(*ptep) & _PAGE_RW) == 0)
+ 		return;
+ 
+-	pte_update(mm, addr, ptep, _PAGE_RW, 0);
++	pte_update(mm, addr, ptep, _PAGE_RW, 0, 0);
+ }
+ 
+ static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
+@@ -261,7 +263,7 @@ static inline void huge_ptep_set_wrprote
+ 	if ((pte_val(*ptep) & _PAGE_RW) == 0)
+ 		return;
+ 
+-	pte_update(mm, addr, ptep, _PAGE_RW, 1);
++	pte_update(mm, addr, ptep, _PAGE_RW, 0, 1);
+ }
+ 
+ /*
+@@ -284,14 +286,14 @@ static inline void huge_ptep_set_wrprote
+ static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long addr, pte_t *ptep)
+ {
+-	unsigned long old = pte_update(mm, addr, ptep, ~0UL, 0);
++	unsigned long old = pte_update(mm, addr, ptep, ~0UL, 0, 0);
+ 	return __pte(old);
+ }
+ 
+ static inline void pte_clear(struct mm_struct *mm, unsigned long addr,
+ 			     pte_t * ptep)
+ {
+-	pte_update(mm, addr, ptep, ~0UL, 0);
++	pte_update(mm, addr, ptep, ~0UL, 0, 0);
+ }
+ 
+ 
+@@ -506,7 +508,9 @@ extern int pmdp_set_access_flags(struct
+ 
+ extern unsigned long pmd_hugepage_update(struct mm_struct *mm,
+ 					 unsigned long addr,
+-					 pmd_t *pmdp, unsigned long clr);
++					 pmd_t *pmdp,
++					 unsigned long clr,
++					 unsigned long set);
+ 
+ static inline int __pmdp_test_and_clear_young(struct mm_struct *mm,
+ 					      unsigned long addr, pmd_t *pmdp)
+@@ -515,7 +519,7 @@ static inline int __pmdp_test_and_clear_
+ 
+ 	if ((pmd_val(*pmdp) & (_PAGE_ACCESSED | _PAGE_HASHPTE)) == 0)
+ 		return 0;
+-	old = pmd_hugepage_update(mm, addr, pmdp, _PAGE_ACCESSED);
++	old = pmd_hugepage_update(mm, addr, pmdp, _PAGE_ACCESSED, 0);
+ 	return ((old & _PAGE_ACCESSED) != 0);
+ }
+ 
+@@ -542,7 +546,7 @@ static inline void pmdp_set_wrprotect(st
+ 	if ((pmd_val(*pmdp) & _PAGE_RW) == 0)
+ 		return;
+ 
+-	pmd_hugepage_update(mm, addr, pmdp, _PAGE_RW);
++	pmd_hugepage_update(mm, addr, pmdp, _PAGE_RW, 0);
+ }
+ 
+ #define __HAVE_ARCH_PMDP_SPLITTING_FLUSH
+diff -puN arch/powerpc/mm/pgtable_64.c~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function arch/powerpc/mm/pgtable_64.c
+--- a/arch/powerpc/mm/pgtable_64.c~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function
++++ a/arch/powerpc/mm/pgtable_64.c
+@@ -510,7 +510,8 @@ int pmdp_set_access_flags(struct vm_area
+ }
+ 
+ unsigned long pmd_hugepage_update(struct mm_struct *mm, unsigned long addr,
+-				  pmd_t *pmdp, unsigned long clr)
++				  pmd_t *pmdp, unsigned long clr,
++				  unsigned long set)
+ {
+ 
+ 	unsigned long old, tmp;
+@@ -526,14 +527,15 @@ unsigned long pmd_hugepage_update(struct
+ 		andi.	%1,%0,%6\n\
+ 		bne-	1b \n\
+ 		andc	%1,%0,%4 \n\
++		or	%1,%1,%7\n\
+ 		stdcx.	%1,0,%3 \n\
+ 		bne-	1b"
+ 	: "=&r" (old), "=&r" (tmp), "=m" (*pmdp)
+-	: "r" (pmdp), "r" (clr), "m" (*pmdp), "i" (_PAGE_BUSY)
++	: "r" (pmdp), "r" (clr), "m" (*pmdp), "i" (_PAGE_BUSY), "r" (set)
+ 	: "cc" );
+ #else
+ 	old = pmd_val(*pmdp);
+-	*pmdp = __pmd(old & ~clr);
++	*pmdp = __pmd((old & ~clr) | set);
+ #endif
+ 	if (old & _PAGE_HASHPTE)
+ 		hpte_do_hugepage_flush(mm, addr, pmdp);
+@@ -708,7 +710,7 @@ void set_pmd_at(struct mm_struct *mm, un
+ void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 		     pmd_t *pmdp)
+ {
+-	pmd_hugepage_update(vma->vm_mm, address, pmdp, _PAGE_PRESENT);
++	pmd_hugepage_update(vma->vm_mm, address, pmdp, _PAGE_PRESENT, 0);
+ }
+ 
+ /*
+@@ -835,7 +837,7 @@ pmd_t pmdp_get_and_clear(struct mm_struc
+ 	unsigned long old;
+ 	pgtable_t *pgtable_slot;
+ 
+-	old = pmd_hugepage_update(mm, addr, pmdp, ~0UL);
++	old = pmd_hugepage_update(mm, addr, pmdp, ~0UL, 0);
+ 	old_pmd = __pmd(old);
+ 	/*
+ 	 * We have pmd == none and we are holding page_table_lock.
+diff -puN arch/powerpc/mm/subpage-prot.c~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function arch/powerpc/mm/subpage-prot.c
+--- a/arch/powerpc/mm/subpage-prot.c~powerpc-mm-add-new-set-flag-argument-to-pte-pmd-update-function
++++ a/arch/powerpc/mm/subpage-prot.c
+@@ -78,7 +78,7 @@ static void hpte_flush_range(struct mm_s
+ 	pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
+ 	arch_enter_lazy_mmu_mode();
+ 	for (; npages > 0; --npages) {
+-		pte_update(mm, addr, pte, 0, 0);
++		pte_update(mm, addr, pte, 0, 0, 0);
+ 		addr += PAGE_SIZE;
+ 		++pte;
  	}
- 
-diff -puN mm/mprotect.c~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit mm/mprotect.c
---- a/mm/mprotect.c~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit
-+++ a/mm/mprotect.c
-@@ -69,12 +69,10 @@ static unsigned long change_pte_range(st
- 			} else {
- 				struct page *page;
- 
--				ptent = *pte;
- 				page = vm_normal_page(vma, addr, oldpte);
- 				if (page && !PageKsm(page)) {
- 					if (!pte_numa(oldpte)) {
--						ptent = pte_mknuma(ptent);
--						set_pte_at(mm, addr, pte, ptent);
-+						ptep_set_numa(mm, addr, pte);
- 						updated = true;
- 					}
- 				}
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
