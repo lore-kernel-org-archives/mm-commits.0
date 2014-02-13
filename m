@@ -1,96 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch removed from
- -mm tree
-Date: Wed, 12 Feb 2014 15:24:35 -0800
-Message-ID: <52fc02b3.d/LfpkGSRRD9z/sT%akpm@linux-foundation.org>
+Subject: [failures] slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
+ removed from -mm tree
+Date: Thu, 13 Feb 2014 11:54:00 -0800
+Message-ID: <52fd22d8.B3fSt0t5cUbl53W9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53289 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34720 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752878AbaBLXYh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Feb 2014 18:24:37 -0500
+	with ESMTP id S1753016AbaBMTyB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 14:54:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, viro@zeniv.linux.org.uk, sfr@canb.auug.org.au, oleg@redhat.com, mtk.manpages@gmail.com, keescook@chromium.org, holt@sgi.com, gang.chen@asianux.com, ebiederm@xmission.com, adityakali@google.com, avagin@openvz.org
+To: mm-commits@vger.kernel.org, penberg@kernel.org, greg@kroah.com, cl@linux.com, vdavydov@parallels.com
 
-Subject: [nacked] kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch removed from -mm tree
-To: avagin@openvz.org,adityakali@google.com,ebiederm@xmission.com,gang.chen@asianux.com,holt@sgi.com,keescook@chromium.org,mtk.manpages@gmail.com,oleg@redhat.com,sfr@canb.auug.org.au,viro@zeniv.linux.org.uk,xemul@parallels.com,mm-commits@vger.kernel.org
+Subject: [failures] slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch removed from -mm tree
+To: vdavydov@parallels.com,cl@linux.com,greg@kroah.com,penberg@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 12 Feb 2014 15:24:35 -0800
+Date: Thu, 13 Feb 2014 11:54:00 -0800
 
 
 The patch titled
-     Subject: kernel/sys.c: reduce required permission for prctl_set_mm
+     Subject: slub: do not drop slab_mutex for sysfs_slab_add
 has been removed from the -mm tree.  Its filename was
-     kernel-sysc-reduce-required-permission-for-prctl_set_mm.patch
+     slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrey Vagin <avagin@openvz.org>
-Subject: kernel/sys.c: reduce required permission for prctl_set_mm
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: slub: do not drop slab_mutex for sysfs_slab_add
 
-Currently prctl_set_mm requires the global CAP_SYS_RESOURCE, this patch
-reduce requiremence to CAP_SYS_RESOURCE in the current namespace.
+We release the slab_mutex while calling sysfs_slab_add from
+__kmem_cache_create since commit 66c4c35c6bc5 ("slub: Do not hold
+slub_lock when calling sysfs_slab_add()"), because kobject_uevent called
+by sysfs_slab_add might block waiting for the usermode helper to exec,
+which would result in a deadlock if we took the slab_mutex while executing
+it.
 
-When we restore a task we need to set up text, data and data heap sizes
-from userspace to the values a task had at checkpoint time.
+However, apart from complicating synchronization rules, releasing the
+slab_mutex on kmem cache creation can result in a kmemcg-related race. 
+The point is that we check if the memcg cache exists before going to
+__kmem_cache_create, but register the new cache in memcg subsys after it. 
+Since we can drop the mutex there, several threads can see that the memcg
+cache does not exist and proceed to creating it, which is wrong.
 
-Currently we can not restore these parameters, if a task lives in a
-non-root user name space, because it has no capabilities in the parent
-namespace.
+Fortunately, recently kobject_uevent was patched to call the usermode
+helper with the UMH_NO_WAIT flag, making the deadlock impossible. 
+Therefore there is no point in releasing the slab_mutex while calling
+sysfs_slab_add, so let's simplify kmem_cache_create synchronization and
+fix the kmemcg-race mentioned above by holding the slab_mutex during the
+whole cache creation path.
 
-prctl_set_mm() changes parameters of the current task and doesn't affect
-other tasks.
-
-This patch affects the RLIMIT_DATA limit, because a consumtiuon is
-calculated relatively to mm->end_data, mm->start_data, mm->start_brk.
-
-rlim = rlimit(RLIMIT_DATA);
-if (rlim < RLIM_INFINITY && (brk - mm->start_brk) +
-		(mm->end_data - mm->start_data) > rlim)
-	goto out;
-
-This limit affects calls to brk() and sbrk(), but it doesn't affect
-mmap. So I think requirement of CAP_SYS_RESOURCE in the current
-namespace is enough for this limit.
-
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Chen Gang <gang.chen@asianux.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Aditya Kali <adityakali@google.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN kernel/sys.c~kernel-sysc-reduce-required-permission-for-prctl_set_mm kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-reduce-required-permission-for-prctl_set_mm
-+++ a/kernel/sys.c
-@@ -1701,7 +1701,7 @@ static int prctl_set_mm(int opt, unsigne
- 	if (arg5 || (arg4 && opt != PR_SET_MM_AUXV))
- 		return -EINVAL;
+diff -puN mm/slub.c~slub-do-not-drop-slab_mutex-for-sysfs_slab_add mm/slub.c
+--- a/mm/slub.c~slub-do-not-drop-slab_mutex-for-sysfs_slab_add
++++ a/mm/slub.c
+@@ -3237,8 +3237,9 @@ int __kmem_cache_shutdown(struct kmem_ca
  
--	if (!capable(CAP_SYS_RESOURCE))
-+	if (!ns_capable(current_user_ns(), CAP_SYS_RESOURCE))
- 		return -EPERM;
+ 	if (!rc) {
+ 		/*
+-		 * We do the same lock strategy around sysfs_slab_add, see
+-		 * __kmem_cache_create. Because this is pretty much the last
++		 * Since slab_attr_store may take the slab_mutex, we should
++		 * release the lock while removing the sysfs entry in order to
++		 * avoid a deadlock. Because this is pretty much the last
+ 		 * operation we do and the lock will be released shortly after
+ 		 * that in slab_common.c, we could just move sysfs_slab_remove
+ 		 * to a later point in common code. We should do that when we
+@@ -3778,10 +3779,7 @@ int __kmem_cache_create(struct kmem_cach
+ 		return 0;
  
- 	if (opt == PR_SET_MM_EXE_FILE)
-_
-
-Patches currently in -mm which might be from avagin@openvz.org are
-
-origin.patch
-
+ 	memcg_propagate_slab_attrs(s);
+-	mutex_unlock(&slab_mutex);
+ 	err = sysfs_slab_add(s);
+-	mutex_lock(&slab_mutex);
