@@ -1,76 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Thu, 13 Feb 2014 12:59:52 -0800
-Message-ID: <52fd3248./KYJ7aBB2xyTzUoa%akpm@linux-foundation.org>
+Subject: [merged] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 13 Feb 2014 13:00:05 -0800
+Message-ID: <52fd3255.F75hJSWNxpsO3FOh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36000 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001AbaBMU7x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 15:59:53 -0500
+	with ESMTP id S1752054AbaBMVAG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 16:00:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + linux-next-rejects.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: [merged] linux-next-git-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Feb 2014 12:59:52 -0800
+Date: Thu, 13 Feb 2014 13:00:05 -0800
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ drivers/gpu/drm/i915/intel_dp.c |    6 ------
+ drivers/spi/spi.c               |    5 -----
+ 2 files changed, 11 deletions(-)
 
-diff -puN mm/memcontrol.c~linux-next-rejects mm/memcontrol.c
---- a/mm/memcontrol.c~linux-next-rejects
-+++ a/mm/memcontrol.c
-@@ -1683,15 +1683,8 @@ static void move_unlock_mem_cgroup(struc
-  */
- void mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
- {
--	/*
--	 * protects memcg_name and makes sure that parallel ooms do not
--	 * interleave
--	 */
-+	/* oom_info_lock ensures that parallel ooms do not interleave */
- 	static DEFINE_MUTEX(oom_info_lock);
--	struct cgroup *task_cgrp;
--	struct cgroup *mem_cgrp;
--	static char memcg_name[PATH_MAX];
--	int ret;
- 	struct mem_cgroup *iter;
- 	unsigned int i;
+diff -puN arch/x86/include/asm/pgtable.h~linux-next-git-rejects arch/x86/include/asm/pgtable.h
+diff -puN mm/slub.c~linux-next-git-rejects mm/slub.c
+diff -puN drivers/gpu/drm/i915/intel_dp.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_dp.c
+--- a/drivers/gpu/drm/i915/intel_dp.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/intel_dp.c
+@@ -458,14 +458,8 @@ intel_dp_aux_ch(struct intel_dp *intel_d
+ 	uint32_t aux_clock_divider;
+ 	int i, ret, recv_bytes;
+ 	uint32_t status;
+-<<<<<<< HEAD
+-	int try, precharge, clock = 0;
+-	bool has_aux_irq = HAS_AUX_IRQ(dev);
+-	uint32_t timeout;
+-=======
+ 	int try, clock = 0;
+ 	bool has_aux_irq = HAS_AUX_IRQ(dev);
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* dp aux is extremely sensitive to irq latency, hence request the
+ 	 * lowest possible wakeup latency and so prevent the cpu from going into
+diff -puN drivers/spi/spi.c~linux-next-git-rejects drivers/spi/spi.c
+--- a/drivers/spi/spi.c~linux-next-git-rejects
++++ a/drivers/spi/spi.c
+@@ -933,13 +933,8 @@ static void spi_pump_messages(struct kth
+ 
+ 	ret = spi_map_msg(master, master->cur_msg);
+ 	if (ret) {
+-<<<<<<< HEAD
+-		dev_err(&master->dev,
+-			"failed to transfer one message from queue\n");
+-=======
+ 		master->cur_msg->status = ret;
+ 		spi_finalize_current_message(master);
+->>>>>>> linux-next/akpm-base
+ 		return;
+ 	}
  
 _
 
@@ -95,7 +99,6 @@ include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
 kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
 linux-next.patch
 linux-next-rejects.patch
-linux-next-git-rejects.patch
 drivers-spi-spic-fix-max-warning.patch
 debugging-keep-track-of-page-owners.patch
 journal_add_journal_head-debug.patch
