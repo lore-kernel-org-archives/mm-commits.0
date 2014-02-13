@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-dirty-accountable-change-only-apply-to-non-prot-numa-case.patch added to -mm tree
-Date: Thu, 13 Feb 2014 15:06:52 -0800
-Message-ID: <52fd500c.vPeKyPCVhLV9E46E%akpm@linux-foundation.org>
+Subject: + mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch
+ added to -mm tree
+Date: Thu, 13 Feb 2014 15:06:53 -0800
+Message-ID: <52fd500d.JpuQbaEMCmz0IOPS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37041 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37048 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752233AbaBMXGx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 18:06:53 -0500
+	with ESMTP id S1752239AbaBMXGy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 18:06:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, paulus@samba.org, mgorman@suse.de, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com
 
-Subject: + mm-dirty-accountable-change-only-apply-to-non-prot-numa-case.patch added to -mm tree
+Subject: + mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch added to -mm tree
 To: aneesh.kumar@linux.vnet.ibm.com,benh@kernel.crashing.org,mgorman@suse.de,paulus@samba.org,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Thu, 13 Feb 2014 15:06:52 -0800
+Date: Thu, 13 Feb 2014 15:06:53 -0800
 
 
 The patch titled
-     Subject: mm: dirty accountable change only apply to non prot numa case
+     Subject: mm: Use ptep/pmdp_set_numa for updating _PAGE_NUMA bit
 has been added to the -mm tree.  Its filename is
-     mm-dirty-accountable-change-only-apply-to-non-prot-numa-case.patch
+     mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dirty-accountable-change-only-apply-to-non-prot-numa-case.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dirty-accountable-change-only-apply-to-non-prot-numa-case.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,9 +45,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm: dirty accountable change only apply to non prot numa case
+Subject: mm: Use ptep/pmdp_set_numa for updating _PAGE_NUMA bit
 
-So move it within the if loop
+Archs like ppc64 don't do tlb flush in set_pte/pmd functions.  ppc64 also
+doesn't implement flush_tlb_range.  ppc64 require the tlb flushing to be
+batched within ptl locks.  The reason to do that is to ensure that the
+hash page table is in sync with linux page table.  We track the hpte index
+in linux pte and if we clear them without flushing hash and drop the ptl
+lock, we can have another cpu update the pte and can end up with double
+hash.  We also want to keep set_pte_at simpler by not requiring them to do
+hash flush for performance reason.  Hence cannot use them while updating
+_PAGE_NUMA bit.  Add new functions for marking pte/pmd numa
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -57,49 +65,170 @@ Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ arch/powerpc/include/asm/pgtable.h |   22 +++++++++++++++
+ include/asm-generic/pgtable.h      |   39 +++++++++++++++++++++++++++
+ mm/huge_memory.c                   |    9 +-----
+ mm/mprotect.c                      |    4 --
+ 4 files changed, 64 insertions(+), 10 deletions(-)
 
-diff -puN mm/mprotect.c~mm-dirty-accountable-change-only-apply-to-non-prot-numa-case mm/mprotect.c
---- a/mm/mprotect.c~mm-dirty-accountable-change-only-apply-to-non-prot-numa-case
+diff -puN arch/powerpc/include/asm/pgtable.h~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit arch/powerpc/include/asm/pgtable.h
+--- a/arch/powerpc/include/asm/pgtable.h~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -75,12 +75,34 @@ static inline pte_t pte_mknuma(pte_t pte
+ 	return pte;
+ }
+ 
++#define ptep_set_numa ptep_set_numa
++static inline void ptep_set_numa(struct mm_struct *mm, unsigned long addr,
++				 pte_t *ptep)
++{
++	if ((pte_val(*ptep) & _PAGE_PRESENT) == 0)
++		VM_BUG_ON(1);
++
++	pte_update(mm, addr, ptep, _PAGE_PRESENT, _PAGE_NUMA, 0);
++	return;
++}
++
+ #define pmd_numa pmd_numa
+ static inline int pmd_numa(pmd_t pmd)
+ {
+ 	return pte_numa(pmd_pte(pmd));
+ }
+ 
++#define pmdp_set_numa pmdp_set_numa
++static inline void pmdp_set_numa(struct mm_struct *mm, unsigned long addr,
++				 pmd_t *pmdp)
++{
++	if ((pmd_val(*pmdp) & _PAGE_PRESENT) == 0)
++		VM_BUG_ON(1);
++
++	pmd_hugepage_update(mm, addr, pmdp, _PAGE_PRESENT, _PAGE_NUMA);
++	return;
++}
++
+ #define pmd_mknonnuma pmd_mknonnuma
+ static inline pmd_t pmd_mknonnuma(pmd_t pmd)
+ {
+diff -puN include/asm-generic/pgtable.h~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit
++++ a/include/asm-generic/pgtable.h
+@@ -701,6 +701,18 @@ static inline pte_t pte_mknuma(pte_t pte
+ }
+ #endif
+ 
++#ifndef ptep_set_numa
++static inline void ptep_set_numa(struct mm_struct *mm, unsigned long addr,
++				 pte_t *ptep)
++{
++	pte_t ptent = *ptep;
++
++	ptent = pte_mknuma(ptent);
++	set_pte_at(mm, addr, ptep, ptent);
++	return;
++}
++#endif
++
+ #ifndef pmd_mknuma
+ static inline pmd_t pmd_mknuma(pmd_t pmd)
+ {
+@@ -708,6 +720,18 @@ static inline pmd_t pmd_mknuma(pmd_t pmd
+ 	return pmd_clear_flags(pmd, _PAGE_PRESENT);
+ }
+ #endif
++
++#ifndef pmdp_set_numa
++static inline void pmdp_set_numa(struct mm_struct *mm, unsigned long addr,
++				 pmd_t *pmdp)
++{
++	pmd_t pmd = *pmdp;
++
++	pmd = pmd_mknuma(pmd);
++	set_pmd_at(mm, addr, pmdp, pmd);
++	return;
++}
++#endif
+ #else
+ extern int pte_numa(pte_t pte);
+ extern int pmd_numa(pmd_t pmd);
+@@ -715,6 +739,8 @@ extern pte_t pte_mknonnuma(pte_t pte);
+ extern pmd_t pmd_mknonnuma(pmd_t pmd);
+ extern pte_t pte_mknuma(pte_t pte);
+ extern pmd_t pmd_mknuma(pmd_t pmd);
++extern void ptep_set_numa(struct mm_struct *mm, unsigned long addr, pte_t *ptep);
++extern void pmdp_set_numa(struct mm_struct *mm, unsigned long addr, pmd_t *pmdp);
+ #endif /* CONFIG_ARCH_USES_NUMA_PROT_NONE */
+ #else
+ static inline int pmd_numa(pmd_t pmd)
+@@ -742,10 +768,23 @@ static inline pte_t pte_mknuma(pte_t pte
+ 	return pte;
+ }
+ 
++static inline void ptep_set_numa(struct mm_struct *mm, unsigned long addr,
++				 pte_t *ptep)
++{
++	return;
++}
++
++
+ static inline pmd_t pmd_mknuma(pmd_t pmd)
+ {
+ 	return pmd;
+ }
++
++static inline void pmdp_set_numa(struct mm_struct *mm, unsigned long addr,
++				 pmd_t *pmdp)
++{
++	return ;
++}
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
+ #endif /* CONFIG_MMU */
+diff -puN mm/huge_memory.c~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit
++++ a/mm/huge_memory.c
+@@ -1548,6 +1548,7 @@ int change_huge_pmd(struct vm_area_struc
+ 				entry = pmd_mknonnuma(entry);
+ 			entry = pmd_modify(entry, newprot);
+ 			ret = HPAGE_PMD_NR;
++			set_pmd_at(mm, addr, pmd, entry);
+ 			BUG_ON(pmd_write(entry));
+ 		} else {
+ 			struct page *page = pmd_page(*pmd);
+@@ -1560,16 +1561,10 @@ int change_huge_pmd(struct vm_area_struc
+ 			 */
+ 			if (!is_huge_zero_page(page) &&
+ 			    !pmd_numa(*pmd)) {
+-				entry = *pmd;
+-				entry = pmd_mknuma(entry);
++				pmdp_set_numa(mm, addr, pmd);
+ 				ret = HPAGE_PMD_NR;
+ 			}
+ 		}
+-
+-		/* Set PMD if cleared earlier */
+-		if (ret == HPAGE_PMD_NR)
+-			set_pmd_at(mm, addr, pmd, entry);
+-
+ 		spin_unlock(ptl);
+ 	}
+ 
+diff -puN mm/mprotect.c~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit mm/mprotect.c
+--- a/mm/mprotect.c~mm-use-ptep-pmdp_set_numa-for-updating-_page_numa-bit
 +++ a/mm/mprotect.c
-@@ -58,6 +58,13 @@ static unsigned long change_pte_range(st
- 				if (pte_numa(ptent))
- 					ptent = pte_mknonnuma(ptent);
- 				ptent = pte_modify(ptent, newprot);
-+				/*
-+				 * Avoid taking write faults for pages we
-+				 * know to be dirty.
-+				 */
-+				if (dirty_accountable && pte_dirty(ptent))
-+					ptent = pte_mkwrite(ptent);
-+				ptep_modify_prot_commit(mm, addr, pte, ptent);
- 				updated = true;
+@@ -69,12 +69,10 @@ static unsigned long change_pte_range(st
  			} else {
  				struct page *page;
-@@ -72,22 +79,8 @@ static unsigned long change_pte_range(st
+ 
+-				ptent = *pte;
+ 				page = vm_normal_page(vma, addr, oldpte);
+ 				if (page && !PageKsm(page)) {
+ 					if (!pte_numa(oldpte)) {
+-						ptent = pte_mknuma(ptent);
+-						set_pte_at(mm, addr, pte, ptent);
++						ptep_set_numa(mm, addr, pte);
+ 						updated = true;
  					}
  				}
- 			}
--
--			/*
--			 * Avoid taking write faults for pages we know to be
--			 * dirty.
--			 */
--			if (dirty_accountable && pte_dirty(ptent)) {
--				ptent = pte_mkwrite(ptent);
--				updated = true;
--			}
--
- 			if (updated)
- 				pages++;
--
--			/* Only !prot_numa always clears the pte */
--			if (!prot_numa)
--				ptep_modify_prot_commit(mm, addr, pte, ptent);
- 		} else if (IS_ENABLED(CONFIG_MIGRATION) && !pte_file(oldpte)) {
- 			swp_entry_t entry = pte_to_swp_entry(oldpte);
- 
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
