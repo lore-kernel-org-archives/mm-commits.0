@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking.patch added to -mm tree
-Date: Thu, 13 Feb 2014 14:06:56 -0800
-Message-ID: <52fd4200.7RM05WQSnlTP0OIq%akpm@linux-foundation.org>
+Subject: + lib-random32c-minor-cleanups-and-kdoc-fix.patch added to -mm
+ tree
+Date: Thu, 13 Feb 2014 14:17:57 -0800
+Message-ID: <52fd4495.6HbIqOzHbZnBwV/5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36699 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36737 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751320AbaBMWG5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 17:06:57 -0500
+	with ESMTP id S1750932AbaBMWR6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 17:17:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wei.liu2@citrix.com, romieu@fr.zoreil.com, linux@eikelenboom.it, konrad.wilk@oracle.com, eric.dumazet@gmail.com, davej@redhat.com, dan.j.williams@intel.com
+To: mm-commits@vger.kernel.org, joe@perches.com, dborkman@redhat.com
 
-Subject: + dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking.patch added to -mm tree
-To: dan.j.williams@intel.com,davej@redhat.com,eric.dumazet@gmail.com,konrad.wilk@oracle.com,linux@eikelenboom.it,romieu@fr.zoreil.com,wei.liu2@citrix.com
+Subject: + lib-random32c-minor-cleanups-and-kdoc-fix.patch added to -mm tree
+To: dborkman@redhat.com,joe@perches.com
 From: akpm@linux-foundation.org
-Date: Thu, 13 Feb 2014 14:06:56 -0800
+Date: Thu, 13 Feb 2014 14:17:57 -0800
 
 
 The patch titled
-     From: Dan Williams <dan.j.williams@intel.com>
+     Subject: lib/random32.c: minor cleanups and kdoc fix
 has been added to the -mm tree.  Its filename is
-     dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking.patch
+     lib-random32c-minor-cleanups-and-kdoc-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-random32c-minor-cleanups-and-kdoc-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-random32c-minor-cleanups-and-kdoc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,291 +44,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: dma debug: account for cachelines and read-only mappings in overlap tracking
+From: Daniel Borkmann <dborkman@redhat.com>
+Subject: lib/random32.c: minor cleanups and kdoc fix
 
-While debug_dma_assert_idle() checks if a given *page* is actively
-undergoing dma the valid granularity of a dma mapping is a *cacheline*. 
-Sander's testing shows that the warning message "DMA-API: exceeded 7
-overlapping mappings of pfn..." is falsely triggering.  The test is simply
-mapping multiple cachelines in a given page.
+These are just some very minor and misc cleanups in the PRNG.  In
+prandom_u32() we store the result in an unsigned long which is unnecessary
+as it should be u32 instead that we get from prandom_u32_state(). 
+prandom_bytes_state()'s comment is in kdoc format, so change it into such
+as it's done everywhere else.  Also, use the normal comment style for the
+header comment.  Last but not least for readability, add some newlines.
 
-Ultimately we want overlap tracking to be valid as it is a real api
-violation, so we need to track active mappings by cachelines.  Update the
-active dma tracking to use the page-frame-relative cacheline of the
-mapping as the key, and update debug_dma_assert_idle() to check for all
-possible mapped cachelines for a given page.
-
-However, the need to track active mappings is only relevant when the
-dma-mapping is writable by the device.  In fact it is fairly standard for
-read-only mappings to have hundreds or thousands of overlapping mappings
-at once.  Limiting the overlap tracking to writable (!DMA_TO_DEVICE)
-eliminates this class of false-positive overlap reports.
-
-Note, the radix gang lookup is sub-optimal.  It would be best if it
-stopped fetching entries once the search passed a page boundary. 
-Nevertheless, this implementation does not perturb the original net_dma
-failing case.  That is to say the extra overhead does not show up in terms
-of making the failing case pass due to a timing change.
-
-References:
-http://marc.info/?l=linux-netdev&m=139232263419315&w=2
-http://marc.info/?l=linux-netdev&m=139217088107122&w=2
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
-Reported-by: Dave Jones <davej@redhat.com>
-Tested-by: Dave Jones <davej@redhat.com>
-Tested-by: Sander Eikelenboom <linux@eikelenboom.it>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Wei Liu <wei.liu2@citrix.com>
+Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |  125 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 79 insertions(+), 46 deletions(-)
+ lib/random32.c |   76 ++++++++++++++++++++++++-----------------------
+ 1 file changed, 39 insertions(+), 37 deletions(-)
 
-diff -puN lib/dma-debug.c~dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking
-+++ a/lib/dma-debug.c
-@@ -424,111 +424,132 @@ void debug_dma_dump_mappings(struct devi
- EXPORT_SYMBOL(debug_dma_dump_mappings);
- 
+diff -puN lib/random32.c~lib-random32c-minor-cleanups-and-kdoc-fix lib/random32.c
+--- a/lib/random32.c~lib-random32c-minor-cleanups-and-kdoc-fix
++++ a/lib/random32.c
+@@ -1,37 +1,35 @@
  /*
-- * For each page mapped (initial page in the case of
-- * dma_alloc_coherent/dma_map_{single|page}, or each page in a
-- * scatterlist) insert into this tree using the pfn as the key. At
-+ * For each mapping (initial cacheline in the case of
-+ * dma_alloc_coherent/dma_map_page, initial cacheline in each page of a
-+ * scatterlist, or the cacheline specified in dma_map_single) insert
-+ * into this tree using the cacheline as the key. At
-  * dma_unmap_{single|sg|page} or dma_free_coherent delete the entry.  If
-- * the pfn already exists at insertion time add a tag as a reference
-+ * the entry already exists at insertion time add a tag as a reference
-  * count for the overlapping mappings.  For now, the overlap tracking
-- * just ensures that 'unmaps' balance 'maps' before marking the pfn
-- * idle, but we should also be flagging overlaps as an API violation.
-+ * just ensures that 'unmaps' balance 'maps' before marking the
-+ * cacheline idle, but we should also be flagging overlaps as an API
-+ * violation.
-  *
-  * Memory usage is mostly constrained by the maximum number of available
-  * dma-debug entries in that we need a free dma_debug_entry before
-- * inserting into the tree.  In the case of dma_map_{single|page} and
-- * dma_alloc_coherent there is only one dma_debug_entry and one pfn to
-- * track per event.  dma_map_sg(), on the other hand,
-- * consumes a single dma_debug_entry, but inserts 'nents' entries into
-- * the tree.
-+ * inserting into the tree.  In the case of dma_map_page and
-+ * dma_alloc_coherent there is only one dma_debug_entry and one
-+ * dma_active_cacheline entry to track per event.  dma_map_sg(), on the
-+ * other hand, consumes a single dma_debug_entry, but inserts 'nents'
-+ * entries into the tree.
-  *
-  * At any time debug_dma_assert_idle() can be called to trigger a
-- * warning if the given page is in the active set.
-+ * warning if any cachelines in the given page are in the active set.
+-  This is a maximally equidistributed combined Tausworthe generator
+-  based on code from GNU Scientific Library 1.5 (30 Jun 2004)
+-
+-  lfsr113 version:
+-
+-   x_n = (s1_n ^ s2_n ^ s3_n ^ s4_n)
+-
+-   s1_{n+1} = (((s1_n & 4294967294) << 18) ^ (((s1_n <<  6) ^ s1_n) >> 13))
+-   s2_{n+1} = (((s2_n & 4294967288) <<  2) ^ (((s2_n <<  2) ^ s2_n) >> 27))
+-   s3_{n+1} = (((s3_n & 4294967280) <<  7) ^ (((s3_n << 13) ^ s3_n) >> 21))
+-   s4_{n+1} = (((s4_n & 4294967168) << 13) ^ (((s4_n <<  3) ^ s4_n) >> 12))
+-
+-   The period of this generator is about 2^113 (see erratum paper).
+-
+-   From: P. L'Ecuyer, "Maximally Equidistributed Combined Tausworthe
+-   Generators", Mathematics of Computation, 65, 213 (1996), 203--213:
+-   http://www.iro.umontreal.ca/~lecuyer/myftp/papers/tausme.ps
+-   ftp://ftp.iro.umontreal.ca/pub/simulation/lecuyer/papers/tausme.ps
+-
+-   There is an erratum in the paper "Tables of Maximally
+-   Equidistributed Combined LFSR Generators", Mathematics of
+-   Computation, 68, 225 (1999), 261--269:
+-   http://www.iro.umontreal.ca/~lecuyer/myftp/papers/tausme2.ps
+-
+-        ... the k_j most significant bits of z_j must be non-
+-        zero, for each j. (Note: this restriction also applies to the
+-        computer code given in [4], but was mistakenly not mentioned in
+-        that paper.)
+-
+-   This affects the seeding procedure by imposing the requirement
+-   s1 > 1, s2 > 7, s3 > 15, s4 > 127.
+-
+-*/
++ * This is a maximally equidistributed combined Tausworthe generator
++ * based on code from GNU Scientific Library 1.5 (30 Jun 2004)
++ *
++ * lfsr113 version:
++ *
++ * x_n = (s1_n ^ s2_n ^ s3_n ^ s4_n)
++ *
++ * s1_{n+1} = (((s1_n & 4294967294) << 18) ^ (((s1_n <<  6) ^ s1_n) >> 13))
++ * s2_{n+1} = (((s2_n & 4294967288) <<  2) ^ (((s2_n <<  2) ^ s2_n) >> 27))
++ * s3_{n+1} = (((s3_n & 4294967280) <<  7) ^ (((s3_n << 13) ^ s3_n) >> 21))
++ * s4_{n+1} = (((s4_n & 4294967168) << 13) ^ (((s4_n <<  3) ^ s4_n) >> 12))
++ *
++ * The period of this generator is about 2^113 (see erratum paper).
++ *
++ * From: P. L'Ecuyer, "Maximally Equidistributed Combined Tausworthe
++ * Generators", Mathematics of Computation, 65, 213 (1996), 203--213:
++ * http://www.iro.umontreal.ca/~lecuyer/myftp/papers/tausme.ps
++ * ftp://ftp.iro.umontreal.ca/pub/simulation/lecuyer/papers/tausme.ps
++ *
++ * There is an erratum in the paper "Tables of Maximally Equidistributed
++ * Combined LFSR Generators", Mathematics of Computation, 68, 225 (1999),
++ * 261--269: http://www.iro.umontreal.ca/~lecuyer/myftp/papers/tausme2.ps
++ *
++ *      ... the k_j most significant bits of z_j must be non-zero,
++ *      for each j. (Note: this restriction also applies to the
++ *      computer code given in [4], but was mistakenly not mentioned
++ *      in that paper.)
++ *
++ * This affects the seeding procedure by imposing the requirement
++ * s1 > 1, s2 > 7, s3 > 15, s4 > 127.
++ */
+ 
+ #include <linux/types.h>
+ #include <linux/percpu.h>
+@@ -75,15 +73,17 @@ EXPORT_SYMBOL(prandom_u32_state);
   */
--static RADIX_TREE(dma_active_pfn, GFP_NOWAIT);
-+static RADIX_TREE(dma_active_cacheline, GFP_NOWAIT);
- static DEFINE_SPINLOCK(radix_lock);
--#define ACTIVE_PFN_MAX_OVERLAP ((1 << RADIX_TREE_MAX_TAGS) - 1)
-+#define ACTIVE_CLN_MAX_OVERLAP ((1 << RADIX_TREE_MAX_TAGS) - 1)
-+#define CACHELINE_PER_PAGE_SHIFT (PAGE_SHIFT - L1_CACHE_SHIFT)
-+#define CACHELINES_PER_PAGE (1 << CACHELINE_PER_PAGE_SHIFT)
- 
--static int active_pfn_read_overlap(unsigned long pfn)
-+unsigned long to_cln(struct dma_debug_entry *entry)
-+{
-+	return (entry->pfn << CACHELINE_PER_PAGE_SHIFT) +
-+		(entry->offset >> L1_CACHE_SHIFT);
-+}
+ u32 prandom_u32(void)
+ {
+-	unsigned long r;
+ 	struct rnd_state *state = &get_cpu_var(net_rand_state);
+-	r = prandom_u32_state(state);
++	u32 res;
 +
-+static int active_cln_read_overlap(unsigned long cln)
- {
- 	int overlap = 0, i;
- 
- 	for (i = RADIX_TREE_MAX_TAGS - 1; i >= 0; i--)
--		if (radix_tree_tag_get(&dma_active_pfn, pfn, i))
-+		if (radix_tree_tag_get(&dma_active_cacheline, cln, i))
- 			overlap |= 1 << i;
- 	return overlap;
- }
- 
--static int active_pfn_set_overlap(unsigned long pfn, int overlap)
-+static int active_cln_set_overlap(unsigned long cln, int overlap)
- {
- 	int i;
- 
--	if (overlap > ACTIVE_PFN_MAX_OVERLAP || overlap < 0)
-+	if (overlap > ACTIVE_CLN_MAX_OVERLAP || overlap < 0)
- 		return overlap;
- 
- 	for (i = RADIX_TREE_MAX_TAGS - 1; i >= 0; i--)
- 		if (overlap & 1 << i)
--			radix_tree_tag_set(&dma_active_pfn, pfn, i);
-+			radix_tree_tag_set(&dma_active_cacheline, cln, i);
- 		else
--			radix_tree_tag_clear(&dma_active_pfn, pfn, i);
-+			radix_tree_tag_clear(&dma_active_cacheline, cln, i);
- 
- 	return overlap;
- }
- 
--static void active_pfn_inc_overlap(unsigned long pfn)
-+static void active_cln_inc_overlap(unsigned long cln)
- {
--	int overlap = active_pfn_read_overlap(pfn);
-+	int overlap = active_cln_read_overlap(cln);
- 
--	overlap = active_pfn_set_overlap(pfn, ++overlap);
-+	overlap = active_cln_set_overlap(cln, ++overlap);
- 
- 	/* If we overflowed the overlap counter then we're potentially
- 	 * leaking dma-mappings.  Otherwise, if maps and unmaps are
- 	 * balanced then this overflow may cause false negatives in
--	 * debug_dma_assert_idle() as the pfn may be marked idle
-+	 * debug_dma_assert_idle() as the cln may be marked idle
- 	 * prematurely.
- 	 */
--	WARN_ONCE(overlap > ACTIVE_PFN_MAX_OVERLAP,
--		  "DMA-API: exceeded %d overlapping mappings of pfn %lx\n",
--		  ACTIVE_PFN_MAX_OVERLAP, pfn);
-+	WARN_ONCE(overlap > ACTIVE_CLN_MAX_OVERLAP,
-+		  "DMA-API: exceeded %d overlapping mappings of cln %lx\n",
-+		  ACTIVE_CLN_MAX_OVERLAP, cln);
- }
- 
--static int active_pfn_dec_overlap(unsigned long pfn)
-+static int active_cln_dec_overlap(unsigned long cln)
- {
--	int overlap = active_pfn_read_overlap(pfn);
-+	int overlap = active_cln_read_overlap(cln);
- 
--	return active_pfn_set_overlap(pfn, --overlap);
-+	return active_cln_set_overlap(cln, --overlap);
- }
- 
--static int active_pfn_insert(struct dma_debug_entry *entry)
-+static int active_cln_insert(struct dma_debug_entry *entry)
- {
- 	unsigned long flags;
- 	int rc;
- 
-+	/* If the device is not writing memory then we don't have any
-+	 * concerns about the cpu consuming stale data.  This mitigates
-+	 * legitimate usages of overlapping mappings.
-+	 */
-+	if (entry->direction == DMA_TO_DEVICE)
-+		return 0;
++	res = prandom_u32_state(state);
+ 	put_cpu_var(state);
+-	return r;
 +
- 	spin_lock_irqsave(&radix_lock, flags);
--	rc = radix_tree_insert(&dma_active_pfn, entry->pfn, entry);
-+	rc = radix_tree_insert(&dma_active_cacheline, to_cln(entry), entry);
- 	if (rc == -EEXIST)
--		active_pfn_inc_overlap(entry->pfn);
-+		active_cln_inc_overlap(to_cln(entry));
- 	spin_unlock_irqrestore(&radix_lock, flags);
- 
- 	return rc;
++	return res;
  }
+ EXPORT_SYMBOL(prandom_u32);
  
--static void active_pfn_remove(struct dma_debug_entry *entry)
-+static void active_cln_remove(struct dma_debug_entry *entry)
- {
- 	unsigned long flags;
- 
-+	/* ...mirror the insert case */
-+	if (entry->direction == DMA_TO_DEVICE)
-+		return;
-+
- 	spin_lock_irqsave(&radix_lock, flags);
- 	/* since we are counting overlaps the final put of the
--	 * entry->pfn will occur when the overlap count is 0.
--	 * active_pfn_dec_overlap() returns -1 in that case
-+	 * cacheline will occur when the overlap count is 0.
-+	 * active_cln_dec_overlap() returns -1 in that case
- 	 */
--	if (active_pfn_dec_overlap(entry->pfn) < 0)
--		radix_tree_delete(&dma_active_pfn, entry->pfn);
-+	if (active_cln_dec_overlap(to_cln(entry)) < 0)
-+		radix_tree_delete(&dma_active_cacheline, to_cln(entry));
- 	spin_unlock_irqrestore(&radix_lock, flags);
- }
- 
- /**
-  * debug_dma_assert_idle() - assert that a page is not undergoing dma
-- * @page: page to lookup in the dma_active_pfn tree
-+ * @page: page to lookup in the dma_active_cacheline tree
+-/*
++/**
+  *	prandom_bytes_state - get the requested number of pseudo-random bytes
   *
-  * Place a call to this routine in cases where the cpu touching the page
-  * before the dma completes (page is dma_unmapped) will lead to data
-@@ -536,22 +557,34 @@ static void active_pfn_remove(struct dma
-  */
- void debug_dma_assert_idle(struct page *page)
- {
-+	unsigned long cln = page_to_pfn(page) << CACHELINE_PER_PAGE_SHIFT;
-+	static struct dma_debug_entry *ents[CACHELINES_PER_PAGE];
-+	struct dma_debug_entry *entry = NULL;
-+	void **results = (void **) &ents;
-+	unsigned int nents, i;
- 	unsigned long flags;
--	struct dma_debug_entry *entry;
- 
- 	if (!page)
- 		return;
- 
- 	spin_lock_irqsave(&radix_lock, flags);
--	entry = radix_tree_lookup(&dma_active_pfn, page_to_pfn(page));
-+	nents = radix_tree_gang_lookup(&dma_active_cacheline, results, cln,
-+				       CACHELINES_PER_PAGE);
-+	for (i = 0; i < nents; i++) {
-+		if (to_cln(ents[i]) == cln) {
-+			entry = ents[i];
-+			break;
-+		} else if (to_cln(ents[i]) >= cln + CACHELINES_PER_PAGE)
-+			break;
-+	}
- 	spin_unlock_irqrestore(&radix_lock, flags);
- 
- 	if (!entry)
- 		return;
- 
- 	err_printk(entry->dev, entry,
--		   "DMA-API: cpu touching an active dma mapped page "
--		   "[pfn=0x%lx]\n", entry->pfn);
-+		   "DMA-API: cpu touching an active dma mapped page [cln=0x%lx]\n",
-+		   to_cln(entry));
- }
- 
- /*
-@@ -568,9 +601,9 @@ static void add_dma_entry(struct dma_deb
- 	hash_bucket_add(bucket, entry);
- 	put_hash_bucket(bucket, &flags);
- 
--	rc = active_pfn_insert(entry);
-+	rc = active_cln_insert(entry);
- 	if (rc == -ENOMEM) {
--		pr_err("DMA-API: pfn tracking ENOMEM, dma-debug disabled\n");
-+		pr_err("DMA-API: cacheline tracking ENOMEM, dma-debug disabled\n");
- 		global_disable = true;
+  *	@state: pointer to state structure holding seeded state.
+@@ -204,6 +204,7 @@ static int __init prandom_init(void)
+ 		prandom_seed_very_weak(state, (i + jiffies) ^ random_get_entropy());
+ 		prandom_warmup(state);
  	}
++
+ 	return 0;
+ }
+ core_initcall(prandom_init);
+@@ -248,6 +249,7 @@ static void __prandom_reseed(bool late)
+ 	spin_lock_irqsave(&lock, flags);
+ 	if (latch && !late)
+ 		goto out;
++
+ 	latch = true;
  
-@@ -631,7 +664,7 @@ static void dma_entry_free(struct dma_de
- {
- 	unsigned long flags;
- 
--	active_pfn_remove(entry);
-+	active_cln_remove(entry);
- 
- 	/*
- 	 * add to beginning of the list - this way the entries are
+ 	for_each_possible_cpu(i) {
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from dborkman@redhat.com are
 
-dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking.patch
-linux-next.patch
+lib-random32c-minor-cleanups-and-kdoc-fix.patch
 
