@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-bugfix-for-last_cpupid_not_in_page_flags.patch added to -mm tree
-Date: Thu, 13 Feb 2014 15:20:30 -0800
-Message-ID: <52fd533e.0xU6Tnl8rMBs/GMw%akpm@linux-foundation.org>
+Subject: +
+ dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking-v2.patch added to -mm tree
+Date: Thu, 13 Feb 2014 16:08:43 -0800
+Message-ID: <52fd5e8b.FZMx3jBV9YXp7WbJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37085 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37724 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031AbaBMXUb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 18:20:31 -0500
+	with ESMTP id S1751089AbaBNAIp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Feb 2014 19:08:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pingfank@linux.vnet.ibm.com, peterz@infradead.org, paulus@samba.org, mel@csn.ul.ie, benh@kernel.crashing.org, qemulist@gmail.com
+To: mm-commits@vger.kernel.org, wei.liu2@citrix.com, romieu@fr.zoreil.com, linux@eikelenboom.it, konrad.wilk@oracle.com, eric.dumazet@gmail.com, davej@redhat.com, dan.j.williams@intel.com
 
-Subject: + mm-numa-bugfix-for-last_cpupid_not_in_page_flags.patch added to -mm tree
-To: qemulist@gmail.com,benh@kernel.crashing.org,mel@csn.ul.ie,paulus@samba.org,peterz@infradead.org,pingfank@linux.vnet.ibm.com
+Subject: + dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking-v2.patch added to -mm tree
+To: dan.j.williams@intel.com,davej@redhat.com,eric.dumazet@gmail.com,konrad.wilk@oracle.com,linux@eikelenboom.it,romieu@fr.zoreil.com,wei.liu2@citrix.com
 From: akpm@linux-foundation.org
-Date: Thu, 13 Feb 2014 15:20:30 -0800
+Date: Thu, 13 Feb 2014 16:08:43 -0800
 
 
 The patch titled
-     Subject: mm: numa: bugfix for LAST_CPUPID_NOT_IN_PAGE_FLAGS
+     Subject: dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking-v2
 has been added to the -mm tree.  Its filename is
-     mm-numa-bugfix-for-last_cpupid_not_in_page_flags.patch
+     dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-bugfix-for-last_cpupid_not_in_page_flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-bugfix-for-last_cpupid_not_in_page_flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,123 +44,219 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liu Ping Fan <qemulist@gmail.com>
-Subject: mm: numa: bugfix for LAST_CPUPID_NOT_IN_PAGE_FLAGS
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking-v2
 
-When doing some numa tests on powerpc, I triggered an oops bug.  I find it
-is caused by using page->_last_cpupid.  It should be initialized as "-1 &
-LAST_CPUPID_MASK", but not "-1".  Otherwise, in task_numa_fault(), we will
-miss the checking (last_cpupid == (-1 & LAST_CPUPID_MASK)).  And finally
-cause an oops bug in task_numa_group(), since the online cpu is less than
-possible cpu.
+Changes in v2:
+1/ replaced 'cln' acronym with 'cacheline'. Now 'cln' is only a local
+   variable name
 
-PPC needs the LAST_CPUPID_NOT_IN_PAGE_FLAGS case because ppc needs to
-support a large physical address region, up to 2^46 but small section size
-(2^24).  So when NR_CPUS grows up, it is easily to cause
-not-in-page-flags.
+2/ renamed 'to_cln()' to 'to_cacheline_number()'
 
-Call trace:
-[   55.978091] SMP NR_CPUS=64 NUMA PowerNV
-[   55.978118] Modules linked in:
-[   55.978145] CPU: 24 PID: 804 Comm: systemd-udevd Not tainted
-3.13.0-rc1+ #32
-[   55.978183] task: c000001e2746aa80 ti: c000001e32c50000 task.ti:
-c000001e32c50000
-[   55.978219] NIP: c0000000000f5ad0 LR: c0000000000f5ac8 CTR:
-c000000000913cf0
-[   55.978256] REGS: c000001e32c53510 TRAP: 0300   Not tainted
-(3.13.0-rc1+)
-[   55.978286] MSR: 9000000000009032 <SF,HV,EE,ME,IR,DR,RI>  CR:
-28024424  XER: 20000000
-[   55.978380] CFAR: c000000000009324 DAR: 7265717569726857 DSISR:
-40000000 SOFTE: 1
-GPR00: c0000000000f5ac8 c000001e32c53790 c000000001f34338
-0000000000000021
-GPR04: 0000000000000000 0000000000000031 c000000001f74338
-0000ffffffffffff
-GPR08: 0000000000000001 7265717569726573 0000000000000000
-0000000000000000
-GPR12: 0000000028024422 c00000000ffdd800 00000000296b2e64
-0000000000000020
-GPR16: 0000000000000002 0000000000000003 c000001e2f8e4658
-c000001e25c1c1d8
-GPR20: c000001e2f8e4000 c000000001f7a858 0000000000000658
-0000000040000392
-GPR24: 00000000000000a8 c000001e33c1a400 00000000000001d8
-c000001e25c1c000
-GPR28: c000001e33c37ff0 0007837840000392 000000000000003f
-c000001e32c53790
-[   55.978903] NIP [c0000000000f5ad0] .task_numa_fault+0x1470/0x2370
-[   55.978934] LR [c0000000000f5ac8] .task_numa_fault+0x1468/0x2370
-[   55.978964] Call Trace:
-[   55.978978] [c000001e32c53790] [c0000000000f5ac8]
-.task_numa_fault+0x1468/0x2370 (unreliable)
-[   55.979036] [c000001e32c539e0] [c00000000020a820]
-.do_numa_page+0x480/0x4a0
-[   55.979072] [c000001e32c53b10] [c00000000020bfec]
-.handle_mm_fault+0x4ec/0xc90
-[   55.979123] [c000001e32c53c00] [c000000000e88c98]
-.do_page_fault+0x3a8/0x890
-[   55.979161] [c000001e32c53e30] [c000000000009568]
-handle_page_fault+0x10/0x30
-[   55.979197] Instruction dump:
-[   55.979216] 3c82fefb 3884b138 48d9cff1 60000000 48000574 3c62fefb
-3863af78 3c82fefb
-[   55.979277] 3884b138 48d9cfd5 60000000 e93f0100 <812902e4> 7d2907b4
-5529063e 7d2a07b4
-[   55.979354] ---[ end trace 15f2510da5ae07cf ]---
+3/ made the storage for a 'cacheline number' phys_addr_t since...
+   "unsigned long cln = page_to_pfn(page) << CACHELINE_PER_PAGE_SHIFT;"
+   ...may drop bits on some archs/memory-models.
 
-Signed-off-by: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Sander Eikelenboom <linux@eikelenboom.it>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Sander Eikelenboom <linux@eikelenboom.it>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Francois Romieu <romieu@fr.zoreil.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Wei Liu <wei.liu2@citrix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h                |    2 +-
- include/linux/page-flags-layout.h |   12 ++++--------
- 2 files changed, 5 insertions(+), 9 deletions(-)
+ lib/dma-debug.c |   64 +++++++++++++++++++++++++---------------------
+ 1 file changed, 35 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/mm.h~mm-numa-bugfix-for-last_cpupid_not_in_page_flags include/linux/mm.h
---- a/include/linux/mm.h~mm-numa-bugfix-for-last_cpupid_not_in_page_flags
-+++ a/include/linux/mm.h
-@@ -776,7 +776,7 @@ static inline int page_cpupid_last(struc
- }
- static inline void page_cpupid_reset_last(struct page *page)
+diff -puN lib/dma-debug.c~dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking-v2 lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking-v2
++++ a/lib/dma-debug.c
+@@ -448,17 +448,17 @@ EXPORT_SYMBOL(debug_dma_dump_mappings);
+  */
+ static RADIX_TREE(dma_active_cacheline, GFP_NOWAIT);
+ static DEFINE_SPINLOCK(radix_lock);
+-#define ACTIVE_CLN_MAX_OVERLAP ((1 << RADIX_TREE_MAX_TAGS) - 1)
++#define ACTIVE_CACHELINE_MAX_OVERLAP ((1 << RADIX_TREE_MAX_TAGS) - 1)
+ #define CACHELINE_PER_PAGE_SHIFT (PAGE_SHIFT - L1_CACHE_SHIFT)
+ #define CACHELINES_PER_PAGE (1 << CACHELINE_PER_PAGE_SHIFT)
+ 
+-unsigned long to_cln(struct dma_debug_entry *entry)
++static phys_addr_t to_cacheline_number(struct dma_debug_entry *entry)
  {
--	page->_last_cpupid = -1;
-+	page->_last_cpupid = -1 & LAST_CPUPID_MASK;
+ 	return (entry->pfn << CACHELINE_PER_PAGE_SHIFT) +
+ 		(entry->offset >> L1_CACHE_SHIFT);
  }
- #else
- static inline int page_cpupid_last(struct page *page)
-diff -puN include/linux/page-flags-layout.h~mm-numa-bugfix-for-last_cpupid_not_in_page_flags include/linux/page-flags-layout.h
---- a/include/linux/page-flags-layout.h~mm-numa-bugfix-for-last_cpupid_not_in_page_flags
-+++ a/include/linux/page-flags-layout.h
-@@ -69,15 +69,15 @@
- #define LAST__CPU_MASK  ((1 << LAST__CPU_SHIFT)-1)
  
- #define LAST_CPUPID_SHIFT (LAST__PID_SHIFT+LAST__CPU_SHIFT)
+-static int active_cln_read_overlap(unsigned long cln)
++static int active_cacheline_read_overlap(phys_addr_t cln)
+ {
+ 	int overlap = 0, i;
+ 
+@@ -468,11 +468,11 @@ static int active_cln_read_overlap(unsig
+ 	return overlap;
+ }
+ 
+-static int active_cln_set_overlap(unsigned long cln, int overlap)
++static int active_cacheline_set_overlap(phys_addr_t cln, int overlap)
+ {
+ 	int i;
+ 
+-	if (overlap > ACTIVE_CLN_MAX_OVERLAP || overlap < 0)
++	if (overlap > ACTIVE_CACHELINE_MAX_OVERLAP || overlap < 0)
+ 		return overlap;
+ 
+ 	for (i = RADIX_TREE_MAX_TAGS - 1; i >= 0; i--)
+@@ -484,32 +484,33 @@ static int active_cln_set_overlap(unsign
+ 	return overlap;
+ }
+ 
+-static void active_cln_inc_overlap(unsigned long cln)
++static void active_cacheline_inc_overlap(phys_addr_t cln)
+ {
+-	int overlap = active_cln_read_overlap(cln);
++	int overlap = active_cacheline_read_overlap(cln);
+ 
+-	overlap = active_cln_set_overlap(cln, ++overlap);
++	overlap = active_cacheline_set_overlap(cln, ++overlap);
+ 
+ 	/* If we overflowed the overlap counter then we're potentially
+ 	 * leaking dma-mappings.  Otherwise, if maps and unmaps are
+ 	 * balanced then this overflow may cause false negatives in
+-	 * debug_dma_assert_idle() as the cln may be marked idle
++	 * debug_dma_assert_idle() as the cacheline may be marked idle
+ 	 * prematurely.
+ 	 */
+-	WARN_ONCE(overlap > ACTIVE_CLN_MAX_OVERLAP,
+-		  "DMA-API: exceeded %d overlapping mappings of cln %lx\n",
+-		  ACTIVE_CLN_MAX_OVERLAP, cln);
++	WARN_ONCE(overlap > ACTIVE_CACHELINE_MAX_OVERLAP,
++		  "DMA-API: exceeded %d overlapping mappings of cacheline %pa\n",
++		  ACTIVE_CACHELINE_MAX_OVERLAP, &cln);
+ }
+ 
+-static int active_cln_dec_overlap(unsigned long cln)
++static int active_cacheline_dec_overlap(phys_addr_t cln)
+ {
+-	int overlap = active_cln_read_overlap(cln);
++	int overlap = active_cacheline_read_overlap(cln);
+ 
+-	return active_cln_set_overlap(cln, --overlap);
++	return active_cacheline_set_overlap(cln, --overlap);
+ }
+ 
+-static int active_cln_insert(struct dma_debug_entry *entry)
++static int active_cacheline_insert(struct dma_debug_entry *entry)
+ {
++	phys_addr_t cln = to_cacheline_number(entry);
+ 	unsigned long flags;
+ 	int rc;
+ 
+@@ -521,16 +522,17 @@ static int active_cln_insert(struct dma_
+ 		return 0;
+ 
+ 	spin_lock_irqsave(&radix_lock, flags);
+-	rc = radix_tree_insert(&dma_active_cacheline, to_cln(entry), entry);
++	rc = radix_tree_insert(&dma_active_cacheline, cln, entry);
+ 	if (rc == -EEXIST)
+-		active_cln_inc_overlap(to_cln(entry));
++		active_cacheline_inc_overlap(cln);
+ 	spin_unlock_irqrestore(&radix_lock, flags);
+ 
+ 	return rc;
+ }
+ 
+-static void active_cln_remove(struct dma_debug_entry *entry)
++static void active_cacheline_remove(struct dma_debug_entry *entry)
+ {
++	phys_addr_t cln = to_cacheline_number(entry);
+ 	unsigned long flags;
+ 
+ 	/* ...mirror the insert case */
+@@ -540,10 +542,10 @@ static void active_cln_remove(struct dma
+ 	spin_lock_irqsave(&radix_lock, flags);
+ 	/* since we are counting overlaps the final put of the
+ 	 * cacheline will occur when the overlap count is 0.
+-	 * active_cln_dec_overlap() returns -1 in that case
++	 * active_cacheline_dec_overlap() returns -1 in that case
+ 	 */
+-	if (active_cln_dec_overlap(to_cln(entry)) < 0)
+-		radix_tree_delete(&dma_active_cacheline, to_cln(entry));
++	if (active_cacheline_dec_overlap(cln) < 0)
++		radix_tree_delete(&dma_active_cacheline, cln);
+ 	spin_unlock_irqrestore(&radix_lock, flags);
+ }
+ 
+@@ -557,24 +559,27 @@ static void active_cln_remove(struct dma
+  */
+ void debug_dma_assert_idle(struct page *page)
+ {
+-	unsigned long cln = page_to_pfn(page) << CACHELINE_PER_PAGE_SHIFT;
+ 	static struct dma_debug_entry *ents[CACHELINES_PER_PAGE];
+ 	struct dma_debug_entry *entry = NULL;
+ 	void **results = (void **) &ents;
+ 	unsigned int nents, i;
+ 	unsigned long flags;
++	phys_addr_t cln;
+ 
+ 	if (!page)
+ 		return;
+ 
++	cln = (phys_addr_t) page_to_pfn(page) << CACHELINE_PER_PAGE_SHIFT;
+ 	spin_lock_irqsave(&radix_lock, flags);
+ 	nents = radix_tree_gang_lookup(&dma_active_cacheline, results, cln,
+ 				       CACHELINES_PER_PAGE);
+ 	for (i = 0; i < nents; i++) {
+-		if (to_cln(ents[i]) == cln) {
++		phys_addr_t ent_cln = to_cacheline_number(ents[i]);
 +
-+#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT+LAST_CPUPID_SHIFT > BITS_PER_LONG - NR_PAGEFLAGS
-+#define LAST_CPUPID_NOT_IN_PAGE_FLAGS
-+#endif
- #else
- #define LAST_CPUPID_SHIFT 0
- #endif
++		if (ent_cln == cln) {
+ 			entry = ents[i];
+ 			break;
+-		} else if (to_cln(ents[i]) >= cln + CACHELINES_PER_PAGE)
++		} else if (ent_cln >= cln + CACHELINES_PER_PAGE)
+ 			break;
+ 	}
+ 	spin_unlock_irqrestore(&radix_lock, flags);
+@@ -582,9 +587,10 @@ void debug_dma_assert_idle(struct page *
+ 	if (!entry)
+ 		return;
  
--#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT+LAST_CPUPID_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
- #define LAST_CPUPID_WIDTH LAST_CPUPID_SHIFT
--#else
--#define LAST_CPUPID_WIDTH 0
--#endif
++	cln = to_cacheline_number(entry);
+ 	err_printk(entry->dev, entry,
+-		   "DMA-API: cpu touching an active dma mapped page [cln=0x%lx]\n",
+-		   to_cln(entry));
++		   "DMA-API: cpu touching an active dma mapped cacheline [cln=%pa]\n",
++		   &cln);
+ }
  
  /*
-  * We are going to use the flags for the page to node mapping if its in
-@@ -87,8 +87,4 @@
- #define NODE_NOT_IN_PAGE_FLAGS
- #endif
+@@ -601,7 +607,7 @@ static void add_dma_entry(struct dma_deb
+ 	hash_bucket_add(bucket, entry);
+ 	put_hash_bucket(bucket, &flags);
  
--#if defined(CONFIG_NUMA_BALANCING) && LAST_CPUPID_WIDTH == 0
--#define LAST_CPUPID_NOT_IN_PAGE_FLAGS
--#endif
+-	rc = active_cln_insert(entry);
++	rc = active_cacheline_insert(entry);
+ 	if (rc == -ENOMEM) {
+ 		pr_err("DMA-API: cacheline tracking ENOMEM, dma-debug disabled\n");
+ 		global_disable = true;
+@@ -664,7 +670,7 @@ static void dma_entry_free(struct dma_de
+ {
+ 	unsigned long flags;
+ 
+-	active_cln_remove(entry);
++	active_cacheline_remove(entry);
+ 
+ 	/*
+ 	 * add to beginning of the list - this way the entries are
+_
+
+Patches currently in -mm which might be from dan.j.williams@intel.com are
+
+dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking.patch
+dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking-v2.patch
+linux-next.patch
+
