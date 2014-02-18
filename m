@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch added to -mm tree
-Date: Tue, 18 Feb 2014 12:44:11 -0800
-Message-ID: <5303c61b.9JZaNdj+Mw3GSNHn%akpm@linux-foundation.org>
+Subject: + pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
+ added to -mm tree
+Date: Tue, 18 Feb 2014 12:44:10 -0800
+Message-ID: <5303c61a.VbMHpKCL2lmq00s5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49244 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750727AbaBRUoM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 15:44:12 -0500
+	with ESMTP id S1750727AbaBRUoL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 15:44:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, fengguang.wu@intel.com, n-horiguchi@ah.jp.nec.com
 
-Subject: + pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,fengguang.wu@intel.com,n-horiguchi@ah.jp.nec.com
+Subject: + pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch added to -mm tree
+To: n-horiguchi@ah.jp.nec.com,fengguang.wu@intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Feb 2014 12:44:11 -0800
+Date: Tue, 18 Feb 2014 12:44:10 -0800
 
 
 The patch titled
-     Subject: pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix
+     Subject: fs/proc/task_mmu.c: assume non-NULL vma in pagemap_hugetlb()
 has been added to the -mm tree.  Its filename is
-     pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+     pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,59 +44,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: fs/proc/task_mmu.c: assume non-NULL vma in pagemap_hugetlb()
 
-remove the assertion altogether - the null deref is sufficient
+Fengguang reported smatch error about potential NULL pointer access.
 
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+In updated page table walker, we never run ->hugetlb_entry() callback
+on the address without vma. This is because __walk_page_range() checks
+it in advance. So we can assume non-NULL vma in pagemap_hugetlb().
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/proc/task_mmu.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix
+diff -puN fs/proc/task_mmu.c~pagewalk-remove-argument-hmask-from-hugetlb_entry-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagewalk-remove-argument-hmask-from-hugetlb_entry-fix
 +++ a/fs/proc/task_mmu.c
-@@ -1032,8 +1032,6 @@ static int pagemap_hugetlb(pte_t *pte, u
+@@ -1032,9 +1032,9 @@ static int pagemap_hugetlb(pte_t *pte, u
  	pagemap_entry_t pme;
  	unsigned long hmask;
  
--	BUG_ON(!vma);
--
- 	if (vma->vm_flags & VM_SOFTDIRTY)
+-	WARN_ON_ONCE(!vma);
++	BUG_ON(!vma);
+ 
+-	if (vma && (vma->vm_flags & VM_SOFTDIRTY))
++	if (vma->vm_flags & VM_SOFTDIRTY)
  		flags2 = __PM_SOFT_DIRTY;
  	else
+ 		flags2 = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
-mm.patch
+mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault.patch
+mm-hugetlb-unify-region-structure-handling.patch
+mm-hugetlb-improve-cleanup-resv_map-parameters.patch
+mm-hugetlb-fix-race-in-region-tracking.patch
+mm-hugetlb-remove-resv_map_put.patch
+mm-hugetlb-use-vma_resv_map-map-types.patch
+mm-hugetlb-improve-page-fault-scalability.patch
 mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+madvise-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
 pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-rename-__do_fault-do_fault.patch
+mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
+mm-introduce-do_read_fault.patch
+mm-introduce-do_cow_fault.patch
+mm-introduce-do_shared_fault-and-drop-do_fault.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
+mm-consolidate-code-to-setup-pte.patch
 
