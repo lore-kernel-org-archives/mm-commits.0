@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + printk-remove-duplicated-check-for-log-level.patch added to -mm tree
-Date: Tue, 18 Feb 2014 13:03:42 -0800
-Message-ID: <5303caae.Mj7apr7af5gpAeAS%akpm@linux-foundation.org>
+Subject: +
+ printk-add-comment-about-tricky-check-for-text-buffer-size.patch added to
+ -mm tree
+Date: Tue, 18 Feb 2014 13:03:44 -0800
+Message-ID: <5303cab0.ibeWUy6FdPGFMT5b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49905 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49916 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751945AbaBRVDn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 16:03:43 -0500
+	with ESMTP id S1752321AbaBRVDp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 16:03:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rostedt@goodmis.org, mhocko@suse.cz, kay@vrfy.org, jack@suse.cz, fweisbec@gmail.com, pmladek@suse.cz
 
-Subject: + printk-remove-duplicated-check-for-log-level.patch added to -mm tree
+Subject: + printk-add-comment-about-tricky-check-for-text-buffer-size.patch added to -mm tree
 To: pmladek@suse.cz,fweisbec@gmail.com,jack@suse.cz,kay@vrfy.org,mhocko@suse.cz,rostedt@goodmis.org
 From: akpm@linux-foundation.org
-Date: Tue, 18 Feb 2014 13:03:42 -0800
+Date: Tue, 18 Feb 2014 13:03:44 -0800
 
 
 The patch titled
-     Subject: printk: remove duplicated check for log level
+     Subject: printk: add comment about tricky check for text buffer size
 has been added to the -mm tree.  Its filename is
-     printk-remove-duplicated-check-for-log-level.patch
+     printk-add-comment-about-tricky-check-for-text-buffer-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-remove-duplicated-check-for-log-level.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-add-comment-about-tricky-check-for-text-buffer-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-remove-duplicated-check-for-log-level.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-add-comment-about-tricky-check-for-text-buffer-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,10 +46,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.cz>
-Subject: printk: remove duplicated check for log level
+Subject: printk: add comment about tricky check for text buffer size
 
-The check for the exact log level is already done in printk_get_level.  We
-do not need to duplicate it in printk_skip_level.
+There is no check for potential "text_len" overflow.  It is not needed
+because only valid level is detected.  It took me some time to understand
+why.  It would deserve a comment ;-)
 
 Signed-off-by: Petr Mladek <pmladek@suse.cz>
 Cc: Steven Rostedt <rostedt@goodmis.org>
@@ -58,29 +61,24 @@ Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ kernel/printk/printk.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/printk.h~printk-remove-duplicated-check-for-log-level include/linux/printk.h
---- a/include/linux/printk.h~printk-remove-duplicated-check-for-log-level
-+++ a/include/linux/printk.h
-@@ -24,13 +24,9 @@ static inline int printk_get_level(const
- 
- static inline const char *printk_skip_level(const char *buffer)
- {
--	if (printk_get_level(buffer)) {
--		switch (buffer[1]) {
--		case '0' ... '7':
--		case 'd':	/* KERN_DEFAULT */
--			return buffer + 2;
--		}
--	}
-+	if (printk_get_level(buffer))
-+		return buffer + 2;
-+
- 	return buffer;
- }
- 
+diff -puN kernel/printk/printk.c~printk-add-comment-about-tricky-check-for-text-buffer-size kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-add-comment-about-tricky-check-for-text-buffer-size
++++ a/kernel/printk/printk.c
+@@ -1561,6 +1561,11 @@ asmlinkage int vprintk_emit(int facility
+ 			case 'd':	/* KERN_DEFAULT */
+ 				lflags |= LOG_PREFIX;
+ 			}
++			/*
++			 * No need to check length here because vscnprintf
++			 * put '\0' at the end of the string. Only valid and
++			 * newly printed level is detected.
++			 */
+ 			text_len -= end_of_header - text;
+ 			text = (char *)end_of_header;
+ 		}
 _
 
 Patches currently in -mm which might be from pmladek@suse.cz are
