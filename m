@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ncpfs-cleanup-indenting-in-ncp_lookup.patch added to -mm tree
-Date: Tue, 18 Feb 2014 13:43:22 -0800
-Message-ID: <5303d3fa.GYhKiqaSuzChbZNi%akpm@linux-foundation.org>
+Subject: + mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch added to -mm tree
+Date: Tue, 18 Feb 2014 13:58:02 -0800
+Message-ID: <5303d76a.zmQ+Kz2zOLQxRXOk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50187 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50298 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636AbaBRVnX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 16:43:23 -0500
+	with ESMTP id S1751260AbaBRV6D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 16:58:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, petr@vandrovec.name, chiluk@canonical.com, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, matthew.r.wilcox@intel.com, dave.hansen@linux.intel.com, ak@linux.intel.com, kirill.shutemov@linux.intel.com
 
-Subject: + ncpfs-cleanup-indenting-in-ncp_lookup.patch added to -mm tree
-To: dan.carpenter@oracle.com,chiluk@canonical.com,petr@vandrovec.name
+Subject: + mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,dave.hansen@linux.intel.com,matthew.r.wilcox@intel.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Feb 2014 13:43:22 -0800
+Date: Tue, 18 Feb 2014 13:58:02 -0800
 
 
 The patch titled
-     Subject: fs/ncpfs/dir.c: fix indenting in ncp_lookup()
+     Subject: mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix
 has been added to the -mm tree.  Its filename is
-     ncpfs-cleanup-indenting-in-ncp_lookup.patch
+     mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ncpfs-cleanup-indenting-in-ncp_lookup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ncpfs-cleanup-indenting-in-ncp_lookup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,43 +43,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: fs/ncpfs/dir.c: fix indenting in ncp_lookup()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix
 
-My static checker suggests adding curly braces here.  Probably that was
-the intent, but actually the code works the same either way.  I've just
-changed the indenting and left the code as-is.
+I forgot to set VM_FAULT_LOCKED bit in do_page_mkwrite() return code, if
+we lock the page in do_page_mkwrite(). It triggers deadlock, if
+->page_mkwrite doesn't take page lock on its own.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Petr Vandrovec <petr@vandrovec.name>
-Cc: Dave Chiluk <chiluk@canonical.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/dir.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ncpfs/dir.c~ncpfs-cleanup-indenting-in-ncp_lookup fs/ncpfs/dir.c
---- a/fs/ncpfs/dir.c~ncpfs-cleanup-indenting-in-ncp_lookup
-+++ a/fs/ncpfs/dir.c
-@@ -849,8 +849,8 @@ static struct dentry *ncp_lookup(struct
- 				 dentry->d_name.len, 1);
- 		if (!res)
- 			res = ncp_lookup_volume(server, __name, &(finfo.i));
--			if (!res)
--				ncp_update_known_namespace(server, finfo.i.volNumber, NULL);
-+		if (!res)
-+			ncp_update_known_namespace(server, finfo.i.volNumber, NULL);
- 	} else {
- 		res = ncp_io2vol(server, __name, &len, dentry->d_name.name,
- 				 dentry->d_name.len, !ncp_preserve_case(dir));
+diff -puN mm/memory.c~mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix mm/memory.c
+--- a/mm/memory.c~mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix
++++ a/mm/memory.c
+@@ -2612,6 +2612,7 @@ static int do_page_mkwrite(struct vm_are
+ 			unlock_page(page);
+ 			return 0; /* retry */
+ 		}
++		ret |= VM_FAULT_LOCKED;
+ 	} else
+ 		VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-origin.patch
-drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
-ncpfs-cleanup-indenting-in-ncp_lookup.patch
-drivers-misc-sgi-gru-grukdumpc-cleanup-gru_dump_context-a-little.patch
-linux-next.patch
+mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault.patch
+mm-thp-fix-infinite-loop-on-memcg-oom.patch
+memcg-change-oom_info_lock-to-mutex.patch
+mm-close-pagetail-race.patch
+mm-page_alloc-make-first_page-visible-before-pagetail.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+madvise-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-rename-__do_fault-do_fault.patch
+mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
+mm-introduce-do_read_fault.patch
+mm-introduce-do_cow_fault.patch
+mm-introduce-do_shared_fault-and-drop-do_fault.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
+mm-consolidate-code-to-setup-pte.patch
+mm-thp-drop-do_huge_pmd_wp_zero_page_fallback.patch
 
