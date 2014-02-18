@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-groupsc-remove-return-value-of-set_groups.patch added to -mm tree
-Date: Tue, 18 Feb 2014 15:03:53 -0800
-Message-ID: <5303e6d9.JoMAYq3c4Ajur9FQ%akpm@linux-foundation.org>
+Subject: + kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+ added to -mm tree
+Date: Tue, 18 Feb 2014 15:03:54 -0800
+Message-ID: <5303e6da.8AUkafeibRPHwvcf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51443 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51449 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751821AbaBRXDy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 18:03:54 -0500
+	with ESMTP id S1752815AbaBRXDz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 18:03:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, serge.hallyn@canonical.com, eparis@redhat.com, ebiederm@xmission.com, udknight@gmail.com
+To: mm-commits@vger.kernel.org, udknight@gmail.com, serge.hallyn@canonical.com, eparis@redhat.com, ebiederm@xmission.com, akpm@linux-foundation.org
 
-Subject: + kernel-groupsc-remove-return-value-of-set_groups.patch added to -mm tree
-To: udknight@gmail.com,ebiederm@xmission.com,eparis@redhat.com,serge.hallyn@canonical.com
+Subject: + kernel-groupsc-remove-return-value-of-set_groups-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,ebiederm@xmission.com,eparis@redhat.com,serge.hallyn@canonical.com,udknight@gmail.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Feb 2014 15:03:53 -0800
+Date: Tue, 18 Feb 2014 15:03:54 -0800
 
 
 The patch titled
-     Subject: kernel/groups.c: remove return value of set_groups
+     Subject: kernel-groupsc-remove-return-value-of-set_groups-fix
 has been added to the -mm tree.  Its filename is
-     kernel-groupsc-remove-return-value-of-set_groups.patch
+     kernel-groupsc-remove-return-value-of-set_groups-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-groupsc-remove-return-value-of-set_groups.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-groupsc-remove-return-value-of-set_groups-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-groupsc-remove-return-value-of-set_groups.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-groupsc-remove-return-value-of-set_groups-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,93 +44,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang YanQing <udknight@gmail.com>
-Subject: kernel/groups.c: remove return value of set_groups
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-groupsc-remove-return-value-of-set_groups-fix
 
-After 6307f8fee295 ("security: remove dead hook task_setgroups"),
-set_groups will always return zero, so we could just remove return value
-of set_groups.
+remove obsolete claims from set_groups() comment
 
-This patch reduces code size, and simplfies code to use set_groups,
-because we don't need to check its return value any more.
-
-Signed-off-by: Wang YanQing <udknight@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Cc: Eric Paris <eparis@redhat.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Wang YanQing <udknight@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/auth.c       |    5 +----
- include/linux/cred.h |    2 +-
- kernel/groups.c      |   11 ++---------
- 3 files changed, 4 insertions(+), 14 deletions(-)
+ kernel/groups.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/nfsd/auth.c~kernel-groupsc-remove-return-value-of-set_groups fs/nfsd/auth.c
---- a/fs/nfsd/auth.c~kernel-groupsc-remove-return-value-of-set_groups
-+++ a/fs/nfsd/auth.c
-@@ -71,10 +71,8 @@ int nfsd_setuser(struct svc_rqst *rqstp,
- 	if (gid_eq(new->fsgid, INVALID_GID))
- 		new->fsgid = exp->ex_anon_gid;
- 
--	ret = set_groups(new, gi);
-+	set_groups(new, gi);
- 	put_group_info(gi);
--	if (ret < 0)
--		goto error;
- 
- 	if (!uid_eq(new->fsuid, GLOBAL_ROOT_UID))
- 		new->cap_effective = cap_drop_nfsd_set(new->cap_effective);
-@@ -89,7 +87,6 @@ int nfsd_setuser(struct svc_rqst *rqstp,
- 
- oom:
- 	ret = -ENOMEM;
--error:
- 	abort_creds(new);
- 	return ret;
- }
-diff -puN include/linux/cred.h~kernel-groupsc-remove-return-value-of-set_groups include/linux/cred.h
---- a/include/linux/cred.h~kernel-groupsc-remove-return-value-of-set_groups
-+++ a/include/linux/cred.h
-@@ -66,7 +66,7 @@ extern struct group_info *groups_alloc(i
- extern struct group_info init_groups;
- extern void groups_free(struct group_info *);
- extern int set_current_groups(struct group_info *);
--extern int set_groups(struct cred *, struct group_info *);
-+extern void set_groups(struct cred *, struct group_info *);
- extern int groups_search(const struct group_info *, kgid_t);
- 
- /* access the groups "array" with this macro */
-diff -puN kernel/groups.c~kernel-groupsc-remove-return-value-of-set_groups kernel/groups.c
---- a/kernel/groups.c~kernel-groupsc-remove-return-value-of-set_groups
+diff -puN kernel/groups.c~kernel-groupsc-remove-return-value-of-set_groups-fix kernel/groups.c
+--- a/kernel/groups.c~kernel-groupsc-remove-return-value-of-set_groups-fix
 +++ a/kernel/groups.c
-@@ -161,13 +161,12 @@ int groups_search(const struct group_inf
-  * Validate a group subscription and, if valid, insert it into a set
-  * of credentials.
+@@ -157,9 +157,6 @@ int groups_search(const struct group_inf
+  * set_groups - Change a group subscription in a set of credentials
+  * @new: The newly prepared set of credentials to alter
+  * @group_info: The group list to install
+- *
+- * Validate a group subscription and, if valid, insert it into a set
+- * of credentials.
   */
--int set_groups(struct cred *new, struct group_info *group_info)
-+void set_groups(struct cred *new, struct group_info *group_info)
+ void set_groups(struct cred *new, struct group_info *group_info)
  {
- 	put_group_info(new->group_info);
- 	groups_sort(group_info);
- 	get_group_info(group_info);
- 	new->group_info = group_info;
--	return 0;
- }
- 
- EXPORT_SYMBOL(set_groups);
-@@ -182,18 +181,12 @@ EXPORT_SYMBOL(set_groups);
- int set_current_groups(struct group_info *group_info)
- {
- 	struct cred *new;
--	int ret;
- 
- 	new = prepare_creds();
- 	if (!new)
- 		return -ENOMEM;
- 
--	ret = set_groups(new, group_info);
--	if (ret < 0) {
--		abort_creds(new);
--		return ret;
--	}
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
