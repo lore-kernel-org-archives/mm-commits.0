@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-update-octal-permissions-warning.patch added to -mm
- tree
-Date: Tue, 18 Feb 2014 14:50:05 -0800
-Message-ID: <5303e39d.k6nnB3Nhzb5cEuO5%akpm@linux-foundation.org>
+Subject: + checkpatch-avoid-sscanf-test-duplicated-messages.patch added to -mm tree
+Date: Tue, 18 Feb 2014 14:50:06 -0800
+Message-ID: <5303e39e.MKOJJkTs2DMgE1ZY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51317 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51320 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753863AbaBRWuG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 17:50:06 -0500
+	with ESMTP id S1753213AbaBRWuH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 17:50:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + checkpatch-update-octal-permissions-warning.patch added to -mm tree
+Subject: + checkpatch-avoid-sscanf-test-duplicated-messages.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Feb 2014 14:50:05 -0800
+Date: Tue, 18 Feb 2014 14:50:06 -0800
 
 
 The patch titled
-     Subject: checkpatch: update octal permissions warning
+     Subject: checkpatch: avoid sscanf test duplicated messages
 has been added to the -mm tree.  Its filename is
-     checkpatch-update-octal-permissions-warning.patch
+     checkpatch-avoid-sscanf-test-duplicated-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-update-octal-permissions-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-avoid-sscanf-test-duplicated-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-update-octal-permissions-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-avoid-sscanf-test-duplicated-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,35 +44,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: update octal permissions warning
+Subject: checkpatch: avoid sscanf test duplicated messages
 
-When checking permissions, make sure 4 octal digits are used, but allow a
-single 0 too.
+Change a test of $dstat to $line to avoid possibly emitting the sscanf
+warning multiple times.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-update-octal-permissions-warning scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-update-octal-permissions-warning
+diff -puN scripts/checkpatch.pl~checkpatch-avoid-sscanf-test-duplicated-messages scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-avoid-sscanf-test-duplicated-messages
 +++ a/scripts/checkpatch.pl
-@@ -4512,9 +4512,11 @@ sub process {
- 				my $val = $1;
- 				$val = $6 if ($skip_args ne "");
- 
--				if ($val =~ /^$Int$/ && $val !~ /^$Octal$/) {
-+				if ($val !~ /^0$/ &&
-+				    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
-+				     length($val) ne 4)) {
- 					ERROR("NON_OCTAL_PERMISSIONS",
--					      "Use octal not decimal permissions\n" . $herecurr);
-+					      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
- 				}
- 			}
- 		}
+@@ -4188,7 +4188,7 @@ sub process {
+ # check for naked sscanf
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    defined $stat &&
+-		    $stat =~ /\bsscanf\b/ &&
++		    $line =~ /\bsscanf\b/ &&
+ 		    ($stat !~ /$Ident\s*=\s*sscanf\s*$balanced_parens/ &&
+ 		     $stat !~ /\bsscanf\s*$balanced_parens\s*(?:$Compare)/ &&
+ 		     $stat !~ /(?:$Compare)\s*\bsscanf\s*$balanced_parens/)) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
