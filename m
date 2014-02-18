@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch added to -mm tree
-Date: Tue, 18 Feb 2014 14:07:38 -0800
-Message-ID: <5303d9aa.4bESaWfXALhMOTKs%akpm@linux-foundation.org>
+Subject: + fs-proc-meminfo-meminfo_proc_show-fix-typo-in-comment.patch
+ added to -mm tree
+Date: Tue, 18 Feb 2014 14:12:51 -0800
+Message-ID: <5303dae3.SDuMXfORjr2YiFOi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50387 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50401 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751270AbaBRWHj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 17:07:39 -0500
+	with ESMTP id S1752264AbaBRWMv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 17:12:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sougata@tuxera.com, slava@dubeyko.com, khoroshilov@ispras.ru, hch@lst.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, lcapitulino@redhat.com
 
-Subject: + hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,hch@lst.de,khoroshilov@ispras.ru,slava@dubeyko.com,sougata@tuxera.com
+Subject: + fs-proc-meminfo-meminfo_proc_show-fix-typo-in-comment.patch added to -mm tree
+To: lcapitulino@redhat.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Feb 2014 14:07:38 -0800
+Date: Tue, 18 Feb 2014 14:12:51 -0800
 
 
 The patch titled
-     Subject: hfsplus-fix-concurrent-acess-of-alloc_blocks-fix
+     Subject: fs/proc/meminfo: meminfo_proc_show(): fix typo in comment
 has been added to the -mm tree.  Its filename is
-     hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+     fs-proc-meminfo-meminfo_proc_show-fix-typo-in-comment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-meminfo-meminfo_proc_show-fix-typo-in-comment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-meminfo-meminfo_proc_show-fix-typo-in-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,77 +44,33 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hfsplus-fix-concurrent-acess-of-alloc_blocks-fix
+From: Luiz Capitulino <lcapitulino@redhat.com>
+Subject: fs/proc/meminfo: meminfo_proc_show(): fix typo in comment
 
-take extents_lock before taking a copy of ->alloc_blocks
+It should read "reclaimable slab" and not "reclaimable swap".
 
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Sougata Santra <sougata@tuxera.com>
-Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/extents.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/proc/meminfo.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/extents.c~hfsplus-fix-concurrent-acess-of-alloc_blocks-fix fs/hfsplus/extents.c
---- a/fs/hfsplus/extents.c~hfsplus-fix-concurrent-acess-of-alloc_blocks-fix
-+++ a/fs/hfsplus/extents.c
-@@ -556,11 +556,13 @@ void hfsplus_file_truncate(struct inode
+diff -puN fs/proc/meminfo.c~fs-proc-meminfo-meminfo_proc_show-fix-typo-in-comment fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~fs-proc-meminfo-meminfo_proc_show-fix-typo-in-comment
++++ a/fs/proc/meminfo.c
+@@ -73,7 +73,7 @@ static int meminfo_proc_show(struct seq_
+ 	available += pagecache;
  
- 	blk_cnt = (inode->i_size + HFSPLUS_SB(sb)->alloc_blksz - 1) >>
- 			HFSPLUS_SB(sb)->alloc_blksz_shift;
-+
-+	mutex_lock(&hip->extents_lock);
-+
- 	alloc_cnt = hip->alloc_blocks;
- 	if (blk_cnt == alloc_cnt)
--		goto out;
-+		goto out_unlock;
- 
--	mutex_lock(&hip->extents_lock);
- 	res = hfs_find_init(HFSPLUS_SB(sb)->ext_tree, &fd);
- 	if (res) {
- 		mutex_unlock(&hip->extents_lock);
-@@ -594,6 +596,7 @@ void hfsplus_file_truncate(struct inode
- 	hfs_find_exit(&fd);
- 
- 	hip->alloc_blocks = blk_cnt;
-+out_unlock:
- 	mutex_unlock(&hip->extents_lock);
- out:
- 	hip->phys_size = inode->i_size;
+ 	/*
+-	 * Part of the reclaimable swap consists of items that are in use,
++	 * Part of the reclaimable slab consists of items that are in use,
+ 	 * and cannot be freed. Cap this estimate at the low watermark.
+ 	 */
+ 	available += global_page_state(NR_SLAB_RECLAIMABLE) -
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lcapitulino@redhat.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+fs-proc-meminfo-meminfo_proc_show-fix-typo-in-comment.patch
 
