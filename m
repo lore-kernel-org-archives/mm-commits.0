@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kobject-dont-block-for-each-kobject_uevent-v2.patch added to
+Subject: + slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch added to
  -mm tree
-Date: Tue, 18 Feb 2014 12:53:33 -0800
-Message-ID: <5303c84d.WKZ2qsd4gU/MtbdO%akpm@linux-foundation.org>
+Date: Tue, 18 Feb 2014 12:53:34 -0800
+Message-ID: <5303c84e.hNKEYBxwaUTMyOU2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49375 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49378 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751615AbaBRUxe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 15:53:34 -0500
+	with ESMTP id S1751615AbaBRUxg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 15:53:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, penberg@kernel.org, greg@kroah.com, cl@linux.com, vdavydov@parallels.com
 
-Subject: + kobject-dont-block-for-each-kobject_uevent-v2.patch added to -mm tree
+Subject: + slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch added to -mm tree
 To: vdavydov@parallels.com,cl@linux.com,greg@kroah.com,penberg@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 18 Feb 2014 12:53:33 -0800
+Date: Tue, 18 Feb 2014 12:53:34 -0800
 
 
 The patch titled
-     Subject: kobject-dont-block-for-each-kobject_uevent-v2
+     Subject: slub: do not drop slab_mutex for sysfs_slab_add
 has been added to the -mm tree.  Its filename is
-     kobject-dont-block-for-each-kobject_uevent-v2.patch
+     slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kobject-dont-block-for-each-kobject_uevent-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kobject-dont-block-for-each-kobject_uevent-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,49 +45,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: kobject-dont-block-for-each-kobject_uevent-v2
+Subject: slub: do not drop slab_mutex for sysfs_slab_add
 
-I missed that call_usermodehelper_exec() calls cleanup not only on
-success, but also on failure resulting in a bunch of double frees at early
-boot when khelper hasn't been initialized yet :-(
+We release the slab_mutex while calling sysfs_slab_add from
+__kmem_cache_create since commit 66c4c35c6bc5 ("slub: Do not hold
+slub_lock when calling sysfs_slab_add()"), because kobject_uevent called
+by sysfs_slab_add might block waiting for the usermode helper to exec,
+which would result in a deadlock if we took the slab_mutex while executing
+it.
+
+However, apart from complicating synchronization rules, releasing the
+slab_mutex on kmem cache creation can result in a kmemcg-related race. 
+The point is that we check if the memcg cache exists before going to
+__kmem_cache_create, but register the new cache in memcg subsys after it. 
+Since we can drop the mutex there, several threads can see that the memcg
+cache does not exist and proceed to creating it, which is wrong.
+
+Fortunately, recently kobject_uevent was patched to call the usermode
+helper with the UMH_NO_WAIT flag, making the deadlock impossible. 
+Therefore there is no point in releasing the slab_mutex while calling
+sysfs_slab_add, so let's simplify kmem_cache_create synchronization and
+fix the kmemcg-race mentioned above by holding the slab_mutex during the
+whole cache creation path.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject_uevent.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/slub.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN lib/kobject_uevent.c~kobject-dont-block-for-each-kobject_uevent-v2 lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~kobject-dont-block-for-each-kobject_uevent-v2
-+++ a/lib/kobject_uevent.c
-@@ -342,10 +342,10 @@ int kobject_uevent_env(struct kobject *k
- 		info = call_usermodehelper_setup(env->argv[0], env->argv,
- 						 env->envp, GFP_KERNEL,
- 						 NULL, cleanup_uevent_env, env);
--		if (info)
-+		if (info) {
- 			retval = call_usermodehelper_exec(info, UMH_NO_WAIT);
--		if (!retval)
--			env = NULL;	/* will be freed by cleanup_uevent_env */
-+			env = NULL;	/* freed by cleanup_uevent_env */
-+		}
- 	}
+diff -puN mm/slub.c~slub-do-not-drop-slab_mutex-for-sysfs_slab_add mm/slub.c
+--- a/mm/slub.c~slub-do-not-drop-slab_mutex-for-sysfs_slab_add
++++ a/mm/slub.c
+@@ -3237,8 +3237,9 @@ int __kmem_cache_shutdown(struct kmem_ca
  
- exit:
-_
-
-Patches currently in -mm which might be from vdavydov@parallels.com are
-
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
-kobject-dont-block-for-each-kobject_uevent.patch
-kobject-dont-block-for-each-kobject_uevent-v2.patch
-slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
-linux-next.patch
-
+ 	if (!rc) {
+ 		/*
+-		 * We do the same lock strategy around sysfs_slab_add, see
+-		 * __kmem_cache_create. Because this is pretty much the last
++		 * Since slab_attr_store may take the slab_mutex, we should
++		 * release the lock while removing the sysfs entry in order to
++		 * avoid a deadlock. Because this is pretty much the last
+ 		 * operation we do and the lock will be released shortly after
+ 		 * that in slab_common.c, we could just move sysfs_slab_remove
+ 		 * to a later point in common code. We should do that when we
+@@ -3778,10 +3779,7 @@ int __kmem_cache_create(struct kmem_cach
+ 		return 0;
+ 
+ 	memcg_propagate_slab_attrs(s);
+-	mutex_unlock(&slab_mutex);
+ 	err = sysfs_slab_add(s);
+-	mutex_lock(&slab_mutex);
