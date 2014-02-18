@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + backing_dev-fix-hung-task-on-sync.patch added to -mm tree
-Date: Tue, 18 Feb 2014 12:29:08 -0800
-Message-ID: <5303c294.w+TxjHX2eN+oa5o1%akpm__41459.4318288893$1392755458$gmane$org@linux-foundation.org>
+Subject: + pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch added to -mm tree
+Date: Tue, 18 Feb 2014 12:44:11 -0800
+Message-ID: <5303c61b.9JZaNdj+Mw3GSNHn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49193 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49246 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752357AbaBRU3J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 15:29:09 -0500
+	with ESMTP id S1750727AbaBRUoM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 15:44:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zento.linux.org.uk, tj@kernel.org, stable@vger.kernel.org, sonnyrao@chromium.org, semenzato@chromium.org, keescook@chromium.org, jack@suse.cz, gregkh@linuxfoundation.org, david@fromorbit.com, darrick.wong@oracle.com, bleung@chromium.org, axboe@kernel.dk, dbasehore@chromium.org
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, fengguang.wu@intel.com, akpm@linux-foundation.org
 
-Subject: + backing_dev-fix-hung-task-on-sync.patch added to -mm tree
-To: dbasehore@chromium.org,axboe@kernel.dk,bleung@chromium.org,darrick.wong@oracle.com,david@fromorbit.com,gregkh@linuxfoundation.org,jack@suse.cz,keescook@chromium.org,semenzato@chromium.org,sonnyrao@chromium.org,stable@vger.kernel.org,tj@kernel.org,viro@zento.linux.org.uk
+Subject: + pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,fengguang.wu@intel.com,n-horiguchi@ah.jp.nec.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Feb 2014 12:29:08 -0800
+Date: Tue, 18 Feb 2014 12:44:11 -0800
 
 
 The patch titled
-     Subject: backing_dev: fix hung task on sync
+     Subject: pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix
 has been added to the -mm tree.  Its filename is
-     backing_dev-fix-hung-task-on-sync.patch
+     pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/backing_dev-fix-hung-task-on-sync.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/backing_dev-fix-hung-task-on-sync.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,79 +43,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Derek Basehore <dbasehore@chromium.org>
-Subject: backing_dev: fix hung task on sync
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix
 
-bdi_wakeup_thread_delayed() used mod_delayed_work() to schedule work to
-writeback dirty inodes.  The problem with this is that it can delay work
-that is scheduled for immediate execution, such as the work from
-sync_inodes_sb().  This can happen since mod_delayed_work can now steal
-work from a work_queue.  This fixes the problem by using
-queue_delayed_work instead.  This is a regression from the move to the bdi
-workqueue design.
+remove the assertion altogether - the null deref is sufficient
 
-The reason that this causes a problem is that laptop-mode will change the
-delay, dirty_writeback_centisecs, to 60000 (10 minutes) by default.  In
-the case that bdi_wakeup_thread_delayed races with sync_inodes_sb, sync
-will be stopped for 10 minutes and trigger a hung task.  Even if
-dirty_writeback_centisecs is not long enough to cause a hung task, we
-still don't want to delay sync for that long.
-
-For the same reason, this also changes bdi_writeback_workfn to immediately
-queue the work again in the case that the work_list is not empty.  The
-same problem can happen if the sync work is run on the rescue worker.
-
-Signed-off-by: Derek Basehore <dbasehore@chromium.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Alexander Viro <viro@zento.linux.org.uk>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Derek Basehore <dbasehore@chromium.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Benson Leung <bleung@chromium.org>
-Cc: Sonny Rao <sonnyrao@chromium.org>
-Cc: Luigi Semenzato <semenzato@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: <stable@vger.kernel.org>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    5 +++--
- mm/backing-dev.c  |    2 +-
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ fs/proc/task_mmu.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/fs-writeback.c~backing_dev-fix-hung-task-on-sync fs/fs-writeback.c
---- a/fs/fs-writeback.c~backing_dev-fix-hung-task-on-sync
-+++ a/fs/fs-writeback.c
-@@ -1047,8 +1047,9 @@ void bdi_writeback_workfn(struct work_st
- 		trace_writeback_pages_written(pages_written);
- 	}
+diff -puN fs/proc/task_mmu.c~pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix
++++ a/fs/proc/task_mmu.c
+@@ -1032,8 +1032,6 @@ static int pagemap_hugetlb(pte_t *pte, u
+ 	pagemap_entry_t pme;
+ 	unsigned long hmask;
  
--	if (!list_empty(&bdi->work_list) ||
--	    (wb_has_dirty_io(wb) && dirty_writeback_interval))
-+	if (!list_empty(&bdi->work_list))
-+		mod_delayed_work(bdi_wq, &wb->dwork, 0);
-+	else if (wb_has_dirty_io(wb) && dirty_writeback_interval)
- 		queue_delayed_work(bdi_wq, &wb->dwork,
- 			msecs_to_jiffies(dirty_writeback_interval * 10));
- 
-diff -puN mm/backing-dev.c~backing_dev-fix-hung-task-on-sync mm/backing-dev.c
---- a/mm/backing-dev.c~backing_dev-fix-hung-task-on-sync
-+++ a/mm/backing-dev.c
-@@ -294,7 +294,7 @@ void bdi_wakeup_thread_delayed(struct ba
- 	unsigned long timeout;
- 
- 	timeout = msecs_to_jiffies(dirty_writeback_interval * 10);
--	mod_delayed_work(bdi_wq, &bdi->wb.dwork, timeout);
-+	queue_delayed_work(bdi_wq, &bdi->wb.dwork, timeout);
- }
- 
- /*
+-	BUG_ON(!vma);
+-
+ 	if (vma->vm_flags & VM_SOFTDIRTY)
+ 		flags2 = __PM_SOFT_DIRTY;
+ 	else
 _
 
-Patches currently in -mm which might be from dbasehore@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-backing_dev-fix-hung-task-on-sync.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
