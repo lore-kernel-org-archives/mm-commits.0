@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-mark-superh-orphan.patch added to -mm tree
-Date: Tue, 18 Feb 2014 14:53:41 -0800
-Message-ID: <5303e475.CQ+CWD+UqX20rxqz%akpm@linux-foundation.org>
+Subject: + documentation-update-kmemleaktxt.patch added to -mm tree
+Date: Tue, 18 Feb 2014 14:54:58 -0800
+Message-ID: <5303e4c2.Q8i8cNNvYl/tWNBs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51408 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460AbaBRWxm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 17:53:42 -0500
+	with ESMTP id S1753084AbaBRWy7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 17:54:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pebolle@tiscali.nl, paul.mundt@gmail.com, magnus.damm@gmail.com, kuninori.morimoto.gx@renesas.com, horms@verge.net.au, Laurent.pinchart@ideasonboard.com, geert+renesas@linux-m68k.org
+To: mm-commits@vger.kernel.org, catalin.marinas@arm.com, udknight@gmail.com
 
-Subject: + maintainers-mark-superh-orphan.patch added to -mm tree
-To: geert+renesas@linux-m68k.org,Laurent.pinchart@ideasonboard.com,horms@verge.net.au,kuninori.morimoto.gx@renesas.com,magnus.damm@gmail.com,paul.mundt@gmail.com,pebolle@tiscali.nl
+Subject: + documentation-update-kmemleaktxt.patch added to -mm tree
+To: udknight@gmail.com,catalin.marinas@arm.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Feb 2014 14:53:41 -0800
+Date: Tue, 18 Feb 2014 14:54:58 -0800
 
 
 The patch titled
-     Subject: MAINTAINERS: mark SuperH orphan
+     Subject: Documentation/kmemleak.txt: updates
 has been added to the -mm tree.  Its filename is
-     maintainers-mark-superh-orphan.patch
+     documentation-update-kmemleaktxt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-mark-superh-orphan.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-update-kmemleaktxt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-mark-superh-orphan.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-update-kmemleaktxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,61 +43,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@linux-m68k.org>
-Subject: MAINTAINERS: mark SuperH orphan
+From: Wang YanQing <udknight@gmail.com>
+Subject: Documentation/kmemleak.txt: updates
 
-Paul Mundt's email address bounces regularly, and he hasn't taken any
-SuperH patches for about one year.
+Update Documentatin/kmemleak.txt to
+reflect the following changes:
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@linux-m68k.org>
-Suggested-by: Paul Bolle <pebolle@tiscali.nl>
-Cc: Paul Mundt <paul.mundt@gmail.com>
-Cc: Magnus Damm <magnus.damm@gmail.com>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
-Cc: Simon Horman <horms@verge.net.au>
+b69ec42b1b19 ("Kconfig: clean up the long arch list for the DEBUG_KMEMLEAK
+config option") make we can't check supported architectures by read
+Kconfig.debug.
+
+85d3a316c71 ("kmemleak: use rbtree instead of prio tree") convert kmemleak
+to use rbtree instead of prio tree.
+
+Signed-off-by: Wang YanQing <udknight@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS     |    4 ++++
- MAINTAINERS |    4 +---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ Documentation/kmemleak.txt |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN CREDITS~maintainers-mark-superh-orphan CREDITS
---- a/CREDITS~maintainers-mark-superh-orphan
-+++ a/CREDITS
-@@ -2564,6 +2564,10 @@ N. Wolfgang Muees
- E: wolfgang@iksw-muees.de
- D: Auerswald USB driver
+diff -puN Documentation/kmemleak.txt~documentation-update-kmemleaktxt Documentation/kmemleak.txt
+--- a/Documentation/kmemleak.txt~documentation-update-kmemleaktxt
++++ a/Documentation/kmemleak.txt
+@@ -11,9 +11,7 @@ with the difference that the orphan obje
+ reported via /sys/kernel/debug/kmemleak. A similar method is used by the
+ Valgrind tool (memcheck --leak-check) to detect the memory leaks in
+ user-space applications.
+-
+-Please check DEBUG_KMEMLEAK dependencies in lib/Kconfig.debug for supported
+-architectures.
++Kmemleak is supported on x86, arm, powerpc, sparc, sh, microblaze, ppc, mips, s390, metag and tile.
  
-+N: Paul Mundt
-+E: paul.mundt@gmail.com
-+D: SuperH maintainer
-+
- N: Ian A. Murdock
- E: imurdock@gnu.ai.mit.edu
- D: Creator of Debian distribution
-diff -puN MAINTAINERS~maintainers-mark-superh-orphan MAINTAINERS
---- a/MAINTAINERS~maintainers-mark-superh-orphan
-+++ a/MAINTAINERS
-@@ -8376,12 +8376,10 @@ S:	Maintained
- F:	drivers/net/ethernet/dlink/sundance.c
+ Usage
+ -----
+@@ -68,7 +66,7 @@ Basic Algorithm
  
- SUPERH
--M:	Paul Mundt <lethal@linux-sh.org>
- L:	linux-sh@vger.kernel.org
- W:	http://www.linux-sh.org
- Q:	http://patchwork.kernel.org/project/linux-sh/list/
--T:	git git://github.com/pmundt/linux-sh.git sh-latest
--S:	Supported
-+S:	Orphan
- F:	Documentation/sh/
- F:	arch/sh/
- F:	drivers/sh/
+ The memory allocations via kmalloc, vmalloc, kmem_cache_alloc and
+ friends are traced and the pointers, together with additional
+-information like size and stack trace, are stored in a prio search tree.
++information like size and stack trace, are stored in a rbtree.
+ The corresponding freeing function calls are tracked and the pointers
+ removed from the kmemleak data structures.
+ 
+@@ -84,7 +82,7 @@ The scanning algorithm steps:
+   1. mark all objects as white (remaining white objects will later be
+      considered orphan)
+   2. scan the memory starting with the data section and stacks, checking
+-     the values against the addresses stored in the prio search tree. If
++     the values against the addresses stored in the rbtree. If
+      a pointer to a white object is found, the object is added to the
+      gray list
+   3. scan the gray objects for matching addresses (some white objects
 _
 
-Patches currently in -mm which might be from geert+renesas@linux-m68k.org are
+Patches currently in -mm which might be from udknight@gmail.com are
 
-maintainers-mark-superh-orphan.patch
-linux-next.patch
+documentation-update-kmemleaktxt.patch
 
