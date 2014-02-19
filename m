@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + sh-dont-pass-saved-userspace-state-to-exception-handlers.patch
- added to -mm tree
-Date: Wed, 19 Feb 2014 13:01:58 -0800
-Message-ID: <53051bc6.EkbKGMHQTGqD6g8W%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t.patch added to -mm tree
+Date: Wed, 19 Feb 2014 13:03:33 -0800
+Message-ID: <53051c25.bxKPw9uYfiyeclZx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33290 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33295 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755293AbaBSVB7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 16:01:59 -0500
+	with ESMTP id S1754858AbaBSVDf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 16:03:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paul.mundt@gmail.com, koorogi@koorogi.info
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, wen.gang.wang@oracle.com
 
-Subject: + sh-dont-pass-saved-userspace-state-to-exception-handlers.patch added to -mm tree
-To: koorogi@koorogi.info,paul.mundt@gmail.com
+Subject: + ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t.patch added to -mm tree
+To: wen.gang.wang@oracle.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Wed, 19 Feb 2014 13:01:58 -0800
+Date: Wed, 19 Feb 2014 13:03:33 -0800
 
 
 The patch titled
-     Subject: sh: don't pass saved userspace state to exception handlers
+     Subject: ocfs2: change ip_unaligned_aio to of type mutex from atomit_t
 has been added to the -mm tree.  Its filename is
-     sh-dont-pass-saved-userspace-state-to-exception-handlers.patch
+     ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-dont-pass-saved-userspace-state-to-exception-handlers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-dont-pass-saved-userspace-state-to-exception-handlers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,113 +44,125 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bobby Bingham <koorogi@koorogi.info>
-Subject: sh: don't pass saved userspace state to exception handlers
+From: Wengang Wang <wen.gang.wang@oracle.com>
+Subject: ocfs2: change ip_unaligned_aio to of type mutex from atomit_t
 
-The compiler is permitted to generate code which overwrites the parameters
-to a function.  If those parameters include the only saved copy we have of
-userspace's registers, we're in trouble.
+There is a problem that waitqueue_active() may check stale data thus miss
+a wakeup of threads waiting on ip_unaligned_aio.
 
-Signed-off-by: Bobby Bingham <koorogi@koorogi.info>
-Cc: Paul Mundt <paul.mundt@gmail.com>
+The valid value of ip_unaligned_aio is only 0 and 1 so we can change it to
+be of type mutex thus the above prolem is avoid.  Another benifit is that
+mutex which works as FIFO is fairer than wake_up_all().
+
+Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/traps_32.h |   16 ++++------------
- arch/sh/kernel/traps_32.c      |   23 +++++++----------------
- 2 files changed, 11 insertions(+), 28 deletions(-)
+ fs/ocfs2/aops.c  |    6 +-----
+ fs/ocfs2/aops.h  |    5 -----
+ fs/ocfs2/file.c  |   15 +++------------
+ fs/ocfs2/inode.h |    2 +-
+ fs/ocfs2/super.c |    9 ++-------
+ 5 files changed, 7 insertions(+), 30 deletions(-)
 
-diff -puN arch/sh/include/asm/traps_32.h~sh-dont-pass-saved-userspace-state-to-exception-handlers arch/sh/include/asm/traps_32.h
---- a/arch/sh/include/asm/traps_32.h~sh-dont-pass-saved-userspace-state-to-exception-handlers
-+++ a/arch/sh/include/asm/traps_32.h
-@@ -42,18 +42,10 @@ static inline void trigger_address_error
- asmlinkage void do_address_error(struct pt_regs *regs,
- 				 unsigned long writeaccess,
- 				 unsigned long address);
--asmlinkage void do_divide_error(unsigned long r4, unsigned long r5,
--				unsigned long r6, unsigned long r7,
--				struct pt_regs __regs);
--asmlinkage void do_reserved_inst(unsigned long r4, unsigned long r5,
--				unsigned long r6, unsigned long r7,
--				struct pt_regs __regs);
--asmlinkage void do_illegal_slot_inst(unsigned long r4, unsigned long r5,
--				unsigned long r6, unsigned long r7,
--				struct pt_regs __regs);
--asmlinkage void do_exception_error(unsigned long r4, unsigned long r5,
--				   unsigned long r6, unsigned long r7,
--				   struct pt_regs __regs);
-+asmlinkage void do_divide_error(unsigned long r4);
-+asmlinkage void do_reserved_inst(void);
-+asmlinkage void do_illegal_slot_inst(void);
-+asmlinkage void do_exception_error(void);
- 
- #define BUILD_TRAP_HANDLER(name)					\
- asmlinkage void name##_trap_handler(unsigned long r4, unsigned long r5,	\
-diff -puN arch/sh/kernel/traps_32.c~sh-dont-pass-saved-userspace-state-to-exception-handlers arch/sh/kernel/traps_32.c
---- a/arch/sh/kernel/traps_32.c~sh-dont-pass-saved-userspace-state-to-exception-handlers
-+++ a/arch/sh/kernel/traps_32.c
-@@ -594,9 +594,7 @@ int is_dsp_inst(struct pt_regs *regs)
- #endif /* CONFIG_SH_DSP */
- 
- #ifdef CONFIG_CPU_SH2A
--asmlinkage void do_divide_error(unsigned long r4, unsigned long r5,
--				unsigned long r6, unsigned long r7,
--				struct pt_regs __regs)
-+asmlinkage void do_divide_error(unsigned long r4)
+diff -puN fs/ocfs2/aops.c~ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t
++++ a/fs/ocfs2/aops.c
+@@ -571,7 +571,6 @@ static void ocfs2_dio_end_io(struct kioc
  {
- 	siginfo_t info;
+ 	struct inode *inode = file_inode(iocb->ki_filp);
+ 	int level;
+-	wait_queue_head_t *wq = ocfs2_ioend_wq(inode);
  
-@@ -613,11 +611,9 @@ asmlinkage void do_divide_error(unsigned
- }
- #endif
+ 	/* this io's submitter should not have unlocked this before we could */
+ 	BUG_ON(!ocfs2_iocb_is_rw_locked(iocb));
+@@ -582,10 +581,7 @@ static void ocfs2_dio_end_io(struct kioc
+ 	if (ocfs2_iocb_is_unaligned_aio(iocb)) {
+ 		ocfs2_iocb_clear_unaligned_aio(iocb);
  
--asmlinkage void do_reserved_inst(unsigned long r4, unsigned long r5,
--				unsigned long r6, unsigned long r7,
--				struct pt_regs __regs)
-+asmlinkage void do_reserved_inst(void)
- {
--	struct pt_regs *regs = RELOC_HIDE(&__regs, 0);
-+	struct pt_regs *regs = current_pt_regs();
- 	unsigned long error_code;
- 	struct task_struct *tsk = current;
+-		if (atomic_dec_and_test(&OCFS2_I(inode)->ip_unaligned_aio) &&
+-		    waitqueue_active(wq)) {
+-			wake_up_all(wq);
+-		}
++		mutex_unlock(&OCFS2_I(inode)->ip_unaligned_aio);
+ 	}
  
-@@ -701,11 +697,9 @@ static int emulate_branch(unsigned short
- }
- #endif
+ 	ocfs2_iocb_clear_rw_locked(iocb);
+diff -puN fs/ocfs2/aops.h~ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t fs/ocfs2/aops.h
+--- a/fs/ocfs2/aops.h~ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t
++++ a/fs/ocfs2/aops.h
+@@ -102,9 +102,4 @@ enum ocfs2_iocb_lock_bits {
+ #define ocfs2_iocb_is_unaligned_aio(iocb) \
+ 	test_bit(OCFS2_IOCB_UNALIGNED_IO, (unsigned long *)&iocb->private)
  
--asmlinkage void do_illegal_slot_inst(unsigned long r4, unsigned long r5,
--				unsigned long r6, unsigned long r7,
--				struct pt_regs __regs)
-+asmlinkage void do_illegal_slot_inst(void)
- {
--	struct pt_regs *regs = RELOC_HIDE(&__regs, 0);
-+	struct pt_regs *regs = current_pt_regs();
- 	unsigned long inst;
- 	struct task_struct *tsk = current;
- 
-@@ -730,15 +724,12 @@ asmlinkage void do_illegal_slot_inst(uns
- 	die_if_no_fixup("illegal slot instruction", regs, inst);
+-#define OCFS2_IOEND_WQ_HASH_SZ	37
+-#define ocfs2_ioend_wq(v)   (&ocfs2__ioend_wq[((unsigned long)(v)) %\
+-					    OCFS2_IOEND_WQ_HASH_SZ])
+-extern wait_queue_head_t ocfs2__ioend_wq[OCFS2_IOEND_WQ_HASH_SZ];
+-
+ #endif /* OCFS2_FILE_H */
+diff -puN fs/ocfs2/file.c~ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t
++++ a/fs/ocfs2/file.c
+@@ -2061,13 +2061,6 @@ out:
+ 	return ret;
  }
  
--asmlinkage void do_exception_error(unsigned long r4, unsigned long r5,
--				   unsigned long r6, unsigned long r7,
--				   struct pt_regs __regs)
-+asmlinkage void do_exception_error(void)
+-static void ocfs2_aiodio_wait(struct inode *inode)
+-{
+-	wait_queue_head_t *wq = ocfs2_ioend_wq(inode);
+-
+-	wait_event(*wq, (atomic_read(&OCFS2_I(inode)->ip_unaligned_aio) == 0));
+-}
+-
+ static int ocfs2_is_io_unaligned(struct inode *inode, size_t count, loff_t pos)
  {
--	struct pt_regs *regs = RELOC_HIDE(&__regs, 0);
- 	long ex;
+ 	int blockmask = inode->i_sb->s_blocksize - 1;
+@@ -2345,10 +2338,8 @@ relock:
+ 		 * Wait on previous unaligned aio to complete before
+ 		 * proceeding.
+ 		 */
+-		ocfs2_aiodio_wait(inode);
+-
+-		/* Mark the iocb as needing a decrement in ocfs2_dio_end_io */
+-		atomic_inc(&OCFS2_I(inode)->ip_unaligned_aio);
++		mutex_lock(&OCFS2_I(inode)->ip_unaligned_aio);
++		/* Mark the iocb as needing an unlock in ocfs2_dio_end_io */
+ 		ocfs2_iocb_set_unaligned_aio(iocb);
+ 	}
  
- 	ex = lookup_exception_vector();
--	die_if_kernel("exception", regs, ex);
-+	die_if_kernel("exception", current_pt_regs(), ex);
+@@ -2428,7 +2419,7 @@ out_dio:
+ 
+ 	if (unaligned_dio) {
+ 		ocfs2_iocb_clear_unaligned_aio(iocb);
+-		atomic_dec(&OCFS2_I(inode)->ip_unaligned_aio);
++		mutex_unlock(&OCFS2_I(inode)->ip_unaligned_aio);
+ 	}
+ 
+ out:
+diff -puN fs/ocfs2/inode.h~ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t fs/ocfs2/inode.h
+--- a/fs/ocfs2/inode.h~ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t
++++ a/fs/ocfs2/inode.h
+@@ -44,7 +44,7 @@ struct ocfs2_inode_info
+ 	struct rw_semaphore		ip_xattr_sem;
+ 
+ 	/* Number of outstanding AIO's which are not page aligned */
+-	atomic_t			ip_unaligned_aio;
++	struct mutex			ip_unaligned_aio;
+ 
+ 	/* These fields are protected by ip_lock */
+ 	spinlock_t			ip_lock;
+diff -puN fs/ocfs2/super.c~ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-change-ip_unaligned_aio-to-of-type-mutex-from-atomit_t
++++ a/fs/ocfs2/super.c
+@@ -1612,14 +1612,9 @@ static int ocfs2_show_options(struct seq
+ 	return 0;
  }
  
- void per_cpu_trap_init(void)
-_
-
-Patches currently in -mm which might be from koorogi@koorogi.info are
-
-sh-push-extra-copy-of-r0-r2-for-syscall-parameters.patch
-sh-remove-unused-do_fpu_error.patch
-sh-dont-pass-saved-userspace-state-to-exception-handlers.patch
-
+-wait_queue_head_t ocfs2__ioend_wq[OCFS2_IOEND_WQ_HASH_SZ];
+-
+ static int __init ocfs2_init(void)
+ {
+-	int status, i;
