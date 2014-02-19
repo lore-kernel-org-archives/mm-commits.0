@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
- added to -mm tree
-Date: Wed, 19 Feb 2014 12:58:31 -0800
-Message-ID: <53051af7.wkFHl42BmdKThppP%akpm@linux-foundation.org>
+Subject: + sh-remove-unused-do_fpu_error.patch added to -mm tree
+Date: Wed, 19 Feb 2014 13:01:57 -0800
+Message-ID: <53051bc5.UDyIAT+mUstDSIrt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33275 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33288 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753573AbaBSU6c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 15:58:32 -0500
+	with ESMTP id S1755292AbaBSVB6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 16:01:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sougata@tuxera.com, slava@dubeyko.com, khoroshilov@ispras.ru, hch@lst.de, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, paul.mundt@gmail.com, koorogi@koorogi.info
 
-Subject: + hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,hch@lst.de,khoroshilov@ispras.ru,slava@dubeyko.com,sougata@tuxera.com
+Subject: + sh-remove-unused-do_fpu_error.patch added to -mm tree
+To: koorogi@koorogi.info,paul.mundt@gmail.com
 From: akpm@linux-foundation.org
-Date: Wed, 19 Feb 2014 12:58:31 -0800
+Date: Wed, 19 Feb 2014 13:01:57 -0800
 
 
 The patch titled
-     Subject: hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix
+     Subject: sh: remove unused do_fpu_error
 has been added to the -mm tree.  Its filename is
-     hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+     sh-remove-unused-do_fpu_error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-remove-unused-do_fpu_error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-remove-unused-do_fpu_error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,66 +43,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix
+From: Bobby Bingham <koorogi@koorogi.info>
+Subject: sh: remove unused do_fpu_error
 
-remove now-unused label `out'
+This does not appear to have been used since 74d99a5e26222 ("sh: SH-2A FPU
+support") in 2007.
 
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Sougata Santra <sougata@tuxera.com>
-Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Signed-off-by: Bobby Bingham <koorogi@koorogi.info>
+Cc: Paul Mundt <paul.mundt@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/extents.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/sh/math-emu/math.c |   18 ------------------
+ 1 file changed, 18 deletions(-)
 
-diff -puN fs/hfsplus/extents.c~hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix fs/hfsplus/extents.c
---- a/fs/hfsplus/extents.c~hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix
-+++ a/fs/hfsplus/extents.c
-@@ -598,7 +598,6 @@ void hfsplus_file_truncate(struct inode
- 	hip->alloc_blocks = blk_cnt;
- out_unlock:
- 	mutex_unlock(&hip->extents_lock);
--out:
- 	hip->phys_size = inode->i_size;
- 	hip->fs_blocks = (inode->i_size + sb->s_blocksize - 1) >>
- 		sb->s_blocksize_bits;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+diff -puN arch/sh/math-emu/math.c~sh-remove-unused-do_fpu_error arch/sh/math-emu/math.c
+--- a/arch/sh/math-emu/math.c~sh-remove-unused-do_fpu_error
++++ a/arch/sh/math-emu/math.c
+@@ -574,24 +574,6 @@ static int ieee_fpe_handler(struct pt_re
+ 	return 0;
+ }
+ 
+-asmlinkage void do_fpu_error(unsigned long r4, unsigned long r5,
+-			     unsigned long r6, unsigned long r7,
+-			     struct pt_regs regs)
+-{
+-	struct task_struct *tsk = current;
+-	siginfo_t info;
+-
+-	if (ieee_fpe_handler (&regs))
+-		return;
+-
+-	regs.pc += 2;
+-	info.si_signo = SIGFPE;
+-	info.si_errno = 0;
+-	info.si_code = FPE_FLTINV;
+-	info.si_addr = (void __user *)regs.pc;
+-	force_sig_info(SIGFPE, &info, tsk);
+-}
