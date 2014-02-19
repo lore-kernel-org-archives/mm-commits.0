@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mmnuma-reorganize-change_pmd_range-fix.patch added to -mm tree
-Date: Wed, 19 Feb 2014 11:27:47 -0800
-Message-ID: <530505b3.p/j90++BNihTJlzK%akpm@linux-foundation.org>
+Subject: + befs-replace-kmalloc-memset-0-by-kzalloc.patch added to -mm
+ tree
+Date: Wed, 19 Feb 2014 12:45:02 -0800
+Message-ID: <530517ce.JPEOkxUgVCBCbKCV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60825 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33183 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755182AbaBST1t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 14:27:49 -0500
+	with ESMTP id S1753503AbaBSUpD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 15:45:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, riel@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + mmnuma-reorganize-change_pmd_range-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,riel@redhat.com,rientjes@google.com
+Subject: + befs-replace-kmalloc-memset-0-by-kzalloc.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Wed, 19 Feb 2014 11:27:47 -0800
+Date: Wed, 19 Feb 2014 12:45:02 -0800
 
 
 The patch titled
-     Subject: mmnuma-reorganize-change_pmd_range-fix
+     Subject: befs: replace kmalloc/memset 0 by kzalloc
 has been added to the -mm tree.  Its filename is
-     mmnuma-reorganize-change_pmd_range-fix.patch
+     befs-replace-kmalloc-memset-0-by-kzalloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmnuma-reorganize-change_pmd_range-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/befs-replace-kmalloc-memset-0-by-kzalloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmnuma-reorganize-change_pmd_range-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/befs-replace-kmalloc-memset-0-by-kzalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,64 +44,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmnuma-reorganize-change_pmd_range-fix
+From: Fabian Frederick <fabf@skynet.be>
+Subject: befs: replace kmalloc/memset 0 by kzalloc
 
-fix indenting, per David
+Use kzalloc for clean fs_info allocation like other filesystems.
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/befs/linuxvfs.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/mprotect.c~mmnuma-reorganize-change_pmd_range-fix mm/mprotect.c
---- a/mm/mprotect.c~mmnuma-reorganize-change_pmd_range-fix
-+++ a/mm/mprotect.c
-@@ -119,7 +119,7 @@ static inline unsigned long change_pmd_r
+diff -puN fs/befs/linuxvfs.c~befs-replace-kmalloc-memset-0-by-kzalloc fs/befs/linuxvfs.c
+--- a/fs/befs/linuxvfs.c~befs-replace-kmalloc-memset-0-by-kzalloc
++++ a/fs/befs/linuxvfs.c
+@@ -791,7 +791,7 @@ befs_fill_super(struct super_block *sb,
  
- 		next = pmd_addr_end(addr, end);
- 		if (!pmd_trans_huge(*pmd) && pmd_none_or_clear_bad(pmd))
--				continue;
-+			continue;
- 		if (pmd_trans_huge(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
- 				split_huge_page_pmd(vma, addr, pmd);
+ 	save_mount_options(sb, data);
+ 
+-	sb->s_fs_info = kmalloc(sizeof (*befs_sb), GFP_KERNEL);
++	sb->s_fs_info = kzalloc(sizeof(*befs_sb), GFP_KERNEL);
+ 	if (sb->s_fs_info == NULL) {
+ 		printk(KERN_ERR
+ 		       "BeFS(%s): Unable to allocate memory for private "
+@@ -799,7 +799,6 @@ befs_fill_super(struct super_block *sb,
+ 		goto unacquire_none;
+ 	}
+ 	befs_sb = BEFS_SB(sb);
+-	memset(befs_sb, 0, sizeof(befs_sb_info));
+ 
+ 	if (!parse_options((char *) data, &befs_sb->mount_opts)) {
+ 		befs_error(sb, "cannot parse mount options");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+fs-udf-superc-add-__init-to-init_inodecache.patch
+sys_sysfs-add-config_sysfs_syscall.patch
 sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
+fs-minix-inodec-add-__init-to-init_inodecache.patch
+befs-replace-kmalloc-memset-0-by-kzalloc.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
 kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
