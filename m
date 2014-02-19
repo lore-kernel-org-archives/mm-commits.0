@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-do-not-check-compaction_ready-on-promoted-zones.patch added to -mm tree
-Date: Wed, 19 Feb 2014 14:32:10 -0800
-Message-ID: <530530ea.L0fEaFFozqxnADhj%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-remove-unused-variable-uuid_net_key-in-ocfs2_initialize_super.patch
+ added to -mm tree
+Date: Wed, 19 Feb 2014 14:33:10 -0800
+Message-ID: <53053126.fcKiVDtcZydPgKpi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33689 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954AbaBSWcL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 17:32:11 -0500
+	with ESMTP id S1750931AbaBSWdL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 17:33:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, weijie.yang@samsung.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: + mm-vmscan-do-not-check-compaction_ready-on-promoted-zones.patch added to -mm tree
-To: weijie.yang@samsung.com,mgorman@suse.de,riel@redhat.com
+Subject: + ocfs2-remove-unused-variable-uuid_net_key-in-ocfs2_initialize_super.patch added to -mm tree
+To: xuejiufei@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Wed, 19 Feb 2014 14:32:10 -0800
+Date: Wed, 19 Feb 2014 14:33:10 -0800
 
 
 The patch titled
-     Subject: mm/vmscan: do not check compaction_ready on promoted zones
+     Subject: ocfs2: remove unused variable uuid_net_key in ocfs2_initialize_super
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-do-not-check-compaction_ready-on-promoted-zones.patch
+     ocfs2-remove-unused-variable-uuid_net_key-in-ocfs2_initialize_super.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-do-not-check-compaction_ready-on-promoted-zones.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-unused-variable-uuid_net_key-in-ocfs2_initialize_super.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-do-not-check-compaction_ready-on-promoted-zones.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-unused-variable-uuid_net_key-in-ocfs2_initialize_super.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,55 +45,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Weijie Yang <weijie.yang@samsung.com>
-Subject: mm/vmscan: do not check compaction_ready on promoted zones
+From: joyce.xue <xuejiufei@huawei.com>
+Subject: ocfs2: remove unused variable uuid_net_key in ocfs2_initialize_super
 
-We abort direct reclaim if we find the zone is ready for compaction. 
-Sometimes the zone is just a promoted highmem zone to force a scan of
-highmem, which is not the intended zone the caller want to allocate a page
-from.  In this situation, setting aborted_reclaim to indicate the caller
-turned back to retry the allocation is waste of time and could cause a
-loop in __alloc_pages_slowpath().
+Variable uuid_net_key in ocfs2_initialize_super() is not used.  Clean it
+up.
 
-This patch does not check compaction_ready() on promoted zones to avoid
-the above situation.  Only set aborted_reclaim if the caller intended zone
-is ready for compaction.
-
-Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/ocfs2/super.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-check-compaction_ready-on-promoted-zones mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-check-compaction_ready-on-promoted-zones
-+++ a/mm/vmscan.c
-@@ -2318,6 +2318,7 @@ static bool shrink_zones(struct zonelist
- 	struct shrink_control shrink = {
- 		.gfp_mask = sc->gfp_mask,
- 	};
-+	enum zone_type requested_highidx = gfp_zone(sc->gfp_mask);
+diff -puN fs/ocfs2/super.c~ocfs2-remove-unused-variable-uuid_net_key-in-ocfs2_initialize_super fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-remove-unused-variable-uuid_net_key-in-ocfs2_initialize_super
++++ a/fs/ocfs2/super.c
+@@ -2072,7 +2072,6 @@ static int ocfs2_initialize_super(struct
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)bh->b_data;
+ 	struct inode *inode = NULL;
+ 	struct ocfs2_journal *journal;
+-	__le32 uuid_net_key;
+ 	struct ocfs2_super *osb;
+ 	u64 total_blocks;
  
- 	/*
- 	 * If the number of buffer_heads in the machine exceeds the maximum
-@@ -2358,7 +2359,8 @@ static bool shrink_zones(struct zonelist
- 				 * noticeable problem, like transparent huge
- 				 * page allocations.
- 				 */
--				if (compaction_ready(zone, sc)) {
-+				if ((zonelist_zone_idx(z) <= requested_highidx)
-+				    && compaction_ready(zone, sc)) {
- 					aborted_reclaim = true;
- 					continue;
- 				}
-_
-
-Patches currently in -mm which might be from weijie.yang@samsung.com are
-
-mm-vmscan-restore-sc-gfp_mask-after-promoting-it-to-__gfp_highmem.patch
-mm-vmscan-do-not-check-compaction_ready-on-promoted-zones.patch
-linux-next.patch
-
+@@ -2306,8 +2305,6 @@ static int ocfs2_initialize_super(struct
+ 		goto bail;
+ 	}
+ 
+-	memcpy(&uuid_net_key, di->id2.i_super.s_uuid, sizeof(uuid_net_key));
