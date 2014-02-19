@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- scripts-gen_initramfs_listsh-fix-flags-for-initramfs-lz4-compression.patch
- added to -mm tree
-Date: Tue, 18 Feb 2014 16:20:45 -0800
-Message-ID: <5303f8dd.32JNiOGGdZajznSa%akpm@linux-foundation.org>
+Subject: + schednuma-add-cond_resched-to-task_numa_work.patch added to -mm tree
+Date: Wed, 19 Feb 2014 11:27:45 -0800
+Message-ID: <530505b1.4H8cWU9rNztXupxK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51756 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60816 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751848AbaBSAUq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Feb 2014 19:20:46 -0500
+	with ESMTP id S1754921AbaBST1q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 14:27:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mmarek@suse.cz, kyungsik.lee@lge.com, dan@danweeks.net
+To: mm-commits@vger.kernel.org, rientjes@google.com, peterz@infradead.org, gang.xing@hp.com, chegu_vinod@hp.com, aarcange@redhat.com, riel@redhat.com
 
-Subject: + scripts-gen_initramfs_listsh-fix-flags-for-initramfs-lz4-compression.patch added to -mm tree
-To: dan@danweeks.net,kyungsik.lee@lge.com,mmarek@suse.cz
+Subject: + schednuma-add-cond_resched-to-task_numa_work.patch added to -mm tree
+To: riel@redhat.com,aarcange@redhat.com,chegu_vinod@hp.com,gang.xing@hp.com,peterz@infradead.org,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Feb 2014 16:20:45 -0800
+Date: Wed, 19 Feb 2014 11:27:45 -0800
 
 
 The patch titled
-     Subject: scripts/gen_initramfs_list.sh: fix flags for initramfs LZ4 compression
+     Subject: sched,numa: add cond_resched to task_numa_work
 has been added to the -mm tree.  Its filename is
-     scripts-gen_initramfs_listsh-fix-flags-for-initramfs-lz4-compression.patch
+     schednuma-add-cond_resched-to-task_numa_work.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gen_initramfs_listsh-fix-flags-for-initramfs-lz4-compression.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/schednuma-add-cond_resched-to-task_numa_work.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gen_initramfs_listsh-fix-flags-for-initramfs-lz4-compression.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/schednuma-add-cond_resched-to-task_numa_work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,41 +43,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Daniel M. Weeks" <dan@danweeks.net>
-Subject: scripts/gen_initramfs_list.sh: fix flags for initramfs LZ4 compression
+From: Rik van Riel <riel@redhat.com>
+Subject: sched,numa: add cond_resched to task_numa_work
 
-LZ4 as implemented in the kernel differs from the default method now used
-by the reference implementation of LZ4.  Until the in-kernel method is
-updated to support the new default, passing the legacy flag (-l) to the
-compressor is necessary.  Without this flag the kernel-generated,
-LZ4-compressed initramfs is junk.
+Normally task_numa_work scans over a fairly small amount of memory, but it
+is possible to run into a large unpopulated part of virtual memory, with
+no pages mapped.  In that case, task_numa_work can run for a while, and it
+may make sense to reschedule as required.
 
-Signed-off-by: Daniel M. Weeks <dan@danweeks.net>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Kyungsik Lee <kyungsik.lee@lge.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Xing Gang <gang.xing@hp.com>
+Tested-by: Chegu Vinod <chegu_vinod@hp.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gen_initramfs_list.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched/fair.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/gen_initramfs_list.sh~scripts-gen_initramfs_listsh-fix-flags-for-initramfs-lz4-compression scripts/gen_initramfs_list.sh
---- a/scripts/gen_initramfs_list.sh~scripts-gen_initramfs_listsh-fix-flags-for-initramfs-lz4-compression
-+++ a/scripts/gen_initramfs_list.sh
-@@ -257,7 +257,7 @@ case "$arg" in
-                 && compr="lzop -9 -f"
- 		echo "$output_file" | grep -q "\.lz4$" \
-                 && [ -x "`which lz4 2> /dev/null`" ] \
--                && compr="lz4 -9 -f"
-+                && compr="lz4 -l -9 -f"
- 		echo "$output_file" | grep -q "\.cpio$" && compr="cat"
- 		shift
- 		;;
+diff -puN kernel/sched/fair.c~schednuma-add-cond_resched-to-task_numa_work kernel/sched/fair.c
+--- a/kernel/sched/fair.c~schednuma-add-cond_resched-to-task_numa_work
++++ a/kernel/sched/fair.c
+@@ -1757,6 +1757,8 @@ void task_numa_work(struct callback_head
+ 			start = end;
+ 			if (pages <= 0)
+ 				goto out;
++
++			cond_resched();
+ 		} while (end != vma->vm_end);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from dan@danweeks.net are
+Patches currently in -mm which might be from riel@redhat.com are
 
-scripts-gen_initramfs_listsh-fix-flags-for-initramfs-lz4-compression.patch
-initramfs-debug-detected-compression-method.patch
-initramfs-debug-detected-compression-method-fix.patch
+origin.patch
+mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault.patch
+mm-close-pagetail-race.patch
+mm-page_alloc-make-first_page-visible-before-pagetail.patch
+mm-include-vm_mixedmap-flag-in-the-vm_special-list-to-avoid-munlocking.patch
+mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
+mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
+mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-compaction-avoid-isolating-pinned-pages.patch
+mm-compactionc-mark-function-as-static.patch
+mm-memoryc-mark-functions-as-static.patch
+mm-mmapc-mark-function-as-static.patch
+include-linux-mmh-remove-ifdef-condition.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+madvise-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-rename-__do_fault-do_fault.patch
+mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
+mm-introduce-do_read_fault.patch
+mm-introduce-do_cow_fault.patch
+mm-introduce-do_shared_fault-and-drop-do_fault.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
+mm-consolidate-code-to-setup-pte.patch
+schednuma-add-cond_resched-to-task_numa_work.patch
+mmnuma-reorganize-change_pmd_range.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+move-mmu-notifier-call-from-change_protection-to-change_pmd_range.patch
+fs-proc-meminfo-meminfo_proc_show-fix-typo-in-comment.patch
+linux-next.patch
 
