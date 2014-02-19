@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch added to -mm tree
-Date: Wed, 19 Feb 2014 13:40:48 -0800
-Message-ID: <530524e0.NgKMTcbE7GgzZFmd%akpm@linux-foundation.org>
+ arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch
+ added to -mm tree
+Date: Wed, 19 Feb 2014 14:20:10 -0800
+Message-ID: <53052e1a.hpklOENacistdw6c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33422 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33577 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754422AbaBSVkt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 16:40:49 -0500
+	with ESMTP id S1750939AbaBSWUL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Feb 2014 17:20:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, davej@redhat.com, davej@fedoraproject.org, akinobu.mita@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, vegardno@ifi.uio.no, rientjes@google.com
 
-Subject: + fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,akinobu.mita@gmail.com,davej@fedoraproject.org,davej@redhat.com,rientjes@google.com
+Subject: + arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch added to -mm tree
+To: rientjes@google.com,vegardno@ifi.uio.no
 From: akpm@linux-foundation.org
-Date: Wed, 19 Feb 2014 13:40:48 -0800
+Date: Wed, 19 Feb 2014 14:20:10 -0800
 
 
 The patch titled
-     Subject: fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix
+     Subject: arch/x86/mm/kmemcheck/kmemcheck.c: use kstrtoint() instead of sscanf()
 has been added to the -mm tree.  Its filename is
-     fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+     arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,86 +45,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix
+From: David Rientjes <rientjes@google.com>
+Subject: arch/x86/mm/kmemcheck/kmemcheck.c: use kstrtoint() instead of sscanf()
 
-don't make make_it_fail unsigned
+Kmemcheck should use the preferred interface for parsing command line
+arguments, kstrto*(), rather than sscanf() itself.  Use it appropriately.
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Dave Jones <davej@fedoraproject.org>
-Cc: Dave Jones <davej@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Vegard Nossum <vegardno@ifi.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/mm/kmemcheck/kmemcheck.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix fs/proc/base.c
---- a/fs/proc/base.c~fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix
-+++ a/fs/proc/base.c
-@@ -1207,7 +1207,7 @@ static ssize_t proc_fault_inject_read(st
- 	struct task_struct *task = get_proc_task(file_inode(file));
- 	char buffer[PROC_NUMBUF];
- 	size_t len;
--	unsigned int make_it_fail;
-+	int make_it_fail;
- 
- 	if (!task)
- 		return -ESRCH;
-@@ -1224,7 +1224,7 @@ static ssize_t proc_fault_inject_write(s
+diff -puN arch/x86/mm/kmemcheck/kmemcheck.c~arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf arch/x86/mm/kmemcheck/kmemcheck.c
+--- a/arch/x86/mm/kmemcheck/kmemcheck.c~arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf
++++ a/arch/x86/mm/kmemcheck/kmemcheck.c
+@@ -78,10 +78,16 @@ early_initcall(kmemcheck_init);
+  */
+ static int __init param_kmemcheck(char *str)
  {
- 	struct task_struct *task;
- 	char buffer[PROC_NUMBUF], *end;
--	unsigned int make_it_fail;
-+	int make_it_fail;
- 
- 	if (!capable(CAP_SYS_RESOURCE))
- 		return -EPERM;
-@@ -1236,7 +1236,7 @@ static ssize_t proc_fault_inject_write(s
- 	make_it_fail = simple_strtol(strstrip(buffer), &end, 0);
- 	if (*end)
- 		return -EINVAL;
--	if (make_it_fail > 1)
-+	if (make_it_fail < 0 || make_it_fail > 1)
++	int val;
++	int ret;
++
+ 	if (!str)
  		return -EINVAL;
  
- 	task = get_proc_task(file_inode(file));
+-	sscanf(str, "%d", &kmemcheck_enabled);
++	ret = kstrtoint(str, 0, &val);
++	if (ret)
++		return ret;
++	kmemcheck_enabled = val;
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
+mm-thp-fix-infinite-loop-on-memcg-oom.patch
+memcg-change-oom_info_lock-to-mutex.patch
+mm-close-pagetail-race.patch
+mm-page_alloc-make-first_page-visible-before-pagetail.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch
+mm-slab-slub-use-page-list-consistently-instead-of-page-lru.patch
+mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
+mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
+mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
+mm-compaction-avoid-isolating-pinned-pages.patch
+mm-compactionc-mark-function-as-static.patch
+mm-memoryc-mark-functions-as-static.patch
+mm-mmapc-mark-function-as-static.patch
+mm-process_vm_accessc-mark-function-as-static.patch
+mm-page_cgroupc-mark-functions-as-static.patch
+mm-nobootmemc-mark-function-as-static.patch
+include-linux-mmh-remove-ifdef-condition.patch
+mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
+schednuma-add-cond_resched-to-task_numa_work.patch
+mmnuma-reorganize-change_pmd_range.patch
 mmnuma-reorganize-change_pmd_range-fix.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+move-mmu-notifier-call-from-change_protection-to-change_pmd_range.patch
+kernel-resourcec-make-reallocate_resource-static.patch
+mm-utilc-add-kstrimdup.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts.patch
 fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
