@@ -1,172 +1,302 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Fri, 21 Feb 2014 11:24:29 -0800
-Message-ID: <5307a7ed.cwPQSGJuqTR7wxVq%akpm@linux-foundation.org>
+Subject: +
+ revert-writeback-do-not-sync-data-dirtied-after-sync-start.patch added to
+ -mm tree
+Date: Fri, 21 Feb 2014 11:57:49 -0800
+Message-ID: <5307afbd.D3dLPJlcQAoVQQp5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57805 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57938 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752430AbaBUTYa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 14:24:30 -0500
+	with ESMTP id S1754026AbaBUT5u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 14:57:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, david@fromorbit.com, jack@suse.cz
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: + revert-writeback-do-not-sync-data-dirtied-after-sync-start.patch added to -mm tree
+To: jack@suse.cz,david@fromorbit.com
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 11:24:29 -0800
+Date: Fri, 21 Feb 2014 11:57:49 -0800
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: Revert "writeback: do not sync data dirtied after sync start"
+has been added to the -mm tree.  Its filename is
+     revert-writeback-do-not-sync-data-dirtied-after-sync-start.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-writeback-do-not-sync-data-dirtied-after-sync-start.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-writeback-do-not-sync-data-dirtied-after-sync-start.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Jan Kara <jack@suse.cz>
+Subject: Revert "writeback: do not sync data dirtied after sync start"
 
+This reverts c4a391b53a72.  Dave Chinner has reported the commit may cause
+some inodes to be left out from sync(2).  This is because we can call
+redirty_tail() for some inode (which sets i_dirtied_when to current time)
+after sync(2) has started or similarly requeue_inode() can set
+i_dirtied_when to current time if writeback had to skip some pages.  The
+real problem is in the functions clobbering i_dirtied_when but fixing that
+isn't trivial so revert is a safer choice for now.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-core.c          |    3 ---
- drivers/hid/hid-ids.h           |    3 ---
- drivers/hid/i2c-hid/i2c-hid.c   |    6 ------
- drivers/net/bonding/bond_3ad.h  |    5 -----
- drivers/net/bonding/bond_main.c |    6 ------
- 5 files changed, 23 deletions(-)
+ fs/fs-writeback.c                |   33 +++++++++--------------------
+ fs/sync.c                        |   15 +++++--------
+ fs/xfs/xfs_super.c               |    2 -
+ include/linux/writeback.h        |    2 -
+ include/trace/events/writeback.h |    6 ++---
+ 5 files changed, 22 insertions(+), 36 deletions(-)
 
-diff -puN drivers/hid/hid-core.c~linux-next-git-rejects drivers/hid/hid-core.c
---- a/drivers/hid/hid-core.c~linux-next-git-rejects
-+++ a/drivers/hid/hid-core.c
-@@ -1824,12 +1824,9 @@ static const struct hid_device_id hid_ha
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MICROSOFT, USB_DEVICE_ID_MS_PRESENTER_8K_USB) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MICROSOFT, USB_DEVICE_ID_MS_DIGITAL_MEDIA_3K) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MICROSOFT, USB_DEVICE_ID_WIRELESS_OPTICAL_DESKTOP_3_0) },
--<<<<<<< HEAD
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MICROSOFT, USB_DEVICE_ID_MS_TYPE_COVER_2) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MICROSOFT, USB_DEVICE_ID_MS_TOUCH_COVER_2) },
--=======
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MICROSOFT, USB_DEVICE_ID_MS_OFFICE_KB) },
-->>>>>>> linux-next/akpm-base
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MONTEREY, USB_DEVICE_ID_GENIUS_KB29E) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_NTRIG, USB_DEVICE_ID_NTRIG_TOUCH_SCREEN) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_NTRIG, USB_DEVICE_ID_NTRIG_TOUCH_SCREEN_1) },
-diff -puN drivers/hid/hid-ids.h~linux-next-git-rejects drivers/hid/hid-ids.h
---- a/drivers/hid/hid-ids.h~linux-next-git-rejects
-+++ a/drivers/hid/hid-ids.h
-@@ -241,11 +241,8 @@
+diff -puN fs/fs-writeback.c~revert-writeback-do-not-sync-data-dirtied-after-sync-start fs/fs-writeback.c
+--- a/fs/fs-writeback.c~revert-writeback-do-not-sync-data-dirtied-after-sync-start
++++ a/fs/fs-writeback.c
+@@ -40,18 +40,13 @@
+ struct wb_writeback_work {
+ 	long nr_pages;
+ 	struct super_block *sb;
+-	/*
+-	 * Write only inodes dirtied before this time. Don't forget to set
+-	 * older_than_this_is_set when you set this.
+-	 */
+-	unsigned long older_than_this;
++	unsigned long *older_than_this;
+ 	enum writeback_sync_modes sync_mode;
+ 	unsigned int tagged_writepages:1;
+ 	unsigned int for_kupdate:1;
+ 	unsigned int range_cyclic:1;
+ 	unsigned int for_background:1;
+ 	unsigned int for_sync:1;	/* sync(2) WB_SYNC_ALL writeback */
+-	unsigned int older_than_this_is_set:1;
+ 	enum wb_reason reason;		/* why was writeback initiated? */
  
- #define USB_VENDOR_ID_CYGNAL		0x10c4
- #define USB_DEVICE_ID_CYGNAL_RADIO_SI470X	0x818a
--<<<<<<< HEAD
- #define USB_DEVICE_ID_FOCALTECH_FTXXXX_MULTITOUCH	0x81b9
--=======
- #define USB_DEVICE_ID_CYGNAL_CP2112	0xea90
-->>>>>>> linux-next/akpm-base
+ 	struct list_head list;		/* pending work list */
+@@ -252,10 +247,10 @@ static int move_expired_inodes(struct li
+ 	int do_sb_sort = 0;
+ 	int moved = 0;
  
- #define USB_DEVICE_ID_CYGNAL_RADIO_SI4713       0x8244
- 
-diff -puN drivers/hid/i2c-hid/i2c-hid.c~linux-next-git-rejects drivers/hid/i2c-hid/i2c-hid.c
---- a/drivers/hid/i2c-hid/i2c-hid.c~linux-next-git-rejects
-+++ a/drivers/hid/i2c-hid/i2c-hid.c
-@@ -603,11 +603,6 @@ static int __i2c_hid_output_raw_report(s
- 	struct i2c_hid *ihid = i2c_get_clientdata(client);
- 	bool data = true; /* SET_REPORT */
- 
--<<<<<<< HEAD
--	buf = hid_alloc_report_buf(rep, GFP_KERNEL);
--	if (!buf)
--		return;
--=======
- 	if (report_type == HID_OUTPUT_REPORT)
- 		data = le16_to_cpu(ihid->hdesc.wMaxOutputLength) == 0;
- 
-@@ -620,7 +615,6 @@ static int i2c_hid_output_report(struct
- 	return i2c_hid_output_raw_report(hid, buf, count, HID_OUTPUT_REPORT,
- 			false);
- }
-->>>>>>> linux-next/akpm-base
- 
- static int i2c_hid_raw_request(struct hid_device *hid, unsigned char reportnum,
- 			       __u8 *buf, size_t len, unsigned char rtype,
-diff -puN drivers/net/bonding/bond_3ad.h~linux-next-git-rejects drivers/net/bonding/bond_3ad.h
---- a/drivers/net/bonding/bond_3ad.h~linux-next-git-rejects
-+++ a/drivers/net/bonding/bond_3ad.h
-@@ -251,13 +251,8 @@ struct ad_system {
- #define SLAVE_AD_INFO(slave) ((slave)->ad_info)
- 
- struct ad_bond_info {
--<<<<<<< HEAD
--	struct ad_system system;	    /* 802.3ad system structure */
--	u32 agg_select_timer;	    // Timer to select aggregator after all adapter's hand shakes
--=======
- 	struct ad_system system;	/* 802.3ad system structure */
- 	u32 agg_select_timer;		/* Timer to select aggregator after all adapter's hand shakes */
-->>>>>>> linux-next/akpm-base
- 	u16 aggregator_identifier;
- };
- 
-diff -puN drivers/net/bonding/bond_main.c~linux-next-git-rejects drivers/net/bonding/bond_main.c
---- a/drivers/net/bonding/bond_main.c~linux-next-git-rejects
-+++ a/drivers/net/bonding/bond_main.c
-@@ -2859,15 +2859,9 @@ static int bond_slave_netdev_event(unsig
+-	WARN_ON_ONCE(!work->older_than_this_is_set);
+ 	while (!list_empty(delaying_queue)) {
+ 		inode = wb_inode(delaying_queue->prev);
+-		if (inode_dirtied_after(inode, work->older_than_this))
++		if (work->older_than_this &&
++		    inode_dirtied_after(inode, *work->older_than_this))
  			break;
- 		}
+ 		list_move(&inode->i_wb_list, &tmp);
+ 		moved++;
+@@ -742,8 +737,6 @@ static long writeback_inodes_wb(struct b
+ 		.sync_mode	= WB_SYNC_NONE,
+ 		.range_cyclic	= 1,
+ 		.reason		= reason,
+-		.older_than_this = jiffies,
+-		.older_than_this_is_set = 1,
+ 	};
  
--<<<<<<< HEAD
--		pr_info("%s: Primary slave changed to %s, reselecting active slave.\n",
--			bond->dev->name, bond->primary_slave ? slave_dev->name :
--							       "none");
--=======
- 		pr_info("%s: Primary slave changed to %s, reselecting active slave\n",
- 			bond->dev->name,
- 			bond->primary_slave ? slave_dev->name : "none");
-->>>>>>> linux-next/akpm-base
+ 	spin_lock(&wb->list_lock);
+@@ -802,13 +795,12 @@ static long wb_writeback(struct bdi_writ
+ {
+ 	unsigned long wb_start = jiffies;
+ 	long nr_pages = work->nr_pages;
++	unsigned long oldest_jif;
+ 	struct inode *inode;
+ 	long progress;
  
- 		block_netpoll_tx();
- 		write_lock_bh(&bond->curr_slave_lock);
+-	if (!work->older_than_this_is_set) {
+-		work->older_than_this = jiffies;
+-		work->older_than_this_is_set = 1;
+-	}
++	oldest_jif = jiffies;
++	work->older_than_this = &oldest_jif;
+ 
+ 	spin_lock(&wb->list_lock);
+ 	for (;;) {
+@@ -842,10 +834,10 @@ static long wb_writeback(struct bdi_writ
+ 		 * safe.
+ 		 */
+ 		if (work->for_kupdate) {
+-			work->older_than_this = jiffies -
++			oldest_jif = jiffies -
+ 				msecs_to_jiffies(dirty_expire_interval * 10);
+ 		} else if (work->for_background)
+-			work->older_than_this = jiffies;
++			oldest_jif = jiffies;
+ 
+ 		trace_writeback_start(wb->bdi, work);
+ 		if (list_empty(&wb->b_io))
+@@ -1358,21 +1350,18 @@ EXPORT_SYMBOL(try_to_writeback_inodes_sb
+ 
+ /**
+  * sync_inodes_sb	-	sync sb inode pages
+- * @sb:			the superblock
+- * @older_than_this:	timestamp
++ * @sb: the superblock
+  *
+  * This function writes and waits on any dirty inode belonging to this
+- * superblock that has been dirtied before given timestamp.
++ * super_block.
+  */
+-void sync_inodes_sb(struct super_block *sb, unsigned long older_than_this)
++void sync_inodes_sb(struct super_block *sb)
+ {
+ 	DECLARE_COMPLETION_ONSTACK(done);
+ 	struct wb_writeback_work work = {
+ 		.sb		= sb,
+ 		.sync_mode	= WB_SYNC_ALL,
+ 		.nr_pages	= LONG_MAX,
+-		.older_than_this = older_than_this,
+-		.older_than_this_is_set = 1,
+ 		.range_cyclic	= 0,
+ 		.done		= &done,
+ 		.reason		= WB_REASON_SYNC,
+diff -puN fs/sync.c~revert-writeback-do-not-sync-data-dirtied-after-sync-start fs/sync.c
+--- a/fs/sync.c~revert-writeback-do-not-sync-data-dirtied-after-sync-start
++++ a/fs/sync.c
+@@ -27,11 +27,10 @@
+  * wait == 1 case since in that case write_inode() functions do
+  * sync_dirty_buffer() and thus effectively write one block at a time.
+  */
+-static int __sync_filesystem(struct super_block *sb, int wait,
+-			     unsigned long start)
++static int __sync_filesystem(struct super_block *sb, int wait)
+ {
+ 	if (wait)
+-		sync_inodes_sb(sb, start);
++		sync_inodes_sb(sb);
+ 	else
+ 		writeback_inodes_sb(sb, WB_REASON_SYNC);
+ 
+@@ -48,7 +47,6 @@ static int __sync_filesystem(struct supe
+ int sync_filesystem(struct super_block *sb)
+ {
+ 	int ret;
+-	unsigned long start = jiffies;
+ 
+ 	/*
+ 	 * We need to be protected against the filesystem going from
+@@ -62,17 +60,17 @@ int sync_filesystem(struct super_block *
+ 	if (sb->s_flags & MS_RDONLY)
+ 		return 0;
+ 
+-	ret = __sync_filesystem(sb, 0, start);
++	ret = __sync_filesystem(sb, 0);
+ 	if (ret < 0)
+ 		return ret;
+-	return __sync_filesystem(sb, 1, start);
++	return __sync_filesystem(sb, 1);
+ }
+ EXPORT_SYMBOL_GPL(sync_filesystem);
+ 
+ static void sync_inodes_one_sb(struct super_block *sb, void *arg)
+ {
+ 	if (!(sb->s_flags & MS_RDONLY))
+-		sync_inodes_sb(sb, *((unsigned long *)arg));
++		sync_inodes_sb(sb);
+ }
+ 
+ static void sync_fs_one_sb(struct super_block *sb, void *arg)
+@@ -104,10 +102,9 @@ static void fdatawait_one_bdev(struct bl
+ SYSCALL_DEFINE0(sync)
+ {
+ 	int nowait = 0, wait = 1;
+-	unsigned long start = jiffies;
+ 
+ 	wakeup_flusher_threads(0, WB_REASON_SYNC);
+-	iterate_supers(sync_inodes_one_sb, &start);
++	iterate_supers(sync_inodes_one_sb, NULL);
+ 	iterate_supers(sync_fs_one_sb, &nowait);
+ 	iterate_supers(sync_fs_one_sb, &wait);
+ 	iterate_bdevs(fdatawrite_one_bdev, NULL);
+diff -puN fs/xfs/xfs_super.c~revert-writeback-do-not-sync-data-dirtied-after-sync-start fs/xfs/xfs_super.c
+--- a/fs/xfs/xfs_super.c~revert-writeback-do-not-sync-data-dirtied-after-sync-start
++++ a/fs/xfs/xfs_super.c
+@@ -913,7 +913,7 @@ xfs_flush_inodes(
+ 	struct super_block	*sb = mp->m_super;
+ 
+ 	if (down_read_trylock(&sb->s_umount)) {
+-		sync_inodes_sb(sb, jiffies);
++		sync_inodes_sb(sb);
+ 		up_read(&sb->s_umount);
+ 	}
+ }
+diff -puN include/linux/writeback.h~revert-writeback-do-not-sync-data-dirtied-after-sync-start include/linux/writeback.h
+--- a/include/linux/writeback.h~revert-writeback-do-not-sync-data-dirtied-after-sync-start
++++ a/include/linux/writeback.h
+@@ -97,7 +97,7 @@ void writeback_inodes_sb_nr(struct super
+ int try_to_writeback_inodes_sb(struct super_block *, enum wb_reason reason);
+ int try_to_writeback_inodes_sb_nr(struct super_block *, unsigned long nr,
+ 				  enum wb_reason reason);
+-void sync_inodes_sb(struct super_block *sb, unsigned long older_than_this);
++void sync_inodes_sb(struct super_block *);
+ void wakeup_flusher_threads(long nr_pages, enum wb_reason reason);
+ void inode_wait_for_writeback(struct inode *inode);
+ 
+diff -puN include/trace/events/writeback.h~revert-writeback-do-not-sync-data-dirtied-after-sync-start include/trace/events/writeback.h
+--- a/include/trace/events/writeback.h~revert-writeback-do-not-sync-data-dirtied-after-sync-start
++++ a/include/trace/events/writeback.h
+@@ -287,11 +287,11 @@ TRACE_EVENT(writeback_queue_io,
+ 		__field(int,		reason)
+ 	),
+ 	TP_fast_assign(
+-		unsigned long older_than_this = work->older_than_this;
++		unsigned long *older_than_this = work->older_than_this;
+ 		strncpy(__entry->name, dev_name(wb->bdi->dev), 32);
+-		__entry->older	= older_than_this;
++		__entry->older	= older_than_this ?  *older_than_this : 0;
+ 		__entry->age	= older_than_this ?
+-				  (jiffies - older_than_this) * 1000 / HZ : -1;
++				  (jiffies - *older_than_this) * 1000 / HZ : -1;
+ 		__entry->moved	= moved;
+ 		__entry->reason	= work->reason;
+ 	),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
+backing_dev-fix-hung-task-on-sync.patch
+revert-writeback-do-not-sync-data-dirtied-after-sync-start.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+fanotify-remove-useless-bypass_perm-check.patch
+fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
+fanotify-remove-useless-test-from-event-initialization.patch
+fanotify-convert-access_mutex-to-spinlock.patch
+fanotify-reorganize-loop-in-fanotify_read.patch
+fanotify-move-unrelated-handling-from-copy_event_to_user.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
+printk-remove-duplicated-check-for-log-level.patch
+printk-remove-obsolete-check-for-log-level-c.patch
+printk-add-comment-about-tricky-check-for-text-buffer-size.patch
+printk-use-also-the-last-bytes-in-the-ring-buffer.patch
+printk-do-not-compute-the-size-of-the-message-twice.patch
 linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-add-strictlimit-knob-v2.patch
 
