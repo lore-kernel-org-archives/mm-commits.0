@@ -1,95 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] afs-afs_alloc_inode-use-kmem_cache_zalloc-fix.patch
+Subject: [obsolete] afs-afs_alloc_inode-use-kmem_cache_zalloc.patch
  removed from -mm tree
-Date: Fri, 21 Feb 2014 13:51:25 -0800
-Message-ID: <5307ca5d.k6BOH1XGFx+p8JD8%akpm@linux-foundation.org>
+Date: Fri, 21 Feb 2014 13:54:48 -0800
+Message-ID: <5307cb28.fLzkFwnC07US4qCW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58649 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58658 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbaBUVv0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 16:51:26 -0500
+	with ESMTP id S1752731AbaBUVyt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 16:54:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be, dhowells@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, dhowells@redhat.com, fabf@skynet.be
 
-Subject: [withdrawn] afs-afs_alloc_inode-use-kmem_cache_zalloc-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,dhowells@redhat.com,fabf@skynet.be,mm-commits@vger.kernel.org
+Subject: [obsolete] afs-afs_alloc_inode-use-kmem_cache_zalloc.patch removed from -mm tree
+To: fabf@skynet.be,dhowells@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 13:51:25 -0800
+Date: Fri, 21 Feb 2014 13:54:48 -0800
 
 
 The patch titled
-     Subject: afs-afs_alloc_inode-use-kmem_cache_zalloc-fix
+     Subject: afs: afs_alloc_inode: use kmem_cache_zalloc()
 has been removed from the -mm tree.  Its filename was
-     afs-afs_alloc_inode-use-kmem_cache_zalloc-fix.patch
+     afs-afs_alloc_inode-use-kmem_cache_zalloc.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: afs-afs_alloc_inode-use-kmem_cache_zalloc-fix
+From: Fabian Frederick <fabf@skynet.be>
+Subject: afs: afs_alloc_inode: use kmem_cache_zalloc()
 
-fix afs_alloc_inode() comment
+This patch calls zalloc for explicit zero fill and removes all memset 0.
 
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/afs/super.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN fs/afs/super.c~afs-afs_alloc_inode-use-kmem_cache_zalloc-fix fs/afs/super.c
---- a/fs/afs/super.c~afs-afs_alloc_inode-use-kmem_cache_zalloc-fix
+diff -puN fs/afs/super.c~afs-afs_alloc_inode-use-kmem_cache_zalloc fs/afs/super.c
+--- a/fs/afs/super.c~afs-afs_alloc_inode-use-kmem_cache_zalloc
 +++ a/fs/afs/super.c
-@@ -474,7 +474,7 @@ static void afs_i_init_once(void *_vnode
- }
- 
- /*
-- * allocate an AFS inode struct from our slab cache
-+ * allocate an AFS inode struct
-  */
- static struct inode *afs_alloc_inode(struct super_block *sb)
+@@ -460,7 +460,6 @@ static void afs_i_init_once(void *_vnode
  {
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+ 	struct afs_vnode *vnode = _vnode;
+ 
+-	memset(vnode, 0, sizeof(*vnode));
+ 	inode_init_once(&vnode->vfs_inode);
+ 	init_waitqueue_head(&vnode->update_waitq);
+ 	mutex_init(&vnode->permits_lock);
+@@ -481,17 +480,12 @@ static struct inode *afs_alloc_inode(str
+ {
+ 	struct afs_vnode *vnode;
+ 
+-	vnode = kmem_cache_alloc(afs_inode_cachep, GFP_KERNEL);
++	vnode = kmem_cache_zalloc(afs_inode_cachep, GFP_KERNEL);
+ 	if (!vnode)
+ 		return NULL;
+ 
+ 	atomic_inc(&afs_count_active_inodes);
+ 
+-	memset(&vnode->fid, 0, sizeof(vnode->fid));
+-	memset(&vnode->status, 0, sizeof(vnode->status));
