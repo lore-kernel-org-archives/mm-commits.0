@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-bio-integrity-remove-duplicate-code.patch added to -mm tree
-Date: Fri, 21 Feb 2014 12:39:37 -0800
-Message-ID: <5307b989.gg/nGXS2v0BJA+ul%akpm@linux-foundation.org>
+Subject: + ocfs2-remove-ocfs2_inode_skip_delete-flag.patch added to -mm
+ tree
+Date: Fri, 21 Feb 2014 12:48:08 -0800
+Message-ID: <5307bb88.+aRYlA+hljqbNIMY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58289 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58302 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753261AbaBUUji (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 15:39:38 -0500
+	with ESMTP id S1753472AbaBUUsJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 15:48:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, tj@kernel.org, kmo@daterainc.com, axboe@kernel.dk, guz.fnst@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, jack@suse.cz
 
-Subject: + fs-bio-integrity-remove-duplicate-code.patch added to -mm tree
-To: guz.fnst@cn.fujitsu.com,axboe@kernel.dk,kmo@daterainc.com,tj@kernel.org,viro@zeniv.linux.org.uk
+Subject: + ocfs2-remove-ocfs2_inode_skip_delete-flag.patch added to -mm tree
+To: jack@suse.cz,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,srinivas.eeda@oracle.com
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 12:39:37 -0800
+Date: Fri, 21 Feb 2014 12:48:08 -0800
 
 
 The patch titled
-     Subject: fs/bio-integrity: remove duplicate code
+     Subject: ocfs2: remove OCFS2_INODE_SKIP_DELETE flag
 has been added to the -mm tree.  Its filename is
-     fs-bio-integrity-remove-duplicate-code.patch
+     ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-bio-integrity-remove-duplicate-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-bio-integrity-remove-duplicate-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,140 +44,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: fs/bio-integrity: remove duplicate code
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: remove OCFS2_INODE_SKIP_DELETE flag
 
-Most code in bio_integrity_verify() and bio_integrity_generate() is the
-same, so introduce a helper function bio_integrity_generate_verify() to
-remove the duplicate code.
+The flag was never set, delete it.
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Kent Overstreet <kmo@daterainc.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio-integrity.c |   86 ++++++++++++++++++-------------------------
- 1 file changed, 37 insertions(+), 49 deletions(-)
+ fs/ocfs2/inode.c   |    6 ------
+ fs/ocfs2/inode.h   |    8 +++-----
+ fs/ocfs2/journal.c |    6 ------
+ 3 files changed, 3 insertions(+), 17 deletions(-)
 
-diff -puN fs/bio-integrity.c~fs-bio-integrity-remove-duplicate-code fs/bio-integrity.c
---- a/fs/bio-integrity.c~fs-bio-integrity-remove-duplicate-code
-+++ a/fs/bio-integrity.c
-@@ -301,25 +301,26 @@ int bio_integrity_get_tag(struct bio *bi
- EXPORT_SYMBOL(bio_integrity_get_tag);
- 
- /**
-- * bio_integrity_generate - Generate integrity metadata for a bio
-- * @bio:	bio to generate integrity metadata for
-- *
-- * Description: Generates integrity metadata for a bio by calling the
-- * block device's generation callback function.  The bio must have a
-- * bip attached with enough room to accommodate the generated
-- * integrity metadata.
-+ * bio_integrity_generate_verify - Generate/verify integrity metadata for a bio
-+ * @bio:	bio to generate/verify integrity metadata for
-+ * @operate:	operate number, 1 for generate, 0 for verify
-  */
--static void bio_integrity_generate(struct bio *bio)
-+static int bio_integrity_generate_verify(struct bio *bio, int operate)
- {
- 	struct blk_integrity *bi = bdev_get_integrity(bio->bi_bdev);
- 	struct blk_integrity_exchg bix;
- 	struct bio_vec bv;
- 	struct bvec_iter iter;
--	sector_t sector = bio->bi_iter.bi_sector;
--	unsigned int sectors, total;
-+	sector_t sector;
-+	unsigned int sectors, total, ret;
- 	void *prot_buf = bio->bi_integrity->bip_buf;
- 
--	total = 0;
-+	if (operate)
-+		sector = bio->bi_iter.bi_sector;
-+	else
-+		sector = bio->bi_integrity->bip_iter.bi_sector;
-+
-+	total = ret = 0;
- 	bix.disk_name = bio->bi_bdev->bd_disk->disk_name;
- 	bix.sector_size = bi->sector_size;
- 
-@@ -330,7 +331,15 @@ static void bio_integrity_generate(struc
- 		bix.prot_buf = prot_buf;
- 		bix.sector = sector;
- 
--		bi->generate_fn(&bix);
-+		if (operate) {
-+			bi->generate_fn(&bix);
-+		} else {
-+			ret = bi->verify_fn(&bix);
-+			if (ret) {
-+				kunmap_atomic(kaddr);
-+				return ret;
-+			}
-+		}
- 
- 		sectors = bv.bv_len / bi->sector_size;
- 		sector += sectors;
-@@ -340,6 +349,21 @@ static void bio_integrity_generate(struc
- 
- 		kunmap_atomic(kaddr);
+diff -puN fs/ocfs2/inode.c~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-remove-ocfs2_inode_skip_delete-flag
++++ a/fs/ocfs2/inode.c
+@@ -849,12 +849,6 @@ static int ocfs2_inode_is_valid_to_delet
+ 		goto bail_unlock;
  	}
-+	return ret;
-+}
-+
-+/**
-+ * bio_integrity_generate - Generate integrity metadata for a bio
-+ * @bio:	bio to generate integrity metadata for
-+ *
-+ * Description: Generates integrity metadata for a bio by calling the
-+ * block device's generation callback function.  The bio must have a
-+ * bip attached with enough room to accommodate the generated
-+ * integrity metadata.
-+ */
-+static void bio_integrity_generate(struct bio *bio)
-+{
-+	bio_integrity_generate_verify(bio, 1);
- }
  
- static inline unsigned short blk_integrity_tuple_size(struct blk_integrity *bi)
-@@ -454,43 +478,7 @@ EXPORT_SYMBOL(bio_integrity_prep);
+-	/* If we have allowd wipe of this inode for another node, it
+-	 * will be marked here so we can safely skip it. Recovery will
+-	 * cleanup any inodes we might inadvertently skip here. */
+-	if (oi->ip_flags & OCFS2_INODE_SKIP_DELETE)
+-		goto bail_unlock;
+-
+ 	ret = 1;
+ bail_unlock:
+ 	spin_unlock(&oi->ip_lock);
+diff -puN fs/ocfs2/inode.h~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/inode.h
+--- a/fs/ocfs2/inode.h~ocfs2-remove-ocfs2_inode_skip_delete-flag
++++ a/fs/ocfs2/inode.h
+@@ -91,8 +91,6 @@ struct ocfs2_inode_info
+ #define OCFS2_INODE_BITMAP		0x00000004
+ /* This inode has been wiped from disk */
+ #define OCFS2_INODE_DELETED		0x00000008
+-/* Another node is deleting, so our delete is a nop */
+-#define OCFS2_INODE_SKIP_DELETE		0x00000010
+ /* Has the inode been orphaned on another node?
+  *
+  * This hints to ocfs2_drop_inode that it should clear i_nlink before
+@@ -107,11 +105,11 @@ struct ocfs2_inode_info
+  * rely on ocfs2_delete_inode to sort things out under the proper
+  * cluster locks.
   */
- static int bio_integrity_verify(struct bio *bio)
+-#define OCFS2_INODE_MAYBE_ORPHANED	0x00000020
++#define OCFS2_INODE_MAYBE_ORPHANED	0x00000010
+ /* Does someone have the file open O_DIRECT */
+-#define OCFS2_INODE_OPEN_DIRECT		0x00000040
++#define OCFS2_INODE_OPEN_DIRECT		0x00000020
+ /* Tell the inode wipe code it's not in orphan dir */
+-#define OCFS2_INODE_SKIP_ORPHAN_DIR     0x00000080
++#define OCFS2_INODE_SKIP_ORPHAN_DIR     0x00000040
+ 
+ static inline struct ocfs2_inode_info *OCFS2_I(struct inode *inode)
  {
--	struct blk_integrity *bi = bdev_get_integrity(bio->bi_bdev);
--	struct blk_integrity_exchg bix;
--	struct bio_vec *bv;
--	sector_t sector = bio->bi_integrity->bip_iter.bi_sector;
--	unsigned int sectors, total, ret;
--	void *prot_buf = bio->bi_integrity->bip_buf;
--	int i;
+diff -puN fs/ocfs2/journal.c~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-remove-ocfs2_inode_skip_delete-flag
++++ a/fs/ocfs2/journal.c
+@@ -2132,12 +2132,6 @@ static int ocfs2_recover_orphans(struct
+ 		iter = oi->ip_next_orphan;
+ 
+ 		spin_lock(&oi->ip_lock);
+-		/* The remote delete code may have set these on the
+-		 * assumption that the other node would wipe them
+-		 * successfully.  If they are still in the node's
+-		 * orphan dir, we need to reset that state. */
+-		oi->ip_flags &= ~(OCFS2_INODE_DELETED|OCFS2_INODE_SKIP_DELETE);
 -
--	ret = total = 0;
--	bix.disk_name = bio->bi_bdev->bd_disk->disk_name;
--	bix.sector_size = bi->sector_size;
--
--	bio_for_each_segment_all(bv, bio, i) {
--		void *kaddr = kmap_atomic(bv->bv_page);
--
--		bix.data_buf = kaddr + bv->bv_offset;
--		bix.data_size = bv->bv_len;
--		bix.prot_buf = prot_buf;
--		bix.sector = sector;
--
--		ret = bi->verify_fn(&bix);
--
--		if (ret) {
--			kunmap_atomic(kaddr);
--			return ret;
--		}
--
--		sectors = bv->bv_len / bi->sector_size;
--		sector += sectors;
--		prot_buf += sectors * bi->tuple_size;
--		total += sectors * bi->tuple_size;
--		BUG_ON(total > bio->bi_integrity->bip_iter.bi_size);
--
--		kunmap_atomic(kaddr);
--	}
+ 		/* Set the proper information to get us going into
+ 		 * ocfs2_delete_inode. */
+ 		oi->ip_flags |= OCFS2_INODE_MAYBE_ORPHANED;
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+backing_dev-fix-hung-task-on-sync.patch
+revert-writeback-do-not-sync-data-dirtied-after-sync-start.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+fanotify-remove-useless-bypass_perm-check.patch
+fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
+fanotify-remove-useless-test-from-event-initialization.patch
+fanotify-convert-access_mutex-to-spinlock.patch
+fanotify-reorganize-loop-in-fanotify_read.patch
+fanotify-move-unrelated-handling-from-copy_event_to_user.patch
+ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
+ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
+quota-provide-function-to-grab-quota-structure-reference.patch
+ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
+ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
+ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
+printk-remove-duplicated-check-for-log-level.patch
+printk-remove-obsolete-check-for-log-level-c.patch
+printk-add-comment-about-tricky-check-for-text-buffer-size.patch
+printk-use-also-the-last-bytes-in-the-ring-buffer.patch
+printk-do-not-compute-the-size-of-the-message-twice.patch
+linux-next.patch
+mm-add-strictlimit-knob-v2.patch
+
