@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-sunxic-add-new-compatibles.patch added to -mm
- tree
-Date: Fri, 21 Feb 2014 15:13:52 -0800
-Message-ID: <5307ddb0.Q17yc8YPpj+hBnrr%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-ds3232c-make-it-possible-to-share-an-irq.patch
+ added to -mm tree
+Date: Fri, 21 Feb 2014 15:36:38 -0800
+Message-ID: <5307e306.XCJsKaOmNNif5/nG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59172 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59211 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754006AbaBUXNx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 18:13:53 -0500
+	with ESMTP id S1752350AbaBUXgj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 18:36:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, maxime.ripard@free-electrons.com
+To: mm-commits@vger.kernel.org, scottwood@freescale.com, Bharat.Bhushan@freescale.com, r65777@freescale.com
 
-Subject: + drivers-rtc-rtc-sunxic-add-new-compatibles.patch added to -mm tree
-To: maxime.ripard@free-electrons.com
+Subject: + drivers-rtc-rtc-ds3232c-make-it-possible-to-share-an-irq.patch added to -mm tree
+To: r65777@freescale.com,Bharat.Bhushan@freescale.com,scottwood@freescale.com
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 15:13:52 -0800
+Date: Fri, 21 Feb 2014 15:36:38 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-sunxi.c: add new compatibles
+     Subject: drivers/rtc/rtc-ds3232.c: make it possible to share an irq
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-sunxic-add-new-compatibles.patch
+     drivers-rtc-rtc-ds3232c-make-it-possible-to-share-an-irq.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-sunxic-add-new-compatibles.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-ds3232c-make-it-possible-to-share-an-irq.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-sunxic-add-new-compatibles.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-ds3232c-make-it-possible-to-share-an-irq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,66 +44,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: drivers/rtc/rtc-sunxi.c: add new compatibles
+From: Bharat Bhushan <r65777@freescale.com>
+Subject: drivers/rtc/rtc-ds3232.c: make it possible to share an irq
 
-The Allwinner A10 compatibles were following a slightly different
-compatible patterns than the rest of the SoCs for historical reasons.  Add
-compatibles matching the other pattern to the RTC driver for consistency,
-and keep the older one for backward compatibility.
+It's possible to have RTC irq shared with other device (e.g.  t4240qds
+board shares ds3232irq with phy one).  Handle this in driver.
 
-Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Signed-off-by: Bharat Bhushan <Bharat.Bhushan@freescale.com>
+Cc: Scott Wood <scottwood@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/rtc/sunxi-rtc.txt |    5 +++--
- drivers/rtc/rtc-sunxi.c                             |    5 ++++-
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-ds3232.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/devicetree/bindings/rtc/sunxi-rtc.txt~drivers-rtc-rtc-sunxic-add-new-compatibles Documentation/devicetree/bindings/rtc/sunxi-rtc.txt
---- a/Documentation/devicetree/bindings/rtc/sunxi-rtc.txt~drivers-rtc-rtc-sunxic-add-new-compatibles
-+++ a/Documentation/devicetree/bindings/rtc/sunxi-rtc.txt
-@@ -3,7 +3,8 @@
- RTC controller for the Allwinner A10/A20
+diff -puN drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-make-it-possible-to-share-an-irq drivers/rtc/rtc-ds3232.c
+--- a/drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-make-it-possible-to-share-an-irq
++++ a/drivers/rtc/rtc-ds3232.c
+@@ -419,8 +419,8 @@ static int ds3232_probe(struct i2c_clien
+ 	}
  
- Required properties:
--- compatible : Should be "allwinner,sun4i-rtc" or "allwinner,sun7i-a20-rtc"
-+- compatible : Should be "allwinner,sun4i-a10-rtc" or "allwinner,sun7i-a20-rtc"
-+               (Deprecated: "allwinner,sun4i-rtc")
- - reg: physical base address of the controller and length of memory mapped
-   region.
- - interrupts: IRQ line for the RTC.
-@@ -11,7 +12,7 @@ Required properties:
- Example:
- 
- rtc: rtc@01c20d00 {
--	compatible = "allwinner,sun4i-rtc";
-+	compatible = "allwinner,sun4i-a10-rtc";
- 	reg = <0x01c20d00 0x20>;
- 	interrupts = <24>;
- };
-diff -puN drivers/rtc/rtc-sunxi.c~drivers-rtc-rtc-sunxic-add-new-compatibles drivers/rtc/rtc-sunxi.c
---- a/drivers/rtc/rtc-sunxi.c~drivers-rtc-rtc-sunxic-add-new-compatibles
-+++ a/drivers/rtc/rtc-sunxi.c
-@@ -428,8 +428,11 @@ static const struct rtc_class_ops sunxi_
- };
- 
- static const struct of_device_id sunxi_rtc_dt_ids[] = {
--	{ .compatible = "allwinner,sun4i-rtc", .data = &data_year_param[0] },
-+	{ .compatible = "allwinner,sun4i-a10-rtc", .data = &data_year_param[0] },
- 	{ .compatible = "allwinner,sun7i-a20-rtc", .data = &data_year_param[1] },
-+
-+	/* Deprecated */
-+	{ .compatible = "allwinner,sun4i-rtc", .data = &data_year_param[0] },
- 	{ /* sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, sunxi_rtc_dt_ids);
+ 	if (client->irq >= 0) {
+-		ret = devm_request_irq(&client->dev, client->irq, ds3232_irq, 0,
+-				 "ds3232", client);
++		ret = devm_request_irq(&client->dev, client->irq, ds3232_irq,
++				       IRQF_SHARED, "ds3232", client);
+ 		if (ret) {
+ 			dev_err(&client->dev, "unable to request IRQ\n");
+ 			return ret;
 _
 
-Patches currently in -mm which might be from maxime.ripard@free-electrons.com are
+Patches currently in -mm which might be from r65777@freescale.com are
 
-backlight-hx8357-remove-unnecessary-oom-messages.patch
-drivers-rtc-rtc-sunxic-add-new-compatibles.patch
-arch-arm-boot-dts-sun4i-a10dtsi-convert-to-the-new-rtc-compatibles.patch
-linux-next.patch
+drivers-rtc-rtc-ds3232c-make-it-possible-to-share-an-irq.patch
 
