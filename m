@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx.patch added to -mm tree
-Date: Fri, 21 Feb 2014 14:08:52 -0800
-Message-ID: <5307ce74.fOo6GhxH90Pz07go%akpm@linux-foundation.org>
+Subject: + memcg-slab-never-try-to-merge-memcg-caches.patch added to -mm
+ tree
+Date: Fri, 21 Feb 2014 14:29:10 -0800
+Message-ID: <5307d336.2qwSrGAMdTQ8NxhS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58814 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752899AbaBUWIx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 17:08:53 -0500
+	with ESMTP id S1752843AbaBUW3L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 17:29:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vikas.sajjan@samsung.com, robh+dt@kernel.org, grant.likely@linaro.org, vikas.sajjan@linaro.org
+To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, glommer@gmail.com, vdavydov@parallels.com
 
-Subject: + drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx.patch added to -mm tree
-To: vikas.sajjan@linaro.org,grant.likely@linaro.org,robh+dt@kernel.org,vikas.sajjan@samsung.com
+Subject: + memcg-slab-never-try-to-merge-memcg-caches.patch added to -mm tree
+To: vdavydov@parallels.com,glommer@gmail.com,hannes@cmpxchg.org,mhocko@suse.cz,penberg@kernel.org,rientjes@google.com
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 14:08:52 -0800
+Date: Fri, 21 Feb 2014 14:29:10 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-s3c.c: fix incorrect way of save/restore of S3C2410_TICNT for TYPE_S3C64XX
+     Subject: memcg, slab: never try to merge memcg caches
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx.patch
+     memcg-slab-never-try-to-merge-memcg-caches.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-slab-never-try-to-merge-memcg-caches.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-slab-never-try-to-merge-memcg-caches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,65 +44,188 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-Subject: drivers/rtc/rtc-s3c.c: fix incorrect way of save/restore of S3C2410_TICNT for TYPE_S3C64XX
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: memcg, slab: never try to merge memcg caches
 
-On exynos5250, exynos5420 and exynos5260 it was observed that, after 1
-cycle of S2R, the rtc-tick occurs at a very fast rate as compared to the
-rtc-tick occuring before S2R.
+When a kmem cache is created (kmem_cache_create_memcg()), we first try to
+find a compatible cache that already exists and can handle requests from
+the new cache, i.e.  has the same object size, alignment, ctor, etc.  If
+there is such a cache, we do not create any new caches, instead we simply
+increment the refcount of the cache found and return it.
 
-This patch fixes the above issue by correcting the wrong way of
-save/restore of S3C2410_TICNT for TYPE_S3C64XX.
+Currently we do this procedure not only when creating root caches, but
+also for memcg caches.  However, there is no point in that, because, as
+every memcg cache has exactly the same parameters as its parent and cache
+merging cannot be turned off in runtime (only on boot by passing
+"slub_nomerge"), the root caches of any two potentially mergeable memcg
+caches should be merged already, i.e.  it must be the same root cache, and
+therefore we couldn't even get to the memcg cache creation, because it
+already exists.
 
-Signed-off-by: Vikas Sajjan <vikas.sajjan@samsung.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>
+The only exception is boot caches - they are explicitly forbidden to be
+merged by setting their refcount to -1.  There are currently only two of
+them - kmem_cache and kmem_cache_node, which are used in slab internals (I
+do not count kmalloc caches as their refcount is set to 1 immediately
+after creation).  Since they are prevented from merging preliminary I
+guess we should avoid to merge their children too.
+
+So let's remove the useless code responsible for merging memcg caches.
+
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Glauber Costa <glommer@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/slab.h        |   21 ++++-----------------
+ mm/slab_common.c |    8 +++++---
+ mm/slub.c        |   19 +++++++++----------
+ 3 files changed, 18 insertions(+), 30 deletions(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -580,10 +580,12 @@ static int s3c_rtc_suspend(struct device
+diff -puN mm/slab.h~memcg-slab-never-try-to-merge-memcg-caches mm/slab.h
+--- a/mm/slab.h~memcg-slab-never-try-to-merge-memcg-caches
++++ a/mm/slab.h
+@@ -55,12 +55,12 @@ extern void create_boot_cache(struct kme
+ struct mem_cgroup;
+ #ifdef CONFIG_SLUB
+ struct kmem_cache *
+-__kmem_cache_alias(struct mem_cgroup *memcg, const char *name, size_t size,
+-		   size_t align, unsigned long flags, void (*ctor)(void *));
++__kmem_cache_alias(const char *name, size_t size, size_t align,
++		   unsigned long flags, void (*ctor)(void *));
+ #else
+ static inline struct kmem_cache *
+-__kmem_cache_alias(struct mem_cgroup *memcg, const char *name, size_t size,
+-		   size_t align, unsigned long flags, void (*ctor)(void *))
++__kmem_cache_alias(const char *name, size_t size, size_t align,
++		   unsigned long flags, void (*ctor)(void *))
+ { return NULL; }
+ #endif
  
- 	clk_enable(rtc_clk);
- 	/* save TICNT for anyone using periodic interrupts */
--	ticnt_save = readb(s3c_rtc_base + S3C2410_TICNT);
- 	if (s3c_rtc_cpu_type == TYPE_S3C64XX) {
- 		ticnt_en_save = readw(s3c_rtc_base + S3C2410_RTCCON);
- 		ticnt_en_save &= S3C64XX_RTCCON_TICEN;
-+		ticnt_save = readl(s3c_rtc_base + S3C2410_TICNT);
-+	} else {
-+		ticnt_save = readb(s3c_rtc_base + S3C2410_TICNT);
+@@ -119,13 +119,6 @@ static inline bool is_root_cache(struct
+ 	return !s->memcg_params || s->memcg_params->is_root_cache;
+ }
+ 
+-static inline bool cache_match_memcg(struct kmem_cache *cachep,
+-				     struct mem_cgroup *memcg)
+-{
+-	return (is_root_cache(cachep) && !memcg) ||
+-				(cachep->memcg_params->memcg == memcg);
+-}
+-
+ static inline void memcg_bind_pages(struct kmem_cache *s, int order)
+ {
+ 	if (!is_root_cache(s))
+@@ -203,12 +196,6 @@ static inline bool is_root_cache(struct
+ {
+ 	return true;
+ }
+-
+-static inline bool cache_match_memcg(struct kmem_cache *cachep,
+-				     struct mem_cgroup *memcg)
+-{
+-	return true;
+-}
+ 
+ static inline void memcg_bind_pages(struct kmem_cache *s, int order)
+ {
+diff -puN mm/slab_common.c~memcg-slab-never-try-to-merge-memcg-caches mm/slab_common.c
+--- a/mm/slab_common.c~memcg-slab-never-try-to-merge-memcg-caches
++++ a/mm/slab_common.c
+@@ -200,9 +200,11 @@ kmem_cache_create_memcg(struct mem_cgrou
+ 	 */
+ 	flags &= CACHE_CREATE_MASK;
+ 
+-	s = __kmem_cache_alias(memcg, name, size, align, flags, ctor);
+-	if (s)
+-		goto out_unlock;
++	if (!memcg) {
++		s = __kmem_cache_alias(name, size, align, flags, ctor);
++		if (s)
++			goto out_unlock;
++	}
+ 
+ 	err = -ENOMEM;
+ 	s = kmem_cache_zalloc(kmem_cache, GFP_KERNEL);
+diff -puN mm/slub.c~memcg-slab-never-try-to-merge-memcg-caches mm/slub.c
+--- a/mm/slub.c~memcg-slab-never-try-to-merge-memcg-caches
++++ a/mm/slub.c
+@@ -3685,6 +3685,9 @@ static int slab_unmergeable(struct kmem_
+ 	if (slub_nomerge || (s->flags & SLUB_NEVER_MERGE))
+ 		return 1;
+ 
++	if (!is_root_cache(s))
++		return 1;
++
+ 	if (s->ctor)
+ 		return 1;
+ 
+@@ -3697,9 +3700,8 @@ static int slab_unmergeable(struct kmem_
+ 	return 0;
+ }
+ 
+-static struct kmem_cache *find_mergeable(struct mem_cgroup *memcg, size_t size,
+-		size_t align, unsigned long flags, const char *name,
+-		void (*ctor)(void *))
++static struct kmem_cache *find_mergeable(size_t size, size_t align,
++		unsigned long flags, const char *name, void (*ctor)(void *))
+ {
+ 	struct kmem_cache *s;
+ 
+@@ -3722,7 +3724,7 @@ static struct kmem_cache *find_mergeable
+ 			continue;
+ 
+ 		if ((flags & SLUB_MERGE_SAME) != (s->flags & SLUB_MERGE_SAME))
+-				continue;
++			continue;
+ 		/*
+ 		 * Check if alignment is compatible.
+ 		 * Courtesy of Adrian Drzewiecki
+@@ -3733,21 +3735,18 @@ static struct kmem_cache *find_mergeable
+ 		if (s->size - size >= sizeof(void *))
+ 			continue;
+ 
+-		if (!cache_match_memcg(s, memcg))
+-			continue;
+-
+ 		return s;
  	}
- 	s3c_rtc_enable(pdev, 0);
+ 	return NULL;
+ }
  
-@@ -605,10 +607,15 @@ static int s3c_rtc_resume(struct device
+ struct kmem_cache *
+-__kmem_cache_alias(struct mem_cgroup *memcg, const char *name, size_t size,
+-		   size_t align, unsigned long flags, void (*ctor)(void *))
++__kmem_cache_alias(const char *name, size_t size, size_t align,
++		   unsigned long flags, void (*ctor)(void *))
+ {
+ 	struct kmem_cache *s;
  
- 	clk_enable(rtc_clk);
- 	s3c_rtc_enable(pdev, 1);
--	writeb(ticnt_save, s3c_rtc_base + S3C2410_TICNT);
--	if (s3c_rtc_cpu_type == TYPE_S3C64XX && ticnt_en_save) {
--		tmp = readw(s3c_rtc_base + S3C2410_RTCCON);
--		writew(tmp | ticnt_en_save, s3c_rtc_base + S3C2410_RTCCON);
-+	if (s3c_rtc_cpu_type == TYPE_S3C64XX) {
-+		writel(ticnt_save, s3c_rtc_base + S3C2410_TICNT);
-+		if (ticnt_en_save) {
-+			tmp = readw(s3c_rtc_base + S3C2410_RTCCON);
-+			writew(tmp | ticnt_en_save,
-+					s3c_rtc_base + S3C2410_RTCCON);
-+		}
-+	} else {
-+		writeb(ticnt_save, s3c_rtc_base + S3C2410_TICNT);
- 	}
- 
- 	if (device_may_wakeup(dev) && wake_en) {
+-	s = find_mergeable(memcg, size, align, flags, name, ctor);
++	s = find_mergeable(size, align, flags, name, ctor);
+ 	if (s) {
+ 		s->refcount++;
+ 		/*
 _
 
-Patches currently in -mm which might be from vikas.sajjan@linaro.org are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx.patch
+mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
+mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
+mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
+kobject-dont-block-for-each-kobject_uevent.patch
+kobject-dont-block-for-each-kobject_uevent-v2.patch
+slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
+memcg-slab-never-try-to-merge-memcg-caches.patch
+memcg-slab-cleanup-memcg-cache-creation.patch
+memcg-slab-separate-memcg-vs-root-cache-creation-paths.patch
+memcg-slab-unregister-cache-from-memcg-before-starting-to-destroy-it.patch
+memcg-slab-do-not-destroy-children-caches-if-parent-has-aliases.patch
+slub-adjust-memcg-caches-when-creating-cache-alias.patch
+slub-rework-sysfs-layout-for-memcg-caches.patch
+linux-next.patch
 
