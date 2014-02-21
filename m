@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch added
- to -mm tree
-Date: Fri, 21 Feb 2014 12:10:38 -0800
-Message-ID: <5307b2be.nd4v2mMOm1ES+Mrq%akpm__49590.1286173195$1393013450$gmane$org@linux-foundation.org>
+Subject: + makefile-fix-build-with-make-380-again.patch added to -mm tree
+Date: Fri, 21 Feb 2014 12:13:12 -0800
+Message-ID: <5307b358.zLLZdSsS3kRPLaI1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58055 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58064 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752117AbaBUUKj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 15:10:39 -0500
+	with ESMTP id S1752117AbaBUUNN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 15:13:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xtfeng@gmail.com, tglx@linutronix.de, stable@vger.kernel.org, mporter@kernel.crashing.org, bitbucket@online.de, alexandre.bounine@idt.com
+To: mm-commits@vger.kernel.org, mmarek@suse.cz, mingo@kernel.org, keescook@chromium.org, jbeulich@suse.com, JBeulich@suse.com
 
-Subject: + rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch added to -mm tree
-To: alexandre.bounine@idt.com,bitbucket@online.de,mporter@kernel.crashing.org,stable@vger.kernel.org,tglx@linutronix.de,xtfeng@gmail.com
+Subject: + makefile-fix-build-with-make-380-again.patch added to -mm tree
+To: JBeulich@suse.com,jbeulich@suse.com,keescook@chromium.org,mingo@kernel.org,mmarek@suse.cz
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 12:10:38 -0800
+Date: Fri, 21 Feb 2014 12:13:12 -0800
 
 
 The patch titled
-     Subject: rapidio/tsi721: fix tasklet termination in dma channel release
+     Subject: Makefile: fix build with make 3.80 again
 has been added to the -mm tree.  Its filename is
-     rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch
+     makefile-fix-build-with-make-380-again.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/makefile-fix-build-with-make-380-again.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/makefile-fix-build-with-make-380-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,125 +43,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: fix tasklet termination in dma channel release
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: Makefile: fix build with make 3.80 again
 
-This patch is a modification of the patch originally proposed by Xiaotian
-Feng <xtfeng@gmail.com>: https://lkml.org/lkml/2012/11/5/413 This new
-version disables DMA channel interrupts and ensures that the tasklet wil
-not be scheduled again before calling tasklet_kill().
+According to Documentation/Changes, make 3.80 is still being supported for
+building the kernel, hence make files must not make (unconditional) use of
+features introduced only in newer versions.  Commit 8779657d
+("stackprotector: Introduce CONFIG_CC_STACKPROTECTOR_STRONG") however
+introduced an "else ifdef" construct which make 3.80 doesn't understand.
 
-Unfortunately the updated patch was not released at that time due to
-planned rework of Tsi721 mport driver to use threaded interrupts (which
-has yet to happen).  Recently the issue was reported again:
-https://lkml.org/lkml/2014/2/19/762.
+Also correct a warning message still referencing the old config option
+name.
 
-Description from the original Xiaotian's patch:
+Apart from that I question the use of "ifdef" here (but it was used that
+way already prior to said commit): ifeq (,y) would seem more to the point.
 
-"Some drivers use tasklet_disable in device remove/release process,
-tasklet_disable will inc tasklet->count and return.  If the tasklet is not
-handled yet under some softirq pressure, the tasklet will be placed on the
-tasklet_vec, never have a chance to be excuted.  This might lead to a
-heavy loaded ksoftirqd, wakeup with pending_softirq, but tasklet is
-disabled.  tasklet_kill should be used in this case."
-
-This patch is applicable to kernel versions starting from v3.5.
-
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Xiaotian Feng <xtfeng@gmail.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Mike Galbraith <bitbucket@online.de>
-Cc: <stable@vger.kernel.org>	[3.5+]
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.h     |    1 +
- drivers/rapidio/devices/tsi721_dma.c |   25 ++++++++++++++++++-------
- 2 files changed, 19 insertions(+), 7 deletions(-)
+ Makefile |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release drivers/rapidio/devices/tsi721.h
---- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release
-+++ a/drivers/rapidio/devices/tsi721.h
-@@ -678,6 +678,7 @@ struct tsi721_bdma_chan {
- 	struct list_head	free_list;
- 	dma_cookie_t		completed_cookie;
- 	struct tasklet_struct	tasklet;
-+	bool			active;
- };
+diff -puN Makefile~makefile-fix-build-with-make-380-again Makefile
+--- a/Makefile~makefile-fix-build-with-make-380-again
++++ a/Makefile
+@@ -605,10 +605,11 @@ endif
+ ifdef CONFIG_CC_STACKPROTECTOR_REGULAR
+   stackp-flag := -fstack-protector
+   ifeq ($(call cc-option, $(stackp-flag)),)
+-    $(warning Cannot use CONFIG_CC_STACKPROTECTOR: \
++    $(warning Cannot use CONFIG_CC_STACKPROTECTOR_REGULAR: \
+              -fstack-protector not supported by compiler)
+   endif
+-else ifdef CONFIG_CC_STACKPROTECTOR_STRONG
++else
++ifdef CONFIG_CC_STACKPROTECTOR_STRONG
+   stackp-flag := -fstack-protector-strong
+   ifeq ($(call cc-option, $(stackp-flag)),)
+     $(warning Cannot use CONFIG_CC_STACKPROTECTOR_STRONG: \
+@@ -618,6 +619,7 @@ else
+   # Force off for distro compilers that enable stack protector by default.
+   stackp-flag := $(call cc-option, -fno-stack-protector)
+ endif
++endif
+ KBUILD_CFLAGS += $(stackp-flag)
  
- #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
-diff -puN drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release drivers/rapidio/devices/tsi721_dma.c
---- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release
-+++ a/drivers/rapidio/devices/tsi721_dma.c
-@@ -206,8 +206,8 @@ void tsi721_bdma_handler(struct tsi721_b
- {
- 	/* Disable BDMA channel interrupts */
- 	iowrite32(0, bdma_chan->regs + TSI721_DMAC_INTE);
--
--	tasklet_schedule(&bdma_chan->tasklet);
-+	if (bdma_chan->active)
-+		tasklet_schedule(&bdma_chan->tasklet);
- }
- 
- #ifdef CONFIG_PCI_MSI
-@@ -562,7 +562,7 @@ static int tsi721_alloc_chan_resources(s
- 	}
- #endif /* CONFIG_PCI_MSI */
- 
--	tasklet_enable(&bdma_chan->tasklet);
-+	bdma_chan->active = true;
- 	tsi721_bdma_interrupt_enable(bdma_chan, 1);
- 
- 	return bdma_chan->bd_num - 1;
-@@ -589,14 +589,25 @@ static void tsi721_free_chan_resources(s
- 	BUG_ON(!list_empty(&bdma_chan->active_list));
- 	BUG_ON(!list_empty(&bdma_chan->queue));
- 
--	tasklet_disable(&bdma_chan->tasklet);
-+	tsi721_bdma_interrupt_enable(bdma_chan, 0);
-+	bdma_chan->active = false;
-+
-+#ifdef CONFIG_PCI_MSI
-+	if (priv->flags & TSI721_USING_MSIX) {
-+		synchronize_irq(priv->msix[TSI721_VECT_DMA0_DONE +
-+					   bdma_chan->id].vector);
-+		synchronize_irq(priv->msix[TSI721_VECT_DMA0_INT +
-+					   bdma_chan->id].vector);
-+	} else
-+#endif
-+	synchronize_irq(priv->pdev->irq);
-+
-+	tasklet_kill(&bdma_chan->tasklet);
- 
- 	spin_lock_bh(&bdma_chan->lock);
- 	list_splice_init(&bdma_chan->free_list, &list);
- 	spin_unlock_bh(&bdma_chan->lock);
- 
--	tsi721_bdma_interrupt_enable(bdma_chan, 0);
--
- #ifdef CONFIG_PCI_MSI
- 	if (priv->flags & TSI721_USING_MSIX) {
- 		free_irq(priv->msix[TSI721_VECT_DMA0_DONE +
-@@ -790,6 +801,7 @@ int tsi721_register_dma(struct tsi721_de
- 		bdma_chan->dchan.cookie = 1;
- 		bdma_chan->dchan.chan_id = i;
- 		bdma_chan->id = i;
-+		bdma_chan->active = false;
- 
- 		spin_lock_init(&bdma_chan->lock);
- 
-@@ -799,7 +811,6 @@ int tsi721_register_dma(struct tsi721_de
- 
- 		tasklet_init(&bdma_chan->tasklet, tsi721_dma_tasklet,
- 			     (unsigned long)bdma_chan);
--		tasklet_disable(&bdma_chan->tasklet);
- 		list_add_tail(&bdma_chan->dchan.device_node,
- 			      &mport->dma.channels);
- 	}
+ # This warning generated too much noise in a regular build.
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from JBeulich@suse.com are
 
-rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch
+makefile-fix-build-with-make-380-again.patch
 
