@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-mc13xxx-fix-1hz-interrupt.patch added to -mm tree
-Date: Fri, 21 Feb 2014 15:10:03 -0800
-Message-ID: <5307dccb.juQtR5iPzgZWJ19m%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-sunxic-add-new-compatibles.patch added to -mm
+ tree
+Date: Fri, 21 Feb 2014 15:13:52 -0800
+Message-ID: <5307ddb0.Q17yc8YPpj+hBnrr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59155 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59172 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755281AbaBUXKE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 18:10:04 -0500
+	with ESMTP id S1754006AbaBUXNx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 18:13:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, u.kleine-koenig@pengutronix.de, kernel@pengutronix.de, shc_work@mail.ru
+To: mm-commits@vger.kernel.org, maxime.ripard@free-electrons.com
 
-Subject: + rtc-mc13xxx-fix-1hz-interrupt.patch added to -mm tree
-To: shc_work@mail.ru,kernel@pengutronix.de,u.kleine-koenig@pengutronix.de
+Subject: + drivers-rtc-rtc-sunxic-add-new-compatibles.patch added to -mm tree
+To: maxime.ripard@free-electrons.com
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 15:10:03 -0800
+Date: Fri, 21 Feb 2014 15:13:52 -0800
 
 
 The patch titled
-     Subject: rtc: mc13xxx: fix 1Hz interrupt
+     Subject: drivers/rtc/rtc-sunxi.c: add new compatibles
 has been added to the -mm tree.  Its filename is
-     rtc-mc13xxx-fix-1hz-interrupt.patch
+     drivers-rtc-rtc-sunxic-add-new-compatibles.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-mc13xxx-fix-1hz-interrupt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-sunxic-add-new-compatibles.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-mc13xxx-fix-1hz-interrupt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-sunxic-add-new-compatibles.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,42 +44,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Shiyan <shc_work@mail.ru>
-Subject: rtc: mc13xxx: fix 1Hz interrupt
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: drivers/rtc/rtc-sunxi.c: add new compatibles
 
-1Hz interrupt is never unmasked, so no interrupts appears.  This patch fix
-this issue.
+The Allwinner A10 compatibles were following a slightly different
+compatible patterns than the rest of the SoCs for historical reasons.  Add
+compatibles matching the other pattern to the RTC driver for consistency,
+and keep the older one for backward compatibility.
 
-Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
-Cc: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Cc: Sascha Hauer <kernel@pengutronix.de>
+Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mc13xxx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/devicetree/bindings/rtc/sunxi-rtc.txt |    5 +++--
+ drivers/rtc/rtc-sunxi.c                             |    5 ++++-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-fix-1hz-interrupt drivers/rtc/rtc-mc13xxx.c
---- a/drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-fix-1hz-interrupt
-+++ a/drivers/rtc/rtc-mc13xxx.c
-@@ -338,7 +338,7 @@ static int __init mc13xxx_rtc_probe(stru
+diff -puN Documentation/devicetree/bindings/rtc/sunxi-rtc.txt~drivers-rtc-rtc-sunxic-add-new-compatibles Documentation/devicetree/bindings/rtc/sunxi-rtc.txt
+--- a/Documentation/devicetree/bindings/rtc/sunxi-rtc.txt~drivers-rtc-rtc-sunxic-add-new-compatibles
++++ a/Documentation/devicetree/bindings/rtc/sunxi-rtc.txt
+@@ -3,7 +3,8 @@
+ RTC controller for the Allwinner A10/A20
  
- 	priv->valid = !rtcrst_pending;
+ Required properties:
+-- compatible : Should be "allwinner,sun4i-rtc" or "allwinner,sun7i-a20-rtc"
++- compatible : Should be "allwinner,sun4i-a10-rtc" or "allwinner,sun7i-a20-rtc"
++               (Deprecated: "allwinner,sun4i-rtc")
+ - reg: physical base address of the controller and length of memory mapped
+   region.
+ - interrupts: IRQ line for the RTC.
+@@ -11,7 +12,7 @@ Required properties:
+ Example:
  
--	ret = mc13xxx_irq_request_nounmask(mc13xxx, MC13XXX_IRQ_1HZ,
-+	ret = mc13xxx_irq_request(mc13xxx, MC13XXX_IRQ_1HZ,
- 			mc13xxx_rtc_update_handler, DRIVER_NAME, priv);
- 	if (ret)
- 		goto err_reset_irq_status;
+ rtc: rtc@01c20d00 {
+-	compatible = "allwinner,sun4i-rtc";
++	compatible = "allwinner,sun4i-a10-rtc";
+ 	reg = <0x01c20d00 0x20>;
+ 	interrupts = <24>;
+ };
+diff -puN drivers/rtc/rtc-sunxi.c~drivers-rtc-rtc-sunxic-add-new-compatibles drivers/rtc/rtc-sunxi.c
+--- a/drivers/rtc/rtc-sunxi.c~drivers-rtc-rtc-sunxic-add-new-compatibles
++++ a/drivers/rtc/rtc-sunxi.c
+@@ -428,8 +428,11 @@ static const struct rtc_class_ops sunxi_
+ };
+ 
+ static const struct of_device_id sunxi_rtc_dt_ids[] = {
+-	{ .compatible = "allwinner,sun4i-rtc", .data = &data_year_param[0] },
++	{ .compatible = "allwinner,sun4i-a10-rtc", .data = &data_year_param[0] },
+ 	{ .compatible = "allwinner,sun7i-a20-rtc", .data = &data_year_param[1] },
++
++	/* Deprecated */
++	{ .compatible = "allwinner,sun4i-rtc", .data = &data_year_param[0] },
+ 	{ /* sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, sunxi_rtc_dt_ids);
 _
 
-Patches currently in -mm which might be from shc_work@mail.ru are
+Patches currently in -mm which might be from maxime.ripard@free-electrons.com are
 
-rtc-mc13xxx-remove-__exit_p.patch
-rtc-mc13xxx-request-irqs-after-rtc-registration.patch
-rtc-mc13xxx-simplify-alarm_irq_enable.patch
-rtc-mc13xxx-fix-1hz-interrupt.patch
-rtc-mc13xxx-change-rtc-validation-scheme.patch
-rtc-mc13xxx-make-rtc_read_time-more-readable.patch
+backlight-hx8357-remove-unnecessary-oom-messages.patch
+drivers-rtc-rtc-sunxic-add-new-compatibles.patch
+arch-arm-boot-dts-sun4i-a10dtsi-convert-to-the-new-rtc-compatibles.patch
 linux-next.patch
 
