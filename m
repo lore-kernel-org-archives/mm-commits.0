@@ -1,75 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: + direct-io-remove-some-left-over-checks.patch added to -mm tree
-Date: Fri, 21 Feb 2014 14:44:53 -0800
-Message-ID: <5307d6e5.aQPYjCh5XgYOjRC5%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-disallow-high-order-page-for-migration-target.patch added to
+ -mm tree
+Date: Fri, 21 Feb 2014 14:52:52 -0800
+Message-ID: <5307d8c4.+OmNShW/1+K8/HLZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59018 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755375AbaBUWox (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 17:44:53 -0500
+	with ESMTP id S1755439AbaBUWwx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 17:52:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, riel@redhat.com, mgorman@suse.de, iamjoonsoo.kim@lge.com
 
-U3ViamVjdDogKyBkaXJlY3QtaW8tcmVtb3ZlLXNvbWUtbGVmdC1vdmVyLWNoZWNrcy5wYXRj
-aCBhZGRlZCB0byAtbW0gdHJlZQpUbzogZGFuLmNhcnBlbnRlckBvcmFjbGUuY29tCkZyb206
-IGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmcKRGF0ZTogRnJpLCAyMSBGZWIgMjAxNCAxNDo0
-NDo1MyAtMDgwMAoKClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBmcy9kaXJlY3Qt
-aW8uYzogcmVtb3ZlIHNvbWUgbGVmdCBvdmVyIGNoZWNrcwpoYXMgYmVlbiBhZGRlZCB0byB0
-aGUgLW1tIHRyZWUuICBJdHMgZmlsZW5hbWUgaXMKICAgICBkaXJlY3QtaW8tcmVtb3ZlLXNv
-bWUtbGVmdC1vdmVyLWNoZWNrcy5wYXRjaAoKVGhpcyBwYXRjaCBzaG91bGQgc29vbiBhcHBl
-YXIgYXQKICAgIGh0dHA6Ly9vemxhYnMub3JnL35ha3BtL21tb3RzL2Jyb2tlbi1vdXQvZGly
-ZWN0LWlvLXJlbW92ZS1zb21lLWxlZnQtb3Zlci1jaGVja3MucGF0Y2gKYW5kIGxhdGVyIGF0
-CiAgICBodHRwOi8vb3psYWJzLm9yZy9+YWtwbS9tbW90bS9icm9rZW4tb3V0L2RpcmVjdC1p
-by1yZW1vdmUtc29tZS1sZWZ0LW92ZXItY2hlY2tzLnBhdGNoCgpCZWZvcmUgeW91IGp1c3Qg
-Z28gYW5kIGhpdCAicmVwbHkiLCBwbGVhc2U6CiAgIGEpIENvbnNpZGVyIHdobyBlbHNlIHNo
-b3VsZCBiZSBjYydlZAogICBiKSBQcmVmZXIgdG8gY2MgYSBzdWl0YWJsZSBtYWlsaW5nIGxp
-c3QgYXMgd2VsbAogICBjKSBJZGVhbGx5OiBmaW5kIHRoZSBvcmlnaW5hbCBwYXRjaCBvbiB0
-aGUgbWFpbGluZyBsaXN0IGFuZCBkbyBhCiAgICAgIHJlcGx5LXRvLWFsbCB0byB0aGF0LCBh
-ZGRpbmcgc3VpdGFibGUgYWRkaXRpb25hbCBjYydzCgoqKiogUmVtZW1iZXIgdG8gdXNlIERv
-Y3VtZW50YXRpb24vU3VibWl0Q2hlY2tsaXN0IHdoZW4gdGVzdGluZyB5b3VyIGNvZGUgKioq
-CgpUaGUgLW1tIHRyZWUgaXMgaW5jbHVkZWQgaW50byBsaW51eC1uZXh0IGFuZCBpcyB1cGRh
-dGVkCnRoZXJlIGV2ZXJ5IDMtNCB3b3JraW5nIGRheXMKCi0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpGcm9tOiBEYW4gQ2FycGVudGVy
-IDxkYW4uY2FycGVudGVyQG9yYWNsZS5jb20+ClN1YmplY3Q6IGZzL2RpcmVjdC1pby5jOiBy
-ZW1vdmUgc29tZSBsZWZ0IG92ZXIgY2hlY2tzCgpXZSBrbm93IHRoYXQgInJldCA+IDAiIBBp
-cyB0cnVlIGhlcmUuICBUaGVzZSB0ZXN0cyB3ZXJlIGxlZnQgb3ZlciBmcm9tCjAyYWZjMjdm
-YWVjOSAoJ2RpcmVjdC1pbzogSGFuZGxlIE9fKEQpU1lOQyBBSU8nKSBhbmQgYXJlbid0IG5l
-ZWRlZCBhbnkKbW9yZS4KClNpZ25lZC1vZmYtYnk6IERhbiBDYXJwZW50ZXIgPGRhbi5jYXJw
-ZW50ZXJAb3JhY2xlLmNvbT4KU2lnbmVkLW9mZi1ieTogQW5kcmV3IE1vcnRvbiA8YWtwbUBs
-aW51eC1mb3VuZGF0aW9uLm9yZz4KLS0tCgogZnMvYmxvY2tfZGV2LmMgIHwgICAgMiArLQog
-ZnMvYnRyZnMvZmlsZS5jIHwgICAgMiArLQogZnMvZXh0NC9maWxlLmMgIHwgICAgMiArLQog
-MyBmaWxlcyBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCgpkaWZm
-IC1wdU4gZnMvYmxvY2tfZGV2LmN+ZGlyZWN0LWlvLXJlbW92ZS1zb21lLWxlZnQtb3Zlci1j
-aGVja3MgZnMvYmxvY2tfZGV2LmMKLS0tIGEvZnMvYmxvY2tfZGV2LmN+ZGlyZWN0LWlvLXJl
-bW92ZS1zb21lLWxlZnQtb3Zlci1jaGVja3MKKysrIGEvZnMvYmxvY2tfZGV2LmMKQEAgLTE1
-MjMsNyArMTUyMyw3IEBAIHNzaXplX3QgYmxrZGV2X2Fpb193cml0ZShzdHJ1Y3Qga2lvY2Ig
-KmkKIAkJc3NpemVfdCBlcnI7CiAKIAkJZXJyID0gZ2VuZXJpY193cml0ZV9zeW5jKGZpbGUs
-IHBvcywgcmV0KTsKLQkJaWYgKGVyciA8IDAgJiYgcmV0ID4gMCkKKwkJaWYgKGVyciA8IDAp
-CiAJCQlyZXQgPSBlcnI7CiAJfQogCWJsa19maW5pc2hfcGx1ZygmcGx1Zyk7CmRpZmYgLXB1
-TiBmcy9idHJmcy9maWxlLmN+ZGlyZWN0LWlvLXJlbW92ZS1zb21lLWxlZnQtb3Zlci1jaGVj
-a3MgZnMvYnRyZnMvZmlsZS5jCi0tLSBhL2ZzL2J0cmZzL2ZpbGUuY35kaXJlY3QtaW8tcmVt
-b3ZlLXNvbWUtbGVmdC1vdmVyLWNoZWNrcworKysgYS9mcy9idHJmcy9maWxlLmMKQEAgLTE3
-OTcsNyArMTc5Nyw3IEBAIHN0YXRpYyBzc2l6ZV90IGJ0cmZzX2ZpbGVfYWlvX3dyaXRlKHN0
-cnUKIAlCVFJGU19JKGlub2RlKS0+bGFzdF9zdWJfdHJhbnMgPSByb290LT5sb2dfdHJhbnNp
-ZDsKIAlpZiAobnVtX3dyaXR0ZW4gPiAwKSB7CiAJCWVyciA9IGdlbmVyaWNfd3JpdGVfc3lu
-YyhmaWxlLCBwb3MsIG51bV93cml0dGVuKTsKLQkJaWYgKGVyciA8IDAgJiYgbnVtX3dyaXR0
-ZW4gPiAwKQorCQlpZiAoZXJyIDwgMCkKIAkJCW51bV93cml0dGVuID0gZXJyOwogCX0KIApk
-aWZmIC1wdU4gZnMvZXh0NC9maWxlLmN+ZGlyZWN0LWlvLXJlbW92ZS1zb21lLWxlZnQtb3Zl
-ci1jaGVja3MgZnMvZXh0NC9maWxlLmMKLS0tIGEvZnMvZXh0NC9maWxlLmN+ZGlyZWN0LWlv
-LXJlbW92ZS1zb21lLWxlZnQtb3Zlci1jaGVja3MKKysrIGEvZnMvZXh0NC9maWxlLmMKQEAg
-LTE1Myw3ICsxNTMsNyBAQCBleHQ0X2ZpbGVfZGlvX3dyaXRlKHN0cnVjdCBraW9jYiAqaW9j
-YiwKIAkJc3NpemVfdCBlcnI7CiAKIAkJZXJyID0gZ2VuZXJpY193cml0ZV9zeW5jKGZpbGUs
-IGlvY2ItPmtpX3BvcyAtIHJldCwgcmV0KTsKLQkJaWYgKGVyciA8IDAgJiYgcmV0ID4gMCkK
-KwkJaWYgKGVyciA8IDApCiAJCQlyZXQgPSBlcnI7CiAJfQogCWJsa19maW5pc2hfcGx1Zygm
-cGx1Zyk7Cl8KClBhdGNoZXMgY3VycmVudGx5IGluIC1tbSB3aGljaCBtaWdodCBiZSBmcm9t
-IGRhbi5jYXJwZW50ZXJAb3JhY2xlLmNvbSBhcmUKCm9yaWdpbi5wYXRjaApkcml2ZXJzLXNj
-c2ktbWVnYXJhaWQtbWVnYXJhaWRfbW1jLW1pc3NpbmctYm91bmRzLWNoZWNrLWluLW1pbWRf
-dG9fa2lvYy5wYXRjaApkaXJlY3QtaW8tcmVtb3ZlLXNvbWUtbGVmdC1vdmVyLWNoZWNrcy5w
-YXRjaApuY3Bmcy1jbGVhbnVwLWluZGVudGluZy1pbi1uY3BfbG9va3VwLnBhdGNoCmRyaXZl
-cnMtbWlzYy1zZ2ktZ3J1LWdydWtkdW1wYy1jbGVhbnVwLWdydV9kdW1wX2NvbnRleHQtYS1s
-aXR0bGUucGF0Y2gKbGludXgtbmV4dC5wYXRjaAoK
+Subject: + mm-compaction-disallow-high-order-page-for-migration-target.patch added to -mm tree
+To: iamjoonsoo.kim@lge.com,mgorman@suse.de,riel@redhat.com,vbabka@suse.cz
+From: akpm@linux-foundation.org
+Date: Fri, 21 Feb 2014 14:52:52 -0800
+
+
+The patch titled
+     Subject: mm/compaction: disallow high-order page for migration target
+has been added to the -mm tree.  Its filename is
+     mm-compaction-disallow-high-order-page-for-migration-target.patch
+
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-disallow-high-order-page-for-migration-target.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-disallow-high-order-page-for-migration-target.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/compaction: disallow high-order page for migration target
+
+Purpose of compaction is to get a high order page.  Currently, if we find
+high-order page while searching migration target page, we break it to
+order-0 pages and use them as migration target.  It is contrary to purpose
+of compaction, so disallow high-order page to be used for migration
+target.
+
+Additionally, clean-up logic in suitable_migration_target() to simplify
+the code.  There is no functional changes from this clean-up.
+
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/compaction.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
+
+diff -puN mm/compaction.c~mm-compaction-disallow-high-order-page-for-migration-target mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-disallow-high-order-page-for-migration-target
++++ a/mm/compaction.c
+@@ -217,21 +217,12 @@ static inline bool compact_trylock_irqsa
+ /* Returns true if the page is within a block suitable for migration to */
+ static bool suitable_migration_target(struct page *page)
+ {
+-	int migratetype = get_pageblock_migratetype(page);
+-
+-	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
+-	if (migratetype == MIGRATE_RESERVE)
+-		return false;
+-
+-	if (is_migrate_isolate(migratetype))
+-		return false;
+-
+-	/* If the page is a large free page, then allow migration */
++	/* If the page is a large free page, then disallow migration */
+ 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
+-		return true;
++		return false;
+ 
+ 	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
+-	if (migrate_async_suitable(migratetype))
++	if (migrate_async_suitable(get_pageblock_migratetype(page)))
+ 		return true;
+ 
+ 	/* Otherwise skip the block */
+_
+
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+
+kthread-ensure-locality-of-task_struct-allocations.patch
+mm-hugetlb-unify-region-structure-handling.patch
+mm-hugetlb-improve-cleanup-resv_map-parameters.patch
+mm-hugetlb-fix-race-in-region-tracking.patch
+mm-hugetlb-remove-resv_map_put.patch
+mm-hugetlb-use-vma_resv_map-map-types.patch
+mm-hugetlb-improve-page-fault-scalability.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
+mm-compaction-avoid-isolating-pinned-pages.patch
+mm-compaction-disallow-high-order-page-for-migration-target.patch
+mm-compaction-do-not-call-suitable_migration_target-on-every-page.patch
+mm-compaction-change-the-timing-to-check-to-drop-the-spinlock.patch
+mm-compaction-check-pageblock-suitability-once-per-pageblock.patch
+mm-compaction-clean-up-code-on-success-of-ballon-isolation.patch
+
