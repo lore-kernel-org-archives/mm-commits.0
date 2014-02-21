@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + wait-completely-ignore-the-exit_dead-tasks.patch added to -mm
+Subject: + afs-afs_alloc_inode-use-kmem_cache_zalloc.patch added to -mm
  tree
-Date: Fri, 21 Feb 2014 13:39:20 -0800
-Message-ID: <5307c788.No9m9qlAPOfn+E1S%akpm@linux-foundation.org>
+Date: Fri, 21 Feb 2014 13:47:36 -0800
+Message-ID: <5307c978.n4uH3VH3uPzsKtUn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58613 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58638 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756165AbaBUVjV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 16:39:21 -0500
+	with ESMTP id S1755458AbaBUVrh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 16:47:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tj@kernel.org, roland@hack.frob.com, mschmidt@redhat.com, lpoetter@redhat.com, jan.kratochvil@redhat.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, dhowells@redhat.com, fabf@skynet.be
 
-Subject: + wait-completely-ignore-the-exit_dead-tasks.patch added to -mm tree
-To: oleg@redhat.com,jan.kratochvil@redhat.com,lpoetter@redhat.com,mschmidt@redhat.com,roland@hack.frob.com,tj@kernel.org,viro@ZenIV.linux.org.uk
+Subject: + afs-afs_alloc_inode-use-kmem_cache_zalloc.patch added to -mm tree
+To: fabf@skynet.be,dhowells@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 13:39:20 -0800
+Date: Fri, 21 Feb 2014 13:47:36 -0800
 
 
 The patch titled
-     Subject: wait: completely ignore the EXIT_DEAD tasks
+     Subject: afs: afs_alloc_inode: use kmem_cache_zalloc()
 has been added to the -mm tree.  Its filename is
-     wait-completely-ignore-the-exit_dead-tasks.patch
+     afs-afs_alloc_inode-use-kmem_cache_zalloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wait-completely-ignore-the-exit_dead-tasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/afs-afs_alloc_inode-use-kmem_cache_zalloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wait-completely-ignore-the-exit_dead-tasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/afs-afs_alloc_inode-use-kmem_cache_zalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,46 +44,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: wait: completely ignore the EXIT_DEAD tasks
+From: Fabian Frederick <fabf@skynet.be>
+Subject: afs: afs_alloc_inode: use kmem_cache_zalloc()
 
-Now that EXIT_DEAD is the terminal state it doesn't make sense to call
-eligible_child() or security_task_wait() if the task is really dead.
+This patch calls zalloc for explicit zero fill and removes all memset 0.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Tested-by: Michal Schmidt <mschmidt@redhat.com>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Lennart Poettering <lpoetter@redhat.com>
-Cc: Roland McGrath <roland@hack.frob.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/afs/super.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN kernel/exit.c~wait-completely-ignore-the-exit_dead-tasks kernel/exit.c
---- a/kernel/exit.c~wait-completely-ignore-the-exit_dead-tasks
-+++ a/kernel/exit.c
-@@ -1331,7 +1331,12 @@ static int wait_task_continued(struct wa
- static int wait_consider_task(struct wait_opts *wo, int ptrace,
- 				struct task_struct *p)
+diff -puN fs/afs/super.c~afs-afs_alloc_inode-use-kmem_cache_zalloc fs/afs/super.c
+--- a/fs/afs/super.c~afs-afs_alloc_inode-use-kmem_cache_zalloc
++++ a/fs/afs/super.c
+@@ -460,7 +460,6 @@ static void afs_i_init_once(void *_vnode
  {
--	int ret = eligible_child(wo, p);
-+	int ret;
-+
-+	if (unlikely(p->exit_state == EXIT_DEAD))
-+		return 0;
-+
-+	ret = eligible_child(wo, p);
- 	if (!ret)
- 		return ret;
+ 	struct afs_vnode *vnode = _vnode;
  
-@@ -1349,10 +1354,6 @@ static int wait_consider_task(struct wai
- 		return 0;
- 	}
+-	memset(vnode, 0, sizeof(*vnode));
+ 	inode_init_once(&vnode->vfs_inode);
+ 	init_waitqueue_head(&vnode->update_waitq);
+ 	mutex_init(&vnode->permits_lock);
+@@ -481,17 +480,12 @@ static struct inode *afs_alloc_inode(str
+ {
+ 	struct afs_vnode *vnode;
  
--	/* dead body doesn't have much to contribute */
--	if (unlikely(p->exit_state == EXIT_DEAD))
--		return 0;
+-	vnode = kmem_cache_alloc(afs_inode_cachep, GFP_KERNEL);
++	vnode = kmem_cache_zalloc(afs_inode_cachep, GFP_KERNEL);
+ 	if (!vnode)
+ 		return NULL;
+ 
+ 	atomic_inc(&afs_count_active_inodes);
+ 
+-	memset(&vnode->fid, 0, sizeof(vnode->fid));
+-	memset(&vnode->status, 0, sizeof(vnode->status));
+-
+-	vnode->volume		= NULL;
+-	vnode->update_cnt	= 0;
+ 	vnode->flags		= 1 << AFS_VNODE_UNSET;
+ 	vnode->cb_promised	= false;
+ 
+_
+
+Patches currently in -mm which might be from fabf@skynet.be are
+
+fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+fs-udf-superc-add-__init-to-init_inodecache.patch
+sys_sysfs-add-config_sysfs_syscall.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
+fs-minix-inodec-add-__init-to-init_inodecache.patch
+befs-replace-kmalloc-memset-0-by-kzalloc.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+afs-afs_alloc_inode-use-kmem_cache_zalloc.patch
+afs-afs_alloc_inode-use-kmem_cache_zalloc-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+linux-next.patch
+
