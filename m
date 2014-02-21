@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + wait-fix-reparent_leader-vs-exit_dead-exit_zombie-race.patch
- added to -mm tree
-Date: Fri, 21 Feb 2014 13:39:16 -0800
-Message-ID: <5307c784.FaoLG0j5vDlu2Ymn%akpm@linux-foundation.org>
+Subject: +
+ wait-introduce-exit_trace-to-avoid-the-racy-exit_dead-exit_zombie-transition.patch added to -mm tree
+Date: Fri, 21 Feb 2014 13:39:17 -0800
+Message-ID: <5307c785.auM6O8xIopRd3C6F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58603 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755880AbaBUVjR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 16:39:17 -0500
+	with ESMTP id S1755912AbaBUVjS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 16:39:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tj@kernel.org, stable@vger.kernel.org, roland@hack.frob.com, mschmidt@redhat.com, lpoetter@redhat.com, jan.kratochvil@redhat.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tj@kernel.org, roland@hack.frob.com, mschmidt@redhat.com, lpoetter@redhat.com, jan.kratochvil@redhat.com, oleg@redhat.com
 
-Subject: + wait-fix-reparent_leader-vs-exit_dead-exit_zombie-race.patch added to -mm tree
-To: oleg@redhat.com,jan.kratochvil@redhat.com,lpoetter@redhat.com,mschmidt@redhat.com,roland@hack.frob.com,stable@vger.kernel.org,tj@kernel.org,viro@ZenIV.linux.org.uk
+Subject: + wait-introduce-exit_trace-to-avoid-the-racy-exit_dead-exit_zombie-transition.patch added to -mm tree
+To: oleg@redhat.com,jan.kratochvil@redhat.com,lpoetter@redhat.com,mschmidt@redhat.com,roland@hack.frob.com,tj@kernel.org,viro@ZenIV.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 13:39:16 -0800
+Date: Fri, 21 Feb 2014 13:39:17 -0800
 
 
 The patch titled
-     Subject: wait: fix reparent_leader() vs EXIT_DEAD->EXIT_ZOMBIE race
+     Subject: wait: introduce EXIT_TRACE to avoid the racy EXIT_DEAD->EXIT_ZOMBIE transition
 has been added to the -mm tree.  Its filename is
-     wait-fix-reparent_leader-vs-exit_dead-exit_zombie-race.patch
+     wait-introduce-exit_trace-to-avoid-the-racy-exit_dead-exit_zombie-transition.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wait-fix-reparent_leader-vs-exit_dead-exit_zombie-race.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/wait-introduce-exit_trace-to-avoid-the-racy-exit_dead-exit_zombie-transition.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wait-fix-reparent_leader-vs-exit_dead-exit_zombie-race.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/wait-introduce-exit_trace-to-avoid-the-racy-exit_dead-exit_zombie-transition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: wait: fix reparent_leader() vs EXIT_DEAD->EXIT_ZOMBIE race
+Subject: wait: introduce EXIT_TRACE to avoid the racy EXIT_DEAD->EXIT_ZOMBIE transition
 
 wait_task_zombie() first does EXIT_ZOMBIE->EXIT_DEAD transition and drops
 tasklist_lock.  If this task is not the natural child and it is traced, we
@@ -61,11 +61,37 @@ And there is another problem which were missed before: this transition can
 also race with reparent_leader() which doesn't reset >exit_signal if
 EXIT_DEAD, assuming that this task must be reaped by someone else.  So the
 tracee can be re-parented with ->exit_signal != SIGCHLD, and if /sbin/init
-doesn't use __WALL it becomes unreapable.
+doesn't use __WALL it becomes unreapable.  This was fixed by the previous
+commit, but it was the temporary hack.
 
-Change reparent_leader() to update ->exit_signal even if EXIT_DEAD.  Note:
-this is the simple temporary hack for -stable, it doesn't try to solve all
-problems, it will be reverted by the next changes.
+1. Add the new exit_state, EXIT_TRACE. It means that the task is the
+   traced zombie, debugger is going to detach and notify its natural
+   parent.
+
+   This new state is actually EXIT_ZOMBIE | EXIT_DEAD. This way we
+   can avoid the changes in proc/kgdb code, get_task_state() still
+   reports "X (dead)" in this case.
+
+   Note: with or without this change userspace can see Z -> X -> Z
+   transition. Not really bad, but probably makes sense to fix.
+
+2. Change wait_task_zombie() to use EXIT_TRACE instead of EXIT_DEAD
+   if we need to notify the ->real_parent.
+
+3. Revert the previous hack in reparent_leader(), now that EXIT_DEAD
+   is always the final state we can safely ignore such a task.
+
+4. Change wait_consider_task() to check EXIT_TRACE separately and kill
+   the racy and no longer needed ptrace_reparented() case.
+
+   If ptrace == T an EXIT_TRACE thread should be simply ignored, the
+   owner of this state is going to ptrace_unlink() this task. We can
+   pretend that it was already removed from ->ptraced list.
+
+   Otherwise we should skip this thread too but clear ->notask_error,
+   we must be the natural parent and debugger is going to untrace and
+   notify us. IOW, this doesn't differ from "EXIT_ZOMBIE && p->ptrace"
+   even if the task was already untraced.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Reported-by: Jan Kratochvil <jan.kratochvil@redhat.com>
@@ -75,47 +101,129 @@ Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Lennart Poettering <lpoetter@redhat.com>
 Cc: Roland McGrath <roland@hack.frob.com>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ include/linux/sched.h |    1 
+ kernel/exit.c         |   50 ++++++++++++++++------------------------
+ 2 files changed, 22 insertions(+), 29 deletions(-)
 
-diff -puN kernel/exit.c~wait-fix-reparent_leader-vs-exit_dead-exit_zombie-race kernel/exit.c
---- a/kernel/exit.c~wait-fix-reparent_leader-vs-exit_dead-exit_zombie-race
+diff -puN include/linux/sched.h~wait-introduce-exit_trace-to-avoid-the-racy-exit_dead-exit_zombie-transition include/linux/sched.h
+--- a/include/linux/sched.h~wait-introduce-exit_trace-to-avoid-the-racy-exit_dead-exit_zombie-transition
++++ a/include/linux/sched.h
+@@ -206,6 +206,7 @@ print_cfs_rq(struct seq_file *m, int cpu
+ /* in tsk->exit_state */
+ #define EXIT_ZOMBIE		16
+ #define EXIT_DEAD		32
++#define EXIT_TRACE		(EXIT_ZOMBIE | EXIT_DEAD)
+ /* in tsk->state again */
+ #define TASK_DEAD		64
+ #define TASK_WAKEKILL		128
+diff -puN kernel/exit.c~wait-introduce-exit_trace-to-avoid-the-racy-exit_dead-exit_zombie-transition kernel/exit.c
+--- a/kernel/exit.c~wait-introduce-exit_trace-to-avoid-the-racy-exit_dead-exit_zombie-transition
 +++ a/kernel/exit.c
-@@ -560,9 +560,6 @@ static void reparent_leader(struct task_
+@@ -560,6 +560,9 @@ static void reparent_leader(struct task_
  				struct list_head *dead)
  {
  	list_move_tail(&p->sibling, &p->real_parent->children);
--
--	if (p->exit_state == EXIT_DEAD)
--		return;
++
++	if (p->exit_state == EXIT_DEAD)
++		return;
  	/*
  	 * If this is a threaded reparent there is no need to
  	 * notify anyone anything has happened.
-@@ -570,9 +567,19 @@ static void reparent_leader(struct task_
+@@ -567,19 +570,9 @@ static void reparent_leader(struct task_
  	if (same_thread_group(p->real_parent, father))
  		return;
  
--	/* We don't want people slaying init.  */
-+	/*
-+	 * We don't want people slaying init.
-+	 *
-+	 * Note: we do this even if it is EXIT_DEAD, wait_task_zombie()
-+	 * can change ->exit_state to EXIT_ZOMBIE. If this is the final
-+	 * state, do_notify_parent() was already called and ->exit_signal
-+	 * doesn't matter.
-+	 */
+-	/*
+-	 * We don't want people slaying init.
+-	 *
+-	 * Note: we do this even if it is EXIT_DEAD, wait_task_zombie()
+-	 * can change ->exit_state to EXIT_ZOMBIE. If this is the final
+-	 * state, do_notify_parent() was already called and ->exit_signal
+-	 * doesn't matter.
+-	 */
++	/* We don't want people slaying init. */
  	p->exit_signal = SIGCHLD;
  
-+	if (p->exit_state == EXIT_DEAD)
-+		return;
-+
+-	if (p->exit_state == EXIT_DEAD)
+-		return;
+-
  	/* If it has exited notify the new parent about this child's death. */
  	if (!p->ptrace &&
  	    p->exit_state == EXIT_ZOMBIE && thread_group_empty(p)) {
+@@ -1045,17 +1038,13 @@ static int wait_task_zombie(struct wait_
+ 		return wait_noreap_copyout(wo, p, pid, uid, why, status);
+ 	}
+ 
++	traced = ptrace_reparented(p);
+ 	/*
+-	 * Try to move the task's state to DEAD
+-	 * only one thread is allowed to do this:
++	 * Move the task's state to DEAD/TRACE, only one thread can do this.
+ 	 */
+-	state = xchg(&p->exit_state, EXIT_DEAD);
+-	if (state != EXIT_ZOMBIE) {
+-		BUG_ON(state != EXIT_DEAD);
++	state = traced ? EXIT_TRACE : EXIT_DEAD;
++	if (cmpxchg(&p->exit_state, EXIT_ZOMBIE, state) != EXIT_ZOMBIE)
+ 		return 0;
+-	}
+-
+-	traced = ptrace_reparented(p);
+ 	/*
+ 	 * It can be ptraced but not reparented, check
+ 	 * thread_group_leader() to filter out sub-threads.
+@@ -1116,7 +1105,7 @@ static int wait_task_zombie(struct wait_
+ 
+ 	/*
+ 	 * Now we are sure this task is interesting, and no other
+-	 * thread can reap it because we set its state to EXIT_DEAD.
++	 * thread can reap it because we its state == DEAD/TRACE.
+ 	 */
+ 	read_unlock(&tasklist_lock);
+ 
+@@ -1161,14 +1150,14 @@ static int wait_task_zombie(struct wait_
+ 		 * If this is not a sub-thread, notify the parent.
+ 		 * If parent wants a zombie, don't release it now.
+ 		 */
++		state = EXIT_DEAD;
+ 		if (thread_group_leader(p) &&
+-		    !do_notify_parent(p, p->exit_signal)) {
+-			p->exit_state = EXIT_ZOMBIE;
+-			p = NULL;
+-		}
++		    !do_notify_parent(p, p->exit_signal))
++			state = EXIT_ZOMBIE;
++		p->exit_state = state;
+ 		write_unlock_irq(&tasklist_lock);
+ 	}
+-	if (p != NULL)
++	if (state == EXIT_DEAD)
+ 		release_task(p);
+ 
+ 	return retval;
+@@ -1364,12 +1353,15 @@ static int wait_consider_task(struct wai
+ 	}
+ 
+ 	/* dead body doesn't have much to contribute */
+-	if (unlikely(p->exit_state == EXIT_DEAD)) {
++	if (unlikely(p->exit_state == EXIT_DEAD))
++		return 0;
++
++	if (unlikely(p->exit_state == EXIT_TRACE)) {
+ 		/*
+-		 * But do not ignore this task until the tracer does
+-		 * wait_task_zombie()->do_notify_parent().
++		 * ptrace == 0 means we are the natural parent. In this case
++		 * we should clear notask_error, debugger will notify us.
+ 		 */
+-		if (likely(!ptrace) && unlikely(ptrace_reparented(p)))
++		if (likely(!ptrace))
+ 			wo->notask_error = 0;
+ 		return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
