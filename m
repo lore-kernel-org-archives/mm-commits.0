@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-change-the-timing-to-check-to-drop-the-spinlock.patch added
- to -mm tree
-Date: Fri, 21 Feb 2014 14:52:54 -0800
-Message-ID: <5307d8c6.v3wpmhshAccS1DvO%akpm@linux-foundation.org>
+ mm-compaction-clean-up-code-on-success-of-ballon-isolation.patch added to
+ -mm tree
+Date: Fri, 21 Feb 2014 14:52:56 -0800
+Message-ID: <5307d8c8.6cxRRgjxG6Y8cNME%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59031 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59042 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755876AbaBUWwz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 17:52:55 -0500
+	with ESMTP id S1755876AbaBUWw5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 17:52:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vbabka@suse.cz, riel@redhat.com, mgorman@suse.de, iamjoonsoo.kim@lge.com
 
-Subject: + mm-compaction-change-the-timing-to-check-to-drop-the-spinlock.patch added to -mm tree
+Subject: + mm-compaction-clean-up-code-on-success-of-ballon-isolation.patch added to -mm tree
 To: iamjoonsoo.kim@lge.com,mgorman@suse.de,riel@redhat.com,vbabka@suse.cz
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 14:52:54 -0800
+Date: Fri, 21 Feb 2014 14:52:56 -0800
 
 
 The patch titled
-     Subject: mm/compaction: change the timing to check to drop the spinlock
+     Subject: mm/compaction: clean-up code on success of ballon isolation
 has been added to the -mm tree.  Its filename is
-     mm-compaction-change-the-timing-to-check-to-drop-the-spinlock.patch
+     mm-compaction-clean-up-code-on-success-of-ballon-isolation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-change-the-timing-to-check-to-drop-the-spinlock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-clean-up-code-on-success-of-ballon-isolation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-change-the-timing-to-check-to-drop-the-spinlock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-clean-up-code-on-success-of-ballon-isolation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,19 +46,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction: change the timing to check to drop the spinlock
+Subject: mm/compaction: clean-up code on success of ballon isolation
 
-It is odd to drop the spinlock when we scan (SWAP_CLUSTER_MAX - 1) th pfn
-page.  This may results in below situation while isolating migratepage.
-
-1. try isolate 0x0 ~ 0x200 pfn pages.
-2. When low_pfn is 0x1ff, ((low_pfn+1) % SWAP_CLUSTER_MAX) == 0, so drop
-   the spinlock.
-3. Then, to complete isolating, retry to aquire the lock.
-
-I think that it is better to use SWAP_CLUSTER_MAX th pfn for checking the
-criteria about dropping the lock.  This has no harm 0x0 pfn, because, at
-this time, locked variable would be false.
+It is just for clean-up to reduce code size and improve readability. 
+There is no functional change.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -67,21 +58,42 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-change-the-timing-to-check-to-drop-the-spinlock mm/compaction.c
---- a/mm/compaction.c~mm-compaction-change-the-timing-to-check-to-drop-the-spinlock
+diff -puN mm/compaction.c~mm-compaction-clean-up-code-on-success-of-ballon-isolation mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-clean-up-code-on-success-of-ballon-isolation
 +++ a/mm/compaction.c
-@@ -481,7 +481,7 @@ isolate_migratepages_range(struct zone *
- 	cond_resched();
- 	for (; low_pfn < end_pfn; low_pfn++) {
- 		/* give a chance to irqs before checking need_resched() */
--		if (locked && !((low_pfn+1) % SWAP_CLUSTER_MAX)) {
-+		if (locked && !(low_pfn % SWAP_CLUSTER_MAX)) {
- 			if (should_release_lock(&zone->lru_lock)) {
- 				spin_unlock_irqrestore(&zone->lru_lock, flags);
- 				locked = false;
+@@ -556,11 +556,7 @@ isolate_migratepages_range(struct zone *
+ 			if (unlikely(balloon_page_movable(page))) {
+ 				if (locked && balloon_page_isolate(page)) {
+ 					/* Successfully isolated */
+-					cc->finished_update_migrate = true;
+-					list_add(&page->lru, migratelist);
+-					cc->nr_migratepages++;
+-					nr_isolated++;
+-					goto check_compact_cluster;
++					goto isolate_success;
+ 				}
+ 			}
+ 			continue;
+@@ -621,13 +617,14 @@ isolate_migratepages_range(struct zone *
+ 		VM_BUG_ON_PAGE(PageTransCompound(page), page);
+ 
+ 		/* Successfully isolated */
+-		cc->finished_update_migrate = true;
+ 		del_page_from_lru_list(page, lruvec, page_lru(page));
++
++isolate_success:
++		cc->finished_update_migrate = true;
+ 		list_add(&page->lru, migratelist);
+ 		cc->nr_migratepages++;
+ 		nr_isolated++;
+ 
+-check_compact_cluster:
+ 		/* Avoid isolating too much */
+ 		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX) {
+ 			++low_pfn;
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
