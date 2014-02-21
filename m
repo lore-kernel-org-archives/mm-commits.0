@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch added
- to -mm tree
-Date: Fri, 21 Feb 2014 15:36:39 -0800
-Message-ID: <5307e307.ay+8LFaU0R81I0XC%akpm@linux-foundation.org>
+ drivers-rtc-rtc-cmosc-fix-compilation-warning-when-config_pm_sleep.patch
+ added to -mm tree
+Date: Fri, 21 Feb 2014 15:36:41 -0800
+Message-ID: <5307e309.gCTNCZOQ4SueZBT/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59214 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59215 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752769AbaBUXgk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 18:36:40 -0500
+	with ESMTP id S1753332AbaBUXgm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Feb 2014 18:36:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, chenhui.zhao@freescale.com, dongsheng.wang@freescale.com
+To: mm-commits@vger.kernel.org, mika.westerberg@linux.intel.com
 
-Subject: + drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch added to -mm tree
-To: dongsheng.wang@freescale.com,chenhui.zhao@freescale.com
+Subject: + drivers-rtc-rtc-cmosc-fix-compilation-warning-when-config_pm_sleep.patch added to -mm tree
+To: mika.westerberg@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Fri, 21 Feb 2014 15:36:39 -0800
+Date: Fri, 21 Feb 2014 15:36:41 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds3232.c: enable ds3232 to work as wakeup source
+     Subject: drivers/rtc/rtc-cmos.c: fix compilation warning when !CONFIG_PM_SLEEP
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch
+     drivers-rtc-rtc-cmosc-fix-compilation-warning-when-config_pm_sleep.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-cmosc-fix-compilation-warning-when-config_pm_sleep.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-cmosc-fix-compilation-warning-when-config_pm_sleep.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,170 +45,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang Dongsheng <dongsheng.wang@freescale.com>
-Subject: drivers/rtc/rtc-ds3232.c: enable ds3232 to work as wakeup source
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: drivers/rtc/rtc-cmos.c: fix compilation warning when !CONFIG_PM_SLEEP
 
-Add suspend/resume and device_init_wakeup to enable ds3232 as wakeup
-source, /sys/class/rtc/rtcX/wakealarm for set wakeup alarm.
+CONFIG_PM will be set also if only CONFIG_PM_RUNTIME is set which causes
+the compiler to emit following warning:
 
-Signed-off-by: Wang Dongsheng <dongsheng.wang@freescale.com>
-Cc: Zhao Chenhui <chenhui.zhao@freescale.com>
+drivers/rtc/rtc-cmos.c:845:12: warning: =E2=80=98cmos_resume=E2=80=99 defin=
+ed but not used [-Wunused-function]
+
+Fix this by using CONFIG_PM_SLEEP instead of CONFIG_PM and removing it
+from the driver pm ops as this has been taken care by SIMPLE_DEV_PM_OPS()
+already.
+
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds3232.c |   90 +++++++++++++++++++++++++++----------
- 1 file changed, 68 insertions(+), 22 deletions(-)
+ drivers/rtc/rtc-cmos.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source drivers/rtc/rtc-ds3232.c
---- a/drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source
-+++ a/drivers/rtc/rtc-ds3232.c
-@@ -57,6 +57,7 @@ struct ds3232 {
- 	 * in the remove function.
- 	 */
- 	struct mutex mutex;
-+	bool suspended;
- 	int exiting;
- };
- 
-@@ -345,7 +346,15 @@ static irqreturn_t ds3232_irq(int irq, v
- 	struct ds3232 *ds3232 = i2c_get_clientdata(client);
- 
- 	disable_irq_nosync(irq);
--	schedule_work(&ds3232->work);
-+
-+	/*
-+	 * If rtc as a wakeup source, can't schedule the work
-+	 * at system resume flow, because at this time the i2c bus
-+	 * has not been resumed.
-+	 */
-+	if (!ds3232->suspended)
-+		schedule_work(&ds3232->work);
-+
- 	return IRQ_HANDLED;
+diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-compilation-warning-when-config_pm_sleep drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-compilation-warning-when-config_pm_sleep
++++ a/drivers/rtc/rtc-cmos.c
+@@ -837,7 +837,7 @@ static void __exit cmos_do_remove(struct
+ 	cmos->dev = NULL;
  }
  
-@@ -363,22 +372,26 @@ static void ds3232_work(struct work_stru
+-#ifdef	CONFIG_PM
++#ifdef	CONFIG_PM_SLEEP
  
- 	if (stat & DS3232_REG_SR_A1F) {
- 		control = i2c_smbus_read_byte_data(client, DS3232_REG_CR);
--		if (control < 0)
--			goto out;
--		/* disable alarm1 interrupt */
--		control &= ~(DS3232_REG_CR_A1IE);
--		i2c_smbus_write_byte_data(client, DS3232_REG_CR, control);
-+		if (control < 0) {
-+			pr_warn("Read DS3232 Control Register error."
-+				"Disable IRQ%d.\n", client->irq);
-+		} else {
-+			/* disable alarm1 interrupt */
-+			control &= ~(DS3232_REG_CR_A1IE);
-+			i2c_smbus_write_byte_data(client, DS3232_REG_CR,
-+						control);
-+
-+			/* clear the alarm pend flag */
-+			stat &= ~DS3232_REG_SR_A1F;
-+			i2c_smbus_write_byte_data(client, DS3232_REG_SR, stat);
- 
--		/* clear the alarm pend flag */
--		stat &= ~DS3232_REG_SR_A1F;
--		i2c_smbus_write_byte_data(client, DS3232_REG_SR, stat);
-+			rtc_update_irq(ds3232->rtc, 1, RTC_AF | RTC_IRQF);
- 
--		rtc_update_irq(ds3232->rtc, 1, RTC_AF | RTC_IRQF);
-+			if (!ds3232->exiting)
-+				enable_irq(client->irq);
-+		}
- 	}
- 
--out:
--	if (!ds3232->exiting)
--		enable_irq(client->irq);
- unlock:
- 	mutex_unlock(&ds3232->mutex);
- }
-@@ -411,23 +424,19 @@ static int ds3232_probe(struct i2c_clien
- 	if (ret)
- 		return ret;
- 
--	ds3232->rtc = devm_rtc_device_register(&client->dev, client->name,
--					  &ds3232_rtc_ops, THIS_MODULE);
--	if (IS_ERR(ds3232->rtc)) {
--		dev_err(&client->dev, "unable to register the class device\n");
--		return PTR_ERR(ds3232->rtc);
--	}
--
--	if (client->irq >= 0) {
-+	if (client->irq != NO_IRQ) {
- 		ret = devm_request_irq(&client->dev, client->irq, ds3232_irq,
- 				       IRQF_SHARED, "ds3232", client);
- 		if (ret) {
- 			dev_err(&client->dev, "unable to request IRQ\n");
- 			return ret;
- 		}
-+		device_init_wakeup(&client->dev, 1);
- 	}
- 
--	return 0;
-+	ds3232->rtc = devm_rtc_device_register(&client->dev, client->name,
-+					  &ds3232_rtc_ops, THIS_MODULE);
-+	return PTR_ERR_OR_ZERO(ds3232->rtc);
- }
- 
- static int ds3232_remove(struct i2c_client *client)
-@@ -446,6 +455,42 @@ static int ds3232_remove(struct i2c_clie
+ static int cmos_suspend(struct device *dev)
+ {
+@@ -935,8 +935,6 @@ static int cmos_resume(struct device *de
  	return 0;
  }
  
-+#ifdef CONFIG_PM_SLEEP
-+static int ds3232_suspend(struct device *dev)
-+{
-+	struct ds3232 *ds3232 = dev_get_drvdata(dev);
-+	struct i2c_client *client = to_i2c_client(dev);
+-static SIMPLE_DEV_PM_OPS(cmos_pm_ops, cmos_suspend, cmos_resume);
+-
+ #else
+ 
+ static inline int cmos_poweroff(struct device *dev)
+@@ -946,6 +944,8 @@ static inline int cmos_poweroff(struct d
+ 
+ #endif
+ 
++static SIMPLE_DEV_PM_OPS(cmos_pm_ops, cmos_suspend, cmos_resume);
 +
-+	if (device_can_wakeup(dev)) {
-+		ds3232->suspended = true;
-+		irq_set_irq_wake(client->irq, 1);
-+	}
-+
-+	return 0;
-+}
-+
-+static int ds3232_resume(struct device *dev)
-+{
-+	struct ds3232 *ds3232 = dev_get_drvdata(dev);
-+	struct i2c_client *client = to_i2c_client(dev);
-+
-+	if (ds3232->suspended) {
-+		ds3232->suspended = false;
-+
-+		/* Clear the hardware alarm pend flag */
-+		schedule_work(&ds3232->work);
-+
-+		irq_set_irq_wake(client->irq, 0);
-+	}
-+
-+	return 0;
-+}
-+#endif
-+
-+static const struct dev_pm_ops ds3232_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(ds3232_suspend, ds3232_resume)
-+};
-+
- static const struct i2c_device_id ds3232_id[] = {
- 	{ "ds3232", 0 },
- 	{ }
-@@ -456,6 +501,7 @@ static struct i2c_driver ds3232_driver =
- 	.driver = {
- 		.name = "rtc-ds3232",
- 		.owner = THIS_MODULE,
-+		.pm	= &ds3232_pm_ops,
+ /*----------------------------------------------------------------*/
+ 
+ /* On non-x86 systems, a "CMOS" RTC lives most naturally on platform_bus.
+@@ -1088,11 +1088,9 @@ static struct pnp_driver cmos_pnp_driver
+ 
+ 	/* flag ensures resume() gets called, and stops syslog spam */
+ 	.flags		= PNP_DRIVER_RES_DO_NOT_CHANGE,
+-#ifdef CONFIG_PM_SLEEP
+ 	.driver		= {
+ 			.pm = &cmos_pm_ops,
  	},
- 	.probe = ds3232_probe,
- 	.remove = ds3232_remove,
+-#endif
+ };
+ 
+ #endif	/* CONFIG_PNP */
 _
 
-Patches currently in -mm which might be from dongsheng.wang@freescale.com are
+Patches currently in -mm which might be from mika.westerberg@linux.intel.com are
 
-drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch
+drivers-rtc-rtc-cmosc-fix-compilation-warning-when-config_pm_sleep.patch
+linux-next.patch
 
