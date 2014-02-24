@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch added to -mm tree
-Date: Mon, 24 Feb 2014 14:10:38 -0800
-Message-ID: <530bc35e.JxCkP0YSuEFdot0p%akpm@linux-foundation.org>
+Subject: +
+ kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
+ added to -mm tree
+Date: Mon, 24 Feb 2014 14:42:08 -0800
+Message-ID: <530bcac0.VZ99BfK1CN+SD/si%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51195 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752054AbaBXWKj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 17:10:39 -0500
+	with ESMTP id S1752276AbaBXWmJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 17:42:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mporter@kernel.crashing.org, alexandre.bounine@idt.com
+To: mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, mmarek@suse.cz, josh@joshtriplett.org
 
-Subject: + rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch added to -mm tree
-To: alexandre.bounine@idt.com,mporter@kernel.crashing.org
+Subject: + kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch added to -mm tree
+To: josh@joshtriplett.org,mmarek@suse.cz,paulmck@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Mon, 24 Feb 2014 14:10:38 -0800
+Date: Mon, 24 Feb 2014 14:42:08 -0800
 
 
 The patch titled
-     Subject: drivers/rapidio/devices/tsi721_dma.c: optimize use of BDMA descriptors
+     Subject: kconfig: make allnoconfig disable options behind EMBEDDED and EXPERT
 has been added to the -mm tree.  Its filename is
-     rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch
+     kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,232 +45,203 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: drivers/rapidio/devices/tsi721_dma.c: optimize use of BDMA descriptors
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: kconfig: make allnoconfig disable options behind EMBEDDED and EXPERT
 
-Combine SG entries describing single contiguous memory block into one
-Tsi721 BDMA descriptor.  This reduces number of hardware descriptors
-required for large data transfers and improves performance on the PCIe
-side by reducing number of descriptor fetch requests.
+"make allnoconfig" exists to ease testing of minimal configurations. 
+Documentation/SubmitChecklist includes a note to test with allnoconfig. 
+This helps catch missing dependencies on common-but-not-required
+functionality, which might otherwise go unnoticed.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+However, allnoconfig still leaves many symbols enabled, because they're
+hidden behind CONFIG_EMBEDDED or CONFIG_EXPERT.  For instance, allnoconfig
+still has CONFIG_PRINTK and CONFIG_BLOCK enabled, so drivers don't
+typically get build-tested with those disabled.
+
+To address this, introduce a new Kconfig option "allnoconfig_y", used on
+symbols which only exist to hide other symbols.  Set it on CONFIG_EMBEDDED
+(which then selects CONFIG_EXPERT).  allnoconfig will then disable all the
+symbols hidden behind those.
+
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Tested-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.h     |    4 
- drivers/rapidio/devices/tsi721_dma.c |  111 +++++++++++++++++--------
- 2 files changed, 82 insertions(+), 33 deletions(-)
+ Documentation/kbuild/kconfig-language.txt |    4 ++++
+ init/Kconfig                              |    1 +
+ scripts/kconfig/confdata.c                |    5 ++++-
+ scripts/kconfig/expr.h                    |    3 +++
+ scripts/kconfig/lkc.h                     |    1 +
+ scripts/kconfig/menu.c                    |    3 +++
+ scripts/kconfig/zconf.gperf               |    1 +
+ scripts/kconfig/zconf.hash.c_shipped      |   13 ++++++++-----
+ 8 files changed, 25 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721_dma-optimize-use-of-bdma-descriptors drivers/rapidio/devices/tsi721.h
---- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721_dma-optimize-use-of-bdma-descriptors
-+++ a/drivers/rapidio/devices/tsi721.h
-@@ -644,6 +644,9 @@ enum tsi721_smsg_int_flag {
+diff -puN Documentation/kbuild/kconfig-language.txt~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert Documentation/kbuild/kconfig-language.txt
+--- a/Documentation/kbuild/kconfig-language.txt~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
++++ a/Documentation/kbuild/kconfig-language.txt
+@@ -157,6 +157,10 @@ applicable everywhere (see syntax).
+     to the build environment (if this is desired, it can be done via
+     another symbol).
  
- #ifdef CONFIG_RAPIDIO_DMA_ENGINE
++  - "allnoconfig_y"
++    This declares the symbol as one that should have the value y when
++    using "allnoconfig". Used for symbols that hide other symbols.
++
+ Menu dependencies
+ -----------------
  
-+#define TSI721_BDMA_BD_RING_SZ	128
-+#define TSI721_BDMA_MAX_BCOUNT	(TSI721_DMAD_BCOUNT1 + 1)
-+
- struct tsi721_tx_desc {
- 	struct dma_async_tx_descriptor	txd;
- 	struct tsi721_dma_desc		*hw_desc;
-@@ -652,6 +655,7 @@ struct tsi721_tx_desc {
- 	u64				rio_addr;
- 	/* upper 2-bits of 66-bit RIO address */
- 	u8				rio_addr_u;
-+	u32				bcount;
- 	bool				interrupt;
- 	struct list_head		desc_node;
- 	struct list_head		tx_list;
-diff -puN drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-optimize-use-of-bdma-descriptors drivers/rapidio/devices/tsi721_dma.c
---- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-optimize-use-of-bdma-descriptors
-+++ a/drivers/rapidio/devices/tsi721_dma.c
-@@ -304,35 +304,17 @@ struct tsi721_tx_desc *tsi721_desc_get(s
- }
+diff -puN init/Kconfig~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert init/Kconfig
+--- a/init/Kconfig~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
++++ a/init/Kconfig
+@@ -1475,6 +1475,7 @@ config PCI_QUIRKS
  
- static int
--tsi721_fill_desc(struct tsi721_bdma_chan *bdma_chan,
--	struct tsi721_tx_desc *desc, struct scatterlist *sg,
-+tsi721_desc_fill_init(struct tsi721_tx_desc *desc, struct scatterlist *sg,
- 	enum dma_rtype rtype, u32 sys_size)
- {
- 	struct tsi721_dma_desc *bd_ptr = desc->hw_desc;
- 	u64 rio_addr;
+ config EMBEDDED
+ 	bool "Embedded system"
++	option allnoconfig_y
+ 	select EXPERT
+ 	help
+ 	  This option should be enabled if compiling the kernel for
+diff -puN scripts/kconfig/confdata.c~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/confdata.c
+--- a/scripts/kconfig/confdata.c~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
++++ a/scripts/kconfig/confdata.c
+@@ -1178,7 +1178,10 @@ bool conf_set_all_new_symbols(enum conf_
+ 				sym->def[S_DEF_USER].tri = mod;
+ 				break;
+ 			case def_no:
+-				sym->def[S_DEF_USER].tri = no;
++				if (sym->flags & SYMBOL_ALLNOCONFIG_Y)
++					sym->def[S_DEF_USER].tri = yes;
++				else
++					sym->def[S_DEF_USER].tri = no;
+ 				break;
+ 			case def_random:
+ 				sym->def[S_DEF_USER].tri = no;
+diff -puN scripts/kconfig/expr.h~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/expr.h
+--- a/scripts/kconfig/expr.h~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
++++ a/scripts/kconfig/expr.h
+@@ -109,6 +109,9 @@ struct symbol {
+ /* choice values need to be set before calculating this symbol value */
+ #define SYMBOL_NEED_SET_CHOICE_VALUES  0x100000
  
--	if (sg_dma_len(sg) > TSI721_DMAD_BCOUNT1 + 1) {
--		dev_err(bdma_chan->dchan.device->dev,
--			"SG element is too large\n");
--		return -EINVAL;
--	}
--
--	dev_dbg(bdma_chan->dchan.device->dev,
--		"desc: 0x%llx, addr: 0x%llx len: 0x%x\n",
--		(u64)desc->txd.phys, (unsigned long long)sg_dma_address(sg),
--		sg_dma_len(sg));
--
--	dev_dbg(bdma_chan->dchan.device->dev,
--		"bd_ptr = %p did=%d raddr=0x%llx\n",
--		bd_ptr, desc->destid, desc->rio_addr);
--
- 	/* Initialize DMA descriptor */
- 	bd_ptr->type_id = cpu_to_le32((DTYPE1 << 29) |
- 					(rtype << 19) | desc->destid);
--	if (desc->interrupt)
--		bd_ptr->type_id |= cpu_to_le32(TSI721_DMAD_IOF);
- 	bd_ptr->bcount = cpu_to_le32(((desc->rio_addr & 0x3) << 30) |
--					(sys_size << 26) | sg_dma_len(sg));
-+				     (sys_size << 26));
- 	rio_addr = (desc->rio_addr >> 2) |
- 				((u64)(desc->rio_addr_u & 0x3) << 62);
- 	bd_ptr->raddr_lo = cpu_to_le32(rio_addr & 0xffffffff);
-@@ -346,6 +328,20 @@ tsi721_fill_desc(struct tsi721_bdma_chan
- 	return 0;
- }
++/* Set symbol to y if allnoconfig; used for symbols that hide others */
++#define SYMBOL_ALLNOCONFIG_Y 0x200000
++
+ #define SYMBOL_MAXLENGTH	256
+ #define SYMBOL_HASHSIZE		9973
  
-+static int
-+tsi721_desc_fill_end(struct tsi721_tx_desc *desc)
-+{
-+	struct tsi721_dma_desc *bd_ptr = desc->hw_desc;
-+
-+	/* Update DMA descriptor */
-+	if (desc->interrupt)
-+		bd_ptr->type_id |= cpu_to_le32(TSI721_DMAD_IOF);
-+	bd_ptr->bcount |= cpu_to_le32(desc->bcount & TSI721_DMAD_BCOUNT1);
-+
-+	return 0;
-+}
-+
-+
- static void tsi721_dma_chain_complete(struct tsi721_bdma_chan *bdma_chan,
- 				      struct tsi721_tx_desc *desc)
- {
-@@ -676,6 +672,7 @@ struct dma_async_tx_descriptor *tsi721_p
- 	unsigned int i;
- 	u32 sys_size = dma_to_mport(dchan->device)->sys_size;
- 	enum dma_rtype rtype;
-+	dma_addr_t next_addr = -1;
+diff -puN scripts/kconfig/lkc.h~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/lkc.h
+--- a/scripts/kconfig/lkc.h~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
++++ a/scripts/kconfig/lkc.h
+@@ -61,6 +61,7 @@ enum conf_def_mode {
+ #define T_OPT_MODULES		1
+ #define T_OPT_DEFCONFIG_LIST	2
+ #define T_OPT_ENV		3
++#define T_OPT_ALLNOCONFIG_Y	4
  
- 	if (!sgl || !sg_len) {
- 		dev_err(dchan->device->dev, "%s: No SG list\n", __func__);
-@@ -706,36 +703,84 @@ struct dma_async_tx_descriptor *tsi721_p
- 	for_each_sg(sgl, sg, sg_len, i) {
- 		int err;
- 
--		dev_dbg(dchan->device->dev, "%s: sg #%d\n", __func__, i);
-+		if (sg_dma_len(sg) > TSI721_BDMA_MAX_BCOUNT) {
-+			dev_err(dchan->device->dev,
-+				"%s: SG entry %d is too large\n", __func__, i);
-+			goto err_desc_put;
-+		}
-+
-+		/*
-+		 * If this sg entry forms contiguous block with previous one,
-+		 * try to merge it into existing DMA descriptor
-+		 */
-+		if (desc) {
-+			if (next_addr == sg_dma_address(sg) &&
-+			    desc->bcount + sg_dma_len(sg) <=
-+						TSI721_BDMA_MAX_BCOUNT) {
-+				/* Adjust byte count of the descriptor */
-+				desc->bcount += sg_dma_len(sg);
-+				goto entry_done;
-+			}
-+
-+			/*
-+			 * Finalize this descriptor using total
-+			 * byte count value.
-+			 */
-+			tsi721_desc_fill_end(desc);
-+			dev_dbg(dchan->device->dev, "%s: desc final len: %d\n",
-+				__func__, desc->bcount);
-+		}
-+
-+		/*
-+		 * Obtain and initialize a new descriptor
-+		 */
- 		desc = tsi721_desc_get(bdma_chan);
- 		if (!desc) {
- 			dev_err(dchan->device->dev,
--				"Not enough descriptors available\n");
--			goto err_desc_get;
-+				"%s: Failed to get new descriptor for SG %d\n",
-+				__func__, i);
-+			goto err_desc_put;
- 		}
- 
--		if (sg_is_last(sg))
--			desc->interrupt = (flags & DMA_PREP_INTERRUPT) != 0;
--		else
--			desc->interrupt = false;
--
- 		desc->destid = rext->destid;
- 		desc->rio_addr = rio_addr;
- 		desc->rio_addr_u = 0;
-+		desc->bcount = sg_dma_len(sg);
-+
-+		dev_dbg(dchan->device->dev,
-+			"sg%d desc: 0x%llx, addr: 0x%llx len: %d\n",
-+			i, (u64)desc->txd.phys,
-+			(unsigned long long)sg_dma_address(sg),
-+			sg_dma_len(sg));
-+
-+		dev_dbg(dchan->device->dev,
-+			"bd_ptr = %p did=%d raddr=0x%llx\n",
-+			desc->hw_desc, desc->destid, desc->rio_addr);
- 
--		err = tsi721_fill_desc(bdma_chan, desc, sg, rtype, sys_size);
-+		err = tsi721_desc_fill_init(desc, sg, rtype, sys_size);
- 		if (err) {
- 			dev_err(dchan->device->dev,
- 				"Failed to build desc: %d\n", err);
--			goto err_desc_get;
-+			goto err_desc_put;
- 		}
- 
--		rio_addr += sg_dma_len(sg);
-+		next_addr = sg_dma_address(sg);
- 
- 		if (!first)
- 			first = desc;
- 		else
- 			list_add_tail(&desc->desc_node, &first->tx_list);
-+
-+entry_done:
-+		if (sg_is_last(sg)) {
-+			desc->interrupt = (flags & DMA_PREP_INTERRUPT) != 0;
-+			tsi721_desc_fill_end(desc);
-+			dev_dbg(dchan->device->dev, "%s: desc final len: %d\n",
-+				__func__, desc->bcount);
-+		} else {
-+			rio_addr += sg_dma_len(sg);
-+			next_addr += sg_dma_len(sg);
-+		}
+ struct kconf_id {
+ 	int name;
+diff -puN scripts/kconfig/menu.c~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/menu.c
+--- a/scripts/kconfig/menu.c~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
++++ a/scripts/kconfig/menu.c
+@@ -217,6 +217,9 @@ void menu_add_option(int token, char *ar
+ 	case T_OPT_ENV:
+ 		prop_add_env(arg);
+ 		break;
++	case T_OPT_ALLNOCONFIG_Y:
++		current_entry->sym->flags |= SYMBOL_ALLNOCONFIG_Y;
++		break;
  	}
- 
- 	first->txd.cookie = -EBUSY;
-@@ -743,7 +788,7 @@ struct dma_async_tx_descriptor *tsi721_p
- 
- 	return &first->txd;
- 
--err_desc_get:
-+err_desc_put:
- 	tsi721_desc_put(bdma_chan, first);
- 	return NULL;
  }
-@@ -794,7 +839,7 @@ int tsi721_register_dma(struct tsi721_de
- 		if (i == TSI721_DMACH_MAINT)
- 			continue;
  
--		bdma_chan->bd_num = 64;
-+		bdma_chan->bd_num = TSI721_BDMA_BD_RING_SZ;
- 		bdma_chan->regs = priv->regs + TSI721_DMAC_BASE(i);
+diff -puN scripts/kconfig/zconf.gperf~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/zconf.gperf
+--- a/scripts/kconfig/zconf.gperf~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
++++ a/scripts/kconfig/zconf.gperf
+@@ -44,4 +44,5 @@ on,		T_ON,		TF_PARAM
+ modules,	T_OPT_MODULES,	TF_OPTION
+ defconfig_list,	T_OPT_DEFCONFIG_LIST,TF_OPTION
+ env,		T_OPT_ENV,	TF_OPTION
++allnoconfig_y,	T_OPT_ALLNOCONFIG_Y,TF_OPTION
+ %%
+diff -puN scripts/kconfig/zconf.hash.c_shipped~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/zconf.hash.c_shipped
+--- a/scripts/kconfig/zconf.hash.c_shipped~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
++++ a/scripts/kconfig/zconf.hash.c_shipped
+@@ -55,10 +55,10 @@ kconf_id_hash (register const char *str,
+       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+-      73, 73, 73, 73, 73, 73, 73, 73, 25, 25,
++      73, 73, 73, 73, 73, 73, 73,  5, 25, 25,
+        0,  0,  0,  5,  0,  0, 73, 73,  5,  0,
+       10,  5, 45, 73, 20, 20,  0, 15, 15, 73,
+-      20, 73, 73, 73, 73, 73, 73, 73, 73, 73,
++      20,  5, 73, 73, 73, 73, 73, 73, 73, 73,
+       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
+@@ -106,6 +106,7 @@ struct kconf_id_strings_t
+     char kconf_id_strings_str23[sizeof("mainmenu")];
+     char kconf_id_strings_str25[sizeof("menuconfig")];
+     char kconf_id_strings_str27[sizeof("modules")];
++    char kconf_id_strings_str28[sizeof("allnoconfig_y")];
+     char kconf_id_strings_str29[sizeof("menu")];
+     char kconf_id_strings_str31[sizeof("select")];
+     char kconf_id_strings_str32[sizeof("comment")];
+@@ -141,6 +142,7 @@ static const struct kconf_id_strings_t k
+     "mainmenu",
+     "menuconfig",
+     "modules",
++    "allnoconfig_y",
+     "menu",
+     "select",
+     "comment",
+@@ -170,7 +172,7 @@ kconf_id_lookup (register const char *st
+ {
+   enum
+     {
+-      TOTAL_KEYWORDS = 32,
++      TOTAL_KEYWORDS = 33,
+       MIN_WORD_LENGTH = 2,
+       MAX_WORD_LENGTH = 14,
+       MIN_HASH_VALUE = 2,
+@@ -219,7 +221,8 @@ kconf_id_lookup (register const char *st
+       {-1},
+ #line 44 "scripts/kconfig/zconf.gperf"
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str27,	T_OPT_MODULES,	TF_OPTION},
+-      {-1},
++#line 47 "scripts/kconfig/zconf.gperf"
++      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str28,	T_OPT_ALLNOCONFIG_Y,TF_OPTION},
+ #line 16 "scripts/kconfig/zconf.gperf"
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str29,		T_MENU,		TF_COMMAND},
+       {-1},
+@@ -282,5 +285,5 @@ kconf_id_lookup (register const char *st
+     }
+   return 0;
+ }
+-#line 47 "scripts/kconfig/zconf.gperf"
++#line 48 "scripts/kconfig/zconf.gperf"
  
- 		bdma_chan->dchan.device = &mport->dma;
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
-rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch
-rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch
+mm-compactionc-mark-function-as-static.patch
+mm-memoryc-mark-functions-as-static.patch
+mm-mmapc-mark-function-as-static.patch
+mm-process_vm_accessc-mark-function-as-static.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-page_cgroupc-mark-functions-as-static.patch
+mm-nobootmemc-mark-function-as-static.patch
+include-linux-mmh-remove-ifdef-condition.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype.patch
+fs-kernel-permit-disabling-the-uselib-syscall.patch
+fs-kernel-permit-disabling-the-uselib-syscall-v2.patch
+lglock-map-to-spinlock-when-config_smp.patch
+fs-reiserfs-move-prototype-declaration-to-header-file.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
+linux-next.patch
 
