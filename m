@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + exitc-call-proc_exit_connector-after-exit_state-is-set.patch
- added to -mm tree
-Date: Mon, 24 Feb 2014 13:53:29 -0800
-Message-ID: <530bbf59.78aTdR6Ql6kCpXnE%akpm@linux-foundation.org>
+Subject: + rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch added to -mm tree
+Date: Mon, 24 Feb 2014 14:10:38 -0800
+Message-ID: <530bc35e.JxCkP0YSuEFdot0p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50804 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50836 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752264AbaBXVxa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 16:53:30 -0500
+	with ESMTP id S1752054AbaBXWKj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 17:10:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, oleg@redhat.com, matt.helsley@gmail.com, davem@davemloft.net, guillaume@morinfr.org
+To: mm-commits@vger.kernel.org, mporter@kernel.crashing.org, alexandre.bounine@idt.com
 
-Subject: + exitc-call-proc_exit_connector-after-exit_state-is-set.patch added to -mm tree
-To: guillaume@morinfr.org,davem@davemloft.net,matt.helsley@gmail.com,oleg@redhat.com
+Subject: + rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch added to -mm tree
+To: alexandre.bounine@idt.com,mporter@kernel.crashing.org
 From: akpm@linux-foundation.org
-Date: Mon, 24 Feb 2014 13:53:29 -0800
+Date: Mon, 24 Feb 2014 14:10:38 -0800
 
 
 The patch titled
-     Subject: kernel/exit.c: call proc_exit_connector() after exit_state is set
+     Subject: drivers/rapidio/devices/tsi721_dma.c: optimize use of BDMA descriptors
 has been added to the -mm tree.  Its filename is
-     exitc-call-proc_exit_connector-after-exit_state-is-set.patch
+     rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exitc-call-proc_exit_connector-after-exit_state-is-set.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exitc-call-proc_exit_connector-after-exit_state-is-set.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,71 +43,232 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guillaume Morin <guillaume@morinfr.org>
-Subject: kernel/exit.c: call proc_exit_connector() after exit_state is set
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: drivers/rapidio/devices/tsi721_dma.c: optimize use of BDMA descriptors
 
-The process events connector delivers a notification when a process exits.
- This is really convenient for a process that spawns and wants to monitor
-its children through an epoll-able() interface.
+Combine SG entries describing single contiguous memory block into one
+Tsi721 BDMA descriptor.  This reduces number of hardware descriptors
+required for large data transfers and improves performance on the PCIe
+side by reducing number of descriptor fetch requests.
 
-Unfortunately, there is a small window between when the event is delivered
-and the child become wait()-able.
-
-This is creates a race if the parent wants to make sure that it knows
-about the exit, e.g
-
-pid_t pid = fork();
-if (pid > 0) {
-	register_interest_for_pid(pid);
-	if (waitpid(pid, NULL, WNOHANG) > 0)
-	{
-	  /* We might have raced with exit() */
-	}
-	return;
-}
-
-/* Child */
-execve(...)
-
-register_interest_for_pid() would be telling the the connector socket
-reader to pay attention to events related to pid.
-
-Though this is not a bug, I think it would make the connector a bit more
-usable if this race was closed by simply moving the call to
-proc_exit_connector() from just before exit_notify() to right after.
-
-Signed-off-by: Guillaume Morin <guillaume@morinfr.org>
-Cc: Matt Helsley <matt.helsley@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rapidio/devices/tsi721.h     |    4 
+ drivers/rapidio/devices/tsi721_dma.c |  111 +++++++++++++++++--------
+ 2 files changed, 82 insertions(+), 33 deletions(-)
 
-diff -puN kernel/exit.c~exitc-call-proc_exit_connector-after-exit_state-is-set kernel/exit.c
---- a/kernel/exit.c~exitc-call-proc_exit_connector-after-exit_state-is-set
-+++ a/kernel/exit.c
-@@ -804,7 +804,6 @@ void do_exit(long code)
+diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721_dma-optimize-use-of-bdma-descriptors drivers/rapidio/devices/tsi721.h
+--- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721_dma-optimize-use-of-bdma-descriptors
++++ a/drivers/rapidio/devices/tsi721.h
+@@ -644,6 +644,9 @@ enum tsi721_smsg_int_flag {
  
- 	module_put(task_thread_info(tsk)->exec_domain->module);
+ #ifdef CONFIG_RAPIDIO_DMA_ENGINE
  
--	proc_exit_connector(tsk);
++#define TSI721_BDMA_BD_RING_SZ	128
++#define TSI721_BDMA_MAX_BCOUNT	(TSI721_DMAD_BCOUNT1 + 1)
++
+ struct tsi721_tx_desc {
+ 	struct dma_async_tx_descriptor	txd;
+ 	struct tsi721_dma_desc		*hw_desc;
+@@ -652,6 +655,7 @@ struct tsi721_tx_desc {
+ 	u64				rio_addr;
+ 	/* upper 2-bits of 66-bit RIO address */
+ 	u8				rio_addr_u;
++	u32				bcount;
+ 	bool				interrupt;
+ 	struct list_head		desc_node;
+ 	struct list_head		tx_list;
+diff -puN drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-optimize-use-of-bdma-descriptors drivers/rapidio/devices/tsi721_dma.c
+--- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-optimize-use-of-bdma-descriptors
++++ a/drivers/rapidio/devices/tsi721_dma.c
+@@ -304,35 +304,17 @@ struct tsi721_tx_desc *tsi721_desc_get(s
+ }
  
- 	/*
- 	 * FIXME: do that only when needed, using sched_exit tracepoint
-@@ -812,6 +811,7 @@ void do_exit(long code)
- 	flush_ptrace_hw_breakpoint(tsk);
+ static int
+-tsi721_fill_desc(struct tsi721_bdma_chan *bdma_chan,
+-	struct tsi721_tx_desc *desc, struct scatterlist *sg,
++tsi721_desc_fill_init(struct tsi721_tx_desc *desc, struct scatterlist *sg,
+ 	enum dma_rtype rtype, u32 sys_size)
+ {
+ 	struct tsi721_dma_desc *bd_ptr = desc->hw_desc;
+ 	u64 rio_addr;
  
- 	exit_notify(tsk, group_dead);
-+	proc_exit_connector(tsk);
- #ifdef CONFIG_NUMA
- 	task_lock(tsk);
- 	mpol_put(tsk->mempolicy);
+-	if (sg_dma_len(sg) > TSI721_DMAD_BCOUNT1 + 1) {
+-		dev_err(bdma_chan->dchan.device->dev,
+-			"SG element is too large\n");
+-		return -EINVAL;
+-	}
+-
+-	dev_dbg(bdma_chan->dchan.device->dev,
+-		"desc: 0x%llx, addr: 0x%llx len: 0x%x\n",
+-		(u64)desc->txd.phys, (unsigned long long)sg_dma_address(sg),
+-		sg_dma_len(sg));
+-
+-	dev_dbg(bdma_chan->dchan.device->dev,
+-		"bd_ptr = %p did=%d raddr=0x%llx\n",
+-		bd_ptr, desc->destid, desc->rio_addr);
+-
+ 	/* Initialize DMA descriptor */
+ 	bd_ptr->type_id = cpu_to_le32((DTYPE1 << 29) |
+ 					(rtype << 19) | desc->destid);
+-	if (desc->interrupt)
+-		bd_ptr->type_id |= cpu_to_le32(TSI721_DMAD_IOF);
+ 	bd_ptr->bcount = cpu_to_le32(((desc->rio_addr & 0x3) << 30) |
+-					(sys_size << 26) | sg_dma_len(sg));
++				     (sys_size << 26));
+ 	rio_addr = (desc->rio_addr >> 2) |
+ 				((u64)(desc->rio_addr_u & 0x3) << 62);
+ 	bd_ptr->raddr_lo = cpu_to_le32(rio_addr & 0xffffffff);
+@@ -346,6 +328,20 @@ tsi721_fill_desc(struct tsi721_bdma_chan
+ 	return 0;
+ }
+ 
++static int
++tsi721_desc_fill_end(struct tsi721_tx_desc *desc)
++{
++	struct tsi721_dma_desc *bd_ptr = desc->hw_desc;
++
++	/* Update DMA descriptor */
++	if (desc->interrupt)
++		bd_ptr->type_id |= cpu_to_le32(TSI721_DMAD_IOF);
++	bd_ptr->bcount |= cpu_to_le32(desc->bcount & TSI721_DMAD_BCOUNT1);
++
++	return 0;
++}
++
++
+ static void tsi721_dma_chain_complete(struct tsi721_bdma_chan *bdma_chan,
+ 				      struct tsi721_tx_desc *desc)
+ {
+@@ -676,6 +672,7 @@ struct dma_async_tx_descriptor *tsi721_p
+ 	unsigned int i;
+ 	u32 sys_size = dma_to_mport(dchan->device)->sys_size;
+ 	enum dma_rtype rtype;
++	dma_addr_t next_addr = -1;
+ 
+ 	if (!sgl || !sg_len) {
+ 		dev_err(dchan->device->dev, "%s: No SG list\n", __func__);
+@@ -706,36 +703,84 @@ struct dma_async_tx_descriptor *tsi721_p
+ 	for_each_sg(sgl, sg, sg_len, i) {
+ 		int err;
+ 
+-		dev_dbg(dchan->device->dev, "%s: sg #%d\n", __func__, i);
++		if (sg_dma_len(sg) > TSI721_BDMA_MAX_BCOUNT) {
++			dev_err(dchan->device->dev,
++				"%s: SG entry %d is too large\n", __func__, i);
++			goto err_desc_put;
++		}
++
++		/*
++		 * If this sg entry forms contiguous block with previous one,
++		 * try to merge it into existing DMA descriptor
++		 */
++		if (desc) {
++			if (next_addr == sg_dma_address(sg) &&
++			    desc->bcount + sg_dma_len(sg) <=
++						TSI721_BDMA_MAX_BCOUNT) {
++				/* Adjust byte count of the descriptor */
++				desc->bcount += sg_dma_len(sg);
++				goto entry_done;
++			}
++
++			/*
++			 * Finalize this descriptor using total
++			 * byte count value.
++			 */
++			tsi721_desc_fill_end(desc);
++			dev_dbg(dchan->device->dev, "%s: desc final len: %d\n",
++				__func__, desc->bcount);
++		}
++
++		/*
++		 * Obtain and initialize a new descriptor
++		 */
+ 		desc = tsi721_desc_get(bdma_chan);
+ 		if (!desc) {
+ 			dev_err(dchan->device->dev,
+-				"Not enough descriptors available\n");
+-			goto err_desc_get;
++				"%s: Failed to get new descriptor for SG %d\n",
++				__func__, i);
++			goto err_desc_put;
+ 		}
+ 
+-		if (sg_is_last(sg))
+-			desc->interrupt = (flags & DMA_PREP_INTERRUPT) != 0;
+-		else
+-			desc->interrupt = false;
+-
+ 		desc->destid = rext->destid;
+ 		desc->rio_addr = rio_addr;
+ 		desc->rio_addr_u = 0;
++		desc->bcount = sg_dma_len(sg);
++
++		dev_dbg(dchan->device->dev,
++			"sg%d desc: 0x%llx, addr: 0x%llx len: %d\n",
++			i, (u64)desc->txd.phys,
++			(unsigned long long)sg_dma_address(sg),
++			sg_dma_len(sg));
++
++		dev_dbg(dchan->device->dev,
++			"bd_ptr = %p did=%d raddr=0x%llx\n",
++			desc->hw_desc, desc->destid, desc->rio_addr);
+ 
+-		err = tsi721_fill_desc(bdma_chan, desc, sg, rtype, sys_size);
++		err = tsi721_desc_fill_init(desc, sg, rtype, sys_size);
+ 		if (err) {
+ 			dev_err(dchan->device->dev,
+ 				"Failed to build desc: %d\n", err);
+-			goto err_desc_get;
++			goto err_desc_put;
+ 		}
+ 
+-		rio_addr += sg_dma_len(sg);
++		next_addr = sg_dma_address(sg);
+ 
+ 		if (!first)
+ 			first = desc;
+ 		else
+ 			list_add_tail(&desc->desc_node, &first->tx_list);
++
++entry_done:
++		if (sg_is_last(sg)) {
++			desc->interrupt = (flags & DMA_PREP_INTERRUPT) != 0;
++			tsi721_desc_fill_end(desc);
++			dev_dbg(dchan->device->dev, "%s: desc final len: %d\n",
++				__func__, desc->bcount);
++		} else {
++			rio_addr += sg_dma_len(sg);
++			next_addr += sg_dma_len(sg);
++		}
+ 	}
+ 
+ 	first->txd.cookie = -EBUSY;
+@@ -743,7 +788,7 @@ struct dma_async_tx_descriptor *tsi721_p
+ 
+ 	return &first->txd;
+ 
+-err_desc_get:
++err_desc_put:
+ 	tsi721_desc_put(bdma_chan, first);
+ 	return NULL;
+ }
+@@ -794,7 +839,7 @@ int tsi721_register_dma(struct tsi721_de
+ 		if (i == TSI721_DMACH_MAINT)
+ 			continue;
+ 
+-		bdma_chan->bd_num = 64;
++		bdma_chan->bd_num = TSI721_BDMA_BD_RING_SZ;
+ 		bdma_chan->regs = priv->regs + TSI721_DMAC_BASE(i);
+ 
+ 		bdma_chan->dchan.device = &mport->dma;
 _
 
-Patches currently in -mm which might be from guillaume@morinfr.org are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-exitc-call-proc_exit_connector-after-exit_state-is-set.patch
+rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch
+rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch
 
