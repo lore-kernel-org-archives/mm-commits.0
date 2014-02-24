@@ -1,131 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] mm-swap-use-swapfiles-in-priority-order.patch removed
- from -mm tree
-Date: Mon, 24 Feb 2014 12:50:42 -0800
-Message-ID: <530bb0a2.kEirxf0E5gS2tbrr%akpm@linux-foundation.org>
+Subject: + mm-process_vm_accessc-mark-function-as-static-fix.patch added
+ to -mm tree
+Date: Mon, 24 Feb 2014 12:53:49 -0800
+Message-ID: <530bb15d.XhS1QklquBMAJN5z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50429 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50516 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753229AbaBXUun (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 15:50:43 -0500
+	with ESMTP id S1752212AbaBXUxu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 15:53:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, weijie.yang.kh@gmail.com, mhocko@suse.cz, hughd@google.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, rientjes@google.com, rashika.kheria@gmail.com, josh@joshtriplett.org, akpm@linux-foundation.org
 
-Subject: [nacked] mm-swap-use-swapfiles-in-priority-order.patch removed from -mm tree
-To: mgorman@suse.de,hughd@google.com,mhocko@suse.cz,weijie.yang.kh@gmail.com,mm-commits@vger.kernel.org
+Subject: + mm-process_vm_accessc-mark-function-as-static-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,josh@joshtriplett.org,rashika.kheria@gmail.com,rientjes@google.com,sfr@canb.auug.org.au
 From: akpm@linux-foundation.org
-Date: Mon, 24 Feb 2014 12:50:42 -0800
+Date: Mon, 24 Feb 2014 12:53:49 -0800
 
 
 The patch titled
-     Subject: mm: swap: use swapfiles in priority order
-has been removed from the -mm tree.  Its filename was
-     mm-swap-use-swapfiles-in-priority-order.patch
+     Subject: mm-process_vm_accessc-mark-function-as-static-fix
+has been added to the -mm tree.  Its filename is
+     mm-process_vm_accessc-mark-function-as-static-fix.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-process_vm_accessc-mark-function-as-static-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-process_vm_accessc-mark-function-as-static-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: swap: use swapfiles in priority order
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-process_vm_accessc-mark-function-as-static-fix
 
-According to the swapon documentation
+remove unneeded asmlinkage - compat_process_vm_rw isn't referenced from asm
 
-	Swap  pages  are  allocated  from  areas  in priority order,
-	highest priority first.  For areas with different priorities, a
-	higher-priority area is exhausted before using a lower-priority area.
-
-A user reported that the reality is different. When multiple swap files
-are enabled and a memory consumer started, the swap files are consumed in
-pairs after the highest priority file is exhausted. Early in the lifetime
-of the test, swapfile consumptions looks like
-
-Filename                                Type            Size    Used    Priority
-/testswap1                              file            100004  100004  8
-/testswap2                              file            100004  23764   7
-/testswap3                              file            100004  23764   6
-/testswap4                              file            100004  0       5
-/testswap5                              file            100004  0       4
-/testswap6                              file            100004  0       3
-/testswap7                              file            100004  0       2
-/testswap8                              file            100004  0       1
-
-This patch fixes the swap_list search in get_swap_page to use the swap files
-in the correct order. When applied the swap file consumptions looks like
-
-Filename				Type		Size	Used	Priority
-/testswap1                              file		100004	100004	8
-/testswap2                              file		100004	100004	7
-/testswap3                              file		100004	29372	6
-/testswap4                              file		100004	0	5
-/testswap5                              file		100004	0	4
-/testswap6                              file		100004	0	3
-/testswap7                              file		100004	0	2
-/testswap8                              file		100004	0	1
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Weijie Yang <weijie.yang.kh@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Rashika Kheria <rashika.kheria@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
+ mm/process_vm_access.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/swapfile.c~mm-swap-use-swapfiles-in-priority-order mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-use-swapfiles-in-priority-order
-+++ a/mm/swapfile.c
-@@ -651,7 +651,7 @@ swp_entry_t get_swap_page(void)
- 		goto noswap;
- 	atomic_long_dec(&nr_swap_pages);
+diff -puN mm/process_vm_access.c~mm-process_vm_accessc-mark-function-as-static-fix mm/process_vm_access.c
+--- a/mm/process_vm_access.c~mm-process_vm_accessc-mark-function-as-static-fix
++++ a/mm/process_vm_access.c
+@@ -412,7 +412,7 @@ SYSCALL_DEFINE6(process_vm_writev, pid_t
  
--	for (type = swap_list.next; type >= 0 && wrapped < 2; type = next) {
-+	for (type = swap_list.head; type >= 0 && wrapped < 2; type = next) {
- 		hp_index = atomic_xchg(&highest_priority_index, -1);
- 		/*
- 		 * highest_priority_index records current highest priority swap
+ #ifdef CONFIG_COMPAT
+ 
+-static asmlinkage ssize_t
++static ssize_t
+ compat_process_vm_rw(compat_pid_t pid,
+ 		     const struct compat_iovec __user *lvec,
+ 		     unsigned long liovcnt,
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault.patch
-mm-close-pagetail-race.patch
-mm-page_alloc-make-first_page-visible-before-pagetail.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
-mm-optimize-put_mems_allowed-usage.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-compaction-avoid-isolating-pinned-pages.patch
-mm-rename-__do_fault-do_fault.patch
-mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
-mm-introduce-do_read_fault.patch
-mm-introduce-do_cow_fault.patch
-mm-introduce-do_shared_fault-and-drop-do_fault.patch
-mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
-mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
-mm-consolidate-code-to-setup-pte.patch
-mm-vmscan-restore-sc-gfp_mask-after-promoting-it-to-__gfp_highmem.patch
-mm-vmscan-do-not-check-compaction_ready-on-promoted-zones.patch
-mm-compaction-disallow-high-order-page-for-migration-target.patch
-mm-compaction-do-not-call-suitable_migration_target-on-every-page.patch
-mm-compaction-change-the-timing-to-check-to-drop-the-spinlock.patch
-mm-compaction-check-pageblock-suitability-once-per-pageblock.patch
-mm-compaction-clean-up-code-on-success-of-ballon-isolation.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
