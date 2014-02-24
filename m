@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + submittingpatches-document-the-use-of-git.patch added to -mm
- tree
-Date: Mon, 24 Feb 2014 15:13:02 -0800
-Message-ID: <530bd1fe.9va8dRARXFZthIdD%akpm@linux-foundation.org>
+Subject: +
+ submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch added to -mm tree
+Date: Mon, 24 Feb 2014 15:13:00 -0800
+Message-ID: <530bd1fc.5I50H9BX4z6EPxHY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51524 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51510 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753222AbaBXXND (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 18:13:03 -0500
+	with ESMTP id S1753219AbaBXXNB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 18:13:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rob@landley.net, rdunlap@infradead.org, bp@suse.de, josh@joshtriplett.org
 
-Subject: + submittingpatches-document-the-use-of-git.patch added to -mm tree
+Subject: + submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch added to -mm tree
 To: josh@joshtriplett.org,bp@suse.de,rdunlap@infradead.org,rob@landley.net
 From: akpm@linux-foundation.org
-Date: Mon, 24 Feb 2014 15:13:02 -0800
+Date: Mon, 24 Feb 2014 15:13:00 -0800
 
 
 The patch titled
-     Subject: SubmittingPatches: document the use of git
+     Subject: SubmittingPatches: add style recommendation to use imperative descriptions
 has been added to the -mm tree.  Its filename is
-     submittingpatches-document-the-use-of-git.patch
+     submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/submittingpatches-document-the-use-of-git.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/submittingpatches-document-the-use-of-git.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,12 +45,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Josh Triplett <josh@joshtriplett.org>
-Subject: SubmittingPatches: document the use of git
+Subject: SubmittingPatches: add style recommendation to use imperative descriptions
 
-Most of the mechanical portions of SubmittingPatches exist to help patch
-submitters replicate the output of git.  Mention this explicitly, both as
-a reminder that git will help with this process, and as signposting to let
-git users know what they can safely skip.
+Most commit messages use this style, and the recommendation frequently
+comes up in discussions (especially in response to patches that don't use
+it), but that recommendation doesn't actually appear anywhere in
+Documentation.  Add this style guideline to SubmittingPatches, using the
+description from git's SubmittingPatches.
 
 Signed-off-by: Josh Triplett <josh@joshtriplett.org>
 Acked-by: Borislav Petkov <bp@suse.de>
@@ -59,73 +60,24 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches |   33 +++++++++++++++---------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ Documentation/SubmittingPatches |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN Documentation/SubmittingPatches~submittingpatches-document-the-use-of-git Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~submittingpatches-document-the-use-of-git
+diff -puN Documentation/SubmittingPatches~submittingpatches-add-style-recommendation-to-use-imperative-descriptions Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~submittingpatches-add-style-recommendation-to-use-imperative-descriptions
 +++ a/Documentation/SubmittingPatches
-@@ -14,7 +14,10 @@ Read Documentation/SubmitChecklist for a
- before submitting code.  If you are submitting a driver, also read
- Documentation/SubmittingDrivers.
+@@ -106,6 +106,11 @@ I.e., the patch (series) and its descrip
+ This benefits both the patch merger(s) and reviewers.  Some reviewers
+ probably didn't even receive earlier versions of the patch.
  
--
-+Many of these steps describe the default behavior of the git version
-+control system; if you use git to prepare your patches, you'll find much
-+of the mechanical work done for you, though you'll still need to prepare
-+and document a sensible set of patches.
- 
- --------------------------------------------
- SECTION 1 - CREATING AND SENDING YOUR CHANGE
-@@ -25,7 +28,9 @@ SECTION 1 - CREATING AND SENDING YOUR CH
- 1) "diff -up"
- ------------
- 
--Use "diff -up" or "diff -uprN" to create patches.
-+Use "diff -up" or "diff -uprN" to create patches.  git generates patches
-+in this form by default; if you're using git, you can skip this section
-+entirely.
- 
- All changes to the Linux kernel occur in the form of patches, as
- generated by diff(1).  When creating your patch, make sure to create it
-@@ -66,19 +71,14 @@ Make sure your patch does not include an
- belong in a patch submission.  Make sure to review your patch -after-
- generated it with diff(1), to ensure accuracy.
- 
--If your changes produce a lot of deltas, you may want to look into
--splitting them into individual patches which modify things in
--logical stages.  This will facilitate easier reviewing by other
--kernel developers, very important if you want your patch accepted.
--There are a number of scripts which can aid in this:
--
--Quilt:
--http://savannah.nongnu.org/projects/quilt
--
--Andrew Morton's patch scripts:
--http://userweb.kernel.org/~akpm/stuff/patch-scripts.tar.gz
--Instead of these scripts, quilt is the recommended patch management
--tool (see above).
-+If your changes produce a lot of deltas, you need to split them into
-+individual patches which modify things in logical stages; see section
-+#3.  This will facilitate easier reviewing by other kernel developers,
-+very important if you want your patch accepted.
++Describe your changes in imperative mood, e.g. "make xyzzy do frotz"
++instead of "[This patch] makes xyzzy do frotz" or "[I] changed xyzzy
++to do frotz", as if you are giving orders to the codebase to change
++its behaviour.
 +
-+If you're using git, "git rebase -i" can help you with this process.  If
-+you're not using git, quilt <http://savannah.nongnu.org/projects/quilt>
-+is another popular alternative.
+ If the patch fixes a logged bug entry, refer to that bug entry by
+ number and URL.
  
- 
- 
-@@ -607,7 +607,8 @@ patch.
- If you are going to include a diffstat after the "---" marker, please
- use diffstat options "-p 1 -w 70" so that filenames are listed from
- the top of the kernel source tree and don't use too much horizontal
--space (easily fit in 80 columns, maybe with some indentation).
-+space (easily fit in 80 columns, maybe with some indentation).  (git
-+generates appropriate diffstats by default.)
- 
- See more details on the proper patch format in the following
- references.
 _
 
 Patches currently in -mm which might be from josh@joshtriplett.org are
