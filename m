@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
- added to -mm tree
-Date: Mon, 24 Feb 2014 14:42:08 -0800
-Message-ID: <530bcac0.VZ99BfK1CN+SD/si%akpm@linux-foundation.org>
+Subject: + nilfs2-verify-metadata-sizes-read-from-disk.patch added to -mm
+ tree
+Date: Mon, 24 Feb 2014 15:01:47 -0800
+Message-ID: <530bcf5b.IetnYDjOcy5usRWL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51195 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51397 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752276AbaBXWmJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 17:42:09 -0500
+	with ESMTP id S1752723AbaBXXBs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 18:01:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com, mmarek@suse.cz, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp
 
-Subject: + kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch added to -mm tree
-To: josh@joshtriplett.org,mmarek@suse.cz,paulmck@linux.vnet.ibm.com
+Subject: + nilfs2-verify-metadata-sizes-read-from-disk.patch added to -mm tree
+To: konishi.ryusuke@lab.ntt.co.jp,andreas.rohner@gmx.net
 From: akpm@linux-foundation.org
-Date: Mon, 24 Feb 2014 14:42:08 -0800
+Date: Mon, 24 Feb 2014 15:01:47 -0800
 
 
 The patch titled
-     Subject: kconfig: make allnoconfig disable options behind EMBEDDED and EXPERT
+     Subject: nilfs2: verify metadata sizes read from disk
 has been added to the -mm tree.  Its filename is
-     kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
+     nilfs2-verify-metadata-sizes-read-from-disk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-verify-metadata-sizes-read-from-disk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-verify-metadata-sizes-read-from-disk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,203 +44,169 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: kconfig: make allnoconfig disable options behind EMBEDDED and EXPERT
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: verify metadata sizes read from disk
 
-"make allnoconfig" exists to ease testing of minimal configurations. 
-Documentation/SubmitChecklist includes a note to test with allnoconfig. 
-This helps catch missing dependencies on common-but-not-required
-functionality, which might otherwise go unnoticed.
+Add code to check sizes of on-disk data of metadata files such as inode
+size, segment usage size, DAT entry size, and checkpoint size.  Although
+these sizes are read from disk, the current implementation doesn't check
+them.
 
-However, allnoconfig still leaves many symbols enabled, because they're
-hidden behind CONFIG_EMBEDDED or CONFIG_EXPERT.  For instance, allnoconfig
-still has CONFIG_PRINTK and CONFIG_BLOCK enabled, so drivers don't
-typically get build-tested with those disabled.
+If these sizes are not sane on disk, it can cause out-of-range access to
+metadata or memory access overrun on metadata block buffers due to
+overflow in sundry calculations.
 
-To address this, introduce a new Kconfig option "allnoconfig_y", used on
-symbols which only exist to hide other symbols.  Set it on CONFIG_EMBEDDED
-(which then selects CONFIG_EXPERT).  allnoconfig will then disable all the
-symbols hidden behind those.
+Both lower limit and upper limit of metadata sizes are verified to prevent
+these issues.
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Tested-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Andreas Rohner <andreas.rohner@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kbuild/kconfig-language.txt |    4 ++++
- init/Kconfig                              |    1 +
- scripts/kconfig/confdata.c                |    5 ++++-
- scripts/kconfig/expr.h                    |    3 +++
- scripts/kconfig/lkc.h                     |    1 +
- scripts/kconfig/menu.c                    |    3 +++
- scripts/kconfig/zconf.gperf               |    1 +
- scripts/kconfig/zconf.hash.c_shipped      |   13 ++++++++-----
- 8 files changed, 25 insertions(+), 6 deletions(-)
+ fs/nilfs2/cpfile.c        |   12 ++++++++++++
+ fs/nilfs2/dat.c           |   12 ++++++++++++
+ fs/nilfs2/sufile.c        |   12 ++++++++++++
+ fs/nilfs2/the_nilfs.c     |   10 ++++++++++
+ include/linux/nilfs2_fs.h |    8 ++++++++
+ 5 files changed, 54 insertions(+)
 
-diff -puN Documentation/kbuild/kconfig-language.txt~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert Documentation/kbuild/kconfig-language.txt
---- a/Documentation/kbuild/kconfig-language.txt~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
-+++ a/Documentation/kbuild/kconfig-language.txt
-@@ -157,6 +157,10 @@ applicable everywhere (see syntax).
-     to the build environment (if this is desired, it can be done via
-     another symbol).
+diff -puN fs/nilfs2/cpfile.c~nilfs2-verify-metadata-sizes-read-from-disk fs/nilfs2/cpfile.c
+--- a/fs/nilfs2/cpfile.c~nilfs2-verify-metadata-sizes-read-from-disk
++++ a/fs/nilfs2/cpfile.c
+@@ -942,6 +942,18 @@ int nilfs_cpfile_read(struct super_block
+ 	struct inode *cpfile;
+ 	int err;
  
-+  - "allnoconfig_y"
-+    This declares the symbol as one that should have the value y when
-+    using "allnoconfig". Used for symbols that hide other symbols.
++	if (cpsize > sb->s_blocksize) {
++		printk(KERN_ERR
++		       "NILFS: too large checkpoint size: %zu bytes.\n",
++		       cpsize);
++		return -EINVAL;
++	} else if (cpsize < NILFS_MIN_CHECKPOINT_SIZE) {
++		printk(KERN_ERR
++		       "NILFS: too small checkpoint size: %zu bytes.\n",
++		       cpsize);
++		return -EINVAL;
++	}
 +
- Menu dependencies
- -----------------
+ 	cpfile = nilfs_iget_locked(sb, NULL, NILFS_CPFILE_INO);
+ 	if (unlikely(!cpfile))
+ 		return -ENOMEM;
+diff -puN fs/nilfs2/dat.c~nilfs2-verify-metadata-sizes-read-from-disk fs/nilfs2/dat.c
+--- a/fs/nilfs2/dat.c~nilfs2-verify-metadata-sizes-read-from-disk
++++ a/fs/nilfs2/dat.c
+@@ -484,6 +484,18 @@ int nilfs_dat_read(struct super_block *s
+ 	struct nilfs_dat_info *di;
+ 	int err;
  
-diff -puN init/Kconfig~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert init/Kconfig
---- a/init/Kconfig~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
-+++ a/init/Kconfig
-@@ -1475,6 +1475,7 @@ config PCI_QUIRKS
- 
- config EMBEDDED
- 	bool "Embedded system"
-+	option allnoconfig_y
- 	select EXPERT
- 	help
- 	  This option should be enabled if compiling the kernel for
-diff -puN scripts/kconfig/confdata.c~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/confdata.c
---- a/scripts/kconfig/confdata.c~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
-+++ a/scripts/kconfig/confdata.c
-@@ -1178,7 +1178,10 @@ bool conf_set_all_new_symbols(enum conf_
- 				sym->def[S_DEF_USER].tri = mod;
- 				break;
- 			case def_no:
--				sym->def[S_DEF_USER].tri = no;
-+				if (sym->flags & SYMBOL_ALLNOCONFIG_Y)
-+					sym->def[S_DEF_USER].tri = yes;
-+				else
-+					sym->def[S_DEF_USER].tri = no;
- 				break;
- 			case def_random:
- 				sym->def[S_DEF_USER].tri = no;
-diff -puN scripts/kconfig/expr.h~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/expr.h
---- a/scripts/kconfig/expr.h~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
-+++ a/scripts/kconfig/expr.h
-@@ -109,6 +109,9 @@ struct symbol {
- /* choice values need to be set before calculating this symbol value */
- #define SYMBOL_NEED_SET_CHOICE_VALUES  0x100000
- 
-+/* Set symbol to y if allnoconfig; used for symbols that hide others */
-+#define SYMBOL_ALLNOCONFIG_Y 0x200000
++	if (entry_size > sb->s_blocksize) {
++		printk(KERN_ERR
++		       "NILFS: too large DAT entry size: %zu bytes.\n",
++		       entry_size);
++		return -EINVAL;
++	} else if (entry_size < NILFS_MIN_DAT_ENTRY_SIZE) {
++		printk(KERN_ERR
++		       "NILFS: too small DAT entry size: %zu bytes.\n",
++		       entry_size);
++		return -EINVAL;
++	}
 +
- #define SYMBOL_MAXLENGTH	256
- #define SYMBOL_HASHSIZE		9973
+ 	dat = nilfs_iget_locked(sb, NULL, NILFS_DAT_INO);
+ 	if (unlikely(!dat))
+ 		return -ENOMEM;
+diff -puN fs/nilfs2/sufile.c~nilfs2-verify-metadata-sizes-read-from-disk fs/nilfs2/sufile.c
+--- a/fs/nilfs2/sufile.c~nilfs2-verify-metadata-sizes-read-from-disk
++++ a/fs/nilfs2/sufile.c
+@@ -1169,6 +1169,18 @@ int nilfs_sufile_read(struct super_block
+ 	void *kaddr;
+ 	int err;
  
-diff -puN scripts/kconfig/lkc.h~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/lkc.h
---- a/scripts/kconfig/lkc.h~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
-+++ a/scripts/kconfig/lkc.h
-@@ -61,6 +61,7 @@ enum conf_def_mode {
- #define T_OPT_MODULES		1
- #define T_OPT_DEFCONFIG_LIST	2
- #define T_OPT_ENV		3
-+#define T_OPT_ALLNOCONFIG_Y	4
++	if (susize > sb->s_blocksize) {
++		printk(KERN_ERR
++		       "NILFS: too large segment usage size: %zu bytes.\n",
++		       susize);
++		return -EINVAL;
++	} else if (susize < NILFS_MIN_SEGMENT_USAGE_SIZE) {
++		printk(KERN_ERR
++		       "NILFS: too small segment usage size: %zu bytes.\n",
++		       susize);
++		return -EINVAL;
++	}
++
+ 	sufile = nilfs_iget_locked(sb, NULL, NILFS_SUFILE_INO);
+ 	if (unlikely(!sufile))
+ 		return -ENOMEM;
+diff -puN fs/nilfs2/the_nilfs.c~nilfs2-verify-metadata-sizes-read-from-disk fs/nilfs2/the_nilfs.c
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-verify-metadata-sizes-read-from-disk
++++ a/fs/nilfs2/the_nilfs.c
+@@ -399,6 +399,16 @@ static int nilfs_store_disk_layout(struc
+ 		return -EINVAL;
  
- struct kconf_id {
- 	int name;
-diff -puN scripts/kconfig/menu.c~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/menu.c
---- a/scripts/kconfig/menu.c~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
-+++ a/scripts/kconfig/menu.c
-@@ -217,6 +217,9 @@ void menu_add_option(int token, char *ar
- 	case T_OPT_ENV:
- 		prop_add_env(arg);
- 		break;
-+	case T_OPT_ALLNOCONFIG_Y:
-+		current_entry->sym->flags |= SYMBOL_ALLNOCONFIG_Y;
-+		break;
- 	}
- }
+ 	nilfs->ns_inode_size = le16_to_cpu(sbp->s_inode_size);
++	if (nilfs->ns_inode_size > nilfs->ns_blocksize) {
++		printk(KERN_ERR "NILFS: too large inode size: %d bytes.\n",
++		       nilfs->ns_inode_size);
++		return -EINVAL;
++	} else if (nilfs->ns_inode_size < NILFS_MIN_INODE_SIZE) {
++		printk(KERN_ERR "NILFS: too small inode size: %d bytes.\n",
++		       nilfs->ns_inode_size);
++		return -EINVAL;
++	}
++
+ 	nilfs->ns_first_ino = le32_to_cpu(sbp->s_first_ino);
  
-diff -puN scripts/kconfig/zconf.gperf~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/zconf.gperf
---- a/scripts/kconfig/zconf.gperf~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
-+++ a/scripts/kconfig/zconf.gperf
-@@ -44,4 +44,5 @@ on,		T_ON,		TF_PARAM
- modules,	T_OPT_MODULES,	TF_OPTION
- defconfig_list,	T_OPT_DEFCONFIG_LIST,TF_OPTION
- env,		T_OPT_ENV,	TF_OPTION
-+allnoconfig_y,	T_OPT_ALLNOCONFIG_Y,TF_OPTION
- %%
-diff -puN scripts/kconfig/zconf.hash.c_shipped~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert scripts/kconfig/zconf.hash.c_shipped
---- a/scripts/kconfig/zconf.hash.c_shipped~kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert
-+++ a/scripts/kconfig/zconf.hash.c_shipped
-@@ -55,10 +55,10 @@ kconf_id_hash (register const char *str,
-       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
--      73, 73, 73, 73, 73, 73, 73, 73, 25, 25,
-+      73, 73, 73, 73, 73, 73, 73,  5, 25, 25,
-        0,  0,  0,  5,  0,  0, 73, 73,  5,  0,
-       10,  5, 45, 73, 20, 20,  0, 15, 15, 73,
--      20, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-+      20,  5, 73, 73, 73, 73, 73, 73, 73, 73,
-       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-       73, 73, 73, 73, 73, 73, 73, 73, 73, 73,
-@@ -106,6 +106,7 @@ struct kconf_id_strings_t
-     char kconf_id_strings_str23[sizeof("mainmenu")];
-     char kconf_id_strings_str25[sizeof("menuconfig")];
-     char kconf_id_strings_str27[sizeof("modules")];
-+    char kconf_id_strings_str28[sizeof("allnoconfig_y")];
-     char kconf_id_strings_str29[sizeof("menu")];
-     char kconf_id_strings_str31[sizeof("select")];
-     char kconf_id_strings_str32[sizeof("comment")];
-@@ -141,6 +142,7 @@ static const struct kconf_id_strings_t k
-     "mainmenu",
-     "menuconfig",
-     "modules",
-+    "allnoconfig_y",
-     "menu",
-     "select",
-     "comment",
-@@ -170,7 +172,7 @@ kconf_id_lookup (register const char *st
- {
-   enum
-     {
--      TOTAL_KEYWORDS = 32,
-+      TOTAL_KEYWORDS = 33,
-       MIN_WORD_LENGTH = 2,
-       MAX_WORD_LENGTH = 14,
-       MIN_HASH_VALUE = 2,
-@@ -219,7 +221,8 @@ kconf_id_lookup (register const char *st
-       {-1},
- #line 44 "scripts/kconfig/zconf.gperf"
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str27,	T_OPT_MODULES,	TF_OPTION},
--      {-1},
-+#line 47 "scripts/kconfig/zconf.gperf"
-+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str28,	T_OPT_ALLNOCONFIG_Y,TF_OPTION},
- #line 16 "scripts/kconfig/zconf.gperf"
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str29,		T_MENU,		TF_COMMAND},
-       {-1},
-@@ -282,5 +285,5 @@ kconf_id_lookup (register const char *st
-     }
-   return 0;
- }
--#line 47 "scripts/kconfig/zconf.gperf"
-+#line 48 "scripts/kconfig/zconf.gperf"
+ 	nilfs->ns_blocks_per_segment = le32_to_cpu(sbp->s_blocks_per_segment);
+diff -puN include/linux/nilfs2_fs.h~nilfs2-verify-metadata-sizes-read-from-disk include/linux/nilfs2_fs.h
+--- a/include/linux/nilfs2_fs.h~nilfs2-verify-metadata-sizes-read-from-disk
++++ a/include/linux/nilfs2_fs.h
+@@ -82,6 +82,8 @@ struct nilfs_inode {
+ 	__le32	i_pad;
+ };
  
++#define NILFS_MIN_INODE_SIZE		128
++
+ /**
+  * struct nilfs_super_root - structure of super root
+  * @sr_sum: check sum
+@@ -482,6 +484,8 @@ struct nilfs_dat_entry {
+ 	__le64 de_rsv;
+ };
+ 
++#define NILFS_MIN_DAT_ENTRY_SIZE	32
++
+ /**
+  * struct nilfs_snapshot_list - snapshot list
+  * @ssl_next: next checkpoint number on snapshot list
+@@ -520,6 +524,8 @@ struct nilfs_checkpoint {
+ 	struct nilfs_inode cp_ifile_inode;
+ };
+ 
++#define NILFS_MIN_CHECKPOINT_SIZE	(64 + NILFS_MIN_INODE_SIZE)
++
+ /* checkpoint flags */
+ enum {
+ 	NILFS_CHECKPOINT_SNAPSHOT,
+@@ -615,6 +621,8 @@ struct nilfs_segment_usage {
+ 	__le32 su_flags;
+ };
+ 
++#define NILFS_MIN_SEGMENT_USAGE_SIZE	16
++
+ /* segment usage flag */
+ enum {
+ 	NILFS_SEGMENT_USAGE_ACTIVE,
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-mm-compactionc-mark-function-as-static.patch
-mm-memoryc-mark-functions-as-static.patch
-mm-mmapc-mark-function-as-static.patch
-mm-process_vm_accessc-mark-function-as-static.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-page_cgroupc-mark-functions-as-static.patch
-mm-nobootmemc-mark-function-as-static.patch
-include-linux-mmh-remove-ifdef-condition.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype.patch
-fs-kernel-permit-disabling-the-uselib-syscall.patch
-fs-kernel-permit-disabling-the-uselib-syscall-v2.patch
-lglock-map-to-spinlock-when-config_smp.patch
-fs-reiserfs-move-prototype-declaration-to-header-file.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
-linux-next.patch
+nilfs2-update-maintainers-file-entries.patch
+nilfs2-add-struct-nilfs_suinfo_update-and-flags.patch
+nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
+nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
+nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl.patch
+nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl-fix.patch
+nilfs2-add-nilfs_sufile_trim_fs-to-trim-clean-segs.patch
+nilfs2-add-fitrim-ioctl-support-for-nilfs2.patch
+nilfs2-verify-metadata-sizes-read-from-disk.patch
 
