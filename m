@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + affs-add-__init-to-init_inodecache.patch added to -mm tree
-Date: Mon, 24 Feb 2014 16:23:29 -0800
-Message-ID: <530be281.o2iy3qR8LAxoa4+X%akpm@linux-foundation.org>
+Subject: + ocfs2-add-dlm_recover_callback_support-in-sysfs.patch added to
+ -mm tree
+Date: Tue, 25 Feb 2014 12:19:46 -0800
+Message-ID: <530cfae2.OmTHOj3v2GKQWjGN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60288 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751472AbaBYAXa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 19:23:30 -0500
+	with ESMTP id S1753330AbaBYUTr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 15:19:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
 
-Subject: + affs-add-__init-to-init_inodecache.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + ocfs2-add-dlm_recover_callback_support-in-sysfs.patch added to -mm tree
+To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
 From: akpm@linux-foundation.org
-Date: Mon, 24 Feb 2014 16:23:29 -0800
+Date: Tue, 25 Feb 2014 12:19:46 -0800
 
 
 The patch titled
-     Subject: affs: add __init to init_inodecache ()
+     Subject: ocfs2: add dlm_recover_callback_support in sysfs
 has been added to the -mm tree.  Its filename is
-     affs-add-__init-to-init_inodecache.patch
+     ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/affs-add-__init-to-init_inodecache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/affs-add-__init-to-init_inodecache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,46 +44,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: affs: add __init to init_inodecache ()
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: ocfs2: add dlm_recover_callback_support in sysfs
 
-init_inodecache is only called by __init init_affs_fs
+This is a part of the nocontrold feature which was incorporated sometime
+back.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+This is required for backward compatibility of the tools, specifically the
+scenario where the tools with recovery callback is used with a kernel not
+using the recovery callbacks (older kernel + newer tools).  The tools look
+for this file to understand if the kernel supports DLM recovery callbacks.
+
+For kernels which support recovery callbacks but will miss this patch,
+ocfs2 will continue to use the older API and would still be able to mount
+the filesystem.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/stackglue.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN fs/affs/super.c~affs-add-__init-to-init_inodecache fs/affs/super.c
---- a/fs/affs/super.c~affs-add-__init-to-init_inodecache
-+++ a/fs/affs/super.c
-@@ -128,7 +128,7 @@ static void init_once(void *foo)
- 	inode_init_once(&ei->vfs_inode);
- }
+diff -puN fs/ocfs2/stackglue.c~ocfs2-add-dlm_recover_callback_support-in-sysfs fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-add-dlm_recover_callback_support-in-sysfs
++++ a/fs/ocfs2/stackglue.c
+@@ -601,11 +601,27 @@ static struct kobj_attribute ocfs2_attr_
+ 	       ocfs2_cluster_stack_show,
+ 	       ocfs2_cluster_stack_store);
  
--static int init_inodecache(void)
-+static int __init init_inodecache(void)
- {
- 	affs_inode_cachep = kmem_cache_create("affs_inode_cache",
- 					     sizeof(struct affs_inode_info),
++
++
++static ssize_t ocfs2_dlm_recover_show(struct kobject *kobj,
++					struct kobj_attribute *attr,
++					char *buf)
++{
++	ssize_t ret;
++	ret = snprintf(buf, PAGE_SIZE, "1\n");
++	return ret;
++}
++
++static struct kobj_attribute ocfs2_attr_dlm_recover_support =
++	__ATTR(dlm_recover_callback_support, S_IFREG | S_IRUGO,
++	       ocfs2_dlm_recover_show, NULL);
++
+ static struct attribute *ocfs2_attrs[] = {
+ 	&ocfs2_attr_max_locking_protocol.attr,
+ 	&ocfs2_attr_loaded_cluster_plugins.attr,
+ 	&ocfs2_attr_active_cluster_plugin.attr,
+ 	&ocfs2_attr_cluster_stack.attr,
++	&ocfs2_attr_dlm_recover_support.attr,
+ 	NULL,
+ };
+ 
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
-fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
-fs-udf-superc-add-__init-to-init_inodecache.patch
-sys_sysfs-add-config_sysfs_syscall.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-fs-efs-superc-add-__init-to-init_inodecache.patch
-fs-minix-inodec-add-__init-to-init_inodecache.patch
-befs-replace-kmalloc-memset-0-by-kzalloc.patch
-fs-ufs-superc-add-__init-to-init_inodecache.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-fs-adfs-superc-add-__init-to-init_inodecache.patch
-affs-add-__init-to-init_inodecache.patch
-kernel-panicc-display-reason-at-end-pr_emerg.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-linux-next.patch
+ocfs2-fix-quota-file-corruption.patch
+ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
 
