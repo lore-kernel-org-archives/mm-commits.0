@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zswap-support-multiple-swap-devices.patch added to -mm tree
-Date: Tue, 25 Feb 2014 12:54:45 -0800
-Message-ID: <530d0315.pd18itoVMXpxgFj+%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch added
+ to -mm tree
+Date: Tue, 25 Feb 2014 12:57:47 -0800
+Message-ID: <530d03cb.Ch8Y3360jUb1t3NR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60491 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60573 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753767AbaBYUyq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 15:54:46 -0500
+	with ESMTP id S1752598AbaBYU5s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 15:57:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, weijie.yang.kh@gmail.com, sjennings@variantweb.net, cai.liu@samsung.com, bob.liu@oracle.com, minchan@kernel.org
+To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, jstancek@redhat.com, hannes@cmpxchg.org
 
-Subject: + mm-zswap-support-multiple-swap-devices.patch added to -mm tree
-To: minchan@kernel.org,bob.liu@oracle.com,cai.liu@samsung.com,sjennings@variantweb.net,weijie.yang.kh@gmail.com
+Subject: + mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch added to -mm tree
+To: hannes@cmpxchg.org,jstancek@redhat.com,riel@redhat.com,stable@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 25 Feb 2014 12:54:45 -0800
+Date: Tue, 25 Feb 2014 12:57:47 -0800
 
 
 The patch titled
-     Subject: mm/zswap: support multiple swap devices
+     Subject: mm: page_alloc: reset aging cycle with GFP_THISNODE
 has been added to the -mm tree.  Its filename is
-     mm-zswap-support-multiple-swap-devices.patch
+     mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-support-multiple-swap-devices.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-support-multiple-swap-devices.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,248 +44,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm/zswap: support multiple swap devices
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: reset aging cycle with GFP_THISNODE
 
-Cai Liu reporeted that now zbud pool pages counting has a problem when
-multiple swap is used because it just counts only one swap intead of all
-of swap so zswap cannot control writeback properly.  The result is
-unnecessary writeback or no writeback when we should really writeback.
+Jan Stancek reports manual page migration encountering allocation failures
+after some pages when there is still plenty of memory free, and bisected
+the problem down to 81c0a2bb515f ("mm: page_alloc: fair zone allocator
+policy").
 
-IOW, it made zswap crazy.
+The problem is that page migration uses GFP_THISNODE and this makes the
+page allocator bail out before entering the slowpath entirely, without
+resetting the zone round-robin batches.  A string of such allocations will
+fail long before the node's free memory is exhausted.
 
-Another problem in zswap is:
+GFP_THISNODE is a special flag for callsites that implement their own
+clever node fallback and so no direct reclaim should be invoked.  But if
+the allocations fail, the fair allocation batches should still be reset,
+and if the node is full, it should be aged in the background.
 
-For example, let's assume we use two swap A and B with different priority
-and A already has charged 19% long time ago and let's assume that A swap
-is full now so VM start to use B so that B has charged 1% recently.  It
-menas zswap charged (19% + 1%) is full by default.  Then, if VM want to
-swap out more pages into B, zbud_reclaim_page would be evict one of pages
-in B's pool and it would be repeated continuously.  It's totally LRU
-reverse problem and swap thrashing in B would happen.
+Make GFP_THISNODE wake up kswapd and reset the zone batches, but bail out
+before entering direct reclaim to not stall the allocating task.
 
-This patch makes zswap consider mutliple swap by creating *a* zbud pool
-which will be shared by multiple swap so all of zswap pages in multiple
-swap keep order by LRU so it can prevent above two problems.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Cai Liu <cai.liu@samsung.com>
-Suggested-by: Weijie Yang <weijie.yang.kh@gmail.com>
-Cc: Seth Jennings <sjennings@variantweb.net>
-Reviewed-by: Bob Liu <bob.liu@oracle.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Jan Stancek <jstancek@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: <stable@kernel.org>		[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   64 ++++++++++++++++++++++++++-------------------------
- 1 file changed, 33 insertions(+), 31 deletions(-)
+ mm/page_alloc.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/zswap.c~mm-zswap-support-multiple-swap-devices mm/zswap.c
---- a/mm/zswap.c~mm-zswap-support-multiple-swap-devices
-+++ a/mm/zswap.c
-@@ -89,6 +89,9 @@ static unsigned int zswap_max_pool_perce
- module_param_named(max_pool_percent,
- 			zswap_max_pool_percent, uint, 0644);
- 
-+/* zbud_pool is shared by all of zswap backend  */
-+static struct zbud_pool *zswap_pool;
-+
- /*********************************
- * compression functions
- **********************************/
-@@ -189,7 +192,6 @@ struct zswap_header {
- struct zswap_tree {
- 	struct rb_root rbroot;
- 	spinlock_t lock;
--	struct zbud_pool *pool;
- };
- 
- static struct zswap_tree *zswap_trees[MAX_SWAPFILES];
-@@ -285,13 +287,12 @@ static void zswap_rb_erase(struct rb_roo
-  * Carries out the common pattern of freeing and entry's zbud allocation,
-  * freeing the entry itself, and decrementing the number of stored pages.
-  */
--static void zswap_free_entry(struct zswap_tree *tree,
--			struct zswap_entry *entry)
-+static void zswap_free_entry(struct zswap_entry *entry)
- {
--	zbud_free(tree->pool, entry->handle);
-+	zbud_free(zswap_pool, entry->handle);
- 	zswap_entry_cache_free(entry);
- 	atomic_dec(&zswap_stored_pages);
--	zswap_pool_pages = zbud_get_pool_size(tree->pool);
-+	zswap_pool_pages = zbud_get_pool_size(zswap_pool);
- }
- 
- /* caller must hold the tree lock */
-@@ -311,7 +312,7 @@ static void zswap_entry_put(struct zswap
- 	BUG_ON(refcount < 0);
- 	if (refcount == 0) {
- 		zswap_rb_erase(&tree->rbroot, entry);
--		zswap_free_entry(tree, entry);
-+		zswap_free_entry(entry);
+diff -puN mm/page_alloc.c~mm-page_alloc-reset-aging-cycle-with-gfp_thisnode mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-reset-aging-cycle-with-gfp_thisnode
++++ a/mm/page_alloc.c
+@@ -2495,18 +2495,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 		return NULL;
  	}
- }
  
-@@ -545,7 +546,6 @@ static int zswap_writeback_entry(struct
- 	zbud_unmap(pool, handle);
- 	tree = zswap_trees[swp_type(swpentry)];
- 	offset = swp_offset(swpentry);
--	BUG_ON(pool != tree->pool);
- 
- 	/* find and ref zswap entry */
- 	spin_lock(&tree->lock);
-@@ -573,13 +573,13 @@ static int zswap_writeback_entry(struct
- 	case ZSWAP_SWAPCACHE_NEW: /* page is locked */
- 		/* decompress */
- 		dlen = PAGE_SIZE;
--		src = (u8 *)zbud_map(tree->pool, entry->handle) +
-+		src = (u8 *)zbud_map(zswap_pool, entry->handle) +
- 			sizeof(struct zswap_header);
- 		dst = kmap_atomic(page);
- 		ret = zswap_comp_op(ZSWAP_COMPOP_DECOMPRESS, src,
- 				entry->length, dst, &dlen);
- 		kunmap_atomic(dst);
--		zbud_unmap(tree->pool, entry->handle);
-+		zbud_unmap(zswap_pool, entry->handle);
- 		BUG_ON(ret);
- 		BUG_ON(dlen != PAGE_SIZE);
- 
-@@ -652,7 +652,7 @@ static int zswap_frontswap_store(unsigne
- 	/* reclaim space if needed */
- 	if (zswap_is_full()) {
- 		zswap_pool_limit_hit++;
--		if (zbud_reclaim_page(tree->pool, 8)) {
-+		if (zbud_reclaim_page(zswap_pool, 8)) {
- 			zswap_reject_reclaim_fail++;
- 			ret = -ENOMEM;
- 			goto reject;
-@@ -679,7 +679,7 @@ static int zswap_frontswap_store(unsigne
- 
- 	/* store */
- 	len = dlen + sizeof(struct zswap_header);
--	ret = zbud_alloc(tree->pool, len, __GFP_NORETRY | __GFP_NOWARN,
-+	ret = zbud_alloc(zswap_pool, len, __GFP_NORETRY | __GFP_NOWARN,
- 		&handle);
- 	if (ret == -ENOSPC) {
- 		zswap_reject_compress_poor++;
-@@ -689,11 +689,11 @@ static int zswap_frontswap_store(unsigne
- 		zswap_reject_alloc_fail++;
- 		goto freepage;
- 	}
--	zhdr = zbud_map(tree->pool, handle);
-+	zhdr = zbud_map(zswap_pool, handle);
- 	zhdr->swpentry = swp_entry(type, offset);
- 	buf = (u8 *)(zhdr + 1);
- 	memcpy(buf, dst, dlen);
--	zbud_unmap(tree->pool, handle);
-+	zbud_unmap(zswap_pool, handle);
- 	put_cpu_var(zswap_dstmem);
- 
- 	/* populate entry */
-@@ -716,7 +716,7 @@ static int zswap_frontswap_store(unsigne
- 
- 	/* update stats */
- 	atomic_inc(&zswap_stored_pages);
--	zswap_pool_pages = zbud_get_pool_size(tree->pool);
-+	zswap_pool_pages = zbud_get_pool_size(zswap_pool);
- 
- 	return 0;
- 
-@@ -752,13 +752,13 @@ static int zswap_frontswap_load(unsigned
- 
- 	/* decompress */
- 	dlen = PAGE_SIZE;
--	src = (u8 *)zbud_map(tree->pool, entry->handle) +
-+	src = (u8 *)zbud_map(zswap_pool, entry->handle) +
- 			sizeof(struct zswap_header);
- 	dst = kmap_atomic(page);
- 	ret = zswap_comp_op(ZSWAP_COMPOP_DECOMPRESS, src, entry->length,
- 		dst, &dlen);
- 	kunmap_atomic(dst);
--	zbud_unmap(tree->pool, entry->handle);
-+	zbud_unmap(zswap_pool, entry->handle);
- 	BUG_ON(ret);
- 
- 	spin_lock(&tree->lock);
-@@ -804,11 +804,9 @@ static void zswap_frontswap_invalidate_a
- 	/* walk the tree and free everything */
- 	spin_lock(&tree->lock);
- 	rbtree_postorder_for_each_entry_safe(entry, n, &tree->rbroot, rbnode)
--		zswap_free_entry(tree, entry);
-+		zswap_free_entry(entry);
- 	tree->rbroot = RB_ROOT;
- 	spin_unlock(&tree->lock);
+-	/*
+-	 * GFP_THISNODE (meaning __GFP_THISNODE, __GFP_NORETRY and
+-	 * __GFP_NOWARN set) should not cause reclaim since the subsystem
+-	 * (f.e. slab) using GFP_THISNODE may choose to trigger reclaim
+-	 * using a larger set of nodes after it has established that the
+-	 * allowed per node queues are empty and that nodes are
+-	 * over allocated.
+-	 */
+-	if (IS_ENABLED(CONFIG_NUMA) &&
+-			(gfp_mask & GFP_THISNODE) == GFP_THISNODE)
+-		goto nopage;
 -
--	zbud_destroy_pool(tree->pool);
- 	kfree(tree);
- 	zswap_trees[type] = NULL;
- }
-@@ -822,20 +820,14 @@ static void zswap_frontswap_init(unsigne
- 	struct zswap_tree *tree;
- 
- 	tree = kzalloc(sizeof(struct zswap_tree), GFP_KERNEL);
--	if (!tree)
--		goto err;
--	tree->pool = zbud_create_pool(GFP_KERNEL, &zswap_zbud_ops);
--	if (!tree->pool)
--		goto freetree;
-+	if (!tree) {
-+		pr_err("alloc failed, zswap disabled for swap type %d\n", type);
-+		return;
-+	}
-+
- 	tree->rbroot = RB_ROOT;
- 	spin_lock_init(&tree->lock);
- 	zswap_trees[type] = tree;
--	return;
--
--freetree:
--	kfree(tree);
--err:
--	pr_err("alloc failed, zswap disabled for swap type %d\n", type);
- }
- 
- static struct frontswap_ops zswap_frontswap_ops = {
-@@ -907,9 +899,16 @@ static int __init init_zswap(void)
- 		return 0;
- 
- 	pr_info("loading zswap\n");
-+
-+	zswap_pool = zbud_create_pool(GFP_KERNEL, &zswap_zbud_ops);
-+	if (!zswap_pool) {
-+		pr_err("zbud pool creation failed\n");
-+		goto error;
-+	}
-+
- 	if (zswap_entry_cache_create()) {
- 		pr_err("entry cache creation failed\n");
--		goto error;
-+		goto cachefail;
+ restart:
+ 	prepare_slowpath(gfp_mask, order, zonelist,
+ 			 high_zoneidx, preferred_zone);
+@@ -2551,6 +2539,18 @@ rebalance:
+ 		}
  	}
- 	if (zswap_comp_init()) {
- 		pr_err("compressor initialization failed\n");
-@@ -919,6 +918,7 @@ static int __init init_zswap(void)
- 		pr_err("per-cpu initialization failed\n");
- 		goto pcpufail;
- 	}
+ 
++	/*
++	 * GFP_THISNODE (meaning __GFP_THISNODE, __GFP_NORETRY and
++	 * __GFP_NOWARN set) should not cause reclaim since the subsystem
++	 * (f.e. slab) using GFP_THISNODE may choose to trigger reclaim
++	 * using a larger set of nodes after it has established that the
++	 * allowed per node queues are empty and that nodes are
++	 * over allocated.
++	 */
++	if (IS_ENABLED(CONFIG_NUMA) &&
++			(gfp_mask & GFP_THISNODE) == GFP_THISNODE)
++		goto nopage;
 +
- 	frontswap_register_ops(&zswap_frontswap_ops);
- 	if (zswap_debugfs_init())
- 		pr_warn("debugfs initialization failed\n");
-@@ -927,6 +927,8 @@ pcpufail:
- 	zswap_comp_exit();
- compfail:
- 	zswap_entry_cache_destory();
-+cachefail:
-+	zbud_destroy_pool(zswap_pool);
- error:
- 	return -ENOMEM;
- }
+ 	/* Atomic allocations - we can't balance anything */
+ 	if (!wait) {
+ 		/*
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-zram-avoid-null-access-when-fail-to-alloc-meta.patch
+mm-thp-fix-infinite-loop-on-memcg-oom.patch
+memcg-change-oom_info_lock-to-mutex.patch
+swapoff-tmpfs-radix_tree-remember-to-rcu_read_unlock.patch
+memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch
+memcg-reparent-charges-of-children-before-processing-parent.patch
+mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
+mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
 fs-cachefiles-use-add_to_page_cache_lru.patch
 lib-radix-tree-radix_tree_delete_item.patch
 mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
@@ -292,21 +137,32 @@ mm-filemap-move-radix-tree-hole-searching-here.patch
 mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
 mm-fs-store-shadow-entries-in-page-cache.patch
 mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
 mm-keep-page-cache-radix-tree-nodes-in-check.patch
 mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
 mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-zram-drop-init_done-struct-zram-member.patch
-zram-do-not-pass-rw-argument-to-__zram_make_request.patch
-zram-remove-good-and-bad-compress-stats.patch
-zram-use-atomic64_t-for-all-zram-stats.patch
-zram-remove-zram-stats-code-duplication.patch
-zram-report-failed-read-and-write-stats.patch
-zram-drop-not-used-table-count-member.patch
-zram-move-zram-size-warning-to-documentation.patch
-zram-document-failed_reads-failed_writes-stats.patch
-zram-delete-zram_init_device.patch
-mm-zswap-fix-trivial-typo-and-arrange-indentation.patch
-mm-zswap-update-zsmalloc-in-comment-to-zbud.patch
-mm-zswap-support-multiple-swap-devices.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix-fix.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+madvise-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+drop_caches-add-some-documentation-and-info-message.patch
+memcg-slab-never-try-to-merge-memcg-caches.patch
+memcg-slab-cleanup-memcg-cache-creation.patch
+memcg-slab-separate-memcg-vs-root-cache-creation-paths.patch
+memcg-slab-unregister-cache-from-memcg-before-starting-to-destroy-it.patch
+memcg-slab-do-not-destroy-children-caches-if-parent-has-aliases.patch
+slub-adjust-memcg-caches-when-creating-cache-alias.patch
+slub-rework-sysfs-layout-for-memcg-caches.patch
+mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch
+mm-fix-gfp_thisnode-callers-and-clarify.patch
+linux-next.patch
 debugging-keep-track-of-page-owners.patch
 
