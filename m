@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch added to -mm tree
-Date: Tue, 25 Feb 2014 12:21:12 -0800
-Message-ID: <530cfb38.K29ZSmTRrl6wQfX/%akpm@linux-foundation.org>
+Subject: + lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
+ added to -mm tree
+Date: Tue, 25 Feb 2014 12:25:43 -0800
+Message-ID: <530cfc47.GXlIoJxHC+Gfk65j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60322 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752585AbaBYUVN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 15:21:13 -0500
+	with ESMTP id S1752585AbaBYUZo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 15:25:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, josh@joshtriplett.org, rashika.kheria@gmail.com
 
-Subject: + ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
+Subject: + lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch added to -mm tree
+To: rashika.kheria@gmail.com,josh@joshtriplett.org
 From: akpm@linux-foundation.org
-Date: Tue, 25 Feb 2014 12:21:12 -0800
+Date: Tue, 25 Feb 2014 12:25:43 -0800
 
 
 The patch titled
-     Subject: ocfs2-add-dlm_recover_callback_support-in-sysfs-fix
+     Subject: lib/clz_ctz.c: add prototype declarations in lib/clz_ctz.c
 has been added to the -mm tree.  Its filename is
-     ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+     lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,70 +44,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-add-dlm_recover_callback_support-in-sysfs-fix
+From: Rashika Kheria <rashika.kheria@gmail.com>
+Subject: lib/clz_ctz.c: add prototype declarations in lib/clz_ctz.c
 
-simplify
+Add prototype declarations of functions in lib/clz_ctz.c.  These functions
+are required by GCC builtins and hence can not be removed despite of their
+unreferenced appearance in kernel source.
 
-Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+This eliminates the following warning in lib/clz_ctz.c:
+lib/clz_ctz.c:16:12: warning: no previous prototype for `__ctzsi2' [-Wmissing-prototypes]
+lib/clz_ctz.c:22:12: warning: no previous prototype for `__clzsi2' [-Wmissing-prototypes]
+lib/clz_ctz.c:44:12: warning: no previous prototype for `__clzdi2' [-Wmissing-prototypes]
+lib/clz_ctz.c:50:12: warning: no previous prototype for `__ctzdi2' [-Wmissing-prototypes]
+
+Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ lib/clz_ctz.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/ocfs2/stackglue.c~ocfs2-add-dlm_recover_callback_support-in-sysfs-fix fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~ocfs2-add-dlm_recover_callback_support-in-sysfs-fix
-+++ a/fs/ocfs2/stackglue.c
-@@ -607,9 +607,7 @@ static ssize_t ocfs2_dlm_recover_show(st
- 					struct kobj_attribute *attr,
- 					char *buf)
- {
--	ssize_t ret;
--	ret = snprintf(buf, PAGE_SIZE, "1\n");
--	return ret;
-+	return snprintf(buf, PAGE_SIZE, "1\n");
- }
+diff -puN lib/clz_ctz.c~lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc lib/clz_ctz.c
+--- a/lib/clz_ctz.c~lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc
++++ a/lib/clz_ctz.c
+@@ -6,6 +6,9 @@
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
++ * The functions in this file aren't called directly, but are required by
++ * GCC builtins such as __builtin_ctz, and therefore they can't be removed
++ * despite appearing unreferenced in kernel source.
+  *
+  * __c[lt]z[sd]i2 can be overridden by linking arch-specific versions.
+  */
+@@ -13,18 +16,22 @@
+ #include <linux/export.h>
+ #include <linux/kernel.h>
  
- static struct kobj_attribute ocfs2_attr_dlm_recover_support =
++int __weak __ctzsi2(int val);
+ int __weak __ctzsi2(int val)
+ {
+ 	return __ffs(val);
+ }
+ EXPORT_SYMBOL(__ctzsi2);
+ 
++int __weak __clzsi2(int val);
+ int __weak __clzsi2(int val)
+ {
+ 	return 32 - fls(val);
+ }
+ EXPORT_SYMBOL(__clzsi2);
+ 
++int __weak __clzdi2(long val);
++int __weak __ctzdi2(long val);
+ #if BITS_PER_LONG == 32
+ 
+ int __weak __clzdi2(long val)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rashika.kheria@gmail.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-compactionc-mark-function-as-static.patch
+mm-memoryc-mark-functions-as-static.patch
+mm-mmapc-mark-function-as-static.patch
+mm-process_vm_accessc-mark-function-as-static.patch
 mm-process_vm_accessc-mark-function-as-static-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
+mm-page_cgroupc-mark-functions-as-static.patch
+mm-nobootmemc-mark-function-as-static.patch
+include-linux-mmh-remove-ifdef-condition.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype.patch
 include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
+fs-reiserfs-move-prototype-declaration-to-header-file.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
 include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
