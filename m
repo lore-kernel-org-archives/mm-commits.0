@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch added
- to -mm tree
-Date: Mon, 24 Feb 2014 16:16:29 -0800
-Message-ID: <530be0dd.9aII1OV2kAj79Hft%akpm@linux-foundation.org>
+Subject: + affs-add-__init-to-init_inodecache.patch added to -mm tree
+Date: Mon, 24 Feb 2014 16:23:29 -0800
+Message-ID: <530be281.o2iy3qR8LAxoa4+X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51928 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52450 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753139AbaBYAQa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 19:16:30 -0500
+	with ESMTP id S1751472AbaBYAXa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Feb 2014 19:23:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch added to -mm tree
-To: joe@perches.com
+Subject: + affs-add-__init-to-init_inodecache.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Mon, 24 Feb 2014 16:16:29 -0800
+Date: Mon, 24 Feb 2014 16:23:29 -0800
 
 
 The patch titled
-     Subject: checkpatch: add test for char * arrays that could be static const
+     Subject: affs: add __init to init_inodecache ()
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
+     affs-add-__init-to-init_inodecache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/affs-add-__init-to-init_inodecache.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/affs-add-__init-to-init_inodecache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,62 +43,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add test for char * arrays that could be static const
+From: Fabian Frederick <fabf@skynet.be>
+Subject: affs: add __init to init_inodecache ()
 
-static const char* arrays create smaller text as each function call does
-not have to populate the array.
+init_inodecache is only called by __init init_affs_fs
 
-Emit a warning when char *arrays aren't static const and the array is not
-apparently global by being declared in the first column.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/affs/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-char-arrays-that-could-be-static-const scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-test-for-char-arrays-that-could-be-static-const
-+++ a/scripts/checkpatch.pl
-@@ -2675,6 +2675,13 @@ sub process {
- 				$herecurr);
-                }
+diff -puN fs/affs/super.c~affs-add-__init-to-init_inodecache fs/affs/super.c
+--- a/fs/affs/super.c~affs-add-__init-to-init_inodecache
++++ a/fs/affs/super.c
+@@ -128,7 +128,7 @@ static void init_once(void *foo)
+ 	inode_init_once(&ei->vfs_inode);
+ }
  
-+# check for non-global char *foo[] = {"bar", ...} declarations.
-+		if ($line =~ /^.\s+(?:static\s+|const\s+)?char\s+\*\s*\w+\s*\[\s*\]\s*=\s*\{/) {
-+			WARN("STATIC_CONST_CHAR_ARRAY",
-+			     "char * array declaration might be better as static const\n" .
-+				$herecurr);
-+               }
-+
- # check for function declarations without arguments like "int foo()"
- 		if ($line =~ /(\b$Type\s+$Ident)\s*\(\s*\)/) {
- 			if (ERROR("FUNCTION_WITHOUT_ARGS",
+-static int init_inodecache(void)
++static int __init init_inodecache(void)
+ {
+ 	affs_inode_cachep = kmem_cache_create("affs_inode_cache",
+ 					     sizeof(struct affs_inode_info),
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch
-drivers-fmc-fmc-write-eepromc-fix-decimal-permissions.patch
-maintainers-update-l-misuses.patch
-lib-random32c-minor-cleanups-and-kdoc-fix.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-add-test-for-long-udelay.patch
-checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
-checkpatch-add-checks-for-constant-non-octal-permissions.patch
-checkpatch-warn-on-uses-of-__constant_foo-functions.patch
-checkpatch-update-octal-permissions-warning.patch
-checkpatch-avoid-sscanf-test-duplicated-messages.patch
-checkpatch-fix-jiffies-comparison-and-others.patch
-checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
-ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-ncpfs-convert-pprintk-to-ncp_vdbg.patch
-ncpfs-remove-now-unused-printk-macro.patch
-ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
+fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+fs-udf-superc-add-__init-to-init_inodecache.patch
+sys_sysfs-add-config_sysfs_syscall.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
+fs-minix-inodec-add-__init-to-init_inodecache.patch
+befs-replace-kmalloc-memset-0-by-kzalloc.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+affs-add-__init-to-init_inodecache.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
 linux-next.patch
 
