@@ -1,169 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch added
- to -mm tree
-Date: Tue, 25 Feb 2014 12:58:31 -0800
-Message-ID: <530d03f7.v7714YEL3avsxzA5%akpm@linux-foundation.org>
+Subject: [failures]
+ drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch
+ removed from -mm tree
+Date: Tue, 25 Feb 2014 14:07:15 -0800
+Message-ID: <530d1413.pLI2gF+1l0Ae32ze%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32923 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753093AbaBYU6c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 15:58:32 -0500
+	with ESMTP id S1751019AbaBYWHQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 17:07:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mgorman@suse.de, jstancek@redhat.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, chenhui.zhao@freescale.com, dongsheng.wang@freescale.com
 
-Subject: + mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch added to -mm tree
-To: hannes@cmpxchg.org,jstancek@redhat.com,mgorman@suse.de,riel@redhat.com,stable@kernel.org
+Subject: [failures] drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch removed from -mm tree
+To: dongsheng.wang@freescale.com,chenhui.zhao@freescale.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 25 Feb 2014 12:58:31 -0800
+Date: Tue, 25 Feb 2014 14:07:15 -0800
 
 
 The patch titled
-     Subject: mm: page_alloc: reset aging cycle with GFP_THISNODE
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch
+     Subject: drivers/rtc/rtc-ds3232.c: enable ds3232 to work as wakeup source
+has been removed from the -mm tree.  Its filename was
+     drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: reset aging cycle with GFP_THISNODE
+From: Wang Dongsheng <dongsheng.wang@freescale.com>
+Subject: drivers/rtc/rtc-ds3232.c: enable ds3232 to work as wakeup source
 
-Jan Stancek reports manual page migration encountering allocation failures
-after some pages when there is still plenty of memory free, and bisected
-the problem down to 81c0a2bb515f ("mm: page_alloc: fair zone allocator
-policy").
+Add suspend/resume and device_init_wakeup to enable ds3232 as wakeup
+source, /sys/class/rtc/rtcX/wakealarm for set wakeup alarm.
 
-The problem is that page migration uses GFP_THISNODE and this makes the
-page allocator bail out before entering the slowpath entirely, without
-resetting the zone round-robin batches.  A string of such allocations will
-fail long before the node's free memory is exhausted.
-
-GFP_THISNODE is a special flag for callsites that implement their own
-clever node fallback and so no direct reclaim should be invoked.  But if
-the allocations fail, the fair allocation batches should still be reset,
-and if the node is full, it should be aged in the background.
-
-Make GFP_THISNODE wake up kswapd and reset the zone batches, but bail out
-before entering direct reclaim to not stall the allocating task.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Jan Stancek <jstancek@redhat.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: <stable@kernel.org>		[3.12+]
+Signed-off-by: Wang Dongsheng <dongsheng.wang@freescale.com>
+Cc: Zhao Chenhui <chenhui.zhao@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/rtc/rtc-ds3232.c |   90 +++++++++++++++++++++++++++----------
+ 1 file changed, 68 insertions(+), 22 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-reset-aging-cycle-with-gfp_thisnode mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-reset-aging-cycle-with-gfp_thisnode
-+++ a/mm/page_alloc.c
-@@ -2495,18 +2495,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 		return NULL;
- 	}
+diff -puN drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source drivers/rtc/rtc-ds3232.c
+--- a/drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source
++++ a/drivers/rtc/rtc-ds3232.c
+@@ -57,6 +57,7 @@ struct ds3232 {
+ 	 * in the remove function.
+ 	 */
+ 	struct mutex mutex;
++	bool suspended;
+ 	int exiting;
+ };
  
--	/*
--	 * GFP_THISNODE (meaning __GFP_THISNODE, __GFP_NORETRY and
--	 * __GFP_NOWARN set) should not cause reclaim since the subsystem
--	 * (f.e. slab) using GFP_THISNODE may choose to trigger reclaim
--	 * using a larger set of nodes after it has established that the
--	 * allowed per node queues are empty and that nodes are
--	 * over allocated.
--	 */
--	if (IS_ENABLED(CONFIG_NUMA) &&
--			(gfp_mask & GFP_THISNODE) == GFP_THISNODE)
--		goto nopage;
--
- restart:
- 	prepare_slowpath(gfp_mask, order, zonelist,
- 			 high_zoneidx, preferred_zone);
-@@ -2551,6 +2539,18 @@ rebalance:
- 		}
- 	}
+@@ -345,7 +346,15 @@ static irqreturn_t ds3232_irq(int irq, v
+ 	struct ds3232 *ds3232 = i2c_get_clientdata(client);
  
-+	/*
-+	 * GFP_THISNODE (meaning __GFP_THISNODE, __GFP_NORETRY and
-+	 * __GFP_NOWARN set) should not cause reclaim since the subsystem
-+	 * (f.e. slab) using GFP_THISNODE may choose to trigger reclaim
-+	 * using a larger set of nodes after it has established that the
-+	 * allowed per node queues are empty and that nodes are
-+	 * over allocated.
-+	 */
-+	if (IS_ENABLED(CONFIG_NUMA) &&
-+			(gfp_mask & GFP_THISNODE) == GFP_THISNODE)
-+		goto nopage;
+ 	disable_irq_nosync(irq);
+-	schedule_work(&ds3232->work);
 +
- 	/* Atomic allocations - we can't balance anything */
- 	if (!wait) {
- 		/*
++	/*
++	 * If rtc as a wakeup source, can't schedule the work
++	 * at system resume flow, because at this time the i2c bus
++	 * has not been resumed.
++	 */
++	if (!ds3232->suspended)
++		schedule_work(&ds3232->work);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -363,22 +372,26 @@ static void ds3232_work(struct work_stru
+ 
+ 	if (stat & DS3232_REG_SR_A1F) {
+ 		control = i2c_smbus_read_byte_data(client, DS3232_REG_CR);
+-		if (control < 0)
+-			goto out;
+-		/* disable alarm1 interrupt */
+-		control &= ~(DS3232_REG_CR_A1IE);
+-		i2c_smbus_write_byte_data(client, DS3232_REG_CR, control);
++		if (control < 0) {
++			pr_warn("Read DS3232 Control Register error."
++				"Disable IRQ%d.\n", client->irq);
++		} else {
++			/* disable alarm1 interrupt */
++			control &= ~(DS3232_REG_CR_A1IE);
++			i2c_smbus_write_byte_data(client, DS3232_REG_CR,
++						control);
++
++			/* clear the alarm pend flag */
++			stat &= ~DS3232_REG_SR_A1F;
++			i2c_smbus_write_byte_data(client, DS3232_REG_SR, stat);
+ 
+-		/* clear the alarm pend flag */
+-		stat &= ~DS3232_REG_SR_A1F;
+-		i2c_smbus_write_byte_data(client, DS3232_REG_SR, stat);
++			rtc_update_irq(ds3232->rtc, 1, RTC_AF | RTC_IRQF);
+ 
+-		rtc_update_irq(ds3232->rtc, 1, RTC_AF | RTC_IRQF);
++			if (!ds3232->exiting)
++				enable_irq(client->irq);
++		}
+ 	}
+ 
+-out:
+-	if (!ds3232->exiting)
+-		enable_irq(client->irq);
+ unlock:
+ 	mutex_unlock(&ds3232->mutex);
+ }
+@@ -411,23 +424,19 @@ static int ds3232_probe(struct i2c_clien
+ 	if (ret)
+ 		return ret;
+ 
+-	ds3232->rtc = devm_rtc_device_register(&client->dev, client->name,
+-					  &ds3232_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(ds3232->rtc)) {
+-		dev_err(&client->dev, "unable to register the class device\n");
+-		return PTR_ERR(ds3232->rtc);
+-	}
+-
+-	if (client->irq >= 0) {
++	if (client->irq != NO_IRQ) {
+ 		ret = devm_request_irq(&client->dev, client->irq, ds3232_irq,
+ 				       IRQF_SHARED, "ds3232", client);
+ 		if (ret) {
+ 			dev_err(&client->dev, "unable to request IRQ\n");
+ 			return ret;
+ 		}
++		device_init_wakeup(&client->dev, 1);
+ 	}
+ 
+-	return 0;
++	ds3232->rtc = devm_rtc_device_register(&client->dev, client->name,
++					  &ds3232_rtc_ops, THIS_MODULE);
++	return PTR_ERR_OR_ZERO(ds3232->rtc);
+ }
+ 
+ static int ds3232_remove(struct i2c_client *client)
+@@ -446,6 +455,42 @@ static int ds3232_remove(struct i2c_clie
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
++static int ds3232_suspend(struct device *dev)
++{
++	struct ds3232 *ds3232 = dev_get_drvdata(dev);
++	struct i2c_client *client = to_i2c_client(dev);
++
++	if (device_can_wakeup(dev)) {
++		ds3232->suspended = true;
++		irq_set_irq_wake(client->irq, 1);
++	}
++
++	return 0;
++}
++
++static int ds3232_resume(struct device *dev)
++{
++	struct ds3232 *ds3232 = dev_get_drvdata(dev);
++	struct i2c_client *client = to_i2c_client(dev);
++
++	if (ds3232->suspended) {
++		ds3232->suspended = false;
++
++		/* Clear the hardware alarm pend flag */
++		schedule_work(&ds3232->work);
++
++		irq_set_irq_wake(client->irq, 0);
++	}
++
++	return 0;
++}
++#endif
++
++static const struct dev_pm_ops ds3232_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(ds3232_suspend, ds3232_resume)
++};
++
+ static const struct i2c_device_id ds3232_id[] = {
+ 	{ "ds3232", 0 },
+ 	{ }
+@@ -456,6 +501,7 @@ static struct i2c_driver ds3232_driver =
+ 	.driver = {
+ 		.name = "rtc-ds3232",
+ 		.owner = THIS_MODULE,
++		.pm	= &ds3232_pm_ops,
+ 	},
+ 	.probe = ds3232_probe,
+ 	.remove = ds3232_remove,
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from dongsheng.wang@freescale.com are
 
-mm-thp-fix-infinite-loop-on-memcg-oom.patch
-memcg-change-oom_info_lock-to-mutex.patch
-swapoff-tmpfs-radix_tree-remember-to-rcu_read_unlock.patch
-memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch
-memcg-reparent-charges-of-children-before-processing-parent.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-madvise-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-drop_caches-add-some-documentation-and-info-message.patch
-memcg-slab-never-try-to-merge-memcg-caches.patch
-memcg-slab-cleanup-memcg-cache-creation.patch
-memcg-slab-separate-memcg-vs-root-cache-creation-paths.patch
-memcg-slab-unregister-cache-from-memcg-before-starting-to-destroy-it.patch
-memcg-slab-do-not-destroy-children-caches-if-parent-has-aliases.patch
-slub-adjust-memcg-caches-when-creating-cache-alias.patch
-slub-rework-sysfs-layout-for-memcg-caches.patch
-mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch
-mm-fix-gfp_thisnode-callers-and-clarify.patch
-linux-next.patch
-debugging-keep-track-of-page-owners.patch
 
