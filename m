@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-add-dlm_recover_callback_support-in-sysfs.patch added to
- -mm tree
-Date: Tue, 25 Feb 2014 12:19:46 -0800
-Message-ID: <530cfae2.OmTHOj3v2GKQWjGN%akpm@linux-foundation.org>
+Subject: + ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch added to -mm tree
+Date: Tue, 25 Feb 2014 12:21:12 -0800
+Message-ID: <530cfb38.K29ZSmTRrl6wQfX/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60298 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753330AbaBYUTr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 15:19:47 -0500
+	with ESMTP id S1752585AbaBYUVN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 15:21:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, rgoldwyn@suse.de
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, akpm@linux-foundation.org
 
-Subject: + ocfs2-add-dlm_recover_callback_support-in-sysfs.patch added to -mm tree
-To: rgoldwyn@suse.de,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
+Subject: + ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 25 Feb 2014 12:19:46 -0800
+Date: Tue, 25 Feb 2014 12:21:12 -0800
 
 
 The patch titled
-     Subject: ocfs2: add dlm_recover_callback_support in sysfs
+     Subject: ocfs2-add-dlm_recover_callback_support-in-sysfs-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
+     ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,66 +43,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: ocfs2: add dlm_recover_callback_support in sysfs
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-add-dlm_recover_callback_support-in-sysfs-fix
 
-This is a part of the nocontrold feature which was incorporated sometime
-back.
+simplify
 
-This is required for backward compatibility of the tools, specifically the
-scenario where the tools with recovery callback is used with a kernel not
-using the recovery callbacks (older kernel + newer tools).  The tools look
-for this file to understand if the kernel supports DLM recovery callbacks.
-
-For kernels which support recovery callbacks but will miss this patch,
-ocfs2 will continue to use the older API and would still be able to mount
-the filesystem.
-
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ fs/ocfs2/stackglue.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/stackglue.c~ocfs2-add-dlm_recover_callback_support-in-sysfs fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~ocfs2-add-dlm_recover_callback_support-in-sysfs
+diff -puN fs/ocfs2/stackglue.c~ocfs2-add-dlm_recover_callback_support-in-sysfs-fix fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-add-dlm_recover_callback_support-in-sysfs-fix
 +++ a/fs/ocfs2/stackglue.c
-@@ -601,11 +601,27 @@ static struct kobj_attribute ocfs2_attr_
- 	       ocfs2_cluster_stack_show,
- 	       ocfs2_cluster_stack_store);
+@@ -607,9 +607,7 @@ static ssize_t ocfs2_dlm_recover_show(st
+ 					struct kobj_attribute *attr,
+ 					char *buf)
+ {
+-	ssize_t ret;
+-	ret = snprintf(buf, PAGE_SIZE, "1\n");
+-	return ret;
++	return snprintf(buf, PAGE_SIZE, "1\n");
+ }
  
-+
-+
-+static ssize_t ocfs2_dlm_recover_show(struct kobject *kobj,
-+					struct kobj_attribute *attr,
-+					char *buf)
-+{
-+	ssize_t ret;
-+	ret = snprintf(buf, PAGE_SIZE, "1\n");
-+	return ret;
-+}
-+
-+static struct kobj_attribute ocfs2_attr_dlm_recover_support =
-+	__ATTR(dlm_recover_callback_support, S_IFREG | S_IRUGO,
-+	       ocfs2_dlm_recover_show, NULL);
-+
- static struct attribute *ocfs2_attrs[] = {
- 	&ocfs2_attr_max_locking_protocol.attr,
- 	&ocfs2_attr_loaded_cluster_plugins.attr,
- 	&ocfs2_attr_active_cluster_plugin.attr,
- 	&ocfs2_attr_cluster_stack.attr,
-+	&ocfs2_attr_dlm_recover_support.attr,
- 	NULL,
- };
- 
+ static struct kobj_attribute ocfs2_attr_dlm_recover_support =
 _
 
-Patches currently in -mm which might be from rgoldwyn@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-fix-quota-file-corruption.patch
-ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+jffs2-avoid-soft-lockup-in-jffs2_reserve_space_gc.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
