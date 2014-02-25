@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + zram-avoid-null-access-when-fail-to-alloc-meta.patch added to
- -mm tree
-Date: Tue, 25 Feb 2014 12:28:08 -0800
-Message-ID: <530cfcd8.AYc8SvbqqSBM7yE5%akpm@linux-foundation.org>
+Subject: + zram-delete-zram_init_device.patch added to -mm tree
+Date: Tue, 25 Feb 2014 12:28:25 -0800
+Message-ID: <530cfce9.eiQxIB8Hc/mKoWIE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60403 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60405 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753703AbaBYU2J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 15:28:09 -0500
+	with ESMTP id S1753708AbaBYU2Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 15:28:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, minchan@kernel.org
+To: mm-commits@vger.kernel.org, minchan@kernel.org, sergey.senozhatsky@gmail.com
 
-Subject: + zram-avoid-null-access-when-fail-to-alloc-meta.patch added to -mm tree
-To: minchan@kernel.org,stable@vger.kernel.org
+Subject: + zram-delete-zram_init_device.patch added to -mm tree
+To: sergey.senozhatsky@gmail.com,minchan@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 25 Feb 2014 12:28:08 -0800
+Date: Tue, 25 Feb 2014 12:28:25 -0800
 
 
 The patch titled
-     Subject: zram: avoid null access when fail to alloc meta
+     Subject: zram: delete zram_init_device()
 has been added to the -mm tree.  Its filename is
-     zram-avoid-null-access-when-fail-to-alloc-meta.patch
+     zram-delete-zram_init_device.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-avoid-null-access-when-fail-to-alloc-meta.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-delete-zram_init_device.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-avoid-null-access-when-fail-to-alloc-meta.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-delete-zram_init_device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,58 +43,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: avoid null access when fail to alloc meta
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: delete zram_init_device()
 
-zram_meta_alloc could fail so caller should check it.  Otherwise, your
-system will be hang.
+allocate new `zram_meta' in disksize_store() only for uninitialised zram
+device, saving a number of allocations and deallocations in case if
+disksize_store() was called on currently used device.  at the same time
+zram_meta stack variable is not necessary, because we can set ->meta
+directly.  there is also no need in setting QUEUE_FLAG_NONROT queue on
+every disksize_store(), set it once during device creation.
 
+[minchan@kernel.org]: handled zram->meta alloc fail case.
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/block/zram/zram_drv.c |   25 +++++++++----------------
+ 1 file changed, 9 insertions(+), 16 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-avoid-null-access-when-fail-to-alloc-meta drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-avoid-null-access-when-fail-to-alloc-meta
+diff -puN drivers/block/zram/zram_drv.c~zram-delete-zram_init_device drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-delete-zram_init_device
 +++ a/drivers/block/zram/zram_drv.c
-@@ -554,6 +554,8 @@ static ssize_t disksize_store(struct dev
+@@ -533,40 +533,32 @@ static void zram_reset_device(struct zra
+ 	up_write(&zram->init_lock);
+ }
  
- 	disksize = PAGE_ALIGN(disksize);
- 	meta = zram_meta_alloc(disksize);
-+	if (!meta)
-+		return -ENOMEM;
+-static void zram_init_device(struct zram *zram, struct zram_meta *meta)
+-{
+-	/* zram devices sort of resembles non-rotational disks */
+-	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, zram->disk->queue);
+-	zram->meta = meta;
+-	pr_debug("Initialization done!\n");
+-}
+-
+ static ssize_t disksize_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+ 	u64 disksize;
+-	struct zram_meta *meta;
+ 	struct zram *zram = dev_to_zram(dev);
+ 
+ 	disksize = memparse(buf, NULL);
+ 	if (!disksize)
+ 		return -EINVAL;
+ 
+-	disksize = PAGE_ALIGN(disksize);
+-	meta = zram_meta_alloc(disksize);
+-	if (!meta)
+-		return -ENOMEM;
  	down_write(&zram->init_lock);
  	if (init_done(zram)) {
  		up_write(&zram->init_lock);
-_
-
-Patches currently in -mm which might be from minchan@kernel.org are
-
-zram-drop-init_done-struct-zram-member.patch
-zram-do-not-pass-rw-argument-to-__zram_make_request.patch
-zram-remove-good-and-bad-compress-stats.patch
-zram-use-atomic64_t-for-all-zram-stats.patch
-zram-remove-zram-stats-code-duplication.patch
-zram-report-failed-read-and-write-stats.patch
-zram-drop-not-used-table-count-member.patch
-zram-move-zram-size-warning-to-documentation.patch
-zram-document-failed_reads-failed_writes-stats.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-zswap-fix-trivial-typo-and-arrange-indentation.patch
-mm-zswap-update-zsmalloc-in-comment-to-zbud.patch
-zram-avoid-null-access-when-fail-to-alloc-meta.patch
-zram-delete-zram_init_device-function.patch
-debugging-keep-track-of-page-owners.patch
-
+-		zram_meta_free(meta);
+ 		pr_info("Cannot change disksize for initialized device\n");
+ 		return -EBUSY;
+ 	}
+ 
++	disksize = PAGE_ALIGN(disksize);
++	zram->meta = zram_meta_alloc(disksize);
++	if (!zram->meta) {
++		up_write(&zram->init_lock);
++		return -ENOMEM;
++	}
++
+ 	zram->disksize = disksize;
+ 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
+-	zram_init_device(zram, meta);
+ 	up_write(&zram->init_lock);
+ 
+ 	return len;
+@@ -776,7 +768,8 @@ static int create_device(struct zram *zr
+ 
+ 	/* Actual capacity set using syfs (/sys/block/zram<id>/disksize */
+ 	set_capacity(zram->disk, 0);
