@@ -1,155 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: +
- wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent.patch added to -mm tree
-Date: Wed, 26 Feb 2014 15:45:05 -0800
-Message-ID: <530e7c81.tv9CO5CW/QggI59N%akpm@linux-foundation.org>
+Subject: [to-be-updated] ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
+ removed from -mm tree
+Date: Wed, 26 Feb 2014 15:46:16 -0800
+Message-ID: <530e7cc8.aTr6DCnXrCmEcz1A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53501 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53511 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754101AbaBZXpG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:45:06 -0500
+	with ESMTP id S1750891AbaBZXqR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:46:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tj@kernel.org, roland@hack.frob.com, mschmidt@redhat.com, lpoetter@redhat.com, jan.kratochvil@redhat.com, oleg@redhat.com
+To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, rgoldwyn@suse.com, mfasheh@suse.de, jlbec@evilplan.org, jack@suse.cz
 
-Subject: + wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent.patch added to -mm tree
-To: oleg@redhat.com,jan.kratochvil@redhat.com,lpoetter@redhat.com,mschmidt@redhat.com,roland@hack.frob.com,tj@kernel.org,viro@ZenIV.linux.org.uk
+Subject: [to-be-updated] ocfs2-remove-ocfs2_inode_skip_delete-flag.patch removed from -mm tree
+To: jack@suse.cz,jlbec@evilplan.org,mfasheh@suse.de,rgoldwyn@suse.com,srinivas.eeda@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 26 Feb 2014 15:45:05 -0800
+Date: Wed, 26 Feb 2014 15:46:16 -0800
 
 
 The patch titled
-     Subject: wait: WSTOPPED|WCONTINUED hangs if a zombie child is traced by real_parent
-has been added to the -mm tree.  Its filename is
-     wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent.patch
+     Subject: ocfs2: remove OCFS2_INODE_SKIP_DELETE flag
+has been removed from the -mm tree.  Its filename was
+     ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: wait: WSTOPPED|WCONTINUED hangs if a zombie child is traced by real_parent
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: remove OCFS2_INODE_SKIP_DELETE flag
 
-"A zombie is only visible to its ptracer" logic in wait_consider_task()
-is very wrong. Trivial test-case:
+The flag was never set, delete it.
 
-	#include <unistd.h>
-	#include <sys/ptrace.h>
-	#include <sys/wait.h>
-	#include <assert.h>
-
-	int main(void)
-	{
-		int child = fork();
-
-		if (!child) {
-			assert(ptrace(PTRACE_TRACEME, 0,0,0) == 0);
-			return 0x23;
-		}
-
-		assert(waitid(P_ALL, child, NULL, WEXITED | WNOWAIT) == 0);
-		assert(waitid(P_ALL, 0, NULL, WSTOPPED) == -1);
-		return 0;
-	}
-
-it hangs in waitpid(WSTOPPED) despite the fact it has a single zombie
-child.  This is because wait_consider_task(ptrace => 0) sees p->ptrace and
-cleares ->notask_error assuming that the debugger should detach and notify
-us.
-
-Change wait_consider_task(ptrace => 0) to pretend that ptrace == T if the
-child is traced by us.  This really simplifies the logic and allows us to
-do more fixes, see the next changes.  This also hides the unwanted group
-stop state automatically, we can remove another ptrace_reparented() check.
-
-Unfortunately, this adds the following behavioural changes:
-
-	1. Before this patch wait(WEXITED | __WNOTHREAD) does not reap
-	   a natural child if it is traced by the caller's sub-thread.
-
-	   Hopefully nobody will ever notice this change, and I think
-	   that nobody should rely on this behaviour anyway.
-
-	2. SIGNAL_STOP_CONTINUED is no longer hidden from debugger if
-	   it is real parent.
-
-	   While this change comes as a side effect, I think it is good
-	   by itself. The group continued state can not be consumed by
-	   another process in this case, it doesn't depend on ptrace,
-	   it doesn't make sense to hide it from real parent.
-
-	   Perhaps we should add the thread_group_leader() check before
-	   wait_task_continued()? May be, but this shouldn't depend on
-	   ptrace_reparented().
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: Lennart Poettering <lpoetter@redhat.com>
-Cc: Michal Schmidt <mschmidt@redhat.com>
-Cc: Roland McGrath <roland@hack.frob.com>
-Cc: Tejun Heo <tj@kernel.org>
+Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ fs/ocfs2/inode.c   |    6 ------
+ fs/ocfs2/inode.h   |    8 +++-----
+ fs/ocfs2/journal.c |    6 ------
+ 3 files changed, 3 insertions(+), 17 deletions(-)
 
-diff -puN kernel/exit.c~wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent kernel/exit.c
---- a/kernel/exit.c~wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent
-+++ a/kernel/exit.c
-@@ -1364,6 +1364,22 @@ static int wait_consider_task(struct wai
- 		return 0;
+diff -puN fs/ocfs2/inode.c~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-remove-ocfs2_inode_skip_delete-flag
++++ a/fs/ocfs2/inode.c
+@@ -849,12 +849,6 @@ static int ocfs2_inode_is_valid_to_delet
+ 		goto bail_unlock;
  	}
  
-+	if (likely(!ptrace) && unlikely(p->ptrace)) {
-+		/*
-+		 * If it is traced by its real parent's group, just pretend
-+		 * the caller is ptrace_do_wait() and reap this child if it
-+		 * is zombie.
-+		 *
-+		 * This also hides group stop state from real parent; otherwise
-+		 * a single stop can be reported twice as group and ptrace stop.
-+		 * If a ptracer wants to distinguish these two events for its
-+		 * own children it should create a separate process which takes
-+		 * the role of real parent.
-+		 */
-+		if (!ptrace_reparented(p))
-+			ptrace = 1;
-+	}
-+
- 	/* slay zombie? */
- 	if (p->exit_state == EXIT_ZOMBIE) {
- 		/*
-@@ -1405,19 +1421,6 @@ static int wait_consider_task(struct wai
- 			wo->notask_error = 0;
- 	} else {
- 		/*
--		 * If @p is ptraced by a task in its real parent's group,
--		 * hide group stop/continued state when looking at @p as
--		 * the real parent; otherwise, a single stop can be
--		 * reported twice as group and ptrace stops.
--		 *
--		 * If a ptracer wants to distinguish the two events for its
--		 * own children, it should create a separate process which
--		 * takes the role of real parent.
--		 */
--		if (likely(!ptrace) && p->ptrace && !ptrace_reparented(p))
--			return 0;
+-	/* If we have allowd wipe of this inode for another node, it
+-	 * will be marked here so we can safely skip it. Recovery will
+-	 * cleanup any inodes we might inadvertently skip here. */
+-	if (oi->ip_flags & OCFS2_INODE_SKIP_DELETE)
+-		goto bail_unlock;
+-
+ 	ret = 1;
+ bail_unlock:
+ 	spin_unlock(&oi->ip_lock);
+diff -puN fs/ocfs2/inode.h~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/inode.h
+--- a/fs/ocfs2/inode.h~ocfs2-remove-ocfs2_inode_skip_delete-flag
++++ a/fs/ocfs2/inode.h
+@@ -91,8 +91,6 @@ struct ocfs2_inode_info
+ #define OCFS2_INODE_BITMAP		0x00000004
+ /* This inode has been wiped from disk */
+ #define OCFS2_INODE_DELETED		0x00000008
+-/* Another node is deleting, so our delete is a nop */
+-#define OCFS2_INODE_SKIP_DELETE		0x00000010
+ /* Has the inode been orphaned on another node?
+  *
+  * This hints to ocfs2_drop_inode that it should clear i_nlink before
+@@ -107,11 +105,11 @@ struct ocfs2_inode_info
+  * rely on ocfs2_delete_inode to sort things out under the proper
+  * cluster locks.
+  */
+-#define OCFS2_INODE_MAYBE_ORPHANED	0x00000020
++#define OCFS2_INODE_MAYBE_ORPHANED	0x00000010
+ /* Does someone have the file open O_DIRECT */
+-#define OCFS2_INODE_OPEN_DIRECT		0x00000040
++#define OCFS2_INODE_OPEN_DIRECT		0x00000020
+ /* Tell the inode wipe code it's not in orphan dir */
+-#define OCFS2_INODE_SKIP_ORPHAN_DIR     0x00000080
++#define OCFS2_INODE_SKIP_ORPHAN_DIR     0x00000040
+ 
+ static inline struct ocfs2_inode_info *OCFS2_I(struct inode *inode)
+ {
+diff -puN fs/ocfs2/journal.c~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-remove-ocfs2_inode_skip_delete-flag
++++ a/fs/ocfs2/journal.c
+@@ -2132,12 +2132,6 @@ static int ocfs2_recover_orphans(struct
+ 		iter = oi->ip_next_orphan;
+ 
+ 		spin_lock(&oi->ip_lock);
+-		/* The remote delete code may have set these on the
+-		 * assumption that the other node would wipe them
+-		 * successfully.  If they are still in the node's
+-		 * orphan dir, we need to reset that state. */
+-		oi->ip_flags &= ~(OCFS2_INODE_DELETED|OCFS2_INODE_SKIP_DELETE);
+-
+ 		/* Set the proper information to get us going into
+ 		 * ocfs2_delete_inode. */
+ 		oi->ip_flags |= OCFS2_INODE_MAYBE_ORPHANED;
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+ocfs2-fix-quota-file-corruption.patch
+backing_dev-fix-hung-task-on-sync.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
+quota-provide-function-to-grab-quota-structure-reference.patch
+ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
+ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
+ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
+printk-remove-duplicated-check-for-log-level.patch
+printk-remove-obsolete-check-for-log-level-c.patch
+printk-add-comment-about-tricky-check-for-text-buffer-size.patch
+printk-use-also-the-last-bytes-in-the-ring-buffer.patch
+printk-do-not-compute-the-size-of-the-message-twice.patch
+linux-next.patch
+mm-add-strictlimit-knob-v2.patch
+
