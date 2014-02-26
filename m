@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-and-correct-types-of-some-t-entries.patch added to -mm tree
-Date: Wed, 26 Feb 2014 15:28:13 -0800
-Message-ID: <530e788d.C9D+tIxHFZZZlc3S%akpm@linux-foundation.org>
+Subject: + checkpatch-use-a-more-consistent-function-argument-style.patch
+ added to -mm tree
+Date: Wed, 26 Feb 2014 15:32:53 -0800
+Message-ID: <530e79a5.x6eDa7uBJz968vjG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53383 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53468 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751685AbaBZX2N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:28:13 -0500
+	with ESMTP id S1751900AbaBZXcy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:32:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + maintainers-add-and-correct-types-of-some-t-entries.patch added to -mm tree
+Subject: + checkpatch-use-a-more-consistent-function-argument-style.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 26 Feb 2014 15:28:13 -0800
+Date: Wed, 26 Feb 2014 15:32:53 -0800
 
 
 The patch titled
-     Subject: MAINTAINERS: add and correct types of some "T:" entries
+     Subject: checkpatch: use a more consistent function argument style
 has been added to the -mm tree.  Its filename is
-     maintainers-add-and-correct-types-of-some-t-entries.patch
+     checkpatch-use-a-more-consistent-function-argument-style.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-and-correct-types-of-some-t-entries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-use-a-more-consistent-function-argument-style.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-and-correct-types-of-some-t-entries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-use-a-more-consistent-function-argument-style.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,97 +45,92 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: add and correct types of some "T:" entries
+Subject: checkpatch: use a more consistent function argument style
 
-Tree location entries should start with the appropriate type.
-
-Add git to some, hg to another.
-
-Neaten tree type description.
+Instead of array indexing $_, use temporary variables like all the other
+subroutines in the script use.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ scripts/checkpatch.pl |   29 ++++++++++++++++++++---------
+ 1 file changed, 20 insertions(+), 9 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-and-correct-types-of-some-t-entries MAINTAINERS
---- a/MAINTAINERS~maintainers-add-and-correct-types-of-some-t-entries
-+++ a/MAINTAINERS
-@@ -73,7 +73,8 @@ Descriptions of section entries:
- 	L: Mailing list that is relevant to this area
- 	W: Web-page with status/info
- 	Q: Patchwork web based patch tracking system site
--	T: SCM tree type and location.  Type is one of: git, hg, quilt, stgit, topgit.
-+	T: SCM tree type and location.
-+	   Type is one of: git, hg, quilt, stgit, topgit
- 	S: Status, one of the following:
- 	   Supported:	Someone is actually paid to look after this.
- 	   Maintained:	Someone actually looks after it.
-@@ -2159,7 +2160,7 @@ F:	Documentation/zh_CN/
+diff -puN scripts/checkpatch.pl~checkpatch-use-a-more-consistent-function-argument-style scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-use-a-more-consistent-function-argument-style
++++ a/scripts/checkpatch.pl
+@@ -1431,21 +1431,25 @@ sub possible {
+ my $prefix = '';
  
- CHIPIDEA USB HIGH SPEED DUAL ROLE CONTROLLER
- M:	Peter Chen <Peter.Chen@freescale.com>
--T:	git://github.com/hzpeterchen/linux-usb.git
-+T:	git git://github.com/hzpeterchen/linux-usb.git
- L:	linux-usb@vger.kernel.org
- S:	Maintained
- F:	drivers/usb/chipidea/
-@@ -2382,7 +2383,7 @@ M:	Lorenzo Pieralisi <lorenzo.pieralisi@
- M:	Daniel Lezcano <daniel.lezcano@linaro.org>
- L:	linux-pm@vger.kernel.org
- L:	linux-arm-kernel@lists.infradead.org
--T:	git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
- S:	Maintained
- F:	drivers/cpuidle/cpuidle-big_little.c
+ sub show_type {
+-	return defined $use_type{$_[0]} if (scalar keys %use_type > 0);
++	my ($type) = @_;
  
-@@ -2391,7 +2392,7 @@ M:	Rafael J. Wysocki <rjw@rjwysocki.net>
- M:	Daniel Lezcano <daniel.lezcano@linaro.org>
- L:	linux-pm@vger.kernel.org
- S:	Maintained
--T:	git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
- F:	drivers/cpuidle/*
- F:	include/linux/cpuidle.h
+-	return !defined $ignore_type{$_[0]};
++	return defined $use_type{$type} if (scalar keys %use_type > 0);
++
++	return !defined $ignore_type{$type};
+ }
  
-@@ -4904,7 +4905,7 @@ F:	drivers/staging/ktap/
- KCONFIG
- M:	"Yann E. MORIN" <yann.morin.1998@free.fr>
- L:	linux-kbuild@vger.kernel.org
--T:	git://gitorious.org/linux-kconfig/linux-kconfig
-+T:	git git://gitorious.org/linux-kconfig/linux-kconfig
- S:	Maintained
- F:	Documentation/kbuild/kconfig-language.txt
- F:	scripts/kconfig/
-@@ -5719,7 +5720,7 @@ L:	linux-rdma@vger.kernel.org
- W:	http://www.mellanox.com
- Q:	http://patchwork.ozlabs.org/project/netdev/list/
- Q:	http://patchwork.kernel.org/project/linux-rdma/list/
--T:	git://openfabrics.org/~eli/connect-ib.git
-+T:	git git://openfabrics.org/~eli/connect-ib.git
- S:	Supported
- F:	drivers/net/ethernet/mellanox/mlx5/core/
- F:	include/linux/mlx5/
-@@ -5729,7 +5730,7 @@ M:	Eli Cohen <eli@mellanox.com>
- L:	linux-rdma@vger.kernel.org
- W:	http://www.mellanox.com
- Q:	http://patchwork.kernel.org/project/linux-rdma/list/
--T:	git://openfabrics.org/~eli/connect-ib.git
-+T:	git git://openfabrics.org/~eli/connect-ib.git
- S:	Supported
- F:	include/linux/mlx5/
- F:	drivers/infiniband/hw/mlx5/
-@@ -9798,7 +9799,7 @@ ZR36067 VIDEO FOR LINUX DRIVER
- L:	mjpeg-users@lists.sourceforge.net
- L:	linux-media@vger.kernel.org
- W:	http://mjpeg.sourceforge.net/driver-zoran/
--T:	Mercurial http://linuxtv.org/hg/v4l-dvb
-+T:	hg http://linuxtv.org/hg/v4l-dvb
- S:	Odd Fixes
- F:	drivers/media/pci/zoran/
+ sub report {
+-	if (!show_type($_[1]) ||
+-	    (defined $tst_only && $_[2] !~ /\Q$tst_only\E/)) {
++	my ($level, $type, $msg) = @_;
++
++	if (!show_type($type) ||
++	    (defined $tst_only && $msg !~ /\Q$tst_only\E/)) {
+ 		return 0;
+ 	}
+ 	my $line;
+ 	if ($show_types) {
+-		$line = "$prefix$_[0]:$_[1]: $_[2]\n";
++		$line = "$prefix$level:$type: $msg\n";
+ 	} else {
+-		$line = "$prefix$_[0]: $_[2]\n";
++		$line = "$prefix$level: $msg\n";
+ 	}
+ 	$line = (split('\n', $line))[0] . "\n" if ($terse);
  
+@@ -1453,12 +1457,15 @@ sub report {
+ 
+ 	return 1;
+ }
++
+ sub report_dump {
+ 	our @report;
+ }
+ 
+ sub ERROR {
+-	if (report("ERROR", $_[0], $_[1])) {
++	my ($type, $msg) = @_;
++
++	if (report("ERROR", $type, $msg)) {
+ 		our $clean = 0;
+ 		our $cnt_error++;
+ 		return 1;
+@@ -1466,7 +1473,9 @@ sub ERROR {
+ 	return 0;
+ }
+ sub WARN {
+-	if (report("WARNING", $_[0], $_[1])) {
++	my ($type, $msg) = @_;
++
++	if (report("WARNING", $type, $msg)) {
+ 		our $clean = 0;
+ 		our $cnt_warn++;
+ 		return 1;
+@@ -1474,7 +1483,9 @@ sub WARN {
+ 	return 0;
+ }
+ sub CHK {
+-	if ($check && report("CHECK", $_[0], $_[1])) {
++	my ($type, $msg) = @_;
++
++	if ($check && report("CHECK", $type, $msg)) {
+ 		our $clean = 0;
+ 		our $cnt_chk++;
+ 		return 1;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -154,6 +150,8 @@ checkpatch-update-octal-permissions-warning.patch
 checkpatch-avoid-sscanf-test-duplicated-messages.patch
 checkpatch-fix-jiffies-comparison-and-others.patch
 checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
+checkpatch-use-a-more-consistent-function-argument-style.patch
+checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
 ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
 ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
 ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
