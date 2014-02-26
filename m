@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + quota-provide-function-to-grab-quota-structure-reference.patch
+Subject: +
+ ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
  added to -mm tree
-Date: Wed, 26 Feb 2014 15:49:20 -0800
-Message-ID: <530e7d80.tD29tPTBDxRE0mZt%akpm@linux-foundation.org>
+Date: Wed, 26 Feb 2014 15:49:19 -0800
+Message-ID: <530e7d7f.MfMmK/xAuiqphOFM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53569 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53562 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754467AbaBZXtV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:49:21 -0500
+	with ESMTP id S1754461AbaBZXtU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:49:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.de, jlbec@evilplan.org, jack@suse.cz
 
-Subject: + quota-provide-function-to-grab-quota-structure-reference.patch added to -mm tree
+Subject: + ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch added to -mm tree
 To: jack@suse.cz,jlbec@evilplan.org,mfasheh@suse.de,srinivas.eeda@oracle.com
 From: akpm@linux-foundation.org
-Date: Wed, 26 Feb 2014 15:49:20 -0800
+Date: Wed, 26 Feb 2014 15:49:19 -0800
 
 
 The patch titled
-     Subject: quota: provide function to grab quota structure reference
+     Subject: ocfs2: move dquot_initialize() in ocfs2_delete_inode() somewhat later
 has been added to the -mm tree.  Its filename is
-     quota-provide-function-to-grab-quota-structure-reference.patch
+     ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/quota-provide-function-to-grab-quota-structure-reference.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/quota-provide-function-to-grab-quota-structure-reference.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,11 +46,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: quota: provide function to grab quota structure reference
+Subject: ocfs2: move dquot_initialize() in ocfs2_delete_inode() somewhat later
 
-Provide dqgrab() function to get quota structure reference when we are
-sure it already has at least one active reference.  Make use of this
-function inside quota code.
+Move dquot_initalize() call in ocfs2_delete_inode() after the moment we
+verify inode is actually a sane one to delete.  We certainly don't want to
+initialize quota for system inodes etc.  This also avoids calling into
+quota code from downconvert thread.
+
+Add more details into the comment why bailing out from
+ocfs2_delete_inode() when we are in downconvert thread is OK.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
@@ -58,49 +63,49 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/quota/dquot.c         |    4 ++--
- include/linux/quotaops.h |    8 ++++++++
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ fs/ocfs2/inode.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN fs/quota/dquot.c~quota-provide-function-to-grab-quota-structure-reference fs/quota/dquot.c
---- a/fs/quota/dquot.c~quota-provide-function-to-grab-quota-structure-reference
-+++ a/fs/quota/dquot.c
-@@ -528,7 +528,7 @@ restart:
- 		if (atomic_read(&dquot->dq_count)) {
- 			DEFINE_WAIT(wait);
+diff -puN fs/ocfs2/inode.c~ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later
++++ a/fs/ocfs2/inode.c
+@@ -831,11 +831,13 @@ static int ocfs2_inode_is_valid_to_delet
+ 		goto bail;
+ 	}
  
--			atomic_inc(&dquot->dq_count);
-+			dqgrab(dquot);
- 			prepare_to_wait(&dquot->dq_wait_unused, &wait,
- 					TASK_UNINTERRUPTIBLE);
- 			spin_unlock(&dq_list_lock);
-@@ -624,7 +624,7 @@ int dquot_writeback_dquots(struct super_
- 			/* Now we have active dquot from which someone is
-  			 * holding reference so we can safely just increase
- 			 * use count */
--			atomic_inc(&dquot->dq_count);
-+			dqgrab(dquot);
- 			spin_unlock(&dq_list_lock);
- 			dqstats_inc(DQST_LOOKUPS);
- 			err = sb->dq_op->write_dquot(dquot);
-diff -puN include/linux/quotaops.h~quota-provide-function-to-grab-quota-structure-reference include/linux/quotaops.h
---- a/include/linux/quotaops.h~quota-provide-function-to-grab-quota-structure-reference
-+++ a/include/linux/quotaops.h
-@@ -46,6 +46,14 @@ void inode_reclaim_rsv_space(struct inod
- void dquot_initialize(struct inode *inode);
- void dquot_drop(struct inode *inode);
- struct dquot *dqget(struct super_block *sb, struct kqid qid);
-+static inline struct dquot *dqgrab(struct dquot *dquot)
-+{
-+	/* Make sure someone else has active reference to dquot */
-+	WARN_ON_ONCE(!atomic_read(&dquot->dq_count));
-+	WARN_ON_ONCE(!test_bit(DQ_ACTIVE_B, &dquot->dq_flags));
-+	atomic_inc(&dquot->dq_count);
-+	return dquot;
-+}
- void dqput(struct dquot *dquot);
- int dquot_scan_active(struct super_block *sb,
- 		      int (*fn)(struct dquot *dquot, unsigned long priv),
+-	/* If we're coming from downconvert_thread we can't go into our own
+-	 * voting [hello, deadlock city!], so unforuntately we just
+-	 * have to skip deleting this guy. That's OK though because
+-	 * the node who's doing the actual deleting should handle it
+-	 * anyway. */
++	/*
++	 * If we're coming from downconvert_thread we can't go into our own
++	 * voting [hello, deadlock city!] so we cannot delete the inode. But
++	 * since we dropped last inode ref when downconverting dentry lock,
++	 * we cannot have the file open and thus the node doing unlink will
++	 * take care of deleting the inode.
++	 */
+ 	if (current == osb->dc_task)
+ 		goto bail;
+ 
+@@ -981,8 +983,6 @@ static void ocfs2_delete_inode(struct in
+ 	if (is_bad_inode(inode) || !OCFS2_I(inode)->ip_blkno)
+ 		goto bail;
+ 
+-	dquot_initialize(inode);
+-
+ 	if (!ocfs2_inode_is_valid_to_delete(inode)) {
+ 		/* It's probably not necessary to truncate_inode_pages
+ 		 * here but we do it for safety anyway (it will most
+@@ -991,6 +991,8 @@ static void ocfs2_delete_inode(struct in
+ 		goto bail;
+ 	}
+ 
++	dquot_initialize(inode);
++
+ 	/* We want to block signals in delete_inode as the lock and
+ 	 * messaging paths may return us -ERESTARTSYS. Which would
+ 	 * cause us to exit early, resulting in inodes being orphaned
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
