@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch added to
- -mm tree
-Date: Wed, 26 Feb 2014 15:49:24 -0800
-Message-ID: <530e7d84.kml1WlUTqAAilwB1%akpm@linux-foundation.org>
+Subject: + ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
+ added to -mm tree
+Date: Wed, 26 Feb 2014 15:49:21 -0800
+Message-ID: <530e7d81.tyA0hFWn3LPwap1Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53574 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754481AbaBZXtZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:49:25 -0500
+	with ESMTP id S1754479AbaBZXtW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:49:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, rgoldwyn@suse.com, mfasheh@suse.de, jlbec@evilplan.org, jack@suse.cz, rgoldwyn@suse.de
+To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.de, jlbec@evilplan.org, jack@suse.cz
 
-Subject: + ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch added to -mm tree
-To: rgoldwyn@suse.de,jack@suse.cz,jlbec@evilplan.org,mfasheh@suse.de,rgoldwyn@suse.com,srinivas.eeda@oracle.com
+Subject: + ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch added to -mm tree
+To: jack@suse.cz,jlbec@evilplan.org,mfasheh@suse.de,srinivas.eeda@oracle.com
 From: akpm@linux-foundation.org
-Date: Wed, 26 Feb 2014 15:49:24 -0800
+Date: Wed, 26 Feb 2014 15:49:21 -0800
 
 
 The patch titled
-     Subject: ocfs2: revert iput deferring code in ocfs2_drop_dentry_lock
+     Subject: ocfs2: implement delayed dropping of last dquot reference
 has been added to the -mm tree.  Its filename is
-     ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
+     ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,318 +44,209 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: ocfs2: revert iput deferring code in ocfs2_drop_dentry_lock
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: implement delayed dropping of last dquot reference
 
-The following patches are reverted in this patch because these patches
-caused performance regression in the remote unlink() calls.
+We cannot drop last dquot reference from downconvert thread as that
+creates the following deadlock:
 
-ea455f8ab68338ba69f5d3362b342c115bea8e13 - ocfs2: Push out dropping
-of dentry lock to ocfs2_wq
-f7b1aa69be138ad9d7d3f31fa56f4c9407f56b6a - ocfs2: Fix deadlock on umount
-5fd131893793567c361ae64cbeb28a2a753bbe35 - ocfs2: Don't oops in
-ocfs2_kill_sb on a failed mount
+NODE 1                                  NODE2
+holds dentry lock for 'foo'
+holds inode lock for GLOBAL_BITMAP_SYSTEM_INODE
+                                        dquot_initialize(bar)
+                                          ocfs2_dquot_acquire()
+                                            ocfs2_inode_lock(USER_QUOTA_SYSTEM_INODE)
+                                            ...
+downconvert thread (triggered from another
+node or a different process from NODE2)
+  ocfs2_dentry_post_unlock()
+    ...
+    iput(foo)
+      ocfs2_evict_inode(foo)
+        ocfs2_clear_inode(foo)
+          dquot_drop(inode)
+            ...
+	    ocfs2_dquot_release()
+              ocfs2_inode_lock(USER_QUOTA_SYSTEM_INODE)
+               - blocks
+                                            finds we need more space in
+                                            quota file
+                                            ...
+                                            ocfs2_extend_no_holes()
+                                              ocfs2_inode_lock(GLOBAL_BITMAP_SYSTEM_INODE)
+                                                - deadlocks waiting for
+                                                  downconvert thread
 
-Previous patches in this series removed the possible deadlocks from
-downconvert thread so the above patches shouldn't be needed anymore.
+We solve the problem by postponing dropping of the last dquot reference to
+a workqueue if it happens from the downconvert thread.
 
-The regression is caused because these patches delay the iput() in case of
-dentry unlocks.  This also delays the unlocking of the open lockres.  The
-open lockresource is required to test if the inode can be wiped from disk
-or not.  When the deleting node does not get the open lock, it marks it as
-orphan (even though it is not in use by another node/process) and causes a
-journal checkpoint.  This delays operations following the inode eviction. 
-This also moves the inode to the orphaned inode which further causes more
-I/O and a lot of unneccessary orphans.
-
-The following script can be used to generate the load causing issues:
-declare -a create
-declare -a remove
-declare -a iterations=(1 2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384)
-unique="`mktemp -u XXXXX`"
-script="/tmp/idontknow-${unique}.sh"
-cat <<EOF > "${script}"
-for n in {1..8}; do mkdir -p test/dir\${n}
-  eval touch test/dir\${n}/foo{1.."\$1"}
-done
-EOF
-chmod 700 "${script}"
-
-function fcreate ()
-{
-  exec 2>&1 /usr/bin/time --format=%E "${script}" "$1"
-}
-
-function fremove ()
-{
-  exec 2>&1 /usr/bin/time --format=%E ssh node2 "cd `pwd`; rm -Rf test*"
-}
-
-function fcp ()
-{
-  exec 2>&1 /usr/bin/time --format=%E ssh node3 "cd `pwd`; cp -R test test.new"
-}
-
-echo -------------------------------------------------
-echo "| # files | create #s | copy #s | remove #s |"
-echo -------------------------------------------------
-for ((x=0; x < ${#iterations[*]} ; x++)) do
-  create[$x]="`fcreate ${iterations[$x]}`"
-  copy[$x]="`fcp ${iterations[$x]}`"
-  remove[$x]="`fremove`"
-  printf "| %8d | %9s | %9s | %9s |\n" ${iterations[$x]} ${create[$x]} ${copy[$x]} ${remove[$x]}
-done
-rm "${script}"
-echo "------------------------"
-
-Signed-off-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dcache.c |   61 ++------------------------------------------
- fs/ocfs2/dcache.h |   12 --------
- fs/ocfs2/ocfs2.h  |   28 ++------------------
- fs/ocfs2/super.c  |   30 ---------------------
- 4 files changed, 9 insertions(+), 122 deletions(-)
+ fs/ocfs2/ocfs2.h        |    5 +++++
+ fs/ocfs2/quota.h        |    2 ++
+ fs/ocfs2/quota_global.c |   35 +++++++++++++++++++++++++++++++++++
+ fs/ocfs2/super.c        |    8 ++++++++
+ 4 files changed, 50 insertions(+)
 
-diff -puN fs/ocfs2/dcache.c~ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock fs/ocfs2/dcache.c
---- a/fs/ocfs2/dcache.c~ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock
-+++ a/fs/ocfs2/dcache.c
-@@ -37,7 +37,6 @@
- #include "dlmglue.h"
- #include "file.h"
- #include "inode.h"
--#include "super.h"
- #include "ocfs2_trace.h"
- 
- void ocfs2_dentry_attach_gen(struct dentry *dentry)
-@@ -346,52 +345,6 @@ out_attach:
- 	return ret;
- }
- 
--DEFINE_SPINLOCK(dentry_list_lock);
--
--/* We limit the number of dentry locks to drop in one go. We have
-- * this limit so that we don't starve other users of ocfs2_wq. */
--#define DL_INODE_DROP_COUNT 64
--
--/* Drop inode references from dentry locks */
--static void __ocfs2_drop_dl_inodes(struct ocfs2_super *osb, int drop_count)
--{
--	struct ocfs2_dentry_lock *dl;
--
--	spin_lock(&dentry_list_lock);
--	while (osb->dentry_lock_list && (drop_count < 0 || drop_count--)) {
--		dl = osb->dentry_lock_list;
--		osb->dentry_lock_list = dl->dl_next;
--		spin_unlock(&dentry_list_lock);
--		iput(dl->dl_inode);
--		kfree(dl);
--		spin_lock(&dentry_list_lock);
--	}
--	spin_unlock(&dentry_list_lock);
--}
--
--void ocfs2_drop_dl_inodes(struct work_struct *work)
--{
--	struct ocfs2_super *osb = container_of(work, struct ocfs2_super,
--					       dentry_lock_work);
--
--	__ocfs2_drop_dl_inodes(osb, DL_INODE_DROP_COUNT);
--	/*
--	 * Don't queue dropping if umount is in progress. We flush the
--	 * list in ocfs2_dismount_volume
--	 */
--	spin_lock(&dentry_list_lock);
--	if (osb->dentry_lock_list &&
--	    !ocfs2_test_osb_flag(osb, OCFS2_OSB_DROP_DENTRY_LOCK_IMMED))
--		queue_work(ocfs2_wq, &osb->dentry_lock_work);
--	spin_unlock(&dentry_list_lock);
--}
--
--/* Flush the whole work queue */
--void ocfs2_drop_all_dl_inodes(struct ocfs2_super *osb)
--{
--	__ocfs2_drop_dl_inodes(osb, -1);
--}
--
- /*
-  * ocfs2_dentry_iput() and friends.
-  *
-@@ -416,24 +369,16 @@ void ocfs2_drop_all_dl_inodes(struct ocf
- static void ocfs2_drop_dentry_lock(struct ocfs2_super *osb,
- 				   struct ocfs2_dentry_lock *dl)
- {
-+	iput(dl->dl_inode);
- 	ocfs2_simple_drop_lockres(osb, &dl->dl_lockres);
- 	ocfs2_lock_res_free(&dl->dl_lockres);
--
--	/* We leave dropping of inode reference to ocfs2_wq as that can
--	 * possibly lead to inode deletion which gets tricky */
--	spin_lock(&dentry_list_lock);
--	if (!osb->dentry_lock_list &&
--	    !ocfs2_test_osb_flag(osb, OCFS2_OSB_DROP_DENTRY_LOCK_IMMED))
--		queue_work(ocfs2_wq, &osb->dentry_lock_work);
--	dl->dl_next = osb->dentry_lock_list;
--	osb->dentry_lock_list = dl;
--	spin_unlock(&dentry_list_lock);
-+	kfree(dl);
- }
- 
- void ocfs2_dentry_lock_put(struct ocfs2_super *osb,
- 			   struct ocfs2_dentry_lock *dl)
- {
--	int unlock;
-+	int unlock = 0;
- 
- 	BUG_ON(dl->dl_count == 0);
- 
-diff -puN fs/ocfs2/dcache.h~ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock fs/ocfs2/dcache.h
---- a/fs/ocfs2/dcache.h~ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock
-+++ a/fs/ocfs2/dcache.h
-@@ -29,13 +29,8 @@
- extern const struct dentry_operations ocfs2_dentry_ops;
- 
- struct ocfs2_dentry_lock {
--	/* Use count of dentry lock */
- 	unsigned int		dl_count;
--	union {
--		/* Linked list of dentry locks to release */
--		struct ocfs2_dentry_lock *dl_next;
--		u64			dl_parent_blkno;
--	};
-+	u64			dl_parent_blkno;
- 
- 	/*
- 	 * The ocfs2_dentry_lock keeps an inode reference until
-@@ -49,14 +44,9 @@ struct ocfs2_dentry_lock {
- int ocfs2_dentry_attach_lock(struct dentry *dentry, struct inode *inode,
- 			     u64 parent_blkno);
- 
--extern spinlock_t dentry_list_lock;
--
- void ocfs2_dentry_lock_put(struct ocfs2_super *osb,
- 			   struct ocfs2_dentry_lock *dl);
- 
--void ocfs2_drop_dl_inodes(struct work_struct *work);
--void ocfs2_drop_all_dl_inodes(struct ocfs2_super *osb);
--
- struct dentry *ocfs2_find_local_alias(struct inode *inode, u64 parent_blkno,
- 				      int skip_unhashed);
- 
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-implement-delayed-dropping-of-last-dquot-reference fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-implement-delayed-dropping-of-last-dquot-reference
 +++ a/fs/ocfs2/ocfs2.h
-@@ -275,19 +275,16 @@ enum ocfs2_mount_options
- 	OCFS2_MOUNT_HB_GLOBAL = 1 << 14, /* Global heartbeat */
+@@ -30,6 +30,7 @@
+ #include <linux/sched.h>
+ #include <linux/wait.h>
+ #include <linux/list.h>
++#include <linux/llist.h>
+ #include <linux/rbtree.h>
+ #include <linux/workqueue.h>
+ #include <linux/kref.h>
+@@ -419,6 +420,10 @@ struct ocfs2_super
+ 	struct ocfs2_dentry_lock *dentry_lock_list;
+ 	struct work_struct dentry_lock_work;
+ 
++	/* List of dquot structures to drop last reference to */
++	struct llist_head dquot_drop_list;
++	struct work_struct dquot_drop_work;
++
+ 	wait_queue_head_t		osb_mount_event;
+ 
+ 	/* Truncate log info */
+diff -puN fs/ocfs2/quota.h~ocfs2-implement-delayed-dropping-of-last-dquot-reference fs/ocfs2/quota.h
+--- a/fs/ocfs2/quota.h~ocfs2-implement-delayed-dropping-of-last-dquot-reference
++++ a/fs/ocfs2/quota.h
+@@ -28,6 +28,7 @@ struct ocfs2_dquot {
+ 	unsigned int dq_use_count;	/* Number of nodes having reference to this entry in global quota file */
+ 	s64 dq_origspace;	/* Last globally synced space usage */
+ 	s64 dq_originodes;	/* Last globally synced inode usage */
++	struct llist_node list;	/* Member of list of dquots to drop */
  };
  
--#define OCFS2_OSB_SOFT_RO			0x0001
--#define OCFS2_OSB_HARD_RO			0x0002
--#define OCFS2_OSB_ERROR_FS			0x0004
--#define OCFS2_OSB_DROP_DENTRY_LOCK_IMMED	0x0008
--
--#define OCFS2_DEFAULT_ATIME_QUANTUM		60
-+#define OCFS2_OSB_SOFT_RO	0x0001
-+#define OCFS2_OSB_HARD_RO	0x0002
-+#define OCFS2_OSB_ERROR_FS	0x0004
-+#define OCFS2_DEFAULT_ATIME_QUANTUM	60
+ /* Description of one chunk to recover in memory */
+@@ -110,6 +111,7 @@ int ocfs2_read_quota_phys_block(struct i
+ int ocfs2_create_local_dquot(struct dquot *dquot);
+ int ocfs2_local_release_dquot(handle_t *handle, struct dquot *dquot);
+ int ocfs2_local_write_dquot(struct dquot *dquot);
++void ocfs2_drop_dquot_refs(struct work_struct *work);
  
- struct ocfs2_journal;
- struct ocfs2_slot_info;
- struct ocfs2_recovery_map;
- struct ocfs2_replay_map;
- struct ocfs2_quota_recovery;
--struct ocfs2_dentry_lock;
- struct ocfs2_super
- {
- 	struct task_struct *commit_task;
-@@ -415,11 +412,6 @@ struct ocfs2_super
- 	struct list_head blocked_lock_list;
- 	unsigned long blocked_lock_count;
+ extern const struct dquot_operations ocfs2_quota_operations;
+ extern struct quota_format_type ocfs2_quota_format;
+diff -puN fs/ocfs2/quota_global.c~ocfs2-implement-delayed-dropping-of-last-dquot-reference fs/ocfs2/quota_global.c
+--- a/fs/ocfs2/quota_global.c~ocfs2-implement-delayed-dropping-of-last-dquot-reference
++++ a/fs/ocfs2/quota_global.c
+@@ -10,6 +10,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/writeback.h>
+ #include <linux/workqueue.h>
++#include <linux/llist.h>
  
--	/* List of dentry locks to release. Anyone can add locks to
--	 * the list, ocfs2_wq processes the list  */
--	struct ocfs2_dentry_lock *dentry_lock_list;
--	struct work_struct dentry_lock_work;
--
- 	/* List of dquot structures to drop last reference to */
- 	struct llist_head dquot_drop_list;
- 	struct work_struct dquot_drop_work;
-@@ -584,18 +576,6 @@ static inline void ocfs2_set_osb_flag(st
- 	spin_unlock(&osb->osb_lock);
+ #include <cluster/masklog.h>
+ 
+@@ -679,6 +680,27 @@ static int ocfs2_calc_qdel_credits(struc
+ 	       OCFS2_INODE_UPDATE_CREDITS;
  }
  
--
--static inline unsigned long  ocfs2_test_osb_flag(struct ocfs2_super *osb,
--						 unsigned long flag)
--{
--	unsigned long ret;
--
--	spin_lock(&osb->osb_lock);
--	ret = osb->osb_flags & flag;
--	spin_unlock(&osb->osb_lock);
--	return ret;
--}
--
- static inline void ocfs2_set_ro_flag(struct ocfs2_super *osb,
- 				     int hard)
++void ocfs2_drop_dquot_refs(struct work_struct *work)
++{
++	struct ocfs2_super *osb = container_of(work, struct ocfs2_super,
++					       dquot_drop_work);
++	struct llist_node *list;
++	struct ocfs2_dquot *odquot, *next_odquot;
++
++	list = llist_del_all(&osb->dquot_drop_list);
++	llist_for_each_entry_safe(odquot, next_odquot, list, list) {
++		/* Drop the reference we acquired in ocfs2_dquot_release() */
++		dqput(&odquot->dq_dquot);
++	}
++}
++
++/*
++ * Called when the last reference to dquot is dropped. If we are called from
++ * downconvert thread, we cannot do all the handling here because grabbing
++ * quota lock could deadlock (the node holding the quota lock could need some
++ * other cluster lock to proceed but with blocked downconvert thread we cannot
++ * release any lock).
++ */
+ static int ocfs2_release_dquot(struct dquot *dquot)
  {
-diff -puN fs/ocfs2/super.c~ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock
+ 	handle_t *handle;
+@@ -694,6 +716,19 @@ static int ocfs2_release_dquot(struct dq
+ 	/* Check whether we are not racing with some other dqget() */
+ 	if (atomic_read(&dquot->dq_count) > 1)
+ 		goto out;
++	/* Running from downconvert thread? Postpone quota processing to wq */
++	if (current == osb->dc_task) {
++		/*
++		 * Grab our own reference to dquot and queue it for delayed
++		 * dropping.  Quota code rechecks after calling
++		 * ->release_dquot() and won't free dquot structure.
++		 */
++		dqgrab(dquot);
++		/* First entry on list -> queue work */
++		if (llist_add(&OCFS2_DQUOT(dquot)->list, &osb->dquot_drop_list))
++			queue_work(ocfs2_wq, &osb->dquot_drop_work);
++		goto out;
++	}
+ 	status = ocfs2_lock_global_qf(oinfo, 1);
+ 	if (status < 0)
+ 		goto out;
+diff -puN fs/ocfs2/super.c~ocfs2-implement-delayed-dropping-of-last-dquot-reference fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-implement-delayed-dropping-of-last-dquot-reference
 +++ a/fs/ocfs2/super.c
-@@ -1241,30 +1241,11 @@ static struct dentry *ocfs2_mount(struct
- 	return mount_bdev(fs_type, flags, dev_name, data, ocfs2_fill_super);
- }
+@@ -1941,6 +1941,11 @@ static void ocfs2_dismount_volume(struct
  
--static void ocfs2_kill_sb(struct super_block *sb)
--{
--	struct ocfs2_super *osb = OCFS2_SB(sb);
--
--	/* Failed mount? */
--	if (!osb || atomic_read(&osb->vol_state) == VOLUME_DISABLED)
--		goto out;
--
--	/* Prevent further queueing of inode drop events */
--	spin_lock(&dentry_list_lock);
--	ocfs2_set_osb_flag(osb, OCFS2_OSB_DROP_DENTRY_LOCK_IMMED);
--	spin_unlock(&dentry_list_lock);
--	/* Wait for work to finish and/or remove it */
--	cancel_work_sync(&osb->dentry_lock_work);
--out:
--	kill_block_super(sb);
--}
--
- static struct file_system_type ocfs2_fs_type = {
- 	.owner          = THIS_MODULE,
- 	.name           = "ocfs2",
- 	.mount          = ocfs2_mount,
--	.kill_sb        = ocfs2_kill_sb,
--
-+	.kill_sb        = kill_block_super,
- 	.fs_flags       = FS_REQUIRES_DEV|FS_RENAME_DOES_D_MOVE,
- 	.next           = NULL
- };
-@@ -1930,12 +1911,6 @@ static void ocfs2_dismount_volume(struct
+ 	ocfs2_disable_quotas(osb);
  
- 	debugfs_remove(osb->osb_ctxt);
++	/* All dquots should be freed by now */
++	WARN_ON(!llist_empty(&osb->dquot_drop_list));
++	/* Wait for worker to be done with the work structure in osb */
++	cancel_work_sync(&osb->dquot_drop_work);
++
+ 	ocfs2_shutdown_local_alloc(osb);
  
--	/*
--	 * Flush inode dropping work queue so that deletes are
--	 * performed while the filesystem is still working
--	 */
--	ocfs2_drop_all_dl_inodes(osb);
--
- 	/* Orphan scan should be stopped as early as possible */
- 	ocfs2_orphan_scan_stop(osb);
+ 	/* This will disable recovery and flush any recovery work. */
+@@ -2276,6 +2281,9 @@ static int ocfs2_initialize_super(struct
+ 	INIT_WORK(&osb->dentry_lock_work, ocfs2_drop_dl_inodes);
+ 	osb->dentry_lock_list = NULL;
  
-@@ -2278,9 +2253,6 @@ static int ocfs2_initialize_super(struct
- 	INIT_WORK(&journal->j_recovery_work, ocfs2_complete_recovery);
- 	journal->j_state = OCFS2_JOURNAL_FREE;
- 
--	INIT_WORK(&osb->dentry_lock_work, ocfs2_drop_dl_inodes);
--	osb->dentry_lock_list = NULL;
++	INIT_WORK(&osb->dquot_drop_work, ocfs2_drop_dquot_refs);
++	init_llist_head(&osb->dquot_drop_list);
++
+ 	/* get some pseudo constants for clustersize bits */
+ 	osb->s_clustersize_bits =
+ 		le32_to_cpu(di->id2.i_super.s_clustersize_bits);
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+ocfs2-fix-quota-file-corruption.patch
+backing_dev-fix-hung-task-on-sync.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
+ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
+quota-provide-function-to-grab-quota-structure-reference.patch
+ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
+ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
+ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
+printk-remove-duplicated-check-for-log-level.patch
+printk-remove-obsolete-check-for-log-level-c.patch
+printk-add-comment-about-tricky-check-for-text-buffer-size.patch
+printk-use-also-the-last-bytes-in-the-ring-buffer.patch
+printk-do-not-compute-the-size-of-the-message-twice.patch
+linux-next.patch
+mm-add-strictlimit-knob-v2.patch
+
