@@ -1,95 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: +
- exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
- added to -mm tree
-Date: Tue, 25 Feb 2014 15:53:16 -0800
-Message-ID: <530d2cec.iCu6I62EhX4YO6f8%akpm@linux-foundation.org>
+Subject: [wrecked] fanotify-remove-useless-bypass_perm-check.patch removed from -mm tree
+Date: Wed, 26 Feb 2014 12:48:31 -0800
+Message-ID: <530e531f.8kT16rJG94pjr1as%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33808 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52090 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752456AbaBYXxR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Feb 2014 18:53:17 -0500
+	with ESMTP id S1753825AbaBZUsc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 15:48:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, schwidefsky@de.ibm.com, rientjes@google.com, riel@redhat.com, peterz@infradead.org, pbonzini@redhat.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, kirill.shutemov@linux.intel.com, heiko.carstens@de.ibm.com, hannes@cmpxchg.org, gerald.schaefer@de.ibm.com, ebiederm@xmission.com, borntraeger@de.ibm.com, aarcange@redhat.com, athorlton@sgi.com
+To: mm-commits@vger.kernel.org, eparis@redhat.com, jack@suse.cz
 
-Subject: + exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch added to -mm tree
-To: athorlton@sgi.com,aarcange@redhat.com,borntraeger@de.ibm.com,ebiederm@xmission.com,gerald.schaefer@de.ibm.com,hannes@cmpxchg.org,heiko.carstens@de.ibm.com,kirill.shutemov@linux.intel.com,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,pbonzini@redhat.com,peterz@infradead.org,riel@redhat.com,rientjes@google.com,schwidefsky@de.ibm.com,viro@zeniv.linux.org.uk
+Subject: [wrecked] fanotify-remove-useless-bypass_perm-check.patch removed from -mm tree
+To: jack@suse.cz,eparis@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 25 Feb 2014 15:53:16 -0800
+Date: Wed, 26 Feb 2014 12:48:31 -0800
 
 
 The patch titled
-     Subject: exec: kill the unnecessary mm->def_flags setting in load_elf_binary()
-has been added to the -mm tree.  Its filename is
-     exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
+     Subject: fanotify: remove useless bypass_perm check
+has been removed from the -mm tree.  Its filename was
+     fanotify-remove-useless-bypass_perm-check.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
-From: Alex Thorlton <athorlton@sgi.com>
-Subject: exec: kill the unnecessary mm->def_flags setting in load_elf_binary()
+From: Jan Kara <jack@suse.cz>
+Subject: fanotify: remove useless bypass_perm check
 
-load_elf_binary() sets current->mm->def_flags = def_flags and def_flags is
-always zero.  Not only this looks strange, this is unnecessary because
-mm_init() has already set ->def_flags = 0.
+prepare_for_access_response() checks whether
+group->fanotify_data.bypass_perm is set.  However this test can never be
+true because prepare_for_access_response() is called only from
+fanotify_read() which means fanotify group is alive with an active fd
+while bypass_perm is set from fanotify_release() when all file descriptors
+pointing to the group are closed and the group is going away.
 
-Signed-off-by: Alex Thorlton <athorlton@sgi.com>
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/notify/fanotify/fanotify_user.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN fs/binfmt_elf.c~exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary
-+++ a/fs/binfmt_elf.c
-@@ -579,7 +579,6 @@ static int load_elf_binary(struct linux_
- 	unsigned long start_code, end_code, start_data, end_data;
- 	unsigned long reloc_func_desc __maybe_unused = 0;
- 	int executable_stack = EXSTACK_DEFAULT;
--	unsigned long def_flags = 0;
- 	struct pt_regs *regs = current_pt_regs();
- 	struct {
- 		struct elfhdr elf_ex;
-@@ -719,9 +718,6 @@ static int load_elf_binary(struct linux_
- 	if (retval)
- 		goto out_free_dentry;
+diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-remove-useless-bypass_perm-check fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fanotify-remove-useless-bypass_perm-check
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -211,14 +211,6 @@ static int prepare_for_access_response(s
+ 	re->fd = fd;
  
--	/* OK, This is the point of no return */
--	current->mm->def_flags = def_flags;
+ 	mutex_lock(&group->fanotify_data.access_mutex);
+-
+-	if (atomic_read(&group->fanotify_data.bypass_perm)) {
+-		mutex_unlock(&group->fanotify_data.access_mutex);
+-		kmem_cache_free(fanotify_response_event_cache, re);
+-		FANOTIFY_E(event)->response = FAN_ALLOW;
+-		return 0;
+-	}
+-		
+ 	list_add_tail(&re->list, &group->fanotify_data.access_list);
+ 	mutex_unlock(&group->fanotify_data.access_mutex);
+ 
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+ocfs2-fix-quota-file-corruption.patch
+backing_dev-fix-hung-task-on-sync.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
+ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
+quota-provide-function-to-grab-quota-structure-reference.patch
+ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
+ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
+ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
+printk-remove-duplicated-check-for-log-level.patch
+printk-remove-obsolete-check-for-log-level-c.patch
+printk-add-comment-about-tricky-check-for-text-buffer-size.patch
+printk-use-also-the-last-bytes-in-the-ring-buffer.patch
+printk-do-not-compute-the-size-of-the-message-twice.patch
+linux-next.patch
+fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
+fanotify-remove-useless-test-from-event-initialization.patch
+fanotify-convert-access_mutex-to-spinlock.patch
+fanotify-reorganize-loop-in-fanotify_read.patch
+fanotify-move-unrelated-handling-from-copy_event_to_user.patch
+mm-add-strictlimit-knob-v2.patch
+
