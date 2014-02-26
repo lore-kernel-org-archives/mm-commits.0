@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-remove-ocfs2_inode_skip_delete-flag.patch added to -mm
- tree
-Date: Wed, 26 Feb 2014 15:48:55 -0800
-Message-ID: <530e7d67.mIlOpzmAirGnRYOl%akpm@linux-foundation.org>
+Subject: + quota-provide-function-to-grab-quota-structure-reference.patch
+ added to -mm tree
+Date: Wed, 26 Feb 2014 15:49:20 -0800
+Message-ID: <530e7d80.tD29tPTBDxRE0mZt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53569 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753595AbaBZXs4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:48:56 -0500
+	with ESMTP id S1754467AbaBZXtV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:49:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.de, jlbec@evilplan.org, jack@suse.cz
 
-Subject: + ocfs2-remove-ocfs2_inode_skip_delete-flag.patch added to -mm tree
+Subject: + quota-provide-function-to-grab-quota-structure-reference.patch added to -mm tree
 To: jack@suse.cz,jlbec@evilplan.org,mfasheh@suse.de,srinivas.eeda@oracle.com
 From: akpm@linux-foundation.org
-Date: Wed, 26 Feb 2014 15:48:55 -0800
+Date: Wed, 26 Feb 2014 15:49:20 -0800
 
 
 The patch titled
-     Subject: ocfs2: remove OCFS2_INODE_SKIP_DELETE flag
+     Subject: quota: provide function to grab quota structure reference
 has been added to the -mm tree.  Its filename is
-     ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
+     quota-provide-function-to-grab-quota-structure-reference.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/quota-provide-function-to-grab-quota-structure-reference.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/quota-provide-function-to-grab-quota-structure-reference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,9 +45,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: remove OCFS2_INODE_SKIP_DELETE flag
+Subject: quota: provide function to grab quota structure reference
 
-The flag was never set, delete it.
+Provide dqgrab() function to get quota structure reference when we are
+sure it already has at least one active reference.  Make use of this
+function inside quota code.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
@@ -56,70 +58,49 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c   |    6 ------
- fs/ocfs2/inode.h   |    8 +++-----
- fs/ocfs2/journal.c |    6 ------
- 3 files changed, 3 insertions(+), 17 deletions(-)
+ fs/quota/dquot.c         |    4 ++--
+ include/linux/quotaops.h |    8 ++++++++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/inode.c~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/inode.c
---- a/fs/ocfs2/inode.c~ocfs2-remove-ocfs2_inode_skip_delete-flag
-+++ a/fs/ocfs2/inode.c
-@@ -849,12 +849,6 @@ static int ocfs2_inode_is_valid_to_delet
- 		goto bail_unlock;
- 	}
+diff -puN fs/quota/dquot.c~quota-provide-function-to-grab-quota-structure-reference fs/quota/dquot.c
+--- a/fs/quota/dquot.c~quota-provide-function-to-grab-quota-structure-reference
++++ a/fs/quota/dquot.c
+@@ -528,7 +528,7 @@ restart:
+ 		if (atomic_read(&dquot->dq_count)) {
+ 			DEFINE_WAIT(wait);
  
--	/* If we have allowd wipe of this inode for another node, it
--	 * will be marked here so we can safely skip it. Recovery will
--	 * cleanup any inodes we might inadvertently skip here. */
--	if (oi->ip_flags & OCFS2_INODE_SKIP_DELETE)
--		goto bail_unlock;
--
- 	ret = 1;
- bail_unlock:
- 	spin_unlock(&oi->ip_lock);
-diff -puN fs/ocfs2/inode.h~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/inode.h
---- a/fs/ocfs2/inode.h~ocfs2-remove-ocfs2_inode_skip_delete-flag
-+++ a/fs/ocfs2/inode.h
-@@ -91,8 +91,6 @@ struct ocfs2_inode_info
- #define OCFS2_INODE_BITMAP		0x00000004
- /* This inode has been wiped from disk */
- #define OCFS2_INODE_DELETED		0x00000008
--/* Another node is deleting, so our delete is a nop */
--#define OCFS2_INODE_SKIP_DELETE		0x00000010
- /* Has the inode been orphaned on another node?
-  *
-  * This hints to ocfs2_drop_inode that it should clear i_nlink before
-@@ -107,11 +105,11 @@ struct ocfs2_inode_info
-  * rely on ocfs2_delete_inode to sort things out under the proper
-  * cluster locks.
-  */
--#define OCFS2_INODE_MAYBE_ORPHANED	0x00000020
-+#define OCFS2_INODE_MAYBE_ORPHANED	0x00000010
- /* Does someone have the file open O_DIRECT */
--#define OCFS2_INODE_OPEN_DIRECT		0x00000040
-+#define OCFS2_INODE_OPEN_DIRECT		0x00000020
- /* Tell the inode wipe code it's not in orphan dir */
--#define OCFS2_INODE_SKIP_ORPHAN_DIR     0x00000080
-+#define OCFS2_INODE_SKIP_ORPHAN_DIR     0x00000040
- 
- static inline struct ocfs2_inode_info *OCFS2_I(struct inode *inode)
- {
-diff -puN fs/ocfs2/journal.c~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-remove-ocfs2_inode_skip_delete-flag
-+++ a/fs/ocfs2/journal.c
-@@ -2132,12 +2132,6 @@ static int ocfs2_recover_orphans(struct
- 		iter = oi->ip_next_orphan;
- 
- 		spin_lock(&oi->ip_lock);
--		/* The remote delete code may have set these on the
--		 * assumption that the other node would wipe them
--		 * successfully.  If they are still in the node's
--		 * orphan dir, we need to reset that state. */
--		oi->ip_flags &= ~(OCFS2_INODE_DELETED|OCFS2_INODE_SKIP_DELETE);
--
- 		/* Set the proper information to get us going into
- 		 * ocfs2_delete_inode. */
- 		oi->ip_flags |= OCFS2_INODE_MAYBE_ORPHANED;
+-			atomic_inc(&dquot->dq_count);
++			dqgrab(dquot);
+ 			prepare_to_wait(&dquot->dq_wait_unused, &wait,
+ 					TASK_UNINTERRUPTIBLE);
+ 			spin_unlock(&dq_list_lock);
+@@ -624,7 +624,7 @@ int dquot_writeback_dquots(struct super_
+ 			/* Now we have active dquot from which someone is
+  			 * holding reference so we can safely just increase
+ 			 * use count */
+-			atomic_inc(&dquot->dq_count);
++			dqgrab(dquot);
+ 			spin_unlock(&dq_list_lock);
+ 			dqstats_inc(DQST_LOOKUPS);
+ 			err = sb->dq_op->write_dquot(dquot);
+diff -puN include/linux/quotaops.h~quota-provide-function-to-grab-quota-structure-reference include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-provide-function-to-grab-quota-structure-reference
++++ a/include/linux/quotaops.h
+@@ -46,6 +46,14 @@ void inode_reclaim_rsv_space(struct inod
+ void dquot_initialize(struct inode *inode);
+ void dquot_drop(struct inode *inode);
+ struct dquot *dqget(struct super_block *sb, struct kqid qid);
++static inline struct dquot *dqgrab(struct dquot *dquot)
++{
++	/* Make sure someone else has active reference to dquot */
++	WARN_ON_ONCE(!atomic_read(&dquot->dq_count));
++	WARN_ON_ONCE(!test_bit(DQ_ACTIVE_B, &dquot->dq_flags));
++	atomic_inc(&dquot->dq_count);
++	return dquot;
++}
+ void dqput(struct dquot *dquot);
+ int dquot_scan_active(struct super_block *sb,
+ 		      int (*fn)(struct dquot *dquot, unsigned long priv),
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
