@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
- added to -mm tree
-Date: Wed, 26 Feb 2014 15:49:21 -0800
-Message-ID: <530e7d81.tyA0hFWn3LPwap1Y%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch added to -mm tree
+Date: Wed, 26 Feb 2014 15:49:23 -0800
+Message-ID: <530e7d83.FMRHlyDhbjh3wI1+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53574 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53579 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754479AbaBZXtW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:49:22 -0500
+	with ESMTP id S1754461AbaBZXtY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:49:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.de, jlbec@evilplan.org, jack@suse.cz
 
-Subject: + ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch added to -mm tree
+Subject: + ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch added to -mm tree
 To: jack@suse.cz,jlbec@evilplan.org,mfasheh@suse.de,srinivas.eeda@oracle.com
 From: akpm@linux-foundation.org
-Date: Wed, 26 Feb 2014 15:49:21 -0800
+Date: Wed, 26 Feb 2014 15:49:23 -0800
 
 
 The patch titled
-     Subject: ocfs2: implement delayed dropping of last dquot reference
+     Subject: ocfs2: avoid blocking in ocfs2_mark_lockres_freeing() in downconvert thread
 has been added to the -mm tree.  Its filename is
-     ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
+     ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,40 +45,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: implement delayed dropping of last dquot reference
+Subject: ocfs2: avoid blocking in ocfs2_mark_lockres_freeing() in downconvert thread
 
-We cannot drop last dquot reference from downconvert thread as that
-creates the following deadlock:
-
-NODE 1                                  NODE2
-holds dentry lock for 'foo'
-holds inode lock for GLOBAL_BITMAP_SYSTEM_INODE
-                                        dquot_initialize(bar)
-                                          ocfs2_dquot_acquire()
-                                            ocfs2_inode_lock(USER_QUOTA_SYSTEM_INODE)
-                                            ...
-downconvert thread (triggered from another
-node or a different process from NODE2)
-  ocfs2_dentry_post_unlock()
-    ...
-    iput(foo)
-      ocfs2_evict_inode(foo)
-        ocfs2_clear_inode(foo)
-          dquot_drop(inode)
-            ...
-	    ocfs2_dquot_release()
-              ocfs2_inode_lock(USER_QUOTA_SYSTEM_INODE)
-               - blocks
-                                            finds we need more space in
-                                            quota file
-                                            ...
-                                            ocfs2_extend_no_holes()
-                                              ocfs2_inode_lock(GLOBAL_BITMAP_SYSTEM_INODE)
-                                                - deadlocks waiting for
-                                                  downconvert thread
-
-We solve the problem by postponing dropping of the last dquot reference to
-a workqueue if it happens from the downconvert thread.
+If we are dropping last inode reference from downconvert thread, we will
+end up calling ocfs2_mark_lockres_freeing() which can block if the lock we
+are freeing is queued thus creating an A-A deadlock.  Luckily, since we
+are the downconvert thread, we can immediately dequeue the lock and thus
+avoid waiting in this case.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
@@ -87,137 +60,123 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2.h        |    5 +++++
- fs/ocfs2/quota.h        |    2 ++
- fs/ocfs2/quota_global.c |   35 +++++++++++++++++++++++++++++++++++
- fs/ocfs2/super.c        |    8 ++++++++
- 4 files changed, 50 insertions(+)
+ fs/ocfs2/dlmglue.c |   44 ++++++++++++++++++++++++++++++++++++++++---
+ fs/ocfs2/dlmglue.h |    3 +-
+ fs/ocfs2/inode.c   |    7 +++---
+ 3 files changed, 47 insertions(+), 7 deletions(-)
 
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-implement-delayed-dropping-of-last-dquot-reference fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-implement-delayed-dropping-of-last-dquot-reference
-+++ a/fs/ocfs2/ocfs2.h
-@@ -30,6 +30,7 @@
- #include <linux/sched.h>
- #include <linux/wait.h>
- #include <linux/list.h>
-+#include <linux/llist.h>
- #include <linux/rbtree.h>
- #include <linux/workqueue.h>
- #include <linux/kref.h>
-@@ -419,6 +420,10 @@ struct ocfs2_super
- 	struct ocfs2_dentry_lock *dentry_lock_list;
- 	struct work_struct dentry_lock_work;
- 
-+	/* List of dquot structures to drop last reference to */
-+	struct llist_head dquot_drop_list;
-+	struct work_struct dquot_drop_work;
-+
- 	wait_queue_head_t		osb_mount_event;
- 
- 	/* Truncate log info */
-diff -puN fs/ocfs2/quota.h~ocfs2-implement-delayed-dropping-of-last-dquot-reference fs/ocfs2/quota.h
---- a/fs/ocfs2/quota.h~ocfs2-implement-delayed-dropping-of-last-dquot-reference
-+++ a/fs/ocfs2/quota.h
-@@ -28,6 +28,7 @@ struct ocfs2_dquot {
- 	unsigned int dq_use_count;	/* Number of nodes having reference to this entry in global quota file */
- 	s64 dq_origspace;	/* Last globally synced space usage */
- 	s64 dq_originodes;	/* Last globally synced inode usage */
-+	struct llist_node list;	/* Member of list of dquots to drop */
- };
- 
- /* Description of one chunk to recover in memory */
-@@ -110,6 +111,7 @@ int ocfs2_read_quota_phys_block(struct i
- int ocfs2_create_local_dquot(struct dquot *dquot);
- int ocfs2_local_release_dquot(handle_t *handle, struct dquot *dquot);
- int ocfs2_local_write_dquot(struct dquot *dquot);
-+void ocfs2_drop_dquot_refs(struct work_struct *work);
- 
- extern const struct dquot_operations ocfs2_quota_operations;
- extern struct quota_format_type ocfs2_quota_format;
-diff -puN fs/ocfs2/quota_global.c~ocfs2-implement-delayed-dropping-of-last-dquot-reference fs/ocfs2/quota_global.c
---- a/fs/ocfs2/quota_global.c~ocfs2-implement-delayed-dropping-of-last-dquot-reference
-+++ a/fs/ocfs2/quota_global.c
-@@ -10,6 +10,7 @@
- #include <linux/jiffies.h>
- #include <linux/writeback.h>
- #include <linux/workqueue.h>
-+#include <linux/llist.h>
- 
- #include <cluster/masklog.h>
- 
-@@ -679,6 +680,27 @@ static int ocfs2_calc_qdel_credits(struc
- 	       OCFS2_INODE_UPDATE_CREDITS;
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread
++++ a/fs/ocfs2/dlmglue.c
+@@ -3144,22 +3144,60 @@ out:
+ 	return 0;
  }
  
-+void ocfs2_drop_dquot_refs(struct work_struct *work)
-+{
-+	struct ocfs2_super *osb = container_of(work, struct ocfs2_super,
-+					       dquot_drop_work);
-+	struct llist_node *list;
-+	struct ocfs2_dquot *odquot, *next_odquot;
++static void ocfs2_process_blocked_lock(struct ocfs2_super *osb,
++				       struct ocfs2_lock_res *lockres);
 +
-+	list = llist_del_all(&osb->dquot_drop_list);
-+	llist_for_each_entry_safe(odquot, next_odquot, list, list) {
-+		/* Drop the reference we acquired in ocfs2_dquot_release() */
-+		dqput(&odquot->dq_dquot);
-+	}
-+}
-+
-+/*
-+ * Called when the last reference to dquot is dropped. If we are called from
-+ * downconvert thread, we cannot do all the handling here because grabbing
-+ * quota lock could deadlock (the node holding the quota lock could need some
-+ * other cluster lock to proceed but with blocked downconvert thread we cannot
-+ * release any lock).
-+ */
- static int ocfs2_release_dquot(struct dquot *dquot)
+ /* Mark the lockres as being dropped. It will no longer be
+  * queued if blocking, but we still may have to wait on it
+  * being dequeued from the downconvert thread before we can consider
+  * it safe to drop.
+  *
+  * You can *not* attempt to call cluster_lock on this lockres anymore. */
+-void ocfs2_mark_lockres_freeing(struct ocfs2_lock_res *lockres)
++void ocfs2_mark_lockres_freeing(struct ocfs2_super *osb,
++				struct ocfs2_lock_res *lockres)
  {
- 	handle_t *handle;
-@@ -694,6 +716,19 @@ static int ocfs2_release_dquot(struct dq
- 	/* Check whether we are not racing with some other dqget() */
- 	if (atomic_read(&dquot->dq_count) > 1)
- 		goto out;
-+	/* Running from downconvert thread? Postpone quota processing to wq */
-+	if (current == osb->dc_task) {
+ 	int status;
+ 	struct ocfs2_mask_waiter mw;
+-	unsigned long flags;
++	unsigned long flags, flags2;
+ 
+ 	ocfs2_init_mask_waiter(&mw);
+ 
+ 	spin_lock_irqsave(&lockres->l_lock, flags);
+ 	lockres->l_flags |= OCFS2_LOCK_FREEING;
++	if (lockres->l_flags & OCFS2_LOCK_QUEUED && current == osb->dc_task) {
 +		/*
-+		 * Grab our own reference to dquot and queue it for delayed
-+		 * dropping.  Quota code rechecks after calling
-+		 * ->release_dquot() and won't free dquot structure.
++		 * We know the downconvert is queued but not in progress
++		 * because we are the downconvert thread and processing
++		 * different lock. So we can just remove the lock from the
++		 * queue. This is not only an optimization but also a way
++		 * to avoid the following deadlock:
++		 *   ocfs2_dentry_post_unlock()
++		 *     ocfs2_dentry_lock_put()
++		 *       ocfs2_drop_dentry_lock()
++		 *         iput()
++		 *           ocfs2_evict_inode()
++		 *             ocfs2_clear_inode()
++		 *               ocfs2_mark_lockres_freeing()
++		 *                 ... blocks waiting for OCFS2_LOCK_QUEUED
++		 *                 since we are the downconvert thread which
++		 *                 should clear the flag.
 +		 */
-+		dqgrab(dquot);
-+		/* First entry on list -> queue work */
-+		if (llist_add(&OCFS2_DQUOT(dquot)->list, &osb->dquot_drop_list))
-+			queue_work(ocfs2_wq, &osb->dquot_drop_work);
-+		goto out;
++		spin_unlock_irqrestore(&lockres->l_lock, flags);
++		spin_lock_irqsave(&osb->dc_task_lock, flags2);
++		list_del_init(&lockres->l_blocked_list);
++		osb->blocked_lock_count--;
++		spin_unlock_irqrestore(&osb->dc_task_lock, flags2);
++		/*
++		 * Warn if we recurse into another post_unlock call.  Strictly
++		 * speaking it isn't a problem but we need to be careful if
++		 * that happens (stack overflow, deadlocks, ...) so warn if
++		 * ocfs2 grows a path for which this can happen.
++		 */
++		WARN_ON_ONCE(lockres->l_ops->post_unlock);
++		/* Since the lock is freeing we don't do much in the fn below */
++		ocfs2_process_blocked_lock(osb, lockres);
++		return;
 +	}
- 	status = ocfs2_lock_global_qf(oinfo, 1);
- 	if (status < 0)
- 		goto out;
-diff -puN fs/ocfs2/super.c~ocfs2-implement-delayed-dropping-of-last-dquot-reference fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-implement-delayed-dropping-of-last-dquot-reference
-+++ a/fs/ocfs2/super.c
-@@ -1941,6 +1941,11 @@ static void ocfs2_dismount_volume(struct
+ 	while (lockres->l_flags & OCFS2_LOCK_QUEUED) {
+ 		lockres_add_mask_waiter(lockres, &mw, OCFS2_LOCK_QUEUED, 0);
+ 		spin_unlock_irqrestore(&lockres->l_lock, flags);
+@@ -3180,7 +3218,7 @@ void ocfs2_simple_drop_lockres(struct oc
+ {
+ 	int ret;
  
- 	ocfs2_disable_quotas(osb);
+-	ocfs2_mark_lockres_freeing(lockres);
++	ocfs2_mark_lockres_freeing(osb, lockres);
+ 	ret = ocfs2_drop_lock(osb, lockres);
+ 	if (ret)
+ 		mlog_errno(ret);
+diff -puN fs/ocfs2/dlmglue.h~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread fs/ocfs2/dlmglue.h
+--- a/fs/ocfs2/dlmglue.h~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread
++++ a/fs/ocfs2/dlmglue.h
+@@ -157,7 +157,8 @@ int ocfs2_refcount_lock(struct ocfs2_ref
+ void ocfs2_refcount_unlock(struct ocfs2_refcount_tree *ref_tree, int ex);
  
-+	/* All dquots should be freed by now */
-+	WARN_ON(!llist_empty(&osb->dquot_drop_list));
-+	/* Wait for worker to be done with the work structure in osb */
-+	cancel_work_sync(&osb->dquot_drop_work);
-+
- 	ocfs2_shutdown_local_alloc(osb);
  
- 	/* This will disable recovery and flush any recovery work. */
-@@ -2276,6 +2281,9 @@ static int ocfs2_initialize_super(struct
- 	INIT_WORK(&osb->dentry_lock_work, ocfs2_drop_dl_inodes);
- 	osb->dentry_lock_list = NULL;
+-void ocfs2_mark_lockres_freeing(struct ocfs2_lock_res *lockres);
++void ocfs2_mark_lockres_freeing(struct ocfs2_super *osb,
++				struct ocfs2_lock_res *lockres);
+ void ocfs2_simple_drop_lockres(struct ocfs2_super *osb,
+ 			       struct ocfs2_lock_res *lockres);
  
-+	INIT_WORK(&osb->dquot_drop_work, ocfs2_drop_dquot_refs);
-+	init_llist_head(&osb->dquot_drop_list);
-+
- 	/* get some pseudo constants for clustersize bits */
- 	osb->s_clustersize_bits =
- 		le32_to_cpu(di->id2.i_super.s_clustersize_bits);
+diff -puN fs/ocfs2/inode.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread
++++ a/fs/ocfs2/inode.c
+@@ -1080,6 +1080,7 @@ static void ocfs2_clear_inode(struct ino
+ {
+ 	int status;
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
++	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 
+ 	clear_inode(inode);
+ 	trace_ocfs2_clear_inode((unsigned long long)oi->ip_blkno,
+@@ -1096,9 +1097,9 @@ static void ocfs2_clear_inode(struct ino
+ 
+ 	/* Do these before all the other work so that we don't bounce
+ 	 * the downconvert thread while waiting to destroy the locks. */
+-	ocfs2_mark_lockres_freeing(&oi->ip_rw_lockres);
+-	ocfs2_mark_lockres_freeing(&oi->ip_inode_lockres);
+-	ocfs2_mark_lockres_freeing(&oi->ip_open_lockres);
++	ocfs2_mark_lockres_freeing(osb, &oi->ip_rw_lockres);
++	ocfs2_mark_lockres_freeing(osb, &oi->ip_inode_lockres);
++	ocfs2_mark_lockres_freeing(osb, &oi->ip_open_lockres);
+ 
+ 	ocfs2_resv_discard(&OCFS2_SB(inode->i_sb)->osb_la_resmap,
+ 			   &oi->ip_la_data_resv);
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
