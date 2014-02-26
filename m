@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-use-tab-for-separator.patch added to -mm tree
-Date: Wed, 26 Feb 2014 15:27:41 -0800
-Message-ID: <530e786d.bSo1SaXM+KkQyOAS%akpm@linux-foundation.org>
+Subject: + maintainers-add-and-correct-types-of-some-t-entries.patch added to -mm tree
+Date: Wed, 26 Feb 2014 15:28:13 -0800
+Message-ID: <530e788d.C9D+tIxHFZZZlc3S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53378 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53383 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675AbaBZX1m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:27:42 -0500
+	with ESMTP id S1751685AbaBZX2N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 18:28:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + maintainers-use-tab-for-separator.patch added to -mm tree
+Subject: + maintainers-add-and-correct-types-of-some-t-entries.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 26 Feb 2014 15:27:41 -0800
+Date: Wed, 26 Feb 2014 15:28:13 -0800
 
 
 The patch titled
-     Subject: MAINTAINERS: use tab for separator
+     Subject: MAINTAINERS: add and correct types of some "T:" entries
 has been added to the -mm tree.  Its filename is
-     maintainers-use-tab-for-separator.patch
+     maintainers-add-and-correct-types-of-some-t-entries.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-use-tab-for-separator.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-and-correct-types-of-some-t-entries.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-use-tab-for-separator.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-and-correct-types-of-some-t-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,171 +44,97 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: use tab for separator
+Subject: MAINTAINERS: add and correct types of some "T:" entries
 
-Convert whitespace to single tab for separators.
+Tree location entries should start with the appropriate type.
+
+Add git to some, hg to another.
+
+Neaten tree type description.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   88 +++++++++++++++++++++++++-------------------------
- 1 file changed, 44 insertions(+), 44 deletions(-)
+ MAINTAINERS |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-use-tab-for-separator MAINTAINERS
---- a/MAINTAINERS~maintainers-use-tab-for-separator
+diff -puN MAINTAINERS~maintainers-add-and-correct-types-of-some-t-entries MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-and-correct-types-of-some-t-entries
 +++ a/MAINTAINERS
-@@ -1612,11 +1612,11 @@ S:	Maintained
- F:	drivers/net/wireless/atmel*
+@@ -73,7 +73,8 @@ Descriptions of section entries:
+ 	L: Mailing list that is relevant to this area
+ 	W: Web-page with status/info
+ 	Q: Patchwork web based patch tracking system site
+-	T: SCM tree type and location.  Type is one of: git, hg, quilt, stgit, topgit.
++	T: SCM tree type and location.
++	   Type is one of: git, hg, quilt, stgit, topgit
+ 	S: Status, one of the following:
+ 	   Supported:	Someone is actually paid to look after this.
+ 	   Maintained:	Someone actually looks after it.
+@@ -2159,7 +2160,7 @@ F:	Documentation/zh_CN/
  
- ATTO EXPRESSSAS SAS/SATA RAID SCSI DRIVER
--M:      Bradley Grove <linuxdrivers@attotech.com>
--L:      linux-scsi@vger.kernel.org
--W:      http://www.attotech.com
--S:      Supported
--F:      drivers/scsi/esas2r
-+M:	Bradley Grove <linuxdrivers@attotech.com>
-+L:	linux-scsi@vger.kernel.org
-+W:	http://www.attotech.com
-+S:	Supported
-+F:	drivers/scsi/esas2r
+ CHIPIDEA USB HIGH SPEED DUAL ROLE CONTROLLER
+ M:	Peter Chen <Peter.Chen@freescale.com>
+-T:	git://github.com/hzpeterchen/linux-usb.git
++T:	git git://github.com/hzpeterchen/linux-usb.git
+ L:	linux-usb@vger.kernel.org
+ S:	Maintained
+ F:	drivers/usb/chipidea/
+@@ -2382,7 +2383,7 @@ M:	Lorenzo Pieralisi <lorenzo.pieralisi@
+ M:	Daniel Lezcano <daniel.lezcano@linaro.org>
+ L:	linux-pm@vger.kernel.org
+ L:	linux-arm-kernel@lists.infradead.org
+-T:	git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+ S:	Maintained
+ F:	drivers/cpuidle/cpuidle-big_little.c
  
- AUDIT SUBSYSTEM
- M:	Eric Paris <eparis@redhat.com>
-@@ -2179,9 +2179,9 @@ S:	Supported
- F:	drivers/net/ethernet/cisco/enic/
+@@ -2391,7 +2392,7 @@ M:	Rafael J. Wysocki <rjw@rjwysocki.net>
+ M:	Daniel Lezcano <daniel.lezcano@linaro.org>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+-T:	git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+ F:	drivers/cpuidle/*
+ F:	include/linux/cpuidle.h
  
- CISCO VIC LOW LATENCY NIC DRIVER
--M:      Upinder Malhi <umalhi@cisco.com>
--S:      Supported
--F:      drivers/infiniband/hw/usnic
-+M:	Upinder Malhi <umalhi@cisco.com>
-+S:	Supported
-+F:	drivers/infiniband/hw/usnic
- 
- CIRRUS LOGIC EP93XX ETHERNET DRIVER
- M:	Hartley Sweeten <hsweeten@visionengravers.com>
-@@ -2378,13 +2378,13 @@ F:	drivers/cpufreq/arm_big_little.c
- F:	drivers/cpufreq/arm_big_little_dt.c
- 
- CPUIDLE DRIVER - ARM BIG LITTLE
--M:      Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
--M:      Daniel Lezcano <daniel.lezcano@linaro.org>
--L:      linux-pm@vger.kernel.org
--L:      linux-arm-kernel@lists.infradead.org
--T:      git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
--S:      Maintained
--F:      drivers/cpuidle/cpuidle-big_little.c
-+M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-+M:	Daniel Lezcano <daniel.lezcano@linaro.org>
-+L:	linux-pm@vger.kernel.org
-+L:	linux-arm-kernel@lists.infradead.org
-+T:	git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-+S:	Maintained
-+F:	drivers/cpuidle/cpuidle-big_little.c
- 
- CPUIDLE DRIVERS
- M:	Rafael J. Wysocki <rjw@rjwysocki.net>
-@@ -2458,9 +2458,9 @@ S:	Maintained
- F:	sound/pci/cs5535audio/
- 
- CW1200 WLAN driver
--M:     Solomon Peachy <pizza@shaftnet.org>
--S:     Maintained
--F:     drivers/net/wireless/cw1200/
-+M:	Solomon Peachy <pizza@shaftnet.org>
-+S:	Maintained
-+F:	drivers/net/wireless/cw1200/
- 
- CX18 VIDEO4LINUX DRIVER
- M:	Andy Walls <awalls@md.metrocast.net>
-@@ -5461,11 +5461,11 @@ S:	Maintained
- F:	drivers/media/tuners/m88ts2022*
- 
- MA901 MASTERKIT USB FM RADIO DRIVER
--M:      Alexey Klimov <klimov.linux@gmail.com>
--L:      linux-media@vger.kernel.org
--T:      git git://linuxtv.org/media_tree.git
--S:      Maintained
--F:      drivers/media/radio/radio-ma901.c
-+M:	Alexey Klimov <klimov.linux@gmail.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/radio/radio-ma901.c
- 
- MAC80211
- M:	Johannes Berg <johannes@sipsolutions.net>
-@@ -5621,7 +5621,7 @@ F:	drivers/scsi/megaraid/
- 
- MELLANOX ETHERNET DRIVER (mlx4_en)
- M:	Amir Vadai <amirv@mellanox.com>
--L: 	netdev@vger.kernel.org
-+L:	netdev@vger.kernel.org
- S:	Supported
+@@ -4904,7 +4905,7 @@ F:	drivers/staging/ktap/
+ KCONFIG
+ M:	"Yann E. MORIN" <yann.morin.1998@free.fr>
+ L:	linux-kbuild@vger.kernel.org
+-T:	git://gitorious.org/linux-kconfig/linux-kconfig
++T:	git git://gitorious.org/linux-kconfig/linux-kconfig
+ S:	Maintained
+ F:	Documentation/kbuild/kconfig-language.txt
+ F:	scripts/kconfig/
+@@ -5719,7 +5720,7 @@ L:	linux-rdma@vger.kernel.org
  W:	http://www.mellanox.com
  Q:	http://patchwork.ozlabs.org/project/netdev/list/
-@@ -5663,7 +5663,7 @@ F:	include/linux/mtd/
- F:	include/uapi/mtd/
- 
- MEN A21 WATCHDOG DRIVER
--M:  	Johannes Thumshirn <johannes.thumshirn@men.de>
-+M:	Johannes Thumshirn <johannes.thumshirn@men.de>
- L:	linux-watchdog@vger.kernel.org
+ Q:	http://patchwork.kernel.org/project/linux-rdma/list/
+-T:	git://openfabrics.org/~eli/connect-ib.git
++T:	git git://openfabrics.org/~eli/connect-ib.git
  S:	Supported
- F:	drivers/watchdog/mena21_wdt.c
-@@ -5725,14 +5725,14 @@ F:	drivers/net/ethernet/mellanox/mlx5/co
+ F:	drivers/net/ethernet/mellanox/mlx5/core/
  F:	include/linux/mlx5/
+@@ -5729,7 +5730,7 @@ M:	Eli Cohen <eli@mellanox.com>
+ L:	linux-rdma@vger.kernel.org
+ W:	http://www.mellanox.com
+ Q:	http://patchwork.kernel.org/project/linux-rdma/list/
+-T:	git://openfabrics.org/~eli/connect-ib.git
++T:	git git://openfabrics.org/~eli/connect-ib.git
+ S:	Supported
+ F:	include/linux/mlx5/
+ F:	drivers/infiniband/hw/mlx5/
+@@ -9798,7 +9799,7 @@ ZR36067 VIDEO FOR LINUX DRIVER
+ L:	mjpeg-users@lists.sourceforge.net
+ L:	linux-media@vger.kernel.org
+ W:	http://mjpeg.sourceforge.net/driver-zoran/
+-T:	Mercurial http://linuxtv.org/hg/v4l-dvb
++T:	hg http://linuxtv.org/hg/v4l-dvb
+ S:	Odd Fixes
+ F:	drivers/media/pci/zoran/
  
- Mellanox MLX5 IB driver
--M:      Eli Cohen <eli@mellanox.com>
--L:      linux-rdma@vger.kernel.org
--W:      http://www.mellanox.com
--Q:      http://patchwork.kernel.org/project/linux-rdma/list/
--T:      git://openfabrics.org/~eli/connect-ib.git
--S:      Supported
--F:      include/linux/mlx5/
--F:      drivers/infiniband/hw/mlx5/
-+M:	Eli Cohen <eli@mellanox.com>
-+L:	linux-rdma@vger.kernel.org
-+W:	http://www.mellanox.com
-+Q:	http://patchwork.kernel.org/project/linux-rdma/list/
-+T:	git://openfabrics.org/~eli/connect-ib.git
-+S:	Supported
-+F:	include/linux/mlx5/
-+F:	drivers/infiniband/hw/mlx5/
- 
- MODULE SUPPORT
- M:	Rusty Russell <rusty@rustcorp.com.au>
-@@ -8686,17 +8686,17 @@ S:	Maintained
- F:	drivers/media/radio/radio-raremono.c
- 
- THERMAL
--M:      Zhang Rui <rui.zhang@intel.com>
--M:      Eduardo Valentin <eduardo.valentin@ti.com>
--L:      linux-pm@vger.kernel.org
--T:      git git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
--T:      git git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.git
--Q:      https://patchwork.kernel.org/project/linux-pm/list/
--S:      Supported
--F:      drivers/thermal/
--F:      include/linux/thermal.h
--F:      include/linux/cpu_cooling.h
--F:      Documentation/devicetree/bindings/thermal/
-+M:	Zhang Rui <rui.zhang@intel.com>
-+M:	Eduardo Valentin <eduardo.valentin@ti.com>
-+L:	linux-pm@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.git
-+Q:	https://patchwork.kernel.org/project/linux-pm/list/
-+S:	Supported
-+F:	drivers/thermal/
-+F:	include/linux/thermal.h
-+F:	include/linux/cpu_cooling.h
-+F:	Documentation/devicetree/bindings/thermal/
- 
- THINGM BLINK(1) USB RGB LED DRIVER
- M:	Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -217,6 +143,7 @@ drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch
 drivers-fmc-fmc-write-eepromc-fix-decimal-permissions.patch
 maintainers-update-l-misuses.patch
 maintainers-use-tab-for-separator.patch
+maintainers-add-and-correct-types-of-some-t-entries.patch
 lib-random32c-minor-cleanups-and-kdoc-fix.patch
 mm-utilc-add-kstrimdup.patch
 checkpatch-add-test-for-long-udelay.patch
