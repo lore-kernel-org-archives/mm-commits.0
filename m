@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch added
- to -mm tree
-Date: Thu, 27 Feb 2014 14:58:17 -0800
-Message-ID: <530fc309.rOa8tmBKl8egAteA%akpm@linux-foundation.org>
+Subject: + errh-use-bool-for-is_err-and-is_err_or_null.patch added to -mm
+ tree
+Date: Thu, 27 Feb 2014 15:06:17 -0800
+Message-ID: <530fc4e9.GCGrTXCAZziOlXPu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40266 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40379 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751150AbaB0W6S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 17:58:18 -0500
+	with ESMTP id S1751232AbaB0XGS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 18:06:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dongsheng.wang@freescale.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch added to -mm tree
-To: dongsheng.wang@freescale.com
+Subject: + errh-use-bool-for-is_err-and-is_err_or_null.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Thu, 27 Feb 2014 14:58:17 -0800
+Date: Thu, 27 Feb 2014 15:06:17 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds3232.c: enable ds3232 to work as wakeup source
+     Subject: err.h: use bool for IS_ERR and IS_ERR_OR_NULL
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch
+     errh-use-bool-for-is_err-and-is_err_or_null.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/errh-use-bool-for-is_err-and-is_err_or_null.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/errh-use-bool-for-is_err-and-is_err_or_null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,169 +44,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang Dongsheng <dongsheng.wang@freescale.com>
-Subject: drivers/rtc/rtc-ds3232.c: enable ds3232 to work as wakeup source
+From: Joe Perches <joe@perches.com>
+Subject: err.h: use bool for IS_ERR and IS_ERR_OR_NULL
 
-Add suspend/resume and device_init_wakeup to enable ds3232 as wakeup
-source, /sys/class/rtc/rtcX/wakealarm for set wakeup alarm.
+Use the more natural return of bool for these tests.
 
-Signed-off-by: Wang Dongsheng <dongsheng.wang@freescale.com>
+No difference observed in .o files produced by gcc for x86.
+
+Remove the dentry description of kernel pointers left over from the 90's
+and 2002's cleanup move of parts of fs.h to err.h.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds3232.c |   91 +++++++++++++++++++++++++++----------
- 1 file changed, 68 insertions(+), 23 deletions(-)
+ include/linux/err.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source drivers/rtc/rtc-ds3232.c
---- a/drivers/rtc/rtc-ds3232.c~drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source
-+++ a/drivers/rtc/rtc-ds3232.c
-@@ -57,6 +57,7 @@ struct ds3232 {
- 	 * in the remove function.
- 	 */
- 	struct mutex mutex;
-+	bool suspended;
- 	int exiting;
- };
+diff -puN include/linux/err.h~errh-use-bool-for-is_err-and-is_err_or_null include/linux/err.h
+--- a/include/linux/err.h~errh-use-bool-for-is_err-and-is_err_or_null
++++ a/include/linux/err.h
+@@ -2,12 +2,13 @@
+ #define _LINUX_ERR_H
  
-@@ -345,7 +346,15 @@ static irqreturn_t ds3232_irq(int irq, v
- 	struct ds3232 *ds3232 = i2c_get_clientdata(client);
+ #include <linux/compiler.h>
++#include <linux/types.h>
  
- 	disable_irq_nosync(irq);
--	schedule_work(&ds3232->work);
-+
-+	/*
-+	 * If rtc as a wakeup source, can't schedule the work
-+	 * at system resume flow, because at this time the i2c bus
-+	 * has not been resumed.
-+	 */
-+	if (!ds3232->suspended)
-+		schedule_work(&ds3232->work);
-+
- 	return IRQ_HANDLED;
+ #include <asm/errno.h>
+ 
+ /*
+  * Kernel pointers have redundant information, so we can use a
+- * scheme where we can return either an error code or a dentry
++ * scheme where we can return either an error code or a normal
+  * pointer with the same return value.
+  *
+  * This should be a per-architecture thing, to allow different
+@@ -29,12 +30,12 @@ static inline long __must_check PTR_ERR(
+ 	return (long) ptr;
  }
  
-@@ -363,22 +372,26 @@ static void ds3232_work(struct work_stru
- 
- 	if (stat & DS3232_REG_SR_A1F) {
- 		control = i2c_smbus_read_byte_data(client, DS3232_REG_CR);
--		if (control < 0)
--			goto out;
--		/* disable alarm1 interrupt */
--		control &= ~(DS3232_REG_CR_A1IE);
--		i2c_smbus_write_byte_data(client, DS3232_REG_CR, control);
-+		if (control < 0) {
-+			pr_warn("Read DS3232 Control Register error."
-+				"Disable IRQ%d.\n", client->irq);
-+		} else {
-+			/* disable alarm1 interrupt */
-+			control &= ~(DS3232_REG_CR_A1IE);
-+			i2c_smbus_write_byte_data(client, DS3232_REG_CR,
-+						control);
-+
-+			/* clear the alarm pend flag */
-+			stat &= ~DS3232_REG_SR_A1F;
-+			i2c_smbus_write_byte_data(client, DS3232_REG_SR, stat);
- 
--		/* clear the alarm pend flag */
--		stat &= ~DS3232_REG_SR_A1F;
--		i2c_smbus_write_byte_data(client, DS3232_REG_SR, stat);
-+			rtc_update_irq(ds3232->rtc, 1, RTC_AF | RTC_IRQF);
- 
--		rtc_update_irq(ds3232->rtc, 1, RTC_AF | RTC_IRQF);
-+			if (!ds3232->exiting)
-+				enable_irq(client->irq);
-+		}
- 	}
- 
--out:
--	if (!ds3232->exiting)
--		enable_irq(client->irq);
- unlock:
- 	mutex_unlock(&ds3232->mutex);
- }
-@@ -411,23 +424,18 @@ static int ds3232_probe(struct i2c_clien
- 	if (ret)
- 		return ret;
- 
--	ds3232->rtc = devm_rtc_device_register(&client->dev, client->name,
--					  &ds3232_rtc_ops, THIS_MODULE);
--	if (IS_ERR(ds3232->rtc)) {
--		dev_err(&client->dev, "unable to register the class device\n");
--		return PTR_ERR(ds3232->rtc);
--	}
--
--	if (client->irq >= 0) {
-+	if (client->irq > 0) {
- 		ret = devm_request_irq(&client->dev, client->irq, ds3232_irq,
- 				       IRQF_SHARED, "ds3232", client);
- 		if (ret) {
- 			dev_err(&client->dev, "unable to request IRQ\n");
- 			return ret;
- 		}
-+		device_init_wakeup(&client->dev, 1);
- 	}
--
--	return 0;
-+	ds3232->rtc = devm_rtc_device_register(&client->dev, client->name,
-+					  &ds3232_rtc_ops, THIS_MODULE);
-+	return PTR_ERR_OR_ZERO(ds3232->rtc);
+-static inline long __must_check IS_ERR(__force const void *ptr)
++static inline bool __must_check IS_ERR(__force const void *ptr)
+ {
+ 	return IS_ERR_VALUE((unsigned long)ptr);
  }
  
- static int ds3232_remove(struct i2c_client *client)
-@@ -446,6 +454,42 @@ static int ds3232_remove(struct i2c_clie
- 	return 0;
+-static inline long __must_check IS_ERR_OR_NULL(__force const void *ptr)
++static inline bool __must_check IS_ERR_OR_NULL(__force const void *ptr)
+ {
+ 	return !ptr || IS_ERR_VALUE((unsigned long)ptr);
  }
- 
-+#ifdef CONFIG_PM_SLEEP
-+static int ds3232_suspend(struct device *dev)
-+{
-+	struct ds3232 *ds3232 = dev_get_drvdata(dev);
-+	struct i2c_client *client = to_i2c_client(dev);
-+
-+	if (device_can_wakeup(dev)) {
-+		ds3232->suspended = true;
-+		irq_set_irq_wake(client->irq, 1);
-+	}
-+
-+	return 0;
-+}
-+
-+static int ds3232_resume(struct device *dev)
-+{
-+	struct ds3232 *ds3232 = dev_get_drvdata(dev);
-+	struct i2c_client *client = to_i2c_client(dev);
-+
-+	if (ds3232->suspended) {
-+		ds3232->suspended = false;
-+
-+		/* Clear the hardware alarm pend flag */
-+		schedule_work(&ds3232->work);
-+
-+		irq_set_irq_wake(client->irq, 0);
-+	}
-+
-+	return 0;
-+}
-+#endif
-+
-+static const struct dev_pm_ops ds3232_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(ds3232_suspend, ds3232_resume)
-+};
-+
- static const struct i2c_device_id ds3232_id[] = {
- 	{ "ds3232", 0 },
- 	{ }
-@@ -456,6 +500,7 @@ static struct i2c_driver ds3232_driver =
- 	.driver = {
- 		.name = "rtc-ds3232",
- 		.owner = THIS_MODULE,
-+		.pm	= &ds3232_pm_ops,
- 	},
- 	.probe = ds3232_probe,
- 	.remove = ds3232_remove,
 _
 
-Patches currently in -mm which might be from dongsheng.wang@freescale.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-drivers-rtc-rtc-ds3232c-enable-ds3232-to-work-as-wakeup-source.patch
+origin.patch
+maintainers-use-tab-for-separator.patch
+maintainers-add-and-correct-types-of-some-t-entries.patch
+errh-use-bool-for-is_err-and-is_err_or_null.patch
+lib-random32c-minor-cleanups-and-kdoc-fix.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-test-for-long-udelay.patch
+checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
+checkpatch-add-checks-for-constant-non-octal-permissions.patch
+checkpatch-warn-on-uses-of-__constant_foo-functions.patch
+checkpatch-update-octal-permissions-warning.patch
+checkpatch-avoid-sscanf-test-duplicated-messages.patch
+checkpatch-fix-jiffies-comparison-and-others.patch
+checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
+checkpatch-use-a-more-consistent-function-argument-style.patch
+checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
+linux-next.patch
 
