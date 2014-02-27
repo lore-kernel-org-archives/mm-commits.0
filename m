@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- documentation-filesystems-ntfstxt-remove-changelog-reference.patch added to -mm tree
-Date: Thu, 27 Feb 2014 14:49:39 -0800
-Message-ID: <530fc103.+W38WuZapDHh94zW%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch added to -mm tree
+Date: Thu, 27 Feb 2014 14:55:47 -0800
+Message-ID: <530fc273.RYjfHn+QI7P/trPo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40203 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40238 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752604AbaB0Wtk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 17:49:40 -0500
+	with ESMTP id S1751624AbaB0Wzs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 17:55:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + documentation-filesystems-ntfstxt-remove-changelog-reference.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch added to -mm tree
+To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Thu, 27 Feb 2014 14:49:39 -0800
+Date: Thu, 27 Feb 2014 14:55:47 -0800
 
 
 The patch titled
-     Subject: Documentation/filesystems/ntfs.txt: remove changelog reference
+     Subject: drivers/rtc/rtc-palmas.c: use SIMPLE_DEV_PM_OPS macro
 has been added to the -mm tree.  Its filename is
-     documentation-filesystems-ntfstxt-remove-changelog-reference.patch
+     drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-filesystems-ntfstxt-remove-changelog-reference.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-filesystems-ntfstxt-remove-changelog-reference.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,49 +43,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: Documentation/filesystems/ntfs.txt: remove changelog reference
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/rtc/rtc-palmas.c: use SIMPLE_DEV_PM_OPS macro
 
-File was removed in 7c821a179f91c3 ("Remove fs/ntfs/ChangeLog").
+Use SIMPLE_DEV_PM_OPS macro in order to make the code simpler.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/ntfs.txt |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/rtc/rtc-palmas.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/filesystems/ntfs.txt~documentation-filesystems-ntfstxt-remove-changelog-reference Documentation/filesystems/ntfs.txt
---- a/Documentation/filesystems/ntfs.txt~documentation-filesystems-ntfstxt-remove-changelog-reference
-+++ a/Documentation/filesystems/ntfs.txt
-@@ -455,8 +455,6 @@ not have this problem with odd numbers o
- ChangeLog
- =========
+diff -puN drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro drivers/rtc/rtc-palmas.c
+--- a/drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro
++++ a/drivers/rtc/rtc-palmas.c
+@@ -348,9 +348,8 @@ static int palmas_rtc_resume(struct devi
+ }
+ #endif
  
--Note, a technical ChangeLog aimed at kernel hackers is in fs/ntfs/ChangeLog.
--
- 2.1.30:
- 	- Fix writev() (it kept writing the first segment over and over again
- 	  instead of moving onto subsequent segments).
+-static const struct dev_pm_ops palmas_rtc_pm_ops = {
+-	SET_SYSTEM_SLEEP_PM_OPS(palmas_rtc_suspend, palmas_rtc_resume)
+-};
++static SIMPLE_DEV_PM_OPS(palmas_rtc_pm_ops, palmas_rtc_suspend,
++			 palmas_rtc_resume);
+ 
+ #ifdef CONFIG_OF
+ static struct of_device_id of_palmas_rtc_match[] = {
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
-fs-gfs2-quotac-replace-kmalloc-__vmalloc-memset-0.patch
-fs-udf-superc-add-__init-to-init_inodecache.patch
-sys_sysfs-add-config_sysfs_syscall.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-fs-efs-superc-add-__init-to-init_inodecache.patch
-fs-minix-inodec-add-__init-to-init_inodecache.patch
-befs-replace-kmalloc-memset-0-by-kzalloc.patch
-fs-befs-linuxvfsc-add-__init-to-befs_init_inodecache.patch
-fs-ufs-superc-add-__init-to-init_inodecache.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-documentation-filesystems-ntfstxt-remove-changelog-reference.patch
-fs-adfs-superc-add-__init-to-init_inodecache.patch
-affs-add-__init-to-init_inodecache.patch
-kernel-panicc-display-reason-at-end-pr_emerg.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+maintainers-add-backlight-co-maintainers.patch
+backlight-update-bd-state-fb_blank-properties-when-necessary.patch
+backlight-update-backlight-status-when-necessary.patch
+backlight-aat2870-remove-unnecessary-oom-messages.patch
+backlight-adp8860-remove-unnecessary-oom-messages.patch
+backlight-adp8870-remove-unnecessary-oom-messages.patch
+backlight-corgi_lcd-remove-unnecessary-oom-messages.patch
+backlight-hx8357-remove-unnecessary-oom-messages.patch
+backlight-ili922x-remove-unnecessary-oom-messages.patch
+backlight-ili9320-remove-unnecessary-oom-messages.patch
+backlight-l4f00242t03-remove-unnecessary-oom-messages.patch
+backlight-lm3533_bl-remove-unnecessary-oom-messages.patch
+backlight-lms283gf05-remove-unnecessary-oom-messages.patch
+backlight-platform_lcd-remove-unnecessary-oom-messages.patch
+backlight-tps65217_bl-remove-unnecessary-oom-messages.patch
+drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
+rtc-rtc-at32ap700x-remove-unnecessary-oom-messages.patch
+rtc-rtc-davinci-remove-unnecessary-oom-messages.patch
+rtc-rtc-ds1390-remove-unnecessary-oom-messages.patch
+rtc-rtc-moxart-remove-unnecessary-oom-messages.patch
+rtc-rtc-nuc900-remove-unnecessary-oom-messages.patch
+rtc-rtc-pm8xxx-remove-unnecessary-oom-messages.patch
+rtc-rtc-rx8025-remove-unnecessary-oom-messages.patch
+rtc-rtc-sirfsoc-remove-unnecessary-oom-messages.patch
+rtc-rtc-lpc32xx-remove-unnecessary-oom-messages.patch
+rtc-rtc-spear-remove-unnecessary-oom-messages.patch
+rtc-rtc-coh901331-use-devm_ioremap_resource.patch
+rtc-rtc-davinci-use-devm_ioremap_resource.patch
+rtc-rtc-vt8500-use-devm_ioremap_resource.patch
+rtc-rtc-jz4740-use-devm_ioremap_resource.patch
+drivers-rtc-rtc-as3722c-use-simple_dev_pm_ops-macro.patch
+drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch
 linux-next.patch
 
