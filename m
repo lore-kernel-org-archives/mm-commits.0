@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch added to -mm tree
-Date: Thu, 27 Feb 2014 14:55:47 -0800
-Message-ID: <530fc273.RYjfHn+QI7P/trPo%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-as3722c-use-simple_dev_pm_ops-macro.patch added to -mm tree
+Date: Thu, 27 Feb 2014 14:55:46 -0800
+Message-ID: <530fc272.mAn7DTxPD96zuHc5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40238 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40235 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751624AbaB0Wzs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 17:55:48 -0500
+	with ESMTP id S1751213AbaB0Wzr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 17:55:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: + drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch added to -mm tree
+Subject: + drivers-rtc-rtc-as3722c-use-simple_dev_pm_ops-macro.patch added to -mm tree
 To: jg1.han@samsung.com
 From: akpm@linux-foundation.org
-Date: Thu, 27 Feb 2014 14:55:47 -0800
+Date: Thu, 27 Feb 2014 14:55:46 -0800
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-palmas.c: use SIMPLE_DEV_PM_OPS macro
+     Subject: drivers/rtc/rtc-as3722.c: use SIMPLE_DEV_PM_OPS macro
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch
+     drivers-rtc-rtc-as3722c-use-simple_dev_pm_ops-macro.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-as3722c-use-simple_dev_pm_ops-macro.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-as3722c-use-simple_dev_pm_ops-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +44,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/rtc/rtc-palmas.c: use SIMPLE_DEV_PM_OPS macro
+Subject: drivers/rtc/rtc-as3722.c: use SIMPLE_DEV_PM_OPS macro
 
 Use SIMPLE_DEV_PM_OPS macro in order to make the code simpler.
 
@@ -52,24 +52,24 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-palmas.c |    5 ++---
+ drivers/rtc/rtc-as3722.c |    5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro drivers/rtc/rtc-palmas.c
---- a/drivers/rtc/rtc-palmas.c~drivers-rtc-rtc-palmasc-use-simple_dev_pm_ops-macro
-+++ a/drivers/rtc/rtc-palmas.c
-@@ -348,9 +348,8 @@ static int palmas_rtc_resume(struct devi
+diff -puN drivers/rtc/rtc-as3722.c~drivers-rtc-rtc-as3722c-use-simple_dev_pm_ops-macro drivers/rtc/rtc-as3722.c
+--- a/drivers/rtc/rtc-as3722.c~drivers-rtc-rtc-as3722c-use-simple_dev_pm_ops-macro
++++ a/drivers/rtc/rtc-as3722.c
+@@ -242,9 +242,8 @@ static int as3722_rtc_resume(struct devi
  }
  #endif
  
--static const struct dev_pm_ops palmas_rtc_pm_ops = {
--	SET_SYSTEM_SLEEP_PM_OPS(palmas_rtc_suspend, palmas_rtc_resume)
+-static const struct dev_pm_ops as3722_rtc_pm_ops = {
+-	SET_SYSTEM_SLEEP_PM_OPS(as3722_rtc_suspend, as3722_rtc_resume)
 -};
-+static SIMPLE_DEV_PM_OPS(palmas_rtc_pm_ops, palmas_rtc_suspend,
-+			 palmas_rtc_resume);
++static SIMPLE_DEV_PM_OPS(as3722_rtc_pm_ops, as3722_rtc_suspend,
++			 as3722_rtc_resume);
  
- #ifdef CONFIG_OF
- static struct of_device_id of_palmas_rtc_match[] = {
+ static struct platform_driver as3722_rtc_driver = {
+ 	.probe = as3722_rtc_probe,
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
