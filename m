@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-update-maintainers-file-entries-fix.patch added to -mm
- tree
-Date: Wed, 26 Feb 2014 16:22:48 -0800
-Message-ID: <530e8558.UeeUZ4AT59lbIs9w%akpm@linux-foundation.org>
+Subject: + nilfs2-update-projects-web-site-in-nilfs2txt.patch added to -mm tree
+Date: Wed, 26 Feb 2014 16:22:49 -0800
+Message-ID: <530e8559.AGEcpCTrPahi1McL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54061 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54064 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754183AbaB0AWt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 19:22:49 -0500
+	with ESMTP id S1754186AbaB0AWu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Feb 2014 19:22:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, konishi.ryusuke@lab.ntt.co.jp
 
-Subject: + nilfs2-update-maintainers-file-entries-fix.patch added to -mm tree
+Subject: + nilfs2-update-projects-web-site-in-nilfs2txt.patch added to -mm tree
 To: konishi.ryusuke@lab.ntt.co.jp
 From: akpm@linux-foundation.org
-Date: Wed, 26 Feb 2014 16:22:48 -0800
+Date: Wed, 26 Feb 2014 16:22:49 -0800
 
 
 The patch titled
-     Subject: nilfs2: update MAINTAINERS file entries fix
+     Subject: nilfs2: update project's web site in nilfs2.txt
 has been added to the -mm tree.  Its filename is
-     nilfs2-update-maintainers-file-entries-fix.patch
+     nilfs2-update-projects-web-site-in-nilfs2txt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-update-maintainers-file-entries-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-update-projects-web-site-in-nilfs2txt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-update-maintainers-file-entries-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-update-projects-web-site-in-nilfs2txt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,30 +44,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: update MAINTAINERS file entries fix
+Subject: nilfs2: update project's web site in nilfs2.txt
 
-Also, web-page entry is updated according to relocation of project's
-web site.
+Project's web site was moved to nilfs.sourceforge.net from
+www.nilfs.org.  This updates the site information in
+Documentation/filesystems/nilfs2.txt with the new location.
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/filesystems/nilfs2.txt |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~nilfs2-update-maintainers-file-entries-fix MAINTAINERS
---- a/MAINTAINERS~nilfs2-update-maintainers-file-entries-fix
-+++ a/MAINTAINERS
-@@ -6105,7 +6105,7 @@ F:	include/uapi/linux/sunrpc/
- NILFS2 FILESYSTEM
- M:	Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
- L:	linux-nilfs@vger.kernel.org
--W:	http://www.nilfs.org/en/
-+W:	http://nilfs.sourceforge.net/
- T:	git git://github.com/konis/nilfs2.git
- S:	Supported
- F:	Documentation/filesystems/nilfs2.txt
+diff -puN Documentation/filesystems/nilfs2.txt~nilfs2-update-projects-web-site-in-nilfs2txt Documentation/filesystems/nilfs2.txt
+--- a/Documentation/filesystems/nilfs2.txt~nilfs2-update-projects-web-site-in-nilfs2txt
++++ a/Documentation/filesystems/nilfs2.txt
+@@ -25,9 +25,8 @@ available from the following download pa
+ cleaner or garbage collector) are required.  Details on the tools are
+ described in the man pages included in the package.
+ 
+-Project web page:    http://www.nilfs.org/en/
+-Download page:       http://www.nilfs.org/en/download.html
+-Git tree web page:   http://www.nilfs.org/git/
++Project web page:    http://nilfs.sourceforge.net/
++Download page:       http://nilfs.sourceforge.net/en/download.html
+ List info:           http://vger.kernel.org/vger-lists.html#linux-nilfs
+ 
+ Caveats
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
