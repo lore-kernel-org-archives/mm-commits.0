@@ -1,86 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-fmc-fmc-write-eepromc-fix-decimal-permissions.patch removed from
- -mm tree
-Date: Thu, 27 Feb 2014 12:23:48 -0800
-Message-ID: <530f9ed4.qsx2R+lGoNoDFawU%akpm@linux-foundation.org>
+Subject: [merged] mm-thp-fix-infinite-loop-on-memcg-oom.patch removed from -mm tree
+Date: Thu, 27 Feb 2014 12:23:50 -0800
+Message-ID: <530f9ed6./LvQwIbsM4I2Mem3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38412 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38418 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbaB0UXt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 15:23:49 -0500
+	with ESMTP id S1751344AbaB0UXv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 15:23:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rubini@gnudd.com, joe@perches.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, mhocko@suse.cz, m.mizuma@jp.fujitsu.com, hannes@cmpxchg.org, aarcange@redhat.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] drivers-fmc-fmc-write-eepromc-fix-decimal-permissions.patch removed from -mm tree
-To: joe@perches.com,rubini@gnudd.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-thp-fix-infinite-loop-on-memcg-oom.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,aarcange@redhat.com,hannes@cmpxchg.org,m.mizuma@jp.fujitsu.com,mhocko@suse.cz,rientjes@google.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 27 Feb 2014 12:23:48 -0800
+Date: Thu, 27 Feb 2014 12:23:50 -0800
 
 
 The patch titled
-     Subject: drivers/fmc/fmc-write-eeprom.c: fix decimal permissions
+     Subject: mm, thp: fix infinite loop on memcg OOM
 has been removed from the -mm tree.  Its filename was
-     drivers-fmc-fmc-write-eepromc-fix-decimal-permissions.patch
+     mm-thp-fix-infinite-loop-on-memcg-oom.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: drivers/fmc/fmc-write-eeprom.c: fix decimal permissions
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm, thp: fix infinite loop on memcg OOM
 
-This 444 should have been octal.
+Masayoshi Mizuma reported a bug with the hang of an application under the
+memcg limit.  It happens on write-protection fault to huge zero page
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Alessandro Rubini <rubini@gnudd.com>
+If we successfully allocate a huge page to replace zero page but hit the
+memcg limit we need to split the zero page with split_huge_page_pmd() and
+fallback to small pages.
+
+The other part of the problem is that VM_FAULT_OOM has special meaning in
+do_huge_pmd_wp_page() context.  __handle_mm_fault() expects the page to be
+split if it sees VM_FAULT_OOM and it will will retry page fault handling. 
+This causes an infinite loop if the page was not split.
+
+do_huge_pmd_wp_zero_page_fallback() can return VM_FAULT_OOM if it failed
+to allocate one small page, so fallback to small pages will not help.
+
+The solution for this part is to replace VM_FAULT_OOM with
+VM_FAULT_FALLBACK is fallback required.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/fmc/fmc-write-eeprom.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    9 ++++++---
+ mm/memory.c      |   14 +++-----------
+ 2 files changed, 9 insertions(+), 14 deletions(-)
 
-diff -puN drivers/fmc/fmc-write-eeprom.c~drivers-fmc-fmc-write-eepromc-fix-decimal-permissions drivers/fmc/fmc-write-eeprom.c
---- a/drivers/fmc/fmc-write-eeprom.c~drivers-fmc-fmc-write-eepromc-fix-decimal-permissions
-+++ a/drivers/fmc/fmc-write-eeprom.c
-@@ -27,7 +27,7 @@ FMC_PARAM_BUSID(fwe_drv);
- /* The "file=" is like the generic "gateware=" used elsewhere */
- static char *fwe_file[FMC_MAX_CARDS];
- static int fwe_file_n;
--module_param_array_named(file, fwe_file, charp, &fwe_file_n, 444);
-+module_param_array_named(file, fwe_file, charp, &fwe_file_n, 0444);
+diff -puN mm/huge_memory.c~mm-thp-fix-infinite-loop-on-memcg-oom mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-fix-infinite-loop-on-memcg-oom
++++ a/mm/huge_memory.c
+@@ -1166,8 +1166,10 @@ alloc:
+ 		} else {
+ 			ret = do_huge_pmd_wp_page_fallback(mm, vma, address,
+ 					pmd, orig_pmd, page, haddr);
+-			if (ret & VM_FAULT_OOM)
++			if (ret & VM_FAULT_OOM) {
+ 				split_huge_page(page);
++				ret |= VM_FAULT_FALLBACK;
++			}
+ 			put_page(page);
+ 		}
+ 		count_vm_event(THP_FAULT_FALLBACK);
+@@ -1179,9 +1181,10 @@ alloc:
+ 		if (page) {
+ 			split_huge_page(page);
+ 			put_page(page);
+-		}
++		} else
++			split_huge_page_pmd(vma, address, pmd);
++		ret |= VM_FAULT_FALLBACK;
+ 		count_vm_event(THP_FAULT_FALLBACK);
+-		ret |= VM_FAULT_OOM;
+ 		goto out;
+ 	}
  
- static int fwe_run_tlv(struct fmc_device *fmc, const struct firmware *fw,
- 	int write)
+diff -puN mm/memory.c~mm-thp-fix-infinite-loop-on-memcg-oom mm/memory.c
+--- a/mm/memory.c~mm-thp-fix-infinite-loop-on-memcg-oom
++++ a/mm/memory.c
+@@ -3704,7 +3704,6 @@ static int __handle_mm_fault(struct mm_s
+ 	if (unlikely(is_vm_hugetlb_page(vma)))
+ 		return hugetlb_fault(mm, vma, address, flags);
+ 
+-retry:
+ 	pgd = pgd_offset(mm, address);
+ 	pud = pud_alloc(mm, pgd, address);
+ 	if (!pud)
+@@ -3742,20 +3741,13 @@ retry:
+ 			if (dirty && !pmd_write(orig_pmd)) {
+ 				ret = do_huge_pmd_wp_page(mm, vma, address, pmd,
+ 							  orig_pmd);
+-				/*
+-				 * If COW results in an oom, the huge pmd will
+-				 * have been split, so retry the fault on the
+-				 * pte for a smaller charge.
+-				 */
+-				if (unlikely(ret & VM_FAULT_OOM))
+-					goto retry;
+-				return ret;
++				if (!(ret & VM_FAULT_FALLBACK))
++					return ret;
+ 			} else {
+ 				huge_pmd_set_accessed(mm, vma, address, pmd,
+ 						      orig_pmd, dirty);
++				return 0;
+ 			}
+-
+-			return 0;
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-maintainers-use-tab-for-separator.patch
-maintainers-add-and-correct-types-of-some-t-entries.patch
-lib-random32c-minor-cleanups-and-kdoc-fix.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-add-test-for-long-udelay.patch
-checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
-checkpatch-add-checks-for-constant-non-octal-permissions.patch
-checkpatch-warn-on-uses-of-__constant_foo-functions.patch
-checkpatch-update-octal-permissions-warning.patch
-checkpatch-avoid-sscanf-test-duplicated-messages.patch
-checkpatch-fix-jiffies-comparison-and-others.patch
-checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
-checkpatch-use-a-more-consistent-function-argument-style.patch
-checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
-ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-ncpfs-convert-pprintk-to-ncp_vdbg.patch
-ncpfs-remove-now-unused-printk-macro.patch
-ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
-linux-next.patch
+mm-close-pagetail-race.patch
+mm-page_alloc-make-first_page-visible-before-pagetail.patch
+mm-include-vm_mixedmap-flag-in-the-vm_special-list-to-avoid-munlocking.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+madvise-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-rename-__do_fault-do_fault.patch
+mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
+mm-introduce-do_read_fault.patch
+mm-introduce-do_cow_fault.patch
+mm-introduce-do_shared_fault-and-drop-do_fault.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
+mm-consolidate-code-to-setup-pte.patch
+mm-thp-drop-do_huge_pmd_wp_zero_page_fallback.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
+mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
+exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
+mm-disable-split-page-table-lock-for-mmu.patch
 
