@@ -1,95 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault.patch removed from
+ drivers-fmc-fmc-write-eepromc-fix-decimal-permissions.patch removed from
  -mm tree
-Date: Thu, 27 Feb 2014 12:23:44 -0800
-Message-ID: <530f9ed0.fGTOGqtd2FvZRoqA%akpm@linux-foundation.org>
+Date: Thu, 27 Feb 2014 12:23:48 -0800
+Message-ID: <530f9ed4.qsx2R+lGoNoDFawU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38403 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38412 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbaB0UXp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 15:23:45 -0500
+	with ESMTP id S1751344AbaB0UXt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 15:23:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, matthew.r.wilcox@intel.com, dave.hansen@linux.intel.com, ak@linux.intel.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, rubini@gnudd.com, joe@perches.com
 
-Subject: [merged] mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,dave.hansen@linux.intel.com,matthew.r.wilcox@intel.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] drivers-fmc-fmc-write-eepromc-fix-decimal-permissions.patch removed from -mm tree
+To: joe@perches.com,rubini@gnudd.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 27 Feb 2014 12:23:44 -0800
+Date: Thu, 27 Feb 2014 12:23:48 -0800
 
 
 The patch titled
-     Subject: mm, hwpoison: release page on PageHWPoison() in __do_fault()
+     Subject: drivers/fmc/fmc-write-eeprom.c: fix decimal permissions
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault.patch
+     drivers-fmc-fmc-write-eepromc-fix-decimal-permissions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, hwpoison: release page on PageHWPoison() in __do_fault()
+From: Joe Perches <joe@perches.com>
+Subject: drivers/fmc/fmc-write-eeprom.c: fix decimal permissions
 
-It seems we forget to release page after detecting HW error.
+This 444 should have been octal.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Alessandro Rubini <rubini@gnudd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/fmc/fmc-write-eeprom.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault mm/memory.c
---- a/mm/memory.c~mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault
-+++ a/mm/memory.c
-@@ -3348,6 +3348,7 @@ static int __do_fault(struct mm_struct *
- 		if (ret & VM_FAULT_LOCKED)
- 			unlock_page(vmf.page);
- 		ret = VM_FAULT_HWPOISON;
-+		page_cache_release(vmf.page);
- 		goto uncharge_out;
- 	}
+diff -puN drivers/fmc/fmc-write-eeprom.c~drivers-fmc-fmc-write-eepromc-fix-decimal-permissions drivers/fmc/fmc-write-eeprom.c
+--- a/drivers/fmc/fmc-write-eeprom.c~drivers-fmc-fmc-write-eepromc-fix-decimal-permissions
++++ a/drivers/fmc/fmc-write-eeprom.c
+@@ -27,7 +27,7 @@ FMC_PARAM_BUSID(fwe_drv);
+ /* The "file=" is like the generic "gateware=" used elsewhere */
+ static char *fwe_file[FMC_MAX_CARDS];
+ static int fwe_file_n;
+-module_param_array_named(file, fwe_file, charp, &fwe_file_n, 444);
++module_param_array_named(file, fwe_file, charp, &fwe_file_n, 0444);
  
+ static int fwe_run_tlv(struct fmc_device *fmc, const struct firmware *fw,
+ 	int write)
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-mm-close-pagetail-race.patch
-mm-page_alloc-make-first_page-visible-before-pagetail.patch
-mm-include-vm_mixedmap-flag-in-the-vm_special-list-to-avoid-munlocking.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-madvise-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-rename-__do_fault-do_fault.patch
-mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
-mm-introduce-do_read_fault.patch
-mm-introduce-do_cow_fault.patch
-mm-introduce-do_shared_fault-and-drop-do_fault.patch
-mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
-mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
-mm-consolidate-code-to-setup-pte.patch
-mm-thp-drop-do_huge_pmd_wp_zero_page_fallback.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
-exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
-mm-disable-split-page-table-lock-for-mmu.patch
+maintainers-use-tab-for-separator.patch
+maintainers-add-and-correct-types-of-some-t-entries.patch
+lib-random32c-minor-cleanups-and-kdoc-fix.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-test-for-long-udelay.patch
+checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
+checkpatch-add-checks-for-constant-non-octal-permissions.patch
+checkpatch-warn-on-uses-of-__constant_foo-functions.patch
+checkpatch-update-octal-permissions-warning.patch
+checkpatch-avoid-sscanf-test-duplicated-messages.patch
+checkpatch-fix-jiffies-comparison-and-others.patch
+checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
+checkpatch-use-a-more-consistent-function-argument-style.patch
+checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
+linux-next.patch
 
