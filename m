@@ -1,163 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ipcmqueue-remove-limits-for-the-amount-of-system-wide-queues.patch removed
+Subject: [merged] makefile-fix-build-with-make-380-again.patch removed
  from -mm tree
-Date: Thu, 27 Feb 2014 12:23:54 -0800
-Message-ID: <530f9eda.2GEaO9UJBoCm67+s%akpm@linux-foundation.org>
+Date: Thu, 27 Feb 2014 12:24:00 -0800
+Message-ID: <530f9ee0.msNipnp6sDTOjuiM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38427 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38438 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751067AbaB0UXz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 15:23:55 -0500
+	with ESMTP id S1751410AbaB0UYB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 15:24:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, manfred@colorfullife.com, m@silodev.com, dledford@redhat.com, davidlohr@hp.com
+To: mm-commits@vger.kernel.org, mmarek@suse.cz, mingo@kernel.org, keescook@chromium.org, jbeulich@suse.com, JBeulich@suse.com
 
-Subject: [merged] ipcmqueue-remove-limits-for-the-amount-of-system-wide-queues.patch removed from -mm tree
-To: davidlohr@hp.com,dledford@redhat.com,m@silodev.com,manfred@colorfullife.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] makefile-fix-build-with-make-380-again.patch removed from -mm tree
+To: JBeulich@suse.com,jbeulich@suse.com,keescook@chromium.org,mingo@kernel.org,mmarek@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 27 Feb 2014 12:23:54 -0800
+Date: Thu, 27 Feb 2014 12:24:00 -0800
 
 
 The patch titled
-     Subject: ipc,mqueue: remove limits for the amount of system-wide queues
+     Subject: Makefile: fix build with make 3.80 again
 has been removed from the -mm tree.  Its filename was
-     ipcmqueue-remove-limits-for-the-amount-of-system-wide-queues.patch
+     makefile-fix-build-with-make-380-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr@hp.com>
-Subject: ipc,mqueue: remove limits for the amount of system-wide queues
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: Makefile: fix build with make 3.80 again
 
-93e6f119 ("ipc/mqueue: cleanup definition names and locations") added
-global hardcoded limits to the amount of message queues that can be
-created.  While these limits are per-namespace, reality is that it ends up
-breaking userspace applications.  Historically users have, at least in
-theory, been able to create up to INT_MAX queues, and limiting it to just
-1024 is way too low and dramatic for some workloads and use cases.  For
-instance, Madars reports:
+According to Documentation/Changes, make 3.80 is still being supported for
+building the kernel, hence make files must not make (unconditional) use of
+features introduced only in newer versions.  Commit 8779657d
+("stackprotector: Introduce CONFIG_CC_STACKPROTECTOR_STRONG") however
+introduced an "else ifdef" construct which make 3.80 doesn't understand.
 
-"This update imposes bad limits on our multi-process application.  As our
-app uses approaches that each process opens its own set of queues (usually
-something about 3-5 queues per process).  In some scenarios we might run
-up to 3000 processes or more (which of-course for linux is not a problem).
- Thus we might need up to 9000 queues or more.  All processes run under
-one user."
+Also correct a warning message still referencing the old config option
+name.
 
-Other affected users can be found in launchpad bug #1155695:
-https://bugs.launchpad.net/ubuntu/+source/manpages/+bug/1155695
+Apart from that I question the use of "ifdef" here (but it was used that
+way already prior to said commit): ifeq (,y) would seem more to the point.
 
-Instead of increasing this limit, revert it entirely and fallback to the
-original way of dealing queue limits -- where once a user's resource limit
-is reached, and all memory is used, new queues cannot be created.
-
-Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Reported-by: Madars Vitolins <m@silodev.com>
-Acked-by: Doug Ledford <dledford@redhat.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: <stable@vger.kernel.org>	[3.5+]
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    2 --
- ipc/mq_sysctl.c               |   18 ++++++++++++------
- ipc/mqueue.c                  |    6 +++---
- 3 files changed, 15 insertions(+), 11 deletions(-)
+ Makefile |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~ipcmqueue-remove-limits-for-the-amount-of-system-wide-queues include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~ipcmqueue-remove-limits-for-the-amount-of-system-wide-queues
-+++ a/include/linux/ipc_namespace.h
-@@ -118,9 +118,7 @@ extern int mq_init_ns(struct ipc_namespa
-  *     the new maximum will handle anyone else.  I may have to revisit this
-  *     in the future.
-  */
--#define MIN_QUEUESMAX			1
- #define DFLT_QUEUESMAX		      256
--#define HARD_QUEUESMAX		     1024
- #define MIN_MSGMAX			1
- #define DFLT_MSG		       10U
- #define DFLT_MSGMAX		       10
-diff -puN ipc/mq_sysctl.c~ipcmqueue-remove-limits-for-the-amount-of-system-wide-queues ipc/mq_sysctl.c
---- a/ipc/mq_sysctl.c~ipcmqueue-remove-limits-for-the-amount-of-system-wide-queues
-+++ a/ipc/mq_sysctl.c
-@@ -22,6 +22,16 @@ static void *get_mq(ctl_table *table)
- 	return which;
- }
+diff -puN Makefile~makefile-fix-build-with-make-380-again Makefile
+--- a/Makefile~makefile-fix-build-with-make-380-again
++++ a/Makefile
+@@ -605,10 +605,11 @@ endif
+ ifdef CONFIG_CC_STACKPROTECTOR_REGULAR
+   stackp-flag := -fstack-protector
+   ifeq ($(call cc-option, $(stackp-flag)),)
+-    $(warning Cannot use CONFIG_CC_STACKPROTECTOR: \
++    $(warning Cannot use CONFIG_CC_STACKPROTECTOR_REGULAR: \
+              -fstack-protector not supported by compiler)
+   endif
+-else ifdef CONFIG_CC_STACKPROTECTOR_STRONG
++else
++ifdef CONFIG_CC_STACKPROTECTOR_STRONG
+   stackp-flag := -fstack-protector-strong
+   ifeq ($(call cc-option, $(stackp-flag)),)
+     $(warning Cannot use CONFIG_CC_STACKPROTECTOR_STRONG: \
+@@ -618,6 +619,7 @@ else
+   # Force off for distro compilers that enable stack protector by default.
+   stackp-flag := $(call cc-option, -fno-stack-protector)
+ endif
++endif
+ KBUILD_CFLAGS += $(stackp-flag)
  
-+static int proc_mq_dointvec(ctl_table *table, int write,
-+			    void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct ctl_table mq_table;
-+	memcpy(&mq_table, table, sizeof(mq_table));
-+	mq_table.data = get_mq(table);
-+
-+	return proc_dointvec(&mq_table, write, buffer, lenp, ppos);
-+}
-+
- static int proc_mq_dointvec_minmax(ctl_table *table, int write,
- 	void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -33,12 +43,10 @@ static int proc_mq_dointvec_minmax(ctl_t
- 					lenp, ppos);
- }
- #else
-+#define proc_mq_dointvec NULL
- #define proc_mq_dointvec_minmax NULL
- #endif
- 
--static int msg_queues_limit_min = MIN_QUEUESMAX;
--static int msg_queues_limit_max = HARD_QUEUESMAX;
--
- static int msg_max_limit_min = MIN_MSGMAX;
- static int msg_max_limit_max = HARD_MSGMAX;
- 
-@@ -51,9 +59,7 @@ static ctl_table mq_sysctls[] = {
- 		.data		= &init_ipc_ns.mq_queues_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_mq_dointvec_minmax,
--		.extra1		= &msg_queues_limit_min,
--		.extra2		= &msg_queues_limit_max,
-+		.proc_handler	= proc_mq_dointvec,
- 	},
- 	{
- 		.procname	= "msg_max",
-diff -puN ipc/mqueue.c~ipcmqueue-remove-limits-for-the-amount-of-system-wide-queues ipc/mqueue.c
---- a/ipc/mqueue.c~ipcmqueue-remove-limits-for-the-amount-of-system-wide-queues
-+++ a/ipc/mqueue.c
-@@ -433,9 +433,9 @@ static int mqueue_create(struct inode *d
- 		error = -EACCES;
- 		goto out_unlock;
- 	}
--	if (ipc_ns->mq_queues_count >= HARD_QUEUESMAX ||
--	    (ipc_ns->mq_queues_count >= ipc_ns->mq_queues_max &&
--	     !capable(CAP_SYS_RESOURCE))) {
-+
-+	if (ipc_ns->mq_queues_count >= ipc_ns->mq_queues_max &&
-+	    !capable(CAP_SYS_RESOURCE)) {
- 		error = -ENOSPC;
- 		goto out_unlock;
- 	}
+ # This warning generated too much noise in a regular build.
 _
 
-Patches currently in -mm which might be from davidlohr@hp.com are
+Patches currently in -mm which might be from JBeulich@suse.com are
 
 origin.patch
-mm-hugetlb-unify-region-structure-handling.patch
-mm-hugetlb-improve-cleanup-resv_map-parameters.patch
-mm-hugetlb-fix-race-in-region-tracking.patch
-mm-hugetlb-remove-resv_map_put.patch
-mm-hugetlb-use-vma_resv_map-map-types.patch
-mm-hugetlb-improve-page-fault-scalability.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
-mm-memoryc-update-comment-in-unmap_single_vma.patch
-ipccompat-remove-sc_semopm-macro.patch
-ipc-use-device_initcall.patch
-linux-next.patch
 
