@@ -1,89 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch removed from
+ mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault.patch removed from
  -mm tree
-Date: Thu, 27 Feb 2014 12:23:46 -0800
-Message-ID: <530f9ed2.RJgkvOwvL5oxagHN%akpm@linux-foundation.org>
+Date: Thu, 27 Feb 2014 12:23:44 -0800
+Message-ID: <530f9ed0.fGTOGqtd2FvZRoqA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38407 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38403 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbaB0UXr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 15:23:47 -0500
+	with ESMTP id S1751344AbaB0UXp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Feb 2014 15:23:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joro@8bytes.org, Hiroshi.DOYU@nokia.com, joe@perches.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, matthew.r.wilcox@intel.com, dave.hansen@linux.intel.com, ak@linux.intel.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch removed from -mm tree
-To: joe@perches.com,Hiroshi.DOYU@nokia.com,joro@8bytes.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,dave.hansen@linux.intel.com,matthew.r.wilcox@intel.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 27 Feb 2014 12:23:46 -0800
+Date: Thu, 27 Feb 2014 12:23:44 -0800
 
 
 The patch titled
-     Subject: drivers/iommu/omap-iommu-debug.c: fix decimal permissions
+     Subject: mm, hwpoison: release page on PageHWPoison() in __do_fault()
 has been removed from the -mm tree.  Its filename was
-     drivers-iommu-omap-iommu-debugc-fix-decimal-permissions.patch
+     mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: drivers/iommu/omap-iommu-debug.c: fix decimal permissions
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm, hwpoison: release page on PageHWPoison() in __do_fault()
 
-These should have been octal.
+It seems we forget to release page after detecting HW error.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/omap-iommu-debug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/iommu/omap-iommu-debug.c~drivers-iommu-omap-iommu-debugc-fix-decimal-permissions drivers/iommu/omap-iommu-debug.c
---- a/drivers/iommu/omap-iommu-debug.c~drivers-iommu-omap-iommu-debugc-fix-decimal-permissions
-+++ a/drivers/iommu/omap-iommu-debug.c
-@@ -354,8 +354,8 @@ DEBUG_FOPS(mem);
- 			return -ENOMEM;					\
+diff -puN mm/memory.c~mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault mm/memory.c
+--- a/mm/memory.c~mm-hwpoison-release-page-on-pagehwpoison-in-__do_fault
++++ a/mm/memory.c
+@@ -3348,6 +3348,7 @@ static int __do_fault(struct mm_struct *
+ 		if (ret & VM_FAULT_LOCKED)
+ 			unlock_page(vmf.page);
+ 		ret = VM_FAULT_HWPOISON;
++		page_cache_release(vmf.page);
+ 		goto uncharge_out;
  	}
  
--#define DEBUG_ADD_FILE(name) __DEBUG_ADD_FILE(name, 600)
--#define DEBUG_ADD_FILE_RO(name) __DEBUG_ADD_FILE(name, 400)
-+#define DEBUG_ADD_FILE(name) __DEBUG_ADD_FILE(name, 0600)
-+#define DEBUG_ADD_FILE_RO(name) __DEBUG_ADD_FILE(name, 0400)
- 
- static int iommu_debug_register(struct device *dev, void *data)
- {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-maintainers-use-tab-for-separator.patch
-maintainers-add-and-correct-types-of-some-t-entries.patch
-lib-random32c-minor-cleanups-and-kdoc-fix.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-add-test-for-long-udelay.patch
-checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
-checkpatch-add-checks-for-constant-non-octal-permissions.patch
-checkpatch-warn-on-uses-of-__constant_foo-functions.patch
-checkpatch-update-octal-permissions-warning.patch
-checkpatch-avoid-sscanf-test-duplicated-messages.patch
-checkpatch-fix-jiffies-comparison-and-others.patch
-checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
-checkpatch-use-a-more-consistent-function-argument-style.patch
-checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
-ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-ncpfs-convert-pprintk-to-ncp_vdbg.patch
-ncpfs-remove-now-unused-printk-macro.patch
-ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
-linux-next.patch
+mm-close-pagetail-race.patch
+mm-page_alloc-make-first_page-visible-before-pagetail.patch
+mm-include-vm_mixedmap-flag-in-the-vm_special-list-to-avoid-munlocking.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+madvise-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-rename-__do_fault-do_fault.patch
+mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
+mm-introduce-do_read_fault.patch
+mm-introduce-do_cow_fault.patch
+mm-introduce-do_shared_fault-and-drop-do_fault.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
+mm-consolidate-code-to-setup-pte.patch
+mm-thp-drop-do_huge_pmd_wp_zero_page_fallback.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
+mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
+exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
+mm-disable-split-page-table-lock-for-mmu.patch
 
