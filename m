@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + bug-when-config_bug-simplify-warn_on_once-and-family.patch
- added to -mm tree
-Date: Fri, 28 Feb 2014 15:04:24 -0800
-Message-ID: <531115f8.GBzj0Wi5BLyqAQVL%akpm@linux-foundation.org>
+Subject: + include-asm-generic-bugh-style-fix-s-while0-while-0.patch added to -mm tree
+Date: Fri, 28 Feb 2014 15:04:25 -0800
+Message-ID: <531115f9.jgafp1T5RaYb2k8N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52229 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52235 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751184AbaB1XEZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:04:25 -0500
+	with ESMTP id S1751723AbaB1XE0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:04:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, arnd@arndb.de, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, arnd@arndb.de, josh@joshtriplett.org
 
-Subject: + bug-when-config_bug-simplify-warn_on_once-and-family.patch added to -mm tree
-To: josh@joshtriplett.org,arnd@arndb.de
+Subject: + include-asm-generic-bugh-style-fix-s-while0-while-0.patch added to -mm tree
+To: josh@joshtriplett.org,arnd@arndb.de,rdunlap@infradead.org
 From: akpm@linux-foundation.org
-Date: Fri, 28 Feb 2014 15:04:24 -0800
+Date: Fri, 28 Feb 2014 15:04:25 -0800
 
 
 The patch titled
-     Subject: bug: when !CONFIG_BUG, simplify WARN_ON_ONCE and family
+     Subject: include/asm-generic/bug.h: style fix: s/while(0)/while (0)/
 has been added to the -mm tree.  Its filename is
-     bug-when-config_bug-simplify-warn_on_once-and-family.patch
+     include-asm-generic-bugh-style-fix-s-while0-while-0.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bug-when-config_bug-simplify-warn_on_once-and-family.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-asm-generic-bugh-style-fix-s-while0-while-0.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bug-when-config_bug-simplify-warn_on_once-and-family.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-asm-generic-bugh-style-fix-s-while0-while-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,100 +44,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Josh Triplett <josh@joshtriplett.org>
-Subject: bug: when !CONFIG_BUG, simplify WARN_ON_ONCE and family
-
-When !CONFIG_BUG, WARN_ON and family become simple passthroughs of their
-condition argument; however, WARN_ON_ONCE and family still have conditions
-and a boolean to detect one-time invocation, even though the warning
-they'd emit doesn't exist.  Make the existing definitions conditional on
-CONFIG_BUG, and add definitions for !CONFIG_BUG that map to the
-passthrough versions of WARN and WARN_ON.
-
-This saves 4.4k on a minimized configuration (smaller than allnoconfig),
-and 20.6k with defconfig plus CONFIG_BUG=n.
+Subject: include/asm-generic/bug.h: style fix: s/while(0)/while (0)/
 
 Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |   57 ++++++++++++++++++------------------
- 1 file changed, 30 insertions(+), 27 deletions(-)
+ include/asm-generic/bug.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-generic/bug.h~bug-when-config_bug-simplify-warn_on_once-and-family include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~bug-when-config_bug-simplify-warn_on_once-and-family
+diff -puN include/asm-generic/bug.h~include-asm-generic-bugh-style-fix-s-while0-while-0 include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~include-asm-generic-bugh-style-fix-s-while0-while-0
 +++ a/include/asm-generic/bug.h
-@@ -106,33 +106,6 @@ extern void warn_slowpath_null(const cha
- 	unlikely(__ret_warn_on);					\
- })
+@@ -52,7 +52,7 @@ struct bug_entry {
+ #endif
  
--#else /* !CONFIG_BUG */
--#ifndef HAVE_ARCH_BUG
--#define BUG() do {} while(0)
--#endif
--
--#ifndef HAVE_ARCH_BUG_ON
--#define BUG_ON(condition) do { if (condition) ; } while(0)
--#endif
--
--#ifndef HAVE_ARCH_WARN_ON
--#define WARN_ON(condition) ({						\
--	int __ret_warn_on = !!(condition);				\
--	unlikely(__ret_warn_on);					\
--})
--#endif
--
--#ifndef WARN
--#define WARN(condition, format...) ({					\
--	int __ret_warn_on = !!(condition);				\
--	unlikely(__ret_warn_on);					\
--})
--#endif
--
--#define WARN_TAINT(condition, taint, format...) WARN_ON(condition)
--
--#endif
--
- #define WARN_ON_ONCE(condition)	({				\
- 	static bool __section(.data.unlikely) __warned;		\
- 	int __ret_warn_once = !!(condition);			\
-@@ -163,6 +136,36 @@ extern void warn_slowpath_null(const cha
- 	unlikely(__ret_warn_once);				\
- })
+ #ifndef HAVE_ARCH_BUG_ON
+-#define BUG_ON(condition) do { if (unlikely(condition)) BUG(); } while(0)
++#define BUG_ON(condition) do { if (unlikely(condition)) BUG(); } while (0)
+ #endif
  
-+#else /* !CONFIG_BUG */
-+#ifndef HAVE_ARCH_BUG
-+#define BUG() do {} while(0)
-+#endif
-+
-+#ifndef HAVE_ARCH_BUG_ON
-+#define BUG_ON(condition) do { if (condition) ; } while(0)
-+#endif
-+
-+#ifndef HAVE_ARCH_WARN_ON
-+#define WARN_ON(condition) ({						\
-+	int __ret_warn_on = !!(condition);				\
-+	unlikely(__ret_warn_on);					\
-+})
-+#endif
-+
-+#ifndef WARN
-+#define WARN(condition, format...) ({					\
-+	int __ret_warn_on = !!(condition);				\
-+	unlikely(__ret_warn_on);					\
-+})
-+#endif
-+
-+#define WARN_ON_ONCE(condition) WARN_ON(condition)
-+#define WARN_ONCE(condition, format...) WARN(condition, format)
-+#define WARN_TAINT(condition, taint, format...) WARN(condition, format)
-+#define WARN_TAINT_ONCE(condition, taint, format...) WARN(condition, format)
-+
-+#endif
-+
  /*
-  * WARN_ON_SMP() is for cases that the warning is either
-  * meaningless for !SMP or may even cause failures.
+@@ -138,11 +138,11 @@ extern void warn_slowpath_null(const cha
+ 
+ #else /* !CONFIG_BUG */
+ #ifndef HAVE_ARCH_BUG
+-#define BUG() do {} while(0)
++#define BUG() do {} while (0)
+ #endif
+ 
+ #ifndef HAVE_ARCH_BUG_ON
+-#define BUG_ON(condition) do { if (condition) ; } while(0)
++#define BUG_ON(condition) do { if (condition) ; } while (0)
+ #endif
+ 
+ #ifndef HAVE_ARCH_WARN_ON
 _
 
 Patches currently in -mm which might be from josh@joshtriplett.org are
