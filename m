@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 28 Feb 2014 15:29:50 -0800
-Message-ID: <53111bee.0a/BNJbGwXLmStuU%akpm@linux-foundation.org>
+ audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch added to -mm tree
+Date: Fri, 28 Feb 2014 15:34:44 -0800
+Message-ID: <53111d14.J+Mb6rJ+QdyMU/W7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52410 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52426 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532AbaB1X3v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:29:51 -0500
+	with ESMTP id S1752207AbaB1Xep (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:34:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rgb@redhat.com, eparis@redhat.com, ebiederm@xmission.com
 
-Subject: + mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,n-horiguchi@ah.jp.nec.com
+Subject: + audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch added to -mm tree
+To: ebiederm@xmission.com,eparis@redhat.com,rgb@redhat.com
 From: akpm@linux-foundation.org
-Date: Fri, 28 Feb 2014 15:29:50 -0800
+Date: Fri, 28 Feb 2014 15:34:44 -0800
 
 
 The patch titled
-     Subject: mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2-checkpatch-fixes
+     Subject: audit: use struct net not pid_t to remember the network namespce to reply in
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2-checkpatch-fixes.patch
+     audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,88 +44,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2-checkpatch-fixes
+From: "Eric W. Biederman" <ebiederm@xmission.com>
+Subject: audit: use struct net not pid_t to remember the network namespce to reply in
 
-ERROR: code indent should use tabs where possible
-#101: FILE: include/linux/pagemap.h:342:
-+        return page->index << page_size_order(page);$
+While reading through 3.14-rc1 I found a pretty siginficant mishandling of
+network namespaces in the recent audit changes.
 
-WARNING: please, no spaces at the start of a line
-#101: FILE: include/linux/pagemap.h:342:
-+        return page->index << page_size_order(page);$
+In struct audit_netlink_list and audit_reply add a reference to the
+network namespace of the caller and remove the userspace pid of the
+caller.  This cleanly remembers the callers network namespace, and removes
+a huge class of races and nasty failure modes that can occur when
+attempting to relook up the callers network namespace from a pid_t
+(including the caller's network namespace changing, pid wraparound, and
+the pid simply not being present).
 
-total: 1 errors, 1 warnings, 90 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Richard Guy Briggs <rgb@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/audit.c       |   10 ++++++----
+ kernel/audit.h       |    2 +-
+ kernel/auditfilter.c |    3 ++-
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2-checkpatch-fixes include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2-checkpatch-fixes
-+++ a/include/linux/pagemap.h
-@@ -339,7 +339,7 @@ static inline unsigned int page_size_ord
-  */
- static inline pgoff_t page_pgoff(struct page *page)
- {
--        return page->index << page_size_order(page);
-+	return page->index << page_size_order(page);
- }
+diff -puN kernel/audit.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in kernel/audit.c
+--- a/kernel/audit.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in
++++ a/kernel/audit.c
+@@ -182,7 +182,7 @@ struct audit_buffer {
  
- extern pgoff_t linear_hugepage_index(struct vm_area_struct *vma,
+ struct audit_reply {
+ 	__u32 portid;
+-	pid_t pid;
++	struct net *net;
+ 	struct sk_buff *skb;
+ };
+ 
+@@ -500,7 +500,7 @@ int audit_send_list(void *_dest)
+ {
+ 	struct audit_netlink_list *dest = _dest;
+ 	struct sk_buff *skb;
+-	struct net *net = get_net_ns_by_pid(dest->pid);
++	struct net *net = dest->net;
+ 	struct audit_net *aunet = net_generic(net, audit_net_id);
+ 
+ 	/* wait for parent to finish and send an ACK */
+@@ -510,6 +510,7 @@ int audit_send_list(void *_dest)
+ 	while ((skb = __skb_dequeue(&dest->q)) != NULL)
+ 		netlink_unicast(aunet->nlsk, skb, dest->portid, 0);
+ 
++	put_net(net);
+ 	kfree(dest);
+ 
+ 	return 0;
+@@ -543,7 +544,7 @@ out_kfree_skb:
+ static int audit_send_reply_thread(void *arg)
+ {
+ 	struct audit_reply *reply = (struct audit_reply *)arg;
+-	struct net *net = get_net_ns_by_pid(reply->pid);
++	struct net *net = reply->net;
+ 	struct audit_net *aunet = net_generic(net, audit_net_id);
+ 
+ 	mutex_lock(&audit_cmd_mutex);
+@@ -552,6 +553,7 @@ static int audit_send_reply_thread(void
+ 	/* Ignore failure. It'll only happen if the sender goes away,
+ 	   because our timeout is set to infinite. */
+ 	netlink_unicast(aunet->nlsk , reply->skb, reply->portid, 0);
++	put_net(net);
+ 	kfree(reply);
+ 	return 0;
+ }
+@@ -583,8 +585,8 @@ static void audit_send_reply(__u32 porti
+ 	if (!skb)
+ 		goto out;
+ 
++	reply->net = get_net(current->nsproxy->net_ns);
+ 	reply->portid = portid;
+-	reply->pid = task_pid_vnr(current);
+ 	reply->skb = skb;
+ 
+ 	tsk = kthread_run(audit_send_reply_thread, reply, "audit_send_reply");
+diff -puN kernel/audit.h~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in kernel/audit.h
+--- a/kernel/audit.h~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in
++++ a/kernel/audit.h
+@@ -247,7 +247,7 @@ extern void		    audit_panic(const char
+ 
+ struct audit_netlink_list {
+ 	__u32 portid;
+-	pid_t pid;
++	struct net *net;
+ 	struct sk_buff_head q;
+ };
+ 
+diff -puN kernel/auditfilter.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in kernel/auditfilter.c
+--- a/kernel/auditfilter.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in
++++ a/kernel/auditfilter.c
+@@ -29,6 +29,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/security.h>
++#include <net/net_namespace.h>
+ #include "audit.h"
+ 
+ /*
+@@ -1083,8 +1084,8 @@ int audit_list_rules_send(__u32 portid,
+ 	dest = kmalloc(sizeof(struct audit_netlink_list), GFP_KERNEL);
+ 	if (!dest)
+ 		return -ENOMEM;
++	dest->net = get_net(current->nsproxy->net_ns);
+ 	dest->portid = portid;
+-	dest->pid = task_pid_vnr(current);
+ 	skb_queue_head_init(&dest->q);
+ 
+ 	mutex_lock(&audit_filter_mutex);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2-checkpatch-fixes.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
+audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch
+mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
+exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
+kernel-groupsc-remove-return-value-of-set_groups.patch
 kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
+kernel-audit-fix-non-modular-users-of-module_init-in-core-code.patch
 linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
