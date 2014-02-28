@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + zram-add-lz4-algorithm-backend.patch added to -mm tree
-Date: Fri, 28 Feb 2014 15:52:42 -0800
-Message-ID: <5311214a.wXNUxHF60rLw8Mn2%akpm@linux-foundation.org>
+Subject: + fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+ added to -mm tree
+Date: Fri, 28 Feb 2014 15:56:38 -0800
+Message-ID: <53112236.o1JUpPgKG+kgtzhj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52664 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52683 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752433AbaB1Xwn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:52:43 -0500
+	with ESMTP id S1751787AbaB1X4j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:56:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org, jmarchan@redhat.com, sergey.senozhatsky@gmail.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, fabf@skynet.be
 
-Subject: + zram-add-lz4-algorithm-backend.patch added to -mm tree
-To: sergey.senozhatsky@gmail.com,jmarchan@redhat.com,minchan@kernel.org,ngupta@vflare.org
+Subject: + fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch added to -mm tree
+To: fabf@skynet.be,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Fri, 28 Feb 2014 15:52:42 -0800
+Date: Fri, 28 Feb 2014 15:56:38 -0800
 
 
 The patch titled
-     Subject: zram: add lz4 algorithm backend
+     Subject: fs/affs/dir.c: unlock/brelse dir on failure + code clean-up
 has been added to the -mm tree.  Its filename is
-     zram-add-lz4-algorithm-backend.patch
+     fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-add-lz4-algorithm-backend.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-add-lz4-algorithm-backend.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,199 +44,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: add lz4 algorithm backend
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/affs/dir.c: unlock/brelse dir on failure + code clean-up
 
-Introduce LZ4 compression backend and make it available for selection. 
-LZ4 support is optional and requires user to set ZRAM_LZ4_COMPRESS config
-option.  The default compression backend is LZO.
+0edf977d2ae32b ("[readdir] convert affs") returns directly -EIO without
+unlocking dir inode and releasing dir bh when second affs_bread sequence
+fails.  This patch restores initial behaviour.It also fixes pr_debug and
+affs_error to fit in 80 columns + removes reference to filldir (replaced
+by dir_emit in the commit above).
 
-TEST
-
-(x86_64, core i5, 2 cores + 2 hyperthreading, zram disk size 1G,
-ext4 file system, 3 compression streams)
-
-iozone -t 3 -R -r 16K -s 60M -I +Z
-
-       Test           LZO           LZ4
-----------------------------------------------
-  Initial write   1642744.62    1317005.09
-        Rewrite   2498980.88    1800645.16
-           Read   3957026.38    5877043.75
-        Re-read   3950997.38    5861847.00
-   Reverse Read   2937114.56    5047384.00
-    Stride read   2948163.19    4929587.38
-    Random read   3292692.69    4880793.62
- Mixed workload   1545602.62    3502940.38
-   Random write   2448039.75    1758786.25
-         Pwrite   1670051.03    1338329.69
-          Pread   2530682.00    5097177.62
-         Fwrite   3232085.62    3275942.56
-          Fread   6306880.25    6645271.12
-
-So on my system LZ4 is slower in write-only tests, while it performs
-better in read-only and mixed (reads + writes) tests.
-
-Official LZ4 benchmarks available here http://code.google.com/p/lz4/
-(linux kernel uses revision r90).
-
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Nitin Gupta <ngupta@vflare.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/Kconfig     |   10 ++++++
- drivers/block/zram/Makefile    |    2 +
- drivers/block/zram/zcomp.c     |    6 +++
- drivers/block/zram/zcomp_lz4.c |   47 +++++++++++++++++++++++++++++++
- drivers/block/zram/zcomp_lz4.h |   17 +++++++++++
- 5 files changed, 82 insertions(+)
+ fs/affs/dir.c |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN drivers/block/zram/Kconfig~zram-add-lz4-algorithm-backend drivers/block/zram/Kconfig
---- a/drivers/block/zram/Kconfig~zram-add-lz4-algorithm-backend
-+++ a/drivers/block/zram/Kconfig
-@@ -15,6 +15,16 @@ config ZRAM
+diff -puN fs/affs/dir.c~fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up fs/affs/dir.c
+--- a/fs/affs/dir.c~fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up
++++ a/fs/affs/dir.c
+@@ -52,8 +52,10 @@ affs_readdir(struct file *file, struct d
+ 	int			 hash_pos;
+ 	int			 chain_pos;
+ 	u32			 ino;
++	int			 error = 0;
  
- 	  See zram.txt for more information.
+-	pr_debug("AFFS: readdir(ino=%lu,f_pos=%lx)\n",inode->i_ino,(unsigned long)ctx->pos);
++	pr_debug("AFFS: readdir(ino=%lu,f_pos=%lx)\n",
++		 inode->i_ino, (unsigned long)ctx->pos);
  
-+config ZRAM_LZ4_COMPRESS
-+	bool "Enable LZ4 algorithm support"
-+	depends on ZRAM
-+	select LZ4_COMPRESS
-+	select LZ4_DECOMPRESS
-+	default n
-+	help
-+	  This option enables LZ4 compression algorithm support. Compression
-+	  algorithm can be changed using `comp_algorithm' device attribute.
-+
- config ZRAM_DEBUG
- 	bool "Compressed RAM block device debug support"
- 	depends on ZRAM
-diff -puN drivers/block/zram/Makefile~zram-add-lz4-algorithm-backend drivers/block/zram/Makefile
---- a/drivers/block/zram/Makefile~zram-add-lz4-algorithm-backend
-+++ a/drivers/block/zram/Makefile
-@@ -1,3 +1,5 @@
- zram-y	:=	zcomp_lzo.o zcomp.o zram_drv.o
+ 	if (ctx->pos < 2) {
+ 		file->private_data = (void *)0;
+@@ -72,7 +74,7 @@ affs_readdir(struct file *file, struct d
+ 	}
+ 	dir_bh = affs_bread(sb, inode->i_ino);
+ 	if (!dir_bh)
+-		goto readdir_out;
++		goto out_unlock_dir;
  
-+zram-$(CONFIG_ZRAM_LZ4_COMPRESS) += zcomp_lz4.o
-+
- obj-$(CONFIG_ZRAM)	+=	zram.o
-diff -puN drivers/block/zram/zcomp.c~zram-add-lz4-algorithm-backend drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-add-lz4-algorithm-backend
-+++ a/drivers/block/zram/zcomp.c
-@@ -15,6 +15,9 @@
+ 	/* If the directory hasn't changed since the last call to readdir(),
+ 	 * we can jump directly to where we left off.
+@@ -88,7 +90,8 @@ affs_readdir(struct file *file, struct d
+ 		fh_bh = affs_bread(sb, ino);
+ 		if (!fh_bh) {
+ 			affs_error(sb, "readdir","Cannot read block %d", i);
+-			return -EIO;
++			error = -EIO;
++			goto out_brelse_dir;
+ 		}
+ 		ino = be32_to_cpu(AFFS_TAIL(sb, fh_bh)->hash_chain);
+ 		affs_brelse(fh_bh);
+@@ -107,29 +110,34 @@ inside:
+ 		do {
+ 			fh_bh = affs_bread(sb, ino);
+ 			if (!fh_bh) {
+-				affs_error(sb, "readdir","Cannot read block %d", ino);
++				affs_error(sb, "readdir",
++					   "Cannot read block %d", ino);
+ 				break;
+ 			}
  
- #include "zcomp.h"
- #include "zcomp_lzo.h"
-+#ifdef CONFIG_ZRAM_LZ4_COMPRESS
-+#include "zcomp_lz4.h"
-+#endif
+ 			namelen = min(AFFS_TAIL(sb, fh_bh)->name[0], (u8)30);
+ 			name = AFFS_TAIL(sb, fh_bh)->name + 1;
+-			pr_debug("AFFS: readdir(): filldir(\"%.*s\", ino=%u), hash=%d, f_pos=%x\n",
++			pr_debug("AFFS: readdir(): dir_emit(\"%.*s\", "
++				 "ino=%u), hash=%d, f_pos=%x\n",
+ 				 namelen, name, ino, hash_pos, (u32)ctx->pos);
++
+ 			if (!dir_emit(ctx, name, namelen, ino, DT_UNKNOWN))
+-				goto readdir_done;
++				goto done;
+ 			ctx->pos++;
+ 			ino = be32_to_cpu(AFFS_TAIL(sb, fh_bh)->hash_chain);
+ 			affs_brelse(fh_bh);
+ 			fh_bh = NULL;
+ 		} while (ino);
+ 	}
+-readdir_done:
++done:
+ 	file->f_version = inode->i_version;
+ 	file->private_data = (void *)(long)ino;
++	affs_brelse(fh_bh);
  
- /*
-  * single zcomp_strm backend
-@@ -41,6 +44,9 @@ struct zcomp_strm_multi {
- 
- static struct zcomp_backend *backends[] = {
- 	&zcomp_lzo,
-+#ifdef CONFIG_ZRAM_LZ4_COMPRESS
-+	&zcomp_lz4,
-+#endif
- 	NULL
- };
- 
-diff -puN /dev/null drivers/block/zram/zcomp_lz4.c
---- /dev/null
-+++ a/drivers/block/zram/zcomp_lz4.c
-@@ -0,0 +1,47 @@
-+/*
-+ * Copyright (C) 2014 Sergey Senozhatsky.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
+-readdir_out:
++out_brelse_dir:
+ 	affs_brelse(dir_bh);
+-	affs_brelse(fh_bh);
 +
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/lz4.h>
-+
-+#include "zcomp_lz4.h"
-+
-+static void *zcomp_lz4_create(void)
-+{
-+	return kzalloc(LZ4_MEM_COMPRESS, GFP_KERNEL);
-+}
-+
-+static void zcomp_lz4_destroy(void *private)
-+{
-+	kfree(private);
-+}
-+
-+static int zcomp_lz4_compress(const unsigned char *src, unsigned char *dst,
-+		size_t *dst_len, void *private)
-+{
-+	/* return  : Success if return 0 */
-+	return lz4_compress(src, PAGE_SIZE, dst, dst_len, private);
-+}
-+
-+static int zcomp_lz4_decompress(const unsigned char *src, size_t src_len,
-+		unsigned char *dst)
-+{
-+	size_t dst_len = PAGE_SIZE;
-+	/* return  : Success if return 0 */
-+	return lz4_decompress_unknownoutputsize(src, src_len, dst, &dst_len);
-+}
-+
-+struct zcomp_backend zcomp_lz4 = {
-+	.compress = zcomp_lz4_compress,
-+	.decompress = zcomp_lz4_decompress,
-+	.create = zcomp_lz4_create,
-+	.destroy = zcomp_lz4_destroy,
-+	.name = "lz4",
-+};
-diff -puN /dev/null drivers/block/zram/zcomp_lz4.h
---- /dev/null
-+++ a/drivers/block/zram/zcomp_lz4.h
-@@ -0,0 +1,17 @@
-+/*
-+ * Copyright (C) 2014 Sergey Senozhatsky.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
-+
-+#ifndef _ZCOMP_LZ4_H_
-+#define _ZCOMP_LZ4_H_
-+
-+#include "zcomp.h"
-+
-+extern struct zcomp_backend zcomp_lz4;
-+
-+#endif /* _ZCOMP_LZ4_H_ */
++out_unlock_dir:
+ 	affs_unlock_dir(inode);
+-	return 0;
++	return error;
+ }
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-zram-drop-init_done-struct-zram-member.patch
-zram-do-not-pass-rw-argument-to-__zram_make_request.patch
-zram-remove-good-and-bad-compress-stats.patch
-zram-use-atomic64_t-for-all-zram-stats.patch
-zram-remove-zram-stats-code-duplication.patch
-zram-report-failed-read-and-write-stats.patch
-zram-drop-not-used-table-count-member.patch
-zram-move-zram-size-warning-to-documentation.patch
-zram-document-failed_reads-failed_writes-stats.patch
-zram-delete-zram_init_device.patch
-zram-introduce-compressing-backend-abstraction.patch
-zram-use-zcomp-compressing-backends.patch
-zram-factor-out-single-stream-compression.patch
-zram-add-multi-stream-functionality.patch
-zram-add-set_max_streams-knob.patch
-zram-make-compression-algorithm-selection-possible.patch
-zram-add-lz4-algorithm-backend.patch
+fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+fs-udf-superc-add-__init-to-init_inodecache.patch
+sys_sysfs-add-config_sysfs_syscall.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
+fs-minix-inodec-add-__init-to-init_inodecache.patch
+befs-replace-kmalloc-memset-0-by-kzalloc.patch
+fs-befs-linuxvfsc-add-__init-to-befs_init_inodecache.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+documentation-filesystems-ntfstxt-remove-changelog-reference.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+affs-add-__init-to-init_inodecache.patch
+fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+linux-next.patch
 
