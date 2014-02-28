@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + zram-make-compression-algorithm-selection-possible.patch added
- to -mm tree
-Date: Fri, 28 Feb 2014 15:52:41 -0800
-Message-ID: <53112149.BOR473fBtdmCrt2i%akpm@linux-foundation.org>
+Subject: + zram-add-lz4-algorithm-backend.patch added to -mm tree
+Date: Fri, 28 Feb 2014 15:52:42 -0800
+Message-ID: <5311214a.wXNUxHF60rLw8Mn2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52658 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52664 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752537AbaB1Xwm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:52:42 -0500
+	with ESMTP id S1752433AbaB1Xwn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:52:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org, jmarchan@redhat.com, sergey.senozhatsky@gmail.com
 
-Subject: + zram-make-compression-algorithm-selection-possible.patch added to -mm tree
+Subject: + zram-add-lz4-algorithm-backend.patch added to -mm tree
 To: sergey.senozhatsky@gmail.com,jmarchan@redhat.com,minchan@kernel.org,ngupta@vflare.org
 From: akpm@linux-foundation.org
-Date: Fri, 28 Feb 2014 15:52:41 -0800
+Date: Fri, 28 Feb 2014 15:52:42 -0800
 
 
 The patch titled
-     Subject: zram: make compression algorithm selection possible
+     Subject: zram: add lz4 algorithm backend
 has been added to the -mm tree.  Its filename is
-     zram-make-compression-algorithm-selection-possible.patch
+     zram-add-lz4-algorithm-backend.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-make-compression-algorithm-selection-possible.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-add-lz4-algorithm-backend.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-make-compression-algorithm-selection-possible.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-add-lz4-algorithm-backend.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,17 +44,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: make compression algorithm selection possible
+Subject: zram: add lz4 algorithm backend
 
-Add and document `comp_algorithm' device attribute.  This attribute allows
-to show supported compression and currently selected compression
-algorithms:
+Introduce LZ4 compression backend and make it available for selection. 
+LZ4 support is optional and requires user to set ZRAM_LZ4_COMPRESS config
+option.  The default compression backend is LZO.
 
-	cat /sys/block/zram0/comp_algorithm
-	[lzo] lz4
+TEST
 
-and change selected compression algorithm:
-	echo lzo > /sys/block/zram0/comp_algorithm
+(x86_64, core i5, 2 cores + 2 hyperthreading, zram disk size 1G,
+ext4 file system, 3 compression streams)
+
+iozone -t 3 -R -r 16K -s 60M -I +Z
+
+       Test           LZO           LZ4
+----------------------------------------------
+  Initial write   1642744.62    1317005.09
+        Rewrite   2498980.88    1800645.16
+           Read   3957026.38    5877043.75
+        Re-read   3950997.38    5861847.00
+   Reverse Read   2937114.56    5047384.00
+    Stride read   2948163.19    4929587.38
+    Random read   3292692.69    4880793.62
+ Mixed workload   1545602.62    3502940.38
+   Random write   2448039.75    1758786.25
+         Pwrite   1670051.03    1338329.69
+          Pread   2530682.00    5097177.62
+         Fwrite   3232085.62    3275942.56
+          Fread   6306880.25    6645271.12
+
+So on my system LZ4 is slower in write-only tests, while it performs
+better in read-only and mixed (reads + writes) tests.
+
+Official LZ4 benchmarks available here http://code.google.com/p/lz4/
+(linux kernel uses revision r90).
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -64,240 +86,137 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    8 ++++
- Documentation/blockdev/zram.txt            |   24 +++++++++---
- drivers/block/zram/zcomp.c                 |   32 ++++++++++++++--
- drivers/block/zram/zcomp.h                 |    2 +
- drivers/block/zram/zram_drv.c              |   37 +++++++++++++++++--
- drivers/block/zram/zram_drv.h              |    1 
- 6 files changed, 93 insertions(+), 11 deletions(-)
+ drivers/block/zram/Kconfig     |   10 ++++++
+ drivers/block/zram/Makefile    |    2 +
+ drivers/block/zram/zcomp.c     |    6 +++
+ drivers/block/zram/zcomp_lz4.c |   47 +++++++++++++++++++++++++++++++
+ drivers/block/zram/zcomp_lz4.h |   17 +++++++++++
+ 5 files changed, 82 insertions(+)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-make-compression-algorithm-selection-possible Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-make-compression-algorithm-selection-possible
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -65,6 +65,14 @@ Description:
- 		number of backend's zcomp_strm compression streams (number of
- 		concurrent compress operations).
+diff -puN drivers/block/zram/Kconfig~zram-add-lz4-algorithm-backend drivers/block/zram/Kconfig
+--- a/drivers/block/zram/Kconfig~zram-add-lz4-algorithm-backend
++++ a/drivers/block/zram/Kconfig
+@@ -15,6 +15,16 @@ config ZRAM
  
-+What:		/sys/block/zram<id>/comp_algorithm
-+Date:		February 2014
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The comp_algorithm file is read-write and lets to show
-+		available and selected compression algorithms, change
-+		compression algorithm selection.
+ 	  See zram.txt for more information.
+ 
++config ZRAM_LZ4_COMPRESS
++	bool "Enable LZ4 algorithm support"
++	depends on ZRAM
++	select LZ4_COMPRESS
++	select LZ4_DECOMPRESS
++	default n
++	help
++	  This option enables LZ4 compression algorithm support. Compression
++	  algorithm can be changed using `comp_algorithm' device attribute.
 +
- What:		/sys/block/zram<id>/notify_free
- Date:		August 2010
- Contact:	Nitin Gupta <ngupta@vflare.org>
-diff -puN Documentation/blockdev/zram.txt~zram-make-compression-algorithm-selection-possible Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-make-compression-algorithm-selection-possible
-+++ a/Documentation/blockdev/zram.txt
-@@ -42,7 +42,21 @@ will not take any effect, because single
- as a special case and does not support dynamic max_comp_streams. Only multi
- stream backend supports dynamic max_comp_streams adjustment.
+ config ZRAM_DEBUG
+ 	bool "Compressed RAM block device debug support"
+ 	depends on ZRAM
+diff -puN drivers/block/zram/Makefile~zram-add-lz4-algorithm-backend drivers/block/zram/Makefile
+--- a/drivers/block/zram/Makefile~zram-add-lz4-algorithm-backend
++++ a/drivers/block/zram/Makefile
+@@ -1,3 +1,5 @@
+ zram-y	:=	zcomp_lzo.o zcomp.o zram_drv.o
  
--3) Set Disksize
-+3) Select compression algorithm
-+	Using comp_algorithm device attribute one can see available and
-+	currently selected (shown in square brackets) compression algortithms,
-+	change selected compression algorithm (once the device is initialised
-+	there is no way to change compression algorithm).
++zram-$(CONFIG_ZRAM_LZ4_COMPRESS) += zcomp_lz4.o
 +
-+	Examples:
-+	#show supported compression algorithms
-+	cat /sys/block/zram0/comp_algorithm
-+	lzo [lz4]
-+
-+	#select lzo compression algorithm
-+	echo lzo > /sys/block/zram0/comp_algorithm
-+
-+4) Set Disksize
-         Set disk size by writing the value to sysfs node 'disksize'.
-         The value can be either in bytes or you can use mem suffixes.
-         Examples:
-@@ -59,14 +73,14 @@ There is little point creating a zram of
- since we expect a 2:1 compression ratio. Note that zram uses about 0.1% of the
- size of the disk when not in use so a huge zram is wasteful.
- 
--4) Activate:
-+5) Activate:
- 	mkswap /dev/zram0
- 	swapon /dev/zram0
- 
- 	mkfs.ext4 /dev/zram1
- 	mount /dev/zram1 /tmp
- 
--5) Stats:
-+6) Stats:
- 	Per-device statistics are exported as various nodes under
- 	/sys/block/zram<id>/
- 		disksize
-@@ -81,11 +95,11 @@ size of the disk when not in use so a hu
- 		compr_data_size
- 		mem_used_total
- 
--6) Deactivate:
-+7) Deactivate:
- 	swapoff /dev/zram0
- 	umount /dev/zram1
- 
--7) Reset:
-+8) Reset:
- 	Write any positive value to 'reset' sysfs node
- 	echo 1 > /sys/block/zram0/reset
- 	echo 1 > /sys/block/zram1/reset
-diff -puN drivers/block/zram/zcomp.c~zram-make-compression-algorithm-selection-possible drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-make-compression-algorithm-selection-possible
+ obj-$(CONFIG_ZRAM)	+=	zram.o
+diff -puN drivers/block/zram/zcomp.c~zram-add-lz4-algorithm-backend drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-add-lz4-algorithm-backend
 +++ a/drivers/block/zram/zcomp.c
-@@ -39,11 +39,20 @@ struct zcomp_strm_multi {
- 	wait_queue_head_t strm_wait;
+@@ -15,6 +15,9 @@
+ 
+ #include "zcomp.h"
+ #include "zcomp_lzo.h"
++#ifdef CONFIG_ZRAM_LZ4_COMPRESS
++#include "zcomp_lz4.h"
++#endif
+ 
+ /*
+  * single zcomp_strm backend
+@@ -41,6 +44,9 @@ struct zcomp_strm_multi {
+ 
+ static struct zcomp_backend *backends[] = {
+ 	&zcomp_lzo,
++#ifdef CONFIG_ZRAM_LZ4_COMPRESS
++	&zcomp_lz4,
++#endif
+ 	NULL
  };
  
-+static struct zcomp_backend *backends[] = {
-+	&zcomp_lzo,
-+	NULL
+diff -puN /dev/null drivers/block/zram/zcomp_lz4.c
+--- /dev/null
++++ a/drivers/block/zram/zcomp_lz4.c
+@@ -0,0 +1,47 @@
++/*
++ * Copyright (C) 2014 Sergey Senozhatsky.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/lz4.h>
++
++#include "zcomp_lz4.h"
++
++static void *zcomp_lz4_create(void)
++{
++	return kzalloc(LZ4_MEM_COMPRESS, GFP_KERNEL);
++}
++
++static void zcomp_lz4_destroy(void *private)
++{
++	kfree(private);
++}
++
++static int zcomp_lz4_compress(const unsigned char *src, unsigned char *dst,
++		size_t *dst_len, void *private)
++{
++	/* return  : Success if return 0 */
++	return lz4_compress(src, PAGE_SIZE, dst, dst_len, private);
++}
++
++static int zcomp_lz4_decompress(const unsigned char *src, size_t src_len,
++		unsigned char *dst)
++{
++	size_t dst_len = PAGE_SIZE;
++	/* return  : Success if return 0 */
++	return lz4_decompress_unknownoutputsize(src, src_len, dst, &dst_len);
++}
++
++struct zcomp_backend zcomp_lz4 = {
++	.compress = zcomp_lz4_compress,
++	.decompress = zcomp_lz4_decompress,
++	.create = zcomp_lz4_create,
++	.destroy = zcomp_lz4_destroy,
++	.name = "lz4",
 +};
+diff -puN /dev/null drivers/block/zram/zcomp_lz4.h
+--- /dev/null
++++ a/drivers/block/zram/zcomp_lz4.h
+@@ -0,0 +1,17 @@
++/*
++ * Copyright (C) 2014 Sergey Senozhatsky.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
++ */
 +
- static struct zcomp_backend *find_backend(const char *compress)
- {
--	if (strncmp(compress, "lzo", 3) == 0)
--		return &zcomp_lzo;
--	return NULL;
-+	int i = 0;
-+	while (backends[i]) {
-+		if (sysfs_streq(compress, backends[i]->name))
-+			break;
-+		i++;
-+	}
-+	return backends[i];
- }
- 
- static void zcomp_strm_free(struct zcomp *comp, struct zcomp_strm *zstrm)
-@@ -251,6 +260,23 @@ static int zcomp_strm_single_create(stru
- 	return 0;
- }
- 
-+/* show available compressors */
-+ssize_t zcomp_available_show(const char *comp, char *buf)
-+{
-+	ssize_t sz = 0;
-+	int i = 0;
++#ifndef _ZCOMP_LZ4_H_
++#define _ZCOMP_LZ4_H_
 +
-+	while (backends[i]) {
-+		if (sysfs_streq(comp, backends[i]->name))
-+			sz += sprintf(buf + sz, "[%s] ", backends[i]->name);
-+		else
-+			sz += sprintf(buf + sz, "%s ", backends[i]->name);
-+		i++;
-+	}
-+	sz += sprintf(buf + sz, "\n");
-+	return sz;
-+}
++#include "zcomp.h"
 +
- int zcomp_set_max_streams(struct zcomp *comp, int num_strm)
- {
- 	return comp->set_max_streams(comp, num_strm);
-diff -puN drivers/block/zram/zcomp.h~zram-make-compression-algorithm-selection-possible drivers/block/zram/zcomp.h
---- a/drivers/block/zram/zcomp.h~zram-make-compression-algorithm-selection-possible
-+++ a/drivers/block/zram/zcomp.h
-@@ -50,6 +50,8 @@ struct zcomp {
- 	void (*destroy)(struct zcomp *comp);
- };
- 
-+ssize_t zcomp_available_show(const char *comp, char *buf);
++extern struct zcomp_backend zcomp_lz4;
 +
- struct zcomp *zcomp_create(const char *comp, int max_strm);
- void zcomp_destroy(struct zcomp *comp);
- 
-diff -puN drivers/block/zram/zram_drv.c~zram-make-compression-algorithm-selection-possible drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-make-compression-algorithm-selection-possible
-+++ a/drivers/block/zram/zram_drv.c
-@@ -141,6 +141,34 @@ static ssize_t max_comp_streams_store(st
- 	return len;
- }
- 
-+static ssize_t comp_algorithm_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	size_t sz;
-+	struct zram *zram = dev_to_zram(dev);
-+
-+	down_read(&zram->init_lock);
-+	sz = zcomp_available_show(zram->compressor, buf);
-+	up_read(&zram->init_lock);
-+
-+	return sz;
-+}
-+
-+static ssize_t comp_algorithm_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	struct zram *zram = dev_to_zram(dev);
-+	down_write(&zram->init_lock);
-+	if (init_done(zram)) {
-+		up_write(&zram->init_lock);
-+		pr_info("Can't change algorithm for initialized device\n");
-+		return -EBUSY;
-+	}
-+	strlcpy(zram->compressor, buf, sizeof(zram->compressor));
-+	up_write(&zram->init_lock);
-+	return len;
-+}
-+
- /* flag operations needs meta->tb_lock */
- static int zram_test_flag(struct zram_meta *meta, u32 index,
- 			enum zram_pageflags flag)
-@@ -565,11 +593,11 @@ static ssize_t disksize_store(struct dev
- 		return -EBUSY;
- 	}
- 
--	zram->comp = zcomp_create(default_compressor, zram->max_comp_streams);
-+	zram->comp = zcomp_create(zram->compressor, zram->max_comp_streams);
- 	if (!zram->comp) {
- 		up_write(&zram->init_lock);
- 		pr_info("Cannot initialise %s compressing backend\n",
--				default_compressor);
-+				zram->compressor);
- 		return -EINVAL;
- 	}
- 
-@@ -730,6 +758,8 @@ static DEVICE_ATTR(orig_data_size, S_IRU
- static DEVICE_ATTR(mem_used_total, S_IRUGO, mem_used_total_show, NULL);
- static DEVICE_ATTR(max_comp_streams, S_IRUGO | S_IWUSR,
- 		max_comp_streams_show, max_comp_streams_store);
-+static DEVICE_ATTR(comp_algorithm, S_IRUGO | S_IWUSR,
-+		comp_algorithm_show, comp_algorithm_store);
- 
- ZRAM_ATTR_RO(num_reads);
- ZRAM_ATTR_RO(num_writes);
-@@ -755,6 +785,7 @@ static struct attribute *zram_disk_attrs
- 	&dev_attr_compr_data_size.attr,
- 	&dev_attr_mem_used_total.attr,
- 	&dev_attr_max_comp_streams.attr,
-+	&dev_attr_comp_algorithm.attr,
- 	NULL,
- };
- 
-@@ -815,7 +846,7 @@ static int create_device(struct zram *zr
- 		pr_warn("Error creating sysfs group");
- 		goto out_free_disk;
- 	}
--
-+	strlcpy(zram->compressor, default_compressor, sizeof(zram->compressor));
- 	zram->meta = NULL;
- 	zram->max_comp_streams = 1;
- 	return 0;
-diff -puN drivers/block/zram/zram_drv.h~zram-make-compression-algorithm-selection-possible drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-make-compression-algorithm-selection-possible
-+++ a/drivers/block/zram/zram_drv.h
-@@ -101,5 +101,6 @@ struct zram {
- 	u64 disksize;	/* bytes */
- 	int max_comp_streams;
- 	struct zram_stats stats;
-+	char compressor[10];
- };
- #endif
++#endif /* _ZCOMP_LZ4_H_ */
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
