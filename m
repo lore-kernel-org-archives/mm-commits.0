@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+Subject: + bug-when-config_bug-simplify-warn_on_once-and-family.patch
  added to -mm tree
-Date: Fri, 28 Feb 2014 14:00:25 -0800
-Message-ID: <531106f9.oumnU5v1zbGWBdYe%akpm@linux-foundation.org>
+Date: Fri, 28 Feb 2014 15:04:24 -0800
+Message-ID: <531115f8.GBzj0Wi5BLyqAQVL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51821 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52229 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbaB1WA0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 17:00:26 -0500
+	with ESMTP id S1751184AbaB1XEZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:04:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, matthew.r.wilcox@intel.com, lliubbo@gmail.com, kirill.shutemov@linux.intel.com, dave.hansen@linux.intel.com, ak@linux.intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, arnd@arndb.de, josh@joshtriplett.org
 
-Subject: + mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,ak@linux.intel.com,dave.hansen@linux.intel.com,kirill.shutemov@linux.intel.com,lliubbo@gmail.com,matthew.r.wilcox@intel.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,sasha.levin@oracle.com
+Subject: + bug-when-config_bug-simplify-warn_on_once-and-family.patch added to -mm tree
+To: josh@joshtriplett.org,arnd@arndb.de
 From: akpm@linux-foundation.org
-Date: Fri, 28 Feb 2014 14:00:25 -0800
+Date: Fri, 28 Feb 2014 15:04:24 -0800
 
 
 The patch titled
-     Subject: mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix
+     Subject: bug: when !CONFIG_BUG, simplify WARN_ON_ONCE and family
 has been added to the -mm tree.  Its filename is
-     mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+     bug-when-config_bug-simplify-warn_on_once-and-family.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bug-when-config_bug-simplify-warn_on_once-and-family.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bug-when-config_bug-simplify-warn_on_once-and-family.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,81 +44,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: bug: when !CONFIG_BUG, simplify WARN_ON_ONCE and family
 
-add comment which may not be true :(
+When !CONFIG_BUG, WARN_ON and family become simple passthroughs of their
+condition argument; however, WARN_ON_ONCE and family still have conditions
+and a boolean to detect one-time invocation, even though the warning
+they'd emit doesn't exist.  Make the existing definitions conditional on
+CONFIG_BUG, and add definitions for !CONFIG_BUG that map to the
+passthrough versions of WARN and WARN_ON.
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Bob Liu <lliubbo@gmail.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+This saves 4.4k on a minimized configuration (smaller than allnoconfig),
+and 20.6k with defconfig plus CONFIG_BUG=n.
+
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/asm-generic/bug.h |   57 ++++++++++++++++++------------------
+ 1 file changed, 30 insertions(+), 27 deletions(-)
 
-diff -puN mm/memory.c~mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix mm/memory.c
---- a/mm/memory.c~mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix
-+++ a/mm/memory.c
-@@ -3476,6 +3476,12 @@ set_pte:
+diff -puN include/asm-generic/bug.h~bug-when-config_bug-simplify-warn_on_once-and-family include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~bug-when-config_bug-simplify-warn_on_once-and-family
++++ a/include/asm-generic/bug.h
+@@ -106,33 +106,6 @@ extern void warn_slowpath_null(const cha
+ 	unlikely(__ret_warn_on);					\
+ })
  
- 	if (set_page_dirty(fault_page))
- 		dirtied = 1;
-+	/*
-+	 * Take a local copy of the address_space - page.mapping may be zeroed
-+	 * by truncate after unlock_page().   The address_space itself remains
-+	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
-+	 * release semantics to prevent the compiler from undoing this copying.
-+	 */
- 	mapping = fault_page->mapping;
- 	unlock_page(fault_page);
- 	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
+-#else /* !CONFIG_BUG */
+-#ifndef HAVE_ARCH_BUG
+-#define BUG() do {} while(0)
+-#endif
+-
+-#ifndef HAVE_ARCH_BUG_ON
+-#define BUG_ON(condition) do { if (condition) ; } while(0)
+-#endif
+-
+-#ifndef HAVE_ARCH_WARN_ON
+-#define WARN_ON(condition) ({						\
+-	int __ret_warn_on = !!(condition);				\
+-	unlikely(__ret_warn_on);					\
+-})
+-#endif
+-
+-#ifndef WARN
+-#define WARN(condition, format...) ({					\
+-	int __ret_warn_on = !!(condition);				\
+-	unlikely(__ret_warn_on);					\
+-})
+-#endif
+-
+-#define WARN_TAINT(condition, taint, format...) WARN_ON(condition)
+-
+-#endif
+-
+ #define WARN_ON_ONCE(condition)	({				\
+ 	static bool __section(.data.unlikely) __warned;		\
+ 	int __ret_warn_once = !!(condition);			\
+@@ -163,6 +136,36 @@ extern void warn_slowpath_null(const cha
+ 	unlikely(__ret_warn_once);				\
+ })
+ 
++#else /* !CONFIG_BUG */
++#ifndef HAVE_ARCH_BUG
++#define BUG() do {} while(0)
++#endif
++
++#ifndef HAVE_ARCH_BUG_ON
++#define BUG_ON(condition) do { if (condition) ; } while(0)
++#endif
++
++#ifndef HAVE_ARCH_WARN_ON
++#define WARN_ON(condition) ({						\
++	int __ret_warn_on = !!(condition);				\
++	unlikely(__ret_warn_on);					\
++})
++#endif
++
++#ifndef WARN
++#define WARN(condition, format...) ({					\
++	int __ret_warn_on = !!(condition);				\
++	unlikely(__ret_warn_on);					\
++})
++#endif
++
++#define WARN_ON_ONCE(condition) WARN_ON(condition)
++#define WARN_ONCE(condition, format...) WARN(condition, format)
++#define WARN_TAINT(condition, taint, format...) WARN(condition, format)
++#define WARN_TAINT_ONCE(condition, taint, format...) WARN(condition, format)
++
++#endif
++
+ /*
+  * WARN_ON_SMP() is for cases that the warning is either
+  * meaningless for !SMP or may even cause failures.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-compactionc-mark-function-as-static.patch
+mm-memoryc-mark-functions-as-static.patch
+mm-mmapc-mark-function-as-static.patch
+mm-process_vm_accessc-mark-function-as-static.patch
 mm-process_vm_accessc-mark-function-as-static-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+mm-page_cgroupc-mark-functions-as-static.patch
+mm-nobootmemc-mark-function-as-static.patch
+include-linux-mmh-remove-ifdef-condition.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype.patch
+fs-kernel-permit-disabling-the-uselib-syscall.patch
+fs-kernel-permit-disabling-the-uselib-syscall-v2.patch
+submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
+submittingpatches-add-recommendation-for-mailing-list-references.patch
+submittingpatches-document-the-use-of-git.patch
+lglock-map-to-spinlock-when-config_smp.patch
+lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
+lib-decompress_inflatec-include-appropriate-header-file.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+fs-reiserfs-move-prototype-declaration-to-header-file.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
 include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
+kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
+bug-when-config_bug-simplify-warn_on_once-and-family.patch
+include-asm-generic-bugh-style-fix-s-while0-while-0.patch
+bug-when-config_bug-make-warn-call-no_printk-to-check-format-and-args.patch
+bug-use-a-common-definition-of-bug_on-regardless-of-config_bug.patch
 linux-next.patch
-linux-next-rejects.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
