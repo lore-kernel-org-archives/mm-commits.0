@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
- added to -mm tree
-Date: Fri, 28 Feb 2014 15:56:38 -0800
-Message-ID: <53112236.o1JUpPgKG+kgtzhj%akpm@linux-foundation.org>
+Subject: +
+ mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch added
+ to -mm tree
+Date: Fri, 28 Feb 2014 15:58:59 -0800
+Message-ID: <531122c3.GAMfxvyAxxFGrA0R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52683 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751787AbaB1X4j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:56:39 -0500
+	with ESMTP id S1751787AbaB1X7A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 18:59:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, fabf@skynet.be
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, torvalds@linux-foundation.org, riel@redhat.com, quning@gmail.com, mgorman@suse.de, matthew.r.wilcox@intel.com, david@fromorbit.com, dave.hansen@linux.intel.com, ak@linux.intel.com, kirill.shutemov@linux.intel.com
 
-Subject: + fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch added to -mm tree
-To: fabf@skynet.be,viro@zeniv.linux.org.uk
+Subject: + mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,dave.hansen@linux.intel.com,david@fromorbit.com,matthew.r.wilcox@intel.com,mgorman@suse.de,quning@gmail.com,riel@redhat.com,torvalds@linux-foundation.org,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Fri, 28 Feb 2014 15:56:38 -0800
+Date: Fri, 28 Feb 2014 15:58:59 -0800
 
 
 The patch titled
-     Subject: fs/affs/dir.c: unlock/brelse dir on failure + code clean-up
+     Subject: mm: cleanup size checks in filemap_fault() and filemap_map_pages()
 has been added to the -mm tree.  Its filename is
-     fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+     mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,118 +45,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/dir.c: unlock/brelse dir on failure + code clean-up
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: cleanup size checks in filemap_fault() and filemap_map_pages()
 
-0edf977d2ae32b ("[readdir] convert affs") returns directly -EIO without
-unlocking dir inode and releasing dir bh when second affs_bread sequence
-fails.  This patch restores initial behaviour.It also fixes pr_debug and
-affs_error to fit in 80 columns + removes reference to filldir (replaced
-by dir_emit in the commit above).
+Minor cleanups:
+ - 'size' variable is now in bytes, not pages;
+ - use round_up(): it should be easier to read.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Ning Qu <quning@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/dir.c |   28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ mm/filemap.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/affs/dir.c~fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up fs/affs/dir.c
---- a/fs/affs/dir.c~fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up
-+++ a/fs/affs/dir.c
-@@ -52,8 +52,10 @@ affs_readdir(struct file *file, struct d
- 	int			 hash_pos;
- 	int			 chain_pos;
- 	u32			 ino;
-+	int			 error = 0;
+diff -puN mm/filemap.c~mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages mm/filemap.c
+--- a/mm/filemap.c~mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages
++++ a/mm/filemap.c
+@@ -1950,11 +1950,11 @@ int filemap_fault(struct vm_area_struct
+ 	struct inode *inode = mapping->host;
+ 	pgoff_t offset = vmf->pgoff;
+ 	struct page *page;
+-	pgoff_t size;
++	loff_t size;
+ 	int ret = 0;
  
--	pr_debug("AFFS: readdir(ino=%lu,f_pos=%lx)\n",inode->i_ino,(unsigned long)ctx->pos);
-+	pr_debug("AFFS: readdir(ino=%lu,f_pos=%lx)\n",
-+		 inode->i_ino, (unsigned long)ctx->pos);
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (offset >= size)
++	size = round_up(i_size_read(inode), PAGE_CACHE_SIZE);
++	if (offset >= size >> PAGE_CACHE_SHIFT)
+ 		return VM_FAULT_SIGBUS;
  
- 	if (ctx->pos < 2) {
- 		file->private_data = (void *)0;
-@@ -72,7 +74,7 @@ affs_readdir(struct file *file, struct d
- 	}
- 	dir_bh = affs_bread(sb, inode->i_ino);
- 	if (!dir_bh)
--		goto readdir_out;
-+		goto out_unlock_dir;
+ 	/*
+@@ -2003,8 +2003,8 @@ retry_find:
+ 	 * Found the page and have a reference on it.
+ 	 * We must recheck i_size under page lock.
+ 	 */
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (unlikely(offset >= size)) {
++	size = round_up(i_size_read(inode), PAGE_CACHE_SIZE);
++	if (unlikely(offset >= size >> PAGE_CACHE_SHIFT)) {
+ 		unlock_page(page);
+ 		page_cache_release(page);
+ 		return VM_FAULT_SIGBUS;
+@@ -2106,8 +2106,8 @@ repeat:
+ 		if (page->mapping != mapping || !PageUptodate(page))
+ 			goto unlock;
  
- 	/* If the directory hasn't changed since the last call to readdir(),
- 	 * we can jump directly to where we left off.
-@@ -88,7 +90,8 @@ affs_readdir(struct file *file, struct d
- 		fh_bh = affs_bread(sb, ino);
- 		if (!fh_bh) {
- 			affs_error(sb, "readdir","Cannot read block %d", i);
--			return -EIO;
-+			error = -EIO;
-+			goto out_brelse_dir;
- 		}
- 		ino = be32_to_cpu(AFFS_TAIL(sb, fh_bh)->hash_chain);
- 		affs_brelse(fh_bh);
-@@ -107,29 +110,34 @@ inside:
- 		do {
- 			fh_bh = affs_bread(sb, ino);
- 			if (!fh_bh) {
--				affs_error(sb, "readdir","Cannot read block %d", ino);
-+				affs_error(sb, "readdir",
-+					   "Cannot read block %d", ino);
- 				break;
- 			}
+-		size = i_size_read(mapping->host) + PAGE_CACHE_SIZE - 1;
+-		if (page->index >= size	>> PAGE_CACHE_SHIFT)
++		size = round_up(i_size_read(mapping->host), PAGE_CACHE_SIZE);
++		if (page->index >= size >> PAGE_CACHE_SHIFT)
+ 			goto unlock;
  
- 			namelen = min(AFFS_TAIL(sb, fh_bh)->name[0], (u8)30);
- 			name = AFFS_TAIL(sb, fh_bh)->name + 1;
--			pr_debug("AFFS: readdir(): filldir(\"%.*s\", ino=%u), hash=%d, f_pos=%x\n",
-+			pr_debug("AFFS: readdir(): dir_emit(\"%.*s\", "
-+				 "ino=%u), hash=%d, f_pos=%x\n",
- 				 namelen, name, ino, hash_pos, (u32)ctx->pos);
-+
- 			if (!dir_emit(ctx, name, namelen, ino, DT_UNKNOWN))
--				goto readdir_done;
-+				goto done;
- 			ctx->pos++;
- 			ino = be32_to_cpu(AFFS_TAIL(sb, fh_bh)->hash_chain);
- 			affs_brelse(fh_bh);
- 			fh_bh = NULL;
- 		} while (ino);
- 	}
--readdir_done:
-+done:
- 	file->f_version = inode->i_version;
- 	file->private_data = (void *)(long)ino;
-+	affs_brelse(fh_bh);
- 
--readdir_out:
-+out_brelse_dir:
- 	affs_brelse(dir_bh);
--	affs_brelse(fh_bh);
-+
-+out_unlock_dir:
- 	affs_unlock_dir(inode);
--	return 0;
-+	return error;
- }
+ 		pte = vmf->pte + page->index - vmf->pgoff;
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
-fs-udf-superc-add-__init-to-init_inodecache.patch
-sys_sysfs-add-config_sysfs_syscall.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-fs-efs-superc-add-__init-to-init_inodecache.patch
-fs-minix-inodec-add-__init-to-init_inodecache.patch
-befs-replace-kmalloc-memset-0-by-kzalloc.patch
-fs-befs-linuxvfsc-add-__init-to-befs_init_inodecache.patch
-fs-ufs-superc-add-__init-to-init_inodecache.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-documentation-filesystems-ntfstxt-remove-changelog-reference.patch
-fs-adfs-superc-add-__init-to-init_inodecache.patch
-affs-add-__init-to-init_inodecache.patch
-fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
-kernel-panicc-display-reason-at-end-pr_emerg.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-linux-next.patch
+origin.patch
+mm-close-pagetail-race.patch
+mm-page_alloc-make-first_page-visible-before-pagetail.patch
+mm-include-vm_mixedmap-flag-in-the-vm_special-list-to-avoid-munlocking.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+madvise-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-rename-__do_fault-do_fault.patch
+mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
+mm-introduce-do_read_fault.patch
+mm-introduce-do_cow_fault.patch
+mm-introduce-do_shared_fault-and-drop-do_fault.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
+mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
+mm-consolidate-code-to-setup-pte.patch
+mm-thp-drop-do_huge_pmd_wp_zero_page_fallback.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch
+mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
+exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
+mm-disable-split-page-table-lock-for-mmu.patch
+mm-introduce-vm_ops-map_pages.patch
+mm-implement-map_pages-for-page-cache.patch
+mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch
 
