@@ -1,157 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch removed from -mm
- tree
-Date: Fri, 28 Feb 2014 16:04:05 -0800
-Message-ID: <531123f5.h/gUISj82Oj6Xqpf%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch
+ added to -mm tree
+Date: Fri, 28 Feb 2014 16:06:14 -0800
+Message-ID: <53112476.sJE1CRCVi9UlJhrS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52713 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52720 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752323AbaCAAEG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 19:04:06 -0500
+	with ESMTP id S1752234AbaCAAGP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 19:06:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mgorman@suse.de, jstancek@redhat.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mgorman@suse.de, hannes@cmpxchg.org, jstancek@redhat.com
 
-Subject: [to-be-updated] mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch removed from -mm tree
-To: hannes@cmpxchg.org,jstancek@redhat.com,mgorman@suse.de,riel@redhat.com,stable@kernel.org,mm-commits@vger.kernel.org
+Subject: + mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch added to -mm tree
+To: jstancek@redhat.com,hannes@cmpxchg.org,mgorman@suse.de,riel@redhat.com,stable@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 28 Feb 2014 16:04:05 -0800
+Date: Fri, 28 Feb 2014 16:06:14 -0800
 
 
 The patch titled
-     Subject: mm: page_alloc: reset aging cycle with GFP_THISNODE
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-reset-aging-cycle-with-gfp_thisnode.patch
+     
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: reset aging cycle with GFP_THISNODE
+
+Subject: mm: page_alloc: exempt GFP_THISNODE allocations from zone fairness
 
 Jan Stancek reports manual page migration encountering allocation failures
 after some pages when there is still plenty of memory free, and bisected
 the problem down to 81c0a2bb515f ("mm: page_alloc: fair zone allocator
 policy").
 
-The problem is that page migration uses GFP_THISNODE and this makes the
-page allocator bail out before entering the slowpath entirely, without
-resetting the zone round-robin batches.  A string of such allocations will
-fail long before the node's free memory is exhausted.
+The problem is that GFP_THISNODE obeys the zone fairness allocation
+batches on one hand, but doesn't reset them and wake kswapd on the other
+hand.  After a few of those allocations, the batches are exhausted and the
+allocations fail.
 
-GFP_THISNODE is a special flag for callsites that implement their own
-clever node fallback and so no direct reclaim should be invoked.  But if
-the allocations fail, the fair allocation batches should still be reset,
-and if the node is full, it should be aged in the background.
+Fixing this means either having GFP_THISNODE wake up kswapd, or
+GFP_THISNODE not participating in zone fairness at all.  The latter seems
+safer as an acute bugfix, we can clean up later.
 
-Make GFP_THISNODE wake up kswapd and reset the zone batches, but bail out
-before entering direct reclaim to not stall the allocating task.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reported-by: Jan Stancek <jstancek@redhat.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: <stable@kernel.org>		[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ mm/page_alloc.c |   26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-reset-aging-cycle-with-gfp_thisnode mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-reset-aging-cycle-with-gfp_thisnode
+diff -puN mm/page_alloc.c~mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2
 +++ a/mm/page_alloc.c
-@@ -2495,18 +2495,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 		return NULL;
+@@ -1238,6 +1238,15 @@ void drain_zone_pages(struct zone *zone,
+ 	}
+ 	local_irq_restore(flags);
+ }
++static bool gfp_thisnode_allocation(gfp_t gfp_mask)
++{
++	return (gfp_mask & GFP_THISNODE) == GFP_THISNODE;
++}
++#else
++static bool gfp_thisnode_allocation(gfp_t gfp_mask)
++{
++	return false;
++}
+ #endif
+ 
+ /*
+@@ -1574,7 +1583,13 @@ again:
+ 					  get_pageblock_migratetype(page));
  	}
  
--	/*
--	 * GFP_THISNODE (meaning __GFP_THISNODE, __GFP_NORETRY and
--	 * __GFP_NOWARN set) should not cause reclaim since the subsystem
--	 * (f.e. slab) using GFP_THISNODE may choose to trigger reclaim
--	 * using a larger set of nodes after it has established that the
--	 * allowed per node queues are empty and that nodes are
--	 * over allocated.
--	 */
+-	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
++	/*
++	 * NOTE: GFP_THISNODE allocations do not partake in the kswapd
++	 * aging protocol, so they can't be fair.
++	 */
++	if (!gfp_thisnode_allocation(gfp_flags))
++		__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
++
+ 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
+ 	zone_statistics(preferred_zone, zone, gfp_flags);
+ 	local_irq_restore(flags);
+@@ -1946,8 +1961,12 @@ zonelist_scan:
+ 		 * ultimately fall back to remote zones that do not
+ 		 * partake in the fairness round-robin cycle of this
+ 		 * zonelist.
++		 *
++		 * NOTE: GFP_THISNODE allocations do not partake in
++		 * the kswapd aging protocol, so they can't be fair.
+ 		 */
+-		if (alloc_flags & ALLOC_WMARK_LOW) {
++		if ((alloc_flags & ALLOC_WMARK_LOW) &&
++		    !gfp_thisnode_allocation(gfp_mask)) {
+ 			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
+ 				continue;
+ 			if (!zone_local(preferred_zone, zone))
+@@ -2503,8 +2522,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	 * allowed per node queues are empty and that nodes are
+ 	 * over allocated.
+ 	 */
 -	if (IS_ENABLED(CONFIG_NUMA) &&
 -			(gfp_mask & GFP_THISNODE) == GFP_THISNODE)
--		goto nopage;
--
- restart:
- 	prepare_slowpath(gfp_mask, order, zonelist,
- 			 high_zoneidx, preferred_zone);
-@@ -2551,6 +2539,18 @@ rebalance:
- 		}
- 	}
++	if (gfp_thisnode_allocation(gfp_mask))
+ 		goto nopage;
  
-+	/*
-+	 * GFP_THISNODE (meaning __GFP_THISNODE, __GFP_NORETRY and
-+	 * __GFP_NOWARN set) should not cause reclaim since the subsystem
-+	 * (f.e. slab) using GFP_THISNODE may choose to trigger reclaim
-+	 * using a larger set of nodes after it has established that the
-+	 * allowed per node queues are empty and that nodes are
-+	 * over allocated.
-+	 */
-+	if (IS_ENABLED(CONFIG_NUMA) &&
-+			(gfp_mask & GFP_THISNODE) == GFP_THISNODE)
-+		goto nopage;
-+
- 	/* Atomic allocations - we can't balance anything */
- 	if (!wait) {
- 		/*
+ restart:
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from jstancek@redhat.com are
 
-origin.patch
-swapoff-tmpfs-radix_tree-remember-to-rcu_read_unlock.patch
-memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch
-memcg-reparent-charges-of-children-before-processing-parent.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-madvise-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-drop_caches-add-some-documentation-and-info-message.patch
-memcg-slab-never-try-to-merge-memcg-caches.patch
-memcg-slab-cleanup-memcg-cache-creation.patch
-memcg-slab-separate-memcg-vs-root-cache-creation-paths.patch
-memcg-slab-unregister-cache-from-memcg-before-starting-to-destroy-it.patch
-memcg-slab-do-not-destroy-children-caches-if-parent-has-aliases.patch
-slub-adjust-memcg-caches-when-creating-cache-alias.patch
-slub-rework-sysfs-layout-for-memcg-caches.patch
+mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch
 mm-fix-gfp_thisnode-callers-and-clarify.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
-exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
-linux-next.patch
-debugging-keep-track-of-page-owners.patch
 
