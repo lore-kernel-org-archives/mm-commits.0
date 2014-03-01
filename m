@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch
  added to -mm tree
-Date: Fri, 28 Feb 2014 16:06:14 -0800
-Message-ID: <53112476.sJE1CRCVi9UlJhrS%akpm@linux-foundation.org>
+Date: Fri, 28 Feb 2014 16:06:27 -0800
+Message-ID: <53112483.474Q7+/B1Byj67GX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52725 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234AbaCAAGP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 19:06:15 -0500
+	with ESMTP id S1752234AbaCAAG2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Feb 2014 19:06:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mgorman@suse.de, hannes@cmpxchg.org, jstancek@redhat.com
@@ -19,7 +19,7 @@ To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mgorman@suse
 Subject: + mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch added to -mm tree
 To: jstancek@redhat.com,hannes@cmpxchg.org,mgorman@suse.de,riel@redhat.com,stable@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 28 Feb 2014 16:06:14 -0800
+Date: Fri, 28 Feb 2014 16:06:27 -0800
 
 
 The patch titled
@@ -63,7 +63,7 @@ safer as an acute bugfix, we can clean up later.
 
 Reported-by: Jan Stancek <jstancek@redhat.com>
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: <stable@kernel.org>		[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
