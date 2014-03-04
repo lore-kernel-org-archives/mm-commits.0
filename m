@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + arm-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch added to -mm
- tree
-Date: Tue, 04 Mar 2014 14:27:42 -0800
-Message-ID: <5316535e.3B6Nhn/NQb2uB34Q%akpm@linux-foundation.org>
+Subject: + uv-replace-__get_cpu_var.patch added to -mm tree
+Date: Tue, 04 Mar 2014 14:27:41 -0800
+Message-ID: <5316535d.vXVN+MGATONajjnR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42883 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42878 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757770AbaCDW1n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:43 -0500
+	with ESMTP id S1757762AbaCDW1m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, will.deacon@arm.com, tj@kernel.org, linux@arm.linux.org.uk, catalin.marinas@arm.com, cl@linux.com
+To: mm-commits@vger.kernel.org, travis@sgi.com, tj@kernel.org, sivanich@sgi.com, hedi@sgi.com, cl@linux.com
 
-Subject: + arm-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch added to -mm tree
-To: cl@linux.com,catalin.marinas@arm.com,linux@arm.linux.org.uk,tj@kernel.org,will.deacon@arm.com
+Subject: + uv-replace-__get_cpu_var.patch added to -mm tree
+To: cl@linux.com,hedi@sgi.com,sivanich@sgi.com,tj@kernel.org,travis@sgi.com
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:42 -0800
+Date: Tue, 04 Mar 2014 14:27:41 -0800
 
 
 The patch titled
-     Subject: arm: replace __this_cpu_ptr with raw_cpu_ptr
+     Subject: uv: replace __get_cpu_var
 has been added to the -mm tree.  Its filename is
-     arm-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch
+     uv-replace-__get_cpu_var.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/uv-replace-__get_cpu_var.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/uv-replace-__get_cpu_var.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,91 +44,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: arm: replace __this_cpu_ptr with raw_cpu_ptr
+Subject: uv: replace __get_cpu_var
 
-__this_cpu_ptr is being phased out. So replace with raw_cpu_ptr.
+Use __this_cpu_read instead.
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+Cc: Hedi Berriche <hedi@sgi.com>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Dimitri Sivanich <sivanich@sgi.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/smp_twd.c        |   12 ++++++------
- drivers/clocksource/qcom-timer.c |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ arch/x86/include/asm/uv/uv_hub.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/kernel/smp_twd.c~arm-replace-__this_cpu_ptr-with-raw_cpu_ptr arch/arm/kernel/smp_twd.c
---- a/arch/arm/kernel/smp_twd.c~arm-replace-__this_cpu_ptr-with-raw_cpu_ptr
-+++ a/arch/arm/kernel/smp_twd.c
-@@ -92,7 +92,7 @@ static int twd_timer_ack(void)
+diff -puN arch/x86/include/asm/uv/uv_hub.h~uv-replace-__get_cpu_var arch/x86/include/asm/uv/uv_hub.h
+--- a/arch/x86/include/asm/uv/uv_hub.h~uv-replace-__get_cpu_var
++++ a/arch/x86/include/asm/uv/uv_hub.h
+@@ -618,7 +618,7 @@ struct uv_cpu_nmi_s {
+ };
  
- static void twd_timer_stop(void)
- {
--	struct clock_event_device *clk = __this_cpu_ptr(twd_evt);
-+	struct clock_event_device *clk = raw_cpu_ptr(twd_evt);
- 
- 	twd_set_mode(CLOCK_EVT_MODE_UNUSED, clk);
- 	disable_percpu_irq(clk->irq);
-@@ -108,7 +108,7 @@ static void twd_update_frequency(void *n
- {
- 	twd_timer_rate = *((unsigned long *) new_rate);
- 
--	clockevents_update_freq(__this_cpu_ptr(twd_evt), twd_timer_rate);
-+	clockevents_update_freq(raw_cpu_ptr(twd_evt), twd_timer_rate);
- }
- 
- static int twd_rate_change(struct notifier_block *nb,
-@@ -134,7 +134,7 @@ static struct notifier_block twd_clk_nb
- 
- static int twd_clk_init(void)
- {
--	if (twd_evt && __this_cpu_ptr(twd_evt) && !IS_ERR(twd_clk))
-+	if (twd_evt && raw_cpu_ptr(twd_evt) && !IS_ERR(twd_clk))
- 		return clk_notifier_register(twd_clk, &twd_clk_nb);
- 
- 	return 0;
-@@ -153,7 +153,7 @@ static void twd_update_frequency(void *d
- {
- 	twd_timer_rate = clk_get_rate(twd_clk);
- 
--	clockevents_update_freq(__this_cpu_ptr(twd_evt), twd_timer_rate);
-+	clockevents_update_freq(raw_cpu_ptr(twd_evt), twd_timer_rate);
- }
- 
- static int twd_cpufreq_transition(struct notifier_block *nb,
-@@ -179,7 +179,7 @@ static struct notifier_block twd_cpufreq
- 
- static int twd_cpufreq_init(void)
- {
--	if (twd_evt && __this_cpu_ptr(twd_evt) && !IS_ERR(twd_clk))
-+	if (twd_evt && raw_cpu_ptr(twd_evt) && !IS_ERR(twd_clk))
- 		return cpufreq_register_notifier(&twd_cpufreq_nb,
- 			CPUFREQ_TRANSITION_NOTIFIER);
- 
-@@ -269,7 +269,7 @@ static void twd_get_clock(struct device_
-  */
- static void twd_timer_setup(void)
- {
--	struct clock_event_device *clk = __this_cpu_ptr(twd_evt);
-+	struct clock_event_device *clk = raw_cpu_ptr(twd_evt);
- 	int cpu = smp_processor_id();
- 
- 	/*
-diff -puN drivers/clocksource/qcom-timer.c~arm-replace-__this_cpu_ptr-with-raw_cpu_ptr drivers/clocksource/qcom-timer.c
---- a/drivers/clocksource/qcom-timer.c~arm-replace-__this_cpu_ptr-with-raw_cpu_ptr
-+++ a/drivers/clocksource/qcom-timer.c
-@@ -208,7 +208,7 @@ static void __init msm_timer_init(u32 dg
- 		}
- 
- 		/* Immediately configure the timer on the boot CPU */
--		msm_local_timer_setup(__this_cpu_ptr(msm_evt));
-+		msm_local_timer_setup(raw_cpu_ptr(msm_evt));
- 	}
- 
- err:
+ DECLARE_PER_CPU(struct uv_cpu_nmi_s, __uv_cpu_nmi);
+-#define uv_cpu_nmi			(__get_cpu_var(__uv_cpu_nmi))
++#define uv_cpu_nmi			__this_cpu_read(_uv_cpu_nmi)
+ #define uv_hub_nmi			(uv_cpu_nmi.hub)
+ #define uv_cpu_nmi_per(cpu)		(per_cpu(__uv_cpu_nmi, cpu))
+ #define uv_hub_nmi_per(cpu)		(uv_cpu_nmi_per(cpu).hub)
 _
 
 Patches currently in -mm which might be from cl@linux.com are
