@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-replace-__get_cpu_var-uses-for-address-calculation.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:20 -0800
-Message-ID: <53165348.+iogSEFMKZxpD0Zh%akpm@linux-foundation.org>
+Subject: + scheduler-replace-__get_cpu_var-with-this_cpu_ptr.patch added
+ to -mm tree
+Date: Tue, 04 Mar 2014 14:27:27 -0800
+Message-ID: <5316534f.3ofTEbKhBAjeCehb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42801 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42824 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757709AbaCDW1V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:21 -0500
+	with ESMTP id S1757724AbaCDW12 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, jejb@parisc-linux.org, deller@gmx.de, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, peterz@infradead.org, mingo@kernel.org, cl@linux.com
 
-Subject: + parisc-replace-__get_cpu_var-uses-for-address-calculation.patch added to -mm tree
-To: cl@linux.com,deller@gmx.de,jejb@parisc-linux.org,tj@kernel.org
+Subject: + scheduler-replace-__get_cpu_var-with-this_cpu_ptr.patch added to -mm tree
+To: cl@linux.com,mingo@kernel.org,peterz@infradead.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:20 -0800
+Date: Tue, 04 Mar 2014 14:27:27 -0800
 
 
 The patch titled
-     Subject: parisc: replace __get_cpu_var uses for address calculation
+     Subject: scheduler: replace __get_cpu_var with this_cpu_ptr
 has been added to the -mm tree.  Its filename is
-     parisc-replace-__get_cpu_var-uses-for-address-calculation.patch
+     scheduler-replace-__get_cpu_var-with-this_cpu_ptr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/parisc-replace-__get_cpu_var-uses-for-address-calculation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scheduler-replace-__get_cpu_var-with-this_cpu_ptr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/parisc-replace-__get_cpu_var-uses-for-address-calculation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scheduler-replace-__get_cpu_var-with-this_cpu_ptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,45 +45,229 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: parisc: replace __get_cpu_var uses for address calculation
+Subject: scheduler: replace __get_cpu_var with this_cpu_ptr
 
-Convert to the use of this_cpu_ptr().
+Convert all uses of __get_cpu_var for address calculation to use
+this_cpu_ptr instead.
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/lib/memcpy.c |    2 +-
- arch/parisc/mm/fault.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kernel_stat.h   |    4 ++--
+ kernel/events/callchain.c     |    4 ++--
+ kernel/events/core.c          |   22 +++++++++++-----------
+ kernel/sched/fair.c           |    2 +-
+ kernel/sched/rt.c             |    2 +-
+ kernel/sched/sched.h          |    4 ++--
+ kernel/taskstats.c            |    2 +-
+ kernel/user-return-notifier.c |    4 ++--
+ 8 files changed, 22 insertions(+), 22 deletions(-)
 
-diff -puN arch/parisc/lib/memcpy.c~parisc-replace-__get_cpu_var-uses-for-address-calculation arch/parisc/lib/memcpy.c
---- a/arch/parisc/lib/memcpy.c~parisc-replace-__get_cpu_var-uses-for-address-calculation
-+++ a/arch/parisc/lib/memcpy.c
-@@ -470,7 +470,7 @@ static unsigned long pa_memcpy(void *dst
- 		return 0;
+diff -puN include/linux/kernel_stat.h~scheduler-replace-__get_cpu_var-with-this_cpu_ptr include/linux/kernel_stat.h
+--- a/include/linux/kernel_stat.h~scheduler-replace-__get_cpu_var-with-this_cpu_ptr
++++ a/include/linux/kernel_stat.h
+@@ -44,8 +44,8 @@ DECLARE_PER_CPU(struct kernel_stat, ksta
+ DECLARE_PER_CPU(struct kernel_cpustat, kernel_cpustat);
  
- 	/* if a load or store fault occured we can get the faulty addr */
--	d = &__get_cpu_var(exception_data);
-+	d = this_cpu_ptr(&exception_data);
- 	fault_addr = d->fault_addr;
+ /* Must have preemption disabled for this to be meaningful. */
+-#define kstat_this_cpu (&__get_cpu_var(kstat))
+-#define kcpustat_this_cpu (&__get_cpu_var(kernel_cpustat))
++#define kstat_this_cpu this_cpu_ptr(&kstat)
++#define kcpustat_this_cpu this_cpu_ptr(&kernel_cpustat)
+ #define kstat_cpu(cpu) per_cpu(kstat, cpu)
+ #define kcpustat_cpu(cpu) per_cpu(kernel_cpustat, cpu)
  
- 	/* error in load or store? */
-diff -puN arch/parisc/mm/fault.c~parisc-replace-__get_cpu_var-uses-for-address-calculation arch/parisc/mm/fault.c
---- a/arch/parisc/mm/fault.c~parisc-replace-__get_cpu_var-uses-for-address-calculation
-+++ a/arch/parisc/mm/fault.c
-@@ -151,7 +151,7 @@ int fixup_exception(struct pt_regs *regs
- 	fix = search_exception_tables(regs->iaoq[0]);
- 	if (fix) {
- 		struct exception_data *d;
--		d = &__get_cpu_var(exception_data);
-+		d = this_cpu_ptr(&exception_data);
- 		d->fault_ip = regs->iaoq[0];
- 		d->fault_space = regs->isr;
- 		d->fault_addr = regs->ior;
+diff -puN kernel/events/callchain.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr kernel/events/callchain.c
+--- a/kernel/events/callchain.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr
++++ a/kernel/events/callchain.c
+@@ -137,7 +137,7 @@ static struct perf_callchain_entry *get_
+ 	int cpu;
+ 	struct callchain_cpus_entries *entries;
+ 
+-	*rctx = get_recursion_context(__get_cpu_var(callchain_recursion));
++	*rctx = get_recursion_context(this_cpu_ptr(callchain_recursion));
+ 	if (*rctx == -1)
+ 		return NULL;
+ 
+@@ -153,7 +153,7 @@ static struct perf_callchain_entry *get_
+ static void
+ put_callchain_entry(int rctx)
+ {
+-	put_recursion_context(__get_cpu_var(callchain_recursion), rctx);
++	put_recursion_context(this_cpu_ptr(callchain_recursion), rctx);
+ }
+ 
+ struct perf_callchain_entry *
+diff -puN kernel/events/core.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr kernel/events/core.c
+--- a/kernel/events/core.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr
++++ a/kernel/events/core.c
+@@ -259,10 +259,10 @@ void perf_sample_event_took(u64 sample_l
+ 		return;
+ 
+ 	/* decay the counter by 1 average sample */
+-	local_samples_len = __get_cpu_var(running_sample_length);
++	local_samples_len = __this_cpu_read(running_sample_length);
+ 	local_samples_len -= local_samples_len/NR_ACCUMULATED_SAMPLES;
+ 	local_samples_len += sample_len_ns;
+-	__get_cpu_var(running_sample_length) = local_samples_len;
++	__this_cpu_write(running_sample_length, local_samples_len);
+ 
+ 	/*
+ 	 * note: this will be biased artifically low until we have
+@@ -874,7 +874,7 @@ static DEFINE_PER_CPU(struct list_head,
+ static void perf_pmu_rotate_start(struct pmu *pmu)
+ {
+ 	struct perf_cpu_context *cpuctx = this_cpu_ptr(pmu->pmu_cpu_context);
+-	struct list_head *head = &__get_cpu_var(rotation_list);
++	struct list_head *head = this_cpu_ptr(&rotation_list);
+ 
+ 	WARN_ON(!irqs_disabled());
+ 
+@@ -2370,7 +2370,7 @@ void __perf_event_task_sched_out(struct
+ 	 * to check if we have to switch out PMU state.
+ 	 * cgroup event are system-wide mode only
+ 	 */
+-	if (atomic_read(&__get_cpu_var(perf_cgroup_events)))
++	if (atomic_read(this_cpu_ptr(&perf_cgroup_events)))
+ 		perf_cgroup_sched_out(task, next);
+ }
+ 
+@@ -2613,11 +2613,11 @@ void __perf_event_task_sched_in(struct t
+ 	 * to check if we have to switch in PMU state.
+ 	 * cgroup event are system-wide mode only
+ 	 */
+-	if (atomic_read(&__get_cpu_var(perf_cgroup_events)))
++	if (atomic_read(this_cpu_ptr(&perf_cgroup_events)))
+ 		perf_cgroup_sched_in(prev, task);
+ 
+ 	/* check for system-wide branch_stack events */
+-	if (atomic_read(&__get_cpu_var(perf_branch_stack_events)))
++	if (atomic_read(this_cpu_ptr(&perf_branch_stack_events)))
+ 		perf_branch_stack_sched_in(prev, task);
+ }
+ 
+@@ -2872,7 +2872,7 @@ bool perf_event_can_stop_tick(void)
+ 
+ void perf_event_task_tick(void)
+ {
+-	struct list_head *head = &__get_cpu_var(rotation_list);
++	struct list_head *head = this_cpu_ptr(&rotation_list);
+ 	struct perf_cpu_context *cpuctx, *tmp;
+ 	struct perf_event_context *ctx;
+ 	int throttled;
+@@ -5586,7 +5586,7 @@ static void do_perf_sw_event(enum perf_t
+ 				    struct perf_sample_data *data,
+ 				    struct pt_regs *regs)
+ {
+-	struct swevent_htable *swhash = &__get_cpu_var(swevent_htable);
++	struct swevent_htable *swhash = this_cpu_ptr(&swevent_htable);
+ 	struct perf_event *event;
+ 	struct hlist_head *head;
+ 
+@@ -5605,7 +5605,7 @@ end:
+ 
+ int perf_swevent_get_recursion_context(void)
+ {
+-	struct swevent_htable *swhash = &__get_cpu_var(swevent_htable);
++	struct swevent_htable *swhash = this_cpu_ptr(&swevent_htable);
+ 
+ 	return get_recursion_context(swhash->recursion);
+ }
+@@ -5613,7 +5613,7 @@ EXPORT_SYMBOL_GPL(perf_swevent_get_recur
+ 
+ inline void perf_swevent_put_recursion_context(int rctx)
+ {
+-	struct swevent_htable *swhash = &__get_cpu_var(swevent_htable);
++	struct swevent_htable *swhash = this_cpu_ptr(&swevent_htable);
+ 
+ 	put_recursion_context(swhash->recursion, rctx);
+ }
+@@ -5642,7 +5642,7 @@ static void perf_swevent_read(struct per
+ 
+ static int perf_swevent_add(struct perf_event *event, int flags)
+ {
+-	struct swevent_htable *swhash = &__get_cpu_var(swevent_htable);
++	struct swevent_htable *swhash = this_cpu_ptr(&swevent_htable);
+ 	struct hw_perf_event *hwc = &event->hw;
+ 	struct hlist_head *head;
+ 
+diff -puN kernel/sched/fair.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr kernel/sched/fair.c
+--- a/kernel/sched/fair.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr
++++ a/kernel/sched/fair.c
+@@ -6412,7 +6412,7 @@ static int load_balance(int this_cpu, st
+ 	struct sched_group *group;
+ 	struct rq *busiest;
+ 	unsigned long flags;
+-	struct cpumask *cpus = __get_cpu_var(load_balance_mask);
++	struct cpumask *cpus = this_cpu_ptr(load_balance_mask);
+ 
+ 	struct lb_env env = {
+ 		.sd		= sd,
+diff -puN kernel/sched/rt.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr kernel/sched/rt.c
+--- a/kernel/sched/rt.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr
++++ a/kernel/sched/rt.c
+@@ -1448,7 +1448,7 @@ static DEFINE_PER_CPU(cpumask_var_t, loc
+ static int find_lowest_rq(struct task_struct *task)
+ {
+ 	struct sched_domain *sd;
+-	struct cpumask *lowest_mask = __get_cpu_var(local_cpu_mask);
++	struct cpumask *lowest_mask = this_cpu_ptr(local_cpu_mask);
+ 	int this_cpu = smp_processor_id();
+ 	int cpu      = task_cpu(task);
+ 
+diff -puN kernel/sched/sched.h~scheduler-replace-__get_cpu_var-with-this_cpu_ptr kernel/sched/sched.h
+--- a/kernel/sched/sched.h~scheduler-replace-__get_cpu_var-with-this_cpu_ptr
++++ a/kernel/sched/sched.h
+@@ -645,10 +645,10 @@ static inline int cpu_of(struct rq *rq)
+ DECLARE_PER_CPU(struct rq, runqueues);
+ 
+ #define cpu_rq(cpu)		(&per_cpu(runqueues, (cpu)))
+-#define this_rq()		(&__get_cpu_var(runqueues))
++#define this_rq()		this_cpu_ptr(&runqueues)
+ #define task_rq(p)		cpu_rq(task_cpu(p))
+ #define cpu_curr(cpu)		(cpu_rq(cpu)->curr)
+-#define raw_rq()		(&__raw_get_cpu_var(runqueues))
++#define raw_rq()		raw_cpu_ptr(&runqueues)
+ 
+ static inline u64 rq_clock(struct rq *rq)
+ {
+diff -puN kernel/taskstats.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr kernel/taskstats.c
+--- a/kernel/taskstats.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr
++++ a/kernel/taskstats.c
+@@ -638,7 +638,7 @@ void taskstats_exit(struct task_struct *
+ 		fill_tgid_exit(tsk);
+ 	}
+ 
+-	listeners = __this_cpu_ptr(&listener_array);
++	listeners = raw_cpu_ptr(&listener_array);
+ 	if (list_empty(&listeners->list))
+ 		return;
+ 
+diff -puN kernel/user-return-notifier.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr kernel/user-return-notifier.c
+--- a/kernel/user-return-notifier.c~scheduler-replace-__get_cpu_var-with-this_cpu_ptr
++++ a/kernel/user-return-notifier.c
+@@ -14,7 +14,7 @@ static DEFINE_PER_CPU(struct hlist_head,
+ void user_return_notifier_register(struct user_return_notifier *urn)
+ {
+ 	set_tsk_thread_flag(current, TIF_USER_RETURN_NOTIFY);
+-	hlist_add_head(&urn->link, &__get_cpu_var(return_notifier_list));
++	hlist_add_head(&urn->link, this_cpu_ptr(&return_notifier_list));
+ }
+ EXPORT_SYMBOL_GPL(user_return_notifier_register);
+ 
+@@ -25,7 +25,7 @@ EXPORT_SYMBOL_GPL(user_return_notifier_r
+ void user_return_notifier_unregister(struct user_return_notifier *urn)
+ {
+ 	hlist_del(&urn->link);
+-	if (hlist_empty(&__get_cpu_var(return_notifier_list)))
++	if (hlist_empty(this_cpu_ptr(&return_notifier_list)))
+ 		clear_tsk_thread_flag(current, TIF_USER_RETURN_NOTIFY);
+ }
+ EXPORT_SYMBOL_GPL(user_return_notifier_unregister);
 _
 
 Patches currently in -mm which might be from cl@linux.com are
