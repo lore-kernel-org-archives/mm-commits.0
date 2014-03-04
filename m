@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch
- added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:16 -0800
-Message-ID: <53165344.lZQXnesrIAAYEpG9%akpm@linux-foundation.org>
+ drivers-leds-replace-__get_cpu_var-use-through-this_cpu_ptr.patch added to
+ -mm tree
+Date: Tue, 04 Mar 2014 14:27:18 -0800
+Message-ID: <53165346.Tss98kumkFO4wMHw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42789 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757658AbaCDW1R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:17 -0500
+	with ESMTP id S1757701AbaCDW1T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, rjw@sisk.pl, daniel.lezcano@linaro.org, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, cooloney@gmail.com, cl@linux.com
 
-Subject: + drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch added to -mm tree
-To: cl@linux.com,daniel.lezcano@linaro.org,rjw@sisk.pl,tj@kernel.org
+Subject: + drivers-leds-replace-__get_cpu_var-use-through-this_cpu_ptr.patch added to -mm tree
+To: cl@linux.com,cooloney@gmail.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:16 -0800
+Date: Tue, 04 Mar 2014 14:27:18 -0800
 
 
 The patch titled
-     Subject: drivers/cpuidle: replace __get_cpu_var uses for address calculation
+     Subject: drivers/leds: replace __get_cpu_var use through this_cpu_ptr
 has been added to the -mm tree.  Its filename is
-     drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch
+     drivers-leds-replace-__get_cpu_var-use-through-this_cpu_ptr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-leds-replace-__get_cpu_var-use-through-this_cpu_ptr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-leds-replace-__get_cpu_var-use-through-this_cpu_ptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,73 +46,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: drivers/cpuidle: replace __get_cpu_var uses for address calculation
+Subject: drivers/leds: replace __get_cpu_var use through this_cpu_ptr
 
-All of these are for address calculation.  Replace with this_cpu_ptr().
+Use this_cpu_ptr for the address calculation instead of __get_cpu_var.
 
-[rjw@sisk.pl: cpufreq changes]
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Acked-by: Bryan Wu <cooloney@gmail.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/ladder.c |    4 ++--
- drivers/cpuidle/governors/menu.c   |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/leds/trigger/ledtrig-cpu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cpuidle/governors/ladder.c~drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation drivers/cpuidle/governors/ladder.c
---- a/drivers/cpuidle/governors/ladder.c~drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation
-+++ a/drivers/cpuidle/governors/ladder.c
-@@ -66,7 +66,7 @@ static inline void ladder_do_selection(s
- static int ladder_select_state(struct cpuidle_driver *drv,
- 				struct cpuidle_device *dev)
- {
--	struct ladder_device *ldev = &__get_cpu_var(ladder_devices);
-+	struct ladder_device *ldev = this_cpu_ptr(&ladder_devices);
- 	struct ladder_device_state *last_state;
- 	int last_residency, last_idx = ldev->last_state_idx;
- 	int latency_req = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
-@@ -170,7 +170,7 @@ static int ladder_enable_device(struct c
+diff -puN drivers/leds/trigger/ledtrig-cpu.c~drivers-leds-replace-__get_cpu_var-use-through-this_cpu_ptr drivers/leds/trigger/ledtrig-cpu.c
+--- a/drivers/leds/trigger/ledtrig-cpu.c~drivers-leds-replace-__get_cpu_var-use-through-this_cpu_ptr
++++ a/drivers/leds/trigger/ledtrig-cpu.c
+@@ -47,7 +47,7 @@ static DEFINE_PER_CPU(struct led_trigger
   */
- static void ladder_reflect(struct cpuidle_device *dev, int index)
+ void ledtrig_cpu(enum cpu_led_event ledevt)
  {
--	struct ladder_device *ldev = &__get_cpu_var(ladder_devices);
-+	struct ladder_device *ldev = this_cpu_ptr(&ladder_devices);
- 	if (index > 0)
- 		ldev->last_state_idx = index;
- }
-diff -puN drivers/cpuidle/governors/menu.c~drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -286,7 +286,7 @@ again:
-  */
- static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
- {
--	struct menu_device *data = &__get_cpu_var(menu_devices);
-+	struct menu_device *data = this_cpu_ptr(&menu_devices);
- 	int latency_req = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
- 	int i;
- 	int multiplier;
-@@ -375,7 +375,7 @@ static int menu_select(struct cpuidle_dr
-  */
- static void menu_reflect(struct cpuidle_device *dev, int index)
- {
--	struct menu_device *data = &__get_cpu_var(menu_devices);
-+	struct menu_device *data = this_cpu_ptr(&menu_devices);
- 	data->last_state_idx = index;
- 	if (index >= 0)
- 		data->needs_update = 1;
-@@ -388,7 +388,7 @@ static void menu_reflect(struct cpuidle_
-  */
- static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
- {
--	struct menu_device *data = &__get_cpu_var(menu_devices);
-+	struct menu_device *data = this_cpu_ptr(&menu_devices);
- 	int last_idx = data->last_state_idx;
- 	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
- 	struct cpuidle_state *target = &drv->states[last_idx];
+-	struct led_trigger_cpu *trig = &__get_cpu_var(cpu_trig);
++	struct led_trigger_cpu *trig = this_cpu_ptr(&cpu_trig);
+ 
+ 	/* Locate the correct CPU LED */
+ 	switch (ledevt) {
 _
 
 Patches currently in -mm which might be from cl@linux.com are
