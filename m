@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-lguest-page_tablesc-rename-do_set_pte.patch added to -mm tree
-Date: Mon, 03 Mar 2014 14:16:31 -0800
-Message-ID: <20140303231752.578A931C24A@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-per-thread-vma-caching-fix-fix.patch added to -mm tree
+Date: Tue, 04 Mar 2014 12:00:33 -0800
+Message-ID: <531630e1.ZZ5E2RuJr6m+LwIT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:35337 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755474AbaCCXmW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2014 18:42:22 -0500
-Received: by mail-yh0-f73.google.com with SMTP id f73so584436yha.2
-        for <mm-commits@vger.kernel.org>; Mon, 03 Mar 2014 15:42:21 -0800 (PST)
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40646 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755379AbaCDUAf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 15:00:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, rusty@rustcorp.com.au
+To: mm-commits@vger.kernel.org, walken@google.com, torvalds@linux-foundation.org, riel@redhat.com, davidlohr@hp.com, akpm@linux-foundation.org
+
+Subject: + mm-per-thread-vma-caching-fix-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,davidlohr@hp.com,riel@redhat.com,torvalds@linux-foundation.org,walken@google.com
+From: akpm@linux-foundation.org
+Date: Tue, 04 Mar 2014 12:00:33 -0800
 
 
 The patch titled
-     Subject: drivers/lguest/page_tables.c: rename do_set_pte()
+     Subject: mm-per-thread-vma-caching-fix-fix
 has been added to the -mm tree.  Its filename is
-     drivers-lguest-page_tablesc-rename-do_set_pte.patch
+     mm-per-thread-vma-caching-fix-fix.patch
+
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-per-thread-vma-caching-fix-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-per-thread-vma-caching-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +44,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/lguest/page_tables.c: rename do_set_pte()
+Subject: mm-per-thread-vma-caching-fix-fix
 
-"mm: introduce vm_ops->map_pages()" wants to export a do_set_pte() from core
-kernel.  Rename lguest's do_set_pte() to something more lguest-specific.
+document vmacache_valid() logic
 
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/page_tables.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/vmacache.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/lguest/page_tables.c~drivers-lguest-page_tablesc-rename-do_set_pte drivers/lguest/page_tables.c
---- a/drivers/lguest/page_tables.c~drivers-lguest-page_tablesc-rename-do_set_pte
-+++ a/drivers/lguest/page_tables.c
-@@ -887,7 +887,7 @@ void guest_new_pagetable(struct lg_cpu *
-  * _PAGE_ACCESSED then we can put a read-only PTE entry in immediately, and if
-  * they set _PAGE_DIRTY then we can put a writable PTE entry in immediately.
-  */
--static void do_set_pte(struct lg_cpu *cpu, int idx,
-+static void do_guest_set_pte(struct lg_cpu *cpu, int idx,
- 		       unsigned long vaddr, pte_t gpte)
+diff -puN mm/vmacache.c~mm-per-thread-vma-caching-fix-fix mm/vmacache.c
+--- a/mm/vmacache.c~mm-per-thread-vma-caching-fix-fix
++++ a/mm/vmacache.c
+@@ -40,6 +40,12 @@ static bool vmacache_valid(struct mm_str
  {
- 	/* Look up the matching shadow page directory entry. */
-@@ -960,13 +960,13 @@ void guest_set_pte(struct lg_cpu *cpu,
- 		unsigned int i;
- 		for (i = 0; i < ARRAY_SIZE(cpu->lg->pgdirs); i++)
- 			if (cpu->lg->pgdirs[i].pgdir)
--				do_set_pte(cpu, i, vaddr, gpte);
-+				do_guest_set_pte(cpu, i, vaddr, gpte);
- 	} else {
- 		/* Is this page table one we have a shadow for? */
- 		int pgdir = find_pgdir(cpu->lg, gpgdir);
- 		if (pgdir != ARRAY_SIZE(cpu->lg->pgdirs))
- 			/* If so, do the update. */
--			do_set_pte(cpu, pgdir, vaddr, gpte);
-+			do_guest_set_pte(cpu, pgdir, vaddr, gpte);
- 	}
- }
+ 	struct task_struct *curr = current;
+ 
++	/*
++	 * This task may be accessing a foreign mm via (for example)
++	 * get_user_pages()->find_vma().  The vmacache is task-local and this
++	 * task's vmacache pertains to a different mm (ie, its own).  There is
++	 * nothing we can do here.
++	 */
+ 	if (mm != curr->mm)
+ 		return false;
  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 maintainers-akpm-maintenance.patch
@@ -96,7 +96,10 @@ pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 drop_caches-add-some-documentation-and-info-message.patch
 mmnuma-reorganize-change_pmd_range-fix.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
 mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-per-thread-vma-caching-fix.patch
+mm-per-thread-vma-caching-fix-fix.patch
 zram-use-zcomp-compressing-backends-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
@@ -119,5 +122,4 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
 
