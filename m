@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + sh-replace-__get_cpu_var-uses.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:28:03 -0800
-Message-ID: <53165373.NJmKg84dN05Kfhu5%akpm@linux-foundation.org>
+Subject: + alpha-replace-__get_cpu_var.patch added to -mm tree
+Date: Tue, 04 Mar 2014 14:28:02 -0800
+Message-ID: <53165372.fLzVBxt+5s2jJN4i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42945 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757841AbaCDW2E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:28:04 -0500
+	with ESMTP id S1757838AbaCDW2D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:28:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, lethal@linux-sh.org, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, rth@twiddle.net, mattst88@gmail.com, ink@jurassic.park.msu.ru, cl@linux.com
 
-Subject: + sh-replace-__get_cpu_var-uses.patch added to -mm tree
-To: cl@linux.com,lethal@linux-sh.org,tj@kernel.org
+Subject: + alpha-replace-__get_cpu_var.patch added to -mm tree
+To: cl@linux.com,ink@jurassic.park.msu.ru,mattst88@gmail.com,rth@twiddle.net,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:28:03 -0800
+Date: Tue, 04 Mar 2014 14:28:02 -0800
 
 
 The patch titled
-     Subject: sh: replace __get_cpu_var uses
+     Subject: alpha: replace __get_cpu_var
 has been added to the -mm tree.  Its filename is
-     sh-replace-__get_cpu_var-uses.patch
+     alpha-replace-__get_cpu_var.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-replace-__get_cpu_var-uses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/alpha-replace-__get_cpu_var.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-replace-__get_cpu_var-uses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/alpha-replace-__get_cpu_var.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +44,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: sh: replace __get_cpu_var uses
+Subject: alpha: replace __get_cpu_var
 
 __get_cpu_var() is used for multiple purposes in the kernel source. One of
 them is address calculation via the form &__get_cpu_var(x).  This calculates
@@ -138,213 +138,99 @@ variable.
 	__this_cpu_inc(y)
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/hw_breakpoint.c |    4 ++--
- arch/sh/kernel/kprobes.c       |   30 +++++++++++++++---------------
- arch/sh/kernel/localtimer.c    |    2 +-
- arch/sh/kernel/perf_event.c    |    8 ++++----
- arch/sh/kernel/smp.c           |    2 +-
- 5 files changed, 23 insertions(+), 23 deletions(-)
+ arch/alpha/kernel/perf_event.c |   14 +++++++-------
+ arch/alpha/kernel/time.c       |    6 +++---
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN arch/sh/kernel/hw_breakpoint.c~sh-replace-__get_cpu_var-uses arch/sh/kernel/hw_breakpoint.c
---- a/arch/sh/kernel/hw_breakpoint.c~sh-replace-__get_cpu_var-uses
-+++ a/arch/sh/kernel/hw_breakpoint.c
-@@ -52,7 +52,7 @@ int arch_install_hw_breakpoint(struct pe
- 	int i;
- 
- 	for (i = 0; i < sh_ubc->num_events; i++) {
--		struct perf_event **slot = &__get_cpu_var(bp_per_reg[i]);
-+		struct perf_event **slot = this_cpu_ptr(&bp_per_reg[i]);
- 
- 		if (!*slot) {
- 			*slot = bp;
-@@ -84,7 +84,7 @@ void arch_uninstall_hw_breakpoint(struct
- 	int i;
- 
- 	for (i = 0; i < sh_ubc->num_events; i++) {
--		struct perf_event **slot = &__get_cpu_var(bp_per_reg[i]);
-+		struct perf_event **slot = this_cpu_ptr(&bp_per_reg[i]);
- 
- 		if (*slot == bp) {
- 			*slot = NULL;
-diff -puN arch/sh/kernel/kprobes.c~sh-replace-__get_cpu_var-uses arch/sh/kernel/kprobes.c
---- a/arch/sh/kernel/kprobes.c~sh-replace-__get_cpu_var-uses
-+++ a/arch/sh/kernel/kprobes.c
-@@ -102,7 +102,7 @@ int __kprobes kprobe_handle_illslot(unsi
- 
- void __kprobes arch_remove_kprobe(struct kprobe *p)
- {
--	struct kprobe *saved = &__get_cpu_var(saved_next_opcode);
-+	struct kprobe *saved = this_cpu_ptr(&saved_next_opcode);
- 
- 	if (saved->addr) {
- 		arch_disarm_kprobe(p);
-@@ -111,7 +111,7 @@ void __kprobes arch_remove_kprobe(struct
- 		saved->addr = NULL;
- 		saved->opcode = 0;
- 
--		saved = &__get_cpu_var(saved_next_opcode2);
-+		saved = this_cpu_ptr(&saved_next_opcode2);
- 		if (saved->addr) {
- 			arch_disarm_kprobe(saved);
- 
-@@ -129,14 +129,14 @@ static void __kprobes save_previous_kpro
- 
- static void __kprobes restore_previous_kprobe(struct kprobe_ctlblk *kcb)
- {
--	__get_cpu_var(current_kprobe) = kcb->prev_kprobe.kp;
-+	__this_cpu_write(current_kprobe, kcb->prev_kprobe.kp);
- 	kcb->kprobe_status = kcb->prev_kprobe.status;
- }
- 
- static void __kprobes set_current_kprobe(struct kprobe *p, struct pt_regs *regs,
- 					 struct kprobe_ctlblk *kcb)
- {
--	__get_cpu_var(current_kprobe) = p;
-+	__this_cpu_write(current_kprobe, p);
- }
- 
- /*
-@@ -146,15 +146,15 @@ static void __kprobes set_current_kprobe
+diff -puN arch/alpha/kernel/perf_event.c~alpha-replace-__get_cpu_var arch/alpha/kernel/perf_event.c
+--- a/arch/alpha/kernel/perf_event.c~alpha-replace-__get_cpu_var
++++ a/arch/alpha/kernel/perf_event.c
+@@ -431,7 +431,7 @@ static void maybe_change_configuration(s
   */
- static void __kprobes prepare_singlestep(struct kprobe *p, struct pt_regs *regs)
+ static int alpha_pmu_add(struct perf_event *event, int flags)
  {
--	__get_cpu_var(saved_current_opcode).addr = (kprobe_opcode_t *)regs->pc;
-+	__this_cpu_write(saved_current_opcode.addr, (kprobe_opcode_t *)regs->pc);
- 
- 	if (p != NULL) {
- 		struct kprobe *op1, *op2;
- 
- 		arch_disarm_kprobe(p);
- 
--		op1 = &__get_cpu_var(saved_next_opcode);
--		op2 = &__get_cpu_var(saved_next_opcode2);
-+		op1 = this_cpu_ptr(&saved_next_opcode);
-+		op2 = this_cpu_ptr(&saved_next_opcode2);
- 
- 		if (OPCODE_JSR(p->opcode) || OPCODE_JMP(p->opcode)) {
- 			unsigned int reg_nr = ((p->opcode >> 8) & 0x000F);
-@@ -249,7 +249,7 @@ static int __kprobes kprobe_handler(stru
- 			kcb->kprobe_status = KPROBE_REENTER;
- 			return 1;
- 		} else {
--			p = __get_cpu_var(current_kprobe);
-+			p = __this_cpu_read(current_kprobe);
- 			if (p->break_handler && p->break_handler(p, regs)) {
- 				goto ss_probe;
- 			}
-@@ -336,9 +336,9 @@ int __kprobes trampoline_probe_handler(s
- 			continue;
- 
- 		if (ri->rp && ri->rp->handler) {
--			__get_cpu_var(current_kprobe) = &ri->rp->kp;
-+			__this_cpu_write(current_kprobe, &ri->rp->kp);
- 			ri->rp->handler(ri, regs);
--			__get_cpu_var(current_kprobe) = NULL;
-+			__this_cpu_write(current_kprobe, NULL);
- 		}
- 
- 		orig_ret_address = (unsigned long)ri->ret_addr;
-@@ -383,19 +383,19 @@ static int __kprobes post_kprobe_handler
- 		cur->post_handler(cur, regs, 0);
- 	}
- 
--	p = &__get_cpu_var(saved_next_opcode);
-+	p = this_cpu_ptr(&saved_next_opcode);
- 	if (p->addr) {
- 		arch_disarm_kprobe(p);
- 		p->addr = NULL;
- 		p->opcode = 0;
- 
--		addr = __get_cpu_var(saved_current_opcode).addr;
--		__get_cpu_var(saved_current_opcode).addr = NULL;
-+		addr = __this_cpu_read(saved_current_opcode).addr;
-+		__this_cpu_write(saved_current_opcode.addr, NULL);
- 
- 		p = get_kprobe(addr);
- 		arch_arm_kprobe(p);
- 
--		p = &__get_cpu_var(saved_next_opcode2);
-+		p = this_cpu_ptr(&saved_next_opcode2);
- 		if (p->addr) {
- 			arch_disarm_kprobe(p);
- 			p->addr = NULL;
-@@ -511,7 +511,7 @@ int __kprobes kprobe_exceptions_notify(s
- 				if (kprobe_handler(args->regs)) {
- 					ret = NOTIFY_STOP;
- 				} else {
--					p = __get_cpu_var(current_kprobe);
-+					p = __this_cpu_read(current_kprobe);
- 					if (p->break_handler &&
- 					    p->break_handler(p, args->regs))
- 						ret = NOTIFY_STOP;
-diff -puN arch/sh/kernel/localtimer.c~sh-replace-__get_cpu_var-uses arch/sh/kernel/localtimer.c
---- a/arch/sh/kernel/localtimer.c~sh-replace-__get_cpu_var-uses
-+++ a/arch/sh/kernel/localtimer.c
-@@ -32,7 +32,7 @@ static DEFINE_PER_CPU(struct clock_event
+-	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
+ 	struct hw_perf_event *hwc = &event->hw;
+ 	int n0;
+ 	int ret;
+@@ -483,7 +483,7 @@ static int alpha_pmu_add(struct perf_eve
   */
- void local_timer_interrupt(void)
- {
--	struct clock_event_device *clk = &__get_cpu_var(local_clockevent);
-+	struct clock_event_device *clk = this_cpu_ptr(&local_clockevent);
- 
- 	irq_enter();
- 	clk->event_handler(clk);
-diff -puN arch/sh/kernel/perf_event.c~sh-replace-__get_cpu_var-uses arch/sh/kernel/perf_event.c
---- a/arch/sh/kernel/perf_event.c~sh-replace-__get_cpu_var-uses
-+++ a/arch/sh/kernel/perf_event.c
-@@ -227,7 +227,7 @@ again:
- 
- static void sh_pmu_stop(struct perf_event *event, int flags)
+ static void alpha_pmu_del(struct perf_event *event, int flags)
  {
 -	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
 +	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
  	struct hw_perf_event *hwc = &event->hw;
- 	int idx = hwc->idx;
- 
-@@ -245,7 +245,7 @@ static void sh_pmu_stop(struct perf_even
- 
- static void sh_pmu_start(struct perf_event *event, int flags)
+ 	unsigned long irq_flags;
+ 	int j;
+@@ -531,7 +531,7 @@ static void alpha_pmu_read(struct perf_e
+ static void alpha_pmu_stop(struct perf_event *event, int flags)
  {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
  	struct hw_perf_event *hwc = &event->hw;
- 	int idx = hwc->idx;
- 
-@@ -262,7 +262,7 @@ static void sh_pmu_start(struct perf_eve
- 
- static void sh_pmu_del(struct perf_event *event, int flags)
- {
 -	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
 +	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
  
- 	sh_pmu_stop(event, PERF_EF_UPDATE);
- 	__clear_bit(event->hw.idx, cpuc->used_mask);
-@@ -272,7 +272,7 @@ static void sh_pmu_del(struct perf_event
- 
- static int sh_pmu_add(struct perf_event *event, int flags)
+ 	if (!(hwc->state & PERF_HES_STOPPED)) {
+ 		cpuc->idx_mask &= ~(1UL<<hwc->idx);
+@@ -551,7 +551,7 @@ static void alpha_pmu_stop(struct perf_e
+ static void alpha_pmu_start(struct perf_event *event, int flags)
  {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
  	struct hw_perf_event *hwc = &event->hw;
- 	int idx = hwc->idx;
- 	int ret = -EAGAIN;
-diff -puN arch/sh/kernel/smp.c~sh-replace-__get_cpu_var-uses arch/sh/kernel/smp.c
---- a/arch/sh/kernel/smp.c~sh-replace-__get_cpu_var-uses
-+++ a/arch/sh/kernel/smp.c
-@@ -111,7 +111,7 @@ void play_dead_common(void)
- 	irq_ctx_exit(raw_smp_processor_id());
- 	mb();
+-	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
  
--	__get_cpu_var(cpu_state) = CPU_DEAD;
-+	__this_cpu_write(cpu_state, CPU_DEAD);
- 	local_irq_disable();
- }
+ 	if (WARN_ON_ONCE(!(hwc->state & PERF_HES_STOPPED)))
+ 		return;
+@@ -724,7 +724,7 @@ static int alpha_pmu_event_init(struct p
+  */
+ static void alpha_pmu_enable(struct pmu *pmu)
+ {
+-	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
  
+ 	if (cpuc->enabled)
+ 		return;
+@@ -750,7 +750,7 @@ static void alpha_pmu_enable(struct pmu
+ 
+ static void alpha_pmu_disable(struct pmu *pmu)
+ {
+-	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
+ 
+ 	if (!cpuc->enabled)
+ 		return;
+@@ -815,7 +815,7 @@ static void alpha_perf_event_irq_handler
+ 	int idx, j;
+ 
+ 	__this_cpu_inc(irq_pmi_count);
+-	cpuc = &__get_cpu_var(cpu_hw_events);
++	cpuc = this_cpu_ptr(&cpu_hw_events);
+ 
+ 	/* Completely counting through the PMC's period to trigger a new PMC
+ 	 * overflow interrupt while in this interrupt routine is utterly
+diff -puN arch/alpha/kernel/time.c~alpha-replace-__get_cpu_var arch/alpha/kernel/time.c
+--- a/arch/alpha/kernel/time.c~alpha-replace-__get_cpu_var
++++ a/arch/alpha/kernel/time.c
+@@ -56,9 +56,9 @@ unsigned long est_cycle_freq;
+ 
+ DEFINE_PER_CPU(u8, irq_work_pending);
+ 
+-#define set_irq_work_pending_flag()  __get_cpu_var(irq_work_pending) = 1
+-#define test_irq_work_pending()      __get_cpu_var(irq_work_pending)
+-#define clear_irq_work_pending()     __get_cpu_var(irq_work_pending) = 0
++#define set_irq_work_pending_flag()  __this_cpu_write(irq_work_pending, 1)
++#define test_irq_work_pending()      __this_cpu_read(irq_work_pending)
++#define clear_irq_work_pending()     __this_cpu_writeirq_work_pending, 0)
+ 
+ void arch_irq_work_raise(void)
+ {
 _
 
 Patches currently in -mm which might be from cl@linux.com are
