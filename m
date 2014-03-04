@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch added to -mm tree
-Date: Tue, 04 Mar 2014 13:24:11 -0800
-Message-ID: <5316447b.YhOHrByPndZxU5wg%akpm@linux-foundation.org>
+Subject: + pstore-reset-ftrace_read_cnt-at-ramoops_pstore_open.patch added to -mm tree
+Date: Tue, 04 Mar 2014 13:50:25 -0800
+Message-ID: <53164aa1.pMXPWgRVedGNWa7F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42579 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756742AbaCDVYM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 16:24:12 -0500
+	with ESMTP id S1756072AbaCDVu0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 16:50:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, gidisrael@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, yanmin_zhang@linux.intel.com, tony.luck@intel.com, keescook@chromium.org, ccross@android.com, shuox.liu@intel.com
 
-Subject: + mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,gidisrael@gmail.com
+Subject: + pstore-reset-ftrace_read_cnt-at-ramoops_pstore_open.patch added to -mm tree
+To: shuox.liu@intel.com,ccross@android.com,keescook@chromium.org,tony.luck@intel.com,yanmin_zhang@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 13:24:11 -0800
+Date: Tue, 04 Mar 2014 13:50:25 -0800
 
 
 The patch titled
-     Subject: mm-use-macros-from-compilerh-instead-of-__attribute__-fix
+     Subject: pstore: reset ftrace_read_cnt at ramoops_pstore_open
 has been added to the -mm tree.  Its filename is
-     mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+     pstore-reset-ftrace_read_cnt-at-ramoops_pstore_open.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pstore-reset-ftrace_read_cnt-at-ramoops_pstore_open.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pstore-reset-ftrace_read_cnt-at-ramoops_pstore_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,91 +43,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-use-macros-from-compilerh-instead-of-__attribute__-fix
+From: Liu ShuoX <shuox.liu@intel.com>
+Subject: pstore: reset ftrace_read_cnt at ramoops_pstore_open
 
-while-we're-there consistency tweaks
+ftrace_read_cnt need to be reset in open to support mutli times
+getting the records.
 
-Cc: Gideon Israel Dsouza <gidisrael@gmail.com>
+Signed-off-by: Liu ShuoX <shuox.liu@intel.com>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: Colin Cross <ccross@android.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- mm/nommu.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/pstore/ram.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/hugetlb.c~mm-use-macros-from-compilerh-instead-of-__attribute__-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-use-macros-from-compilerh-instead-of-__attribute__-fix
-+++ a/mm/hugetlb.c
-@@ -3522,7 +3522,7 @@ follow_huge_pud(struct mm_struct *mm, un
- #else /* !CONFIG_ARCH_WANT_GENERAL_HUGETLB */
+diff -puN fs/pstore/ram.c~pstore-reset-ftrace_read_cnt-at-ramoops_pstore_open fs/pstore/ram.c
+--- a/fs/pstore/ram.c~pstore-reset-ftrace_read_cnt-at-ramoops_pstore_open
++++ a/fs/pstore/ram.c
+@@ -101,6 +101,7 @@ static int ramoops_pstore_open(struct ps
  
- /* Can be overriden by architectures */
--__weak struct page *
-+struct page * __weak
- follow_huge_pud(struct mm_struct *mm, unsigned long address,
- 	       pud_t *pud, int write)
- {
-diff -puN mm/nommu.c~mm-use-macros-from-compilerh-instead-of-__attribute__-fix mm/nommu.c
---- a/mm/nommu.c~mm-use-macros-from-compilerh-instead-of-__attribute__-fix
-+++ a/mm/nommu.c
-@@ -460,7 +460,7 @@ EXPORT_SYMBOL_GPL(vm_unmap_aliases);
-  * Implement a stub for vmalloc_sync_all() if the architecture chose not to
-  * have one.
-  */
--void  __weak vmalloc_sync_all(void)
-+void __weak vmalloc_sync_all(void)
- {
+ 	cxt->dump_read_cnt = 0;
+ 	cxt->console_read_cnt = 0;
++	cxt->ftrace_read_cnt = 0;
+ 	return 0;
  }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shuox.liu@intel.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
-mm-per-thread-vma-caching-fix.patch
-mm-per-thread-vma-caching-fix-fix.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
-zram-use-zcomp-compressing-backends-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
-linux-next.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+pstore-reset-ftrace_read_cnt-at-ramoops_pstore_open.patch
+pstore-skip-zero-size-persistent-ram-buffer-in-traverse.patch
 
