@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-net-ethernet-tile-replace-__get_cpu_var-uses-for-address-calculation.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:22 -0800
-Message-ID: <5316534a.khz4gzWBM84XOLKD%akpm@linux-foundation.org>
+ drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch added to -mm tree
+Date: Tue, 04 Mar 2014 14:27:19 -0800
+Message-ID: <53165347.Y/8SeZSCGLvcfuhJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42794 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757718AbaCDW1X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:23 -0500
+	with ESMTP id S1757705AbaCDW1U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, davem@davemloft.net, cmetcalf@tilera.com, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, john.stultz@linaro.org, james.hogan@imgtec.com, cl@linux.com
 
-Subject: + drivers-net-ethernet-tile-replace-__get_cpu_var-uses-for-address-calculation.patch added to -mm tree
-To: cl@linux.com,cmetcalf@tilera.com,davem@davemloft.net,tj@kernel.org
+Subject: + drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch added to -mm tree
+To: cl@linux.com,james.hogan@imgtec.com,john.stultz@linaro.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:22 -0800
+Date: Tue, 04 Mar 2014 14:27:19 -0800
 
 
 The patch titled
-     Subject: drivers/net/ethernet/tile: replace __get_cpu_var uses for address calculation
+     Subject: drivers/clocksource: replace __get_cpu_var used for address calculation
 has been added to the -mm tree.  Its filename is
-     drivers-net-ethernet-tile-replace-__get_cpu_var-uses-for-address-calculation.patch
+     drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-net-ethernet-tile-replace-__get_cpu_var-uses-for-address-calculation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-net-ethernet-tile-replace-__get_cpu_var-uses-for-address-calculation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,125 +45,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: drivers/net/ethernet/tile: replace __get_cpu_var uses for address calculation
+Subject: drivers/clocksource: replace __get_cpu_var used for address calculation
 
-Replace with this_cpu_ptr.
+Replace __get_cpu_var used for address calculation with this_cpu_ptr.
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Acked-by: Chris Metcalf <cmetcalf@tilera.com>
-Cc: David Miller <davem@davemloft.net>
+Acked-by: James Hogan <james.hogan@imgtec.com>
+Cc: John Stultz <john.stultz@linaro.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/tile/tilegx.c  |   18 +++++++++---------
- drivers/net/ethernet/tile/tilepro.c |    8 ++++----
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/clocksource/metag_generic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ethernet/tile/tilegx.c~drivers-net-ethernet-tile-replace-__get_cpu_var-uses-for-address-calculation drivers/net/ethernet/tile/tilegx.c
---- a/drivers/net/ethernet/tile/tilegx.c~drivers-net-ethernet-tile-replace-__get_cpu_var-uses-for-address-calculation
-+++ a/drivers/net/ethernet/tile/tilegx.c
-@@ -423,7 +423,7 @@ static void tile_net_pop_all_buffers(int
- /* Provide linux buffers to mPIPE. */
- static void tile_net_provide_needed_buffers(void)
- {
--	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
-+	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
- 	int instance, kind;
- 	for (instance = 0; instance < NR_MPIPE_MAX &&
- 		     info->mpipe[instance].has_iqueue; instance++)	{
-@@ -585,7 +585,7 @@ static void tile_net_receive_skb(struct
- /* Handle a packet.  Return true if "processed", false if "filtered". */
- static bool tile_net_handle_packet(int instance, gxio_mpipe_idesc_t *idesc)
- {
--	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
-+	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
- 	struct mpipe_data *md = &mpipe_data[instance];
- 	struct net_device *dev = md->tile_net_devs_for_channel[idesc->channel];
- 	uint8_t l2_offset;
-@@ -651,7 +651,7 @@ drop:
-  */
- static int tile_net_poll(struct napi_struct *napi, int budget)
- {
--	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
-+	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
- 	unsigned int work = 0;
- 	gxio_mpipe_idesc_t *idesc;
- 	int instance, i, n;
-@@ -697,7 +697,7 @@ done:
- /* Handle an ingress interrupt from an instance on the current cpu. */
- static irqreturn_t tile_net_handle_ingress_irq(int irq, void *id)
- {
--	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
-+	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
- 	napi_schedule(&info->mpipe[(uint64_t)id].napi);
- 	return IRQ_HANDLED;
- }
-@@ -760,7 +760,7 @@ static enum hrtimer_restart tile_net_han
- /* Make sure the egress timer is scheduled. */
- static void tile_net_schedule_egress_timer(void)
- {
--	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
-+	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
+diff -puN drivers/clocksource/metag_generic.c~drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation drivers/clocksource/metag_generic.c
+--- a/drivers/clocksource/metag_generic.c~drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation
++++ a/drivers/clocksource/metag_generic.c
+@@ -90,7 +90,7 @@ static struct clocksource clocksource_me
  
- 	if (!info->egress_timer_scheduled) {
- 		hrtimer_start(&info->egress_timer,
-@@ -777,7 +777,7 @@ static void tile_net_schedule_egress_tim
-  */
- static enum hrtimer_restart tile_net_handle_egress_timer(struct hrtimer *t)
+ static irqreturn_t metag_timer_interrupt(int irq, void *dummy)
  {
--	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
-+	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
- 	unsigned long irqflags;
- 	bool pending = false;
- 	int i, instance;
-@@ -1992,7 +1992,7 @@ static unsigned int tile_net_tx_frags(st
- /* Help the kernel transmit a packet. */
- static int tile_net_tx(struct sk_buff *skb, struct net_device *dev)
- {
--	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
-+	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
- 	struct tile_net_priv *priv = netdev_priv(dev);
- 	int instance = priv->instance;
- 	struct mpipe_data *md = &mpipe_data[instance];
-@@ -2134,7 +2134,7 @@ static int tile_net_set_mac_address(stru
- static void tile_net_netpoll(struct net_device *dev)
- {
- 	int instance = mpipe_instance(dev);
--	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
-+	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
- 	struct mpipe_data *md = &mpipe_data[instance];
+-	struct clock_event_device *evt = &__get_cpu_var(local_clockevent);
++	struct clock_event_device *evt = this_cpu_ptr(&local_clockevent);
  
- 	disable_percpu_irq(md->ingress_irq);
-@@ -2241,7 +2241,7 @@ static void tile_net_dev_init(const char
- /* Per-cpu module initialization. */
- static void tile_net_init_module_percpu(void *unused)
- {
--	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
-+	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
- 	int my_cpu = smp_processor_id();
- 	int instance;
- 
-diff -puN drivers/net/ethernet/tile/tilepro.c~drivers-net-ethernet-tile-replace-__get_cpu_var-uses-for-address-calculation drivers/net/ethernet/tile/tilepro.c
---- a/drivers/net/ethernet/tile/tilepro.c~drivers-net-ethernet-tile-replace-__get_cpu_var-uses-for-address-calculation
-+++ a/drivers/net/ethernet/tile/tilepro.c
-@@ -993,13 +993,13 @@ static void tile_net_register(void *dev_
- 	PDEBUG("tile_net_register(queue_id %d)\n", queue_id);
- 
- 	if (!strcmp(dev->name, "xgbe0"))
--		info = &__get_cpu_var(hv_xgbe0);
-+		info = this_cpu_ptr(&hv_xgbe0);
- 	else if (!strcmp(dev->name, "xgbe1"))
--		info = &__get_cpu_var(hv_xgbe1);
-+		info = this_cpu_ptr(&hv_xgbe1);
- 	else if (!strcmp(dev->name, "gbe0"))
--		info = &__get_cpu_var(hv_gbe0);
-+		info = this_cpu_ptr(&hv_gbe0);
- 	else if (!strcmp(dev->name, "gbe1"))
--		info = &__get_cpu_var(hv_gbe1);
-+		info = this_cpu_ptr(&hv_gbe1);
- 	else
- 		BUG();
+ 	evt->event_handler(evt);
  
 _
 
