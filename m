@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 04 Mar 2014 12:32:19 -0800
-Message-ID: <53163853.omTNMvX1QyvQSLXZ%akpm@linux-foundation.org>
+Subject: + zram-move-comp-allocation-out-of-init_lock.patch added to -mm
+ tree
+Date: Tue, 04 Mar 2014 12:35:35 -0800
+Message-ID: <53163917.qF9LwY6+hw1bML41%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42026 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932255AbaCDUcU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 15:32:20 -0500
+	with ESMTP id S1756759AbaCDUfg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 15:35:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xuejiufei@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jiangyiwen@huawei.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, minchan@kernel.org, sergey.senozhatsky@gmail.com
 
-Subject: + ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,jiangyiwen@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,xuejiufei@huawei.com
+Subject: + zram-move-comp-allocation-out-of-init_lock.patch added to -mm tree
+To: sergey.senozhatsky@gmail.com,minchan@kernel.org,sasha.levin@oracle.com
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 12:32:19 -0800
+Date: Tue, 04 Mar 2014 12:35:35 -0800
 
 
 The patch titled
-     Subject: ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes
+     Subject: zram: move comp allocation out of init_lock
 has been added to the -mm tree.  Its filename is
-     ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+     zram-move-comp-allocation-out-of-init_lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-move-comp-allocation-out-of-init_lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-move-comp-allocation-out-of-init_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,198 +44,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: move comp allocation out of init_lock
 
-ERROR: code indent should use tabs where possible
-#56: FILE: fs/ocfs2/dlm/dlmmaster.c:3087:
-+                       if (tmp->type == DLM_MLE_MASTER) {$
+While fixing lockdep spew of ->init_lock reported by Sasha Levin [1],
+Minchan Kim noted [2] that it's better to move compression backend
+allocation (using GPF_KERNEL) out of the ->init_lock lock, same way as
+with zram_meta_alloc(), in order to prevent the same lockdep spew.
 
-WARNING: please, no spaces at the start of a line
-#56: FILE: fs/ocfs2/dlm/dlmmaster.c:3087:
-+                       if (tmp->type == DLM_MLE_MASTER) {$
+[1] https://lkml.org/lkml/2014/2/27/337
+[2] https://lkml.org/lkml/2014/3/3/32
 
-WARNING: suspect code indent for conditional statements (23, 31)
-#56: FILE: fs/ocfs2/dlm/dlmmaster.c:3087:
-+                       if (tmp->type == DLM_MLE_MASTER) {
-+                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
-
-ERROR: code indent should use tabs where possible
-#57: FILE: fs/ocfs2/dlm/dlmmaster.c:3088:
-+                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;$
-
-WARNING: please, no spaces at the start of a line
-#57: FILE: fs/ocfs2/dlm/dlmmaster.c:3088:
-+                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;$
-
-ERROR: code indent should use tabs where possible
-#58: FILE: fs/ocfs2/dlm/dlmmaster.c:3089:
-+                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "$
-
-WARNING: please, no spaces at the start of a line
-#58: FILE: fs/ocfs2/dlm/dlmmaster.c:3089:
-+                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "$
-
-WARNING: quoted string split across lines
-#59: FILE: fs/ocfs2/dlm/dlmmaster.c:3090:
-+                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
-+                                               "telling master to get ref "
-
-ERROR: code indent should use tabs where possible
-#59: FILE: fs/ocfs2/dlm/dlmmaster.c:3090:
-+                                               "telling master to get ref "$
-
-WARNING: please, no spaces at the start of a line
-#59: FILE: fs/ocfs2/dlm/dlmmaster.c:3090:
-+                                               "telling master to get ref "$
-
-WARNING: quoted string split across lines
-#60: FILE: fs/ocfs2/dlm/dlmmaster.c:3091:
-+                                               "telling master to get ref "
-+                                               "for cleared out mle during "
-
-ERROR: code indent should use tabs where possible
-#60: FILE: fs/ocfs2/dlm/dlmmaster.c:3091:
-+                                               "for cleared out mle during "$
-
-WARNING: please, no spaces at the start of a line
-#60: FILE: fs/ocfs2/dlm/dlmmaster.c:3091:
-+                                               "for cleared out mle during "$
-
-WARNING: quoted string split across lines
-#61: FILE: fs/ocfs2/dlm/dlmmaster.c:3092:
-+                                               "for cleared out mle during "
-+                                               "migration\n", dlm->name,
-
-ERROR: code indent should use tabs where possible
-#61: FILE: fs/ocfs2/dlm/dlmmaster.c:3092:
-+                                               "migration\n", dlm->name,$
-
-WARNING: please, no spaces at the start of a line
-#61: FILE: fs/ocfs2/dlm/dlmmaster.c:3092:
-+                                               "migration\n", dlm->name,$
-
-ERROR: code indent should use tabs where possible
-#62: FILE: fs/ocfs2/dlm/dlmmaster.c:3093:
-+                                               namelen, name, master,$
-
-WARNING: please, no spaces at the start of a line
-#62: FILE: fs/ocfs2/dlm/dlmmaster.c:3093:
-+                                               namelen, name, master,$
-
-ERROR: code indent should use tabs where possible
-#63: FILE: fs/ocfs2/dlm/dlmmaster.c:3094:
-+                                               new_master);$
-
-WARNING: please, no spaces at the start of a line
-#63: FILE: fs/ocfs2/dlm/dlmmaster.c:3094:
-+                                               new_master);$
-
-ERROR: code indent should use tabs where possible
-#64: FILE: fs/ocfs2/dlm/dlmmaster.c:3095:
-+                       }$
-
-WARNING: please, no spaces at the start of a line
-#64: FILE: fs/ocfs2/dlm/dlmmaster.c:3095:
-+                       }$
-
-total: 9 errors, 13 warnings, 20 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Xue jiufei <xuejiufei@huawei.com>
-Cc: jiangyiwen <jiangyiwen@huawei.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reported-by: Minchan Kim <minchan@kernel.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/block/zram/zram_drv.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -3084,15 +3084,15 @@ static int dlm_add_migration_mle(struct
- 			/* remove it so that only one mle will be found */
- 			__dlm_unlink_mle(dlm, tmp);
- 			__dlm_mle_detach_hb_events(dlm, tmp);
--                       if (tmp->type == DLM_MLE_MASTER) {
--                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
--                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
--                                               "telling master to get ref "
--                                               "for cleared out mle during "
--                                               "migration\n", dlm->name,
--                                               namelen, name, master,
--                                               new_master);
--                       }
-+			if (tmp->type == DLM_MLE_MASTER) {
-+				ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
-+				mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
-+						"telling master to get ref "
-+						"for cleared out mle during "
-+						"migration\n", dlm->name,
-+						namelen, name, master,
-+						new_master);
-+			}
- 		}
- 		spin_unlock(&tmp->spinlock);
+diff -puN drivers/block/zram/zram_drv.c~zram-move-comp-allocation-out-of-init_lock drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-move-comp-allocation-out-of-init_lock
++++ a/drivers/block/zram/zram_drv.c
+@@ -580,9 +580,10 @@ static ssize_t disksize_store(struct dev
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+ 	u64 disksize;
++	struct zcomp *comp;
+ 	struct zram_meta *meta;
+ 	struct zram *zram = dev_to_zram(dev);
+-	int err;
++	int err = -EINVAL;
+ 
+ 	disksize = memparse(buf, NULL);
+ 	if (!disksize)
+@@ -593,30 +594,32 @@ static ssize_t disksize_store(struct dev
+ 	if (!meta)
+ 		return -ENOMEM;
+ 
++	comp = zcomp_create(zram->compressor, zram->max_comp_streams);
++	if (!comp) {
++		pr_info("Cannot initialise %s compressing backend\n",
++				zram->compressor);
++		goto out_cleanup;
++	}
++
+ 	down_write(&zram->init_lock);
+ 	if (init_done(zram)) {
++		up_write(&zram->init_lock);
+ 		pr_info("Cannot change disksize for initialized device\n");
+ 		err = -EBUSY;
+-		goto out_free_meta;
+-	}
+-
+-	zram->comp = zcomp_create(zram->compressor, zram->max_comp_streams);
+-	if (!zram->comp) {
+-		pr_info("Cannot initialise %s compressing backend\n",
+-				zram->compressor);
+-		err = -EINVAL;
+-		goto out_free_meta;
++		goto out_cleanup;
  	}
+ 
+ 	zram->meta = meta;
++	zram->comp = comp;
+ 	zram->disksize = disksize;
+ 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
+ 	up_write(&zram->init_lock);
+ 
+ 	return len;
+ 
+-out_free_meta:
+-	up_write(&zram->init_lock);
++out_cleanup:
++	if (comp)
++		zcomp_destroy(comp);
+ 	zram_meta_free(meta);
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
-mm-per-thread-vma-caching-fix.patch
-mm-per-thread-vma-caching-fix-fix.patch
+zram-drop-init_done-struct-zram-member.patch
+zram-do-not-pass-rw-argument-to-__zram_make_request.patch
+zram-remove-good-and-bad-compress-stats.patch
+zram-use-atomic64_t-for-all-zram-stats.patch
+zram-remove-zram-stats-code-duplication.patch
+zram-report-failed-read-and-write-stats.patch
+zram-drop-not-used-table-count-member.patch
+zram-move-zram-size-warning-to-documentation.patch
+zram-document-failed_reads-failed_writes-stats.patch
+zram-delete-zram_init_device.patch
+zram-delete-zram_init_device-fix.patch
+zram-introduce-compressing-backend-abstraction.patch
+zram-use-zcomp-compressing-backends.patch
 zram-use-zcomp-compressing-backends-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
-linux-next.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+zram-factor-out-single-stream-compression.patch
+zram-add-multi-stream-functionality.patch
+zram-add-set_max_streams-knob.patch
+zram-make-compression-algorithm-selection-possible.patch
+zram-add-lz4-algorithm-backend.patch
+zram-move-comp-allocation-out-of-init_lock.patch
 
