@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + uv-replace-__get_cpu_var.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:41 -0800
-Message-ID: <5316535d.vXVN+MGATONajjnR%akpm@linux-foundation.org>
+Subject: + watchdog-replace-__raw_get_cpu_var-uses.patch added to -mm tree
+Date: Tue, 04 Mar 2014 14:27:32 -0800
+Message-ID: <53165354.guwN0Ekpj3aeitW/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42836 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757762AbaCDW1m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:42 -0500
+	with ESMTP id S1757740AbaCDW1d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, travis@sgi.com, tj@kernel.org, sivanich@sgi.com, hedi@sgi.com, cl@linux.com
+To: mm-commits@vger.kernel.org, wim@iguana.be, tj@kernel.org, cl@linux.com
 
-Subject: + uv-replace-__get_cpu_var.patch added to -mm tree
-To: cl@linux.com,hedi@sgi.com,sivanich@sgi.com,tj@kernel.org,travis@sgi.com
+Subject: + watchdog-replace-__raw_get_cpu_var-uses.patch added to -mm tree
+To: cl@linux.com,tj@kernel.org,wim@iguana.be
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:41 -0800
+Date: Tue, 04 Mar 2014 14:27:32 -0800
 
 
 The patch titled
-     Subject: uv: replace __get_cpu_var
+     Subject: watchdog: replace __raw_get_cpu_var uses
 has been added to the -mm tree.  Its filename is
-     uv-replace-__get_cpu_var.patch
+     watchdog-replace-__raw_get_cpu_var-uses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/uv-replace-__get_cpu_var.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-replace-__raw_get_cpu_var-uses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/uv-replace-__get_cpu_var.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-replace-__raw_get_cpu_var-uses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,33 +44,63 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: uv: replace __get_cpu_var
+Subject: watchdog: replace __raw_get_cpu_var uses
 
-Use __this_cpu_read instead.
+Most of these are the uses of &__raw_get_cpu_var for address calculation.
+
+touch_softlockup_watchdog_sync() uses __raw_get_cpu_var to write to
+per cpu variables. Use __this_cpu_write instead.
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Hedi Berriche <hedi@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Dimitri Sivanich <sivanich@sgi.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uv/uv_hub.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/watchdog.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/include/asm/uv/uv_hub.h~uv-replace-__get_cpu_var arch/x86/include/asm/uv/uv_hub.h
---- a/arch/x86/include/asm/uv/uv_hub.h~uv-replace-__get_cpu_var
-+++ a/arch/x86/include/asm/uv/uv_hub.h
-@@ -618,7 +618,7 @@ struct uv_cpu_nmi_s {
- };
+diff -puN kernel/watchdog.c~watchdog-replace-__raw_get_cpu_var-uses kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-replace-__raw_get_cpu_var-uses
++++ a/kernel/watchdog.c
+@@ -174,8 +174,8 @@ EXPORT_SYMBOL(touch_nmi_watchdog);
  
- DECLARE_PER_CPU(struct uv_cpu_nmi_s, __uv_cpu_nmi);
--#define uv_cpu_nmi			(__get_cpu_var(__uv_cpu_nmi))
-+#define uv_cpu_nmi			__this_cpu_read(_uv_cpu_nmi)
- #define uv_hub_nmi			(uv_cpu_nmi.hub)
- #define uv_cpu_nmi_per(cpu)		(per_cpu(__uv_cpu_nmi, cpu))
- #define uv_hub_nmi_per(cpu)		(uv_cpu_nmi_per(cpu).hub)
+ void touch_softlockup_watchdog_sync(void)
+ {
+-	__raw_get_cpu_var(softlockup_touch_sync) = true;
+-	__raw_get_cpu_var(watchdog_touch_ts) = 0;
++	__this_cpu_write(softlockup_touch_sync, true);
++	__this_cpu_write(watchdog_touch_ts, 0);
+ }
+ 
+ #ifdef CONFIG_HARDLOCKUP_DETECTOR
+@@ -345,7 +345,7 @@ static void watchdog_set_prio(unsigned i
+ 
+ static void watchdog_enable(unsigned int cpu)
+ {
+-	struct hrtimer *hrtimer = &__raw_get_cpu_var(watchdog_hrtimer);
++	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
+ 
+ 	/* kick off the timer for the hardlockup detector */
+ 	hrtimer_init(hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+@@ -365,7 +365,7 @@ static void watchdog_enable(unsigned int
+ 
+ static void watchdog_disable(unsigned int cpu)
+ {
+-	struct hrtimer *hrtimer = &__raw_get_cpu_var(watchdog_hrtimer);
++	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
+ 
+ 	watchdog_set_prio(SCHED_NORMAL, 0);
+ 	hrtimer_cancel(hrtimer);
+@@ -492,7 +492,7 @@ static struct smp_hotplug_thread watchdo
+ 
+ static void restart_watchdog_hrtimer(void *info)
+ {
+-	struct hrtimer *hrtimer = &__raw_get_cpu_var(watchdog_hrtimer);
++	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
+ 	int ret;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from cl@linux.com are
