@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-replace-__raw_get_cpu_var-uses.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:32 -0800
-Message-ID: <53165354.guwN0Ekpj3aeitW/%akpm@linux-foundation.org>
+Subject: + mips-replace-__get_cpu_var-uses-in-fpu-emulator.patch added to
+ -mm tree
+Date: Tue, 04 Mar 2014 14:27:43 -0800
+Message-ID: <5316535f.3L0BOToBPfHZPzyJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42888 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757740AbaCDW1d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:33 -0500
+	with ESMTP id S1757736AbaCDW1o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wim@iguana.be, tj@kernel.org, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, ralf@linux-mips.org, cl@linux.com, david.daney@cavium.com
 
-Subject: + watchdog-replace-__raw_get_cpu_var-uses.patch added to -mm tree
-To: cl@linux.com,tj@kernel.org,wim@iguana.be
+Subject: + mips-replace-__get_cpu_var-uses-in-fpu-emulator.patch added to -mm tree
+To: david.daney@cavium.com,cl@linux.com,ralf@linux-mips.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:32 -0800
+Date: Tue, 04 Mar 2014 14:27:43 -0800
 
 
 The patch titled
-     Subject: watchdog: replace __raw_get_cpu_var uses
+     Subject: mips: replace __get_cpu_var uses in FPU emulator.
 has been added to the -mm tree.  Its filename is
-     watchdog-replace-__raw_get_cpu_var-uses.patch
+     mips-replace-__get_cpu_var-uses-in-fpu-emulator.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-replace-__raw_get_cpu_var-uses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mips-replace-__get_cpu_var-uses-in-fpu-emulator.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-replace-__raw_get_cpu_var-uses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mips-replace-__get_cpu_var-uses-in-fpu-emulator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,123 +44,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: watchdog: replace __raw_get_cpu_var uses
+From: David Daney <david.daney@cavium.com>
+Subject: mips: replace __get_cpu_var uses in FPU emulator.
 
-Most of these are the uses of &__raw_get_cpu_var for address calculation.
+The use of __this_cpu_inc() requires a fundamental integer type, so change
+the type of all the counters to unsigned long, which is the same width
+they were before, but not wrapped in local_t.
 
-touch_softlockup_watchdog_sync() uses __raw_get_cpu_var to write to
-per cpu variables. Use __this_cpu_write instead.
-
+Signed-off-by: David Daney <david.daney@cavium.com>
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/mips/include/asm/fpu_emulator.h |   14 +++++++-------
+ arch/mips/math-emu/cp1emu.c          |    6 +++---
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-replace-__raw_get_cpu_var-uses kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-replace-__raw_get_cpu_var-uses
-+++ a/kernel/watchdog.c
-@@ -174,8 +174,8 @@ EXPORT_SYMBOL(touch_nmi_watchdog);
+diff -puN arch/mips/include/asm/fpu_emulator.h~mips-replace-__get_cpu_var-uses-in-fpu-emulator arch/mips/include/asm/fpu_emulator.h
+--- a/arch/mips/include/asm/fpu_emulator.h~mips-replace-__get_cpu_var-uses-in-fpu-emulator
++++ a/arch/mips/include/asm/fpu_emulator.h
+@@ -30,12 +30,12 @@
+ #ifdef CONFIG_DEBUG_FS
  
- void touch_softlockup_watchdog_sync(void)
+ struct mips_fpu_emulator_stats {
+-	local_t emulated;
+-	local_t loads;
+-	local_t stores;
+-	local_t cp1ops;
+-	local_t cp1xops;
+-	local_t errors;
++	unsigned long emulated;
++	unsigned long loads;
++	unsigned long stores;
++	unsigned long cp1ops;
++	unsigned long cp1xops;
++	unsigned long errors;
+ };
+ 
+ DECLARE_PER_CPU(struct mips_fpu_emulator_stats, fpuemustats);
+@@ -43,7 +43,7 @@ DECLARE_PER_CPU(struct mips_fpu_emulator
+ #define MIPS_FPU_EMU_INC_STATS(M)					\
+ do {									\
+ 	preempt_disable();						\
+-	__local_inc(&__get_cpu_var(fpuemustats).M);			\
++	__this_cpu_inc(fpuemustats.M);					\
+ 	preempt_enable();						\
+ } while (0)
+ 
+diff -puN arch/mips/math-emu/cp1emu.c~mips-replace-__get_cpu_var-uses-in-fpu-emulator arch/mips/math-emu/cp1emu.c
+--- a/arch/mips/math-emu/cp1emu.c~mips-replace-__get_cpu_var-uses-in-fpu-emulator
++++ a/arch/mips/math-emu/cp1emu.c
+@@ -2166,13 +2166,13 @@ int fpu_emulator_cop1Handler(struct pt_r
+ static int fpuemu_stat_get(void *data, u64 *val)
  {
--	__raw_get_cpu_var(softlockup_touch_sync) = true;
--	__raw_get_cpu_var(watchdog_touch_ts) = 0;
-+	__this_cpu_write(softlockup_touch_sync, true);
-+	__this_cpu_write(watchdog_touch_ts, 0);
- }
- 
- #ifdef CONFIG_HARDLOCKUP_DETECTOR
-@@ -345,7 +345,7 @@ static void watchdog_set_prio(unsigned i
- 
- static void watchdog_enable(unsigned int cpu)
- {
--	struct hrtimer *hrtimer = &__raw_get_cpu_var(watchdog_hrtimer);
-+	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
- 
- 	/* kick off the timer for the hardlockup detector */
- 	hrtimer_init(hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-@@ -365,7 +365,7 @@ static void watchdog_enable(unsigned int
- 
- static void watchdog_disable(unsigned int cpu)
- {
--	struct hrtimer *hrtimer = &__raw_get_cpu_var(watchdog_hrtimer);
-+	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
- 
- 	watchdog_set_prio(SCHED_NORMAL, 0);
- 	hrtimer_cancel(hrtimer);
-@@ -492,7 +492,7 @@ static struct smp_hotplug_thread watchdo
- 
- static void restart_watchdog_hrtimer(void *info)
- {
--	struct hrtimer *hrtimer = &__raw_get_cpu_var(watchdog_hrtimer);
-+	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
- 	int ret;
- 
- 	/*
+ 	int cpu;
+-	unsigned long sum = 0;
++	u64 sum = 0;
+ 	for_each_online_cpu(cpu) {
+ 		struct mips_fpu_emulator_stats *ps;
+-		local_t *pv;
++		unsigned long *pv;
+ 		ps = &per_cpu(fpuemustats, cpu);
+ 		pv = (void *)ps + (unsigned long)data;
+-		sum += local_read(pv);
++		sum += *pv;
+ 	}
+ 	*val = sum;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from david.daney@cavium.com are
 
-mm-close-pagetail-race.patch
-mm-page_alloc-make-first_page-visible-before-pagetail.patch
-kthread-ensure-locality-of-task_struct-allocations.patch
-mm-slab-slub-use-page-list-consistently-instead-of-page-lru.patch
-kobject-dont-block-for-each-kobject_uevent.patch
-kobject-dont-block-for-each-kobject_uevent-v2.patch
-slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
 linux-next.patch
 percpu-add-raw_cpu_ops.patch
-mm-use-raw_cpu-ops-for-determining-current-numa-node.patch
-modules-use-raw_cpu_write-for-initialization-of-per-cpu-refcount.patch
-net-replace-__this_cpu_inc-in-routec-with-raw_cpu_inc.patch
-percpu-add-preemption-checks-to-__this_cpu-ops.patch
-mm-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
-tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
-percpu-replace-__get_cpu_var-with-this_cpu_ptr.patch
-kernel-misc-replace-__get_cpu_var-uses.patch
-drivers-char-random-replace-__get_cpu_var-uses.patch
-drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch
-drivers-oprofile-replace-__get_cpu_var-uses-for-address-calculation.patch
-drivers-leds-replace-__get_cpu_var-use-through-this_cpu_ptr.patch
-drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch
-parisc-replace-__get_cpu_var-uses-for-address-calculation.patch
-metag-replace-__get_cpu_var-uses-for-address-calculation.patch
-drivers-net-ethernet-tile-replace-__get_cpu_var-uses-for-address-calculation.patch
-drivers-net-ethernet-tile-__get_cpu_var-call-introduced-in-314.patch
-tilegx-another-case-of-get_cpu_var.patch
-time-replace-__get_cpu_var-uses.patch
-scheduler-replace-__get_cpu_var-with-this_cpu_ptr.patch
-tick-sched-fix-two-new-uses-of-__get_cpu_ptr.patch
-block-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch
-rcu-replace-__this_cpu_ptr-uses-with-raw_cpu_ptr.patch
-watchdog-replace-__raw_get_cpu_var-uses.patch
-net-replace-get_cpu_var-through-this_cpu_ptr.patch
-md-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch
-irqchips-replace-__this_cpu_ptr-uses.patch
-x86-replace-__get_cpu_var-uses.patch
-x86-change-__get_cpu_var-calls-introduced-in-314.patch
-uv-replace-__get_cpu_var.patch
-arm-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch
 mips-replace-__get_cpu_var-uses-in-fpu-emulator.patch
-mips-replace-__get_cpu_var-uses.patch
-s390-rename-__this_cpu_ptr-to-raw_cpu_ptr.patch
-s390-replace-__get_cpu_var-uses.patch
-s390-handle-new-__get_cpu_var-calls-added-in-314.patch
-ia64-replace-__get_cpu_var-uses.patch
-powerpc-replace-__get_cpu_var-uses.patch
-powerpc-handle-new-__get_cpu_var-calls-in-314.patch
-sparc-replace-__get_cpu_var-uses.patch
-tile-replace-__get_cpu_var-uses.patch
-blackfin-replace-__get_cpu_var-uses.patch
-avr32-replace-__get_cpu_var-with-__this_cpu_write.patch
-alpha-replace-__get_cpu_var.patch
-sh-replace-__get_cpu_var-uses.patch
 
