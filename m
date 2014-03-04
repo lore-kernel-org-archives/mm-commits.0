@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
+Subject: +
+ drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch
  added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:12 -0800
-Message-ID: <53165340.fqvCcjv/nj6PKP0y%akpm@linux-foundation.org>
+Date: Tue, 04 Mar 2014 14:27:16 -0800
+Message-ID: <53165344.lZQXnesrIAAYEpG9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42768 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42784 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757412AbaCDW1N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:13 -0500
+	with ESMTP id S1757658AbaCDW1R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, rostedt@goodmis.org, mingo@redhat.com, masami.hiramatsu.pt@hitachi.com, fweisbec@gmail.com, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, rjw@sisk.pl, daniel.lezcano@linaro.org, cl@linux.com
 
-Subject: + tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch added to -mm tree
-To: cl@linux.com,fweisbec@gmail.com,masami.hiramatsu.pt@hitachi.com,mingo@redhat.com,rostedt@goodmis.org,tj@kernel.org
+Subject: + drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch added to -mm tree
+To: cl@linux.com,daniel.lezcano@linaro.org,rjw@sisk.pl,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:12 -0800
+Date: Tue, 04 Mar 2014 14:27:16 -0800
 
 
 The patch titled
-     Subject: tracing: replace __get_cpu_var uses with this_cpu_ptr
+     Subject: drivers/cpuidle: replace __get_cpu_var uses for address calculation
 has been added to the -mm tree.  Its filename is
-     tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
+     drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,69 +46,73 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: tracing: replace __get_cpu_var uses with this_cpu_ptr
+Subject: drivers/cpuidle: replace __get_cpu_var uses for address calculation
 
-Replace uses of &__get_cpu_var for address calculation with this_cpu_ptr.
+All of these are for address calculation.  Replace with this_cpu_ptr().
 
+[rjw@sisk.pl: cpufreq changes]
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Acked-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kprobes.h |    2 +-
- kernel/trace/ftrace.c   |    4 ++--
- kernel/trace/trace.c    |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/cpuidle/governors/ladder.c |    4 ++--
+ drivers/cpuidle/governors/menu.c   |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/kprobes.h~tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr include/linux/kprobes.h
---- a/include/linux/kprobes.h~tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr
-+++ a/include/linux/kprobes.h
-@@ -355,7 +355,7 @@ static inline void reset_current_kprobe(
- 
- static inline struct kprobe_ctlblk *get_kprobe_ctlblk(void)
+diff -puN drivers/cpuidle/governors/ladder.c~drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation drivers/cpuidle/governors/ladder.c
+--- a/drivers/cpuidle/governors/ladder.c~drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation
++++ a/drivers/cpuidle/governors/ladder.c
+@@ -66,7 +66,7 @@ static inline void ladder_do_selection(s
+ static int ladder_select_state(struct cpuidle_driver *drv,
+ 				struct cpuidle_device *dev)
  {
--	return (&__get_cpu_var(kprobe_ctlblk));
-+	return this_cpu_ptr(&kprobe_ctlblk);
+-	struct ladder_device *ldev = &__get_cpu_var(ladder_devices);
++	struct ladder_device *ldev = this_cpu_ptr(&ladder_devices);
+ 	struct ladder_device_state *last_state;
+ 	int last_residency, last_idx = ldev->last_state_idx;
+ 	int latency_req = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
+@@ -170,7 +170,7 @@ static int ladder_enable_device(struct c
+  */
+ static void ladder_reflect(struct cpuidle_device *dev, int index)
+ {
+-	struct ladder_device *ldev = &__get_cpu_var(ladder_devices);
++	struct ladder_device *ldev = this_cpu_ptr(&ladder_devices);
+ 	if (index > 0)
+ 		ldev->last_state_idx = index;
  }
- 
- int register_kprobe(struct kprobe *p);
-diff -puN kernel/trace/ftrace.c~tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr kernel/trace/ftrace.c
---- a/kernel/trace/ftrace.c~tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr
-+++ a/kernel/trace/ftrace.c
-@@ -900,7 +900,7 @@ function_profile_call(unsigned long ip,
- 
- 	local_irq_save(flags);
- 
--	stat = &__get_cpu_var(ftrace_profile_stats);
-+	stat = this_cpu_ptr(&ftrace_profile_stats);
- 	if (!stat->hash || !ftrace_profile_enabled)
- 		goto out;
- 
-@@ -931,7 +931,7 @@ static void profile_graph_return(struct
- 	unsigned long flags;
- 
- 	local_irq_save(flags);
--	stat = &__get_cpu_var(ftrace_profile_stats);
-+	stat = this_cpu_ptr(&ftrace_profile_stats);
- 	if (!stat->hash || !ftrace_profile_enabled)
- 		goto out;
- 
-diff -puN kernel/trace/trace.c~tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr kernel/trace/trace.c
---- a/kernel/trace/trace.c~tracing-replace-__get_cpu_var-uses-with-this_cpu_ptr
-+++ a/kernel/trace/trace.c
-@@ -1730,7 +1730,7 @@ static void __ftrace_trace_stack(struct
- 	 */
- 	barrier();
- 	if (use_stack == 1) {
--		trace.entries		= &__get_cpu_var(ftrace_stack).calls[0];
-+		trace.entries		= this_cpu_ptr(ftrace_stack.calls);
- 		trace.max_entries	= FTRACE_STACK_MAX_ENTRIES;
- 
- 		if (regs)
+diff -puN drivers/cpuidle/governors/menu.c~drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~drivers-cpuidle-replace-__get_cpu_var-uses-for-address-calculation
++++ a/drivers/cpuidle/governors/menu.c
+@@ -286,7 +286,7 @@ again:
+  */
+ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
+ {
+-	struct menu_device *data = &__get_cpu_var(menu_devices);
++	struct menu_device *data = this_cpu_ptr(&menu_devices);
+ 	int latency_req = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
+ 	int i;
+ 	int multiplier;
+@@ -375,7 +375,7 @@ static int menu_select(struct cpuidle_dr
+  */
+ static void menu_reflect(struct cpuidle_device *dev, int index)
+ {
+-	struct menu_device *data = &__get_cpu_var(menu_devices);
++	struct menu_device *data = this_cpu_ptr(&menu_devices);
+ 	data->last_state_idx = index;
+ 	if (index >= 0)
+ 		data->needs_update = 1;
+@@ -388,7 +388,7 @@ static void menu_reflect(struct cpuidle_
+  */
+ static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
+ {
+-	struct menu_device *data = &__get_cpu_var(menu_devices);
++	struct menu_device *data = this_cpu_ptr(&menu_devices);
+ 	int last_idx = data->last_state_idx;
+ 	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
+ 	struct cpuidle_state *target = &drv->states[last_idx];
 _
 
 Patches currently in -mm which might be from cl@linux.com are
