@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + irqchips-replace-__this_cpu_ptr-uses.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:36 -0800
-Message-ID: <53165358.a8qSVmCgeZAxKn6D%akpm@linux-foundation.org>
+Subject: + md-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch added to -mm
+ tree
+Date: Tue, 04 Mar 2014 14:27:35 -0800
+Message-ID: <53165357.+3aFQPQDnY2TZ7oQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42862 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42858 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757762AbaCDW1h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:37 -0500
+	with ESMTP id S1757736AbaCDW1g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, rmk+kernel@arm.linux.org.uk, nicolas.pitre@linaro.org, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, neilb@suse.de, cl@linux.com
 
-Subject: + irqchips-replace-__this_cpu_ptr-uses.patch added to -mm tree
-To: cl@linux.com,nicolas.pitre@linaro.org,rmk+kernel@arm.linux.org.uk,tj@kernel.org
+Subject: + md-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch added to -mm tree
+To: cl@linux.com,neilb@suse.de,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:36 -0800
+Date: Tue, 04 Mar 2014 14:27:35 -0800
 
 
 The patch titled
-     Subject: irqchips: replace __this_cpu_ptr uses
+     Subject: md: replace __this_cpu_ptr with raw_cpu_ptr
 has been added to the -mm tree.  Its filename is
-     irqchips-replace-__this_cpu_ptr-uses.patch
+     md-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/irqchips-replace-__this_cpu_ptr-uses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/md-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/irqchips-replace-__this_cpu_ptr-uses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/md-replace-__this_cpu_ptr-with-raw_cpu_ptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,75 +45,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: irqchips: replace __this_cpu_ptr uses
+Subject: md: replace __this_cpu_ptr with raw_cpu_ptr
 
-These are generally replaced with raw_cpu_ptr.  However, in
-gic_get_percpu_base() we immediately dereference the pointer.  This is
-equivalent to a raw_cpu_read.  So use that operation there.
+__this_cpu_ptr is being phased out.
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Neil Brown <neilb@suse.de>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/irqchip/irq-gic.c |   10 +++++-----
- kernel/irq/chip.c         |    2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/md/dm-stats.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/irqchip/irq-gic.c~irqchips-replace-__this_cpu_ptr-uses drivers/irqchip/irq-gic.c
---- a/drivers/irqchip/irq-gic.c~irqchips-replace-__this_cpu_ptr-uses
-+++ a/drivers/irqchip/irq-gic.c
-@@ -102,7 +102,7 @@ static struct gic_chip_data gic_data[MAX
- #ifdef CONFIG_GIC_NON_BANKED
- static void __iomem *gic_get_percpu_base(union gic_base *base)
- {
--	return *__this_cpu_ptr(base->percpu_base);
-+	return raw_cpu_read(base->percpu_base);
- }
- 
- static void __iomem *gic_get_common_base(union gic_base *base)
-@@ -552,11 +552,11 @@ static void gic_cpu_save(unsigned int gi
- 	if (!dist_base || !cpu_base)
- 		return;
- 
--	ptr = __this_cpu_ptr(gic_data[gic_nr].saved_ppi_enable);
-+	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_enable);
- 	for (i = 0; i < DIV_ROUND_UP(32, 32); i++)
- 		ptr[i] = readl_relaxed(dist_base + GIC_DIST_ENABLE_SET + i * 4);
- 
--	ptr = __this_cpu_ptr(gic_data[gic_nr].saved_ppi_conf);
-+	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_conf);
- 	for (i = 0; i < DIV_ROUND_UP(32, 16); i++)
- 		ptr[i] = readl_relaxed(dist_base + GIC_DIST_CONFIG + i * 4);
- 
-@@ -578,11 +578,11 @@ static void gic_cpu_restore(unsigned int
- 	if (!dist_base || !cpu_base)
- 		return;
- 
--	ptr = __this_cpu_ptr(gic_data[gic_nr].saved_ppi_enable);
-+	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_enable);
- 	for (i = 0; i < DIV_ROUND_UP(32, 32); i++)
- 		writel_relaxed(ptr[i], dist_base + GIC_DIST_ENABLE_SET + i * 4);
- 
--	ptr = __this_cpu_ptr(gic_data[gic_nr].saved_ppi_conf);
-+	ptr = raw_cpu_ptr(gic_data[gic_nr].saved_ppi_conf);
- 	for (i = 0; i < DIV_ROUND_UP(32, 16); i++)
- 		writel_relaxed(ptr[i], dist_base + GIC_DIST_CONFIG + i * 4);
- 
-diff -puN kernel/irq/chip.c~irqchips-replace-__this_cpu_ptr-uses kernel/irq/chip.c
---- a/kernel/irq/chip.c~irqchips-replace-__this_cpu_ptr-uses
-+++ a/kernel/irq/chip.c
-@@ -638,7 +638,7 @@ void handle_percpu_devid_irq(unsigned in
- {
- 	struct irq_chip *chip = irq_desc_get_chip(desc);
- 	struct irqaction *action = desc->action;
--	void *dev_id = __this_cpu_ptr(action->percpu_dev_id);
-+	void *dev_id = raw_cpu_ptr(action->percpu_dev_id);
- 	irqreturn_t res;
- 
- 	kstat_incr_irqs_this_cpu(irq, desc);
+diff -puN drivers/md/dm-stats.c~md-replace-__this_cpu_ptr-with-raw_cpu_ptr drivers/md/dm-stats.c
+--- a/drivers/md/dm-stats.c~md-replace-__this_cpu_ptr-with-raw_cpu_ptr
++++ a/drivers/md/dm-stats.c
+@@ -548,7 +548,7 @@ void dm_stats_account_io(struct dm_stats
+ 		 * A race condition can at worst result in the merged flag being
+ 		 * misrepresented, so we don't have to disable preemption here.
+ 		 */
+-		last = __this_cpu_ptr(stats->last);
++		last = raw_cpu_ptr(stats->last);
+ 		stats_aux->merged =
+ 			(bi_sector == (ACCESS_ONCE(last->last_sector) &&
+ 				       ((bi_rw & (REQ_WRITE | REQ_DISCARD)) ==
 _
 
 Patches currently in -mm which might be from cl@linux.com are
