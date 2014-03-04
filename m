@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + tilegx-another-case-of-get_cpu_var.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:24 -0800
-Message-ID: <5316534c.0gaa1AdxLTe2MZVR%akpm@linux-foundation.org>
+Subject: + parisc-replace-__get_cpu_var-uses-for-address-calculation.patch added to -mm tree
+Date: Tue, 04 Mar 2014 14:27:20 -0800
+Message-ID: <53165348.+iogSEFMKZxpD0Zh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42819 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42801 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757714AbaCDW1Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:25 -0500
+	with ESMTP id S1757709AbaCDW1V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, cmetcalf@tilera.com, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, jejb@parisc-linux.org, deller@gmx.de, cl@linux.com
 
-Subject: + tilegx-another-case-of-get_cpu_var.patch added to -mm tree
-To: cl@linux.com,cmetcalf@tilera.com,tj@kernel.org
+Subject: + parisc-replace-__get_cpu_var-uses-for-address-calculation.patch added to -mm tree
+To: cl@linux.com,deller@gmx.de,jejb@parisc-linux.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:24 -0800
+Date: Tue, 04 Mar 2014 14:27:20 -0800
 
 
 The patch titled
-     Subject: tilegx: another case of get_cpu_var
+     Subject: parisc: replace __get_cpu_var uses for address calculation
 has been added to the -mm tree.  Its filename is
-     tilegx-another-case-of-get_cpu_var.patch
+     parisc-replace-__get_cpu_var-uses-for-address-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tilegx-another-case-of-get_cpu_var.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/parisc-replace-__get_cpu_var-uses-for-address-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tilegx-another-case-of-get_cpu_var.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/parisc-replace-__get_cpu_var-uses-for-address-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,31 +44,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: tilegx: another case of get_cpu_var
+Subject: parisc: replace __get_cpu_var uses for address calculation
 
-Seems to have been introduced in 3.14-rc1.
+Convert to the use of this_cpu_ptr().
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/tile/tilegx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/parisc/lib/memcpy.c |    2 +-
+ arch/parisc/mm/fault.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ethernet/tile/tilegx.c~tilegx-another-case-of-get_cpu_var drivers/net/ethernet/tile/tilegx.c
---- a/drivers/net/ethernet/tile/tilegx.c~tilegx-another-case-of-get_cpu_var
-+++ a/drivers/net/ethernet/tile/tilegx.c
-@@ -1923,7 +1923,7 @@ static void tso_egress(struct net_device
-  */
- static int tile_net_tx_tso(struct sk_buff *skb, struct net_device *dev)
- {
--	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
-+	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
- 	struct tile_net_priv *priv = netdev_priv(dev);
- 	int channel = priv->echannel;
- 	int instance = priv->instance;
+diff -puN arch/parisc/lib/memcpy.c~parisc-replace-__get_cpu_var-uses-for-address-calculation arch/parisc/lib/memcpy.c
+--- a/arch/parisc/lib/memcpy.c~parisc-replace-__get_cpu_var-uses-for-address-calculation
++++ a/arch/parisc/lib/memcpy.c
+@@ -470,7 +470,7 @@ static unsigned long pa_memcpy(void *dst
+ 		return 0;
+ 
+ 	/* if a load or store fault occured we can get the faulty addr */
+-	d = &__get_cpu_var(exception_data);
++	d = this_cpu_ptr(&exception_data);
+ 	fault_addr = d->fault_addr;
+ 
+ 	/* error in load or store? */
+diff -puN arch/parisc/mm/fault.c~parisc-replace-__get_cpu_var-uses-for-address-calculation arch/parisc/mm/fault.c
+--- a/arch/parisc/mm/fault.c~parisc-replace-__get_cpu_var-uses-for-address-calculation
++++ a/arch/parisc/mm/fault.c
+@@ -151,7 +151,7 @@ int fixup_exception(struct pt_regs *regs
+ 	fix = search_exception_tables(regs->iaoq[0]);
+ 	if (fix) {
+ 		struct exception_data *d;
+-		d = &__get_cpu_var(exception_data);
++		d = this_cpu_ptr(&exception_data);
+ 		d->fault_ip = regs->iaoq[0];
+ 		d->fault_space = regs->isr;
+ 		d->fault_addr = regs->ior;
 _
 
 Patches currently in -mm which might be from cl@linux.com are
