@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:19 -0800
-Message-ID: <53165347.Y/8SeZSCGLvcfuhJ%akpm@linux-foundation.org>
+Subject: + tilegx-another-case-of-get_cpu_var.patch added to -mm tree
+Date: Tue, 04 Mar 2014 14:27:24 -0800
+Message-ID: <5316534c.0gaa1AdxLTe2MZVR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42819 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757705AbaCDW1U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:20 -0500
+	with ESMTP id S1757714AbaCDW1Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, john.stultz@linaro.org, james.hogan@imgtec.com, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, cmetcalf@tilera.com, cl@linux.com
 
-Subject: + drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch added to -mm tree
-To: cl@linux.com,james.hogan@imgtec.com,john.stultz@linaro.org,tj@kernel.org
+Subject: + tilegx-another-case-of-get_cpu_var.patch added to -mm tree
+To: cl@linux.com,cmetcalf@tilera.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:19 -0800
+Date: Tue, 04 Mar 2014 14:27:24 -0800
 
 
 The patch titled
-     Subject: drivers/clocksource: replace __get_cpu_var used for address calculation
+     Subject: tilegx: another case of get_cpu_var
 has been added to the -mm tree.  Its filename is
-     drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch
+     tilegx-another-case-of-get_cpu_var.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tilegx-another-case-of-get_cpu_var.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tilegx-another-case-of-get_cpu_var.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,32 +44,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: drivers/clocksource: replace __get_cpu_var used for address calculation
+Subject: tilegx: another case of get_cpu_var
 
-Replace __get_cpu_var used for address calculation with this_cpu_ptr.
+Seems to have been introduced in 3.14-rc1.
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Acked-by: James Hogan <james.hogan@imgtec.com>
-Cc: John Stultz <john.stultz@linaro.org>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clocksource/metag_generic.c |    2 +-
+ drivers/net/ethernet/tile/tilegx.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/clocksource/metag_generic.c~drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation drivers/clocksource/metag_generic.c
---- a/drivers/clocksource/metag_generic.c~drivers-clocksource-replace-__get_cpu_var-used-for-address-calculation
-+++ a/drivers/clocksource/metag_generic.c
-@@ -90,7 +90,7 @@ static struct clocksource clocksource_me
- 
- static irqreturn_t metag_timer_interrupt(int irq, void *dummy)
+diff -puN drivers/net/ethernet/tile/tilegx.c~tilegx-another-case-of-get_cpu_var drivers/net/ethernet/tile/tilegx.c
+--- a/drivers/net/ethernet/tile/tilegx.c~tilegx-another-case-of-get_cpu_var
++++ a/drivers/net/ethernet/tile/tilegx.c
+@@ -1923,7 +1923,7 @@ static void tso_egress(struct net_device
+  */
+ static int tile_net_tx_tso(struct sk_buff *skb, struct net_device *dev)
  {
--	struct clock_event_device *evt = &__get_cpu_var(local_clockevent);
-+	struct clock_event_device *evt = this_cpu_ptr(&local_clockevent);
- 
- 	evt->event_handler(evt);
- 
+-	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
++	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
+ 	struct tile_net_priv *priv = netdev_priv(dev);
+ 	int channel = priv->echannel;
+ 	int instance = priv->instance;
 _
 
 Patches currently in -mm which might be from cl@linux.com are
