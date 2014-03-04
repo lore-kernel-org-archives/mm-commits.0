@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
- added to -mm tree
-Date: Tue, 04 Mar 2014 12:14:16 -0800
-Message-ID: <53163418.10SpSVdeztuiwSHI%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch added to -mm tree
+Date: Tue, 04 Mar 2014 12:31:08 -0800
+Message-ID: <5316380c.Wno+pDsq9P3TGJhN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41892 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42014 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751494AbaCDUOR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 15:14:17 -0500
+	with ESMTP id S1757263AbaCDUbJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 15:31:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, starvik@axis.com, sfr@canb.auug.org.au, jesper.nilsson@axis.com, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, xuejiufei@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jiangyiwen@huawei.com
 
-Subject: + cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch added to -mm tree
-To: josh@joshtriplett.org,jesper.nilsson@axis.com,sfr@canb.auug.org.au,starvik@axis.com
+Subject: + ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch added to -mm tree
+To: jiangyiwen@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,xuejiufei@huawei.com
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 12:14:16 -0800
+Date: Tue, 04 Mar 2014 12:31:08 -0800
 
 
 The patch titled
-     Subject: cris: make ETRAX_ARCH_V10 select TTY for use in debugport
+     Subject: ocfs2: do not return DLM_MIGRATE_RESPONSE_MASTERY_REF to avoid endless,loop during umount
 has been added to the -mm tree.  Its filename is
-     cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
+     ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,69 +44,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: cris: make ETRAX_ARCH_V10 select TTY for use in debugport
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2: do not return DLM_MIGRATE_RESPONSE_MASTERY_REF to avoid endless,loop during umount
 
-Fix breakage which will be exposed by the patch "kconfig: make allnoconfig
-disable options behind EMBEDDED and EXPERT".
+The following case may lead to endless loop during umount.
 
-arch/cris/arch-v10/kernel/debugport.c, compiled in unconditionally with
-ETRAX_ARCH_V10, requires TTY, so select TTY to avoid a build failure.
+node A         node B               node C       node D
+umount volume,
+migrate lockres1
+to B
+                                                 want to lock lockres1,
+                                                 send
+                                                 MASTER_REQUEST_MSG
+                                                 to C
+                                    init block mle
+               send
+               MIGRATE_REQUEST_MSG
+               to C
+                                    find a block
+                                    mle, and then
+                                    return
+                                    DLM_MIGRATE_RESPONSE_MASTERY_REF
+                                    to B
+               set C in refmap
+                                    umount successfully
+               try to umount, endless
+               loop occurs when migrate
+               lockres1 since C is in
+               refmap
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+So we can fix this endless loop case by only returning
+DLM_MIGRATE_RESPONSE_MASTERY_REF if it has a mastery mle when receiving
+MIGRATE_REQUEST_MSG.
+
+Signed-off-by: jiangyiwen <jiangyiwen@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Xue jiufei <xuejiufei@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/dlm/dlmmaster.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN arch/cris/Kconfig~cris-make-etrax_arch_v10-select-tty-for-use-in-debugport arch/cris/Kconfig
---- a/arch/cris/Kconfig~cris-make-etrax_arch_v10-select-tty-for-use-in-debugport
-+++ a/arch/cris/Kconfig
-@@ -138,6 +138,7 @@ config ETRAX_ARCH_V10
-        bool
-        default y if ETRAX100LX || ETRAX100LX_V2
-        default n if !(ETRAX100LX || ETRAX100LX_V2)
-+       select TTY
- 
- config ETRAX_ARCH_V32
-        bool
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -3084,11 +3084,15 @@ static int dlm_add_migration_mle(struct
+ 			/* remove it so that only one mle will be found */
+ 			__dlm_unlink_mle(dlm, tmp);
+ 			__dlm_mle_detach_hb_events(dlm, tmp);
+-			ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
+-			mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
+-			    "telling master to get ref for cleared out mle "
+-			    "during migration\n", dlm->name, namelen, name,
+-			    master, new_master);
++                       if (tmp->type == DLM_MLE_MASTER) {
++                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
++                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
++                                               "telling master to get ref "
++                                               "for cleared out mle during "
++                                               "migration\n", dlm->name,
++                                               namelen, name, master,
++                                               new_master);
++                       }
+ 		}
+ 		spin_unlock(&tmp->spinlock);
+ 	}
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
-mm-compactionc-mark-function-as-static.patch
-mm-memoryc-mark-functions-as-static.patch
-mm-mmapc-mark-function-as-static.patch
-mm-process_vm_accessc-mark-function-as-static.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-page_cgroupc-mark-functions-as-static.patch
-mm-nobootmemc-mark-function-as-static.patch
-include-linux-mmh-remove-ifdef-condition.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype.patch
-fs-kernel-permit-disabling-the-uselib-syscall.patch
-fs-kernel-permit-disabling-the-uselib-syscall-v2.patch
-submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
-submittingpatches-add-recommendation-for-mailing-list-references.patch
-submittingpatches-document-the-use-of-git.patch
-lglock-map-to-spinlock-when-config_smp.patch
-lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
-lib-decompress_inflatec-include-appropriate-header-file.patch
-checkpatch-make-return-is-not-a-function-test-quieter.patch
-fs-reiserfs-move-prototype-declaration-to-header-file.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
-ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
-ppc-make-ppc_book3s_64-select-irq_work.patch
-s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver.patch
-kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
-bug-when-config_bug-simplify-warn_on_once-and-family.patch
-include-asm-generic-bugh-style-fix-s-while0-while-0.patch
-bug-when-config_bug-make-warn-call-no_printk-to-check-format-and-args.patch
-bug-use-a-common-definition-of-bug_on-regardless-of-config_bug.patch
-linux-next.patch
+ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 
