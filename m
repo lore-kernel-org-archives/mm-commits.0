@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-replace-__get_cpu_var-uses.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:55 -0800
-Message-ID: <5316536b.xMAMZYFKMZIVuiNG%akpm@linux-foundation.org>
+Subject: + blackfin-replace-__get_cpu_var-uses.patch added to -mm tree
+Date: Tue, 04 Mar 2014 14:27:59 -0800
+Message-ID: <5316536f.5yFn2X9ZrVnJUe55%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42919 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42934 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757811AbaCDW14 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:56 -0500
+	with ESMTP id S1757822AbaCDW2B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:28:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, davem@davemloft.net, cl@linux.com
+To: mm-commits@vger.kernel.org, vapier@gentoo.org, tj@kernel.org, cl@linux.com
 
-Subject: + sparc-replace-__get_cpu_var-uses.patch added to -mm tree
-To: cl@linux.com,davem@davemloft.net,tj@kernel.org
+Subject: + blackfin-replace-__get_cpu_var-uses.patch added to -mm tree
+To: cl@linux.com,tj@kernel.org,vapier@gentoo.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:55 -0800
+Date: Tue, 04 Mar 2014 14:27:59 -0800
 
 
 The patch titled
-     Subject: sparc: replace __get_cpu_var uses
+     Subject: blackfin: replace __get_cpu_var uses
 has been added to the -mm tree.  Its filename is
-     sparc-replace-__get_cpu_var-uses.patch
+     blackfin-replace-__get_cpu_var-uses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc-replace-__get_cpu_var-uses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/blackfin-replace-__get_cpu_var-uses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-replace-__get_cpu_var-uses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/blackfin-replace-__get_cpu_var-uses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +44,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: sparc: replace __get_cpu_var uses
+Subject: blackfin: replace __get_cpu_var uses
+
+[Patch depends on another patch in this series that introduces raw_cpu_ops]
 
 __get_cpu_var() is used for multiple purposes in the kernel source. One of
 them is address calculation via the form &__get_cpu_var(x).  This calculates
@@ -138,345 +140,109 @@ variable.
 	__this_cpu_inc(y)
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/cpudata_32.h |    2 +-
- arch/sparc/include/asm/cpudata_64.h |    2 +-
- arch/sparc/kernel/kprobes.c         |    6 +++---
- arch/sparc/kernel/leon_smp.c        |    2 +-
- arch/sparc/kernel/nmi.c             |   16 ++++++++--------
- arch/sparc/kernel/pci_sun4v.c       |    8 ++++----
- arch/sparc/kernel/perf_event.c      |   26 +++++++++++++-------------
- arch/sparc/kernel/sun4d_smp.c       |    2 +-
- arch/sparc/kernel/time_64.c         |    2 +-
- arch/sparc/mm/tlb.c                 |    4 ++--
- 10 files changed, 35 insertions(+), 35 deletions(-)
+ arch/blackfin/include/asm/ipipe.h         |    2 +-
+ arch/blackfin/kernel/perf_event.c         |   10 +++++-----
+ arch/blackfin/mach-common/ints-priority.c |    8 ++++----
+ arch/blackfin/mach-common/smp.c           |    2 +-
+ 4 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/sparc/include/asm/cpudata_32.h~sparc-replace-__get_cpu_var-uses arch/sparc/include/asm/cpudata_32.h
---- a/arch/sparc/include/asm/cpudata_32.h~sparc-replace-__get_cpu_var-uses
-+++ a/arch/sparc/include/asm/cpudata_32.h
-@@ -26,6 +26,6 @@ typedef struct {
- 
- DECLARE_PER_CPU(cpuinfo_sparc, __cpu_data);
- #define cpu_data(__cpu) per_cpu(__cpu_data, (__cpu))
--#define local_cpu_data() __get_cpu_var(__cpu_data)
-+#define local_cpu_data() __this_cpu_read(__cpu_data)
- 
- #endif /* _SPARC_CPUDATA_H */
-diff -puN arch/sparc/include/asm/cpudata_64.h~sparc-replace-__get_cpu_var-uses arch/sparc/include/asm/cpudata_64.h
---- a/arch/sparc/include/asm/cpudata_64.h~sparc-replace-__get_cpu_var-uses
-+++ a/arch/sparc/include/asm/cpudata_64.h
-@@ -33,7 +33,7 @@ typedef struct {
- 
- DECLARE_PER_CPU(cpuinfo_sparc, __cpu_data);
- #define cpu_data(__cpu)		per_cpu(__cpu_data, (__cpu))
--#define local_cpu_data()	__get_cpu_var(__cpu_data)
-+#define local_cpu_data()	__this_cpu_read(__cpu_data)
- 
- extern const struct seq_operations cpuinfo_op;
- 
-diff -puN arch/sparc/kernel/kprobes.c~sparc-replace-__get_cpu_var-uses arch/sparc/kernel/kprobes.c
---- a/arch/sparc/kernel/kprobes.c~sparc-replace-__get_cpu_var-uses
-+++ a/arch/sparc/kernel/kprobes.c
-@@ -83,7 +83,7 @@ static void __kprobes save_previous_kpro
- 
- static void __kprobes restore_previous_kprobe(struct kprobe_ctlblk *kcb)
- {
--	__get_cpu_var(current_kprobe) = kcb->prev_kprobe.kp;
-+	__this_cpu_write(current_kprobe, kcb->prev_kprobe.kp);
- 	kcb->kprobe_status = kcb->prev_kprobe.status;
- 	kcb->kprobe_orig_tnpc = kcb->prev_kprobe.orig_tnpc;
- 	kcb->kprobe_orig_tstate_pil = kcb->prev_kprobe.orig_tstate_pil;
-@@ -92,7 +92,7 @@ static void __kprobes restore_previous_k
- static void __kprobes set_current_kprobe(struct kprobe *p, struct pt_regs *regs,
- 				struct kprobe_ctlblk *kcb)
- {
--	__get_cpu_var(current_kprobe) = p;
-+	__this_cpu_write(current_kprobe, p);
- 	kcb->kprobe_orig_tnpc = regs->tnpc;
- 	kcb->kprobe_orig_tstate_pil = (regs->tstate & TSTATE_PIL);
- }
-@@ -155,7 +155,7 @@ static int __kprobes kprobe_handler(stru
- 				ret = 1;
- 				goto no_kprobe;
- 			}
--			p = __get_cpu_var(current_kprobe);
-+			p = __this_cpu_read(current_kprobe);
- 			if (p->break_handler && p->break_handler(p, regs))
- 				goto ss_probe;
- 		}
-diff -puN arch/sparc/kernel/leon_smp.c~sparc-replace-__get_cpu_var-uses arch/sparc/kernel/leon_smp.c
---- a/arch/sparc/kernel/leon_smp.c~sparc-replace-__get_cpu_var-uses
-+++ a/arch/sparc/kernel/leon_smp.c
-@@ -354,7 +354,7 @@ static void leon_ipi_resched(int cpu)
- 
- void leonsmp_ipi_interrupt(void)
- {
--	struct leon_ipi_work *work = &__get_cpu_var(leon_ipi_work);
-+	struct leon_ipi_work *work = this_cpu_ptr(&leon_ipi_work);
- 
- 	if (work->single) {
- 		work->single = 0;
-diff -puN arch/sparc/kernel/nmi.c~sparc-replace-__get_cpu_var-uses arch/sparc/kernel/nmi.c
---- a/arch/sparc/kernel/nmi.c~sparc-replace-__get_cpu_var-uses
-+++ a/arch/sparc/kernel/nmi.c
-@@ -111,20 +111,20 @@ notrace __kprobes void perfctr_irq(int i
- 		pcr_ops->write_pcr(0, pcr_ops->pcr_nmi_disable);
- 
- 	sum = local_cpu_data().irq0_irqs;
--	if (__get_cpu_var(nmi_touch)) {
--		__get_cpu_var(nmi_touch) = 0;
-+	if (__this_cpu_read(nmi_touch)) {
-+		__this_cpu_write(nmi_touch, 0);
- 		touched = 1;
- 	}
--	if (!touched && __get_cpu_var(last_irq_sum) == sum) {
-+	if (!touched && __this_cpu_read(last_irq_sum) == sum) {
- 		__this_cpu_inc(alert_counter);
- 		if (__this_cpu_read(alert_counter) == 30 * nmi_hz)
- 			die_nmi("BUG: NMI Watchdog detected LOCKUP",
- 				regs, panic_on_timeout);
- 	} else {
--		__get_cpu_var(last_irq_sum) = sum;
-+		__this_cpu_write(last_irq_sum, sum);
- 		__this_cpu_write(alert_counter, 0);
- 	}
--	if (__get_cpu_var(wd_enabled)) {
-+	if (__this_cpu_read(wd_enabled)) {
- 		pcr_ops->write_pic(0, pcr_ops->nmi_picl_value(nmi_hz));
- 		pcr_ops->write_pcr(0, pcr_ops->pcr_nmi_enable);
- 	}
-@@ -166,7 +166,7 @@ static void report_broken_nmi(int cpu, i
- void stop_nmi_watchdog(void *unused)
- {
- 	pcr_ops->write_pcr(0, pcr_ops->pcr_nmi_disable);
--	__get_cpu_var(wd_enabled) = 0;
-+	__this_cpu_write(wd_enabled, 0);
- 	atomic_dec(&nmi_active);
+diff -puN arch/blackfin/include/asm/ipipe.h~blackfin-replace-__get_cpu_var-uses arch/blackfin/include/asm/ipipe.h
+--- a/arch/blackfin/include/asm/ipipe.h~blackfin-replace-__get_cpu_var-uses
++++ a/arch/blackfin/include/asm/ipipe.h
+@@ -157,7 +157,7 @@ static inline unsigned long __ipipe_ffnz
  }
  
-@@ -219,7 +219,7 @@ error:
+ #define __ipipe_do_root_xirq(ipd, irq)					\
+-	((ipd)->irqs[irq].handler(irq, &__raw_get_cpu_var(__ipipe_tick_regs)))
++	((ipd)->irqs[irq].handler(irq, raw_cpu_ptr(&__ipipe_tick_regs)))
  
- void start_nmi_watchdog(void *unused)
- {
--	__get_cpu_var(wd_enabled) = 1;
-+	__this_cpu_write(wd_enabled, 1);
- 	atomic_inc(&nmi_active);
+ #define __ipipe_run_irqtail(irq)  /* Must be a macro */			\
+ 	do {								\
+diff -puN arch/blackfin/kernel/perf_event.c~blackfin-replace-__get_cpu_var-uses arch/blackfin/kernel/perf_event.c
+--- a/arch/blackfin/kernel/perf_event.c~blackfin-replace-__get_cpu_var-uses
++++ a/arch/blackfin/kernel/perf_event.c
+@@ -300,7 +300,7 @@ again:
  
- 	pcr_ops->write_pcr(0, pcr_ops->pcr_nmi_disable);
-@@ -230,7 +230,7 @@ void start_nmi_watchdog(void *unused)
- 
- static void nmi_adjust_hz_one(void *unused)
- {
--	if (!__get_cpu_var(wd_enabled))
-+	if (!__this_cpu_read(wd_enabled))
- 		return;
- 
- 	pcr_ops->write_pcr(0, pcr_ops->pcr_nmi_disable);
-diff -puN arch/sparc/kernel/pci_sun4v.c~sparc-replace-__get_cpu_var-uses arch/sparc/kernel/pci_sun4v.c
---- a/arch/sparc/kernel/pci_sun4v.c~sparc-replace-__get_cpu_var-uses
-+++ a/arch/sparc/kernel/pci_sun4v.c
-@@ -48,7 +48,7 @@ static int iommu_batch_initialized;
- /* Interrupts must be disabled.  */
- static inline void iommu_batch_start(struct device *dev, unsigned long prot, unsigned long entry)
- {
--	struct iommu_batch *p = &__get_cpu_var(iommu_batch);
-+	struct iommu_batch *p = this_cpu_ptr(&iommu_batch);
- 
- 	p->dev		= dev;
- 	p->prot		= prot;
-@@ -94,7 +94,7 @@ static long iommu_batch_flush(struct iom
- 
- static inline void iommu_batch_new_entry(unsigned long entry)
- {
--	struct iommu_batch *p = &__get_cpu_var(iommu_batch);
-+	struct iommu_batch *p = this_cpu_ptr(&iommu_batch);
- 
- 	if (p->entry + p->npages == entry)
- 		return;
-@@ -106,7 +106,7 @@ static inline void iommu_batch_new_entry
- /* Interrupts must be disabled.  */
- static inline long iommu_batch_add(u64 phys_page)
- {
--	struct iommu_batch *p = &__get_cpu_var(iommu_batch);
-+	struct iommu_batch *p = this_cpu_ptr(&iommu_batch);
- 
- 	BUG_ON(p->npages >= PGLIST_NENTS);
- 
-@@ -120,7 +120,7 @@ static inline long iommu_batch_add(u64 p
- /* Interrupts must be disabled.  */
- static inline long iommu_batch_end(void)
- {
--	struct iommu_batch *p = &__get_cpu_var(iommu_batch);
-+	struct iommu_batch *p = this_cpu_ptr(&iommu_batch);
- 
- 	BUG_ON(p->npages >= PGLIST_NENTS);
- 
-diff -puN arch/sparc/kernel/perf_event.c~sparc-replace-__get_cpu_var-uses arch/sparc/kernel/perf_event.c
---- a/arch/sparc/kernel/perf_event.c~sparc-replace-__get_cpu_var-uses
-+++ a/arch/sparc/kernel/perf_event.c
-@@ -1013,7 +1013,7 @@ static void update_pcrs_for_enable(struc
- 
- static void sparc_pmu_enable(struct pmu *pmu)
+ static void bfin_pmu_stop(struct perf_event *event, int flags)
  {
 -	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
 +	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	int i;
- 
- 	if (cpuc->enabled)
-@@ -1031,7 +1031,7 @@ static void sparc_pmu_enable(struct pmu
- 
- static void sparc_pmu_disable(struct pmu *pmu)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	int i;
- 
- 	if (!cpuc->enabled)
-@@ -1065,7 +1065,7 @@ static int active_event_index(struct cpu
- 
- static void sparc_pmu_start(struct perf_event *event, int flags)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	int idx = active_event_index(cpuc, event);
- 
- 	if (flags & PERF_EF_RELOAD) {
-@@ -1080,7 +1080,7 @@ static void sparc_pmu_start(struct perf_
- 
- static void sparc_pmu_stop(struct perf_event *event, int flags)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	int idx = active_event_index(cpuc, event);
- 
- 	if (!(event->hw.state & PERF_HES_STOPPED)) {
-@@ -1096,7 +1096,7 @@ static void sparc_pmu_stop(struct perf_e
- 
- static void sparc_pmu_del(struct perf_event *event, int _flags)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	unsigned long flags;
- 	int i;
- 
-@@ -1133,7 +1133,7 @@ static void sparc_pmu_del(struct perf_ev
- 
- static void sparc_pmu_read(struct perf_event *event)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	int idx = active_event_index(cpuc, event);
  	struct hw_perf_event *hwc = &event->hw;
+ 	int idx = hwc->idx;
  
-@@ -1145,7 +1145,7 @@ static DEFINE_MUTEX(pmc_grab_mutex);
+@@ -318,7 +318,7 @@ static void bfin_pmu_stop(struct perf_ev
  
- static void perf_stop_nmi_watchdog(void *unused)
+ static void bfin_pmu_start(struct perf_event *event, int flags)
  {
 -	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
 +	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
+ 	struct hw_perf_event *hwc = &event->hw;
+ 	int idx = hwc->idx;
+ 
+@@ -335,7 +335,7 @@ static void bfin_pmu_start(struct perf_e
+ 
+ static void bfin_pmu_del(struct perf_event *event, int flags)
+ {
+-	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
+ 
+ 	bfin_pmu_stop(event, PERF_EF_UPDATE);
+ 	__clear_bit(event->hw.idx, cpuc->used_mask);
+@@ -345,7 +345,7 @@ static void bfin_pmu_del(struct perf_eve
+ 
+ static int bfin_pmu_add(struct perf_event *event, int flags)
+ {
+-	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
+ 	struct hw_perf_event *hwc = &event->hw;
+ 	int idx = hwc->idx;
+ 	int ret = -EAGAIN;
+@@ -429,7 +429,7 @@ static int bfin_pmu_event_init(struct pe
+ 
+ static void bfin_pmu_enable(struct pmu *pmu)
+ {
+-	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
+ 	struct perf_event *event;
+ 	struct hw_perf_event *hwc;
  	int i;
+diff -puN arch/blackfin/mach-common/ints-priority.c~blackfin-replace-__get_cpu_var-uses arch/blackfin/mach-common/ints-priority.c
+--- a/arch/blackfin/mach-common/ints-priority.c~blackfin-replace-__get_cpu_var-uses
++++ a/arch/blackfin/mach-common/ints-priority.c
+@@ -1311,12 +1311,12 @@ asmlinkage int __ipipe_grab_irq(int vec,
+ 		bfin_write_TIMER_STATUS(1); /* Latch TIMIL0 */
+ #endif
+ 		/* This is basically what we need from the register frame. */
+-		__raw_get_cpu_var(__ipipe_tick_regs).ipend = regs->ipend;
+-		__raw_get_cpu_var(__ipipe_tick_regs).pc = regs->pc;
++		__this_cpu_write(__ipipe_tick_regs.ipend, regs->ipend);
++		__this_cpu_write(__ipipe_tick_regs.pc, regs->pc);
+ 		if (this_domain != ipipe_root_domain)
+-			__raw_get_cpu_var(__ipipe_tick_regs).ipend &= ~0x10;
++			__this_cpu_and(__ipipe_tick_regs.ipend, ~0x10);
+ 		else
+-			__raw_get_cpu_var(__ipipe_tick_regs).ipend |= 0x10;
++			__this_cpu_or(__ipipe_tick_regs.ipend, 0x10);
+ 	}
  
- 	stop_nmi_watchdog(NULL);
-@@ -1356,7 +1356,7 @@ static int collect_events(struct perf_ev
+ 	/*
+diff -puN arch/blackfin/mach-common/smp.c~blackfin-replace-__get_cpu_var-uses arch/blackfin/mach-common/smp.c
+--- a/arch/blackfin/mach-common/smp.c~blackfin-replace-__get_cpu_var-uses
++++ a/arch/blackfin/mach-common/smp.c
+@@ -146,7 +146,7 @@ static irqreturn_t ipi_handler_int1(int
+ 	platform_clear_ipi(cpu, IRQ_SUPPLE_1);
  
- static int sparc_pmu_add(struct perf_event *event, int ef_flags)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	int n0, ret = -EAGAIN;
- 	unsigned long flags;
- 
-@@ -1498,7 +1498,7 @@ static int sparc_pmu_event_init(struct p
-  */
- static void sparc_pmu_start_txn(struct pmu *pmu)
- {
--	struct cpu_hw_events *cpuhw = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
- 
- 	perf_pmu_disable(pmu);
- 	cpuhw->group_flag |= PERF_EVENT_TXN;
-@@ -1511,7 +1511,7 @@ static void sparc_pmu_start_txn(struct p
-  */
- static void sparc_pmu_cancel_txn(struct pmu *pmu)
- {
--	struct cpu_hw_events *cpuhw = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
- 
- 	cpuhw->group_flag &= ~PERF_EVENT_TXN;
- 	perf_pmu_enable(pmu);
-@@ -1524,13 +1524,13 @@ static void sparc_pmu_cancel_txn(struct
-  */
- static int sparc_pmu_commit_txn(struct pmu *pmu)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	int n;
- 
- 	if (!sparc_pmu)
- 		return -EINVAL;
- 
--	cpuc = &__get_cpu_var(cpu_hw_events);
-+	cpuc = this_cpu_ptr(&cpu_hw_events);
- 	n = cpuc->n_events;
- 	if (check_excludes(cpuc->event, 0, n))
- 		return -EINVAL;
-@@ -1601,7 +1601,7 @@ static int __kprobes perf_event_nmi_hand
- 
- 	regs = args->regs;
- 
--	cpuc = &__get_cpu_var(cpu_hw_events);
-+	cpuc = this_cpu_ptr(&cpu_hw_events);
- 
- 	/* If the PMU has the TOE IRQ enable bits, we need to do a
- 	 * dummy write to the %pcr to clear the overflow bits and thus
-diff -puN arch/sparc/kernel/sun4d_smp.c~sparc-replace-__get_cpu_var-uses arch/sparc/kernel/sun4d_smp.c
---- a/arch/sparc/kernel/sun4d_smp.c~sparc-replace-__get_cpu_var-uses
-+++ a/arch/sparc/kernel/sun4d_smp.c
-@@ -204,7 +204,7 @@ static void __init smp4d_ipi_init(void)
- 
- void sun4d_ipi_interrupt(void)
- {
--	struct sun4d_ipi_work *work = &__get_cpu_var(sun4d_ipi_work);
-+	struct sun4d_ipi_work *work = this_cpu_ptr(&sun4d_ipi_work);
- 
- 	if (work->single) {
- 		work->single = 0;
-diff -puN arch/sparc/kernel/time_64.c~sparc-replace-__get_cpu_var-uses arch/sparc/kernel/time_64.c
---- a/arch/sparc/kernel/time_64.c~sparc-replace-__get_cpu_var-uses
-+++ a/arch/sparc/kernel/time_64.c
-@@ -766,7 +766,7 @@ void setup_sparc64_timer(void)
- 			     : /* no outputs */
- 			     : "r" (pstate));
- 
--	sevt = &__get_cpu_var(sparc64_events);
-+	sevt = this_cpu_ptr(&sparc64_events);
- 
- 	memcpy(sevt, &sparc64_clockevent, sizeof(*sevt));
- 	sevt->cpumask = cpumask_of(smp_processor_id());
-diff -puN arch/sparc/mm/tlb.c~sparc-replace-__get_cpu_var-uses arch/sparc/mm/tlb.c
---- a/arch/sparc/mm/tlb.c~sparc-replace-__get_cpu_var-uses
-+++ a/arch/sparc/mm/tlb.c
-@@ -52,14 +52,14 @@ out:
- 
- void arch_enter_lazy_mmu_mode(void)
- {
--	struct tlb_batch *tb = &__get_cpu_var(tlb_batch);
-+	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
- 
- 	tb->active = 1;
- }
- 
- void arch_leave_lazy_mmu_mode(void)
- {
--	struct tlb_batch *tb = &__get_cpu_var(tlb_batch);
-+	struct tlb_batch *tb = this_cpu_ptr(&tlb_batch);
- 
- 	if (tb->tlb_nr)
- 		flush_tlb_pending();
+ 	smp_rmb();
+-	bfin_ipi_data = &__get_cpu_var(bfin_ipi);
++	bfin_ipi_data = this_cpu_ptr(&bfin_ipi);
+ 	while ((pending = atomic_xchg(&bfin_ipi_data->bits, 0)) != 0) {
+ 		msg = 0;
+ 		do {
 _
 
 Patches currently in -mm which might be from cl@linux.com are
