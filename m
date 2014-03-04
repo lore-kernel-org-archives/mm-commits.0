@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mips-replace-__get_cpu_var-uses.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:44 -0800
-Message-ID: <53165360.qzHyj6hK1VZsk0Sy%akpm@linux-foundation.org>
+Subject: + ia64-replace-__get_cpu_var-uses.patch added to -mm tree
+Date: Tue, 04 Mar 2014 14:27:50 -0800
+Message-ID: <53165366.kGicE7Rk5QdGX/ah%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42891 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42907 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757773AbaCDW1p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:45 -0500
+	with ESMTP id S1757789AbaCDW1v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, ralf@linux-mips.org, cl@linux.com
+To: mm-commits@vger.kernel.org, tony.luck@intel.com, tj@kernel.org, fenghua.yu@intel.com, cl@linux.com
 
-Subject: + mips-replace-__get_cpu_var-uses.patch added to -mm tree
-To: cl@linux.com,ralf@linux-mips.org,tj@kernel.org
+Subject: + ia64-replace-__get_cpu_var-uses.patch added to -mm tree
+To: cl@linux.com,fenghua.yu@intel.com,tj@kernel.org,tony.luck@intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:44 -0800
+Date: Tue, 04 Mar 2014 14:27:50 -0800
 
 
 The patch titled
-     Subject: mips: replace __get_cpu_var uses
+     Subject: ia64: replace __get_cpu_var uses
 has been added to the -mm tree.  Its filename is
-     mips-replace-__get_cpu_var-uses.patch
+     ia64-replace-__get_cpu_var-uses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mips-replace-__get_cpu_var-uses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ia64-replace-__get_cpu_var-uses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mips-replace-__get_cpu_var-uses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-replace-__get_cpu_var-uses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +44,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: mips: replace __get_cpu_var uses
+Subject: ia64: replace __get_cpu_var uses
 
 __get_cpu_var() is used for multiple purposes in the kernel source. One of
 them is address calculation via the form &__get_cpu_var(x).  This calculates
@@ -138,238 +138,345 @@ variable.
 	__this_cpu_inc(y)
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/cavium-octeon/octeon-irq.c |   30 ++++++++++++-------------
- arch/mips/kernel/kprobes.c           |    6 ++---
- arch/mips/kernel/perf_event_mipsxx.c |   14 +++++------
- arch/mips/kernel/smp-bmips.c         |    2 -
- 4 files changed, 26 insertions(+), 26 deletions(-)
+ arch/alpha/kernel/perf_event.c     |    2 -
+ arch/ia64/include/asm/hw_irq.h     |    2 -
+ arch/ia64/include/asm/sn/arch.h    |    4 +--
+ arch/ia64/include/asm/sn/nodepda.h |    2 -
+ arch/ia64/include/asm/switch_to.h  |    2 -
+ arch/ia64/include/asm/uv/uv_hub.h  |    2 -
+ arch/ia64/kernel/irq.c             |    2 -
+ arch/ia64/kernel/irq_ia64.c        |    4 +--
+ arch/ia64/kernel/kprobes.c         |    6 ++---
+ arch/ia64/kernel/mca.c             |   16 +++++++--------
+ arch/ia64/kernel/process.c         |    6 ++---
+ arch/ia64/kernel/traps.c           |    2 -
+ arch/ia64/sn/kernel/sn2/sn2_smp.c  |   28 +++++++++++++--------------
+ 13 files changed, 39 insertions(+), 39 deletions(-)
 
-diff -puN arch/mips/cavium-octeon/octeon-irq.c~mips-replace-__get_cpu_var-uses arch/mips/cavium-octeon/octeon-irq.c
---- a/arch/mips/cavium-octeon/octeon-irq.c~mips-replace-__get_cpu_var-uses
-+++ a/arch/mips/cavium-octeon/octeon-irq.c
-@@ -264,13 +264,13 @@ static void octeon_irq_ciu_enable_local(
- 	unsigned long *pen;
- 	unsigned long flags;
- 	union octeon_ciu_chip_data cd;
--	raw_spinlock_t *lock = &__get_cpu_var(octeon_irq_ciu_spinlock);
-+	raw_spinlock_t *lock = this_cpu_ptr(&octeon_irq_ciu_spinlock);
+diff -puN arch/alpha/kernel/perf_event.c~ia64-replace-__get_cpu_var-uses arch/alpha/kernel/perf_event.c
+--- a/arch/alpha/kernel/perf_event.c~ia64-replace-__get_cpu_var-uses
++++ a/arch/alpha/kernel/perf_event.c
+@@ -814,7 +814,7 @@ static void alpha_perf_event_irq_handler
+ 	struct hw_perf_event *hwc;
+ 	int idx, j;
  
- 	cd.p = irq_data_get_irq_chip_data(data);
+-	__get_cpu_var(irq_pmi_count)++;
++	__this_cpu_inc(irq_pmi_count);
+ 	cpuc = &__get_cpu_var(cpu_hw_events);
  
- 	raw_spin_lock_irqsave(lock, flags);
- 	if (cd.s.line == 0) {
--		pen = &__get_cpu_var(octeon_irq_ciu0_en_mirror);
-+		pen = this_cpu_ptr(&octeon_irq_ciu0_en_mirror);
- 		__set_bit(cd.s.bit, pen);
- 		/*
- 		 * Must be visible to octeon_irq_ip{2,3}_ciu() before
-@@ -279,7 +279,7 @@ static void octeon_irq_ciu_enable_local(
- 		wmb();
- 		cvmx_write_csr(CVMX_CIU_INTX_EN0(cvmx_get_core_num() * 2), *pen);
- 	} else {
--		pen = &__get_cpu_var(octeon_irq_ciu1_en_mirror);
-+		pen = this_cpu_ptr(&octeon_irq_ciu1_en_mirror);
- 		__set_bit(cd.s.bit, pen);
- 		/*
- 		 * Must be visible to octeon_irq_ip{2,3}_ciu() before
-@@ -296,13 +296,13 @@ static void octeon_irq_ciu_disable_local
- 	unsigned long *pen;
- 	unsigned long flags;
- 	union octeon_ciu_chip_data cd;
--	raw_spinlock_t *lock = &__get_cpu_var(octeon_irq_ciu_spinlock);
-+	raw_spinlock_t *lock = this_cpu_ptr(&octeon_irq_ciu_spinlock);
- 
- 	cd.p = irq_data_get_irq_chip_data(data);
- 
- 	raw_spin_lock_irqsave(lock, flags);
- 	if (cd.s.line == 0) {
--		pen = &__get_cpu_var(octeon_irq_ciu0_en_mirror);
-+		pen = this_cpu_ptr(&octeon_irq_ciu0_en_mirror);
- 		__clear_bit(cd.s.bit, pen);
- 		/*
- 		 * Must be visible to octeon_irq_ip{2,3}_ciu() before
-@@ -311,7 +311,7 @@ static void octeon_irq_ciu_disable_local
- 		wmb();
- 		cvmx_write_csr(CVMX_CIU_INTX_EN0(cvmx_get_core_num() * 2), *pen);
- 	} else {
--		pen = &__get_cpu_var(octeon_irq_ciu1_en_mirror);
-+		pen = this_cpu_ptr(&octeon_irq_ciu1_en_mirror);
- 		__clear_bit(cd.s.bit, pen);
- 		/*
- 		 * Must be visible to octeon_irq_ip{2,3}_ciu() before
-@@ -431,11 +431,11 @@ static void octeon_irq_ciu_enable_local_
- 
- 	if (cd.s.line == 0) {
- 		int index = cvmx_get_core_num() * 2;
--		set_bit(cd.s.bit, &__get_cpu_var(octeon_irq_ciu0_en_mirror));
-+		set_bit(cd.s.bit, this_cpu_ptr(&octeon_irq_ciu0_en_mirror));
- 		cvmx_write_csr(CVMX_CIU_INTX_EN0_W1S(index), mask);
- 	} else {
- 		int index = cvmx_get_core_num() * 2 + 1;
--		set_bit(cd.s.bit, &__get_cpu_var(octeon_irq_ciu1_en_mirror));
-+		set_bit(cd.s.bit, this_cpu_ptr(&octeon_irq_ciu1_en_mirror));
- 		cvmx_write_csr(CVMX_CIU_INTX_EN1_W1S(index), mask);
- 	}
- }
-@@ -450,11 +450,11 @@ static void octeon_irq_ciu_disable_local
- 
- 	if (cd.s.line == 0) {
- 		int index = cvmx_get_core_num() * 2;
--		clear_bit(cd.s.bit, &__get_cpu_var(octeon_irq_ciu0_en_mirror));
-+		clear_bit(cd.s.bit, this_cpu_ptr(&octeon_irq_ciu0_en_mirror));
- 		cvmx_write_csr(CVMX_CIU_INTX_EN0_W1C(index), mask);
- 	} else {
- 		int index = cvmx_get_core_num() * 2 + 1;
--		clear_bit(cd.s.bit, &__get_cpu_var(octeon_irq_ciu1_en_mirror));
-+		clear_bit(cd.s.bit, this_cpu_ptr(&octeon_irq_ciu1_en_mirror));
- 		cvmx_write_csr(CVMX_CIU_INTX_EN1_W1C(index), mask);
- 	}
- }
-@@ -1063,7 +1063,7 @@ static void octeon_irq_ip2_ciu(void)
- 	const unsigned long core_id = cvmx_get_core_num();
- 	u64 ciu_sum = cvmx_read_csr(CVMX_CIU_INTX_SUM0(core_id * 2));
- 
--	ciu_sum &= __get_cpu_var(octeon_irq_ciu0_en_mirror);
-+	ciu_sum &= __this_cpu_read(octeon_irq_ciu0_en_mirror);
- 	if (likely(ciu_sum)) {
- 		int bit = fls64(ciu_sum) - 1;
- 		int irq = octeon_irq_ciu_to_irq[0][bit];
-@@ -1080,7 +1080,7 @@ static void octeon_irq_ip3_ciu(void)
+ 	/* Completely counting through the PMC's period to trigger a new PMC
+diff -puN arch/ia64/include/asm/hw_irq.h~ia64-replace-__get_cpu_var-uses arch/ia64/include/asm/hw_irq.h
+--- a/arch/ia64/include/asm/hw_irq.h~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/include/asm/hw_irq.h
+@@ -160,7 +160,7 @@ static inline ia64_vector __ia64_irq_to_
+ static inline unsigned int
+ __ia64_local_vector_to_irq (ia64_vector vec)
  {
- 	u64 ciu_sum = cvmx_read_csr(CVMX_CIU_INT_SUM1);
+-	return __get_cpu_var(vector_irq)[vec];
++	return __this_cpu_read(vector_irq[vec]);
+ }
+ #endif
  
--	ciu_sum &= __get_cpu_var(octeon_irq_ciu1_en_mirror);
-+	ciu_sum &= __this_cpu_read(octeon_irq_ciu1_en_mirror);
- 	if (likely(ciu_sum)) {
- 		int bit = fls64(ciu_sum) - 1;
- 		int irq = octeon_irq_ciu_to_irq[1][bit];
-@@ -1129,10 +1129,10 @@ static void octeon_irq_init_ciu_percpu(v
- 	int coreid = cvmx_get_core_num();
+diff -puN arch/ia64/include/asm/sn/arch.h~ia64-replace-__get_cpu_var-uses arch/ia64/include/asm/sn/arch.h
+--- a/arch/ia64/include/asm/sn/arch.h~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/include/asm/sn/arch.h
+@@ -57,7 +57,7 @@ struct sn_hub_info_s {
+ 	u16 nasid_bitmask;
+ };
+ DECLARE_PER_CPU(struct sn_hub_info_s, __sn_hub_info);
+-#define sn_hub_info 	(&__get_cpu_var(__sn_hub_info))
++#define sn_hub_info 	this_cpu_ptr(&__sn_hub_info)
+ #define is_shub2()	(sn_hub_info->shub2)
+ #define is_shub1()	(sn_hub_info->shub2 == 0)
+ 
+@@ -72,7 +72,7 @@ DECLARE_PER_CPU(struct sn_hub_info_s, __
+  * cpu.
+  */
+ DECLARE_PER_CPU(short, __sn_cnodeid_to_nasid[MAX_COMPACT_NODES]);
+-#define sn_cnodeid_to_nasid	(&__get_cpu_var(__sn_cnodeid_to_nasid[0]))
++#define sn_cnodeid_to_nasid	this_cpu_ptr(&__sn_cnodeid_to_nasid[0])
  
  
--	__get_cpu_var(octeon_irq_ciu0_en_mirror) = 0;
--	__get_cpu_var(octeon_irq_ciu1_en_mirror) = 0;
-+	__this_cpu_write(octeon_irq_ciu0_en_mirror, 0);
-+	__this_cpu_write(octeon_irq_ciu1_en_mirror, 0);
- 	wmb();
--	raw_spin_lock_init(&__get_cpu_var(octeon_irq_ciu_spinlock));
-+	raw_spin_lock_init(this_cpu_ptr(&octeon_irq_ciu_spinlock));
- 	/*
- 	 * Disable All CIU Interrupts. The ones we need will be
- 	 * enabled later.  Read the SUM register so we know the write
-diff -puN arch/mips/kernel/kprobes.c~mips-replace-__get_cpu_var-uses arch/mips/kernel/kprobes.c
---- a/arch/mips/kernel/kprobes.c~mips-replace-__get_cpu_var-uses
-+++ a/arch/mips/kernel/kprobes.c
-@@ -224,7 +224,7 @@ static void save_previous_kprobe(struct
+ extern u8 sn_partition_id;
+diff -puN arch/ia64/include/asm/sn/nodepda.h~ia64-replace-__get_cpu_var-uses arch/ia64/include/asm/sn/nodepda.h
+--- a/arch/ia64/include/asm/sn/nodepda.h~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/include/asm/sn/nodepda.h
+@@ -70,7 +70,7 @@ typedef struct nodepda_s nodepda_t;
+  */
  
- static void restore_previous_kprobe(struct kprobe_ctlblk *kcb)
+ DECLARE_PER_CPU(struct nodepda_s *, __sn_nodepda);
+-#define sn_nodepda		(__get_cpu_var(__sn_nodepda))
++#define sn_nodepda		__this_cpu_read(__sn_nodepda)
+ #define	NODEPDA(cnodeid)	(sn_nodepda->pernode_pdaindr[cnodeid])
+ 
+ /*
+diff -puN arch/ia64/include/asm/switch_to.h~ia64-replace-__get_cpu_var-uses arch/ia64/include/asm/switch_to.h
+--- a/arch/ia64/include/asm/switch_to.h~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/include/asm/switch_to.h
+@@ -32,7 +32,7 @@ extern void ia64_load_extra (struct task
+ 
+ #ifdef CONFIG_PERFMON
+   DECLARE_PER_CPU(unsigned long, pfm_syst_info);
+-# define PERFMON_IS_SYSWIDE() (__get_cpu_var(pfm_syst_info) & 0x1)
++# define PERFMON_IS_SYSWIDE() (__this_cpu_read(pfm_syst_info) & 0x1)
+ #else
+ # define PERFMON_IS_SYSWIDE() (0)
+ #endif
+diff -puN arch/ia64/include/asm/uv/uv_hub.h~ia64-replace-__get_cpu_var-uses arch/ia64/include/asm/uv/uv_hub.h
+--- a/arch/ia64/include/asm/uv/uv_hub.h~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/include/asm/uv/uv_hub.h
+@@ -108,7 +108,7 @@ struct uv_hub_info_s {
+ 	unsigned char	n_val;
+ };
+ DECLARE_PER_CPU(struct uv_hub_info_s, __uv_hub_info);
+-#define uv_hub_info 		(&__get_cpu_var(__uv_hub_info))
++#define uv_hub_info 		this_cpu_ptr(&__uv_hub_info)
+ #define uv_cpu_hub_info(cpu)	(&per_cpu(__uv_hub_info, cpu))
+ 
+ /*
+diff -puN arch/ia64/kernel/irq.c~ia64-replace-__get_cpu_var-uses arch/ia64/kernel/irq.c
+--- a/arch/ia64/kernel/irq.c~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/kernel/irq.c
+@@ -42,7 +42,7 @@ ia64_vector __ia64_irq_to_vector(int irq
+ 
+ unsigned int __ia64_local_vector_to_irq (ia64_vector vec)
  {
--	__get_cpu_var(current_kprobe) = kcb->prev_kprobe.kp;
-+	__this_cpu_write(current_kprobe, kcb->prev_kprobe.kp);
- 	kcb->kprobe_status = kcb->prev_kprobe.status;
- 	kcb->kprobe_old_SR = kcb->prev_kprobe.old_SR;
- 	kcb->kprobe_saved_SR = kcb->prev_kprobe.saved_SR;
-@@ -234,7 +234,7 @@ static void restore_previous_kprobe(stru
- static void set_current_kprobe(struct kprobe *p, struct pt_regs *regs,
- 			       struct kprobe_ctlblk *kcb)
+-	return __get_cpu_var(vector_irq)[vec];
++	return __this_cpu_read(vector_irq[vec]);
+ }
+ #endif
+ 
+diff -puN arch/ia64/kernel/irq_ia64.c~ia64-replace-__get_cpu_var-uses arch/ia64/kernel/irq_ia64.c
+--- a/arch/ia64/kernel/irq_ia64.c~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/kernel/irq_ia64.c
+@@ -338,7 +338,7 @@ static irqreturn_t smp_irq_move_cleanup_
+ 		int irq;
+ 		struct irq_desc *desc;
+ 		struct irq_cfg *cfg;
+-		irq = __get_cpu_var(vector_irq)[vector];
++		irq = __this_cpu_read(vector_irq[vector]);
+ 		if (irq < 0)
+ 			continue;
+ 
+@@ -352,7 +352,7 @@ static irqreturn_t smp_irq_move_cleanup_
+ 			goto unlock;
+ 
+ 		spin_lock_irqsave(&vector_lock, flags);
+-		__get_cpu_var(vector_irq)[vector] = -1;
++		__this_cpu_write(vector_irq[vector], -1);
+ 		cpu_clear(me, vector_table[vector]);
+ 		spin_unlock_irqrestore(&vector_lock, flags);
+ 		cfg->move_cleanup_count--;
+diff -puN arch/ia64/kernel/kprobes.c~ia64-replace-__get_cpu_var-uses arch/ia64/kernel/kprobes.c
+--- a/arch/ia64/kernel/kprobes.c~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/kernel/kprobes.c
+@@ -396,7 +396,7 @@ static void __kprobes restore_previous_k
+ {
+ 	unsigned int i;
+ 	i = atomic_read(&kcb->prev_kprobe_index);
+-	__get_cpu_var(current_kprobe) = kcb->prev_kprobe[i-1].kp;
++	__this_cpu_write(current_kprobe, kcb->prev_kprobe[i-1].kp);
+ 	kcb->kprobe_status = kcb->prev_kprobe[i-1].status;
+ 	atomic_sub(1, &kcb->prev_kprobe_index);
+ }
+@@ -404,7 +404,7 @@ static void __kprobes restore_previous_k
+ static void __kprobes set_current_kprobe(struct kprobe *p,
+ 			struct kprobe_ctlblk *kcb)
  {
 -	__get_cpu_var(current_kprobe) = p;
 +	__this_cpu_write(current_kprobe, p);
- 	kcb->kprobe_saved_SR = kcb->kprobe_old_SR = (regs->cp0_status & ST0_IE);
- 	kcb->kprobe_saved_epc = regs->cp0_epc;
  }
-@@ -385,7 +385,7 @@ static int __kprobes kprobe_handler(stru
- 				ret = 1;
- 				goto no_kprobe;
- 			}
+ 
+ static void kretprobe_trampoline(void)
+@@ -823,7 +823,7 @@ static int __kprobes pre_kprobes_handler
+ 			/*
+ 			 * jprobe instrumented function just completed
+ 			 */
 -			p = __get_cpu_var(current_kprobe);
 +			p = __this_cpu_read(current_kprobe);
- 			if (p->break_handler && p->break_handler(p, regs))
+ 			if (p->break_handler && p->break_handler(p, regs)) {
  				goto ss_probe;
- 		}
-diff -puN arch/mips/kernel/perf_event_mipsxx.c~mips-replace-__get_cpu_var-uses arch/mips/kernel/perf_event_mipsxx.c
---- a/arch/mips/kernel/perf_event_mipsxx.c~mips-replace-__get_cpu_var-uses
-+++ a/arch/mips/kernel/perf_event_mipsxx.c
-@@ -340,7 +340,7 @@ static int mipsxx_pmu_alloc_counter(stru
+ 			}
+diff -puN arch/ia64/kernel/mca.c~ia64-replace-__get_cpu_var-uses arch/ia64/kernel/mca.c
+--- a/arch/ia64/kernel/mca.c~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/kernel/mca.c
+@@ -1341,7 +1341,7 @@ ia64_mca_handler(struct pt_regs *regs, s
+ 		ia64_mlogbuf_finish(1);
+ 	}
  
- static void mipsxx_pmu_enable_event(struct hw_perf_event *evt, int idx)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
+-	if (__get_cpu_var(ia64_mca_tr_reload)) {
++	if (__this_cpu_read(ia64_mca_tr_reload)) {
+ 		mca_insert_tr(0x1); /*Reload dynamic itrs*/
+ 		mca_insert_tr(0x2); /*Reload dynamic itrs*/
+ 	}
+@@ -1874,14 +1874,14 @@ ia64_mca_cpu_init(void *cpu_data)
+ 		"MCA", cpu);
+ 	format_mca_init_stack(data, offsetof(struct ia64_mca_cpu, init_stack),
+ 		"INIT", cpu);
+-	__get_cpu_var(ia64_mca_data) = __per_cpu_mca[cpu] = __pa(data);
++	__this_cpu_write(ia64_mca_data, (__per_cpu_mca[cpu] = __pa(data)));
  
- 	WARN_ON(idx < 0 || idx >= mipspmu.num_counters);
+ 	/*
+ 	 * Stash away a copy of the PTE needed to map the per-CPU page.
+ 	 * We may need it during MCA recovery.
+ 	 */
+-	__get_cpu_var(ia64_mca_per_cpu_pte) =
+-		pte_val(mk_pte_phys(__pa(cpu_data), PAGE_KERNEL));
++	__this_cpu_write(ia64_mca_per_cpu_pte,
++		pte_val(mk_pte_phys(__pa(cpu_data), PAGE_KERNEL)));
  
-@@ -360,7 +360,7 @@ static void mipsxx_pmu_enable_event(stru
+ 	/*
+ 	 * Also, stash away a copy of the PAL address and the PTE
+@@ -1890,10 +1890,10 @@ ia64_mca_cpu_init(void *cpu_data)
+ 	pal_vaddr = efi_get_pal_addr();
+ 	if (!pal_vaddr)
+ 		return;
+-	__get_cpu_var(ia64_mca_pal_base) =
+-		GRANULEROUNDDOWN((unsigned long) pal_vaddr);
+-	__get_cpu_var(ia64_mca_pal_pte) = pte_val(mk_pte_phys(__pa(pal_vaddr),
+-							      PAGE_KERNEL));
++	__this_cpu_write(ia64_mca_pal_base,
++		GRANULEROUNDDOWN((unsigned long) pal_vaddr));
++	__this_cpu_write(ia64_mca_pal_pte, pte_val(mk_pte_phys(__pa(pal_vaddr),
++							      PAGE_KERNEL)));
+ }
  
- static void mipsxx_pmu_disable_event(int idx)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	unsigned long flags;
+ static void ia64_mca_cmc_vector_adjust(void *dummy)
+diff -puN arch/ia64/kernel/process.c~ia64-replace-__get_cpu_var-uses arch/ia64/kernel/process.c
+--- a/arch/ia64/kernel/process.c~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/kernel/process.c
+@@ -215,7 +215,7 @@ static inline void play_dead(void)
+ 	unsigned int this_cpu = smp_processor_id();
  
- 	WARN_ON(idx < 0 || idx >= mipspmu.num_counters);
-@@ -460,7 +460,7 @@ static void mipspmu_stop(struct perf_eve
+ 	/* Ack it */
+-	__get_cpu_var(cpu_state) = CPU_DEAD;
++	__this_cpu_write(cpu_state, CPU_DEAD);
  
- static int mipspmu_add(struct perf_event *event, int flags)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	struct hw_perf_event *hwc = &event->hw;
- 	int idx;
- 	int err = 0;
-@@ -496,7 +496,7 @@ out:
+ 	max_xtp();
+ 	local_irq_disable();
+@@ -273,7 +273,7 @@ ia64_save_extra (struct task_struct *tas
+ 	if ((task->thread.flags & IA64_THREAD_PM_VALID) != 0)
+ 		pfm_save_regs(task);
  
- static void mipspmu_del(struct perf_event *event, int flags)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	struct hw_perf_event *hwc = &event->hw;
- 	int idx = hwc->idx;
+-	info = __get_cpu_var(pfm_syst_info);
++	info = __this_cpu_read(pfm_syst_info);
+ 	if (info & PFM_CPUINFO_SYST_WIDE)
+ 		pfm_syst_wide_update_task(task, info, 0);
+ #endif
+@@ -293,7 +293,7 @@ ia64_load_extra (struct task_struct *tas
+ 	if ((task->thread.flags & IA64_THREAD_PM_VALID) != 0)
+ 		pfm_load_regs(task);
  
-@@ -1270,7 +1270,7 @@ static int __hw_perf_event_init(struct p
+-	info = __get_cpu_var(pfm_syst_info);
++	info = __this_cpu_read(pfm_syst_info);
+ 	if (info & PFM_CPUINFO_SYST_WIDE) 
+ 		pfm_syst_wide_update_task(task, info, 1);
+ #endif
+diff -puN arch/ia64/kernel/traps.c~ia64-replace-__get_cpu_var-uses arch/ia64/kernel/traps.c
+--- a/arch/ia64/kernel/traps.c~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/kernel/traps.c
+@@ -299,7 +299,7 @@ handle_fpu_swa (int fp_fault, struct pt_
  
- static void pause_local_counters(void)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	int ctr = mipspmu.num_counters;
- 	unsigned long flags;
+ 	if (!(current->thread.flags & IA64_THREAD_FPEMU_NOPRINT))  {
+ 		unsigned long count, current_jiffies = jiffies;
+-		struct fpu_swa_msg *cp = &__get_cpu_var(cpulast);
++		struct fpu_swa_msg *cp = this_cpu_ptr(&cpulast);
  
-@@ -1286,7 +1286,7 @@ static void pause_local_counters(void)
+ 		if (unlikely(current_jiffies > cp->time))
+ 			cp->count = 0;
+diff -puN arch/ia64/sn/kernel/sn2/sn2_smp.c~ia64-replace-__get_cpu_var-uses arch/ia64/sn/kernel/sn2/sn2_smp.c
+--- a/arch/ia64/sn/kernel/sn2/sn2_smp.c~ia64-replace-__get_cpu_var-uses
++++ a/arch/ia64/sn/kernel/sn2/sn2_smp.c
+@@ -134,8 +134,8 @@ sn2_ipi_flush_all_tlb(struct mm_struct *
+ 	itc = ia64_get_itc();
+ 	smp_flush_tlb_cpumask(*mm_cpumask(mm));
+ 	itc = ia64_get_itc() - itc;
+-	__get_cpu_var(ptcstats).shub_ipi_flushes_itc_clocks += itc;
+-	__get_cpu_var(ptcstats).shub_ipi_flushes++;
++	__this_cpu_add(ptcstats.shub_ipi_flushes_itc_clocks, itc);
++	__this_cpu_inc(ptcstats.shub_ipi_flushes);
+ }
  
- static void resume_local_counters(void)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	int ctr = mipspmu.num_counters;
+ /**
+@@ -199,14 +199,14 @@ sn2_global_tlb_purge(struct mm_struct *m
+ 			start += (1UL << nbits);
+ 		} while (start < end);
+ 		ia64_srlz_i();
+-		__get_cpu_var(ptcstats).ptc_l++;
++		__this_cpu_inc(ptcstats.ptc_l);
+ 		preempt_enable();
+ 		return;
+ 	}
  
- 	do {
-@@ -1297,7 +1297,7 @@ static void resume_local_counters(void)
+ 	if (atomic_read(&mm->mm_users) == 1 && mymm) {
+ 		flush_tlb_mm(mm);
+-		__get_cpu_var(ptcstats).change_rid++;
++		__this_cpu_inc(ptcstats.change_rid);
+ 		preempt_enable();
+ 		return;
+ 	}
+@@ -250,11 +250,11 @@ sn2_global_tlb_purge(struct mm_struct *m
+ 	spin_lock_irqsave(PTC_LOCK(shub1), flags);
+ 	itc2 = ia64_get_itc();
  
- static int mipsxx_pmu_handle_shared_irq(void)
- {
--	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
-+	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
- 	struct perf_sample_data data;
- 	unsigned int counters = mipspmu.num_counters;
- 	u64 counter;
-diff -puN arch/mips/kernel/smp-bmips.c~mips-replace-__get_cpu_var-uses arch/mips/kernel/smp-bmips.c
---- a/arch/mips/kernel/smp-bmips.c~mips-replace-__get_cpu_var-uses
-+++ a/arch/mips/kernel/smp-bmips.c
-@@ -353,7 +353,7 @@ static irqreturn_t bmips43xx_ipi_interru
- 	int action, cpu = irq - IPI0_IRQ;
+-	__get_cpu_var(ptcstats).lock_itc_clocks += itc2 - itc;
+-	__get_cpu_var(ptcstats).shub_ptc_flushes++;
+-	__get_cpu_var(ptcstats).nodes_flushed += nix;
++	__this_cpu_add(ptcstats.lock_itc_clocks, itc2 - itc);
++	__this_cpu_inc(ptcstats.shub_ptc_flushes);
++	__this_cpu_add(ptcstats.nodes_flushed, nix);
+ 	if (!mymm)
+-		 __get_cpu_var(ptcstats).shub_ptc_flushes_not_my_mm++;
++		 __this_cpu_inc(ptcstats.shub_ptc_flushes_not_my_mm);
  
- 	spin_lock_irqsave(&ipi_lock, flags);
--	action = __get_cpu_var(ipi_action_mask);
-+	action = __this_cpu_read(ipi_action_mask);
- 	per_cpu(ipi_action_mask, cpu) = 0;
- 	clear_c0_cause(cpu ? C_SW1 : C_SW0);
- 	spin_unlock_irqrestore(&ipi_lock, flags);
+ 	if (use_cpu_ptcga && !mymm) {
+ 		old_rr = ia64_get_rr(start);
+@@ -299,9 +299,9 @@ sn2_global_tlb_purge(struct mm_struct *m
+ 
+ done:
+ 	itc2 = ia64_get_itc() - itc2;
+-	__get_cpu_var(ptcstats).shub_itc_clocks += itc2;
+-	if (itc2 > __get_cpu_var(ptcstats).shub_itc_clocks_max)
+-		__get_cpu_var(ptcstats).shub_itc_clocks_max = itc2;
++	__this_cpu_add(ptcstats)shub_itc_clocks, itc2);
++	if (itc2 > __this_cpu_read(ptcstats.shub_itc_clocks_max))
++		__this_cpu_write(ptcstats).shub_itc_clocks_max, itc2);
+ 
+ 	if (old_rr) {
+ 		ia64_set_rr(start, old_rr);
+@@ -311,7 +311,7 @@ done:
+ 	spin_unlock_irqrestore(PTC_LOCK(shub1), flags);
+ 
+ 	if (flush_opt == 1 && deadlock) {
+-		__get_cpu_var(ptcstats).deadlocks++;
++		__this_cpu_inc(ptcstats.deadlocks);
+ 		sn2_ipi_flush_all_tlb(mm);
+ 	}
+ 
+@@ -334,7 +334,7 @@ sn2_ptc_deadlock_recovery(short *nasids,
+ 	short nasid, i;
+ 	unsigned long *piows, zeroval, n;
+ 
+-	__get_cpu_var(ptcstats).deadlocks++;
++	__this_cpu_inc(ptcstats.deadlocks);
+ 
+ 	piows = (unsigned long *) pda->pio_write_status_addr;
+ 	zeroval = pda->pio_write_status_val;
+@@ -349,7 +349,7 @@ sn2_ptc_deadlock_recovery(short *nasids,
+ 			ptc1 = CHANGE_NASID(nasid, ptc1);
+ 
+ 		n = sn2_ptc_deadlock_recovery_core(ptc0, data0, ptc1, data1, piows, zeroval);
+-		__get_cpu_var(ptcstats).deadlocks2 += n;
++		__this_cpu_add(ptcstats.deadlocks2, n);
+ 	}
+ 
+ }
 _
 
 Patches currently in -mm which might be from cl@linux.com are
