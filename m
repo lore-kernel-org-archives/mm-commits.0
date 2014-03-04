@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
- added to -mm tree
-Date: Tue, 04 Mar 2014 12:14:19 -0800
-Message-ID: <5316341b.Q1Hob81AKvB1JaFZ%akpm@linux-foundation.org>
+ s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver.patch added to -mm tree
+Date: Tue, 04 Mar 2014 12:14:21 -0800
+Message-ID: <5316341d.e6bxcsmpT01TOntG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41904 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41915 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757680AbaCDUOU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 15:14:20 -0500
+	with ESMTP id S1757688AbaCDUOW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 15:14:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, sfr@canb.auug.org.au, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, schwidefsky@de.ibm.com, josh@joshtriplett.org
 
-Subject: + ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch added to -mm tree
-To: josh@joshtriplett.org,sfr@canb.auug.org.au,tony.luck@intel.com
+Subject: + s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver.patch added to -mm tree
+To: josh@joshtriplett.org,schwidefsky@de.ibm.com,sfr@canb.auug.org.au
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 12:14:19 -0800
+Date: Tue, 04 Mar 2014 12:14:21 -0800
 
 
 The patch titled
-     Subject: ia64: select CONFIG_TTY for use of tty_write_message in unaligned
+     Subject: s390: select CONFIG_TTY for use of tty in unconditional keyboard driver
 has been added to the -mm tree.  Its filename is
-     ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
+     s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,40 +45,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Josh Triplett <josh@joshtriplett.org>
-Subject: ia64: select CONFIG_TTY for use of tty_write_message in unaligned
+Subject: s390: select CONFIG_TTY for use of tty in unconditional keyboard driver
 
 Fix breakage which will be exposed by the patch "kconfig: make allnoconfig
 disable options behind EMBEDDED and EXPERT".
 
-arch/ia64/kernel/unaligned.c uses tty_write_message to print an
-unaligned access exception to the TTY of the current user process.
-Enable TTY to prevent a build error.
-
-Minimal fix, on the basis that few people on ia64 will care deeply about
-kernel size enough to turn off TTY.  Ideally, I'd instead suggest
-dropping the tty_write_message entirely, and just leaving the printk.
-Bonus: no need to sprintf first.
+The unconditionally built keyboard driver, drivers/s390/char/keyboard.c,
+requires CONFIG_TTY, so select it from CONFIG_S390 to prevent a build
+error.
 
 Signed-off-by: Josh Triplett <josh@joshtriplett.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig |    1 +
+ arch/s390/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/ia64/Kconfig~ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned
-+++ a/arch/ia64/Kconfig
-@@ -44,6 +44,7 @@ config IA64
- 	select HAVE_MOD_ARCH_SPECIFIC
- 	select MODULES_USE_ELF_RELA
- 	select ARCH_USE_CMPXCHG_LOCKREF
+diff -puN arch/s390/Kconfig~s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver arch/s390/Kconfig
+--- a/arch/s390/Kconfig~s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver
++++ a/arch/s390/Kconfig
+@@ -140,6 +140,7 @@ config S390
+ 	select OLD_SIGACTION
+ 	select OLD_SIGSUSPEND3
+ 	select SYSCTL_EXCEPTION_TRACE
 +	select TTY
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
+ 	select VIRT_CPU_ACCOUNTING
+ 	select VIRT_TO_BUS
+ 
 _
 
 Patches currently in -mm which might be from josh@joshtriplett.org are
