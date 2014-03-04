@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + s390-rename-__this_cpu_ptr-to-raw_cpu_ptr.patch added to -mm
- tree
-Date: Tue, 04 Mar 2014 14:27:46 -0800
-Message-ID: <53165362.mOElN/cmYuVNdjxQ%akpm@linux-foundation.org>
+Subject: + powerpc-handle-new-__get_cpu_var-calls-in-314.patch added to
+ -mm tree
+Date: Tue, 04 Mar 2014 14:27:54 -0800
+Message-ID: <5316536a.WOQNR28u/DdDfTOM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42893 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42918 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757783AbaCDW1r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:47 -0500
+	with ESMTP id S1757810AbaCDW1z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, paulus@samba.org, benh@kernel.crashing.org, cl@linux.com
 
-Subject: + s390-rename-__this_cpu_ptr-to-raw_cpu_ptr.patch added to -mm tree
-To: cl@linux.com,heiko.carstens@de.ibm.com,schwidefsky@de.ibm.com,tj@kernel.org
+Subject: + powerpc-handle-new-__get_cpu_var-calls-in-314.patch added to -mm tree
+To: cl@linux.com,benh@kernel.crashing.org,paulus@samba.org,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:46 -0800
+Date: Tue, 04 Mar 2014 14:27:54 -0800
 
 
 The patch titled
-     Subject: s390: rename __this_cpu_ptr to raw_cpu_ptr
+     Subject: powerpc: handle new __get_cpu_var calls in 3.14
 has been added to the -mm tree.  Its filename is
-     s390-rename-__this_cpu_ptr-to-raw_cpu_ptr.patch
+     powerpc-handle-new-__get_cpu_var-calls-in-314.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-rename-__this_cpu_ptr-to-raw_cpu_ptr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-handle-new-__get_cpu_var-calls-in-314.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-rename-__this_cpu_ptr-to-raw_cpu_ptr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-handle-new-__get_cpu_var-calls-in-314.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,88 +45,153 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: s390: rename __this_cpu_ptr to raw_cpu_ptr
-
-Use raw_cpu_ptr instead.
+Subject: powerpc: handle new __get_cpu_var calls in 3.14
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/percpu.h |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ arch/powerpc/kernel/irq.c            |    2 +-
+ arch/powerpc/kernel/kgdb.c           |    2 +-
+ arch/powerpc/kernel/mce.c            |   24 ++++++++++++------------
+ arch/powerpc/kernel/time.c           |    4 ++--
+ arch/powerpc/mm/hugetlbpage-book3e.c |    2 +-
+ 5 files changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN arch/s390/include/asm/percpu.h~s390-rename-__this_cpu_ptr-to-raw_cpu_ptr arch/s390/include/asm/percpu.h
---- a/arch/s390/include/asm/percpu.h~s390-rename-__this_cpu_ptr-to-raw_cpu_ptr
-+++ a/arch/s390/include/asm/percpu.h
-@@ -31,7 +31,7 @@
- 	pcp_op_T__ old__, new__, prev__;				\
- 	pcp_op_T__ *ptr__;						\
- 	preempt_disable();						\
--	ptr__ = __this_cpu_ptr(&(pcp));					\
-+	ptr__ = raw_cpu_ptr(&(pcp));					\
- 	prev__ = *ptr__;						\
- 	do {								\
- 		old__ = prev__;						\
-@@ -70,7 +70,7 @@
- 	pcp_op_T__ val__ = (val);					\
- 	pcp_op_T__ old__, *ptr__;					\
- 	preempt_disable();						\
--	ptr__ = __this_cpu_ptr(&(pcp)); 				\
-+	ptr__ = raw_cpu_ptr(&(pcp)); 				\
- 	if (__builtin_constant_p(val__) &&				\
- 	    ((szcast)val__ > -129) && ((szcast)val__ < 128)) {		\
- 		asm volatile(						\
-@@ -97,7 +97,7 @@
- 	pcp_op_T__ val__ = (val);					\
- 	pcp_op_T__ old__, *ptr__;					\
- 	preempt_disable();						\
--	ptr__ = __this_cpu_ptr(&(pcp)); 				\
-+	ptr__ = raw_cpu_ptr(&(pcp));	 				\
- 	asm volatile(							\
- 		op "    %[old__],%[val__],%[ptr__]\n"			\
- 		: [old__] "=d" (old__), [ptr__] "+Q" (*ptr__)		\
-@@ -116,7 +116,7 @@
- 	pcp_op_T__ val__ = (val);					\
- 	pcp_op_T__ old__, *ptr__;					\
- 	preempt_disable();						\
--	ptr__ = __this_cpu_ptr(&(pcp)); 				\
-+	ptr__ = raw_cpu_ptr(&(pcp));	 				\
- 	asm volatile(							\
- 		op "    %[old__],%[val__],%[ptr__]\n"			\
- 		: [old__] "=d" (old__), [ptr__] "+Q" (*ptr__)		\
-@@ -138,7 +138,7 @@
- 	pcp_op_T__ ret__;						\
- 	pcp_op_T__ *ptr__;						\
- 	preempt_disable();						\
--	ptr__ = __this_cpu_ptr(&(pcp));					\
-+	ptr__ = raw_cpu_ptr(&(pcp));					\
- 	ret__ = cmpxchg(ptr__, oval, nval);				\
- 	preempt_enable();						\
- 	ret__;								\
-@@ -154,7 +154,7 @@
- 	typeof(pcp) *ptr__;						\
- 	typeof(pcp) ret__;						\
- 	preempt_disable();						\
--	ptr__ = __this_cpu_ptr(&(pcp));					\
-+	ptr__ = raw_cpu_ptr(&(pcp));					\
- 	ret__ = xchg(ptr__, nval);					\
- 	preempt_enable();						\
- 	ret__;								\
-@@ -173,8 +173,8 @@
- 	typeof(pcp2) *p2__;						\
- 	int ret__;							\
- 	preempt_disable();						\
--	p1__ = __this_cpu_ptr(&(pcp1));					\
--	p2__ = __this_cpu_ptr(&(pcp2));					\
-+	p1__ = raw_cpu_ptr(&(pcp1));					\
-+	p2__ = raw_cpu_ptr(&(pcp2));					\
- 	ret__ = __cmpxchg_double(p1__, p2__, o1__, o2__, n1__, n2__);	\
- 	preempt_enable();						\
- 	ret__;								\
+diff -puN arch/powerpc/kernel/irq.c~powerpc-handle-new-__get_cpu_var-calls-in-314 arch/powerpc/kernel/irq.c
+--- a/arch/powerpc/kernel/irq.c~powerpc-handle-new-__get_cpu_var-calls-in-314
++++ a/arch/powerpc/kernel/irq.c
+@@ -486,7 +486,7 @@ void __do_irq(struct pt_regs *regs)
+ 
+ 	/* And finally process it */
+ 	if (unlikely(irq == NO_IRQ))
+-		__get_cpu_var(irq_stat).spurious_irqs++;
++		__this_cpu_inc(irq_stat.spurious_irqs);
+ 	else {
+ 		desc = irq_to_desc(irq);
+ 		if (likely(desc))
+diff -puN arch/powerpc/kernel/kgdb.c~powerpc-handle-new-__get_cpu_var-calls-in-314 arch/powerpc/kernel/kgdb.c
+--- a/arch/powerpc/kernel/kgdb.c~powerpc-handle-new-__get_cpu_var-calls-in-314
++++ a/arch/powerpc/kernel/kgdb.c
+@@ -155,7 +155,7 @@ static int kgdb_singlestep(struct pt_reg
+ {
+ 	struct thread_info *thread_info, *exception_thread_info;
+ 	struct thread_info *backup_current_thread_info =
+-		&__get_cpu_var(kgdb_thread_info);
++		this_cpu_ptr(&kgdb_thread_info);
+ 
+ 	if (user_mode(regs))
+ 		return 0;
+diff -puN arch/powerpc/kernel/mce.c~powerpc-handle-new-__get_cpu_var-calls-in-314 arch/powerpc/kernel/mce.c
+--- a/arch/powerpc/kernel/mce.c~powerpc-handle-new-__get_cpu_var-calls-in-314
++++ a/arch/powerpc/kernel/mce.c
+@@ -73,8 +73,8 @@ void save_mce_event(struct pt_regs *regs
+ 		    uint64_t addr)
+ {
+ 	uint64_t srr1;
+-	int index = __get_cpu_var(mce_nest_count)++;
+-	struct machine_check_event *mce = &__get_cpu_var(mce_event[index]);
++	int index = __this_cpu_inc_return(mce_nest_count);
++	struct machine_check_event *mce = __this_cpu_read(mce_event[index]);
+ 
+ 	/*
+ 	 * Return if we don't have enough space to log mce event.
+@@ -143,7 +143,7 @@ void save_mce_event(struct pt_regs *regs
+  */
+ int get_mce_event(struct machine_check_event *mce, bool release)
+ {
+-	int index = __get_cpu_var(mce_nest_count) - 1;
++	int index = __this_cpu_read(mce_nest_count) - 1;
+ 	struct machine_check_event *mc_evt;
+ 	int ret = 0;
+ 
+@@ -153,7 +153,7 @@ int get_mce_event(struct machine_check_e
+ 
+ 	/* Check if we have MCE info to process. */
+ 	if (index < MAX_MC_EVT) {
+-		mc_evt = &__get_cpu_var(mce_event[index]);
++		mc_evt = __this_cpu_read(mce_event[index]);
+ 		/* Copy the event structure and release the original */
+ 		if (mce)
+ 			*mce = *mc_evt;
+@@ -163,7 +163,7 @@ int get_mce_event(struct machine_check_e
+ 	}
+ 	/* Decrement the count to free the slot. */
+ 	if (release)
+-		__get_cpu_var(mce_nest_count)--;
++		__this_cpu_dec(mce_nest_count);
+ 
+ 	return ret;
+ }
+@@ -184,13 +184,13 @@ void machine_check_queue_event(void)
+ 	if (!get_mce_event(&evt, MCE_EVENT_RELEASE))
+ 		return;
+ 
+-	index = __get_cpu_var(mce_queue_count)++;
++	index = __this_cpu_inc_return(mce_queue_count);
+ 	/* If queue is full, just return for now. */
+ 	if (index >= MAX_MC_EVT) {
+-		__get_cpu_var(mce_queue_count)--;
++		__this_cpu_dec(mce_queue_count);
+ 		return;
+ 	}
+-	__get_cpu_var(mce_event_queue[index]) = evt;
++	__this_cpu_write(mce_event_queue[index], evt);
+ 
+ 	/* Queue irq work to process this event later. */
+ 	irq_work_queue(&mce_event_process_work);
+@@ -208,11 +208,11 @@ static void machine_check_process_queued
+ 	 * For now just print it to console.
+ 	 * TODO: log this error event to FSP or nvram.
+ 	 */
+-	while (__get_cpu_var(mce_queue_count) > 0) {
+-		index = __get_cpu_var(mce_queue_count) - 1;
++	while (__this_cpu_read(mce_queue_count) > 0) {
++		index = __this_cpu_read(mce_queue_count) - 1;
+ 		machine_check_print_event_info(
+-				&__get_cpu_var(mce_event_queue[index]));
+-		__get_cpu_var(mce_queue_count)--;
++				this_cpu_ptr(&mce_event_queue[index]));
++		__this_cpu_dec(mce_queue_count);
+ 	}
+ }
+ 
+diff -puN arch/powerpc/kernel/time.c~powerpc-handle-new-__get_cpu_var-calls-in-314 arch/powerpc/kernel/time.c
+--- a/arch/powerpc/kernel/time.c~powerpc-handle-new-__get_cpu_var-calls-in-314
++++ a/arch/powerpc/kernel/time.c
+@@ -531,7 +531,7 @@ void timer_interrupt(struct pt_regs * re
+ 		*next_tb = ~(u64)0;
+ 		if (evt->event_handler)
+ 			evt->event_handler(evt);
+-		__get_cpu_var(irq_stat).timer_irqs_event++;
++		__this_cpu_inc(irq_stat.timer_irqs_event);
+ 	} else {
+ 		now = *next_tb - now;
+ 		if (now <= DECREMENTER_MAX)
+@@ -539,7 +539,7 @@ void timer_interrupt(struct pt_regs * re
+ 		/* We may have raced with new irq work */
+ 		if (test_irq_work_pending())
+ 			set_dec(1);
+-		__get_cpu_var(irq_stat).timer_irqs_others++;
++		__this_cpu_inc(irq_stat.timer_irqs_others);
+ 	}
+ 
+ #ifdef CONFIG_PPC64
+diff -puN arch/powerpc/mm/hugetlbpage-book3e.c~powerpc-handle-new-__get_cpu_var-calls-in-314 arch/powerpc/mm/hugetlbpage-book3e.c
+--- a/arch/powerpc/mm/hugetlbpage-book3e.c~powerpc-handle-new-__get_cpu_var-calls-in-314
++++ a/arch/powerpc/mm/hugetlbpage-book3e.c
+@@ -33,7 +33,7 @@ static inline int tlb1_next(void)
+ 
+ 	ncams = mfspr(SPRN_TLB1CFG) & TLBnCFG_N_ENTRY;
+ 
+-	index = __get_cpu_var(next_tlbcam_idx);
++	index = this_cpu_read(next_tlbcam_idx);
+ 
+ 	/* Just round-robin the entries and wrap when we hit the end */
+ 	if (unlikely(index == ncams - 1))
 _
 
 Patches currently in -mm which might be from cl@linux.com are
