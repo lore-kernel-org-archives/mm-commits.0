@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + tick-sched-fix-two-new-uses-of-__get_cpu_ptr.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:29 -0800
-Message-ID: <53165351.mHEsL7Lsrse0iT84%akpm@linux-foundation.org>
+Subject: +
+ drivers-net-ethernet-tile-__get_cpu_var-call-introduced-in-314.patch added
+ to -mm tree
+Date: Tue, 04 Mar 2014 14:27:23 -0800
+Message-ID: <5316534b.BFaOEKCfByfZq13/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42815 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757714AbaCDW1a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:30 -0500
+	with ESMTP id S1757719AbaCDW1Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, davem@davemloft.net, cmetcalf@tilera.com, cl@linux.com
 
-Subject: + tick-sched-fix-two-new-uses-of-__get_cpu_ptr.patch added to -mm tree
-To: cl@linux.com,tglx@linutronix.de,tj@kernel.org
+Subject: + drivers-net-ethernet-tile-__get_cpu_var-call-introduced-in-314.patch added to -mm tree
+To: cl@linux.com,cmetcalf@tilera.com,davem@davemloft.net,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:29 -0800
+Date: Tue, 04 Mar 2014 14:27:23 -0800
 
 
 The patch titled
-     Subject: tick-sched: fix two new uses of __get_cpu_ptr
+     Subject: drivers/net/ethernet/tile: __get_cpu_var call introduced in 3.14
 has been added to the -mm tree.  Its filename is
-     tick-sched-fix-two-new-uses-of-__get_cpu_ptr.patch
+     drivers-net-ethernet-tile-__get_cpu_var-call-introduced-in-314.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tick-sched-fix-two-new-uses-of-__get_cpu_ptr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-net-ethernet-tile-__get_cpu_var-call-introduced-in-314.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tick-sched-fix-two-new-uses-of-__get_cpu_ptr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-net-ethernet-tile-__get_cpu_var-call-introduced-in-314.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,40 +46,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: tick-sched: fix two new uses of __get_cpu_ptr
+Subject: drivers/net/ethernet/tile: __get_cpu_var call introduced in 3.14
 
-Two new uses introduced in 3.14-rc1.
+Another case was merged for 3.14-rc1
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: David Miller <davem@davemloft.net>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-sched.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/tile/tilegx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/time/tick-sched.c~tick-sched-fix-two-new-uses-of-__get_cpu_ptr kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~tick-sched-fix-two-new-uses-of-__get_cpu_ptr
-+++ a/kernel/time/tick-sched.c
-@@ -909,7 +909,7 @@ static void tick_nohz_account_idle_ticks
-  */
- void tick_nohz_idle_exit(void)
+diff -puN drivers/net/ethernet/tile/tilegx.c~drivers-net-ethernet-tile-__get_cpu_var-call-introduced-in-314 drivers/net/ethernet/tile/tilegx.c
+--- a/drivers/net/ethernet/tile/tilegx.c~drivers-net-ethernet-tile-__get_cpu_var-call-introduced-in-314
++++ a/drivers/net/ethernet/tile/tilegx.c
+@@ -551,7 +551,7 @@ static inline bool filter_packet(struct
+ static void tile_net_receive_skb(struct net_device *dev, struct sk_buff *skb,
+ 				 gxio_mpipe_idesc_t *idesc, unsigned long len)
  {
--	struct tick_sched *ts = &__get_cpu_var(tick_cpu_sched);
-+	struct tick_sched *ts = this_cpu_ptr(&tick_cpu_sched);
- 	ktime_t now;
+-	struct tile_net_info *info = &__get_cpu_var(per_cpu_info);
++	struct tile_net_info *info = this_cpu_ptr(&per_cpu_info);
+ 	struct tile_net_priv *priv = netdev_priv(dev);
+ 	int instance = priv->instance;
  
- 	local_irq_disable();
-@@ -1026,7 +1026,7 @@ static void tick_nohz_kick_tick(struct t
- 
- static inline void tick_nohz_irq_enter(void)
- {
--	struct tick_sched *ts = &__get_cpu_var(tick_cpu_sched);
-+	struct tick_sched *ts = this_cpu_ptr(&tick_cpu_sched);
- 	ktime_t now;
- 
- 	if (!ts->idle_active && !ts->tick_stopped)
 _
 
 Patches currently in -mm which might be from cl@linux.com are
