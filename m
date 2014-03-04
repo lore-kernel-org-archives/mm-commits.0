@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + cris-cpuinfo_op-should-depend-on-config_proc_fs.patch added to
- -mm tree
-Date: Tue, 04 Mar 2014 12:14:17 -0800
-Message-ID: <53163419.qjV/AsKhapgRpSIS%akpm@linux-foundation.org>
+Subject: + cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
+ added to -mm tree
+Date: Tue, 04 Mar 2014 12:14:16 -0800
+Message-ID: <53163418.10SpSVdeztuiwSHI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41892 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756240AbaCDUOS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 15:14:18 -0500
+	with ESMTP id S1751494AbaCDUOR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 15:14:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, starvik@axis.com, sfr@canb.auug.org.au, jesper.nilsson@axis.com, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, starvik@axis.com, sfr@canb.auug.org.au, jesper.nilsson@axis.com, josh@joshtriplett.org
 
-Subject: + cris-cpuinfo_op-should-depend-on-config_proc_fs.patch added to -mm tree
-To: geert@linux-m68k.org,jesper.nilsson@axis.com,sfr@canb.auug.org.au,starvik@axis.com
+Subject: + cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch added to -mm tree
+To: josh@joshtriplett.org,jesper.nilsson@axis.com,sfr@canb.auug.org.au,starvik@axis.com
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 12:14:17 -0800
+Date: Tue, 04 Mar 2014 12:14:16 -0800
 
 
 The patch titled
-     Subject: cris: cpuinfo_op should depend on CONFIG_PROC_FS
+     Subject: cris: make ETRAX_ARCH_V10 select TTY for use in debugport
 has been added to the -mm tree.  Its filename is
-     cris-cpuinfo_op-should-depend-on-config_proc_fs.patch
+     cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cris-cpuinfo_op-should-depend-on-config_proc_fs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cris-cpuinfo_op-should-depend-on-config_proc_fs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,53 +44,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: cris: cpuinfo_op should depend on CONFIG_PROC_FS
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: cris: make ETRAX_ARCH_V10 select TTY for use in debugport
 
 Fix breakage which will be exposed by the patch "kconfig: make allnoconfig
 disable options behind EMBEDDED and EXPERT".
 
-Now allnoconfig started disabling CONFIG_PROC_FS:
+arch/cris/arch-v10/kernel/debugport.c, compiled in unconditionally with
+ETRAX_ARCH_V10, requires TTY, so select TTY to avoid a build failure.
 
-    arch/cris/kernel/built-in.o:(.rodata+0xc): undefined reference to `show_cpuinfo'
-    make: *** [vmlinux] Error 1
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Mikael Starvik <starvik@axis.com>
 Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/kernel/setup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/cris/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/cris/kernel/setup.c~cris-cpuinfo_op-should-depend-on-config_proc_fs arch/cris/kernel/setup.c
---- a/arch/cris/kernel/setup.c~cris-cpuinfo_op-should-depend-on-config_proc_fs
-+++ a/arch/cris/kernel/setup.c
-@@ -165,6 +165,7 @@ void __init setup_arch(char **cmdline_p)
- 	strcpy(init_utsname()->machine, cris_machine_name);
- }
+diff -puN arch/cris/Kconfig~cris-make-etrax_arch_v10-select-tty-for-use-in-debugport arch/cris/Kconfig
+--- a/arch/cris/Kconfig~cris-make-etrax_arch_v10-select-tty-for-use-in-debugport
++++ a/arch/cris/Kconfig
+@@ -138,6 +138,7 @@ config ETRAX_ARCH_V10
+        bool
+        default y if ETRAX100LX || ETRAX100LX_V2
+        default n if !(ETRAX100LX || ETRAX100LX_V2)
++       select TTY
  
-+#ifdef CONFIG_PROC_FS
- static void *c_start(struct seq_file *m, loff_t *pos)
- {
- 	return *pos < nr_cpu_ids ? (void *)(int)(*pos + 1) : NULL;
-@@ -188,6 +189,7 @@ const struct seq_operations cpuinfo_op =
- 	.stop  = c_stop,
- 	.show  = show_cpuinfo,
- };
-+#endif /* CONFIG_PROC_FS */
- 
- static int __init topology_init(void)
- {
+ config ETRAX_ARCH_V32
+        bool
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
-origin.patch
-sh-prefix-sh-specific-ccr-and-ccr2-by-sh_.patch
-arch-sh-boards-board-sh7757lcrc-fixup-sdhi-register-size.patch
-cris-cpuinfo_op-should-depend-on-config_proc_fs.patch
+mm-compactionc-mark-function-as-static.patch
+mm-memoryc-mark-functions-as-static.patch
+mm-mmapc-mark-function-as-static.patch
+mm-process_vm_accessc-mark-function-as-static.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-page_cgroupc-mark-functions-as-static.patch
+mm-nobootmemc-mark-function-as-static.patch
+include-linux-mmh-remove-ifdef-condition.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype.patch
+fs-kernel-permit-disabling-the-uselib-syscall.patch
+fs-kernel-permit-disabling-the-uselib-syscall-v2.patch
+submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
+submittingpatches-add-recommendation-for-mailing-list-references.patch
+submittingpatches-document-the-use-of-git.patch
+lglock-map-to-spinlock-when-config_smp.patch
+lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
+lib-decompress_inflatec-include-appropriate-header-file.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+fs-reiserfs-move-prototype-declaration-to-header-file.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
+ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
+ppc-make-ppc_book3s_64-select-irq_work.patch
+s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver.patch
+kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
+bug-when-config_bug-simplify-warn_on_once-and-family.patch
+include-asm-generic-bugh-style-fix-s-while0-while-0.patch
+bug-when-config_bug-make-warn-call-no_printk-to-check-format-and-args.patch
+bug-use-a-common-definition-of-bug_on-regardless-of-config_bug.patch
 linux-next.patch
 
