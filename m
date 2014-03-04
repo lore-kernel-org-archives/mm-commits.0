@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-misc-replace-__get_cpu_var-uses.patch added to -mm tree
-Date: Tue, 04 Mar 2014 14:27:14 -0800
-Message-ID: <53165342.yH40d1ab934xmUuD%akpm@linux-foundation.org>
+Subject: + metag-replace-__get_cpu_var-uses-for-address-calculation.patch
+ added to -mm tree
+Date: Tue, 04 Mar 2014 14:27:21 -0800
+Message-ID: <53165349.GlyFpMxieFQYtM55%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42775 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42803 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757532AbaCDW1P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:15 -0500
+	with ESMTP id S1757701AbaCDW1W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2014 17:27:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, cl@linux.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, james.hogan@imgtec.com, cl@linux.com
 
-Subject: + kernel-misc-replace-__get_cpu_var-uses.patch added to -mm tree
-To: cl@linux.com,tj@kernel.org
+Subject: + metag-replace-__get_cpu_var-uses-for-address-calculation.patch added to -mm tree
+To: cl@linux.com,james.hogan@imgtec.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 04 Mar 2014 14:27:14 -0800
+Date: Tue, 04 Mar 2014 14:27:21 -0800
 
 
 The patch titled
-     Subject: kernel misc: replace __get_cpu_var uses
+     Subject: metag: replace __get_cpu_var uses for address calculation
 has been added to the -mm tree.  Its filename is
-     kernel-misc-replace-__get_cpu_var-uses.patch
+     metag-replace-__get_cpu_var-uses-for-address-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-misc-replace-__get_cpu_var-uses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/metag-replace-__get_cpu_var-uses-for-address-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-misc-replace-__get_cpu_var-uses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/metag-replace-__get_cpu_var-uses-for-address-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,87 +45,85 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: kernel misc: replace __get_cpu_var uses
+Subject: metag: replace __get_cpu_var uses for address calculation
 
-Replace uses of __get_cpu_var for address calculation with this_cpu_ptr.
+Replace __get_cpu_var uses for address calculation with this_cpu_ptr().
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
+Acked-by: James Hogan <james.hogan@imgtec.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    8 ++++----
- kernel/smp.c           |    6 +++---
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ arch/metag/kernel/perf/perf_event.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/printk/printk.c~kernel-misc-replace-__get_cpu_var-uses kernel/printk/printk.c
---- a/kernel/printk/printk.c~kernel-misc-replace-__get_cpu_var-uses
-+++ a/kernel/printk/printk.c
-@@ -2448,7 +2448,7 @@ static void wake_up_klogd_work_func(stru
- 	int pending = __this_cpu_xchg(printk_pending, 0);
+diff -puN arch/metag/kernel/perf/perf_event.c~metag-replace-__get_cpu_var-uses-for-address-calculation arch/metag/kernel/perf/perf_event.c
+--- a/arch/metag/kernel/perf/perf_event.c~metag-replace-__get_cpu_var-uses-for-address-calculation
++++ a/arch/metag/kernel/perf/perf_event.c
+@@ -258,7 +258,7 @@ int metag_pmu_event_set_period(struct pe
  
- 	if (pending & PRINTK_PENDING_SCHED) {
--		char *buf = __get_cpu_var(printk_sched_buf);
-+		char *buf = this_cpu_ptr(printk_sched_buf);
- 		pr_warn("[sched_delayed] %s", buf);
- 	}
+ static void metag_pmu_start(struct perf_event *event, int flags)
+ {
+-	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
+ 	struct hw_perf_event *hwc = &event->hw;
+ 	int idx = hwc->idx;
  
-@@ -2466,7 +2466,7 @@ void wake_up_klogd(void)
- 	preempt_disable();
- 	if (waitqueue_active(&log_wait)) {
- 		this_cpu_or(printk_pending, PRINTK_PENDING_WAKEUP);
--		irq_work_queue(&__get_cpu_var(wake_up_klogd_work));
-+		irq_work_queue(this_cpu_ptr(&wake_up_klogd_work));
- 	}
- 	preempt_enable();
- }
-@@ -2479,14 +2479,14 @@ int printk_sched(const char *fmt, ...)
- 	int r;
+@@ -306,7 +306,7 @@ static void metag_pmu_stop(struct perf_e
  
- 	local_irq_save(flags);
--	buf = __get_cpu_var(printk_sched_buf);
-+	buf = this_cpu_ptr(printk_sched_buf);
+ static int metag_pmu_add(struct perf_event *event, int flags)
+ {
+-	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
+ 	struct hw_perf_event *hwc = &event->hw;
+ 	int idx = 0, ret = 0;
  
- 	va_start(args, fmt);
- 	r = vsnprintf(buf, PRINTK_BUF_SIZE, fmt, args);
- 	va_end(args);
+@@ -348,7 +348,7 @@ out:
  
- 	__this_cpu_or(printk_pending, PRINTK_PENDING_SCHED);
--	irq_work_queue(&__get_cpu_var(wake_up_klogd_work));
-+	irq_work_queue(this_cpu_ptr(&wake_up_klogd_work));
- 	local_irq_restore(flags);
+ static void metag_pmu_del(struct perf_event *event, int flags)
+ {
+-	struct cpu_hw_events *cpuc = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
+ 	struct hw_perf_event *hwc = &event->hw;
+ 	int idx = hwc->idx;
  
- 	return r;
-diff -puN kernel/smp.c~kernel-misc-replace-__get_cpu_var-uses kernel/smp.c
---- a/kernel/smp.c~kernel-misc-replace-__get_cpu_var-uses
-+++ a/kernel/smp.c
-@@ -146,7 +146,7 @@ static int generic_exec_single(int cpu,
- 	if (!csd) {
- 		csd = &csd_stack;
- 		if (!wait)
--			csd = &__get_cpu_var(csd_data);
-+			csd = &this_cpu_ptr(csd_data);
- 	}
+@@ -607,7 +607,7 @@ static int _hw_perf_event_init(struct pe
  
- 	csd_lock(csd);
-@@ -191,7 +191,7 @@ void generic_smp_call_function_single_in
- 	 */
- 	WARN_ON_ONCE(!cpu_online(smp_processor_id()));
+ static void metag_pmu_enable_counter(struct hw_perf_event *event, int idx)
+ {
+-	struct cpu_hw_events *events = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *events = this_cpu_ptr(&cpu_hw_events);
+ 	unsigned int config = event->config;
+ 	unsigned int tmp = config & 0xf0;
+ 	unsigned long flags;
+@@ -680,7 +680,7 @@ unlock:
  
--	entry = llist_del_all(&__get_cpu_var(call_single_queue));
-+	entry = llist_del_all(this_cpu_ptr(&call_single_queue));
- 	entry = llist_reverse_order(entry);
+ static void metag_pmu_disable_counter(struct hw_perf_event *event, int idx)
+ {
+-	struct cpu_hw_events *events = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *events = this_cpu_ptr(&cpu_hw_events);
+ 	unsigned int tmp = 0;
+ 	unsigned long flags;
  
- 	llist_for_each_entry_safe(csd, csd_next, entry, llist) {
-@@ -357,7 +357,7 @@ void smp_call_function_many(const struct
- 		return;
- 	}
+@@ -728,7 +728,7 @@ out:
  
--	cfd = &__get_cpu_var(cfd_data);
-+	cfd = this_cpu_ptr(&cfd_data);
+ static void metag_pmu_write_counter(int idx, u32 val)
+ {
+-	struct cpu_hw_events *events = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *events = this_cpu_ptr(&cpu_hw_events);
+ 	u32 tmp = 0;
+ 	unsigned long flags;
  
- 	cpumask_and(cfd->cpumask, mask, cpu_online_mask);
- 	cpumask_clear_cpu(this_cpu, cfd->cpumask);
+@@ -761,7 +761,7 @@ static int metag_pmu_event_map(int idx)
+ static irqreturn_t metag_pmu_counter_overflow(int irq, void *dev)
+ {
+ 	int idx = (int)dev;
+-	struct cpu_hw_events *cpuhw = &__get_cpu_var(cpu_hw_events);
++	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
+ 	struct perf_event *event = cpuhw->events[idx];
+ 	struct hw_perf_event *hwc = &event->hw;
+ 	struct pt_regs *regs = get_irq_regs();
 _
 
 Patches currently in -mm which might be from cl@linux.com are
