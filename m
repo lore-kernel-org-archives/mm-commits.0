@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zswapc-remove-unnecessary-parentheses.patch added to -mm
- tree
-Date: Wed, 05 Mar 2014 14:32:21 -0800
-Message-ID: <5317a5f5.afTJwofIbaQRyMpG%akpm@linux-foundation.org>
+Subject: + alpha-replace-__get_cpu_var-fix.patch added to -mm tree
+Date: Wed, 05 Mar 2014 15:06:45 -0800
+Message-ID: <5317ae05.C6uOnsX/OxTVtZND%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54781 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55213 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932281AbaCEWcW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2014 17:32:22 -0500
+	with ESMTP id S1752815AbaCEXGq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2014 18:06:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sjennings@variantweb.net, sj38.park@gmail.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, rth@twiddle.net, mattst88@gmail.com, ink@jurassic.park.msu.ru, cl@linux.com, akpm@linux-foundation.org
 
-Subject: + mm-zswapc-remove-unnecessary-parentheses.patch added to -mm tree
-To: sj38.park@gmail.com,sjennings@variantweb.net
+Subject: + alpha-replace-__get_cpu_var-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,cl@linux.com,ink@jurassic.park.msu.ru,mattst88@gmail.com,rth@twiddle.net,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 05 Mar 2014 14:32:21 -0800
+Date: Wed, 05 Mar 2014 15:06:45 -0800
 
 
 The patch titled
-     Subject: mm/zswap.c: remove unnecessary parentheses
+     Subject: alpha-replace-__get_cpu_var-fix
 has been added to the -mm tree.  Its filename is
-     mm-zswapc-remove-unnecessary-parentheses.patch
+     alpha-replace-__get_cpu_var-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zswapc-remove-unnecessary-parentheses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/alpha-replace-__get_cpu_var-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zswapc-remove-unnecessary-parentheses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/alpha-replace-__get_cpu_var-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,49 +43,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj38.park@gmail.com>
-Subject: mm/zswap.c: remove unnecessary parentheses
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alpha-replace-__get_cpu_var-fix
 
-Fix following trivial checkpatch error:
-	ERROR: return is not a function, parentheses are not required
+fix build
 
-Signed-off-by: SeongJae Park <sj38.park@gmail.com>
-Acked-by: Seth Jennings <sjennings@variantweb.net>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/alpha/kernel/time.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zswap.c~mm-zswapc-remove-unnecessary-parentheses mm/zswap.c
---- a/mm/zswap.c~mm-zswapc-remove-unnecessary-parentheses
-+++ a/mm/zswap.c
-@@ -204,7 +204,7 @@ static struct kmem_cache *zswap_entry_ca
- static int zswap_entry_cache_create(void)
- {
- 	zswap_entry_cache = KMEM_CACHE(zswap_entry, 0);
--	return (zswap_entry_cache == NULL);
-+	return zswap_entry_cache == NULL;
- }
+diff -puN arch/alpha/kernel/time.c~alpha-replace-__get_cpu_var-fix arch/alpha/kernel/time.c
+--- a/arch/alpha/kernel/time.c~alpha-replace-__get_cpu_var-fix
++++ a/arch/alpha/kernel/time.c
+@@ -58,7 +58,7 @@ DEFINE_PER_CPU(u8, irq_work_pending);
  
- static void zswap_entry_cache_destory(void)
-@@ -408,8 +408,8 @@ cleanup:
- **********************************/
- static bool zswap_is_full(void)
- {
--	return (totalram_pages * zswap_max_pool_percent / 100 <
--		zswap_pool_pages);
-+	return totalram_pages * zswap_max_pool_percent / 100 <
-+		zswap_pool_pages;
- }
+ #define set_irq_work_pending_flag()  __this_cpu_write(irq_work_pending, 1)
+ #define test_irq_work_pending()      __this_cpu_read(irq_work_pending)
+-#define clear_irq_work_pending()     __this_cpu_writeirq_work_pending, 0)
++#define clear_irq_work_pending()     __this_cpu_write(irq_work_pending, 0)
  
- /*********************************
+ void arch_irq_work_raise(void)
+ {
 _
 
-Patches currently in -mm which might be from sj38.park@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-zswap-fix-trivial-typo-and-arrange-indentation.patch
-mm-zswap-update-zsmalloc-in-comment-to-zbud.patch
-mm-zswapc-remove-unnecessary-parentheses.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
+mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-per-thread-vma-caching-fix.patch
+mm-per-thread-vma-caching-fix-fix.patch
+mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+zram-use-zcomp-compressing-backends-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
+alpha-replace-__get_cpu_var-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
