@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-replace-__get_cpu_var-fix.patch added to -mm tree
-Date: Wed, 05 Mar 2014 15:06:45 -0800
-Message-ID: <5317ae05.C6uOnsX/OxTVtZND%akpm@linux-foundation.org>
+Subject: + drivers-gpio-gpio-zevioc-fix-build.patch added to -mm tree
+Date: Wed, 05 Mar 2014 14:37:50 -0800
+Message-ID: <20140305233912.058815A4370@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55213 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815AbaCEXGq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2014 18:06:46 -0500
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:50304 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754846AbaCEXjP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2014 18:39:15 -0500
+Received: by mail-vc0-f202.google.com with SMTP id hu8so249115vcb.5
+        for <mm-commits@vger.kernel.org>; Wed, 05 Mar 2014 15:39:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, rth@twiddle.net, mattst88@gmail.com, ink@jurassic.park.msu.ru, cl@linux.com, akpm@linux-foundation.org
-
-Subject: + alpha-replace-__get_cpu_var-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,cl@linux.com,ink@jurassic.park.msu.ru,mattst88@gmail.com,rth@twiddle.net,tj@kernel.org
-From: akpm@linux-foundation.org
-Date: Wed, 05 Mar 2014 15:06:45 -0800
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, fabian@ritter-vogt.de, linus.walleij@linaro.org
 
 
 The patch titled
-     Subject: alpha-replace-__get_cpu_var-fix
+     Subject: drivers/gpio/gpio-zevio.c: fix build
 has been added to the -mm tree.  Its filename is
-     alpha-replace-__get_cpu_var-fix.patch
-
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/alpha-replace-__get_cpu_var-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/alpha-replace-__get_cpu_var-fix.patch
+     drivers-gpio-gpio-zevioc-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,33 +34,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: alpha-replace-__get_cpu_var-fix
+Subject: drivers/gpio/gpio-zevio.c: fix build
 
-fix build
+Unbreak i386 allmodconfig.
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Tejun Heo <tj@kernel.org>
+This is a hack - please fix properly ;)
+
+Cc: Fabian Vogt <fabian@ritter-vogt.de>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/time.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/gpio-zevio.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/alpha/kernel/time.c~alpha-replace-__get_cpu_var-fix arch/alpha/kernel/time.c
---- a/arch/alpha/kernel/time.c~alpha-replace-__get_cpu_var-fix
-+++ a/arch/alpha/kernel/time.c
-@@ -58,7 +58,7 @@ DEFINE_PER_CPU(u8, irq_work_pending);
+diff -puN drivers/gpio/gpio-zevio.c~drivers-gpio-gpio-zevioc-fix-build drivers/gpio/gpio-zevio.c
+--- a/drivers/gpio/gpio-zevio.c~drivers-gpio-gpio-zevioc-fix-build
++++ a/drivers/gpio/gpio-zevio.c
+@@ -18,6 +18,10 @@
+ #include <linux/slab.h>
+ #include <linux/gpio.h>
  
- #define set_irq_work_pending_flag()  __this_cpu_write(irq_work_pending, 1)
- #define test_irq_work_pending()      __this_cpu_read(irq_work_pending)
--#define clear_irq_work_pending()     __this_cpu_writeirq_work_pending, 0)
-+#define clear_irq_work_pending()     __this_cpu_write(irq_work_pending, 0)
- 
- void arch_irq_work_raise(void)
- {
++#ifndef IOMEM
++#define IOMEM(x)    ((void __force __iomem *)(x))
++#endif
++
+ /*
+  * Memory layout:
+  * This chip has four gpio sections, each controls 8 GPIOs.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,7 +107,7 @@ kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
 fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
 initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
-alpha-replace-__get_cpu_var-fix.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
 debugging-keep-track-of-page-owners.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
