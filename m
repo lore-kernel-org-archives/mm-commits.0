@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempolicy-rename-slab_node-for-clarity.patch added to -mm
- tree
-Date: Wed, 05 Mar 2014 13:21:35 -0800
-Message-ID: <5317955f.FD2BzZ6FtyxqpMtO%akpm@linux-foundation.org>
+Subject: + mm-mempolicy-remove-per-process-flag.patch added to -mm tree
+Date: Wed, 05 Mar 2014 13:21:37 -0800
+Message-ID: <53179561.+VqsHV52Gb9lAgPZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54511 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54516 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754298AbaCEVVh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2014 16:21:37 -0500
+	with ESMTP id S1754298AbaCEVVj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2014 16:21:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, wujianguo@huawei.com, tj@kernel.org, thockin@google.com, riel@redhat.com, penberg@kernel.org, oleg@redhat.com, mhocko@suse.cz, mgorman@suse.de, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, cl@linux.com, cl@linux-foundation.org, rientjes@google.com
 
-Subject: + mm-mempolicy-rename-slab_node-for-clarity.patch added to -mm tree
+Subject: + mm-mempolicy-remove-per-process-flag.patch added to -mm tree
 To: rientjes@google.com,cl@linux-foundation.org,cl@linux.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,mgorman@suse.de,mhocko@suse.cz,oleg@redhat.com,penberg@kernel.org,riel@redhat.com,thockin@google.com,tj@kernel.org,wujianguo@huawei.com
 From: akpm@linux-foundation.org
-Date: Wed, 05 Mar 2014 13:21:35 -0800
+Date: Wed, 05 Mar 2014 13:21:37 -0800
 
 
 The patch titled
-     Subject: mm, mempolicy: rename slab_node for clarity
+     Subject: mm, mempolicy: remove per-process flag
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-rename-slab_node-for-clarity.patch
+     mm-mempolicy-remove-per-process-flag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-rename-slab_node-for-clarity.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-remove-per-process-flag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-rename-slab_node-for-clarity.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-remove-per-process-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,19 +44,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, mempolicy: rename slab_node for clarity
+Subject: mm, mempolicy: remove per-process flag
 
-slab_node() is actually a mempolicy function, so rename it to
-mempolicy_slab_node() to make it clearer that it used for processes with
-mempolicies.
+PF_MEMPOLICY is an unnecessary optimization for CONFIG_SLAB users. 
+There's no significant performance degradation to checking
+current->mempolicy rather than current->flags & PF_MEMPOLICY in the
+allocation path, especially since this is considered unlikely().
 
-At the same time, cleanup its code by saving numa_mem_id() in a local
-variable (since we require a node with memory, not just any node) and
-remove an obsolete comment that assumes the mempolicy is actually passed
-into the function.
+Running TCP_RR with netperf-2.4.5 through localhost on 16 cpu machine with
+64GB of memory and without a mempolicy:
+
+	threads		before		after
+	16		1249409		1244487
+	32		1281786		1246783
+	48		1239175		1239138
+	64		1244642		1241841
+	80		1244346		1248918
+	96		1266436		1254316
+	112		1307398		1312135
+	128		1327607		1326502
+
+Per-process flags are a scarce resource so we should free them up whenever
+possible and make them available.  We'll be using it shortly for memcg oom
+reserves.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -69,103 +80,119 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Jianguo Wu <wujianguo@huawei.com>
 Cc: Tim Hockin <thockin@google.com>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    2 +-
- mm/mempolicy.c            |   15 ++++++---------
+ include/linux/mempolicy.h |    1 -
+ include/linux/sched.h     |    1 -
+ kernel/fork.c             |    1 -
+ mm/mempolicy.c            |   31 -------------------------------
  mm/slab.c                 |    4 ++--
- mm/slub.c                 |    2 +-
- 4 files changed, 10 insertions(+), 13 deletions(-)
+ 5 files changed, 2 insertions(+), 36 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mm-mempolicy-rename-slab_node-for-clarity include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-mempolicy-rename-slab_node-for-clarity
+diff -puN include/linux/mempolicy.h~mm-mempolicy-remove-per-process-flag include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicy-remove-per-process-flag
 +++ a/include/linux/mempolicy.h
-@@ -151,7 +151,7 @@ extern struct zonelist *huge_zonelist(st
- extern bool init_nodemask_of_mempolicy(nodemask_t *mask);
- extern bool mempolicy_nodemask_intersects(struct task_struct *tsk,
- 				const nodemask_t *mask);
--extern unsigned slab_node(void);
-+extern unsigned int mempolicy_slab_node(void);
+@@ -143,7 +143,6 @@ extern void numa_policy_init(void);
+ extern void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new,
+ 				enum mpol_rebind_step step);
+ extern void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new);
+-extern void mpol_fix_fork_child_flag(struct task_struct *p);
  
- extern enum zone_type policy_zone;
- 
-diff -puN mm/mempolicy.c~mm-mempolicy-rename-slab_node-for-clarity mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-rename-slab_node-for-clarity
-+++ a/mm/mempolicy.c
-@@ -1725,21 +1725,18 @@ static unsigned interleave_nodes(struct
- /*
-  * Depending on the memory policy provide a node from which to allocate the
-  * next slab entry.
-- * @policy must be protected by freeing by the caller.  If @policy is
-- * the current task's mempolicy, this protection is implicit, as only the
-- * task can change it's policy.  The system default policy requires no
-- * such protection.
-  */
--unsigned slab_node(void)
-+unsigned int mempolicy_slab_node(void)
- {
- 	struct mempolicy *policy;
-+	int node = numa_mem_id();
- 
- 	if (in_interrupt())
--		return numa_node_id();
-+		return node;
- 
- 	policy = current->mempolicy;
- 	if (!policy || policy->flags & MPOL_F_LOCAL)
--		return numa_node_id();
-+		return node;
- 
- 	switch (policy->mode) {
- 	case MPOL_PREFERRED:
-@@ -1759,11 +1756,11 @@ unsigned slab_node(void)
- 		struct zonelist *zonelist;
- 		struct zone *zone;
- 		enum zone_type highest_zoneidx = gfp_zone(GFP_KERNEL);
--		zonelist = &NODE_DATA(numa_node_id())->node_zonelists[0];
-+		zonelist = &NODE_DATA(node)->node_zonelists[0];
- 		(void)first_zones_zonelist(zonelist, highest_zoneidx,
- 							&policy->v.nodes,
- 							&zone);
--		return zone ? zone->node : numa_node_id();
-+		return zone ? zone->node : node;
+ extern struct zonelist *huge_zonelist(struct vm_area_struct *vma,
+ 				unsigned long addr, gfp_t gfp_flags,
+diff -puN include/linux/sched.h~mm-mempolicy-remove-per-process-flag include/linux/sched.h
+--- a/include/linux/sched.h~mm-mempolicy-remove-per-process-flag
++++ a/include/linux/sched.h
+@@ -1825,7 +1825,6 @@ extern void thread_group_cputime_adjuste
+ #define PF_SPREAD_SLAB	0x02000000	/* Spread some slab caches over cpuset */
+ #define PF_NO_SETAFFINITY 0x04000000	/* Userland is not allowed to meddle with cpus_allowed */
+ #define PF_MCE_EARLY    0x08000000      /* Early kill for mce process policy */
+-#define PF_MEMPOLICY	0x10000000	/* Non-default NUMA mempolicy */
+ #define PF_MUTEX_TESTER	0x20000000	/* Thread belongs to the rt mutex tester */
+ #define PF_FREEZER_SKIP	0x40000000	/* Freezer should not count it as freezable */
+ #define PF_SUSPEND_TASK 0x80000000      /* this thread called freeze_processes and should not be frozen */
+diff -puN kernel/fork.c~mm-mempolicy-remove-per-process-flag kernel/fork.c
+--- a/kernel/fork.c~mm-mempolicy-remove-per-process-flag
++++ a/kernel/fork.c
+@@ -1273,7 +1273,6 @@ static struct task_struct *copy_process(
+ 		p->mempolicy = NULL;
+ 		goto bad_fork_cleanup_cgroup;
  	}
+-	mpol_fix_fork_child_flag(p);
+ #endif
+ #ifdef CONFIG_CPUSETS
+ 	p->cpuset_mem_spread_rotor = NUMA_NO_NODE;
+diff -puN mm/mempolicy.c~mm-mempolicy-remove-per-process-flag mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-remove-per-process-flag
++++ a/mm/mempolicy.c
+@@ -738,36 +738,6 @@ static int mbind_range(struct mm_struct
+ 	return err;
+ }
  
- 	default:
-diff -puN mm/slab.c~mm-mempolicy-rename-slab_node-for-clarity mm/slab.c
---- a/mm/slab.c~mm-mempolicy-rename-slab_node-for-clarity
+-/*
+- * Update task->flags PF_MEMPOLICY bit: set iff non-default
+- * mempolicy.  Allows more rapid checking of this (combined perhaps
+- * with other PF_* flag bits) on memory allocation hot code paths.
+- *
+- * If called from outside this file, the task 'p' should -only- be
+- * a newly forked child not yet visible on the task list, because
+- * manipulating the task flags of a visible task is not safe.
+- *
+- * The above limitation is why this routine has the funny name
+- * mpol_fix_fork_child_flag().
+- *
+- * It is also safe to call this with a task pointer of current,
+- * which the static wrapper mpol_set_task_struct_flag() does,
+- * for use within this file.
+- */
+-
+-void mpol_fix_fork_child_flag(struct task_struct *p)
+-{
+-	if (p->mempolicy)
+-		p->flags |= PF_MEMPOLICY;
+-	else
+-		p->flags &= ~PF_MEMPOLICY;
+-}
+-
+-static void mpol_set_task_struct_flag(void)
+-{
+-	mpol_fix_fork_child_flag(current);
+-}
+-
+ /* Set the process memory policy */
+ static long do_set_mempolicy(unsigned short mode, unsigned short flags,
+ 			     nodemask_t *nodes)
+@@ -804,7 +774,6 @@ static long do_set_mempolicy(unsigned sh
+ 	}
+ 	old = current->mempolicy;
+ 	current->mempolicy = new;
+-	mpol_set_task_struct_flag();
+ 	if (new && new->mode == MPOL_INTERLEAVE &&
+ 	    nodes_weight(new->v.nodes))
+ 		current->il_next = first_node(new->v.nodes);
+diff -puN mm/slab.c~mm-mempolicy-remove-per-process-flag mm/slab.c
+--- a/mm/slab.c~mm-mempolicy-remove-per-process-flag
 +++ a/mm/slab.c
-@@ -3042,7 +3042,7 @@ static void *alternate_node_alloc(struct
- 	if (cpuset_do_slab_mem_spread() && (cachep->flags & SLAB_MEM_SPREAD))
- 		nid_alloc = cpuset_slab_spread_node();
- 	else if (current->mempolicy)
--		nid_alloc = slab_node();
-+		nid_alloc = mempolicy_slab_node();
- 	if (nid_alloc != nid_here)
- 		return ____cache_alloc_node(cachep, flags, nid_alloc);
- 	return NULL;
-@@ -3074,7 +3074,7 @@ static void *fallback_alloc(struct kmem_
+@@ -3027,7 +3027,7 @@ out:
  
- retry_cpuset:
- 	cpuset_mems_cookie = read_mems_allowed_begin();
--	zonelist = node_zonelist(slab_node(), flags);
-+	zonelist = node_zonelist(mempolicy_slab_node(), flags);
+ #ifdef CONFIG_NUMA
+ /*
+- * Try allocating on another node if PF_SPREAD_SLAB|PF_MEMPOLICY.
++ * Try allocating on another node if PF_SPREAD_SLAB is a mempolicy is set.
+  *
+  * If we are in_interrupt, then process context, including cpusets and
+  * mempolicy, may not apply and should not be used for allocation policy.
+@@ -3259,7 +3259,7 @@ __do_cache_alloc(struct kmem_cache *cach
+ {
+ 	void *objp;
  
- retry:
- 	/*
-diff -puN mm/slub.c~mm-mempolicy-rename-slab_node-for-clarity mm/slub.c
---- a/mm/slub.c~mm-mempolicy-rename-slab_node-for-clarity
-+++ a/mm/slub.c
-@@ -1685,7 +1685,7 @@ static void *get_any_partial(struct kmem
- 
- 	do {
- 		cpuset_mems_cookie = read_mems_allowed_begin();
--		zonelist = node_zonelist(slab_node(), flags);
-+		zonelist = node_zonelist(mempolicy_slab_node(), flags);
- 		for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
- 			struct kmem_cache_node *n;
- 
+-	if (unlikely(current->flags & (PF_SPREAD_SLAB | PF_MEMPOLICY))) {
++	if (current->mempolicy || unlikely(current->flags & PF_SPREAD_SLAB)) {
+ 		objp = alternate_node_alloc(cache, flags);
+ 		if (objp)
+ 			goto out;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
