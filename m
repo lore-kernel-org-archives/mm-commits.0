@@ -1,112 +1,172 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-numa-bugfix-for-last_cpupid_not_in_page_flags-v3.patch removed from -mm
- tree
-Date: Thu, 06 Mar 2014 12:37:55 -0800
-Message-ID: <5318dca3.8zCzEOnrdnkPGI4x%akpm@linux-foundation.org>
+ mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch removed from -mm tree
+Date: Thu, 06 Mar 2014 12:37:57 -0800
+Message-ID: <5318dca5.AwhU/92X21JgbpdE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35561 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35571 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752967AbaCFUh4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 15:37:56 -0500
+	with ESMTP id S1753403AbaCFUh6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 15:37:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peterz@infradead.org, paulus@samba.org, mel@csn.ul.ie, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, pingfank@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mgorman@suse.de, jstancek@redhat.com, hannes@cmpxchg.org
 
-Subject: [merged] mm-numa-bugfix-for-last_cpupid_not_in_page_flags-v3.patch removed from -mm tree
-To: pingfank@linux.vnet.ibm.com,aneesh.kumar@linux.vnet.ibm.com,benh@kernel.crashing.org,mel@csn.ul.ie,paulus@samba.org,peterz@infradead.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch removed from -mm tree
+To: hannes@cmpxchg.org,jstancek@redhat.com,mgorman@suse.de,riel@redhat.com,stable@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Mar 2014 12:37:55 -0800
+Date: Thu, 06 Mar 2014 12:37:57 -0800
 
 
 The patch titled
-     Subject: mm: numa: bugfix for LAST_CPUPID_NOT_IN_PAGE_FLAGS
+     Subject: mm: page_alloc: exempt GFP_THISNODE allocations from zone fairness
 has been removed from the -mm tree.  Its filename was
-     mm-numa-bugfix-for-last_cpupid_not_in_page_flags-v3.patch
+     mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
-Subject: mm: numa: bugfix for LAST_CPUPID_NOT_IN_PAGE_FLAGS
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: exempt GFP_THISNODE allocations from zone fairness
 
-When doing some numa tests on powerpc, I triggered an oops bug.  I find it
-is caused by using page->_last_cpupid.  It should be initialized as "-1 &
-LAST_CPUPID_MASK", but not "-1".  Otherwise, in task_numa_fault(), we will
-miss the checking (last_cpupid == (-1 & LAST_CPUPID_MASK)).  And finally
-cause an oops bug in task_numa_group(), since the online cpu is less than
-possible cpu.  This happen with CONFIG_SPARSE_VMEMMAP disabled
+Jan Stancek reports manual page migration encountering allocation failures
+after some pages when there is still plenty of memory free, and bisected
+the problem down to 81c0a2bb515f ("mm: page_alloc: fair zone allocator
+policy").
 
-Call trace:
-[   55.978091] SMP NR_CPUS=64 NUMA PowerNV
-[   55.978118] Modules linked in:
-[   55.978145] CPU: 24 PID: 804 Comm: systemd-udevd Not tainted3.13.0-rc1+ #32
-[   55.978183] task: c000001e2746aa80 ti: c000001e32c50000 task.ti:c000001e32c50000
-[   55.978219] NIP: c0000000000f5ad0 LR: c0000000000f5ac8 CTR:c000000000913cf0
-[   55.978256] REGS: c000001e32c53510 TRAP: 0300   Not tainted(3.13.0-rc1+)
-[   55.978286] MSR: 9000000000009032 <SF,HV,EE,ME,IR,DR,RI>  CR:28024424  XER: 20000000
-[   55.978380] CFAR: c000000000009324 DAR: 7265717569726857 DSISR:40000000 SOFTE: 1
-GPR00: c0000000000f5ac8 c000001e32c53790 c000000001f343380000000000000021
-GPR04: 0000000000000000 0000000000000031 c000000001f743380000ffffffffffff
-GPR08: 0000000000000001 7265717569726573 00000000000000000000000000000000
-GPR12: 0000000028024422 c00000000ffdd800 00000000296b2e640000000000000020
-GPR16: 0000000000000002 0000000000000003 c000001e2f8e4658c000001e25c1c1d8
-GPR20: c000001e2f8e4000 c000000001f7a858 00000000000006580000000040000392
-GPR24: 00000000000000a8 c000001e33c1a400 00000000000001d8c000001e25c1c000
-GPR28: c000001e33c37ff0 0007837840000392 000000000000003fc000001e32c53790
-[   55.978903] NIP [c0000000000f5ad0] .task_numa_fault+0x1470/0x2370
-[   55.978934] LR [c0000000000f5ac8] .task_numa_fault+0x1468/0x2370
-[   55.978964] Call Trace:
-[   55.978978] [c000001e32c53790] [c0000000000f5ac8].task_numa_fault+0x1468/0x2370 (unreliable)
-[   55.979036] [c000001e32c539e0] [c00000000020a820].do_numa_page+0x480/0x4a0
-[   55.979072] [c000001e32c53b10] [c00000000020bfec].handle_mm_fault+0x4ec/0xc90
-[   55.979123] [c000001e32c53c00] [c000000000e88c98].do_page_fault+0x3a8/0x890
-[   55.979161] [c000001e32c53e30] [c000000000009568]handle_page_fault+0x10/0x30
-[   55.979197] Instruction dump:
-[   55.979216] 3c82fefb 3884b138 48d9cff1 60000000 48000574 3c62fefb3863af78 3c82fefb
-[   55.979277] 3884b138 48d9cfd5 60000000 e93f0100 <812902e4> 7d2907b45529063e 7d2a07b4
-[   55.979354] ---[ end trace 15f2510da5ae07cf ]---
+The problem is that GFP_THISNODE obeys the zone fairness allocation
+batches on one hand, but doesn't reset them and wake kswapd on the other
+hand.  After a few of those allocations, the batches are exhausted and the
+allocations fail.
 
-Signed-off-by: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Fixing this means either having GFP_THISNODE wake up kswapd, or
+GFP_THISNODE not participating in zone fairness at all.  The latter seems
+safer as an acute bugfix, we can clean up later.
+
+Reported-by: Jan Stancek <jstancek@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: <stable@kernel.org>		[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm.h~mm-numa-bugfix-for-last_cpupid_not_in_page_flags-v3 include/linux/mm.h
---- a/include/linux/mm.h~mm-numa-bugfix-for-last_cpupid_not_in_page_flags-v3
-+++ a/include/linux/mm.h
-@@ -767,7 +767,7 @@ static inline bool __cpupid_match_pid(pi
- #ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
- static inline int page_cpupid_xchg_last(struct page *page, int cpupid)
- {
--	return xchg(&page->_last_cpupid, cpupid);
-+	return xchg(&page->_last_cpupid, cpupid & LAST_CPUPID_MASK);
+diff -puN mm/page_alloc.c~mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-reset-aging-cycle-with-gfp_thisnode-v2
++++ a/mm/page_alloc.c
+@@ -1238,6 +1238,15 @@ void drain_zone_pages(struct zone *zone,
+ 	}
+ 	local_irq_restore(flags);
  }
++static bool gfp_thisnode_allocation(gfp_t gfp_mask)
++{
++	return (gfp_mask & GFP_THISNODE) == GFP_THISNODE;
++}
++#else
++static bool gfp_thisnode_allocation(gfp_t gfp_mask)
++{
++	return false;
++}
+ #endif
  
- static inline int page_cpupid_last(struct page *page)
-@@ -776,7 +776,7 @@ static inline int page_cpupid_last(struc
- }
- static inline void page_cpupid_reset_last(struct page *page)
- {
--	page->_last_cpupid = -1;
-+	page->_last_cpupid = -1 & LAST_CPUPID_MASK;
- }
- #else
- static inline int page_cpupid_last(struct page *page)
+ /*
+@@ -1574,7 +1583,13 @@ again:
+ 					  get_pageblock_migratetype(page));
+ 	}
+ 
+-	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
++	/*
++	 * NOTE: GFP_THISNODE allocations do not partake in the kswapd
++	 * aging protocol, so they can't be fair.
++	 */
++	if (!gfp_thisnode_allocation(gfp_flags))
++		__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
++
+ 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
+ 	zone_statistics(preferred_zone, zone, gfp_flags);
+ 	local_irq_restore(flags);
+@@ -1946,8 +1961,12 @@ zonelist_scan:
+ 		 * ultimately fall back to remote zones that do not
+ 		 * partake in the fairness round-robin cycle of this
+ 		 * zonelist.
++		 *
++		 * NOTE: GFP_THISNODE allocations do not partake in
++		 * the kswapd aging protocol, so they can't be fair.
+ 		 */
+-		if (alloc_flags & ALLOC_WMARK_LOW) {
++		if ((alloc_flags & ALLOC_WMARK_LOW) &&
++		    !gfp_thisnode_allocation(gfp_mask)) {
+ 			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
+ 				continue;
+ 			if (!zone_local(preferred_zone, zone))
+@@ -2503,8 +2522,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	 * allowed per node queues are empty and that nodes are
+ 	 * over allocated.
+ 	 */
+-	if (IS_ENABLED(CONFIG_NUMA) &&
+-			(gfp_mask & GFP_THISNODE) == GFP_THISNODE)
++	if (gfp_thisnode_allocation(gfp_mask))
+ 		goto nopage;
+ 
+ restart:
 _
 
-Patches currently in -mm which might be from pingfank@linux.vnet.ibm.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
+mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
+mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
+lib-radix_tree-tree-node-interface-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix-fix.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+madvise-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+drop_caches-add-some-documentation-and-info-message.patch
+memcg-slab-never-try-to-merge-memcg-caches.patch
+memcg-slab-cleanup-memcg-cache-creation.patch
+memcg-slab-separate-memcg-vs-root-cache-creation-paths.patch
+memcg-slab-unregister-cache-from-memcg-before-starting-to-destroy-it.patch
+memcg-slab-do-not-destroy-children-caches-if-parent-has-aliases.patch
+slub-adjust-memcg-caches-when-creating-cache-alias.patch
+slub-rework-sysfs-layout-for-memcg-caches.patch
+mm-fix-gfp_thisnode-callers-and-clarify.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
+mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
+exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
+fork-collapse-copy_flags-into-copy_process.patch
+mm-mempolicy-rename-slab_node-for-clarity.patch
+mm-mempolicy-remove-per-process-flag.patch
+res_counter-remove-interface-for-locked-charging-and-uncharging.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
 
