@@ -1,326 +1,99 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking.patch removed from -mm tree
-Date: Thu, 06 Mar 2014 12:37:26 -0800
-Message-ID: <5318dc86./J8ikF1NewySGQbt%akpm@linux-foundation.org>
+ memcg-reparent-charges-of-children-before-processing-parent.patch removed
+ from -mm tree
+Date: Thu, 06 Mar 2014 12:37:32 -0800
+Message-ID: <5318dc8c.jJ9YT6fThFCfYfn7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35494 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35507 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751953AbaCFUh1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 15:37:27 -0500
+	with ESMTP id S1752967AbaCFUhd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 15:37:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wei.liu2@citrix.com, romieu@fr.zoreil.com, linux@eikelenboom.it, konrad.wilk@oracle.com, eric.dumazet@gmail.com, davej@redhat.com, dan.j.williams@intel.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org, mhocko@suse.cz, hughd@google.com, hannes@cmpxchg.org, burian@muenster.de, filbranden@google.com
 
-Subject: [merged] dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking.patch removed from -mm tree
-To: dan.j.williams@intel.com,davej@redhat.com,eric.dumazet@gmail.com,konrad.wilk@oracle.com,linux@eikelenboom.it,romieu@fr.zoreil.com,wei.liu2@citrix.com,mm-commits@vger.kernel.org
+Subject: [merged] memcg-reparent-charges-of-children-before-processing-parent.patch removed from -mm tree
+To: filbranden@google.com,burian@muenster.de,hannes@cmpxchg.org,hughd@google.com,mhocko@suse.cz,stable@vger.kernel.org,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Mar 2014 12:37:26 -0800
+Date: Thu, 06 Mar 2014 12:37:32 -0800
 
 
 The patch titled
-     Subject: dma debug: account for cachelines and read-only mappings in overlap tracking
+     Subject: memcg: reparent charges of children before processing parent
 has been removed from the -mm tree.  Its filename was
-     dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking.patch
+     memcg-reparent-charges-of-children-before-processing-parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: dma debug: account for cachelines and read-only mappings in overlap tracking
+From: Filipe Brandenburger <filbranden@google.com>
+Subject: memcg: reparent charges of children before processing parent
 
-While debug_dma_assert_idle() checks if a given *page* is actively
-undergoing dma the valid granularity of a dma mapping is a *cacheline*. 
-Sander's testing shows that the warning message "DMA-API: exceeded 7
-overlapping mappings of pfn..." is falsely triggering.  The test is simply
-mapping multiple cachelines in a given page.
+Sometimes the cleanup after memcg hierarchy testing gets stuck in
+mem_cgroup_reparent_charges(), unable to bring non-kmem usage down to 0.
 
-Ultimately we want overlap tracking to be valid as it is a real api
-violation, so we need to track active mappings by cachelines.  Update the
-active dma tracking to use the page-frame-relative cacheline of the
-mapping as the key, and update debug_dma_assert_idle() to check for all
-possible mapped cachelines for a given page.
+There may turn out to be several causes, but a major cause is this: the
+workitem to offline parent can get run before workitem to offline child;
+parent's mem_cgroup_reparent_charges() circles around waiting for the
+child's pages to be reparented to its lrus, but it's holding cgroup_mutex
+which prevents the child from reaching its mem_cgroup_reparent_charges().
 
-However, the need to track active mappings is only relevant when the
-dma-mapping is writable by the device.  In fact it is fairly standard for
-read-only mappings to have hundreds or thousands of overlapping mappings
-at once.  Limiting the overlap tracking to writable (!DMA_TO_DEVICE)
-eliminates this class of false-positive overlap reports.
+Further testing showed that an ordered workqueue for cgroup_destroy_wq is
+not always good enough: percpu_ref_kill_and_confirm's call_rcu_sched stage
+on the way can mess up the order before reaching the workqueue.
 
-Note, the radix gang lookup is sub-optimal.  It would be best if it
-stopped fetching entries once the search passed a page boundary. 
-Nevertheless, this implementation does not perturb the original net_dma
-failing case.  That is to say the extra overhead does not show up in terms
-of making the failing case pass due to a timing change.
+Instead, when offlining a memcg, call mem_cgroup_reparent_charges() on all
+its children (and grandchildren, in the correct order) to have their
+charges reparented first.
 
-References:
-http://marc.info/?l=linux-netdev&m=139232263419315&w=2
-http://marc.info/?l=linux-netdev&m=139217088107122&w=2
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
-Reported-by: Dave Jones <davej@redhat.com>
-Tested-by: Dave Jones <davej@redhat.com>
-Tested-by: Sander Eikelenboom <linux@eikelenboom.it>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Wei Liu <wei.liu2@citrix.com>
+Fixes: e5fca243abae ("cgroup: use a dedicated workqueue for cgroup destruction")
+Signed-off-by: Filipe Brandenburger <filbranden@google.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>	[v3.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |  131 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 85 insertions(+), 46 deletions(-)
+ mm/memcontrol.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN lib/dma-debug.c~dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-account-for-cachelines-and-read-only-mappings-in-overlap-tracking
-+++ a/lib/dma-debug.c
-@@ -424,111 +424,134 @@ void debug_dma_dump_mappings(struct devi
- EXPORT_SYMBOL(debug_dma_dump_mappings);
- 
- /*
-- * For each page mapped (initial page in the case of
-- * dma_alloc_coherent/dma_map_{single|page}, or each page in a
-- * scatterlist) insert into this tree using the pfn as the key. At
-+ * For each mapping (initial cacheline in the case of
-+ * dma_alloc_coherent/dma_map_page, initial cacheline in each page of a
-+ * scatterlist, or the cacheline specified in dma_map_single) insert
-+ * into this tree using the cacheline as the key. At
-  * dma_unmap_{single|sg|page} or dma_free_coherent delete the entry.  If
-- * the pfn already exists at insertion time add a tag as a reference
-+ * the entry already exists at insertion time add a tag as a reference
-  * count for the overlapping mappings.  For now, the overlap tracking
-- * just ensures that 'unmaps' balance 'maps' before marking the pfn
-- * idle, but we should also be flagging overlaps as an API violation.
-+ * just ensures that 'unmaps' balance 'maps' before marking the
-+ * cacheline idle, but we should also be flagging overlaps as an API
-+ * violation.
-  *
-  * Memory usage is mostly constrained by the maximum number of available
-  * dma-debug entries in that we need a free dma_debug_entry before
-- * inserting into the tree.  In the case of dma_map_{single|page} and
-- * dma_alloc_coherent there is only one dma_debug_entry and one pfn to
-- * track per event.  dma_map_sg(), on the other hand,
-- * consumes a single dma_debug_entry, but inserts 'nents' entries into
-- * the tree.
-+ * inserting into the tree.  In the case of dma_map_page and
-+ * dma_alloc_coherent there is only one dma_debug_entry and one
-+ * dma_active_cacheline entry to track per event.  dma_map_sg(), on the
-+ * other hand, consumes a single dma_debug_entry, but inserts 'nents'
-+ * entries into the tree.
-  *
-  * At any time debug_dma_assert_idle() can be called to trigger a
-- * warning if the given page is in the active set.
-+ * warning if any cachelines in the given page are in the active set.
-  */
--static RADIX_TREE(dma_active_pfn, GFP_NOWAIT);
-+static RADIX_TREE(dma_active_cacheline, GFP_NOWAIT);
- static DEFINE_SPINLOCK(radix_lock);
--#define ACTIVE_PFN_MAX_OVERLAP ((1 << RADIX_TREE_MAX_TAGS) - 1)
-+#define ACTIVE_CACHELINE_MAX_OVERLAP ((1 << RADIX_TREE_MAX_TAGS) - 1)
-+#define CACHELINE_PER_PAGE_SHIFT (PAGE_SHIFT - L1_CACHE_SHIFT)
-+#define CACHELINES_PER_PAGE (1 << CACHELINE_PER_PAGE_SHIFT)
- 
--static int active_pfn_read_overlap(unsigned long pfn)
-+static phys_addr_t to_cacheline_number(struct dma_debug_entry *entry)
-+{
-+	return (entry->pfn << CACHELINE_PER_PAGE_SHIFT) +
-+		(entry->offset >> L1_CACHE_SHIFT);
-+}
-+
-+static int active_cacheline_read_overlap(phys_addr_t cln)
+diff -puN mm/memcontrol.c~memcg-reparent-charges-of-children-before-processing-parent mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-reparent-charges-of-children-before-processing-parent
++++ a/mm/memcontrol.c
+@@ -6595,6 +6595,7 @@ static void mem_cgroup_css_offline(struc
  {
- 	int overlap = 0, i;
- 
- 	for (i = RADIX_TREE_MAX_TAGS - 1; i >= 0; i--)
--		if (radix_tree_tag_get(&dma_active_pfn, pfn, i))
-+		if (radix_tree_tag_get(&dma_active_cacheline, cln, i))
- 			overlap |= 1 << i;
- 	return overlap;
- }
- 
--static int active_pfn_set_overlap(unsigned long pfn, int overlap)
-+static int active_cacheline_set_overlap(phys_addr_t cln, int overlap)
- {
- 	int i;
- 
--	if (overlap > ACTIVE_PFN_MAX_OVERLAP || overlap < 0)
-+	if (overlap > ACTIVE_CACHELINE_MAX_OVERLAP || overlap < 0)
- 		return overlap;
- 
- 	for (i = RADIX_TREE_MAX_TAGS - 1; i >= 0; i--)
- 		if (overlap & 1 << i)
--			radix_tree_tag_set(&dma_active_pfn, pfn, i);
-+			radix_tree_tag_set(&dma_active_cacheline, cln, i);
- 		else
--			radix_tree_tag_clear(&dma_active_pfn, pfn, i);
-+			radix_tree_tag_clear(&dma_active_cacheline, cln, i);
- 
- 	return overlap;
- }
- 
--static void active_pfn_inc_overlap(unsigned long pfn)
-+static void active_cacheline_inc_overlap(phys_addr_t cln)
- {
--	int overlap = active_pfn_read_overlap(pfn);
-+	int overlap = active_cacheline_read_overlap(cln);
- 
--	overlap = active_pfn_set_overlap(pfn, ++overlap);
-+	overlap = active_cacheline_set_overlap(cln, ++overlap);
- 
- 	/* If we overflowed the overlap counter then we're potentially
- 	 * leaking dma-mappings.  Otherwise, if maps and unmaps are
- 	 * balanced then this overflow may cause false negatives in
--	 * debug_dma_assert_idle() as the pfn may be marked idle
-+	 * debug_dma_assert_idle() as the cacheline may be marked idle
- 	 * prematurely.
- 	 */
--	WARN_ONCE(overlap > ACTIVE_PFN_MAX_OVERLAP,
--		  "DMA-API: exceeded %d overlapping mappings of pfn %lx\n",
--		  ACTIVE_PFN_MAX_OVERLAP, pfn);
-+	WARN_ONCE(overlap > ACTIVE_CACHELINE_MAX_OVERLAP,
-+		  "DMA-API: exceeded %d overlapping mappings of cacheline %pa\n",
-+		  ACTIVE_CACHELINE_MAX_OVERLAP, &cln);
- }
- 
--static int active_pfn_dec_overlap(unsigned long pfn)
-+static int active_cacheline_dec_overlap(phys_addr_t cln)
- {
--	int overlap = active_pfn_read_overlap(pfn);
-+	int overlap = active_cacheline_read_overlap(cln);
- 
--	return active_pfn_set_overlap(pfn, --overlap);
-+	return active_cacheline_set_overlap(cln, --overlap);
- }
- 
--static int active_pfn_insert(struct dma_debug_entry *entry)
-+static int active_cacheline_insert(struct dma_debug_entry *entry)
- {
-+	phys_addr_t cln = to_cacheline_number(entry);
- 	unsigned long flags;
- 	int rc;
- 
-+	/* If the device is not writing memory then we don't have any
-+	 * concerns about the cpu consuming stale data.  This mitigates
-+	 * legitimate usages of overlapping mappings.
-+	 */
-+	if (entry->direction == DMA_TO_DEVICE)
-+		return 0;
-+
- 	spin_lock_irqsave(&radix_lock, flags);
--	rc = radix_tree_insert(&dma_active_pfn, entry->pfn, entry);
-+	rc = radix_tree_insert(&dma_active_cacheline, cln, entry);
- 	if (rc == -EEXIST)
--		active_pfn_inc_overlap(entry->pfn);
-+		active_cacheline_inc_overlap(cln);
- 	spin_unlock_irqrestore(&radix_lock, flags);
- 
- 	return rc;
- }
- 
--static void active_pfn_remove(struct dma_debug_entry *entry)
-+static void active_cacheline_remove(struct dma_debug_entry *entry)
- {
-+	phys_addr_t cln = to_cacheline_number(entry);
- 	unsigned long flags;
- 
-+	/* ...mirror the insert case */
-+	if (entry->direction == DMA_TO_DEVICE)
-+		return;
-+
- 	spin_lock_irqsave(&radix_lock, flags);
- 	/* since we are counting overlaps the final put of the
--	 * entry->pfn will occur when the overlap count is 0.
--	 * active_pfn_dec_overlap() returns -1 in that case
-+	 * cacheline will occur when the overlap count is 0.
-+	 * active_cacheline_dec_overlap() returns -1 in that case
- 	 */
--	if (active_pfn_dec_overlap(entry->pfn) < 0)
--		radix_tree_delete(&dma_active_pfn, entry->pfn);
-+	if (active_cacheline_dec_overlap(cln) < 0)
-+		radix_tree_delete(&dma_active_cacheline, cln);
- 	spin_unlock_irqrestore(&radix_lock, flags);
- }
- 
- /**
-  * debug_dma_assert_idle() - assert that a page is not undergoing dma
-- * @page: page to lookup in the dma_active_pfn tree
-+ * @page: page to lookup in the dma_active_cacheline tree
-  *
-  * Place a call to this routine in cases where the cpu touching the page
-  * before the dma completes (page is dma_unmapped) will lead to data
-@@ -536,22 +559,38 @@ static void active_pfn_remove(struct dma
-  */
- void debug_dma_assert_idle(struct page *page)
- {
-+	static struct dma_debug_entry *ents[CACHELINES_PER_PAGE];
-+	struct dma_debug_entry *entry = NULL;
-+	void **results = (void **) &ents;
-+	unsigned int nents, i;
- 	unsigned long flags;
--	struct dma_debug_entry *entry;
-+	phys_addr_t cln;
- 
- 	if (!page)
- 		return;
- 
-+	cln = (phys_addr_t) page_to_pfn(page) << CACHELINE_PER_PAGE_SHIFT;
- 	spin_lock_irqsave(&radix_lock, flags);
--	entry = radix_tree_lookup(&dma_active_pfn, page_to_pfn(page));
-+	nents = radix_tree_gang_lookup(&dma_active_cacheline, results, cln,
-+				       CACHELINES_PER_PAGE);
-+	for (i = 0; i < nents; i++) {
-+		phys_addr_t ent_cln = to_cacheline_number(ents[i]);
-+
-+		if (ent_cln == cln) {
-+			entry = ents[i];
-+			break;
-+		} else if (ent_cln >= cln + CACHELINES_PER_PAGE)
-+			break;
-+	}
- 	spin_unlock_irqrestore(&radix_lock, flags);
- 
- 	if (!entry)
- 		return;
- 
-+	cln = to_cacheline_number(entry);
- 	err_printk(entry->dev, entry,
--		   "DMA-API: cpu touching an active dma mapped page "
--		   "[pfn=0x%lx]\n", entry->pfn);
-+		   "DMA-API: cpu touching an active dma mapped cacheline [cln=%pa]\n",
-+		   &cln);
- }
- 
- /*
-@@ -568,9 +607,9 @@ static void add_dma_entry(struct dma_deb
- 	hash_bucket_add(bucket, entry);
- 	put_hash_bucket(bucket, &flags);
- 
--	rc = active_pfn_insert(entry);
-+	rc = active_cacheline_insert(entry);
- 	if (rc == -ENOMEM) {
--		pr_err("DMA-API: pfn tracking ENOMEM, dma-debug disabled\n");
-+		pr_err("DMA-API: cacheline tracking ENOMEM, dma-debug disabled\n");
- 		global_disable = true;
- 	}
- 
-@@ -631,7 +670,7 @@ static void dma_entry_free(struct dma_de
- {
- 	unsigned long flags;
- 
--	active_pfn_remove(entry);
-+	active_cacheline_remove(entry);
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 	struct mem_cgroup_event *event, *tmp;
++	struct cgroup_subsys_state *iter;
  
  	/*
- 	 * add to beginning of the list - this way the entries are
+ 	 * Unregister events and notify userspace.
+@@ -6611,7 +6612,14 @@ static void mem_cgroup_css_offline(struc
+ 	kmem_cgroup_css_offline(memcg);
+ 
+ 	mem_cgroup_invalidate_reclaim_iterators(memcg);
+-	mem_cgroup_reparent_charges(memcg);
++
++	/*
++	 * This requires that offlining is serialized.  Right now that is
++	 * guaranteed because css_killed_work_fn() holds the cgroup_mutex.
++	 */
++	css_for_each_descendant_post(iter, css)
++		mem_cgroup_reparent_charges(mem_cgroup_from_css(iter));
++
+ 	mem_cgroup_destroy_all_caches(memcg);
+ 	vmpressure_cleanup(&memcg->vmpressure);
+ }
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from filbranden@google.com are
 
 origin.patch
-linux-next.patch
 
