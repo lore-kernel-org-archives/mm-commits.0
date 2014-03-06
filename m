@@ -1,99 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- swapoff-tmpfs-radix_tree-remember-to-rcu_read_unlock.patch removed from -mm tree
-Date: Thu, 06 Mar 2014 12:37:28 -0800
-Message-ID: <5318dc88.eVT3yswKWf34Y9bd%akpm@linux-foundation.org>
+ drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx.patch removed from -mm tree
+Date: Thu, 06 Mar 2014 12:37:40 -0800
+Message-ID: <5318dc94.qGqRIIVtYH0897w3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35499 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35533 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825AbaCFUh3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 15:37:29 -0500
+	with ESMTP id S1753080AbaCFUhl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 15:37:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, hughd@google.com
+To: mm-commits@vger.kernel.org, vikas.sajjan@samsung.com, robh+dt@kernel.org, grant.likely@linaro.org, vikas.sajjan@linaro.org
 
-Subject: [merged] swapoff-tmpfs-radix_tree-remember-to-rcu_read_unlock.patch removed from -mm tree
-To: hughd@google.com,hannes@cmpxchg.org,mm-commits@vger.kernel.org
+Subject: [merged] drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx.patch removed from -mm tree
+To: vikas.sajjan@linaro.org,grant.likely@linaro.org,robh+dt@kernel.org,vikas.sajjan@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Mar 2014 12:37:28 -0800
+Date: Thu, 06 Mar 2014 12:37:40 -0800
 
 
 The patch titled
-     Subject: lib/radix-tree.c: swapoff tmpfs radix_tree: remember to rcu_read_unlock
+     Subject: drivers/rtc/rtc-s3c.c: fix incorrect way of save/restore of S3C2410_TICNT for TYPE_S3C64XX
 has been removed from the -mm tree.  Its filename was
-     swapoff-tmpfs-radix_tree-remember-to-rcu_read_unlock.patch
+     drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: lib/radix-tree.c: swapoff tmpfs radix_tree: remember to rcu_read_unlock
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+Subject: drivers/rtc/rtc-s3c.c: fix incorrect way of save/restore of S3C2410_TICNT for TYPE_S3C64XX
 
-Running fsx on tmpfs with concurrent memhog-swapoff-swapon, lots of
+On exynos5250, exynos5420 and exynos5260 it was observed that, after 1
+cycle of S2R, the rtc-tick occurs at a very fast rate as compared to the
+rtc-tick occuring before S2R.
 
-BUG: sleeping function called from invalid context at kernel/fork.c:606
-in_atomic(): 0, irqs_disabled(): 0, pid: 1394, name: swapoff
-1 lock held by swapoff/1394:
- #0:  (rcu_read_lock){.+.+.+}, at: [<ffffffff812520a1>] radix_tree_locate_item+0x1f/0x2b6
-followed by
-================================================
-[ BUG: lock held when returning to user space! ]
-3.14.0-rc1 #3 Not tainted
-------------------------------------------------
-swapoff/1394 is leaving the kernel with locks still held!
-1 lock held by swapoff/1394:
- #0:  (rcu_read_lock){.+.+.+}, at: [<ffffffff812520a1>] radix_tree_locate_item+0x1f/0x2b6
-after which the system recovered nicely.
+This patch fixes the above issue by correcting the wrong way of
+save/restore of S3C2410_TICNT for TYPE_S3C64XX.
 
-Whoops, I long ago forgot the rcu_read_unlock() on one unlikely branch.
-
-Fixes e504f3fdd63d ("tmpfs radix_tree: locate_item to speed up swapoff")
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Vikas Sajjan <vikas.sajjan@samsung.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <robh+dt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-s3c.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN lib/radix-tree.c~swapoff-tmpfs-radix_tree-remember-to-rcu_read_unlock lib/radix-tree.c
---- a/lib/radix-tree.c~swapoff-tmpfs-radix_tree-remember-to-rcu_read_unlock
-+++ a/lib/radix-tree.c
-@@ -1253,8 +1253,10 @@ unsigned long radix_tree_locate_item(str
+diff -puN drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-fix-incorrect-way-of-save-restore-of-s3c2410_ticnt-for-type_s3c64xx
++++ a/drivers/rtc/rtc-s3c.c
+@@ -580,10 +580,12 @@ static int s3c_rtc_suspend(struct device
  
- 		node = indirect_to_ptr(node);
- 		max_index = radix_tree_maxindex(node->height);
--		if (cur_index > max_index)
-+		if (cur_index > max_index) {
-+			rcu_read_unlock();
- 			break;
+ 	clk_enable(rtc_clk);
+ 	/* save TICNT for anyone using periodic interrupts */
+-	ticnt_save = readb(s3c_rtc_base + S3C2410_TICNT);
+ 	if (s3c_rtc_cpu_type == TYPE_S3C64XX) {
+ 		ticnt_en_save = readw(s3c_rtc_base + S3C2410_RTCCON);
+ 		ticnt_en_save &= S3C64XX_RTCCON_TICEN;
++		ticnt_save = readl(s3c_rtc_base + S3C2410_TICNT);
++	} else {
++		ticnt_save = readb(s3c_rtc_base + S3C2410_TICNT);
+ 	}
+ 	s3c_rtc_enable(pdev, 0);
+ 
+@@ -605,10 +607,15 @@ static int s3c_rtc_resume(struct device
+ 
+ 	clk_enable(rtc_clk);
+ 	s3c_rtc_enable(pdev, 1);
+-	writeb(ticnt_save, s3c_rtc_base + S3C2410_TICNT);
+-	if (s3c_rtc_cpu_type == TYPE_S3C64XX && ticnt_en_save) {
+-		tmp = readw(s3c_rtc_base + S3C2410_RTCCON);
+-		writew(tmp | ticnt_en_save, s3c_rtc_base + S3C2410_RTCCON);
++	if (s3c_rtc_cpu_type == TYPE_S3C64XX) {
++		writel(ticnt_save, s3c_rtc_base + S3C2410_TICNT);
++		if (ticnt_en_save) {
++			tmp = readw(s3c_rtc_base + S3C2410_RTCCON);
++			writew(tmp | ticnt_en_save,
++					s3c_rtc_base + S3C2410_RTCCON);
 +		}
++	} else {
++		writeb(ticnt_save, s3c_rtc_base + S3C2410_TICNT);
+ 	}
  
- 		cur_index = __locate(node, item, cur_index, &found_index);
- 		rcu_read_unlock();
+ 	if (device_may_wakeup(dev) && wake_en) {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from vikas.sajjan@linaro.org are
 
 origin.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-compaction-avoid-isolating-pinned-pages.patch
-mm-implement-map_pages-for-page-cache-fix.patch
 
