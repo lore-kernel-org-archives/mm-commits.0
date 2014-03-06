@@ -1,134 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-make-first_page-visible-before-pagetail.patch removed from
- -mm tree
-Date: Thu, 06 Mar 2014 12:37:24 -0800
-Message-ID: <5318dc84.gpzDeRNxSfyse50b%akpm__44045.5750249841$1394138293$gmane$org@linux-foundation.org>
+Subject: [merged] memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch
+ removed from -mm tree
+Date: Thu, 06 Mar 2014 12:37:30 -0800
+Message-ID: <5318dc8a.GW54Y/U27FFpNVgb%akpm__32111.2541867935$1394138293$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35503 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232AbaCFUhZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 15:37:25 -0500
+	with ESMTP id S1752900AbaCFUhb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 15:37:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org, riel@redhat.com, mhocko@suse.cz, mgorman@suse.de, kirill.shutemov@linux.intel.com, cl@linux.com, aquini@redhat.com, aarcange@redhat.com, Holger.Kiehl@dwd.de, rientjes@google.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org, gthelen@google.com, hughd@google.com
 
-Subject: [merged] mm-page_alloc-make-first_page-visible-before-pagetail.patch removed from -mm tree
-To: rientjes@google.com,Holger.Kiehl@dwd.de,aarcange@redhat.com,aquini@redhat.com,cl@linux.com,kirill.shutemov@linux.intel.com,mgorman@suse.de,mhocko@suse.cz,riel@redhat.com,stable@vger.kernel.org,vbabka@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch removed from -mm tree
+To: hughd@google.com,gthelen@google.com,hannes@cmpxchg.org,mhocko@suse.cz,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Mar 2014 12:37:24 -0800
+Date: Thu, 06 Mar 2014 12:37:30 -0800
 
 
 The patch titled
-     Subject: mm, page_alloc: make first_page visible before PageTail
+     Subject: memcg: fix endless loop in __mem_cgroup_iter_next()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-make-first_page-visible-before-pagetail.patch
+     memcg-fix-endless-loop-in-__mem_cgroup_iter_next.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, page_alloc: make first_page visible before PageTail
+From: Hugh Dickins <hughd@google.com>
+Subject: memcg: fix endless loop in __mem_cgroup_iter_next()
 
-Commit bf6bddf1924e ("mm: introduce compaction and migration for ballooned
-pages") introduces page_count(page) into memory compaction which
-dereferences page->first_page if PageTail(page).
+0eef615665ed ("memcg: fix css reference leak and endless loop in
+mem_cgroup_iter") got the interaction with the commit a few before it
+d8ad30559715 ("mm/memcg: iteration skip memcgs not yet fully initialized")
+slightly wrong, and we didn't notice at the time.
 
-This results in a very rare NULL pointer dereference on the aforementioned 
-page_count(page).  Indeed, anything that does compound_head(), including 
-page_count() is susceptible to racing with prep_compound_page() and seeing 
-a NULL or dangling page->first_page pointer.
+It's elusive, and harder to get than the original, but for a couple of
+days before rc1, I several times saw a endless loop similar to that
+supposedly being fixed.
 
-This patch uses Andrea's implementation of compound_trans_head() that
-deals with such a race and makes it the default compound_head()
-implementation.  This includes a read memory barrier that ensures that
-if PageTail(head) is true that we return a head page that is neither
-NULL nor dangling.  The patch then adds a store memory barrier to
-prep_compound_page() to ensure page->first_page is set.
+This time it was a tighter loop in __mem_cgroup_iter_next(): because we
+can get here when our root has already been offlined, and the ordering of
+conditions was such that we then just cycled around forever.
 
-Hugetlbfs is the exception, we don't enforce a store memory barrier
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Holger Kiehl <Holger.Kiehl@dwd.de>
-Cc: Holger Kiehl <Holger.Kiehl@dwd.de>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 0eef615665ed ("memcg: fix css reference leak and endless loop in mem_cgroup_iter").
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: <stable@vger.kernel.org>	[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-make-first_page-visible-before-pagetail mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-make-first_page-visible-before-pagetail
-+++ a/mm/page_alloc.c
-@@ -369,9 +369,11 @@ void prep_compound_page(struct page *pag
- 	__SetPageHead(page);
- 	for (i = 1; i < nr_pages; i++) {
- 		struct page *p = page + i;
--		__SetPageTail(p);
- 		set_page_count(p, 0);
- 		p->first_page = page;
-+		/* Make sure p->first_page is always valid for PageTail() */
-+		smp_wmb();
-+		__SetPageTail(p);
- 	}
- }
+diff -puN mm/memcontrol.c~memcg-fix-endless-loop-in-__mem_cgroup_iter_next mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-endless-loop-in-__mem_cgroup_iter_next
++++ a/mm/memcontrol.c
+@@ -1127,8 +1127,8 @@ skip_node:
+ 	 * skipping css reference should be safe.
+ 	 */
+ 	if (next_css) {
+-		if ((next_css->flags & CSS_ONLINE) &&
+-				(next_css == &root->css || css_tryget(next_css)))
++		if ((next_css == &root->css) ||
++		    ((next_css->flags & CSS_ONLINE) && css_tryget(next_css)))
+ 			return mem_cgroup_from_css(next_css);
  
+ 		prev_css = next_css;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
-kthread-ensure-locality-of-task_struct-allocations.patch
-arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch
-mm-slab-slub-use-page-list-consistently-instead-of-page-lru.patch
-mm-compaction-ignore-pageblock-skip-when-manually-invoking-compaction.patch
-mm-vmscan-shrink_slab-rename-max_pass-freeable.patch
-mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
 mm-compaction-avoid-isolating-pinned-pages.patch
-mm-compactionc-mark-function-as-static.patch
-mm-memoryc-mark-functions-as-static.patch
-mm-mmapc-mark-function-as-static.patch
-mm-process_vm_accessc-mark-function-as-static.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-page_cgroupc-mark-functions-as-static.patch
-mm-nobootmemc-mark-function-as-static.patch
-include-linux-mmh-remove-ifdef-condition.patch
-mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
-mmnuma-reorganize-change_pmd_range.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-move-mmu-notifier-call-from-change_protection-to-change_pmd_range.patch
-mm-exclude-memory-less-nodes-from-zone_reclaim.patch
-memcg-slab-never-try-to-merge-memcg-caches.patch
-memcg-slab-cleanup-memcg-cache-creation.patch
-memcg-slab-separate-memcg-vs-root-cache-creation-paths.patch
-memcg-slab-unregister-cache-from-memcg-before-starting-to-destroy-it.patch
-memcg-slab-do-not-destroy-children-caches-if-parent-has-aliases.patch
-slub-adjust-memcg-caches-when-creating-cache-alias.patch
-slub-rework-sysfs-layout-for-memcg-caches.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch
-mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
-exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
-fork-collapse-copy_flags-into-copy_process.patch
-mm-mempolicy-rename-slab_node-for-clarity.patch
-mm-mempolicy-remove-per-process-flag.patch
-res_counter-remove-interface-for-locked-charging-and-uncharging.patch
-kernel-resourcec-make-reallocate_resource-static.patch
-mm-utilc-add-kstrimdup.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-linux-next.patch
+mm-implement-map_pages-for-page-cache-fix.patch
 
