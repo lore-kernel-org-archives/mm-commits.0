@@ -1,226 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-use-tab-for-separator.patch removed from -mm tree
-Date: Thu, 06 Mar 2014 12:37:51 -0800
-Message-ID: <5318dc9f.h1nTBjHumbuMiaRW%akpm@linux-foundation.org>
+Subject: [merged]
+ rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch removed from -mm tree
+Date: Thu, 06 Mar 2014 12:37:49 -0800
+Message-ID: <5318dc9d.02I22xTwyvjkzmDE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35550 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753080AbaCFUhv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 15:37:51 -0500
+	with ESMTP id S1752232AbaCFUhu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 15:37:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, xtfeng@gmail.com, tglx@linutronix.de, stable@vger.kernel.org, mporter@kernel.crashing.org, bitbucket@online.de, alexandre.bounine@idt.com
 
-Subject: [merged] maintainers-use-tab-for-separator.patch removed from -mm tree
-To: joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch removed from -mm tree
+To: alexandre.bounine@idt.com,bitbucket@online.de,mporter@kernel.crashing.org,stable@vger.kernel.org,tglx@linutronix.de,xtfeng@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Mar 2014 12:37:51 -0800
+Date: Thu, 06 Mar 2014 12:37:49 -0800
 
 
 The patch titled
-     Subject: MAINTAINERS: use tab for separator
+     Subject: rapidio/tsi721: fix tasklet termination in dma channel release
 has been removed from the -mm tree.  Its filename was
-     maintainers-use-tab-for-separator.patch
+     rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: use tab for separator
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/tsi721: fix tasklet termination in dma channel release
 
-Convert whitespace to single tab for separators.
+This patch is a modification of the patch originally proposed by Xiaotian
+Feng <xtfeng@gmail.com>: https://lkml.org/lkml/2012/11/5/413 This new
+version disables DMA channel interrupts and ensures that the tasklet wil
+not be scheduled again before calling tasklet_kill().
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Unfortunately the updated patch was not released at that time due to
+planned rework of Tsi721 mport driver to use threaded interrupts (which
+has yet to happen).  Recently the issue was reported again:
+https://lkml.org/lkml/2014/2/19/762.
+
+Description from the original Xiaotian's patch:
+
+"Some drivers use tasklet_disable in device remove/release process,
+tasklet_disable will inc tasklet->count and return.  If the tasklet is not
+handled yet under some softirq pressure, the tasklet will be placed on the
+tasklet_vec, never have a chance to be excuted.  This might lead to a
+heavy loaded ksoftirqd, wakeup with pending_softirq, but tasklet is
+disabled.  tasklet_kill should be used in this case."
+
+This patch is applicable to kernel versions starting from v3.5.
+
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Xiaotian Feng <xtfeng@gmail.com>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mike Galbraith <bitbucket@online.de>
+Cc: <stable@vger.kernel.org>	[3.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   88 +++++++++++++++++++++++++-------------------------
- 1 file changed, 44 insertions(+), 44 deletions(-)
+ drivers/rapidio/devices/tsi721.h     |    1 
+ drivers/rapidio/devices/tsi721_dma.c |   27 ++++++++++++++++---------
+ 2 files changed, 19 insertions(+), 9 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-use-tab-for-separator MAINTAINERS
---- a/MAINTAINERS~maintainers-use-tab-for-separator
-+++ a/MAINTAINERS
-@@ -1612,11 +1612,11 @@ S:	Maintained
- F:	drivers/net/wireless/atmel*
+diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release drivers/rapidio/devices/tsi721.h
+--- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release
++++ a/drivers/rapidio/devices/tsi721.h
+@@ -678,6 +678,7 @@ struct tsi721_bdma_chan {
+ 	struct list_head	free_list;
+ 	dma_cookie_t		completed_cookie;
+ 	struct tasklet_struct	tasklet;
++	bool			active;
+ };
  
- ATTO EXPRESSSAS SAS/SATA RAID SCSI DRIVER
--M:      Bradley Grove <linuxdrivers@attotech.com>
--L:      linux-scsi@vger.kernel.org
--W:      http://www.attotech.com
--S:      Supported
--F:      drivers/scsi/esas2r
-+M:	Bradley Grove <linuxdrivers@attotech.com>
-+L:	linux-scsi@vger.kernel.org
-+W:	http://www.attotech.com
-+S:	Supported
-+F:	drivers/scsi/esas2r
+ #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
+diff -puN drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release drivers/rapidio/devices/tsi721_dma.c
+--- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721-fix-tasklet-termination-in-dma-channel-release
++++ a/drivers/rapidio/devices/tsi721_dma.c
+@@ -206,8 +206,8 @@ void tsi721_bdma_handler(struct tsi721_b
+ {
+ 	/* Disable BDMA channel interrupts */
+ 	iowrite32(0, bdma_chan->regs + TSI721_DMAC_INTE);
+-
+-	tasklet_schedule(&bdma_chan->tasklet);
++	if (bdma_chan->active)
++		tasklet_schedule(&bdma_chan->tasklet);
+ }
  
- AUDIT SUBSYSTEM
- M:	Eric Paris <eparis@redhat.com>
-@@ -2179,9 +2179,9 @@ S:	Supported
- F:	drivers/net/ethernet/cisco/enic/
+ #ifdef CONFIG_PCI_MSI
+@@ -562,7 +562,7 @@ static int tsi721_alloc_chan_resources(s
+ 	}
+ #endif /* CONFIG_PCI_MSI */
  
- CISCO VIC LOW LATENCY NIC DRIVER
--M:      Upinder Malhi <umalhi@cisco.com>
--S:      Supported
--F:      drivers/infiniband/hw/usnic
-+M:	Upinder Malhi <umalhi@cisco.com>
-+S:	Supported
-+F:	drivers/infiniband/hw/usnic
+-	tasklet_enable(&bdma_chan->tasklet);
++	bdma_chan->active = true;
+ 	tsi721_bdma_interrupt_enable(bdma_chan, 1);
  
- CIRRUS LOGIC EP93XX ETHERNET DRIVER
- M:	Hartley Sweeten <hsweeten@visionengravers.com>
-@@ -2378,13 +2378,13 @@ F:	drivers/cpufreq/arm_big_little.c
- F:	drivers/cpufreq/arm_big_little_dt.c
+ 	return bdma_chan->bd_num - 1;
+@@ -576,9 +576,7 @@ err_out:
+ static void tsi721_free_chan_resources(struct dma_chan *dchan)
+ {
+ 	struct tsi721_bdma_chan *bdma_chan = to_tsi721_chan(dchan);
+-#ifdef CONFIG_PCI_MSI
+ 	struct tsi721_device *priv = to_tsi721(dchan->device);
+-#endif
+ 	LIST_HEAD(list);
  
- CPUIDLE DRIVER - ARM BIG LITTLE
--M:      Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
--M:      Daniel Lezcano <daniel.lezcano@linaro.org>
--L:      linux-pm@vger.kernel.org
--L:      linux-arm-kernel@lists.infradead.org
--T:      git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
--S:      Maintained
--F:      drivers/cpuidle/cpuidle-big_little.c
-+M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-+M:	Daniel Lezcano <daniel.lezcano@linaro.org>
-+L:	linux-pm@vger.kernel.org
-+L:	linux-arm-kernel@lists.infradead.org
-+T:	git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-+S:	Maintained
-+F:	drivers/cpuidle/cpuidle-big_little.c
+ 	dev_dbg(dchan->device->dev, "%s: Entry\n", __func__);
+@@ -589,14 +587,25 @@ static void tsi721_free_chan_resources(s
+ 	BUG_ON(!list_empty(&bdma_chan->active_list));
+ 	BUG_ON(!list_empty(&bdma_chan->queue));
  
- CPUIDLE DRIVERS
- M:	Rafael J. Wysocki <rjw@rjwysocki.net>
-@@ -2458,9 +2458,9 @@ S:	Maintained
- F:	sound/pci/cs5535audio/
+-	tasklet_disable(&bdma_chan->tasklet);
++	tsi721_bdma_interrupt_enable(bdma_chan, 0);
++	bdma_chan->active = false;
++
++#ifdef CONFIG_PCI_MSI
++	if (priv->flags & TSI721_USING_MSIX) {
++		synchronize_irq(priv->msix[TSI721_VECT_DMA0_DONE +
++					   bdma_chan->id].vector);
++		synchronize_irq(priv->msix[TSI721_VECT_DMA0_INT +
++					   bdma_chan->id].vector);
++	} else
++#endif
++	synchronize_irq(priv->pdev->irq);
++
++	tasklet_kill(&bdma_chan->tasklet);
  
- CW1200 WLAN driver
--M:     Solomon Peachy <pizza@shaftnet.org>
--S:     Maintained
--F:     drivers/net/wireless/cw1200/
-+M:	Solomon Peachy <pizza@shaftnet.org>
-+S:	Maintained
-+F:	drivers/net/wireless/cw1200/
+ 	spin_lock_bh(&bdma_chan->lock);
+ 	list_splice_init(&bdma_chan->free_list, &list);
+ 	spin_unlock_bh(&bdma_chan->lock);
  
- CX18 VIDEO4LINUX DRIVER
- M:	Andy Walls <awalls@md.metrocast.net>
-@@ -5471,11 +5471,11 @@ S:	Maintained
- F:	drivers/media/tuners/m88ts2022*
+-	tsi721_bdma_interrupt_enable(bdma_chan, 0);
+-
+ #ifdef CONFIG_PCI_MSI
+ 	if (priv->flags & TSI721_USING_MSIX) {
+ 		free_irq(priv->msix[TSI721_VECT_DMA0_DONE +
+@@ -790,6 +799,7 @@ int tsi721_register_dma(struct tsi721_de
+ 		bdma_chan->dchan.cookie = 1;
+ 		bdma_chan->dchan.chan_id = i;
+ 		bdma_chan->id = i;
++		bdma_chan->active = false;
  
- MA901 MASTERKIT USB FM RADIO DRIVER
--M:      Alexey Klimov <klimov.linux@gmail.com>
--L:      linux-media@vger.kernel.org
--T:      git git://linuxtv.org/media_tree.git
--S:      Maintained
--F:      drivers/media/radio/radio-ma901.c
-+M:	Alexey Klimov <klimov.linux@gmail.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/radio/radio-ma901.c
+ 		spin_lock_init(&bdma_chan->lock);
  
- MAC80211
- M:	Johannes Berg <johannes@sipsolutions.net>
-@@ -5636,7 +5636,7 @@ F:	drivers/scsi/megaraid/
+@@ -799,7 +809,6 @@ int tsi721_register_dma(struct tsi721_de
  
- MELLANOX ETHERNET DRIVER (mlx4_en)
- M:	Amir Vadai <amirv@mellanox.com>
--L: 	netdev@vger.kernel.org
-+L:	netdev@vger.kernel.org
- S:	Supported
- W:	http://www.mellanox.com
- Q:	http://patchwork.ozlabs.org/project/netdev/list/
-@@ -5678,7 +5678,7 @@ F:	include/linux/mtd/
- F:	include/uapi/mtd/
- 
- MEN A21 WATCHDOG DRIVER
--M:  	Johannes Thumshirn <johannes.thumshirn@men.de>
-+M:	Johannes Thumshirn <johannes.thumshirn@men.de>
- L:	linux-watchdog@vger.kernel.org
- S:	Supported
- F:	drivers/watchdog/mena21_wdt.c
-@@ -5740,14 +5740,14 @@ F:	drivers/net/ethernet/mellanox/mlx5/co
- F:	include/linux/mlx5/
- 
- Mellanox MLX5 IB driver
--M:      Eli Cohen <eli@mellanox.com>
--L:      linux-rdma@vger.kernel.org
--W:      http://www.mellanox.com
--Q:      http://patchwork.kernel.org/project/linux-rdma/list/
--T:      git://openfabrics.org/~eli/connect-ib.git
--S:      Supported
--F:      include/linux/mlx5/
--F:      drivers/infiniband/hw/mlx5/
-+M:	Eli Cohen <eli@mellanox.com>
-+L:	linux-rdma@vger.kernel.org
-+W:	http://www.mellanox.com
-+Q:	http://patchwork.kernel.org/project/linux-rdma/list/
-+T:	git://openfabrics.org/~eli/connect-ib.git
-+S:	Supported
-+F:	include/linux/mlx5/
-+F:	drivers/infiniband/hw/mlx5/
- 
- MODULE SUPPORT
- M:	Rusty Russell <rusty@rustcorp.com.au>
-@@ -8701,17 +8701,17 @@ S:	Maintained
- F:	drivers/media/radio/radio-raremono.c
- 
- THERMAL
--M:      Zhang Rui <rui.zhang@intel.com>
--M:      Eduardo Valentin <eduardo.valentin@ti.com>
--L:      linux-pm@vger.kernel.org
--T:      git git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
--T:      git git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.git
--Q:      https://patchwork.kernel.org/project/linux-pm/list/
--S:      Supported
--F:      drivers/thermal/
--F:      include/linux/thermal.h
--F:      include/linux/cpu_cooling.h
--F:      Documentation/devicetree/bindings/thermal/
-+M:	Zhang Rui <rui.zhang@intel.com>
-+M:	Eduardo Valentin <eduardo.valentin@ti.com>
-+L:	linux-pm@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal.git
-+Q:	https://patchwork.kernel.org/project/linux-pm/list/
-+S:	Supported
-+F:	drivers/thermal/
-+F:	include/linux/thermal.h
-+F:	include/linux/cpu_cooling.h
-+F:	Documentation/devicetree/bindings/thermal/
- 
- THINGM BLINK(1) USB RGB LED DRIVER
- M:	Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+ 		tasklet_init(&bdma_chan->tasklet, tsi721_dma_tasklet,
+ 			     (unsigned long)bdma_chan);
+-		tasklet_disable(&bdma_chan->tasklet);
+ 		list_add_tail(&bdma_chan->dchan.device_node,
+ 			      &mport->dma.channels);
+ 	}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
 origin.patch
-errh-use-bool-for-is_err-and-is_err_or_null.patch
-lib-random32c-minor-cleanups-and-kdoc-fix.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-add-test-for-long-udelay.patch
-checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
-checkpatch-add-checks-for-constant-non-octal-permissions.patch
-checkpatch-warn-on-uses-of-__constant_foo-functions.patch
-checkpatch-update-octal-permissions-warning.patch
-checkpatch-avoid-sscanf-test-duplicated-messages.patch
-checkpatch-fix-jiffies-comparison-and-others.patch
-checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
-checkpatch-use-a-more-consistent-function-argument-style.patch
-checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
-checkpatch-make-return-is-not-a-function-test-quieter.patch
-checkpatchpl-modify-warning-message-for-printk-usage.patch
-ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-ncpfs-convert-pprintk-to-ncp_vdbg.patch
-ncpfs-remove-now-unused-printk-macro.patch
-ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
-linux-next.patch
+rapidio-tsi721_dma-optimize-use-of-bdma-descriptors.patch
+rapidio-rework-device-hierarchy-and-introduce-mport-class-of-devices.patch
 
