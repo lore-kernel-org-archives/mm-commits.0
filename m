@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + slub-fix-leak-of-name-in-sysfs_slab_add.patch added to -mm tree
-Date: Fri, 07 Mar 2014 14:51:08 -0800
-Message-ID: <531a4d5c.LvrEsPhzzK9CYOaW%akpm@linux-foundation.org>
+Subject: + mm-kconfig-fix-url-for-zsmalloc-benchmark.patch added to -mm
+ tree
+Date: Fri, 07 Mar 2014 14:54:01 -0800
+Message-ID: <531a4e09.uv3KGyZMSXbXfu9j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45043 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45071 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752048AbaCGWvJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2014 17:51:09 -0500
+	with ESMTP id S1751464AbaCGWyC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2014 17:54:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vdavydov@parallels.com, penberg@kernel.org, davej@fedoraproject.org
+To: mm-commits@vger.kernel.org, minchan@kernel.org, ben@decadent.org.uk
 
-Subject: + slub-fix-leak-of-name-in-sysfs_slab_add.patch added to -mm tree
-To: davej@fedoraproject.org,penberg@kernel.org,vdavydov@parallels.com
+Subject: + mm-kconfig-fix-url-for-zsmalloc-benchmark.patch added to -mm tree
+To: ben@decadent.org.uk,minchan@kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 07 Mar 2014 14:51:08 -0800
+Date: Fri, 07 Mar 2014 14:54:01 -0800
 
 
 The patch titled
-     Subject: slub: fix leak of 'name' in sysfs_slab_add
+     Subject: mm/Kconfig: fix URL for zsmalloc benchmark
 has been added to the -mm tree.  Its filename is
-     slub-fix-leak-of-name-in-sysfs_slab_add.patch
+     mm-kconfig-fix-url-for-zsmalloc-benchmark.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-fix-leak-of-name-in-sysfs_slab_add.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kconfig-fix-url-for-zsmalloc-benchmark.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-fix-leak-of-name-in-sysfs_slab_add.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kconfig-fix-url-for-zsmalloc-benchmark.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,83 +44,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Jones <davej@fedoraproject.org>
-Subject: slub: fix leak of 'name' in sysfs_slab_add
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: mm/Kconfig: fix URL for zsmalloc benchmark
 
-The failure paths of sysfs_slab_add don't release the allocation of 'name'
-made by create_unique_id() a few lines above the context of the diff below.
-Create a common exit path to make it more obvious what needs freeing.
+The help text for CONFIG_PGTABLE_MAPPING has an incorrect URL.
+While we're at it, remove the unnecessary footnote notation.
 
-[vdavydov@parallels.com: free the name only if !unmergeable]
-Signed-off-by: Dave Jones <davej@fedoraproject.org>
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ mm/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-fix-leak-of-name-in-sysfs_slab_add mm/slub.c
---- a/mm/slub.c~slub-fix-leak-of-name-in-sysfs_slab_add
-+++ a/mm/slub.c
-@@ -5214,25 +5214,19 @@ static int sysfs_slab_add(struct kmem_ca
+diff -puN mm/Kconfig~mm-kconfig-fix-url-for-zsmalloc-benchmark mm/Kconfig
+--- a/mm/Kconfig~mm-kconfig-fix-url-for-zsmalloc-benchmark
++++ a/mm/Kconfig
+@@ -576,5 +576,5 @@ config PGTABLE_MAPPING
+ 	  then you should select this. This causes zsmalloc to use page table
+ 	  mapping rather than copying for object mapping.
  
- 	s->kobj.kset = cache_kset(s);
- 	err = kobject_init_and_add(&s->kobj, &slab_ktype, NULL, "%s", name);
--	if (err) {
--		kobject_put(&s->kobj);
--		return err;
--	}
-+	if (err)
-+		goto out_put_kobj;
- 
- 	err = sysfs_create_group(&s->kobj, &slab_attr_group);
--	if (err) {
--		kobject_del(&s->kobj);
--		kobject_put(&s->kobj);
--		return err;
--	}
-+	if (err)
-+		goto out_del_kobj;
- 
- #ifdef CONFIG_MEMCG_KMEM
- 	if (is_root_cache(s)) {
- 		s->memcg_kset = kset_create_and_add("cgroup", NULL, &s->kobj);
- 		if (!s->memcg_kset) {
--			kobject_del(&s->kobj);
--			kobject_put(&s->kobj);
--			return -ENOMEM;
-+			err = -ENOMEM;
-+			goto out_del_kobj;
- 		}
- 	}
- #endif
-@@ -5241,9 +5235,16 @@ static int sysfs_slab_add(struct kmem_ca
- 	if (!unmergeable) {
- 		/* Setup first alias */
- 		sysfs_slab_alias(s, s->name);
--		kfree(name);
- 	}
--	return 0;
-+out:
-+	if (!unmergeable)
-+		kfree(name);
-+	return err;
-+out_del_kobj:
-+	kobject_del(&s->kobj);
-+out_put_kobj:
-+	kobject_put(&s->kobj);
-+	goto out;
- }
- 
- static void sysfs_slab_remove(struct kmem_cache *s)
+-	  You can check speed with zsmalloc benchmark[1].
+-	  [1] https://github.com/spartacus06/zsmalloc
++	  You can check speed with zsmalloc benchmark:
++	  https://github.com/spartacus06/zsmapbench
 _
 
-Patches currently in -mm which might be from davej@fedoraproject.org are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+mm-kconfig-fix-url-for-zsmalloc-benchmark.patch
 linux-next.patch
-slub-fix-leak-of-name-in-sysfs_slab_add.patch
 
