@@ -1,111 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch added to -mm tree
-Date: Thu, 06 Mar 2014 16:14:51 -0800
-Message-ID: <53190f7b.a9r5jV04YLrvxzAi%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-compaction-break-out-of-loop-on-pagebuddy-in-isolate_freepages_block.patch removed from -mm tree
+Date: Thu, 06 Mar 2014 16:24:01 -0800
+Message-ID: <531911a1.sEsegQkzZTWflYCz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36808 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36838 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919AbaCGAOv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 19:14:51 -0500
+	with ESMTP id S1751359AbaCGAYC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2014 19:24:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, b.zolnierkie@samsung.com, lauraa@codeaurora.org
 
-Subject: + checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch added to -mm tree
-To: joe@perches.com
+Subject: [to-be-updated] mm-compaction-break-out-of-loop-on-pagebuddy-in-isolate_freepages_block.patch removed from -mm tree
+To: lauraa@codeaurora.org,b.zolnierkie@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,vbabka@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 06 Mar 2014 16:14:51 -0800
+Date: Thu, 06 Mar 2014 16:24:01 -0800
 
 
 The patch titled
-     Subject: checkpatch: always warn on missing blank line after variable declaration block
-has been added to the -mm tree.  Its filename is
-     checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+     Subject: mm/compaction: break out of loop on !PageBuddy in isolate_freepages_block
+has been removed from the -mm tree.  Its filename was
+     mm-compaction-break-out-of-loop-on-pagebuddy-in-isolate_freepages_block.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: always warn on missing blank line after variable declaration block
+From: Laura Abbott <lauraa@codeaurora.org>
+Subject: mm/compaction: break out of loop on !PageBuddy in isolate_freepages_block
 
-Make the test system wide, modify the message too.
+We received several reports of bad page state when freeing CMA pages
+previously allocated with alloc_contig_range:
 
-Signed-off-by: Joe Perches <joe@perches.com>
+<1>[ 1258.084111] BUG: Bad page state in process Binder_A  pfn:63202
+<1>[ 1258.089763] page:d21130b0 count:0 mapcount:1 mapping:  (null) index:0x7dfbf
+<1>[ 1258.096109] page flags: 0x40080068(uptodate|lru|active|swapbacked)
+
+Based on the page state, it looks like the page was still in use.  The
+page flags do not make sense for the use case though.  Further debugging
+showed that despite alloc_contig_range returning success, at least one
+page in the range still remained in the buddy allocator.
+
+There is an issue with isolate_freepages_block.  In strict mode (which CMA
+uses), if any pages in the range cannot be isolated,
+isolate_freepages_block should return failure 0.  The current check keeps
+track of the total number of isolated pages and compares against the size
+of the range:
+
+        if (strict && nr_strict_required > total_isolated)
+                total_isolated = 0;
+
+After taking the zone lock, if one of the pages in the range is not in the
+buddy allocator, we continue through the loop and do not increment
+total_isolated.  If we end up over isolating by more than one page (e.g. 
+last since page needed is a higher order page), it is not possible to
+detect that the page was skipped.  The fix is to bail out if the loop
+immediately if we are in strict mode.  There's no benfit to continuing
+anyway since we need all pages to be isolated.
+
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/compaction.c |   25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block
-+++ a/scripts/checkpatch.pl
-@@ -2249,8 +2249,7 @@ sub process {
- 		}
+diff -puN mm/compaction.c~mm-compaction-break-out-of-loop-on-pagebuddy-in-isolate_freepages_block mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-break-out-of-loop-on-pagebuddy-in-isolate_freepages_block
++++ a/mm/compaction.c
+@@ -263,12 +263,21 @@ static unsigned long isolate_freepages_b
+ 		struct page *page = cursor;
  
- # check for missing blank lines after declarations
--		if ($realfile =~ m@^(drivers/net/|net/)@ &&
--		    $prevline =~ /^\+\s+$Declare\s+$Ident/ &&
-+		if ($prevline =~ /^\+\s+$Declare\s+$Ident/ &&
- 		    !($prevline =~ /(?:$Compare|$Assignment|$Operators)\s*$/ ||
- 		      $prevline =~ /(?:\{\s*|\\)$/) &&		#extended lines
- 		    $sline =~ /^\+\s+/ &&			#Not at char 1
-@@ -2260,7 +2259,7 @@ sub process {
- 		      $sline =~ /^\+\s+(?:$|[\{\}\.\#\"\?\:\(])/ ||
- 		      $sline =~ /^\+\s+\(?\s*(?:$Compare|$Assignment|$Operators)/)) {
- 			WARN("SPACING",
--			     "networking uses a blank line after declarations\n" . $hereprev);
-+			     "Missing a blank line after declarations\n" . $hereprev);
- 		}
+ 		nr_scanned++;
+-		if (!pfn_valid_within(blockpfn))
+-			continue;
++		if (!pfn_valid_within(blockpfn)) {
++			if (strict)
++				break;
++			else
++				continue;
++		}
++
+ 		if (!valid_page)
+ 			valid_page = page;
+-		if (!PageBuddy(page))
+-			continue;
++		if (!PageBuddy(page)) {
++			if (strict)
++				break;
++			else
++				continue;
++		}
  
- # check for spaces at the beginning of a line.
+ 		/*
+ 		 * The zone lock must be held to isolate freepages.
+@@ -288,8 +297,12 @@ static unsigned long isolate_freepages_b
+ 			break;
+ 
+ 		/* Recheck this is a buddy page under lock */
+-		if (!PageBuddy(page))
+-			continue;
++		if (!PageBuddy(page)) {
++			if (strict)
++				break;
++			else
++				continue;
++		}
+ 
+ 		/* Found a free page, break it into order-0 pages */
+ 		isolated = split_free_page(page);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from lauraa@codeaurora.org are
 
-origin.patch
-errh-use-bool-for-is_err-and-is_err_or_null.patch
-lib-random32c-minor-cleanups-and-kdoc-fix.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-add-test-for-long-udelay.patch
-checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
-checkpatch-add-checks-for-constant-non-octal-permissions.patch
-checkpatch-warn-on-uses-of-__constant_foo-functions.patch
-checkpatch-update-octal-permissions-warning.patch
-checkpatch-avoid-sscanf-test-duplicated-messages.patch
-checkpatch-fix-jiffies-comparison-and-others.patch
-checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
-checkpatch-use-a-more-consistent-function-argument-style.patch
-checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
-checkpatch-make-return-is-not-a-function-test-quieter.patch
-checkpatchpl-modify-warning-message-for-printk-usage.patch
-checkpatch-net-and-drivers-net-warn-on-missing-blank-line-after-variable-declaration.patch
-checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
-ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-ncpfs-convert-pprintk-to-ncp_vdbg.patch
-ncpfs-remove-now-unused-printk-macro.patch
-ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
 linux-next.patch
+debugging-keep-track-of-page-owners.patch
 
