@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmallocc-enhance-vm_map_ram-comment-fix.patch added to -mm
- tree
-Date: Mon, 10 Mar 2014 13:29:20 -0700
-Message-ID: <531e20a0.sYZn+s600DSGuKpX%akpm@linux-foundation.org>
+Subject: +
+ cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
+ added to -mm tree
+Date: Mon, 10 Mar 2014 13:31:13 -0700
+Message-ID: <531e2111.leNShqlZftu79OcM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40786 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40790 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752914AbaCJU3V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 16:29:21 -0400
+	with ESMTP id S1753101AbaCJUbO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 16:31:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, minchan@kernel.org, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, gioh.kim@lge.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, starvik@axis.com, jesper.nilsson@axis.com, geert@linux-m68k.org
 
-Subject: + mm-vmallocc-enhance-vm_map_ram-comment-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,gioh.kim@lge.com,hannes@cmpxchg.org,iamjoonsoo.kim@lge.com,minchan@kernel.org,zhangyanfei@cn.fujitsu.com
+Subject: + cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch added to -mm tree
+To: geert@linux-m68k.org,jesper.nilsson@axis.com,starvik@axis.com
 From: akpm@linux-foundation.org
-Date: Mon, 10 Mar 2014 13:29:20 -0700
+Date: Mon, 10 Mar 2014 13:31:13 -0700
 
 
 The patch titled
-     Subject: mm-vmallocc-enhance-vm_map_ram-comment-fix
+     Subject: cris: convert ffs from an object-like macro to a function-like macro
 has been added to the -mm tree.  Its filename is
-     mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+     cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,98 +45,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmallocc-enhance-vm_map_ram-comment-fix
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: cris: convert ffs from an object-like macro to a function-like macro
 
-tweak comment text
+This avoids bad interactions with code using identifiers called "ffs":
 
-Cc: "Gioh Kim" <gioh.kim@lge.com>
-Cc: Gioh Kim <gioh.kim@lge.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+drivers/usb/gadget/f_fs.c: In function 'ffsmod_init':
+drivers/usb/gadget/f_fs.c:2693:494: error: 'ffsusb_func' undeclared (first use in this function)
+drivers/usb/gadget/f_fs.c:2693:494: note: each undeclared identifier is reported only once for each function it appears in
+drivers/usb/gadget/f_fs.c: In function 'ffsmod_exit':
+drivers/usb/gadget/f_fs.c:2693:677: error: 'ffsusb_func' undeclared (first use in this function)
+drivers/usb/gadget/f_fs.c: At top level:
+drivers/usb/gadget/f_fs.c:2693:35: warning: 'kernel_ffsusb_func' defined but not used [-Wunused-variable]
+drivers/usb/gadget/f_fs.c: In function 'ffsmod_init':
+drivers/usb/gadget/f_fs.c:2693:15: warning: control reaches end of non-void function [-Wreturn-type]
+
+See http://kisskb.ellerman.id.au/kisskb/buildresult/10715817/
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/cris/include/asm/bitops.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-enhance-vm_map_ram-comment-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-enhance-vm_map_ram-comment-fix
-+++ a/mm/vmalloc.c
-@@ -1085,11 +1085,11 @@ EXPORT_SYMBOL(vm_unmap_ram);
-  * @node: prefer to allocate data structures on this node
-  * @prot: memory protection to use. PAGE_KERNEL for regular RAM
-  *
-- * If you use this function for below VMAP_MAX_ALLOC pages, it could be faster
-- * than vmap so it's good. But if you mix long-life and short-life object
-- * with vm_map_ram, it could consume lots of address space by fragmentation
-- * (expecially, 32bit machine). You could see failure in the end.
-- * Please use this function for short-life object.
-+ * If you use this function for less than VMAP_MAX_ALLOC pages, it could be
-+ * faster than vmap so it's good.  But if you mix long-life and short-life
-+ * objects with vm_map_ram(), it could consume lots of address space through
-+ * fragmentation (especially on a 32bit machine).  You could see failures in
-+ * the end.  Please use this function for short-lived objects.
-  *
-  * Returns: a pointer to the address that has been mapped, or %NULL on failure
+diff -puN arch/cris/include/asm/bitops.h~cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro arch/cris/include/asm/bitops.h
+--- a/arch/cris/include/asm/bitops.h~cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro
++++ a/arch/cris/include/asm/bitops.h
+@@ -144,7 +144,7 @@ static inline int test_and_change_bit(in
+  * definition, which doesn't have the same semantics.  We don't want to
+  * use -fno-builtin, so just hide the name ffs.
   */
+-#define ffs kernel_ffs
++#define ffs(x) kernel_ffs(x)
+ 
+ #include <asm-generic/bitops/fls.h>
+ #include <asm-generic/bitops/__fls.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-revert-kallsyms-fix-absolute-addresses-for-kaslr.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
-mm-per-thread-vma-caching.patch
-mm-per-thread-vma-caching-fix-3.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
-zram-use-zcomp-compressing-backends-fix.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix.patch
-zram-propagate-error-to-user-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
+cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
+arch-sh-boards-board-sh7757lcrc-fixup-sdhi-register-size.patch
+cris-cpuinfo_op-should-depend-on-config_proc_fs.patch
 linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
