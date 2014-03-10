@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch added to -mm tree
-Date: Mon, 10 Mar 2014 12:50:33 -0700
-Message-ID: <531e1789.YLqVmHJhZmPA+78v%akpm@linux-foundation.org>
+ ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch added to -mm tree
+Date: Mon, 10 Mar 2014 12:52:58 -0700
+Message-ID: <531e181a.vvveoVXRebS6tb9/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40565 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40570 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753667AbaCJTue (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 15:50:34 -0400
+	with ESMTP id S1752838AbaCJTw7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 15:52:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, arnd@arndb.de, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, younger.liucn@gmail.com
 
-Subject: + x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch added to -mm tree
-To: josh@joshtriplett.org,arnd@arndb.de,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de
+Subject: + ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch added to -mm tree
+To: younger.liucn@gmail.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Mon, 10 Mar 2014 12:50:33 -0700
+Date: Mon, 10 Mar 2014 12:52:58 -0700
 
 
 The patch titled
-     Subject: x86: always define BUG() and HAVE_ARCH_BUG, even with !CONFIG_BUG
+     Subject: ocfs2: alloc_dinode counts and group bitmap should be update simultaneously
 has been added to the -mm tree.  Its filename is
-     x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch
+     ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,85 +44,304 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: x86: always define BUG() and HAVE_ARCH_BUG, even with !CONFIG_BUG
+From: Younger Liu <younger.liucn@gmail.com>
+Subject: ocfs2: alloc_dinode counts and group bitmap should be update simultaneously
 
-This ensures that BUG() always has a definition that causes a trap (via an
-undefined instruction), and that the compiler still recognizes the code
-following BUG() as unreachable, avoiding warnings that would otherwise
-appear (such as on non-void functions that don't return a value after
-BUG()).
+Updating alloc_dinode counts in ocfs2_alloc_dinode_update_counts() and
+setting group bitmap in ocfs2_alloc_dinode_update_bitmap() have to be done
+simultaneously.  Two cases are as follow:
 
-In addition to saving a few bytes over the generic infinite-loop
-implementation, this implementation traps rather than looping, which
-potentially allows for better error-recovery behavior (such as by
-rebooting).
+(1) If ocfs2_alloc_dinode_update_counts() fails, there is no need to
+    set group bitmap.  This case has been considered.
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+(2) If ocfs2_alloc_dinode_update_bitmap() fails, alloc_dinode counts
+    should be rolled back.  Otherwise, some clusters would never be used. 
+    This case is not considered.
+
+So, we combine two functions, and ensure simultaneity.
+
+Signed-off-by: Younger Liu <younger.liucn@gmail.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/bug.h |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/ocfs2/move_extents.c |   11 --
+ fs/ocfs2/ocfs2_trace.h  |    2 
+ fs/ocfs2/suballoc.c     |  155 +++++++++++++++-----------------------
+ fs/ocfs2/suballoc.h     |   21 +----
+ 4 files changed, 77 insertions(+), 112 deletions(-)
 
-diff -puN arch/x86/include/asm/bug.h~x86-always-define-bug-and-have_arch_bug-even-with-config_bug arch/x86/include/asm/bug.h
---- a/arch/x86/include/asm/bug.h~x86-always-define-bug-and-have_arch_bug-even-with-config_bug
-+++ a/arch/x86/include/asm/bug.h
-@@ -1,7 +1,6 @@
- #ifndef _ASM_X86_BUG_H
- #define _ASM_X86_BUG_H
+diff -puN fs/ocfs2/move_extents.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/move_extents.c
+--- a/fs/ocfs2/move_extents.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
++++ a/fs/ocfs2/move_extents.c
+@@ -681,18 +681,15 @@ static int ocfs2_move_extent(struct ocfs
+ 	}
  
--#ifdef CONFIG_BUG
- #define HAVE_ARCH_BUG
+ 	gd = (struct ocfs2_group_desc *)gd_bh->b_data;
+-	ret = ocfs2_alloc_dinode_update_counts(gb_inode, handle, gb_bh, len,
+-					       le16_to_cpu(gd->bg_chain));
++	ret = ocfs2_alloc_dinode_update_bitmap(handle,
++				gb_inode, gb_bh, gd, gb_bh,
++				le16_to_cpu(gd->bg_chain),
++				goal_bit, len);
+ 	if (ret) {
+ 		mlog_errno(ret);
+ 		goto out_commit;
+ 	}
  
- #ifdef CONFIG_DEBUG_BUGVERBOSE
-@@ -33,8 +32,6 @@ do {								\
- } while (0)
- #endif
- 
--#endif /* !CONFIG_BUG */
+-	ret = ocfs2_block_group_set_bits(handle, gb_inode, gd, gd_bh,
+-					 goal_bit, len);
+-	if (ret)
+-		mlog_errno(ret);
 -
- #include <asm-generic/bug.h>
+ 	/*
+ 	 * Here we should write the new page out first if we are
+ 	 * in write-back mode.
+diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/ocfs2_trace.h
+--- a/fs/ocfs2/ocfs2_trace.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
++++ a/fs/ocfs2/ocfs2_trace.h
+@@ -788,7 +788,7 @@ DEFINE_OCFS2_UINT_UINT_UINT_EVENT(ocfs2_
  
- #endif /* _ASM_X86_BUG_H */
-_
-
-Patches currently in -mm which might be from josh@joshtriplett.org are
-
-mm-compactionc-mark-function-as-static.patch
-mm-memoryc-mark-functions-as-static.patch
-mm-mmapc-mark-function-as-static.patch
-mm-process_vm_accessc-mark-function-as-static.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-page_cgroupc-mark-functions-as-static.patch
-mm-nobootmemc-mark-function-as-static.patch
-include-linux-mmh-remove-ifdef-condition.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype.patch
-fs-kernel-permit-disabling-the-uselib-syscall.patch
-fs-kernel-permit-disabling-the-uselib-syscall-v2.patch
-submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
-submittingpatches-add-recommendation-for-mailing-list-references.patch
-submittingpatches-document-the-use-of-git.patch
-lglock-map-to-spinlock-when-config_smp.patch
-lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
-lib-decompress_inflatec-include-appropriate-header-file.patch
-checkpatch-make-return-is-not-a-function-test-quieter.patch
-fs-reiserfs-move-prototype-declaration-to-header-file.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
-ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
-ppc-make-ppc_book3s_64-select-irq_work.patch
-s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver.patch
-kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
-bug-when-config_bug-simplify-warn_on_once-and-family.patch
-include-asm-generic-bugh-style-fix-s-while0-while-0.patch
-bug-when-config_bug-make-warn-call-no_printk-to-check-format-and-args.patch
-bug-make-bug-always-stop-the-machine.patch
-x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch
-linux-next.patch
-
+ DEFINE_OCFS2_ULL_EVENT(ocfs2_reserve_new_inode_new_group);
+ 
+-DEFINE_OCFS2_UINT_UINT_EVENT(ocfs2_block_group_set_bits);
++DEFINE_OCFS2_UINT_UINT_EVENT(ocfs2_alloc_dinode_update_bitmap);
+ 
+ TRACE_EVENT(ocfs2_relink_block_group,
+ 	TP_PROTO(unsigned long long i_blkno, unsigned int chain,
+diff -puN fs/ocfs2/suballoc.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
++++ a/fs/ocfs2/suballoc.c
+@@ -1337,54 +1337,6 @@ static int ocfs2_block_group_find_clear_
+ 	return status;
+ }
+ 
+-int ocfs2_block_group_set_bits(handle_t *handle,
+-					     struct inode *alloc_inode,
+-					     struct ocfs2_group_desc *bg,
+-					     struct buffer_head *group_bh,
+-					     unsigned int bit_off,
+-					     unsigned int num_bits)
+-{
+-	int status;
+-	void *bitmap = bg->bg_bitmap;
+-	int journal_type = OCFS2_JOURNAL_ACCESS_WRITE;
+-
+-	/* All callers get the descriptor via
+-	 * ocfs2_read_group_descriptor().  Any corruption is a code bug. */
+-	BUG_ON(!OCFS2_IS_VALID_GROUP_DESC(bg));
+-	BUG_ON(le16_to_cpu(bg->bg_free_bits_count) < num_bits);
+-
+-	trace_ocfs2_block_group_set_bits(bit_off, num_bits);
+-
+-	if (ocfs2_is_cluster_bitmap(alloc_inode))
+-		journal_type = OCFS2_JOURNAL_ACCESS_UNDO;
+-
+-	status = ocfs2_journal_access_gd(handle,
+-					 INODE_CACHE(alloc_inode),
+-					 group_bh,
+-					 journal_type);
+-	if (status < 0) {
+-		mlog_errno(status);
+-		goto bail;
+-	}
+-
+-	le16_add_cpu(&bg->bg_free_bits_count, -num_bits);
+-	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
+-		ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
+-			    " count %u but claims %u are freed. num_bits %d",
+-			    (unsigned long long)le64_to_cpu(bg->bg_blkno),
+-			    le16_to_cpu(bg->bg_bits),
+-			    le16_to_cpu(bg->bg_free_bits_count), num_bits);
+-		return -EROFS;
+-	}
+-	while(num_bits--)
+-		ocfs2_set_bit(bit_off++, bitmap);
+-
+-	ocfs2_journal_dirty(handle, group_bh);
+-
+-bail:
+-	return status;
+-}
+-
+ /* find the one with the most empty bits */
+ static inline u16 ocfs2_find_victim_chain(struct ocfs2_chain_list *cl)
+ {
+@@ -1580,31 +1532,78 @@ static int ocfs2_block_group_search(stru
+ 	return ret;
+ }
+ 
+-int ocfs2_alloc_dinode_update_counts(struct inode *inode,
+-				       handle_t *handle,
+-				       struct buffer_head *di_bh,
+-				       u32 num_bits,
+-				       u16 chain)
++int ocfs2_alloc_dinode_update_bitmap(handle_t *handle,
++				struct inode *alloc_inode,
++				struct buffer_head *di_bh,
++				struct ocfs2_group_desc *bg,
++				struct buffer_head *group_bh,
++				u16 chain, u32 bit_off, u32 num_bits)
+ {
+ 	int ret;
+ 	u32 tmp_used;
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *) di_bh->b_data;
+ 	struct ocfs2_chain_list *cl = (struct ocfs2_chain_list *) &di->id2.i_chain;
++	void *bitmap = bg->bg_bitmap;
++	int journal_type = OCFS2_JOURNAL_ACCESS_WRITE;
+ 
+-	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), di_bh,
+-				      OCFS2_JOURNAL_ACCESS_WRITE);
++	/*
++	 * All callers get the descriptor via
++	 * ocfs2_read_group_descriptor().  Any corruption is a code bug.
++	 */
++	BUG_ON(!OCFS2_IS_VALID_GROUP_DESC(bg));
++	BUG_ON(le16_to_cpu(bg->bg_free_bits_count) < num_bits);
++
++	trace_ocfs2_alloc_dinode_update_bitmap(bit_off, num_bits);
++
++	ret = ocfs2_journal_access_di(handle,
++			INODE_CACHE(alloc_inode), di_bh, journal_type);
+ 	if (ret < 0) {
+ 		mlog_errno(ret);
+ 		goto out;
+ 	}
+ 
++	if (ocfs2_is_cluster_bitmap(alloc_inode))
++		journal_type = OCFS2_JOURNAL_ACCESS_UNDO;
++
++	ret = ocfs2_journal_access_gd(handle,
++			INODE_CACHE(alloc_inode), group_bh, journal_type);
++	if (ret < 0) {
++		mlog_errno(ret);
++		goto out;
++	}
++
++	/* update alloc_dinode counts */
+ 	tmp_used = le32_to_cpu(di->id1.bitmap1.i_used);
+ 	di->id1.bitmap1.i_used = cpu_to_le32(num_bits + tmp_used);
+ 	le32_add_cpu(&cl->cl_recs[chain].c_free, -num_bits);
++
++	/* update bg counts and bitmap*/
++	le16_add_cpu(&bg->bg_free_bits_count, -num_bits);
++	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
++		ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
++			" count %u but claims %u are freed. num_bits %d",
++			(unsigned long long)le64_to_cpu(bg->bg_blkno),
++			le16_to_cpu(bg->bg_bits),
++			le16_to_cpu(bg->bg_free_bits_count), num_bits);
++		ret = -EROFS;
++		goto out_rollback;
++	}
++	while (num_bits--)
++		ocfs2_set_bit(bit_off++, bitmap);
++
+ 	ocfs2_journal_dirty(handle, di_bh);
++	ocfs2_journal_dirty(handle, group_bh);
+ 
+ out:
+ 	return ret;
++
++out_rollback:
++	le16_add_cpu(&bg->bg_free_bits_count, num_bits);
++
++	di->id1.bitmap1.i_used = cpu_to_le32(tmp_used - num_bits);
++	le32_add_cpu(&cl->cl_recs[chain].c_free, num_bits);
++
++	return ret;
+ }
+ 
+ static int ocfs2_bg_discontig_fix_by_rec(struct ocfs2_suballoc_result *res,
+@@ -1697,19 +1696,15 @@ static int ocfs2_search_one_group(struct
+ 	if (ac->ac_find_loc_only)
+ 		goto out_loc_only;
+ 
+-	ret = ocfs2_alloc_dinode_update_counts(alloc_inode, handle, ac->ac_bh,
+-					       res->sr_bits,
+-					       le16_to_cpu(gd->bg_chain));
++	ret = ocfs2_alloc_dinode_update_bitmap(handle,
++			alloc_inode, ac->ac_bh, gd, group_bh,
++			le16_to_cpu(gd->bg_chain),
++			res->sr_bit_offset, res->sr_bits);
+ 	if (ret < 0) {
+ 		mlog_errno(ret);
+ 		goto out;
+ 	}
+ 
+-	ret = ocfs2_block_group_set_bits(handle, alloc_inode, gd, group_bh,
+-					 res->sr_bit_offset, res->sr_bits);
+-	if (ret < 0)
+-		mlog_errno(ret);
+-
+ out_loc_only:
+ 	*bits_left = le16_to_cpu(gd->bg_free_bits_count);
+ 
+@@ -1823,20 +1818,9 @@ static int ocfs2_search_chain(struct ocf
+ 	if (ac->ac_find_loc_only)
+ 		goto out_loc_only;
+ 
+-	status = ocfs2_alloc_dinode_update_counts(alloc_inode, handle,
+-						  ac->ac_bh, res->sr_bits,
+-						  chain);
+-	if (status) {
+-		mlog_errno(status);
+-		goto bail;
+-	}
+-
+-	status = ocfs2_block_group_set_bits(handle,
+-					    alloc_inode,
+-					    bg,
+-					    group_bh,
+-					    res->sr_bit_offset,
+-					    res->sr_bits);
++	status = ocfs2_alloc_dinode_update_bitmap(handle,
++			alloc_inode, ac->ac_bh, bg, group_bh,
++			chain, res->sr_bit_offset, res->sr_bits);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto bail;
+@@ -2134,20 +2118,9 @@ int ocfs2_claim_new_inode_at_loc(handle_
+ 	bg = (struct ocfs2_group_desc *) bg_bh->b_data;
+ 	chain = le16_to_cpu(bg->bg_chain);
+ 
+-	ret = ocfs2_alloc_dinode_update_counts(ac->ac_inode, handle,
+-					       ac->ac_bh, res->sr_bits,
+-					       chain);
+-	if (ret) {
+-		mlog_errno(ret);
+-		goto out;
+-	}
+-
+-	ret = ocfs2_block_group_set_bits(handle,
+-					 ac->ac_inode,
+-					 bg,
+-					 bg_bh,
+-					 res->sr_bit_offset,
+-					 res->sr_bits);
++	ret = ocfs2_alloc_dinode_update_bitmap(handle,
++			ac->ac_inode, ac->ac_bh, bg, bg_bh,
++			chain, res->sr_bit_offset, res->sr_bits);
+ 	if (ret < 0) {
+ 		mlog_errno(ret);
+ 		goto out;
+diff -puN fs/ocfs2/suballoc.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/suballoc.h
+--- a/fs/ocfs2/suballoc.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
++++ a/fs/ocfs2/suballoc.h
+@@ -85,19 +85,14 @@ int ocfs2_reserve_new_inode(struct ocfs2
+ int ocfs2_reserve_clusters(struct ocfs2_super *osb,
+ 			   u32 bits_wanted,
+ 			   struct ocfs2_alloc_context **ac);
+-
+-int ocfs2_alloc_dinode_update_counts(struct inode *inode,
+-			 handle_t *handle,
+-			 struct buffer_head *di_bh,
+-			 u32 num_bits,
+-			 u16 chain);
+-int ocfs2_block_group_set_bits(handle_t *handle,
+-			 struct inode *alloc_inode,
+-			 struct ocfs2_group_desc *bg,
+-			 struct buffer_head *group_bh,
+-			 unsigned int bit_off,
+-			 unsigned int num_bits);
