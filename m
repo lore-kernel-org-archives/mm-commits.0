@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
- added to -mm tree
-Date: Mon, 10 Mar 2014 13:31:13 -0700
-Message-ID: <531e2111.leNShqlZftu79OcM%akpm@linux-foundation.org>
+ mm-disable-mm-balloon_compactionc-completely-when-config_balloon_compaction.patch added to -mm tree
+Date: Mon, 10 Mar 2014 13:40:56 -0700
+Message-ID: <531e2358.j/aV38t7hi5HreJF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40790 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40877 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753101AbaCJUbO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 16:31:14 -0400
+	with ESMTP id S1754304AbaCJUk5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 16:40:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, starvik@axis.com, jesper.nilsson@axis.com, geert@linux-m68k.org
+To: mm-commits@vger.kernel.org, josh@joshtriplett.org
 
-Subject: + cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch added to -mm tree
-To: geert@linux-m68k.org,jesper.nilsson@axis.com,starvik@axis.com
+Subject: + mm-disable-mm-balloon_compactionc-completely-when-config_balloon_compaction.patch added to -mm tree
+To: josh@joshtriplett.org
 From: akpm@linux-foundation.org
-Date: Mon, 10 Mar 2014 13:31:13 -0700
+Date: Mon, 10 Mar 2014 13:40:56 -0700
 
 
 The patch titled
-     Subject: cris: convert ffs from an object-like macro to a function-like macro
+     Subject: mm: disable mm/balloon_compaction.c completely when !CONFIG_BALLOON_COMPACTION
 has been added to the -mm tree.  Its filename is
-     cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
+     mm-disable-mm-balloon_compactionc-completely-when-config_balloon_compaction.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-disable-mm-balloon_compactionc-completely-when-config_balloon_compaction.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-disable-mm-balloon_compactionc-completely-when-config_balloon_compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,50 +44,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: cris: convert ffs from an object-like macro to a function-like macro
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: mm: disable mm/balloon_compaction.c completely when !CONFIG_BALLOON_COMPACTION
 
-This avoids bad interactions with code using identifiers called "ffs":
+mm/balloon_compaction.c contains ifdefs around some of its functions when
+!CONFIG_BALLOON_COMPACTION, but the remaining functions aren't used in
+that case either.  Drop the ifdefs in the file, and move
+mm/balloon_compaction.o to obj-$(CONFIG_BALLOON_COMPACTION).
 
-drivers/usb/gadget/f_fs.c: In function 'ffsmod_init':
-drivers/usb/gadget/f_fs.c:2693:494: error: 'ffsusb_func' undeclared (first use in this function)
-drivers/usb/gadget/f_fs.c:2693:494: note: each undeclared identifier is reported only once for each function it appears in
-drivers/usb/gadget/f_fs.c: In function 'ffsmod_exit':
-drivers/usb/gadget/f_fs.c:2693:677: error: 'ffsusb_func' undeclared (first use in this function)
-drivers/usb/gadget/f_fs.c: At top level:
-drivers/usb/gadget/f_fs.c:2693:35: warning: 'kernel_ffsusb_func' defined but not used [-Wunused-variable]
-drivers/usb/gadget/f_fs.c: In function 'ffsmod_init':
-drivers/usb/gadget/f_fs.c:2693:15: warning: control reaches end of non-void function [-Wreturn-type]
+In addition to eliminating that ifdef, this also saves some space;
+bloat-o-meter statistics:
+add/remove: 0/3 grow/shrink: 0/0 up/down: 0/-281 (-281)
+function                                     old     new   delta
+balloon_devinfo_alloc                         63       -     -63
+balloon_page_enqueue                          84       -     -84
+balloon_page_dequeue                         134       -    -134
 
-See http://kisskb.ellerman.id.au/kisskb/buildresult/10715817/
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/include/asm/bitops.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Makefile             |    4 ++--
+ mm/balloon_compaction.c |    2 --
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/cris/include/asm/bitops.h~cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro arch/cris/include/asm/bitops.h
---- a/arch/cris/include/asm/bitops.h~cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro
-+++ a/arch/cris/include/asm/bitops.h
-@@ -144,7 +144,7 @@ static inline int test_and_change_bit(in
-  * definition, which doesn't have the same semantics.  We don't want to
-  * use -fno-builtin, so just hide the name ffs.
-  */
--#define ffs kernel_ffs
-+#define ffs(x) kernel_ffs(x)
+diff -puN mm/Makefile~mm-disable-mm-balloon_compactionc-completely-when-config_balloon_compaction mm/Makefile
+--- a/mm/Makefile~mm-disable-mm-balloon_compactionc-completely-when-config_balloon_compaction
++++ a/mm/Makefile
+@@ -16,7 +16,7 @@ obj-y			:= filemap.o mempool.o oom_kill.
+ 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
+ 			   util.o mmzone.o vmstat.o backing-dev.o \
+ 			   mm_init.o mmu_context.o percpu.o slab_common.o \
+-			   compaction.o balloon_compaction.o vmacache.o \
++			   compaction.o vmacache.o \
+ 			   interval_tree.o list_lru.o workingset.o $(mmu-y)
  
- #include <asm-generic/bitops/fls.h>
- #include <asm-generic/bitops/__fls.h>
+ obj-y += init-mm.o
+@@ -28,7 +28,7 @@ else
+ endif
+ 
+ obj-$(CONFIG_HAVE_MEMBLOCK) += memblock.o
+-
++obj-$(CONFIG_BALLOON_COMPACTION) += balloon_compaction.o
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
+ obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o
+ obj-$(CONFIG_FRONTSWAP)	+= frontswap.o
+diff -puN mm/balloon_compaction.c~mm-disable-mm-balloon_compactionc-completely-when-config_balloon_compaction mm/balloon_compaction.c
+--- a/mm/balloon_compaction.c~mm-disable-mm-balloon_compactionc-completely-when-config_balloon_compaction
++++ a/mm/balloon_compaction.c
+@@ -131,7 +131,6 @@ struct page *balloon_page_dequeue(struct
+ }
+ EXPORT_SYMBOL_GPL(balloon_page_dequeue);
+ 
+-#ifdef CONFIG_BALLOON_COMPACTION
+ /*
+  * balloon_mapping_alloc - allocates a special ->mapping for ballooned pages.
+  * @b_dev_info: holds the balloon device information descriptor.
+@@ -299,4 +298,3 @@ int balloon_page_migrate(struct page *ne
+ 	unlock_page(newpage);
+ 	return rc;
+ }
+-#endif /* CONFIG_BALLOON_COMPACTION */
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
-cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
-arch-sh-boards-board-sh7757lcrc-fixup-sdhi-register-size.patch
-cris-cpuinfo_op-should-depend-on-config_proc_fs.patch
+mm-compactionc-mark-function-as-static.patch
+mm-memoryc-mark-functions-as-static.patch
+mm-mmapc-mark-function-as-static.patch
+mm-process_vm_accessc-mark-function-as-static.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-page_cgroupc-mark-functions-as-static.patch
+mm-nobootmemc-mark-function-as-static.patch
+include-linux-mmh-remove-ifdef-condition.patch
+mm-disable-mm-balloon_compactionc-completely-when-config_balloon_compaction.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype.patch
+fs-kernel-permit-disabling-the-uselib-syscall.patch
+fs-kernel-permit-disabling-the-uselib-syscall-v2.patch
+submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
+submittingpatches-add-recommendation-for-mailing-list-references.patch
+submittingpatches-document-the-use-of-git.patch
+lglock-map-to-spinlock-when-config_smp.patch
+lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
+lib-decompress_inflatec-include-appropriate-header-file.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+fs-reiserfs-move-prototype-declaration-to-header-file.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
+ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
+ppc-make-ppc_book3s_64-select-irq_work.patch
+s390-select-config_tty-for-use-of-tty-in-unconditional-keyboard-driver.patch
+kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
+bug-when-config_bug-simplify-warn_on_once-and-family.patch
+include-asm-generic-bugh-style-fix-s-while0-while-0.patch
+bug-when-config_bug-make-warn-call-no_printk-to-check-format-and-args.patch
+bug-make-bug-always-stop-the-machine.patch
+x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch
 linux-next.patch
 
