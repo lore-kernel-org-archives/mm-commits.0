@@ -1,77 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] w1-fix-refcount-leak-in-netlink-connector.patch removed from -mm tree
-Date: Mon, 10 Mar 2014 13:55:24 -0700
-Message-ID: <531e26bc.6kkpmOBoFcKuKDfU%akpm@linux-foundation.org>
+Subject: + coda-add-__init-to-init_inodecache.patch added to -mm tree
+Date: Mon, 10 Mar 2014 13:56:20 -0700
+Message-ID: <531e26f4.M4ZFrJt3zVBeeuT8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40936 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40940 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754848AbaCJUzZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 16:55:25 -0400
+	with ESMTP id S1754675AbaCJU4U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 16:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zbr@ioremap.net, greg@kroah.com, richard@nod.at
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: [wrecked] w1-fix-refcount-leak-in-netlink-connector.patch removed from -mm tree
-To: richard@nod.at,greg@kroah.com,zbr@ioremap.net,mm-commits@vger.kernel.org
+Subject: + coda-add-__init-to-init_inodecache.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Mon, 10 Mar 2014 13:55:24 -0700
+Date: Mon, 10 Mar 2014 13:56:20 -0700
 
 
 The patch titled
-     Subject: drivers/w1/w1_netlink.c: fix refcount leak in netlink connector
-has been removed from the -mm tree.  Its filename was
-     w1-fix-refcount-leak-in-netlink-connector.patch
+     Subject: fs/coda/inode.c: add __init to init_inodecache()
+has been added to the -mm tree.  Its filename is
+     coda-add-__init-to-init_inodecache.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/coda-add-__init-to-init_inodecache.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/coda-add-__init-to-init_inodecache.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Richard Weinberger <richard@nod.at>
-Subject: drivers/w1/w1_netlink.c: fix refcount leak in netlink connector
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/coda/inode.c: add __init to init_inodecache()
 
-If userspace sends a w1 message of length 0 we leak the refcount.
+init_inodecache is only called by __init init_coda
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_netlink.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/coda/coda_int.h |    2 +-
+ fs/coda/inode.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/w1_netlink.c~w1-fix-refcount-leak-in-netlink-connector drivers/w1/w1_netlink.c
---- a/drivers/w1/w1_netlink.c~w1-fix-refcount-leak-in-netlink-connector
-+++ a/drivers/w1/w1_netlink.c
-@@ -355,7 +355,7 @@ static void w1_cn_callback(struct cn_msg
+diff -puN fs/coda/coda_int.h~coda-add-__init-to-init_inodecache fs/coda/coda_int.h
+--- a/fs/coda/coda_int.h~coda-add-__init-to-init_inodecache
++++ a/fs/coda/coda_int.h
+@@ -10,7 +10,7 @@ extern int coda_hard;
+ extern int coda_fake_statfs;
  
- 		err = 0;
- 		if (!mlen)
--			goto out_cont;
-+			goto out_dec;
+ void coda_destroy_inodecache(void);
+-int coda_init_inodecache(void);
++int __init coda_init_inodecache(void);
+ int coda_fsync(struct file *coda_file, loff_t start, loff_t end, int datasync);
+ void coda_sysctl_init(void);
+ void coda_sysctl_clean(void);
+diff -puN fs/coda/inode.c~coda-add-__init-to-init_inodecache fs/coda/inode.c
+--- a/fs/coda/inode.c~coda-add-__init-to-init_inodecache
++++ a/fs/coda/inode.c
+@@ -73,7 +73,7 @@ static void init_once(void *foo)
+ 	inode_init_once(&ei->vfs_inode);
+ }
  
- 		mutex_lock(&dev->mutex);
- 
-@@ -384,10 +384,11 @@ static void w1_cn_callback(struct cn_msg
- 			mlen -= cmd->len + sizeof(struct w1_netlink_cmd);
- 		}
- out_up:
-+		mutex_unlock(&dev->mutex);
-+out_dec:
- 		atomic_dec(&dev->refcnt);
- 		if (sl)
- 			atomic_dec(&sl->refcnt);
--		mutex_unlock(&dev->mutex);
- out_cont:
- 		if (!cmd || err)
- 			w1_netlink_send_error(msg, m, cmd, err);
+-int coda_init_inodecache(void)
++int __init coda_init_inodecache(void)
+ {
+ 	coda_inode_cachep = kmem_cache_create("coda_inode_cache",
+ 				sizeof(struct coda_inode_info),
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from fabf@skynet.be are
 
+fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+sys_sysfs-add-config_sysfs_syscall.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
+fs-minix-inodec-add-__init-to-init_inodecache.patch
+befs-replace-kmalloc-memset-0-by-kzalloc.patch
+fs-befs-linuxvfsc-add-__init-to-befs_init_inodecache.patch
+coda-add-__init-to-init_inodecache.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+documentation-filesystems-ntfstxt-remove-changelog-reference.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+affs-add-__init-to-init_inodecache.patch
+fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+fs-bfs-inodec-add-__init-to-init_inodecache.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
 linux-next.patch
-asm-systemh-um-arch_align_stack-moved-to-asm-exech.patch
 
