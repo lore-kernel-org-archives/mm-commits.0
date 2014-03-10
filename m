@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-check-compatible-strings-in-c-and-h-too.patch added
- to -mm tree
-Date: Mon, 10 Mar 2014 12:09:25 -0700
-Message-ID: <531e0de5.0h1dNP29HHChgWx7%akpm@linux-foundation.org>
+Subject: + score-remove-unused-cpu_score7-kconfig-parameter.patch added to -mm tree
+Date: Mon, 10 Mar 2014 12:10:47 -0700
+Message-ID: <531e0e37.Zb/ZJQMVEgoIDurc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40289 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40295 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752901AbaCJTJ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 15:09:26 -0400
+	with ESMTP id S1752760AbaCJTKs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 15:10:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, robh@kernel.org, joe@perches.com, florian.vaussard@epfl.ch
+To: mm-commits@vger.kernel.org, liqin.linux@gmail.com, lennox.wu@gmail.com, michael.opdenacker@free-electrons.com
 
-Subject: + checkpatch-check-compatible-strings-in-c-and-h-too.patch added to -mm tree
-To: florian.vaussard@epfl.ch,joe@perches.com,robh@kernel.org
+Subject: + score-remove-unused-cpu_score7-kconfig-parameter.patch added to -mm tree
+To: michael.opdenacker@free-electrons.com,lennox.wu@gmail.com,liqin.linux@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 10 Mar 2014 12:09:25 -0700
+Date: Mon, 10 Mar 2014 12:10:47 -0700
 
 
 The patch titled
-     Subject: checkpatch: check compatible strings in .c and .h too
+     Subject: score: remove unused CPU_SCORE7 Kconfig parameter
 has been added to the -mm tree.  Its filename is
-     checkpatch-check-compatible-strings-in-c-and-h-too.patch
+     score-remove-unused-cpu_score7-kconfig-parameter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-check-compatible-strings-in-c-and-h-too.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/score-remove-unused-cpu_score7-kconfig-parameter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-check-compatible-strings-in-c-and-h-too.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/score-remove-unused-cpu_score7-kconfig-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,44 +43,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: checkpatch: check compatible strings in .c and .h too
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: score: remove unused CPU_SCORE7 Kconfig parameter
 
-Look for ".compatible = "foo" strings not only in .dts files, but
-in .c and .h too.
+This removes the CPU_SCORE7 Kconfig parameter, which is no longer used
+anywhere in the source code and Makefiles.
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-Cc: Joe Perches <joe@perches.com>
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Cc: Chen Liqin <liqin.linux@gmail.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/score/Kconfig |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-check-compatible-strings-in-c-and-h-too scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-check-compatible-strings-in-c-and-h-too
-+++ a/scripts/checkpatch.pl
-@@ -2067,8 +2067,10 @@ sub process {
- 		}
+diff -puN arch/score/Kconfig~score-remove-unused-cpu_score7-kconfig-parameter arch/score/Kconfig
+--- a/arch/score/Kconfig~score-remove-unused-cpu_score7-kconfig-parameter
++++ a/arch/score/Kconfig
+@@ -22,27 +22,21 @@ choice
+ config ARCH_SCORE7
+ 	bool "SCORE7 processor"
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+-	select CPU_SCORE7
+ 	select GENERIC_HAS_IOMAP
  
- # check for DT compatible documentation
--		if (defined $root && $realfile =~ /\.dts/ &&
--		    $rawline =~ /^\+\s*compatible\s*=/) {
-+		if (defined $root &&
-+			(($realfile =~ /\.dtsi?$/ && $line =~ /^\+\s*compatible\s*=\s*\"/) ||
-+			 ($realfile =~ /\.[ch]$/ && $line =~ /^\+.*\.compatible\s*=\s*\"/))) {
-+
- 			my @compats = $rawline =~ /\"([a-zA-Z0-9\-\,\.\+_]+)\"/g;
+ config MACH_SPCT6600
+ 	bool "SPCT6600 series based machines"
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+-	select CPU_SCORE7
+ 	select GENERIC_HAS_IOMAP
  
- 			foreach my $compat (@compats) {
-_
-
-Patches currently in -mm which might be from florian.vaussard@epfl.ch are
-
-checkpatch-check-vendor-compatible-with-dashes.patch
-checkpatch-fix-spurious-vendor-compatible-warnings.patch
-checkpatch-check-compatible-strings-in-c-and-h-too.patch
-checkpatch-improve-the-compatible-vendor-match.patch
-linux-next.patch
-
+ config SCORE_SIM
+ 	bool "Score simulator"
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+-	select CPU_SCORE7
+ 	select GENERIC_HAS_IOMAP
+ endchoice
+ 
+ endmenu
+ 
+-config CPU_SCORE7
+-	bool
