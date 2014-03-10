@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch added to -mm tree
-Date: Mon, 10 Mar 2014 12:52:58 -0700
-Message-ID: <531e181a.vvveoVXRebS6tb9/%akpm@linux-foundation.org>
+Subject: + zram-propagate-error-to-user-fix.patch added to -mm tree
+Date: Mon, 10 Mar 2014 13:16:38 -0700
+Message-ID: <531e1da6.LIOFFB/3fpRK4ekJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40682 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838AbaCJTw7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 15:52:59 -0400
+	with ESMTP id S1752703AbaCJUQj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Mar 2014 16:16:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, younger.liucn@gmail.com
+To: mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, ngupta@vflare.org, minchan@kernel.org, jmarchan@redhat.com, akpm@linux-foundation.org
 
-Subject: + ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch added to -mm tree
-To: younger.liucn@gmail.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + zram-propagate-error-to-user-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,jmarchan@redhat.com,minchan@kernel.org,ngupta@vflare.org,sergey.senozhatsky@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 10 Mar 2014 12:52:58 -0700
+Date: Mon, 10 Mar 2014 13:16:38 -0700
 
 
 The patch titled
-     Subject: ocfs2: alloc_dinode counts and group bitmap should be update simultaneously
+     Subject: zram-propagate-error-to-user-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch
+     zram-propagate-error-to-user-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-propagate-error-to-user-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-propagate-error-to-user-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,304 +43,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Younger Liu <younger.liucn@gmail.com>
-Subject: ocfs2: alloc_dinode counts and group bitmap should be update simultaneously
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: zram-propagate-error-to-user-fix
 
-Updating alloc_dinode counts in ocfs2_alloc_dinode_update_counts() and
-setting group bitmap in ocfs2_alloc_dinode_update_bitmap() have to be done
-simultaneously.  Two cases are as follow:
+don't return with the lock held, per Sergey
 
-(1) If ocfs2_alloc_dinode_update_counts() fails, there is no need to
-    set group bitmap.  This case has been considered.
-
-(2) If ocfs2_alloc_dinode_update_bitmap() fails, alloc_dinode counts
-    should be rolled back.  Otherwise, some clusters would never be used. 
-    This case is not considered.
-
-So, we combine two functions, and ensure simultaneity.
-
-Signed-off-by: Younger Liu <younger.liucn@gmail.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |   11 --
- fs/ocfs2/ocfs2_trace.h  |    2 
- fs/ocfs2/suballoc.c     |  155 +++++++++++++++-----------------------
- fs/ocfs2/suballoc.h     |   21 +----
- 4 files changed, 77 insertions(+), 112 deletions(-)
+ drivers/block/zram/zram_drv.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/move_extents.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/move_extents.c
---- a/fs/ocfs2/move_extents.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
-+++ a/fs/ocfs2/move_extents.c
-@@ -681,18 +681,15 @@ static int ocfs2_move_extent(struct ocfs
- 	}
- 
- 	gd = (struct ocfs2_group_desc *)gd_bh->b_data;
--	ret = ocfs2_alloc_dinode_update_counts(gb_inode, handle, gb_bh, len,
--					       le16_to_cpu(gd->bg_chain));
-+	ret = ocfs2_alloc_dinode_update_bitmap(handle,
-+				gb_inode, gb_bh, gd, gb_bh,
-+				le16_to_cpu(gd->bg_chain),
-+				goal_bit, len);
- 	if (ret) {
- 		mlog_errno(ret);
- 		goto out_commit;
- 	}
- 
--	ret = ocfs2_block_group_set_bits(handle, gb_inode, gd, gd_bh,
--					 goal_bit, len);
--	if (ret)
--		mlog_errno(ret);
--
- 	/*
- 	 * Here we should write the new page out first if we are
- 	 * in write-back mode.
-diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/ocfs2_trace.h
---- a/fs/ocfs2/ocfs2_trace.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
-+++ a/fs/ocfs2/ocfs2_trace.h
-@@ -788,7 +788,7 @@ DEFINE_OCFS2_UINT_UINT_UINT_EVENT(ocfs2_
- 
- DEFINE_OCFS2_ULL_EVENT(ocfs2_reserve_new_inode_new_group);
- 
--DEFINE_OCFS2_UINT_UINT_EVENT(ocfs2_block_group_set_bits);
-+DEFINE_OCFS2_UINT_UINT_EVENT(ocfs2_alloc_dinode_update_bitmap);
- 
- TRACE_EVENT(ocfs2_relink_block_group,
- 	TP_PROTO(unsigned long long i_blkno, unsigned int chain,
-diff -puN fs/ocfs2/suballoc.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
-+++ a/fs/ocfs2/suballoc.c
-@@ -1337,54 +1337,6 @@ static int ocfs2_block_group_find_clear_
- 	return status;
- }
- 
--int ocfs2_block_group_set_bits(handle_t *handle,
--					     struct inode *alloc_inode,
--					     struct ocfs2_group_desc *bg,
--					     struct buffer_head *group_bh,
--					     unsigned int bit_off,
--					     unsigned int num_bits)
--{
--	int status;
--	void *bitmap = bg->bg_bitmap;
--	int journal_type = OCFS2_JOURNAL_ACCESS_WRITE;
--
--	/* All callers get the descriptor via
--	 * ocfs2_read_group_descriptor().  Any corruption is a code bug. */
--	BUG_ON(!OCFS2_IS_VALID_GROUP_DESC(bg));
--	BUG_ON(le16_to_cpu(bg->bg_free_bits_count) < num_bits);
--
--	trace_ocfs2_block_group_set_bits(bit_off, num_bits);
--
--	if (ocfs2_is_cluster_bitmap(alloc_inode))
--		journal_type = OCFS2_JOURNAL_ACCESS_UNDO;
--
--	status = ocfs2_journal_access_gd(handle,
--					 INODE_CACHE(alloc_inode),
--					 group_bh,
--					 journal_type);
--	if (status < 0) {
--		mlog_errno(status);
--		goto bail;
--	}
--
--	le16_add_cpu(&bg->bg_free_bits_count, -num_bits);
--	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
--		ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
--			    " count %u but claims %u are freed. num_bits %d",
--			    (unsigned long long)le64_to_cpu(bg->bg_blkno),
--			    le16_to_cpu(bg->bg_bits),
--			    le16_to_cpu(bg->bg_free_bits_count), num_bits);
--		return -EROFS;
--	}
--	while(num_bits--)
--		ocfs2_set_bit(bit_off++, bitmap);
--
--	ocfs2_journal_dirty(handle, group_bh);
--
--bail:
--	return status;
--}
--
- /* find the one with the most empty bits */
- static inline u16 ocfs2_find_victim_chain(struct ocfs2_chain_list *cl)
+diff -puN drivers/block/zram/zram_drv.c~zram-propagate-error-to-user-fix drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-propagate-error-to-user-fix
++++ a/drivers/block/zram/zram_drv.c
+@@ -126,26 +126,28 @@ static ssize_t max_comp_streams_store(st
  {
-@@ -1580,31 +1532,78 @@ static int ocfs2_block_group_search(stru
- 	return ret;
- }
+ 	int num;
+ 	struct zram *zram = dev_to_zram(dev);
++	int ret;
  
--int ocfs2_alloc_dinode_update_counts(struct inode *inode,
--				       handle_t *handle,
--				       struct buffer_head *di_bh,
--				       u32 num_bits,
--				       u16 chain)
-+int ocfs2_alloc_dinode_update_bitmap(handle_t *handle,
-+				struct inode *alloc_inode,
-+				struct buffer_head *di_bh,
-+				struct ocfs2_group_desc *bg,
-+				struct buffer_head *group_bh,
-+				u16 chain, u32 bit_off, u32 num_bits)
- {
- 	int ret;
- 	u32 tmp_used;
- 	struct ocfs2_dinode *di = (struct ocfs2_dinode *) di_bh->b_data;
- 	struct ocfs2_chain_list *cl = (struct ocfs2_chain_list *) &di->id2.i_chain;
-+	void *bitmap = bg->bg_bitmap;
-+	int journal_type = OCFS2_JOURNAL_ACCESS_WRITE;
+-	if (kstrtoint(buf, 0, &num))
+-		goto out;
++	ret = kstrtoint(buf, 0, &num);
++	if (ret < 0)
++		return ret;
+ 	if (num < 1)
+-		goto out;
++		return -EINVAL;
  
--	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), di_bh,
--				      OCFS2_JOURNAL_ACCESS_WRITE);
-+	/*
-+	 * All callers get the descriptor via
-+	 * ocfs2_read_group_descriptor().  Any corruption is a code bug.
-+	 */
-+	BUG_ON(!OCFS2_IS_VALID_GROUP_DESC(bg));
-+	BUG_ON(le16_to_cpu(bg->bg_free_bits_count) < num_bits);
-+
-+	trace_ocfs2_alloc_dinode_update_bitmap(bit_off, num_bits);
-+
-+	ret = ocfs2_journal_access_di(handle,
-+			INODE_CACHE(alloc_inode), di_bh, journal_type);
- 	if (ret < 0) {
- 		mlog_errno(ret);
- 		goto out;
+ 	down_write(&zram->init_lock);
+ 	if (init_done(zram)) {
+ 		if (!zcomp_set_max_streams(zram->comp, num)) {
+ 			pr_info("Cannot change max compression streams\n");
+-			goto out_unlock;
++			ret = -EINVAL;
++			goto out;
+ 		}
  	}
  
-+	if (ocfs2_is_cluster_bitmap(alloc_inode))
-+		journal_type = OCFS2_JOURNAL_ACCESS_UNDO;
-+
-+	ret = ocfs2_journal_access_gd(handle,
-+			INODE_CACHE(alloc_inode), group_bh, journal_type);
-+	if (ret < 0) {
-+		mlog_errno(ret);
-+		goto out;
-+	}
-+
-+	/* update alloc_dinode counts */
- 	tmp_used = le32_to_cpu(di->id1.bitmap1.i_used);
- 	di->id1.bitmap1.i_used = cpu_to_le32(num_bits + tmp_used);
- 	le32_add_cpu(&cl->cl_recs[chain].c_free, -num_bits);
-+
-+	/* update bg counts and bitmap*/
-+	le16_add_cpu(&bg->bg_free_bits_count, -num_bits);
-+	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
-+		ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
-+			" count %u but claims %u are freed. num_bits %d",
-+			(unsigned long long)le64_to_cpu(bg->bg_blkno),
-+			le16_to_cpu(bg->bg_bits),
-+			le16_to_cpu(bg->bg_free_bits_count), num_bits);
-+		ret = -EROFS;
-+		goto out_rollback;
-+	}
-+	while (num_bits--)
-+		ocfs2_set_bit(bit_off++, bitmap);
-+
- 	ocfs2_journal_dirty(handle, di_bh);
-+	ocfs2_journal_dirty(handle, group_bh);
- 
+ 	zram->max_comp_streams = num;
+-	return len;
+-out_unlock:
+-	up_write(&zram->init_lock);
++	ret = len;
  out:
- 	return ret;
-+
-+out_rollback:
-+	le16_add_cpu(&bg->bg_free_bits_count, num_bits);
-+
-+	di->id1.bitmap1.i_used = cpu_to_le32(tmp_used - num_bits);
-+	le32_add_cpu(&cl->cl_recs[chain].c_free, num_bits);
-+
+-	return -EINVAL;
++	up_write(&zram->init_lock);
 +	return ret;
  }
  
- static int ocfs2_bg_discontig_fix_by_rec(struct ocfs2_suballoc_result *res,
-@@ -1697,19 +1696,15 @@ static int ocfs2_search_one_group(struct
- 	if (ac->ac_find_loc_only)
- 		goto out_loc_only;
- 
--	ret = ocfs2_alloc_dinode_update_counts(alloc_inode, handle, ac->ac_bh,
--					       res->sr_bits,
--					       le16_to_cpu(gd->bg_chain));
-+	ret = ocfs2_alloc_dinode_update_bitmap(handle,
-+			alloc_inode, ac->ac_bh, gd, group_bh,
-+			le16_to_cpu(gd->bg_chain),
-+			res->sr_bit_offset, res->sr_bits);
- 	if (ret < 0) {
- 		mlog_errno(ret);
- 		goto out;
- 	}
- 
--	ret = ocfs2_block_group_set_bits(handle, alloc_inode, gd, group_bh,
--					 res->sr_bit_offset, res->sr_bits);
--	if (ret < 0)
--		mlog_errno(ret);
--
- out_loc_only:
- 	*bits_left = le16_to_cpu(gd->bg_free_bits_count);
- 
-@@ -1823,20 +1818,9 @@ static int ocfs2_search_chain(struct ocf
- 	if (ac->ac_find_loc_only)
- 		goto out_loc_only;
- 
--	status = ocfs2_alloc_dinode_update_counts(alloc_inode, handle,
--						  ac->ac_bh, res->sr_bits,
--						  chain);
--	if (status) {
--		mlog_errno(status);
--		goto bail;
--	}
--
--	status = ocfs2_block_group_set_bits(handle,
--					    alloc_inode,
--					    bg,
--					    group_bh,
--					    res->sr_bit_offset,
--					    res->sr_bits);
-+	status = ocfs2_alloc_dinode_update_bitmap(handle,
-+			alloc_inode, ac->ac_bh, bg, group_bh,
-+			chain, res->sr_bit_offset, res->sr_bits);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto bail;
-@@ -2134,20 +2118,9 @@ int ocfs2_claim_new_inode_at_loc(handle_
- 	bg = (struct ocfs2_group_desc *) bg_bh->b_data;
- 	chain = le16_to_cpu(bg->bg_chain);
- 
--	ret = ocfs2_alloc_dinode_update_counts(ac->ac_inode, handle,
--					       ac->ac_bh, res->sr_bits,
--					       chain);
--	if (ret) {
--		mlog_errno(ret);
--		goto out;
--	}
--
--	ret = ocfs2_block_group_set_bits(handle,
--					 ac->ac_inode,
--					 bg,
--					 bg_bh,
--					 res->sr_bit_offset,
--					 res->sr_bits);
-+	ret = ocfs2_alloc_dinode_update_bitmap(handle,
-+			ac->ac_inode, ac->ac_bh, bg, bg_bh,
-+			chain, res->sr_bit_offset, res->sr_bits);
- 	if (ret < 0) {
- 		mlog_errno(ret);
- 		goto out;
-diff -puN fs/ocfs2/suballoc.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/suballoc.h
---- a/fs/ocfs2/suballoc.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
-+++ a/fs/ocfs2/suballoc.h
-@@ -85,19 +85,14 @@ int ocfs2_reserve_new_inode(struct ocfs2
- int ocfs2_reserve_clusters(struct ocfs2_super *osb,
- 			   u32 bits_wanted,
- 			   struct ocfs2_alloc_context **ac);
--
--int ocfs2_alloc_dinode_update_counts(struct inode *inode,
--			 handle_t *handle,
--			 struct buffer_head *di_bh,
--			 u32 num_bits,
--			 u16 chain);
--int ocfs2_block_group_set_bits(handle_t *handle,
--			 struct inode *alloc_inode,
--			 struct ocfs2_group_desc *bg,
--			 struct buffer_head *group_bh,
--			 unsigned int bit_off,
--			 unsigned int num_bits);
+ static ssize_t comp_algorithm_show(struct device *dev,
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+revert-kallsyms-fix-absolute-addresses-for-kaslr.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
+mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-per-thread-vma-caching.patch
+mm-per-thread-vma-caching-fix-3.patch
+mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+zram-use-zcomp-compressing-backends-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix.patch
+zram-propagate-error-to-user-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
