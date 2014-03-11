@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix.patch added to -mm tree
-Date: Tue, 11 Mar 2014 12:47:35 -0700
-Message-ID: <531f6857.B69Yy+J6Pk+jNV63%akpm@linux-foundation.org>
+Subject: + mm-per-thread-vma-caching-fix-5.patch added to -mm tree
+Date: Tue, 11 Mar 2014 13:32:22 -0700
+Message-ID: <531f72d6.7fI2jLCilcqBnpQf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44647 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755079AbaCKTrg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 15:47:36 -0400
+	with ESMTP id S1755171AbaCKUcX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 16:32:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dietmar.hahn@ts.fujitsu.com, david.vrabel@citrix.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, davidlohr@hp.com, akpm@linux-foundation.org
 
-Subject: + mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,david.vrabel@citrix.com,dietmar.hahn@ts.fujitsu.com
+Subject: + mm-per-thread-vma-caching-fix-5.patch added to -mm tree
+To: akpm@linux-foundation.org,davidlohr@hp.com,sasha.levin@oracle.com
 From: akpm@linux-foundation.org
-Date: Tue, 11 Mar 2014 12:47:35 -0700
+Date: Tue, 11 Mar 2014 13:32:22 -0700
 
 
 The patch titled
-     Subject: mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix
+     Subject: mm-per-thread-vma-caching-fix-5
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix.patch
+     mm-per-thread-vma-caching-fix-5.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-per-thread-vma-caching-fix-5.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-per-thread-vma-caching-fix-5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,30 +44,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix
+Subject: mm-per-thread-vma-caching-fix-5
 
-add a might_sleep() to catch atomic callers more promptly
+a sanity check
 
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Dietmar Hahn <dietmar.hahn@ts.fujitsu.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/vmacache.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix
-+++ a/mm/vmalloc.c
-@@ -71,6 +71,8 @@ static void vunmap_pmd_range(pud_t *pud,
- 	pmd_t *pmd;
- 	unsigned long next;
+diff -puN mm/vmacache.c~mm-per-thread-vma-caching-fix-5 mm/vmacache.c
+--- a/mm/vmacache.c~mm-per-thread-vma-caching-fix-5
++++ a/mm/vmacache.c
+@@ -72,8 +72,10 @@ struct vm_area_struct *vmacache_find(str
+ 	for (i = 0; i < VMACACHE_SIZE; i++) {
+ 		struct vm_area_struct *vma = current->vmacache[i];
  
-+	might_sleep();
-+
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
+-		if (vma && vma->vm_start <= addr && vma->vm_end > addr)
++		if (vma && vma->vm_start <= addr && vma->vm_end > addr) {
++			BUG_ON(vma->vm_mm != mm);
+ 			return vma;
++		}
+ 	}
+ 
+ 	return NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +98,7 @@ drivers-lguest-page_tablesc-rename-do_set_pte.patch
 mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
 mm-per-thread-vma-caching.patch
 mm-per-thread-vma-caching-fix-3.patch
+mm-per-thread-vma-caching-fix-5.patch
 mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
 mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
