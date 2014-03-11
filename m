@@ -1,260 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-gfp_thisnode-callers-and-clarify.patch removed
- from -mm tree
-Date: Tue, 11 Mar 2014 11:25:00 -0700
-Message-ID: <531f54fc.fRgnmPcZyXRLcjc9%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-compaction-break-out-of-loop-on-pagebuddy-in-isolate_freepages_block.patch removed from -mm tree
+Date: Tue, 11 Mar 2014 11:25:03 -0700
+Message-ID: <531f54ff.whUFfG4p+TqXsxxr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44211 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44220 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755208AbaCKSZB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 14:25:01 -0400
+	with ESMTP id S1755208AbaCKSZE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 14:25:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, jstancek@redhat.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org, minchan@kernel.org, mina86@mina86.com, mgorman@suse.de, iamjoonsoo.kim@lge.com, b.zolnierkie@samsung.com, lauraa@codeaurora.org
 
-Subject: [merged] mm-fix-gfp_thisnode-callers-and-clarify.patch removed from -mm tree
-To: hannes@cmpxchg.org,jstancek@redhat.com,mgorman@suse.de,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-compaction-break-out-of-loop-on-pagebuddy-in-isolate_freepages_block.patch removed from -mm tree
+To: lauraa@codeaurora.org,b.zolnierkie@samsung.com,iamjoonsoo.kim@lge.com,mgorman@suse.de,mina86@mina86.com,minchan@kernel.org,stable@vger.kernel.org,vbabka@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Mar 2014 11:25:00 -0700
+Date: Tue, 11 Mar 2014 11:25:03 -0700
 
 
 The patch titled
-     Subject: mm: fix GFP_THISNODE callers and clarify
+     Subject: mm/compaction: break out of loop on !PageBuddy in isolate_freepages_block
 has been removed from the -mm tree.  Its filename was
-     mm-fix-gfp_thisnode-callers-and-clarify.patch
+     mm-compaction-break-out-of-loop-on-pagebuddy-in-isolate_freepages_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: fix GFP_THISNODE callers and clarify
+From: Laura Abbott <lauraa@codeaurora.org>
+Subject: mm/compaction: break out of loop on !PageBuddy in isolate_freepages_block
 
-GFP_THISNODE is for callers that implement their own clever fallback to
-remote nodes.  It restricts the allocation to the specified node and does
-not invoke reclaim, assuming that the caller will take care of it when the
-fallback fails, e.g.  through a subsequent allocation request without
-GFP_THISNODE set.
+We received several reports of bad page state when freeing CMA pages
+previously allocated with alloc_contig_range:
 
-However, many current GFP_THISNODE users only want the node exclusive
-aspect of the flag, without actually implementing their own fallback or
-triggering reclaim if necessary.  This results in things like page
-migration failing prematurely even when there is easily reclaimable memory
-available, unless kswapd happens to be running already or a concurrent
-allocation attempt triggers the necessary reclaim.
+[ 1258.084111] BUG: Bad page state in process Binder_A  pfn:63202
+[ 1258.089763] page:d21130b0 count:0 mapcount:1 mapping:  (null) index:0x7dfbf
+[ 1258.096109] page flags: 0x40080068(uptodate|lru|active|swapbacked)
 
-Convert all callsites that don't implement their own fallback strategy to
-__GFP_THISNODE.  This restricts the allocation a single node too, but at
-the same time allows the allocator to enter the slowpath, wake kswapd, and
-invoke direct reclaim if necessary, to make the allocation happen when
-memory is full.
+Based on the page state, it looks like the page was still in use.  The
+page flags do not make sense for the use case though.  Further debugging
+showed that despite alloc_contig_range returning success, at least one
+page in the range still remained in the buddy allocator.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Jan Stancek <jstancek@redhat.com>
+There is an issue with isolate_freepages_block.  In strict mode (which CMA
+uses), if any pages in the range cannot be isolated,
+isolate_freepages_block should return failure 0.  The current check keeps
+track of the total number of isolated pages and compares against the size
+of the range:
+
+        if (strict && nr_strict_required > total_isolated)
+                total_isolated = 0;
+
+After taking the zone lock, if one of the pages in the range is not in the
+buddy allocator, we continue through the loop and do not increment
+total_isolated.  If in the last iteration of the loop we isolate more than
+one page (e.g.  last page needed is a higher order page), the check for
+total_isolated may pass and we fail to detect that a page was skipped. 
+The fix is to bail out if the loop immediately if we are in strict mode. 
+There's no benfit to continuing anyway since we need all pages to be
+isolated.  Additionally, drop the error checking based on
+nr_strict_required and just check the pfn ranges.  This matches with what
+isolate_freepages_range does.
+
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Mel Gorman <mgorman@suse.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/uncached.c       |    2 +-
- arch/powerpc/platforms/cell/ras.c |    3 ++-
- drivers/misc/sgi-xp/xpc_uv.c      |    2 +-
- include/linux/gfp.h               |    4 ++++
- include/linux/mmzone.h            |    4 ++--
- include/linux/slab.h              |    2 +-
- kernel/profile.c                  |    4 ++--
- mm/migrate.c                      |   11 ++++++-----
- 8 files changed, 19 insertions(+), 13 deletions(-)
+ mm/compaction.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN arch/ia64/kernel/uncached.c~mm-fix-gfp_thisnode-callers-and-clarify arch/ia64/kernel/uncached.c
---- a/arch/ia64/kernel/uncached.c~mm-fix-gfp_thisnode-callers-and-clarify
-+++ a/arch/ia64/kernel/uncached.c
-@@ -98,7 +98,7 @@ static int uncached_add_chunk(struct unc
- 	/* attempt to allocate a granule's worth of cached memory pages */
+diff -puN mm/compaction.c~mm-compaction-break-out-of-loop-on-pagebuddy-in-isolate_freepages_block mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-break-out-of-loop-on-pagebuddy-in-isolate_freepages_block
++++ a/mm/compaction.c
+@@ -251,7 +251,6 @@ static unsigned long isolate_freepages_b
+ {
+ 	int nr_scanned = 0, total_isolated = 0;
+ 	struct page *cursor, *valid_page = NULL;
+-	unsigned long nr_strict_required = end_pfn - blockpfn;
+ 	unsigned long flags;
+ 	bool locked = false;
  
- 	page = alloc_pages_exact_node(nid,
--				GFP_KERNEL | __GFP_ZERO | GFP_THISNODE,
-+				GFP_KERNEL | __GFP_ZERO | __GFP_THISNODE,
- 				IA64_GRANULE_SHIFT-PAGE_SHIFT);
- 	if (!page) {
- 		mutex_unlock(&uc_pool->add_chunk_mutex);
-diff -puN arch/powerpc/platforms/cell/ras.c~mm-fix-gfp_thisnode-callers-and-clarify arch/powerpc/platforms/cell/ras.c
---- a/arch/powerpc/platforms/cell/ras.c~mm-fix-gfp_thisnode-callers-and-clarify
-+++ a/arch/powerpc/platforms/cell/ras.c
-@@ -123,7 +123,8 @@ static int __init cbe_ptcal_enable_on_no
+@@ -264,11 +263,12 @@ static unsigned long isolate_freepages_b
  
- 	area->nid = nid;
- 	area->order = order;
--	area->pages = alloc_pages_exact_node(area->nid, GFP_KERNEL|GFP_THISNODE,
-+	area->pages = alloc_pages_exact_node(area->nid,
-+						GFP_KERNEL|__GFP_THISNODE,
- 						area->order);
+ 		nr_scanned++;
+ 		if (!pfn_valid_within(blockpfn))
+-			continue;
++			goto isolate_fail;
++
+ 		if (!valid_page)
+ 			valid_page = page;
+ 		if (!PageBuddy(page))
+-			continue;
++			goto isolate_fail;
  
- 	if (!area->pages) {
-diff -puN drivers/misc/sgi-xp/xpc_uv.c~mm-fix-gfp_thisnode-callers-and-clarify drivers/misc/sgi-xp/xpc_uv.c
---- a/drivers/misc/sgi-xp/xpc_uv.c~mm-fix-gfp_thisnode-callers-and-clarify
-+++ a/drivers/misc/sgi-xp/xpc_uv.c
-@@ -240,7 +240,7 @@ xpc_create_gru_mq_uv(unsigned int mq_siz
+ 		/*
+ 		 * The zone lock must be held to isolate freepages.
+@@ -289,12 +289,10 @@ static unsigned long isolate_freepages_b
  
- 	nid = cpu_to_node(cpu);
- 	page = alloc_pages_exact_node(nid,
--				      GFP_KERNEL | __GFP_ZERO | GFP_THISNODE,
-+				      GFP_KERNEL | __GFP_ZERO | __GFP_THISNODE,
- 				      pg_order);
- 	if (page == NULL) {
- 		dev_err(xpc_part, "xpc_create_gru_mq_uv() failed to alloc %d "
-diff -puN include/linux/gfp.h~mm-fix-gfp_thisnode-callers-and-clarify include/linux/gfp.h
---- a/include/linux/gfp.h~mm-fix-gfp_thisnode-callers-and-clarify
-+++ a/include/linux/gfp.h
-@@ -123,6 +123,10 @@ struct vm_area_struct;
- 			 __GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_NOWARN | \
- 			 __GFP_NO_KSWAPD)
+ 		/* Recheck this is a buddy page under lock */
+ 		if (!PageBuddy(page))
+-			continue;
++			goto isolate_fail;
  
-+/*
-+ * GFP_THISNODE does not perform any reclaim, you most likely want to
-+ * use __GFP_THISNODE to allocate from a given node without fallback!
-+ */
- #ifdef CONFIG_NUMA
- #define GFP_THISNODE	(__GFP_THISNODE | __GFP_NOWARN | __GFP_NORETRY)
- #else
-diff -puN include/linux/mmzone.h~mm-fix-gfp_thisnode-callers-and-clarify include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-fix-gfp_thisnode-callers-and-clarify
-+++ a/include/linux/mmzone.h
-@@ -590,10 +590,10 @@ static inline bool zone_is_empty(struct
+ 		/* Found a free page, break it into order-0 pages */
+ 		isolated = split_free_page(page);
+-		if (!isolated && strict)
+-			break;
+ 		total_isolated += isolated;
+ 		for (i = 0; i < isolated; i++) {
+ 			list_add(&page->lru, freelist);
+@@ -305,7 +303,15 @@ static unsigned long isolate_freepages_b
+ 		if (isolated) {
+ 			blockpfn += isolated - 1;
+ 			cursor += isolated - 1;
++			continue;
+ 		}
++
++isolate_fail:
++		if (strict)
++			break;
++		else
++			continue;
++
+ 	}
  
- /*
-  * The NUMA zonelists are doubled because we need zonelists that restrict the
-- * allocations to a single node for GFP_THISNODE.
-+ * allocations to a single node for __GFP_THISNODE.
-  *
-  * [0]	: Zonelist with fallback
-- * [1]	: No fallback (GFP_THISNODE)
-+ * [1]	: No fallback (__GFP_THISNODE)
-  */
- #define MAX_ZONELISTS 2
+ 	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
+@@ -315,7 +321,7 @@ static unsigned long isolate_freepages_b
+ 	 * pages requested were isolated. If there were any failures, 0 is
+ 	 * returned and CMA will fail.
+ 	 */
+-	if (strict && nr_strict_required > total_isolated)
++	if (strict && blockpfn < end_pfn)
+ 		total_isolated = 0;
  
-diff -puN include/linux/slab.h~mm-fix-gfp_thisnode-callers-and-clarify include/linux/slab.h
---- a/include/linux/slab.h~mm-fix-gfp_thisnode-callers-and-clarify
-+++ a/include/linux/slab.h
-@@ -410,7 +410,7 @@ static __always_inline void *kmalloc_lar
-  *
-  * %GFP_NOWAIT - Allocation will not sleep.
-  *
-- * %GFP_THISNODE - Allocate node-local memory only.
-+ * %__GFP_THISNODE - Allocate node-local memory only.
-  *
-  * %GFP_DMA - Allocation suitable for DMA.
-  *   Should only be used for kmalloc() caches. Otherwise, use a
-diff -puN kernel/profile.c~mm-fix-gfp_thisnode-callers-and-clarify kernel/profile.c
---- a/kernel/profile.c~mm-fix-gfp_thisnode-callers-and-clarify
-+++ a/kernel/profile.c
-@@ -549,14 +549,14 @@ static int create_hash_tables(void)
- 		struct page *page;
- 
- 		page = alloc_pages_exact_node(node,
--				GFP_KERNEL | __GFP_ZERO | GFP_THISNODE,
-+				GFP_KERNEL | __GFP_ZERO | __GFP_THISNODE,
- 				0);
- 		if (!page)
- 			goto out_cleanup;
- 		per_cpu(cpu_profile_hits, cpu)[1]
- 				= (struct profile_hit *)page_address(page);
- 		page = alloc_pages_exact_node(node,
--				GFP_KERNEL | __GFP_ZERO | GFP_THISNODE,
-+				GFP_KERNEL | __GFP_ZERO | __GFP_THISNODE,
- 				0);
- 		if (!page)
- 			goto out_cleanup;
-diff -puN mm/migrate.c~mm-fix-gfp_thisnode-callers-and-clarify mm/migrate.c
---- a/mm/migrate.c~mm-fix-gfp_thisnode-callers-and-clarify
-+++ a/mm/migrate.c
-@@ -1158,7 +1158,7 @@ static struct page *new_page_node(struct
- 					pm->node);
- 	else
- 		return alloc_pages_exact_node(pm->node,
--				GFP_HIGHUSER_MOVABLE | GFP_THISNODE, 0);
-+				GFP_HIGHUSER_MOVABLE | __GFP_THISNODE, 0);
- }
- 
- /*
-@@ -1544,9 +1544,9 @@ static struct page *alloc_misplaced_dst_
- 	struct page *newpage;
- 
- 	newpage = alloc_pages_exact_node(nid,
--					 (GFP_HIGHUSER_MOVABLE | GFP_THISNODE |
--					  __GFP_NOMEMALLOC | __GFP_NORETRY |
--					  __GFP_NOWARN) &
-+					 (GFP_HIGHUSER_MOVABLE |
-+					  __GFP_THISNODE | __GFP_NOMEMALLOC |
-+					  __GFP_NORETRY | __GFP_NOWARN) &
- 					 ~GFP_IOFS, 0);
- 
- 	return newpage;
-@@ -1747,7 +1747,8 @@ int migrate_misplaced_transhuge_page(str
- 		goto out_dropref;
- 
- 	new_page = alloc_pages_node(node,
--		(GFP_TRANSHUGE | GFP_THISNODE) & ~__GFP_WAIT, HPAGE_PMD_ORDER);
-+		(GFP_TRANSHUGE | __GFP_THISNODE) & ~__GFP_WAIT,
-+		HPAGE_PMD_ORDER);
- 	if (!new_page)
- 		goto out_fail;
- 
+ 	if (locked)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from lauraa@codeaurora.org are
 
 origin.patch
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-lib-radix_tree-tree-node-interface-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-madvise-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
-exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
-fork-collapse-copy_flags-into-copy_process.patch
-mm-mempolicy-rename-slab_node-for-clarity.patch
-mm-mempolicy-remove-per-process-flag.patch
-res_counter-remove-interface-for-locked-charging-and-uncharging.patch
-mm-vmallocc-enhance-vm_map_ram-comment.patch
-mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
 linux-next.patch
-memcg-slab-never-try-to-merge-memcg-caches.patch
-memcg-slab-cleanup-memcg-cache-creation.patch
-memcg-slab-separate-memcg-vs-root-cache-creation-paths.patch
-memcg-slab-unregister-cache-from-memcg-before-starting-to-destroy-it.patch
-memcg-slab-do-not-destroy-children-caches-if-parent-has-aliases.patch
-slub-adjust-memcg-caches-when-creating-cache-alias.patch
-slub-rework-sysfs-layout-for-memcg-caches.patch
 debugging-keep-track-of-page-owners.patch
 
