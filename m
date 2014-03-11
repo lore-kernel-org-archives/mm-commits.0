@@ -1,240 +1,330 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hfsplus-add-hfsx-subfolder-count-support.patch removed
- from -mm tree
-Date: Tue, 11 Mar 2014 11:25:14 -0700
-Message-ID: <531f550a.YDmcKb8QnRWM5aJf%akpm@linux-foundation.org>
+Subject: + affs-mount-option-to-avoid-filename-truncates.patch added to
+ -mm tree
+Date: Tue, 11 Mar 2014 11:42:56 -0700
+Message-ID: <531f5930.pA32BG5ww1lZKPzE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44248 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44348 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755252AbaCKSZP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 14:25:15 -0400
+	with ESMTP id S1753543AbaCKSm5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 14:42:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, slava@dubeyko.com, hch@infradead.org, saproj@gmail.com
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: [merged] hfsplus-add-hfsx-subfolder-count-support.patch removed from -mm tree
-To: saproj@gmail.com,hch@infradead.org,slava@dubeyko.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: + affs-mount-option-to-avoid-filename-truncates.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Tue, 11 Mar 2014 11:25:14 -0700
+Date: Tue, 11 Mar 2014 11:42:56 -0700
 
 
 The patch titled
-     Subject: hfsplus: add HFSX subfolder count support
-has been removed from the -mm tree.  Its filename was
-     hfsplus-add-hfsx-subfolder-count-support.patch
+     Subject: affs: add mount option to avoid filename truncates
+has been added to the -mm tree.  Its filename is
+     affs-mount-option-to-avoid-filename-truncates.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/affs-mount-option-to-avoid-filename-truncates.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/affs-mount-option-to-avoid-filename-truncates.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergei Antonov <saproj@gmail.com>
-Subject: hfsplus: add HFSX subfolder count support
+From: Fabian Frederick <fabf@skynet.be>
+Subject: affs: add mount option to avoid filename truncates
 
-Adds support for HFSX 'HasFolderCount' flag and a corresponding
-'folderCount' field in folder records.  (For reference see HFS_FOLDERCOUNT
-and kHFSHasFolderCountBit/kHFSHasFolderCountMask in Apple's source code.)
+Normal behavior for filenames exceeding specific filesystem limits is to
+refuse operation.
 
-Ignoring subfolder count leads to fs errors found by Mac:
-...
-Checking catalog hierarchy.
-HasFolderCount flag needs to be set (id = 105)
-(It should be 0x10 instead of 0)
-Incorrect folder count in a directory (id = 2)
-(It should be 7 instead of 6)
-...
+AFFS standard name length being only 30 characters against 255 for usual
+Linux filesystems, original implementation does filename truncate by
+default with a define value AFFS_NO_TRUNCATE which can be enabled but
+needs module compilation.
 
-Steps to reproduce:
- Format with "newfs_hfs -s /dev/diskXXX".
- Mount in Linux.
- Create a new directory in root.
- Unmount.
- Run "fsck_hfs /dev/diskXXX".
+This patch adds 'nofilenametruncate' mount option so that user can easily
+activate that feature and avoid a lot of problems (eg overwrite files ...)
 
-The patch handles directory creation, deletion, and rename.
-
-Signed-off-by: Sergei Antonov <saproj@gmail.com>
-Reviewed-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/catalog.c     |   41 +++++++++++++++++++++++++++++++++++++
- fs/hfsplus/hfsplus_fs.h  |    1 
- fs/hfsplus/hfsplus_raw.h |    6 +++--
- fs/hfsplus/inode.c       |    9 ++++++++
- 4 files changed, 55 insertions(+), 2 deletions(-)
+ Documentation/filesystems/affs.txt |    9 +++++--
+ fs/affs/affs.h                     |   20 ++++++----------
+ fs/affs/amigaffs.c                 |   23 ++++++++++++-------
+ fs/affs/namei.c                    |   32 +++++++++++++++++++--------
+ fs/affs/super.c                    |    6 ++++-
+ 5 files changed, 57 insertions(+), 33 deletions(-)
 
-diff -puN fs/hfsplus/catalog.c~hfsplus-add-hfsx-subfolder-count-support fs/hfsplus/catalog.c
---- a/fs/hfsplus/catalog.c~hfsplus-add-hfsx-subfolder-count-support
-+++ a/fs/hfsplus/catalog.c
-@@ -103,6 +103,8 @@ static int hfsplus_cat_build_record(hfsp
- 		folder = &entry->folder;
- 		memset(folder, 0, sizeof(*folder));
- 		folder->type = cpu_to_be16(HFSPLUS_FOLDER);
-+		if (test_bit(HFSPLUS_SB_HFSX, &sbi->flags))
-+			folder->flags |= cpu_to_be16(HFSPLUS_HAS_FOLDER_COUNT);
- 		folder->id = cpu_to_be32(inode->i_ino);
- 		HFSPLUS_I(inode)->create_date =
- 			folder->create_date =
-@@ -203,6 +205,36 @@ int hfsplus_find_cat(struct super_block
- 	return hfs_brec_find(fd, hfs_find_rec_by_key);
+diff -puN Documentation/filesystems/affs.txt~affs-mount-option-to-avoid-filename-truncates Documentation/filesystems/affs.txt
+--- a/Documentation/filesystems/affs.txt~affs-mount-option-to-avoid-filename-truncates
++++ a/Documentation/filesystems/affs.txt
+@@ -49,6 +49,10 @@ mode=mode	Sets the mode flags to the giv
+ 		This is useful since most of the plain AmigaOS files
+ 		will map to 600.
+ 
++nofilenametruncate
++		The file system will return an error when filename exceeds
++		standard maximum filename length (30 characters).
++
+ reserved=num	Sets the number of reserved blocks at the start of the
+ 		partition to num. You should never need this option.
+ 		Default is 2.
+@@ -181,9 +185,8 @@ tested, though several hundred MB have b
+ this fs. For a most up-to-date list of bugs please consult
+ fs/affs/Changes.
+ 
+-Filenames are truncated to 30 characters without warning (this
+-can be changed by setting the compile-time option AFFS_NO_TRUNCATE
+-in include/linux/amigaffs.h).
++By default, filenames are truncated to 30 characters without warning.
++'nofilenametruncate' mount option can change that behavior.
+ 
+ Case is ignored by the affs in filename matching, but Linux shells
+ do care about the case. Example (with /wb being an affs mounted fs):
+diff -puN fs/affs/affs.h~affs-mount-option-to-avoid-filename-truncates fs/affs/affs.h
+--- a/fs/affs/affs.h~affs-mount-option-to-avoid-filename-truncates
++++ a/fs/affs/affs.h
+@@ -5,14 +5,6 @@
+ #include <linux/mutex.h>
+ #include <linux/workqueue.h>
+ 
+-/* AmigaOS allows file names with up to 30 characters length.
+- * Names longer than that will be silently truncated. If you
+- * want to disallow this, comment out the following #define.
+- * Creating filesystem objects with longer names will then
+- * result in an error (ENAMETOOLONG).
+- */
+-/*#define AFFS_NO_TRUNCATE */
+-
+ /* Ugly macros make the code more pretty. */
+ 
+ #define GET_END_PTR(st,p,sz)		 ((st *)((char *)(p)+((sz)-sizeof(st))))
+@@ -28,7 +20,6 @@
+ 
+ #define AFFS_CACHE_SIZE		PAGE_SIZE
+ 
+-#define AFFS_MAX_PREALLOC	32
+ #define AFFS_LC_SIZE		(AFFS_CACHE_SIZE/sizeof(u32)/2)
+ #define AFFS_AC_SIZE		(AFFS_CACHE_SIZE/sizeof(struct affs_ext_key)/2)
+ #define AFFS_AC_MASK		(AFFS_AC_SIZE-1)
+@@ -118,6 +109,7 @@ struct affs_sb_info {
+ #define SF_OFS		0x0200		/* Old filesystem */
+ #define SF_PREFIX	0x0400		/* Buffer for prefix is allocated */
+ #define SF_VERBOSE	0x0800		/* Talk about fs when mounting */
++#define SF_NO_TRUNCATE	0x1000		/* Don't truncate filenames */
+ 
+ /* short cut to get to the affs specific sb data */
+ static inline struct affs_sb_info *AFFS_SB(struct super_block *sb)
+@@ -137,9 +129,13 @@ extern void	affs_fix_checksum(struct sup
+ extern void	secs_to_datestamp(time_t secs, struct affs_date *ds);
+ extern umode_t	prot_to_mode(u32 prot);
+ extern void	mode_to_prot(struct inode *inode);
+-extern void	affs_error(struct super_block *sb, const char *function, const char *fmt, ...);
+-extern void	affs_warning(struct super_block *sb, const char *function, const char *fmt, ...);
+-extern int	affs_check_name(const unsigned char *name, int len);
++extern void	affs_error(struct super_block *sb, const char *function,
++			   const char *fmt, ...);
++extern void	affs_warning(struct super_block *sb, const char *function,
++			     const char *fmt, ...);
++extern bool	affs_nofilenametruncate(const struct dentry *dentry);
++extern int	affs_check_name(const unsigned char *name, int len,
++				bool notruncate);
+ extern int	affs_copy_name(unsigned char *bstr, struct dentry *dentry);
+ 
+ /* bitmap. c */
+diff -puN fs/affs/amigaffs.c~affs-mount-option-to-avoid-filename-truncates fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~affs-mount-option-to-avoid-filename-truncates
++++ a/fs/affs/amigaffs.c
+@@ -471,20 +471,27 @@ affs_warning(struct super_block *sb, con
+ 		function,ErrorBuffer);
  }
  
-+static void hfsplus_subfolders_inc(struct inode *dir)
++bool
++affs_nofilenametruncate(const struct dentry *dentry)
 +{
-+	struct hfsplus_sb_info *sbi = HFSPLUS_SB(dir->i_sb);
++	struct inode *inode = dentry->d_inode;
++	return AFFS_SB(inode->i_sb)->s_flags & SF_NO_TRUNCATE;
 +
-+	if (test_bit(HFSPLUS_SB_HFSX, &sbi->flags)) {
-+		/*
-+		 * Increment subfolder count. Note, the value is only meaningful
-+		 * for folders with HFSPLUS_HAS_FOLDER_COUNT flag set.
-+		 */
-+		HFSPLUS_I(dir)->subfolders++;
-+	}
 +}
 +
-+static void hfsplus_subfolders_dec(struct inode *dir)
-+{
-+	struct hfsplus_sb_info *sbi = HFSPLUS_SB(dir->i_sb);
-+
-+	if (test_bit(HFSPLUS_SB_HFSX, &sbi->flags)) {
-+		/*
-+		 * Decrement subfolder count. Note, the value is only meaningful
-+		 * for folders with HFSPLUS_HAS_FOLDER_COUNT flag set.
-+		 *
-+		 * Check for zero. Some subfolders may have been created
-+		 * by an implementation ignorant of this counter.
-+		 */
-+		if (HFSPLUS_I(dir)->subfolders)
-+			HFSPLUS_I(dir)->subfolders--;
-+	}
-+}
-+
- int hfsplus_create_cat(u32 cnid, struct inode *dir,
- 		struct qstr *str, struct inode *inode)
+ /* Check if the name is valid for a affs object. */
+ 
+ int
+-affs_check_name(const unsigned char *name, int len)
++affs_check_name(const unsigned char *name, int len, bool notruncate)
  {
-@@ -247,6 +279,8 @@ int hfsplus_create_cat(u32 cnid, struct
- 		goto err1;
+ 	int	 i;
  
- 	dir->i_size++;
-+	if (S_ISDIR(inode->i_mode))
-+		hfsplus_subfolders_inc(dir);
- 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
- 	hfsplus_mark_inode_dirty(dir, HFSPLUS_I_CAT_DIRTY);
+-	if (len > 30)
+-#ifdef AFFS_NO_TRUNCATE
+-		return -ENAMETOOLONG;
+-#else
+-		len = 30;
+-#endif
+-
++	if (len > 30) {
++		if (notruncate)
++			return -ENAMETOOLONG;
++		else
++			len = 30;
++	}
+ 	for (i = 0; i < len; i++) {
+ 		if (name[i] < ' ' || name[i] == ':'
+ 		    || (name[i] > 0x7e && name[i] < 0xa0))
+diff -puN fs/affs/namei.c~affs-mount-option-to-avoid-filename-truncates fs/affs/namei.c
+--- a/fs/affs/namei.c~affs-mount-option-to-avoid-filename-truncates
++++ a/fs/affs/namei.c
+@@ -60,13 +60,13 @@ affs_get_toupper(struct super_block *sb)
+  * Note: the dentry argument is the parent dentry.
+  */
+ static inline int
+-__affs_hash_dentry(struct qstr *qstr, toupper_t toupper)
++__affs_hash_dentry(struct qstr *qstr, toupper_t toupper, bool notruncate)
+ {
+ 	const u8 *name = qstr->name;
+ 	unsigned long hash;
+ 	int i;
  
-@@ -336,6 +370,8 @@ int hfsplus_delete_cat(u32 cnid, struct
- 		goto out;
+-	i = affs_check_name(qstr->name, qstr->len);
++	i = affs_check_name(qstr->name, qstr->len, notruncate);
+ 	if (i)
+ 		return i;
  
- 	dir->i_size--;
-+	if (type == HFSPLUS_FOLDER)
-+		hfsplus_subfolders_dec(dir);
- 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
- 	hfsplus_mark_inode_dirty(dir, HFSPLUS_I_CAT_DIRTY);
+@@ -82,16 +82,22 @@ __affs_hash_dentry(struct qstr *qstr, to
+ static int
+ affs_hash_dentry(const struct dentry *dentry, struct qstr *qstr)
+ {
+-	return __affs_hash_dentry(qstr, affs_toupper);
++	return __affs_hash_dentry(qstr, affs_toupper,
++				  affs_nofilenametruncate(dentry));
++
+ }
++
+ static int
+ affs_intl_hash_dentry(const struct dentry *dentry, struct qstr *qstr)
+ {
+-	return __affs_hash_dentry(qstr, affs_intl_toupper);
++	return __affs_hash_dentry(qstr, affs_intl_toupper,
++				  affs_nofilenametruncate(dentry));
++
+ }
  
-@@ -380,6 +416,7 @@ int hfsplus_rename_cat(u32 cnid,
- 
- 	hfs_bnode_read(src_fd.bnode, &entry, src_fd.entryoffset,
- 				src_fd.entrylength);
-+	type = be16_to_cpu(entry.type);
- 
- 	/* create new dir entry with the data from the old entry */
- 	hfsplus_cat_build_key(sb, dst_fd.search_key, dst_dir->i_ino, dst_name);
-@@ -394,6 +431,8 @@ int hfsplus_rename_cat(u32 cnid,
- 	if (err)
- 		goto out;
- 	dst_dir->i_size++;
-+	if (type == HFSPLUS_FOLDER)
-+		hfsplus_subfolders_inc(dst_dir);
- 	dst_dir->i_mtime = dst_dir->i_ctime = CURRENT_TIME_SEC;
- 
- 	/* finally remove the old entry */
-@@ -405,6 +444,8 @@ int hfsplus_rename_cat(u32 cnid,
- 	if (err)
- 		goto out;
- 	src_dir->i_size--;
-+	if (type == HFSPLUS_FOLDER)
-+		hfsplus_subfolders_dec(src_dir);
- 	src_dir->i_mtime = src_dir->i_ctime = CURRENT_TIME_SEC;
- 
- 	/* remove old thread entry */
-diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-add-hfsx-subfolder-count-support fs/hfsplus/hfsplus_fs.h
---- a/fs/hfsplus/hfsplus_fs.h~hfsplus-add-hfsx-subfolder-count-support
-+++ a/fs/hfsplus/hfsplus_fs.h
-@@ -242,6 +242,7 @@ struct hfsplus_inode_info {
+ static inline int __affs_compare_dentry(unsigned int len,
+-		const char *str, const struct qstr *name, toupper_t toupper)
++		const char *str, const struct qstr *name, toupper_t toupper,
++		bool notruncate)
+ {
+ 	const u8 *aname = str;
+ 	const u8 *bname = name->name;
+@@ -101,7 +107,7 @@ static inline int __affs_compare_dentry(
+ 	 * must be valid. 'name' must be validated first.
  	 */
- 	sector_t fs_blocks;
- 	u8 userflags;		/* BSD user file flags */
-+	u32 subfolders;		/* Subfolder count (HFSX only) */
- 	struct list_head open_dir_list;
- 	loff_t phys_size;
  
-diff -puN fs/hfsplus/hfsplus_raw.h~hfsplus-add-hfsx-subfolder-count-support fs/hfsplus/hfsplus_raw.h
---- a/fs/hfsplus/hfsplus_raw.h~hfsplus-add-hfsx-subfolder-count-support
-+++ a/fs/hfsplus/hfsplus_raw.h
-@@ -261,7 +261,7 @@ struct hfsplus_cat_folder {
- 	struct DInfo user_info;
- 	struct DXInfo finder_info;
- 	__be32 text_encoding;
--	u32 reserved;
-+	__be32 subfolders;	/* Subfolder count in HFSX. Reserved in HFS+. */
- } __packed;
+-	if (affs_check_name(name->name, name->len))
++	if (affs_check_name(name->name, name->len, notruncate))
+ 		return 1;
  
- /* HFS file info (stolen from hfs.h) */
-@@ -301,11 +301,13 @@ struct hfsplus_cat_file {
- 	struct hfsplus_fork_raw rsrc_fork;
- } __packed;
+ 	/*
+@@ -126,13 +132,18 @@ static int
+ affs_compare_dentry(const struct dentry *parent, const struct dentry *dentry,
+ 		unsigned int len, const char *str, const struct qstr *name)
+ {
+-	return __affs_compare_dentry(len, str, name, affs_toupper);
++
++	return __affs_compare_dentry(len, str, name, affs_toupper,
++				     affs_nofilenametruncate(parent));
+ }
++
+ static int
+ affs_intl_compare_dentry(const struct dentry *parent, const struct dentry *dentry,
+ 		unsigned int len, const char *str, const struct qstr *name)
+ {
+-	return __affs_compare_dentry(len, str, name, affs_intl_toupper);
++	return __affs_compare_dentry(len, str, name, affs_intl_toupper,
++				     affs_nofilenametruncate(parent));
++
+ }
  
--/* File attribute bits */
-+/* File and folder flag bits */
- #define HFSPLUS_FILE_LOCKED		0x0001
- #define HFSPLUS_FILE_THREAD_EXISTS	0x0002
- #define HFSPLUS_XATTR_EXISTS		0x0004
- #define HFSPLUS_ACL_EXISTS		0x0008
-+#define HFSPLUS_HAS_FOLDER_COUNT	0x0010	/* Folder has subfolder count
-+						 * (HFSX only) */
+ /*
+@@ -411,7 +422,10 @@ affs_rename(struct inode *old_dir, struc
+ 		 (u32)old_dir->i_ino, (int)old_dentry->d_name.len, old_dentry->d_name.name,
+ 		 (u32)new_dir->i_ino, (int)new_dentry->d_name.len, new_dentry->d_name.name);
  
- /* HFS+ catalog thread (part of a cat_entry) */
- struct hfsplus_cat_thread {
-diff -puN fs/hfsplus/inode.c~hfsplus-add-hfsx-subfolder-count-support fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~hfsplus-add-hfsx-subfolder-count-support
-+++ a/fs/hfsplus/inode.c
-@@ -375,6 +375,7 @@ struct inode *hfsplus_new_inode(struct s
- 	hip->extent_state = 0;
- 	hip->flags = 0;
- 	hip->userflags = 0;
-+	hip->subfolders = 0;
- 	memset(hip->first_extents, 0, sizeof(hfsplus_extent_rec));
- 	memset(hip->cached_extents, 0, sizeof(hfsplus_extent_rec));
- 	hip->alloc_blocks = 0;
-@@ -494,6 +495,10 @@ int hfsplus_cat_read_inode(struct inode
- 		inode->i_ctime = hfsp_mt2ut(folder->attribute_mod_date);
- 		HFSPLUS_I(inode)->create_date = folder->create_date;
- 		HFSPLUS_I(inode)->fs_blocks = 0;
-+		if (folder->flags & cpu_to_be16(HFSPLUS_HAS_FOLDER_COUNT)) {
-+			HFSPLUS_I(inode)->subfolders =
-+				be32_to_cpu(folder->subfolders);
-+		}
- 		inode->i_op = &hfsplus_dir_inode_operations;
- 		inode->i_fop = &hfsplus_dir_operations;
- 	} else if (type == HFSPLUS_FILE) {
-@@ -566,6 +571,10 @@ int hfsplus_cat_write_inode(struct inode
- 		folder->content_mod_date = hfsp_ut2mt(inode->i_mtime);
- 		folder->attribute_mod_date = hfsp_ut2mt(inode->i_ctime);
- 		folder->valence = cpu_to_be32(inode->i_size - 2);
-+		if (folder->flags & cpu_to_be16(HFSPLUS_HAS_FOLDER_COUNT)) {
-+			folder->subfolders =
-+				cpu_to_be32(HFSPLUS_I(inode)->subfolders);
-+		}
- 		hfs_bnode_write(fd.bnode, &entry, fd.entryoffset,
- 					 sizeof(struct hfsplus_cat_folder));
- 	} else if (HFSPLUS_IS_RSRC(inode)) {
+-	retval = affs_check_name(new_dentry->d_name.name,new_dentry->d_name.len);
++	retval = affs_check_name(new_dentry->d_name.name,
++				 new_dentry->d_name.len,
++				 affs_nofilenametruncate(old_dentry));
++
+ 	if (retval)
+ 		return retval;
+ 
+diff -puN fs/affs/super.c~affs-mount-option-to-avoid-filename-truncates fs/affs/super.c
+--- a/fs/affs/super.c~affs-mount-option-to-avoid-filename-truncates
++++ a/fs/affs/super.c
+@@ -163,7 +163,7 @@ static const struct super_operations aff
+ };
+ 
+ enum {
+-	Opt_bs, Opt_mode, Opt_mufs, Opt_prefix, Opt_protect,
++	Opt_bs, Opt_mode, Opt_mufs, Opt_notruncate, Opt_prefix, Opt_protect,
+ 	Opt_reserved, Opt_root, Opt_setgid, Opt_setuid,
+ 	Opt_verbose, Opt_volume, Opt_ignore, Opt_err,
+ };
+@@ -172,6 +172,7 @@ static const match_table_t tokens = {
+ 	{Opt_bs, "bs=%u"},
+ 	{Opt_mode, "mode=%o"},
+ 	{Opt_mufs, "mufs"},
++	{Opt_notruncate, "nofilenametruncate"},
+ 	{Opt_prefix, "prefix=%s"},
+ 	{Opt_protect, "protect"},
+ 	{Opt_reserved, "reserved=%u"},
+@@ -233,6 +234,9 @@ parse_options(char *options, kuid_t *uid
+ 		case Opt_mufs:
+ 			*mount_opts |= SF_MUFS;
+ 			break;
++		case Opt_notruncate:
++			*mount_opts |= SF_NO_TRUNCATE;
++			break;
+ 		case Opt_prefix:
+ 			*prefix = match_strdup(&args[0]);
+ 			if (!*prefix)
 _
 
-Patches currently in -mm which might be from saproj@gmail.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-origin.patch
+fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+sys_sysfs-add-config_sysfs_syscall.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
+fs-minix-inodec-add-__init-to-init_inodecache.patch
+befs-replace-kmalloc-memset-0-by-kzalloc.patch
+fs-befs-linuxvfsc-add-__init-to-befs_init_inodecache.patch
+fs-isofs-inodec-add-__init-to-init_inodecache.patch
+coda-add-__init-to-init_inodecache.patch
+hfsplus-add-__init-to-hfsplus_create_attr_tree_cache.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+documentation-filesystems-ntfstxt-remove-changelog-reference.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+affs-add-__init-to-init_inodecache.patch
+fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+affs-mount-option-to-avoid-filename-truncates.patch
+fs-bfs-inodec-add-__init-to-init_inodecache.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+linux-next.patch
 
