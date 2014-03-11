@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-const-char-insted-of-char-for-reason-in-dump_page.patch
- added to -mm tree
-Date: Tue, 11 Mar 2014 14:16:35 -0700
-Message-ID: <531f7d33.koYhniTglb8FFqaI%akpm@linux-foundation.org>
+Subject: + maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch added to -mm tree
+Date: Tue, 11 Mar 2014 14:20:28 -0700
+Message-ID: <531f7e1c.b/9fGFWTAUwAnUci%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45005 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752919AbaCKVQg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 17:16:36 -0400
+	with ESMTP id S1753644AbaCKVU3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 17:20:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, inaky.perez-gonzalez@intel.com, geert@linux-m68k.org, joe@perches.com
 
-Subject: + mm-use-const-char-insted-of-char-for-reason-in-dump_page.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,dave.hansen@linux.intel.com
+Subject: + maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch added to -mm tree
+To: joe@perches.com,geert@linux-m68k.org,inaky.perez-gonzalez@intel.com
 From: akpm@linux-foundation.org
-Date: Tue, 11 Mar 2014 14:16:35 -0700
+Date: Tue, 11 Mar 2014 14:20:28 -0700
 
 
 The patch titled
-     Subject: mm: use 'const char *' insted of 'char *' for reason in dump_page()
+     Subject: MAINTAINERS: wimax@linuxwimax.org is subscribers-only
 has been added to the -mm tree.  Its filename is
-     mm-use-const-char-insted-of-char-for-reason-in-dump_page.patch
+     maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-const-char-insted-of-char-for-reason-in-dump_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-const-char-insted-of-char-for-reason-in-dump_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,129 +43,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: use 'const char *' insted of 'char *' for reason in dump_page()
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: wimax@linuxwimax.org is subscribers-only
 
-I tried to use 'dump_page(page, __func__)' for debugging, but it triggers
-warning:
+Mark it so.
 
-  warning: passing argument 2 of `dump_page' discards `const' qualifier from pointer target type [enabled by default]
-
-Let's convert 'reason' to 'const char *' in dump_page() and friends: we
-shouldn't modify it anyway.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |    4 ++--
- mm/page_alloc.c         |   12 +++++++-----
- 2 files changed, 9 insertions(+), 7 deletions(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mmdebug.h~mm-use-const-char-insted-of-char-for-reason-in-dump_page include/linux/mmdebug.h
---- a/include/linux/mmdebug.h~mm-use-const-char-insted-of-char-for-reason-in-dump_page
-+++ a/include/linux/mmdebug.h
-@@ -3,8 +3,8 @@
- 
- struct page;
- 
--extern void dump_page(struct page *page, char *reason);
--extern void dump_page_badflags(struct page *page, char *reason,
-+extern void dump_page(struct page *page, const char *reason);
-+extern void dump_page_badflags(struct page *page, const char *reason,
- 			       unsigned long badflags);
- 
- #ifdef CONFIG_DEBUG_VM
-diff -puN mm/page_alloc.c~mm-use-const-char-insted-of-char-for-reason-in-dump_page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-use-const-char-insted-of-char-for-reason-in-dump_page
-+++ a/mm/page_alloc.c
-@@ -295,7 +295,8 @@ static inline int bad_range(struct zone
- }
- #endif
- 
--static void bad_page(struct page *page, char *reason, unsigned long bad_flags)
-+static void bad_page(struct page *page, const char *reason,
-+		unsigned long bad_flags)
- {
- 	static unsigned long resume;
- 	static unsigned long nr_shown;
-@@ -623,7 +624,7 @@ out:
- 
- static inline int free_pages_check(struct page *page)
- {
--	char *bad_reason = NULL;
-+	const char *bad_reason = NULL;
- 	unsigned long bad_flags = 0;
- 
- 	if (unlikely(page_mapcount(page)))
-@@ -859,7 +860,7 @@ static inline void expand(struct zone *z
-  */
- static inline int check_new_page(struct page *page)
- {
--	char *bad_reason = NULL;
-+	const char *bad_reason = NULL;
- 	unsigned long bad_flags = 0;
- 
- 	if (unlikely(page_mapcount(page)))
-@@ -6545,7 +6546,8 @@ static void dump_page_flags(unsigned lon
- 	printk(")\n");
- }
- 
--void dump_page_badflags(struct page *page, char *reason, unsigned long badflags)
-+void dump_page_badflags(struct page *page, const char *reason,
-+		unsigned long badflags)
- {
- 	printk(KERN_ALERT
- 	       "page:%p count:%d mapcount:%d mapping:%p index:%#lx\n",
-@@ -6561,7 +6563,7 @@ void dump_page_badflags(struct page *pag
- 	mem_cgroup_print_bad_page(page);
- }
- 
--void dump_page(struct page *page, char *reason)
-+void dump_page(struct page *page, const char *reason)
- {
- 	dump_page_badflags(page, reason, 0);
- }
+diff -puN MAINTAINERS~maintainers-wimax-linuxwimaxorg-is-subscribers-only MAINTAINERS
+--- a/MAINTAINERS~maintainers-wimax-linuxwimaxorg-is-subscribers-only
++++ a/MAINTAINERS
+@@ -4592,7 +4592,7 @@ F:	arch/x86/kernel/tboot.c
+ INTEL WIRELESS WIMAX CONNECTION 2400
+ M:	Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
+ M:	linux-wimax@intel.com
+-L:	wimax@linuxwimax.org
++L:     wimax@linuxwimax.org (subscribers-only)
+ S:	Supported
+ W:	http://linuxwimax.org
+ F:	Documentation/wimax/README.i2400m
+@@ -9588,7 +9588,7 @@ F:	drivers/media/rc/winbond-cir.c
+ WIMAX STACK
+ M:	Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
+ M:	linux-wimax@intel.com
+-L:	wimax@linuxwimax.org
++L:     wimax@linuxwimax.org (subscribers-only)
+ S:	Supported
+ W:	http://linuxwimax.org
+ F:	Documentation/wimax/README.wimax
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-madvise-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-rename-__do_fault-do_fault.patch
-mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
-mm-introduce-do_read_fault.patch
-mm-introduce-do_cow_fault.patch
-mm-introduce-do_shared_fault-and-drop-do_fault.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
-mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
-mm-consolidate-code-to-setup-pte.patch
-mm-thp-drop-do_huge_pmd_wp_zero_page_fallback.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch
-mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
-exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
-mm-disable-split-page-table-lock-for-mmu.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-introduce-vm_ops-map_pages.patch
-mm-introduce-vm_ops-map_pages-fix.patch
-mm-implement-map_pages-for-page-cache.patch
-mm-implement-map_pages-for-page-cache-fix.patch
-mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch
-mm-add-debugfs-tunable-for-fault_around_order.patch
-mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
-mm-use-const-char-insted-of-char-for-reason-in-dump_page.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+errh-use-bool-for-is_err-and-is_err_or_null.patch
+maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch
+lib-random32c-minor-cleanups-and-kdoc-fix.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-test-for-long-udelay.patch
+checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
+checkpatch-add-checks-for-constant-non-octal-permissions.patch
+checkpatch-warn-on-uses-of-__constant_foo-functions.patch
+checkpatch-update-octal-permissions-warning.patch
+checkpatch-avoid-sscanf-test-duplicated-messages.patch
+checkpatch-fix-jiffies-comparison-and-others.patch
+checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
+checkpatch-use-a-more-consistent-function-argument-style.patch
+checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+checkpatchpl-modify-warning-message-for-printk-usage.patch
+checkpatch-net-and-drivers-net-warn-on-missing-blank-line-after-variable-declaration.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-check-vendor-compatible-with-dashes.patch
+checkpatch-fix-spurious-vendor-compatible-warnings.patch
+checkpatch-check-compatible-strings-in-c-and-h-too.patch
+checkpatch-improve-the-compatible-vendor-match.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
+linux-next.patch
 
