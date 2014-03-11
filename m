@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-huge_memoryc-replace-hardcoding-of-19-with-max_nice.patch
- added to -mm tree
-Date: Tue, 11 Mar 2014 14:33:29 -0700
-Message-ID: <531f8129.FB+AoXirwvFO/ofm%akpm@linux-foundation.org>
+Subject: + sh-fix-format-string-bug-in-stack-tracer.patch added to -mm
+ tree
+Date: Tue, 11 Mar 2014 14:34:59 -0700
+Message-ID: <531f8183.teQo8Ct7j1YPq5ue%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45139 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755875AbaCKVda (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 17:33:30 -0400
+	with ESMTP id S1752081AbaCKVfA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 17:35:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yangds.fnst@cn.fujitsu.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, lethal@linux-sh.org, keescook@chromium.org, matt.fleming@intel.com
 
-Subject: + mm-huge_memoryc-replace-hardcoding-of-19-with-max_nice.patch added to -mm tree
-To: yangds.fnst@cn.fujitsu.com
+Subject: + sh-fix-format-string-bug-in-stack-tracer.patch added to -mm tree
+To: matt.fleming@intel.com,keescook@chromium.org,lethal@linux-sh.org,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Mar 2014 14:33:29 -0700
+Date: Tue, 11 Mar 2014 14:34:59 -0700
 
 
 The patch titled
-     Subject: mm/huge_memory.c: replace hardcoding of 19 with MAX_NICE
+     Subject: sh: fix format string bug in stack tracer
 has been added to the -mm tree.  Its filename is
-     mm-huge_memoryc-replace-hardcoding-of-19-with-max_nice.patch
+     sh-fix-format-string-bug-in-stack-tracer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-replace-hardcoding-of-19-with-max_nice.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-fix-format-string-bug-in-stack-tracer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-replace-hardcoding-of-19-with-max_nice.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-fix-format-string-bug-in-stack-tracer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,32 +44,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dongsheng Yang <yangds.fnst@cn.fujitsu.com>
-Subject: mm/huge_memory.c: replace hardcoding of 19 with MAX_NICE
+From: Matt Fleming <matt.fleming@intel.com>
+Subject: sh: fix format string bug in stack tracer
 
-Signed-off-by: Dongsheng Yang <yangds.fnst@cn.fujitsu.com>
+Kees reported the following error,
+
+   arch/sh/kernel/dumpstack.c: In function 'print_trace_address':
+>> arch/sh/kernel/dumpstack.c:118:2: error: format not a string literal and no format arguments [-Werror=format-security]
+
+Use the "%s" format so that it's impossible to interpret 'data' as a
+format string.
+
+Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+Reported-by: Kees Cook <keescook@chromium.org>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
+ arch/sh/kernel/dumpstack.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-huge_memoryc-replace-hardcoding-of-19-with-max_nice mm/huge_memory.c
---- a/mm/huge_memory.c~mm-huge_memoryc-replace-hardcoding-of-19-with-max_nice
-+++ a/mm/huge_memory.c
-@@ -2803,7 +2803,7 @@ static int khugepaged(void *none)
- 	struct mm_slot *mm_slot;
+diff -puN arch/sh/kernel/dumpstack.c~sh-fix-format-string-bug-in-stack-tracer arch/sh/kernel/dumpstack.c
+--- a/arch/sh/kernel/dumpstack.c~sh-fix-format-string-bug-in-stack-tracer
++++ a/arch/sh/kernel/dumpstack.c
+@@ -115,7 +115,7 @@ static int print_trace_stack(void *data,
+  */
+ static void print_trace_address(void *data, unsigned long addr, int reliable)
+ {
+-	printk(data);
++	printk("%s", (char *)data);
+ 	printk_address(addr, reliable);
+ }
  
- 	set_freezable();
--	set_user_nice(current, 19);
-+	set_user_nice(current, MAX_NICE);
- 
- 	while (!kthread_should_stop()) {
- 		khugepaged_do_scan();
 _
 
-Patches currently in -mm which might be from yangds.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from matt.fleming@intel.com are
 
-mm-huge_memoryc-replace-hardcoding-of-19-with-max_nice.patch
+sh-fix-format-string-bug-in-stack-tracer.patch
 linux-next.patch
 
