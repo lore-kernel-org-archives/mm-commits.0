@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + sh-fix-format-string-bug-in-stack-tracer.patch added to -mm
+Subject: + sh-sh7757-switch-rspi-clock-to-dev-id-match.patch added to -mm
  tree
-Date: Tue, 11 Mar 2014 14:34:59 -0700
-Message-ID: <531f8183.teQo8Ct7j1YPq5ue%akpm@linux-foundation.org>
+Date: Tue, 11 Mar 2014 14:50:41 -0700
+Message-ID: <531f8531.4DeXcBkVzM3bLaI/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45139 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45530 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752081AbaCKVfA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 17:35:00 -0400
+	with ESMTP id S1753208AbaCKVum (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 17:50:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, lethal@linux-sh.org, keescook@chromium.org, matt.fleming@intel.com
+To: mm-commits@vger.kernel.org, yoshihiro.shimoda.uh@renesas.com, geert+renesas@linux-m68k.org
 
-Subject: + sh-fix-format-string-bug-in-stack-tracer.patch added to -mm tree
-To: matt.fleming@intel.com,keescook@chromium.org,lethal@linux-sh.org,stable@vger.kernel.org
+Subject: + sh-sh7757-switch-rspi-clock-to-dev-id-match.patch added to -mm tree
+To: geert+renesas@linux-m68k.org,yoshihiro.shimoda.uh@renesas.com
 From: akpm@linux-foundation.org
-Date: Tue, 11 Mar 2014 14:34:59 -0700
+Date: Tue, 11 Mar 2014 14:50:41 -0700
 
 
 The patch titled
-     Subject: sh: fix format string bug in stack tracer
+     Subject: sh: sh7757: switch RSPI clock to dev ID match
 has been added to the -mm tree.  Its filename is
-     sh-fix-format-string-bug-in-stack-tracer.patch
+     sh-sh7757-switch-rspi-clock-to-dev-id-match.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-fix-format-string-bug-in-stack-tracer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-sh7757-switch-rspi-clock-to-dev-id-match.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-fix-format-string-bug-in-stack-tracer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-sh7757-switch-rspi-clock-to-dev-id-match.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,44 +44,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: sh: fix format string bug in stack tracer
+From: Geert Uytterhoeven <geert+renesas@linux-m68k.org>
+Subject: sh: sh7757: switch RSPI clock to dev ID match
 
-Kees reported the following error,
+Switch the RSPI MSTP clock on SH7757 from a con ID match to a dev ID
+match, so we can start looking it up using clk_get() with a NULL ID.
 
-   arch/sh/kernel/dumpstack.c: In function 'print_trace_address':
->> arch/sh/kernel/dumpstack.c:118:2: error: format not a string literal and no format arguments [-Werror=format-security]
-
-Use the "%s" format so that it's impossible to interpret 'data' as a
-format string.
-
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
-Reported-by: Kees Cook <keescook@chromium.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Geert Uytterhoeven <geert+renesas@linux-m68k.org>
+Tested-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/dumpstack.c |    2 +-
+ arch/sh/kernel/cpu/sh4a/clock-sh7757.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sh/kernel/dumpstack.c~sh-fix-format-string-bug-in-stack-tracer arch/sh/kernel/dumpstack.c
---- a/arch/sh/kernel/dumpstack.c~sh-fix-format-string-bug-in-stack-tracer
-+++ a/arch/sh/kernel/dumpstack.c
-@@ -115,7 +115,7 @@ static int print_trace_stack(void *data,
-  */
- static void print_trace_address(void *data, unsigned long addr, int reliable)
- {
--	printk(data);
-+	printk("%s", (char *)data);
- 	printk_address(addr, reliable);
- }
+diff -puN arch/sh/kernel/cpu/sh4a/clock-sh7757.c~sh-sh7757-switch-rspi-clock-to-dev-id-match arch/sh/kernel/cpu/sh4a/clock-sh7757.c
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c~sh-sh7757-switch-rspi-clock-to-dev-id-match
++++ a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
+@@ -132,7 +132,7 @@ static struct clk_lookup lookups[] = {
+ 	CLKDEV_CON_ID("usb_fck", &mstp_clks[MSTP103]),
+ 	CLKDEV_DEV_ID("renesas_usbhs.0", &mstp_clks[MSTP102]),
+ 	CLKDEV_CON_ID("mmc0", &mstp_clks[MSTP220]),
+-	CLKDEV_CON_ID("rspi2", &mstp_clks[MSTP127]),
++	CLKDEV_DEV_ID("rspi.2", &mstp_clks[MSTP127]),
+ };
  
+ int __init arch_clk_init(void)
 _
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from geert+renesas@linux-m68k.org are
 
-sh-fix-format-string-bug-in-stack-tracer.patch
+sh-sh7757-switch-rspi-clock-to-dev-id-match.patch
+maintainers-mark-superh-orphan.patch
 linux-next.patch
 
