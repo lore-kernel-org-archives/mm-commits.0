@@ -1,126 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] revert-kallsyms-fix-absolute-addresses-for-kaslr.patch
+Subject: [merged]
+ cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
  removed from -mm tree
-Date: Tue, 11 Mar 2014 11:25:08 -0700
-Message-ID: <531f5504.TEzSjrk/+Y2BYPhU%akpm@linux-foundation.org>
+Date: Tue, 11 Mar 2014 11:25:16 -0700
+Message-ID: <531f550c.nNldFeo2QZAzTegc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44235 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44254 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755214AbaCKSZJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 14:25:09 -0400
+	with ESMTP id S1753861AbaCKSZR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 14:25:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, mmarek@suse.cz, keescook@chromium.org, ahonig@google.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, starvik@axis.com, jesper.nilsson@axis.com, geert@linux-m68k.org
 
-Subject: [merged] revert-kallsyms-fix-absolute-addresses-for-kaslr.patch removed from -mm tree
-To: akpm@linux-foundation.org,ahonig@google.com,keescook@chromium.org,mmarek@suse.cz,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
+Subject: [merged] cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch removed from -mm tree
+To: geert@linux-m68k.org,jesper.nilsson@axis.com,starvik@axis.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Mar 2014 11:25:08 -0700
+Date: Tue, 11 Mar 2014 11:25:16 -0700
 
 
 The patch titled
-     Subject: revert "kallsyms: fix absolute addresses for kASLR"
+     Subject: cris: convert ffs from an object-like macro to a function-like macro
 has been removed from the -mm tree.  Its filename was
-     revert-kallsyms-fix-absolute-addresses-for-kaslr.patch
+     cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "kallsyms: fix absolute addresses for kASLR"
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: cris: convert ffs from an object-like macro to a function-like macro
 
-Revert the recently applied 0f55159d091cb1e5 ("kallsyms: fix absolute
-addresses for kASLR").  Kees said
+This avoids bad interactions with code using identifiers called "ffs":
 
-: This got NAKed, please don't apply -- this patch works for x86 and
-: ARM, but may cause problems for others:
-: 
-: https://lkml.org/lkml/2014/2/24/718
+drivers/usb/gadget/f_fs.c: In function 'ffsmod_init':
+drivers/usb/gadget/f_fs.c:2693:494: error: 'ffsusb_func' undeclared (first use in this function)
+drivers/usb/gadget/f_fs.c:2693:494: note: each undeclared identifier is reported only once for each function it appears in
+drivers/usb/gadget/f_fs.c: In function 'ffsmod_exit':
+drivers/usb/gadget/f_fs.c:2693:677: error: 'ffsusb_func' undeclared (first use in this function)
+drivers/usb/gadget/f_fs.c: At top level:
+drivers/usb/gadget/f_fs.c:2693:35: warning: 'kernel_ffsusb_func' defined but not used [-Wunused-variable]
+drivers/usb/gadget/f_fs.c: In function 'ffsmod_init':
+drivers/usb/gadget/f_fs.c:2693:15: warning: control reaches end of non-void function [-Wreturn-type]
 
-It appears that Kees will be fixing all this up for 3.15.
+See http://kisskb.ellerman.id.au/kisskb/buildresult/10715817/
 
-Cc: Andy Honig <ahonig@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kallsyms.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/cris/include/asm/bitops.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/kallsyms.c~revert-kallsyms-fix-absolute-addresses-for-kaslr scripts/kallsyms.c
---- a/scripts/kallsyms.c~revert-kallsyms-fix-absolute-addresses-for-kaslr
-+++ a/scripts/kallsyms.c
-@@ -330,7 +330,8 @@ static void write_src(void)
- 				printf("\tPTR\t_text + %#llx\n",
- 					table[i].addr - _text);
- 			else
--				printf("\tPTR\t%#llx\n", table[i].addr);
-+				printf("\tPTR\t_text - %#llx\n",
-+					_text - table[i].addr);
- 		} else {
- 			printf("\tPTR\t%#llx\n", table[i].addr);
- 		}
+diff -puN arch/cris/include/asm/bitops.h~cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro arch/cris/include/asm/bitops.h
+--- a/arch/cris/include/asm/bitops.h~cris-convert-ffs-from-an-object-like-macro-to-a-function-like-macro
++++ a/arch/cris/include/asm/bitops.h
+@@ -144,7 +144,7 @@ static inline int test_and_change_bit(in
+  * definition, which doesn't have the same semantics.  We don't want to
+  * use -fno-builtin, so just hide the name ffs.
+  */
+-#define ffs kernel_ffs
++#define ffs(x) kernel_ffs(x)
+ 
+ #include <asm-generic/bitops/fls.h>
+ #include <asm-generic/bitops/__fls.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
-mm-per-thread-vma-caching.patch
-mm-per-thread-vma-caching-fix-3.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
-zram-use-zcomp-compressing-backends-fix.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix.patch
-zram-propagate-error-to-user-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
+arch-sh-boards-board-sh7757lcrc-fixup-sdhi-register-size.patch
+cris-cpuinfo_op-should-depend-on-config_proc_fs.patch
 linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
