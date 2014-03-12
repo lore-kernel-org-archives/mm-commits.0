@@ -1,98 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-allow-for-more-than-one-data-extent-when-creating-xattr.patch added
- to -mm tree
-Date: Tue, 11 Mar 2014 14:59:16 -0700
-Message-ID: <531f8734.mFLPelKdJDjBgSh2%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch removed from -mm tree
+Date: Wed, 12 Mar 2014 12:01:14 -0700
+Message-ID: <5320aefa.ht9gsG7O6VzzTpoZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57126 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208AbaCKV7R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Mar 2014 17:59:17 -0400
+	with ESMTP id S1752271AbaCLTBP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 15:01:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.com, jlbec@evilplan.org, tariq.x.saeed@oracle.com
+To: mm-commits@vger.kernel.org, rgb@redhat.com, eparis@redhat.com, ebiederm@xmission.com
 
-Subject: + ocfs2-allow-for-more-than-one-data-extent-when-creating-xattr.patch added to -mm tree
-To: tariq.x.saeed@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,srinivas.eeda@oracle.com
+Subject: [alternative-merged] audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch removed from -mm tree
+To: ebiederm@xmission.com,eparis@redhat.com,rgb@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 11 Mar 2014 14:59:16 -0700
+Date: Wed, 12 Mar 2014 12:01:14 -0700
 
 
 The patch titled
-     Subject: ocfs2: allow for more than one data extent when creating xattr
-has been added to the -mm tree.  Its filename is
-     ocfs2-allow-for-more-than-one-data-extent-when-creating-xattr.patch
+     Subject: audit: use struct net not pid_t to remember the network namespace to reply in
+has been removed from the -mm tree.  Its filename was
+     audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-allow-for-more-than-one-data-extent-when-creating-xattr.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-allow-for-more-than-one-data-extent-when-creating-xattr.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Tariq Saeed <tariq.x.saeed@oracle.com>
-Subject: ocfs2: allow for more than one data extent when creating xattr
+From: "Eric W. Biederman" <ebiederm@xmission.com>
+Subject: audit: use struct net not pid_t to remember the network namespace to reply in
 
-Orabug: 18108070
+While reading through 3.14-rc1 I found a pretty siginficant mishandling of
+network namespaces in the recent audit changes.
 
-ocfs2_xattr_extend_allocation() hits panic when creating xattr during data
-extent alloc phase.  The problem occurs if due to local alloc
-fragmentation, clusters are spread over multiple extents.  In this case
-ocfs2_add_clusters_in_btree() finds no space to store more than one extent
-record and therefore fails returning RESTART_META.  The situation is
-anticipated for xattr update case but not xattr create case.  This fix
-simply ports that code to create case.
+In struct audit_netlink_list and audit_reply add a reference to the
+network namespace of the caller and remove the userspace pid of the
+caller.  This cleanly remembers the callers network namespace, and removes
+a huge class of races and nasty failure modes that can occur when
+attempting to relook up the callers network namespace from a pid_t
+(including the caller's network namespace changing, pid wraparound, and
+the pid simply not being present).
 
-Signed-off-by: Tariq Saeed <tariq.x.saeed@oracle.com>
-Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Richard Guy Briggs <rgb@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ kernel/audit.c       |   10 ++++++----
+ kernel/audit.h       |    2 +-
+ kernel/auditfilter.c |    3 ++-
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/xattr.c~ocfs2-allow-for-more-than-one-data-extent-when-creating-xattr fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-allow-for-more-than-one-data-extent-when-creating-xattr
-+++ a/fs/ocfs2/xattr.c
-@@ -3200,8 +3200,15 @@ meta_guess:
- 			clusters_add += 1;
- 		}
- 	} else {
--		meta_add += 1;
- 		credits += OCFS2_XATTR_BLOCK_CREATE_CREDITS;
-+		if (xi->xi_value_len > OCFS2_XATTR_INLINE_SIZE) {
-+			struct ocfs2_extent_list *el = &def_xv.xv.xr_list;
-+			meta_add += ocfs2_extend_meta_needed(el);
-+			credits += ocfs2_calc_extend_credits(inode->i_sb,
-+							     el, 1);
-+		} else {
-+			meta_add += 1;
-+		}
- 	}
- out:
- 	if (clusters_need)
+diff -puN kernel/audit.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in kernel/audit.c
+--- a/kernel/audit.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in
++++ a/kernel/audit.c
+@@ -182,7 +182,7 @@ struct audit_buffer {
+ 
+ struct audit_reply {
+ 	__u32 portid;
+-	pid_t pid;
++	struct net *net;
+ 	struct sk_buff *skb;
+ };
+ 
+@@ -500,7 +500,7 @@ int audit_send_list(void *_dest)
+ {
+ 	struct audit_netlink_list *dest = _dest;
+ 	struct sk_buff *skb;
+-	struct net *net = get_net_ns_by_pid(dest->pid);
++	struct net *net = dest->net;
+ 	struct audit_net *aunet = net_generic(net, audit_net_id);
+ 
+ 	/* wait for parent to finish and send an ACK */
+@@ -510,6 +510,7 @@ int audit_send_list(void *_dest)
+ 	while ((skb = __skb_dequeue(&dest->q)) != NULL)
+ 		netlink_unicast(aunet->nlsk, skb, dest->portid, 0);
+ 
++	put_net(net);
+ 	kfree(dest);
+ 
+ 	return 0;
+@@ -543,7 +544,7 @@ out_kfree_skb:
+ static int audit_send_reply_thread(void *arg)
+ {
+ 	struct audit_reply *reply = (struct audit_reply *)arg;
+-	struct net *net = get_net_ns_by_pid(reply->pid);
++	struct net *net = reply->net;
+ 	struct audit_net *aunet = net_generic(net, audit_net_id);
+ 
+ 	mutex_lock(&audit_cmd_mutex);
+@@ -552,6 +553,7 @@ static int audit_send_reply_thread(void
+ 	/* Ignore failure. It'll only happen if the sender goes away,
+ 	   because our timeout is set to infinite. */
+ 	netlink_unicast(aunet->nlsk , reply->skb, reply->portid, 0);
++	put_net(net);
+ 	kfree(reply);
+ 	return 0;
+ }
+@@ -583,8 +585,8 @@ static void audit_send_reply(__u32 porti
+ 	if (!skb)
+ 		goto out;
+ 
++	reply->net = get_net(current->nsproxy->net_ns);
+ 	reply->portid = portid;
+-	reply->pid = task_pid_vnr(current);
+ 	reply->skb = skb;
+ 
+ 	tsk = kthread_run(audit_send_reply_thread, reply, "audit_send_reply");
+diff -puN kernel/audit.h~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in kernel/audit.h
+--- a/kernel/audit.h~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in
++++ a/kernel/audit.h
+@@ -247,7 +247,7 @@ extern void		    audit_panic(const char
+ 
+ struct audit_netlink_list {
+ 	__u32 portid;
+-	pid_t pid;
++	struct net *net;
+ 	struct sk_buff_head q;
+ };
+ 
+diff -puN kernel/auditfilter.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in kernel/auditfilter.c
+--- a/kernel/auditfilter.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in
++++ a/kernel/auditfilter.c
+@@ -29,6 +29,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/security.h>
++#include <net/net_namespace.h>
+ #include "audit.h"
+ 
+ /*
+@@ -1083,8 +1084,8 @@ int audit_list_rules_send(__u32 portid,
+ 	dest = kmalloc(sizeof(struct audit_netlink_list), GFP_KERNEL);
+ 	if (!dest)
+ 		return -ENOMEM;
++	dest->net = get_net(current->nsproxy->net_ns);
+ 	dest->portid = portid;
+-	dest->pid = task_pid_vnr(current);
+ 	skb_queue_head_init(&dest->q);
+ 
+ 	mutex_lock(&audit_filter_mutex);
 _
 
-Patches currently in -mm which might be from tariq.x.saeed@oracle.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-ocfs2-o2net-incorrect-to-terminate-accepting-connections-loop-upon-rejecting-an-invalid-one.patch
-ocfs2-allow-for-more-than-one-data-extent-when-creating-xattr.patch
-ocfs2-o2net-o2net_listen_data_ready-should-do-nothing-if-socket-state-is-not-tcp_listen.patch
+origin.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch
+mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
+exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
+kernel-groupsc-remove-return-value-of-set_groups.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+kernel-audit-fix-non-modular-users-of-module_init-in-core-code.patch
+linux-next.patch
 
