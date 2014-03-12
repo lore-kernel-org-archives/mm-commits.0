@@ -1,78 +1,276 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Wed, 12 Mar 2014 12:05:12 -0700
-Message-ID: <5320afe8.cdc7+Pk/RY8QCdV4%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 12 Mar 2014 12:05:48 -0700
+Message-ID: <5320b00c.zR0bXBtAKWSk8aTS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57151 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57152 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101AbaCLTFM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 15:05:12 -0400
+	with ESMTP id S1751683AbaCLTFt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 15:05:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + linux-next-rejects.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 12 Mar 2014 12:05:12 -0700
+Date: Wed, 12 Mar 2014 12:05:48 -0700
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ block/blk-mq.c                       |   18 ------
+ drivers/ata/libata-core.c            |    5 -
+ drivers/gpu/drm/i915/intel_display.c |    4 -
+ drivers/spi/spi-atmel.c              |    3 -
+ drivers/staging/cxt1e1/linux.c       |   72 -------------------------
+ fs/bio-integrity.c                   |   37 ------------
+ kernel/cpuset.c                      |    4 -
+ 7 files changed, 143 deletions(-)
 
-diff -puN fs/fs-writeback.c~linux-next-rejects fs/fs-writeback.c
---- a/fs/fs-writeback.c~linux-next-rejects
-+++ a/fs/fs-writeback.c
-@@ -89,6 +89,8 @@ static inline struct inode *wb_inode(str
- #define CREATE_TRACE_POINTS
- #include <trace/events/writeback.h>
+diff -puN block/blk-mq.c~linux-next-git-rejects block/blk-mq.c
+--- a/block/blk-mq.c~linux-next-git-rejects
++++ a/block/blk-mq.c
+@@ -285,26 +285,8 @@ void blk_mq_free_request(struct request
  
-+EXPORT_TRACEPOINT_SYMBOL_GPL(wbc_writepage);
-+
- static void bdi_wakeup_thread(struct backing_dev_info *bdi)
+ bool blk_mq_end_io_partial(struct request *rq, int error, unsigned int nr_bytes)
  {
- 	spin_lock_bh(&bdi->wb_lock);
-@@ -97,8 +99,6 @@ static void bdi_wakeup_thread(struct bac
- 	spin_unlock_bh(&bdi->wb_lock);
+-<<<<<<< HEAD
+ 	if (blk_update_request(rq, error, blk_rq_bytes(rq)))
+ 		return true;
+-=======
+-	struct bio *bio = rq->bio;
+-	unsigned int bytes = 0;
+-
+-	trace_block_rq_complete(rq->q, rq, blk_rq_bytes(rq));
+-
+-	while (bio) {
+-		struct bio *next = bio->bi_next;
+-
+-		bio->bi_next = NULL;
+-		bytes += bio->bi_iter.bi_size;
+-		blk_mq_bio_endio(rq, bio, error);
+-		bio = next;
+-	}
+-
+-	blk_account_io_completion(rq, bytes);
+->>>>>>> linux-next/akpm-base
+ 
+ 	blk_account_io_done(rq);
+ 
+diff -puN drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_display.c
+--- a/drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/intel_display.c
+@@ -1095,10 +1095,6 @@ static void assert_cursor(struct drm_i91
+ 	struct drm_device *dev = dev_priv->dev;
+ 	bool cur_state;
+ 
+-<<<<<<< HEAD
+-=======
+-
+->>>>>>> linux-next/akpm-base
+ 	if (IS_845G(dev) || IS_I865G(dev))
+ 		cur_state = I915_READ(_CURACNTR) & CURSOR_ENABLE;
+ 	else if (INTEL_INFO(dev)->gen <= 6 || IS_VALLEYVIEW(dev))
+diff -puN drivers/spi/spi-atmel.c~linux-next-git-rejects drivers/spi/spi-atmel.c
+--- a/drivers/spi/spi-atmel.c~linux-next-git-rejects
++++ a/drivers/spi/spi-atmel.c
+@@ -1461,11 +1461,8 @@ static int atmel_spi_resume(struct devic
+ 	struct spi_master	*master = dev_get_drvdata(dev);
+ 	struct atmel_spi	*as = spi_master_get_devdata(master);
+ 	int ret;
+-<<<<<<< HEAD
+-=======
+ 
+ 	pinctrl_pm_select_default_state(dev);
+->>>>>>> linux-next/akpm-base
+ 
+ 	clk_prepare_enable(as->clk);
+ 
+diff -puN drivers/staging/cxt1e1/linux.c~linux-next-git-rejects drivers/staging/cxt1e1/linux.c
+--- a/drivers/staging/cxt1e1/linux.c~linux-next-git-rejects
++++ a/drivers/staging/cxt1e1/linux.c
+@@ -879,77 +879,6 @@ c4_ioctl(struct net_device *ndev, struct
+ 		_IOC_DIR(iocmd), _IOC_TYPE(iocmd), _IOC_NR(iocmd),
+ 		_IOC_SIZE(iocmd));
+ #endif
+-<<<<<<< HEAD
+-    iolen = _IOC_SIZE (iocmd);
+-    if (iolen > sizeof(arg))
+-        return -EFAULT;
+-    data = ifr->ifr_data + sizeof (iocmd);
+-    if (copy_from_user (&arg, data, iolen))
+-        return -EFAULT;
+-
+-    ret = 0;
+-    switch (iocmd)
+-    {
+-    case SBE_IOC_PORT_GET:
+-        //pr_info(">> SBE_IOC_PORT_GET Ioctl...\n");
+-        ret = do_get_port (ndev, data);
+-        break;
+-    case SBE_IOC_PORT_SET:
+-        //pr_info(">> SBE_IOC_PORT_SET Ioctl...\n");
+-        ret = do_set_port (ndev, data);
+-        break;
+-    case SBE_IOC_CHAN_GET:
+-        //pr_info(">> SBE_IOC_CHAN_GET Ioctl...\n");
+-        ret = do_get_chan (ndev, data);
+-        break;
+-    case SBE_IOC_CHAN_SET:
+-        //pr_info(">> SBE_IOC_CHAN_SET Ioctl...\n");
+-        ret = do_set_chan (ndev, data);
+-        break;
+-    case C4_DEL_CHAN:
+-        //pr_info(">> C4_DEL_CHAN Ioctl...\n");
+-        ret = do_del_chan (ndev, data);
+-        break;
+-    case SBE_IOC_CHAN_NEW:
+-        ret = do_create_chan (ndev, data);
+-        break;
+-    case SBE_IOC_CHAN_GET_STAT:
+-        ret = do_get_chan_stats (ndev, data);
+-        break;
+-    case SBE_IOC_LOGLEVEL:
+-        ret = do_set_loglevel (ndev, data);
+-        break;
+-    case SBE_IOC_RESET_DEV:
+-        ret = do_reset (ndev, data);
+-        break;
+-    case SBE_IOC_CHAN_DEL_STAT:
+-        ret = do_reset_chan_stats (ndev, data);
+-        break;
+-    case C4_LOOP_PORT:
+-        ret = do_port_loop (ndev, data);
+-        break;
+-    case C4_RW_FRMR:
+-        ret = do_framer_rw (ndev, data);
+-        break;
+-    case C4_RW_MSYC:
+-        ret = do_musycc_rw (ndev, data);
+-        break;
+-    case C4_RW_PLD:
+-        ret = do_pld_rw (ndev, data);
+-        break;
+-    case SBE_IOC_IID_GET:
+-        ret = (iolen == sizeof (struct sbe_iid_info)) ? c4_get_iidinfo (ci, &arg.u.iip) : -EFAULT;
+-        if (ret == 0)               /* no error, copy data */
+-            if (copy_to_user (data, &arg, iolen))
+-                return -EFAULT;
+-        break;
+-    default:
+-        //pr_info(">> c4_ioctl: EINVAL - unknown iocmd <%x>\n", iocmd);
+-        ret = -EINVAL;
+-        break;
+-    }
+-    return mkret (ret);
+-=======
+ 	iolen = _IOC_SIZE(iocmd);
+ 	if (iolen > sizeof(arg))
+ 		return -EFAULT;
+@@ -1020,7 +949,6 @@ c4_ioctl(struct net_device *ndev, struct
+ 		break;
+ 	}
+ 	return mkret(ret);
+->>>>>>> linux-next/akpm-base
  }
  
--EXPORT_TRACEPOINT_SYMBOL_GPL(wbc_writepage);
--
- static void bdi_queue_work(struct backing_dev_info *bdi,
- 			   struct wb_writeback_work *work)
+ static const struct net_device_ops c4_ops = {
+diff -puN fs/bio-integrity.c~linux-next-git-rejects fs/bio-integrity.c
+--- a/fs/bio-integrity.c~linux-next-git-rejects
++++ a/fs/bio-integrity.c
+@@ -478,44 +478,7 @@ EXPORT_SYMBOL(bio_integrity_prep);
+  */
+ static int bio_integrity_verify(struct bio *bio)
  {
+-<<<<<<< HEAD
+-	struct blk_integrity *bi = bdev_get_integrity(bio->bi_bdev);
+-	struct blk_integrity_exchg bix;
+-	struct bio_vec *bv;
+-	sector_t sector = bio->bi_integrity->bip_iter.bi_sector;
+-	unsigned int sectors, ret = 0;
+-	void *prot_buf = bio->bi_integrity->bip_buf;
+-	int i;
+-
+-	bix.disk_name = bio->bi_bdev->bd_disk->disk_name;
+-	bix.sector_size = bi->sector_size;
+-
+-	bio_for_each_segment_all(bv, bio, i) {
+-		void *kaddr = kmap_atomic(bv->bv_page);
+-
+-		bix.data_buf = kaddr + bv->bv_offset;
+-		bix.data_size = bv->bv_len;
+-		bix.prot_buf = prot_buf;
+-		bix.sector = sector;
+-
+-		ret = bi->verify_fn(&bix);
+-
+-		if (ret) {
+-			kunmap_atomic(kaddr);
+-			return ret;
+-		}
+-
+-		sectors = bv->bv_len / bi->sector_size;
+-		sector += sectors;
+-		prot_buf += sectors * bi->tuple_size;
+-
+-		kunmap_atomic(kaddr);
+-	}
+-
+-	return ret;
+-=======
+ 	return bio_integrity_generate_verify(bio, 0);
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ /**
+diff -puN kernel/cpuset.c~linux-next-git-rejects kernel/cpuset.c
+--- a/kernel/cpuset.c~linux-next-git-rejects
++++ a/kernel/cpuset.c
+@@ -2413,11 +2413,7 @@ int __cpuset_node_allowed_softwall(int n
+ 	rcu_read_lock();
+ 	cs = nearest_hardwall_ancestor(task_cs(current));
+ 	allowed = node_isset(node, cs->mems_allowed);
+-<<<<<<< HEAD
+-	task_unlock(current);
+-=======
+ 	rcu_read_unlock();
+->>>>>>> linux-next/akpm-base
+ 
+ 	mutex_unlock(&callback_mutex);
+ 	return allowed;
+diff -puN drivers/ata/libata-core.c~linux-next-git-rejects drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~linux-next-git-rejects
++++ a/drivers/ata/libata-core.c
+@@ -4225,12 +4225,7 @@ static const struct ata_blacklist_entry
+ 
+ 	/* devices that don't properly handle queued TRIM commands */
+ 	{ "Micron_M500*",		NULL,	ATA_HORKAGE_NO_NCQ_TRIM, },
+-<<<<<<< HEAD
+ 	{ "Crucial_CT???M500SSD*",	NULL,	ATA_HORKAGE_NO_NCQ_TRIM, },
+-=======
+-	{ "Crucial_CT???M500SSD1",	NULL,	ATA_HORKAGE_NO_NCQ_TRIM, },
+-	{ "Crucial_CT???M500SSD3",	NULL,	ATA_HORKAGE_NO_NCQ_TRIM, },
+->>>>>>> linux-next/akpm-base
+ 
+ 	/*
+ 	 * Some WD SATA-I drives spin up and down erratically when the link
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,7 +322,6 @@ fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
 initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
 linux-next-rejects.patch
-linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 debugging-keep-track-of-page-owners.patch
 journal_add_journal_head-debug.patch
