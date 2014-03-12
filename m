@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch added
- to -mm tree
-Date: Wed, 12 Mar 2014 13:11:24 -0700
-Message-ID: <5320bf6c.yEBuKvPBLf9ifs8E%akpm@linux-foundation.org>
+Subject: + zram-support-req_discard.patch added to -mm tree
+Date: Wed, 12 Mar 2014 13:33:27 -0700
+Message-ID: <5320c497.csWoCw8Kz3/yp+Y9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57640 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57907 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101AbaCLULZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 16:11:25 -0400
+	with ESMTP id S1751766AbaCLUd2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 16:33:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, cl@linux.com, casteyde.christian@free.fr, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, ngupta@vflare.org, minchan@kernel.org, jmarchan@redhat.com, iamjoonsoo.kim@lge.com
 
-Subject: + slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch added to -mm tree
-To: iamjoonsoo.kim@lge.com,casteyde.christian@free.fr,cl@linux.com,penberg@kernel.org,rientjes@google.com
+Subject: + zram-support-req_discard.patch added to -mm tree
+To: iamjoonsoo.kim@lge.com,jmarchan@redhat.com,minchan@kernel.org,ngupta@vflare.org,sergey.senozhatsky@gmail.com
 From: akpm@linux-foundation.org
-Date: Wed, 12 Mar 2014 13:11:24 -0700
+Date: Wed, 12 Mar 2014 13:33:27 -0700
 
 
 The patch titled
-     Subject: slub: fix high order page allocation problem with  __GFP_NOFAIL
+     Subject: zram: support REQ_DISCARD
 has been added to the -mm tree.  Its filename is
-     slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch
+     zram-support-req_discard.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-support-req_discard.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-support-req_discard.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,55 +44,101 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: slub: fix high order page allocation problem with  __GFP_NOFAIL
+Subject: zram: support REQ_DISCARD
 
-SLUB already try to allocate high order page with clearing __GFP_NOFAIL. 
-But, when allocating shadow page for kmemcheck, it missed clearing the
-flag.  This trigger WARN_ON_ONCE() reported by Christian Casteyde.
+zram is ram based block device and can be used by backend of filesystem. 
+When filesystem deletes a file, it normally doesn't do anything on data
+block of that file.  It just marks on metadata of that file.  This
+behavior has no problem on disk based block device, but has problems on
+ram based block device, since we can't free memory used for data block. 
+To overcome this disadvantage, there is REQ_DISCARD functionality.  If
+block device support REQ_DISCARD and filesystem is mounted with discard
+option, filesystem sends REQ_DISCARD to block device whenever some data
+blocks are discarded.  All we have to do is to handle this request.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=65991
-https://lkml.org/lkml/2013/12/3/764
-
-This patch fix this situation by using same allocation flag as original
-allocation.
+This patch implements to flag up QUEUE_FLAG_DISCARD and handle this
+REQ_DISCARD request.  With it, we can free memory used by zram if it isn't
+used.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Christian Casteyde <casteyde.christian@free.fr>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |   44 ++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff -puN mm/slub.c~slub-fix-high-order-page-allocation-problem-with-__gfp_nofail mm/slub.c
---- a/mm/slub.c~slub-fix-high-order-page-allocation-problem-with-__gfp_nofail
-+++ a/mm/slub.c
-@@ -1348,11 +1348,12 @@ static struct page *allocate_slab(struct
- 	page = alloc_slab_page(alloc_gfp, node, oo);
- 	if (unlikely(!page)) {
- 		oo = s->min;
-+		alloc_gfp = flags;
- 		/*
- 		 * Allocation may have failed due to fragmentation.
- 		 * Try a lower order alloc if possible
- 		 */
--		page = alloc_slab_page(flags, node, oo);
-+		page = alloc_slab_page(alloc_gfp, node, oo);
+diff -puN drivers/block/zram/zram_drv.c~zram-support-req_discard drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-support-req_discard
++++ a/drivers/block/zram/zram_drv.c
+@@ -550,6 +550,33 @@ static int zram_bvec_rw(struct zram *zra
+ 	return ret;
+ }
  
- 		if (page)
- 			stat(s, ORDER_FALLBACK);
-@@ -1362,7 +1363,7 @@ static struct page *allocate_slab(struct
- 		&& !(s->flags & (SLAB_NOTRACK | DEBUG_DEFAULT_FLAGS))) {
- 		int pages = 1 << oo_order(oo);
++static void zram_bio_discard(struct zram *zram, u32 index,
++			     int offset, struct bio *bio)
++{
++	size_t n = bio->bi_iter.bi_size;
++
++	/*
++	 * On some arch, logical block (4096) aligned request couldn't be
++	 * aligned to PAGE_SIZE, since their PAGE_SIZE aren't 4096.
++	 * Therefore we should handle this misaligned case here.
++	 */
++	if (offset) {
++		if (n < offset)
++			return;
++
++		n -= offset;
++		index++;
++	}
++
++	while (n >= PAGE_SIZE) {
++		write_lock(&zram->meta->tb_lock);
++		zram_free_page(zram, index);
++		write_unlock(&zram->meta->tb_lock);
++		index++;
++		n -= PAGE_SIZE;
++	}
++}
++
+ static void zram_reset_device(struct zram *zram, bool reset_capacity)
+ {
+ 	size_t index;
+@@ -685,6 +712,12 @@ static void __zram_make_request(struct z
+ 	offset = (bio->bi_iter.bi_sector &
+ 		  (SECTORS_PER_PAGE - 1)) << SECTOR_SHIFT;
  
--		kmemcheck_alloc_shadow(page, oo_order(oo), flags, node);
-+		kmemcheck_alloc_shadow(page, oo_order(oo), alloc_gfp, node);
++	if (unlikely(bio->bi_rw & REQ_DISCARD)) {
++		zram_bio_discard(zram, index, offset, bio);
++		bio_endio(bio, 0);
++		return;
++	}
++
+ 	bio_for_each_segment(bvec, bio, iter) {
+ 		int max_transfer_size = PAGE_SIZE - offset;
  
- 		/*
- 		 * Objects from caches that have a constructor don't get
+@@ -854,6 +887,17 @@ static int create_device(struct zram *zr
+ 					ZRAM_LOGICAL_BLOCK_SIZE);
+ 	blk_queue_io_min(zram->disk->queue, PAGE_SIZE);
+ 	blk_queue_io_opt(zram->disk->queue, PAGE_SIZE);
++	zram->disk->queue->limits.discard_granularity = PAGE_SIZE;
++	zram->disk->queue->limits.max_discard_sectors = UINT_MAX;
++	/*
++	 * We will skip to discard mis-aligned range, so we can't ensure
++	 * whether discarded region is zero or not.
++	 */
++	if (ZRAM_LOGICAL_BLOCK_SIZE == PAGE_SIZE)
++		zram->disk->queue->limits.discard_zeroes_data = 1;
++	else
++		zram->disk->queue->limits.discard_zeroes_data = 0;
++	queue_flag_set_unlocked(QUEUE_FLAG_DISCARD, zram->disk->queue);
+ 
+ 	add_disk(zram->disk);
+ 
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
@@ -120,5 +164,6 @@ mm-compactionc-isolate_freepages_block-small-tuneup.patch
 mm-compaction-determine-isolation-mode-only-once.patch
 mm-vmallocc-enhance-vm_map_ram-comment.patch
 mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+zram-support-req_discard.patch
 page-owners-correct-page-order-when-to-free-page.patch
 
