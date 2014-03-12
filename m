@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch added to
- -mm tree
-Date: Wed, 12 Mar 2014 14:03:59 -0700
-Message-ID: <5320cbbf.XHDslp1hYnX+YP7x%akpm@linux-foundation.org>
+Subject: + mm-memcg-remove-unnecessary-preemption-disabling.patch added to -mm tree
+Date: Wed, 12 Mar 2014 14:03:56 -0700
+Message-ID: <5320cbbc.FjC8J2rPoNQEK6yC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58037 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58028 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299AbaCLVEA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 17:04:00 -0400
+	with ESMTP id S1750981AbaCLVD5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 17:03:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org
 
-Subject: + mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch added to -mm tree
+Subject: + mm-memcg-remove-unnecessary-preemption-disabling.patch added to -mm tree
 To: hannes@cmpxchg.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 12 Mar 2014 14:03:59 -0700
+Date: Wed, 12 Mar 2014 14:03:56 -0700
 
 
 The patch titled
-     Subject: mm: memcg: push !mm handling out to page cache charge function
+     Subject: mm: memcg: remove unnecessary preemption disabling
 has been added to the -mm tree.  Its filename is
-     mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch
+     mm-memcg-remove-unnecessary-preemption-disabling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-remove-unnecessary-preemption-disabling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-remove-unnecessary-preemption-disabling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,55 +44,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: push !mm handling out to page cache charge function
+Subject: mm: memcg: remove unnecessary preemption disabling
 
-Only page cache charges can happen without an mm context, so push this
-special case out of the inner core and into the cache charge function.
-
-An ancient comment explains that the mm can also be NULL in case the task
-is currently being migrated, but that is not actually true with the
-current case, so just remove it.
+lock_page_cgroup() disables preemption, remove explicit preemption
+disabling for code paths holding this lock.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/memcontrol.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-push-mm-handling-out-to-page-cache-charge-function mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-push-mm-handling-out-to-page-cache-charge-function
+diff -puN mm/memcontrol.c~mm-memcg-remove-unnecessary-preemption-disabling mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-remove-unnecessary-preemption-disabling
 +++ a/mm/memcontrol.c
-@@ -2737,15 +2737,6 @@ static int __mem_cgroup_try_charge(struc
- 
- 	if (gfp_mask & __GFP_NOFAIL)
- 		oom = false;
+@@ -921,8 +921,6 @@ static void mem_cgroup_charge_statistics
+ 					 struct page *page,
+ 					 bool anon, int nr_pages)
+ {
+-	preempt_disable();
 -
--	/*
--	 * We always charge the cgroup the mm_struct belongs to.
--	 * The mm_struct's mem_cgroup changes on task migration if the
--	 * thread group leader migrates. It's possible that mm is not
--	 * set, if so charge the root memcg (happens for pagecache usage).
--	 */
--	if (!*ptr && !mm)
--		*ptr = root_mem_cgroup;
- again:
- 	if (*ptr) { /* css should be a valid one */
- 		memcg = *ptr;
-@@ -4070,6 +4061,12 @@ int mem_cgroup_cache_charge(struct page
- 		return 0;
+ 	/*
+ 	 * Here, RSS means 'mapped anon' and anon's SwapCache. Shmem/tmpfs is
+ 	 * counted as CACHE even if it's on ANON LRU.
+@@ -947,8 +945,6 @@ static void mem_cgroup_charge_statistics
+ 	}
  
- 	if (!PageSwapCache(page)) {
-+		/*
-+		 * Page cache insertions can happen without an actual
-+		 * task context, e.g. during disk probing on boot.
-+		 */
-+		if (!mm)
-+			memcg = root_mem_cgroup;
- 		ret = __mem_cgroup_try_charge(mm, gfp_mask, 1, &memcg, true);
- 		if (ret != -ENOMEM)
- 			__mem_cgroup_commit_charge(memcg, page, 1, type, false);
+ 	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
+-
+-	preempt_enable();
+ }
+ 
+ unsigned long
+@@ -3780,17 +3776,14 @@ void mem_cgroup_split_huge_fixup(struct
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+-static inline
+-void mem_cgroup_move_account_page_stat(struct mem_cgroup *from,
+-					struct mem_cgroup *to,
+-					unsigned int nr_pages,
+-					enum mem_cgroup_stat_index idx)
++static void mem_cgroup_move_account_page_stat(struct mem_cgroup *from,
++					      struct mem_cgroup *to,
++					      unsigned int nr_pages,
++					      enum mem_cgroup_stat_index idx)
+ {
+ 	/* Update stat data for mem_cgroup */
+-	preempt_disable();
+ 	__this_cpu_sub(from->stat->count[idx], nr_pages);
+ 	__this_cpu_add(to->stat->count[idx], nr_pages);
+-	preempt_enable();
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
