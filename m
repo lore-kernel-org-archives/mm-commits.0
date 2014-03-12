@@ -1,160 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch removed from -mm tree
-Date: Wed, 12 Mar 2014 12:01:14 -0700
-Message-ID: <5320aefa.ht9gsG7O6VzzTpoZ%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Wed, 12 Mar 2014 12:05:12 -0700
+Message-ID: <5320afe8.cdc7+Pk/RY8QCdV4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57151 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271AbaCLTBP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 15:01:15 -0400
+	with ESMTP id S1751101AbaCLTFM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 15:05:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rgb@redhat.com, eparis@redhat.com, ebiederm@xmission.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: [alternative-merged] audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch removed from -mm tree
-To: ebiederm@xmission.com,eparis@redhat.com,rgb@redhat.com,mm-commits@vger.kernel.org
+Subject: + linux-next-rejects.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Wed, 12 Mar 2014 12:01:14 -0700
+Date: Wed, 12 Mar 2014 12:05:12 -0700
 
 
 The patch titled
-     Subject: audit: use struct net not pid_t to remember the network namespace to reply in
-has been removed from the -mm tree.  Its filename was
-     audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in.patch
+     Subject: linux-next-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-rejects.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: audit: use struct net not pid_t to remember the network namespace to reply in
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-While reading through 3.14-rc1 I found a pretty siginficant mishandling of
-network namespaces in the recent audit changes.
-
-In struct audit_netlink_list and audit_reply add a reference to the
-network namespace of the caller and remove the userspace pid of the
-caller.  This cleanly remembers the callers network namespace, and removes
-a huge class of races and nasty failure modes that can occur when
-attempting to relook up the callers network namespace from a pid_t
-(including the caller's network namespace changing, pid wraparound, and
-the pid simply not being present).
-
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Richard Guy Briggs <rgb@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c       |   10 ++++++----
- kernel/audit.h       |    2 +-
- kernel/auditfilter.c |    3 ++-
- 3 files changed, 9 insertions(+), 6 deletions(-)
+ fs/fs-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/audit.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in kernel/audit.c
---- a/kernel/audit.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in
-+++ a/kernel/audit.c
-@@ -182,7 +182,7 @@ struct audit_buffer {
+diff -puN fs/fs-writeback.c~linux-next-rejects fs/fs-writeback.c
+--- a/fs/fs-writeback.c~linux-next-rejects
++++ a/fs/fs-writeback.c
+@@ -89,6 +89,8 @@ static inline struct inode *wb_inode(str
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/writeback.h>
  
- struct audit_reply {
- 	__u32 portid;
--	pid_t pid;
-+	struct net *net;
- 	struct sk_buff *skb;
- };
- 
-@@ -500,7 +500,7 @@ int audit_send_list(void *_dest)
++EXPORT_TRACEPOINT_SYMBOL_GPL(wbc_writepage);
++
+ static void bdi_wakeup_thread(struct backing_dev_info *bdi)
  {
- 	struct audit_netlink_list *dest = _dest;
- 	struct sk_buff *skb;
--	struct net *net = get_net_ns_by_pid(dest->pid);
-+	struct net *net = dest->net;
- 	struct audit_net *aunet = net_generic(net, audit_net_id);
- 
- 	/* wait for parent to finish and send an ACK */
-@@ -510,6 +510,7 @@ int audit_send_list(void *_dest)
- 	while ((skb = __skb_dequeue(&dest->q)) != NULL)
- 		netlink_unicast(aunet->nlsk, skb, dest->portid, 0);
- 
-+	put_net(net);
- 	kfree(dest);
- 
- 	return 0;
-@@ -543,7 +544,7 @@ out_kfree_skb:
- static int audit_send_reply_thread(void *arg)
- {
- 	struct audit_reply *reply = (struct audit_reply *)arg;
--	struct net *net = get_net_ns_by_pid(reply->pid);
-+	struct net *net = reply->net;
- 	struct audit_net *aunet = net_generic(net, audit_net_id);
- 
- 	mutex_lock(&audit_cmd_mutex);
-@@ -552,6 +553,7 @@ static int audit_send_reply_thread(void
- 	/* Ignore failure. It'll only happen if the sender goes away,
- 	   because our timeout is set to infinite. */
- 	netlink_unicast(aunet->nlsk , reply->skb, reply->portid, 0);
-+	put_net(net);
- 	kfree(reply);
- 	return 0;
+ 	spin_lock_bh(&bdi->wb_lock);
+@@ -97,8 +99,6 @@ static void bdi_wakeup_thread(struct bac
+ 	spin_unlock_bh(&bdi->wb_lock);
  }
-@@ -583,8 +585,8 @@ static void audit_send_reply(__u32 porti
- 	if (!skb)
- 		goto out;
  
-+	reply->net = get_net(current->nsproxy->net_ns);
- 	reply->portid = portid;
--	reply->pid = task_pid_vnr(current);
- 	reply->skb = skb;
- 
- 	tsk = kthread_run(audit_send_reply_thread, reply, "audit_send_reply");
-diff -puN kernel/audit.h~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in kernel/audit.h
---- a/kernel/audit.h~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in
-+++ a/kernel/audit.h
-@@ -247,7 +247,7 @@ extern void		    audit_panic(const char
- 
- struct audit_netlink_list {
- 	__u32 portid;
--	pid_t pid;
-+	struct net *net;
- 	struct sk_buff_head q;
- };
- 
-diff -puN kernel/auditfilter.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in kernel/auditfilter.c
---- a/kernel/auditfilter.c~audit-use-struct-net-not-pid_t-to-remember-the-network-namespce-to-reply-in
-+++ a/kernel/auditfilter.c
-@@ -29,6 +29,7 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/security.h>
-+#include <net/net_namespace.h>
- #include "audit.h"
- 
- /*
-@@ -1083,8 +1084,8 @@ int audit_list_rules_send(__u32 portid,
- 	dest = kmalloc(sizeof(struct audit_netlink_list), GFP_KERNEL);
- 	if (!dest)
- 		return -ENOMEM;
-+	dest->net = get_net(current->nsproxy->net_ns);
- 	dest->portid = portid;
--	dest->pid = task_pid_vnr(current);
- 	skb_queue_head_init(&dest->q);
- 
- 	mutex_lock(&audit_filter_mutex);
+-EXPORT_TRACEPOINT_SYMBOL_GPL(wbc_writepage);
+-
+ static void bdi_queue_work(struct backing_dev_info *bdi,
+ 			   struct wb_writeback_work *work)
+ {
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch
-mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
-exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
-kernel-groupsc-remove-return-value-of-set_groups.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
+mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-per-thread-vma-caching.patch
+mm-per-thread-vma-caching-fix-3.patch
+mm-per-thread-vma-caching-fix-5.patch
+mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix.patch
+zram-use-zcomp-compressing-backends-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix.patch
+zram-propagate-error-to-user-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
 kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-kernel-audit-fix-non-modular-users-of-module_init-in-core-code.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
