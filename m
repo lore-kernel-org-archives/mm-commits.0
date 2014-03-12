@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-remove-mem_cgroup_move_account_page_stat.patch added
- to -mm tree
-Date: Wed, 12 Mar 2014 14:03:57 -0700
-Message-ID: <5320cbbd.71g/GpLCJrFc2V59%akpm@linux-foundation.org>
+Subject: +
+ mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch added to
+ -mm tree
+Date: Wed, 12 Mar 2014 14:03:59 -0700
+Message-ID: <5320cbbf.XHDslp1hYnX+YP7x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58032 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58037 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750981AbaCLVD6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 17:03:58 -0400
+	with ESMTP id S1751299AbaCLVEA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 17:04:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org
 
-Subject: + mm-memcg-remove-mem_cgroup_move_account_page_stat.patch added to -mm tree
+Subject: + mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch added to -mm tree
 To: hannes@cmpxchg.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 12 Mar 2014 14:03:57 -0700
+Date: Wed, 12 Mar 2014 14:03:59 -0700
 
 
 The patch titled
-     Subject: mm: memcg: remove mem_cgroup_move_account_page_stat()
+     Subject: mm: memcg: push !mm handling out to page cache charge function
 has been added to the -mm tree.  Its filename is
-     mm-memcg-remove-mem_cgroup_move_account_page_stat.patch
+     mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-remove-mem_cgroup_move_account_page_stat.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-remove-mem_cgroup_move_account_page_stat.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,67 +46,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: remove mem_cgroup_move_account_page_stat()
+Subject: mm: memcg: push !mm handling out to page cache charge function
 
-It used to disable preemption and run sanity checks but now it's only
-taking a number out of one percpu counter and putting it into another.  Do
-this directly in the callsite and save the indirection.
+Only page cache charges can happen without an mm context, so push this
+special case out of the inner core and into the cache charge function.
+
+An ancient comment explains that the mm can also be NULL in case the task
+is currently being migrated, but that is not actually true with the
+current case, so just remove it.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   30 +++++++++++++-----------------
- 1 file changed, 13 insertions(+), 17 deletions(-)
+ mm/memcontrol.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-remove-mem_cgroup_move_account_page_stat mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-remove-mem_cgroup_move_account_page_stat
+diff -puN mm/memcontrol.c~mm-memcg-push-mm-handling-out-to-page-cache-charge-function mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-push-mm-handling-out-to-page-cache-charge-function
 +++ a/mm/memcontrol.c
-@@ -3776,16 +3776,6 @@ void mem_cgroup_split_huge_fixup(struct
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+@@ -2737,15 +2737,6 @@ static int __mem_cgroup_try_charge(struc
  
--static void mem_cgroup_move_account_page_stat(struct mem_cgroup *from,
--					      struct mem_cgroup *to,
--					      unsigned int nr_pages,
--					      enum mem_cgroup_stat_index idx)
--{
--	/* Update stat data for mem_cgroup */
--	__this_cpu_sub(from->stat->count[idx], nr_pages);
--	__this_cpu_add(to->stat->count[idx], nr_pages);
--}
+ 	if (gfp_mask & __GFP_NOFAIL)
+ 		oom = false;
 -
- /**
-  * mem_cgroup_move_account - move account of the page
-  * @page: the page
-@@ -3831,13 +3821,19 @@ static int mem_cgroup_move_account(struc
+-	/*
+-	 * We always charge the cgroup the mm_struct belongs to.
+-	 * The mm_struct's mem_cgroup changes on task migration if the
+-	 * thread group leader migrates. It's possible that mm is not
+-	 * set, if so charge the root memcg (happens for pagecache usage).
+-	 */
+-	if (!*ptr && !mm)
+-		*ptr = root_mem_cgroup;
+ again:
+ 	if (*ptr) { /* css should be a valid one */
+ 		memcg = *ptr;
+@@ -4070,6 +4061,12 @@ int mem_cgroup_cache_charge(struct page
+ 		return 0;
  
- 	move_lock_mem_cgroup(from, &flags);
- 
--	if (!anon && page_mapped(page))
--		mem_cgroup_move_account_page_stat(from, to, nr_pages,
--			MEM_CGROUP_STAT_FILE_MAPPED);
--
--	if (PageWriteback(page))
--		mem_cgroup_move_account_page_stat(from, to, nr_pages,
--			MEM_CGROUP_STAT_WRITEBACK);
-+	if (!anon && page_mapped(page)) {
-+		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
-+			       nr_pages);
-+		__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
-+			       nr_pages);
-+	}
-+
-+	if (PageWriteback(page)) {
-+		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_WRITEBACK],
-+			       nr_pages);
-+		__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_WRITEBACK],
-+			       nr_pages);
-+	}
- 
- 	mem_cgroup_charge_statistics(from, page, anon, -nr_pages);
- 
+ 	if (!PageSwapCache(page)) {
++		/*
++		 * Page cache insertions can happen without an actual
++		 * task context, e.g. during disk probing on boot.
++		 */
++		if (!mm)
++			memcg = root_mem_cgroup;
+ 		ret = __mem_cgroup_try_charge(mm, gfp_mask, 1, &memcg, true);
+ 		if (ret != -ENOMEM)
+ 			__mem_cgroup_commit_charge(memcg, page, 1, type, false);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
