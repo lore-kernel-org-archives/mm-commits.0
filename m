@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-inline-mem_cgroup_charge_common.patch added to -mm
- tree
-Date: Wed, 12 Mar 2014 14:03:58 -0700
-Message-ID: <5320cbbe.UiWZ0tcL2jPEQ30S%akpm@linux-foundation.org>
+Subject: + mm-memcg-remove-mem_cgroup_move_account_page_stat.patch added
+ to -mm tree
+Date: Wed, 12 Mar 2014 14:03:57 -0700
+Message-ID: <5320cbbd.71g/GpLCJrFc2V59%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58035 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58032 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299AbaCLVD7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 17:03:59 -0400
+	with ESMTP id S1750981AbaCLVD6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 17:03:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org
 
-Subject: + mm-memcg-inline-mem_cgroup_charge_common.patch added to -mm tree
+Subject: + mm-memcg-remove-mem_cgroup_move_account_page_stat.patch added to -mm tree
 To: hannes@cmpxchg.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 12 Mar 2014 14:03:58 -0700
+Date: Wed, 12 Mar 2014 14:03:57 -0700
 
 
 The patch titled
-     Subject: mm: memcg: inline mem_cgroup_charge_common()
+     Subject: mm: memcg: remove mem_cgroup_move_account_page_stat()
 has been added to the -mm tree.  Its filename is
-     mm-memcg-inline-mem_cgroup_charge_common.patch
+     mm-memcg-remove-mem_cgroup_move_account_page_stat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-inline-mem_cgroup_charge_common.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-remove-mem_cgroup_move_account_page_stat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-inline-mem_cgroup_charge_common.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-remove-mem_cgroup_move_account_page_stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,93 +45,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: inline mem_cgroup_charge_common()
+Subject: mm: memcg: remove mem_cgroup_move_account_page_stat()
 
-mem_cgroup_charge_common() is used by both cache and anon pages, but most
-of its body only applies to anon pages and the remainder is not worth
-having in a separate function.
+It used to disable preemption and run sanity checks but now it's only
+taking a number out of one percpu counter and putting it into another.  Do
+this directly in the callsite and save the indirection.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   40 ++++++++++++++++------------------------
- 1 file changed, 16 insertions(+), 24 deletions(-)
+ mm/memcontrol.c |   30 +++++++++++++-----------------
+ 1 file changed, 13 insertions(+), 17 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-inline-mem_cgroup_charge_common mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-inline-mem_cgroup_charge_common
+diff -puN mm/memcontrol.c~mm-memcg-remove-mem_cgroup_move_account_page_stat mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-remove-mem_cgroup_move_account_page_stat
 +++ a/mm/memcontrol.c
-@@ -3919,20 +3919,21 @@ out:
- 	return ret;
+@@ -3776,16 +3776,6 @@ void mem_cgroup_split_huge_fixup(struct
  }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
--/*
-- * Charge the memory controller for page usage.
-- * Return
-- * 0 if the charge was successful
-- * < 0 if the cgroup is over its limit
-- */
--static int mem_cgroup_charge_common(struct page *page, struct mm_struct *mm,
--				gfp_t gfp_mask, enum charge_type ctype)
-+int mem_cgroup_newpage_charge(struct page *page,
-+			      struct mm_struct *mm, gfp_t gfp_mask)
- {
- 	struct mem_cgroup *memcg = NULL;
- 	unsigned int nr_pages = 1;
- 	bool oom = true;
- 	int ret;
- 
-+	if (mem_cgroup_disabled())
-+		return 0;
-+
-+	VM_BUG_ON_PAGE(page_mapped(page), page);
-+	VM_BUG_ON_PAGE(page->mapping && !PageAnon(page), page);
-+	VM_BUG_ON(!mm);
-+
- 	if (PageTransHuge(page)) {
- 		nr_pages <<= compound_order(page);
- 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
-@@ -3946,22 +3947,11 @@ static int mem_cgroup_charge_common(stru
- 	ret = __mem_cgroup_try_charge(mm, gfp_mask, nr_pages, &memcg, oom);
- 	if (ret == -ENOMEM)
- 		return ret;
--	__mem_cgroup_commit_charge(memcg, page, nr_pages, ctype, false);
-+	__mem_cgroup_commit_charge(memcg, page, nr_pages,
-+				   MEM_CGROUP_CHARGE_TYPE_ANON, false);
- 	return 0;
- }
- 
--int mem_cgroup_newpage_charge(struct page *page,
--			      struct mm_struct *mm, gfp_t gfp_mask)
+-static void mem_cgroup_move_account_page_stat(struct mem_cgroup *from,
+-					      struct mem_cgroup *to,
+-					      unsigned int nr_pages,
+-					      enum mem_cgroup_stat_index idx)
 -{
--	if (mem_cgroup_disabled())
--		return 0;
--	VM_BUG_ON_PAGE(page_mapped(page), page);
--	VM_BUG_ON_PAGE(page->mapping && !PageAnon(page), page);
--	VM_BUG_ON(!mm);
--	return mem_cgroup_charge_common(page, mm, gfp_mask,
--					MEM_CGROUP_CHARGE_TYPE_ANON);
+-	/* Update stat data for mem_cgroup */
+-	__this_cpu_sub(from->stat->count[idx], nr_pages);
+-	__this_cpu_add(to->stat->count[idx], nr_pages);
 -}
 -
- /*
-  * While swap-in, try_charge -> commit or cancel, the page is locked.
-  * And when try_charge() successfully returns, one refcnt to memcg without
-@@ -4079,9 +4069,11 @@ int mem_cgroup_cache_charge(struct page
- 	if (PageCompound(page))
- 		return 0;
+ /**
+  * mem_cgroup_move_account - move account of the page
+  * @page: the page
+@@ -3831,13 +3821,19 @@ static int mem_cgroup_move_account(struc
  
--	if (!PageSwapCache(page))
--		ret = mem_cgroup_charge_common(page, mm, gfp_mask, type);
--	else { /* page is swapcache/shmem */
-+	if (!PageSwapCache(page)) {
-+		ret = __mem_cgroup_try_charge(mm, gfp_mask, 1, &memcg, true);
-+		if (ret != -ENOMEM)
-+			__mem_cgroup_commit_charge(memcg, page, 1, type, false);
-+	} else { /* page is swapcache/shmem */
- 		ret = __mem_cgroup_try_charge_swapin(mm, page,
- 						     gfp_mask, &memcg);
- 		if (!ret)
+ 	move_lock_mem_cgroup(from, &flags);
+ 
+-	if (!anon && page_mapped(page))
+-		mem_cgroup_move_account_page_stat(from, to, nr_pages,
+-			MEM_CGROUP_STAT_FILE_MAPPED);
+-
+-	if (PageWriteback(page))
+-		mem_cgroup_move_account_page_stat(from, to, nr_pages,
+-			MEM_CGROUP_STAT_WRITEBACK);
++	if (!anon && page_mapped(page)) {
++		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
++			       nr_pages);
++		__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
++			       nr_pages);
++	}
++
++	if (PageWriteback(page)) {
++		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_WRITEBACK],
++			       nr_pages);
++		__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_WRITEBACK],
++			       nr_pages);
++	}
+ 
+ 	mem_cgroup_charge_statistics(from, page, anon, -nr_pages);
+ 
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
