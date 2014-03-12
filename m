@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge.patch added to -mm tree
-Date: Wed, 12 Mar 2014 14:04:02 -0700
-Message-ID: <5320cbc2.s+a93bn8G9Ph03f2%akpm@linux-foundation.org>
+ memcg-remove-unnecessary-mm-check-from-try_get_mem_cgroup_from_mm.patch
+ added to -mm tree
+Date: Wed, 12 Mar 2014 14:04:00 -0700
+Message-ID: <5320cbc0.rS1unWIz9k/fWt3O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58045 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752147AbaCLVED (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 17:04:03 -0400
+	with ESMTP id S1751244AbaCLVEC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Mar 2014 17:04:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org
 
-Subject: + memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge.patch added to -mm tree
-To: mhocko@suse.cz,hannes@cmpxchg.org
+Subject: + memcg-remove-unnecessary-mm-check-from-try_get_mem_cgroup_from_mm.patch added to -mm tree
+To: hannes@cmpxchg.org,mhocko@suse.cz
 From: akpm@linux-foundation.org
-Date: Wed, 12 Mar 2014 14:04:02 -0700
+Date: Wed, 12 Mar 2014 14:04:00 -0700
 
 
 The patch titled
-     Subject: memcg: do not replicate get_mem_cgroup_from_mm in __mem_cgroup_try_charge
+     Subject: memcg: remove unnecessary !mm check from try_get_mem_cgroup_from_mm()
 has been added to the -mm tree.  Its filename is
-     memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge.patch
+     memcg-remove-unnecessary-mm-check-from-try_get_mem_cgroup_from_mm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-remove-unnecessary-mm-check-from-try_get_mem_cgroup_from_mm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-remove-unnecessary-mm-check-from-try_get_mem_cgroup_from_mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,105 +45,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: do not replicate get_mem_cgroup_from_mm in __mem_cgroup_try_charge
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: memcg: remove unnecessary !mm check from try_get_mem_cgroup_from_mm()
 
-__mem_cgroup_try_charge duplicates get_mem_cgroup_from_mm for charges
-which came without a memcg.  The only reason seems to be a tiny
-optimization when css_tryget is not called if the charge can be consumed
-from the stock.  Nevertheless css_tryget is very cheap since it has been
-reworked to use per-cpu counting so this optimization doesn't give us
-anything these days.
+Users pass either a mm that has been established under task lock, or use a
+verified current->mm, which means the task can't be exiting.
 
-So let's drop the code duplication so that the code is more readable.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   50 +++++-----------------------------------------
- 1 file changed, 6 insertions(+), 44 deletions(-)
+ mm/memcontrol.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge
+diff -puN mm/memcontrol.c~memcg-remove-unnecessary-mm-check-from-try_get_mem_cgroup_from_mm mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-unnecessary-mm-check-from-try_get_mem_cgroup_from_mm
 +++ a/mm/memcontrol.c
-@@ -2731,52 +2731,14 @@ static int __mem_cgroup_try_charge(struc
- again:
- 	if (*ptr) { /* css should be a valid one */
- 		memcg = *ptr;
--		if (mem_cgroup_is_root(memcg))
--			goto done;
--		if (consume_stock(memcg, nr_pages))
--			goto done;
- 		css_get(&memcg->css);
- 	} else {
--		struct task_struct *p;
--
--		rcu_read_lock();
--		p = rcu_dereference(mm->owner);
--		/*
--		 * Because we don't have task_lock(), "p" can exit.
--		 * In that case, "memcg" can point to root or p can be NULL with
--		 * race with swapoff. Then, we have small risk of mis-accouning.
--		 * But such kind of mis-account by race always happens because
--		 * we don't have cgroup_mutex(). It's overkill and we allo that
--		 * small race, here.
--		 * (*) swapoff at el will charge against mm-struct not against
--		 * task-struct. So, mm->owner can be NULL.
--		 */
--		memcg = mem_cgroup_from_task(p);
--		if (!memcg)
--			memcg = root_mem_cgroup;
--		if (mem_cgroup_is_root(memcg)) {
--			rcu_read_unlock();
--			goto done;
--		}
--		if (consume_stock(memcg, nr_pages)) {
--			/*
--			 * It seems dagerous to access memcg without css_get().
--			 * But considering how consume_stok works, it's not
--			 * necessary. If consume_stock success, some charges
--			 * from this memcg are cached on this cpu. So, we
--			 * don't need to call css_get()/css_tryget() before
--			 * calling consume_stock().
--			 */
--			rcu_read_unlock();
--			goto done;
--		}
--		/* after here, we may be blocked. we need to get refcnt */
--		if (!css_tryget(&memcg->css)) {
--			rcu_read_unlock();
--			goto again;
--		}
--		rcu_read_unlock();
-+		memcg = get_mem_cgroup_from_mm(mm);
- 	}
-+	if (mem_cgroup_is_root(memcg))
-+		goto done;
-+	if (consume_stock(memcg, nr_pages))
-+		goto done;
+@@ -1075,13 +1075,6 @@ struct mem_cgroup *try_get_mem_cgroup_fr
+ {
+ 	struct mem_cgroup *memcg = NULL;
  
+-	if (!mm)
+-		return NULL;
+-	/*
+-	 * Because we have no locks, mm->owner's may be being moved to other
+-	 * cgroup. We use css_tryget() here even if this looks
+-	 * pessimistic (rather than adding locks here).
+-	 */
+ 	rcu_read_lock();
  	do {
- 		bool invoke_oom = oom && !nr_oom_retries;
-@@ -2812,8 +2774,8 @@ again:
- 
- 	if (batch > nr_pages)
- 		refill_stock(memcg, batch - nr_pages);
--	css_put(&memcg->css);
- done:
-+	css_put(&memcg->css);
- 	*ptr = memcg;
- 	return 0;
- nomem:
+ 		memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+origin.patch
 mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
 mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
 mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
+lib-radix_tree-tree-node-interface-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix-fix.patch
 pagewalk-update-page-table-walker-core.patch
 pagewalk-add-walk_page_vma.patch
 smaps-redefine-callback-functions-for-page-table-walker.patch
@@ -155,11 +113,15 @@ arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
 pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
 mempolicy-apply-page-table-walker-on-queue_pages_range.patch
 drop_caches-add-some-documentation-and-info-message.patch
-mm-exclude-memory-less-nodes-from-zone_reclaim.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
+mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
+exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
 fork-collapse-copy_flags-into-copy_process.patch
 mm-mempolicy-rename-slab_node-for-clarity.patch
 mm-mempolicy-remove-per-process-flag.patch
 res_counter-remove-interface-for-locked-charging-and-uncharging.patch
+mm-vmallocc-enhance-vm_map_ram-comment.patch
+mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
 mm-memcg-remove-unnecessary-preemption-disabling.patch
 mm-memcg-remove-mem_cgroup_move_account_page_stat.patch
 mm-memcg-inline-mem_cgroup_charge_common.patch
@@ -170,11 +132,6 @@ memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge.patch
 memcg-sanitize-__mem_cgroup_try_charge-call-protocol.patch
 memcg-sanitize-__mem_cgroup_try_charge-call-protocol-fix.patch
 memcg-rename-high-level-charging-functions.patch
-printk-remove-duplicated-check-for-log-level.patch
-printk-remove-obsolete-check-for-log-level-c.patch
-printk-add-comment-about-tricky-check-for-text-buffer-size.patch
-printk-use-also-the-last-bytes-in-the-ring-buffer.patch
-printk-do-not-compute-the-size-of-the-message-twice.patch
 linux-next.patch
 memcg-slab-never-try-to-merge-memcg-caches.patch
 memcg-slab-cleanup-memcg-cache-creation.patch
@@ -183,4 +140,5 @@ memcg-slab-unregister-cache-from-memcg-before-starting-to-destroy-it.patch
 memcg-slab-do-not-destroy-children-caches-if-parent-has-aliases.patch
 slub-adjust-memcg-caches-when-creating-cache-alias.patch
 slub-rework-sysfs-layout-for-memcg-caches.patch
+debugging-keep-track-of-page-owners.patch
 
