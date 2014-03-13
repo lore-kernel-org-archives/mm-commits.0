@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch added
- to -mm tree
-Date: Thu, 13 Mar 2014 14:35:34 -0700
-Message-ID: <532224a6.L81nCdwQGMyv3dY+%akpm@linux-foundation.org>
+Subject: + mips-replace-config_mips64-and-config_mips32_r2.patch added to
+ -mm tree
+Date: Thu, 13 Mar 2014 14:58:05 -0700
+Message-ID: <532229ed.SEhE98o+L2RTidvR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42391 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42431 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753093AbaCMVff (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Mar 2014 17:35:35 -0400
+	with ESMTP id S1752969AbaCMV6G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Mar 2014 17:58:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, jack@suse.cz, axboe@kernel.dk, r.peniaev@gmail.com
+To: mm-commits@vger.kernel.org, ralf@linux-mips.org, paul.burton@imgtec.com, linux@roeck-us.net, chenhc@lemote.com, aba@ayous.org, aaro.koskinen@iki.fi, pebolle@tiscali.nl
 
-Subject: + fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch added to -mm tree
-To: r.peniaev@gmail.com,axboe@kernel.dk,jack@suse.cz,tj@kernel.org
+Subject: + mips-replace-config_mips64-and-config_mips32_r2.patch added to -mm tree
+To: pebolle@tiscali.nl,aaro.koskinen@iki.fi,aba@ayous.org,chenhc@lemote.com,linux@roeck-us.net,paul.burton@imgtec.com,ralf@linux-mips.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Mar 2014 14:35:34 -0700
+Date: Thu, 13 Mar 2014 14:58:05 -0700
 
 
 The patch titled
-     Subject: fs/mpage.c: forgotten WRITE_SYNC in case of data integrity write
+     Subject: mips: replace CONFIG_MIPS64 and CONFIG_MIPS32_R2
 has been added to the -mm tree.  Its filename is
-     fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+     mips-replace-config_mips64-and-config_mips32_r2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mips-replace-config_mips64-and-config_mips32_r2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mips-replace-config_mips64-and-config_mips32_r2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,105 +44,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Pen <r.peniaev@gmail.com>
-Subject: fs/mpage.c: forgotten WRITE_SYNC in case of data integrity write
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: mips: replace CONFIG_MIPS64 and CONFIG_MIPS32_R2
 
-In case of wbc->sync_mode == WB_SYNC_ALL we need to do data integrity
-write, thus mark request as WRITE_SYNC.
+Commit 597ce1723e0f ("MIPS: Support for 64-bit FP with O32 binaries")
+introduced references to two undefined Kconfig macros.  CONFIG_MIPS32_R2
+should clearly be replaced with CONFIG_CPU_MIPS32_R2.  And CONFIG_MIPS64
+should apparently be replaced with CONFIG_64BIT.
 
-akpm: afaict this change will cause the data integrity write bios to be
-placed onto the second queue in cfq_io_cq.cfqq[], which presumably results
-in special treatment.  The documentation for REQ_SYNC is horrid.
-
-Signed-off-by: Roman Pen <r.peniaev@gmail.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Huacai Chen <chenhc@lemote.com>
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Paul Burton <paul.burton@imgtec.com>
+Cc: Andreas Barth <aba@ayous.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ arch/mips/include/asm/asmmacro.h |    4 ++--
+ arch/mips/include/asm/fpu.h      |    2 +-
+ arch/mips/kernel/r4k_fpu.S       |    8 ++++----
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/mpage.c~fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write fs/mpage.c
---- a/fs/mpage.c~fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write
-+++ a/fs/mpage.c
-@@ -462,6 +462,7 @@ static int __mpage_writepage(struct page
- 	struct buffer_head map_bh;
- 	loff_t i_size = i_size_read(inode);
- 	int ret = 0;
-+	int wr = (wbc->sync_mode == WB_SYNC_ALL ?  WRITE_SYNC : WRITE);
+diff -puN arch/mips/include/asm/asmmacro.h~mips-replace-config_mips64-and-config_mips32_r2 arch/mips/include/asm/asmmacro.h
+--- a/arch/mips/include/asm/asmmacro.h~mips-replace-config_mips64-and-config_mips32_r2
++++ a/arch/mips/include/asm/asmmacro.h
+@@ -106,7 +106,7 @@
+ 	.endm
  
- 	if (page_has_buffers(page)) {
- 		struct buffer_head *head = page_buffers(page);
-@@ -570,7 +571,7 @@ page_is_mapped:
- 	 * This page will go to BIO.  Do we need to send this BIO off first?
- 	 */
- 	if (bio && mpd->last_block_in_bio != blocks[0] - 1)
--		bio = mpage_bio_submit(WRITE, bio);
-+		bio = mpage_bio_submit(wr, bio);
+ 	.macro	fpu_save_double thread status tmp
+-#if defined(CONFIG_MIPS64) || defined(CONFIG_CPU_MIPS32_R2)
++#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
+ 	sll	\tmp, \status, 5
+ 	bgez	\tmp, 10f
+ 	fpu_save_16odd \thread
+@@ -159,7 +159,7 @@
+ 	.endm
  
- alloc_new:
- 	if (bio == NULL) {
-@@ -587,7 +588,7 @@ alloc_new:
- 	 */
- 	length = first_unmapped << blkbits;
- 	if (bio_add_page(bio, page, length, 0) < length) {
--		bio = mpage_bio_submit(WRITE, bio);
-+		bio = mpage_bio_submit(wr, bio);
- 		goto alloc_new;
- 	}
+ 	.macro	fpu_restore_double thread status tmp
+-#if defined(CONFIG_MIPS64) || defined(CONFIG_CPU_MIPS32_R2)
++#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
+ 	sll	\tmp, \status, 5
+ 	bgez	\tmp, 10f				# 16 register mode?
  
-@@ -620,7 +621,7 @@ alloc_new:
- 	set_page_writeback(page);
- 	unlock_page(page);
- 	if (boundary || (first_unmapped != blocks_per_page)) {
--		bio = mpage_bio_submit(WRITE, bio);
-+		bio = mpage_bio_submit(wr, bio);
- 		if (boundary_block) {
- 			write_boundary_block(boundary_bdev,
- 					boundary_block, 1 << blkbits);
-@@ -632,7 +633,7 @@ alloc_new:
+diff -puN arch/mips/include/asm/fpu.h~mips-replace-config_mips64-and-config_mips32_r2 arch/mips/include/asm/fpu.h
+--- a/arch/mips/include/asm/fpu.h~mips-replace-config_mips64-and-config_mips32_r2
++++ a/arch/mips/include/asm/fpu.h
+@@ -57,7 +57,7 @@ static inline int __enable_fpu(enum fpu_
+ 		return 0;
  
- confused:
- 	if (bio)
--		bio = mpage_bio_submit(WRITE, bio);
-+		bio = mpage_bio_submit(wr, bio);
+ 	case FPU_64BIT:
+-#if !(defined(CONFIG_CPU_MIPS32_R2) || defined(CONFIG_MIPS64))
++#if !(defined(CONFIG_CPU_MIPS32_R2) || defined(CONFIG_64BIT))
+ 		/* we only have a 32-bit FPU */
+ 		return SIGFPE;
+ #endif
+diff -puN arch/mips/kernel/r4k_fpu.S~mips-replace-config_mips64-and-config_mips32_r2 arch/mips/kernel/r4k_fpu.S
+--- a/arch/mips/kernel/r4k_fpu.S~mips-replace-config_mips64-and-config_mips32_r2
++++ a/arch/mips/kernel/r4k_fpu.S
+@@ -35,9 +35,9 @@
+ LEAF(_save_fp_context)
+ 	cfc1	t1, fcr31
  
- 	if (mpd->use_writepage) {
- 		ret = mapping->a_ops->writepage(page, wbc);
-@@ -688,8 +689,11 @@ mpage_writepages(struct address_space *m
- 		};
+-#if defined(CONFIG_64BIT) || defined(CONFIG_MIPS32_R2)
++#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
+ 	.set	push
+-#ifdef CONFIG_MIPS32_R2
++#ifdef CONFIG_CPU_MIPS32_R2
+ 	.set	mips64r2
+ 	mfc0	t0, CP0_STATUS
+ 	sll	t0, t0, 5
+@@ -148,9 +148,9 @@ LEAF(_save_fp_context32)
+ LEAF(_restore_fp_context)
+ 	EX	lw t0, SC_FPC_CSR(a0)
  
- 		ret = write_cache_pages(mapping, wbc, __mpage_writepage, &mpd);
--		if (mpd.bio)
--			mpage_bio_submit(WRITE, mpd.bio);
-+		if (mpd.bio) {
-+			int wr = (wbc->sync_mode == WB_SYNC_ALL ?
-+				  WRITE_SYNC : WRITE);
-+			mpage_bio_submit(wr, mpd.bio);
-+		}
- 	}
- 	blk_finish_plug(&plug);
- 	return ret;
-@@ -706,8 +710,11 @@ int mpage_writepage(struct page *page, g
- 		.use_writepage = 0,
- 	};
- 	int ret = __mpage_writepage(page, wbc, &mpd);
--	if (mpd.bio)
--		mpage_bio_submit(WRITE, mpd.bio);
-+	if (mpd.bio) {
-+		int wr = (wbc->sync_mode == WB_SYNC_ALL ?
-+			  WRITE_SYNC : WRITE);
-+		mpage_bio_submit(wr, mpd.bio);
-+	}
- 	return ret;
- }
- EXPORT_SYMBOL(mpage_writepage);
+-#if defined(CONFIG_64BIT) || defined(CONFIG_MIPS32_R2)
++#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
+ 	.set	push
+-#ifdef CONFIG_MIPS32_R2
++#ifdef CONFIG_CPU_MIPS32_R2
+ 	.set	mips64r2
+ 	mfc0	t0, CP0_STATUS
+ 	sll	t0, t0, 5
 _
 
-Patches currently in -mm which might be from r.peniaev@gmail.com are
+Patches currently in -mm which might be from pebolle@tiscali.nl are
 
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+origin.patch
+mips-replace-config_mips64-and-config_mips32_r2.patch
+mips-fpu-fix-conflict-of-register-usage.patch
+maintainers-update-ibm-serveraid-raid-info.patch
+maintainers-mark-superh-orphan.patch
 linux-next.patch
 
