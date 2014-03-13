@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 13 Mar 2014 14:06:24 -0700
-Message-ID: <53221dd0.0oxLcySA2v0MlEv4%akpm@linux-foundation.org>
+Subject: +
+ fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch added
+ to -mm tree
+Date: Thu, 13 Mar 2014 14:35:34 -0700
+Message-ID: <532224a6.L81nCdwQGMyv3dY+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42275 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42391 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751266AbaCMVGZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Mar 2014 17:06:25 -0400
+	with ESMTP id S1753093AbaCMVff (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Mar 2014 17:35:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, tj@kernel.org, jack@suse.cz, axboe@kernel.dk, r.peniaev@gmail.com
 
-Subject: + mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch added to -mm tree
-To: akpm@linux-foundation.org,hughd@google.com
+Subject: + fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch added to -mm tree
+To: r.peniaev@gmail.com,axboe@kernel.dk,jack@suse.cz,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Mar 2014 14:06:24 -0700
+Date: Thu, 13 Mar 2014 14:35:34 -0700
 
 
 The patch titled
-     Subject: mm-per-thread-vma-caching-fix-6-checkpatch-fixes
+     Subject: fs/mpage.c: forgotten WRITE_SYNC in case of data integrity write
 has been added to the -mm tree.  Its filename is
-     mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
+     fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,113 +45,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-per-thread-vma-caching-fix-6-checkpatch-fixes
+From: Roman Pen <r.peniaev@gmail.com>
+Subject: fs/mpage.c: forgotten WRITE_SYNC in case of data integrity write
 
-ERROR: code indent should use tabs where possible
-#53: FILE: mm/vmacache.c:56:
-+ ^I^Ireturn false;$
+In case of wbc->sync_mode == WB_SYNC_ALL we need to do data integrity
+write, thus mark request as WRITE_SYNC.
 
-WARNING: please, no space before tabs
-#53: FILE: mm/vmacache.c:56:
-+ ^I^Ireturn false;$
+akpm: afaict this change will cause the data integrity write bios to be
+placed onto the second queue in cfq_io_cq.cfqq[], which presumably results
+in special treatment.  The documentation for REQ_SYNC is horrid.
 
-WARNING: please, no spaces at the start of a line
-#53: FILE: mm/vmacache.c:56:
-+ ^I^Ireturn false;$
-
-total: 1 errors, 2 warnings, 35 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-per-thread-vma-caching-fix-6.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Roman Pen <r.peniaev@gmail.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmacache.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/mpage.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN mm/vmacache.c~mm-per-thread-vma-caching-fix-6-checkpatch-fixes mm/vmacache.c
---- a/mm/vmacache.c~mm-per-thread-vma-caching-fix-6-checkpatch-fixes
-+++ a/mm/vmacache.c
-@@ -53,7 +53,7 @@ static bool vmacache_valid(struct mm_str
- 	 * nothing we can do here.
- 	 */
- 	if (!vmacache_valid_mm(mm))
-- 		return false;
-+		return false;
+diff -puN fs/mpage.c~fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write fs/mpage.c
+--- a/fs/mpage.c~fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write
++++ a/fs/mpage.c
+@@ -462,6 +462,7 @@ static int __mpage_writepage(struct page
+ 	struct buffer_head map_bh;
+ 	loff_t i_size = i_size_read(inode);
+ 	int ret = 0;
++	int wr = (wbc->sync_mode == WB_SYNC_ALL ?  WRITE_SYNC : WRITE);
  
- 	curr = current;
- 	if (mm->vmacache_seqnum != curr->vmacache_seqnum) {
+ 	if (page_has_buffers(page)) {
+ 		struct buffer_head *head = page_buffers(page);
+@@ -570,7 +571,7 @@ page_is_mapped:
+ 	 * This page will go to BIO.  Do we need to send this BIO off first?
+ 	 */
+ 	if (bio && mpd->last_block_in_bio != blocks[0] - 1)
+-		bio = mpage_bio_submit(WRITE, bio);
++		bio = mpage_bio_submit(wr, bio);
+ 
+ alloc_new:
+ 	if (bio == NULL) {
+@@ -587,7 +588,7 @@ alloc_new:
+ 	 */
+ 	length = first_unmapped << blkbits;
+ 	if (bio_add_page(bio, page, length, 0) < length) {
+-		bio = mpage_bio_submit(WRITE, bio);
++		bio = mpage_bio_submit(wr, bio);
+ 		goto alloc_new;
+ 	}
+ 
+@@ -620,7 +621,7 @@ alloc_new:
+ 	set_page_writeback(page);
+ 	unlock_page(page);
+ 	if (boundary || (first_unmapped != blocks_per_page)) {
+-		bio = mpage_bio_submit(WRITE, bio);
++		bio = mpage_bio_submit(wr, bio);
+ 		if (boundary_block) {
+ 			write_boundary_block(boundary_bdev,
+ 					boundary_block, 1 << blkbits);
+@@ -632,7 +633,7 @@ alloc_new:
+ 
+ confused:
+ 	if (bio)
+-		bio = mpage_bio_submit(WRITE, bio);
++		bio = mpage_bio_submit(wr, bio);
+ 
+ 	if (mpd->use_writepage) {
+ 		ret = mapping->a_ops->writepage(page, wbc);
+@@ -688,8 +689,11 @@ mpage_writepages(struct address_space *m
+ 		};
+ 
+ 		ret = write_cache_pages(mapping, wbc, __mpage_writepage, &mpd);
+-		if (mpd.bio)
+-			mpage_bio_submit(WRITE, mpd.bio);
++		if (mpd.bio) {
++			int wr = (wbc->sync_mode == WB_SYNC_ALL ?
++				  WRITE_SYNC : WRITE);
++			mpage_bio_submit(wr, mpd.bio);
++		}
+ 	}
+ 	blk_finish_plug(&plug);
+ 	return ret;
+@@ -706,8 +710,11 @@ int mpage_writepage(struct page *page, g
+ 		.use_writepage = 0,
+ 	};
+ 	int ret = __mpage_writepage(page, wbc, &mpd);
+-	if (mpd.bio)
+-		mpage_bio_submit(WRITE, mpd.bio);
++	if (mpd.bio) {
++		int wr = (wbc->sync_mode == WB_SYNC_ALL ?
++			  WRITE_SYNC : WRITE);
++		mpage_bio_submit(wr, mpd.bio);
++	}
+ 	return ret;
+ }
+ EXPORT_SYMBOL(mpage_writepage);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from r.peniaev@gmail.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
-mm-per-thread-vma-caching.patch
-mm-per-thread-vma-caching-fix-3.patch
-mm-per-thread-vma-caching-fix-5.patch
-mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
-mm-per-thread-vma-caching-fix-6-fix.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
-mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix.patch
-zram-use-zcomp-compressing-backends-fix.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix.patch
-zram-propagate-error-to-user-fix.patch
-zram-support-req_discard-v4-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-include-linux-fsh-fix-locks_verify_locked-definition.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
