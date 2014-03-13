@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch added
- to -mm tree
-Date: Thu, 13 Mar 2014 16:14:47 -0700
-Message-ID: <53223be7.LRoNs7KrymkM1Q2C%akpm@linux-foundation.org>
+ printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+ added to -mm tree
+Date: Thu, 13 Mar 2014 16:14:43 -0700
+Message-ID: <53223be3.3XiCzqeTeyAm1aTq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43323 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43311 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755125AbaCMXOs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Mar 2014 19:14:48 -0400
+	with ESMTP id S1755037AbaCMXOo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Mar 2014 19:14:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rostedt@goodmis.org, pmladek@suse.cz, fweisbec@gmail.com, jack@suse.cz
 
-Subject: + kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch added to -mm tree
+Subject: + printk-enable-interrupts-before-calling-console_trylock_for_printk.patch added to -mm tree
 To: jack@suse.cz,fweisbec@gmail.com,pmladek@suse.cz,rostedt@goodmis.org
 From: akpm@linux-foundation.org
-Date: Thu, 13 Mar 2014 16:14:47 -0700
+Date: Thu, 13 Mar 2014 16:14:43 -0700
 
 
 The patch titled
-     Subject: kernel: avoid softlockups in stop_machine() during heavy printing
+     Subject: printk: enable interrupts before calling console_trylock_for_printk()
 has been added to the -mm tree.  Its filename is
-     kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch
+     printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,22 +46,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: kernel: avoid softlockups in stop_machine() during heavy printing
+Subject: printk: enable interrupts before calling console_trylock_for_printk()
 
-When there are lots of messages accumulated in printk buffer, printing
-them (especially over serial console) can take a long time (tens of
-seconds).  stop_machine() will effectively make all cpus spin in
-multi_cpu_stop() waiting for the CPU doing printing to print all the
-messages which triggers NMI softlockup watchdog and RCU stall detector
-which add even more to the messages to print.  Since machine doesn't do
-anything (except serving interrupts) during this time, also network
-connections are dropped and other disturbances may happen.
+We need interrupts disabled when calling console_trylock_for_printk() only
+so that cpu id we pass to can_use_console() remains valid (for other
+things console_sem provides all the exclusion we need and deadlocks on
+console_sem due to interrupts are impossible because we use
+down_trylock()).  However if we are rescheduled, we are guaranteed to run
+on an online cpu so we can easily just get the cpu id in
+can_use_console().
 
-Paper over the problem by waiting for printk buffer to be empty before
-starting to stop CPUs.  In theory a burst of new messages can be appended
-to the printk buffer before CPUs enter multi_cpu_stop() so this isn't a
-100% solution but it works OK in practice and I'm not aware of a
-reasonably simple better solution.
+We can lose a bit of performance when we enable interrupts in
+vprintk_emit() and then disable them again in console_unlock() but OTOH it
+can somewhat reduce interrupt latency caused by console_unlock()
+especially since later in the patch series we will want to spin on
+console_sem in console_trylock_for_printk().
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Cc: Petr Mladek <pmladek@suse.cz>
@@ -70,80 +69,76 @@ Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/console.h |    1 +
- kernel/printk/printk.c  |   22 ++++++++++++++++++++++
- kernel/stop_machine.c   |    9 +++++++++
- 3 files changed, 32 insertions(+)
+ kernel/printk/printk.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/console.h~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing include/linux/console.h
---- a/include/linux/console.h~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing
-+++ a/include/linux/console.h
-@@ -150,6 +150,7 @@ extern int console_trylock(void);
- extern void console_unlock(void);
- extern void console_conditional_schedule(void);
- extern void console_unblank(void);
-+extern void console_flush(void);
- extern struct tty_driver *console_device(int *);
- extern void console_stop(struct console *);
- extern void console_start(struct console *);
-diff -puN kernel/printk/printk.c~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing kernel/printk/printk.c
---- a/kernel/printk/printk.c~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing
+diff -puN kernel/printk/printk.c~printk-enable-interrupts-before-calling-console_trylock_for_printk kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-enable-interrupts-before-calling-console_trylock_for_printk
 +++ a/kernel/printk/printk.c
-@@ -2299,6 +2299,28 @@ struct tty_driver *console_device(int *i
- }
- 
+@@ -1314,10 +1314,9 @@ static int have_callable_console(void)
  /*
-+ * Wait until all messages accumulated in the printk buffer are printed to
-+ * console. Note that as soon as this function returns, new messages may be
-+ * added to the printk buffer by other CPUs.
-+ */
-+void console_flush(void)
-+{
-+	bool retry;
-+	unsigned long flags;
+  * Can we actually use the console at this time on this cpu?
+  *
+- * Console drivers may assume that per-cpu resources have
+- * been allocated. So unless they're explicitly marked as
+- * being able to cope (CON_ANYTIME) don't call them until
+- * this CPU is officially up.
++ * Console drivers may assume that per-cpu resources have been allocated. So
++ * unless they're explicitly marked as being able to cope (CON_ANYTIME) don't
++ * call them until this CPU is officially up.
+  */
+ static inline int can_use_console(unsigned int cpu)
+ {
+@@ -1330,8 +1329,10 @@ static inline int can_use_console(unsign
+  * console_lock held, and 'console_locked' set) if it
+  * is successful, false otherwise.
+  */
+-static int console_trylock_for_printk(unsigned int cpu)
++static int console_trylock_for_printk(void)
+ {
++	unsigned int cpu = smp_processor_id();
 +
-+	while (1) {
-+		raw_spin_lock_irqsave(&logbuf_lock, flags);
-+		retry = console_seq != log_next_seq;
-+		raw_spin_unlock_irqrestore(&logbuf_lock, flags);
-+		if (!retry)
-+			break;
-+		/* Cycle console_sem to wait for outstanding printing */
-+		console_lock();
-+		console_unlock();
-+	}
-+}
-+
-+/*
-  * Prevent further output on the passed console device so that (for example)
-  * serial drivers can disable console output before suspending a port, and can
-  * re-enable output afterwards.
-diff -puN kernel/stop_machine.c~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing kernel/stop_machine.c
---- a/kernel/stop_machine.c~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing
-+++ a/kernel/stop_machine.c
-@@ -21,6 +21,7 @@
- #include <linux/smpboot.h>
- #include <linux/atomic.h>
- #include <linux/lglock.h>
-+#include <linux/console.h>
- 
- /*
-  * Structure to determine completion condition and record errors.  May
-@@ -574,6 +575,14 @@ int __stop_machine(int (*fn)(void *), vo
- 		return ret;
+ 	if (!console_trylock())
+ 		return 0;
+ 	/*
+@@ -1501,7 +1502,8 @@ asmlinkage int vprintk_emit(int facility
+ 		 */
+ 		if (!oops_in_progress && !lockdep_recursing(current)) {
+ 			recursion_bug = 1;
+-			goto out_restore_irqs;
++			local_irq_restore(flags);
++			return 0;
+ 		}
+ 		zap_locks();
  	}
+@@ -1600,17 +1602,22 @@ asmlinkage int vprintk_emit(int facility
  
-+	/*
-+	 * If there are lots of outstanding messages, printing them can take a
-+	 * long time and all cpus would be spinning waiting for the printing to
-+	 * finish thus triggering NMI watchdog, RCU lockups etc. Wait for the
-+	 * printing here to avoid these.
-+	 */
-+	console_flush();
+ 	logbuf_cpu = UINT_MAX;
+ 	raw_spin_unlock(&logbuf_lock);
++	lockdep_on();
++	local_irq_restore(flags);
 +
- 	/* Set the initial state and stop all online cpus. */
- 	set_state(&msdata, MULTI_STOP_PREPARE);
- 	return stop_cpus(cpu_online_mask, multi_cpu_stop, &msdata);
++	/*
++	 * Disable preemption to avoid being preempted while holding
++	 * console_sem which would prevent anyone from printing to console
++	 */
++	preempt_disable();
+ 	/*
+ 	 * Try to acquire and then immediately release the console semaphore.
+ 	 * The release will print out buffers and wake up /dev/kmsg and syslog()
+ 	 * users.
+ 	 */
+-	if (console_trylock_for_printk(this_cpu))
++	if (console_trylock_for_printk())
+ 		console_unlock();
+-
+-	lockdep_on();
+-out_restore_irqs:
+-	local_irq_restore(flags);
++	preempt_enable();
+ 
+ 	return printed_len;
+ }
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
