@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-per-thread-vma-caching-fix-6.patch added to -mm tree
-Date: Thu, 13 Mar 2014 14:05:26 -0700
-Message-ID: <53221d96.tM40uERW/A5YAop6%akpm@linux-foundation.org>
+Subject: + mm-per-thread-vma-caching-fix-6-fix.patch added to -mm tree
+Date: Thu, 13 Mar 2014 14:05:27 -0700
+Message-ID: <53221d97.xD40sZ9GdY4Xw3XY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42266 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42272 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751266AbaCMVF1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Mar 2014 17:05:27 -0400
+	with ESMTP id S1751266AbaCMVF2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Mar 2014 17:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, walken@google.com, torvalds@linux-foundation.org, riel@redhat.com, oleg@redhat.com, davidlohr@hp.com, hughd@google.com
+To: mm-commits@vger.kernel.org, walken@google.com, torvalds@linux-foundation.org, riel@redhat.com, oleg@redhat.com, hughd@google.com, davidlohr@hp.com, akpm@linux-foundation.org
 
-Subject: + mm-per-thread-vma-caching-fix-6.patch added to -mm tree
-To: hughd@google.com,davidlohr@hp.com,oleg@redhat.com,riel@redhat.com,torvalds@linux-foundation.org,walken@google.com
+Subject: + mm-per-thread-vma-caching-fix-6-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,davidlohr@hp.com,hughd@google.com,oleg@redhat.com,riel@redhat.com,torvalds@linux-foundation.org,walken@google.com
 From: akpm@linux-foundation.org
-Date: Thu, 13 Mar 2014 14:05:26 -0700
+Date: Thu, 13 Mar 2014 14:05:27 -0700
 
 
 The patch titled
-     Subject: mm-per-thread-vma-caching-fix-6
+     Subject: mm-per-thread-vma-caching-fix-6-fix
 has been added to the -mm tree.  Its filename is
-     mm-per-thread-vma-caching-fix-6.patch
+     mm-per-thread-vma-caching-fix-6-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-per-thread-vma-caching-fix-6.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-per-thread-vma-caching-fix-6-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-per-thread-vma-caching-fix-6.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-per-thread-vma-caching-fix-6-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,84 +43,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm-per-thread-vma-caching-fix-6
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-per-thread-vma-caching-fix-6-fix
 
-I was getting the "kernel BUG at mm/vmacache.c:76!" running KSM
-on mmotm: Oleg's patch (buildable version below) fixes it for me.
+adjust and enhance comments
 
-Tested-by: Hugh Dickins <hughd@google.com>
 Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Michel Lespinasse <walken@google.com>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmacache.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/vmacache.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmacache.c~mm-per-thread-vma-caching-fix-6 mm/vmacache.c
---- a/mm/vmacache.c~mm-per-thread-vma-caching-fix-6
+diff -puN mm/vmacache.c~mm-per-thread-vma-caching-fix-6-fix mm/vmacache.c
+--- a/mm/vmacache.c~mm-per-thread-vma-caching-fix-6-fix
 +++ a/mm/vmacache.c
-@@ -31,15 +31,20 @@ void vmacache_flush_all(struct mm_struct
+@@ -31,6 +31,16 @@ void vmacache_flush_all(struct mm_struct
  	rcu_read_unlock();
  }
  
-+static bool vmacache_valid_mm(struct mm_struct *mm)
-+{
-+	return current->mm == mm && !(current->flags & PF_KTHREAD);
-+}
++/*
++ * This task may be accessing a foreign mm via (for example)
++ * get_user_pages()->find_vma().  The vmacache is task-local and this
++ * task's vmacache pertains to a different mm (ie, its own).  There is
++ * nothing we can do here.
++ *
++ * Also handle the case where a kernel thread has adopted this mm via use_mm().
++ * That kernel thread's vmacache is not applicable to this mm.
++ */
 +
- void vmacache_update(unsigned long addr, struct vm_area_struct *newvma)
+ static bool vmacache_valid_mm(struct mm_struct *mm)
  {
--	int idx = VMACACHE_HASH(addr);
--	current->vmacache[idx] = newvma;
-+	if (vmacache_valid_mm(newvma->vm_mm))
-+		current->vmacache[VMACACHE_HASH(addr)] = newvma;
- }
- 
- static bool vmacache_valid(struct mm_struct *mm)
+ 	return current->mm == mm && !(current->flags & PF_KTHREAD);
+@@ -46,12 +56,6 @@ static bool vmacache_valid(struct mm_str
  {
--	struct task_struct *curr = current;
-+	struct task_struct *curr;
+ 	struct task_struct *curr;
  
- 	/*
- 	 * This task may be accessing a foreign mm via (for example)
-@@ -47,9 +52,10 @@ static bool vmacache_valid(struct mm_str
- 	 * task's vmacache pertains to a different mm (ie, its own).  There is
- 	 * nothing we can do here.
- 	 */
--	if (mm != curr->mm)
--		return false;
-+	if (!vmacache_valid_mm(mm))
-+ 		return false;
+-	/*
+-	 * This task may be accessing a foreign mm via (for example)
+-	 * get_user_pages()->find_vma().  The vmacache is task-local and this
+-	 * task's vmacache pertains to a different mm (ie, its own).  There is
+-	 * nothing we can do here.
+-	 */
+ 	if (!vmacache_valid_mm(mm))
+  		return false;
  
-+	curr = current;
- 	if (mm->vmacache_seqnum != curr->vmacache_seqnum) {
- 		/*
- 		 * First attempt will always be invalid, initialize
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
 mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-compaction-avoid-isolating-pinned-pages.patch
-mm-implement-map_pages-for-page-cache-fix.patch
-mm-per-thread-vma-caching-fix-6.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
+mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-per-thread-vma-caching.patch
+mm-per-thread-vma-caching-fix-3.patch
+mm-per-thread-vma-caching-fix-5.patch
 mm-per-thread-vma-caching-fix-6-fix.patch
+mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix.patch
+zram-use-zcomp-compressing-backends-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix.patch
+zram-propagate-error-to-user-fix.patch
+zram-support-req_discard-v4-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+include-linux-fsh-fix-locks_verify_locked-definition.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
