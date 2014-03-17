@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
- added to -mm tree
-Date: Thu, 13 Mar 2014 16:14:43 -0700
-Message-ID: <53223be3.3XiCzqeTeyAm1aTq%akpm@linux-foundation.org>
+Subject: + befs-logging-clean-up-fix.patch added to -mm tree
+Date: Mon, 17 Mar 2014 12:30:17 -0700
+Message-ID: <53274d49.I5/7H4OdcXl2SFK/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43311 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47572 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755037AbaCMXOo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Mar 2014 19:14:44 -0400
+	with ESMTP id S1751000AbaCQTaS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Mar 2014 15:30:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rostedt@goodmis.org, pmladek@suse.cz, fweisbec@gmail.com, jack@suse.cz
+To: mm-commits@vger.kernel.org, joe@perches.com, fengguang.wu@gmail.com, fabf@skynet.be, akpm@linux-foundation.org
 
-Subject: + printk-enable-interrupts-before-calling-console_trylock_for_printk.patch added to -mm tree
-To: jack@suse.cz,fweisbec@gmail.com,pmladek@suse.cz,rostedt@goodmis.org
+Subject: + befs-logging-clean-up-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,fabf@skynet.be,fengguang.wu@gmail.com,joe@perches.com
 From: akpm@linux-foundation.org
-Date: Thu, 13 Mar 2014 16:14:43 -0700
+Date: Mon, 17 Mar 2014 12:30:17 -0700
 
 
 The patch titled
-     Subject: printk: enable interrupts before calling console_trylock_for_printk()
+     Subject: befs-logging-clean-up-fix
 has been added to the -mm tree.  Its filename is
-     printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+     befs-logging-clean-up-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/befs-logging-clean-up-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/befs-logging-clean-up-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,142 +43,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: printk: enable interrupts before calling console_trylock_for_printk()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: befs-logging-clean-up-fix
 
-We need interrupts disabled when calling console_trylock_for_printk() only
-so that cpu id we pass to can_use_console() remains valid (for other
-things console_sem provides all the exclusion we need and deadlocks on
-console_sem due to interrupts are impossible because we use
-down_trylock()).  However if we are rescheduled, we are guaranteed to run
-on an online cpu so we can easily just get the cpu id in
-can_use_console().
+fix printk warnings, reported by Fengguang
 
-We can lose a bit of performance when we enable interrupts in
-vprintk_emit() and then disable them again in console_unlock() but OTOH it
-can somewhat reduce interrupt latency caused by console_unlock()
-especially since later in the patch series we will want to spin on
-console_sem in console_trylock_for_printk().
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Petr Mladek <pmladek@suse.cz>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Joe Perches <joe@perches.com>
+Cc: Fengguang Wu <fengguang.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ fs/befs/btree.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-enable-interrupts-before-calling-console_trylock_for_printk kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-enable-interrupts-before-calling-console_trylock_for_printk
-+++ a/kernel/printk/printk.c
-@@ -1314,10 +1314,9 @@ static int have_callable_console(void)
- /*
-  * Can we actually use the console at this time on this cpu?
-  *
-- * Console drivers may assume that per-cpu resources have
-- * been allocated. So unless they're explicitly marked as
-- * being able to cope (CON_ANYTIME) don't call them until
-- * this CPU is officially up.
-+ * Console drivers may assume that per-cpu resources have been allocated. So
-+ * unless they're explicitly marked as being able to cope (CON_ANYTIME) don't
-+ * call them until this CPU is officially up.
-  */
- static inline int can_use_console(unsigned int cpu)
- {
-@@ -1330,8 +1329,10 @@ static inline int can_use_console(unsign
-  * console_lock held, and 'console_locked' set) if it
-  * is successful, false otherwise.
-  */
--static int console_trylock_for_printk(unsigned int cpu)
-+static int console_trylock_for_printk(void)
- {
-+	unsigned int cpu = smp_processor_id();
-+
- 	if (!console_trylock())
- 		return 0;
- 	/*
-@@ -1501,7 +1502,8 @@ asmlinkage int vprintk_emit(int facility
- 		 */
- 		if (!oops_in_progress && !lockdep_recursing(current)) {
- 			recursion_bug = 1;
--			goto out_restore_irqs;
-+			local_irq_restore(flags);
-+			return 0;
- 		}
- 		zap_locks();
+diff -puN fs/befs/btree.c~befs-logging-clean-up-fix fs/befs/btree.c
+--- a/fs/befs/btree.c~befs-logging-clean-up-fix
++++ a/fs/befs/btree.c
+@@ -263,7 +263,7 @@ befs_btree_find(struct super_block *sb,
+ 	this_node = kmalloc(sizeof (befs_btree_node),
+ 						GFP_NOFS);
+ 	if (!this_node) {
+-		befs_error(sb, "befs_btree_find() failed to allocate %u "
++		befs_error(sb, "befs_btree_find() failed to allocate %zu "
+ 			   "bytes of memory", sizeof (befs_btree_node));
+ 		goto error;
  	}
-@@ -1600,17 +1602,22 @@ asmlinkage int vprintk_emit(int facility
+@@ -437,7 +437,7 @@ befs_btree_read(struct super_block *sb,
+ 	}
  
- 	logbuf_cpu = UINT_MAX;
- 	raw_spin_unlock(&logbuf_lock);
-+	lockdep_on();
-+	local_irq_restore(flags);
-+
-+	/*
-+	 * Disable preemption to avoid being preempted while holding
-+	 * console_sem which would prevent anyone from printing to console
-+	 */
-+	preempt_disable();
- 	/*
- 	 * Try to acquire and then immediately release the console semaphore.
- 	 * The release will print out buffers and wake up /dev/kmsg and syslog()
- 	 * users.
- 	 */
--	if (console_trylock_for_printk(this_cpu))
-+	if (console_trylock_for_printk())
- 		console_unlock();
--
--	lockdep_on();
--out_restore_irqs:
--	local_irq_restore(flags);
-+	preempt_enable();
+ 	if ((this_node = kmalloc(sizeof (befs_btree_node), GFP_NOFS)) == NULL) {
+-		befs_error(sb, "befs_btree_read() failed to allocate %u "
++		befs_error(sb, "befs_btree_read() failed to allocate %zu "
+ 			   "bytes of memory", sizeof (befs_btree_node));
+ 		goto error;
+ 	}
+@@ -498,7 +498,7 @@ befs_btree_read(struct super_block *sb,
+ 		   (int)keylen);
  
- 	return printed_len;
- }
+ 	if (bufsize < keylen + 1) {
+-		befs_error(sb, "%s keybuf too small (%u) "
++		befs_error(sb, "%s keybuf too small (%zu) "
+ 			   "for key of size %d", __func__, bufsize, keylen);
+ 		brelse(this_node->bh);
+ 		goto error_alloc;
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-backing_dev-fix-hung-task-on-sync.patch
-backing_dev-fix-hung-task-on-sync-fix.patch
-bdi-avoid-oops-on-device-removal.patch
-kthread-ensure-locality-of-task_struct-allocations.patch
-fanotify-remove-useless-bypass_perm-check.patch
-fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
-fanotify-convert-access_mutex-to-spinlock.patch
-fanotify-reorganize-loop-in-fanotify_read.patch
-fanotify-move-unrelated-handling-from-copy_event_to_user.patch
-ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
-ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
-quota-provide-function-to-grab-quota-structure-reference.patch
-ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
-ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
-ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-printk-remove-duplicated-check-for-log-level.patch
-printk-remove-obsolete-check-for-log-level-c.patch
-printk-add-comment-about-tricky-check-for-text-buffer-size.patch
-printk-use-also-the-last-bytes-in-the-ring-buffer.patch
-printk-do-not-compute-the-size-of-the-message-twice.patch
-printk-remove-outdated-comment.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch
-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
-printk-remove-separate-printk_sched-buffers-and-use-printk-buf-instead.patch
-printk-hand-over-printing-to-console-if-printing-too-long.patch
-kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
+mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-per-thread-vma-caching.patch
+mm-per-thread-vma-caching-fix-3.patch
+mm-per-thread-vma-caching-fix-5.patch
+mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
+mm-per-thread-vma-caching-fix-6-fix.patch
+mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+mm-vmalloc-avoid-soft-lockup-warnings-when-vunmaping-large-ranges-fix.patch
+zram-use-zcomp-compressing-backends-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix.patch
+zram-propagate-error-to-user-fix.patch
+zram-support-req_discard-v4-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+befs-logging-clean-up-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
-mm-add-strictlimit-knob-v2.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
