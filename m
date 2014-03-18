@@ -1,212 +1,171 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- printk-remove-separate-printk_sched-buffers-and-use-printk-buf-instead.patch removed from -mm tree
-Date: Tue, 18 Mar 2014 15:43:51 -0700
-Message-ID: <5328cc27.88q3Wbp8l6n3v4+B%akpm@linux-foundation.org>
+ kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch
+ removed from -mm tree
+Date: Tue, 18 Mar 2014 15:43:55 -0700
+Message-ID: <5328cc2b.Hi4kvAHxIo6STCZF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60993 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758375AbaCRWnw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Mar 2014 18:43:52 -0400
+	with ESMTP id S1758391AbaCRWn4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Mar 2014 18:43:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pmladek@suse.cz, jack@suse.cz, fweisbec@gmail.com, rostedt@goodmis.org
+To: mm-commits@vger.kernel.org, rostedt@goodmis.org, pmladek@suse.cz, fweisbec@gmail.com, jack@suse.cz
 
-Subject: [to-be-updated] printk-remove-separate-printk_sched-buffers-and-use-printk-buf-instead.patch removed from -mm tree
-To: rostedt@goodmis.org,fweisbec@gmail.com,jack@suse.cz,pmladek@suse.cz,mm-commits@vger.kernel.org
+Subject: [to-be-updated] kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch removed from -mm tree
+To: jack@suse.cz,fweisbec@gmail.com,pmladek@suse.cz,rostedt@goodmis.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 18 Mar 2014 15:43:51 -0700
+Date: Tue, 18 Mar 2014 15:43:55 -0700
 
 
 The patch titled
-     Subject: printk: remove separate printk_sched buffers and use printk buf instead
+     Subject: kernel: avoid softlockups in stop_machine() during heavy printing
 has been removed from the -mm tree.  Its filename was
-     printk-remove-separate-printk_sched-buffers-and-use-printk-buf-instead.patch
+     kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: printk: remove separate printk_sched buffers and use printk buf instead
+From: Jan Kara <jack@suse.cz>
+Subject: kernel: avoid softlockups in stop_machine() during heavy printing
 
-To prevent deadlocks with doing a printk inside the scheduler,
-printk_sched() was created.  The issue is that printk has a console_sem
-that it can grab and release.  The release does a wake up if there's a
-task pending on the sem, and this wake up grabs the rq locks that is held
-in the scheduler.  This leads to a possible deadlock if the wake up uses
-the same rq as the one with the rq lock held already.
+When there are lots of messages accumulated in printk buffer, printing
+them (especially over serial console) can take a long time (tens of
+seconds).  stop_machine() will effectively make all cpus spin in
+multi_cpu_stop() waiting for the CPU doing printing to print all the
+messages which triggers NMI softlockup watchdog and RCU stall detector
+which add even more to the messages to print.  Since machine doesn't do
+anything (except serving interrupts) during this time, also network
+connections are dropped and other disturbances may happen.
 
-What printk_sched() does is to save the printk write in a per cpu buffer
-and sets the PRINTK_PENDING_SCHED flag.  On a timer tick, if this flag is
-set, the printk() is done against the buffer.
+Paper over the problem by waiting for printk buffer to be empty before
+starting to stop CPUs.  In theory a burst of new messages can be appended
+to the printk buffer before CPUs enter multi_cpu_stop() so this isn't a
+100% solution but it works OK in practice and I'm not aware of a
+reasonably simple better solution.
 
-There's a couple of issues with this approach.
-
-1) If two printk_sched()s are called before the tick, the second one
-   will overwrite the first one.
-
-2) The temporary buffer is 512 bytes and is per cpu.  This is a quite a
-   bit of space wasted for something that is seldom used.
-
-In order to remove this, the printk_sched() can use the printk buffer
-instead, and delay the console_trylock()/console_unlock() to the queued
-work.
-
-Because printk_sched() would then be taking the logbuf_lock, the
-logbuf_lock must not be held while doing anything that may call into the
-scheduler functions, which includes wake ups.  Unfortunately, printk()
-also has a console_sem that it uses, and on release, the up(&console_sem)
-may do a wake up of any pending waiters.  This must be avoided while
-holding the logbuf_lock.
-
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Cc: Petr Mladek <pmladek@suse.cz>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   47 ++++++++++++++++++++++++---------------
- 1 file changed, 29 insertions(+), 18 deletions(-)
+ include/linux/console.h |    1 +
+ kernel/printk/printk.c  |   22 ++++++++++++++++++++++
+ kernel/stop_machine.c   |    9 +++++++++
+ 3 files changed, 32 insertions(+)
 
-diff -puN kernel/printk/printk.c~printk-remove-separate-printk_sched-buffers-and-use-printk-buf-instead kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-remove-separate-printk_sched-buffers-and-use-printk-buf-instead
+diff -puN include/linux/console.h~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing include/linux/console.h
+--- a/include/linux/console.h~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing
++++ a/include/linux/console.h
+@@ -150,6 +150,7 @@ extern int console_trylock(void);
+ extern void console_unlock(void);
+ extern void console_conditional_schedule(void);
+ extern void console_unblank(void);
++extern void console_flush(void);
+ extern struct tty_driver *console_device(int *);
+ extern void console_stop(struct console *);
+ extern void console_start(struct console *);
+diff -puN kernel/printk/printk.c~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing kernel/printk/printk.c
+--- a/kernel/printk/printk.c~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing
 +++ a/kernel/printk/printk.c
-@@ -68,6 +68,9 @@ int console_printk[4] = {
- 	DEFAULT_CONSOLE_LOGLEVEL,	/* default_console_loglevel */
- };
+@@ -2299,6 +2299,28 @@ struct tty_driver *console_device(int *i
+ }
  
-+/* Deferred messaged from sched code are marked by this special level */
-+#define SCHED_MESSAGE_LOGLEVEL -2
+ /*
++ * Wait until all messages accumulated in the printk buffer are printed to
++ * console. Note that as soon as this function returns, new messages may be
++ * added to the printk buffer by other CPUs.
++ */
++void console_flush(void)
++{
++	bool retry;
++	unsigned long flags;
 +
- /*
-  * Low level drivers may need that to know if they can schedule in
-  * their unblank() callback or not. So let's export it.
-@@ -206,7 +209,9 @@ struct printk_log {
- };
- 
- /*
-- * The logbuf_lock protects kmsg buffer, indices, counters.
-+ * The logbuf_lock protects kmsg buffer, indices, counters.  This can be taken
-+ * within the scheduler's rq lock. It must be released before calling
-+ * console_unlock() or anything else that might wake up a process.
-  */
- static DEFINE_RAW_SPINLOCK(logbuf_lock);
- 
-@@ -1473,14 +1478,19 @@ asmlinkage int vprintk_emit(int facility
- 	static int recursion_bug;
- 	static char textbuf[LOG_LINE_MAX];
- 	char *text = textbuf;
--	size_t text_len;
-+	size_t text_len = 0;
- 	enum log_flags lflags = 0;
- 	unsigned long flags;
- 	int this_cpu;
- 	int printed_len = 0;
-+	bool in_sched = false;
- 	/* cpu currently holding logbuf_lock in this function */
- 	static volatile unsigned int logbuf_cpu = UINT_MAX;
- 
-+	if (level == SCHED_MESSAGE_LOGLEVEL) {
-+		level = -1;
-+		in_sched = true;
++	while (1) {
++		raw_spin_lock_irqsave(&logbuf_lock, flags);
++		retry = console_seq != log_next_seq;
++		raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++		if (!retry)
++			break;
++		/* Cycle console_sem to wait for outstanding printing */
++		console_lock();
++		console_unlock();
 +	}
- 
- 	boot_delay_msec(level);
- 	printk_delay();
-@@ -1527,7 +1537,12 @@ asmlinkage int vprintk_emit(int facility
- 	 * The printf needs to come first; we need the syslog
- 	 * prefix which might be passed-in as a parameter.
- 	 */
--	text_len = vscnprintf(text, sizeof(textbuf), fmt, args);
-+	if (in_sched)
-+		text_len = scnprintf(text, sizeof(textbuf),
-+				     KERN_WARNING "[sched_delayed] ");
++}
 +
-+	text_len += vscnprintf(text + text_len,
-+			       sizeof(textbuf) - text_len, fmt, args);
++/*
+  * Prevent further output on the passed console device so that (for example)
+  * serial drivers can disable console output before suspending a port, and can
+  * re-enable output afterwards.
+diff -puN kernel/stop_machine.c~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing kernel/stop_machine.c
+--- a/kernel/stop_machine.c~kernel-avoid-softlockups-in-stop_machine-during-heavy-printing
++++ a/kernel/stop_machine.c
+@@ -21,6 +21,7 @@
+ #include <linux/smpboot.h>
+ #include <linux/atomic.h>
+ #include <linux/lglock.h>
++#include <linux/console.h>
  
- 	/* mark and strip a trailing newline */
- 	if (text_len && text[text_len-1] == '\n') {
-@@ -1605,6 +1620,10 @@ asmlinkage int vprintk_emit(int facility
- 	lockdep_on();
- 	local_irq_restore(flags);
- 
-+	/* If called from the scheduler, we can not call up(). */
-+	if (in_sched)
-+		return printed_len;
-+
- 	/*
- 	 * Disable preemption to avoid being preempted while holding
- 	 * console_sem which would prevent anyone from printing to console
-@@ -2426,21 +2445,19 @@ late_initcall(printk_late_init);
  /*
-  * Delayed printk version, for scheduler-internal messages:
-  */
--#define PRINTK_BUF_SIZE		512
--
- #define PRINTK_PENDING_WAKEUP	0x01
--#define PRINTK_PENDING_SCHED	0x02
-+#define PRINTK_PENDING_OUTPUT	0x02
- 
- static DEFINE_PER_CPU(int, printk_pending);
--static DEFINE_PER_CPU(char [PRINTK_BUF_SIZE], printk_sched_buf);
- 
- static void wake_up_klogd_work_func(struct irq_work *irq_work)
- {
- 	int pending = __this_cpu_xchg(printk_pending, 0);
- 
--	if (pending & PRINTK_PENDING_SCHED) {
--		char *buf = __get_cpu_var(printk_sched_buf);
--		pr_warn("[sched_delayed] %s", buf);
-+	if (pending & PRINTK_PENDING_OUTPUT) {
-+		/* If trylock fails, someone else is doing the printing */
-+		if (console_trylock())
-+			console_unlock();
+  * Structure to determine completion condition and record errors.  May
+@@ -574,6 +575,14 @@ int __stop_machine(int (*fn)(void *), vo
+ 		return ret;
  	}
  
- 	if (pending & PRINTK_PENDING_WAKEUP)
-@@ -2464,21 +2481,15 @@ void wake_up_klogd(void)
- 
- int printk_sched(const char *fmt, ...)
- {
--	unsigned long flags;
- 	va_list args;
--	char *buf;
- 	int r;
- 
--	local_irq_save(flags);
--	buf = __get_cpu_var(printk_sched_buf);
--
- 	va_start(args, fmt);
--	r = vsnprintf(buf, PRINTK_BUF_SIZE, fmt, args);
-+	r = vprintk_emit(0, SCHED_MESSAGE_LOGLEVEL, NULL, 0, fmt, args);
- 	va_end(args);
- 
--	__this_cpu_or(printk_pending, PRINTK_PENDING_SCHED);
-+	__this_cpu_or(printk_pending, PRINTK_PENDING_OUTPUT);
- 	irq_work_queue(&__get_cpu_var(wake_up_klogd_work));
--	local_irq_restore(flags);
- 
- 	return r;
- }
++	/*
++	 * If there are lots of outstanding messages, printing them can take a
++	 * long time and all cpus would be spinning waiting for the printing to
++	 * finish thus triggering NMI watchdog, RCU lockups etc. Wait for the
++	 * printing here to avoid these.
++	 */
++	console_flush();
++
+ 	/* Set the initial state and stop all online cpus. */
+ 	set_state(&msdata, MULTI_STOP_PREPARE);
+ 	return stop_cpus(cpu_online_mask, multi_cpu_stop, &msdata);
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-origin.patch
+backing_dev-fix-hung-task-on-sync.patch
+backing_dev-fix-hung-task-on-sync-fix.patch
+bdi-avoid-oops-on-device-removal.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+fanotify-remove-useless-bypass_perm-check.patch
+fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
+fanotify-convert-access_mutex-to-spinlock.patch
+fanotify-reorganize-loop-in-fanotify_read.patch
+fanotify-move-unrelated-handling-from-copy_event_to_user.patch
+ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
+ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
+quota-provide-function-to-grab-quota-structure-reference.patch
+ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
+ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
+ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
+lib-radix_tree-tree-node-interface.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 printk-remove-duplicated-check-for-log-level.patch
 printk-remove-obsolete-check-for-log-level-c.patch
 printk-add-comment-about-tricky-check-for-text-buffer-size.patch
 printk-use-also-the-last-bytes-in-the-ring-buffer.patch
 printk-do-not-compute-the-size-of-the-message-twice.patch
-printk-hand-over-printing-to-console-if-printing-too-long.patch
-kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch
-lib-devresc-fix-some-sparse-warnings.patch
 linux-next.patch
-percpu-add-raw_cpu_ops.patch
+mm-add-strictlimit-knob-v2.patch
 
