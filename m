@@ -1,50 +1,52 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch removed from -mm tree
-Date: Tue, 18 Mar 2014 15:43:47 -0700
-Message-ID: <5328cc23.ZNs+OC4S1KitFFI/%akpm@linux-foundation.org>
+ printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
+ removed from -mm tree
+Date: Tue, 18 Mar 2014 15:43:49 -0700
+Message-ID: <5328cc25.WHquBnsINtzlHz0y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60978 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60980 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758378AbaCRWns (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Mar 2014 18:43:48 -0400
+	with ESMTP id S1758384AbaCRWnu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Mar 2014 18:43:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rostedt@goodmis.org, pmladek@suse.cz, fweisbec@gmail.com, jack@suse.cz
 
-Subject: [to-be-updated] printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch removed from -mm tree
+Subject: [to-be-updated] printk-enable-interrupts-before-calling-console_trylock_for_printk.patch removed from -mm tree
 To: jack@suse.cz,fweisbec@gmail.com,pmladek@suse.cz,rostedt@goodmis.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 18 Mar 2014 15:43:47 -0700
+Date: Tue, 18 Mar 2014 15:43:49 -0700
 
 
 The patch titled
-     Subject: printk: release lockbuf_lock before calling console_trylock_for_printk()
+     Subject: printk: enable interrupts before calling console_trylock_for_printk()
 has been removed from the -mm tree.  Its filename was
-     printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch
+     printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: printk: release lockbuf_lock before calling console_trylock_for_printk()
+Subject: printk: enable interrupts before calling console_trylock_for_printk()
 
-There's no reason to hold lockbuf_lock when entering
-console_trylock_for_printk().  The first thing this function does is
-calling down_trylock(console_sem) and if that fails it immediately unlocks
-lockbuf_lock.  So lockbuf_lock isn't needed for that branch.  When
-down_trylock() succeeds, the rest of console_trylock() is OK without
-lockbuf_lock (it is called without it from other places), and the only
-remaining thing in console_trylock_for_printk() is can_use_console() call.
- For that call console_sem is enough (it iterates all consoles and checks
-CON_ANYTIME flag).
+We need interrupts disabled when calling console_trylock_for_printk() only
+so that cpu id we pass to can_use_console() remains valid (for other
+things console_sem provides all the exclusion we need and deadlocks on
+console_sem due to interrupts are impossible because we use
+down_trylock()).  However if we are rescheduled, we are guaranteed to run
+on an online cpu so we can easily just get the cpu id in
+can_use_console().
 
-So we drop logbuf_lock before entering console_trylock_for_printk() which
-simplifies the code.
+We can lose a bit of performance when we enable interrupts in
+vprintk_emit() and then disable them again in console_unlock() but OTOH it
+can somewhat reduce interrupt latency caused by console_unlock()
+especially since later in the patch series we will want to spin on
+console_sem in console_trylock_for_printk().
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Cc: Petr Mladek <pmladek@suse.cz>
@@ -53,97 +55,76 @@ Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   49 +++++++++++++--------------------------
- 1 file changed, 17 insertions(+), 32 deletions(-)
+ kernel/printk/printk.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-release-lockbuf_lock-before-calling-console_trylock_for_printk kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-release-lockbuf_lock-before-calling-console_trylock_for_printk
+diff -puN kernel/printk/printk.c~printk-enable-interrupts-before-calling-console_trylock_for_printk kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-enable-interrupts-before-calling-console_trylock_for_printk
 +++ a/kernel/printk/printk.c
-@@ -249,9 +249,6 @@ static char __log_buf[__LOG_BUF_LEN] __a
- static char *log_buf = __log_buf;
- static u32 log_buf_len = __LOG_BUF_LEN;
- 
--/* cpu currently holding logbuf_lock */
--static volatile unsigned int logbuf_cpu = UINT_MAX;
--
- /* human readable text of the record */
- static char *log_text(const struct printk_log *msg)
+@@ -1314,10 +1314,9 @@ static int have_callable_console(void)
+ /*
+  * Can we actually use the console at this time on this cpu?
+  *
+- * Console drivers may assume that per-cpu resources have
+- * been allocated. So unless they're explicitly marked as
+- * being able to cope (CON_ANYTIME) don't call them until
+- * this CPU is officially up.
++ * Console drivers may assume that per-cpu resources have been allocated. So
++ * unless they're explicitly marked as being able to cope (CON_ANYTIME) don't
++ * call them until this CPU is officially up.
+  */
+ static inline int can_use_console(unsigned int cpu)
  {
-@@ -1332,36 +1329,22 @@ static inline int can_use_console(unsign
-  * messages from a 'printk'. Return true (and with the
+@@ -1330,8 +1329,10 @@ static inline int can_use_console(unsign
   * console_lock held, and 'console_locked' set) if it
   * is successful, false otherwise.
-- *
-- * This gets called with the 'logbuf_lock' spinlock held and
-- * interrupts disabled. It should return with 'lockbuf_lock'
-- * released but interrupts still disabled.
   */
- static int console_trylock_for_printk(unsigned int cpu)
--	__releases(&logbuf_lock)
+-static int console_trylock_for_printk(unsigned int cpu)
++static int console_trylock_for_printk(void)
  {
--	int retval = 0, wake = 0;
--
--	if (console_trylock()) {
--		retval = 1;
--
--		/*
--		 * If we can't use the console, we need to release
--		 * the console semaphore by hand to avoid flushing
--		 * the buffer. We need to hold the console semaphore
--		 * in order to do this test safely.
--		 */
--		if (!can_use_console(cpu)) {
--			console_locked = 0;
--			wake = 1;
--			retval = 0;
--		}
--	}
--	logbuf_cpu = UINT_MAX;
--	raw_spin_unlock(&logbuf_lock);
--	if (wake)
-+	if (!console_trylock())
-+		return 0;
-+	/*
-+	 * If we can't use the console, we need to release the console
-+	 * semaphore by hand to avoid flushing the buffer. We need to hold the
-+	 * console semaphore in order to do this test safely.
-+	 */
-+	if (!can_use_console(cpu)) {
-+		console_locked = 0;
- 		up(&console_sem);
--	return retval;
-+		return 0;
-+	}
-+	return 1;
- }
- 
- int printk_delay_msec __read_mostly;
-@@ -1494,6 +1477,9 @@ asmlinkage int vprintk_emit(int facility
- 	unsigned long flags;
- 	int this_cpu;
- 	int printed_len = 0;
-+	/* cpu currently holding logbuf_lock in this function */
-+	static volatile unsigned int logbuf_cpu = UINT_MAX;
++	unsigned int cpu = smp_processor_id();
 +
- 
- 	boot_delay_msec(level);
- 	printk_delay();
-@@ -1612,13 +1598,12 @@ asmlinkage int vprintk_emit(int facility
+ 	if (!console_trylock())
+ 		return 0;
+ 	/*
+@@ -1501,7 +1502,8 @@ asmlinkage int vprintk_emit(int facility
+ 		 */
+ 		if (!oops_in_progress && !lockdep_recursing(current)) {
+ 			recursion_bug = 1;
+-			goto out_restore_irqs;
++			local_irq_restore(flags);
++			return 0;
+ 		}
+ 		zap_locks();
  	}
- 	printed_len += text_len;
+@@ -1600,17 +1602,22 @@ asmlinkage int vprintk_emit(int facility
  
-+	logbuf_cpu = UINT_MAX;
-+	raw_spin_unlock(&logbuf_lock);
+ 	logbuf_cpu = UINT_MAX;
+ 	raw_spin_unlock(&logbuf_lock);
++	lockdep_on();
++	local_irq_restore(flags);
++
++	/*
++	 * Disable preemption to avoid being preempted while holding
++	 * console_sem which would prevent anyone from printing to console
++	 */
++	preempt_disable();
  	/*
  	 * Try to acquire and then immediately release the console semaphore.
  	 * The release will print out buffers and wake up /dev/kmsg and syslog()
  	 * users.
--	 *
--	 * The console_trylock_for_printk() function will release 'logbuf_lock'
--	 * regardless of whether it actually gets the console semaphore or not.
  	 */
- 	if (console_trylock_for_printk(this_cpu))
+-	if (console_trylock_for_printk(this_cpu))
++	if (console_trylock_for_printk())
  		console_unlock();
+-
+-	lockdep_on();
+-out_restore_irqs:
+-	local_irq_restore(flags);
++	preempt_enable();
+ 
+ 	return printed_len;
+ }
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
@@ -180,7 +161,6 @@ printk-remove-obsolete-check-for-log-level-c.patch
 printk-add-comment-about-tricky-check-for-text-buffer-size.patch
 printk-use-also-the-last-bytes-in-the-ring-buffer.patch
 printk-do-not-compute-the-size-of-the-message-twice.patch
-printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 printk-remove-separate-printk_sched-buffers-and-use-printk-buf-instead.patch
 printk-hand-over-printing-to-console-if-printing-too-long.patch
 kernel-avoid-softlockups-in-stop_machine-during-heavy-printing.patch
