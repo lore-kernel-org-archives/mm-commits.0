@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-freevxfs-vxfs_lookupc-update-function-comment.patch added to -mm tree
-Date: Tue, 18 Mar 2014 14:27:44 -0700
-Message-ID: <5328ba50.o8e5amS5ITcs0+sF%akpm@linux-foundation.org>
+Subject: + percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch added
+ to -mm tree
+Date: Tue, 18 Mar 2014 14:38:10 -0700
+Message-ID: <5328bcc2.wxjzrN25gWU7vzFk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60643 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60669 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751590AbaCRV1p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Mar 2014 17:27:45 -0400
+	with ESMTP id S1752038AbaCRViK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Mar 2014 17:38:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, fabf@skynet.be
+To: mm-commits@vger.kernel.org, grygorii.strashko@ti.com, cl@linux.com
 
-Subject: + fs-freevxfs-vxfs_lookupc-update-function-comment.patch added to -mm tree
-To: fabf@skynet.be,viro@zeniv.linux.org.uk
+Subject: + percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch added to -mm tree
+To: cl@linux.com,grygorii.strashko@ti.com
 From: akpm@linux-foundation.org
-Date: Tue, 18 Mar 2014 14:27:44 -0700
+Date: Tue, 18 Mar 2014 14:38:10 -0700
 
 
 The patch titled
-     Subject: fs/freevxfs/vxfs_lookup.c: update function comment
+     Subject: preemption_checks: avoid snprintf before checking error conditions
 has been added to the -mm tree.  Its filename is
-     fs-freevxfs-vxfs_lookupc-update-function-comment.patch
+     percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-freevxfs-vxfs_lookupc-update-function-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-freevxfs-vxfs_lookupc-update-function-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,57 +44,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/freevxfs/vxfs_lookup.c: update function comment
+From: Christoph Lameter <cl@linux.com>
+Subject: preemption_checks: avoid snprintf before checking error conditions
 
-nameidata was replaced by flags in 00cd8dd3bf95f2 ("stop passing nameidata
-to ->lookup()").
+snprintf can cause hangs.  Move the string processing into the function so
+that the string operations only occur when necessary after the conditions
+have been checked.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Tested-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/freevxfs/vxfs_lookup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/smp_processor_id.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN fs/freevxfs/vxfs_lookup.c~fs-freevxfs-vxfs_lookupc-update-function-comment fs/freevxfs/vxfs_lookup.c
---- a/fs/freevxfs/vxfs_lookup.c~fs-freevxfs-vxfs_lookupc-update-function-comment
-+++ a/fs/freevxfs/vxfs_lookup.c
-@@ -192,7 +192,7 @@ vxfs_inode_by_name(struct inode *dip, st
-  * vxfs_lookup - lookup pathname component
-  * @dip:	dir in which we lookup
-  * @dp:		dentry we lookup
-- * @nd:		lookup nameidata
-+ * @flags:	lookup flags
-  *
-  * Description:
-  *   vxfs_lookup tries to lookup the pathname component described
+diff -puN lib/smp_processor_id.c~percpu-add-preemption-checks-to-__this_cpu-ops-fix lib/smp_processor_id.c
+--- a/lib/smp_processor_id.c~percpu-add-preemption-checks-to-__this_cpu-ops-fix
++++ a/lib/smp_processor_id.c
+@@ -7,7 +7,8 @@
+ #include <linux/kallsyms.h>
+ #include <linux/sched.h>
+ 
+-notrace static unsigned int check_preemption_disabled(char *what)
++notrace static unsigned int check_preemption_disabled(const char *what1,
++							const char *what2)
+ {
+ 	int this_cpu = raw_smp_processor_id();
+ 
+@@ -38,8 +39,8 @@ notrace static unsigned int check_preemp
+ 	if (!printk_ratelimit())
+ 		goto out_enable;
+ 
+-	printk(KERN_ERR "BUG: using %s in preemptible [%08x] code: %s/%d\n",
+-		what, preempt_count() - 1, current->comm, current->pid);
++	printk(KERN_ERR "BUG: using %s%s() in preemptible [%08x] code: %s/%d\n",
++		what1, what2, preempt_count() - 1, current->comm, current->pid);
+ 
+ 	print_symbol("caller is %s\n", (long)__builtin_return_address(0));
+ 	dump_stack();
+@@ -52,15 +53,12 @@ out:
+ 
+ notrace unsigned int debug_smp_processor_id(void)
+ {
+-	return check_preemption_disabled("smp_processor_id()");
++	return check_preemption_disabled("smp_processor_id","");
+ }
+ EXPORT_SYMBOL(debug_smp_processor_id);
+ 
+ notrace void __this_cpu_preempt_check(const char *op)
+ {
+-	char text[40];
+-
+-	snprintf(text, sizeof(text), "__this_cpu_%s()", op);
+-	check_preemption_disabled(text);
++	check_preemption_disabled("__this_cpu_", op);
+ }
+ EXPORT_SYMBOL(__this_cpu_preempt_check);
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from cl@linux.com are
 
-fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
-fs-freevxfs-vxfs_lookupc-update-function-comment.patch
-sys_sysfs-add-config_sysfs_syscall.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-fs-efs-superc-add-__init-to-init_inodecache.patch
-fs-minix-inodec-add-__init-to-init_inodecache.patch
-befs-replace-kmalloc-memset-0-by-kzalloc.patch
-fs-befs-linuxvfsc-add-__init-to-befs_init_inodecache.patch
-befs-logging-clean-up.patch
-befs-logging-clean-up-fix.patch
-coda-add-__init-to-init_inodecache.patch
-hfsplus-add-__init-to-hfsplus_create_attr_tree_cache.patch
-documentation-filesystems-ntfstxt-remove-changelog-reference.patch
-fs-adfs-superc-add-__init-to-init_inodecache.patch
-affs-add-__init-to-init_inodecache.patch
-fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
-affs-mount-option-to-avoid-filename-truncates.patch
-fs-bfs-inodec-add-__init-to-init_inodecache.patch
-kernel-panicc-display-reason-at-end-pr_emerg.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+mm-slab-slub-use-page-list-consistently-instead-of-page-lru.patch
+kobject-dont-block-for-each-kobject_uevent.patch
+kobject-dont-block-for-each-kobject_uevent-v2.patch
+slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
+fork-collapse-copy_flags-into-copy_process.patch
+mm-mempolicy-rename-slab_node-for-clarity.patch
+mm-mempolicy-remove-per-process-flag.patch
+res_counter-remove-interface-for-locked-charging-and-uncharging.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
 linux-next.patch
-fs-ufs-superc-add-__init-to-init_inodecache.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+percpu-add-raw_cpu_ops.patch
+mm-use-raw_cpu-ops-for-determining-current-numa-node.patch
+modules-use-raw_cpu_write-for-initialization-of-per-cpu-refcount.patch
+net-replace-__this_cpu_inc-in-routec-with-raw_cpu_inc.patch
+percpu-add-preemption-checks-to-__this_cpu-ops.patch
+percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch
 
