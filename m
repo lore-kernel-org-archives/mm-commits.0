@@ -1,102 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] printk-remove-outdated-comment.patch removed from -mm tree
-Date: Tue, 18 Mar 2014 15:43:45 -0700
-Message-ID: <5328cc21.qbOOuflKGVwcRQG/%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch removed from -mm tree
+Date: Tue, 18 Mar 2014 15:43:47 -0700
+Message-ID: <5328cc23.ZNs+OC4S1KitFFI/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60973 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60978 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758375AbaCRWnq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Mar 2014 18:43:46 -0400
+	with ESMTP id S1758378AbaCRWns (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Mar 2014 18:43:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, rostedt@goodmis.org, pmladek@suse.cz, fweisbec@gmail.com, jack@suse.cz
 
-Subject: [to-be-updated] printk-remove-outdated-comment.patch removed from -mm tree
+Subject: [to-be-updated] printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch removed from -mm tree
 To: jack@suse.cz,fweisbec@gmail.com,pmladek@suse.cz,rostedt@goodmis.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 18 Mar 2014 15:43:45 -0700
+Date: Tue, 18 Mar 2014 15:43:47 -0700
 
 
 The patch titled
-     Subject: printk: remove outdated comment
+     Subject: printk: release lockbuf_lock before calling console_trylock_for_printk()
 has been removed from the -mm tree.  Its filename was
-     printk-remove-outdated-comment.patch
+     printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: printk: remove outdated comment
+Subject: printk: release lockbuf_lock before calling console_trylock_for_printk()
 
-Currently, console_unlock() prints messages from kernel printk buffer to
-console while the buffer is non-empty.  When serial console is attached,
-printing is slow and thus other CPUs in the system have plenty of time to
-append new messages to the buffer while one CPU is printing.  Thus the CPU
-can spend unbounded amount of time doing printing in console_unlock(). 
-This is especially serious since vprintk_emit() calls console_unlock()
-with interrupts disabled.
+There's no reason to hold lockbuf_lock when entering
+console_trylock_for_printk().  The first thing this function does is
+calling down_trylock(console_sem) and if that fails it immediately unlocks
+lockbuf_lock.  So lockbuf_lock isn't needed for that branch.  When
+down_trylock() succeeds, the rest of console_trylock() is OK without
+lockbuf_lock (it is called without it from other places), and the only
+remaining thing in console_trylock_for_printk() is can_use_console() call.
+ For that call console_sem is enough (it iterates all consoles and checks
+CON_ANYTIME flag).
 
-In practice users have observed a CPU can spend tens of seconds printing
-in console_unlock() (usually during boot when hundreds of SCSI devices are
-discovered) resulting in RCU stalls (CPU doing printing doesn't reach
-quiescent state for a long time), softlockup reports (IPIs for the
-printing CPU don't get served and thus other CPUs are spinning waiting for
-the printing CPU to process IPIs), and eventually a machine death (as
-messages from stalls and lockups append to printk buffer faster than we
-are able to print).  So these machines are unable to boot with serial
-console attached.  Also during artificial stress testing SATA disk
-disappears from the system because its interrupts aren't served for too
-long.
-
-
-This is a revised series using my new approach to the problem which
-doesn't let CPU out of console_unlock() until there's someone else to take
-over the printing.  The main difference since the last version is that
-instead of passing printing duty to different CPUs via IPIs we use
-dedicated kthreads.  This method is somewhat less reliable (in a sense
-that there are more situations in which handover needn't work at all -
-e.g.  when the currently printing CPU holds a spinlock and the CPU where
-kthread is scheduled to run is spinning on this spinlock) but the code is
-much simpler and in my practical testing kthread approach was good enough
-to avoid any problems (with one exception - see below).
-
-The patchset is organized as follows:
-
-Patch 1 is just a cleanup which can be taken on its own (a result of my
-research in kernel history ;).
-
-Patches 2 and 3 change vprintk_emit() to call console_unlock() with
-interrupts enabled so they help to reduce interrupt latency in common case
-when printk() itself is called with interrupts enabled.
-
-Patch 4 is a cleanup of printk_sched() facility from Steven.
-
-Patch 5 is the meat of this series implementing passing of printing duty
-from current CPU after printing printk.offload_chars.  We wake up a
-kthread which starts spinning on console_sem to take over printing.
-
-Patch 6 fixes lockups in one situation which I hit in my testing - if
-someone calls stop_machine(), handing over of printing stops working (see
-commit message for details).  If you find this too hacky, I'm ok with
-dropping this patch at least for now because I'm not sure this problem can
-be hit without artificially stressing the machine.
-
-
-
-This patch (of 6):
-
-Comment about interesting interlocking between lockbuf_lock and
-console_sem is outdated.  It was added in 2002 by commit
-a880f45a48be2956d2c78a839c472287d54435c1 during conversion of console_lock
-to console_sem + lockbuf_lock.  At that time release_console_sem()
-(today's equivalent is console_unlock()) was indeed using lockbuf_lock to
-avoid races between trylock on console_sem in printk() and unlock of
-console_sem.  However these days the interlocking is gone and the races
-are avoided by rechecking logbuf state after releasing console_sem.
+So we drop logbuf_lock before entering console_trylock_for_printk() which
+simplifies the code.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Cc: Petr Mladek <pmladek@suse.cz>
@@ -105,22 +53,97 @@ Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/printk/printk.c |   49 +++++++++++++--------------------------
+ 1 file changed, 17 insertions(+), 32 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-remove-outdated-comment kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-remove-outdated-comment
+diff -puN kernel/printk/printk.c~printk-release-lockbuf_lock-before-calling-console_trylock_for_printk kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-release-lockbuf_lock-before-calling-console_trylock_for_printk
 +++ a/kernel/printk/printk.c
-@@ -206,8 +206,7 @@ struct printk_log {
- };
+@@ -249,9 +249,6 @@ static char __log_buf[__LOG_BUF_LEN] __a
+ static char *log_buf = __log_buf;
+ static u32 log_buf_len = __LOG_BUF_LEN;
  
- /*
-- * The logbuf_lock protects kmsg buffer, indices, counters. It is also
-- * used in interesting ways to provide interlocking in console_unlock();
-+ * The logbuf_lock protects kmsg buffer, indices, counters.
+-/* cpu currently holding logbuf_lock */
+-static volatile unsigned int logbuf_cpu = UINT_MAX;
+-
+ /* human readable text of the record */
+ static char *log_text(const struct printk_log *msg)
+ {
+@@ -1332,36 +1329,22 @@ static inline int can_use_console(unsign
+  * messages from a 'printk'. Return true (and with the
+  * console_lock held, and 'console_locked' set) if it
+  * is successful, false otherwise.
+- *
+- * This gets called with the 'logbuf_lock' spinlock held and
+- * interrupts disabled. It should return with 'lockbuf_lock'
+- * released but interrupts still disabled.
   */
- static DEFINE_RAW_SPINLOCK(logbuf_lock);
+ static int console_trylock_for_printk(unsigned int cpu)
+-	__releases(&logbuf_lock)
+ {
+-	int retval = 0, wake = 0;
+-
+-	if (console_trylock()) {
+-		retval = 1;
+-
+-		/*
+-		 * If we can't use the console, we need to release
+-		 * the console semaphore by hand to avoid flushing
+-		 * the buffer. We need to hold the console semaphore
+-		 * in order to do this test safely.
+-		 */
+-		if (!can_use_console(cpu)) {
+-			console_locked = 0;
+-			wake = 1;
+-			retval = 0;
+-		}
+-	}
+-	logbuf_cpu = UINT_MAX;
+-	raw_spin_unlock(&logbuf_lock);
+-	if (wake)
++	if (!console_trylock())
++		return 0;
++	/*
++	 * If we can't use the console, we need to release the console
++	 * semaphore by hand to avoid flushing the buffer. We need to hold the
++	 * console semaphore in order to do this test safely.
++	 */
++	if (!can_use_console(cpu)) {
++		console_locked = 0;
+ 		up(&console_sem);
+-	return retval;
++		return 0;
++	}
++	return 1;
+ }
  
+ int printk_delay_msec __read_mostly;
+@@ -1494,6 +1477,9 @@ asmlinkage int vprintk_emit(int facility
+ 	unsigned long flags;
+ 	int this_cpu;
+ 	int printed_len = 0;
++	/* cpu currently holding logbuf_lock in this function */
++	static volatile unsigned int logbuf_cpu = UINT_MAX;
++
+ 
+ 	boot_delay_msec(level);
+ 	printk_delay();
+@@ -1612,13 +1598,12 @@ asmlinkage int vprintk_emit(int facility
+ 	}
+ 	printed_len += text_len;
+ 
++	logbuf_cpu = UINT_MAX;
++	raw_spin_unlock(&logbuf_lock);
+ 	/*
+ 	 * Try to acquire and then immediately release the console semaphore.
+ 	 * The release will print out buffers and wake up /dev/kmsg and syslog()
+ 	 * users.
+-	 *
+-	 * The console_trylock_for_printk() function will release 'logbuf_lock'
+-	 * regardless of whether it actually gets the console semaphore or not.
+ 	 */
+ 	if (console_trylock_for_printk(this_cpu))
+ 		console_unlock();
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
@@ -157,7 +180,6 @@ printk-remove-obsolete-check-for-log-level-c.patch
 printk-add-comment-about-tricky-check-for-text-buffer-size.patch
 printk-use-also-the-last-bytes-in-the-ring-buffer.patch
 printk-do-not-compute-the-size-of-the-message-twice.patch
-printk-release-lockbuf_lock-before-calling-console_trylock_for_printk.patch
 printk-enable-interrupts-before-calling-console_trylock_for_printk.patch
 printk-remove-separate-printk_sched-buffers-and-use-printk-buf-instead.patch
 printk-hand-over-printing-to-console-if-printing-too-long.patch
