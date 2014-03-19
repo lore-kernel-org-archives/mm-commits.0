@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: +
- kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator.patch added to -mm tree
-Date: Wed, 19 Mar 2014 16:07:39 -0700
-Message-ID: <532a233b.tDbMSVv/3eOj4Xik%akpm@linux-foundation.org>
+ include-linux-printkh-remove-double-asmlinkage-in-printk_emit.patch added
+ to -mm tree
+Date: Wed, 19 Mar 2014 16:11:44 -0700
+Message-ID: <532a2430.qy/YPR1I5rCAHBmT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49909 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49918 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754533AbaCSXHk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 19:07:40 -0400
+	with ESMTP id S1754533AbaCSXLp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 19:11:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vegard.nossum@oracle.com, penberg@kernel.org, lizefan@huawei.com, qiuxishi@huawei.com
+To: mm-commits@vger.kernel.org, simon.kagstrom@netinsight.net
 
-Subject: + kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator.patch added to -mm tree
-To: qiuxishi@huawei.com,lizefan@huawei.com,penberg@kernel.org,vegard.nossum@oracle.com
+Subject: + include-linux-printkh-remove-double-asmlinkage-in-printk_emit.patch added to -mm tree
+To: simon.kagstrom@netinsight.net
 From: akpm@linux-foundation.org
-Date: Wed, 19 Mar 2014 16:07:39 -0700
+Date: Wed, 19 Mar 2014 16:11:44 -0700
 
 
 The patch titled
-     Subject: kmemcheck: move hook into __alloc_pages_nodemask() for the page allocator
+     Subject: include/linux/printk.h: remove double asmlinkage in printk_emit
 has been added to the -mm tree.  Its filename is
-     kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator.patch
+     include-linux-printkh-remove-double-asmlinkage-in-printk_emit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-printkh-remove-double-asmlinkage-in-printk_emit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-printkh-remove-double-asmlinkage-in-printk_emit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,46 +45,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: kmemcheck: move hook into __alloc_pages_nodemask() for the page allocator
+From: Simon Kågström <simon.kagstrom@netinsight.net>
+Subject: include/linux/printk.h: remove double asmlinkage in printk_emit
 
-Now kmemcheck_pagealloc_alloc() is only called by __alloc_pages_slowpath().
-__alloc_pages_nodemask()
-	__alloc_pages_slowpath()
-		kmemcheck_pagealloc_alloc()
+The double asmlinkage was introduced in 7ff9554bb578ba0 ("printk: convert
+byte-buffer to variable-length record buffer").
 
-And the page will not be tracked by kmemcheck in the following path.
-__alloc_pages_nodemask()
-	get_page_from_freelist()
-
-So move kmemcheck_pagealloc_alloc() into __alloc_pages_nodemask(),
-like this:
-__alloc_pages_nodemask()
-	...
-	get_page_from_freelist()
-	if (!page)
-		__alloc_pages_slowpath()
-	kmemcheck_pagealloc_alloc()
-	...
-
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Li Zefan <lizefan@huawei.com>
+Signed-off-by: Simon Kagstrom <simon.kagstrom@netinsight.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/linux/printk.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator mm/page_alloc.c
---- a/mm/page_alloc.c~kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator
-+++ a/mm/page_alloc.c
-@@ -2692,11 +2692,7 @@ rebalance:
+diff -puN include/linux/printk.h~include-linux-printkh-remove-double-asmlinkage-in-printk_emit include/linux/printk.h
+--- a/include/linux/printk.h~include-linux-printkh-remove-double-asmlinkage-in-printk_emit
++++ a/include/linux/printk.h
+@@ -124,9 +124,9 @@ asmlinkage __printf(1, 0)
+ int vprintk(const char *fmt, va_list args);
  
- nopage:
- 	warn_alloc_failed(gfp_mask, order, NULL);
--	return page;
- got_pg:
--	if (kmemcheck_enabled)
--		kmemcheck_pagealloc_alloc(page, order, gfp_mask);
+ asmlinkage __printf(5, 6) __cold
+-asmlinkage int printk_emit(int facility, int level,
+-			   const char *dict, size_t dictlen,
+-			   const char *fmt, ...);
++int printk_emit(int facility, int level,
++		const char *dict, size_t dictlen,
++		const char *fmt, ...);
+ 
+ asmlinkage __printf(1, 2) __cold
+ int printk(const char *fmt, ...);
+_
+
+Patches currently in -mm which might be from simon.kagstrom@netinsight.net are
+
+include-linux-printkh-remove-double-asmlinkage-in-printk_emit.patch
+linux-next.patch
+
