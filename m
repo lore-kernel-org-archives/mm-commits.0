@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
- added to -mm tree
-Date: Wed, 19 Mar 2014 15:38:59 -0700
-Message-ID: <532a1c83.70C2RZuX48U7axlt%akpm@linux-foundation.org>
+Subject: + maintainers-addition-of-dialog-semiconductor-files.patch added
+ to -mm tree
+Date: Wed, 19 Mar 2014 15:41:44 -0700
+Message-ID: <532a1d28.mmkpjADzbfSzIYs/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49715 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49726 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758378AbaCSWjA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 18:39:00 -0400
+	with ESMTP id S1755261AbaCSWlp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 18:41:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, fengguang.wu@intel.com, cl@linux.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, joe@perches.com, david.chen@diasemi.com, broonie@linaro.org, stwiss.opensource@diasemi.com
 
-Subject: + slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,cl@linux.com,fengguang.wu@intel.com,penberg@kernel.org
+Subject: + maintainers-addition-of-dialog-semiconductor-files.patch added to -mm tree
+To: stwiss.opensource@diasemi.com,broonie@linaro.org,david.chen@diasemi.com,joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 19 Mar 2014 15:38:59 -0700
+Date: Wed, 19 Mar 2014 15:41:44 -0700
 
 
 The patch titled
-     Subject: slub-use-raw_cpu_inc-for-incrementing-statistics-fix
+     Subject: MAINTAINERS: addition of Dialog Semiconductor files
 has been added to the -mm tree.  Its filename is
-     slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
+     maintainers-addition-of-dialog-semiconductor-files.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-addition-of-dialog-semiconductor-files.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-addition-of-dialog-semiconductor-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,94 +44,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slub-use-raw_cpu_inc-for-incrementing-statistics-fix
+From: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
+Subject: MAINTAINERS: addition of Dialog Semiconductor files
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Dialog Semiconductor Ltd would like to add a new section called DIALOG
+SEMICONDUCTOR DRIVERS which contains a new e-mail address that can
+cover all Dialog supported drivers: support.opensource@diasemi.com.
+
+Signed-off-by: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
+Signed-off-by: David Dajun Chen <david.chen@diasemi.com>
+Cc: Mark Brown <broonie@linaro.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ MAINTAINERS |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN mm/slub.c~slub-use-raw_cpu_inc-for-incrementing-statistics-fix mm/slub.c
---- a/mm/slub.c~slub-use-raw_cpu_inc-for-incrementing-statistics-fix
-+++ a/mm/slub.c
-@@ -224,6 +224,10 @@ static inline void memcg_propagate_slab_
- static inline void stat(const struct kmem_cache *s, enum stat_item si)
- {
- #ifdef CONFIG_SLUB_STATS
-+	/*
-+	 * The rmw is racy on a preemptible kernel but this is acceptable, so
-+	 * avoid this_cpu_add()'s irq-disable overhead.
-+	 */
- 	raw_cpu_inc(s->cpu_slab->stat[si]);
- #endif
- }
+diff -puN MAINTAINERS~maintainers-addition-of-dialog-semiconductor-files MAINTAINERS
+--- a/MAINTAINERS~maintainers-addition-of-dialog-semiconductor-files
++++ a/MAINTAINERS
+@@ -2709,6 +2709,31 @@ F:	include/linux/device-mapper.h
+ F:	include/linux/dm-*.h
+ F:	include/uapi/linux/dm-*.h
+ 
++DIALOG SEMICONDUCTOR DRIVERS
++M:	Support Opensource <support.opensource@diasemi.com>
++W:	http://www.dialog-semiconductor.com/products
++S:	Supported
++F:	Documentation/hwmon/da90??
++F:	drivers/gpio/gpio-da90??.c
++F:	drivers/hwmon/da90??-hwmon.c
++F:	drivers/input/misc/da90??_onkey.c
++F:	drivers/input/touchscreen/da9052_tsi.c
++F:	drivers/leds/leds-da90??.c
++F:	drivers/mfd/da903x.c
++F:	drivers/mfd/da90??-*.c
++F:	drivers/power/da9052-battery.c
++F:	drivers/regulator/da903x.c
++F:	drivers/regulator/da9???-regulator.[ch]
++F:	drivers/rtc/rtc-da90??.c
++F:	drivers/video/backlight/da90??_bl.c
++F:	drivers/watchdog/da90??_wdt.c
++F:	include/linux/mfd/da903x.h
++F:	include/linux/mfd/da9052/
++F:	include/linux/mfd/da9055/
++F:	include/linux/mfd/da9063/
++F:	include/sound/da[79]*.h
++F:	sound/soc/codecs/da[79]*.[ch]
++
+ DIGI NEO AND CLASSIC PCI PRODUCTS
+ M:	Lidza Louina <lidza.louina@gmail.com>
+ L:	driverdev-devel@linuxdriverproject.org
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from stwiss.opensource@diasemi.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
-mm-per-thread-vma-caching.patch
-mm-per-thread-vma-caching-fix-3.patch
-mm-per-thread-vma-caching-fix-5.patch
-mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
-mm-per-thread-vma-caching-fix-6-fix.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
-fs-inodec-inode_lru_isolate-use-atomic-count_vm_events.patch
-zram-use-zcomp-compressing-backends-fix.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix.patch
-zram-propagate-error-to-user-fix.patch
-zram-support-req_discard-v4-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-befs-logging-clean-up-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
+maintainers-addition-of-dialog-semiconductor-files.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
-percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
