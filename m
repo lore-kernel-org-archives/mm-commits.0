@@ -1,241 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 19 Mar 2014 14:05:33 -0700
-Message-ID: <532a069d.Gojj5GyVn07zIOa3%akpm@linux-foundation.org>
+Subject: + checkpatch-improve-octal-permissions-test-speed.patch added to
+ -mm tree
+Date: Wed, 19 Mar 2014 14:15:12 -0700
+Message-ID: <532a08e0.biFoB4qblcq1E/Pj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48895 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48914 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753933AbaCSVFe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 17:05:34 -0400
+	with ESMTP id S1750934AbaCSVPN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 17:15:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xuejiufei@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jiangyiwen@huawei.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [folded-merged] ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,jiangyiwen@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,xuejiufei@huawei.com,mm-commits@vger.kernel.org
+Subject: + checkpatch-improve-octal-permissions-test-speed.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 19 Mar 2014 14:05:33 -0700
+Date: Wed, 19 Mar 2014 14:15:12 -0700
 
 
 The patch titled
-     Subject: ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+     Subject: checkpatch: improve octal permissions test speed
+has been added to the -mm tree.  Its filename is
+     checkpatch-improve-octal-permissions-test-speed.patch
 
-This patch was dropped because it was folded into ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-octal-permissions-test-speed.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-octal-permissions-test-speed.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve octal permissions test speed
 
-ERROR: code indent should use tabs where possible
-#56: FILE: fs/ocfs2/dlm/dlmmaster.c:3087:
-+                       if (tmp->type == DLM_MLE_MASTER) {$
+The current octal permissions test is very slow.
 
-WARNING: please, no spaces at the start of a line
-#56: FILE: fs/ocfs2/dlm/dlmmaster.c:3087:
-+                       if (tmp->type == DLM_MLE_MASTER) {$
+When 3fc9249967 ("checkpatch: add checks for constant non-octal
+permissions") was added, processing time approximately tripled.
 
-WARNING: suspect code indent for conditional statements (23, 31)
-#56: FILE: fs/ocfs2/dlm/dlmmaster.c:3087:
-+                       if (tmp->type == DLM_MLE_MASTER) {
-+                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
+Regain almost all of the performance by not looping through all the
+possible functions unless the line contains one of the functions.
 
-ERROR: code indent should use tabs where possible
-#57: FILE: fs/ocfs2/dlm/dlmmaster.c:3088:
-+                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;$
-
-WARNING: please, no spaces at the start of a line
-#57: FILE: fs/ocfs2/dlm/dlmmaster.c:3088:
-+                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;$
-
-ERROR: code indent should use tabs where possible
-#58: FILE: fs/ocfs2/dlm/dlmmaster.c:3089:
-+                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "$
-
-WARNING: please, no spaces at the start of a line
-#58: FILE: fs/ocfs2/dlm/dlmmaster.c:3089:
-+                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "$
-
-WARNING: quoted string split across lines
-#59: FILE: fs/ocfs2/dlm/dlmmaster.c:3090:
-+                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
-+                                               "telling master to get ref "
-
-ERROR: code indent should use tabs where possible
-#59: FILE: fs/ocfs2/dlm/dlmmaster.c:3090:
-+                                               "telling master to get ref "$
-
-WARNING: please, no spaces at the start of a line
-#59: FILE: fs/ocfs2/dlm/dlmmaster.c:3090:
-+                                               "telling master to get ref "$
-
-WARNING: quoted string split across lines
-#60: FILE: fs/ocfs2/dlm/dlmmaster.c:3091:
-+                                               "telling master to get ref "
-+                                               "for cleared out mle during "
-
-ERROR: code indent should use tabs where possible
-#60: FILE: fs/ocfs2/dlm/dlmmaster.c:3091:
-+                                               "for cleared out mle during "$
-
-WARNING: please, no spaces at the start of a line
-#60: FILE: fs/ocfs2/dlm/dlmmaster.c:3091:
-+                                               "for cleared out mle during "$
-
-WARNING: quoted string split across lines
-#61: FILE: fs/ocfs2/dlm/dlmmaster.c:3092:
-+                                               "for cleared out mle during "
-+                                               "migration\n", dlm->name,
-
-ERROR: code indent should use tabs where possible
-#61: FILE: fs/ocfs2/dlm/dlmmaster.c:3092:
-+                                               "migration\n", dlm->name,$
-
-WARNING: please, no spaces at the start of a line
-#61: FILE: fs/ocfs2/dlm/dlmmaster.c:3092:
-+                                               "migration\n", dlm->name,$
-
-ERROR: code indent should use tabs where possible
-#62: FILE: fs/ocfs2/dlm/dlmmaster.c:3093:
-+                                               namelen, name, master,$
-
-WARNING: please, no spaces at the start of a line
-#62: FILE: fs/ocfs2/dlm/dlmmaster.c:3093:
-+                                               namelen, name, master,$
-
-ERROR: code indent should use tabs where possible
-#63: FILE: fs/ocfs2/dlm/dlmmaster.c:3094:
-+                                               new_master);$
-
-WARNING: please, no spaces at the start of a line
-#63: FILE: fs/ocfs2/dlm/dlmmaster.c:3094:
-+                                               new_master);$
-
-ERROR: code indent should use tabs where possible
-#64: FILE: fs/ocfs2/dlm/dlmmaster.c:3095:
-+                       }$
-
-WARNING: please, no spaces at the start of a line
-#64: FILE: fs/ocfs2/dlm/dlmmaster.c:3095:
-+                       }$
-
-total: 9 errors, 13 warnings, 20 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Xue jiufei <xuejiufei@huawei.com>
-Cc: jiangyiwen <jiangyiwen@huawei.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ scripts/checkpatch.pl |   51 ++++++++++++++++++++++++----------------
+ 1 file changed, 31 insertions(+), 20 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -3084,15 +3084,15 @@ static int dlm_add_migration_mle(struct
- 			/* remove it so that only one mle will be found */
- 			__dlm_unlink_mle(dlm, tmp);
- 			__dlm_mle_detach_hb_events(dlm, tmp);
--                       if (tmp->type == DLM_MLE_MASTER) {
--                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
--                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
--                                               "telling master to get ref "
--                                               "for cleared out mle during "
--                                               "migration\n", dlm->name,
--                                               namelen, name, master,
--                                               new_master);
--                       }
-+			if (tmp->type == DLM_MLE_MASTER) {
-+				ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
-+				mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
-+						"telling master to get ref "
-+						"for cleared out mle during "
-+						"migration\n", dlm->name,
-+						namelen, name, master,
-+						new_master);
-+			}
+diff -puN scripts/checkpatch.pl~checkpatch-improve-octal-permissions-test-speed scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-octal-permissions-test-speed
++++ a/scripts/checkpatch.pl
+@@ -388,6 +388,13 @@ our @mode_permission_funcs = (
+ 	["(?:CLASS|DEVICE|SENSOR)_ATTR", 2],
+ );
+ 
++#Create a search pattern for all these functions to speed up a loop below
++our $mode_perms_search = "";
++foreach my $entry (@mode_permission_funcs) {
++	$mode_perms_search .= '|' if ($mode_perms_search ne "");
++	$mode_perms_search .= $entry->[0];
++}
++
+ our $allowed_asm_includes = qr{(?x:
+ 	irq|
+ 	memory
+@@ -4538,26 +4545,30 @@ sub process {
+ 			     "Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
  		}
- 		spin_unlock(&tmp->spinlock);
- 	}
+ 
+-		foreach my $entry (@mode_permission_funcs) {
+-			my $func = $entry->[0];
+-			my $arg_pos = $entry->[1];
+-
+-			my $skip_args = "";
+-			if ($arg_pos > 1) {
+-				$arg_pos--;
+-				$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
+-			}
+-			my $test = "\\b$func\\s*\\(${skip_args}([\\d]+)\\s*[,\\)]";
+-			if ($^V && $^V ge 5.10.0 &&
+-			    $line =~ /$test/) {
+-				my $val = $1;
+-				$val = $6 if ($skip_args ne "");
+-
+-				if ($val !~ /^0$/ &&
+-				    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
+-				     length($val) ne 4)) {
+-					ERROR("NON_OCTAL_PERMISSIONS",
+-					      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
++# Mode permission misuses where it seems decimal should be octal
++# This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
++		if ($^V && $^V ge 5.10.0 &&
++		    $line =~ /$mode_perms_search/) {
++			foreach my $entry (@mode_permission_funcs) {
++				my $func = $entry->[0];
++				my $arg_pos = $entry->[1];
++
++				my $skip_args = "";
++				if ($arg_pos > 1) {
++					$arg_pos--;
++					$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
++				}
++				my $test = "\\b$func\\s*\\(${skip_args}([\\d]+)\\s*[,\\)]";
++				if ($line =~ /$test/) {
++					my $val = $1;
++					$val = $6 if ($skip_args ne "");
++
++					if ($val !~ /^0$/ &&
++					    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
++					     length($val) ne 4)) {
++						ERROR("NON_OCTAL_PERMISSIONS",
++						      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
++					}
+ 				}
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
-mm-per-thread-vma-caching.patch
-mm-per-thread-vma-caching-fix-3.patch
-mm-per-thread-vma-caching-fix-5.patch
-mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
-mm-per-thread-vma-caching-fix-6-fix.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
-fs-inodec-inode_lru_isolate-use-atomic-count_vm_events.patch
-zram-use-zcomp-compressing-backends-fix.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix.patch
-zram-propagate-error-to-user-fix.patch
-zram-support-req_discard-v4-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+errh-use-bool-for-is_err-and-is_err_or_null.patch
+maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch
+lib-random32c-minor-cleanups-and-kdoc-fix.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-test-for-long-udelay.patch
+checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
+checkpatch-add-checks-for-constant-non-octal-permissions.patch
+checkpatch-warn-on-uses-of-__constant_foo-functions.patch
+checkpatch-update-octal-permissions-warning.patch
+checkpatch-avoid-sscanf-test-duplicated-messages.patch
+checkpatch-fix-jiffies-comparison-and-others.patch
+checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
+checkpatch-use-a-more-consistent-function-argument-style.patch
+checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+checkpatchpl-modify-warning-message-for-printk-usage.patch
+checkpatch-net-and-drivers-net-warn-on-missing-blank-line-after-variable-declaration.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-improve-octal-permissions-test-speed.patch
+checkpatch-check-vendor-compatible-with-dashes.patch
+checkpatch-fix-spurious-vendor-compatible-warnings.patch
+checkpatch-check-compatible-strings-in-c-and-h-too.patch
+checkpatch-improve-the-compatible-vendor-match.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
 ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
 ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
+befs-logging-clean-up.patch
 befs-logging-clean-up-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
