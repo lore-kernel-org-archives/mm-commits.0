@@ -1,96 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch added to
- -mm tree
-Date: Wed, 19 Mar 2014 13:57:34 -0700
-Message-ID: <532a04be.sAQb6aBtXqQWIdzz%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 19 Mar 2014 14:05:04 -0700
+Message-ID: <532a0680.8GJj6vqUEPrvvgHn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48852 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48891 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755806AbaCSU5f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 16:57:35 -0400
+	with ESMTP id S1755574AbaCSVFF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 17:05:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
+To: mm-commits@vger.kernel.org, wen.gang.wang@oracle.com, mfasheh@suse.com, jlbec@evilplan.org, akpm@linux-foundation.org
 
-Subject: + ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch added to -mm tree
-To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: [folded-merged] ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,jlbec@evilplan.org,mfasheh@suse.com,wen.gang.wang@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 19 Mar 2014 13:57:34 -0700
+Date: Wed, 19 Mar 2014 14:05:04 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix type conversion risk when get cluster attributes
-has been added to the -mm tree.  Its filename is
-     ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch
+     Subject: ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix type conversion risk when get cluster attributes
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes
 
-In o2nm_cluster, cl_idle_timeout_ms, cl_keepalive_delay_ms, as well as
-cl_reconnect_delay_ms, are defined as type of unsigned int.  So we should
-also use unsigned int in the helper functions.
+WARNING: braces {} are not necessary for single statement blocks
+#26: FILE: fs/ocfs2/locks.c:85:
++	if (ret) {
++		ocfs2_file_unlock(file);
++	}
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+total: 0 errors, 1 warnings, 9 lines checked
+
+./patches/ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Wengang Wang <wen.gang.wang@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ocfs2/locks.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-fix-type-conversion-risk-when-get-cluster-attributes fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-fix-type-conversion-risk-when-get-cluster-attributes
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -262,17 +262,17 @@ static void o2net_update_recv_stats(stru
+diff -puN fs/ocfs2/locks.c~ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes fs/ocfs2/locks.c
+--- a/fs/ocfs2/locks.c~ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes
++++ a/fs/ocfs2/locks.c
+@@ -82,9 +82,8 @@ static int ocfs2_do_flock(struct file *f
+ 	}
  
- #endif /* CONFIG_OCFS2_FS_STATS */
+ 	ret = flock_lock_file_wait(file, fl);
+-	if (ret) {
++	if (ret)
+ 		ocfs2_file_unlock(file);
+-	}
  
--static inline int o2net_reconnect_delay(void)
-+static inline unsigned int o2net_reconnect_delay(void)
- {
- 	return o2nm_single_cluster->cl_reconnect_delay_ms;
- }
- 
--static inline int o2net_keepalive_delay(void)
-+static inline unsigned int o2net_keepalive_delay(void)
- {
- 	return o2nm_single_cluster->cl_keepalive_delay_ms;
- }
- 
--static inline int o2net_idle_timeout(void)
-+static inline unsigned int o2net_idle_timeout(void)
- {
- 	return o2nm_single_cluster->cl_idle_timeout_ms;
- }
+ out:
+ 	mutex_unlock(&fp->fp_mutex);
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-fix-null-pointer-dereference-when-access-dlm_state-before-launching-dlm-thread.patch
-ocfs2-remove-unused-variable-uuid_net_key-in-ocfs2_initialize_super.patch
-ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
-ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
+mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-per-thread-vma-caching.patch
+mm-per-thread-vma-caching-fix-3.patch
+mm-per-thread-vma-caching-fix-5.patch
+mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
+mm-per-thread-vma-caching-fix-6-fix.patch
+mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+fs-inodec-inode_lru_isolate-use-atomic-count_vm_events.patch
+zram-use-zcomp-compressing-backends-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix.patch
+zram-propagate-error-to-user-fix.patch
+zram-support-req_discard-v4-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+befs-logging-clean-up-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
