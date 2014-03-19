@@ -1,103 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- mm-call-vma_adjust_trans_huge-only-for-thp-enabled-vma.patch removed from
+Subject: +
+ ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch added to
  -mm tree
-Date: Wed, 19 Mar 2014 13:27:51 -0700
-Message-ID: <5329fdc7.Mq/DouhA7ugXW1j7%akpm@linux-foundation.org>
+Date: Wed, 19 Mar 2014 13:57:34 -0700
+Message-ID: <532a04be.sAQb6aBtXqQWIdzz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48852 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753978AbaCSU1w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 16:27:52 -0400
+	with ESMTP id S1755806AbaCSU5f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 16:57:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, n-horiguchi@ah.jp.nec.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com
 
-Subject: [nacked] mm-call-vma_adjust_trans_huge-only-for-thp-enabled-vma.patch removed from -mm tree
-To: n-horiguchi@ah.jp.nec.com,sasha.levin@oracle.com,mm-commits@vger.kernel.org
+Subject: + ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch added to -mm tree
+To: joseph.qi@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Wed, 19 Mar 2014 13:27:51 -0700
+Date: Wed, 19 Mar 2014 13:57:34 -0700
 
 
 The patch titled
-     Subject: mm: call vma_adjust_trans_huge() only for thp-enabled vma
-has been removed from the -mm tree.  Its filename was
-     mm-call-vma_adjust_trans_huge-only-for-thp-enabled-vma.patch
+     Subject: ocfs2: fix type conversion risk when get cluster attributes
+has been added to the -mm tree.  Its filename is
+     ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: call vma_adjust_trans_huge() only for thp-enabled vma
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix type conversion risk when get cluster attributes
 
-vma_adjust() is called also for vma(VM_HUGETLB) and it could happen that
-we happen to try to split hugetlbfs hugepage.  So exclude the possibility.
+In o2nm_cluster, cl_idle_timeout_ms, cl_keepalive_delay_ms, as well as
+cl_reconnect_delay_ms, are defined as type of unsigned int.  So we should
+also use unsigned int in the helper functions.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/cluster/tcp.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmap.c~mm-call-vma_adjust_trans_huge-only-for-thp-enabled-vma mm/mmap.c
---- a/mm/mmap.c~mm-call-vma_adjust_trans_huge-only-for-thp-enabled-vma
-+++ a/mm/mmap.c
-@@ -772,7 +772,8 @@ again:			remove_next = 1 + (end > next->
- 		}
- 	}
+diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-fix-type-conversion-risk-when-get-cluster-attributes fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-fix-type-conversion-risk-when-get-cluster-attributes
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -262,17 +262,17 @@ static void o2net_update_recv_stats(stru
  
--	vma_adjust_trans_huge(vma, start, end, adjust_next);
-+	if (transparent_hugepage_enabled(vma))
-+		vma_adjust_trans_huge(vma, start, end, adjust_next);
+ #endif /* CONFIG_OCFS2_FS_STATS */
  
- 	anon_vma = vma->anon_vma;
- 	if (!anon_vma && adjust_next)
+-static inline int o2net_reconnect_delay(void)
++static inline unsigned int o2net_reconnect_delay(void)
+ {
+ 	return o2nm_single_cluster->cl_reconnect_delay_ms;
+ }
+ 
+-static inline int o2net_keepalive_delay(void)
++static inline unsigned int o2net_keepalive_delay(void)
+ {
+ 	return o2nm_single_cluster->cl_keepalive_delay_ms;
+ }
+ 
+-static inline int o2net_idle_timeout(void)
++static inline unsigned int o2net_idle_timeout(void)
+ {
+ 	return o2nm_single_cluster->cl_idle_timeout_ms;
+ }
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-mm-hugetlb-unify-region-structure-handling.patch
-mm-hugetlb-improve-cleanup-resv_map-parameters.patch
-mm-hugetlb-fix-race-in-region-tracking.patch
-mm-hugetlb-remove-resv_map_put.patch
-mm-hugetlb-use-vma_resv_map-map-types.patch
-mm-hugetlb-improve-page-fault-scalability.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-madvise-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
-mm-rename-__do_fault-do_fault.patch
-mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
-mm-introduce-do_read_fault.patch
-mm-introduce-do_cow_fault.patch
-mm-introduce-do_shared_fault-and-drop-do_fault.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-consolidate-code-to-call-vm_ops-page_mkwrite.patch
-mm-consolidate-code-to-call-vm_ops-page_mkwrite-fix.patch
-mm-consolidate-code-to-setup-pte.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+ocfs2-fix-null-pointer-dereference-when-access-dlm_state-before-launching-dlm-thread.patch
+ocfs2-remove-unused-variable-uuid_net_key-in-ocfs2_initialize_super.patch
+ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
+ocfs2-fix-type-conversion-risk-when-get-cluster-attributes.patch
 
