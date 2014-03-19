@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + bug-using-__this_cpu_add-in-preemptible-code-init-1.patch added to -mm tree
-Date: Wed, 19 Mar 2014 15:33:15 -0700
-Message-ID: <532a1b2b.Foxt0hwIdFpAz6Ee%akpm@linux-foundation.org>
+Subject: + slub-use-raw_cpu_inc-for-incrementing-statistics.patch added to -mm tree
+Date: Wed, 19 Mar 2014 15:34:18 -0700
+Message-ID: <532a1b6a.nbJVK8Mw/RRlTtVz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49701 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49703 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964832AbaCSWdQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 18:33:16 -0400
+	with ESMTP id S1752794AbaCSWeT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 18:34:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, penberg@kernel.org, fengguang.wu@intel.com, cl@linux.com
 
-Subject: + bug-using-__this_cpu_add-in-preemptible-code-init-1.patch added to -mm tree
+Subject: + slub-use-raw_cpu_inc-for-incrementing-statistics.patch added to -mm tree
 To: cl@linux.com,fengguang.wu@intel.com,penberg@kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 19 Mar 2014 15:33:15 -0700
+Date: Wed, 19 Mar 2014 15:34:18 -0700
 
 
 The patch titled
      Subject: slub: use raw_cpu_inc for incrementing statistics
 has been added to the -mm tree.  Its filename is
-     bug-using-__this_cpu_add-in-preemptible-code-init-1.patch
+     slub-use-raw_cpu_inc-for-incrementing-statistics.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bug-using-__this_cpu_add-in-preemptible-code-init-1.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-use-raw_cpu_inc-for-incrementing-statistics.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bug-using-__this_cpu_add-in-preemptible-code-init-1.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-use-raw_cpu_inc-for-incrementing-statistics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,8 +63,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/slub.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~bug-using-__this_cpu_add-in-preemptible-code-init-1 mm/slub.c
---- a/mm/slub.c~bug-using-__this_cpu_add-in-preemptible-code-init-1
+diff -puN mm/slub.c~slub-use-raw_cpu_inc-for-incrementing-statistics mm/slub.c
+--- a/mm/slub.c~slub-use-raw_cpu_inc-for-incrementing-statistics
 +++ a/mm/slub.c
 @@ -224,7 +224,7 @@ static inline void memcg_propagate_slab_
  static inline void stat(const struct kmem_cache *s, enum stat_item si)
@@ -97,7 +97,7 @@ percpu-add-raw_cpu_ops.patch
 mm-use-raw_cpu-ops-for-determining-current-numa-node.patch
 modules-use-raw_cpu_write-for-initialization-of-per-cpu-refcount.patch
 net-replace-__this_cpu_inc-in-routec-with-raw_cpu_inc.patch
-bug-using-__this_cpu_add-in-preemptible-code-init-1.patch
+slub-use-raw_cpu_inc-for-incrementing-statistics.patch
 percpu-add-preemption-checks-to-__this_cpu-ops.patch
 percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch
 percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
