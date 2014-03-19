@@ -1,47 +1,136 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 19 Mar 2014 14:05:04 -0700
-Message-ID: <532a0680.8GJj6vqUEPrvvgHn%akpm@linux-foundation.org>
+ ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 19 Mar 2014 14:05:33 -0700
+Message-ID: <532a069d.Gojj5GyVn07zIOa3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48891 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48895 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755574AbaCSVFF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 17:05:05 -0400
+	with ESMTP id S1753933AbaCSVFe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 17:05:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wen.gang.wang@oracle.com, mfasheh@suse.com, jlbec@evilplan.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, xuejiufei@huawei.com, mfasheh@suse.com, jlbec@evilplan.org, jiangyiwen@huawei.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,jlbec@evilplan.org,mfasheh@suse.com,wen.gang.wang@oracle.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch removed from -mm tree
+To: akpm@linux-foundation.org,jiangyiwen@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,xuejiufei@huawei.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 19 Mar 2014 14:05:04 -0700
+Date: Wed, 19 Mar 2014 14:05:33 -0700
 
 
 The patch titled
-     Subject: ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes
+     Subject: ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes.patch
+     ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
+This patch was dropped because it was folded into ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes
+Subject: ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes
 
-WARNING: braces {} are not necessary for single statement blocks
-#26: FILE: fs/ocfs2/locks.c:85:
-+	if (ret) {
-+		ocfs2_file_unlock(file);
-+	}
+ERROR: code indent should use tabs where possible
+#56: FILE: fs/ocfs2/dlm/dlmmaster.c:3087:
++                       if (tmp->type == DLM_MLE_MASTER) {$
 
-total: 0 errors, 1 warnings, 9 lines checked
+WARNING: please, no spaces at the start of a line
+#56: FILE: fs/ocfs2/dlm/dlmmaster.c:3087:
++                       if (tmp->type == DLM_MLE_MASTER) {$
 
-./patches/ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch has style problems, please review.
+WARNING: suspect code indent for conditional statements (23, 31)
+#56: FILE: fs/ocfs2/dlm/dlmmaster.c:3087:
++                       if (tmp->type == DLM_MLE_MASTER) {
++                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
+
+ERROR: code indent should use tabs where possible
+#57: FILE: fs/ocfs2/dlm/dlmmaster.c:3088:
++                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;$
+
+WARNING: please, no spaces at the start of a line
+#57: FILE: fs/ocfs2/dlm/dlmmaster.c:3088:
++                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;$
+
+ERROR: code indent should use tabs where possible
+#58: FILE: fs/ocfs2/dlm/dlmmaster.c:3089:
++                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "$
+
+WARNING: please, no spaces at the start of a line
+#58: FILE: fs/ocfs2/dlm/dlmmaster.c:3089:
++                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "$
+
+WARNING: quoted string split across lines
+#59: FILE: fs/ocfs2/dlm/dlmmaster.c:3090:
++                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
++                                               "telling master to get ref "
+
+ERROR: code indent should use tabs where possible
+#59: FILE: fs/ocfs2/dlm/dlmmaster.c:3090:
++                                               "telling master to get ref "$
+
+WARNING: please, no spaces at the start of a line
+#59: FILE: fs/ocfs2/dlm/dlmmaster.c:3090:
++                                               "telling master to get ref "$
+
+WARNING: quoted string split across lines
+#60: FILE: fs/ocfs2/dlm/dlmmaster.c:3091:
++                                               "telling master to get ref "
++                                               "for cleared out mle during "
+
+ERROR: code indent should use tabs where possible
+#60: FILE: fs/ocfs2/dlm/dlmmaster.c:3091:
++                                               "for cleared out mle during "$
+
+WARNING: please, no spaces at the start of a line
+#60: FILE: fs/ocfs2/dlm/dlmmaster.c:3091:
++                                               "for cleared out mle during "$
+
+WARNING: quoted string split across lines
+#61: FILE: fs/ocfs2/dlm/dlmmaster.c:3092:
++                                               "for cleared out mle during "
++                                               "migration\n", dlm->name,
+
+ERROR: code indent should use tabs where possible
+#61: FILE: fs/ocfs2/dlm/dlmmaster.c:3092:
++                                               "migration\n", dlm->name,$
+
+WARNING: please, no spaces at the start of a line
+#61: FILE: fs/ocfs2/dlm/dlmmaster.c:3092:
++                                               "migration\n", dlm->name,$
+
+ERROR: code indent should use tabs where possible
+#62: FILE: fs/ocfs2/dlm/dlmmaster.c:3093:
++                                               namelen, name, master,$
+
+WARNING: please, no spaces at the start of a line
+#62: FILE: fs/ocfs2/dlm/dlmmaster.c:3093:
++                                               namelen, name, master,$
+
+ERROR: code indent should use tabs where possible
+#63: FILE: fs/ocfs2/dlm/dlmmaster.c:3094:
++                                               new_master);$
+
+WARNING: please, no spaces at the start of a line
+#63: FILE: fs/ocfs2/dlm/dlmmaster.c:3094:
++                                               new_master);$
+
+ERROR: code indent should use tabs where possible
+#64: FILE: fs/ocfs2/dlm/dlmmaster.c:3095:
++                       }$
+
+WARNING: please, no spaces at the start of a line
+#64: FILE: fs/ocfs2/dlm/dlmmaster.c:3095:
++                       }$
+
+total: 9 errors, 13 warnings, 20 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -50,27 +139,42 @@ Please run checkpatch prior to sending patches
 
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Wengang Wang <wen.gang.wang@oracle.com>
+Cc: Xue jiufei <xuejiufei@huawei.com>
+Cc: jiangyiwen <jiangyiwen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/locks.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN fs/ocfs2/locks.c~ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes fs/ocfs2/locks.c
---- a/fs/ocfs2/locks.c~ocfs2-flock-drop-cross-node-lock-when-failed-locally-checkpatch-fixes
-+++ a/fs/ocfs2/locks.c
-@@ -82,9 +82,8 @@ static int ocfs2_do_flock(struct file *f
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -3084,15 +3084,15 @@ static int dlm_add_migration_mle(struct
+ 			/* remove it so that only one mle will be found */
+ 			__dlm_unlink_mle(dlm, tmp);
+ 			__dlm_mle_detach_hb_events(dlm, tmp);
+-                       if (tmp->type == DLM_MLE_MASTER) {
+-                               ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
+-                               mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
+-                                               "telling master to get ref "
+-                                               "for cleared out mle during "
+-                                               "migration\n", dlm->name,
+-                                               namelen, name, master,
+-                                               new_master);
+-                       }
++			if (tmp->type == DLM_MLE_MASTER) {
++				ret = DLM_MIGRATE_RESPONSE_MASTERY_REF;
++				mlog(0, "%s:%.*s: master=%u, newmaster=%u, "
++						"telling master to get ref "
++						"for cleared out mle during "
++						"migration\n", dlm->name,
++						namelen, name, master,
++						new_master);
++			}
+ 		}
+ 		spin_unlock(&tmp->spinlock);
  	}
- 
- 	ret = flock_lock_file_wait(file, fl);
--	if (ret) {
-+	if (ret)
- 		ocfs2_file_unlock(file);
--	}
- 
- out:
- 	mutex_unlock(&fp->fp_mutex);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +185,7 @@ maintainers-akpm-maintenance.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
 ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
 ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount-checkpatch-fixes.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 mm.patch
 mm-hugetlb-improve-page-fault-scalability-fix.patch
 mm-vmstat-fix-up-zone-state-accounting-fix.patch
