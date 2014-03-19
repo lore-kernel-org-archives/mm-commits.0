@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-improve-octal-permissions-test-speed.patch added to
- -mm tree
-Date: Wed, 19 Mar 2014 14:15:12 -0700
-Message-ID: <532a08e0.biFoB4qblcq1E/Pj%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch added to -mm tree
+Date: Wed, 19 Mar 2014 15:01:17 -0700
+Message-ID: <532a13ad.KmgeFSsM2ln2HD1+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49375 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934AbaCSVPN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 17:15:13 -0400
+	with ESMTP id S1753794AbaCSWBS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 18:01:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + checkpatch-improve-octal-permissions-test-speed.patch added to -mm tree
+Subject: + checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 19 Mar 2014 14:15:12 -0700
+Date: Wed, 19 Mar 2014 15:01:17 -0700
 
 
 The patch titled
-     Subject: checkpatch: improve octal permissions test speed
+     Subject: checkpatch: reduce false positives for "Missing blank line after declarations" test
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-octal-permissions-test-speed.patch
+     checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-octal-permissions-test-speed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-octal-permissions-test-speed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,91 +45,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve octal permissions test speed
+Subject: checkpatch: reduce false positives for "Missing blank line after declarations" test
 
-The current octal permissions test is very slow.
+Reduce the false positives of this test by checking previous lines for
+known macros that declare variables.
 
-When 3fc9249967 ("checkpatch: add checks for constant non-octal
-permissions") was added, processing time approximately tripled.
+Add c90 keywords and test those too.
 
-Regain almost all of the performance by not looping through all the
-possible functions unless the line contains one of the functions.
+Comment the specific tests done a bit better.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   51 ++++++++++++++++++++++++----------------
- 1 file changed, 31 insertions(+), 20 deletions(-)
+ scripts/checkpatch.pl |   36 ++++++++++++++++++++++++++++++------
+ 1 file changed, 30 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-octal-permissions-test-speed scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-octal-permissions-test-speed
+diff -puN scripts/checkpatch.pl~checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test
 +++ a/scripts/checkpatch.pl
-@@ -388,6 +388,13 @@ our @mode_permission_funcs = (
- 	["(?:CLASS|DEVICE|SENSOR)_ATTR", 2],
- );
+@@ -303,6 +303,7 @@ our $Operators	= qr{
+ 			=>|->|<<|>>|<|>|!|~|
+ 			&&|\|\||,|\^|\+\+|--|&|\||$Arithmetic
+ 		  }x;
++our $c90_Keywords = qr{do|for|while|if|else|return|goto|continue|switch|default|case|break}x;
  
-+#Create a search pattern for all these functions to speed up a loop below
-+our $mode_perms_search = "";
-+foreach my $entry (@mode_permission_funcs) {
-+	$mode_perms_search .= '|' if ($mode_perms_search ne "");
-+	$mode_perms_search .= $entry->[0];
-+}
+ our $NonptrType;
+ our $NonptrTypeWithAttr;
+@@ -395,6 +396,11 @@ foreach my $entry (@mode_permission_func
+ 	$mode_perms_search .= $entry->[0];
+ }
+ 
++our $declaration_macros = qr{(?x:
++	(?:$Storage\s+)?(?:DECLARE|DEFINE)_[A-Z]+\s*\(|
++	(?:$Storage\s+)?LIST_HEAD\s*\(
++)};
 +
  our $allowed_asm_includes = qr{(?x:
  	irq|
  	memory
-@@ -4538,26 +4545,30 @@ sub process {
- 			     "Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
+@@ -2256,14 +2262,32 @@ sub process {
  		}
  
--		foreach my $entry (@mode_permission_funcs) {
--			my $func = $entry->[0];
--			my $arg_pos = $entry->[1];
--
--			my $skip_args = "";
--			if ($arg_pos > 1) {
--				$arg_pos--;
--				$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
--			}
--			my $test = "\\b$func\\s*\\(${skip_args}([\\d]+)\\s*[,\\)]";
--			if ($^V && $^V ge 5.10.0 &&
--			    $line =~ /$test/) {
--				my $val = $1;
--				$val = $6 if ($skip_args ne "");
--
--				if ($val !~ /^0$/ &&
--				    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
--				     length($val) ne 4)) {
--					ERROR("NON_OCTAL_PERMISSIONS",
--					      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
-+# Mode permission misuses where it seems decimal should be octal
-+# This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $line =~ /$mode_perms_search/) {
-+			foreach my $entry (@mode_permission_funcs) {
-+				my $func = $entry->[0];
-+				my $arg_pos = $entry->[1];
-+
-+				my $skip_args = "";
-+				if ($arg_pos > 1) {
-+					$arg_pos--;
-+					$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
-+				}
-+				my $test = "\\b$func\\s*\\(${skip_args}([\\d]+)\\s*[,\\)]";
-+				if ($line =~ /$test/) {
-+					my $val = $1;
-+					$val = $6 if ($skip_args ne "");
-+
-+					if ($val !~ /^0$/ &&
-+					    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
-+					     length($val) ne 4)) {
-+						ERROR("NON_OCTAL_PERMISSIONS",
-+						      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
-+					}
- 				}
- 			}
- 		}
+ # check for missing blank lines after declarations
+-		if ($prevline =~ /^\+\s+$Declare\s+$Ident/ &&
+-		    !($prevline =~ /(?:$Compare|$Assignment|$Operators)\s*$/ ||
+-		      $prevline =~ /(?:\{\s*|\\)$/) &&		#extended lines
+-		    $sline =~ /^\+\s+/ &&			#Not at char 1
++		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
++			# actual declarations
++		    ($prevline =~ /^\+\s+$Declare\s+$Ident\s*[=,;\[]/ ||
++			# foo bar; where foo is some local typedef or #define
++		     $prevline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
++			# known declaration macros
++		     $prevline =~ /^\+\s+$declaration_macros/) &&
++			# for "else if" which can look like "$Ident $Ident"
++		    !($prevline =~ /^\+\s+$c90_Keywords\b/ ||
++			# other possible extensions of declaration lines
++		      $prevline =~ /(?:$Compare|$Assignment|$Operators)\s*$/ ||
++			# not starting a section or a macro "\" extended line
++		      $prevline =~ /(?:\{\s*|\\)$/) &&
++			# looks like a declaration
+ 		    !($sline =~ /^\+\s+$Declare/ ||
+-		      $sline =~ /^\+\s+$Ident\s+$Ident/ ||	#eg: typedef foo
++			# foo bar; where foo is some local typedef or #define
++		      $sline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
++			# known declaration macros
++		      $sline =~ /^\+\s+$declaration_macros/ ||
++			# start of struct or union or enum
+ 		      $sline =~ /^\+\s+(?:union|struct|enum|typedef)\b/ ||
+-		      $sline =~ /^\+\s+(?:$|[\{\}\.\#\"\?\:\(])/ ||
++			# start or end of block or continuation of declaration
++		      $sline =~ /^\+\s+(?:$|[\{\}\.\#\"\?\:\(\[])/ ||
++			# bitfield continuation
++		      $sline =~ /^\+\s+$Ident\s*:\s*\d+\s*[,;]/ ||
++			# other possible extensions of declaration lines
+ 		      $sline =~ /^\+\s+\(?\s*(?:$Compare|$Assignment|$Operators)/)) {
+ 			WARN("SPACING",
+ 			     "Missing a blank line after declarations\n" . $hereprev);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -153,6 +146,7 @@ checkpatchpl-modify-warning-message-for-printk-usage.patch
 checkpatch-net-and-drivers-net-warn-on-missing-blank-line-after-variable-declaration.patch
 checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
 checkpatch-improve-octal-permissions-test-speed.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
 checkpatch-check-vendor-compatible-with-dashes.patch
 checkpatch-fix-spurious-vendor-compatible-warnings.patch
 checkpatch-check-compatible-strings-in-c-and-h-too.patch
