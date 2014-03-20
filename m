@@ -1,147 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-devicetree-bindings-add-pm8xxx-rtc-description.patch added
- to -mm tree
-Date: Wed, 19 Mar 2014 16:17:16 -0700
-Message-ID: <532a257c.O6KRPBgJWBIKt2/5%akpm@linux-foundation.org>
+Subject: [merged]
+ include-linux-fsh-fix-locks_verify_locked-definition.patch removed from -mm tree
+Date: Thu, 20 Mar 2014 12:42:32 -0700
+Message-ID: <532b44a8.TdJDHhnR8x4GCIqX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49940 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33447 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755714AbaCSXRR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Mar 2014 19:17:17 -0400
+	with ESMTP id S1759719AbaCTTme (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Mar 2014 15:42:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sboyd@codeaurora.org, robherring2@gmail.com, lee.jones@linaro.org, a.zummo@towertech.it, joshc@codeaurora.org
+To: mm-commits@vger.kernel.org, trond.myklebust@primarydata.com, jlayton@redhat.com, akpm@linux-foundation.org
 
-Subject: + mfd-devicetree-bindings-add-pm8xxx-rtc-description.patch added to -mm tree
-To: joshc@codeaurora.org,a.zummo@towertech.it,lee.jones@linaro.org,robherring2@gmail.com,sboyd@codeaurora.org
+Subject: [merged] include-linux-fsh-fix-locks_verify_locked-definition.patch removed from -mm tree
+To: akpm@linux-foundation.org,jlayton@redhat.com,trond.myklebust@primarydata.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 19 Mar 2014 16:17:16 -0700
+Date: Thu, 20 Mar 2014 12:42:32 -0700
 
 
 The patch titled
-     Subject: mfd: devicetree: bindings: add pm8xxx RTC description
-has been added to the -mm tree.  Its filename is
-     mfd-devicetree-bindings-add-pm8xxx-rtc-description.patch
+     Subject: include/linux/fs.h: fix locks_verify_locked() definition
+has been removed from the -mm tree.  Its filename was
+     include-linux-fsh-fix-locks_verify_locked-definition.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mfd-devicetree-bindings-add-pm8xxx-rtc-description.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mfd-devicetree-bindings-add-pm8xxx-rtc-description.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Josh Cartwright <joshc@codeaurora.org>
-Subject: mfd: devicetree: bindings: add pm8xxx RTC description
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include/linux/fs.h: fix locks_verify_locked() definition
 
-The PM8xxx family of PMICs contain an RTC.  This RTC is described as a
-subnode of the PM8xxx.  Document these bindings, and replace the pwrkey
-node in the example with the RTC, which is now described in this document.
+fs/namei.c: In function 'handle_truncate':
+fs/namei.c:2575: warning: passing argument 1 of 'locks_verify_locked' from incompatible pointer type
+include/linux/fs.h:2043: note: expected 'struct inode *' but argument is of type 'struct file *'
 
-While we're here, add a short description to the device tree bindings
-describing what the the PM8xxx devices are and how they are expected to be
-used.
 
-Signed-off-by: Josh Cartwright <joshc@codeaurora.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Rob Herring <robherring2@gmail.com>
-Cc: Lee Jones <lee.jones@linaro.org>
+Fixes 
+
+commit 2ba2d7972cd3765df6e956db18e0186b70c0287b
+Author:     Jeff Layton <jlayton@redhat.com>
+AuthorDate: Mon Mar 10 09:54:15 2014 -0400
+Commit:     Jeff Layton <jlayton@redhat.com>
+CommitDate: Mon Mar 10 09:54:15 2014 -0400
+
+    locks: fix locks_mandatory_locked to respect file-private locks
+
+Cc: Jeff Layton <jlayton@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/mfd/qcom,pm8xxx.txt |   45 ++++++++--
- 1 file changed, 39 insertions(+), 6 deletions(-)
+ include/linux/fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/devicetree/bindings/mfd/qcom,pm8xxx.txt~mfd-devicetree-bindings-add-pm8xxx-rtc-description Documentation/devicetree/bindings/mfd/qcom,pm8xxx.txt
---- a/Documentation/devicetree/bindings/mfd/qcom,pm8xxx.txt~mfd-devicetree-bindings-add-pm8xxx-rtc-description
-+++ a/Documentation/devicetree/bindings/mfd/qcom,pm8xxx.txt
-@@ -1,6 +1,9 @@
- Qualcomm PM8xxx PMIC multi-function devices
+diff -puN include/linux/fs.h~include-linux-fsh-fix-locks_verify_locked-definition include/linux/fs.h
+--- a/include/linux/fs.h~include-linux-fsh-fix-locks_verify_locked-definition
++++ a/include/linux/fs.h
+@@ -2040,7 +2040,7 @@ static inline int mandatory_lock(struct
+ 	return 0;
+ }
  
--PROPERTIES
-+The PM8xxx family of Power Management ICs are used to provide regulated
-+voltages and other various functionality to Qualcomm SoCs.
-+
-+= PROPERTIES
- 
- - compatible:
- 	Usage: required
-@@ -45,7 +48,37 @@ PROPERTIES
- 	Value type: <empty>
- 	Definition: identifies this node as an interrupt controller
- 
--EXAMPLE
-+= SUBCOMPONENTS
-+
-+The PMIC contains multiple independent functions, each described in a subnode.
-+The below bindings specify the set of valid subnodes.
-+
-+== Real-Time Clock
-+
-+- compatible:
-+	Usage: required
-+	Value type: <string>
-+	Definition: must be one of:
-+		    "qcom,pm8058-rtc"
-+		    "qcom,pm8921-rtc"
-+
-+- reg:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: single entry specifying the base address of the RTC registers
-+
-+- interrupts:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: single entry specifying the RTC's alarm interrupt
-+
-+- allow-set-time:
-+	Usage: optional
-+	Value type: <empty>
-+	Definition: indicates that the setting of RTC time is allowed by
-+		    the host CPU
-+
-+= EXAMPLE
- 
- 	pmicintc: pmic@0 {
- 		compatible = "qcom,pm8921";
-@@ -55,9 +88,9 @@ EXAMPLE
- 		#address-cells = <1>;
- 		#size-cells = <0>;
- 
--		pwrkey {
--			compatible = "qcom,pm8921-pwrkey";
--			interrupt-parent = <&pmicintc>;
--			interrupts = <50 1>, <51 1>;
-+		rtc@11d {
-+			compatible = "qcom,pm8921-rtc";
-+			reg = <0x11d>;
-+			interrupts = <0x27 0>;
- 		};
- 	};
+-static inline int locks_verify_locked(struct inode *inode)
++static inline int locks_verify_locked(struct file *file)
+ {
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from joshc@codeaurora.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-pm8xxx-fixup-checkpatch-style-issues.patch
-rtc-pm8xxx-use-regmap-api-for-register-accesses.patch
-rtc-pm8xxx-use-devm_request_any_context_irq.patch
-rtc-pm8xxx-add-support-for-devicetree.patch
-rtc-pm8xxx-move-device_init_wakeup-before-rtc_register.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
+mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-per-thread-vma-caching.patch
+mm-per-thread-vma-caching-fix-3.patch
+mm-per-thread-vma-caching-fix-5.patch
+mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
+mm-per-thread-vma-caching-fix-6-fix.patch
+mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+fs-inodec-inode_lru_isolate-use-atomic-count_vm_events.patch
+zram-use-zcomp-compressing-backends-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix.patch
+zram-propagate-error-to-user-fix.patch
+zram-support-req_discard-v4-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+befs-logging-clean-up-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
-mfd-devicetree-bindings-add-pm8xxx-rtc-description.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
+percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
