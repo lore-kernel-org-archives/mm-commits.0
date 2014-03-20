@@ -1,89 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-virtio-dev-is-subscribers-only.patch removed from -mm tree
-Date: Thu, 20 Mar 2014 12:42:42 -0700
-Message-ID: <532b44b2.Tux+Imuv/juqe4Z5%akpm@linux-foundation.org>
+Subject: [merged]
+ pstore-clarify-clearing-of-_read_cnt-in-ramoops_context.patch removed from
+ -mm tree
+Date: Thu, 20 Mar 2014 12:42:44 -0700
+Message-ID: <532b44b4.2VtTA3AdPvLRq+vL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33474 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33477 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933089AbaCTTmm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Mar 2014 15:42:42 -0400
+	with ESMTP id S933089AbaCTTmp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Mar 2014 15:42:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, rdunlap@infradead.org
+To: mm-commits@vger.kernel.org, yanmin_zhang@linux.intel.com, tony.luck@intel.com, keescook@chromium.org, ccross@android.com, shuox.liu@intel.com
 
-Subject: [merged] maintainers-virtio-dev-is-subscribers-only.patch removed from -mm tree
-To: rdunlap@infradead.org,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
+Subject: [merged] pstore-clarify-clearing-of-_read_cnt-in-ramoops_context.patch removed from -mm tree
+To: shuox.liu@intel.com,ccross@android.com,keescook@chromium.org,tony.luck@intel.com,yanmin_zhang@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 20 Mar 2014 12:42:42 -0700
+Date: Thu, 20 Mar 2014 12:42:44 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: virtio-dev is subscribers only
+     Subject: pstore: clarify clearing of _read_cnt in ramoops_context
 has been removed from the -mm tree.  Its filename was
-     maintainers-virtio-dev-is-subscribers-only.patch
+     pstore-clarify-clearing-of-_read_cnt-in-ramoops_context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: MAINTAINERS: virtio-dev is subscribers only
+From: Liu ShuoX <shuox.liu@intel.com>
+Subject: pstore: clarify clearing of _read_cnt in ramoops_context
 
-virtio-dev mailing list is for subscribers only according to the
-returned message after trying to send to it.
+*_read_cnt in ramoops_context need to be cleared during pstore ->open to
+support mutli times getting the records.  The patch added missed
+ftrace_read_cnt clearing and removed duplicate clearing in ramoops_probe.
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Liu ShuoX <shuox.liu@intel.com>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: Colin Cross <ccross@android.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/pstore/ram.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-virtio-dev-is-subscribers-only MAINTAINERS
---- a/MAINTAINERS~maintainers-virtio-dev-is-subscribers-only
-+++ a/MAINTAINERS
-@@ -9384,7 +9384,7 @@ F:	include/media/videobuf2-*
+diff -puN fs/pstore/ram.c~pstore-clarify-clearing-of-_read_cnt-in-ramoops_context fs/pstore/ram.c
+--- a/fs/pstore/ram.c~pstore-clarify-clearing-of-_read_cnt-in-ramoops_context
++++ a/fs/pstore/ram.c
+@@ -86,6 +86,7 @@ struct ramoops_context {
+ 	struct persistent_ram_ecc_info ecc_info;
+ 	unsigned int max_dump_cnt;
+ 	unsigned int dump_write_cnt;
++	/* _read_cnt need clear on ramoops_pstore_open */
+ 	unsigned int dump_read_cnt;
+ 	unsigned int console_read_cnt;
+ 	unsigned int ftrace_read_cnt;
+@@ -101,6 +102,7 @@ static int ramoops_pstore_open(struct ps
  
- VIRTIO CONSOLE DRIVER
- M:	Amit Shah <amit.shah@redhat.com>
--L:	virtio-dev@lists.oasis-open.org
-+L:	virtio-dev@lists.oasis-open.org (subscribers-only)
- L:	virtualization@lists.linux-foundation.org
- S:	Maintained
- F:	drivers/char/virtio_console.c
-@@ -9394,7 +9394,7 @@ F:	include/uapi/linux/virtio_console.h
- VIRTIO CORE, NET AND BLOCK DRIVERS
- M:	Rusty Russell <rusty@rustcorp.com.au>
- M:	"Michael S. Tsirkin" <mst@redhat.com>
--L:	virtio-dev@lists.oasis-open.org
-+L:	virtio-dev@lists.oasis-open.org (subscribers-only)
- L:	virtualization@lists.linux-foundation.org
- S:	Maintained
- F:	drivers/virtio/
-@@ -9407,7 +9407,7 @@ F:	include/uapi/linux/virtio_*.h
- VIRTIO HOST (VHOST)
- M:	"Michael S. Tsirkin" <mst@redhat.com>
- L:	kvm@vger.kernel.org
--L:	virtio-dev@lists.oasis-open.org
-+L:	virtio-dev@lists.oasis-open.org (subscribers-only)
- L:	virtualization@lists.linux-foundation.org
- L:	netdev@vger.kernel.org
- S:	Maintained
+ 	cxt->dump_read_cnt = 0;
+ 	cxt->console_read_cnt = 0;
++	cxt->ftrace_read_cnt = 0;
+ 	return 0;
+ }
+ 
+@@ -428,7 +430,6 @@ static int ramoops_probe(struct platform
+ 	if (pdata->ftrace_size && !is_power_of_2(pdata->ftrace_size))
+ 		pdata->ftrace_size = rounddown_pow_of_two(pdata->ftrace_size);
+ 
+-	cxt->dump_read_cnt = 0;
+ 	cxt->size = pdata->mem_size;
+ 	cxt->phys_addr = pdata->mem_address;
+ 	cxt->record_size = pdata->record_size;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from shuox.liu@intel.com are
 
-sys_sysfs-add-config_sysfs_syscall.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
-submittingpatches-add-recommendation-for-mailing-list-references.patch
-submittingpatches-document-the-use-of-git.patch
-idr-remove-dead-code-v2.patch
-include-asm-generic-bugh-style-fix-s-while0-while-0.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
 
