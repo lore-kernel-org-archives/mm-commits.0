@@ -1,69 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch removed from -mm tree
-Date: Thu, 20 Mar 2014 12:42:38 -0700
-Message-ID: <532b44ae.cOKnUM5Ma5PnKaTu%akpm@linux-foundation.org>
+Subject: [merged] fs-isofs-inodec-add-__init-to-init_inodecache.patch
+ removed from -mm tree
+Date: Thu, 20 Mar 2014 12:42:40 -0700
+Message-ID: <532b44b0.TVn3mj/ef3c8u+SR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33465 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33471 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759780AbaCTTmj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Mar 2014 15:42:39 -0400
+	with ESMTP id S1759780AbaCTTmk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Mar 2014 15:42:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, nico@ngolde.de, keescook@google.com, fabs@goesec.de, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: [merged] drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch removed from -mm tree
-To: dan.carpenter@oracle.com,fabs@goesec.de,keescook@google.com,nico@ngolde.de,mm-commits@vger.kernel.org
+Subject: [merged] fs-isofs-inodec-add-__init-to-init_inodecache.patch removed from -mm tree
+To: fabf@skynet.be,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 20 Mar 2014 12:42:38 -0700
+Date: Thu, 20 Mar 2014 12:42:40 -0700
 
 
 The patch titled
-     Subject: drivers/scsi/megaraid/megaraid_mm.c: missing bounds check in mimd_to_kioc()
+     Subject: fs/isofs/inode.c add __init to init_inodecache()
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc.patch
+     fs-isofs-inodec-add-__init-to-init_inodecache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: drivers/scsi/megaraid/megaraid_mm.c: missing bounds check in mimd_to_kioc()
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/isofs/inode.c add __init to init_inodecache()
 
-pthru32->dataxferlen comes from the user so we need to check that it's not
-too large so we don't overflow the buffer.
+init_inodecache is only called by __init init_iso9660_fs
 
-Reported-by: Nico Golde <nico@ngolde.de>
-Reported-by: Fabian Yamaguchi <fabs@goesec.de>
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Kees Cook <keescook@google.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_mm.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/isofs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_mm.c~drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc drivers/scsi/megaraid/megaraid_mm.c
---- a/drivers/scsi/megaraid/megaraid_mm.c~drivers-scsi-megaraid-megaraid_mmc-missing-bounds-check-in-mimd_to_kioc
-+++ a/drivers/scsi/megaraid/megaraid_mm.c
-@@ -486,6 +486,8 @@ mimd_to_kioc(mimd_t __user *umimd, mraid
+diff -puN fs/isofs/inode.c~fs-isofs-inodec-add-__init-to-init_inodecache fs/isofs/inode.c
+--- a/fs/isofs/inode.c~fs-isofs-inodec-add-__init-to-init_inodecache
++++ a/fs/isofs/inode.c
+@@ -93,7 +93,7 @@ static void init_once(void *foo)
+ 	inode_init_once(&ei->vfs_inode);
+ }
  
- 	pthru32->dataxferaddr	= kioc->buf_paddr;
- 	if (kioc->data_dir & UIOC_WR) {
-+		if (pthru32->dataxferlen > kioc->xferlen)
-+			return -EINVAL;
- 		if (copy_from_user(kioc->buf_vaddr, kioc->user_data,
- 						pthru32->dataxferlen)) {
- 			return (-EFAULT);
+-static int init_inodecache(void)
++static int __init init_inodecache(void)
+ {
+ 	isofs_inode_cachep = kmem_cache_create("isofs_inode_cache",
+ 					sizeof(struct iso_inode_info),
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-direct-io-remove-some-left-over-checks.patch
-ncpfs-cleanup-indenting-in-ncp_lookup.patch
-drivers-misc-sgi-gru-grukdumpc-cleanup-gru_dump_context-a-little.patch
+fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+fs-freevxfs-vxfs_lookupc-update-function-comment.patch
+sys_sysfs-add-config_sysfs_syscall.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
+fs-minix-inodec-add-__init-to-init_inodecache.patch
+befs-replace-kmalloc-memset-0-by-kzalloc.patch
+fs-befs-linuxvfsc-add-__init-to-befs_init_inodecache.patch
+befs-logging-clean-up.patch
+befs-logging-clean-up-fix.patch
+coda-add-__init-to-init_inodecache.patch
+hfsplus-add-__init-to-hfsplus_create_attr_tree_cache.patch
+documentation-filesystems-ntfstxt-remove-changelog-reference.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+affs-add-__init-to-init_inodecache.patch
+fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+affs-mount-option-to-avoid-filename-truncates.patch
+fs-bfs-inodec-add-__init-to-init_inodecache.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
 linux-next.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
 
