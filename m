@@ -1,99 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mips-fpu-fix-conflict-of-register-usage.patch removed
- from -mm tree
-Date: Thu, 20 Mar 2014 12:42:36 -0700
-Message-ID: <532b44ac.NGxH5JVcYxl+zu/v%akpm@linux-foundation.org>
+Subject: [merged]
+ pstore-skip-zero-size-persistent-ram-buffer-in-traverse.patch removed from
+ -mm tree
+Date: Thu, 20 Mar 2014 12:42:46 -0700
+Message-ID: <532b44b6.heEBQMc6UgmgzhDO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33463 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33483 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759729AbaCTTmh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Mar 2014 15:42:37 -0400
+	with ESMTP id S933089AbaCTTmr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Mar 2014 15:42:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ralf@linux-mips.org, pebolle@tiscali.nl, paul.burton@imgtec.com, linux@roeck-us.net, aba@ayous.org, aaro.koskinen@iki.fi, chenhc@lemote.com
+To: mm-commits@vger.kernel.org, yanmin_zhang@linux.intel.com, tony.luck@intel.com, keescook@chromium.org, ccross@android.com, shuox.liu@intel.com
 
-Subject: [merged] mips-fpu-fix-conflict-of-register-usage.patch removed from -mm tree
-To: chenhc@lemote.com,aaro.koskinen@iki.fi,aba@ayous.org,linux@roeck-us.net,paul.burton@imgtec.com,pebolle@tiscali.nl,ralf@linux-mips.org,mm-commits@vger.kernel.org
+Subject: [merged] pstore-skip-zero-size-persistent-ram-buffer-in-traverse.patch removed from -mm tree
+To: shuox.liu@intel.com,ccross@android.com,keescook@chromium.org,tony.luck@intel.com,yanmin_zhang@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 20 Mar 2014 12:42:36 -0700
+Date: Thu, 20 Mar 2014 12:42:46 -0700
 
 
 The patch titled
-     Subject: mips: fpu: fix conflict of register usage
+     Subject: pstore: skip zero size persistent ram buffer in traverse
 has been removed from the -mm tree.  Its filename was
-     mips-fpu-fix-conflict-of-register-usage.patch
+     pstore-skip-zero-size-persistent-ram-buffer-in-traverse.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huacai Chen <chenhc@lemote.com>
-Subject: mips: fpu: fix conflict of register usage
+From: Liu ShuoX <shuox.liu@intel.com>
+Subject: pstore: skip zero size persistent ram buffer in traverse
 
-In _restore_fp_context/_restore_fp_context32, t0 is used for both
-CP0_Status and CP1_FCSR.  This is a mistake and cause FP exeception on
-boot, so fix it.
+In ramoops_pstore_read, a valid prz pointer with zero size buffer will
+break traverse of all persistent ram buffers.  The latter buffer might be
+lost.
 
-Signed-off-by: Huacai Chen <chenhc@lemote.com>
-Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Tested-by: Andreas Barth <aba@ayous.org>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Paul Burton <paul.burton@imgtec.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Liu ShuoX <shuox.liu@intel.com>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: Colin Cross <ccross@android.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/r4k_fpu.S |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/pstore/ram.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/mips/kernel/r4k_fpu.S~mips-fpu-fix-conflict-of-register-usage arch/mips/kernel/r4k_fpu.S
---- a/arch/mips/kernel/r4k_fpu.S~mips-fpu-fix-conflict-of-register-usage
-+++ a/arch/mips/kernel/r4k_fpu.S
-@@ -146,7 +146,7 @@ LEAF(_save_fp_context32)
-  *  - cp1 status/control register
-  */
- LEAF(_restore_fp_context)
--	EX	lw t0, SC_FPC_CSR(a0)
-+	EX	lw t1, SC_FPC_CSR(a0)
+diff -puN fs/pstore/ram.c~pstore-skip-zero-size-persistent-ram-buffer-in-traverse fs/pstore/ram.c
+--- a/fs/pstore/ram.c~pstore-skip-zero-size-persistent-ram-buffer-in-traverse
++++ a/fs/pstore/ram.c
+@@ -120,12 +120,12 @@ ramoops_get_next_prz(struct persistent_r
  
- #if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
- 	.set	push
-@@ -191,7 +191,7 @@ LEAF(_restore_fp_context)
- 	EX	ldc1 $f26, SC_FPREGS+208(a0)
- 	EX	ldc1 $f28, SC_FPREGS+224(a0)
- 	EX	ldc1 $f30, SC_FPREGS+240(a0)
--	ctc1	t0, fcr31
-+	ctc1	t1, fcr31
- 	jr	ra
- 	 li	v0, 0					# success
- 	END(_restore_fp_context)
-@@ -199,7 +199,7 @@ LEAF(_restore_fp_context)
- #ifdef CONFIG_MIPS32_COMPAT
- LEAF(_restore_fp_context32)
- 	/* Restore an o32 sigcontext.  */
--	EX	lw t0, SC32_FPC_CSR(a0)
-+	EX	lw t1, SC32_FPC_CSR(a0)
+ 	prz = przs[i];
  
- 	mfc0	t0, CP0_STATUS
- 	sll	t0, t0, 5
-@@ -239,7 +239,7 @@ LEAF(_restore_fp_context32)
- 	EX	ldc1 $f26, SC32_FPREGS+208(a0)
- 	EX	ldc1 $f28, SC32_FPREGS+224(a0)
- 	EX	ldc1 $f30, SC32_FPREGS+240(a0)
--	ctc1	t0, fcr31
-+	ctc1	t1, fcr31
- 	jr	ra
- 	 li	v0, 0					# success
- 	END(_restore_fp_context32)
+-	if (update) {
+-		/* Update old/shadowed buffer. */
++	/* Update old/shadowed buffer. */
++	if (update)
+ 		persistent_ram_save_old(prz);
+-		if (!persistent_ram_old_size(prz))
+-			return NULL;
+-	}
++
++	if (!persistent_ram_old_size(prz))
++		return NULL;
+ 
+ 	*typep = type;
+ 	*id = i;
 _
 
-Patches currently in -mm which might be from chenhc@lemote.com are
+Patches currently in -mm which might be from shuox.liu@intel.com are
 
-origin.patch
 linux-next.patch
 
