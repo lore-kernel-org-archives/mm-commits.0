@@ -1,84 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- pstore-clarify-clearing-of-_read_cnt-in-ramoops_context.patch removed from
- -mm tree
-Date: Thu, 20 Mar 2014 12:42:44 -0700
-Message-ID: <532b44b4.2VtTA3AdPvLRq+vL%akpm@linux-foundation.org>
+Subject: [merged] mips-replace-config_mips64-and-config_mips32_r2.patch
+ removed from -mm tree
+Date: Thu, 20 Mar 2014 12:42:34 -0700
+Message-ID: <532b44aa.jN7Qz4JGtVSXFLEY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33477 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33450 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933089AbaCTTmp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Mar 2014 15:42:45 -0400
+	with ESMTP id S933089AbaCTTmf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Mar 2014 15:42:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yanmin_zhang@linux.intel.com, tony.luck@intel.com, keescook@chromium.org, ccross@android.com, shuox.liu@intel.com
+To: mm-commits@vger.kernel.org, ralf@linux-mips.org, paul.burton@imgtec.com, linux@roeck-us.net, chenhc@lemote.com, aba@ayous.org, aaro.koskinen@iki.fi, pebolle@tiscali.nl
 
-Subject: [merged] pstore-clarify-clearing-of-_read_cnt-in-ramoops_context.patch removed from -mm tree
-To: shuox.liu@intel.com,ccross@android.com,keescook@chromium.org,tony.luck@intel.com,yanmin_zhang@linux.intel.com,mm-commits@vger.kernel.org
+Subject: [merged] mips-replace-config_mips64-and-config_mips32_r2.patch removed from -mm tree
+To: pebolle@tiscali.nl,aaro.koskinen@iki.fi,aba@ayous.org,chenhc@lemote.com,linux@roeck-us.net,paul.burton@imgtec.com,ralf@linux-mips.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 20 Mar 2014 12:42:44 -0700
+Date: Thu, 20 Mar 2014 12:42:34 -0700
 
 
 The patch titled
-     Subject: pstore: clarify clearing of _read_cnt in ramoops_context
+     Subject: mips: replace CONFIG_MIPS64 and CONFIG_MIPS32_R2
 has been removed from the -mm tree.  Its filename was
-     pstore-clarify-clearing-of-_read_cnt-in-ramoops_context.patch
+     mips-replace-config_mips64-and-config_mips32_r2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Liu ShuoX <shuox.liu@intel.com>
-Subject: pstore: clarify clearing of _read_cnt in ramoops_context
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: mips: replace CONFIG_MIPS64 and CONFIG_MIPS32_R2
 
-*_read_cnt in ramoops_context need to be cleared during pstore ->open to
-support mutli times getting the records.  The patch added missed
-ftrace_read_cnt clearing and removed duplicate clearing in ramoops_probe.
+Commit 597ce1723e0f ("MIPS: Support for 64-bit FP with O32 binaries")
+introduced references to two undefined Kconfig macros.  CONFIG_MIPS32_R2
+should clearly be replaced with CONFIG_CPU_MIPS32_R2.  And CONFIG_MIPS64
+should apparently be replaced with CONFIG_64BIT.
 
-Signed-off-by: Liu ShuoX <shuox.liu@intel.com>
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: Colin Cross <ccross@android.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Huacai Chen <chenhc@lemote.com>
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Paul Burton <paul.burton@imgtec.com>
+Cc: Andreas Barth <aba@ayous.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pstore/ram.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/mips/include/asm/asmmacro.h |    4 ++--
+ arch/mips/include/asm/fpu.h      |    2 +-
+ arch/mips/kernel/r4k_fpu.S       |    8 ++++----
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/pstore/ram.c~pstore-clarify-clearing-of-_read_cnt-in-ramoops_context fs/pstore/ram.c
---- a/fs/pstore/ram.c~pstore-clarify-clearing-of-_read_cnt-in-ramoops_context
-+++ a/fs/pstore/ram.c
-@@ -86,6 +86,7 @@ struct ramoops_context {
- 	struct persistent_ram_ecc_info ecc_info;
- 	unsigned int max_dump_cnt;
- 	unsigned int dump_write_cnt;
-+	/* _read_cnt need clear on ramoops_pstore_open */
- 	unsigned int dump_read_cnt;
- 	unsigned int console_read_cnt;
- 	unsigned int ftrace_read_cnt;
-@@ -101,6 +102,7 @@ static int ramoops_pstore_open(struct ps
+diff -puN arch/mips/include/asm/asmmacro.h~mips-replace-config_mips64-and-config_mips32_r2 arch/mips/include/asm/asmmacro.h
+--- a/arch/mips/include/asm/asmmacro.h~mips-replace-config_mips64-and-config_mips32_r2
++++ a/arch/mips/include/asm/asmmacro.h
+@@ -106,7 +106,7 @@
+ 	.endm
  
- 	cxt->dump_read_cnt = 0;
- 	cxt->console_read_cnt = 0;
-+	cxt->ftrace_read_cnt = 0;
- 	return 0;
- }
+ 	.macro	fpu_save_double thread status tmp
+-#if defined(CONFIG_MIPS64) || defined(CONFIG_CPU_MIPS32_R2)
++#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
+ 	sll	\tmp, \status, 5
+ 	bgez	\tmp, 10f
+ 	fpu_save_16odd \thread
+@@ -159,7 +159,7 @@
+ 	.endm
  
-@@ -428,7 +430,6 @@ static int ramoops_probe(struct platform
- 	if (pdata->ftrace_size && !is_power_of_2(pdata->ftrace_size))
- 		pdata->ftrace_size = rounddown_pow_of_two(pdata->ftrace_size);
+ 	.macro	fpu_restore_double thread status tmp
+-#if defined(CONFIG_MIPS64) || defined(CONFIG_CPU_MIPS32_R2)
++#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
+ 	sll	\tmp, \status, 5
+ 	bgez	\tmp, 10f				# 16 register mode?
  
--	cxt->dump_read_cnt = 0;
- 	cxt->size = pdata->mem_size;
- 	cxt->phys_addr = pdata->mem_address;
- 	cxt->record_size = pdata->record_size;
+diff -puN arch/mips/include/asm/fpu.h~mips-replace-config_mips64-and-config_mips32_r2 arch/mips/include/asm/fpu.h
+--- a/arch/mips/include/asm/fpu.h~mips-replace-config_mips64-and-config_mips32_r2
++++ a/arch/mips/include/asm/fpu.h
+@@ -57,7 +57,7 @@ static inline int __enable_fpu(enum fpu_
+ 		return 0;
+ 
+ 	case FPU_64BIT:
+-#if !(defined(CONFIG_CPU_MIPS32_R2) || defined(CONFIG_MIPS64))
++#if !(defined(CONFIG_CPU_MIPS32_R2) || defined(CONFIG_64BIT))
+ 		/* we only have a 32-bit FPU */
+ 		return SIGFPE;
+ #endif
+diff -puN arch/mips/kernel/r4k_fpu.S~mips-replace-config_mips64-and-config_mips32_r2 arch/mips/kernel/r4k_fpu.S
+--- a/arch/mips/kernel/r4k_fpu.S~mips-replace-config_mips64-and-config_mips32_r2
++++ a/arch/mips/kernel/r4k_fpu.S
+@@ -35,9 +35,9 @@
+ LEAF(_save_fp_context)
+ 	cfc1	t1, fcr31
+ 
+-#if defined(CONFIG_64BIT) || defined(CONFIG_MIPS32_R2)
++#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
+ 	.set	push
+-#ifdef CONFIG_MIPS32_R2
++#ifdef CONFIG_CPU_MIPS32_R2
+ 	.set	mips64r2
+ 	mfc0	t0, CP0_STATUS
+ 	sll	t0, t0, 5
+@@ -148,9 +148,9 @@ LEAF(_save_fp_context32)
+ LEAF(_restore_fp_context)
+ 	EX	lw t0, SC_FPC_CSR(a0)
+ 
+-#if defined(CONFIG_64BIT) || defined(CONFIG_MIPS32_R2)
++#if defined(CONFIG_64BIT) || defined(CONFIG_CPU_MIPS32_R2)
+ 	.set	push
+-#ifdef CONFIG_MIPS32_R2
++#ifdef CONFIG_CPU_MIPS32_R2
+ 	.set	mips64r2
+ 	mfc0	t0, CP0_STATUS
+ 	sll	t0, t0, 5
 _
 
-Patches currently in -mm which might be from shuox.liu@intel.com are
+Patches currently in -mm which might be from pebolle@tiscali.nl are
 
+origin.patch
+maintainers-update-ibm-serveraid-raid-info.patch
+maintainers-mark-superh-orphan.patch
 linux-next.patch
 
