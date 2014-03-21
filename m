@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled.patch
- added to -mm tree
-Date: Fri, 21 Mar 2014 14:30:11 -0700
-Message-ID: <532caf63.eaT+mfz6PwWed4YZ%akpm@linux-foundation.org>
+Subject: + kmemleak-change-some-global-variables-to-int.patch added to -mm tree
+Date: Fri, 21 Mar 2014 14:30:13 -0700
+Message-ID: <532caf65.58UlOS+KB8KZdOIX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750881AbaCUVaM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Mar 2014 17:30:12 -0400
+	with ESMTP id S1751289AbaCUVaO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Mar 2014 17:30:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, catalin.marinas@arm.com, lizefan@huawei.com
 
-Subject: + kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled.patch added to -mm tree
+Subject: + kmemleak-change-some-global-variables-to-int.patch added to -mm tree
 To: lizefan@huawei.com,catalin.marinas@arm.com
 From: akpm@linux-foundation.org
-Date: Fri, 21 Mar 2014 14:30:11 -0700
+Date: Fri, 21 Mar 2014 14:30:13 -0700
 
 
 The patch titled
-     Subject: kmemleak: allow freeing internal objects after kmemleak was disabled
+     Subject: kmemleak: change some global variables to int
 has been added to the -mm tree.  Its filename is
-     kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled.patch
+     kmemleak-change-some-global-variables-to-int.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kmemleak-change-some-global-variables-to-int.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kmemleak-change-some-global-variables-to-int.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,108 +44,269 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Li Zefan <lizefan@huawei.com>
-Subject: kmemleak: allow freeing internal objects after kmemleak was disabled
+Subject: kmemleak: change some global variables to int
 
-Currently if kmemleak is disabled, the kmemleak objects can never be
-freed, no matter if it's disabled by a user or due to fatal errors.
-
-Those objects can be a big waste of memory.
-
-  OBJS ACTIVE  USE OBJ SIZE  SLABS OBJ/SLAB CACHE SIZE NAME
-1200264 1197433  99%    0.30K  46164       26    369312K kmemleak_object
-
-With this patch, internal objects will be freed immediately if kmemleak is
-disabled explicitly by a user.  If it's disabled due to a kmemleak error,
-The user will be informed, and then he/she can reclaim memory with:
-
-	# echo off > /sys/kernel/debug/kmemleak
+They don't have to be atomic_t, because they are simple boolean
+toggles.
 
 Signed-off-by: Li Zefan <lizefan@huawei.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kmemleak.txt |   14 +++++++++++++-
- mm/kmemleak.c              |   21 ++++++++++++++++-----
- 2 files changed, 29 insertions(+), 6 deletions(-)
+ mm/kmemleak.c |   78 ++++++++++++++++++++++++------------------------
+ 1 file changed, 39 insertions(+), 39 deletions(-)
 
-diff -puN Documentation/kmemleak.txt~kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled Documentation/kmemleak.txt
---- a/Documentation/kmemleak.txt~kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled
-+++ a/Documentation/kmemleak.txt
-@@ -44,7 +44,8 @@ objects to be reported as orphan.
- Memory scanning parameters can be modified at run-time by writing to the
- /sys/kernel/debug/kmemleak file. The following parameters are supported:
- 
--  off		- disable kmemleak (irreversible)
-+  off		- disable kmemleak, or free all kmemleak objects if kmemleak
-+		  has been disabled due to fatal errors. (irreversible).
-   stack=on	- enable the task stacks scanning (default)
-   stack=off	- disable the tasks stacks scanning
-   scan=on	- start the automatic memory scanning thread (default)
-@@ -120,6 +121,17 @@ Then as usual to get your report with:
- 
-   # cat /sys/kernel/debug/kmemleak
- 
-+Freeing kmemleak internal objects
-+---------------------------------
-+
-+To allow access to previously found memory leaks even when an error fatal
-+to kmemleak happens, internal kmemleak objects won't be freed in this case.
-+Those objects may occupy a large part of physical memory.
-+
-+You can reclaim memory from those objects with:
-+
-+  # echo off > /sys/kernel/debug/kmemleak
-+
- Kmemleak API
- ------------
- 
-diff -puN mm/kmemleak.c~kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled mm/kmemleak.c
---- a/mm/kmemleak.c~kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled
+diff -puN mm/kmemleak.c~kmemleak-change-some-global-variables-to-int mm/kmemleak.c
+--- a/mm/kmemleak.c~kmemleak-change-some-global-variables-to-int
 +++ a/mm/kmemleak.c
-@@ -1616,9 +1616,6 @@ static ssize_t kmemleak_write(struct fil
- 	int buf_size;
- 	int ret;
+@@ -192,15 +192,15 @@ static struct kmem_cache *object_cache;
+ static struct kmem_cache *scan_area_cache;
  
--	if (!atomic_read(&kmemleak_enabled))
--		return -EBUSY;
--
- 	buf_size = min(size, (sizeof(buf) - 1));
- 	if (strncpy_from_user(buf, user_buf, buf_size) < 0)
- 		return -EFAULT;
-@@ -1628,9 +1625,18 @@ static ssize_t kmemleak_write(struct fil
- 	if (ret < 0)
- 		return ret;
+ /* set if tracing memory operations is enabled */
+-static atomic_t kmemleak_enabled = ATOMIC_INIT(0);
++static int kmemleak_enabled;
+ /* set in the late_initcall if there were no errors */
+-static atomic_t kmemleak_initialized = ATOMIC_INIT(0);
++static int kmemleak_initialized;
+ /* enables or disables early logging of the memory operations */
+-static atomic_t kmemleak_early_log = ATOMIC_INIT(1);
++static int kmemleak_early_log = 1;
+ /* set if a kmemleak warning was issued */
+-static atomic_t kmemleak_warning = ATOMIC_INIT(0);
++static int kmemleak_warning;
+ /* set if a fatal kmemleak error has occurred */
+-static atomic_t kmemleak_error = ATOMIC_INIT(0);
++static int kmemleak_error;
  
--	if (strncmp(buf, "off", 3) == 0)
-+	if (strncmp(buf, "off", 3) == 0) {
-+		stop_scan_thread();
- 		kmemleak_disable();
--	else if (strncmp(buf, "stack=on", 8) == 0)
-+		goto out;
-+	}
-+
-+	if (!atomic_read(&kmemleak_enabled)) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
-+	if (strncmp(buf, "stack=on", 8) == 0)
- 		kmemleak_stack_scan = 1;
- 	else if (strncmp(buf, "stack=off", 9) == 0)
- 		kmemleak_stack_scan = 0;
-@@ -1695,6 +1701,11 @@ static void kmemleak_do_cleanup(struct w
- 		list_for_each_entry_rcu(object, &object_list, object_list)
- 			delete_object_full(object->pointer);
- 		rcu_read_unlock();
-+	} else {
-+		pr_info("Disable kmemleak without freeing internal objects, "
-+			"so you may still check information on memory leak. "
-+			"You may reclaim memory by writing \"off\" to "
-+			"/sys/kernel/debug/kmemleak\n");
- 	}
- 	mutex_unlock(&scan_mutex);
+ /* minimum and maximum address that may be valid pointers */
+ static unsigned long min_addr = ULONG_MAX;
+@@ -267,7 +267,7 @@ static void kmemleak_disable(void);
+ #define kmemleak_warn(x...)	do {		\
+ 	pr_warning(x);				\
+ 	dump_stack();				\
+-	atomic_set(&kmemleak_warning, 1);	\
++	kmemleak_warning = 1;			\
+ } while (0)
+ 
+ /*
+@@ -805,7 +805,7 @@ static void __init log_early(int op_type
+ 	unsigned long flags;
+ 	struct early_log *log;
+ 
+-	if (atomic_read(&kmemleak_error)) {
++	if (kmemleak_error) {
+ 		/* kmemleak stopped recording, just count the requests */
+ 		crt_early_log++;
+ 		return;
+@@ -840,7 +840,7 @@ static void early_alloc(struct early_log
+ 	unsigned long flags;
+ 	int i;
+ 
+-	if (!atomic_read(&kmemleak_enabled) || !log->ptr || IS_ERR(log->ptr))
++	if (!kmemleak_enabled || !log->ptr || IS_ERR(log->ptr))
+ 		return;
+ 
+ 	/*
+@@ -893,9 +893,9 @@ void __ref kmemleak_alloc(const void *pt
+ {
+ 	pr_debug("%s(0x%p, %zu, %d)\n", __func__, ptr, size, min_count);
+ 
+-	if (atomic_read(&kmemleak_enabled) && ptr && !IS_ERR(ptr))
++	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+ 		create_object((unsigned long)ptr, size, min_count, gfp);
+-	else if (atomic_read(&kmemleak_early_log))
++	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_ALLOC, ptr, size, min_count);
  }
+ EXPORT_SYMBOL_GPL(kmemleak_alloc);
+@@ -919,11 +919,11 @@ void __ref kmemleak_alloc_percpu(const v
+ 	 * Percpu allocations are only scanned and not reported as leaks
+ 	 * (min_count is set to 0).
+ 	 */
+-	if (atomic_read(&kmemleak_enabled) && ptr && !IS_ERR(ptr))
++	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+ 		for_each_possible_cpu(cpu)
+ 			create_object((unsigned long)per_cpu_ptr(ptr, cpu),
+ 				      size, 0, GFP_KERNEL);
+-	else if (atomic_read(&kmemleak_early_log))
++	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_ALLOC_PERCPU, ptr, size, 0);
+ }
+ EXPORT_SYMBOL_GPL(kmemleak_alloc_percpu);
+@@ -939,9 +939,9 @@ void __ref kmemleak_free(const void *ptr
+ {
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (atomic_read(&kmemleak_enabled) && ptr && !IS_ERR(ptr))
++	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+ 		delete_object_full((unsigned long)ptr);
+-	else if (atomic_read(&kmemleak_early_log))
++	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_FREE, ptr, 0, 0);
+ }
+ EXPORT_SYMBOL_GPL(kmemleak_free);
+@@ -959,9 +959,9 @@ void __ref kmemleak_free_part(const void
+ {
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (atomic_read(&kmemleak_enabled) && ptr && !IS_ERR(ptr))
++	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+ 		delete_object_part((unsigned long)ptr, size);
+-	else if (atomic_read(&kmemleak_early_log))
++	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_FREE_PART, ptr, size, 0);
+ }
+ EXPORT_SYMBOL_GPL(kmemleak_free_part);
+@@ -979,11 +979,11 @@ void __ref kmemleak_free_percpu(const vo
+ 
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (atomic_read(&kmemleak_enabled) && ptr && !IS_ERR(ptr))
++	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+ 		for_each_possible_cpu(cpu)
+ 			delete_object_full((unsigned long)per_cpu_ptr(ptr,
+ 								      cpu));
+-	else if (atomic_read(&kmemleak_early_log))
++	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_FREE_PERCPU, ptr, 0, 0);
+ }
+ EXPORT_SYMBOL_GPL(kmemleak_free_percpu);
+@@ -999,9 +999,9 @@ void __ref kmemleak_not_leak(const void
+ {
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (atomic_read(&kmemleak_enabled) && ptr && !IS_ERR(ptr))
++	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+ 		make_gray_object((unsigned long)ptr);
+-	else if (atomic_read(&kmemleak_early_log))
++	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_NOT_LEAK, ptr, 0, 0);
+ }
+ EXPORT_SYMBOL(kmemleak_not_leak);
+@@ -1019,9 +1019,9 @@ void __ref kmemleak_ignore(const void *p
+ {
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (atomic_read(&kmemleak_enabled) && ptr && !IS_ERR(ptr))
++	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+ 		make_black_object((unsigned long)ptr);
+-	else if (atomic_read(&kmemleak_early_log))
++	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_IGNORE, ptr, 0, 0);
+ }
+ EXPORT_SYMBOL(kmemleak_ignore);
+@@ -1041,9 +1041,9 @@ void __ref kmemleak_scan_area(const void
+ {
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (atomic_read(&kmemleak_enabled) && ptr && size && !IS_ERR(ptr))
++	if (kmemleak_enabled && ptr && size && !IS_ERR(ptr))
+ 		add_scan_area((unsigned long)ptr, size, gfp);
+-	else if (atomic_read(&kmemleak_early_log))
++	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_SCAN_AREA, ptr, size, 0);
+ }
+ EXPORT_SYMBOL(kmemleak_scan_area);
+@@ -1061,9 +1061,9 @@ void __ref kmemleak_no_scan(const void *
+ {
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (atomic_read(&kmemleak_enabled) && ptr && !IS_ERR(ptr))
++	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+ 		object_no_scan((unsigned long)ptr);
+-	else if (atomic_read(&kmemleak_early_log))
++	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_NO_SCAN, ptr, 0, 0);
+ }
+ EXPORT_SYMBOL(kmemleak_no_scan);
+@@ -1088,7 +1088,7 @@ static bool update_checksum(struct kmeml
+  */
+ static int scan_should_stop(void)
+ {
+-	if (!atomic_read(&kmemleak_enabled))
++	if (!kmemleak_enabled)
+ 		return 1;
+ 
+ 	/*
+@@ -1626,7 +1626,7 @@ static ssize_t kmemleak_write(struct fil
+ 		goto out;
+ 	}
+ 
+-	if (!atomic_read(&kmemleak_enabled)) {
++	if (!kmemleak_enabled) {
+ 		ret = -EBUSY;
+ 		goto out;
+ 	}
+@@ -1714,14 +1714,14 @@ static DECLARE_WORK(cleanup_work, kmemle
+ static void kmemleak_disable(void)
+ {
+ 	/* atomically check whether it was already invoked */
+-	if (atomic_cmpxchg(&kmemleak_error, 0, 1))
++	if (cmpxchg(&kmemleak_error, 0, 1))
+ 		return;
+ 
+ 	/* stop any memory operation tracing */
+-	atomic_set(&kmemleak_enabled, 0);
++	kmemleak_enabled = 0;
+ 
+ 	/* check whether it is too early for a kernel thread */
+-	if (atomic_read(&kmemleak_initialized))
++	if (kmemleak_initialized)
+ 		schedule_work(&cleanup_work);
+ 
+ 	pr_info("Kernel memory leak detector disabled\n");
+@@ -1763,9 +1763,10 @@ void __init kmemleak_init(void)
+ 	int i;
+ 	unsigned long flags;
+ 
++	kmemleak_early_log = 0;
++
+ #ifdef CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF
+ 	if (!kmemleak_skip_disable) {
+-		atomic_set(&kmemleak_early_log, 0);
+ 		kmemleak_disable();
+ 		return;
+ 	}
+@@ -1783,12 +1784,11 @@ void __init kmemleak_init(void)
+ 
+ 	/* the kernel is still in UP mode, so disabling the IRQs is enough */
+ 	local_irq_save(flags);
+-	atomic_set(&kmemleak_early_log, 0);
+-	if (atomic_read(&kmemleak_error)) {
++	if (kmemleak_error) {
+ 		local_irq_restore(flags);
+ 		return;
+ 	} else
+-		atomic_set(&kmemleak_enabled, 1);
++		kmemleak_enabled = 1;
+ 	local_irq_restore(flags);
+ 
+ 	/*
+@@ -1832,9 +1832,9 @@ void __init kmemleak_init(void)
+ 				      log->op_type);
+ 		}
+ 
+-		if (atomic_read(&kmemleak_warning)) {
++		if (kmemleak_warning) {
+ 			print_log_trace(log);
+-			atomic_set(&kmemleak_warning, 0);
++			kmemleak_warning = 0;
+ 		}
+ 	}
+ }
+@@ -1846,9 +1846,9 @@ static int __init kmemleak_late_init(voi
+ {
+ 	struct dentry *dentry;
+ 
+-	atomic_set(&kmemleak_initialized, 1);
++	kmemleak_initialized = 1;
+ 
+-	if (atomic_read(&kmemleak_error)) {
++	if (kmemleak_error) {
+ 		/*
+ 		 * Some error occurred and kmemleak was disabled. There is a
+ 		 * small chance that kmemleak_disable() was called immediately
 _
 
 Patches currently in -mm which might be from lizefan@huawei.com are
