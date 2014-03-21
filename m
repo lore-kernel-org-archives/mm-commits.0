@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-for-maxim-dallas-rtc-ds1347.patch added to -mm
- tree
-Date: Fri, 21 Mar 2014 13:05:37 -0700
-Message-ID: <532c9b91.joNs0bpOe7g7Vxb0%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler.patch added to -mm tree
+Date: Fri, 21 Mar 2014 13:14:03 -0700
+Message-ID: <532c9d8b.y2WOW3U2QAb2dNeZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47871 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47883 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750784AbaCUUFi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Mar 2014 16:05:38 -0400
+	with ESMTP id S1751352AbaCUUOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Mar 2014 16:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, a.zummo@towertech.it, ravi23ganiga@gmail.com
+To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, guozhonghua@h3c.com
 
-Subject: + rtc-add-support-for-maxim-dallas-rtc-ds1347.patch added to -mm tree
-To: ravi23ganiga@gmail.com,a.zummo@towertech.it
+Subject: + ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler.patch added to -mm tree
+To: guozhonghua@h3c.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com,srinivas.eeda@oracle.com
 From: akpm@linux-foundation.org
-Date: Fri, 21 Mar 2014 13:05:37 -0700
+Date: Fri, 21 Mar 2014 13:14:03 -0700
 
 
 The patch titled
-     Subject: rtc: add support for maxim dallas rtc ds1347
+     Subject: ocfs2: fix deadlock risk when kmalloc failed in dlm_query_region_handler
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-for-maxim-dallas-rtc-ds1347.patch
+     ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-add-support-for-maxim-dallas-rtc-ds1347.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-add-support-for-maxim-dallas-rtc-ds1347.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,228 +44,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Raghavendra Ganiga <ravi23ganiga@gmail.com>
-Subject: rtc: add support for maxim dallas rtc ds1347
+From: Zhonghua Guo <guozhonghua@h3c.com>
+Subject: ocfs2: fix deadlock risk when kmalloc failed in dlm_query_region_handler
 
-Add support for maxim dallas rtc ds1347
+In dlm_query_region_handler(), once kmalloc failed, it will unlock
+dlm_domain_lock without lock first, then deadlock happens.
 
-Signed-off-by: Raghavendra Chandra Ganiga <ravi23ganiga@gmail.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Zhonghua Guo <guozhonghua@h3c.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
+Tested-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |   12 ++
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-ds1347.c |  167 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 180 insertions(+)
+ fs/ocfs2/dlm/dlmdomain.c |   21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-support-for-maxim-dallas-rtc-ds1347 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-support-for-maxim-dallas-rtc-ds1347
-+++ a/drivers/rtc/Kconfig
-@@ -573,6 +573,18 @@ config RTC_DRV_DS1305
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-ds1305.
+diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -1123,7 +1123,6 @@ static int dlm_query_region_handler(stru
+ 	struct dlm_ctxt *dlm = NULL;
+ 	char *local = NULL;
+ 	int status = 0;
+-	int locked = 0;
  
-+config RTC_DRV_DS1347
-+	tristate "Dallas/Maxim DS1347"
-+	help
-+	  If you say yes here you get support for the
-+	  Dallas/Maxim DS1347 chips.
+ 	qr = (struct dlm_query_region *) msg->buf;
+ 
+@@ -1132,10 +1131,8 @@ static int dlm_query_region_handler(stru
+ 
+ 	/* buffer used in dlm_mast_regions() */
+ 	local = kmalloc(sizeof(qr->qr_regions), GFP_KERNEL);
+-	if (!local) {
+-		status = -ENOMEM;
+-		goto bail;
+-	}
++	if (!local)
++		return -ENOMEM;
+ 
+ 	status = -EINVAL;
+ 
+@@ -1144,16 +1141,15 @@ static int dlm_query_region_handler(stru
+ 	if (!dlm) {
+ 		mlog(ML_ERROR, "Node %d queried hb regions on domain %s "
+ 		     "before join domain\n", qr->qr_node, qr->qr_domain);
+-		goto bail;
++		goto out_domain_lock;
+ 	}
+ 
+ 	spin_lock(&dlm->spinlock);
+-	locked = 1;
+ 	if (dlm->joining_node != qr->qr_node) {
+ 		mlog(ML_ERROR, "Node %d queried hb regions on domain %s "
+ 		     "but joining node is %d\n", qr->qr_node, qr->qr_domain,
+ 		     dlm->joining_node);
+-		goto bail;
++		goto out_dlm_lock;
+ 	}
+ 
+ 	/* Support for global heartbeat was added in 1.1 */
+@@ -1163,14 +1159,15 @@ static int dlm_query_region_handler(stru
+ 		     "but active dlm protocol is %d.%d\n", qr->qr_node,
+ 		     qr->qr_domain, dlm->dlm_locking_proto.pv_major,
+ 		     dlm->dlm_locking_proto.pv_minor);
+-		goto bail;
++		goto out_dlm_lock;
+ 	}
+ 
+ 	status = dlm_match_regions(dlm, qr, local, sizeof(qr->qr_regions));
+ 
+-bail:
+-	if (locked)
+-		spin_unlock(&dlm->spinlock);
++out_dlm_lock:
++	spin_unlock(&dlm->spinlock);
 +
-+	  This driver only supports the RTC feature, and not other chip
-+	  features such as alarms.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-ds1347.
-+
- config RTC_DRV_DS1390
- 	tristate "Dallas/Maxim DS1390/93/94"
- 	help
-diff -puN drivers/rtc/Makefile~rtc-add-support-for-maxim-dallas-rtc-ds1347 drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-support-for-maxim-dallas-rtc-ds1347
-+++ a/drivers/rtc/Makefile
-@@ -40,6 +40,7 @@ obj-$(CONFIG_RTC_DRV_DS1286)	+= rtc-ds12
- obj-$(CONFIG_RTC_DRV_DS1302)	+= rtc-ds1302.o
- obj-$(CONFIG_RTC_DRV_DS1305)	+= rtc-ds1305.o
- obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
-+obj-$(CONFIG_RTC_DRV_DS1347)	+= rtc-ds1347.o
- obj-$(CONFIG_RTC_DRV_DS1374)	+= rtc-ds1374.o
- obj-$(CONFIG_RTC_DRV_DS1390)	+= rtc-ds1390.o
- obj-$(CONFIG_RTC_DRV_DS1511)	+= rtc-ds1511.o
-diff -puN /dev/null drivers/rtc/rtc-ds1347.c
---- /dev/null
-+++ a/drivers/rtc/rtc-ds1347.c
-@@ -0,0 +1,167 @@
-+/* rtc-ds1347.c
-+ *
-+ * Driver for Dallas Semiconductor DS1347 Low Current, SPI Compatible
-+ * Real Time Clock
-+ *
-+ * Author : Raghavendra Chandra Ganiga <ravi23ganiga@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/device.h>
-+#include <linux/platform_device.h>
-+#include <linux/rtc.h>
-+#include <linux/spi/spi.h>
-+#include <linux/bcd.h>
-+
-+/* Registers in ds1347 rtc */
-+
-+#define DS1347_SECONDS_REG	0x01
-+#define DS1347_MINUTES_REG	0x03
-+#define DS1347_HOURS_REG	0x05
-+#define DS1347_DATE_REG		0x07
-+#define DS1347_MONTH_REG	0x09
-+#define DS1347_DAY_REG		0x0B
-+#define DS1347_YEAR_REG		0x0D
-+#define DS1347_CONTROL_REG	0x0F
-+#define DS1347_STATUS_REG	0x17
-+#define DS1347_CLOCK_BURST	0x3F
-+
-+static int ds1347_read_reg(struct device *dev, unsigned char address,
-+				unsigned char *data)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+
-+	*data = address | 0x80;
-+
-+	return spi_write_then_read(spi, data, 1, data, 1);
-+}
-+
-+static int ds1347_write_reg(struct device *dev, unsigned char address,
-+				unsigned char data)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	unsigned char buf[2];
-+
-+	buf[0] = address & 0x7F;
-+	buf[1] = data;
-+
-+	return spi_write_then_read(spi, buf, 2, NULL, 0);
-+}
-+
-+static int ds1347_read_time(struct device *dev, struct rtc_time *dt)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	int err;
-+	unsigned char buf[8];
-+
-+	buf[0] = DS1347_CLOCK_BURST | 0x80;
-+
-+	err = spi_write_then_read(spi, buf, 1, buf, 8);
-+	if (err)
-+		return err;
-+
-+	dt->tm_sec = bcd2bin(buf[0]);
-+	dt->tm_min = bcd2bin(buf[1]);
-+	dt->tm_hour = bcd2bin(buf[2] & 0x3F);
-+	dt->tm_mday = bcd2bin(buf[3]);
-+	dt->tm_mon = bcd2bin(buf[4]) - 1;
-+	dt->tm_wday = bcd2bin(buf[5]) - 1;
-+	dt->tm_year = bcd2bin(buf[6]) + 100;
-+
-+	return rtc_valid_tm(dt);
-+}
-+
-+static int ds1347_set_time(struct device *dev, struct rtc_time *dt)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	unsigned char buf[9];
-+
-+	buf[0] = DS1347_CLOCK_BURST & 0x7F;
-+	buf[1] = bin2bcd(dt->tm_sec);
-+	buf[2] = bin2bcd(dt->tm_min);
-+	buf[3] = (bin2bcd(dt->tm_hour) & 0x3F);
-+	buf[4] = bin2bcd(dt->tm_mday);
-+	buf[5] = bin2bcd(dt->tm_mon + 1);
-+	buf[6] = bin2bcd(dt->tm_wday + 1);
-+
-+	/* year in linux is from 1900 i.e in range of 100
-+	in rtc it is from 00 to 99 */
-+	dt->tm_year = dt->tm_year % 100;
-+
-+	buf[7] = bin2bcd(dt->tm_year);
-+	buf[8] = bin2bcd(0x00);
-+
-+	/* write the rtc settings */
-+	return spi_write_then_read(spi, buf, 9, NULL, 0);
-+}
-+
-+static const struct rtc_class_ops ds1347_rtc_ops = {
-+	.read_time = ds1347_read_time,
-+	.set_time = ds1347_set_time,
-+};
-+
-+static int ds1347_probe(struct spi_device *spi)
-+{
-+	struct rtc_device *rtc;
-+	unsigned char data;
-+	int res;
-+
-+	/* spi setup with ds1347 in mode 3 and bits per word as 8 */
-+	spi->mode = SPI_MODE_3;
-+	spi->bits_per_word = 8;
-+	spi_setup(spi);
-+
-+	/* RTC Settings */
-+	res = ds1347_read_reg(&spi->dev, DS1347_SECONDS_REG, &data);
-+	if (res)
-+		return res;
-+
-+	/* Disable the write protect of rtc */
-+	ds1347_read_reg(&spi->dev, DS1347_CONTROL_REG, &data);
-+	data = data & ~(1<<7);
-+	ds1347_write_reg(&spi->dev, DS1347_CONTROL_REG, data);
-+
-+	/* Enable the oscillator , disable the oscillator stop flag,
-+	 and glitch filter to reduce current consumption */
-+	ds1347_read_reg(&spi->dev, DS1347_STATUS_REG, &data);
-+	data = data & 0x1B;
-+	ds1347_write_reg(&spi->dev, DS1347_STATUS_REG, data);
-+
-+	/* display the settings */
-+	ds1347_read_reg(&spi->dev, DS1347_CONTROL_REG, &data);
-+	dev_info(&spi->dev, "DS1347 RTC CTRL Reg = 0x%02x\n", data);
-+
-+	ds1347_read_reg(&spi->dev, DS1347_STATUS_REG, &data);
-+	dev_info(&spi->dev, "DS1347 RTC Status Reg = 0x%02x\n", data);
-+
-+	rtc = devm_rtc_device_register(&spi->dev, "ds1347",
-+				&ds1347_rtc_ops, THIS_MODULE);
-+
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
-+
-+	spi_set_drvdata(spi, rtc);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver ds1347_driver = {
-+	.driver = {
-+		.name = "ds1347",
-+		.owner = THIS_MODULE,
-+	},
-+	.probe = ds1347_probe,
-+};
-+
-+module_spi_driver(ds1347_driver);
-+
-+MODULE_DESCRIPTION("DS1347 SPI RTC DRIVER");
-+MODULE_AUTHOR("Raghavendra C Ganiga <ravi23ganiga@gmail.com>");
-+MODULE_LICENSE("GPL v2");
-+
++out_domain_lock:
+ 	spin_unlock(&dlm_domain_lock);
+ 
+ 	kfree(local);
 _
 
-Patches currently in -mm which might be from ravi23ganiga@gmail.com are
+Patches currently in -mm which might be from guozhonghua@h3c.com are
 
-rtc-add-support-for-maxim-dallas-rtc-ds1347.patch
+ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler.patch
 
