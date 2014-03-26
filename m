@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-use-for_each_memblock.patch added to -mm tree
-Date: Wed, 26 Mar 2014 15:24:44 -0700
-Message-ID: <533353ac.MGw2GtMnFeexKlk+%akpm@linux-foundation.org>
+Subject: + ocfs2-do-not-put-bh-when-buffer_uptodate-failed.patch added to
+ -mm tree
+Date: Wed, 26 Mar 2014 15:37:33 -0700
+Message-ID: <533356ad.1i91PHcTPL+CzymR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58525 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58595 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755840AbaCZWYp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Mar 2014 18:24:45 -0400
+	with ESMTP id S1755910AbaCZWhe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Mar 2014 18:37:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, Emilian.Medve@Freescale.com, Emilian.Medve@freescale.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, alex.chen@huawei.com
 
-Subject: + memblock-use-for_each_memblock.patch added to -mm tree
-To: Emilian.Medve@freescale.com,Emilian.Medve@Freescale.com
+Subject: + ocfs2-do-not-put-bh-when-buffer_uptodate-failed.patch added to -mm tree
+To: alex.chen@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com,srinivas.eeda@oracle.com,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 26 Mar 2014 15:24:44 -0700
+Date: Wed, 26 Mar 2014 15:37:33 -0700
 
 
 The patch titled
-     Subject: memblock: use for_each_memblock()
+     Subject: ocfs2: do not put bh when buffer_uptodate failed
 has been added to the -mm tree.  Its filename is
-     memblock-use-for_each_memblock.patch
+     ocfs2-do-not-put-bh-when-buffer_uptodate-failed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memblock-use-for_each_memblock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-put-bh-when-buffer_uptodate-failed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-use-for_each_memblock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-put-bh-when-buffer_uptodate-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,109 +44,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Emil Medve <Emilian.Medve@freescale.com>
-Subject: memblock: use for_each_memblock()
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2: do not put bh when buffer_uptodate failed
 
-This is a small cleanup.
+Do not put bh when buffer_uptodate failed in ocfs2_write_block and
+ocfs2_write_super_or_backup, because it will put bh in b_end_io. 
+Otherwise it will hit a warning "VFS: brelse: Trying to free free buffer".
 
-Signed-off-by: Emil Medve <Emilian.Medve@Freescale.com>
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c   |   24 +++++++++++-------------
- mm/page_alloc.c |   10 +++++-----
- 2 files changed, 16 insertions(+), 18 deletions(-)
+ fs/ocfs2/buffer_head_io.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/memblock.c~memblock-use-for_each_memblock mm/memblock.c
---- a/mm/memblock.c~memblock-use-for_each_memblock
-+++ a/mm/memblock.c
-@@ -1271,16 +1271,14 @@ phys_addr_t __init_memblock memblock_end
- 
- void __init memblock_enforce_memory_limit(phys_addr_t limit)
- {
--	unsigned long i;
- 	phys_addr_t max_addr = (phys_addr_t)ULLONG_MAX;
-+	struct memblock_region *r;
- 
- 	if (!limit)
- 		return;
- 
- 	/* find out max address */
--	for (i = 0; i < memblock.memory.cnt; i++) {
--		struct memblock_region *r = &memblock.memory.regions[i];
--
-+	for_each_memblock(memory, r) {
- 		if (limit <= r->size) {
- 			max_addr = r->base + limit;
- 			break;
-@@ -1379,13 +1377,12 @@ int __init_memblock memblock_is_region_r
- 
- void __init_memblock memblock_trim_memory(phys_addr_t align)
- {
--	int i;
- 	phys_addr_t start, end, orig_start, orig_end;
--	struct memblock_type *mem = &memblock.memory;
-+	struct memblock_region *r;
- 
--	for (i = 0; i < mem->cnt; i++) {
--		orig_start = mem->regions[i].base;
--		orig_end = mem->regions[i].base + mem->regions[i].size;
-+	for_each_memblock(memory, r) {
-+		orig_start = r->base;
-+		orig_end = r->base + r->size;
- 		start = round_up(orig_start, align);
- 		end = round_down(orig_end, align);
- 
-@@ -1393,11 +1390,12 @@ void __init_memblock memblock_trim_memor
- 			continue;
- 
- 		if (start < end) {
--			mem->regions[i].base = start;
--			mem->regions[i].size = end - start;
-+			r->base = start;
-+			r->size = end - start;
- 		} else {
--			memblock_remove_region(mem, i);
--			i--;
-+			memblock_remove_region(&memblock.memory,
-+					       r - memblock.memory.regions);
-+			r--;
- 		}
+diff -puN fs/ocfs2/buffer_head_io.c~ocfs2-do-not-put-bh-when-buffer_uptodate-failed fs/ocfs2/buffer_head_io.c
+--- a/fs/ocfs2/buffer_head_io.c~ocfs2-do-not-put-bh-when-buffer_uptodate-failed
++++ a/fs/ocfs2/buffer_head_io.c
+@@ -90,7 +90,6 @@ int ocfs2_write_block(struct ocfs2_super
+ 		 * information for this bh as it's not marked locally
+ 		 * uptodate. */
+ 		ret = -EIO;
+-		put_bh(bh);
+ 		mlog_errno(ret);
  	}
- }
-diff -puN mm/page_alloc.c~memblock-use-for_each_memblock mm/page_alloc.c
---- a/mm/page_alloc.c~memblock-use-for_each_memblock
-+++ a/mm/page_alloc.c
-@@ -5071,7 +5071,7 @@ static void __init find_zone_movable_pfn
- 	nodemask_t saved_node_state = node_states[N_MEMORY];
- 	unsigned long totalpages = early_calculate_totalpages();
- 	int usable_nodes = nodes_weight(node_states[N_MEMORY]);
--	struct memblock_type *type = &memblock.memory;
-+	struct memblock_region *r;
  
- 	/* Need to find movable_zone earlier when movable_node is specified. */
- 	find_usable_zone_for_movable();
-@@ -5081,13 +5081,13 @@ static void __init find_zone_movable_pfn
- 	 * options.
- 	 */
- 	if (movable_node_is_enabled()) {
--		for (i = 0; i < type->cnt; i++) {
--			if (!memblock_is_hotpluggable(&type->regions[i]))
-+		for_each_memblock(memory, r) {
-+			if (!memblock_is_hotpluggable(r))
- 				continue;
+@@ -420,7 +419,6 @@ int ocfs2_write_super_or_backup(struct o
  
--			nid = type->regions[i].nid;
-+			nid = r->nid;
+ 	if (!buffer_uptodate(bh)) {
+ 		ret = -EIO;
+-		put_bh(bh);
+ 		mlog_errno(ret);
+ 	}
  
--			usable_startpfn = PFN_DOWN(type->regions[i].base);
-+			usable_startpfn = PFN_DOWN(r->base);
- 			zone_movable_pfn[nid] = zone_movable_pfn[nid] ?
- 				min(usable_startpfn, zone_movable_pfn[nid]) :
- 				usable_startpfn;
 _
 
-Patches currently in -mm which might be from Emilian.Medve@freescale.com are
+Patches currently in -mm which might be from alex.chen@huawei.com are
 
-memblock-use-for_each_memblock.patch
+ocfs2-do-not-put-bh-when-buffer_uptodate-failed.patch
 
