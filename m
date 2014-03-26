@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblockc-use-pfn_phys.patch added to -mm tree
-Date: Wed, 26 Mar 2014 15:50:31 -0700
-Message-ID: <533359b7.XZLj+TPlre9BRzfA%akpm@linux-foundation.org>
+Subject: + lib-idrc-use-rcu_init_pointerx-null.patch added to -mm tree
+Date: Wed, 26 Mar 2014 15:56:10 -0700
+Message-ID: <53335b0a.su4RnzuDQysccxs1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58698 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58709 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753861AbaCZWub (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Mar 2014 18:50:31 -0400
+	with ESMTP id S1753861AbaCZW4L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Mar 2014 18:56:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, tj@kernel.org, monamagarwal123@gmail.com
 
-Subject: + mm-memblockc-use-pfn_phys.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + lib-idrc-use-rcu_init_pointerx-null.patch added to -mm tree
+To: monamagarwal123@gmail.com,tj@kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 26 Mar 2014 15:50:31 -0700
+Date: Wed, 26 Mar 2014 15:56:10 -0700
 
 
 The patch titled
-     Subject: mm/memblock.c: use PFN_PHYS()
+     Subject: lib/idr.c: use RCU_INIT_POINTER(x, NULL)
 has been added to the -mm tree.  Its filename is
-     mm-memblockc-use-pfn_phys.patch
+     lib-idrc-use-rcu_init_pointerx-null.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblockc-use-pfn_phys.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-idrc-use-rcu_init_pointerx-null.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblockc-use-pfn_phys.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-idrc-use-rcu_init_pointerx-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,67 +43,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/memblock.c: use PFN_PHYS()
+From: Monam Agarwal <monamagarwal123@gmail.com>
+Subject: lib/idr.c: use RCU_INIT_POINTER(x, NULL)
 
-Replace ((phys_addr_t)(x) << PAGE_SHIFT) by pfn macro.
+Replace rcu_assign_pointer(x, NULL) with RCU_INIT_POINTER(x, NULL)
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+The rcu_assign_pointer() ensures that the initialization of a structure is
+carried out before storing a pointer to that structure.  And in the case
+of the NULL pointer, there is no structure to initialize.  So,
+rcu_assign_pointer(p, NULL) can be safely converted to RCU_INIT_POINTER(p,
+NULL)
+
+Signed-off-by: Monam Agarwal <monamagarwal123@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    4 ++--
+ lib/idr.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memblock.c~mm-memblockc-use-pfn_phys mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-use-pfn_phys
-+++ a/mm/memblock.c
-@@ -1253,7 +1253,7 @@ phys_addr_t __init memblock_mem_size(uns
- 		pages += end_pfn - start_pfn;
- 	}
+diff -puN lib/idr.c~lib-idrc-use-rcu_init_pointerx-null lib/idr.c
+--- a/lib/idr.c~lib-idrc-use-rcu_init_pointerx-null
++++ a/lib/idr.c
+@@ -533,7 +533,7 @@ static void sub_remove(struct idr *idp,
+ 	n = id & IDR_MASK;
+ 	if (likely(p != NULL && test_bit(n, p->bitmap))) {
+ 		__clear_bit(n, p->bitmap);
+-		rcu_assign_pointer(p->ary[n], NULL);
++		RCU_INIT_POINTER(p->ary[n], NULL);
+ 		to_free = NULL;
+ 		while(*paa && ! --((**paa)->count)){
+ 			if (to_free)
+@@ -602,7 +602,7 @@ static void __idr_remove_all(struct idr
  
--	return (phys_addr_t)pages << PAGE_SHIFT;
-+	return PFN_PHYS(pages);
- }
+ 	n = idp->layers * IDR_BITS;
+ 	p = idp->top;
+-	rcu_assign_pointer(idp->top, NULL);
++	RCU_INIT_POINTER(idp->top, NULL);
+ 	max = idr_max(idp->layers);
  
- /* lowest address */
-@@ -1324,7 +1324,7 @@ int __init_memblock memblock_search_pfn_
- 			 unsigned long *start_pfn, unsigned long *end_pfn)
- {
- 	struct memblock_type *type = &memblock.memory;
--	int mid = memblock_search(type, (phys_addr_t)pfn << PAGE_SHIFT);
-+	int mid = memblock_search(type, PFN_PHYS(pfn));
- 
- 	if (mid == -1)
- 		return -1;
+ 	id = 0;
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from monamagarwal123@gmail.com are
 
-fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
-fs-freevxfs-vxfs_lookupc-update-function-comment.patch
-ntfs-logging-clean-up.patch
-mm-memblockc-use-pfn_phys.patch
-sys_sysfs-add-config_sysfs_syscall.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-fs-efs-superc-add-__init-to-init_inodecache.patch
-fs-minix-inodec-add-__init-to-init_inodecache.patch
-befs-replace-kmalloc-memset-0-by-kzalloc.patch
-fs-befs-linuxvfsc-add-__init-to-befs_init_inodecache.patch
-befs-logging-clean-up.patch
-befs-logging-clean-up-fix.patch
-coda-add-__init-to-init_inodecache.patch
-hfsplus-add-__init-to-hfsplus_create_attr_tree_cache.patch
-fs-reiserfs-superc-add-__init-to-init_inodecache.patch
-documentation-filesystems-ntfstxt-remove-changelog-reference.patch
-fs-adfs-superc-add-__init-to-init_inodecache.patch
-affs-add-__init-to-init_inodecache.patch
-fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
-affs-mount-option-to-avoid-filename-truncates.patch
-fs-bfs-inodec-add-__init-to-init_inodecache.patch
-kernel-panicc-display-reason-at-end-pr_emerg.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+lib-idrc-use-rcu_init_pointerx-null.patch
 linux-next.patch
-fs-ufs-superc-add-__init-to-init_inodecache.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
 
