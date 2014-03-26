@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-submittingpatches-update-some-dead-urls.patch
+Subject: +
+ documentation-submittingpatches-remove-references-to-patch-scripts.patch
  added to -mm tree
-Date: Wed, 26 Mar 2014 14:56:15 -0700
-Message-ID: <53334cff.g5lQxc3N4vCRycDI%akpm@linux-foundation.org>
+Date: Wed, 26 Mar 2014 14:56:16 -0700
+Message-ID: <53334d00.bVdJStDe7yU5nD+n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: application/octet-stream
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58269 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58271 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126AbaCZV4Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Mar 2014 17:56:16 -0400
+	with ESMTP id S1752126AbaCZV4R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Mar 2014 17:56:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mitchelh@codeaurora.org
 
-Subject: + documentation-submittingpatches-update-some-dead-urls.patch added to -mm tree
+Subject: + documentation-submittingpatches-remove-references-to-patch-scripts.patch added to -mm tree
 To: mitchelh@codeaurora.org
 From: akpm@linux-foundation.org
-Date: Wed, 26 Mar 2014 14:56:15 -0700
+Date: Wed, 26 Mar 2014 14:56:16 -0700
 
 
 The patch titled
-     Subject: Documentation/SubmittingPatches: update some dead URLs
+     Subject: Documentation/SubmittingPatches: remove references to patch-scripts
 has been added to the -mm tree.  Its filename is
-     documentation-submittingpatches-update-some-dead-urls.patch
+     documentation-submittingpatches-remove-references-to-patch-scripts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-submittingpatches-update-some-dead-urls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-submittingpatches-remove-references-to-patch-scripts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-submittingpatches-update-some-dead-urls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-submittingpatches-remove-references-to-patch-scripts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,88 +46,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mitchel Humpherys <mitchelh@codeaurora.org>
-Subject: Documentation/SubmittingPatches: update some dead URLs
+Subject: Documentation/SubmittingPatches: remove references to patch-scripts
 
-The links to "The perfect patch" and "NO!!!! No more huge patch
-bombs..." have gone stale. Update them to some working locations.
+The link to the tarball for Andrew Morton's patch scripts is dead. These
+scripts don't seem to be used for kernel development these days anyways
+so just rip out all references to them.
 
 Signed-off-by: Mitchel Humpherys <mitchelh@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches       |    4 ++--
- Documentation/ja_JP/SubmittingPatches |    4 ++--
- Documentation/zh_CN/SubmittingPatches |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ Documentation/ja_JP/SubmittingPatches |    5 -----
+ Documentation/zh_CN/SubmittingPatches |    4 ----
+ 2 files changed, 9 deletions(-)
 
-diff -puN Documentation/SubmittingPatches~documentation-submittingpatches-update-some-dead-urls Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~documentation-submittingpatches-update-some-dead-urls
-+++ a/Documentation/SubmittingPatches
-@@ -739,7 +739,7 @@ SECTION 3 - REFERENCES
- ----------------------
- 
- Andrew Morton, "The perfect patch" (tpp).
--  <http://userweb.kernel.org/~akpm/stuff/tpp.txt>
-+  <http://www.ozlabs.org/~akpm/stuff/tpp.txt>
- 
- Jeff Garzik, "Linux kernel patch submission format".
-   <http://linux.yyz.us/patch-format.html>
-@@ -752,7 +752,7 @@ Greg Kroah-Hartman, "How to piss off a k
-   <http://www.kroah.com/log/linux/maintainer-05.html>
- 
- NO!!!! No more huge patch bombs to linux-kernel@vger.kernel.org people!
--  <http://marc.theaimsgroup.com/?l=linux-kernel&m=112112749912944&w=2>
-+  <https://lkml.org/lkml/2005/7/11/336>
- 
- Kernel Documentation/CodingStyle:
-   <http://users.sosdg.org/~qiyong/lxr/source/Documentation/CodingStyle>
-diff -puN Documentation/ja_JP/SubmittingPatches~documentation-submittingpatches-update-some-dead-urls Documentation/ja_JP/SubmittingPatches
---- a/Documentation/ja_JP/SubmittingPatches~documentation-submittingpatches-update-some-dead-urls
+diff -puN Documentation/ja_JP/SubmittingPatches~documentation-submittingpatches-remove-references-to-patch-scripts Documentation/ja_JP/SubmittingPatches
+--- a/Documentation/ja_JP/SubmittingPatches~documentation-submittingpatches-remove-references-to-patch-scripts
 +++ a/Documentation/ja_JP/SubmittingPatches
-@@ -695,7 +695,7 @@ gcc においては、マクロと同じ
- ----------------------
+@@ -98,11 +98,6 @@ dontdiff ファイルには Linux カー
+ Quilt:
+ http://savannah.nongnu.org/projects/quilt
  
- Andrew Morton, "The perfect patch" (tpp).
--  <http://userweb.kernel.org/~akpm/stuff/tpp.txt>
-+  <http://www.ozlabs.org/~akpm/stuff/tpp.txt>
+-Andrew Morton's patch scripts:
+-http://userweb.kernel.org/~akpm/stuff/patch-scripts.tar.gz
+-このリンクの先のスクリプトの代わりとして、quilt がパッチマネジメント
+-ツールとして推奨されています(上のリンクを見てください)。
+-
+ 2) パッチに対する説明
  
- Jeff Garzik, "Linux kernel patch submission format".
-   <http://linux.yyz.us/patch-format.html>
-@@ -707,7 +707,7 @@ Greg Kroah-Hartman, "How to piss off a k
-   <http://www.kroah.com/log/2006/01/11/>
- 
- NO!!!! No more huge patch bombs to linux-kernel@vger.kernel.org people!
--  <http://marc.theaimsgroup.com/?l=linux-kernel&m=112112749912944&w=2>
-+  <https://lkml.org/lkml/2005/7/11/336>
- 
- Kernel Documentation/CodingStyle:
-   <http://users.sosdg.org/~qiyong/lxr/source/Documentation/CodingStyle>
-diff -puN Documentation/zh_CN/SubmittingPatches~documentation-submittingpatches-update-some-dead-urls Documentation/zh_CN/SubmittingPatches
---- a/Documentation/zh_CN/SubmittingPatches~documentation-submittingpatches-update-some-dead-urls
+ パッチの中の変更点に対する技術的な詳細について説明してください。
+diff -puN Documentation/zh_CN/SubmittingPatches~documentation-submittingpatches-remove-references-to-patch-scripts Documentation/zh_CN/SubmittingPatches
+--- a/Documentation/zh_CN/SubmittingPatches~documentation-submittingpatches-remove-references-to-patch-scripts
 +++ a/Documentation/zh_CN/SubmittingPatches
-@@ -394,7 +394,7 @@ Static inline 函数相比宏来说，�
- ----------------
+@@ -82,10 +82,6 @@ Documentation/SubmittingDrivers 。
+ Quilt:
+ http://savannah.nongnu.org/projects/quilt
  
- Andrew Morton, "The perfect patch" (tpp).
--  <http://userweb.kernel.org/~akpm/stuff/tpp.txt>
-+  <http://www.ozlabs.org/~akpm/stuff/tpp.txt>
- 
- Jeff Garzik, "Linux kernel patch submission format".
-   <http://linux.yyz.us/patch-format.html>
-@@ -406,7 +406,7 @@ Greg Kroah-Hartman, "How to piss off a k
-   <http://www.kroah.com/log/2006/01/11/>
- 
- NO!!!! No more huge patch bombs to linux-kernel@vger.kernel.org people!
--  <http://marc.theaimsgroup.com/?l=linux-kernel&m=112112749912944&w=2>
-+  <https://lkml.org/lkml/2005/7/11/336>
- 
- Kernel Documentation/CodingStyle:
-   <http://sosdg.org/~coywolf/lxr/source/Documentation/CodingStyle>
-_
-
-Patches currently in -mm which might be from mitchelh@codeaurora.org are
-
-documentation-submittingpatches-update-some-dead-urls.patch
-documentation-submittingpatches-remove-references-to-patch-scripts.patch
-linux-next.patch
-
+-Andrew Morton 的补丁脚本:
+-http://userweb.kernel.org/~akpm/stuff/patch-scripts.tar.gz
+-作为这些脚本的替代，quilt 是值得推荐的补丁管理工具(看上面的链接)。
