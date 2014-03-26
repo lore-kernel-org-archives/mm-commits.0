@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch added to -mm tree
-Date: Wed, 26 Mar 2014 13:36:13 -0700
-Message-ID: <53333a3d.fWvgmCZuuZVSx2ik%akpm@linux-foundation.org>
+Subject: + memcg-get_mem_cgroup_from_mm-fix.patch added to -mm tree
+Date: Wed, 26 Mar 2014 13:37:48 -0700
+Message-ID: <53333a9c.Eve4WS+WHZyIA8/G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57445 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57447 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755218AbaCZUgN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Mar 2014 16:36:13 -0400
+	with ESMTP id S1751683AbaCZUhs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Mar 2014 16:37:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, fengguang.wu@intel.com
 
-Subject: + checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch added to -mm tree
-To: joe@perches.com
+Subject: + memcg-get_mem_cgroup_from_mm-fix.patch added to -mm tree
+To: fengguang.wu@intel.com,hannes@cmpxchg.org
 From: akpm@linux-foundation.org
-Date: Wed, 26 Mar 2014 13:36:13 -0700
+Date: Wed, 26 Mar 2014 13:37:48 -0700
 
 
 The patch titled
-     Subject: checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix
+     Subject: memcg-get_mem_cgroup_from_mm-fix
 has been added to the -mm tree.  Its filename is
-     checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+     memcg-get_mem_cgroup_from_mm-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-get_mem_cgroup_from_mm-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-get_mem_cgroup_from_mm-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,82 +43,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: memcg-get_mem_cgroup_from_mm-fix
 
-Declare swallows all the spaces after a type like "struct foo *bar;
-so there's no required space "\s+" after $Declare
-
-Stupid perl...
-
-
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    6 ------
+ mm/memcontrol.c            |    2 +-
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix
-+++ a/scripts/checkpatch.pl
-@@ -2266,7 +2266,7 @@ sub process {
- # check for missing blank lines after declarations
- 		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
- 			# actual declarations
--		    ($prevline =~ /^\+\s+$Declare\s+$Ident\s*[=,;\[]/ ||
-+		    ($prevline =~ /^\+\s+$Declare\s*$Ident\s*[=,;\[]/ ||
- 			# foo bar; where foo is some local typedef or #define
- 		     $prevline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
- 			# known declaration macros
-@@ -2278,7 +2278,7 @@ sub process {
- 			# not starting a section or a macro "\" extended line
- 		      $prevline =~ /(?:\{\s*|\\)$/) &&
- 			# looks like a declaration
--		    !($sline =~ /^\+\s+$Declare/ ||
-+		    !($sline =~ /^\+\s+$Declare\s*$Ident\s*[=,;\[]/ ||
- 			# foo bar; where foo is some local typedef or #define
- 		      $sline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
- 			# known declaration macros
+diff -puN include/linux/memcontrol.h~memcg-get_mem_cgroup_from_mm-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-get_mem_cgroup_from_mm-fix
++++ a/include/linux/memcontrol.h
+@@ -94,7 +94,6 @@ bool task_in_mem_cgroup(struct task_stru
+ 
+ extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
+ extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
+-extern struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm);
+ 
+ extern struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg);
+ extern struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *css);
+@@ -293,11 +292,6 @@ static inline struct mem_cgroup *try_get
+ {
+ 	return NULL;
+ }
+-
+-static inline struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
+-{
+-	return NULL;
+-}
+ 
+ static inline bool mm_match_cgroup(struct mm_struct *mm,
+ 		struct mem_cgroup *memcg)
+diff -puN mm/memcontrol.c~memcg-get_mem_cgroup_from_mm-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-get_mem_cgroup_from_mm-fix
++++ a/mm/memcontrol.c
+@@ -1071,7 +1071,7 @@ struct mem_cgroup *mem_cgroup_from_task(
+ 	return mem_cgroup_from_css(task_css(p, mem_cgroup_subsys_id));
+ }
+ 
+-struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm)
++static struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm)
+ {
+ 	struct mem_cgroup *memcg = NULL;
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-ntfs-logging-clean-up.patch
-errh-use-bool-for-is_err-and-is_err_or_null.patch
-maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch
-maintainers-addition-of-dialog-semiconductor-files.patch
-lib-random32c-minor-cleanups-and-kdoc-fix.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-add-test-for-long-udelay.patch
-checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
-checkpatch-add-checks-for-constant-non-octal-permissions.patch
-checkpatch-warn-on-uses-of-__constant_foo-functions.patch
-checkpatch-update-octal-permissions-warning.patch
-checkpatch-avoid-sscanf-test-duplicated-messages.patch
-checkpatch-fix-jiffies-comparison-and-others.patch
-checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
-checkpatch-use-a-more-consistent-function-argument-style.patch
-checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
-checkpatch-make-return-is-not-a-function-test-quieter.patch
-checkpatchpl-modify-warning-message-for-printk-usage.patch
-checkpatch-improve-octal-permissions-test-speed.patch
-checkpatch-check-vendor-compatible-with-dashes.patch
-checkpatch-fix-spurious-vendor-compatible-warnings.patch
-checkpatch-check-compatible-strings-in-c-and-h-too.patch
-checkpatch-improve-the-compatible-vendor-match.patch
-checkpatch-net-and-drivers-net-warn-on-missing-blank-line-after-variable-declaration.patch
-scripts-checkpatchpl-__gfp_nofail-isnt-going-away.patch
-checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
-checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
-checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
-ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-ncpfs-convert-pprintk-to-ncp_vdbg.patch
-ncpfs-remove-now-unused-printk-macro.patch
-ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
-befs-logging-clean-up.patch
-befs-logging-clean-up-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
+tools-vm-page-typesc-page-cache-sniffing-feature.patch
+memcg-get_mem_cgroup_from_mm-fix.patch
+zram-propagate-error-to-user-fix-2.patch
 linux-next.patch
+slub-use-raw_cpu_inc-for-incrementing-statistics.patch
+slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
+mm-add-strictlimit-knob-v2.patch
+debugging-keep-track-of-page-owners.patch
 
