@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-boot-on-uniprocessor-systems.patch added to -mm tree
-Date: Wed, 26 Mar 2014 13:31:53 -0700
-Message-ID: <53333939.UBSdAfgDhB1T4THk%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch added to -mm tree
+Date: Wed, 26 Mar 2014 13:36:13 -0700
+Message-ID: <53333a3d.fWvgmCZuuZVSx2ik%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57445 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751683AbaCZUby (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Mar 2014 16:31:54 -0400
+	with ESMTP id S1755218AbaCZUgN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Mar 2014 16:36:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, eranian@google.com, a.p.zijlstra@chello.nl, artem_fetishev@epam.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + x86-fix-boot-on-uniprocessor-systems.patch added to -mm tree
-To: artem_fetishev@epam.com,a.p.zijlstra@chello.nl,eranian@google.com,hpa@zytor.com,mingo@elte.hu,tglx@linutronix.de
+Subject: + checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 26 Mar 2014 13:31:53 -0700
+Date: Wed, 26 Mar 2014 13:36:13 -0700
 
 
 The patch titled
-     Subject: x86: fix boot on uniprocessor systems
+     Subject: checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix
 has been added to the -mm tree.  Its filename is
-     x86-fix-boot-on-uniprocessor-systems.patch
+     checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-fix-boot-on-uniprocessor-systems.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-fix-boot-on-uniprocessor-systems.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,48 +44,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Artem Fetishev <artem_fetishev@epam.com>
-Subject: x86: fix boot on uniprocessor systems
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix
 
-On x86 uniprocessor systems topology_physical_package_id() returns -1
-which causes rapl_cpu_prepare() to leave rapl_pmu variable uninitialized
-which leads to GPF in rapl_pmu_init().  See
-arch/x86/kernel/cpu/perf_event_intel_rapl.c.
+Declare swallows all the spaces after a type like "struct foo *bar;
+so there's no required space "\s+" after $Declare
 
-It turns out that physical_package_id and core_id can actually be
-retreived for uniprocessor systems too.  Enabling them also fixes rapl_pmu
-code.
+Stupid perl...
 
-Signed-off-by: Artem Fetishev <artem_fetishev@epam.com>
-Cc: Stephane Eranian <eranian@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/topology.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/include/asm/topology.h~x86-fix-boot-on-uniprocessor-systems arch/x86/include/asm/topology.h
---- a/arch/x86/include/asm/topology.h~x86-fix-boot-on-uniprocessor-systems
-+++ a/arch/x86/include/asm/topology.h
-@@ -119,9 +119,10 @@ static inline void setup_node_to_cpumask
- 
- extern const struct cpumask *cpu_coregroup_mask(int cpu);
- 
--#ifdef ENABLE_TOPO_DEFINES
- #define topology_physical_package_id(cpu)	(cpu_data(cpu).phys_proc_id)
- #define topology_core_id(cpu)			(cpu_data(cpu).cpu_core_id)
-+
-+#ifdef ENABLE_TOPO_DEFINES
- #define topology_core_cpumask(cpu)		(per_cpu(cpu_core_map, cpu))
- #define topology_thread_cpumask(cpu)		(per_cpu(cpu_sibling_map, cpu))
- #endif
+diff -puN scripts/checkpatch.pl~checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix
++++ a/scripts/checkpatch.pl
+@@ -2266,7 +2266,7 @@ sub process {
+ # check for missing blank lines after declarations
+ 		if ($sline =~ /^\+\s+\S/ &&			#Not at char 1
+ 			# actual declarations
+-		    ($prevline =~ /^\+\s+$Declare\s+$Ident\s*[=,;\[]/ ||
++		    ($prevline =~ /^\+\s+$Declare\s*$Ident\s*[=,;\[]/ ||
+ 			# foo bar; where foo is some local typedef or #define
+ 		     $prevline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
+ 			# known declaration macros
+@@ -2278,7 +2278,7 @@ sub process {
+ 			# not starting a section or a macro "\" extended line
+ 		      $prevline =~ /(?:\{\s*|\\)$/) &&
+ 			# looks like a declaration
+-		    !($sline =~ /^\+\s+$Declare/ ||
++		    !($sline =~ /^\+\s+$Declare\s*$Ident\s*[=,;\[]/ ||
+ 			# foo bar; where foo is some local typedef or #define
+ 		      $sline =~ /^\+\s+$Ident(?:\s+|\s*\*\s*)$Ident\s*[=,;\[]/ ||
+ 			# known declaration macros
 _
 
-Patches currently in -mm which might be from artem_fetishev@epam.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-x86-fix-boot-on-uniprocessor-systems.patch
+ntfs-logging-clean-up.patch
+errh-use-bool-for-is_err-and-is_err_or_null.patch
+maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch
+maintainers-addition-of-dialog-semiconductor-files.patch
+lib-random32c-minor-cleanups-and-kdoc-fix.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-test-for-long-udelay.patch
+checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
+checkpatch-add-checks-for-constant-non-octal-permissions.patch
+checkpatch-warn-on-uses-of-__constant_foo-functions.patch
+checkpatch-update-octal-permissions-warning.patch
+checkpatch-avoid-sscanf-test-duplicated-messages.patch
+checkpatch-fix-jiffies-comparison-and-others.patch
+checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
+checkpatch-use-a-more-consistent-function-argument-style.patch
+checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+checkpatchpl-modify-warning-message-for-printk-usage.patch
+checkpatch-improve-octal-permissions-test-speed.patch
+checkpatch-check-vendor-compatible-with-dashes.patch
+checkpatch-fix-spurious-vendor-compatible-warnings.patch
+checkpatch-check-compatible-strings-in-c-and-h-too.patch
+checkpatch-improve-the-compatible-vendor-match.patch
+checkpatch-net-and-drivers-net-warn-on-missing-blank-line-after-variable-declaration.patch
+scripts-checkpatchpl-__gfp_nofail-isnt-going-away.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
+befs-logging-clean-up.patch
+befs-logging-clean-up-fix.patch
+linux-next.patch
 
