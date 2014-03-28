@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + hung_task-check-the-value-of-sysctl_hung_task_timeout_sec.patch added to -mm tree
-Date: Fri, 28 Mar 2014 13:24:39 -0700
-Message-ID: <5335da87.IKFDnAij06q/GW24%akpm__46602.1794862629$1396038288$gmane$org@linux-foundation.org>
+Subject: + maintainers-restore-randy-as-documentation-maintainer.patch
+ added to -mm tree
+Date: Fri, 28 Mar 2014 13:47:22 -0700
+Message-ID: <5335dfda.y7uFtVcqVM9Y1XeD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52830 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53347 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751435AbaC1UYk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Mar 2014 16:24:40 -0400
+	with ESMTP id S1752383AbaC1UrX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Mar 2014 16:47:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, satoru.takeuchi@gmail.com, sdu.liu@huawei.com
+To: mm-commits@vger.kernel.org, rob@landley.net, rdunlap@infradead.org
 
-Subject: + hung_task-check-the-value-of-sysctl_hung_task_timeout_sec.patch added to -mm tree
-To: sdu.liu@huawei.com,satoru.takeuchi@gmail.com,stable@vger.kernel.org
+Subject: + maintainers-restore-randy-as-documentation-maintainer.patch added to -mm tree
+To: rdunlap@infradead.org,rob@landley.net
 From: akpm@linux-foundation.org
-Date: Fri, 28 Mar 2014 13:24:39 -0700
+Date: Fri, 28 Mar 2014 13:47:22 -0700
 
 
 The patch titled
-     Subject: hung_task: check the value of "sysctl_hung_task_timeout_sec"
+     Subject: MAINTAINERS: restore Randy as Documentation maintainer
 has been added to the -mm tree.  Its filename is
-     hung_task-check-the-value-of-sysctl_hung_task_timeout_sec.patch
+     maintainers-restore-randy-as-documentation-maintainer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hung_task-check-the-value-of-sysctl_hung_task_timeout_sec.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-restore-randy-as-documentation-maintainer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hung_task-check-the-value-of-sysctl_hung_task_timeout_sec.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-restore-randy-as-documentation-maintainer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,70 +44,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liu Hua <sdu.liu@huawei.com>
-Subject: hung_task: check the value of "sysctl_hung_task_timeout_sec"
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: MAINTAINERS: restore Randy as Documentation maintainer
 
-As sysctl_hung_task_timeout_sec is unsigned long, when this value is
-larger then LONG_MAX/HZ, the function schedule_timeout_interruptible in
-watchdog will return immediately without sleep and with print :
+I am the new kernel tree Documentation maintainer (except for parts that
+are handled by other people, of course).
 
-[  205.452934] schedule_timeout: wrong timeout value ffffffffffffff83
-
-and then the funtion watchdog will call schedule_timeout_interruptible
-again and again.  The screen will be filled with
-
-	"schedule_timeout: wrong timeout value ffffffffffffff83"
-
-This patch does some check and correction in sysctl, to let the function
-schedule_timeout_interruptible allways get the valid parameter.
-
-Signed-off-by: Liu Hua <sdu.liu@huawei.com>
-Tested-by: Satoru Takeuchi <satoru.takeuchi@gmail.com>
-Cc: <stable@vger.kernel.org>	[3.4+]
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |    1 +
- kernel/sysctl.c                 |    6 ++++++
- 2 files changed, 7 insertions(+)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~hung_task-check-the-value-of-sysctl_hung_task_timeout_sec Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~hung_task-check-the-value-of-sysctl_hung_task_timeout_sec
-+++ a/Documentation/sysctl/kernel.txt
-@@ -317,6 +317,7 @@ for more than this value report a warnin
- This file shows up if CONFIG_DETECT_HUNG_TASK is enabled.
+diff -puN MAINTAINERS~maintainers-restore-randy-as-documentation-maintainer MAINTAINERS
+--- a/MAINTAINERS~maintainers-restore-randy-as-documentation-maintainer
++++ a/MAINTAINERS
+@@ -2828,9 +2828,9 @@ S:	Supported
+ F:	drivers/acpi/dock.c
  
- 0: means infinite timeout - no checking done.
-+Possible values to set are in range {0..LONG_MAX/HZ}.
+ DOCUMENTATION
+-M:	Rob Landley <rob@landley.net>
++M:	Randy Dunlap <rdunlap@infradead.org>
+ L:	linux-doc@vger.kernel.org
+-T:	TBD
++T:	quilt http://www.infradead.org/~rdunlap/Doc/patches/
+ S:	Maintained
+ F:	Documentation/
  
- ==============================================================
- 
-diff -puN kernel/sysctl.c~hung_task-check-the-value-of-sysctl_hung_task_timeout_sec kernel/sysctl.c
---- a/kernel/sysctl.c~hung_task-check-the-value-of-sysctl_hung_task_timeout_sec
-+++ a/kernel/sysctl.c
-@@ -144,6 +144,11 @@ static int min_percpu_pagelist_fract = 8
- static int ngroups_max = NGROUPS_MAX;
- static const int cap_last_cap = CAP_LAST_CAP;
- 
-+/*this is needed for proc_doulongvec_minmax of sysctl_hung_task_timeout_secs */
-+#ifdef CONFIG_DETECT_HUNG_TASK
-+static unsigned long hung_task_timeout_max = (LONG_MAX/HZ);
-+#endif
-+
- #ifdef CONFIG_INOTIFY_USER
- #include <linux/inotify.h>
- #endif
-@@ -995,6 +1000,7 @@ static struct ctl_table kern_table[] = {
- 		.maxlen		= sizeof(unsigned long),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dohung_task_timeout_secs,
-+		.extra2		= &hung_task_timeout_max,
- 	},
- 	{
- 		.procname	= "hung_task_warnings",
 _
 
-Patches currently in -mm which might be from sdu.liu@huawei.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-hung_task-check-the-value-of-sysctl_hung_task_timeout_sec.patch
+sys_sysfs-add-config_sysfs_syscall.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
+submittingpatches-add-recommendation-for-mailing-list-references.patch
+submittingpatches-document-the-use-of-git.patch
+maintainers-restore-randy-as-documentation-maintainer.patch
+idr-remove-dead-code-v2.patch
+include-asm-generic-bugh-style-fix-s-while0-while-0.patch
+linux-next.patch
+debugging-keep-track-of-page-owners.patch
 
