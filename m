@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
 Subject: + ocfs2-fix-panic-on-kfreexattr-name.patch added to -mm tree
-Date: Fri, 28 Mar 2014 14:13:13 -0700
-Message-ID: <5335e5e9.arg3IXInlh+uIzQ8%akpm@linux-foundation.org>
+Date: Fri, 28 Mar 2014 14:58:01 -0700
+Message-ID: <5335f069.rzUNTnu7W+GHwP7s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53465 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53901 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753192AbaC1VNO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Mar 2014 17:13:14 -0400
+	with ESMTP id S1751116AbaC1V6E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Mar 2014 17:58:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tariq.x.saeed@oracle.com, stable@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, penguin-kernel@I-love.SAKURA.ne.jp
+To: mm-commits@vger.kernel.org, tariq.x.saeed@oracle.com, stable@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.com, jlbec@evilplan.org, penguin-kernel@I-love.SAKURA.ne.jp
 
 Subject: + ocfs2-fix-panic-on-kfreexattr-name.patch added to -mm tree
-To: penguin-kernel@I-love.SAKURA.ne.jp,jlbec@evilplan.org,mfasheh@suse.com,stable@vger.kernel.org,tariq.x.saeed@oracle.com
+To: penguin-kernel@I-love.SAKURA.ne.jp,jlbec@evilplan.org,mfasheh@suse.com,srinivas.eeda@oracle.com,stable@vger.kernel.org,tariq.x.saeed@oracle.com
 From: akpm@linux-foundation.org
-Date: Fri, 28 Mar 2014 14:13:13 -0700
+Date: Fri, 28 Mar 2014 14:58:01 -0700
 
 
 The patch titled
@@ -54,6 +54,7 @@ This patch removes kfree(xattr->name) from ocfs2_mknod() and ocfs2_symlink().
 Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Reported-by: Tariq Saeed <tariq.x.saeed@oracle.com>
 Tested-by: Tariq Saeed <tariq.x.saeed@oracle.com>
+Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: <stable@vger.kernel.org>	[3.12+]
