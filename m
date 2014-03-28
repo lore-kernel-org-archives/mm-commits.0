@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-panic-on-kfreexattr-name.patch added to -mm tree
-Date: Fri, 28 Mar 2014 14:58:01 -0700
-Message-ID: <5335f069.rzUNTnu7W+GHwP7s%akpm@linux-foundation.org>
+Subject: + fs-proc-inodec-use-rcu_init_pointerx-null.patch added to -mm
+ tree
+Date: Fri, 28 Mar 2014 15:04:23 -0700
+Message-ID: <5335f1e7.NOcIatqhybuXKqy6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53901 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53914 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116AbaC1V6E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Mar 2014 17:58:04 -0400
+	with ESMTP id S1750947AbaC1WEY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Mar 2014 18:04:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tariq.x.saeed@oracle.com, stable@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.com, jlbec@evilplan.org, penguin-kernel@I-love.SAKURA.ne.jp
+To: mm-commits@vger.kernel.org, paulmck@us.ibm.com, monamagarwal123@gmail.com
 
-Subject: + ocfs2-fix-panic-on-kfreexattr-name.patch added to -mm tree
-To: penguin-kernel@I-love.SAKURA.ne.jp,jlbec@evilplan.org,mfasheh@suse.com,srinivas.eeda@oracle.com,stable@vger.kernel.org,tariq.x.saeed@oracle.com
+Subject: + fs-proc-inodec-use-rcu_init_pointerx-null.patch added to -mm tree
+To: monamagarwal123@gmail.com,paulmck@us.ibm.com
 From: akpm@linux-foundation.org
-Date: Fri, 28 Mar 2014 14:58:01 -0700
+Date: Fri, 28 Mar 2014 15:04:23 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix panic on kfree(xattr->name)
+     Subject: fs/proc/inode.c: use RCU_INIT_POINTER(x, NULL)
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-panic-on-kfreexattr-name.patch
+     fs-proc-inodec-use-rcu_init_pointerx-null.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-panic-on-kfreexattr-name.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-inodec-use-rcu_init_pointerx-null.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-panic-on-kfreexattr-name.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-inodec-use-rcu_init_pointerx-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,52 +44,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: ocfs2: fix panic on kfree(xattr->name)
+From: Monam Agarwal <monamagarwal123@gmail.com>
+Subject: fs/proc/inode.c: use RCU_INIT_POINTER(x, NULL)
 
-Commit 9548906b 'xattr: Constify ->name member of "struct xattr".' missed that
-ocfs2 is calling kfree(xattr->name). As a result, kernel panic occurs upon
-calling kfree(xattr->name) because xattr->name refers static constant names.
-This patch removes kfree(xattr->name) from ocfs2_mknod() and ocfs2_symlink().
+Replace rcu_assign_pointer(x, NULL) with RCU_INIT_POINTER(x, NULL)
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reported-by: Tariq Saeed <tariq.x.saeed@oracle.com>
-Tested-by: Tariq Saeed <tariq.x.saeed@oracle.com>
-Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: <stable@vger.kernel.org>	[3.12+]
+The rcu_assign_pointer() ensures that the initialization of a structure is
+carried out before storing a pointer to that structure.  And in the case
+of the NULL pointer, there is no structure to initialize.  So,
+rcu_assign_pointer(p, NULL) can be safely converted to RCU_INIT_POINTER(p,
+NULL)
+
+Signed-off-by: Monam Agarwal <monamagarwal123@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/proc/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-panic-on-kfreexattr-name fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-panic-on-kfreexattr-name
-+++ a/fs/ocfs2/namei.c
-@@ -450,7 +450,6 @@ leave:
- 
- 	brelse(new_fe_bh);
- 	brelse(parent_fe_bh);
--	kfree(si.name);
- 	kfree(si.value);
- 
- 	ocfs2_free_dir_lookup_result(&lookup);
-@@ -1949,7 +1948,6 @@ bail:
- 
- 	brelse(new_fe_bh);
- 	brelse(parent_fe_bh);
--	kfree(si.name);
- 	kfree(si.value);
- 	ocfs2_free_dir_lookup_result(&lookup);
- 	if (inode_ac)
+diff -puN fs/proc/inode.c~fs-proc-inodec-use-rcu_init_pointerx-null fs/proc/inode.c
+--- a/fs/proc/inode.c~fs-proc-inodec-use-rcu_init_pointerx-null
++++ a/fs/proc/inode.c
+@@ -47,7 +47,7 @@ static void proc_evict_inode(struct inod
+ 		pde_put(de);
+ 	head = PROC_I(inode)->sysctl;
+ 	if (head) {
+-		rcu_assign_pointer(PROC_I(inode)->sysctl, NULL);
++		RCU_INIT_POINTER(PROC_I(inode)->sysctl, NULL);
+ 		sysctl_head_put(head);
+ 	}
+ 	/* Release any associated namespace */
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from monamagarwal123@gmail.com are
 
-kthread-ensure-locality-of-task_struct-allocations.patch
-ocfs2-fix-panic-on-kfreexattr-name.patch
-lib-vsprintf-add-%pt-format-specifier.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+fs-proc-inodec-use-rcu_init_pointerx-null.patch
+lib-idrc-use-rcu_init_pointerx-null.patch
 linux-next.patch
 
