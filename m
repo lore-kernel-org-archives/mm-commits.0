@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
- added to -mm tree
-Date: Fri, 28 Mar 2014 15:11:06 -0700
-Message-ID: <5335f37a.EV28FsgKvQVeemB9%akpm@linux-foundation.org>
+Subject: +
+ lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch added to -mm tree
+Date: Fri, 28 Mar 2014 15:11:50 -0700
+Message-ID: <5335f3a6.Z0C6cLnikxe8ew31%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53933 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53950 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209AbaC1WLH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Mar 2014 18:11:07 -0400
+	with ESMTP id S1751465AbaC1WLw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Mar 2014 18:11:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tony.luck@intel.com, tglx@linutronix.de, schwidefsky@de.ibm.com, paulus@samba.org, mingo@redhat.com, linux@arm.linux.org.uk, hpa@zytor.com, heiko.carstens@de.ibm.com, fenghua.yu@intel.com, benh@kernel.crashing.org, JBottomley@parallels.com, lauraa@codeaurora.org
+To: mm-commits@vger.kernel.org, yasutake.koichi@jp.panasonic.com, tony.luck@intel.com, tglx@linutronix.de, takata@linux-m32r.org, starvik@axis.com, schwidefsky@de.ibm.com, paulus@samba.org, monstr@monstr.eu, mingo@redhat.com, liqin.linux@gmail.com, linux@arm.linux.org.uk, lennox.wu@gmail.com, jesper.nilsson@axis.com, hpa@zytor.com, heiko.carstens@de.ibm.com, fenghua.yu@intel.com, dhowells@redhat.com, benh@kernel.crashing.org, JBottomley@parallels.com, lauraa@codeaurora.org
 
-Subject: + lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch added to -mm tree
-To: lauraa@codeaurora.org,JBottomley@parallels.com,benh@kernel.crashing.org,fenghua.yu@intel.com,heiko.carstens@de.ibm.com,hpa@zytor.com,linux@arm.linux.org.uk,mingo@redhat.com,paulus@samba.org,schwidefsky@de.ibm.com,tglx@linutronix.de,tony.luck@intel.com
+Subject: + lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch added to -mm tree
+To: lauraa@codeaurora.org,JBottomley@parallels.com,benh@kernel.crashing.org,dhowells@redhat.com,fenghua.yu@intel.com,heiko.carstens@de.ibm.com,hpa@zytor.com,jesper.nilsson@axis.com,lennox.wu@gmail.com,linux@arm.linux.org.uk,liqin.linux@gmail.com,mingo@redhat.com,monstr@monstr.eu,paulus@samba.org,schwidefsky@de.ibm.com,starvik@axis.com,takata@linux-m32r.org,tglx@linutronix.de,tony.luck@intel.com,yasutake.koichi@jp.panasonic.com
 From: akpm@linux-foundation.org
-Date: Fri, 28 Mar 2014 15:11:06 -0700
+Date: Fri, 28 Mar 2014 15:11:50 -0700
 
 
 The patch titled
-     Subject: lib/scatterlist: make ARCH_HAS_SG_CHAIN an actual Kconfig
+     Subject: lib/scatterlist: clean up useless architecture versions of scatterlist.h
 has been added to the -mm tree.  Its filename is
-     lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
+     lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,17 +45,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Laura Abbott <lauraa@codeaurora.org>
-Subject: lib/scatterlist: make ARCH_HAS_SG_CHAIN an actual Kconfig
+Subject: lib/scatterlist: clean up useless architecture versions of scatterlist.h
 
-Rather than have architectures #define ARCH_HAS_SG_CHAIN in an
-architecture specific scatterlist.h, make it a proper Kconfig option and
-use that instead.  At same time, remove the header files are are now
-mostly useless and just include asm-generic/scatterlist.h.
+There's no need to have an architecture version of scatterlist.h if the
+only thing the file does is include asm-generic/scatterlist.h.  Switch to
+the asm-generic versions directly.
 
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>			[x86]
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>	[powerpc]
-Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Chen Liqin <liqin.linux@gmail.com>,
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Fenghua Yu <fenghua.yu@intel.com>
@@ -63,318 +70,160 @@ Cc: Paul Mackerras <paulus@samba.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Paul Mackerras <paulus@samba.org>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig                       |    1 +
- arch/arm/include/asm/Kbuild            |    1 +
- arch/arm/include/asm/scatterlist.h     |   12 ------------
- arch/arm64/Kconfig                     |    1 +
- arch/ia64/Kconfig                      |    1 +
- arch/ia64/include/asm/Kbuild           |    1 +
- arch/ia64/include/asm/scatterlist.h    |    7 -------
- arch/powerpc/Kconfig                   |    1 +
- arch/powerpc/include/asm/Kbuild        |    1 +
- arch/powerpc/include/asm/scatterlist.h |   17 -----------------
- arch/s390/Kconfig                      |    1 +
- arch/s390/include/asm/Kbuild           |    1 +
- arch/s390/include/asm/scatterlist.h    |    3 ---
- arch/sparc/Kconfig                     |    1 +
- arch/sparc/include/asm/Kbuild          |    1 +
- arch/sparc/include/asm/scatterlist.h   |    8 --------
- arch/x86/Kconfig                       |    1 +
- arch/x86/include/asm/Kbuild            |    1 +
- arch/x86/include/asm/scatterlist.h     |    8 --------
- include/linux/scatterlist.h            |    2 +-
- include/scsi/scsi.h                    |    2 +-
- lib/Kconfig                            |    7 +++++++
- lib/scatterlist.c                      |    4 ++--
- 23 files changed, 24 insertions(+), 59 deletions(-)
+ arch/alpha/include/asm/Kbuild             |    1 +
+ arch/alpha/include/asm/scatterlist.h      |    6 ------
+ arch/cris/include/asm/Kbuild              |    1 +
+ arch/cris/include/asm/scatterlist.h       |    6 ------
+ arch/frv/include/asm/Kbuild               |    1 +
+ arch/frv/include/asm/scatterlist.h        |    6 ------
+ arch/m32r/include/asm/Kbuild              |    1 +
+ arch/m32r/include/asm/scatterlist.h       |    6 ------
+ arch/microblaze/include/asm/Kbuild        |    1 +
+ arch/microblaze/include/asm/scatterlist.h |    1 -
+ arch/mn10300/include/asm/Kbuild           |    1 +
+ arch/mn10300/include/asm/scatterlist.h    |   16 ----------------
+ arch/score/include/asm/Kbuild             |    2 +-
+ arch/score/include/asm/scatterlist.h      |    6 ------
+ 14 files changed, 7 insertions(+), 48 deletions(-)
 
-diff -puN arch/arm/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/arm/Kconfig
---- a/arch/arm/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/arm/Kconfig
-@@ -82,6 +82,7 @@ config ARM
- 	  <http://www.arm.linux.org.uk/>.
- 
- config ARM_HAS_SG_CHAIN
-+	select ARCH_HAS_SG_CHAIN
- 	bool
- 
- config NEED_SG_DMA_LENGTH
-diff -puN arch/arm/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/arm/include/asm/Kbuild
---- a/arch/arm/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/arm/include/asm/Kbuild
-@@ -18,6 +18,7 @@ generic-y += param.h
- generic-y += parport.h
- generic-y += poll.h
- generic-y += resource.h
+diff -puN arch/alpha/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth arch/alpha/include/asm/Kbuild
+--- a/arch/alpha/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth
++++ a/arch/alpha/include/asm/Kbuild
+@@ -5,3 +5,4 @@ generic-y += exec.h
+ generic-y += trace_clock.h
+ generic-y += preempt.h
+ generic-y += hash.h
 +generic-y += scatterlist.h
- generic-y += sections.h
- generic-y += segment.h
- generic-y += sembuf.h
-diff -puN arch/arm/include/asm/scatterlist.h~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig /dev/null
---- a/arch/arm/include/asm/scatterlist.h
+diff -puN arch/alpha/include/asm/scatterlist.h~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth /dev/null
+--- a/arch/alpha/include/asm/scatterlist.h
 +++ /dev/null
-@@ -1,12 +0,0 @@
--#ifndef _ASMARM_SCATTERLIST_H
--#define _ASMARM_SCATTERLIST_H
+@@ -1,6 +0,0 @@
+-#ifndef _ALPHA_SCATTERLIST_H
+-#define _ALPHA_SCATTERLIST_H
 -
--#ifdef CONFIG_ARM_HAS_SG_CHAIN
--#define ARCH_HAS_SG_CHAIN
--#endif
--
--#include <asm/memory.h>
--#include <asm/types.h>
 -#include <asm-generic/scatterlist.h>
 -
--#endif /* _ASMARM_SCATTERLIST_H */
-diff -puN arch/arm64/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/arm64/Kconfig
-@@ -2,6 +2,7 @@ config ARM64
- 	def_bool y
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_USE_CMPXCHG_LOCKREF
-+	select ARCH_HAS_SG_CHAIN
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
-diff -puN arch/ia64/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/ia64/Kconfig
-@@ -45,6 +45,7 @@ config IA64
- 	select HAVE_MOD_ARCH_SPECIFIC
- 	select MODULES_USE_ELF_RELA
- 	select ARCH_USE_CMPXCHG_LOCKREF
-+	select ARCH_HAS_SG_CHAIN
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
-diff -puN arch/ia64/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/ia64/include/asm/Kbuild
---- a/arch/ia64/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/ia64/include/asm/Kbuild
+-#endif /* !(_ALPHA_SCATTERLIST_H) */
+diff -puN arch/cris/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth arch/cris/include/asm/Kbuild
+--- a/arch/cris/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth
++++ a/arch/cris/include/asm/Kbuild
+@@ -14,3 +14,4 @@ generic-y += trace_clock.h
+ generic-y += vga.h
+ generic-y += xor.h
+ generic-y += preempt.h
++generic-y += scatterlist.h
+diff -puN arch/cris/include/asm/scatterlist.h~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth /dev/null
+--- a/arch/cris/include/asm/scatterlist.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef __ASM_CRIS_SCATTERLIST_H
+-#define __ASM_CRIS_SCATTERLIST_H
+-
+-#include <asm-generic/scatterlist.h>
+-
+-#endif /* !(__ASM_CRIS_SCATTERLIST_H) */
+diff -puN arch/frv/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth arch/frv/include/asm/Kbuild
+--- a/arch/frv/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth
++++ a/arch/frv/include/asm/Kbuild
+@@ -4,3 +4,4 @@ generic-y += exec.h
+ generic-y += trace_clock.h
+ generic-y += preempt.h
+ generic-y += hash.h
++generic-y += scatterlist.h
+diff -puN arch/frv/include/asm/scatterlist.h~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth /dev/null
+--- a/arch/frv/include/asm/scatterlist.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef _ASM_SCATTERLIST_H
+-#define _ASM_SCATTERLIST_H
+-
+-#include <asm-generic/scatterlist.h>
+-
+-#endif /* !_ASM_SCATTERLIST_H */
+diff -puN arch/m32r/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth arch/m32r/include/asm/Kbuild
+--- a/arch/m32r/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth
++++ a/arch/m32r/include/asm/Kbuild
 @@ -2,6 +2,7 @@
  generic-y += clkdev.h
  generic-y += exec.h
- generic-y += kvm_para.h
+ generic-y += module.h
 +generic-y += scatterlist.h
  generic-y += trace_clock.h
  generic-y += preempt.h
- generic-y += vtime.h
-diff -puN arch/ia64/include/asm/scatterlist.h~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig /dev/null
---- a/arch/ia64/include/asm/scatterlist.h
+ generic-y += hash.h
+diff -puN arch/m32r/include/asm/scatterlist.h~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth /dev/null
+--- a/arch/m32r/include/asm/scatterlist.h
 +++ /dev/null
-@@ -1,7 +0,0 @@
--#ifndef _ASM_IA64_SCATTERLIST_H
--#define _ASM_IA64_SCATTERLIST_H
+@@ -1,6 +0,0 @@
+-#ifndef _ASM_M32R_SCATTERLIST_H
+-#define _ASM_M32R_SCATTERLIST_H
 -
 -#include <asm-generic/scatterlist.h>
--#define ARCH_HAS_SG_CHAIN
 -
--#endif /* _ASM_IA64_SCATTERLIST_H */
-diff -puN arch/powerpc/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/powerpc/Kconfig
-@@ -141,6 +141,7 @@ config PPC
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select HAVE_IRQ_EXIT_ON_IRQ_STACK
- 	select ARCH_USE_CMPXCHG_LOCKREF if PPC64
-+	select ARCH_HAS_SG_CHAIN
- 
- config GENERIC_CSUM
- 	def_bool CPU_LITTLE_ENDIAN
-diff -puN arch/powerpc/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/powerpc/include/asm/Kbuild
---- a/arch/powerpc/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/powerpc/include/asm/Kbuild
-@@ -1,6 +1,7 @@
- 
+-#endif /* _ASM_M32R_SCATTERLIST_H */
+diff -puN arch/microblaze/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth arch/microblaze/include/asm/Kbuild
+--- a/arch/microblaze/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth
++++ a/arch/microblaze/include/asm/Kbuild
+@@ -4,5 +4,6 @@ generic-y += clkdev.h
+ generic-y += exec.h
+ generic-y += hash.h
+ generic-y += trace_clock.h
++generic-y += scatterlist.h
+ generic-y += syscalls.h
+ generic-y += preempt.h
+diff -puN arch/microblaze/include/asm/scatterlist.h~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth /dev/null
+--- a/arch/microblaze/include/asm/scatterlist.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <asm-generic/scatterlist.h>
+diff -puN arch/mn10300/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth arch/mn10300/include/asm/Kbuild
+--- a/arch/mn10300/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth
++++ a/arch/mn10300/include/asm/Kbuild
+@@ -3,5 +3,6 @@ generic-y += barrier.h
  generic-y += clkdev.h
- generic-y += rwsem.h
+ generic-y += exec.h
+ generic-y += hash.h
 +generic-y += scatterlist.h
  generic-y += trace_clock.h
  generic-y += preempt.h
- generic-y += vtime.h
-diff -puN arch/powerpc/include/asm/scatterlist.h~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig /dev/null
---- a/arch/powerpc/include/asm/scatterlist.h
+diff -puN arch/mn10300/include/asm/scatterlist.h~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth /dev/null
+--- a/arch/mn10300/include/asm/scatterlist.h
 +++ /dev/null
-@@ -1,17 +0,0 @@
--#ifndef _ASM_POWERPC_SCATTERLIST_H
--#define _ASM_POWERPC_SCATTERLIST_H
--/*
-- * Copyright (C) 2001 PPC64 Team, IBM Corp
+@@ -1,16 +0,0 @@
+-/* MN10300 Scatterlist definitions
+- *
+- * Copyright (C) 2007 Matsushita Electric Industrial Co., Ltd.
+- * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
 - *
 - * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
+- * modify it under the terms of the GNU General Public Licence
 - * as published by the Free Software Foundation; either version
-- * 2 of the License, or (at your option) any later version.
+- * 2 of the Licence, or (at your option) any later version.
 - */
+-#ifndef _ASM_SCATTERLIST_H
+-#define _ASM_SCATTERLIST_H
 -
--#include <asm/dma.h>
 -#include <asm-generic/scatterlist.h>
 -
--#define ARCH_HAS_SG_CHAIN
--
--#endif /* _ASM_POWERPC_SCATTERLIST_H */
-diff -puN arch/s390/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/s390/Kconfig
---- a/arch/s390/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/s390/Kconfig
-@@ -142,6 +142,7 @@ config S390
- 	select SYSCTL_EXCEPTION_TRACE
- 	select VIRT_CPU_ACCOUNTING
- 	select VIRT_TO_BUS
-+	select ARCH_HAS_SG_CHAIN
- 
- config SCHED_OMIT_FRAME_POINTER
- 	def_bool y
-diff -puN arch/s390/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/s390/include/asm/Kbuild
---- a/arch/s390/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/s390/include/asm/Kbuild
-@@ -4,3 +4,4 @@ generic-y += clkdev.h
+-#endif /* _ASM_SCATTERLIST_H */
+diff -puN arch/score/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth arch/score/include/asm/Kbuild
+--- a/arch/score/include/asm/Kbuild~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth
++++ a/arch/score/include/asm/Kbuild
+@@ -7,4 +7,4 @@ generic-y += hash.h
  generic-y += trace_clock.h
+ generic-y += xor.h
  generic-y += preempt.h
- generic-y += hash.h
-+generic-y += scatterlist.h
-diff -puN arch/s390/include/asm/scatterlist.h~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig /dev/null
---- a/arch/s390/include/asm/scatterlist.h
-+++ /dev/null
-@@ -1,3 +0,0 @@
--#include <asm-generic/scatterlist.h>
 -
--#define ARCH_HAS_SG_CHAIN
-diff -puN arch/sparc/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/sparc/Kconfig
-@@ -42,6 +42,7 @@ config SPARC
- 	select MODULES_USE_ELF_RELA
- 	select ODD_RT_SIGACTION
- 	select OLD_SIGSUSPEND
-+	select ARCH_HAS_SG_CHAIN
- 
- config SPARC32
- 	def_bool !64BIT
-diff -puN arch/sparc/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/sparc/include/asm/Kbuild
---- a/arch/sparc/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/sparc/include/asm/Kbuild
-@@ -18,3 +18,4 @@ generic-y += types.h
- generic-y += word-at-a-time.h
- generic-y += preempt.h
- generic-y += hash.h
 +generic-y += scatterlist.h
-diff -puN arch/sparc/include/asm/scatterlist.h~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig /dev/null
---- a/arch/sparc/include/asm/scatterlist.h
+diff -puN arch/score/include/asm/scatterlist.h~lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth /dev/null
+--- a/arch/score/include/asm/scatterlist.h
 +++ /dev/null
-@@ -1,8 +0,0 @@
--#ifndef _SPARC_SCATTERLIST_H
--#define _SPARC_SCATTERLIST_H
+@@ -1,6 +0,0 @@
+-#ifndef _ASM_SCORE_SCATTERLIST_H
+-#define _ASM_SCORE_SCATTERLIST_H
 -
 -#include <asm-generic/scatterlist.h>
--
--#define ARCH_HAS_SG_CHAIN
--
--#endif /* !(_SPARC_SCATTERLIST_H) */
-diff -puN arch/x86/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/x86/Kconfig
---- a/arch/x86/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/x86/Kconfig
-@@ -127,6 +127,7 @@ config X86
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select HAVE_IRQ_EXIT_ON_IRQ_STACK if X86_64
- 	select HAVE_CC_STACKPROTECTOR
-+	select ARCH_HAS_SG_CHAIN
- 
- config INSTRUCTION_DECODER
- 	def_bool y
-diff -puN arch/x86/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig arch/x86/include/asm/Kbuild
---- a/arch/x86/include/asm/Kbuild~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/arch/x86/include/asm/Kbuild
-@@ -5,3 +5,4 @@ genhdr-y += unistd_64.h
- genhdr-y += unistd_x32.h
- 
- generic-y += clkdev.h
-+generic-y += scatterlist.h
-diff -puN arch/x86/include/asm/scatterlist.h~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig /dev/null
---- a/arch/x86/include/asm/scatterlist.h
-+++ /dev/null
-@@ -1,8 +0,0 @@
--#ifndef _ASM_X86_SCATTERLIST_H
--#define _ASM_X86_SCATTERLIST_H
--
--#include <asm-generic/scatterlist.h>
--
--#define ARCH_HAS_SG_CHAIN
--
--#endif /* _ASM_X86_SCATTERLIST_H */
-diff -puN include/linux/scatterlist.h~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig include/linux/scatterlist.h
---- a/include/linux/scatterlist.h~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/include/linux/scatterlist.h
-@@ -136,7 +136,7 @@ static inline void sg_set_buf(struct sca
- static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
- 			    struct scatterlist *sgl)
- {
--#ifndef ARCH_HAS_SG_CHAIN
-+#ifndef CONFIG_ARCH_HAS_SG_CHAIN
- 	BUG();
- #endif
- 
-diff -puN include/scsi/scsi.h~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig include/scsi/scsi.h
---- a/include/scsi/scsi.h~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/include/scsi/scsi.h
-@@ -31,7 +31,7 @@ enum scsi_timeouts {
-  * Like SCSI_MAX_SG_SEGMENTS, but for archs that have sg chaining. This limit
-  * is totally arbitrary, a setting of 2048 will get you at least 8mb ios.
-  */
--#ifdef ARCH_HAS_SG_CHAIN
-+#ifdef CONFIG_ARCH_HAS_SG_CHAIN
- #define SCSI_MAX_SG_CHAIN_SEGMENTS	2048
- #else
- #define SCSI_MAX_SG_CHAIN_SEGMENTS	SCSI_MAX_SG_SEGMENTS
-diff -puN lib/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig lib/Kconfig
---- a/lib/Kconfig~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/lib/Kconfig
-@@ -458,4 +458,11 @@ config UCS2_STRING
- 
- source "lib/fonts/Kconfig"
- 
-+#
-+# sg chaining option
-+#
-+
-+config ARCH_HAS_SG_CHAIN
-+	def_bool n
-+
- endmenu
-diff -puN lib/scatterlist.c~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig lib/scatterlist.c
---- a/lib/scatterlist.c~lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig
-+++ a/lib/scatterlist.c
-@@ -73,7 +73,7 @@ EXPORT_SYMBOL(sg_nents);
-  **/
- struct scatterlist *sg_last(struct scatterlist *sgl, unsigned int nents)
- {
--#ifndef ARCH_HAS_SG_CHAIN
-+#ifndef CONFIG_ARCH_HAS_SG_CHAIN
- 	struct scatterlist *ret = &sgl[nents - 1];
- #else
- 	struct scatterlist *sg, *ret = NULL;
-@@ -251,7 +251,7 @@ int __sg_alloc_table(struct sg_table *ta
- 
- 	if (nents == 0)
- 		return -EINVAL;
--#ifndef ARCH_HAS_SG_CHAIN
-+#ifndef CONFIG_ARCH_HAS_SG_CHAIN
- 	if (WARN_ON_ONCE(nents > max_ents))
- 		return -EINVAL;
- #endif
-_
-
-Patches currently in -mm which might be from lauraa@codeaurora.org are
-
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-lib-scatterlist-make-arch_has_sg_chain-an-actual-kconfig.patch
-lib-scatterlist-clean-up-useless-architecture-versions-of-scatterlisth.patch
-linux-next.patch
-debugging-keep-track-of-page-owners.patch
-
