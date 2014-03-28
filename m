@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-make-proc-pagemap-0400.patch added to -mm tree
-Date: Fri, 28 Mar 2014 15:33:02 -0700
-Message-ID: <5335f89e.VtmV7CWNXNr4yHQQ%akpm@linux-foundation.org>
+Subject: + checkpatchpl-add-check-for-change-id.patch added to -mm tree
+Date: Fri, 28 Mar 2014 15:34:06 -0700
+Message-ID: <5335f8de.gmoruJyoTJXwd9tx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54163 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54168 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163AbaC1WdD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Mar 2014 18:33:03 -0400
+	with ESMTP id S1750947AbaC1WeH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Mar 2014 18:34:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, oleg@redhat.com, mingo@kernel.org, luto@amacapital.net, keescook@chromium.org, ebiederm@xmission.com, tixxdz@opendz.org
+To: mm-commits@vger.kernel.org, joe@perches.com, apw@shadowen.org, cov@codeaurora.org
 
-Subject: + procfs-make-proc-pagemap-0400.patch added to -mm tree
-To: tixxdz@opendz.org,ebiederm@xmission.com,keescook@chromium.org,luto@amacapital.net,mingo@kernel.org,oleg@redhat.com,viro@zeniv.linux.org.uk
+Subject: + checkpatchpl-add-check-for-change-id.patch added to -mm tree
+To: cov@codeaurora.org,apw@shadowen.org,joe@perches.com
 From: akpm@linux-foundation.org
-Date: Fri, 28 Mar 2014 15:33:02 -0700
+Date: Fri, 28 Mar 2014 15:34:06 -0700
 
 
 The patch titled
-     Subject: procfs: make /proc/*/pagemap 0400
+     Subject: checkpatch.pl: add check for Change-Id
 has been added to the -mm tree.  Its filename is
-     procfs-make-proc-pagemap-0400.patch
+     checkpatchpl-add-check-for-change-id.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/procfs-make-proc-pagemap-0400.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatchpl-add-check-for-change-id.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-make-proc-pagemap-0400.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatchpl-add-check-for-change-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,55 +43,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Djalal Harouni <tixxdz@opendz.org>
-Subject: procfs: make /proc/*/pagemap 0400
+From: Christopher Covington <cov@codeaurora.org>
+Subject: checkpatch.pl: add check for Change-Id
 
-The /proc/*/pagemap contain sensitive information and currently its mode
-is 0444.  Change this to 0400, so the VFS will prevent unprivileged
-processes from getting file descriptors on arbitrary privileged
-/proc/*/pagemap files.
+A commit hook for the Gerrit code review server [1] inserts change
+identifiers so Gerrit can track patches through multiple revisions.  These
+identifiers are noise in the context of the upstream kernel.  (Many Gerrit
+servers are private.  Even given a public instance, given only a
+Change-Id, one must guess which server a change was tracked on.  Patches
+submitted to the Linux kernel mailing lists should be able to stand on
+their own.  If it's truly useful to reference code review on a Gerrit
+server, a URL is a much clearer way to do so.) Thus, issue an error when a
+Change-Id line is encountered before the Signed-off-by.
 
-This reduces the scope of address space leaking and bypasses by protecting
-already running processes.
+1. https://gerrit.googlesource.com/gerrit/+/master/gerrit-server/src/main/resources/com/google/gerrit/server/tools/root/hooks/commit-msg
 
-Signed-off-by: Djalal Harouni <tixxdz@opendz.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Andy Lutomirski <luto@amacapital.net>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Christopher Covington <cov@codeaurora.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/proc/base.c~procfs-make-proc-pagemap-0400 fs/proc/base.c
---- a/fs/proc/base.c~procfs-make-proc-pagemap-0400
-+++ a/fs/proc/base.c
-@@ -2617,7 +2617,7 @@ static const struct pid_entry tgid_base_
- #ifdef CONFIG_PROC_PAGE_MONITOR
- 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
- 	REG("smaps",      S_IRUGO, proc_pid_smaps_operations),
--	REG("pagemap",    S_IRUGO, proc_pagemap_operations),
-+	REG("pagemap",    S_IRUSR, proc_pagemap_operations),
- #endif
- #ifdef CONFIG_SECURITY
- 	DIR("attr",       S_IRUGO|S_IXUGO, proc_attr_dir_inode_operations, proc_attr_dir_operations),
-@@ -2955,7 +2955,7 @@ static const struct pid_entry tid_base_s
- #ifdef CONFIG_PROC_PAGE_MONITOR
- 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
- 	REG("smaps",     S_IRUGO, proc_tid_smaps_operations),
--	REG("pagemap",    S_IRUGO, proc_pagemap_operations),
-+	REG("pagemap",    S_IRUSR, proc_pagemap_operations),
- #endif
- #ifdef CONFIG_SECURITY
- 	DIR("attr",      S_IRUGO|S_IXUGO, proc_attr_dir_inode_operations, proc_attr_dir_operations),
+diff -puN scripts/checkpatch.pl~checkpatchpl-add-check-for-change-id scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatchpl-add-check-for-change-id
++++ a/scripts/checkpatch.pl
+@@ -1930,6 +1930,12 @@ sub process {
+ 			}
+ 		}
+ 
++# Check for unwanted Gerrit info
++		if ($in_commit_log && $line =~ /^\s*change-id:/i) {
++			ERROR("GERRIT_CHANGE_ID",
++			      "Remove Gerrit Change-Id's before submitting upstream.\n" . $herecurr);
++		}
++
+ # Check for wrappage within a valid hunk of the file
+ 		if ($realcnt != 0 && $line !~ m{^(?:\+|-| |\\ No newline|$)}) {
+ 			ERROR("CORRUPTED_PATCH",
 _
 
-Patches currently in -mm which might be from tixxdz@opendz.org are
+Patches currently in -mm which might be from cov@codeaurora.org are
 
-procfs-make-proc-stacksyscallpersonality-0400.patch
-procfs-make-proc-pagemap-0400.patch
+checkpatchpl-add-check-for-change-id.patch
+linux-next.patch
 
