@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch added to -mm tree
-Date: Mon, 31 Mar 2014 15:20:08 -0700
-Message-ID: <5339ea18.R0TbGIZCg3JtE8M3%akpm@linux-foundation.org>
+Subject: + mm-readaheadc-inline-ra_submit.patch added to -mm tree
+Date: Mon, 31 Mar 2014 16:14:34 -0700
+Message-ID: <5339f6da.RZbQfms2Aew9yqD4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50509 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51353 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696AbaCaWUJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 18:20:09 -0400
+	with ESMTP id S1751032AbaCaXOf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 19:14:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org, fabf@skynet.be
 
-Subject: + checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,joe@perches.com
+Subject: + mm-readaheadc-inline-ra_submit.patch added to -mm tree
+To: fabf@skynet.be,akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Mon, 31 Mar 2014 15:20:08 -0700
+Date: Mon, 31 Mar 2014 16:14:34 -0700
 
 
 The patch titled
-     Subject: checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix
+     Subject: mm/readahead.c: inline ra_submit
 has been added to the -mm tree.  Its filename is
-     checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch
+     mm-readaheadc-inline-ra_submit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-readaheadc-inline-ra_submit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-readaheadc-inline-ra_submit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,99 +43,155 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix
+From: Fabian Frederick <fabf@skynet.be>
+Subject: mm/readahead.c: inline ra_submit
 
-Cc: Joe Perches <joe@perches.com>
+f9acc8c7b35a ("readahead: sanify file_ra_state names") left ra_submit with
+a single function call.
+
+Move ra_submit to internal.h and inline it to save some stack.  Thanks to
+Andrew Morton for commenting different versions.
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mm.h |    3 ---
+ mm/internal.h      |   15 +++++++++++++++
+ mm/readahead.c     |   21 +++------------------
+ 3 files changed, 18 insertions(+), 21 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix
-+++ a/scripts/checkpatch.pl
-@@ -304,6 +304,8 @@ our $Operators	= qr{
- 			&&|\|\||,|\^|\+\+|--|&|\||$Arithmetic
- 		  }x;
+diff -puN include/linux/mm.h~mm-readaheadc-inline-ra_submit include/linux/mm.h
+--- a/include/linux/mm.h~mm-readaheadc-inline-ra_submit
++++ a/include/linux/mm.h
+@@ -1878,9 +1878,6 @@ void page_cache_async_readahead(struct a
+ 				unsigned long size);
  
-+our $c90_Keywords = qr{do|for|while|if|else|return|goto|continue|switch|default|case|break}x;
+ unsigned long max_sane_readahead(unsigned long nr);
+-unsigned long ra_submit(struct file_ra_state *ra,
+-			struct address_space *mapping,
+-			struct file *filp);
+ 
+ /* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
+ extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
+diff -puN mm/internal.h~mm-readaheadc-inline-ra_submit mm/internal.h
+--- a/mm/internal.h~mm-readaheadc-inline-ra_submit
++++ a/mm/internal.h
+@@ -11,6 +11,7 @@
+ #ifndef __MM_INTERNAL_H
+ #define __MM_INTERNAL_H
+ 
++#include <linux/fs.h>
+ #include <linux/mm.h>
+ 
+ void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
+@@ -21,6 +22,20 @@ static inline void set_page_count(struct
+ 	atomic_set(&page->_count, v);
+ }
+ 
++extern int __do_page_cache_readahead(struct address_space *mapping,
++		struct file *filp, pgoff_t offset, unsigned long nr_to_read,
++		unsigned long lookahead_size);
 +
- our $NonptrType;
- our $NonptrTypeWithAttr;
- our $Type;
++/*
++ * Submit IO for the read-ahead request in file_ra_state.
++ */
++static inline unsigned long ra_submit(struct file_ra_state *ra,
++		struct address_space *mapping, struct file *filp)
++{
++	return __do_page_cache_readahead(mapping, filp,
++					ra->start, ra->size, ra->async_size);
++}
++
+ /*
+  * Turn a non-refcounted page (->_count == 0) into refcounted with
+  * a count of one.
+diff -puN mm/readahead.c~mm-readaheadc-inline-ra_submit mm/readahead.c
+--- a/mm/readahead.c~mm-readaheadc-inline-ra_submit
++++ a/mm/readahead.c
+@@ -8,9 +8,7 @@
+  */
+ 
+ #include <linux/kernel.h>
+-#include <linux/fs.h>
+ #include <linux/gfp.h>
+-#include <linux/mm.h>
+ #include <linux/export.h>
+ #include <linux/blkdev.h>
+ #include <linux/backing-dev.h>
+@@ -20,6 +18,8 @@
+ #include <linux/syscalls.h>
+ #include <linux/file.h>
+ 
++#include "internal.h"
++
+ /*
+  * Initialise a struct file's readahead state.  Assumes that the caller has
+  * memset *ra to zero.
+@@ -149,8 +149,7 @@ out:
+  *
+  * Returns the number of pages requested, or the maximum amount of I/O allowed.
+  */
+-static int
+-__do_page_cache_readahead(struct address_space *mapping, struct file *filp,
++int __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
+ 			pgoff_t offset, unsigned long nr_to_read,
+ 			unsigned long lookahead_size)
+ {
+@@ -244,20 +243,6 @@ unsigned long max_sane_readahead(unsigne
+ }
+ 
+ /*
+- * Submit IO for the read-ahead request in file_ra_state.
+- */
+-unsigned long ra_submit(struct file_ra_state *ra,
+-		       struct address_space *mapping, struct file *filp)
+-{
+-	int actual;
+-
+-	actual = __do_page_cache_readahead(mapping, filp,
+-					ra->start, ra->size, ra->async_size);
+-
+-	return actual;
+-}
+-
+-/*
+  * Set the initial window size, round to next power of 2 and square
+  * for small size, x 4 for medium, and x 2 for large
+  * for 128k (32 page) max ra
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
-ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
-ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-vmstat-fix-up-zone-state-accounting-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
-mm-per-thread-vma-caching.patch
-mm-per-thread-vma-caching-fix-3.patch
-mm-per-thread-vma-caching-fix-5.patch
-mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
-mm-per-thread-vma-caching-fix-6-fix.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
-zram-use-zcomp-compressing-backends-fix.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix-2.patch
-zram-propagate-error-to-user-fix.patch
-zram-support-req_discard-v4-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
+fs-freevxfs-vxfs_lookupc-update-function-comment.patch
+ntfs-logging-clean-up.patch
+mm-memblockc-use-pfn_phys.patch
+mm-readaheadc-inline-ra_submit.patch
+sys_sysfs-add-config_sysfs_syscall.patch
 sys_sysfs-add-config_sysfs_syscall-fix.patch
-kernel-groupsc-remove-return-value-of-set_groups-fix.patch
-xattr-guard-against-simultaneous-glibc-header-inclusion-v2.patch
-lib-syscallc-unexport-task_current_syscall.patch
-scripts-checkpatchpl-__gfp_nofail-isnt-going-away.patch
-checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+fs-efs-superc-add-__init-to-init_inodecache.patch
+fs-minix-inodec-add-__init-to-init_inodecache.patch
+befs-replace-kmalloc-memset-0-by-kzalloc.patch
+fs-befs-linuxvfsc-add-__init-to-befs_init_inodecache.patch
+befs-logging-clean-up.patch
 befs-logging-clean-up-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+coda-add-__init-to-init_inodecache.patch
+hfsplus-add-__init-to-hfsplus_create_attr_tree_cache.patch
+fs-reiserfs-superc-add-__init-to-init_inodecache.patch
+documentation-filesystems-ntfstxt-remove-changelog-reference.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+affs-add-__init-to-init_inodecache.patch
+fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+affs-mount-option-to-avoid-filename-truncates.patch
+fs-bfs-inodec-add-__init-to-init_inodecache.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
 kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
-vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix.patch
-percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+ufs-sb-mutex-merge-mutex_destroy-fix.patch
+ufs-sb-mutex-merge-mutex_destroy-fix-v2.patch
 ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
