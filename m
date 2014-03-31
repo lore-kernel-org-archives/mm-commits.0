@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-dont-warn-on-bitfield-spaces-around.patch added to
- -mm tree
-Date: Mon, 31 Mar 2014 15:07:08 -0700
-Message-ID: <5339e70c.xMfWRR7ahyLNw25x%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch added to -mm tree
+Date: Mon, 31 Mar 2014 15:20:07 -0700
+Message-ID: <5339ea17.UnxefDaPFffb9QWg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50227 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50505 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751073AbaCaWHJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 18:07:09 -0400
+	with ESMTP id S1751323AbaCaWUI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 18:20:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com, joe@perches.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + checkpatch-dont-warn-on-bitfield-spaces-around.patch added to -mm tree
-To: joe@perches.com,dan.carpenter@oracle.com
+Subject: + checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Mon, 31 Mar 2014 15:07:08 -0700
+Date: Mon, 31 Mar 2014 15:20:07 -0700
 
 
 The patch titled
-     Subject: checkpatch: don't warn on bitfield spaces around :
+     Subject: checkpatch: expand parenthesis alignment test to declarations, functions and assignments
 has been added to the -mm tree.  Its filename is
-     checkpatch-dont-warn-on-bitfield-spaces-around.patch
+     checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-dont-warn-on-bitfield-spaces-around.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-dont-warn-on-bitfield-spaces-around.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,45 +45,78 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: don't warn on bitfield spaces around :
+Subject: checkpatch: expand parenthesis alignment test to declarations, functions and assignments
 
-This test prevents code from being aligned around the : for easy visual
-counting of bitfield lengths.
+Currently the parenthesis alignment test works only on
+misalignments of if statements like
 
-ie:
-	int foo		: 1,
-	int bar		: 2,
-	int foobar	:29;
+	if (foo(bar,
+			baz)
 
-should be acceptable so remove the test.
+Expand the test to find misalignments like:
+
+static inline int foo(int bar,
+			int baz)
+
+and
+
+	foo(bar,
+			baz);
+
+and
+
+	foo = bar(baz,
+			qux);
+
+Expand the $Inline keyword for __inline and __inline__ too.
+Add $Inline to $Declare so it also matches "static inline <foo>".
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-warn-on-bitfield-spaces-around scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-warn-on-bitfield-spaces-around
+diff -puN scripts/checkpatch.pl~checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments
 +++ a/scripts/checkpatch.pl
-@@ -3130,10 +3130,13 @@ sub process {
- 				# // is a comment
- 				} elsif ($op eq '//') {
+@@ -281,7 +281,7 @@ our $Attribute	= qr{
+ 			__weak
+ 		  }x;
+ our $Modifier;
+-our $Inline	= qr{inline|__always_inline|noinline};
++our $Inline	= qr{inline|__always_inline|noinline|__inline|__inline__};
+ our $Member	= qr{->$Ident|\.$Ident|\[[^]]*\]};
+ our $Lval	= qr{$Ident(?:$Member)*};
  
-+				#   :   when part of a bitfield
-+				} elsif ($opv eq ':B') {
-+					# skip the bitfield test for now
-+
- 				# No spaces for:
- 				#   ->
--				#   :   when part of a bitfield
--				} elsif ($op eq '->' || $opv eq ':B') {
-+				} elsif ($op eq '->') {
- 					if ($ctx =~ /Wx.|.xW/) {
- 						if (ERROR("SPACING",
- 							  "spaces prohibited around that '$op' $at\n" . $hereptr)) {
+@@ -429,7 +429,7 @@ sub build_types {
+ 			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*|\[\])+|(?:\s*\[\s*\])+)?
+ 			(?:\s+$Inline|\s+$Modifier)*
+ 		  }x;
+-	$Declare	= qr{(?:$Storage\s+)?$Type};
++	$Declare	= qr{(?:$Storage\s+(?:$Inline\s+)?)?$Type};
+ }
+ build_types();
+ 
+@@ -1607,7 +1607,7 @@ sub pos_last_openparen {
+ 		}
+ 	}
+ 
+-	return $last_openparen + 1;
++	return length(expand_tabs(substr($line, 0, $last_openparen))) + 1;
+ }
+ 
+ sub process {
+@@ -2200,7 +2200,7 @@ sub process {
+ 
+ # check multi-line statement indentation matches previous line
+ 		if ($^V && $^V ge 5.10.0 &&
+-		    $prevline =~ /^\+(\t*)(if \(|$Ident\().*(\&\&|\|\||,)\s*$/) {
++		    $prevline =~ /^\+([ \t]*)((?:$c90_Keywords(?:\s+if)\s*)|(?:$Declare\s*)?(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*|$Ident\s*=\s*$Ident\s*)\(.*(\&\&|\|\||,)\s*$/) {
+ 			$prevline =~ /^\+(\t*)(.*)$/;
+ 			my $oldindent = $1;
+ 			my $rest = $2;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -114,11 +147,13 @@ checkpatch-check-compatible-strings-in-c-and-h-too.patch
 checkpatch-improve-the-compatible-vendor-match.patch
 checkpatch-net-and-drivers-net-warn-on-missing-blank-line-after-variable-declaration.patch
 scripts-checkpatchpl-__gfp_nofail-isnt-going-away.patch
+checkpatchpl-add-check-for-change-id.patch
+checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch
+checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch
 checkpatch-dont-warn-on-bitfield-spaces-around.patch
 checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
 checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
 checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
-checkpatchpl-add-check-for-change-id.patch
 ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
 ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
 ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
