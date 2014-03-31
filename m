@@ -1,333 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch removed from -mm tree
-Date: Mon, 31 Mar 2014 14:37:14 -0700
-Message-ID: <5339e00a.ny1XEFo8uwlYzKqW%akpm@linux-foundation.org>
+Subject: + checkpatch-dont-warn-on-bitfield-spaces-around.patch added to
+ -mm tree
+Date: Mon, 31 Mar 2014 15:07:08 -0700
+Message-ID: <5339e70c.xMfWRR7ahyLNw25x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50227 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857AbaCaVhP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 17:37:15 -0400
+	with ESMTP id S1751073AbaCaWHJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 18:07:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, younger.liucn@gmail.com
+To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com, joe@perches.com
 
-Subject: [to-be-updated] ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch removed from -mm tree
-To: younger.liucn@gmail.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
+Subject: + checkpatch-dont-warn-on-bitfield-spaces-around.patch added to -mm tree
+To: joe@perches.com,dan.carpenter@oracle.com
 From: akpm@linux-foundation.org
-Date: Mon, 31 Mar 2014 14:37:14 -0700
+Date: Mon, 31 Mar 2014 15:07:08 -0700
 
 
 The patch titled
-     Subject: ocfs2: alloc_dinode counts and group bitmap should be update simultaneously
-has been removed from the -mm tree.  Its filename was
-     ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch
+     Subject: checkpatch: don't warn on bitfield spaces around :
+has been added to the -mm tree.  Its filename is
+     checkpatch-dont-warn-on-bitfield-spaces-around.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-dont-warn-on-bitfield-spaces-around.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-dont-warn-on-bitfield-spaces-around.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Younger Liu <younger.liucn@gmail.com>
-Subject: ocfs2: alloc_dinode counts and group bitmap should be update simultaneously
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: don't warn on bitfield spaces around :
 
-Updating alloc_dinode counts in ocfs2_alloc_dinode_update_counts() and
-setting group bitmap in ocfs2_alloc_dinode_update_bitmap() have to be done
-simultaneously.  Two cases are as follow:
+This test prevents code from being aligned around the : for easy visual
+counting of bitfield lengths.
 
-(1) If ocfs2_alloc_dinode_update_counts() fails, there is no need to
-    set group bitmap.  This case has been considered.
+ie:
+	int foo		: 1,
+	int bar		: 2,
+	int foobar	:29;
 
-(2) If ocfs2_alloc_dinode_update_bitmap() fails, alloc_dinode counts
-    should be rolled back.  Otherwise, some clusters would never be used. 
-    This case is not considered.
+should be acceptable so remove the test.
 
-So, we combine two functions, and ensure simultaneity.
-
-Signed-off-by: Younger Liu <younger.liucn@gmail.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Suggested-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |   11 --
- fs/ocfs2/ocfs2_trace.h  |    2 
- fs/ocfs2/suballoc.c     |  155 +++++++++++++++-----------------------
- fs/ocfs2/suballoc.h     |   21 +----
- 4 files changed, 77 insertions(+), 112 deletions(-)
+ scripts/checkpatch.pl |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/move_extents.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/move_extents.c
---- a/fs/ocfs2/move_extents.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
-+++ a/fs/ocfs2/move_extents.c
-@@ -681,18 +681,15 @@ static int ocfs2_move_extent(struct ocfs
- 	}
+diff -puN scripts/checkpatch.pl~checkpatch-dont-warn-on-bitfield-spaces-around scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-dont-warn-on-bitfield-spaces-around
++++ a/scripts/checkpatch.pl
+@@ -3130,10 +3130,13 @@ sub process {
+ 				# // is a comment
+ 				} elsif ($op eq '//') {
  
- 	gd = (struct ocfs2_group_desc *)gd_bh->b_data;
--	ret = ocfs2_alloc_dinode_update_counts(gb_inode, handle, gb_bh, len,
--					       le16_to_cpu(gd->bg_chain));
-+	ret = ocfs2_alloc_dinode_update_bitmap(handle,
-+				gb_inode, gb_bh, gd, gb_bh,
-+				le16_to_cpu(gd->bg_chain),
-+				goal_bit, len);
- 	if (ret) {
- 		mlog_errno(ret);
- 		goto out_commit;
- 	}
- 
--	ret = ocfs2_block_group_set_bits(handle, gb_inode, gd, gd_bh,
--					 goal_bit, len);
--	if (ret)
--		mlog_errno(ret);
--
- 	/*
- 	 * Here we should write the new page out first if we are
- 	 * in write-back mode.
-diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/ocfs2_trace.h
---- a/fs/ocfs2/ocfs2_trace.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
-+++ a/fs/ocfs2/ocfs2_trace.h
-@@ -788,7 +788,7 @@ DEFINE_OCFS2_UINT_UINT_UINT_EVENT(ocfs2_
- 
- DEFINE_OCFS2_ULL_EVENT(ocfs2_reserve_new_inode_new_group);
- 
--DEFINE_OCFS2_UINT_UINT_EVENT(ocfs2_block_group_set_bits);
-+DEFINE_OCFS2_UINT_UINT_EVENT(ocfs2_alloc_dinode_update_bitmap);
- 
- TRACE_EVENT(ocfs2_relink_block_group,
- 	TP_PROTO(unsigned long long i_blkno, unsigned int chain,
-diff -puN fs/ocfs2/suballoc.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
-+++ a/fs/ocfs2/suballoc.c
-@@ -1337,54 +1337,6 @@ static int ocfs2_block_group_find_clear_
- 	return status;
- }
- 
--int ocfs2_block_group_set_bits(handle_t *handle,
--					     struct inode *alloc_inode,
--					     struct ocfs2_group_desc *bg,
--					     struct buffer_head *group_bh,
--					     unsigned int bit_off,
--					     unsigned int num_bits)
--{
--	int status;
--	void *bitmap = bg->bg_bitmap;
--	int journal_type = OCFS2_JOURNAL_ACCESS_WRITE;
--
--	/* All callers get the descriptor via
--	 * ocfs2_read_group_descriptor().  Any corruption is a code bug. */
--	BUG_ON(!OCFS2_IS_VALID_GROUP_DESC(bg));
--	BUG_ON(le16_to_cpu(bg->bg_free_bits_count) < num_bits);
--
--	trace_ocfs2_block_group_set_bits(bit_off, num_bits);
--
--	if (ocfs2_is_cluster_bitmap(alloc_inode))
--		journal_type = OCFS2_JOURNAL_ACCESS_UNDO;
--
--	status = ocfs2_journal_access_gd(handle,
--					 INODE_CACHE(alloc_inode),
--					 group_bh,
--					 journal_type);
--	if (status < 0) {
--		mlog_errno(status);
--		goto bail;
--	}
--
--	le16_add_cpu(&bg->bg_free_bits_count, -num_bits);
--	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
--		ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
--			    " count %u but claims %u are freed. num_bits %d",
--			    (unsigned long long)le64_to_cpu(bg->bg_blkno),
--			    le16_to_cpu(bg->bg_bits),
--			    le16_to_cpu(bg->bg_free_bits_count), num_bits);
--		return -EROFS;
--	}
--	while(num_bits--)
--		ocfs2_set_bit(bit_off++, bitmap);
--
--	ocfs2_journal_dirty(handle, group_bh);
--
--bail:
--	return status;
--}
--
- /* find the one with the most empty bits */
- static inline u16 ocfs2_find_victim_chain(struct ocfs2_chain_list *cl)
- {
-@@ -1580,31 +1532,78 @@ static int ocfs2_block_group_search(stru
- 	return ret;
- }
- 
--int ocfs2_alloc_dinode_update_counts(struct inode *inode,
--				       handle_t *handle,
--				       struct buffer_head *di_bh,
--				       u32 num_bits,
--				       u16 chain)
-+int ocfs2_alloc_dinode_update_bitmap(handle_t *handle,
-+				struct inode *alloc_inode,
-+				struct buffer_head *di_bh,
-+				struct ocfs2_group_desc *bg,
-+				struct buffer_head *group_bh,
-+				u16 chain, u32 bit_off, u32 num_bits)
- {
- 	int ret;
- 	u32 tmp_used;
- 	struct ocfs2_dinode *di = (struct ocfs2_dinode *) di_bh->b_data;
- 	struct ocfs2_chain_list *cl = (struct ocfs2_chain_list *) &di->id2.i_chain;
-+	void *bitmap = bg->bg_bitmap;
-+	int journal_type = OCFS2_JOURNAL_ACCESS_WRITE;
- 
--	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), di_bh,
--				      OCFS2_JOURNAL_ACCESS_WRITE);
-+	/*
-+	 * All callers get the descriptor via
-+	 * ocfs2_read_group_descriptor().  Any corruption is a code bug.
-+	 */
-+	BUG_ON(!OCFS2_IS_VALID_GROUP_DESC(bg));
-+	BUG_ON(le16_to_cpu(bg->bg_free_bits_count) < num_bits);
++				#   :   when part of a bitfield
++				} elsif ($opv eq ':B') {
++					# skip the bitfield test for now
 +
-+	trace_ocfs2_alloc_dinode_update_bitmap(bit_off, num_bits);
-+
-+	ret = ocfs2_journal_access_di(handle,
-+			INODE_CACHE(alloc_inode), di_bh, journal_type);
- 	if (ret < 0) {
- 		mlog_errno(ret);
- 		goto out;
- 	}
- 
-+	if (ocfs2_is_cluster_bitmap(alloc_inode))
-+		journal_type = OCFS2_JOURNAL_ACCESS_UNDO;
-+
-+	ret = ocfs2_journal_access_gd(handle,
-+			INODE_CACHE(alloc_inode), group_bh, journal_type);
-+	if (ret < 0) {
-+		mlog_errno(ret);
-+		goto out;
-+	}
-+
-+	/* update alloc_dinode counts */
- 	tmp_used = le32_to_cpu(di->id1.bitmap1.i_used);
- 	di->id1.bitmap1.i_used = cpu_to_le32(num_bits + tmp_used);
- 	le32_add_cpu(&cl->cl_recs[chain].c_free, -num_bits);
-+
-+	/* update bg counts and bitmap*/
-+	le16_add_cpu(&bg->bg_free_bits_count, -num_bits);
-+	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
-+		ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
-+			" count %u but claims %u are freed. num_bits %d",
-+			(unsigned long long)le64_to_cpu(bg->bg_blkno),
-+			le16_to_cpu(bg->bg_bits),
-+			le16_to_cpu(bg->bg_free_bits_count), num_bits);
-+		ret = -EROFS;
-+		goto out_rollback;
-+	}
-+	while (num_bits--)
-+		ocfs2_set_bit(bit_off++, bitmap);
-+
- 	ocfs2_journal_dirty(handle, di_bh);
-+	ocfs2_journal_dirty(handle, group_bh);
- 
- out:
- 	return ret;
-+
-+out_rollback:
-+	le16_add_cpu(&bg->bg_free_bits_count, num_bits);
-+
-+	di->id1.bitmap1.i_used = cpu_to_le32(tmp_used - num_bits);
-+	le32_add_cpu(&cl->cl_recs[chain].c_free, num_bits);
-+
-+	return ret;
- }
- 
- static int ocfs2_bg_discontig_fix_by_rec(struct ocfs2_suballoc_result *res,
-@@ -1697,19 +1696,15 @@ static int ocfs2_search_one_group(struct
- 	if (ac->ac_find_loc_only)
- 		goto out_loc_only;
- 
--	ret = ocfs2_alloc_dinode_update_counts(alloc_inode, handle, ac->ac_bh,
--					       res->sr_bits,
--					       le16_to_cpu(gd->bg_chain));
-+	ret = ocfs2_alloc_dinode_update_bitmap(handle,
-+			alloc_inode, ac->ac_bh, gd, group_bh,
-+			le16_to_cpu(gd->bg_chain),
-+			res->sr_bit_offset, res->sr_bits);
- 	if (ret < 0) {
- 		mlog_errno(ret);
- 		goto out;
- 	}
- 
--	ret = ocfs2_block_group_set_bits(handle, alloc_inode, gd, group_bh,
--					 res->sr_bit_offset, res->sr_bits);
--	if (ret < 0)
--		mlog_errno(ret);
--
- out_loc_only:
- 	*bits_left = le16_to_cpu(gd->bg_free_bits_count);
- 
-@@ -1823,20 +1818,9 @@ static int ocfs2_search_chain(struct ocf
- 	if (ac->ac_find_loc_only)
- 		goto out_loc_only;
- 
--	status = ocfs2_alloc_dinode_update_counts(alloc_inode, handle,
--						  ac->ac_bh, res->sr_bits,
--						  chain);
--	if (status) {
--		mlog_errno(status);
--		goto bail;
--	}
--
--	status = ocfs2_block_group_set_bits(handle,
--					    alloc_inode,
--					    bg,
--					    group_bh,
--					    res->sr_bit_offset,
--					    res->sr_bits);
-+	status = ocfs2_alloc_dinode_update_bitmap(handle,
-+			alloc_inode, ac->ac_bh, bg, group_bh,
-+			chain, res->sr_bit_offset, res->sr_bits);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto bail;
-@@ -2134,20 +2118,9 @@ int ocfs2_claim_new_inode_at_loc(handle_
- 	bg = (struct ocfs2_group_desc *) bg_bh->b_data;
- 	chain = le16_to_cpu(bg->bg_chain);
- 
--	ret = ocfs2_alloc_dinode_update_counts(ac->ac_inode, handle,
--					       ac->ac_bh, res->sr_bits,
--					       chain);
--	if (ret) {
--		mlog_errno(ret);
--		goto out;
--	}
--
--	ret = ocfs2_block_group_set_bits(handle,
--					 ac->ac_inode,
--					 bg,
--					 bg_bh,
--					 res->sr_bit_offset,
--					 res->sr_bits);
-+	ret = ocfs2_alloc_dinode_update_bitmap(handle,
-+			ac->ac_inode, ac->ac_bh, bg, bg_bh,
-+			chain, res->sr_bit_offset, res->sr_bits);
- 	if (ret < 0) {
- 		mlog_errno(ret);
- 		goto out;
-diff -puN fs/ocfs2/suballoc.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously fs/ocfs2/suballoc.h
---- a/fs/ocfs2/suballoc.h~ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously
-+++ a/fs/ocfs2/suballoc.h
-@@ -85,19 +85,14 @@ int ocfs2_reserve_new_inode(struct ocfs2
- int ocfs2_reserve_clusters(struct ocfs2_super *osb,
- 			   u32 bits_wanted,
- 			   struct ocfs2_alloc_context **ac);
--
--int ocfs2_alloc_dinode_update_counts(struct inode *inode,
--			 handle_t *handle,
--			 struct buffer_head *di_bh,
--			 u32 num_bits,
--			 u16 chain);
--int ocfs2_block_group_set_bits(handle_t *handle,
--			 struct inode *alloc_inode,
--			 struct ocfs2_group_desc *bg,
--			 struct buffer_head *group_bh,
--			 unsigned int bit_off,
--			 unsigned int num_bits);
+ 				# No spaces for:
+ 				#   ->
+-				#   :   when part of a bitfield
+-				} elsif ($op eq '->' || $opv eq ':B') {
++				} elsif ($op eq '->') {
+ 					if ($ctx =~ /Wx.|.xW/) {
+ 						if (ERROR("SPACING",
+ 							  "spaces prohibited around that '$op' $at\n" . $hereptr)) {
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+ntfs-logging-clean-up.patch
+errh-use-bool-for-is_err-and-is_err_or_null.patch
+maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch
+maintainers-addition-of-dialog-semiconductor-files.patch
+maintainers-remove-venkatesh-from-hpet-move-to-credits.patch
+lib-random32c-minor-cleanups-and-kdoc-fix.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-add-test-for-long-udelay.patch
+checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
+checkpatch-add-checks-for-constant-non-octal-permissions.patch
+checkpatch-warn-on-uses-of-__constant_foo-functions.patch
+checkpatch-update-octal-permissions-warning.patch
+checkpatch-avoid-sscanf-test-duplicated-messages.patch
+checkpatch-fix-jiffies-comparison-and-others.patch
+checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
+checkpatch-use-a-more-consistent-function-argument-style.patch
+checkpatch-ignore-networking-block-comment-style-first-lines-in-file.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+checkpatchpl-modify-warning-message-for-printk-usage.patch
+checkpatch-improve-octal-permissions-test-speed.patch
+checkpatch-check-vendor-compatible-with-dashes.patch
+checkpatch-fix-spurious-vendor-compatible-warnings.patch
+checkpatch-check-compatible-strings-in-c-and-h-too.patch
+checkpatch-improve-the-compatible-vendor-match.patch
+checkpatch-net-and-drivers-net-warn-on-missing-blank-line-after-variable-declaration.patch
+scripts-checkpatchpl-__gfp_nofail-isnt-going-away.patch
+checkpatch-dont-warn-on-bitfield-spaces-around.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+checkpatchpl-add-check-for-change-id.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
+befs-logging-clean-up.patch
+befs-logging-clean-up-fix.patch
+linux-next.patch
+
