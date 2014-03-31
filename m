@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- pagemap-redefine-callback-functions-for-page-table-walker-fix.patch added
- to -mm tree
-Date: Mon, 31 Mar 2014 12:53:22 -0700
-Message-ID: <5339c7b2.zBnBiHd+fYfVtXkj%akpm@linux-foundation.org>
+ fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch added to -mm tree
+Date: Mon, 31 Mar 2014 13:09:57 -0700
+Message-ID: <5339cb95.692zwGadyPHzg4Dj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48627 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925AbaCaTxX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 15:53:23 -0400
+	with ESMTP id S1750946AbaCaUJ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 16:09:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, jack@suse.cz, fengguang.wu@intel.com, eparis@redhat.com, akpm@linux-foundation.org
 
-Subject: + pagemap-redefine-callback-functions-for-page-table-walker-fix.patch added to -mm tree
-To: akpm@linux-foundation.org,n-horiguchi@ah.jp.nec.com
+Subject: + fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,eparis@redhat.com,fengguang.wu@intel.com,jack@suse.cz,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Mon, 31 Mar 2014 12:53:22 -0700
+Date: Mon, 31 Mar 2014 13:09:57 -0700
 
 
 The patch titled
-     Subject: pagemap-redefine-callback-functions-for-page-table-walker-fix
+     Subject: fanotify-use-fanotify-event-structure-for-permission-response-processing-fix
 has been added to the -mm tree.  Its filename is
-     pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+     fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,27 +45,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pagemap-redefine-callback-functions-for-page-table-walker-fix
+Subject: fanotify-use-fanotify-event-structure-for-permission-response-processing-fix
 
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+fix build
+
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/notify/fanotify/fanotify_user.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-redefine-callback-functions-for-page-table-walker-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-redefine-callback-functions-for-page-table-walker-fix
-+++ a/fs/proc/task_mmu.c
-@@ -1022,7 +1022,7 @@ static void huge_pte_to_pagemap_entry(pa
- }
+diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-use-fanotify-event-structure-for-permission-response-processing-fix fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fanotify-use-fanotify-event-structure-for-permission-response-processing-fix
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -209,9 +209,12 @@ static ssize_t copy_event_to_user(struct
  
- /* This function walks within one hugetlb entry in the single call */
--static int pagemap_hugetlb_range(pte_t *pte, unsigned long hmask,
-+static int pagemap_hugetlb(pte_t *pte, unsigned long hmask,
- 				 unsigned long addr, unsigned long end,
- 				 struct mm_walk *walk)
- {
+ #ifdef CONFIG_FANOTIFY_ACCESS_PERMISSIONS
+ 	if (event->mask & FAN_ALL_PERM_EVENTS) {
+-		FANOTIFY_PE(event)->fd = fd;
++		struct fanotify_perm_event_info *pevent;
++
++		pevent = FANOTIFY_PE(event);
++		pevent->fd = fd;
+ 		mutex_lock(&group->fanotify_data.access_mutex);
+-		list_add_tail(&event->fae.fse.list,
++		list_add_tail(&pevent->fae.fse.list,
+ 			      &group->fanotify_data.access_list);
+ 		mutex_unlock(&group->fanotify_data.access_mutex);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +84,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 maintainers-akpm-maintenance.patch
+fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
 ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
 ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
