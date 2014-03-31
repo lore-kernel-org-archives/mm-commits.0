@@ -1,77 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-fix-boot-on-uniprocessor-systems.patch removed from
- -mm tree
-Date: Mon, 31 Mar 2014 11:21:19 -0700
-Message-ID: <5339b21f.HAMA44g1pbHCKatg%akpm__8060.46710717982$1396290098$gmane$org@linux-foundation.org>
+Subject: + input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+ added to -mm tree
+Date: Mon, 31 Mar 2014 12:11:06 -0700
+Message-ID: <5339bdca.PIbwcpDqpqMr0eQg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46754 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47707 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753320AbaCaSVU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 14:21:20 -0400
+	with ESMTP id S1753933AbaCaTLH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 15:11:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, stable@vger.kernel.org, mingo@elte.hu, hpa@zytor.com, eranian@google.com, a.p.zijlstra@chello.nl, artem_fetishev@epam.com
+To: mm-commits@vger.kernel.org, samuel.thibault@ens-lyon.org
 
-Subject: [merged] x86-fix-boot-on-uniprocessor-systems.patch removed from -mm tree
-To: artem_fetishev@epam.com,a.p.zijlstra@chello.nl,eranian@google.com,hpa@zytor.com,mingo@elte.hu,stable@vger.kernel.org,tglx@linutronix.de,mm-commits@vger.kernel.org
+Subject: + input-route-kbd-leds-through-the-generic-leds-layer-fix.patch added to -mm tree
+To: samuel.thibault@ens-lyon.org
 From: akpm@linux-foundation.org
-Date: Mon, 31 Mar 2014 11:21:19 -0700
+Date: Mon, 31 Mar 2014 12:11:06 -0700
 
 
 The patch titled
-     Subject: x86: fix boot on uniprocessor systems
-has been removed from the -mm tree.  Its filename was
-     x86-fix-boot-on-uniprocessor-systems.patch
+     Subject: input-route-kbd-leds-through-the-generic-leds-layer-fix
+has been added to the -mm tree.  Its filename is
+     input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Artem Fetishev <artem_fetishev@epam.com>
-Subject: x86: fix boot on uniprocessor systems
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: input-route-kbd-leds-through-the-generic-leds-layer-fix
 
-On x86 uniprocessor systems topology_physical_package_id() returns -1
-which causes rapl_cpu_prepare() to leave rapl_pmu variable uninitialized
-which leads to GPF in rapl_pmu_init().  See
-arch/x86/kernel/cpu/perf_event_intel_rapl.c.
 
-It turns out that physical_package_id and core_id can actually be
-retreived for uniprocessor systems too.  Enabling them also fixes rapl_pmu
-code.
 
-Signed-off-by: Artem Fetishev <artem_fetishev@epam.com>
-Cc: Stephane Eranian <eranian@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/topology.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/input/leds.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/include/asm/topology.h~x86-fix-boot-on-uniprocessor-systems arch/x86/include/asm/topology.h
---- a/arch/x86/include/asm/topology.h~x86-fix-boot-on-uniprocessor-systems
-+++ a/arch/x86/include/asm/topology.h
-@@ -119,9 +119,10 @@ static inline void setup_node_to_cpumask
+diff -puN drivers/input/leds.c~input-route-kbd-leds-through-the-generic-leds-layer-fix drivers/input/leds.c
+--- a/drivers/input/leds.c~input-route-kbd-leds-through-the-generic-leds-layer-fix
++++ a/drivers/input/leds.c
+@@ -1,7 +1,7 @@
+ /*
+  * LED support for the input layer
+  *
+- * Copyright 2010-2013 Samuel Thibault <samuel.thibault@ens-lyon.org>
++ * Copyright 2010-2014 Samuel Thibault <samuel.thibault@ens-lyon.org>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -159,7 +159,7 @@ int input_led_connect(struct input_dev *
+ 	int i, error = 0;
+ 	struct led_classdev *leds;
  
- extern const struct cpumask *cpu_coregroup_mask(int cpu);
+-	dev->leds = leds = kzalloc(sizeof(*leds) * LED_CNT, GFP_KERNEL);
++	dev->leds = leds = kcalloc(LED_CNT, sizeof(*leds), GFP_KERNEL);
+ 	if (!dev->leds)
+ 		return -ENOMEM;
  
--#ifdef ENABLE_TOPO_DEFINES
- #define topology_physical_package_id(cpu)	(cpu_data(cpu).phys_proc_id)
- #define topology_core_id(cpu)			(cpu_data(cpu).cpu_core_id)
-+
-+#ifdef ENABLE_TOPO_DEFINES
- #define topology_core_cpumask(cpu)		(per_cpu(cpu_core_map, cpu))
- #define topology_thread_cpumask(cpu)		(per_cpu(cpu_sibling_map, cpu))
- #endif
+@@ -212,8 +212,8 @@ err:
+ }
+ 
+ /*
+- * Disconnected input device. Clean it, and deregister now-useless VT LEDs and
+- * triggers.
++ * Disconnected input device. Clean it, and deregister now-useless VT LEDs
++ * and triggers.
+  */
+ void input_led_disconnect(struct input_dev *dev)
+ {
 _
 
-Patches currently in -mm which might be from artem_fetishev@epam.com are
+Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
 
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+input-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 
