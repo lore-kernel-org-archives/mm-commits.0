@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch added to -mm tree
-Date: Mon, 31 Mar 2014 13:57:57 -0700
-Message-ID: <5339d6d5.7EYQAyb/PRtwAsZz%akpm@linux-foundation.org>
+ ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 31 Mar 2014 13:58:42 -0700
+Message-ID: <5339d702.tKfNc60GBxxC9MJN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49171 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49189 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153AbaCaU56 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 16:57:58 -0400
+	with ESMTP id S1751167AbaCaU6n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 16:58:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.de, jlbec@evilplan.org, younger.liucn@gmail.com
+To: mm-commits@vger.kernel.org, younger.liucn@gmail.com, mfasheh@suse.de, jlbec@evilplan.org, akpm@linux-foundation.org
 
-Subject: + ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch added to -mm tree
-To: younger.liucn@gmail.com,jlbec@evilplan.org,mfasheh@suse.de
+Subject: + ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch added to -mm tree
+To: akpm@linux-foundation.org,jlbec@evilplan.org,mfasheh@suse.de,younger.liucn@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 31 Mar 2014 13:57:57 -0700
+Date: Mon, 31 Mar 2014 13:58:42 -0700
 
 
 The patch titled
-     Subject: ocfs2: rollback alloc_dinode counts when ocfs2_block_group_set_bits() failed
+     Subject: ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch
+     ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,117 +44,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Younger Liu <younger.liucn@gmail.com>
-Subject: ocfs2: rollback alloc_dinode counts when ocfs2_block_group_set_bits() failed
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes
 
-After updating alloc_dinode counts in ocfs2_alloc_dinode_update_counts(),
-if ocfs2_alloc_dinode_update_bitmap() failed, there is a rare case that
-some space may be lost.
-
-So, roll back alloc_dinode counts when ocfs2_block_group_set_bits()
-failed.
-
-Signed-off-by: Younger Liu <younger.liucn@gmail.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
+
+WARNING: line over 80 characters
+#52: FILE: fs/ocfs2/suballoc.c:1617:
++	struct ocfs2_chain_list *cl = (struct ocfs2_chain_list *) &di->id2.i_chain;
+
+total: 0 errors, 1 warnings, 71 lines checked
+
+./patches/ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Younger Liu <younger.liucn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/move_extents.c |    5 ++++-
- fs/ocfs2/suballoc.c     |   24 +++++++++++++++++++++++-
- fs/ocfs2/suballoc.h     |    4 ++++
- 3 files changed, 31 insertions(+), 2 deletions(-)
+ fs/ocfs2/suballoc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/move_extents.c~ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed fs/ocfs2/move_extents.c
---- a/fs/ocfs2/move_extents.c~ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed
-+++ a/fs/ocfs2/move_extents.c
-@@ -690,8 +690,11 @@ static int ocfs2_move_extent(struct ocfs
- 
- 	ret = ocfs2_block_group_set_bits(handle, gb_inode, gd, gd_bh,
- 					 goal_bit, len);
--	if (ret)
-+	if (ret) {
-+		ocfs2_rollback_alloc_dinode_counts(gb_inode, gb_bh, len,
-+					       le16_to_cpu(gd->bg_chain));
- 		mlog_errno(ret);
-+	}
- 
- 	/*
- 	 * Here we should write the new page out first if we are
-diff -puN fs/ocfs2/suballoc.c~ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed
+diff -puN fs/ocfs2/suballoc.c~ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes
 +++ a/fs/ocfs2/suballoc.c
-@@ -1607,6 +1607,20 @@ out:
- 	return ret;
- }
+@@ -1614,8 +1614,9 @@ void ocfs2_rollback_alloc_dinode_counts(
+ {
+ 	u32 tmp_used;
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *) di_bh->b_data;
+-	struct ocfs2_chain_list *cl = (struct ocfs2_chain_list *) &di->id2.i_chain;
++	struct ocfs2_chain_list *cl;
  
-+void ocfs2_rollback_alloc_dinode_counts(struct inode *inode,
-+				       struct buffer_head *di_bh,
-+				       u32 num_bits,
-+				       u16 chain)
-+{
-+	u32 tmp_used;
-+	struct ocfs2_dinode *di = (struct ocfs2_dinode *) di_bh->b_data;
-+	struct ocfs2_chain_list *cl = (struct ocfs2_chain_list *) &di->id2.i_chain;
-+
-+	tmp_used = le32_to_cpu(di->id1.bitmap1.i_used);
-+	di->id1.bitmap1.i_used = cpu_to_le32(tmp_used - num_bits);
-+	le32_add_cpu(&cl->cl_recs[chain].c_free, num_bits);
-+}
-+
- static int ocfs2_bg_discontig_fix_by_rec(struct ocfs2_suballoc_result *res,
- 					 struct ocfs2_extent_rec *rec,
- 					 struct ocfs2_chain_list *cl)
-@@ -1707,8 +1721,12 @@ static int ocfs2_search_one_group(struct
- 
- 	ret = ocfs2_block_group_set_bits(handle, alloc_inode, gd, group_bh,
- 					 res->sr_bit_offset, res->sr_bits);
--	if (ret < 0)
-+	if (ret < 0) {
-+		ocfs2_rollback_alloc_dinode_counts(alloc_inode, ac->ac_bh,
-+					       res->sr_bits,
-+					       le16_to_cpu(gd->bg_chain));
- 		mlog_errno(ret);
-+	}
- 
- out_loc_only:
- 	*bits_left = le16_to_cpu(gd->bg_free_bits_count);
-@@ -1838,6 +1856,8 @@ static int ocfs2_search_chain(struct ocf
- 					    res->sr_bit_offset,
- 					    res->sr_bits);
- 	if (status < 0) {
-+		ocfs2_rollback_alloc_dinode_counts(alloc_inode,
-+					ac->ac_bh, res->sr_bits, chain);
- 		mlog_errno(status);
- 		goto bail;
- 	}
-@@ -2149,6 +2169,8 @@ int ocfs2_claim_new_inode_at_loc(handle_
- 					 res->sr_bit_offset,
- 					 res->sr_bits);
- 	if (ret < 0) {
-+		ocfs2_rollback_alloc_dinode_counts(ac->ac_inode,
-+					       ac->ac_bh, res->sr_bits, chain);
- 		mlog_errno(ret);
- 		goto out;
- 	}
-diff -puN fs/ocfs2/suballoc.h~ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed fs/ocfs2/suballoc.h
---- a/fs/ocfs2/suballoc.h~ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed
-+++ a/fs/ocfs2/suballoc.h
-@@ -91,6 +91,10 @@ int ocfs2_alloc_dinode_update_counts(str
- 			 struct buffer_head *di_bh,
- 			 u32 num_bits,
- 			 u16 chain);
-+void ocfs2_rollback_alloc_dinode_counts(struct inode *inode,
-+			 struct buffer_head *di_bh,
-+			 u32 num_bits,
-+			 u16 chain);
- int ocfs2_block_group_set_bits(handle_t *handle,
- 			 struct inode *alloc_inode,
- 			 struct ocfs2_group_desc *bg,
++	cl = (struct ocfs2_chain_list *)&di->id2.i_chain;
+ 	tmp_used = le32_to_cpu(di->id1.bitmap1.i_used);
+ 	di->id1.bitmap1.i_used = cpu_to_le32(tmp_used - num_bits);
+ 	le32_add_cpu(&cl->cl_recs[chain].c_free, num_bits);
 _
 
-Patches currently in -mm which might be from younger.liucn@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch
-ocfs2-alloc_dinode-counts-and-group-bitmap-should-be-update-simultaneously.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch
+ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-vmstat-fix-up-zone-state-accounting-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
+mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-per-thread-vma-caching.patch
+mm-per-thread-vma-caching-fix-3.patch
+mm-per-thread-vma-caching-fix-5.patch
+mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
+mm-per-thread-vma-caching-fix-6-fix.patch
+mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+zram-use-zcomp-compressing-backends-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix-2.patch
+zram-propagate-error-to-user-fix.patch
+zram-support-req_discard-v4-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+sys_sysfs-add-config_sysfs_syscall-fix.patch
+kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+xattr-guard-against-simultaneous-glibc-header-inclusion-v2.patch
+lib-syscallc-unexport-task_current_syscall.patch
+scripts-checkpatchpl-__gfp_nofail-isnt-going-away.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+befs-logging-clean-up-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
+vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix.patch
+percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
+ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
