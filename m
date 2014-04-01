@@ -1,197 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: + mm-readaheadc-inline-ra_submit.patch added to -mm tree
-Date: Mon, 31 Mar 2014 16:14:34 -0700
-Message-ID: <5339f6da.RZbQfms2Aew9yqD4%akpm@linux-foundation.org>
+Subject: [merged] mfd-devicetree-bindings-add-pm8xxx-rtc-description.patch removed from -mm tree
+Date: Tue, 01 Apr 2014 11:28:35 -0700
+Message-ID: <533b0553.zUs5JdmARdTlioO/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35962 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbaCaXOf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Mar 2014 19:14:35 -0400
+	with ESMTP id S1751577AbaDAS2g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2014 14:28:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, sboyd@codeaurora.org, robherring2@gmail.com, lee.jones@linaro.org, a.zummo@towertech.it, joshc@codeaurora.org
 
-Subject: + mm-readaheadc-inline-ra_submit.patch added to -mm tree
-To: fabf@skynet.be,akpm@linux-foundation.org
+Subject: [merged] mfd-devicetree-bindings-add-pm8xxx-rtc-description.patch removed from -mm tree
+To: joshc@codeaurora.org,a.zummo@towertech.it,lee.jones@linaro.org,robherring2@gmail.com,sboyd@codeaurora.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 31 Mar 2014 16:14:34 -0700
+Date: Tue, 01 Apr 2014 11:28:35 -0700
 
 
 The patch titled
-     Subject: mm/readahead.c: inline ra_submit
-has been added to the -mm tree.  Its filename is
-     mm-readaheadc-inline-ra_submit.patch
+     Subject: mfd: devicetree: bindings: add pm8xxx RTC description
+has been removed from the -mm tree.  Its filename was
+     mfd-devicetree-bindings-add-pm8xxx-rtc-description.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-readaheadc-inline-ra_submit.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-readaheadc-inline-ra_submit.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: mm/readahead.c: inline ra_submit
+From: Josh Cartwright <joshc@codeaurora.org>
+Subject: mfd: devicetree: bindings: add pm8xxx RTC description
 
-f9acc8c7b35a ("readahead: sanify file_ra_state names") left ra_submit with
-a single function call.
+The PM8xxx family of PMICs contain an RTC.  This RTC is described as a
+subnode of the PM8xxx.  Document these bindings, and replace the pwrkey
+node in the example with the RTC, which is now described in this document.
 
-Move ra_submit to internal.h and inline it to save some stack.  Thanks to
-Andrew Morton for commenting different versions.
+While we're here, add a short description to the device tree bindings
+describing what the the PM8xxx devices are and how they are expected to be
+used.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Josh Cartwright <joshc@codeaurora.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Rob Herring <robherring2@gmail.com>
+Cc: Lee Jones <lee.jones@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 ---
- mm/internal.h      |   15 +++++++++++++++
- mm/readahead.c     |   21 +++------------------
- 3 files changed, 18 insertions(+), 21 deletions(-)
+ Documentation/devicetree/bindings/mfd/qcom,pm8xxx.txt |   45 ++++++++--
+ 1 file changed, 39 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mm.h~mm-readaheadc-inline-ra_submit include/linux/mm.h
---- a/include/linux/mm.h~mm-readaheadc-inline-ra_submit
-+++ a/include/linux/mm.h
-@@ -1878,9 +1878,6 @@ void page_cache_async_readahead(struct a
- 				unsigned long size);
+diff -puN Documentation/devicetree/bindings/mfd/qcom,pm8xxx.txt~mfd-devicetree-bindings-add-pm8xxx-rtc-description Documentation/devicetree/bindings/mfd/qcom,pm8xxx.txt
+--- a/Documentation/devicetree/bindings/mfd/qcom,pm8xxx.txt~mfd-devicetree-bindings-add-pm8xxx-rtc-description
++++ a/Documentation/devicetree/bindings/mfd/qcom,pm8xxx.txt
+@@ -1,6 +1,9 @@
+ Qualcomm PM8xxx PMIC multi-function devices
  
- unsigned long max_sane_readahead(unsigned long nr);
--unsigned long ra_submit(struct file_ra_state *ra,
--			struct address_space *mapping,
--			struct file *filp);
- 
- /* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
- extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
-diff -puN mm/internal.h~mm-readaheadc-inline-ra_submit mm/internal.h
---- a/mm/internal.h~mm-readaheadc-inline-ra_submit
-+++ a/mm/internal.h
-@@ -11,6 +11,7 @@
- #ifndef __MM_INTERNAL_H
- #define __MM_INTERNAL_H
- 
-+#include <linux/fs.h>
- #include <linux/mm.h>
- 
- void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
-@@ -21,6 +22,20 @@ static inline void set_page_count(struct
- 	atomic_set(&page->_count, v);
- }
- 
-+extern int __do_page_cache_readahead(struct address_space *mapping,
-+		struct file *filp, pgoff_t offset, unsigned long nr_to_read,
-+		unsigned long lookahead_size);
+-PROPERTIES
++The PM8xxx family of Power Management ICs are used to provide regulated
++voltages and other various functionality to Qualcomm SoCs.
 +
-+/*
-+ * Submit IO for the read-ahead request in file_ra_state.
-+ */
-+static inline unsigned long ra_submit(struct file_ra_state *ra,
-+		struct address_space *mapping, struct file *filp)
-+{
-+	return __do_page_cache_readahead(mapping, filp,
-+					ra->start, ra->size, ra->async_size);
-+}
++= PROPERTIES
+ 
+ - compatible:
+ 	Usage: required
+@@ -45,7 +48,37 @@ PROPERTIES
+ 	Value type: <empty>
+ 	Definition: identifies this node as an interrupt controller
+ 
+-EXAMPLE
++= SUBCOMPONENTS
 +
- /*
-  * Turn a non-refcounted page (->_count == 0) into refcounted with
-  * a count of one.
-diff -puN mm/readahead.c~mm-readaheadc-inline-ra_submit mm/readahead.c
---- a/mm/readahead.c~mm-readaheadc-inline-ra_submit
-+++ a/mm/readahead.c
-@@ -8,9 +8,7 @@
-  */
- 
- #include <linux/kernel.h>
--#include <linux/fs.h>
- #include <linux/gfp.h>
--#include <linux/mm.h>
- #include <linux/export.h>
- #include <linux/blkdev.h>
- #include <linux/backing-dev.h>
-@@ -20,6 +18,8 @@
- #include <linux/syscalls.h>
- #include <linux/file.h>
- 
-+#include "internal.h"
++The PMIC contains multiple independent functions, each described in a subnode.
++The below bindings specify the set of valid subnodes.
 +
- /*
-  * Initialise a struct file's readahead state.  Assumes that the caller has
-  * memset *ra to zero.
-@@ -149,8 +149,7 @@ out:
-  *
-  * Returns the number of pages requested, or the maximum amount of I/O allowed.
-  */
--static int
--__do_page_cache_readahead(struct address_space *mapping, struct file *filp,
-+int __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
- 			pgoff_t offset, unsigned long nr_to_read,
- 			unsigned long lookahead_size)
- {
-@@ -244,20 +243,6 @@ unsigned long max_sane_readahead(unsigne
- }
++== Real-Time Clock
++
++- compatible:
++	Usage: required
++	Value type: <string>
++	Definition: must be one of:
++		    "qcom,pm8058-rtc"
++		    "qcom,pm8921-rtc"
++
++- reg:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: single entry specifying the base address of the RTC registers
++
++- interrupts:
++	Usage: required
++	Value type: <prop-encoded-array>
++	Definition: single entry specifying the RTC's alarm interrupt
++
++- allow-set-time:
++	Usage: optional
++	Value type: <empty>
++	Definition: indicates that the setting of RTC time is allowed by
++		    the host CPU
++
++= EXAMPLE
  
- /*
-- * Submit IO for the read-ahead request in file_ra_state.
-- */
--unsigned long ra_submit(struct file_ra_state *ra,
--		       struct address_space *mapping, struct file *filp)
--{
--	int actual;
--
--	actual = __do_page_cache_readahead(mapping, filp,
--					ra->start, ra->size, ra->async_size);
--
--	return actual;
--}
--
--/*
-  * Set the initial window size, round to next power of 2 and square
-  * for small size, x 4 for medium, and x 2 for large
-  * for 128k (32 page) max ra
+ 	pmicintc: pmic@0 {
+ 		compatible = "qcom,pm8921";
+@@ -55,9 +88,9 @@ EXAMPLE
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+-		pwrkey {
+-			compatible = "qcom,pm8921-pwrkey";
+-			interrupt-parent = <&pmicintc>;
+-			interrupts = <50 1>, <51 1>;
++		rtc@11d {
++			compatible = "qcom,pm8921-rtc";
++			reg = <0x11d>;
++			interrupts = <0x27 0>;
+ 		};
+ 	};
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from joshc@codeaurora.org are
 
-fs-cifs-cifsfsc-add-__init-to-cifs_init_inodecache.patch
-fs-freevxfs-vxfs_lookupc-update-function-comment.patch
-ntfs-logging-clean-up.patch
-mm-memblockc-use-pfn_phys.patch
-mm-readaheadc-inline-ra_submit.patch
-sys_sysfs-add-config_sysfs_syscall.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
-fs-efs-superc-add-__init-to-init_inodecache.patch
-fs-minix-inodec-add-__init-to-init_inodecache.patch
-befs-replace-kmalloc-memset-0-by-kzalloc.patch
-fs-befs-linuxvfsc-add-__init-to-befs_init_inodecache.patch
-befs-logging-clean-up.patch
-befs-logging-clean-up-fix.patch
-coda-add-__init-to-init_inodecache.patch
-hfsplus-add-__init-to-hfsplus_create_attr_tree_cache.patch
-fs-reiserfs-superc-add-__init-to-init_inodecache.patch
-documentation-filesystems-ntfstxt-remove-changelog-reference.patch
-fs-adfs-superc-add-__init-to-init_inodecache.patch
-affs-add-__init-to-init_inodecache.patch
-fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
-affs-mount-option-to-avoid-filename-truncates.patch
-fs-bfs-inodec-add-__init-to-init_inodecache.patch
-kernel-panicc-display-reason-at-end-pr_emerg.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+rtc-pm8xxx-fixup-checkpatch-style-issues.patch
+rtc-pm8xxx-use-regmap-api-for-register-accesses.patch
+rtc-pm8xxx-use-devm_request_any_context_irq.patch
+rtc-pm8xxx-add-support-for-devicetree.patch
+rtc-pm8xxx-move-device_init_wakeup-before-rtc_register.patch
 linux-next.patch
-fs-ufs-superc-add-__init-to-init_inodecache.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-ufs-sb-mutex-merge-mutex_destroy-fix.patch
-ufs-sb-mutex-merge-mutex_destroy-fix-v2.patch
-ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
 
