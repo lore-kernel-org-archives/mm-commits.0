@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-da9055c-remove-use-of-regmap_irq_get_virq.patch added to -mm tree
-Date: Tue, 01 Apr 2014 15:51:16 -0700
-Message-ID: <533b42e4.eVBa0QNl7aDhWFnx%akpm@linux-foundation.org>
+Subject: +
+ mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch added
+ to -mm tree
+Date: Tue, 01 Apr 2014 16:08:44 -0700
+Message-ID: <533b46fc.gvtY3ENsHOm86aFF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39315 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39443 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751371AbaDAWvR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2014 18:51:17 -0400
+	with ESMTP id S1753144AbaDAXIp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2014 19:08:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dmitry.torokhov@gmail.com, a.zummo@towertech.it, Adam.Thomson.Opensource@diasemi.com
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, jwboyer@redhat.com, jhubbard@nvidia.com
 
-Subject: + drivers-rtc-rtc-da9055c-remove-use-of-regmap_irq_get_virq.patch added to -mm tree
-To: Adam.Thomson.Opensource@diasemi.com,a.zummo@towertech.it,dmitry.torokhov@gmail.com
+Subject: + mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch added to -mm tree
+To: jhubbard@nvidia.com,jwboyer@redhat.com,sasha.levin@oracle.com
 From: akpm@linux-foundation.org
-Date: Tue, 01 Apr 2014 15:51:16 -0700
+Date: Tue, 01 Apr 2014 16:08:44 -0700
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-da9055.c: remove use of regmap_irq_get_virq()
+     Subject: mm/page_alloc.c: change mm debug routines back to EXPORT_SYMBOL
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-da9055c-remove-use-of-regmap_irq_get_virq.patch
+     mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-da9055c-remove-use-of-regmap_irq_get_virq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-da9055c-remove-use-of-regmap_irq_get_virq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,45 +45,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
-Subject: drivers/rtc/rtc-da9055.c: remove use of regmap_irq_get_virq()
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/page_alloc.c: change mm debug routines back to EXPORT_SYMBOL
 
-Using platform_get_irq_byname() to retrieve the IRQ number returns the
-VIRQ number rather than the local IRQ number for the device.  Passing that
-value then into regmap_irq_get_virq() causes a failure because the
-function is expecting the local IRQ number (e.g.  0, 1, 2, 3, etc).
+A new dump_page() routine was recently added, and marked
+EXPORT_SYMBOL_GPL.  dump_page() was also added to the VM_BUG_ON_PAGE()
+macro, and so the end result is that non-GPL code can no longer call
+get_page() and a few other routines.
 
-This patch removes use of regmap_irq_get_virq() to prevent this failure
-from happening
+This only happens if the kernel was compiled with CONFIG_DEBUG_VM.
 
-Signed-off-by: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Change dump_page() to be EXPORT_SYMBOL.
+
+Longer explanation:
+
+Prior to 309381feaee564 ("mm: dump page when hitting a VM_BUG_ON using
+VM_BUG_ON_PAGE") , it was possible to build MIT-licensed (non-GPL) drivers
+on Fedora.  Fedora is semi-unique, in that it sets CONFIG_VM_DEBUG.
+
+Because Fedora sets CONFIG_VM_DEBUG, they end up pulling in dump_page(),
+via VM_BUG_ON_PAGE, via get_page().  As one of the authors of NVIDIA's
+new, open source, "UVM-Lite" kernel module, I originally choose to use the
+kernel's get_page() routine from within nvidia_uvm_page_cache.c, because
+get_page() has always seemed to be very clearly intended for use by
+non-GPL, driver code.
+
+So I'm hoping that making get_page() widely accessible again will not be
+too controversial.  We did check with Fedora first, and they responded
+(https://bugzilla.redhat.com/show_bug.cgi?id=1074710#c3) that we should
+try to get upstream changed, before asking Fedora to change.  Their
+reasoning seems beneficial to Linux: leaving CONFIG_DEBUG_VM set allows
+Fedora to help catch mm bugs.
+
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Josh Boyer <jwboyer@redhat.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-da9055.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-da9055.c~drivers-rtc-rtc-da9055c-remove-use-of-regmap_irq_get_virq drivers/rtc/rtc-da9055.c
---- a/drivers/rtc/rtc-da9055.c~drivers-rtc-rtc-da9055c-remove-use-of-regmap_irq_get_virq
-+++ a/drivers/rtc/rtc-da9055.c
-@@ -302,7 +302,9 @@ static int da9055_rtc_probe(struct platf
- 	}
- 
- 	alm_irq = platform_get_irq_byname(pdev, "ALM");
--	alm_irq = regmap_irq_get_virq(rtc->da9055->irq_data, alm_irq);
-+	if (alm_irq < 0)
-+		return alm_irq;
-+
- 	ret = devm_request_threaded_irq(&pdev->dev, alm_irq, NULL,
- 					da9055_rtc_alm_irq,
- 					IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+diff -puN mm/page_alloc.c~mm-page_allocc-change-mm-debug-routines-back-to-export_symbol mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-change-mm-debug-routines-back-to-export_symbol
++++ a/mm/page_alloc.c
+@@ -6566,4 +6566,4 @@ void dump_page(struct page *page, const
+ {
+ 	dump_page_badflags(page, reason, 0);
+ }
+-EXPORT_SYMBOL_GPL(dump_page);
++EXPORT_SYMBOL(dump_page);
 _
 
-Patches currently in -mm which might be from Adam.Thomson.Opensource@diasemi.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-drivers-rtc-rtc-da9055c-remove-use-of-regmap_irq_get_virq.patch
-input-da9055_onkey-remove-use-of-regmap_irq_get_virq.patch
-linux-next.patch
+mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
 
