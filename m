@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
- added to -mm tree
-Date: Tue, 01 Apr 2014 12:49:29 -0700
-Message-ID: <533b1849.LxGDiQkTNizJBr4v%akpm@linux-foundation.org>
+Subject: + rtc-fixed-potential-race-condition.patch added to -mm tree
+Date: Tue, 01 Apr 2014 13:15:52 -0700
+Message-ID: <533b1e78.D/3c3/uW4iUEtd6U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36561 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36726 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751543AbaDATta (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2014 15:49:30 -0400
+	with ESMTP id S1751839AbaDAUPx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2014 16:15:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yuanhan.liu@linux.intel.com, sjennings@variantweb.net, semenzato@google.com, riel@redhat.com, minchan@kernel.org, mhocko@suse.cz, mgorman@suse.de, hughd@google.com, bob.liu@oracle.com, aquini@redhat.com, suleiman@google.com
+To: mm-commits@vger.kernel.org, srikanth.srinivasan@freescale.com, shc_work@mail.ru, s.hauer@pengutronix.de, lee.jones@linaro.org, jkosina@suse.cz, iamjoonsoo.kim@lge.com, anemo@mba.ocn.ne.jp, alnovak@suse.cz, a.zummo@towertech.it
 
-Subject: + mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch added to -mm tree
-To: suleiman@google.com,aquini@redhat.com,bob.liu@oracle.com,hughd@google.com,mgorman@suse.de,mhocko@suse.cz,minchan@kernel.org,riel@redhat.com,semenzato@google.com,sjennings@variantweb.net,yuanhan.liu@linux.intel.com
+Subject: + rtc-fixed-potential-race-condition.patch added to -mm tree
+To: a.zummo@towertech.it,alnovak@suse.cz,anemo@mba.ocn.ne.jp,iamjoonsoo.kim@lge.com,jkosina@suse.cz,lee.jones@linaro.org,s.hauer@pengutronix.de,shc_work@mail.ru,srikanth.srinivasan@freescale.com
 From: akpm@linux-foundation.org
-Date: Tue, 01 Apr 2014 12:49:29 -0700
+Date: Tue, 01 Apr 2014 13:15:52 -0700
 
 
 The patch titled
-     Subject: mm: only force scan in reclaim when none of the LRUs are big enough.
+     Subject: rtc: fix potential race condition
 has been added to the -mm tree.  Its filename is
-     mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+     rtc-fixed-potential-race-condition.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-fixed-potential-race-condition.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-fixed-potential-race-condition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,151 +43,356 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Suleiman Souhlal <suleiman@google.com>
-Subject: mm: only force scan in reclaim when none of the LRUs are big enough.
+From: Alessandro Zummo <a.zummo@towertech.it>
+Subject: rtc: fix potential race condition
 
-Prior to this change, we would decide whether to force scan a LRU during
-reclaim if that LRU itself was too small for the current priority. 
-However, this can lead to the file LRU getting force scanned even if there
-are a lot of anonymous pages we can reclaim, leading to hot file pages
-getting needlessly reclaimed.
+RTC drivers must not return an error after device registration.
 
-To address this, we instead only force scan when none of the reclaimable
-LRUs are big enough.
-
-Gives huge improvements with zswap.  For example, when doing -j20 kernel
-build in a 500MB container with zswap enabled, runtime (in seconds) is
-greatly reduced:
-
-x without this change
-+ with this change
-    N           Min           Max        Median           Avg        Stddev
-x   5       700.997       790.076       763.928        754.05      39.59493
-+   5       141.634       197.899       155.706         161.9     21.270224
-Difference at 95.0% confidence
-        -592.15 +/- 46.3521
-        -78.5293% +/- 6.14709%
-        (Student's t, pooled s = 31.7819)
-
-Should also give some improvements in regular (non-zswap) swap cases.
-
-Yes, hughd found significant speedup using regular swap, with several
-memcgs under pressure; and it should also be effective in the non-memcg
-case, whenever one or another zone LRU is forced too small.
-
-Signed-off-by: Suleiman Souhlal <suleiman@google.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Rafael Aquini <aquini@redhat.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-Cc: Seth Jennings <sjennings@variantweb.net>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Luigi Semenzato <semenzato@google.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alexander Shiyan <shc_work@mail.ru>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Srikanth Srinivasan <srikanth.srinivasan@freescale.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Ales Novak <alnovak@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   72 +++++++++++++++++++++++++++++---------------------
- 1 file changed, 42 insertions(+), 30 deletions(-)
+ drivers/rtc/rtc-ds1305.c |   10 ++----
+ drivers/rtc/rtc-ds1307.c |   56 +++++++++++++++++++------------------
+ drivers/rtc/rtc-ds1511.c |   18 ++++++-----
+ drivers/rtc/rtc-ds1553.c |   18 ++++++-----
+ drivers/rtc/rtc-ds1672.c |   13 +++-----
+ drivers/rtc/rtc-ds1742.c |    5 ++-
+ drivers/rtc/rtc-ds3232.c |    2 -
+ drivers/rtc/rtc-test.c   |   11 ++-----
+ drivers/rtc/rtc-x1205.c  |    5 +--
+ 9 files changed, 70 insertions(+), 68 deletions(-)
 
-diff -puN mm/vmscan.c~mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough mm/vmscan.c
---- a/mm/vmscan.c~mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough
-+++ a/mm/vmscan.c
-@@ -1866,6 +1866,8 @@ static void get_scan_count(struct lruvec
- 	bool force_scan = false;
- 	unsigned long ap, fp;
- 	enum lru_list lru;
-+	bool some_scanned;
-+	int pass;
- 
- 	/*
- 	 * If the zone or memcg is small, nr[l] can be 0.  This
-@@ -1985,39 +1987,49 @@ static void get_scan_count(struct lruvec
- 	fraction[1] = fp;
- 	denominator = ap + fp + 1;
- out:
--	for_each_evictable_lru(lru) {
--		int file = is_file_lru(lru);
--		unsigned long size;
--		unsigned long scan;
--
--		size = get_lru_size(lruvec, lru);
--		scan = size >> sc->priority;
--
--		if (!scan && force_scan)
--			scan = min(size, SWAP_CLUSTER_MAX);
--
--		switch (scan_balance) {
--		case SCAN_EQUAL:
--			/* Scan lists relative to size */
--			break;
--		case SCAN_FRACT:
-+	some_scanned = false;
-+	/* Only use force_scan on second pass. */
-+	for (pass = 0; !some_scanned && pass < 2; pass++) {
-+		for_each_evictable_lru(lru) {
-+			int file = is_file_lru(lru);
-+			unsigned long size;
-+			unsigned long scan;
-+
-+			size = get_lru_size(lruvec, lru);
-+			scan = size >> sc->priority;
-+
-+			if (!scan && pass && force_scan)
-+				scan = min(size, SWAP_CLUSTER_MAX);
-+
-+			switch (scan_balance) {
-+			case SCAN_EQUAL:
-+				/* Scan lists relative to size */
-+				break;
-+			case SCAN_FRACT:
-+				/*
-+				 * Scan types proportional to swappiness and
-+				 * their relative recent reclaim efficiency.
-+				 */
-+				scan = div64_u64(scan * fraction[file],
-+							denominator);
-+				break;
-+			case SCAN_FILE:
-+			case SCAN_ANON:
-+				/* Scan one type exclusively */
-+				if ((scan_balance == SCAN_FILE) != file)
-+					scan = 0;
-+				break;
-+			default:
-+				/* Look ma, no brain */
-+				BUG();
-+			}
-+			nr[lru] = scan;
- 			/*
--			 * Scan types proportional to swappiness and
--			 * their relative recent reclaim efficiency.
-+			 * Skip the second pass and don't force_scan,
-+			 * if we found something to scan.
- 			 */
--			scan = div64_u64(scan * fraction[file], denominator);
--			break;
--		case SCAN_FILE:
--		case SCAN_ANON:
--			/* Scan one type exclusively */
--			if ((scan_balance == SCAN_FILE) != file)
--				scan = 0;
--			break;
--		default:
--			/* Look ma, no brain */
--			BUG();
-+			some_scanned |= !!scan;
+diff -puN drivers/rtc/rtc-ds1305.c~rtc-fixed-potential-race-condition drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~rtc-fixed-potential-race-condition
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -756,19 +756,17 @@ static int ds1305_probe(struct spi_devic
+ 		status = devm_request_irq(&spi->dev, spi->irq, ds1305_irq,
+ 				0, dev_name(&ds1305->rtc->dev), ds1305);
+ 		if (status < 0) {
+-			dev_dbg(&spi->dev, "request_irq %d --> %d\n",
++			dev_err(&spi->dev, "request_irq %d --> %d\n",
+ 					spi->irq, status);
+-			return status;
++		} else {
++			device_set_wakeup_capable(&spi->dev, 1);
  		}
--		nr[lru] = scan;
+-
+-		device_set_wakeup_capable(&spi->dev, 1);
  	}
+ 
+ 	/* export NVRAM */
+ 	status = sysfs_create_bin_file(&spi->dev.kobj, &nvram);
+ 	if (status < 0) {
+-		dev_dbg(&spi->dev, "register nvram --> %d\n", status);
+-		return status;
++		dev_err(&spi->dev, "register nvram --> %d\n", status);
+ 	}
+ 
+ 	return 0;
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-fixed-potential-race-condition drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-fixed-potential-race-condition
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -930,52 +930,54 @@ read_rtc:
+ 	ds1307->rtc = devm_rtc_device_register(&client->dev, client->name,
+ 				&ds13xx_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(ds1307->rtc)) {
+-		err = PTR_ERR(ds1307->rtc);
+-		dev_err(&client->dev,
+-			"unable to register the class device\n");
+-		goto exit;
++		return PTR_ERR(ds1307->rtc);
+ 	}
+ 
+ 	if (want_irq) {
+ 		err = request_irq(client->irq, ds1307_irq, IRQF_SHARED,
+ 			  ds1307->rtc->name, client);
+ 		if (err) {
+-			dev_err(&client->dev,
+-				"unable to request IRQ!\n");
+-			goto exit;
+-		}
++			client->irq = 0;
++			dev_err(&client->dev, "unable to request IRQ!\n");
++		} else {
+ 
+-		device_set_wakeup_capable(&client->dev, 1);
+-		set_bit(HAS_ALARM, &ds1307->flags);
+-		dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
++			device_set_wakeup_capable(&client->dev, 1);
++			set_bit(HAS_ALARM, &ds1307->flags);
++			dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
++		}
+ 	}
+ 
+ 	if (chip->nvram_size) {
++
+ 		ds1307->nvram = devm_kzalloc(&client->dev,
+ 					sizeof(struct bin_attribute),
+ 					GFP_KERNEL);
+ 		if (!ds1307->nvram) {
+-			err = -ENOMEM;
+-			goto err_irq;
++			dev_err(&client->dev, "cannot allocate memory for nvram sysfs\n");
++		} else {
++
++			ds1307->nvram->attr.name = "nvram";
++			ds1307->nvram->attr.mode = S_IRUGO | S_IWUSR;
++
++			sysfs_bin_attr_init(ds1307->nvram);
++
++			ds1307->nvram->read = ds1307_nvram_read;
++			ds1307->nvram->write = ds1307_nvram_write;
++			ds1307->nvram->size = chip->nvram_size;
++			ds1307->nvram_offset = chip->nvram_offset;
++
++			err = sysfs_create_bin_file(&client->dev.kobj, ds1307->nvram);
++			if (err) {
++				dev_err(&client->dev, "unable to create sysfs file: %s\n", ds1307->nvram->attr.name);
++			} else {
++				set_bit(HAS_NVRAM, &ds1307->flags);
++				dev_info(&client->dev, "%zu bytes nvram\n", ds1307->nvram->size);
++			}
+ 		}
+-		ds1307->nvram->attr.name = "nvram";
+-		ds1307->nvram->attr.mode = S_IRUGO | S_IWUSR;
+-		sysfs_bin_attr_init(ds1307->nvram);
+-		ds1307->nvram->read = ds1307_nvram_read;
+-		ds1307->nvram->write = ds1307_nvram_write;
+-		ds1307->nvram->size = chip->nvram_size;
+-		ds1307->nvram_offset = chip->nvram_offset;
+-		err = sysfs_create_bin_file(&client->dev.kobj, ds1307->nvram);
+-		if (err)
+-			goto err_irq;
+-		set_bit(HAS_NVRAM, &ds1307->flags);
+-		dev_info(&client->dev, "%zu bytes nvram\n", ds1307->nvram->size);
+ 	}
+ 
+ 	return 0;
+ 
+-err_irq:
+-	free_irq(client->irq, client);
+ exit:
+ 	return err;
+ }
+diff -puN drivers/rtc/rtc-ds1511.c~rtc-fixed-potential-race-condition drivers/rtc/rtc-ds1511.c
+--- a/drivers/rtc/rtc-ds1511.c~rtc-fixed-potential-race-condition
++++ a/drivers/rtc/rtc-ds1511.c
+@@ -473,7 +473,6 @@ static struct bin_attribute ds1511_nvram
+ 
+ static int ds1511_rtc_probe(struct platform_device *pdev)
+ {
+-	struct rtc_device *rtc;
+ 	struct resource *res;
+ 	struct rtc_plat_data *pdata;
+ 	int ret = 0;
+@@ -512,6 +511,12 @@ static int ds1511_rtc_probe(struct platf
+ 
+ 	spin_lock_init(&pdata->lock);
+ 	platform_set_drvdata(pdev, pdata);
++
++	pdata->rtc = devm_rtc_device_register(&pdev->dev, pdev->name, &ds1511_rtc_ops,
++					THIS_MODULE);
++	if (IS_ERR(pdata->rtc))
++		return PTR_ERR(pdata->rtc);
++
+ 	/*
+ 	 * if the platform has an interrupt in mind for this device,
+ 	 * then by all means, set it
+@@ -526,15 +531,12 @@ static int ds1511_rtc_probe(struct platf
+ 		}
+ 	}
+ 
+-	rtc = devm_rtc_device_register(&pdev->dev, pdev->name, &ds1511_rtc_ops,
+-					THIS_MODULE);
+-	if (IS_ERR(rtc))
+-		return PTR_ERR(rtc);
+-	pdata->rtc = rtc;
+-
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
++	if (ret) {
++		dev_err(&pdev->dev, "Unable to create sysfs entry: %s\n", ds1511_nvram_attr.attr.name);
++	}
+ 
+-	return ret;
++	return 0;
  }
  
+ static int ds1511_rtc_remove(struct platform_device *pdev)
+diff -puN drivers/rtc/rtc-ds1553.c~rtc-fixed-potential-race-condition drivers/rtc/rtc-ds1553.c
+--- a/drivers/rtc/rtc-ds1553.c~rtc-fixed-potential-race-condition
++++ a/drivers/rtc/rtc-ds1553.c
+@@ -278,7 +278,6 @@ static struct bin_attribute ds1553_nvram
+ 
+ static int ds1553_rtc_probe(struct platform_device *pdev)
+ {
+-	struct rtc_device *rtc;
+ 	struct resource *res;
+ 	unsigned int cen, sec;
+ 	struct rtc_plat_data *pdata;
+@@ -311,6 +310,12 @@ static int ds1553_rtc_probe(struct platf
+ 	spin_lock_init(&pdata->lock);
+ 	pdata->last_jiffies = jiffies;
+ 	platform_set_drvdata(pdev, pdata);
++
++	pdata->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
++				  &ds1553_rtc_ops, THIS_MODULE);
++	if (IS_ERR(pdata->rtc))
++		return PTR_ERR(pdata->rtc);
++
+ 	if (pdata->irq > 0) {
+ 		writeb(0, ioaddr + RTC_INTERRUPTS);
+ 		if (devm_request_irq(&pdev->dev, pdata->irq,
+@@ -321,15 +326,12 @@ static int ds1553_rtc_probe(struct platf
+ 		}
+ 	}
+ 
+-	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+-				  &ds1553_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(rtc))
+-		return PTR_ERR(rtc);
+-	pdata->rtc = rtc;
+-
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1553_nvram_attr);
++	if (ret) {
++		dev_err(&pdev->dev, "unable to create sysfs file: %s\n", ds1553_nvram_attr.attr.name);
++	}
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static int ds1553_rtc_remove(struct platform_device *pdev)
+diff -puN drivers/rtc/rtc-ds1672.c~rtc-fixed-potential-race-condition drivers/rtc/rtc-ds1672.c
+--- a/drivers/rtc/rtc-ds1672.c~rtc-fixed-potential-race-condition
++++ a/drivers/rtc/rtc-ds1672.c
+@@ -177,8 +177,9 @@ static int ds1672_probe(struct i2c_clien
+ 
+ 	/* read control register */
+ 	err = ds1672_get_control(client, &control);
+-	if (err)
+-		goto exit_devreg;
++	if (err) {
++		dev_warn(&client->dev, "Unable to read the control register\n");
++	}
+ 
+ 	if (control & DS1672_REG_CONTROL_EOSC)
+ 		dev_warn(&client->dev, "Oscillator not enabled. "
+@@ -186,13 +187,11 @@ static int ds1672_probe(struct i2c_clien
+ 
+ 	/* Register sysfs hooks */
+ 	err = device_create_file(&client->dev, &dev_attr_control);
+-	if (err)
+-		goto exit_devreg;
++	if (err) {
++		dev_err(&client->dev, "Unable to create sysfs entry: %s\n", dev_attr_control.attr.name);
++	}
+ 
+ 	return 0;
+-
+- exit_devreg:
+-	return err;
+ }
+ 
+ static struct i2c_device_id ds1672_id[] = {
+diff -puN drivers/rtc/rtc-ds1742.c~rtc-fixed-potential-race-condition drivers/rtc/rtc-ds1742.c
+--- a/drivers/rtc/rtc-ds1742.c~rtc-fixed-potential-race-condition
++++ a/drivers/rtc/rtc-ds1742.c
+@@ -204,8 +204,11 @@ static int ds1742_rtc_probe(struct platf
+ 		return PTR_ERR(rtc);
+ 
+ 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &pdata->nvram_attr);
++	if (ret) {
++		dev_err(&pdev->dev, "Unable to create sysfs entry: %s\n", pdata->nvram_attr.attr.name);
++	}
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static int ds1742_rtc_remove(struct platform_device *pdev)
+diff -puN drivers/rtc/rtc-ds3232.c~rtc-fixed-potential-race-condition drivers/rtc/rtc-ds3232.c
+--- a/drivers/rtc/rtc-ds3232.c~rtc-fixed-potential-race-condition
++++ a/drivers/rtc/rtc-ds3232.c
+@@ -414,7 +414,6 @@ static int ds3232_probe(struct i2c_clien
+ 	ds3232->rtc = devm_rtc_device_register(&client->dev, client->name,
+ 					  &ds3232_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(ds3232->rtc)) {
+-		dev_err(&client->dev, "unable to register the class device\n");
+ 		return PTR_ERR(ds3232->rtc);
+ 	}
+ 
+@@ -423,7 +422,6 @@ static int ds3232_probe(struct i2c_clien
+ 				 "ds3232", client);
+ 		if (ret) {
+ 			dev_err(&client->dev, "unable to request IRQ\n");
+-			return ret;
+ 		}
+ 	}
+ 
+diff -puN drivers/rtc/rtc-test.c~rtc-fixed-potential-race-condition drivers/rtc/rtc-test.c
+--- a/drivers/rtc/rtc-test.c~rtc-fixed-potential-race-condition
++++ a/drivers/rtc/rtc-test.c
+@@ -104,20 +104,17 @@ static int test_probe(struct platform_de
+ 	rtc = devm_rtc_device_register(&plat_dev->dev, "test",
+ 				&test_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+-		err = PTR_ERR(rtc);
+-		return err;
++		return PTR_ERR(rtc);
+ 	}
+ 
+ 	err = device_create_file(&plat_dev->dev, &dev_attr_irq);
+-	if (err)
+-		goto err;
++	if (err) {
++		dev_err(&plat_dev->dev, "Unable to create sysfs entry: %s\n", dev_attr_irq.attr.name);
++	}
+ 
+ 	platform_set_drvdata(plat_dev, rtc);
+ 
+ 	return 0;
+-
+-err:
+-	return err;
+ }
+ 
+ static int test_remove(struct platform_device *plat_dev)
+diff -puN drivers/rtc/rtc-x1205.c~rtc-fixed-potential-race-condition drivers/rtc/rtc-x1205.c
+--- a/drivers/rtc/rtc-x1205.c~rtc-fixed-potential-race-condition
++++ a/drivers/rtc/rtc-x1205.c
+@@ -659,8 +659,9 @@ static int x1205_probe(struct i2c_client
+ 	}
+ 
+ 	err = x1205_sysfs_register(&client->dev);
+-	if (err)
+-		return err;
++	if (err) {
++		dev_err(&client->dev, "Unable to create sysfs entries\n");
++	}
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from suleiman@google.com are
+Patches currently in -mm which might be from a.zummo@towertech.it are
 
-mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+rtc-fixed-potential-race-condition.patch
+rtc-fixed-potential-race-condition-checkpatch-fixes.patch
+rtc-verify-a-critical-argument-to-rtc_update_irq-before-using-it.patch
+rtc-pm8xxx-fixup-checkpatch-style-issues.patch
+rtc-pm8xxx-use-regmap-api-for-register-accesses.patch
+rtc-pm8xxx-use-devm_request_any_context_irq.patch
+rtc-pm8xxx-add-support-for-devicetree.patch
+rtc-pm8xxx-move-device_init_wakeup-before-rtc_register.patch
+drivers-rtc-rtc-mc13xxxc-fix-potential-race-condition.patch
+rtc-add-support-for-maxim-dallas-rtc-ds1347.patch
 
