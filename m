@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-iput-inode-alloc-when-failed-locally.patch added to -mm
- tree
-Date: Tue, 01 Apr 2014 14:26:05 -0700
-Message-ID: <533b2eed.NGF+ksMsBSKPrw/v%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock.patch added to
+ -mm tree
+Date: Tue, 01 Apr 2014 14:36:15 -0700
+Message-ID: <533b314f.NBEcRmte/qA/P+96%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38553 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38811 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481AbaDAV0G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2014 17:26:06 -0400
+	with ESMTP id S1751451AbaDAVgQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2014 17:36:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.de, joseph.qi@huawei.com, jlbec@evilplan.org, jiangyiwen@huawei.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, jiangyiwen@huawei.com
 
-Subject: + ocfs2-iput-inode-alloc-when-failed-locally.patch added to -mm tree
-To: jiangyiwen@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.de
+Subject: + ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock.patch added to -mm tree
+To: jiangyiwen@huawei.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com
 From: akpm@linux-foundation.org
-Date: Tue, 01 Apr 2014 14:26:05 -0700
+Date: Tue, 01 Apr 2014 14:36:15 -0700
 
 
 The patch titled
-     Subject: ocfs2: iput inode alloc when failed locally
+     Subject: ocfs2: avoid system inode ref confusion by adding mutex lock
 has been added to the -mm tree.  Its filename is
-     ocfs2-iput-inode-alloc-when-failed-locally.patch
+     ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-iput-inode-alloc-when-failed-locally.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-iput-inode-alloc-when-failed-locally.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,59 +46,95 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: jiangyiwen <jiangyiwen@huawei.com>
-Subject: ocfs2: iput inode alloc when failed locally
+Subject: ocfs2: avoid system inode ref confusion by adding mutex lock
 
-In ocfs2_info_handle_freeinode() and ocfs2_test_inode_bit() func, after
-calls ocfs2_get_system_file_inode() to get inode ref, if calls
-ocfs2_info_scan_inode_alloc() or ocfs2_inode_lock() failed, we should iput
-inode alloc to avoid leaking the inode.
+The following case may lead to the same system inode ref in confusion.
+
+A thread                            B thread
+ocfs2_get_system_file_inode
+->get_local_system_inode
+->_ocfs2_get_system_file_inode
+                                    because of *arr == NULL,
+                                    ocfs2_get_system_file_inode
+                                    ->get_local_system_inode
+                                    ->_ocfs2_get_system_file_inode
+gets first ref thru
+_ocfs2_get_system_file_inode,
+gets second ref thru igrab and
+set *arr = inode
+                                    at the moment, B thread also gets
+                                    two refs, so lead to one more
+                                    inode ref.
+
+So add mutex lock to avoid multi thread set two inode ref once at the same
+time.
 
 Signed-off-by: jiangyiwen <jiangyiwen@huawei.com>
 Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ioctl.c    |    5 +++--
- fs/ocfs2/suballoc.c |    1 +
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ fs/ocfs2/ocfs2.h   |    2 ++
+ fs/ocfs2/super.c   |    2 ++
+ fs/ocfs2/sysfile.c |    3 +++
+ 3 files changed, 7 insertions(+)
 
-diff -puN fs/ocfs2/ioctl.c~ocfs2-iput-inode-alloc-when-failed-locally fs/ocfs2/ioctl.c
---- a/fs/ocfs2/ioctl.c~ocfs2-iput-inode-alloc-when-failed-locally
-+++ a/fs/ocfs2/ioctl.c
-@@ -413,11 +413,12 @@ int ocfs2_info_handle_freeinode(struct i
- 		}
- 
- 		status = ocfs2_info_scan_inode_alloc(osb, inode_alloc, blkno, oifi, i);
--		if (status < 0)
--			goto bail;
- 
- 		iput(inode_alloc);
- 		inode_alloc = NULL;
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock
++++ a/fs/ocfs2/ocfs2.h
+@@ -446,6 +446,8 @@ struct ocfs2_super
+ 	/* rb tree root for refcount lock. */
+ 	struct rb_root	osb_rf_lock_tree;
+ 	struct ocfs2_refcount_tree *osb_ref_tree_lru;
 +
-+		if (status < 0)
-+			goto bail;
- 	}
++	struct mutex system_file_mutex;
+ };
  
- 	o2info_set_request_filled(&oifi->ifi_req);
-diff -puN fs/ocfs2/suballoc.c~ocfs2-iput-inode-alloc-when-failed-locally fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-iput-inode-alloc-when-failed-locally
-+++ a/fs/ocfs2/suballoc.c
-@@ -2894,6 +2894,7 @@ int ocfs2_test_inode_bit(struct ocfs2_su
- 	status = ocfs2_inode_lock(inode_alloc_inode, &alloc_bh, 0);
- 	if (status < 0) {
- 		mutex_unlock(&inode_alloc_inode->i_mutex);
-+		iput(inode_alloc_inode);
- 		mlog(ML_ERROR, "lock on alloc inode on slot %u failed %d\n",
- 		     (u32)suballoc_slot, status);
- 		goto bail;
+ #define OCFS2_SB(sb)	    ((struct ocfs2_super *)(sb)->s_fs_info)
+diff -puN fs/ocfs2/super.c~ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock
++++ a/fs/ocfs2/super.c
+@@ -2100,6 +2100,8 @@ static int ocfs2_initialize_super(struct
+ 	spin_lock_init(&osb->osb_xattr_lock);
+ 	ocfs2_init_steal_slots(osb);
+ 
++	mutex_init(&osb->system_file_mutex);
++
+ 	atomic_set(&osb->alloc_stats.moves, 0);
+ 	atomic_set(&osb->alloc_stats.local_data, 0);
+ 	atomic_set(&osb->alloc_stats.bitmap_data, 0);
+diff -puN fs/ocfs2/sysfile.c~ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock fs/ocfs2/sysfile.c
+--- a/fs/ocfs2/sysfile.c~ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock
++++ a/fs/ocfs2/sysfile.c
+@@ -113,9 +113,11 @@ struct inode *ocfs2_get_system_file_inod
+ 	} else
+ 		arr = get_local_system_inode(osb, type, slot);
+ 
++	mutex_lock(&osb->system_file_mutex);
+ 	if (arr && ((inode = *arr) != NULL)) {
+ 		/* get a ref in addition to the array ref */
+ 		inode = igrab(inode);
++		mutex_unlock(&osb->system_file_mutex);
+ 		BUG_ON(!inode);
+ 
+ 		return inode;
+@@ -129,6 +131,7 @@ struct inode *ocfs2_get_system_file_inod
+ 		*arr = igrab(inode);
+ 		BUG_ON(!*arr);
+ 	}
++	mutex_unlock(&osb->system_file_mutex);
+ 	return inode;
+ }
+ 
 _
 
 Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
 ocfs2-fix-a-tiny-race-when-running-dirop_fileop_racer.patch
 ocfs2-iput-inode-alloc-when-failed-locally.patch
+ocfs2-avoid-system-inode-ref-confusion-by-adding-mutex-lock.patch
 ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
 ocfs2-manually-do-the-iput-once-ocfs2_add_entry-failed-in-ocfs2_symlink-and-ocfs2_mknod.patch
 
