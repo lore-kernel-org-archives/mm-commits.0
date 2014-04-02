@@ -1,104 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch added
- to -mm tree
-Date: Tue, 01 Apr 2014 16:08:44 -0700
-Message-ID: <533b46fc.gvtY3ENsHOm86aFF%akpm@linux-foundation.org>
+Subject: [merged]
+ slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch removed from -mm tree
+Date: Wed, 02 Apr 2014 12:58:18 -0700
+Message-ID: <533c6bda.9RzaV3IAsw62sjTG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39443 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49751 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753144AbaDAXIp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2014 19:08:45 -0400
+	with ESMTP id S932688AbaDBT6T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2014 15:58:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, jwboyer@redhat.com, jhubbard@nvidia.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, penberg@kernel.org, cl@linux.com, casteyde.christian@free.fr, iamjoonsoo.kim@lge.com
 
-Subject: + mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch added to -mm tree
-To: jhubbard@nvidia.com,jwboyer@redhat.com,sasha.levin@oracle.com
+Subject: [merged] slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch removed from -mm tree
+To: iamjoonsoo.kim@lge.com,casteyde.christian@free.fr,cl@linux.com,penberg@kernel.org,rientjes@google.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 01 Apr 2014 16:08:44 -0700
+Date: Wed, 02 Apr 2014 12:58:18 -0700
 
 
 The patch titled
-     Subject: mm/page_alloc.c: change mm debug routines back to EXPORT_SYMBOL
-has been added to the -mm tree.  Its filename is
-     mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
+     Subject: slub: fix high order page allocation problem with  __GFP_NOFAIL
+has been removed from the -mm tree.  Its filename was
+     slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/page_alloc.c: change mm debug routines back to EXPORT_SYMBOL
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: slub: fix high order page allocation problem with  __GFP_NOFAIL
 
-A new dump_page() routine was recently added, and marked
-EXPORT_SYMBOL_GPL.  dump_page() was also added to the VM_BUG_ON_PAGE()
-macro, and so the end result is that non-GPL code can no longer call
-get_page() and a few other routines.
+SLUB already try to allocate high order page with clearing __GFP_NOFAIL. 
+But, when allocating shadow page for kmemcheck, it missed clearing the
+flag.  This trigger WARN_ON_ONCE() reported by Christian Casteyde.
 
-This only happens if the kernel was compiled with CONFIG_DEBUG_VM.
+https://bugzilla.kernel.org/show_bug.cgi?id=65991
+https://lkml.org/lkml/2013/12/3/764
 
-Change dump_page() to be EXPORT_SYMBOL.
+This patch fix this situation by using same allocation flag as original
+allocation.
 
-Longer explanation:
-
-Prior to 309381feaee564 ("mm: dump page when hitting a VM_BUG_ON using
-VM_BUG_ON_PAGE") , it was possible to build MIT-licensed (non-GPL) drivers
-on Fedora.  Fedora is semi-unique, in that it sets CONFIG_VM_DEBUG.
-
-Because Fedora sets CONFIG_VM_DEBUG, they end up pulling in dump_page(),
-via VM_BUG_ON_PAGE, via get_page().  As one of the authors of NVIDIA's
-new, open source, "UVM-Lite" kernel module, I originally choose to use the
-kernel's get_page() routine from within nvidia_uvm_page_cache.c, because
-get_page() has always seemed to be very clearly intended for use by
-non-GPL, driver code.
-
-So I'm hoping that making get_page() widely accessible again will not be
-too controversial.  We did check with Fedora first, and they responded
-(https://bugzilla.redhat.com/show_bug.cgi?id=1074710#c3) that we should
-try to get upstream changed, before asking Fedora to change.  Their
-reasoning seems beneficial to Linux: leaving CONFIG_DEBUG_VM set allows
-Fedora to help catch mm bugs.
-
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Josh Boyer <jwboyer@redhat.com>
-
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reported-by: Christian Casteyde <casteyde.christian@free.fr>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-change-mm-debug-routines-back-to-export_symbol mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-change-mm-debug-routines-back-to-export_symbol
-+++ a/mm/page_alloc.c
-@@ -6566,4 +6566,4 @@ void dump_page(struct page *page, const
- {
- 	dump_page_badflags(page, reason, 0);
- }
--EXPORT_SYMBOL_GPL(dump_page);
-+EXPORT_SYMBOL(dump_page);
+diff -puN mm/slub.c~slub-fix-high-order-page-allocation-problem-with-__gfp_nofail mm/slub.c
+--- a/mm/slub.c~slub-fix-high-order-page-allocation-problem-with-__gfp_nofail
++++ a/mm/slub.c
+@@ -1348,11 +1348,12 @@ static struct page *allocate_slab(struct
+ 	page = alloc_slab_page(alloc_gfp, node, oo);
+ 	if (unlikely(!page)) {
+ 		oo = s->min;
++		alloc_gfp = flags;
+ 		/*
+ 		 * Allocation may have failed due to fragmentation.
+ 		 * Try a lower order alloc if possible
+ 		 */
+-		page = alloc_slab_page(flags, node, oo);
++		page = alloc_slab_page(alloc_gfp, node, oo);
+ 
+ 		if (page)
+ 			stat(s, ORDER_FALLBACK);
+@@ -1362,7 +1363,7 @@ static struct page *allocate_slab(struct
+ 		&& !(s->flags & (SLAB_NOTRACK | DEBUG_DEFAULT_FLAGS))) {
+ 		int pages = 1 << oo_order(oo);
+ 
+-		kmemcheck_alloc_shadow(page, oo_order(oo), flags, node);
++		kmemcheck_alloc_shadow(page, oo_order(oo), alloc_gfp, node);
+ 
+ 		/*
+ 		 * Objects from caches that have a constructor don't get
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
+kthread-ensure-locality-of-task_struct-allocations.patch
+mm-hugetlb-unify-region-structure-handling.patch
+mm-hugetlb-improve-cleanup-resv_map-parameters.patch
+mm-hugetlb-fix-race-in-region-tracking.patch
+mm-hugetlb-remove-resv_map_put.patch
+mm-hugetlb-use-vma_resv_map-map-types.patch
+mm-hugetlb-improve-page-fault-scalability.patch
+mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
+mm-compaction-avoid-isolating-pinned-pages.patch
+mm-compaction-disallow-high-order-page-for-migration-target.patch
+mm-compaction-do-not-call-suitable_migration_target-on-every-page.patch
+mm-compaction-change-the-timing-to-check-to-drop-the-spinlock.patch
+mm-compaction-check-pageblock-suitability-once-per-pageblock.patch
+mm-compaction-clean-up-code-on-success-of-ballon-isolation.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-compaction-determine-isolation-mode-only-once.patch
+mm-vmallocc-enhance-vm_map_ram-comment.patch
+mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+mm-try_to_unmap_cluster-should-lock_page-before-mlocking.patch
+mm-hugetlb-fix-softlockup-when-a-large-number-of-hugepages-are-freed.patch
+zram-support-req_discard.patch
+zram-support-req_discard-v4.patch
+zram-support-req_discard-v4-fix.patch
+rtc-fixed-potential-race-condition.patch
+rtc-fixed-potential-race-condition-checkpatch-fixes.patch
+linux-next.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
