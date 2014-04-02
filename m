@@ -1,116 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch removed from -mm tree
-Date: Wed, 02 Apr 2014 12:58:18 -0700
-Message-ID: <533c6bda.9RzaV3IAsw62sjTG%akpm@linux-foundation.org>
+Subject: +
+ pid_namespace-pidns_get-should-check-task_active_pid_ns-=-null.patch added
+ to -mm tree
+Date: Wed, 02 Apr 2014 14:23:06 -0700
+Message-ID: <533c7fba.wMVjMC2jCTk49VmG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49751 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50455 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932688AbaDBT6T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2014 15:58:19 -0400
+	with ESMTP id S932867AbaDBVXH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2014 17:23:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rientjes@google.com, penberg@kernel.org, cl@linux.com, casteyde.christian@free.fr, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mdempsky@chromium.org, mcgrathr@chromium.org, keescook@chromium.org, jln@chromium.org, jan.kratochvil@redhat.com, ebiederm@xmission.com, oleg@redhat.com
 
-Subject: [merged] slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch removed from -mm tree
-To: iamjoonsoo.kim@lge.com,casteyde.christian@free.fr,cl@linux.com,penberg@kernel.org,rientjes@google.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: + pid_namespace-pidns_get-should-check-task_active_pid_ns-=-null.patch added to -mm tree
+To: oleg@redhat.com,ebiederm@xmission.com,jan.kratochvil@redhat.com,jln@chromium.org,keescook@chromium.org,mcgrathr@chromium.org,mdempsky@chromium.org,stable@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 02 Apr 2014 12:58:18 -0700
+Date: Wed, 02 Apr 2014 14:23:06 -0700
 
 
 The patch titled
-     Subject: slub: fix high order page allocation problem with  __GFP_NOFAIL
-has been removed from the -mm tree.  Its filename was
-     slub-fix-high-order-page-allocation-problem-with-__gfp_nofail.patch
+     Subject: pid_namespace: pidns_get() should check task_active_pid_ns() != NULL
+has been added to the -mm tree.  Its filename is
+     pid_namespace-pidns_get-should-check-task_active_pid_ns-=-null.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/pid_namespace-pidns_get-should-check-task_active_pid_ns-=-null.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/pid_namespace-pidns_get-should-check-task_active_pid_ns-=-null.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: slub: fix high order page allocation problem with  __GFP_NOFAIL
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: pid_namespace: pidns_get() should check task_active_pid_ns() != NULL
 
-SLUB already try to allocate high order page with clearing __GFP_NOFAIL. 
-But, when allocating shadow page for kmemcheck, it missed clearing the
-flag.  This trigger WARN_ON_ONCE() reported by Christian Casteyde.
+pidns_get()->get_pid_ns() can hit ns == NULL. This task_struct can't
+go away, but task_active_pid_ns(task) is NULL if release_task(task)
+was already called. Alternatively we could change get_pid_ns(ns) to
+check ns != NULL, but it seems that other callers are fine.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=65991
-https://lkml.org/lkml/2013/12/3/764
-
-This patch fix this situation by using same allocation flag as original
-allocation.
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Christian Casteyde <casteyde.christian@free.fr>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Matthew Dempsky <mdempsky@chromium.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Julien Tinnes <jln@chromium.org>
+Cc: Roland McGrath <mcgrathr@chromium.org>
+Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/pid_namespace.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-fix-high-order-page-allocation-problem-with-__gfp_nofail mm/slub.c
---- a/mm/slub.c~slub-fix-high-order-page-allocation-problem-with-__gfp_nofail
-+++ a/mm/slub.c
-@@ -1348,11 +1348,12 @@ static struct page *allocate_slab(struct
- 	page = alloc_slab_page(alloc_gfp, node, oo);
- 	if (unlikely(!page)) {
- 		oo = s->min;
-+		alloc_gfp = flags;
- 		/*
- 		 * Allocation may have failed due to fragmentation.
- 		 * Try a lower order alloc if possible
- 		 */
--		page = alloc_slab_page(flags, node, oo);
-+		page = alloc_slab_page(alloc_gfp, node, oo);
+diff -puN kernel/pid_namespace.c~pid_namespace-pidns_get-should-check-task_active_pid_ns-=-null kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pid_namespace-pidns_get-should-check-task_active_pid_ns-=-null
++++ a/kernel/pid_namespace.c
+@@ -318,7 +318,9 @@ static void *pidns_get(struct task_struc
+ 	struct pid_namespace *ns;
  
- 		if (page)
- 			stat(s, ORDER_FALLBACK);
-@@ -1362,7 +1363,7 @@ static struct page *allocate_slab(struct
- 		&& !(s->flags & (SLAB_NOTRACK | DEBUG_DEFAULT_FLAGS))) {
- 		int pages = 1 << oo_order(oo);
+ 	rcu_read_lock();
+-	ns = get_pid_ns(task_active_pid_ns(task));
++	ns = task_active_pid_ns(task);
++	if (ns)
++		get_pid_ns(ns);
+ 	rcu_read_unlock();
  
--		kmemcheck_alloc_shadow(page, oo_order(oo), flags, node);
-+		kmemcheck_alloc_shadow(page, oo_order(oo), alloc_gfp, node);
- 
- 		/*
- 		 * Objects from caches that have a constructor don't get
+ 	return ns;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
+origin.patch
+pid_namespace-pidns_get-should-check-task_active_pid_ns-=-null.patch
 kthread-ensure-locality-of-task_struct-allocations.patch
-mm-hugetlb-unify-region-structure-handling.patch
-mm-hugetlb-improve-cleanup-resv_map-parameters.patch
-mm-hugetlb-fix-race-in-region-tracking.patch
-mm-hugetlb-remove-resv_map_put.patch
-mm-hugetlb-use-vma_resv_map-map-types.patch
-mm-hugetlb-improve-page-fault-scalability.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
-mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
-mm-compaction-avoid-isolating-pinned-pages.patch
-mm-compaction-disallow-high-order-page-for-migration-target.patch
-mm-compaction-do-not-call-suitable_migration_target-on-every-page.patch
-mm-compaction-change-the-timing-to-check-to-drop-the-spinlock.patch
-mm-compaction-check-pageblock-suitability-once-per-pageblock.patch
-mm-compaction-clean-up-code-on-success-of-ballon-isolation.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-compaction-determine-isolation-mode-only-once.patch
-mm-vmallocc-enhance-vm_map_ram-comment.patch
-mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
-mm-try_to_unmap_cluster-should-lock_page-before-mlocking.patch
-mm-hugetlb-fix-softlockup-when-a-large-number-of-hugepages-are-freed.patch
-zram-support-req_discard.patch
-zram-support-req_discard-v4.patch
-zram-support-req_discard-v4-fix.patch
-rtc-fixed-potential-race-condition.patch
-rtc-fixed-potential-race-condition-checkpatch-fixes.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch
+mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
+exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
+mm-per-thread-vma-caching.patch
+mm-per-thread-vma-caching-fix-4.patch
+mm-per-thread-vma-caching-fix-6.patch
+mm-per-thread-vma-caching-fix-6-fix.patch
+fork-collapse-copy_flags-into-copy_process.patch
+mm-mempolicy-rename-slab_node-for-clarity.patch
+mm-mempolicy-remove-per-process-flag.patch
+res_counter-remove-interface-for-locked-charging-and-uncharging.patch
+exit-call-disassociate_ctty-before-exit_task_namespaces.patch
+exit-move-check_stack_usage-to-the-end-of-do_exit.patch
+exitc-call-proc_exit_connector-after-exit_state-is-set.patch
+proc-show-mnt_id-in-proc-pid-fdinfo.patch
+procfs-make-proc-stacksyscallpersonality-0400.patch
+procfs-make-proc-pagemap-0400.patch
+exec-kill-bprm-tcomm-simplify-the-basename-logic.patch
+wait-fix-reparent_leader-vs-exit_dead-exit_zombie-race.patch
+wait-introduce-exit_trace-to-avoid-the-racy-exit_dead-exit_zombie-transition.patch
+wait-use-exit_trace-only-if-thread_group_leaderzombie.patch
+wait-completely-ignore-the-exit_dead-tasks.patch
+wait-swap-exit_zombie-and-exit_dead-to-hide-exit_trace-from-user-space.patch
+wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent.patch
+wait-wstoppedwcontinued-doesnt-work-if-a-zombie-leader-is-traced-by-another-process.patch
 linux-next.patch
-page-owners-correct-page-order-when-to-free-page.patch
 
