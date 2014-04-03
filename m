@@ -1,60 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch removed from -mm tree
-Date: Thu, 03 Apr 2014 14:09:08 -0700
-Message-ID: <533dcdf4.u5ZMtrk2qI3ACITZ%akpm@linux-foundation.org>
+Subject: [folded-merged] sys_sysfs-add-config_sysfs_syscall-fix.patch
+ removed from -mm tree
+Date: Thu, 03 Apr 2014 14:09:22 -0700
+Message-ID: <533dce02.F13ZyExgyXoZ2W5n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60818 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60820 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753715AbaDCVJJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:09:09 -0400
+	with ESMTP id S1753569AbaDCVJX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:09:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rashika.kheria@gmail.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, fabf@skynet.be, akpm@linux-foundation.org
 
-Subject: [folded-merged] include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,rashika.kheria@gmail.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] sys_sysfs-add-config_sysfs_syscall-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,fabf@skynet.be,rdunlap@infradead.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Apr 2014 14:09:08 -0700
+Date: Thu, 03 Apr 2014 14:09:22 -0700
 
 
 The patch titled
-     Subject: include-linux-syscallsh-add-sys32_quotactl-prototype-fix
+     Subject: sys_sysfs-add-config_sysfs_syscall-fix
 has been removed from the -mm tree.  Its filename was
-     include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
+     sys_sysfs-add-config_sysfs_syscall-fix.patch
 
-This patch was dropped because it was folded into include-linux-syscallsh-add-sys32_quotactl-prototype.patch
+This patch was dropped because it was folded into sys_sysfs-add-config_sysfs_syscall.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-linux-syscallsh-add-sys32_quotactl-prototype-fix
+Subject: sys_sysfs-add-config_sysfs_syscall-fix
 
-Cc: Rashika Kheria <rashika.kheria@gmail.com>
+tweak Kconfig help text
+
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/syscalls.h |    3 ---
- 1 file changed, 3 deletions(-)
+ init/Kconfig |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/syscalls.h~include-linux-syscallsh-add-sys32_quotactl-prototype-fix include/linux/syscalls.h
---- a/include/linux/syscalls.h~include-linux-syscallsh-add-sys32_quotactl-prototype-fix
-+++ a/include/linux/syscalls.h
-@@ -198,11 +198,8 @@ extern struct trace_event_functions exit
- 	}								\
- 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__))
+diff -puN init/Kconfig~sys_sysfs-add-config_sysfs_syscall-fix init/Kconfig
+--- a/init/Kconfig~sys_sysfs-add-config_sysfs_syscall-fix
++++ a/init/Kconfig
+@@ -1294,9 +1294,9 @@ config SYSFS_SYSCALL
+ 	bool "Sysfs syscall support" if EXPERT
+ 	default y
+ 	---help---
+-	  sys_sysfs is an obsolete system call no longer supported in
+-	  libc.Note that disabling this option while being more secure breaks
+-	  compatibility with other systems.
++	  sys_sysfs is an obsolete system call no longer supported in libc.
++	  Note that disabling this option is more secure but might break
++	  compatibility with some systems.
  
--#ifdef CONFIG_QUOTACTL_COMPAT
- asmlinkage long sys32_quotactl(unsigned int cmd, const char __user *special,
- 			       qid_t id, void __user *addr);
--#endif
--
- asmlinkage long sys_time(time_t __user *tloc);
- asmlinkage long sys_stime(time_t __user *tptr);
- asmlinkage long sys_gettimeofday(struct timeval __user *tv,
+ 	  If unsure say Y here.
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,8 +73,7 @@ mm-vmstat-fix-up-zone-state-accounting.patch
 mm-keep-page-cache-radix-tree-nodes-in-check.patch
 mm-process_vm_accessc-mark-function-as-static.patch
 drop_caches-add-some-documentation-and-info-message.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype.patch
-sys_sysfs-add-config_sysfs_syscall-fix.patch
+sys_sysfs-add-config_sysfs_syscall.patch
 kernel-groupsc-remove-return-value-of-set_groups-fix.patch
 xattr-guard-against-simultaneous-glibc-header-inclusion-v2.patch
 lib-syscallc-unexport-task_current_syscall.patch
