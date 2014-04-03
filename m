@@ -1,100 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] befs-logging-clean-up-fix.patch removed from -mm
- tree
-Date: Thu, 03 Apr 2014 14:12:33 -0700
-Message-ID: <533dcec1.gFBG6EeW61zxegZk%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
+ removed from -mm tree
+Date: Thu, 03 Apr 2014 14:12:55 -0700
+Message-ID: <533dced7.rLnURPtLj9kWFFF4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60903 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753574AbaDCVMe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:12:34 -0400
+	with ESMTP id S1753581AbaDCVM4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:12:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, fengguang.wu@gmail.com, fabf@skynet.be, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp
 
-Subject: [folded-merged] befs-logging-clean-up-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,fabf@skynet.be,fengguang.wu@gmail.com,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch removed from -mm tree
+To: konishi.ryusuke@lab.ntt.co.jp,andreas.rohner@gmx.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Apr 2014 14:12:33 -0700
+Date: Thu, 03 Apr 2014 14:12:55 -0700
 
 
 The patch titled
-     Subject: befs-logging-clean-up-fix
+     Subject: nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix
 has been removed from the -mm tree.  Its filename was
-     befs-logging-clean-up-fix.patch
+     nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix.patch
 
-This patch was dropped because it was folded into befs-logging-clean-up.patch
+This patch was dropped because it was folded into nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: befs-logging-clean-up-fix
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix
 
-fix printk warnings, reported by Fengguang
+Use put_bh() instead of brelse() because we know bh != NULL.
 
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Joe Perches <joe@perches.com>
-Cc: Fengguang Wu <fengguang.wu@gmail.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Andreas Rohner <andreas.rohner@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/btree.c |    6 +++---
+ fs/nilfs2/sufile.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/befs/btree.c~befs-logging-clean-up-fix fs/befs/btree.c
---- a/fs/befs/btree.c~befs-logging-clean-up-fix
-+++ a/fs/befs/btree.c
-@@ -263,7 +263,7 @@ befs_btree_find(struct super_block *sb,
- 	this_node = kmalloc(sizeof (befs_btree_node),
- 						GFP_NOFS);
- 	if (!this_node) {
--		befs_error(sb, "befs_btree_find() failed to allocate %u "
-+		befs_error(sb, "befs_btree_find() failed to allocate %zu "
- 			   "bytes of memory", sizeof (befs_btree_node));
- 		goto error;
- 	}
-@@ -437,7 +437,7 @@ befs_btree_read(struct super_block *sb,
- 	}
+diff -puN fs/nilfs2/sufile.c~nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix fs/nilfs2/sufile.c
+--- a/fs/nilfs2/sufile.c~nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage-fix
++++ a/fs/nilfs2/sufile.c
+@@ -978,13 +978,13 @@ ssize_t nilfs_sufile_set_suinfo(struct i
  
- 	if ((this_node = kmalloc(sizeof (befs_btree_node), GFP_NOFS)) == NULL) {
--		befs_error(sb, "befs_btree_read() failed to allocate %u "
-+		befs_error(sb, "befs_btree_read() failed to allocate %zu "
- 			   "bytes of memory", sizeof (befs_btree_node));
- 		goto error;
+ 		/* get different block */
+ 		mark_buffer_dirty(bh);
+-		brelse(bh);
++		put_bh(bh);
+ 		ret = nilfs_mdt_get_block(sufile, blkoff, 1, NULL, &bh);
+ 		if (unlikely(ret < 0))
+ 			goto out_mark;
  	}
-@@ -498,7 +498,7 @@ befs_btree_read(struct super_block *sb,
- 		   (int)keylen);
+ 	mark_buffer_dirty(bh);
+-	brelse(bh);
++	put_bh(bh);
  
- 	if (bufsize < keylen + 1) {
--		befs_error(sb, "%s keybuf too small (%u) "
-+		befs_error(sb, "%s keybuf too small (%zu) "
- 			   "for key of size %d", __func__, bufsize, keylen);
- 		brelse(this_node->bh);
- 		goto error_alloc;
+  out_mark:
+ 	if (ncleaned || ndirtied) {
+@@ -994,7 +994,7 @@ ssize_t nilfs_sufile_set_suinfo(struct i
+ 	}
+ 	nilfs_mdt_mark_dirty(sufile);
+  out_header:
+-	brelse(header_bh);
++	put_bh(header_bh);
+  out_sem:
+ 	up_write(&NILFS_MDT(sufile)->mi_sem);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-origin.patch
-fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
-ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
-ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch
-mm-hugetlb-improve-page-fault-scalability.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-process_vm_accessc-mark-function-as-static.patch
-drop_caches-add-some-documentation-and-info-message.patch
-sys_sysfs-add-config_sysfs_syscall.patch
-kernel-groupsc-remove-return-value-of-set_groups.patch
-xattr-guard-against-simultaneous-glibc-header-inclusion-v2.patch
-lib-syscallc-unexport-task_current_syscall.patch
-scripts-checkpatchpl-__gfp_nofail-isnt-going-away.patch
-rtc-fixed-potential-race-condition.patch
-befs-logging-clean-up.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+nilfs2-update-maintainers-file-entries.patch
+nilfs2-add-struct-nilfs_suinfo_update-and-flags.patch
+nilfs2-add-nilfs_sufile_set_suinfo-to-update-segment-usage.patch
+nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl.patch
+nilfs2-implementation-of-nilfs_ioctl_set_suinfo-ioctl-fix.patch
+nilfs2-add-nilfs_sufile_trim_fs-to-trim-clean-segs.patch
+nilfs2-add-fitrim-ioctl-support-for-nilfs2.patch
+nilfs2-verify-metadata-sizes-read-from-disk.patch
+nilfs2-update-maintainers-file-entries-fix.patch
+nilfs2-update-projects-web-site-in-nilfs2txt.patch
 
