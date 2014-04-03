@@ -1,85 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kernel-groupsc-remove-return-value-of-set_groups-fix.patch removed from -mm tree
-Date: Thu, 03 Apr 2014 14:09:57 -0700
-Message-ID: <533dce25.CVCKQKsKdVSVBNBR%akpm@linux-foundation.org>
+ fs-kernel-permit-disabling-the-uselib-syscall-v2.patch removed from -mm
+ tree
+Date: Thu, 03 Apr 2014 14:10:18 -0700
+Message-ID: <533dce3a.Zc/P+WNbUbGdA296%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60824 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60829 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753592AbaDCVJ6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:09:58 -0400
+	with ESMTP id S1753686AbaDCVKT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:10:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, udknight@gmail.com, serge.hallyn@canonical.com, eparis@redhat.com, ebiederm@xmission.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, josh@joshtriplett.org
 
-Subject: [folded-merged] kernel-groupsc-remove-return-value-of-set_groups-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,ebiederm@xmission.com,eparis@redhat.com,serge.hallyn@canonical.com,udknight@gmail.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] fs-kernel-permit-disabling-the-uselib-syscall-v2.patch removed from -mm tree
+To: josh@joshtriplett.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Apr 2014 14:09:57 -0700
+Date: Thu, 03 Apr 2014 14:10:18 -0700
 
 
 The patch titled
-     Subject: kernel-groupsc-remove-return-value-of-set_groups-fix
+     Subject: fs-kernel-permit-disabling-the-uselib-syscall-v2
 has been removed from the -mm tree.  Its filename was
-     kernel-groupsc-remove-return-value-of-set_groups-fix.patch
+     fs-kernel-permit-disabling-the-uselib-syscall-v2.patch
 
-This patch was dropped because it was folded into kernel-groupsc-remove-return-value-of-set_groups.patch
+This patch was dropped because it was folded into fs-kernel-permit-disabling-the-uselib-syscall.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-groupsc-remove-return-value-of-set_groups-fix
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: fs-kernel-permit-disabling-the-uselib-syscall-v2
 
-remove obsolete claims from set_groups() comment
+v2: Add "default y", unintentionally omitted from the first patch.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Wang YanQing <udknight@gmail.com>
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/groups.c |    3 ---
- 1 file changed, 3 deletions(-)
+ init/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/groups.c~kernel-groupsc-remove-return-value-of-set_groups-fix kernel/groups.c
---- a/kernel/groups.c~kernel-groupsc-remove-return-value-of-set_groups-fix
-+++ a/kernel/groups.c
-@@ -157,9 +157,6 @@ int groups_search(const struct group_inf
-  * set_groups - Change a group subscription in a set of credentials
-  * @new: The newly prepared set of credentials to alter
-  * @group_info: The group list to install
-- *
-- * Validate a group subscription and, if valid, insert it into a set
-- * of credentials.
-  */
- void set_groups(struct cred *new, struct group_info *group_info)
- {
+diff -puN init/Kconfig~fs-kernel-permit-disabling-the-uselib-syscall-v2 init/Kconfig
+--- a/init/Kconfig~fs-kernel-permit-disabling-the-uselib-syscall-v2
++++ a/init/Kconfig
+@@ -275,6 +275,7 @@ config FHANDLE
+ 
+ config USELIB
+ 	bool "uselib syscall"
++	default y
+ 	help
+ 	  This option enables the uselib syscall, a system call used in the
+ 	  dynamic linker from libc5 and earlier.  glibc does not use this
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
 origin.patch
-fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
-ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
-ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch
-mm-hugetlb-improve-page-fault-scalability.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-compactionc-mark-function-as-static.patch
+mm-memoryc-mark-functions-as-static.patch
+mm-mmapc-mark-function-as-static.patch
 mm-process_vm_accessc-mark-function-as-static.patch
-drop_caches-add-some-documentation-and-info-message.patch
-sys_sysfs-add-config_sysfs_syscall.patch
-kernel-groupsc-remove-return-value-of-set_groups.patch
-xattr-guard-against-simultaneous-glibc-header-inclusion-v2.patch
-lib-syscallc-unexport-task_current_syscall.patch
-scripts-checkpatchpl-__gfp_nofail-isnt-going-away.patch
-checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch
-rtc-fixed-potential-race-condition-checkpatch-fixes.patch
-befs-logging-clean-up-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
-hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
+mm-page_cgroupc-mark-functions-as-static.patch
+mm-nobootmemc-mark-function-as-static.patch
+include-linux-mmh-remove-ifdef-condition.patch
+include-linux-syscallsh-add-sys32_quotactl-prototype.patch
+fs-kernel-permit-disabling-the-uselib-syscall.patch
+submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
+submittingpatches-add-recommendation-for-mailing-list-references.patch
+submittingpatches-document-the-use-of-git.patch
+lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
+lib-decompress_inflatec-include-appropriate-header-file.patch
+checkpatch-make-return-is-not-a-function-test-quieter.patch
+fs-reiserfs-move-prototype-declaration-to-header-file.patch
 
