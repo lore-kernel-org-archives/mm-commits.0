@@ -1,111 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] backing_dev-fix-hung-task-on-sync-fix.patch
- removed from -mm tree
-Date: Thu, 03 Apr 2014 14:00:55 -0700
-Message-ID: <533dcc07.vpLOpFj9Chdo442a%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled-v4.patch removed from -mm tree
+Date: Thu, 03 Apr 2014 14:01:33 -0700
+Message-ID: <533dcc2d.x6Xy2kD9dtGoa2a6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60592 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751866AbaDCVA4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:00:56 -0400
+	with ESMTP id S1753761AbaDCVBe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:01:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, dbasehore@chromium.org, jack@suse.cz
+To: mm-commits@vger.kernel.org, catalin.marinas@arm.com, lizefan@huawei.com
 
-Subject: [folded-merged] backing_dev-fix-hung-task-on-sync-fix.patch removed from -mm tree
-To: jack@suse.cz,dbasehore@chromium.org,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled-v4.patch removed from -mm tree
+To: lizefan@huawei.com,catalin.marinas@arm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Apr 2014 14:00:55 -0700
+Date: Thu, 03 Apr 2014 14:01:33 -0700
 
 
 The patch titled
-     Subject: backing_dev-fix-hung-task-on-sync-fix
+     Subject: kmemleak: allow freeing internal objects after kmemleak was disabled
 has been removed from the -mm tree.  Its filename was
-     backing_dev-fix-hung-task-on-sync-fix.patch
+     kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled-v4.patch
 
-This patch was dropped because it was folded into backing_dev-fix-hung-task-on-sync.patch
+This patch was dropped because it was folded into kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled.patch
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: backing_dev-fix-hung-task-on-sync-fix
+From: Li Zefan <lizefan@huawei.com>
+Subject: kmemleak: allow freeing internal objects after kmemleak was disabled
 
-update changelog, add comment, use bdi_wakeup_thread_delayed()
+v4: rephrase the printk string.
 
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Signed-off-by: Derek Basehore <dbasehore@chromium.org>
-Signed-off-by: Jan Kara <jack@suse.cz>
+v3: Catalin wasn't suggesting to use "off" handler, but he wants to be
+    able to read memory leaks even when kmemleak is explicitly disabled.
+
+v2: use "off" handler instead of "clear" handler to do this, suggested
+    by Catalin.
+
+Signed-off-by: Li Zefan <lizefan@huawei.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    3 +--
- mm/backing-dev.c  |    3 +++
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ Documentation/kmemleak.txt |   17 ++++++------
+ mm/kmemleak.c              |   47 ++++++++++++++++++++---------------
+ 2 files changed, 36 insertions(+), 28 deletions(-)
 
-diff -puN fs/fs-writeback.c~backing_dev-fix-hung-task-on-sync-fix fs/fs-writeback.c
---- a/fs/fs-writeback.c~backing_dev-fix-hung-task-on-sync-fix
-+++ a/fs/fs-writeback.c
-@@ -1042,8 +1042,7 @@ void bdi_writeback_workfn(struct work_st
- 	if (!list_empty(&bdi->work_list))
- 		mod_delayed_work(bdi_wq, &wb->dwork, 0);
- 	else if (wb_has_dirty_io(wb) && dirty_writeback_interval)
--		queue_delayed_work(bdi_wq, &wb->dwork,
--			msecs_to_jiffies(dirty_writeback_interval * 10));
-+		bdi_wakeup_thread_delayed(bdi);
+diff -puN Documentation/kmemleak.txt~kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled-v4 Documentation/kmemleak.txt
+--- a/Documentation/kmemleak.txt~kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled-v4
++++ a/Documentation/kmemleak.txt
+@@ -44,8 +44,7 @@ objects to be reported as orphan.
+ Memory scanning parameters can be modified at run-time by writing to the
+ /sys/kernel/debug/kmemleak file. The following parameters are supported:
  
- 	current->flags &= ~PF_SWAPWRITE;
+-  off		- disable kmemleak, or free all kmemleak objects if kmemleak
+-		  has been disabled due to fatal errors. (irreversible).
++  off		- disable kmemleak (irreversible)
+   stack=on	- enable the task stacks scanning (default)
+   stack=off	- disable the tasks stacks scanning
+   scan=on	- start the automatic memory scanning thread (default)
+@@ -54,7 +53,8 @@ Memory scanning parameters can be modifi
+ 		  (default 600, 0 to stop the automatic scanning)
+   scan		- trigger a memory scan
+   clear		- clear list of current memory leak suspects, done by
+-		  marking all current reported unreferenced objects grey
++		  marking all current reported unreferenced objects grey,
++		  or free all kmemleak objects if kmemleak has been disabled.
+   dump=<addr>	- dump information about the object found at <addr>
+ 
+ Kmemleak can also be disabled at boot-time by passing "kmemleak=off" on
+@@ -124,13 +124,14 @@ Then as usual to get your report with:
+ Freeing kmemleak internal objects
+ ---------------------------------
+ 
+-To allow access to previously found memory leaks even when an error fatal
+-to kmemleak happens, internal kmemleak objects won't be freed in this case.
+-Those objects may occupy a large part of physical memory.
++To allow access to previosuly found memory leaks after kmemleak has been
++disabled by the user or due to an fatal error, internal kmemleak objects
++won't be freed when kmemleak is disabled, and those objects may occupy
++a large part of physical memory.
+ 
+-You can reclaim memory from those objects with:
++In this situation, you may reclaim memory with:
+ 
+-  # echo off > /sys/kernel/debug/kmemleak
++  # echo clear > /sys/kernel/debug/kmemleak
+ 
+ Kmemleak API
+ ------------
+diff -puN mm/kmemleak.c~kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled-v4 mm/kmemleak.c
+--- a/mm/kmemleak.c~kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled-v4
++++ a/mm/kmemleak.c
+@@ -1600,6 +1600,8 @@ static void kmemleak_clear(void)
+ 	kmemleak_found_leaks = false;
  }
-diff -puN mm/backing-dev.c~backing_dev-fix-hung-task-on-sync-fix mm/backing-dev.c
---- a/mm/backing-dev.c~backing_dev-fix-hung-task-on-sync-fix
-+++ a/mm/backing-dev.c
-@@ -288,6 +288,9 @@ int bdi_has_dirty_io(struct backing_dev_
-  * Note, we wouldn't bother setting up the timer, but this function is on the
-  * fast-path (used by '__mark_inode_dirty()'), so we save few context switches
-  * by delaying the wake-up.
-+ *
-+ * We have to be careful not to postpone flush work if it is scheduled for
-+ * earlier. Thus we use queue_delayed_work().
+ 
++static void __kmemleak_do_cleanup(void);
++
+ /*
+  * File write operation to configure kmemleak at run-time. The following
+  * commands can be written to the /sys/kernel/debug/kmemleak file:
+@@ -1612,7 +1614,8 @@ static void kmemleak_clear(void)
+  *		  disable it)
+  *   scan	- trigger a memory scan
+  *   clear	- mark all current reported unreferenced kmemleak objects as
+- *		  grey to ignore printing them
++ *		  grey to ignore printing them, or free all kmemleak objects
++ *		  if kmemleak has been disabled.
+  *   dump=...	- dump information about the object found at the given address
   */
- void bdi_wakeup_thread_delayed(struct backing_dev_info *bdi)
+ static ssize_t kmemleak_write(struct file *file, const char __user *user_buf,
+@@ -1631,9 +1634,11 @@ static ssize_t kmemleak_write(struct fil
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (strncmp(buf, "off", 3) == 0) {
+-		stop_scan_thread();
+-		kmemleak_disable();
++	if (strncmp(buf, "clear", 5) == 0) {
++		if (atomic_read(&kmemleak_enabled))
++			kmemleak_clear();
++		else
++			__kmemleak_do_cleanup();
+ 		goto out;
+ 	}
+ 
+@@ -1642,7 +1647,9 @@ static ssize_t kmemleak_write(struct fil
+ 		goto out;
+ 	}
+ 
+-	if (strncmp(buf, "stack=on", 8) == 0)
++	if (strncmp(buf, "off", 3) == 0)
++		kmemleak_disable();
++	else if (strncmp(buf, "stack=on", 8) == 0)
+ 		kmemleak_stack_scan = 1;
+ 	else if (strncmp(buf, "stack=off", 9) == 0)
+ 		kmemleak_stack_scan = 0;
+@@ -1663,8 +1670,6 @@ static ssize_t kmemleak_write(struct fil
+ 		}
+ 	} else if (strncmp(buf, "scan", 4) == 0)
+ 		kmemleak_scan();
+-	else if (strncmp(buf, "clear", 5) == 0)
+-		kmemleak_clear();
+ 	else if (strncmp(buf, "dump=", 5) == 0)
+ 		ret = dump_str_object_info(buf + 5);
+ 	else
+@@ -1689,6 +1694,16 @@ static const struct file_operations kmem
+ 	.release	= kmemleak_release,
+ };
+ 
++static void __kmemleak_do_cleanup(void)
++{
++	struct kmemleak_object *object;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(object, &object_list, object_list)
++		delete_object_full(object->pointer);
++	rcu_read_unlock();
++}
++
+ /*
+  * Stop the memory scanning thread and free the kmemleak internal objects if
+  * no previous scan thread (otherwise, kmemleak may still have some useful
+@@ -1696,22 +1711,14 @@ static const struct file_operations kmem
+  */
+ static void kmemleak_do_cleanup(struct work_struct *work)
  {
+-	struct kmemleak_object *object;
+-
+ 	mutex_lock(&scan_mutex);
+ 	stop_scan_thread();
+ 
+-	if (!kmemleak_found_leaks) {
+-		rcu_read_lock();
+-		list_for_each_entry_rcu(object, &object_list, object_list)
+-			delete_object_full(object->pointer);
+-		rcu_read_unlock();
+-	} else {
+-		pr_info("Disable kmemleak without freeing internal objects, "
+-			"so you may still check information on memory leak. "
+-			"You may reclaim memory by writing \"off\" to "
+-			"/sys/kernel/debug/kmemleak\n");
+-	}
++	if (!kmemleak_found_leaks)
++		__kmemleak_do_cleanup();
++	else
++		pr_info("Kmemleak disabled without freeing internal data. "
++			"Reclaim the memory with \"echo clear > /sys/kernel/debug/kmemleak\"\n");
+ 	mutex_unlock(&scan_mutex);
+ }
+ 
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from lizefan@huawei.com are
 
 origin.patch
-backing_dev-fix-hung-task-on-sync.patch
-bdi-avoid-oops-on-device-removal.patch
-kthread-ensure-locality-of-task_struct-allocations.patch
-fanotify-remove-useless-bypass_perm-check.patch
-fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
-fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch
-fanotify-convert-access_mutex-to-spinlock.patch
-fanotify-reorganize-loop-in-fanotify_read.patch
-fanotify-move-unrelated-handling-from-copy_event_to_user.patch
-ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
-ocfs2-move-dquot_initialize-in-ocfs2_delete_inode-somewhat-later.patch
-quota-provide-function-to-grab-quota-structure-reference.patch
-ocfs2-implement-delayed-dropping-of-last-dquot-reference.patch
-ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
-ocfs2-revert-iput-deferring-code-in-ocfs2_drop_dentry_lock.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
-lib-radix_tree-tree-node-interface.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-readaheadc-fix-readahead-failure-for-memoryless-numa-nodes-and-limit-readahead-pages.patch
-printk-remove-duplicated-check-for-log-level.patch
-printk-remove-obsolete-check-for-log-level-c.patch
-printk-add-comment-about-tricky-check-for-text-buffer-size.patch
-printk-use-also-the-last-bytes-in-the-ring-buffer.patch
-printk-do-not-compute-the-size-of-the-message-twice.patch
-printk-fix-one-circular-lockdep-warning-about-console_lock.patch
+kmemleak-free-internal-objects-only-if-therere-no-leaks-to-be-reported.patch
+kmemleak-allow-freeing-internal-objects-after-kmemleak-was-disabled.patch
+kmemleak-remove-redundant-code.patch
+kmemleak-change-some-global-variables-to-int.patch
+kmemleak-change-some-global-variables-to-int-v4.patch
 
