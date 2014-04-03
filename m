@@ -1,62 +1,63 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch removed from -mm tree
-Date: Thu, 03 Apr 2014 14:06:19 -0700
-Message-ID: <533dcd4b.UjhY8/D+dyZJGQHl%akpm@linux-foundation.org>
+ mm-process_vm_accessc-mark-function-as-static-fix.patch removed from -mm
+ tree
+Date: Thu, 03 Apr 2014 14:07:00 -0700
+Message-ID: <533dcd74.Z/71sE6UwKeSf5ts%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60789 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60794 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753759AbaDCVGU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:06:20 -0400
+	with ESMTP id S1753636AbaDCVHB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:07:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, minchan@kernel.org, hughd@google.com, hannes@cmpxchg.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, rientjes@google.com, rashika.kheria@gmail.com, josh@joshtriplett.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,hannes@cmpxchg.org,hughd@google.com,minchan@kernel.org,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-process_vm_accessc-mark-function-as-static-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,josh@joshtriplett.org,rashika.kheria@gmail.com,rientjes@google.com,sfr@canb.auug.org.au,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Apr 2014 14:06:19 -0700
+Date: Thu, 03 Apr 2014 14:07:00 -0700
 
 
 The patch titled
-     Subject: mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix
+     Subject: mm-process_vm_accessc-mark-function-as-static-fix
 has been removed from the -mm tree.  Its filename was
-     mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+     mm-process_vm_accessc-mark-function-as-static-fix.patch
 
-This patch was dropped because it was folded into mm-keep-page-cache-radix-tree-nodes-in-check.patch
+This patch was dropped because it was folded into mm-process_vm_accessc-mark-function-as-static.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix
+Subject: mm-process_vm_accessc-mark-function-as-static-fix
 
-export the right function
+remove unneeded asmlinkage - compat_process_vm_rw isn't referenced from asm
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Rashika Kheria <rashika.kheria@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    2 +-
+ mm/process_vm_access.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/list_lru.c~mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix mm/list_lru.c
---- a/mm/list_lru.c~mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix
-+++ a/mm/list_lru.c
-@@ -143,7 +143,7 @@ int list_lru_init_key(struct list_lru *l
- 	}
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(list_lru_init);
-+EXPORT_SYMBOL_GPL(list_lru_init_key);
+diff -puN mm/process_vm_access.c~mm-process_vm_accessc-mark-function-as-static-fix mm/process_vm_access.c
+--- a/mm/process_vm_access.c~mm-process_vm_accessc-mark-function-as-static-fix
++++ a/mm/process_vm_access.c
+@@ -412,7 +412,7 @@ SYSCALL_DEFINE6(process_vm_writev, pid_t
  
- void list_lru_destroy(struct list_lru *lru)
- {
+ #ifdef CONFIG_COMPAT
+ 
+-static asmlinkage ssize_t
++static ssize_t
+ compat_process_vm_rw(compat_pid_t pid,
+ 		     const struct compat_iovec __user *lvec,
+ 		     unsigned long liovcnt,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +70,7 @@ ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch
 mm-hugetlb-improve-page-fault-scalability.patch
 mm-vmstat-fix-up-zone-state-accounting.patch
 mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-process_vm_accessc-mark-function-as-static-fix.patch
+mm-process_vm_accessc-mark-function-as-static.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 drop_caches-add-some-documentation-and-info-message.patch
 include-linux-syscallsh-add-sys32_quotactl-prototype-fix.patch
