@@ -1,78 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- fs-kernel-permit-disabling-the-uselib-syscall-v2.patch removed from -mm
- tree
-Date: Thu, 03 Apr 2014 14:10:18 -0700
-Message-ID: <533dce3a.Zc/P+WNbUbGdA296%akpm@linux-foundation.org>
+ checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch removed from -mm tree
+Date: Thu, 03 Apr 2014 14:11:26 -0700
+Message-ID: <533dce7e.tgGx5L/ysZGOdoM4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60829 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60832 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753686AbaDCVKT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:10:19 -0400
+	with ESMTP id S1751866AbaDCVL1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:11:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, joe@perches.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] fs-kernel-permit-disabling-the-uselib-syscall-v2.patch removed from -mm tree
-To: josh@joshtriplett.org,mm-commits@vger.kernel.org
+Subject: [folded-merged] checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Apr 2014 14:10:18 -0700
+Date: Thu, 03 Apr 2014 14:11:26 -0700
 
 
 The patch titled
-     Subject: fs-kernel-permit-disabling-the-uselib-syscall-v2
+     Subject: checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix
 has been removed from the -mm tree.  Its filename was
-     fs-kernel-permit-disabling-the-uselib-syscall-v2.patch
+     checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix.patch
 
-This patch was dropped because it was folded into fs-kernel-permit-disabling-the-uselib-syscall.patch
+This patch was dropped because it was folded into checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: fs-kernel-permit-disabling-the-uselib-syscall-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix
 
-v2: Add "default y", unintentionally omitted from the first patch.
-
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN init/Kconfig~fs-kernel-permit-disabling-the-uselib-syscall-v2 init/Kconfig
---- a/init/Kconfig~fs-kernel-permit-disabling-the-uselib-syscall-v2
-+++ a/init/Kconfig
-@@ -275,6 +275,7 @@ config FHANDLE
+diff -puN scripts/checkpatch.pl~checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments-fix
++++ a/scripts/checkpatch.pl
+@@ -304,6 +304,8 @@ our $Operators	= qr{
+ 			&&|\|\||,|\^|\+\+|--|&|\||$Arithmetic
+ 		  }x;
  
- config USELIB
- 	bool "uselib syscall"
-+	default y
- 	help
- 	  This option enables the uselib syscall, a system call used in the
- 	  dynamic linker from libc5 and earlier.  glibc does not use this
++our $c90_Keywords = qr{do|for|while|if|else|return|goto|continue|switch|default|case|break}x;
++
+ our $NonptrType;
+ our $NonptrTypeWithAttr;
+ our $Type;
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-compactionc-mark-function-as-static.patch
-mm-memoryc-mark-functions-as-static.patch
-mm-mmapc-mark-function-as-static.patch
+fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
+ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
+ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch
+mm-hugetlb-improve-page-fault-scalability.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
 mm-process_vm_accessc-mark-function-as-static.patch
-mm-page_cgroupc-mark-functions-as-static.patch
-mm-nobootmemc-mark-function-as-static.patch
-include-linux-mmh-remove-ifdef-condition.patch
-include-linux-syscallsh-add-sys32_quotactl-prototype.patch
-fs-kernel-permit-disabling-the-uselib-syscall.patch
-submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
-submittingpatches-add-recommendation-for-mailing-list-references.patch
-submittingpatches-document-the-use-of-git.patch
-lib-clz_ctzc-add-prototype-declarations-in-lib-clz_ctzc.patch
-lib-decompress_inflatec-include-appropriate-header-file.patch
-checkpatch-make-return-is-not-a-function-test-quieter.patch
-fs-reiserfs-move-prototype-declaration-to-header-file.patch
+drop_caches-add-some-documentation-and-info-message.patch
+sys_sysfs-add-config_sysfs_syscall.patch
+kernel-groupsc-remove-return-value-of-set_groups.patch
+xattr-guard-against-simultaneous-glibc-header-inclusion-v2.patch
+lib-syscallc-unexport-task_current_syscall.patch
+scripts-checkpatchpl-__gfp_nofail-isnt-going-away.patch
+checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch
+rtc-fixed-potential-race-condition-checkpatch-fixes.patch
+befs-logging-clean-up-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix.patch
+hfsplus-fix-concurrent-acess-of-alloc_blocks-fix-fix.patch
 
