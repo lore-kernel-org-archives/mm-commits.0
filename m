@@ -1,441 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix.patch
+Subject: [folded-merged] lib-radix_tree-tree-node-interface-fix.patch
  removed from -mm tree
-Date: Thu, 03 Apr 2014 14:05:01 -0700
-Message-ID: <533dccfd.KsGzaHJrV+18tAET%akpm@linux-foundation.org>
+Date: Thu, 03 Apr 2014 14:05:38 -0700
+Message-ID: <533dcd22.09gz1cv1Hf3WLDSa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60778 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753833AbaDCVFC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:05:02 -0400
+	with ESMTP id S1753818AbaDCVFj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:05:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, minchan@kernel.org, mel@csn.ul.ie, hughd@google.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, riel@redhat.com, hannes@cmpxchg.org, sasha.levin@oracle.com
 
-Subject: [folded-merged] mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix.patch removed from -mm tree
-To: hannes@cmpxchg.org,hughd@google.com,mel@csn.ul.ie,minchan@kernel.org,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] lib-radix_tree-tree-node-interface-fix.patch removed from -mm tree
+To: sasha.levin@oracle.com,hannes@cmpxchg.org,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Apr 2014 14:05:01 -0700
+Date: Thu, 03 Apr 2014 14:05:38 -0700
 
 
 The patch titled
-     Subject: mm: __find_get_page() -> find_get_entry()
+     Subject: lib: radix: return correct error code on insertion failure
 has been removed from the -mm tree.  Its filename was
-     mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix.patch
+     lib-radix_tree-tree-node-interface-fix.patch
 
-This patch was dropped because it was folded into mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+This patch was dropped because it was folded into lib-radix_tree-tree-node-interface.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: __find_get_page() -> find_get_entry()
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: lib: radix: return correct error code on insertion failure
 
-__find_get_page() -> find_get_entry()
-__find_lock_page() -> find_lock_entry()
-__find_get_pages() -> find_get_entries()
-__pagevec_lookup() -> pagevec_lookup_entries()
+We would never check the return value of __radix_tree_create() on
+insertion which would cause us to return -EEXIST on all cases of failure,
+even when such failure would be running out of memory, for example.
 
-Also update and fix stale kerneldocs and revert gratuitous whitespace
-changes.
+This would trigger errors in various code that assumed that -EEXIST is a
+critical failure, as opposed to a "regular" error.  For example, it would
+trigger a VM_BUG_ON in mm's swap handling:
 
-Based on feedback from Mel Gorman.
+[  469.636769] kernel BUG at mm/swap_state.c:113!
+[  469.636769] invalid opcode: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
+[  469.638313] Dumping ftrace buffer:
+[  469.638526]    (ftrace buffer empty)
+[  469.640016] Modules linked in:
+[  469.640110] CPU: 54 PID: 4598 Comm: kswapd6 Tainted: G        W    3.14.0-rc4-next-20140228-sasha-00012-g6bbcf46-dirty #29
+[  469.640110] task: ffff8802850d3000 ti: ffff8802850cc000 task.ti: ffff8802850cc000
+[  469.640110] RIP: 0010:[<ffffffff81296a82>]  [<ffffffff81296a82>] __add_to_swap_cache+0x132/0x170
+[  469.640110] RSP: 0000:ffff8802850cd7a8  EFLAGS: 00010246
+[  469.640110] RAX: 0000000080000001 RBX: ffffea000a02ca00 RCX: 0000000000000000
+[  469.640110] RDX: 0000000000000001 RSI: 0000000000000001 RDI: 00000000ffffffff
+[  469.640110] RBP: ffff8802850cd7c8 R08: 0000000000000000 R09: 0000000000000000
+[  469.640110] R10: 0000000000000001 R11: 0000000000000001 R12: ffffffff868c2e18
+[  469.640110] R13: ffffffff868c2e30 R14: 00000000ffffffef R15: 0000000000000000
+[  469.640110] FS:  0000000000000000(0000) GS:ffff880286800000(0000) knlGS:0000000000000000
+[  469.640110] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  469.640110] CR2: 00000000029c23b0 CR3: 00000000824ca000 CR4: 00000000000006e0
+[  469.640110] Stack:
+[  469.640110]  ffffea000a02ca00 020000000004c037 ffff8802850cd9c8 ffffea000a02ca00
+[  469.640110]  ffff8802850cd7f8 ffffffff81296cac ffff8802850cd9c8 ffff8802850cd9c8
+[  469.640110]  ffffea000a02ca00 020000000004c037 ffff8802850cd828 ffffffff81296d90
+[  469.640110] Call Trace:
+[  469.640110]  [<ffffffff81296cac>] add_to_swap_cache+0x2c/0x60
+[  469.640110]  [<ffffffff81296d90>] add_to_swap+0xb0/0xe0
+[  469.640110]  [<ffffffff81263d21>] shrink_page_list+0x411/0x7c0
+[  469.640110]  [<ffffffff812657ac>] shrink_inactive_list+0x31c/0x570
+[  469.640110]  [<ffffffff81265d0b>] ? shrink_active_list+0x30b/0x320
+[  469.640110]  [<ffffffff81265e44>] shrink_lruvec+0x124/0x300
+[  469.640110]  [<ffffffff812660ae>] shrink_zone+0x8e/0x1d0
+[  469.640110]  [<ffffffff81266771>] kswapd_shrink_zone+0xf1/0x1b0
+[  469.640110]  [<ffffffff81267783>] balance_pgdat+0x363/0x540
+[  469.640110]  [<ffffffff81269383>] kswapd+0x2b3/0x310
+[  469.640110]  [<ffffffff812690d0>] ? ftrace_raw_event_mm_vmscan_writepage+0x180/0x180
+[  469.640110]  [<ffffffff811678b5>] kthread+0x105/0x110
+[  469.640110]  [<ffffffff811a3b52>] ? __lock_release+0x1e2/0x200
+[  469.640110]  [<ffffffff811677b0>] ? set_kthreadd_affinity+0x30/0x30
+[  469.640110]  [<ffffffff8439f58c>] ret_from_fork+0x7c/0xb0
+[  469.640110]  [<ffffffff811677b0>] ? set_kthreadd_affinity+0x30/0x30
+[  469.640110] Code: 00 00 be 0a 00 00 00 e8 0d ae fd ff 48 ff 05 b6 33 d2 06 4c 89 ef e8 1e f6 0f 03 eb 2c 4c 89 ef e8 14 f6 0f 03 41 83 fe ef 75 04 <0f> 0b eb fe 48 c7 43 30 00 00 00 00 f0 80 63 02 fe 48 89 df e8
+[  469.640110] RIP  [<ffffffff81296a82>] __add_to_swap_cache+0x132/0x170
+[  469.640110]  RSP <ffff8802850cd7a8>
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    8 ++--
- include/linux/pagevec.h |    6 ++-
- mm/filemap.c            |   65 +++++++++++++++++++-------------------
- mm/mincore.c            |    2 -
- mm/shmem.c              |   12 +++----
- mm/swap.c               |   31 +++++++++---------
- mm/truncate.c           |    8 ++--
- 7 files changed, 70 insertions(+), 62 deletions(-)
+ lib/radix-tree.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/pagemap.h~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix
-+++ a/include/linux/pagemap.h
-@@ -248,14 +248,14 @@ pgoff_t page_cache_next_hole(struct addr
- pgoff_t page_cache_prev_hole(struct address_space *mapping,
- 			     pgoff_t index, unsigned long max_scan);
+diff -puN lib/radix-tree.c~lib-radix_tree-tree-node-interface-fix lib/radix-tree.c
+--- a/lib/radix-tree.c~lib-radix_tree-tree-node-interface-fix
++++ a/lib/radix-tree.c
+@@ -442,6 +442,8 @@ int radix_tree_insert(struct radix_tree_
+ 	BUG_ON(radix_tree_is_indirect_ptr(item));
  
--struct page *__find_get_page(struct address_space *mapping, pgoff_t offset);
-+struct page *find_get_entry(struct address_space *mapping, pgoff_t offset);
- struct page *find_get_page(struct address_space *mapping, pgoff_t offset);
--struct page *__find_lock_page(struct address_space *mapping, pgoff_t offset);
-+struct page *find_lock_entry(struct address_space *mapping, pgoff_t offset);
- struct page *find_lock_page(struct address_space *mapping, pgoff_t offset);
- struct page *find_or_create_page(struct address_space *mapping, pgoff_t index,
- 				 gfp_t gfp_mask);
--unsigned __find_get_pages(struct address_space *mapping, pgoff_t start,
--			  unsigned int nr_pages, struct page **pages,
-+unsigned find_get_entries(struct address_space *mapping, pgoff_t start,
-+			  unsigned int nr_entries, struct page **entries,
- 			  pgoff_t *indices);
- unsigned find_get_pages(struct address_space *mapping, pgoff_t start,
- 			unsigned int nr_pages, struct page **pages);
-diff -puN include/linux/pagevec.h~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix include/linux/pagevec.h
---- a/include/linux/pagevec.h~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix
-+++ a/include/linux/pagevec.h
-@@ -22,8 +22,10 @@ struct pagevec {
- 
- void __pagevec_release(struct pagevec *pvec);
- void __pagevec_lru_add(struct pagevec *pvec);
--unsigned __pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
--			  pgoff_t start, unsigned nr_pages, pgoff_t *indices);
-+unsigned pagevec_lookup_entries(struct pagevec *pvec,
-+				struct address_space *mapping,
-+				pgoff_t start, unsigned nr_entries,
-+				pgoff_t *indices);
- void pagevec_remove_exceptionals(struct pagevec *pvec);
- unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
- 		pgoff_t start, unsigned nr_pages);
-diff -puN mm/filemap.c~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix mm/filemap.c
---- a/mm/filemap.c~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix
-+++ a/mm/filemap.c
-@@ -790,9 +790,9 @@ pgoff_t page_cache_prev_hole(struct addr
- EXPORT_SYMBOL(page_cache_prev_hole);
- 
- /**
-- * __find_get_page - find and get a page reference
-+ * find_get_entry - find and get a page cache entry
-  * @mapping: the address_space to search
-- * @offset: the page index
-+ * @offset: the page cache index
-  *
-  * Looks up the page cache slot at @mapping & @offset.  If there is a
-  * page cache page, it is returned with an increased refcount.
-@@ -802,7 +802,7 @@ EXPORT_SYMBOL(page_cache_prev_hole);
-  *
-  * Otherwise, %NULL is returned.
-  */
--struct page *__find_get_page(struct address_space *mapping, pgoff_t offset)
-+struct page *find_get_entry(struct address_space *mapping, pgoff_t offset)
- {
- 	void **pagep;
- 	struct page *page;
-@@ -843,7 +843,7 @@ out:
- 
- 	return page;
- }
--EXPORT_SYMBOL(__find_get_page);
-+EXPORT_SYMBOL(find_get_entry);
- 
- /**
-  * find_get_page - find and get a page reference
-@@ -857,7 +857,7 @@ EXPORT_SYMBOL(__find_get_page);
-  */
- struct page *find_get_page(struct address_space *mapping, pgoff_t offset)
- {
--	struct page *page = __find_get_page(mapping, offset);
-+	struct page *page = find_get_entry(mapping, offset);
- 
- 	if (radix_tree_exceptional_entry(page))
- 		page = NULL;
-@@ -866,9 +866,9 @@ struct page *find_get_page(struct addres
- EXPORT_SYMBOL(find_get_page);
- 
- /**
-- * __find_lock_page - locate, pin and lock a pagecache page
-+ * find_lock_entry - locate, pin and lock a page cache entry
-  * @mapping: the address_space to search
-- * @offset: the page index
-+ * @offset: the page cache index
-  *
-  * Looks up the page cache slot at @mapping & @offset.  If there is a
-  * page cache page, it is returned locked and with an increased
-@@ -879,13 +879,14 @@ EXPORT_SYMBOL(find_get_page);
-  *
-  * Otherwise, %NULL is returned.
-  *
-- * __find_lock_page() may sleep.
-+ * find_lock_entry() may sleep.
-  */
--struct page *__find_lock_page(struct address_space *mapping, pgoff_t offset)
-+struct page *find_lock_entry(struct address_space *mapping, pgoff_t offset)
- {
- 	struct page *page;
-+
- repeat:
--	page = __find_get_page(mapping, offset);
-+	page = find_get_entry(mapping, offset);
- 	if (page && !radix_tree_exception(page)) {
- 		lock_page(page);
- 		/* Has the page been truncated? */
-@@ -898,7 +899,7 @@ repeat:
- 	}
- 	return page;
- }
--EXPORT_SYMBOL(__find_lock_page);
-+EXPORT_SYMBOL(find_lock_entry);
- 
- /**
-  * find_lock_page - locate, pin and lock a pagecache page
-@@ -915,7 +916,7 @@ EXPORT_SYMBOL(__find_lock_page);
-  */
- struct page *find_lock_page(struct address_space *mapping, pgoff_t offset)
- {
--	struct page *page = __find_lock_page(mapping, offset);
-+	struct page *page = find_lock_entry(mapping, offset);
- 
- 	if (radix_tree_exceptional_entry(page))
- 		page = NULL;
-@@ -973,35 +974,37 @@ repeat:
- EXPORT_SYMBOL(find_or_create_page);
- 
- /**
-- * __find_get_pages - gang pagecache lookup
-+ * find_get_entries - gang pagecache lookup
-  * @mapping:	The address_space to search
-- * @start:	The starting page index
-- * @nr_pages:	The maximum number of pages
-- * @pages:	Where the resulting entries are placed
-- * @indices:	The cache indices corresponding to the entries in @pages
-- *
-- * __find_get_pages() will search for and return a group of up to
-- * @nr_pages pages in the mapping.  The pages are placed at @pages.
-- * __find_get_pages() takes a reference against the returned pages.
-- *
-- * The search returns a group of mapping-contiguous pages with ascending
-- * indexes.  There may be holes in the indices due to not-present pages.
-+ * @start:	The starting page cache index
-+ * @nr_entries:	The maximum number of entries
-+ * @entries:	Where the resulting entries are placed
-+ * @indices:	The cache indices corresponding to the entries in @entries
-+ *
-+ * find_get_entries() will search for and return a group of up to
-+ * @nr_entries entries in the mapping.  The entries are placed at
-+ * @entries.  find_get_entries() takes a reference against any actual
-+ * pages it returns.
-+ *
-+ * The search returns a group of mapping-contiguous page cache entries
-+ * with ascending indexes.  There may be holes in the indices due to
-+ * not-present pages.
-  *
-  * Any shadow entries of evicted pages are included in the returned
-  * array.
-  *
-- * __find_get_pages() returns the number of pages and shadow entries
-+ * find_get_entries() returns the number of pages and shadow entries
-  * which were found.
-  */
--unsigned __find_get_pages(struct address_space *mapping,
--			  pgoff_t start, unsigned int nr_pages,
--			  struct page **pages, pgoff_t *indices)
-+unsigned find_get_entries(struct address_space *mapping,
-+			  pgoff_t start, unsigned int nr_entries,
-+			  struct page **entries, pgoff_t *indices)
- {
- 	void **slot;
- 	unsigned int ret = 0;
- 	struct radix_tree_iter iter;
- 
--	if (!nr_pages)
-+	if (!nr_entries)
- 		return 0;
- 
- 	rcu_read_lock();
-@@ -1032,8 +1035,8 @@ repeat:
- 		}
- export:
- 		indices[ret] = iter.index;
--		pages[ret] = page;
--		if (++ret == nr_pages)
-+		entries[ret] = page;
-+		if (++ret == nr_entries)
- 			break;
- 	}
- 	rcu_read_unlock();
-diff -puN mm/mincore.c~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix mm/mincore.c
---- a/mm/mincore.c~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix
-+++ a/mm/mincore.c
-@@ -72,7 +72,7 @@ static unsigned char mincore_page(struct
- 	 */
- #ifdef CONFIG_SWAP
- 	if (shmem_mapping(mapping)) {
--		page = __find_get_page(mapping, pgoff);
-+		page = find_get_entry(mapping, pgoff);
- 		/*
- 		 * shmem/tmpfs may return swap: account for swapcache
- 		 * page too.
-diff -puN mm/shmem.c~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix mm/shmem.c
---- a/mm/shmem.c~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix
-+++ a/mm/shmem.c
-@@ -363,8 +363,8 @@ void shmem_unlock_mapping(struct address
- 		 * Avoid pagevec_lookup(): find_get_pages() returns 0 as if it
- 		 * has finished, if it hits a row of PAGEVEC_SIZE swap entries.
- 		 */
--		pvec.nr = __find_get_pages(mapping, index,
--					PAGEVEC_SIZE, pvec.pages, indices);
-+		pvec.nr = find_get_entries(mapping, index,
-+					   PAGEVEC_SIZE, pvec.pages, indices);
- 		if (!pvec.nr)
- 			break;
- 		index = indices[pvec.nr - 1] + 1;
-@@ -400,7 +400,7 @@ static void shmem_undo_range(struct inod
- 	pagevec_init(&pvec, 0);
- 	index = start;
- 	while (index < end) {
--		pvec.nr = __find_get_pages(mapping, index,
-+		pvec.nr = find_get_entries(mapping, index,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE),
- 			pvec.pages, indices);
- 		if (!pvec.nr)
-@@ -470,7 +470,7 @@ static void shmem_undo_range(struct inod
- 	for ( ; ; ) {
- 		cond_resched();
- 
--		pvec.nr = __find_get_pages(mapping, index,
-+		pvec.nr = find_get_entries(mapping, index,
- 				min(end - index, (pgoff_t)PAGEVEC_SIZE),
- 				pvec.pages, indices);
- 		if (!pvec.nr) {
-@@ -1015,7 +1015,7 @@ static int shmem_getpage_gfp(struct inod
- 		return -EFBIG;
- repeat:
- 	swap.val = 0;
--	page = __find_lock_page(mapping, index);
-+	page = find_lock_entry(mapping, index);
- 	if (radix_tree_exceptional_entry(page)) {
- 		swap = radix_to_swp_entry(page);
- 		page = NULL;
-@@ -1669,7 +1669,7 @@ static pgoff_t shmem_seek_hole_data(stru
- 	pagevec_init(&pvec, 0);
- 	pvec.nr = 1;		/* start small: we may be there already */
- 	while (!done) {
--		pvec.nr = __find_get_pages(mapping, index,
-+		pvec.nr = find_get_entries(mapping, index,
- 					pvec.nr, pvec.pages, indices);
- 		if (!pvec.nr) {
- 			if (whence == SEEK_DATA)
-diff -puN mm/swap.c~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix mm/swap.c
---- a/mm/swap.c~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix
-+++ a/mm/swap.c
-@@ -948,28 +948,31 @@ void __pagevec_lru_add(struct pagevec *p
- EXPORT_SYMBOL(__pagevec_lru_add);
- 
- /**
-- * __pagevec_lookup - gang pagecache lookup
-+ * pagevec_lookup_entries - gang pagecache lookup
-  * @pvec:	Where the resulting entries are placed
-  * @mapping:	The address_space to search
-  * @start:	The starting entry index
-- * @nr_pages:	The maximum number of entries
-+ * @nr_entries:	The maximum number of entries
-  * @indices:	The cache indices corresponding to the entries in @pvec
-  *
-- * __pagevec_lookup() will search for and return a group of up to
-- * @nr_pages pages and shadow entries in the mapping.  All entries are
-- * placed in @pvec.  __pagevec_lookup() takes a reference against
-- * actual pages in @pvec.
-+ * pagevec_lookup_entries() will search for and return a group of up
-+ * to @nr_entries pages and shadow entries in the mapping.  All
-+ * entries are placed in @pvec.  pagevec_lookup_entries() takes a
-+ * reference against actual pages in @pvec.
-  *
-  * The search returns a group of mapping-contiguous entries with
-  * ascending indexes.  There may be holes in the indices due to
-  * not-present entries.
-  *
-- * __pagevec_lookup() returns the number of entries which were found.
-+ * pagevec_lookup_entries() returns the number of entries which were
-+ * found.
-  */
--unsigned __pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
--			  pgoff_t start, unsigned nr_pages, pgoff_t *indices)
-+unsigned pagevec_lookup_entries(struct pagevec *pvec,
-+				struct address_space *mapping,
-+				pgoff_t start, unsigned nr_pages,
-+				pgoff_t *indices)
- {
--	pvec->nr = __find_get_pages(mapping, start, nr_pages,
-+	pvec->nr = find_get_entries(mapping, start, nr_pages,
- 				    pvec->pages, indices);
- 	return pagevec_count(pvec);
- }
-@@ -978,10 +981,10 @@ unsigned __pagevec_lookup(struct pagevec
-  * pagevec_remove_exceptionals - pagevec exceptionals pruning
-  * @pvec:	The pagevec to prune
-  *
-- * __pagevec_lookup() fills both pages and exceptional radix tree
-- * entries into the pagevec.  This function prunes all exceptionals
-- * from @pvec without leaving holes, so that it can be passed on to
-- * page-only pagevec operations.
-+ * pagevec_lookup_entries() fills both pages and exceptional radix
-+ * tree entries into the pagevec.  This function prunes all
-+ * exceptionals from @pvec without leaving holes, so that it can be
-+ * passed on to page-only pagevec operations.
-  */
- void pagevec_remove_exceptionals(struct pagevec *pvec)
- {
-diff -puN mm/truncate.c~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix mm/truncate.c
---- a/mm/truncate.c~mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees-fix-fix
-+++ a/mm/truncate.c
-@@ -255,7 +255,7 @@ void truncate_inode_pages_range(struct a
- 
- 	pagevec_init(&pvec, 0);
- 	index = start;
--	while (index < end && __pagevec_lookup(&pvec, mapping, index,
-+	while (index < end && pagevec_lookup_entries(&pvec, mapping, index,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE),
- 			indices)) {
- 		mem_cgroup_uncharge_start();
-@@ -331,7 +331,7 @@ void truncate_inode_pages_range(struct a
- 	index = start;
- 	for ( ; ; ) {
- 		cond_resched();
--		if (!__pagevec_lookup(&pvec, mapping, index,
-+		if (!pagevec_lookup_entries(&pvec, mapping, index,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE),
- 			indices)) {
- 			if (index == start)
-@@ -423,7 +423,7 @@ unsigned long invalidate_mapping_pages(s
- 	 */
- 
- 	pagevec_init(&pvec, 0);
--	while (index <= end && __pagevec_lookup(&pvec, mapping, index,
-+	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
- 			indices)) {
- 		mem_cgroup_uncharge_start();
-@@ -532,7 +532,7 @@ int invalidate_inode_pages2_range(struct
- 	cleancache_invalidate_inode(mapping);
- 	pagevec_init(&pvec, 0);
- 	index = start;
--	while (index <= end && __pagevec_lookup(&pvec, mapping, index,
-+	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
- 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
- 			indices)) {
- 		mem_cgroup_uncharge_start();
+ 	error = __radix_tree_create(root, index, &node, &slot);
++	if (error)
++		return error;
+ 	if (*slot != NULL)
+ 		return -EEXIST;
+ 	rcu_assign_pointer(*slot, item);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
-mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
-mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
-mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
-mm-vmstat-fix-up-zone-state-accounting.patch
-fs-cachefiles-use-add_to_page_cache_lru.patch
-lib-radix-tree-radix_tree_delete_item.patch
-mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
-mm-filemap-move-radix-tree-hole-searching-here.patch
-mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
-mm-fs-store-shadow-entries-in-page-cache.patch
-mm-thrash-detection-based-file-cache-sizing.patch
+origin.patch
 lib-radix_tree-tree-node-interface.patch
-lib-radix_tree-tree-node-interface-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
-mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix-fix.patch
-drop_caches-add-some-documentation-and-info-message.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-remove-read_cache_page_async.patch
 
