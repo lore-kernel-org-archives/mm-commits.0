@@ -1,75 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch removed from -mm tree
-Date: Thu, 03 Apr 2014 14:02:12 -0700
-Message-ID: <533dcc54.hdlhN11cBB/in0Ln%akpm@linux-foundation.org>
+ ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch removed from -mm
+ tree
+Date: Thu, 03 Apr 2014 14:02:49 -0700
+Message-ID: <533dcc79.iRwSCCAsMc1jh/oV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60670 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60740 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753761AbaDCVCN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:02:13 -0400
+	with ESMTP id S1753796AbaDCVCu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:02:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, jack@suse.cz, fengguang.wu@intel.com, eparis@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rgoldwyn@suse.com, mfasheh@suse.com, jlbec@evilplan.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,eparis@redhat.com,fengguang.wu@intel.com,jack@suse.cz,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [folded-merged] ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,jlbec@evilplan.org,mfasheh@suse.com,rgoldwyn@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Apr 2014 14:02:12 -0700
+Date: Thu, 03 Apr 2014 14:02:49 -0700
 
 
 The patch titled
-     Subject: fanotify-use-fanotify-event-structure-for-permission-response-processing-fix
+     Subject: ocfs2-add-dlm_recover_callback_support-in-sysfs-fix
 has been removed from the -mm tree.  Its filename was
-     fanotify-use-fanotify-event-structure-for-permission-response-processing-fix.patch
+     ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
 
-This patch was dropped because it was folded into fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
+This patch was dropped because it was folded into ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fanotify-use-fanotify-event-structure-for-permission-response-processing-fix
+Subject: ocfs2-add-dlm_recover_callback_support-in-sysfs-fix
 
-fix build
+simplify
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify_user.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/ocfs2/stackglue.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-use-fanotify-event-structure-for-permission-response-processing-fix fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fanotify-use-fanotify-event-structure-for-permission-response-processing-fix
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -209,9 +209,12 @@ static ssize_t copy_event_to_user(struct
+diff -puN fs/ocfs2/stackglue.c~ocfs2-add-dlm_recover_callback_support-in-sysfs-fix fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-add-dlm_recover_callback_support-in-sysfs-fix
++++ a/fs/ocfs2/stackglue.c
+@@ -607,9 +607,7 @@ static ssize_t ocfs2_dlm_recover_show(st
+ 					struct kobj_attribute *attr,
+ 					char *buf)
+ {
+-	ssize_t ret;
+-	ret = snprintf(buf, PAGE_SIZE, "1\n");
+-	return ret;
++	return snprintf(buf, PAGE_SIZE, "1\n");
+ }
  
- #ifdef CONFIG_FANOTIFY_ACCESS_PERMISSIONS
- 	if (event->mask & FAN_ALL_PERM_EVENTS) {
--		FANOTIFY_PE(event)->fd = fd;
-+		struct fanotify_perm_event_info *pevent;
-+
-+		pevent = FANOTIFY_PE(event);
-+		pevent->fd = fd;
- 		mutex_lock(&group->fanotify_data.access_mutex);
--		list_add_tail(&event->fae.fse.list,
-+		list_add_tail(&pevent->fae.fse.list,
- 			      &group->fanotify_data.access_list);
- 		mutex_unlock(&group->fanotify_data.access_mutex);
- 	}
+ static struct kobj_attribute ocfs2_attr_dlm_recover_support =
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
-ocfs2-add-dlm_recover_callback_support-in-sysfs-fix.patch
+ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
 ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
 ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch
 mm-hugetlb-improve-page-fault-scalability-fix.patch
