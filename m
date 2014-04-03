@@ -1,116 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] lib-radix_tree-tree-node-interface-fix.patch
- removed from -mm tree
-Date: Thu, 03 Apr 2014 14:05:38 -0700
-Message-ID: <533dcd22.09gz1cv1Hf3WLDSa%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch removed from -mm
+ tree
+Date: Thu, 03 Apr 2014 14:06:17 -0700
+Message-ID: <533dcd49.FCHr98JgIN2zhZyc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60783 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753818AbaDCVFj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:05:39 -0400
+	with ESMTP id S1753759AbaDCVGS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:06:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, riel@redhat.com, hannes@cmpxchg.org, sasha.levin@oracle.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, minchan@kernel.org, hughd@google.com, hannes@cmpxchg.org
 
-Subject: [folded-merged] lib-radix_tree-tree-node-interface-fix.patch removed from -mm tree
-To: sasha.levin@oracle.com,hannes@cmpxchg.org,riel@redhat.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch removed from -mm tree
+To: hannes@cmpxchg.org,hughd@google.com,minchan@kernel.org,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Apr 2014 14:05:38 -0700
+Date: Thu, 03 Apr 2014 14:06:17 -0700
 
 
 The patch titled
-     Subject: lib: radix: return correct error code on insertion failure
+     Subject: mm-keep-page-cache-radix-tree-nodes-in-check-fix
 has been removed from the -mm tree.  Its filename was
-     lib-radix_tree-tree-node-interface-fix.patch
+     mm-keep-page-cache-radix-tree-nodes-in-check-fix.patch
 
-This patch was dropped because it was folded into lib-radix_tree-tree-node-interface.patch
+This patch was dropped because it was folded into mm-keep-page-cache-radix-tree-nodes-in-check.patch
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: lib: radix: return correct error code on insertion failure
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm-keep-page-cache-radix-tree-nodes-in-check-fix
 
-We would never check the return value of __radix_tree_create() on
-insertion which would cause us to return -EEXIST on all cases of failure,
-even when such failure would be running out of memory, for example.
+Hugh Dickin reports the following lockdep splat:
 
-This would trigger errors in various code that assumed that -EEXIST is a
-critical failure, as opposed to a "regular" error.  For example, it would
-trigger a VM_BUG_ON in mm's swap handling:
+======================================================
+[ INFO: SOFTIRQ-safe -> SOFTIRQ-unsafe lock order detected ]
+3.14.0-rc1-mm1 #1 Not tainted
+------------------------------------------------------
+kswapd0/48 [HC0[0]:SC0[0]:HE0:SE1] is trying to acquire:
+ (&(&lru->node[i].lock)->rlock){+.+.-.}, at: [<ffffffff81117064>] list_lru_add+0x80/0xf4
 
-[  469.636769] kernel BUG at mm/swap_state.c:113!
-[  469.636769] invalid opcode: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-[  469.638313] Dumping ftrace buffer:
-[  469.638526]    (ftrace buffer empty)
-[  469.640016] Modules linked in:
-[  469.640110] CPU: 54 PID: 4598 Comm: kswapd6 Tainted: G        W    3.14.0-rc4-next-20140228-sasha-00012-g6bbcf46-dirty #29
-[  469.640110] task: ffff8802850d3000 ti: ffff8802850cc000 task.ti: ffff8802850cc000
-[  469.640110] RIP: 0010:[<ffffffff81296a82>]  [<ffffffff81296a82>] __add_to_swap_cache+0x132/0x170
-[  469.640110] RSP: 0000:ffff8802850cd7a8  EFLAGS: 00010246
-[  469.640110] RAX: 0000000080000001 RBX: ffffea000a02ca00 RCX: 0000000000000000
-[  469.640110] RDX: 0000000000000001 RSI: 0000000000000001 RDI: 00000000ffffffff
-[  469.640110] RBP: ffff8802850cd7c8 R08: 0000000000000000 R09: 0000000000000000
-[  469.640110] R10: 0000000000000001 R11: 0000000000000001 R12: ffffffff868c2e18
-[  469.640110] R13: ffffffff868c2e30 R14: 00000000ffffffef R15: 0000000000000000
-[  469.640110] FS:  0000000000000000(0000) GS:ffff880286800000(0000) knlGS:0000000000000000
-[  469.640110] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[  469.640110] CR2: 00000000029c23b0 CR3: 00000000824ca000 CR4: 00000000000006e0
-[  469.640110] Stack:
-[  469.640110]  ffffea000a02ca00 020000000004c037 ffff8802850cd9c8 ffffea000a02ca00
-[  469.640110]  ffff8802850cd7f8 ffffffff81296cac ffff8802850cd9c8 ffff8802850cd9c8
-[  469.640110]  ffffea000a02ca00 020000000004c037 ffff8802850cd828 ffffffff81296d90
-[  469.640110] Call Trace:
-[  469.640110]  [<ffffffff81296cac>] add_to_swap_cache+0x2c/0x60
-[  469.640110]  [<ffffffff81296d90>] add_to_swap+0xb0/0xe0
-[  469.640110]  [<ffffffff81263d21>] shrink_page_list+0x411/0x7c0
-[  469.640110]  [<ffffffff812657ac>] shrink_inactive_list+0x31c/0x570
-[  469.640110]  [<ffffffff81265d0b>] ? shrink_active_list+0x30b/0x320
-[  469.640110]  [<ffffffff81265e44>] shrink_lruvec+0x124/0x300
-[  469.640110]  [<ffffffff812660ae>] shrink_zone+0x8e/0x1d0
-[  469.640110]  [<ffffffff81266771>] kswapd_shrink_zone+0xf1/0x1b0
-[  469.640110]  [<ffffffff81267783>] balance_pgdat+0x363/0x540
-[  469.640110]  [<ffffffff81269383>] kswapd+0x2b3/0x310
-[  469.640110]  [<ffffffff812690d0>] ? ftrace_raw_event_mm_vmscan_writepage+0x180/0x180
-[  469.640110]  [<ffffffff811678b5>] kthread+0x105/0x110
-[  469.640110]  [<ffffffff811a3b52>] ? __lock_release+0x1e2/0x200
-[  469.640110]  [<ffffffff811677b0>] ? set_kthreadd_affinity+0x30/0x30
-[  469.640110]  [<ffffffff8439f58c>] ret_from_fork+0x7c/0xb0
-[  469.640110]  [<ffffffff811677b0>] ? set_kthreadd_affinity+0x30/0x30
-[  469.640110] Code: 00 00 be 0a 00 00 00 e8 0d ae fd ff 48 ff 05 b6 33 d2 06 4c 89 ef e8 1e f6 0f 03 eb 2c 4c 89 ef e8 14 f6 0f 03 41 83 fe ef 75 04 <0f> 0b eb fe 48 c7 43 30 00 00 00 00 f0 80 63 02 fe 48 89 df e8
-[  469.640110] RIP  [<ffffffff81296a82>] __add_to_swap_cache+0x132/0x170
-[  469.640110]  RSP <ffff8802850cd7a8>
+s already holding:
+ (&(&mapping->tree_lock)->rlock){..-.-.}, at: [<ffffffff81108c63>] __remove_mapping+0x3b/0x12d
+which would create a new lock dependency:
+ (&(&mapping->tree_lock)->rlock){..-.-.} -> (&(&lru->node[i].lock)->rlock){+.+.-.}
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+lru->node[i].lock nests inside the mapping->tree_lock when page cache
+insertions and deletions add or remove radix tree nodes to the shadow
+LRU list.
+
+However, paths that only hold the IRQ-unsafe lru->node[i].lock, like
+the shadow shrinker, can be interrupted at any time by the IO
+completion handler, which in turn acquires the mapping->tree_lock.
+This is a simple locking order inversion and can deadlock like so:
+
+CPU#0: shadow shrinker          CPU#1: page cache modification
+lru->node[i].lock
+                                mapping->tree_lock
+                                lru->node[i].lock
+<interrupt>
+mapping->tree_lock
+
+Make the shadow lru->node[i].lock IRQ-safe to remove the order
+dictated by interruption.  This slightly increases the IRQ-disabled
+section in the shadow shrinker, but it still drops all locks and
+enables IRQ after every reclaimed shadow radix tree node.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Hugh Dickins <hughd@google.com>
+Tested-by: Hugh Dickins <hughd@google.com>
 Cc: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/list_lru.h |    6 +++++-
+ mm/list_lru.c            |    4 +++-
+ mm/workingset.c          |   24 ++++++++++++++++++++----
+ 3 files changed, 28 insertions(+), 6 deletions(-)
 
-diff -puN lib/radix-tree.c~lib-radix_tree-tree-node-interface-fix lib/radix-tree.c
---- a/lib/radix-tree.c~lib-radix_tree-tree-node-interface-fix
-+++ a/lib/radix-tree.c
-@@ -442,6 +442,8 @@ int radix_tree_insert(struct radix_tree_
- 	BUG_ON(radix_tree_is_indirect_ptr(item));
+diff -puN include/linux/list_lru.h~mm-keep-page-cache-radix-tree-nodes-in-check-fix include/linux/list_lru.h
+--- a/include/linux/list_lru.h~mm-keep-page-cache-radix-tree-nodes-in-check-fix
++++ a/include/linux/list_lru.h
+@@ -34,7 +34,11 @@ struct list_lru {
+ };
  
- 	error = __radix_tree_create(root, index, &node, &slot);
-+	if (error)
-+		return error;
- 	if (*slot != NULL)
- 		return -EEXIST;
- 	rcu_assign_pointer(*slot, item);
+ void list_lru_destroy(struct list_lru *lru);
+-int list_lru_init(struct list_lru *lru);
++int list_lru_init_key(struct list_lru *lru, struct lock_class_key *key);
++static inline int list_lru_init(struct list_lru *lru)
++{
++	return list_lru_init_key(lru, NULL);
++}
+ 
+ /**
+  * list_lru_add: add an element to the lru list's tail
+diff -puN mm/list_lru.c~mm-keep-page-cache-radix-tree-nodes-in-check-fix mm/list_lru.c
+--- a/mm/list_lru.c~mm-keep-page-cache-radix-tree-nodes-in-check-fix
++++ a/mm/list_lru.c
+@@ -124,7 +124,7 @@ restart:
+ }
+ EXPORT_SYMBOL_GPL(list_lru_walk_node);
+ 
+-int list_lru_init(struct list_lru *lru)
++int list_lru_init_key(struct list_lru *lru, struct lock_class_key *key)
+ {
+ 	int i;
+ 	size_t size = sizeof(*lru->node) * nr_node_ids;
+@@ -136,6 +136,8 @@ int list_lru_init(struct list_lru *lru)
+ 	nodes_clear(lru->active_nodes);
+ 	for (i = 0; i < nr_node_ids; i++) {
+ 		spin_lock_init(&lru->node[i].lock);
++		if (key)
++			lockdep_set_class(&lru->node[i].lock, key);
+ 		INIT_LIST_HEAD(&lru->node[i].list);
+ 		lru->node[i].nr_items = 0;
+ 	}
+diff -puN mm/workingset.c~mm-keep-page-cache-radix-tree-nodes-in-check-fix mm/workingset.c
+--- a/mm/workingset.c~mm-keep-page-cache-radix-tree-nodes-in-check-fix
++++ a/mm/workingset.c
+@@ -273,7 +273,10 @@ static unsigned long count_shadow_nodes(
+ 	unsigned long max_nodes;
+ 	unsigned long pages;
+ 
++	local_irq_disable();
+ 	shadow_nodes = list_lru_count_node(&workingset_shadow_nodes, sc->nid);
++	local_irq_enable();
++
+ 	pages = node_present_pages(sc->nid);
+ 	/*
+ 	 * Active cache pages are limited to 50% of memory, and shadow
+@@ -322,7 +325,7 @@ static enum lru_status shadow_lru_isolat
+ 	mapping = node->private_data;
+ 
+ 	/* Coming from the list, invert the lock order */
+-	if (!spin_trylock_irq(&mapping->tree_lock)) {
++	if (!spin_trylock(&mapping->tree_lock)) {
+ 		spin_unlock(lru_lock);
+ 		ret = LRU_RETRY;
+ 		goto out;
+@@ -355,10 +358,12 @@ static enum lru_status shadow_lru_isolat
+ 	if (!__radix_tree_delete_node(&mapping->page_tree, node))
+ 		BUG();
+ 
+-	spin_unlock_irq(&mapping->tree_lock);
++	spin_unlock(&mapping->tree_lock);
+ 	ret = LRU_REMOVED_RETRY;
+ out:
++	local_irq_enable();
+ 	cond_resched();
++	local_irq_disable();
+ 	spin_lock(lru_lock);
+ 	return ret;
+ }
+@@ -366,8 +371,13 @@ out:
+ static unsigned long scan_shadow_nodes(struct shrinker *shrinker,
+ 				       struct shrink_control *sc)
+ {
+-	return list_lru_walk_node(&workingset_shadow_nodes, sc->nid,
++	unsigned long ret;
++
++	local_irq_disable();
++	ret =  list_lru_walk_node(&workingset_shadow_nodes, sc->nid,
+ 				  shadow_lru_isolate, NULL, &sc->nr_to_scan);
++	local_irq_enable();
++	return ret;
+ }
+ 
+ static struct shrinker workingset_shadow_shrinker = {
+@@ -377,11 +387,17 @@ static struct shrinker workingset_shadow
+ 	.flags = SHRINKER_NUMA_AWARE,
+ };
+ 
++/*
++ * Our list_lru->lock is IRQ-safe as it nests inside the IRQ-safe
++ * mapping->tree_lock.
++ */
++static struct lock_class_key shadow_nodes_key;
++
+ static int __init workingset_init(void)
+ {
+ 	int ret;
+ 
+-	ret = list_lru_init(&workingset_shadow_nodes);
++	ret = list_lru_init_key(&workingset_shadow_nodes, &shadow_nodes_key);
+ 	if (ret)
+ 		goto err;
+ 	ret = register_shrinker(&workingset_shadow_shrinker);
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-origin.patch
+mm-vmscan-respect-numa-policy-mask-when-shrinking-slab-on-direct-reclaim.patch
+mm-vmscan-move-call-to-shrink_slab-to-shrink_zones.patch
+mm-vmscan-remove-shrink_control-arg-from-do_try_to_free_pages.patch
+mm-vmstat-fix-up-zone-state-accounting.patch
+fs-cachefiles-use-add_to_page_cache_lru.patch
+lib-radix-tree-radix_tree_delete_item.patch
+mm-shmem-save-one-radix-tree-lookup-when-truncating-swapped-pages.patch
+mm-filemap-move-radix-tree-hole-searching-here.patch
+mm-fs-prepare-for-non-page-entries-in-page-cache-radix-trees.patch
+mm-fs-store-shadow-entries-in-page-cache.patch
+mm-thrash-detection-based-file-cache-sizing.patch
 lib-radix_tree-tree-node-interface.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-remove-read_cache_page_async.patch
+mm-keep-page-cache-radix-tree-nodes-in-check.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
+mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix-fix.patch
+drop_caches-add-some-documentation-and-info-message.patch
 
