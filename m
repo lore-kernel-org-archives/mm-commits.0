@@ -1,74 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 03 Apr 2014 14:03:38 -0700
-Message-ID: <533dccaa.RqIkDHtyCF6CEesT%akpm@linux-foundation.org>
+ mm-hugetlb-improve-page-fault-scalability-fix.patch removed from -mm tree
+Date: Thu, 03 Apr 2014 14:04:04 -0700
+Message-ID: <533dccc4.Bwkuh3pez6hCYcdy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60752 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60757 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753671AbaDCVDj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:03:39 -0400
+	with ESMTP id S1753567AbaDCVEG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2014 17:04:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, younger.liucn@gmail.com, mfasheh@suse.de, jlbec@evilplan.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, iamjoonsoo.kim@lge.com, davidlohr@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,jlbec@evilplan.org,mfasheh@suse.de,younger.liucn@gmail.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-hugetlb-improve-page-fault-scalability-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr@hp.com,iamjoonsoo.kim@lge.com,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Thu, 03 Apr 2014 14:03:38 -0700
+Date: Thu, 03 Apr 2014 14:04:04 -0700
 
 
 The patch titled
-     Subject: ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes
+     Subject: mm-hugetlb-improve-page-fault-scalability-fix
 has been removed from the -mm tree.  Its filename was
-     ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes.patch
+     mm-hugetlb-improve-page-fault-scalability-fix.patch
 
-This patch was dropped because it was folded into ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch
+This patch was dropped because it was folded into mm-hugetlb-improve-page-fault-scalability.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes
+Subject: mm-hugetlb-improve-page-fault-scalability-fix
 
-WARNING: line over 80 characters
-#52: FILE: fs/ocfs2/suballoc.c:1617:
-+	struct ocfs2_chain_list *cl = (struct ocfs2_chain_list *) &di->id2.i_chain;
+remove stray + characters, go BUG if hugetlb_init() kmalloc fails
 
-total: 0 errors, 1 warnings, 71 lines checked
-
-./patches/ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Younger Liu <younger.liucn@gmail.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/suballoc.c~ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed-checkpatch-fixes
-+++ a/fs/ocfs2/suballoc.c
-@@ -1614,8 +1614,9 @@ void ocfs2_rollback_alloc_dinode_counts(
- {
- 	u32 tmp_used;
- 	struct ocfs2_dinode *di = (struct ocfs2_dinode *) di_bh->b_data;
--	struct ocfs2_chain_list *cl = (struct ocfs2_chain_list *) &di->id2.i_chain;
-+	struct ocfs2_chain_list *cl;
+diff -puN mm/hugetlb.c~mm-hugetlb-improve-page-fault-scalability-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-improve-page-fault-scalability-fix
++++ a/mm/hugetlb.c
+@@ -55,9 +55,9 @@ static unsigned long __initdata default_
+ DEFINE_SPINLOCK(hugetlb_lock);
  
-+	cl = (struct ocfs2_chain_list *)&di->id2.i_chain;
- 	tmp_used = le32_to_cpu(di->id1.bitmap1.i_used);
- 	di->id1.bitmap1.i_used = cpu_to_le32(tmp_used - num_bits);
- 	le32_add_cpu(&cl->cl_recs[chain].c_free, num_bits);
+ /*
+-+ * Serializes faults on the same logical page.  This is used to
+-+ * prevent spurious OOMs when the hugepage pool is fully utilized.
+-+ */
++ * Serializes faults on the same logical page.  This is used to
++ * prevent spurious OOMs when the hugepage pool is fully utilized.
++ */
+ static int num_fault_mutexes;
+ static struct mutex *htlb_fault_mutex_table ____cacheline_aligned_in_smp;
+ 
+@@ -2008,8 +2008,7 @@ static int __init hugetlb_init(void)
+ #endif
+ 	htlb_fault_mutex_table =
+ 		kmalloc(sizeof(struct mutex) * num_fault_mutexes, GFP_KERNEL);
+-	if (!htlb_fault_mutex_table)
+-		return -ENOMEM;
++	BUG_ON(!htlb_fault_mutex_table);
+ 
+ 	for (i = 0; i < num_fault_mutexes; i++)
+ 		mutex_init(&htlb_fault_mutex_table[i]);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +81,7 @@ fanotify-use-fanotify-event-structure-for-permission-response-processing.patch
 ocfs2-add-dlm_recover_callback_support-in-sysfs.patch
 ocfs2-flock-drop-cross-node-lock-when-failed-locally.patch
 ocfs2-rollback-alloc_dinode-counts-when-ocfs2_block_group_set_bits-failed.patch
-mm-hugetlb-improve-page-fault-scalability-fix.patch
+mm-hugetlb-improve-page-fault-scalability.patch
 mm-vmstat-fix-up-zone-state-accounting-fix.patch
 mm-keep-page-cache-radix-tree-nodes-in-check-fix-fix.patch
 mm-process_vm_accessc-mark-function-as-static-fix.patch
