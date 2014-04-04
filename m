@@ -1,90 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-addition-of-dialog-semiconductor-files.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:33:08 -0700
-Message-ID: <533f08f4.nQIOI/S83JveVAHY%akpm@linux-foundation.org>
+Subject: [merged]
+ maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch removed from -mm
+ tree
+Date: Fri, 04 Apr 2014 12:33:06 -0700
+Message-ID: <533f08f2.kqk5sYXHIto4Net4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43243 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754114AbaDDTdJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:09 -0400
+	with ESMTP id S1754440AbaDDTdG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, david.chen@diasemi.com, broonie@linaro.org, stwiss.opensource@diasemi.com
+To: mm-commits@vger.kernel.org, inaky.perez-gonzalez@intel.com, geert@linux-m68k.org, joe@perches.com
 
-Subject: [merged] maintainers-addition-of-dialog-semiconductor-files.patch removed from -mm tree
-To: stwiss.opensource@diasemi.com,broonie@linaro.org,david.chen@diasemi.com,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch removed from -mm tree
+To: joe@perches.com,geert@linux-m68k.org,inaky.perez-gonzalez@intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:33:08 -0700
+Date: Fri, 04 Apr 2014 12:33:06 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: addition of Dialog Semiconductor files
+     Subject: MAINTAINERS: wimax@linuxwimax.org is subscribers-only
 has been removed from the -mm tree.  Its filename was
-     maintainers-addition-of-dialog-semiconductor-files.patch
+     maintainers-wimax-linuxwimaxorg-is-subscribers-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
-Subject: MAINTAINERS: addition of Dialog Semiconductor files
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: wimax@linuxwimax.org is subscribers-only
 
-Dialog Semiconductor Ltd would like to add a new section called DIALOG
-SEMICONDUCTOR DRIVERS which contains a new e-mail address that can
-cover all Dialog supported drivers: support.opensource@diasemi.com.
+Mark it so.
 
-Signed-off-by: Opensource [Steve Twiss] <stwiss.opensource@diasemi.com>
-Signed-off-by: David Dajun Chen <david.chen@diasemi.com>
-Cc: Mark Brown <broonie@linaro.org>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-addition-of-dialog-semiconductor-files MAINTAINERS
---- a/MAINTAINERS~maintainers-addition-of-dialog-semiconductor-files
+diff -puN MAINTAINERS~maintainers-wimax-linuxwimaxorg-is-subscribers-only MAINTAINERS
+--- a/MAINTAINERS~maintainers-wimax-linuxwimaxorg-is-subscribers-only
 +++ a/MAINTAINERS
-@@ -2730,6 +2730,31 @@ F:	include/linux/device-mapper.h
- F:	include/linux/dm-*.h
- F:	include/uapi/linux/dm-*.h
- 
-+DIALOG SEMICONDUCTOR DRIVERS
-+M:	Support Opensource <support.opensource@diasemi.com>
-+W:	http://www.dialog-semiconductor.com/products
-+S:	Supported
-+F:	Documentation/hwmon/da90??
-+F:	drivers/gpio/gpio-da90??.c
-+F:	drivers/hwmon/da90??-hwmon.c
-+F:	drivers/input/misc/da90??_onkey.c
-+F:	drivers/input/touchscreen/da9052_tsi.c
-+F:	drivers/leds/leds-da90??.c
-+F:	drivers/mfd/da903x.c
-+F:	drivers/mfd/da90??-*.c
-+F:	drivers/power/da9052-battery.c
-+F:	drivers/regulator/da903x.c
-+F:	drivers/regulator/da9???-regulator.[ch]
-+F:	drivers/rtc/rtc-da90??.c
-+F:	drivers/video/backlight/da90??_bl.c
-+F:	drivers/watchdog/da90??_wdt.c
-+F:	include/linux/mfd/da903x.h
-+F:	include/linux/mfd/da9052/
-+F:	include/linux/mfd/da9055/
-+F:	include/linux/mfd/da9063/
-+F:	include/sound/da[79]*.h
-+F:	sound/soc/codecs/da[79]*.[ch]
-+
- DIGI NEO AND CLASSIC PCI PRODUCTS
- M:	Lidza Louina <lidza.louina@gmail.com>
- L:	driverdev-devel@linuxdriverproject.org
+@@ -4622,7 +4622,7 @@ F:	arch/x86/kernel/tboot.c
+ INTEL WIRELESS WIMAX CONNECTION 2400
+ M:	Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
+ M:	linux-wimax@intel.com
+-L:	wimax@linuxwimax.org
++L:     wimax@linuxwimax.org (subscribers-only)
+ S:	Supported
+ W:	http://linuxwimax.org
+ F:	Documentation/wimax/README.i2400m
+@@ -9657,7 +9657,7 @@ F:	drivers/media/rc/winbond-cir.c
+ WIMAX STACK
+ M:	Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
+ M:	linux-wimax@intel.com
+-L:	wimax@linuxwimax.org
++L:     wimax@linuxwimax.org (subscribers-only)
+ S:	Supported
+ W:	http://linuxwimax.org
+ F:	Documentation/wimax/README.wimax
 _
 
-Patches currently in -mm which might be from stwiss.opensource@diasemi.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+ntfs-logging-clean-up.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
 linux-next.patch
 
