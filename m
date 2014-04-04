@@ -1,67 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-fix-jiffies-comparison-and-others.patch
+Subject: [merged]
+ checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
  removed from -mm tree
-Date: Fri, 04 Apr 2014 12:34:02 -0700
-Message-ID: <533f092a.QdYQD+n+xe5p4zlL%akpm@linux-foundation.org>
+Date: Fri, 04 Apr 2014 12:34:04 -0700
+Message-ID: <533f092c.qAJ0pQjaHMQSxbxN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43334 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754240AbaDDTeD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:03 -0400
+	with ESMTP id S1754240AbaDDTeF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] checkpatch-fix-jiffies-comparison-and-others.patch removed from -mm tree
+Subject: [merged] checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch removed from -mm tree
 To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:34:02 -0700
+Date: Fri, 04 Apr 2014 12:34:04 -0700
 
 
 The patch titled
-     Subject: checkpatch: fix jiffies comparison and others
+     Subject: checkpatch: add test for char * arrays that could be static const
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-jiffies-comparison-and-others.patch
+     checkpatch-add-test-for-char-arrays-that-could-be-static-const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: fix jiffies comparison and others
+Subject: checkpatch: add test for char * arrays that could be static const
 
-checkpatch could not distinguish between a variable in a struct named
-jiffies and the normal jiffies.
+static const char* arrays create smaller text as each function call does
+not have to populate the array.
 
-	foo->jiffies
-
-would emit a "Comparing jiffies" arning.
-
-Update the $Compare variable to do a negative look-behind for "-" when
-finding a ">" so that a pointer dereference like -> isn't a comparison.
+Emit a warning when char *arrays aren't static const and the array is not
+apparently global by being declared in the first column.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-jiffies-comparison-and-others scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-jiffies-comparison-and-others
+diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-char-arrays-that-could-be-static-const scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-test-for-char-arrays-that-could-be-static-const
 +++ a/scripts/checkpatch.pl
-@@ -296,7 +296,7 @@ our $Float_int	= qr{(?i)[0-9]+e-?[0-9]+[
- our $Float	= qr{$Float_hex|$Float_dec|$Float_int};
- our $Constant	= qr{$Float|$Binary|$Octal|$Hex|$Int};
- our $Assignment	= qr{\*\=|/=|%=|\+=|-=|<<=|>>=|&=|\^=|\|=|=};
--our $Compare    = qr{<=|>=|==|!=|<|>};
-+our $Compare    = qr{<=|>=|==|!=|<|(?<!-)>};
- our $Arithmetic = qr{\+|-|\*|\/|%};
- our $Operators	= qr{
- 			<=|>=|==|!=|
+@@ -2675,6 +2675,13 @@ sub process {
+ 				$herecurr);
+                }
+ 
++# check for non-global char *foo[] = {"bar", ...} declarations.
++		if ($line =~ /^.\s+(?:static\s+|const\s+)?char\s+\*\s*\w+\s*\[\s*\]\s*=\s*\{/) {
++			WARN("STATIC_CONST_CHAR_ARRAY",
++			     "char * array declaration might be better as static const\n" .
++				$herecurr);
++               }
++
+ # check for function declarations without arguments like "int foo()"
+ 		if ($line =~ /(\b$Type\s+$Ident)\s*\(\s*\)/) {
+ 			if (ERROR("FUNCTION_WITHOUT_ARGS",
 _
 
 Patches currently in -mm which might be from joe@perches.com are
