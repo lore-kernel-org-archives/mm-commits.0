@@ -1,63 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-add-backlight-co-maintainers.patch removed
- from -mm tree
-Date: Fri, 04 Apr 2014 12:33:00 -0700
-Message-ID: <533f08ec.IupF5OjjganOs98F%akpm@linux-foundation.org>
+Subject: [merged] backlight-aat2870-remove-unnecessary-oom-messages.patch
+ removed from -mm tree
+Date: Fri, 04 Apr 2014 12:33:18 -0700
+Message-ID: <533f08fe.e48LQTsvzoAt9wiu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43226 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43270 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754390AbaDDTdB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:01 -0400
+	with ESMTP id S1754224AbaDDTdS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, lee.jones@linaro.org, cooloney@gmail.com, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, jinyoungp@nvidia.com, jg1.han@samsung.com
 
-Subject: [merged] maintainers-add-backlight-co-maintainers.patch removed from -mm tree
-To: jg1.han@samsung.com,cooloney@gmail.com,lee.jones@linaro.org,mm-commits@vger.kernel.org
+Subject: [merged] backlight-aat2870-remove-unnecessary-oom-messages.patch removed from -mm tree
+To: jg1.han@samsung.com,jinyoungp@nvidia.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:33:00 -0700
+Date: Fri, 04 Apr 2014 12:33:18 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: add backlight co-maintainers
+     Subject: backlight: aat2870: remove unnecessary OOM messages
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-backlight-co-maintainers.patch
+     backlight-aat2870-remove-unnecessary-oom-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: MAINTAINERS: add backlight co-maintainers
+Subject: backlight: aat2870: remove unnecessary OOM messages
 
-Bryan Wu and Lee Jones volunteer to maintain backlight drivers and help to
-setup git-tree for backlight subsystem.  Thus, I add them as backlight
-co-maintainers.
+The site-specific OOM messages are unnecessary, because they duplicate the
+MM subsystem generic OOM message.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Bryan Wu <cooloney@gmail.com>
-Acked-by: Lee Jones <lee.jones@linaro.org>
+Acked-by: Jinyoung Park <jinyoungp@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/backlight/aat2870_bl.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-backlight-co-maintainers MAINTAINERS
---- a/MAINTAINERS~maintainers-add-backlight-co-maintainers
-+++ a/MAINTAINERS
-@@ -1704,6 +1704,8 @@ F:	drivers/net/wireless/b43legacy/
- 
- BACKLIGHT CLASS/SUBSYSTEM
- M:	Jingoo Han <jg1.han@samsung.com>
-+M:	Bryan Wu <cooloney@gmail.com>
-+M:	Lee Jones <lee.jones@linaro.org>
- S:	Maintained
- F:	drivers/video/backlight/
- F:	include/linux/backlight.h
+diff -puN drivers/video/backlight/aat2870_bl.c~backlight-aat2870-remove-unnecessary-oom-messages drivers/video/backlight/aat2870_bl.c
+--- a/drivers/video/backlight/aat2870_bl.c~backlight-aat2870-remove-unnecessary-oom-messages
++++ a/drivers/video/backlight/aat2870_bl.c
+@@ -149,8 +149,6 @@ static int aat2870_bl_probe(struct platf
+ 				  sizeof(struct aat2870_bl_driver_data),
+ 				  GFP_KERNEL);
+ 	if (!aat2870_bl) {
+-		dev_err(&pdev->dev,
+-			"Failed to allocate memory for aat2870 backlight\n");
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
