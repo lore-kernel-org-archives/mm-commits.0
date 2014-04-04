@@ -1,130 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-devresc-fix-some-sparse-warnings.patch removed from
+Subject: [merged]
+ backlight-platform_lcd-remove-unnecessary-oom-messages.patch removed from
  -mm tree
-Date: Fri, 04 Apr 2014 12:33:42 -0700
-Message-ID: <533f0916.eY+yxe6jjei/uSGt%akpm@linux-foundation.org>
+Date: Fri, 04 Apr 2014 12:33:38 -0700
+Message-ID: <533f0912.s+EmixKtQA4Dq0ZB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43301 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43297 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754455AbaDDTdm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:42 -0400
+	with ESMTP id S1754160AbaDDTdi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, gregkh@linuxfoundation.org, rostedt@goodmis.org
+To: mm-commits@vger.kernel.org, jg1.han@samsung.com
 
-Subject: [merged] lib-devresc-fix-some-sparse-warnings.patch removed from -mm tree
-To: rostedt@goodmis.org,gregkh@linuxfoundation.org,tj@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] backlight-platform_lcd-remove-unnecessary-oom-messages.patch removed from -mm tree
+To: jg1.han@samsung.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:33:42 -0700
+Date: Fri, 04 Apr 2014 12:33:38 -0700
 
 
 The patch titled
-     Subject: lib/devres.c: fix some sparse warnings
+     Subject: backlight: platform_lcd: remove unnecessary OOM messages
 has been removed from the -mm tree.  Its filename was
-     lib-devresc-fix-some-sparse-warnings.patch
+     backlight-platform_lcd-remove-unnecessary-oom-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: lib/devres.c: fix some sparse warnings
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: platform_lcd: remove unnecessary OOM messages
 
-Having a discussion about sparse warnings in the kernel, and that we
-should clean them up, I decided to pick a random file to do so.  This
-happened to be devres.c which gives the following warnings:
+The site-specific OOM messages are unnecessary, because they duplicate the
+MM subsystem generic OOM message.
 
-  CHECK   lib/devres.c
-lib/devres.c:83:9: warning: cast removes address space of expression
-lib/devres.c:117:31: warning: incorrect type in return expression (different address spaces)
-lib/devres.c:117:31:    expected void [noderef] <asn:2>*
-lib/devres.c:117:31:    got void *
-lib/devres.c:125:31: warning: incorrect type in return expression (different address spaces)
-lib/devres.c:125:31:    expected void [noderef] <asn:2>*
-lib/devres.c:125:31:    got void *
-lib/devres.c:136:26: warning: incorrect type in assignment (different address spaces)
-lib/devres.c:136:26:    expected void [noderef] <asn:2>*[assigned] dest_ptr
-lib/devres.c:136:26:    got void *
-lib/devres.c:226:9: warning: cast removes address space of expression
-
-Mostly it's just the use of typecasting to void * without adding __force,
-or returning ERR_PTR(-ESOMEERR) without typecasting to a __iomem type.
-
-I added a helper macro IOMEM_ERR_PTR() that does the typecast to make the
-code a little nicer than adding ugly typecasts to the code.
-
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tejun Heo <tj@kernel.org>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/devres.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/video/backlight/platform_lcd.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN lib/devres.c~lib-devresc-fix-some-sparse-warnings lib/devres.c
---- a/lib/devres.c~lib-devresc-fix-some-sparse-warnings
-+++ a/lib/devres.c
-@@ -81,11 +81,13 @@ EXPORT_SYMBOL(devm_ioremap_nocache);
- void devm_iounmap(struct device *dev, void __iomem *addr)
- {
- 	WARN_ON(devres_destroy(dev, devm_ioremap_release, devm_ioremap_match,
--			       (void *)addr));
-+			       (__force void *)addr));
- 	iounmap(addr);
- }
- EXPORT_SYMBOL(devm_iounmap);
+diff -puN drivers/video/backlight/platform_lcd.c~backlight-platform_lcd-remove-unnecessary-oom-messages drivers/video/backlight/platform_lcd.c
+--- a/drivers/video/backlight/platform_lcd.c~backlight-platform_lcd-remove-unnecessary-oom-messages
++++ a/drivers/video/backlight/platform_lcd.c
+@@ -94,10 +94,8 @@ static int platform_lcd_probe(struct pla
  
-+#define IOMEM_ERR_PTR(err) (__force void __iomem *)ERR_PTR(err)
-+
- /**
-  * devm_ioremap_resource() - check, request region, and ioremap resource
-  * @dev: generic device to handle the resource for
-@@ -114,7 +116,7 @@ void __iomem *devm_ioremap_resource(stru
+ 	plcd = devm_kzalloc(&pdev->dev, sizeof(struct platform_lcd),
+ 			    GFP_KERNEL);
+-	if (!plcd) {
+-		dev_err(dev, "no memory for state\n");
++	if (!plcd)
+ 		return -ENOMEM;
+-	}
  
- 	if (!res || resource_type(res) != IORESOURCE_MEM) {
- 		dev_err(dev, "invalid resource\n");
--		return ERR_PTR(-EINVAL);
-+		return IOMEM_ERR_PTR(-EINVAL);
- 	}
- 
- 	size = resource_size(res);
-@@ -122,7 +124,7 @@ void __iomem *devm_ioremap_resource(stru
- 
- 	if (!devm_request_mem_region(dev, res->start, size, name)) {
- 		dev_err(dev, "can't request region for resource %pR\n", res);
--		return ERR_PTR(-EBUSY);
-+		return IOMEM_ERR_PTR(-EBUSY);
- 	}
- 
- 	if (res->flags & IORESOURCE_CACHEABLE)
-@@ -133,7 +135,7 @@ void __iomem *devm_ioremap_resource(stru
- 	if (!dest_ptr) {
- 		dev_err(dev, "ioremap failed for resource %pR\n", res);
- 		devm_release_mem_region(dev, res->start, size);
--		dest_ptr = ERR_PTR(-ENOMEM);
-+		dest_ptr = IOMEM_ERR_PTR(-ENOMEM);
- 	}
- 
- 	return dest_ptr;
-@@ -224,7 +226,7 @@ void devm_ioport_unmap(struct device *de
- {
- 	ioport_unmap(addr);
- 	WARN_ON(devres_destroy(dev, devm_ioport_map_release,
--			       devm_ioport_map_match, (void *)addr));
-+			       devm_ioport_map_match, (__force void *)addr));
- }
- EXPORT_SYMBOL(devm_ioport_unmap);
- #endif /* CONFIG_HAS_IOPORT */
+ 	plcd->us = dev;
+ 	plcd->pdata = pdata;
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
-exec-kill-bprm-tcomm-simplify-the-basename-logic.patch
+maintainers-update-ibm-serveraid-raid-info.patch
+drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
 linux-next.patch
-percpu-add-raw_cpu_ops.patch
 
