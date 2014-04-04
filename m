@@ -1,134 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-dlm-fix-recovery-hung.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:30:07 -0700
-Message-ID: <533f083f.gT9C+hQFUi38cA0K%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch removed from -mm tree
+Date: Fri, 04 Apr 2014 12:30:15 -0700
+Message-ID: <533f0847.pw1Q0EEXFUDvW3wC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42716 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42742 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754448AbaDDTaI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:30:08 -0400
+	with ESMTP id S1754461AbaDDTaQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, wen.gang.wang@oracle.com, stable@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.com, jlbec@evilplan.org, junxiao.bi@oracle.com
+To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.de, jlbec@evilplan.org, jack@suse.cz
 
-Subject: [merged] ocfs2-dlm-fix-recovery-hung.patch removed from -mm tree
-To: junxiao.bi@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,srinivas.eeda@oracle.com,stable@vger.kernel.org,wen.gang.wang@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch removed from -mm tree
+To: jack@suse.cz,jlbec@evilplan.org,mfasheh@suse.de,srinivas.eeda@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:30:07 -0700
+Date: Fri, 04 Apr 2014 12:30:15 -0700
 
 
 The patch titled
-     Subject: ocfs2: dlm: fix recovery hung
+     Subject: ocfs2: avoid blocking in ocfs2_mark_lockres_freeing() in downconvert thread
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-fix-recovery-hung.patch
+     ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: dlm: fix recovery hung
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: avoid blocking in ocfs2_mark_lockres_freeing() in downconvert thread
 
-There is a race window in dlm_do_recovery() between dlm_remaster_locks()
-and dlm_reset_recovery() when the recovery master nearly finish the
-recovery process for a dead node.  After the master sends FINALIZE_RECO
-message in dlm_remaster_locks(), another node may become the recovery
-master for another dead node, and then send the BEGIN_RECO message to all
-the nodes included the old master, in the handler of this message
-dlm_begin_reco_handler() of old master, dlm->reco.dead_node and
-dlm->reco.new_master will be set to the second dead node and the new
-master, then in dlm_reset_recovery(), these two variables will be reset to
-default value.  This will cause new recovery master can not finish the
-recovery process and hung, at last the whole cluster will hung for
-recovery.
+If we are dropping last inode reference from downconvert thread, we will
+end up calling ocfs2_mark_lockres_freeing() which can block if the lock we
+are freeing is queued thus creating an A-A deadlock.  Luckily, since we
+are the downconvert thread, we can immediately dequeue the lock and thus
+avoid waiting in this case.
 
-old recovery master:                                 new recovery master:
-dlm_remaster_locks()
-                                                  become recovery master for
-                                                  another dead node.
-                                                  dlm_send_begin_reco_message()
-dlm_begin_reco_handler()
-{
- if (dlm->reco.state & DLM_RECO_STATE_FINALIZE) {
-  return -EAGAIN;
- }
- dlm_set_reco_master(dlm, br->node_idx);
- dlm_set_reco_dead_node(dlm, br->dead_node);
-}
-dlm_reset_recovery()
-{
- dlm_set_reco_dead_node(dlm, O2NM_INVALID_NODE_NUM);
- dlm_set_reco_master(dlm, O2NM_INVALID_NODE_NUM);
-}
-                                                  will hang in dlm_remaster_locks() for
-                                                  request dlm locks info
-
-Before send FINALIZE_RECO message, recovery master should set
-DLM_RECO_STATE_FINALIZE for itself and clear it after the recovery done,
-this can break the race windows as the BEGIN_RECO messages will not be
-handled before DLM_RECO_STATE_FINALIZE flag is cleared.
-
-A similar race may happen between new recovery master and normal node
-which is in dlm_finalize_reco_handler(), also fix it.
-
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Reviewed-by: Wengang Wang <wen.gang.wang@oracle.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlmglue.c |   44 ++++++++++++++++++++++++++++++++++++++++---
+ fs/ocfs2/dlmglue.h |    3 +-
+ fs/ocfs2/inode.c   |    7 +++---
+ 3 files changed, 47 insertions(+), 7 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-recovery-hung fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-recovery-hung
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -537,7 +537,10 @@ master_here:
- 		/* success!  see if any other nodes need recovery */
- 		mlog(0, "DONE mastering recovery of %s:%u here(this=%u)!\n",
- 		     dlm->name, dlm->reco.dead_node, dlm->node_num);
--		dlm_reset_recovery(dlm);
-+		spin_lock(&dlm->spinlock);
-+		__dlm_reset_recovery(dlm);
-+		dlm->reco.state &= ~DLM_RECO_STATE_FINALIZE;
-+		spin_unlock(&dlm->spinlock);
- 	}
- 	dlm_end_recovery(dlm);
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread
++++ a/fs/ocfs2/dlmglue.c
+@@ -3144,22 +3144,60 @@ out:
+ 	return 0;
+ }
  
-@@ -695,6 +698,14 @@ static int dlm_remaster_locks(struct dlm
- 		if (all_nodes_done) {
- 			int ret;
- 
-+			/* Set this flag on recovery master to avoid
-+			 * a new recovery for another dead node start
-+			 * before the recovery is not done. That may
-+			 * cause recovery hung.*/
-+			spin_lock(&dlm->spinlock);
-+			dlm->reco.state |= DLM_RECO_STATE_FINALIZE;
-+			spin_unlock(&dlm->spinlock);
++static void ocfs2_process_blocked_lock(struct ocfs2_super *osb,
++				       struct ocfs2_lock_res *lockres);
 +
- 			/* all nodes are now in DLM_RECO_NODE_DATA_DONE state
- 	 		 * just send a finalize message to everyone and
- 	 		 * clean up */
-@@ -2884,8 +2895,8 @@ int dlm_finalize_reco_handler(struct o2n
- 				BUG();
- 			}
- 			dlm->reco.state &= ~DLM_RECO_STATE_FINALIZE;
-+			__dlm_reset_recovery(dlm);
- 			spin_unlock(&dlm->spinlock);
--			dlm_reset_recovery(dlm);
- 			dlm_kick_recovery_thread(dlm);
- 			break;
- 		default:
+ /* Mark the lockres as being dropped. It will no longer be
+  * queued if blocking, but we still may have to wait on it
+  * being dequeued from the downconvert thread before we can consider
+  * it safe to drop.
+  *
+  * You can *not* attempt to call cluster_lock on this lockres anymore. */
+-void ocfs2_mark_lockres_freeing(struct ocfs2_lock_res *lockres)
++void ocfs2_mark_lockres_freeing(struct ocfs2_super *osb,
++				struct ocfs2_lock_res *lockres)
+ {
+ 	int status;
+ 	struct ocfs2_mask_waiter mw;
+-	unsigned long flags;
++	unsigned long flags, flags2;
+ 
+ 	ocfs2_init_mask_waiter(&mw);
+ 
+ 	spin_lock_irqsave(&lockres->l_lock, flags);
+ 	lockres->l_flags |= OCFS2_LOCK_FREEING;
++	if (lockres->l_flags & OCFS2_LOCK_QUEUED && current == osb->dc_task) {
++		/*
++		 * We know the downconvert is queued but not in progress
++		 * because we are the downconvert thread and processing
++		 * different lock. So we can just remove the lock from the
++		 * queue. This is not only an optimization but also a way
++		 * to avoid the following deadlock:
++		 *   ocfs2_dentry_post_unlock()
++		 *     ocfs2_dentry_lock_put()
++		 *       ocfs2_drop_dentry_lock()
++		 *         iput()
++		 *           ocfs2_evict_inode()
++		 *             ocfs2_clear_inode()
++		 *               ocfs2_mark_lockres_freeing()
++		 *                 ... blocks waiting for OCFS2_LOCK_QUEUED
++		 *                 since we are the downconvert thread which
++		 *                 should clear the flag.
++		 */
++		spin_unlock_irqrestore(&lockres->l_lock, flags);
++		spin_lock_irqsave(&osb->dc_task_lock, flags2);
++		list_del_init(&lockres->l_blocked_list);
++		osb->blocked_lock_count--;
++		spin_unlock_irqrestore(&osb->dc_task_lock, flags2);
++		/*
++		 * Warn if we recurse into another post_unlock call.  Strictly
++		 * speaking it isn't a problem but we need to be careful if
++		 * that happens (stack overflow, deadlocks, ...) so warn if
++		 * ocfs2 grows a path for which this can happen.
++		 */
++		WARN_ON_ONCE(lockres->l_ops->post_unlock);
++		/* Since the lock is freeing we don't do much in the fn below */
++		ocfs2_process_blocked_lock(osb, lockres);
++		return;
++	}
+ 	while (lockres->l_flags & OCFS2_LOCK_QUEUED) {
+ 		lockres_add_mask_waiter(lockres, &mw, OCFS2_LOCK_QUEUED, 0);
+ 		spin_unlock_irqrestore(&lockres->l_lock, flags);
+@@ -3180,7 +3218,7 @@ void ocfs2_simple_drop_lockres(struct oc
+ {
+ 	int ret;
+ 
+-	ocfs2_mark_lockres_freeing(lockres);
++	ocfs2_mark_lockres_freeing(osb, lockres);
+ 	ret = ocfs2_drop_lock(osb, lockres);
+ 	if (ret)
+ 		mlog_errno(ret);
+diff -puN fs/ocfs2/dlmglue.h~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread fs/ocfs2/dlmglue.h
+--- a/fs/ocfs2/dlmglue.h~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread
++++ a/fs/ocfs2/dlmglue.h
+@@ -157,7 +157,8 @@ int ocfs2_refcount_lock(struct ocfs2_ref
+ void ocfs2_refcount_unlock(struct ocfs2_refcount_tree *ref_tree, int ex);
+ 
+ 
+-void ocfs2_mark_lockres_freeing(struct ocfs2_lock_res *lockres);
++void ocfs2_mark_lockres_freeing(struct ocfs2_super *osb,
++				struct ocfs2_lock_res *lockres);
+ void ocfs2_simple_drop_lockres(struct ocfs2_super *osb,
+ 			       struct ocfs2_lock_res *lockres);
+ 
+diff -puN fs/ocfs2/inode.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread
++++ a/fs/ocfs2/inode.c
+@@ -1080,6 +1080,7 @@ static void ocfs2_clear_inode(struct ino
+ {
+ 	int status;
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
++	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 
+ 	clear_inode(inode);
+ 	trace_ocfs2_clear_inode((unsigned long long)oi->ip_blkno,
+@@ -1096,9 +1097,9 @@ static void ocfs2_clear_inode(struct ino
+ 
+ 	/* Do these before all the other work so that we don't bounce
+ 	 * the downconvert thread while waiting to destroy the locks. */
+-	ocfs2_mark_lockres_freeing(&oi->ip_rw_lockres);
+-	ocfs2_mark_lockres_freeing(&oi->ip_inode_lockres);
+-	ocfs2_mark_lockres_freeing(&oi->ip_open_lockres);
++	ocfs2_mark_lockres_freeing(osb, &oi->ip_rw_lockres);
++	ocfs2_mark_lockres_freeing(osb, &oi->ip_inode_lockres);
++	ocfs2_mark_lockres_freeing(osb, &oi->ip_open_lockres);
+ 
+ 	ocfs2_resv_discard(&OCFS2_SB(inode->i_sb)->osb_la_resmap,
+ 			   &oi->ip_la_data_resv);
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+linux-next.patch
+mm-add-strictlimit-knob-v2.patch
 
