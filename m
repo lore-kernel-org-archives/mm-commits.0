@@ -1,91 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-dont-warn-on-bitfield-spaces-around.patch
+Subject: [merged] fs-efs-superc-add-__init-to-init_inodecache.patch
  removed from -mm tree
-Date: Fri, 04 Apr 2014 12:34:32 -0700
-Message-ID: <533f0948.9/cvYS2DifQyCDLc%akpm@linux-foundation.org>
+Date: Fri, 04 Apr 2014 12:34:34 -0700
+Message-ID: <533f094a.oJ/MXwY+8dIQRI8L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43425 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43433 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754352AbaDDTed (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:33 -0400
+	with ESMTP id S1754352AbaDDTee (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com, joe@perches.com
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: [merged] checkpatch-dont-warn-on-bitfield-spaces-around.patch removed from -mm tree
-To: joe@perches.com,dan.carpenter@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-efs-superc-add-__init-to-init_inodecache.patch removed from -mm tree
+To: fabf@skynet.be,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:34:32 -0700
+Date: Fri, 04 Apr 2014 12:34:34 -0700
 
 
 The patch titled
-     Subject: checkpatch: don't warn on bitfield spaces around :
+     Subject: fs/efs/super.c: add __init to init_inodecache()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-dont-warn-on-bitfield-spaces-around.patch
+     fs-efs-superc-add-__init-to-init_inodecache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: don't warn on bitfield spaces around :
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/efs/super.c: add __init to init_inodecache()
 
-This test prevents code from being aligned around the : for easy visual
-counting of bitfield lengths.
+init_inodecache is only called by __init init_efs_fs.
 
-ie:
-	int foo		: 1,
-	int bar		: 2,
-	int foobar	:29;
-
-should be acceptable so remove the test.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/efs/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-warn-on-bitfield-spaces-around scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-warn-on-bitfield-spaces-around
-+++ a/scripts/checkpatch.pl
-@@ -3138,10 +3138,13 @@ sub process {
- 				# // is a comment
- 				} elsif ($op eq '//') {
+diff -puN fs/efs/super.c~fs-efs-superc-add-__init-to-init_inodecache fs/efs/super.c
+--- a/fs/efs/super.c~fs-efs-superc-add-__init-to-init_inodecache
++++ a/fs/efs/super.c
+@@ -91,7 +91,7 @@ static void init_once(void *foo)
+ 	inode_init_once(&ei->vfs_inode);
+ }
  
-+				#   :   when part of a bitfield
-+				} elsif ($opv eq ':B') {
-+					# skip the bitfield test for now
-+
- 				# No spaces for:
- 				#   ->
--				#   :   when part of a bitfield
--				} elsif ($op eq '->' || $opv eq ':B') {
-+				} elsif ($op eq '->') {
- 					if ($ctx =~ /Wx.|.xW/) {
- 						if (ERROR("SPACING",
- 							  "spaces prohibited around that '$op' $at\n" . $hereptr)) {
+-static int init_inodecache(void)
++static int __init init_inodecache(void)
+ {
+ 	efs_inode_cachep = kmem_cache_create("efs_inode_cache",
+ 				sizeof(struct efs_inode_info),
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
 ntfs-logging-clean-up.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
-checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
-checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
-ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-ncpfs-convert-pprintk-to-ncp_vdbg.patch
-ncpfs-remove-now-unused-printk-macro.patch
-ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
+mm-memblockc-use-pfn_phys.patch
+mm-readaheadc-inline-ra_submit.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+affs-add-__init-to-init_inodecache.patch
+fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+affs-mount-option-to-avoid-filename-truncates.patch
+fs-bfs-inodec-add-__init-to-init_inodecache.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
 linux-next.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+ufs-sb-mutex-merge-mutex_destroy-fix.patch
+ufs-sb-mutex-merge-mutex_destroy-fix-v2.patch
+ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
 
