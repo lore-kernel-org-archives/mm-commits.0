@@ -1,170 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kobject-dont-block-for-each-kobject_uevent.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:32:12 -0700
-Message-ID: <533f08bc.Yy5Nv88NZ0+c3PkK%akpm@linux-foundation.org>
+Subject: [merged]
+ drop_caches-add-some-documentation-and-info-message.patch removed from -mm
+ tree
+Date: Fri, 04 Apr 2014 12:32:10 -0700
+Message-ID: <533f08ba.GpK965vMC1vmzvhB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273AbaDDTcN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:13 -0400
+	with ESMTP id S1754273AbaDDTcK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, greg@kroah.com, cl@linux.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, dave@linux.vnet.ibm.com
 
-Subject: [merged] kobject-dont-block-for-each-kobject_uevent.patch removed from -mm tree
-To: vdavydov@parallels.com,cl@linux.com,greg@kroah.com,penberg@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] drop_caches-add-some-documentation-and-info-message.patch removed from -mm tree
+To: dave@linux.vnet.ibm.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:12 -0700
+Date: Fri, 04 Apr 2014 12:32:10 -0700
 
 
 The patch titled
-     Subject: kobject: don't block for each kobject_uevent
+     Subject: drop_caches: add some documentation and info message
 has been removed from the -mm tree.  Its filename was
-     kobject-dont-block-for-each-kobject_uevent.patch
+     drop_caches-add-some-documentation-and-info-message.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: kobject: don't block for each kobject_uevent
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: drop_caches: add some documentation and info message
 
-Currently kobject_uevent has somewhat unpredictable semantics.  The point
-is, since it may call a usermode helper and wait for it to execute
-(UMH_WAIT_EXEC), it is impossible to say for sure what lock dependencies
-it will introduce for the caller - strictly speaking it depends on what fs
-the binary is located on and the set of locks fork may take.  There are
-quite a few kobject_uevent's users that do not take this into account and
-call it with various mutexes taken, e.g.  rtnl_mutex, net_mutex, which
-might potentially lead to a deadlock.
+There is plenty of anecdotal evidence and a load of blog posts suggesting
+that using "drop_caches" periodically keeps your system running in "tip
+top shape".  Perhaps adding some kernel documentation will increase the
+amount of accurate data on its use.
 
-Since there is actually no reason to wait for the usermode helper to
-execute there, let's make kobject_uevent start the helper asynchronously
-with the aid of the UMH_NO_WAIT flag.
+If we are not shrinking caches effectively, then we have real bugs.  Using
+drop_caches will simply mask the bugs and make them harder to find, but
+certainly does not fix them, nor is it an appropriate "workaround" to
+limit the size of the caches.  On the contrary, there have been bug
+reports on issues that turned out to be misguided use of cache dropping.
 
-Personally, I'm interested in this, because I really want kobject_uevent
-to be called under the slab_mutex in the slub implementation as it used to
-be some time ago, because it greatly simplifies synchronization and
-automatically fixes a kmemcg-related race.  However, there was a deadlock
-detected on an attempt to call kobject_uevent under the slab_mutex (see
-https://lkml.org/lkml/2012/1/14/45), which was reported to be fixed by
-releasing the slab_mutex for kobject_uevent.  Unfortunately, there was no
-information about who exactly blocked on the slab_mutex causing the
-usermode helper to stall, neither have I managed to find this out or
-reproduce the issue.
+Dropping caches is a very drastic and disruptive operation that is good
+for debugging and running tests, but if it creates bug reports from
+production use, kernel developers should be aware of its use.
 
-BTW, this is not the first attempt to make kobject_uevent use UMH_NO_WAIT.
-Previous one was made by commit f520360d93c ("kobject: don't block for
-each kobject_uevent"), but it was wrong (it passed arguments allocated on
-stack to async thread) so it was reverted in 05f54c13cd0c ("Revert
-"kobject: don't block for each kobject_uevent".").  It targeted on
-speeding up the boot process though.
+Add a bit more documentation about it, a syslog message to track down
+abusers, and vmstat drop counters to help analyze problem reports.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+[akpm@linux-foundation.org: checkpatch fixes]
+[hannes@cmpxchg.org: add runtime suppression control]
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kobject.h |    1 
- lib/kobject_uevent.c    |   42 ++++++++++++++++++++++++++++++++------
- 2 files changed, 37 insertions(+), 6 deletions(-)
+ Documentation/sysctl/vm.txt   |   33 ++++++++++++++++++++++++++------
+ fs/drop_caches.c              |   16 +++++++++++++--
+ include/linux/vm_event_item.h |    1 
+ kernel/sysctl.c               |    4 +--
+ mm/vmstat.c                   |    3 ++
+ 5 files changed, 47 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/kobject.h~kobject-dont-block-for-each-kobject_uevent include/linux/kobject.h
---- a/include/linux/kobject.h~kobject-dont-block-for-each-kobject_uevent
-+++ a/include/linux/kobject.h
-@@ -119,6 +119,7 @@ struct kobj_type {
- };
+diff -puN Documentation/sysctl/vm.txt~drop_caches-add-some-documentation-and-info-message Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~drop_caches-add-some-documentation-and-info-message
++++ a/Documentation/sysctl/vm.txt
+@@ -175,18 +175,39 @@ Setting this to zero disables periodic w
  
- struct kobj_uevent_env {
-+	char *argv[3];
- 	char *envp[UEVENT_NUM_ENVP];
- 	int envp_idx;
- 	char buf[UEVENT_BUFFER_SIZE];
-diff -puN lib/kobject_uevent.c~kobject-dont-block-for-each-kobject_uevent lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~kobject-dont-block-for-each-kobject_uevent
-+++ a/lib/kobject_uevent.c
-@@ -124,6 +124,30 @@ static int kobj_usermode_filter(struct k
+ drop_caches
+ 
+-Writing to this will cause the kernel to drop clean caches, dentries and
+-inodes from memory, causing that memory to become free.
++Writing to this will cause the kernel to drop clean caches, as well as
++reclaimable slab objects like dentries and inodes.  Once dropped, their
++memory becomes free.
+ 
+ To free pagecache:
+ 	echo 1 > /proc/sys/vm/drop_caches
+-To free dentries and inodes:
++To free reclaimable slab objects (includes dentries and inodes):
+ 	echo 2 > /proc/sys/vm/drop_caches
+-To free pagecache, dentries and inodes:
++To free slab objects and pagecache:
+ 	echo 3 > /proc/sys/vm/drop_caches
+ 
+-As this is a non-destructive operation and dirty objects are not freeable, the
+-user should run `sync' first.
++This is a non-destructive operation and will not free any dirty objects.
++To increase the number of objects freed by this operation, the user may run
++`sync' prior to writing to /proc/sys/vm/drop_caches.  This will minimize the
++number of dirty objects on the system and create more candidates to be
++dropped.
++
++This file is not a means to control the growth of the various kernel caches
++(inodes, dentries, pagecache, etc...)  These objects are automatically
++reclaimed by the kernel when memory is needed elsewhere on the system.
++
++Use of this file can cause performance problems.  Since it discards cached
++objects, it may cost a significant amount of I/O and CPU to recreate the
++dropped objects, especially if they were under heavy use.  Because of this,
++use outside of a testing or debugging environment is not recommended.
++
++You may see informational messages in your kernel log when this file is
++used:
++
++	cat (1234): drop_caches: 3
++
++These are informational only.  They do not mean that anything is wrong
++with your system.  To disable them, echo 4 (bit 3) into drop_caches.
+ 
+ ==============================================================
+ 
+diff -puN fs/drop_caches.c~drop_caches-add-some-documentation-and-info-message fs/drop_caches.c
+--- a/fs/drop_caches.c~drop_caches-add-some-documentation-and-info-message
++++ a/fs/drop_caches.c
+@@ -59,10 +59,22 @@ int drop_caches_sysctl_handler(ctl_table
+ 	if (ret)
+ 		return ret;
+ 	if (write) {
+-		if (sysctl_drop_caches & 1)
++		static int stfu;
++
++		if (sysctl_drop_caches & 1) {
+ 			iterate_supers(drop_pagecache_sb, NULL);
+-		if (sysctl_drop_caches & 2)
++			count_vm_event(DROP_PAGECACHE);
++		}
++		if (sysctl_drop_caches & 2) {
+ 			drop_slab();
++			count_vm_event(DROP_SLAB);
++		}
++		if (!stfu) {
++			pr_info("%s (%d): drop_caches: %d\n",
++				current->comm, task_pid_nr(current),
++				sysctl_drop_caches);
++		}
++		stfu |= sysctl_drop_caches & 4;
+ 	}
  	return 0;
  }
+diff -puN include/linux/vm_event_item.h~drop_caches-add-some-documentation-and-info-message include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~drop_caches-add-some-documentation-and-info-message
++++ a/include/linux/vm_event_item.h
+@@ -37,6 +37,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_INODESTEAL,
+ 		KSWAPD_LOW_WMARK_HIT_QUICKLY, KSWAPD_HIGH_WMARK_HIT_QUICKLY,
+ 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
++		DROP_PAGECACHE, DROP_SLAB,
+ #ifdef CONFIG_NUMA_BALANCING
+ 		NUMA_PTE_UPDATES,
+ 		NUMA_HUGE_PTE_UPDATES,
+diff -puN kernel/sysctl.c~drop_caches-add-some-documentation-and-info-message kernel/sysctl.c
+--- a/kernel/sysctl.c~drop_caches-add-some-documentation-and-info-message
++++ a/kernel/sysctl.c
+@@ -123,7 +123,7 @@ static int __maybe_unused neg_one = -1;
+ static int zero;
+ static int __maybe_unused one = 1;
+ static int __maybe_unused two = 2;
+-static int __maybe_unused three = 3;
++static int __maybe_unused four = 4;
+ static unsigned long one_ul = 1;
+ static int one_hundred = 100;
+ #ifdef CONFIG_PRINTK
+@@ -1264,7 +1264,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= drop_caches_sysctl_handler,
+ 		.extra1		= &one,
+-		.extra2		= &three,
++		.extra2		= &four,
+ 	},
+ #ifdef CONFIG_COMPACTION
+ 	{
+diff -puN mm/vmstat.c~drop_caches-add-some-documentation-and-info-message mm/vmstat.c
+--- a/mm/vmstat.c~drop_caches-add-some-documentation-and-info-message
++++ a/mm/vmstat.c
+@@ -813,6 +813,9 @@ const char * const vmstat_text[] = {
  
-+static int init_uevent_argv(struct kobj_uevent_env *env, const char *subsystem)
-+{
-+	int len;
-+
-+	len = strlcpy(&env->buf[env->buflen], subsystem,
-+		      sizeof(env->buf) - env->buflen);
-+	if (len >= (sizeof(env->buf) - env->buflen)) {
-+		WARN(1, KERN_ERR "init_uevent_argv: buffer size too small\n");
-+		return -ENOMEM;
-+	}
-+
-+	env->argv[0] = uevent_helper;
-+	env->argv[1] = &env->buf[env->buflen];
-+	env->argv[2] = NULL;
-+
-+	env->buflen += len + 1;
-+	return 0;
-+}
-+
-+static void cleanup_uevent_env(struct subprocess_info *info)
-+{
-+	kfree(info->data);
-+}
-+
- /**
-  * kobject_uevent_env - send an uevent with environmental data
-  *
-@@ -301,11 +325,8 @@ int kobject_uevent_env(struct kobject *k
+ 	"pgrotated",
  
- 	/* call uevent_helper, usually only enabled during early boot */
- 	if (uevent_helper[0] && !kobj_usermode_filter(kobj)) {
--		char *argv [3];
-+		struct subprocess_info *info;
- 
--		argv [0] = uevent_helper;
--		argv [1] = (char *)subsystem;
--		argv [2] = NULL;
- 		retval = add_uevent_var(env, "HOME=/");
- 		if (retval)
- 			goto exit;
-@@ -313,9 +334,18 @@ int kobject_uevent_env(struct kobject *k
- 					"PATH=/sbin:/bin:/usr/sbin:/usr/bin");
- 		if (retval)
- 			goto exit;
-+		retval = init_uevent_argv(env, subsystem);
-+		if (retval)
-+			goto exit;
- 
--		retval = call_usermodehelper(argv[0], argv,
--					     env->envp, UMH_WAIT_EXEC);
-+		retval = -ENOMEM;
-+		info = call_usermodehelper_setup(env->argv[0], env->argv,
-+						 env->envp, GFP_KERNEL,
-+						 NULL, cleanup_uevent_env, env);
-+		if (info) {
-+			retval = call_usermodehelper_exec(info, UMH_NO_WAIT);
-+			env = NULL;	/* freed by cleanup_uevent_env */
-+		}
- 	}
- 
- exit:
++	"drop_pagecache",
++	"drop_slab",
++
+ #ifdef CONFIG_NUMA_BALANCING
+ 	"numa_pte_updates",
+ 	"numa_huge_pte_updates",
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
 origin.patch
-linux-next.patch
-memcg-slab-never-try-to-merge-memcg-caches.patch
-memcg-slab-cleanup-memcg-cache-creation.patch
-memcg-slab-separate-memcg-vs-root-cache-creation-paths.patch
-memcg-slab-unregister-cache-from-memcg-before-starting-to-destroy-it.patch
-memcg-slab-do-not-destroy-children-caches-if-parent-has-aliases.patch
-slub-adjust-memcg-caches-when-creating-cache-alias.patch
-slub-rework-sysfs-layout-for-memcg-caches.patch
-slub-fix-leak-of-name-in-sysfs_slab_add.patch
+debugging-keep-track-of-page-owners.patch
 
