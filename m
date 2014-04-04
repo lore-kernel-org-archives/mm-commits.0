@@ -1,127 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-groupsc-remove-return-value-of-set_groups.patch
- removed from -mm tree
-Date: Fri, 04 Apr 2014 12:32:22 -0700
-Message-ID: <533f08c6.VQZ8JoGhnUS6sNS8%akpm@linux-foundation.org>
+Subject: [merged] submittingpatches-document-the-use-of-git.patch removed
+ from -mm tree
+Date: Fri, 04 Apr 2014 12:32:30 -0700
+Message-ID: <533f08ce.0LhgUErMvwM2vwxP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43152 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43171 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273AbaDDTcX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:23 -0400
+	with ESMTP id S1754273AbaDDTca (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, serge.hallyn@canonical.com, eparis@redhat.com, ebiederm@xmission.com, udknight@gmail.com
+To: mm-commits@vger.kernel.org, rob@landley.net, rdunlap@infradead.org, bp@suse.de, josh@joshtriplett.org
 
-Subject: [merged] kernel-groupsc-remove-return-value-of-set_groups.patch removed from -mm tree
-To: udknight@gmail.com,ebiederm@xmission.com,eparis@redhat.com,serge.hallyn@canonical.com,mm-commits@vger.kernel.org
+Subject: [merged] submittingpatches-document-the-use-of-git.patch removed from -mm tree
+To: josh@joshtriplett.org,bp@suse.de,rdunlap@infradead.org,rob@landley.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:22 -0700
+Date: Fri, 04 Apr 2014 12:32:30 -0700
 
 
 The patch titled
-     Subject: kernel/groups.c: remove return value of set_groups
+     Subject: SubmittingPatches: document the use of git
 has been removed from the -mm tree.  Its filename was
-     kernel-groupsc-remove-return-value-of-set_groups.patch
+     submittingpatches-document-the-use-of-git.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wang YanQing <udknight@gmail.com>
-Subject: kernel/groups.c: remove return value of set_groups
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: SubmittingPatches: document the use of git
 
-After 6307f8fee295 ("security: remove dead hook task_setgroups"),
-set_groups will always return zero, so we could just remove return value
-of set_groups.
+Most of the mechanical portions of SubmittingPatches exist to help patch
+submitters replicate the output of git.  Mention this explicitly, both as
+a reminder that git will help with this process, and as signposting to let
+git users know what they can safely skip.
 
-This patch reduces code size, and simplfies code to use set_groups,
-because we don't need to check its return value any more.
-
-[akpm@linux-foundation.org: remove obsolete claims from set_groups() comment]
-Signed-off-by: Wang YanQing <udknight@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Eric Paris <eparis@redhat.com>
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Acked-by: Borislav Petkov <bp@suse.de>
+Cc: Rob Landley <rob@landley.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/auth.c       |    5 +----
- include/linux/cred.h |    2 +-
- kernel/groups.c      |   14 ++------------
- 3 files changed, 4 insertions(+), 17 deletions(-)
+ Documentation/SubmittingPatches |   33 +++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
-diff -puN fs/nfsd/auth.c~kernel-groupsc-remove-return-value-of-set_groups fs/nfsd/auth.c
---- a/fs/nfsd/auth.c~kernel-groupsc-remove-return-value-of-set_groups
-+++ a/fs/nfsd/auth.c
-@@ -71,10 +71,8 @@ int nfsd_setuser(struct svc_rqst *rqstp,
- 	if (gid_eq(new->fsgid, INVALID_GID))
- 		new->fsgid = exp->ex_anon_gid;
+diff -puN Documentation/SubmittingPatches~submittingpatches-document-the-use-of-git Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~submittingpatches-document-the-use-of-git
++++ a/Documentation/SubmittingPatches
+@@ -14,7 +14,10 @@ Read Documentation/SubmitChecklist for a
+ before submitting code.  If you are submitting a driver, also read
+ Documentation/SubmittingDrivers.
  
--	ret = set_groups(new, gi);
-+	set_groups(new, gi);
- 	put_group_info(gi);
--	if (ret < 0)
--		goto error;
+-
++Many of these steps describe the default behavior of the git version
++control system; if you use git to prepare your patches, you'll find much
++of the mechanical work done for you, though you'll still need to prepare
++and document a sensible set of patches.
  
- 	if (!uid_eq(new->fsuid, GLOBAL_ROOT_UID))
- 		new->cap_effective = cap_drop_nfsd_set(new->cap_effective);
-@@ -89,7 +87,6 @@ int nfsd_setuser(struct svc_rqst *rqstp,
+ --------------------------------------------
+ SECTION 1 - CREATING AND SENDING YOUR CHANGE
+@@ -25,7 +28,9 @@ SECTION 1 - CREATING AND SENDING YOUR CH
+ 1) "diff -up"
+ ------------
  
- oom:
- 	ret = -ENOMEM;
--error:
- 	abort_creds(new);
- 	return ret;
- }
-diff -puN include/linux/cred.h~kernel-groupsc-remove-return-value-of-set_groups include/linux/cred.h
---- a/include/linux/cred.h~kernel-groupsc-remove-return-value-of-set_groups
-+++ a/include/linux/cred.h
-@@ -66,7 +66,7 @@ extern struct group_info *groups_alloc(i
- extern struct group_info init_groups;
- extern void groups_free(struct group_info *);
- extern int set_current_groups(struct group_info *);
--extern int set_groups(struct cred *, struct group_info *);
-+extern void set_groups(struct cred *, struct group_info *);
- extern int groups_search(const struct group_info *, kgid_t);
+-Use "diff -up" or "diff -uprN" to create patches.
++Use "diff -up" or "diff -uprN" to create patches.  git generates patches
++in this form by default; if you're using git, you can skip this section
++entirely.
  
- /* access the groups "array" with this macro */
-diff -puN kernel/groups.c~kernel-groupsc-remove-return-value-of-set_groups kernel/groups.c
---- a/kernel/groups.c~kernel-groupsc-remove-return-value-of-set_groups
-+++ a/kernel/groups.c
-@@ -157,17 +157,13 @@ int groups_search(const struct group_inf
-  * set_groups - Change a group subscription in a set of credentials
-  * @new: The newly prepared set of credentials to alter
-  * @group_info: The group list to install
-- *
-- * Validate a group subscription and, if valid, insert it into a set
-- * of credentials.
-  */
--int set_groups(struct cred *new, struct group_info *group_info)
-+void set_groups(struct cred *new, struct group_info *group_info)
- {
- 	put_group_info(new->group_info);
- 	groups_sort(group_info);
- 	get_group_info(group_info);
- 	new->group_info = group_info;
--	return 0;
- }
+ All changes to the Linux kernel occur in the form of patches, as
+ generated by diff(1).  When creating your patch, make sure to create it
+@@ -66,19 +71,14 @@ Make sure your patch does not include an
+ belong in a patch submission.  Make sure to review your patch -after-
+ generated it with diff(1), to ensure accuracy.
  
- EXPORT_SYMBOL(set_groups);
-@@ -182,18 +178,12 @@ EXPORT_SYMBOL(set_groups);
- int set_current_groups(struct group_info *group_info)
- {
- 	struct cred *new;
--	int ret;
+-If your changes produce a lot of deltas, you may want to look into
+-splitting them into individual patches which modify things in
+-logical stages.  This will facilitate easier reviewing by other
+-kernel developers, very important if you want your patch accepted.
+-There are a number of scripts which can aid in this:
+-
+-Quilt:
+-http://savannah.nongnu.org/projects/quilt
+-
+-Andrew Morton's patch scripts:
+-http://userweb.kernel.org/~akpm/stuff/patch-scripts.tar.gz
+-Instead of these scripts, quilt is the recommended patch management
+-tool (see above).
++If your changes produce a lot of deltas, you need to split them into
++individual patches which modify things in logical stages; see section
++#3.  This will facilitate easier reviewing by other kernel developers,
++very important if you want your patch accepted.
++
++If you're using git, "git rebase -i" can help you with this process.  If
++you're not using git, quilt <http://savannah.nongnu.org/projects/quilt>
++is another popular alternative.
  
- 	new = prepare_creds();
- 	if (!new)
- 		return -ENOMEM;
  
--	ret = set_groups(new, group_info);
--	if (ret < 0) {
--		abort_creds(new);
--		return ret;
--	}
+ 
+@@ -607,7 +607,8 @@ patch.
+ If you are going to include a diffstat after the "---" marker, please
+ use diffstat options "-p 1 -w 70" so that filenames are listed from
+ the top of the kernel source tree and don't use too much horizontal
+-space (easily fit in 80 columns, maybe with some indentation).
++space (easily fit in 80 columns, maybe with some indentation).  (git
++generates appropriate diffstats by default.)
+ 
+ See more details on the proper patch format in the following
+ references.
+_
+
+Patches currently in -mm which might be from josh@joshtriplett.org are
+
+origin.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
+ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
+ppc-make-ppc_book3s_64-select-irq_work.patch
+kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
+bug-when-config_bug-simplify-warn_on_once-and-family.patch
+include-asm-generic-bugh-style-fix-s-while0-while-0.patch
+bug-when-config_bug-make-warn-call-no_printk-to-check-format-and-args.patch
+bug-make-bug-always-stop-the-machine.patch
+x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch
+linux-next.patch
+lglock-map-to-spinlock-when-config_smp.patch
+
