@@ -1,167 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-kernel-permit-disabling-the-uselib-syscall.patch
+Subject: [merged] kernel-groupsc-remove-return-value-of-set_groups.patch
  removed from -mm tree
-Date: Fri, 04 Apr 2014 12:32:24 -0700
-Message-ID: <533f08c8.QIcgXms5KZNmzhqL%akpm@linux-foundation.org>
+Date: Fri, 04 Apr 2014 12:32:22 -0700
+Message-ID: <533f08c6.VQZ8JoGhnUS6sNS8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43157 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43152 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273AbaDDTcY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:24 -0400
+	with ESMTP id S1754273AbaDDTcX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, serge.hallyn@canonical.com, eparis@redhat.com, ebiederm@xmission.com, udknight@gmail.com
 
-Subject: [merged] fs-kernel-permit-disabling-the-uselib-syscall.patch removed from -mm tree
-To: josh@joshtriplett.org,mm-commits@vger.kernel.org
+Subject: [merged] kernel-groupsc-remove-return-value-of-set_groups.patch removed from -mm tree
+To: udknight@gmail.com,ebiederm@xmission.com,eparis@redhat.com,serge.hallyn@canonical.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:24 -0700
+Date: Fri, 04 Apr 2014 12:32:22 -0700
 
 
 The patch titled
-     Subject: fs, kernel: permit disabling the uselib syscall
+     Subject: kernel/groups.c: remove return value of set_groups
 has been removed from the -mm tree.  Its filename was
-     fs-kernel-permit-disabling-the-uselib-syscall.patch
+     kernel-groupsc-remove-return-value-of-set_groups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: fs, kernel: permit disabling the uselib syscall
+From: Wang YanQing <udknight@gmail.com>
+Subject: kernel/groups.c: remove return value of set_groups
 
-uselib hasn't been used since libc5; glibc does not use it.  Support
-turning it off.
+After 6307f8fee295 ("security: remove dead hook task_setgroups"),
+set_groups will always return zero, so we could just remove return value
+of set_groups.
 
-When disabled, also omit the load_elf_library implementation from
-binfmt_elf.c, which only uselib invokes.
+This patch reduces code size, and simplfies code to use set_groups,
+because we don't need to check its return value any more.
 
-bloat-o-meter:
-add/remove: 0/4 grow/shrink: 0/1 up/down: 0/-785 (-785)
-function                                     old     new   delta
-padzero                                       39      36      -3
-uselib_flags                                  20       -     -20
-sys_uselib                                   168       -    -168
-SyS_uselib                                   168       -    -168
-load_elf_library                             426       -    -426
-
-The new CONFIG_USELIB defaults to `y'.
-
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+[akpm@linux-foundation.org: remove obsolete claims from set_groups() comment]
+Signed-off-by: Wang YanQing <udknight@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    9 ++++++++-
- fs/exec.c       |    2 ++
- init/Kconfig    |   10 ++++++++++
- kernel/sys_ni.c |    1 +
- 4 files changed, 21 insertions(+), 1 deletion(-)
+ fs/nfsd/auth.c       |    5 +----
+ include/linux/cred.h |    2 +-
+ kernel/groups.c      |   14 ++------------
+ 3 files changed, 4 insertions(+), 17 deletions(-)
 
-diff -puN fs/binfmt_elf.c~fs-kernel-permit-disabling-the-uselib-syscall fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-kernel-permit-disabling-the-uselib-syscall
-+++ a/fs/binfmt_elf.c
-@@ -46,10 +46,15 @@
- #endif
+diff -puN fs/nfsd/auth.c~kernel-groupsc-remove-return-value-of-set_groups fs/nfsd/auth.c
+--- a/fs/nfsd/auth.c~kernel-groupsc-remove-return-value-of-set_groups
++++ a/fs/nfsd/auth.c
+@@ -71,10 +71,8 @@ int nfsd_setuser(struct svc_rqst *rqstp,
+ 	if (gid_eq(new->fsgid, INVALID_GID))
+ 		new->fsgid = exp->ex_anon_gid;
  
- static int load_elf_binary(struct linux_binprm *bprm);
--static int load_elf_library(struct file *);
- static unsigned long elf_map(struct file *, unsigned long, struct elf_phdr *,
- 				int, int, unsigned long);
+-	ret = set_groups(new, gi);
++	set_groups(new, gi);
+ 	put_group_info(gi);
+-	if (ret < 0)
+-		goto error;
  
-+#ifdef CONFIG_USELIB
-+static int load_elf_library(struct file *);
-+#else
-+#define load_elf_library NULL
-+#endif
-+
- /*
-  * If we don't support core dumping, then supply a NULL so we
-  * don't even try.
-@@ -1005,6 +1010,7 @@ out_free_ph:
- 	goto out;
+ 	if (!uid_eq(new->fsuid, GLOBAL_ROOT_UID))
+ 		new->cap_effective = cap_drop_nfsd_set(new->cap_effective);
+@@ -89,7 +87,6 @@ int nfsd_setuser(struct svc_rqst *rqstp,
+ 
+ oom:
+ 	ret = -ENOMEM;
+-error:
+ 	abort_creds(new);
+ 	return ret;
+ }
+diff -puN include/linux/cred.h~kernel-groupsc-remove-return-value-of-set_groups include/linux/cred.h
+--- a/include/linux/cred.h~kernel-groupsc-remove-return-value-of-set_groups
++++ a/include/linux/cred.h
+@@ -66,7 +66,7 @@ extern struct group_info *groups_alloc(i
+ extern struct group_info init_groups;
+ extern void groups_free(struct group_info *);
+ extern int set_current_groups(struct group_info *);
+-extern int set_groups(struct cred *, struct group_info *);
++extern void set_groups(struct cred *, struct group_info *);
+ extern int groups_search(const struct group_info *, kgid_t);
+ 
+ /* access the groups "array" with this macro */
+diff -puN kernel/groups.c~kernel-groupsc-remove-return-value-of-set_groups kernel/groups.c
+--- a/kernel/groups.c~kernel-groupsc-remove-return-value-of-set_groups
++++ a/kernel/groups.c
+@@ -157,17 +157,13 @@ int groups_search(const struct group_inf
+  * set_groups - Change a group subscription in a set of credentials
+  * @new: The newly prepared set of credentials to alter
+  * @group_info: The group list to install
+- *
+- * Validate a group subscription and, if valid, insert it into a set
+- * of credentials.
+  */
+-int set_groups(struct cred *new, struct group_info *group_info)
++void set_groups(struct cred *new, struct group_info *group_info)
+ {
+ 	put_group_info(new->group_info);
+ 	groups_sort(group_info);
+ 	get_group_info(group_info);
+ 	new->group_info = group_info;
+-	return 0;
  }
  
-+#ifdef CONFIG_USELIB
- /* This is really simpleminded and specialized - we are loading an
-    a.out library that is given an ELF header. */
- static int load_elf_library(struct file *file)
-@@ -1083,6 +1089,7 @@ out_free_ph:
- out:
- 	return error;
- }
-+#endif /* #ifdef CONFIG_USELIB */
+ EXPORT_SYMBOL(set_groups);
+@@ -182,18 +178,12 @@ EXPORT_SYMBOL(set_groups);
+ int set_current_groups(struct group_info *group_info)
+ {
+ 	struct cred *new;
+-	int ret;
  
- #ifdef CONFIG_ELF_CORE
- /*
-diff -puN fs/exec.c~fs-kernel-permit-disabling-the-uselib-syscall fs/exec.c
---- a/fs/exec.c~fs-kernel-permit-disabling-the-uselib-syscall
-+++ a/fs/exec.c
-@@ -97,6 +97,7 @@ static inline void put_binfmt(struct lin
- 	module_put(fmt->module);
- }
+ 	new = prepare_creds();
+ 	if (!new)
+ 		return -ENOMEM;
  
-+#ifdef CONFIG_USELIB
- /*
-  * Note that a shared library must be both readable and executable due to
-  * security reasons.
-@@ -156,6 +157,7 @@ exit:
- out:
-   	return error;
- }
-+#endif /* #ifdef CONFIG_USELIB */
- 
- #ifdef CONFIG_MMU
- /*
-diff -puN init/Kconfig~fs-kernel-permit-disabling-the-uselib-syscall init/Kconfig
---- a/init/Kconfig~fs-kernel-permit-disabling-the-uselib-syscall
-+++ a/init/Kconfig
-@@ -273,6 +273,16 @@ config FHANDLE
- 	  get renamed. Enables open_by_handle_at(2) and name_to_handle_at(2)
- 	  syscalls.
- 
-+config USELIB
-+	bool "uselib syscall"
-+	default y
-+	help
-+	  This option enables the uselib syscall, a system call used in the
-+	  dynamic linker from libc5 and earlier.  glibc does not use this
-+	  system call.  If you intend to run programs built on libc5 or
-+	  earlier, you may need to enable this syscall.  Current systems
-+	  running glibc can safely disable this.
-+
- config AUDIT
- 	bool "Auditing support"
- 	depends on NET
-diff -puN kernel/sys_ni.c~fs-kernel-permit-disabling-the-uselib-syscall kernel/sys_ni.c
---- a/kernel/sys_ni.c~fs-kernel-permit-disabling-the-uselib-syscall
-+++ a/kernel/sys_ni.c
-@@ -152,6 +152,7 @@ cond_syscall(sys_process_vm_readv);
- cond_syscall(sys_process_vm_writev);
- cond_syscall(compat_sys_process_vm_readv);
- cond_syscall(compat_sys_process_vm_writev);
-+cond_syscall(sys_uselib);
- 
- /* arch-specific weak syscall entries */
- cond_syscall(sys_pciconfig_read);
-_
-
-Patches currently in -mm which might be from josh@joshtriplett.org are
-
-origin.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
-ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
-ppc-make-ppc_book3s_64-select-irq_work.patch
-kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
-bug-when-config_bug-simplify-warn_on_once-and-family.patch
-include-asm-generic-bugh-style-fix-s-while0-while-0.patch
-bug-when-config_bug-make-warn-call-no_printk-to-check-format-and-args.patch
-bug-make-bug-always-stop-the-machine.patch
-x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch
-linux-next.patch
-lglock-map-to-spinlock-when-config_smp.patch
-
+-	ret = set_groups(new, group_info);
+-	if (ret < 0) {
+-		abort_creds(new);
+-		return ret;
+-	}
