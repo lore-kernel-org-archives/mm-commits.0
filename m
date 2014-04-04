@@ -1,78 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-efs-superc-add-__init-to-init_inodecache.patch
- removed from -mm tree
-Date: Fri, 04 Apr 2014 12:34:34 -0700
-Message-ID: <533f094a.oJ/MXwY+8dIQRI8L%akpm@linux-foundation.org>
+Subject: [merged] init-do_mountsc-fix-comment-error.patch removed from -mm tree
+Date: Fri, 04 Apr 2014 12:34:38 -0700
+Message-ID: <533f094e.SC+2S8VHEMN9+6Tf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43433 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43448 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754352AbaDDTee (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:34 -0400
+	with ESMTP id S1754352AbaDDTei (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, chishanmingshen@gmail.com
 
-Subject: [merged] fs-efs-superc-add-__init-to-init_inodecache.patch removed from -mm tree
-To: fabf@skynet.be,mm-commits@vger.kernel.org
+Subject: [merged] init-do_mountsc-fix-comment-error.patch removed from -mm tree
+To: chishanmingshen@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:34:34 -0700
+Date: Fri, 04 Apr 2014 12:34:38 -0700
 
 
 The patch titled
-     Subject: fs/efs/super.c: add __init to init_inodecache()
+     Subject: init/do_mounts.c: fix comment error
 has been removed from the -mm tree.  Its filename was
-     fs-efs-superc-add-__init-to-init_inodecache.patch
+     init-do_mountsc-fix-comment-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/efs/super.c: add __init to init_inodecache()
+From: chishanmingshen <chishanmingshen@gmail.com>
+Subject: init/do_mounts.c: fix comment error
 
-init_inodecache is only called by __init init_efs_fs.
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: chishanmingshen <chishanmingshen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/do_mounts.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/efs/super.c~fs-efs-superc-add-__init-to-init_inodecache fs/efs/super.c
---- a/fs/efs/super.c~fs-efs-superc-add-__init-to-init_inodecache
-+++ a/fs/efs/super.c
-@@ -91,7 +91,7 @@ static void init_once(void *foo)
- 	inode_init_once(&ei->vfs_inode);
- }
+diff -puN init/do_mounts.c~init-do_mountsc-fix-comment-error init/do_mounts.c
+--- a/init/do_mounts.c~init-do_mountsc-fix-comment-error
++++ a/init/do_mounts.c
+@@ -102,13 +102,13 @@ no_match:
  
--static int init_inodecache(void)
-+static int __init init_inodecache(void)
- {
- 	efs_inode_cachep = kmem_cache_create("efs_inode_cache",
- 				sizeof(struct efs_inode_info),
+ /**
+  * devt_from_partuuid - looks up the dev_t of a partition by its UUID
+- * @uuid:	char array containing ascii UUID
++ * @uuid_str:	char array containing ascii UUID
+  *
+  * The function will return the first partition which contains a matching
+  * UUID value in its partition_meta_info struct.  This does not search
+  * by filesystem UUIDs.
+  *
+- * If @uuid is followed by a "/PARTNROFF=%d", then the number will be
++ * If @uuid_str is followed by a "/PARTNROFF=%d", then the number will be
+  * extracted and used as an offset from the partition identified by the UUID.
+  *
+  * Returns the matching dev_t on success or 0 on failure.
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from chishanmingshen@gmail.com are
 
 origin.patch
-ntfs-logging-clean-up.patch
-mm-memblockc-use-pfn_phys.patch
-mm-readaheadc-inline-ra_submit.patch
-fs-adfs-superc-add-__init-to-init_inodecache.patch
-affs-add-__init-to-init_inodecache.patch
-fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
-affs-mount-option-to-avoid-filename-truncates.patch
-fs-bfs-inodec-add-__init-to-init_inodecache.patch
-kernel-panicc-display-reason-at-end-pr_emerg.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-linux-next.patch
-fs-ufs-superc-add-__init-to-init_inodecache.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-ufs-sb-mutex-merge-mutex_destroy-fix.patch
-ufs-sb-mutex-merge-mutex_destroy-fix-v2.patch
-ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
 
