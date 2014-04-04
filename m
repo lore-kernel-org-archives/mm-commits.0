@@ -1,88 +1,277 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
- removed from -mm tree
-Date: Fri, 04 Apr 2014 12:32:14 -0700
-Message-ID: <533f08be.mb9QoXAyW4zVTFcY%akpm@linux-foundation.org>
+Subject: [merged] mm-remove-read_cache_page_async.patch removed from -mm
+ tree
+Date: Fri, 04 Apr 2014 12:32:08 -0700
+Message-ID: <533f08b8.87T2kB4GjT+Dk1Ai%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43133 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43118 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273AbaDDTcP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:15 -0400
+	with ESMTP id S1754273AbaDDTcI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, greg@kroah.com, cl@linux.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com
 
-Subject: [merged] slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch removed from -mm tree
-To: vdavydov@parallels.com,cl@linux.com,greg@kroah.com,penberg@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-remove-read_cache_page_async.patch removed from -mm tree
+To: sasha.levin@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:14 -0700
+Date: Fri, 04 Apr 2014 12:32:08 -0700
 
 
 The patch titled
-     Subject: slub: do not drop slab_mutex for sysfs_slab_add
+     Subject: mm: remove read_cache_page_async()
 has been removed from the -mm tree.  Its filename was
-     slub-do-not-drop-slab_mutex-for-sysfs_slab_add.patch
+     mm-remove-read_cache_page_async.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slub: do not drop slab_mutex for sysfs_slab_add
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: mm: remove read_cache_page_async()
 
-We release the slab_mutex while calling sysfs_slab_add from
-__kmem_cache_create since commit 66c4c35c6bc5 ("slub: Do not hold
-slub_lock when calling sysfs_slab_add()"), because kobject_uevent called
-by sysfs_slab_add might block waiting for the usermode helper to exec,
-which would result in a deadlock if we took the slab_mutex while executing
-it.
+This patch removes read_cache_page_async() which wasn't really needed
+anywhere and simplifies the code around it a bit.
 
-However, apart from complicating synchronization rules, releasing the
-slab_mutex on kmem cache creation can result in a kmemcg-related race. 
-The point is that we check if the memcg cache exists before going to
-__kmem_cache_create, but register the new cache in memcg subsys after it. 
-Since we can drop the mutex there, several threads can see that the memcg
-cache does not exist and proceed to creating it, which is wrong.
+read_cache_page_async() is useful when we want to read a page into the
+cache without waiting for it to complete.  This happens when the
+appropriate callback 'filler' doesn't complete its read operation and
+releases the page lock immediately, and instead queues a different
+completion routine to do that.  This never actually happened anywhere in
+the code.
 
-Fortunately, recently kobject_uevent was patched to call the usermode
-helper with the UMH_NO_WAIT flag, making the deadlock impossible. 
-Therefore there is no point in releasing the slab_mutex while calling
-sysfs_slab_add, so let's simplify kmem_cache_create synchronization and
-fix the kmemcg-race mentioned above by holding the slab_mutex during the
-whole cache creation path.
+read_cache_page_async() had 3 different callers:
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+- read_cache_page() which is the sync version, it would just wait for
+  the requested read to complete using wait_on_page_read().
+
+- JFFS2 would call it from jffs2_gc_fetch_page(), but the filler
+  function it supplied doesn't do any async reads, and would complete
+  before the filler function returns - making it actually a sync read.
+
+- CRAMFS would call it using the read_mapping_page_async() wrapper, with
+  a similar story to JFFS2 - the filler function doesn't do anything that
+  reminds async reads and would always complete before the filler function
+  returns.
+
+To sum it up, the code in mm/filemap.c never took advantage of having
+read_cache_page_async().  While there are filler callbacks that do async
+reads (such as the block one), we always called it with the
+read_cache_page().
+
+This patch adds a mandatory wait for read to complete when adding a new
+page to the cache, and removes read_cache_page_async() and its wrappers.
+
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/cramfs/inode.c       |    3 -
+ fs/jffs2/fs.c           |    2 -
+ include/linux/pagemap.h |   10 -----
+ mm/filemap.c            |   64 +++++++++++++-------------------------
+ 4 files changed, 25 insertions(+), 54 deletions(-)
 
-diff -puN mm/slub.c~slub-do-not-drop-slab_mutex-for-sysfs_slab_add mm/slub.c
---- a/mm/slub.c~slub-do-not-drop-slab_mutex-for-sysfs_slab_add
-+++ a/mm/slub.c
-@@ -3237,8 +3237,9 @@ int __kmem_cache_shutdown(struct kmem_ca
+diff -puN fs/cramfs/inode.c~mm-remove-read_cache_page_async fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~mm-remove-read_cache_page_async
++++ a/fs/cramfs/inode.c
+@@ -195,8 +195,7 @@ static void *cramfs_read(struct super_bl
+ 		struct page *page = NULL;
  
- 	if (!rc) {
- 		/*
--		 * We do the same lock strategy around sysfs_slab_add, see
--		 * __kmem_cache_create. Because this is pretty much the last
-+		 * Since slab_attr_store may take the slab_mutex, we should
-+		 * release the lock while removing the sysfs entry in order to
-+		 * avoid a deadlock. Because this is pretty much the last
- 		 * operation we do and the lock will be released shortly after
- 		 * that in slab_common.c, we could just move sysfs_slab_remove
- 		 * to a later point in common code. We should do that when we
-@@ -3778,10 +3779,7 @@ int __kmem_cache_create(struct kmem_cach
- 		return 0;
+ 		if (blocknr + i < devsize) {
+-			page = read_mapping_page_async(mapping, blocknr + i,
+-									NULL);
++			page = read_mapping_page(mapping, blocknr + i, NULL);
+ 			/* synchronous error? */
+ 			if (IS_ERR(page))
+ 				page = NULL;
+diff -puN fs/jffs2/fs.c~mm-remove-read_cache_page_async fs/jffs2/fs.c
+--- a/fs/jffs2/fs.c~mm-remove-read_cache_page_async
++++ a/fs/jffs2/fs.c
+@@ -687,7 +687,7 @@ unsigned char *jffs2_gc_fetch_page(struc
+ 	struct inode *inode = OFNI_EDONI_2SFFJ(f);
+ 	struct page *pg;
  
- 	memcg_propagate_slab_attrs(s);
--	mutex_unlock(&slab_mutex);
- 	err = sysfs_slab_add(s);
--	mutex_lock(&slab_mutex);
+-	pg = read_cache_page_async(inode->i_mapping, offset >> PAGE_CACHE_SHIFT,
++	pg = read_cache_page(inode->i_mapping, offset >> PAGE_CACHE_SHIFT,
+ 			     (void *)jffs2_do_readpage_unlock, inode);
+ 	if (IS_ERR(pg))
+ 		return (void *)pg;
+diff -puN include/linux/pagemap.h~mm-remove-read_cache_page_async include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-remove-read_cache_page_async
++++ a/include/linux/pagemap.h
+@@ -289,8 +289,6 @@ static inline struct page *grab_cache_pa
+ 
+ extern struct page * grab_cache_page_nowait(struct address_space *mapping,
+ 				pgoff_t index);
+-extern struct page * read_cache_page_async(struct address_space *mapping,
+-				pgoff_t index, filler_t *filler, void *data);
+ extern struct page * read_cache_page(struct address_space *mapping,
+ 				pgoff_t index, filler_t *filler, void *data);
+ extern struct page * read_cache_page_gfp(struct address_space *mapping,
+@@ -298,14 +296,6 @@ extern struct page * read_cache_page_gfp
+ extern int read_cache_pages(struct address_space *mapping,
+ 		struct list_head *pages, filler_t *filler, void *data);
+ 
+-static inline struct page *read_mapping_page_async(
+-				struct address_space *mapping,
+-				pgoff_t index, void *data)
+-{
+-	filler_t *filler = (filler_t *)mapping->a_ops->readpage;
+-	return read_cache_page_async(mapping, index, filler, data);
+-}
+-
+ static inline struct page *read_mapping_page(struct address_space *mapping,
+ 				pgoff_t index, void *data)
+ {
+diff -puN mm/filemap.c~mm-remove-read_cache_page_async mm/filemap.c
+--- a/mm/filemap.c~mm-remove-read_cache_page_async
++++ a/mm/filemap.c
+@@ -2133,6 +2133,18 @@ int generic_file_readonly_mmap(struct fi
+ EXPORT_SYMBOL(generic_file_mmap);
+ EXPORT_SYMBOL(generic_file_readonly_mmap);
+ 
++static struct page *wait_on_page_read(struct page *page)
++{
++	if (!IS_ERR(page)) {
++		wait_on_page_locked(page);
++		if (!PageUptodate(page)) {
++			page_cache_release(page);
++			page = ERR_PTR(-EIO);
++		}
++	}
++	return page;
++}
++
+ static struct page *__read_cache_page(struct address_space *mapping,
+ 				pgoff_t index,
+ 				int (*filler)(void *, struct page *),
+@@ -2159,6 +2171,8 @@ repeat:
+ 		if (err < 0) {
+ 			page_cache_release(page);
+ 			page = ERR_PTR(err);
++		} else {
++			page = wait_on_page_read(page);
+ 		}
+ 	}
+ 	return page;
+@@ -2195,6 +2209,10 @@ retry:
+ 	if (err < 0) {
+ 		page_cache_release(page);
+ 		return ERR_PTR(err);
++	} else {
++		page = wait_on_page_read(page);
++		if (IS_ERR(page))
++			return page;
+ 	}
+ out:
+ 	mark_page_accessed(page);
+@@ -2202,40 +2220,25 @@ out:
+ }
+ 
+ /**
+- * read_cache_page_async - read into page cache, fill it if needed
++ * read_cache_page - read into page cache, fill it if needed
+  * @mapping:	the page's address_space
+  * @index:	the page index
+  * @filler:	function to perform the read
+  * @data:	first arg to filler(data, page) function, often left as NULL
+  *
+- * Same as read_cache_page, but don't wait for page to become unlocked
+- * after submitting it to the filler.
+- *
+  * Read into the page cache. If a page already exists, and PageUptodate() is
+- * not set, try to fill the page but don't wait for it to become unlocked.
++ * not set, try to fill the page and wait for it to become unlocked.
+  *
+  * If the page does not get brought uptodate, return -EIO.
+  */
+-struct page *read_cache_page_async(struct address_space *mapping,
++struct page *read_cache_page(struct address_space *mapping,
+ 				pgoff_t index,
+ 				int (*filler)(void *, struct page *),
+ 				void *data)
+ {
+ 	return do_read_cache_page(mapping, index, filler, data, mapping_gfp_mask(mapping));
+ }
+-EXPORT_SYMBOL(read_cache_page_async);
+-
+-static struct page *wait_on_page_read(struct page *page)
+-{
+-	if (!IS_ERR(page)) {
+-		wait_on_page_locked(page);
+-		if (!PageUptodate(page)) {
+-			page_cache_release(page);
+-			page = ERR_PTR(-EIO);
+-		}
+-	}
+-	return page;
+-}
++EXPORT_SYMBOL(read_cache_page);
+ 
+ /**
+  * read_cache_page_gfp - read into page cache, using specified page allocation flags.
+@@ -2254,31 +2257,10 @@ struct page *read_cache_page_gfp(struct
+ {
+ 	filler_t *filler = (filler_t *)mapping->a_ops->readpage;
+ 
+-	return wait_on_page_read(do_read_cache_page(mapping, index, filler, NULL, gfp));
++	return do_read_cache_page(mapping, index, filler, NULL, gfp);
+ }
+ EXPORT_SYMBOL(read_cache_page_gfp);
+ 
+-/**
+- * read_cache_page - read into page cache, fill it if needed
+- * @mapping:	the page's address_space
+- * @index:	the page index
+- * @filler:	function to perform the read
+- * @data:	first arg to filler(data, page) function, often left as NULL
+- *
+- * Read into the page cache. If a page already exists, and PageUptodate() is
+- * not set, try to fill the page then wait for it to become unlocked.
+- *
+- * If the page does not get brought uptodate, return -EIO.
+- */
+-struct page *read_cache_page(struct address_space *mapping,
+-				pgoff_t index,
+-				int (*filler)(void *, struct page *),
+-				void *data)
+-{
+-	return wait_on_page_read(read_cache_page_async(mapping, index, filler, data));
+-}
+-EXPORT_SYMBOL(read_cache_page);
+-
+ static size_t __iovec_copy_from_user_inatomic(char *vaddr,
+ 			const struct iovec *iov, size_t base, size_t bytes)
+ {
+_
+
+Patches currently in -mm which might be from sasha.levin@oracle.com are
+
+origin.patch
+watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mmnuma-reorganize-change_pmd_range.patch
+mmnuma-reorganize-change_pmd_range-fix.patch
+mm-numa-recheck-for-transhuge-pages-under-lock-during-protection-changes.patch
+mm-numa-recheck-for-transhuge-pages-under-lock-during-protection-changes-fix.patch
+move-mmu-notifier-call-from-change_protection-to-change_pmd_range.patch
+mm-per-thread-vma-caching-fix-5.patch
+mm-try_to_unmap_cluster-should-lock_page-before-mlocking.patch
+mm-rmap-dont-try-to-add-an-unevictable-page-to-lru-list.patch
+mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
+zram-delete-zram_init_device-fix.patch
+zram-move-comp-allocation-out-of-init_lock.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
+
