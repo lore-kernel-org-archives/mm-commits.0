@@ -1,119 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:30:21 -0700
-Message-ID: <533f084d.hx0V1UG3wSsxu+0e%akpm@linux-foundation.org>
+ ocfs2-__ocfs2_mknod_locked-should-return-error-when-ocfs2_create_new_inode_locks-failed.patch removed from -mm tree
+Date: Fri, 04 Apr 2014 12:30:24 -0700
+Message-ID: <533f0850.GTorfvsciYa/eBeV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42761 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42770 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754387AbaDDTaW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:30:22 -0400
+	with ESMTP id S1754387AbaDDTaZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:30:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.com, joseph.qi@huawei.com, jlbec@evilplan.org, guozhonghua@h3c.com
+To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, xuejiufei@huawei.com
 
-Subject: [merged] ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler.patch removed from -mm tree
-To: guozhonghua@h3c.com,jlbec@evilplan.org,joseph.qi@huawei.com,mfasheh@suse.com,srinivas.eeda@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-__ocfs2_mknod_locked-should-return-error-when-ocfs2_create_new_inode_locks-failed.patch removed from -mm tree
+To: xuejiufei@huawei.com,jlbec@evilplan.org,mfasheh@suse.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:30:21 -0700
+Date: Fri, 04 Apr 2014 12:30:24 -0700
 
 
 The patch titled
-     Subject: ocfs2: fix deadlock risk when kmalloc failed in dlm_query_region_handler
+     Subject: ocfs2: __ocfs2_mknod_locked should return error when ocfs2_create_new_inode_locks() failed
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler.patch
+     ocfs2-__ocfs2_mknod_locked-should-return-error-when-ocfs2_create_new_inode_locks-failed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhonghua Guo <guozhonghua@h3c.com>
-Subject: ocfs2: fix deadlock risk when kmalloc failed in dlm_query_region_handler
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: __ocfs2_mknod_locked should return error when ocfs2_create_new_inode_locks() failed
 
-In dlm_query_region_handler(), once kmalloc failed, it will unlock
-dlm_domain_lock without lock first, then deadlock happens.
+When ocfs2_create_new_inode_locks() return error, inode open lock may not
+be obtainted for this inode.  So other nodes can remove this file and free
+dinode when inode still remain in memory on this node, which is not
+correct and may trigger BUG.  So __ocfs2_mknod_locked should return error
+when ocfs2_create_new_inode_locks() failed.
 
-Signed-off-by: Zhonghua Guo <guozhonghua@h3c.com>
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Tested-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+              Node_1                              Node_2
+create fileA, call ocfs2_mknod()
+  -> ocfs2_get_init_inode(), allocate inodeA
+  -> ocfs2_claim_new_inode(), claim dinode(dinodeA)
+  -> call ocfs2_create_new_inode_locks(),
+     create open lock failed, return error
+  -> __ocfs2_mknod_locked return success
+
+                                                unlink fileA
+                                                try open lock succeed,
+                                                and free dinodeA
+
+create another file, call ocfs2_mknod()
+  -> ocfs2_get_init_inode(), allocate inodeB
+  -> ocfs2_claim_new_inode(), as Node_2 had freed dinodeA,
+     so claim dinodeA and update generation for dinodeA
+
+call __ocfs2_drop_dl_inodes()->ocfs2_delete_inode()
+to free inodeA, and finally triggers BUG
+on(inode->i_generation != le32_to_cpu(fe->i_generation))
+in function ocfs2_inode_lock_update().
+
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdomain.c |   21 +++++++++------------
- 1 file changed, 9 insertions(+), 12 deletions(-)
+ fs/ocfs2/namei.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler fs/ocfs2/dlm/dlmdomain.c
---- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-fix-dead-lock-risk-when-kmalloc-failed-in-dlm_query_region_handler
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -1123,7 +1123,6 @@ static int dlm_query_region_handler(stru
- 	struct dlm_ctxt *dlm = NULL;
- 	char *local = NULL;
- 	int status = 0;
--	int locked = 0;
+diff -puN fs/ocfs2/namei.c~ocfs2-__ocfs2_mknod_locked-should-return-error-when-ocfs2_create_new_inode_locks-failed fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-__ocfs2_mknod_locked-should-return-error-when-ocfs2_create_new_inode_locks-failed
++++ a/fs/ocfs2/namei.c
+@@ -580,9 +580,6 @@ static int __ocfs2_mknod_locked(struct i
+ 	oi->i_sync_tid = handle->h_transaction->t_tid;
+ 	oi->i_datasync_tid = handle->h_transaction->t_tid;
  
- 	qr = (struct dlm_query_region *) msg->buf;
- 
-@@ -1132,10 +1131,8 @@ static int dlm_query_region_handler(stru
- 
- 	/* buffer used in dlm_mast_regions() */
- 	local = kmalloc(sizeof(qr->qr_regions), GFP_KERNEL);
--	if (!local) {
--		status = -ENOMEM;
--		goto bail;
--	}
-+	if (!local)
-+		return -ENOMEM;
- 
- 	status = -EINVAL;
- 
-@@ -1144,16 +1141,15 @@ static int dlm_query_region_handler(stru
- 	if (!dlm) {
- 		mlog(ML_ERROR, "Node %d queried hb regions on domain %s "
- 		     "before join domain\n", qr->qr_node, qr->qr_domain);
--		goto bail;
-+		goto out_domain_lock;
- 	}
- 
- 	spin_lock(&dlm->spinlock);
--	locked = 1;
- 	if (dlm->joining_node != qr->qr_node) {
- 		mlog(ML_ERROR, "Node %d queried hb regions on domain %s "
- 		     "but joining node is %d\n", qr->qr_node, qr->qr_domain,
- 		     dlm->joining_node);
--		goto bail;
-+		goto out_dlm_lock;
- 	}
- 
- 	/* Support for global heartbeat was added in 1.1 */
-@@ -1163,14 +1159,15 @@ static int dlm_query_region_handler(stru
- 		     "but active dlm protocol is %d.%d\n", qr->qr_node,
- 		     qr->qr_domain, dlm->dlm_locking_proto.pv_major,
- 		     dlm->dlm_locking_proto.pv_minor);
--		goto bail;
-+		goto out_dlm_lock;
- 	}
- 
- 	status = dlm_match_regions(dlm, qr, local, sizeof(qr->qr_regions));
- 
--bail:
--	if (locked)
--		spin_unlock(&dlm->spinlock);
-+out_dlm_lock:
-+	spin_unlock(&dlm->spinlock);
-+
-+out_domain_lock:
- 	spin_unlock(&dlm_domain_lock);
- 
- 	kfree(local);
-_
-
-Patches currently in -mm which might be from guozhonghua@h3c.com are
-
-origin.patch
-
+-	status = 0; /* error in ocfs2_create_new_inode_locks is not
+-		     * critical */
