@@ -1,200 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drop_caches-add-some-documentation-and-info-message.patch removed from -mm
- tree
-Date: Fri, 04 Apr 2014 12:32:10 -0700
-Message-ID: <533f08ba.GpK965vMC1vmzvhB%akpm@linux-foundation.org>
+Subject: [merged] mm-thp-drop-do_huge_pmd_wp_zero_page_fallback.patch
+ removed from -mm tree
+Date: Fri, 04 Apr 2014 12:32:06 -0700
+Message-ID: <533f08b6.4FYr8tygMlfJH79z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43117 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273AbaDDTcK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:10 -0400
+	with ESMTP id S1754273AbaDDTcG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, dave@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, aarcange@redhat.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] drop_caches-add-some-documentation-and-info-message.patch removed from -mm tree
-To: dave@linux.vnet.ibm.com,hannes@cmpxchg.org,kamezawa.hiroyu@jp.fujitsu.com,kosaki.motohiro@jp.fujitsu.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] mm-thp-drop-do_huge_pmd_wp_zero_page_fallback.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,aarcange@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:10 -0700
+Date: Fri, 04 Apr 2014 12:32:06 -0700
 
 
 The patch titled
-     Subject: drop_caches: add some documentation and info message
+     Subject: mm, thp: drop do_huge_pmd_wp_zero_page_fallback()
 has been removed from the -mm tree.  Its filename was
-     drop_caches-add-some-documentation-and-info-message.patch
+     mm-thp-drop-do_huge_pmd_wp_zero_page_fallback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave@linux.vnet.ibm.com>
-Subject: drop_caches: add some documentation and info message
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm, thp: drop do_huge_pmd_wp_zero_page_fallback()
 
-There is plenty of anecdotal evidence and a load of blog posts suggesting
-that using "drop_caches" periodically keeps your system running in "tip
-top shape".  Perhaps adding some kernel documentation will increase the
-amount of accurate data on its use.
+I've realized that there's no need for
+do_huge_pmd_wp_zero_page_fallback().  We can just split zero page with
+split_huge_page_pmd() and return VM_FAULT_FALLBACK.  handle_pte_fault()
+will handle write-protection fault for us.
 
-If we are not shrinking caches effectively, then we have real bugs.  Using
-drop_caches will simply mask the bugs and make them harder to find, but
-certainly does not fix them, nor is it an appropriate "workaround" to
-limit the size of the caches.  On the contrary, there have been bug
-reports on issues that turned out to be misguided use of cache dropping.
-
-Dropping caches is a very drastic and disruptive operation that is good
-for debugging and running tests, but if it creates bug reports from
-production use, kernel developers should be aware of its use.
-
-Add a bit more documentation about it, a syslog message to track down
-abusers, and vmstat drop counters to help analyze problem reports.
-
-[akpm@linux-foundation.org: checkpatch fixes]
-[hannes@cmpxchg.org: add runtime suppression control]
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt   |   33 ++++++++++++++++++++++++++------
- fs/drop_caches.c              |   16 +++++++++++++--
- include/linux/vm_event_item.h |    1 
- kernel/sysctl.c               |    4 +--
- mm/vmstat.c                   |    3 ++
- 5 files changed, 47 insertions(+), 10 deletions(-)
+ mm/huge_memory.c |   79 +--------------------------------------------
+ 1 file changed, 2 insertions(+), 77 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~drop_caches-add-some-documentation-and-info-message Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~drop_caches-add-some-documentation-and-info-message
-+++ a/Documentation/sysctl/vm.txt
-@@ -175,18 +175,39 @@ Setting this to zero disables periodic w
- 
- drop_caches
- 
--Writing to this will cause the kernel to drop clean caches, dentries and
--inodes from memory, causing that memory to become free.
-+Writing to this will cause the kernel to drop clean caches, as well as
-+reclaimable slab objects like dentries and inodes.  Once dropped, their
-+memory becomes free.
- 
- To free pagecache:
- 	echo 1 > /proc/sys/vm/drop_caches
--To free dentries and inodes:
-+To free reclaimable slab objects (includes dentries and inodes):
- 	echo 2 > /proc/sys/vm/drop_caches
--To free pagecache, dentries and inodes:
-+To free slab objects and pagecache:
- 	echo 3 > /proc/sys/vm/drop_caches
- 
--As this is a non-destructive operation and dirty objects are not freeable, the
--user should run `sync' first.
-+This is a non-destructive operation and will not free any dirty objects.
-+To increase the number of objects freed by this operation, the user may run
-+`sync' prior to writing to /proc/sys/vm/drop_caches.  This will minimize the
-+number of dirty objects on the system and create more candidates to be
-+dropped.
-+
-+This file is not a means to control the growth of the various kernel caches
-+(inodes, dentries, pagecache, etc...)  These objects are automatically
-+reclaimed by the kernel when memory is needed elsewhere on the system.
-+
-+Use of this file can cause performance problems.  Since it discards cached
-+objects, it may cost a significant amount of I/O and CPU to recreate the
-+dropped objects, especially if they were under heavy use.  Because of this,
-+use outside of a testing or debugging environment is not recommended.
-+
-+You may see informational messages in your kernel log when this file is
-+used:
-+
-+	cat (1234): drop_caches: 3
-+
-+These are informational only.  They do not mean that anything is wrong
-+with your system.  To disable them, echo 4 (bit 3) into drop_caches.
- 
- ==============================================================
- 
-diff -puN fs/drop_caches.c~drop_caches-add-some-documentation-and-info-message fs/drop_caches.c
---- a/fs/drop_caches.c~drop_caches-add-some-documentation-and-info-message
-+++ a/fs/drop_caches.c
-@@ -59,10 +59,22 @@ int drop_caches_sysctl_handler(ctl_table
- 	if (ret)
- 		return ret;
- 	if (write) {
--		if (sysctl_drop_caches & 1)
-+		static int stfu;
-+
-+		if (sysctl_drop_caches & 1) {
- 			iterate_supers(drop_pagecache_sb, NULL);
--		if (sysctl_drop_caches & 2)
-+			count_vm_event(DROP_PAGECACHE);
-+		}
-+		if (sysctl_drop_caches & 2) {
- 			drop_slab();
-+			count_vm_event(DROP_SLAB);
-+		}
-+		if (!stfu) {
-+			pr_info("%s (%d): drop_caches: %d\n",
-+				current->comm, task_pid_nr(current),
-+				sysctl_drop_caches);
-+		}
-+		stfu |= sysctl_drop_caches & 4;
- 	}
- 	return 0;
+diff -puN mm/huge_memory.c~mm-thp-drop-do_huge_pmd_wp_zero_page_fallback mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-drop-do_huge_pmd_wp_zero_page_fallback
++++ a/mm/huge_memory.c
+@@ -941,81 +941,6 @@ unlock:
+ 	spin_unlock(ptl);
  }
-diff -puN include/linux/vm_event_item.h~drop_caches-add-some-documentation-and-info-message include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~drop_caches-add-some-documentation-and-info-message
-+++ a/include/linux/vm_event_item.h
-@@ -37,6 +37,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_INODESTEAL,
- 		KSWAPD_LOW_WMARK_HIT_QUICKLY, KSWAPD_HIGH_WMARK_HIT_QUICKLY,
- 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
-+		DROP_PAGECACHE, DROP_SLAB,
- #ifdef CONFIG_NUMA_BALANCING
- 		NUMA_PTE_UPDATES,
- 		NUMA_HUGE_PTE_UPDATES,
-diff -puN kernel/sysctl.c~drop_caches-add-some-documentation-and-info-message kernel/sysctl.c
---- a/kernel/sysctl.c~drop_caches-add-some-documentation-and-info-message
-+++ a/kernel/sysctl.c
-@@ -123,7 +123,7 @@ static int __maybe_unused neg_one = -1;
- static int zero;
- static int __maybe_unused one = 1;
- static int __maybe_unused two = 2;
--static int __maybe_unused three = 3;
-+static int __maybe_unused four = 4;
- static unsigned long one_ul = 1;
- static int one_hundred = 100;
- #ifdef CONFIG_PRINTK
-@@ -1264,7 +1264,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= drop_caches_sysctl_handler,
- 		.extra1		= &one,
--		.extra2		= &three,
-+		.extra2		= &four,
- 	},
- #ifdef CONFIG_COMPACTION
- 	{
-diff -puN mm/vmstat.c~drop_caches-add-some-documentation-and-info-message mm/vmstat.c
---- a/mm/vmstat.c~drop_caches-add-some-documentation-and-info-message
-+++ a/mm/vmstat.c
-@@ -813,6 +813,9 @@ const char * const vmstat_text[] = {
  
- 	"pgrotated",
+-static int do_huge_pmd_wp_zero_page_fallback(struct mm_struct *mm,
+-		struct vm_area_struct *vma, unsigned long address,
+-		pmd_t *pmd, pmd_t orig_pmd, unsigned long haddr)
+-{
+-	spinlock_t *ptl;
+-	pgtable_t pgtable;
+-	pmd_t _pmd;
+-	struct page *page;
+-	int i, ret = 0;
+-	unsigned long mmun_start;	/* For mmu_notifiers */
+-	unsigned long mmun_end;		/* For mmu_notifiers */
+-
+-	page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+-	if (!page) {
+-		ret |= VM_FAULT_OOM;
+-		goto out;
+-	}
+-
+-	if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL)) {
+-		put_page(page);
+-		ret |= VM_FAULT_OOM;
+-		goto out;
+-	}
+-
+-	clear_user_highpage(page, address);
+-	__SetPageUptodate(page);
+-
+-	mmun_start = haddr;
+-	mmun_end   = haddr + HPAGE_PMD_SIZE;
+-	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+-
+-	ptl = pmd_lock(mm, pmd);
+-	if (unlikely(!pmd_same(*pmd, orig_pmd)))
+-		goto out_free_page;
+-
+-	pmdp_clear_flush(vma, haddr, pmd);
+-	/* leave pmd empty until pte is filled */
+-
+-	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
+-	pmd_populate(mm, &_pmd, pgtable);
+-
+-	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
+-		pte_t *pte, entry;
+-		if (haddr == (address & PAGE_MASK)) {
+-			entry = mk_pte(page, vma->vm_page_prot);
+-			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+-			page_add_new_anon_rmap(page, vma, haddr);
+-		} else {
+-			entry = pfn_pte(my_zero_pfn(haddr), vma->vm_page_prot);
+-			entry = pte_mkspecial(entry);
+-		}
+-		pte = pte_offset_map(&_pmd, haddr);
+-		VM_BUG_ON(!pte_none(*pte));
+-		set_pte_at(mm, haddr, pte, entry);
+-		pte_unmap(pte);
+-	}
+-	smp_wmb(); /* make pte visible before pmd */
+-	pmd_populate(mm, pmd, pgtable);
+-	spin_unlock(ptl);
+-	put_huge_zero_page();
+-	inc_mm_counter(mm, MM_ANONPAGES);
+-
+-	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+-
+-	ret |= VM_FAULT_WRITE;
+-out:
+-	return ret;
+-out_free_page:
+-	spin_unlock(ptl);
+-	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+-	mem_cgroup_uncharge_page(page);
+-	put_page(page);
+-	goto out;
+-}
+-
+ static int do_huge_pmd_wp_page_fallback(struct mm_struct *mm,
+ 					struct vm_area_struct *vma,
+ 					unsigned long address,
+@@ -1161,8 +1086,8 @@ alloc:
  
-+	"drop_pagecache",
-+	"drop_slab",
-+
- #ifdef CONFIG_NUMA_BALANCING
- 	"numa_pte_updates",
- 	"numa_huge_pte_updates",
+ 	if (unlikely(!new_page)) {
+ 		if (!page) {
+-			ret = do_huge_pmd_wp_zero_page_fallback(mm, vma,
+-					address, pmd, orig_pmd, haddr);
++			split_huge_page_pmd(vma, address, pmd);
++			ret |= VM_FAULT_FALLBACK;
+ 		} else {
+ 			ret = do_huge_pmd_wp_page_fallback(mm, vma, address,
+ 					pmd, orig_pmd, page, haddr);
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-debugging-keep-track-of-page-owners.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
+mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch
+mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
+exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
+mm-disable-split-page-table-lock-for-mmu.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
+mm-introduce-vm_ops-map_pages.patch
+mm-introduce-vm_ops-map_pages-fix.patch
+mm-implement-map_pages-for-page-cache.patch
+mm-implement-map_pages-for-page-cache-fix.patch
+mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch
+mm-add-debugfs-tunable-for-fault_around_order.patch
+mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-use-const-char-insted-of-char-for-reason-in-dump_page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
