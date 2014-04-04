@@ -1,277 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-read_cache_page_async.patch removed from -mm
- tree
-Date: Fri, 04 Apr 2014 12:32:08 -0700
-Message-ID: <533f08b8.87T2kB4GjT+Dk1Ai%akpm@linux-foundation.org>
+Subject: [merged]
+ include-linux-syscallsh-add-sys32_quotactl-prototype.patch removed from -mm tree
+Date: Fri, 04 Apr 2014 12:32:18 -0700
+Message-ID: <533f08c2.Xs9uEP+V0jhOyjmW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43147 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273AbaDDTcI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:08 -0400
+	with ESMTP id S1754273AbaDDTcS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com
+To: mm-commits@vger.kernel.org, josh@joshtriplett.org, rashika.kheria@gmail.com
 
-Subject: [merged] mm-remove-read_cache_page_async.patch removed from -mm tree
-To: sasha.levin@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] include-linux-syscallsh-add-sys32_quotactl-prototype.patch removed from -mm tree
+To: rashika.kheria@gmail.com,josh@joshtriplett.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:08 -0700
+Date: Fri, 04 Apr 2014 12:32:18 -0700
 
 
 The patch titled
-     Subject: mm: remove read_cache_page_async()
+     Subject: include/linux/syscalls.h: add sys32_quotactl() prototype
 has been removed from the -mm tree.  Its filename was
-     mm-remove-read_cache_page_async.patch
+     include-linux-syscallsh-add-sys32_quotactl-prototype.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: mm: remove read_cache_page_async()
+From: Rashika Kheria <rashika.kheria@gmail.com>
+Subject: include/linux/syscalls.h: add sys32_quotactl() prototype
 
-This patch removes read_cache_page_async() which wasn't really needed
-anywhere and simplifies the code around it a bit.
+This eliminates the following warning in quota/compat.c:
+fs/quota/compat.c:43:17: warning: no previous prototype for `sys32_quotactl' [-Wmissing-prototypes]
 
-read_cache_page_async() is useful when we want to read a page into the
-cache without waiting for it to complete.  This happens when the
-appropriate callback 'filler' doesn't complete its read operation and
-releases the page lock immediately, and instead queues a different
-completion routine to do that.  This never actually happened anywhere in
-the code.
-
-read_cache_page_async() had 3 different callers:
-
-- read_cache_page() which is the sync version, it would just wait for
-  the requested read to complete using wait_on_page_read().
-
-- JFFS2 would call it from jffs2_gc_fetch_page(), but the filler
-  function it supplied doesn't do any async reads, and would complete
-  before the filler function returns - making it actually a sync read.
-
-- CRAMFS would call it using the read_mapping_page_async() wrapper, with
-  a similar story to JFFS2 - the filler function doesn't do anything that
-  reminds async reads and would always complete before the filler function
-  returns.
-
-To sum it up, the code in mm/filemap.c never took advantage of having
-read_cache_page_async().  While there are filler callbacks that do async
-reads (such as the block one), we always called it with the
-read_cache_page().
-
-This patch adds a mandatory wait for read to complete when adding a new
-page to the cache, and removes read_cache_page_async() and its wrappers.
-
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c       |    3 -
- fs/jffs2/fs.c           |    2 -
- include/linux/pagemap.h |   10 -----
- mm/filemap.c            |   64 +++++++++++++-------------------------
- 4 files changed, 25 insertions(+), 54 deletions(-)
+ include/linux/syscalls.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/cramfs/inode.c~mm-remove-read_cache_page_async fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~mm-remove-read_cache_page_async
-+++ a/fs/cramfs/inode.c
-@@ -195,8 +195,7 @@ static void *cramfs_read(struct super_bl
- 		struct page *page = NULL;
+diff -puN include/linux/syscalls.h~include-linux-syscallsh-add-sys32_quotactl-prototype include/linux/syscalls.h
+--- a/include/linux/syscalls.h~include-linux-syscallsh-add-sys32_quotactl-prototype
++++ a/include/linux/syscalls.h
+@@ -200,6 +200,8 @@ extern struct trace_event_functions exit
+ 	}								\
+ 	static inline long SYSC##name(__MAP(x,__SC_DECL,__VA_ARGS__))
  
- 		if (blocknr + i < devsize) {
--			page = read_mapping_page_async(mapping, blocknr + i,
--									NULL);
-+			page = read_mapping_page(mapping, blocknr + i, NULL);
- 			/* synchronous error? */
- 			if (IS_ERR(page))
- 				page = NULL;
-diff -puN fs/jffs2/fs.c~mm-remove-read_cache_page_async fs/jffs2/fs.c
---- a/fs/jffs2/fs.c~mm-remove-read_cache_page_async
-+++ a/fs/jffs2/fs.c
-@@ -687,7 +687,7 @@ unsigned char *jffs2_gc_fetch_page(struc
- 	struct inode *inode = OFNI_EDONI_2SFFJ(f);
- 	struct page *pg;
- 
--	pg = read_cache_page_async(inode->i_mapping, offset >> PAGE_CACHE_SHIFT,
-+	pg = read_cache_page(inode->i_mapping, offset >> PAGE_CACHE_SHIFT,
- 			     (void *)jffs2_do_readpage_unlock, inode);
- 	if (IS_ERR(pg))
- 		return (void *)pg;
-diff -puN include/linux/pagemap.h~mm-remove-read_cache_page_async include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-remove-read_cache_page_async
-+++ a/include/linux/pagemap.h
-@@ -289,8 +289,6 @@ static inline struct page *grab_cache_pa
- 
- extern struct page * grab_cache_page_nowait(struct address_space *mapping,
- 				pgoff_t index);
--extern struct page * read_cache_page_async(struct address_space *mapping,
--				pgoff_t index, filler_t *filler, void *data);
- extern struct page * read_cache_page(struct address_space *mapping,
- 				pgoff_t index, filler_t *filler, void *data);
- extern struct page * read_cache_page_gfp(struct address_space *mapping,
-@@ -298,14 +296,6 @@ extern struct page * read_cache_page_gfp
- extern int read_cache_pages(struct address_space *mapping,
- 		struct list_head *pages, filler_t *filler, void *data);
- 
--static inline struct page *read_mapping_page_async(
--				struct address_space *mapping,
--				pgoff_t index, void *data)
--{
--	filler_t *filler = (filler_t *)mapping->a_ops->readpage;
--	return read_cache_page_async(mapping, index, filler, data);
--}
--
- static inline struct page *read_mapping_page(struct address_space *mapping,
- 				pgoff_t index, void *data)
- {
-diff -puN mm/filemap.c~mm-remove-read_cache_page_async mm/filemap.c
---- a/mm/filemap.c~mm-remove-read_cache_page_async
-+++ a/mm/filemap.c
-@@ -2133,6 +2133,18 @@ int generic_file_readonly_mmap(struct fi
- EXPORT_SYMBOL(generic_file_mmap);
- EXPORT_SYMBOL(generic_file_readonly_mmap);
- 
-+static struct page *wait_on_page_read(struct page *page)
-+{
-+	if (!IS_ERR(page)) {
-+		wait_on_page_locked(page);
-+		if (!PageUptodate(page)) {
-+			page_cache_release(page);
-+			page = ERR_PTR(-EIO);
-+		}
-+	}
-+	return page;
-+}
-+
- static struct page *__read_cache_page(struct address_space *mapping,
- 				pgoff_t index,
- 				int (*filler)(void *, struct page *),
-@@ -2159,6 +2171,8 @@ repeat:
- 		if (err < 0) {
- 			page_cache_release(page);
- 			page = ERR_PTR(err);
-+		} else {
-+			page = wait_on_page_read(page);
- 		}
- 	}
- 	return page;
-@@ -2195,6 +2209,10 @@ retry:
- 	if (err < 0) {
- 		page_cache_release(page);
- 		return ERR_PTR(err);
-+	} else {
-+		page = wait_on_page_read(page);
-+		if (IS_ERR(page))
-+			return page;
- 	}
- out:
- 	mark_page_accessed(page);
-@@ -2202,40 +2220,25 @@ out:
- }
- 
- /**
-- * read_cache_page_async - read into page cache, fill it if needed
-+ * read_cache_page - read into page cache, fill it if needed
-  * @mapping:	the page's address_space
-  * @index:	the page index
-  * @filler:	function to perform the read
-  * @data:	first arg to filler(data, page) function, often left as NULL
-  *
-- * Same as read_cache_page, but don't wait for page to become unlocked
-- * after submitting it to the filler.
-- *
-  * Read into the page cache. If a page already exists, and PageUptodate() is
-- * not set, try to fill the page but don't wait for it to become unlocked.
-+ * not set, try to fill the page and wait for it to become unlocked.
-  *
-  * If the page does not get brought uptodate, return -EIO.
-  */
--struct page *read_cache_page_async(struct address_space *mapping,
-+struct page *read_cache_page(struct address_space *mapping,
- 				pgoff_t index,
- 				int (*filler)(void *, struct page *),
- 				void *data)
- {
- 	return do_read_cache_page(mapping, index, filler, data, mapping_gfp_mask(mapping));
- }
--EXPORT_SYMBOL(read_cache_page_async);
--
--static struct page *wait_on_page_read(struct page *page)
--{
--	if (!IS_ERR(page)) {
--		wait_on_page_locked(page);
--		if (!PageUptodate(page)) {
--			page_cache_release(page);
--			page = ERR_PTR(-EIO);
--		}
--	}
--	return page;
--}
-+EXPORT_SYMBOL(read_cache_page);
- 
- /**
-  * read_cache_page_gfp - read into page cache, using specified page allocation flags.
-@@ -2254,31 +2257,10 @@ struct page *read_cache_page_gfp(struct
- {
- 	filler_t *filler = (filler_t *)mapping->a_ops->readpage;
- 
--	return wait_on_page_read(do_read_cache_page(mapping, index, filler, NULL, gfp));
-+	return do_read_cache_page(mapping, index, filler, NULL, gfp);
- }
- EXPORT_SYMBOL(read_cache_page_gfp);
- 
--/**
-- * read_cache_page - read into page cache, fill it if needed
-- * @mapping:	the page's address_space
-- * @index:	the page index
-- * @filler:	function to perform the read
-- * @data:	first arg to filler(data, page) function, often left as NULL
-- *
-- * Read into the page cache. If a page already exists, and PageUptodate() is
-- * not set, try to fill the page then wait for it to become unlocked.
-- *
-- * If the page does not get brought uptodate, return -EIO.
-- */
--struct page *read_cache_page(struct address_space *mapping,
--				pgoff_t index,
--				int (*filler)(void *, struct page *),
--				void *data)
--{
--	return wait_on_page_read(read_cache_page_async(mapping, index, filler, data));
--}
--EXPORT_SYMBOL(read_cache_page);
--
- static size_t __iovec_copy_from_user_inatomic(char *vaddr,
- 			const struct iovec *iov, size_t base, size_t bytes)
- {
++asmlinkage long sys32_quotactl(unsigned int cmd, const char __user *special,
++			       qid_t id, void __user *addr);
+ asmlinkage long sys_time(time_t __user *tloc);
+ asmlinkage long sys_stime(time_t __user *tptr);
+ asmlinkage long sys_gettimeofday(struct timeval __user *tv,
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from rashika.kheria@gmail.com are
 
 origin.patch
-watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mmnuma-reorganize-change_pmd_range.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-mm-numa-recheck-for-transhuge-pages-under-lock-during-protection-changes.patch
-mm-numa-recheck-for-transhuge-pages-under-lock-during-protection-changes-fix.patch
-move-mmu-notifier-call-from-change_protection-to-change_pmd_range.patch
-mm-per-thread-vma-caching-fix-5.patch
-mm-try_to_unmap_cluster-should-lock_page-before-mlocking.patch
-mm-rmap-dont-try-to-add-an-unevictable-page-to-lru-list.patch
-mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
-zram-delete-zram_init_device-fix.patch
-zram-move-comp-allocation-out-of-init_lock.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
 linux-next.patch
 
