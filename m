@@ -1,71 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-remove-obsolete-check-for-log-level-c.patch
- removed from -mm tree
-Date: Fri, 04 Apr 2014 12:32:48 -0700
-Message-ID: <533f08e0.zgJuxvhQ4lPzqFl4%akpm@linux-foundation.org>
+Subject: [merged]
+ printk-fix-one-circular-lockdep-warning-about-console_lock.patch removed
+ from -mm tree
+Date: Fri, 04 Apr 2014 12:32:58 -0700
+Message-ID: <533f08ea.2t0Y4mx+Dsga434u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754585AbaDDTct (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:49 -0400
+	with ESMTP id S1754390AbaDDTc7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rostedt@goodmis.org, mhocko@suse.cz, kay@vrfy.org, jack@suse.cz, fweisbec@gmail.com, pmladek@suse.cz
+To: mm-commits@vger.kernel.org, jack@suse.cz, jiel@marvell.com
 
-Subject: [merged] printk-remove-obsolete-check-for-log-level-c.patch removed from -mm tree
-To: pmladek@suse.cz,fweisbec@gmail.com,jack@suse.cz,kay@vrfy.org,mhocko@suse.cz,rostedt@goodmis.org,mm-commits@vger.kernel.org
+Subject: [merged] printk-fix-one-circular-lockdep-warning-about-console_lock.patch removed from -mm tree
+To: jiel@marvell.com,jack@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:48 -0700
+Date: Fri, 04 Apr 2014 12:32:58 -0700
 
 
 The patch titled
-     Subject: printk: remove obsolete check for log level "c"
+     Subject: printk: fix one circular lockdep warning about console_lock
 has been removed from the -mm tree.  Its filename was
-     printk-remove-obsolete-check-for-log-level-c.patch
+     printk-fix-one-circular-lockdep-warning-about-console_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.cz>
-Subject: printk: remove obsolete check for log level "c"
+From: Jane Li <jiel@marvell.com>
+Subject: printk: fix one circular lockdep warning about console_lock
 
-The kernel log level "c" was removed in 61e99ab8e35a88b8 ("printk: remove
-the now unnecessary "C" annotation for KERN_CONT").  It is no longer
-detected in printk_get_level().  Hence we do not need to check it in
-vprintk_emit.
+Fix a warning about possible circular locking dependency.
 
-Signed-off-by: Petr Mladek <pmladek@suse.cz>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Kay Sievers <kay@vrfy.org>
+If do in following sequence:
+    enter suspend ->  resume ->  plug-out CPUx (echo 0 > cpux/online)
+lockdep will show warning as following:
+
+======================================================
+[ INFO: possible circular locking dependency detected ]
+3.10.0 #2 Tainted: G           O
+-------------------------------------------------------
+sh/1271 is trying to acquire lock:
+(console_lock){+.+.+.}, at: [<c06ebf7c>] console_cpu_notify+0x20/0x2c
+but task is already holding lock:
+(cpu_hotplug.lock){+.+.+.}, at: [<c012b4e8>] cpu_hotplug_begin+0x2c/0x58
+which lock already depends on the new lock.
+
+the existing dependency chain (in reverse order) is:
+-> #2 (cpu_hotplug.lock){+.+.+.}:
+[<c017bb7c>] lock_acquire+0x98/0x12c
+[<c06f5014>] mutex_lock_nested+0x50/0x3d8
+[<c012b4e8>] cpu_hotplug_begin+0x2c/0x58
+[<c06ebfac>] _cpu_up+0x24/0x154
+[<c06ec140>] cpu_up+0x64/0x84
+[<c0981834>] smp_init+0x9c/0xd4
+[<c0973880>] kernel_init_freeable+0x78/0x1c8
+[<c06e7f40>] kernel_init+0x8/0xe4
+[<c010eec8>] ret_from_fork+0x14/0x2c
+
+-> #1 (cpu_add_remove_lock){+.+.+.}:
+[<c017bb7c>] lock_acquire+0x98/0x12c
+[<c06f5014>] mutex_lock_nested+0x50/0x3d8
+[<c012b758>] disable_nonboot_cpus+0x8/0xe8
+[<c016b83c>] suspend_devices_and_enter+0x214/0x448
+[<c016bc54>] pm_suspend+0x1e4/0x284
+[<c016bdcc>] try_to_suspend+0xa4/0xbc
+[<c0143848>] process_one_work+0x1c4/0x4fc
+[<c0143f80>] worker_thread+0x138/0x37c
+[<c014aaf8>] kthread+0xa4/0xb0
+[<c010eec8>] ret_from_fork+0x14/0x2c
+
+-> #0 (console_lock){+.+.+.}:
+[<c017b5d0>] __lock_acquire+0x1b38/0x1b80
+[<c017bb7c>] lock_acquire+0x98/0x12c
+[<c01288c4>] console_lock+0x54/0x68
+[<c06ebf7c>] console_cpu_notify+0x20/0x2c
+[<c01501d4>] notifier_call_chain+0x44/0x84
+[<c012b448>] __cpu_notify+0x2c/0x48
+[<c012b5b0>] cpu_notify_nofail+0x8/0x14
+[<c06e81bc>] _cpu_down+0xf4/0x258
+[<c06e8344>] cpu_down+0x24/0x40
+[<c06e921c>] store_online+0x30/0x74
+[<c03b7298>] dev_attr_store+0x18/0x24
+[<c025fc5c>] sysfs_write_file+0x16c/0x19c
+[<c0207a98>] vfs_write+0xb4/0x190
+[<c0207e58>] SyS_write+0x3c/0x70
+[<c010ee00>] ret_fast_syscall+0x0/0x48
+
+Chain exists of:
+   console_lock --> cpu_add_remove_lock --> cpu_hotplug.lock
+
+Possible unsafe locking scenario:
+       CPU0                    CPU1
+       ----                    ----
+lock(cpu_hotplug.lock);
+                               lock(cpu_add_remove_lock);
+                               lock(cpu_hotplug.lock);
+lock(console_lock);
+  *** DEADLOCK ***
+
+There are three locks involved in two sequence:
+a) pm suspend:
+	console_lock (@suspend_console())
+	cpu_add_remove_lock (@disable_nonboot_cpus())
+	cpu_hotplug.lock (@_cpu_down())
+b) Plug-out CPUx:
+	cpu_add_remove_lock (@(cpu_down())
+	cpu_hotplug.lock (@_cpu_down())
+	console_lock (@console_cpu_notify()) => Lockdeps prints warning log.
+
+There should be not real deadlock, as flag of console_suspended can
+protect this.
+
+Although console_suspend() releases console_sem, it doesn't tell lockdep
+about it.  That results in the lockdep warning about circular locking when
+doing the following: enter suspend -> resume -> plug-out CPUx (echo 0 >
+cpux/online)
+
+Fix the problem by telling lockdep we actually released the semaphore in
+console_suspend() and acquired it again in console_resume().
+
+Signed-off-by: Jane Li <jiel@marvell.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/printk/printk.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/printk/printk.c~printk-remove-obsolete-check-for-log-level-c kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-remove-obsolete-check-for-log-level-c
+diff -puN kernel/printk/printk.c~printk-fix-one-circular-lockdep-warning-about-console_lock kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-fix-one-circular-lockdep-warning-about-console_lock
 +++ a/kernel/printk/printk.c
-@@ -1560,8 +1560,6 @@ asmlinkage int vprintk_emit(int facility
- 					level = kern_level - '0';
- 			case 'd':	/* KERN_DEFAULT */
- 				lflags |= LOG_PREFIX;
--			case 'c':	/* KERN_CONT */
--				break;
- 			}
- 			text_len -= end_of_header - text;
- 			text = (char *)end_of_header;
+@@ -1883,6 +1883,7 @@ void suspend_console(void)
+ 	console_lock();
+ 	console_suspended = 1;
+ 	up(&console_sem);
++	mutex_release(&console_lock_dep_map, 1, _RET_IP_);
+ }
+ 
+ void resume_console(void)
+@@ -1890,6 +1891,7 @@ void resume_console(void)
+ 	if (!console_suspend_enabled)
+ 		return;
+ 	down(&console_sem);
++	mutex_acquire(&console_lock_dep_map, 0, 0, _RET_IP_);
+ 	console_suspended = 0;
+ 	console_unlock();
+ }
 _
 
-Patches currently in -mm which might be from pmladek@suse.cz are
+Patches currently in -mm which might be from jiel@marvell.com are
 
 origin.patch
-linux-next.patch
 
