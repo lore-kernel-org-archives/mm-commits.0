@@ -1,70 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kmemleak-remove-redundant-code.patch removed from -mm
- tree
-Date: Fri, 04 Apr 2014 12:29:28 -0700
-Message-ID: <533f0818.X3sWCchh8+r0osGm%akpm@linux-foundation.org>
+Subject: [merged] fs-freevxfs-vxfs_lookupc-update-function-comment.patch
+ removed from -mm tree
+Date: Fri, 04 Apr 2014 12:29:34 -0700
+Message-ID: <533f081e.RDUTelGkZv0kAsay%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42637 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42647 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754224AbaDDT32 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:29:28 -0400
+	with ESMTP id S1754132AbaDDT3e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:29:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, catalin.marinas@arm.com, lizefan@huawei.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, fabf@skynet.be
 
-Subject: [merged] kmemleak-remove-redundant-code.patch removed from -mm tree
-To: lizefan@huawei.com,catalin.marinas@arm.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-freevxfs-vxfs_lookupc-update-function-comment.patch removed from -mm tree
+To: fabf@skynet.be,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:29:28 -0700
+Date: Fri, 04 Apr 2014 12:29:34 -0700
 
 
 The patch titled
-     Subject: kmemleak: remove redundant code
+     Subject: fs/freevxfs/vxfs_lookup.c: update function comment
 has been removed from the -mm tree.  Its filename was
-     kmemleak-remove-redundant-code.patch
+     fs-freevxfs-vxfs_lookupc-update-function-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Li Zefan <lizefan@huawei.com>
-Subject: kmemleak: remove redundant code
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/freevxfs/vxfs_lookup.c: update function comment
 
-- remove kmemleak_padding().
-- remove kmemleak_release().
+nameidata was replaced by flags in 00cd8dd3bf95f2 ("stop passing nameidata
+to ->lookup()").
 
-Signed-off-by: Li Zefan <lizefan@huawei.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmemleak.h |    2 --
- mm/kmemleak.c            |    7 +------
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ fs/freevxfs/vxfs_lookup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kmemleak.h~kmemleak-remove-redundant-code include/linux/kmemleak.h
---- a/include/linux/kmemleak.h~kmemleak-remove-redundant-code
-+++ a/include/linux/kmemleak.h
-@@ -30,8 +30,6 @@ extern void kmemleak_alloc_percpu(const
- extern void kmemleak_free(const void *ptr) __ref;
- extern void kmemleak_free_part(const void *ptr, size_t size) __ref;
- extern void kmemleak_free_percpu(const void __percpu *ptr) __ref;
--extern void kmemleak_padding(const void *ptr, unsigned long offset,
--			     size_t size) __ref;
- extern void kmemleak_not_leak(const void *ptr) __ref;
- extern void kmemleak_ignore(const void *ptr) __ref;
- extern void kmemleak_scan_area(const void *ptr, size_t size, gfp_t gfp) __ref;
-diff -puN mm/kmemleak.c~kmemleak-remove-redundant-code mm/kmemleak.c
---- a/mm/kmemleak.c~kmemleak-remove-redundant-code
-+++ a/mm/kmemleak.c
-@@ -1549,11 +1549,6 @@ static int kmemleak_open(struct inode *i
- 	return seq_open(file, &kmemleak_seq_ops);
- }
- 
--static int kmemleak_release(struct inode *inode, struct file *file)
--{
--	return seq_release(inode, file);
--}
+diff -puN fs/freevxfs/vxfs_lookup.c~fs-freevxfs-vxfs_lookupc-update-function-comment fs/freevxfs/vxfs_lookup.c
+--- a/fs/freevxfs/vxfs_lookup.c~fs-freevxfs-vxfs_lookupc-update-function-comment
++++ a/fs/freevxfs/vxfs_lookup.c
+@@ -192,7 +192,7 @@ vxfs_inode_by_name(struct inode *dip, st
+  * vxfs_lookup - lookup pathname component
+  * @dip:	dir in which we lookup
+  * @dp:		dentry we lookup
+- * @nd:		lookup nameidata
++ * @flags:	lookup flags
+  *
+  * Description:
+  *   vxfs_lookup tries to lookup the pathname component described
+_
+
+Patches currently in -mm which might be from fabf@skynet.be are
+
+origin.patch
+ntfs-logging-clean-up.patch
+mm-memblockc-use-pfn_phys.patch
+mm-readaheadc-inline-ra_submit.patch
+fs-adfs-superc-add-__init-to-init_inodecache.patch
+affs-add-__init-to-init_inodecache.patch
+fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+affs-mount-option-to-avoid-filename-truncates.patch
+fs-bfs-inodec-add-__init-to-init_inodecache.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+linux-next.patch
+fs-ufs-superc-add-__init-to-init_inodecache.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+ufs-sb-mutex-merge-mutex_destroy-fix.patch
+ufs-sb-mutex-merge-mutex_destroy-fix-v2.patch
+ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
+
