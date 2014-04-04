@@ -1,104 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-remove-ocfs2_inode_skip_delete-flag.patch removed
- from -mm tree
-Date: Fri, 04 Apr 2014 12:30:11 -0700
-Message-ID: <533f0843.UoUo03RWTduyR23x%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch
+ removed from -mm tree
+Date: Fri, 04 Apr 2014 12:30:19 -0700
+Message-ID: <533f084b.oxKB6RjdYxe4K1H9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42727 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42753 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754464AbaDDTaM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:30:12 -0400
+	with ESMTP id S1754479AbaDDTaU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:30:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.de, jlbec@evilplan.org, jack@suse.cz
+To: mm-commits@vger.kernel.org, sunil.mushran@gmail.com, mfasheh@suse.com, jlbec@evilplan.org, jeff.liu@oracle.com, shencanquan@huawei.com
 
-Subject: [merged] ocfs2-remove-ocfs2_inode_skip_delete-flag.patch removed from -mm tree
-To: jack@suse.cz,jlbec@evilplan.org,mfasheh@suse.de,srinivas.eeda@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch removed from -mm tree
+To: shencanquan@huawei.com,jeff.liu@oracle.com,jlbec@evilplan.org,mfasheh@suse.com,sunil.mushran@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:30:11 -0700
+Date: Fri, 04 Apr 2014 12:30:19 -0700
 
 
 The patch titled
-     Subject: ocfs2: remove OCFS2_INODE_SKIP_DELETE flag
+     Subject: ocfs2: llseek requires ocfs2 inode lock for the file in SEEK_END
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-ocfs2_inode_skip_delete-flag.patch
+     ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: remove OCFS2_INODE_SKIP_DELETE flag
+From: Jensen <shencanquan@huawei.com>
+Subject: ocfs2: llseek requires ocfs2 inode lock for the file in SEEK_END
 
-The flag was never set, delete it.
+llseek requires ocfs2 inode lock for updating the file size in SEEK_END. 
+because the file size maybe update on another node.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+This bug can be reproduce the following scenario: at first, we dd a test
+fileA, the file size is 10k.
+
+on NodeA:
+---------
+1) open the test fileA, lseek the end of file. and print the position.
+2) close the test fileA
+
+on NodeB:
+1) open the test fileA, append the 5k data to test FileA.
+2) lseek the end of file. and print the position.
+3) close file.
+
+At first we run the test program1 on NodeA , the result is 10k.  And then
+run the test program2 on NodeB, the result is 15k.  At last, we run the
+test program1 on NodeA again, the result is 10k.
+
+After applying this patch the three step result is 15k.
+
+test result: 1000000 times lseek call;
+index        lseek with inode lock (unit:us)                lseek without inode lock (unit:us)
+  1                   1168162                                    555383
+  2                   1168011                                    549504
+  3                   1170538                                    549396
+  4                   1170375                                    551685
+  5                   1170444                                    556719
+  6                   1174364                                    555307
+  7                   1163294                                    551552
+  8                   1170080                                    549350
+  9                   1162464                                    553700
+ 10                   1165441                                    552594
+ avg                  1168317                                    552519
+
+avg with lock - avg without lock = 615798
+(avg with lock - avg without lock)/1000000=0.615798 us
+
+Signed-off-by: Jensen <shencanquan@huawei.com>
+Cc: Jie Liu <jeff.liu@oracle.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Sunil Mushran <sunil.mushran@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c   |    6 ------
- fs/ocfs2/inode.h   |    8 +++-----
- fs/ocfs2/journal.c |    6 ------
- 3 files changed, 3 insertions(+), 17 deletions(-)
+ fs/ocfs2/file.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/inode.c~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/inode.c
---- a/fs/ocfs2/inode.c~ocfs2-remove-ocfs2_inode_skip_delete-flag
-+++ a/fs/ocfs2/inode.c
-@@ -849,12 +849,6 @@ static int ocfs2_inode_is_valid_to_delet
- 		goto bail_unlock;
- 	}
- 
--	/* If we have allowd wipe of this inode for another node, it
--	 * will be marked here so we can safely skip it. Recovery will
--	 * cleanup any inodes we might inadvertently skip here. */
--	if (oi->ip_flags & OCFS2_INODE_SKIP_DELETE)
--		goto bail_unlock;
--
- 	ret = 1;
- bail_unlock:
- 	spin_unlock(&oi->ip_lock);
-diff -puN fs/ocfs2/inode.h~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/inode.h
---- a/fs/ocfs2/inode.h~ocfs2-remove-ocfs2_inode_skip_delete-flag
-+++ a/fs/ocfs2/inode.h
-@@ -91,8 +91,6 @@ struct ocfs2_inode_info
- #define OCFS2_INODE_BITMAP		0x00000004
- /* This inode has been wiped from disk */
- #define OCFS2_INODE_DELETED		0x00000008
--/* Another node is deleting, so our delete is a nop */
--#define OCFS2_INODE_SKIP_DELETE		0x00000010
- /* Has the inode been orphaned on another node?
-  *
-  * This hints to ocfs2_drop_inode that it should clear i_nlink before
-@@ -107,11 +105,11 @@ struct ocfs2_inode_info
-  * rely on ocfs2_delete_inode to sort things out under the proper
-  * cluster locks.
-  */
--#define OCFS2_INODE_MAYBE_ORPHANED	0x00000020
-+#define OCFS2_INODE_MAYBE_ORPHANED	0x00000010
- /* Does someone have the file open O_DIRECT */
--#define OCFS2_INODE_OPEN_DIRECT		0x00000040
-+#define OCFS2_INODE_OPEN_DIRECT		0x00000020
- /* Tell the inode wipe code it's not in orphan dir */
--#define OCFS2_INODE_SKIP_ORPHAN_DIR     0x00000080
-+#define OCFS2_INODE_SKIP_ORPHAN_DIR     0x00000040
- 
- static inline struct ocfs2_inode_info *OCFS2_I(struct inode *inode)
- {
-diff -puN fs/ocfs2/journal.c~ocfs2-remove-ocfs2_inode_skip_delete-flag fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-remove-ocfs2_inode_skip_delete-flag
-+++ a/fs/ocfs2/journal.c
-@@ -2132,12 +2132,6 @@ static int ocfs2_recover_orphans(struct
- 		iter = oi->ip_next_orphan;
- 
- 		spin_lock(&oi->ip_lock);
--		/* The remote delete code may have set these on the
--		 * assumption that the other node would wipe them
--		 * successfully.  If they are still in the node's
--		 * orphan dir, we need to reset that state. */
--		oi->ip_flags &= ~(OCFS2_INODE_DELETED|OCFS2_INODE_SKIP_DELETE);
+diff -puN fs/ocfs2/file.c~ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-llseek-requires-ocfs2-inode-lock-for-the-file-in-seek_end
++++ a/fs/ocfs2/file.c
+@@ -2630,7 +2630,16 @@ static loff_t ocfs2_file_llseek(struct f
+ 	case SEEK_SET:
+ 		break;
+ 	case SEEK_END:
+-		offset += inode->i_size;
++		/* SEEK_END requires the OCFS2 inode lock for the file
++		 * because it references the file's size.
++		 */
++		ret = ocfs2_inode_lock(inode, NULL, 0);
++		if (ret < 0) {
++			mlog_errno(ret);
++			goto out;
++		}
++		offset += i_size_read(inode);
++		ocfs2_inode_unlock(inode, 0);
+ 		break;
+ 	case SEEK_CUR:
+ 		if (offset == 0) {
+_
+
+Patches currently in -mm which might be from shencanquan@huawei.com are
+
+origin.patch
+
