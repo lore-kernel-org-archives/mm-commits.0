@@ -1,79 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatchpl-add-check-for-change-id.patch removed from
- -mm tree
-Date: Fri, 04 Apr 2014 12:34:28 -0700
-Message-ID: <533f0944.ggP4u3S+OAjGHrU1%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch removed from -mm tree
+Date: Fri, 04 Apr 2014 12:34:30 -0700
+Message-ID: <533f0946.MmLHVrapTOMJb8uM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43393 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43404 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306AbaDDTe3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:29 -0400
+	with ESMTP id S1754306AbaDDTea (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com, apw@shadowen.org, cov@codeaurora.org
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] checkpatchpl-add-check-for-change-id.patch removed from -mm tree
-To: cov@codeaurora.org,apw@shadowen.org,joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch removed from -mm tree
+To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:34:28 -0700
+Date: Fri, 04 Apr 2014 12:34:30 -0700
 
 
 The patch titled
-     Subject: checkpatch.pl: add check for Change-Id
+     Subject: checkpatch: expand parenthesis alignment test to declarations, functions and assignments
 has been removed from the -mm tree.  Its filename was
-     checkpatchpl-add-check-for-change-id.patch
+     checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christopher Covington <cov@codeaurora.org>
-Subject: checkpatch.pl: add check for Change-Id
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: expand parenthesis alignment test to declarations, functions and assignments
 
-A commit hook for the Gerrit code review server [1] inserts change
-identifiers so Gerrit can track patches through multiple revisions.  These
-identifiers are noise in the context of the upstream kernel.  (Many Gerrit
-servers are private.  Even given a public instance, given only a
-Change-Id, one must guess which server a change was tracked on.  Patches
-submitted to the Linux kernel mailing lists should be able to stand on
-their own.  If it's truly useful to reference code review on a Gerrit
-server, a URL is a much clearer way to do so.) Thus, issue an error when a
-Change-Id line is encountered before the Signed-off-by.
+Currently the parenthesis alignment test works only on
+misalignments of if statements like
 
-1. https://gerrit.googlesource.com/gerrit/+/master/gerrit-server/src/main/resources/com/google/gerrit/server/tools/root/hooks/commit-msg
+	if (foo(bar,
+			baz)
 
-Signed-off-by: Christopher Covington <cov@codeaurora.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Expand the test to find misalignments like:
+
+static inline int foo(int bar,
+			int baz)
+
+and
+
+	foo(bar,
+			baz);
+
+and
+
+	foo = bar(baz,
+			qux);
+
+Expand the $Inline keyword for __inline and __inline__ too.
+Add $Inline to $Declare so it also matches "static inline <foo>".
+
+These checks are only performed with --strict.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/checkpatch.pl |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-add-check-for-change-id scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-add-check-for-change-id
+diff -puN scripts/checkpatch.pl~checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-expand-parenthesis-alignment-test-to-declarations-functions-and-assignments
 +++ a/scripts/checkpatch.pl
-@@ -1924,6 +1924,12 @@ sub process {
- 			}
- 		}
+@@ -281,7 +281,7 @@ our $Attribute	= qr{
+ 			__weak
+ 		  }x;
+ our $Modifier;
+-our $Inline	= qr{inline|__always_inline|noinline};
++our $Inline	= qr{inline|__always_inline|noinline|__inline|__inline__};
+ our $Member	= qr{->$Ident|\.$Ident|\[[^]]*\]};
+ our $Lval	= qr{$Ident(?:$Member)*};
  
-+# Check for unwanted Gerrit info
-+		if ($in_commit_log && $line =~ /^\s*change-id:/i) {
-+			ERROR("GERRIT_CHANGE_ID",
-+			      "Remove Gerrit Change-Id's before submitting upstream.\n" . $herecurr);
-+		}
+@@ -304,6 +304,8 @@ our $Operators	= qr{
+ 			&&|\|\||,|\^|\+\+|--|&|\||$Arithmetic
+ 		  }x;
+ 
++our $c90_Keywords = qr{do|for|while|if|else|return|goto|continue|switch|default|case|break}x;
 +
- # Check for wrappage within a valid hunk of the file
- 		if ($realcnt != 0 && $line !~ m{^(?:\+|-| |\\ No newline|$)}) {
- 			ERROR("CORRUPTED_PATCH",
+ our $NonptrType;
+ our $NonptrTypeWithAttr;
+ our $Type;
+@@ -429,7 +431,7 @@ sub build_types {
+ 			(?:(?:\s|\*|\[\])+\s*const|(?:\s|\*|\[\])+|(?:\s*\[\s*\])+)?
+ 			(?:\s+$Inline|\s+$Modifier)*
+ 		  }x;
+-	$Declare	= qr{(?:$Storage\s+)?$Type};
++	$Declare	= qr{(?:$Storage\s+(?:$Inline\s+)?)?$Type};
+ }
+ build_types();
+ 
+@@ -1607,7 +1609,7 @@ sub pos_last_openparen {
+ 		}
+ 	}
+ 
+-	return $last_openparen + 1;
++	return length(expand_tabs(substr($line, 0, $last_openparen))) + 1;
+ }
+ 
+ sub process {
+@@ -2200,7 +2202,7 @@ sub process {
+ 
+ # check multi-line statement indentation matches previous line
+ 		if ($^V && $^V ge 5.10.0 &&
+-		    $prevline =~ /^\+(\t*)(if \(|$Ident\().*(\&\&|\|\||,)\s*$/) {
++		    $prevline =~ /^\+([ \t]*)((?:$c90_Keywords(?:\s+if)\s*)|(?:$Declare\s*)?(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*|$Ident\s*=\s*$Ident\s*)\(.*(\&\&|\|\||,)\s*$/) {
+ 			$prevline =~ /^\+(\t*)(.*)$/;
+ 			my $oldindent = $1;
+ 			my $rest = $2;
 _
 
-Patches currently in -mm which might be from cov@codeaurora.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+ntfs-logging-clean-up.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
 linux-next.patch
 
