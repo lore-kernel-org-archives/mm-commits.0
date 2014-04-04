@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + pagewalk-update-page-table-walker-core-fix-4.patch added to -mm tree
-Date: Fri, 04 Apr 2014 14:33:22 -0700
-Message-ID: <533f2522.sYlugGgcUpKhaJ5b%akpm@linux-foundation.org>
+Subject: + mm-pagewalkc-move-pte-null-check.patch added to -mm tree
+Date: Fri, 04 Apr 2014 14:33:32 -0700
+Message-ID: <533f252c.Mtyq4rC49+MPmedZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44043 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44047 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751900AbaDDVdX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 17:33:23 -0400
+	with ESMTP id S1751900AbaDDVdd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 17:33:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, n-horiguchi@ah.jp.nec.com
 
-Subject: + pagewalk-update-page-table-walker-core-fix-4.patch added to -mm tree
+Subject: + mm-pagewalkc-move-pte-null-check.patch added to -mm tree
 To: n-horiguchi@ah.jp.nec.com,sasha.levin@oracle.com
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 14:33:22 -0700
+Date: Fri, 04 Apr 2014 14:33:32 -0700
 
 
 The patch titled
      Subject: mm/pagewalk.c: move pte null check
 has been added to the -mm tree.  Its filename is
-     pagewalk-update-page-table-walker-core-fix-4.patch
+     mm-pagewalkc-move-pte-null-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pagewalk-update-page-table-walker-core-fix-4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagewalkc-move-pte-null-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pagewalk-update-page-table-walker-core-fix-4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagewalkc-move-pte-null-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -57,8 +57,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/pagewalk.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/pagewalk.c~pagewalk-update-page-table-walker-core-fix-4 mm/pagewalk.c
---- a/mm/pagewalk.c~pagewalk-update-page-table-walker-core-fix-4
+diff -puN mm/pagewalk.c~mm-pagewalkc-move-pte-null-check mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-pagewalkc-move-pte-null-check
 +++ a/mm/pagewalk.c
 @@ -193,12 +193,14 @@ static int walk_hugetlb_range(unsigned l
  	do {
@@ -101,7 +101,7 @@ pagewalk-remove-argument-hmask-from-hugetlb_entry-fix.patch
 pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 mempolicy-apply-page-table-walker-on-queue_pages_range.patch
 mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
-pagewalk-update-page-table-walker-core-fix-4.patch
+mm-pagewalkc-move-pte-null-check.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-hugetlb-fix-softlockup-when-a-large-number-of-hugepages-are-freed.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
