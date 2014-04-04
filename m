@@ -1,126 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sys_sysfs-add-config_sysfs_syscall.patch removed from
- -mm tree
-Date: Fri, 04 Apr 2014 12:32:20 -0700
-Message-ID: <533f08c4.Ung7w5g5KGAaxd5i%akpm@linux-foundation.org>
+Subject: [merged]
+ submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch removed from -mm tree
+Date: Fri, 04 Apr 2014 12:32:26 -0700
+Message-ID: <533f08ca.Stl+WtoMEDQRAzjQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43150 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43161 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273AbaDDTcU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:20 -0400
+	with ESMTP id S1753909AbaDDTc1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, rob@landley.net, rdunlap@infradead.org, bp@suse.de, josh@joshtriplett.org
 
-Subject: [merged] sys_sysfs-add-config_sysfs_syscall.patch removed from -mm tree
-To: fabf@skynet.be,rdunlap@infradead.org,mm-commits@vger.kernel.org
+Subject: [merged] submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch removed from -mm tree
+To: josh@joshtriplett.org,bp@suse.de,rdunlap@infradead.org,rob@landley.net,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:20 -0700
+Date: Fri, 04 Apr 2014 12:32:26 -0700
 
 
 The patch titled
-     Subject: sys_sysfs: Add CONFIG_SYSFS_SYSCALL
+     Subject: SubmittingPatches: add style recommendation to use imperative descriptions
 has been removed from the -mm tree.  Its filename was
-     sys_sysfs-add-config_sysfs_syscall.patch
+     submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: sys_sysfs: Add CONFIG_SYSFS_SYSCALL
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: SubmittingPatches: add style recommendation to use imperative descriptions
 
-sys_sysfs is an obsolete system call no longer supported by libc.
+Most commit messages use this style, and the recommendation frequently
+comes up in discussions (especially in response to patches that don't use
+it), but that recommendation doesn't actually appear anywhere in
+Documentation.  Add this style guideline to SubmittingPatches, using the
+description from git's SubmittingPatches.
 
-- This patch adds a default CONFIG_SYSFS_SYSCALL=y
-
-- Option can be turned off in expert mode.
-
-- cond_syscall added to kernel/sys_ni.c
-
-[akpm@linux-foundation.org: tweak Kconfig help text]
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Acked-by: Borislav Petkov <bp@suse.de>
+Cc: Rob Landley <rob@landley.net>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/filesystems.c |    2 ++
- init/Kconfig     |   10 ++++++++++
- kernel/sys_ni.c  |    1 +
- 3 files changed, 13 insertions(+)
+ Documentation/SubmittingPatches |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/filesystems.c~sys_sysfs-add-config_sysfs_syscall fs/filesystems.c
---- a/fs/filesystems.c~sys_sysfs-add-config_sysfs_syscall
-+++ a/fs/filesystems.c
-@@ -121,6 +121,7 @@ int unregister_filesystem(struct file_sy
+diff -puN Documentation/SubmittingPatches~submittingpatches-add-style-recommendation-to-use-imperative-descriptions Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~submittingpatches-add-style-recommendation-to-use-imperative-descriptions
++++ a/Documentation/SubmittingPatches
+@@ -106,6 +106,11 @@ I.e., the patch (series) and its descrip
+ This benefits both the patch merger(s) and reviewers.  Some reviewers
+ probably didn't even receive earlier versions of the patch.
  
- EXPORT_SYMBOL(unregister_filesystem);
- 
-+#ifdef CONFIG_SYSFS_SYSCALL
- static int fs_index(const char __user * __name)
- {
- 	struct file_system_type * tmp;
-@@ -199,6 +200,7 @@ SYSCALL_DEFINE3(sysfs, int, option, unsi
- 	}
- 	return retval;
- }
-+#endif
- 
- int __init get_filesystem_list(char *buf)
- {
-diff -puN init/Kconfig~sys_sysfs-add-config_sysfs_syscall init/Kconfig
---- a/init/Kconfig~sys_sysfs-add-config_sysfs_syscall
-+++ a/init/Kconfig
-@@ -1290,6 +1290,16 @@ config UID16
- 	help
- 	  This enables the legacy 16-bit UID syscall wrappers.
- 
-+config SYSFS_SYSCALL
-+	bool "Sysfs syscall support" if EXPERT
-+	default y
-+	---help---
-+	  sys_sysfs is an obsolete system call no longer supported in libc.
-+	  Note that disabling this option is more secure but might break
-+	  compatibility with some systems.
++Describe your changes in imperative mood, e.g. "make xyzzy do frotz"
++instead of "[This patch] makes xyzzy do frotz" or "[I] changed xyzzy
++to do frotz", as if you are giving orders to the codebase to change
++its behaviour.
 +
-+	  If unsure say Y here.
-+
- config SYSCTL_SYSCALL
- 	bool "Sysctl syscall support" if EXPERT
- 	depends on PROC_SYSCTL
-diff -puN kernel/sys_ni.c~sys_sysfs-add-config_sysfs_syscall kernel/sys_ni.c
---- a/kernel/sys_ni.c~sys_sysfs-add-config_sysfs_syscall
-+++ a/kernel/sys_ni.c
-@@ -146,6 +146,7 @@ cond_syscall(sys_io_destroy);
- cond_syscall(sys_io_submit);
- cond_syscall(sys_io_cancel);
- cond_syscall(sys_io_getevents);
-+cond_syscall(sys_sysfs);
- cond_syscall(sys_syslog);
- cond_syscall(sys_process_vm_readv);
- cond_syscall(sys_process_vm_writev);
+ If the patch fixes a logged bug entry, refer to that bug entry by
+ number and URL.
+ 
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
 origin.patch
-ntfs-logging-clean-up.patch
-mm-memblockc-use-pfn_phys.patch
-mm-readaheadc-inline-ra_submit.patch
-fs-adfs-superc-add-__init-to-init_inodecache.patch
-affs-add-__init-to-init_inodecache.patch
-fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
-affs-mount-option-to-avoid-filename-truncates.patch
-fs-bfs-inodec-add-__init-to-init_inodecache.patch
-kernel-panicc-display-reason-at-end-pr_emerg.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
+ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
+ppc-make-ppc_book3s_64-select-irq_work.patch
+kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
+bug-when-config_bug-simplify-warn_on_once-and-family.patch
+include-asm-generic-bugh-style-fix-s-while0-while-0.patch
+bug-when-config_bug-make-warn-call-no_printk-to-check-format-and-args.patch
+bug-make-bug-always-stop-the-machine.patch
+x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch
 linux-next.patch
-fs-ufs-superc-add-__init-to-init_inodecache.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-ufs-sb-mutex-merge-mutex_destroy-fix.patch
-ufs-sb-mutex-merge-mutex_destroy-fix-v2.patch
-ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
+lglock-map-to-spinlock-when-config_smp.patch
 
