@@ -1,133 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- backlight-update-bd-state-fb_blank-properties-when-necessary.patch removed
- from -mm tree
-Date: Fri, 04 Apr 2014 12:33:14 -0700
-Message-ID: <533f08fa.8lWpsPvDyaSiNGzh%akpm@linux-foundation.org>
+Subject: [merged] backlight-adp8870-remove-unnecessary-oom-messages.patch
+ removed from -mm tree
+Date: Fri, 04 Apr 2014 12:33:22 -0700
+Message-ID: <533f0902.TlzDa3mVN5Xe27yL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43259 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43276 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754455AbaDDTdP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:15 -0400
+	with ESMTP id S1754224AbaDDTdW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tomi.valkeinen@ti.com, plagnioj@jcrosoft.com, jg1.han@samsung.com, jani.nikula@linux.intel.com, Ying.Liu@freescale.com
+To: mm-commits@vger.kernel.org, michael.hennerich@analog.com, jg1.han@samsung.com
 
-Subject: [merged] backlight-update-bd-state-fb_blank-properties-when-necessary.patch removed from -mm tree
-To: Ying.Liu@freescale.com,jani.nikula@linux.intel.com,jg1.han@samsung.com,plagnioj@jcrosoft.com,tomi.valkeinen@ti.com,mm-commits@vger.kernel.org
+Subject: [merged] backlight-adp8870-remove-unnecessary-oom-messages.patch removed from -mm tree
+To: jg1.han@samsung.com,michael.hennerich@analog.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:33:14 -0700
+Date: Fri, 04 Apr 2014 12:33:22 -0700
 
 
 The patch titled
-     Subject: backlight: update bd state & fb_blank properties when necessary
+     Subject: backlight: adp8870: remove unnecessary OOM messages
 has been removed from the -mm tree.  Its filename was
-     backlight-update-bd-state-fb_blank-properties-when-necessary.patch
+     backlight-adp8870-remove-unnecessary-oom-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Liu Ying <Ying.Liu@freescale.com>
-Subject: backlight: update bd state & fb_blank properties when necessary
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: adp8870: remove unnecessary OOM messages
 
-We don't have to update the state and fb_blank properties of a backlight
-device every time a blanking or unblanking event comes because they may
-have already been what we want.  Another thought is that one backlight
-device may be shared by multiple framebuffers.  The backlight driver
-should take the backlight device as a resource shared by all the
-associated framebuffers.
+The site-specific OOM messages are unnecessary, because they duplicate the
+MM subsystem generic OOM message.
 
-This patch adds some logic to record each framebuffer's backlight usage to
-determine the backlight device use count and whether the two properties
-should be updated or not.  To be more specific, only one unblank operation
-on a certain blanked framebuffer may increase the backlight device's use
-count by one, while one blank operation on a certain unblanked framebuffer
-may decrease the use count by one, because the userspace is likely to
-unblank an unblanked framebuffer or blank a blanked framebuffer.
-
-Signed-off-by: Liu Ying <Ying.Liu@freescale.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Michael Hennerich <michael.hennerich@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |   23 ++++++++++++++++++-----
- include/linux/backlight.h           |    6 ++++++
- 2 files changed, 24 insertions(+), 5 deletions(-)
+ drivers/video/backlight/adp8870_bl.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-update-bd-state-fb_blank-properties-when-necessary drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-update-bd-state-fb_blank-properties-when-necessary
-+++ a/drivers/video/backlight/backlight.c
-@@ -41,6 +41,8 @@ static int fb_notifier_callback(struct n
- {
- 	struct backlight_device *bd;
- 	struct fb_event *evdata = data;
-+	int node = evdata->info->node;
-+	int fb_blank = 0;
+diff -puN drivers/video/backlight/adp8870_bl.c~backlight-adp8870-remove-unnecessary-oom-messages drivers/video/backlight/adp8870_bl.c
+--- a/drivers/video/backlight/adp8870_bl.c~backlight-adp8870-remove-unnecessary-oom-messages
++++ a/drivers/video/backlight/adp8870_bl.c
+@@ -246,10 +246,8 @@ static int adp8870_led_probe(struct i2c_
  
- 	/* If we aren't interested in this event, skip it immediately ... */
- 	if (event != FB_EVENT_BLANK && event != FB_EVENT_CONBLANK)
-@@ -51,11 +53,22 @@ static int fb_notifier_callback(struct n
- 	if (bd->ops)
- 		if (!bd->ops->check_fb ||
- 		    bd->ops->check_fb(bd, evdata->info)) {
--			bd->props.fb_blank = *(int *)evdata->data;
--			if (bd->props.fb_blank == FB_BLANK_UNBLANK)
--				bd->props.state &= ~BL_CORE_FBBLANK;
--			else
--				bd->props.state |= BL_CORE_FBBLANK;
-+			fb_blank = *(int *)evdata->data;
-+			if (fb_blank == FB_BLANK_UNBLANK &&
-+			    !bd->fb_bl_on[node]) {
-+				bd->fb_bl_on[node] = true;
-+				if (!bd->use_count++) {
-+					bd->props.state &= ~BL_CORE_FBBLANK;
-+					bd->props.fb_blank = FB_BLANK_UNBLANK;
-+				}
-+			} else if (fb_blank != FB_BLANK_UNBLANK &&
-+				   bd->fb_bl_on[node]) {
-+				bd->fb_bl_on[node] = false;
-+				if (!(--bd->use_count)) {
-+					bd->props.state |= BL_CORE_FBBLANK;
-+					bd->props.fb_blank = fb_blank;
-+				}
-+			}
- 			backlight_update_status(bd);
- 		}
- 	mutex_unlock(&bd->ops_lock);
-diff -puN include/linux/backlight.h~backlight-update-bd-state-fb_blank-properties-when-necessary include/linux/backlight.h
---- a/include/linux/backlight.h~backlight-update-bd-state-fb_blank-properties-when-necessary
-+++ a/include/linux/backlight.h
-@@ -9,6 +9,7 @@
- #define _LINUX_BACKLIGHT_H
+ 	led = devm_kzalloc(&client->dev, pdata->num_leds * sizeof(*led),
+ 				GFP_KERNEL);
+-	if (led == NULL) {
+-		dev_err(&client->dev, "failed to alloc memory\n");
++	if (led == NULL)
+ 		return -ENOMEM;
+-	}
  
- #include <linux/device.h>
-+#include <linux/fb.h>
- #include <linux/mutex.h>
- #include <linux/notifier.h>
- 
-@@ -104,6 +105,11 @@ struct backlight_device {
- 	struct list_head entry;
- 
- 	struct device dev;
-+
-+	/* Multiple framebuffers may share one backlight device */
-+	bool fb_bl_on[FB_MAX];
-+
-+	int use_count;
- };
- 
- static inline void backlight_update_status(struct backlight_device *bd)
+ 	ret = adp8870_write(client, ADP8870_ISCLAW, pdata->led_fade_law);
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from Ying.Liu@freescale.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
+maintainers-update-ibm-serveraid-raid-info.patch
+drivers-video-backlight-backlightc-remove-backlight-sysfs-uevent.patch
 linux-next.patch
 
