@@ -1,64 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- maintainers-add-xtensa-irqchips-to-xtensa-port-entry.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:33:04 -0700
-Message-ID: <533f08f0.DF/3nW4wEQi5Ke2V%akpm@linux-foundation.org>
+Subject: [merged] maintainers-mark-superh-orphan.patch removed from -mm
+ tree
+Date: Fri, 04 Apr 2014 12:33:02 -0700
+Message-ID: <533f08ee.5RGF4yEVR5WMt1Cz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43237 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43233 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754394AbaDDTdE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:04 -0400
+	with ESMTP id S1754390AbaDDTdD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, marc@cadence.com, chris@zankel.net, jcmvbkbc@gmail.com
+To: mm-commits@vger.kernel.org, pebolle@tiscali.nl, paul.mundt@gmail.com, magnus.damm@gmail.com, kuninori.morimoto.gx@renesas.com, horms@verge.net.au, Laurent.pinchart@ideasonboard.com, geert+renesas@linux-m68k.org
 
-Subject: [merged] maintainers-add-xtensa-irqchips-to-xtensa-port-entry.patch removed from -mm tree
-To: jcmvbkbc@gmail.com,chris@zankel.net,marc@cadence.com,mm-commits@vger.kernel.org
+Subject: [merged] maintainers-mark-superh-orphan.patch removed from -mm tree
+To: geert+renesas@linux-m68k.org,Laurent.pinchart@ideasonboard.com,horms@verge.net.au,kuninori.morimoto.gx@renesas.com,magnus.damm@gmail.com,paul.mundt@gmail.com,pebolle@tiscali.nl,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:33:04 -0700
+Date: Fri, 04 Apr 2014 12:33:02 -0700
 
 
 The patch titled
-     Subject: MAINTAINERS: add xtensa irqchips to xtensa port entry
+     Subject: MAINTAINERS: mark SuperH orphan
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-xtensa-irqchips-to-xtensa-port-entry.patch
+     maintainers-mark-superh-orphan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Max Filippov <jcmvbkbc@gmail.com>
-Subject: MAINTAINERS: add xtensa irqchips to xtensa port entry
+From: Geert Uytterhoeven <geert+renesas@linux-m68k.org>
+Subject: MAINTAINERS: mark SuperH orphan
 
-Now that irqchip drivers for xtensa live outside arch/xtensa we'd like
-to add them to our maintenance list.
+Paul Mundt's email address bounces regularly, and he hasn't taken any
+SuperH patches for about one year.
 
-Signed-off-by: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Marc Gauthier <marc@cadence.com>
+Signed-off-by: Geert Uytterhoeven <geert+renesas@linux-m68k.org>
+Suggested-by: Paul Bolle <pebolle@tiscali.nl>
+Cc: Paul Mundt <paul.mundt@gmail.com>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
+Cc: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ CREDITS     |    4 ++++
+ MAINTAINERS |    4 +---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-xtensa-irqchips-to-xtensa-port-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-add-xtensa-irqchips-to-xtensa-port-entry
-+++ a/MAINTAINERS
-@@ -8765,6 +8765,7 @@ M:	Max Filippov <jcmvbkbc@gmail.com>
- L:	linux-xtensa@linux-xtensa.org
- S:	Maintained
- F:	arch/xtensa/
-+F:	drivers/irqchip/irq-xtensa-*
+diff -puN CREDITS~maintainers-mark-superh-orphan CREDITS
+--- a/CREDITS~maintainers-mark-superh-orphan
++++ a/CREDITS
+@@ -2564,6 +2564,10 @@ N: Wolfgang Muees
+ E: wolfgang@iksw-muees.de
+ D: Auerswald USB driver
  
- THANKO'S RAREMONO AM/FM/SW RADIO RECEIVER USB DRIVER
- M:	Hans Verkuil <hverkuil@xs4all.nl>
++N: Paul Mundt
++E: paul.mundt@gmail.com
++D: SuperH maintainer
++
+ N: Ian A. Murdock
+ E: imurdock@gnu.ai.mit.edu
+ D: Creator of Debian distribution
+diff -puN MAINTAINERS~maintainers-mark-superh-orphan MAINTAINERS
+--- a/MAINTAINERS~maintainers-mark-superh-orphan
++++ a/MAINTAINERS
+@@ -8478,12 +8478,10 @@ S:	Maintained
+ F:	drivers/net/ethernet/dlink/sundance.c
+ 
+ SUPERH
+-M:	Paul Mundt <lethal@linux-sh.org>
+ L:	linux-sh@vger.kernel.org
+ W:	http://www.linux-sh.org
+ Q:	http://patchwork.kernel.org/project/linux-sh/list/
+-T:	git git://github.com/pmundt/linux-sh.git sh-latest
+-S:	Supported
++S:	Orphan
+ F:	Documentation/sh/
+ F:	arch/sh/
+ F:	drivers/sh/
 _
 
-Patches currently in -mm which might be from jcmvbkbc@gmail.com are
+Patches currently in -mm which might be from geert+renesas@linux-m68k.org are
 
 origin.patch
+linux-next.patch
 
