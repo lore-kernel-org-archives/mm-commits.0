@@ -1,41 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
- removed from -mm tree
-Date: Fri, 04 Apr 2014 12:31:54 -0700
-Message-ID: <533f08aa.uIkdBaK3sWIjFRw1%akpm@linux-foundation.org>
+Subject: [merged] mm-rename-__do_fault-do_fault.patch removed from -mm
+ tree
+Date: Fri, 04 Apr 2014 12:31:52 -0700
+Message-ID: <533f08a8.w20G/8kWy2lN8j7s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43079 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754385AbaDDTbz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:31:55 -0400
+	with ESMTP id S1754019AbaDDTbx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:31:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, matthew.r.wilcox@intel.com, dave.hansen@linux.intel.com, ak@linux.intel.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch removed from -mm tree
+Subject: [merged] mm-rename-__do_fault-do_fault.patch removed from -mm tree
 To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,dave.hansen@linux.intel.com,matthew.r.wilcox@intel.com,mgorman@suse.de,n-horiguchi@ah.jp.nec.com,riel@redhat.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:31:54 -0700
+Date: Fri, 04 Apr 2014 12:31:52 -0700
 
 
 The patch titled
-     Subject: mm: do_fault(): extract to call vm_ops->do_fault() to separate function
+     Subject: mm: rename __do_fault() -> do_fault()
 has been removed from the -mm tree.  Its filename was
-     mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function.patch
+     mm-rename-__do_fault-do_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: do_fault(): extract to call vm_ops->do_fault() to separate function
+Subject: mm: rename __do_fault() -> do_fault()
 
-Extract code to vm_ops->do_fault() and basic error handling to separate
-function.  The code will be reused.
+Current __do_fault() is awful and unmaintainable.  These patches try to
+sort it out by split __do_fault() into three destinct codepaths:
+
+ - to handle read page fault;
+ - to handle write page fault to private mappings;
+ - to handle write page fault to shared mappings;
+
+I also found page refcount leak in PageHWPoison() path of __do_fault().
+
+
+This patch (of 7):
+
+do_fault() is unused: no reason for underscores.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -47,139 +57,57 @@ Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   76 +++++++++++++++++++++++++++++---------------------
- 1 file changed, 45 insertions(+), 31 deletions(-)
+ mm/memory.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/memory.c~mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function mm/memory.c
---- a/mm/memory.c~mm-do_fault-extract-to-call-vm_ops-do_fault-to-separate-function
+diff -puN mm/memory.c~mm-rename-__do_fault-do_fault mm/memory.c
+--- a/mm/memory.c~mm-rename-__do_fault-do_fault
 +++ a/mm/memory.c
-@@ -3286,6 +3286,37 @@ oom:
- 	return VM_FAULT_OOM;
+@@ -2748,7 +2748,7 @@ reuse:
+ 		 * bit after it clear all dirty ptes, but before a racing
+ 		 * do_wp_page installs a dirty pte.
+ 		 *
+-		 * __do_fault is protected similarly.
++		 * do_fault is protected similarly.
+ 		 */
+ 		if (!page_mkwrite) {
+ 			wait_on_page_locked(dirty_page);
+@@ -3287,7 +3287,7 @@ oom:
  }
  
-+static int __do_fault(struct vm_area_struct *vma, unsigned long address,
-+		pgoff_t pgoff, unsigned int flags, struct page **page)
-+{
-+	struct vm_fault vmf;
-+	int ret;
-+
-+	vmf.virtual_address = (void __user *)(address & PAGE_MASK);
-+	vmf.pgoff = pgoff;
-+	vmf.flags = flags;
-+	vmf.page = NULL;
-+
-+	ret = vma->vm_ops->fault(vma, &vmf);
-+	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
-+		return ret;
-+
-+	if (unlikely(PageHWPoison(vmf.page))) {
-+		if (ret & VM_FAULT_LOCKED)
-+			unlock_page(vmf.page);
-+		page_cache_release(vmf.page);
-+		return VM_FAULT_HWPOISON;
-+	}
-+
-+	if (unlikely(!(ret & VM_FAULT_LOCKED)))
-+		lock_page(vmf.page);
-+	else
-+		VM_BUG_ON_PAGE(!PageLocked(vmf.page), vmf.page);
-+
-+	*page = vmf.page;
-+	return ret;
-+}
-+
  /*
-  * do_fault() tries to create a new page mapping. It aggressively
+- * __do_fault() tries to create a new page mapping. It aggressively
++ * do_fault() tries to create a new page mapping. It aggressively
   * tries to share with existing pages, but makes a separate copy if
-@@ -3305,12 +3336,11 @@ static int do_fault(struct mm_struct *mm
+  * the FAULT_FLAG_WRITE is set in the flags parameter in order to avoid
+  * the next page fault.
+@@ -3299,7 +3299,7 @@ oom:
+  * but allow concurrent faults), and pte neither mapped nor locked.
+  * We return with mmap_sem still held, but pte unmapped and unlocked.
+  */
+-static int __do_fault(struct mm_struct *mm, struct vm_area_struct *vma,
++static int do_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pmd_t *pmd,
+ 		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)
  {
- 	pte_t *page_table;
- 	spinlock_t *ptl;
--	struct page *page;
-+	struct page *page, *fault_page;
- 	struct page *cow_page;
- 	pte_t entry;
- 	int anon = 0;
- 	struct page *dirty_page = NULL;
--	struct vm_fault vmf;
- 	int ret;
- 	int page_mkwrite = 0;
+@@ -3496,7 +3496,7 @@ static int do_linear_fault(struct mm_str
+ 			- vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
  
-@@ -3334,42 +3364,19 @@ static int do_fault(struct mm_struct *mm
- 	} else
- 		cow_page = NULL;
+ 	pte_unmap(page_table);
+-	return __do_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
++	return do_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
+ }
  
--	vmf.virtual_address = (void __user *)(address & PAGE_MASK);
--	vmf.pgoff = pgoff;
--	vmf.flags = flags;
--	vmf.page = NULL;
--
--	ret = vma->vm_ops->fault(vma, &vmf);
--	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
--			    VM_FAULT_RETRY)))
-+	ret = __do_fault(vma, address, pgoff, flags, &fault_page);
-+	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
- 
--	if (unlikely(PageHWPoison(vmf.page))) {
--		if (ret & VM_FAULT_LOCKED)
--			unlock_page(vmf.page);
--		ret = VM_FAULT_HWPOISON;
--		page_cache_release(vmf.page);
--		goto uncharge_out;
--	}
--
--	/*
--	 * For consistency in subsequent calls, make the faulted page always
--	 * locked.
--	 */
--	if (unlikely(!(ret & VM_FAULT_LOCKED)))
--		lock_page(vmf.page);
--	else
--		VM_BUG_ON_PAGE(!PageLocked(vmf.page), vmf.page);
--
- 	/*
- 	 * Should we do an early C-O-W break?
- 	 */
--	page = vmf.page;
-+	page = fault_page;
- 	if (flags & FAULT_FLAG_WRITE) {
- 		if (!(vma->vm_flags & VM_SHARED)) {
- 			page = cow_page;
- 			anon = 1;
--			copy_user_highpage(page, vmf.page, address, vma);
-+			copy_user_highpage(page, fault_page, address, vma);
- 			__SetPageUptodate(page);
- 		} else {
- 			/*
-@@ -3378,8 +3385,15 @@ static int do_fault(struct mm_struct *mm
- 			 * to become writable
- 			 */
- 			if (vma->vm_ops->page_mkwrite) {
-+				struct vm_fault vmf;
- 				int tmp;
- 
-+				vmf.virtual_address =
-+					(void __user *)(address & PAGE_MASK);
-+				vmf.pgoff = pgoff;
-+				vmf.flags = flags;
-+				vmf.page = fault_page;
-+
- 				unlock_page(page);
- 				vmf.flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
- 				tmp = vma->vm_ops->page_mkwrite(vma, &vmf);
-@@ -3469,9 +3483,9 @@ static int do_fault(struct mm_struct *mm
- 		if (vma->vm_file && !page_mkwrite)
- 			file_update_time(vma->vm_file);
- 	} else {
--		unlock_page(vmf.page);
-+		unlock_page(fault_page);
- 		if (anon)
--			page_cache_release(vmf.page);
-+			page_cache_release(fault_page);
+ /*
+@@ -3528,7 +3528,7 @@ static int do_nonlinear_fault(struct mm_
  	}
  
- 	return ret;
+ 	pgoff = pte_to_pgoff(orig_pte);
+-	return __do_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
++	return do_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
+ }
+ 
+ static int numa_migrate_prep(struct page *page, struct vm_area_struct *vma,
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
