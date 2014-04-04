@@ -1,125 +1,114 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-add-checks-for-constant-non-octal-permissions.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:33:54 -0700
-Message-ID: <533f0922.CKk/qi2GkVL0YQg5%akpm@linux-foundation.org>
+ checkpatch-dont-warn-on-some-function-pointer-return-styles.patch removed
+ from -mm tree
+Date: Fri, 04 Apr 2014 12:33:52 -0700
+Message-ID: <533f0920.Q6WFRu30zu+uF1jl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43322 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43320 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882AbaDDTdy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:54 -0400
+	with ESMTP id S1753882AbaDDTdw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] checkpatch-add-checks-for-constant-non-octal-permissions.patch removed from -mm tree
+Subject: [merged] checkpatch-dont-warn-on-some-function-pointer-return-styles.patch removed from -mm tree
 To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:33:54 -0700
+Date: Fri, 04 Apr 2014 12:33:52 -0700
 
 
 The patch titled
-     Subject: checkpatch: add checks for constant non-octal permissions
+     Subject: checkpatch: don't warn on some function pointer return styles
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-checks-for-constant-non-octal-permissions.patch
+     checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add checks for constant non-octal permissions
+Subject: checkpatch: don't warn on some function pointer return styles
 
-umode_t permissions are sometimes mistakenly written with decimal
-constants.  Verify that numeric permissions are using octal.
+Checks for some function pointer return styles are too strict.  Fix them.
 
-Add a list of the most commonly used functions and macros that have
-umode_t permissions and the argument position.
+Multiple spaces after function pointer return types are allowed.
+	int  (*foo)(int bar)
 
-Add a $Octal type to $Constant.
-Allow $LvalOrFunc to be a pointer indirection too.
+Spaces after function pointer returns of pointer types are not required.
+	int *(*foo)(int bar)
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   36 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-checks-for-constant-non-octal-permissions scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-checks-for-constant-non-octal-permissions
+diff -puN scripts/checkpatch.pl~checkpatch-dont-warn-on-some-function-pointer-return-styles scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-dont-warn-on-some-function-pointer-return-styles
 +++ a/scripts/checkpatch.pl
-@@ -289,11 +289,12 @@ our $Int_type	= qr{(?i)llu|ull|ll|lu|ul|
- our $Binary	= qr{(?i)0b[01]+$Int_type?};
- our $Hex	= qr{(?i)0x[0-9a-f]+$Int_type?};
- our $Int	= qr{[0-9]+$Int_type?};
-+our $Octal	= qr{0[0-7]+$Int_type?};
- our $Float_hex	= qr{(?i)0x[0-9a-f]+p-?[0-9]+[fl]?};
- our $Float_dec	= qr{(?i)(?:[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(?:e-?[0-9]+)?[fl]?};
- our $Float_int	= qr{(?i)[0-9]+e-?[0-9]+[fl]?};
- our $Float	= qr{$Float_hex|$Float_dec|$Float_int};
--our $Constant	= qr{$Float|$Binary|$Hex|$Int};
-+our $Constant	= qr{$Float|$Binary|$Octal|$Hex|$Int};
- our $Assignment	= qr{\*\=|/=|%=|\+=|-=|<<=|>>=|&=|\^=|\|=|=};
- our $Compare    = qr{<=|>=|==|!=|<|>};
- our $Arithmetic = qr{\+|-|\*|\/|%};
-@@ -378,6 +379,15 @@ our @modifierList = (
- 	qr{fastcall},
- );
+@@ -2848,10 +2848,7 @@ sub process {
+ # Function pointer declarations
+ # check spacing between type, funcptr, and args
+ # canonical declaration is "type (*funcptr)(args...)"
+-#
+-# the $Declare variable will capture all spaces after the type
+-# so check it for trailing missing spaces or multiple spaces
+-		if ($line =~ /^.\s*($Declare)\((\s*)\*(\s*)$Ident(\s*)\)(\s*)\(/) {
++		if ($line =~ /^.\s*($Declare)\((\s*)\*(\s*)($Ident)(\s*)\)(\s*)\(/) {
+ 			my $declare = $1;
+ 			my $pre_pointer_space = $2;
+ 			my $post_pointer_space = $3;
+@@ -2859,16 +2856,30 @@ sub process {
+ 			my $post_funcname_space = $5;
+ 			my $pre_args_space = $6;
  
-+our @mode_permission_funcs = (
-+	["module_param", 3],
-+	["module_param_(?:array|named|string)", 4],
-+	["module_param_array_named", 5],
-+	["debugfs_create_(?:file|u8|u16|u32|u64|x8|x16|x32|x64|size_t|atomic_t|bool|blob|regset32|u32_array)", 2],
-+	["proc_create(?:_data|)", 2],
-+	["(?:CLASS|DEVICE|SENSOR)_ATTR", 2],
-+);
-+
- our $allowed_asm_includes = qr{(?x:
- 	irq|
- 	memory
-@@ -423,7 +433,7 @@ our $Typecast	= qr{\s*(\(\s*$NonptrType\
- # Any use must be runtime checked with $^V
+-			if ($declare !~ /\s$/) {
++# the $Declare variable will capture all spaces after the type
++# so check it for a missing trailing missing space but pointer return types
++# don't need a space so don't warn for those.
++			my $post_declare_space = "";
++			if ($declare =~ /(\s+)$/) {
++				$post_declare_space = $1;
++				$declare = rtrim($declare);
++			}
++			if ($declare !~ /\*$/ && $post_declare_space =~ /^$/) {
+ 				WARN("SPACING",
+ 				     "missing space after return type\n" . $herecurr);
++				$post_declare_space = " ";
+ 			}
  
- our $balanced_parens = qr/(\((?:[^\(\)]++|(?-1))*\))/;
--our $LvalOrFunc	= qr{($Lval)\s*($balanced_parens{0,1})\s*};
-+our $LvalOrFunc	= qr{((?:[\&\*]\s*)?$Lval)\s*($balanced_parens{0,1})\s*};
- our $FuncArg = qr{$Typecast{0,1}($LvalOrFunc|$Constant)};
+ # unnecessary space "type  (*funcptr)(args...)"
+-			elsif ($declare =~ /\s{2,}$/) {
+-				WARN("SPACING",
+-				     "Multiple spaces after return type\n" . $herecurr);
+-			}
++# This test is not currently implemented because these declarations are
++# equivalent to
++#	int  foo(int bar, ...)
++# and this is form shouldn't/doesn't generate a checkpatch warning.
++#
++#			elsif ($declare =~ /\s{2,}$/) {
++#				WARN("SPACING",
++#				     "Multiple spaces after return type\n" . $herecurr);
++#			}
  
- sub deparenthesize {
-@@ -4473,6 +4483,28 @@ sub process {
- 			WARN("EXPORTED_WORLD_WRITABLE",
- 			     "Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
+ # unnecessary space "type ( *funcptr)(args...)"
+ 			if (defined $pre_pointer_space &&
+@@ -2900,7 +2911,7 @@ sub process {
+ 
+ 			if (show_type("SPACING") && $fix) {
+ 				$fixed[$linenr - 1] =~
+-				    s/^(.\s*$Declare)\(\s*\*\s*($Ident)\s*\)\s*\(/rtrim($1) . " " . "\(\*$2\)\("/ex;
++				    s/^(.\s*)$Declare\s*\(\s*\*\s*$Ident\s*\)\s*\(/$1 . $declare . $post_declare_space . '(*' . $funcname . ')('/ex;
+ 			}
  		}
-+
-+		foreach my $entry (@mode_permission_funcs) {
-+			my $func = $entry->[0];
-+			my $arg_pos = $entry->[1];
-+
-+			my $skip_args = "";
-+			if ($arg_pos > 1) {
-+				$arg_pos--;
-+				$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
-+			}
-+			my $test = "\\b$func\\s*\\(${skip_args}([\\d]+)\\s*[,\\)]";
-+			if ($^V && $^V ge 5.10.0 &&
-+			    $line =~ /$test/) {
-+				my $val = $1;
-+				$val = $6 if ($skip_args ne "");
-+
-+				if ($val =~ /^$Int$/ && $val !~ /^$Octal$/) {
-+					ERROR("NON_OCTAL_PERMISSIONS",
-+					      "Use octal not decimal permissions\n" . $herecurr);
-+				}
-+			}
-+		}
- 	}
  
- 	# If we have no input at all, then there is nothing to report on
 _
 
 Patches currently in -mm which might be from joe@perches.com are
