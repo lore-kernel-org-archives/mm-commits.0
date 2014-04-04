@@ -1,106 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-syscallc-unexport-task_current_syscall.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:32:38 -0700
-Message-ID: <533f08d6.VCMCmYZODPz1L4xd%akpm@linux-foundation.org>
+Subject: [merged] vsprintf-remove-%n-handling.patch removed from -mm tree
+Date: Fri, 04 Apr 2014 12:32:44 -0700
+Message-ID: <533f08dc.cDak9EFfiWrfKxPJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43183 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43193 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754111AbaDDTci (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:38 -0400
+	with ESMTP id S1754585AbaDDTcp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, keescook@chromium.org, rmallon@gmail.com
 
-Subject: [merged] lib-syscallc-unexport-task_current_syscall.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: [merged] vsprintf-remove-%n-handling.patch removed from -mm tree
+To: rmallon@gmail.com,keescook@chromium.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:38 -0700
+Date: Fri, 04 Apr 2014 12:32:44 -0700
 
 
 The patch titled
-     Subject: lib/syscall.c: unexport task_current_syscall()
+     Subject: vsprintf: remove %n handling
 has been removed from the -mm tree.  Its filename was
-     lib-syscallc-unexport-task_current_syscall.patch
+     vsprintf-remove-%n-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/syscall.c: unexport task_current_syscall()
+From: Ryan Mallon <rmallon@gmail.com>
+Subject: vsprintf: remove %n handling
 
-It is only used by procfs and procfs cannot be a module.
+All in-kernel users of %n in format strings have now been removed and the
+%n directive is ignored.  Remove the handling of %n so that it is treated
+the same as any other invalid format string directive.  Keep a warning in
+place to deter new instances of %n in format strings.
 
+Signed-off-by: Ryan Mallon <rmallon@gmail.com>
+Acked-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/syscall.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/vsprintf.c |   45 +++++++++------------------------------------
+ 1 file changed, 9 insertions(+), 36 deletions(-)
 
-diff -puN lib/syscall.c~lib-syscallc-unexport-task_current_syscall lib/syscall.c
---- a/lib/syscall.c~lib-syscallc-unexport-task_current_syscall
-+++ a/lib/syscall.c
-@@ -72,4 +72,3 @@ int task_current_syscall(struct task_str
+diff -puN lib/vsprintf.c~vsprintf-remove-%n-handling lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-remove-%n-handling
++++ a/lib/vsprintf.c
+@@ -364,7 +364,6 @@ enum format_type {
+ 	FORMAT_TYPE_SHORT,
+ 	FORMAT_TYPE_UINT,
+ 	FORMAT_TYPE_INT,
+-	FORMAT_TYPE_NRCHARS,
+ 	FORMAT_TYPE_SIZE_T,
+ 	FORMAT_TYPE_PTRDIFF
+ };
+@@ -1538,10 +1537,6 @@ qualifier:
+ 		return fmt - start;
+ 		/* skip alnum */
  
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(task_current_syscall);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
-mm-per-thread-vma-caching.patch
-mm-per-thread-vma-caching-fix-3.patch
-mm-per-thread-vma-caching-fix-5.patch
-mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
-mm-per-thread-vma-caching-fix-6-fix.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
-mm-readaheadc-inline-ra_submit.patch
-zram-use-zcomp-compressing-backends-fix.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix-2.patch
-zram-propagate-error-to-user-fix.patch
-zram-support-req_discard-v4-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
-vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix.patch
-percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
-ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+-	case 'n':
+-		spec->type = FORMAT_TYPE_NRCHARS;
+-		return ++fmt - start;
+-
+ 	case '%':
+ 		spec->type = FORMAT_TYPE_PERCENT_CHAR;
+ 		return ++fmt - start;
+@@ -1564,6 +1559,15 @@ qualifier:
+ 	case 'u':
+ 		break;
+ 
++	case 'n':
++		/*
++		 * Since %n poses a greater security risk than utility, treat
++		 * it as an invalid format specifier. Warn about its use so
++		 * that new instances don't get added.
++		 */
++		WARN_ONCE(1, "Please remove ignored %%n in '%s'\n", fmt);
++		/* Fall-through */
++
+ 	default:
+ 		spec->type = FORMAT_TYPE_INVALID;
+ 		return fmt - start;
+@@ -1737,20 +1741,6 @@ int vsnprintf(char *buf, size_t size, co
+ 			++str;
+ 			break;
+ 
+-		case FORMAT_TYPE_NRCHARS: {
+-			/*
+-			 * Since %n poses a greater security risk than
+-			 * utility, ignore %n and skip its argument.
+-			 */
+-			void *skip_arg;
+-
+-			WARN_ONCE(1, "Please remove ignored %%n in '%s'\n",
+-					old_fmt);
+-
+-			skip_arg = va_arg(args, void *);
+-			break;
+-		}
+-
+ 		default:
+ 			switch (spec.type) {
+ 			case FORMAT_TYPE_LONG_LONG:
+@@ -2025,19 +2015,6 @@ do {									\
+ 				fmt++;
+ 			break;
+ 
+-		case FORMAT_TYPE_NRCHARS: {
+-			/* skip %n 's argument */
+-			u8 qualifier = spec.qualifier;
+-			void *skip_arg;
+-			if (qualifier == 'l')
+-				skip_arg = va_arg(args, long *);
+-			else if (_tolower(qualifier) == 'z')
+-				skip_arg = va_arg(args, size_t *);
+-			else
+-				skip_arg = va_arg(args, int *);
+-			break;
+-		}
+-
+ 		default:
+ 			switch (spec.type) {
+ 
+@@ -2196,10 +2173,6 @@ int bstr_printf(char *buf, size_t size,
+ 			++str;
+ 			break;
+ 
+-		case FORMAT_TYPE_NRCHARS:
+-			/* skip */
+-			break;
