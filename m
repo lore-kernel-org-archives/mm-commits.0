@@ -1,174 +1,320 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:30:15 -0700
-Message-ID: <533f0847.pw1Q0EEXFUDvW3wC%akpm@linux-foundation.org>
+ ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file.patch removed from -mm tree
+Date: Fri, 04 Apr 2014 12:30:03 -0700
+Message-ID: <533f083b.e0dbQV2O/BggHVnR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42708 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754461AbaDDTaQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:30:16 -0400
+	with ESMTP id S1754387AbaDDTaD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:30:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, srinivas.eeda@oracle.com, mfasheh@suse.de, jlbec@evilplan.org, jack@suse.cz
+To: mm-commits@vger.kernel.org, mfasheh@suse.de, jlbec@evilplan.org, darrick.wong@oracle.com
 
-Subject: [merged] ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch removed from -mm tree
-To: jack@suse.cz,jlbec@evilplan.org,mfasheh@suse.de,srinivas.eeda@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file.patch removed from -mm tree
+To: darrick.wong@oracle.com,jlbec@evilplan.org,mfasheh@suse.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:30:15 -0700
+Date: Fri, 04 Apr 2014 12:30:03 -0700
 
 
 The patch titled
-     Subject: ocfs2: avoid blocking in ocfs2_mark_lockres_freeing() in downconvert thread
+     Subject: ocfs2: improve fsync efficiency and fix deadlock between aio_write and sync_file
 has been removed from the -mm tree.  Its filename was
-     ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread.patch
+     ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: avoid blocking in ocfs2_mark_lockres_freeing() in downconvert thread
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: ocfs2: improve fsync efficiency and fix deadlock between aio_write and sync_file
 
-If we are dropping last inode reference from downconvert thread, we will
-end up calling ocfs2_mark_lockres_freeing() which can block if the lock we
-are freeing is queued thus creating an A-A deadlock.  Luckily, since we
-are the downconvert thread, we can immediately dequeue the lock and thus
-avoid waiting in this case.
+Currently, ocfs2_sync_file grabs i_mutex and forces the current journal
+transaction to complete.  This isn't terribly efficient, since sync_file
+really only needs to wait for the last transaction involving that inode to
+complete, and this doesn't require i_mutex.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Therefore, implement the necessary bits to track the newest tid associated
+with an inode, and teach sync_file to wait for that instead of waiting for
+everything in the journal to commit.  Furthermore, only issue the flush
+request to the drive if jbd2 hasn't already done so.
+
+This also eliminates the deadlock between ocfs2_file_aio_write() and
+ocfs2_sync_file().  aio_write takes i_mutex then calls ocfs2_aiodio_wait()
+to wait for unaligned dio writes to finish.  However, if that dio
+completion involves calling fsync, then we can get into trouble when some
+ocfs2_sync_file tries to take i_mutex.
+
+Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |   44 ++++++++++++++++++++++++++++++++++++++++---
- fs/ocfs2/dlmglue.h |    3 +-
- fs/ocfs2/inode.c   |    7 +++---
- 3 files changed, 47 insertions(+), 7 deletions(-)
+ fs/ocfs2/alloc.c   |    1 +
+ fs/ocfs2/aops.c    |    1 +
+ fs/ocfs2/dir.c     |    4 ++++
+ fs/ocfs2/file.c    |   36 +++++++++++++++---------------------
+ fs/ocfs2/inode.c   |   28 ++++++++++++++++++++++++++++
+ fs/ocfs2/inode.h   |    7 +++++++
+ fs/ocfs2/journal.h |   11 +++++++++++
+ fs/ocfs2/namei.c   |    4 ++++
+ fs/ocfs2/super.c   |    3 +++
+ 9 files changed, 74 insertions(+), 21 deletions(-)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread
-+++ a/fs/ocfs2/dlmglue.c
-@@ -3144,22 +3144,60 @@ out:
- 	return 0;
+diff -puN fs/ocfs2/alloc.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file
++++ a/fs/ocfs2/alloc.c
+@@ -6932,6 +6932,7 @@ int ocfs2_convert_inline_data_to_extents
+ 	di->i_dyn_features = cpu_to_le16(oi->ip_dyn_features);
+ 	spin_unlock(&oi->ip_lock);
+ 
++	ocfs2_update_inode_fsync_trans(handle, inode, 1);
+ 	ocfs2_dinode_new_extent_list(inode, di);
+ 
+ 	ocfs2_journal_dirty(handle, di_bh);
+diff -puN fs/ocfs2/aops.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file
++++ a/fs/ocfs2/aops.c
+@@ -2039,6 +2039,7 @@ out_write_size:
+ 	inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+ 	di->i_mtime = di->i_ctime = cpu_to_le64(inode->i_mtime.tv_sec);
+ 	di->i_mtime_nsec = di->i_ctime_nsec = cpu_to_le32(inode->i_mtime.tv_nsec);
++	ocfs2_update_inode_fsync_trans(handle, inode, 1);
+ 	ocfs2_journal_dirty(handle, wc->w_di_bh);
+ 
+ 	ocfs2_commit_trans(osb, handle);
+diff -puN fs/ocfs2/dir.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file
++++ a/fs/ocfs2/dir.c
+@@ -2957,6 +2957,7 @@ static int ocfs2_expand_inline_dir(struc
+ 		ocfs2_init_dir_trailer(dir, dirdata_bh, i);
+ 	}
+ 
++	ocfs2_update_inode_fsync_trans(handle, dir, 1);
+ 	ocfs2_journal_dirty(handle, dirdata_bh);
+ 
+ 	if (ocfs2_supports_indexed_dirs(osb) && !dx_inline) {
+@@ -3338,6 +3339,7 @@ do_extend:
+ 	} else {
+ 		de->rec_len = cpu_to_le16(sb->s_blocksize);
+ 	}
++	ocfs2_update_inode_fsync_trans(handle, dir, 1);
+ 	ocfs2_journal_dirty(handle, new_bh);
+ 
+ 	dir_i_size += dir->i_sb->s_blocksize;
+@@ -3896,6 +3898,7 @@ out_commit:
+ 		dquot_free_space_nodirty(dir,
+ 				ocfs2_clusters_to_bytes(dir->i_sb, 1));
+ 
++	ocfs2_update_inode_fsync_trans(handle, dir, 1);
+ 	ocfs2_commit_trans(osb, handle);
+ 
+ out:
+@@ -4134,6 +4137,7 @@ static int ocfs2_expand_inline_dx_root(s
+ 		mlog_errno(ret);
+ 	did_quota = 0;
+ 
++	ocfs2_update_inode_fsync_trans(handle, dir, 1);
+ 	ocfs2_journal_dirty(handle, dx_root_bh);
+ 
+ out_commit:
+diff -puN fs/ocfs2/file.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file
++++ a/fs/ocfs2/file.c
+@@ -175,9 +175,13 @@ static int ocfs2_sync_file(struct file *
+ 			   int datasync)
+ {
+ 	int err = 0;
+-	journal_t *journal;
+ 	struct inode *inode = file->f_mapping->host;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
++	struct ocfs2_inode_info *oi = OCFS2_I(inode);
++	journal_t *journal = osb->journal->j_journal;
++	int ret;
++	tid_t commit_tid;
++	bool needs_barrier = false;
+ 
+ 	trace_ocfs2_sync_file(inode, file, file->f_path.dentry,
+ 			      OCFS2_I(inode)->ip_blkno,
+@@ -192,29 +196,19 @@ static int ocfs2_sync_file(struct file *
+ 	if (err)
+ 		return err;
+ 
+-	/*
+-	 * Probably don't need the i_mutex at all in here, just putting it here
+-	 * to be consistent with how fsync used to be called, someone more
+-	 * familiar with the fs could possibly remove it.
+-	 */
+-	mutex_lock(&inode->i_mutex);
+-	if (datasync && !(inode->i_state & I_DIRTY_DATASYNC)) {
+-		/*
+-		 * We still have to flush drive's caches to get data to the
+-		 * platter
+-		 */
+-		if (osb->s_mount_opt & OCFS2_MOUNT_BARRIER)
+-			blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
+-		goto bail;
++	commit_tid = datasync ? oi->i_datasync_tid : oi->i_sync_tid;
++	if (journal->j_flags & JBD2_BARRIER &&
++	    !jbd2_trans_will_send_data_barrier(journal, commit_tid))
++		needs_barrier = true;
++	err = jbd2_complete_transaction(journal, commit_tid);
++	if (needs_barrier) {
++		ret = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
++		if (!err)
++			err = ret;
+ 	}
+ 
+-	journal = osb->journal->j_journal;
+-	err = jbd2_journal_force_commit(journal);
+-
+-bail:
+ 	if (err)
+ 		mlog_errno(err);
+-	mutex_unlock(&inode->i_mutex);
+ 
+ 	return (err < 0) ? -EIO : 0;
+ }
+@@ -650,7 +644,7 @@ restarted_transaction:
+ 			mlog_errno(status);
+ 		goto leave;
+ 	}
+-
++	ocfs2_update_inode_fsync_trans(handle, inode, 1);
+ 	ocfs2_journal_dirty(handle, bh);
+ 
+ 	spin_lock(&OCFS2_I(inode)->ip_lock);
+diff -puN fs/ocfs2/inode.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file
++++ a/fs/ocfs2/inode.c
+@@ -130,6 +130,7 @@ struct inode *ocfs2_iget(struct ocfs2_su
+ 	struct inode *inode = NULL;
+ 	struct super_block *sb = osb->sb;
+ 	struct ocfs2_find_inode_args args;
++	journal_t *journal = OCFS2_SB(sb)->journal->j_journal;
+ 
+ 	trace_ocfs2_iget_begin((unsigned long long)blkno, flags,
+ 			       sysfile_type);
+@@ -169,6 +170,32 @@ struct inode *ocfs2_iget(struct ocfs2_su
+ 		goto bail;
+ 	}
+ 
++	/*
++	 * Set transaction id's of transactions that have to be committed
++	 * to finish f[data]sync. We set them to currently running transaction
++	 * as we cannot be sure that the inode or some of its metadata isn't
++	 * part of the transaction - the inode could have been reclaimed and
++	 * now it is reread from disk.
++	 */
++	if (journal) {
++		transaction_t *transaction;
++		tid_t tid;
++		struct ocfs2_inode_info *oi = OCFS2_I(inode);
++
++		read_lock(&journal->j_state_lock);
++		if (journal->j_running_transaction)
++			transaction = journal->j_running_transaction;
++		else
++			transaction = journal->j_committing_transaction;
++		if (transaction)
++			tid = transaction->t_tid;
++		else
++			tid = journal->j_commit_sequence;
++		read_unlock(&journal->j_state_lock);
++		oi->i_sync_tid = tid;
++		oi->i_datasync_tid = tid;
++	}
++
+ bail:
+ 	if (!IS_ERR(inode)) {
+ 		trace_ocfs2_iget_end(inode, 
+@@ -1260,6 +1287,7 @@ int ocfs2_mark_inode_dirty(handle_t *han
+ 	fe->i_mtime_nsec = cpu_to_le32(inode->i_mtime.tv_nsec);
+ 
+ 	ocfs2_journal_dirty(handle, bh);
++	ocfs2_update_inode_fsync_trans(handle, inode, 1);
+ leave:
+ 	return status;
+ }
+diff -puN fs/ocfs2/inode.h~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file fs/ocfs2/inode.h
+--- a/fs/ocfs2/inode.h~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file
++++ a/fs/ocfs2/inode.h
+@@ -73,6 +73,13 @@ struct ocfs2_inode_info
+ 	u32				ip_dir_lock_gen;
+ 
+ 	struct ocfs2_alloc_reservation	ip_la_data_resv;
++
++	/*
++	 * Transactions that contain inode's metadata needed to complete
++	 * fsync and fdatasync, respectively.
++	 */
++	tid_t i_sync_tid;
++	tid_t i_datasync_tid;
+ };
+ 
+ /*
+diff -puN fs/ocfs2/journal.h~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file fs/ocfs2/journal.h
+--- a/fs/ocfs2/journal.h~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file
++++ a/fs/ocfs2/journal.h
+@@ -626,4 +626,15 @@ static inline int ocfs2_begin_ordered_tr
+ 				new_size);
  }
  
-+static void ocfs2_process_blocked_lock(struct ocfs2_super *osb,
-+				       struct ocfs2_lock_res *lockres);
++static inline void ocfs2_update_inode_fsync_trans(handle_t *handle,
++						  struct inode *inode,
++						  int datasync)
++{
++	struct ocfs2_inode_info *oi = OCFS2_I(inode);
 +
- /* Mark the lockres as being dropped. It will no longer be
-  * queued if blocking, but we still may have to wait on it
-  * being dequeued from the downconvert thread before we can consider
-  * it safe to drop.
-  *
-  * You can *not* attempt to call cluster_lock on this lockres anymore. */
--void ocfs2_mark_lockres_freeing(struct ocfs2_lock_res *lockres)
-+void ocfs2_mark_lockres_freeing(struct ocfs2_super *osb,
-+				struct ocfs2_lock_res *lockres)
- {
- 	int status;
- 	struct ocfs2_mask_waiter mw;
--	unsigned long flags;
-+	unsigned long flags, flags2;
++	oi->i_sync_tid = handle->h_transaction->t_tid;
++	if (datasync)
++		oi->i_datasync_tid = handle->h_transaction->t_tid;
++}
++
+ #endif /* OCFS2_JOURNAL_H */
+diff -puN fs/ocfs2/namei.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file
++++ a/fs/ocfs2/namei.c
+@@ -495,6 +495,7 @@ static int __ocfs2_mknod_locked(struct i
+ 	struct ocfs2_dinode *fe = NULL;
+ 	struct ocfs2_extent_list *fel;
+ 	u16 feat;
++	struct ocfs2_inode_info *oi = OCFS2_I(inode);
  
- 	ocfs2_init_mask_waiter(&mw);
+ 	*new_fe_bh = NULL;
  
- 	spin_lock_irqsave(&lockres->l_lock, flags);
- 	lockres->l_flags |= OCFS2_LOCK_FREEING;
-+	if (lockres->l_flags & OCFS2_LOCK_QUEUED && current == osb->dc_task) {
-+		/*
-+		 * We know the downconvert is queued but not in progress
-+		 * because we are the downconvert thread and processing
-+		 * different lock. So we can just remove the lock from the
-+		 * queue. This is not only an optimization but also a way
-+		 * to avoid the following deadlock:
-+		 *   ocfs2_dentry_post_unlock()
-+		 *     ocfs2_dentry_lock_put()
-+		 *       ocfs2_drop_dentry_lock()
-+		 *         iput()
-+		 *           ocfs2_evict_inode()
-+		 *             ocfs2_clear_inode()
-+		 *               ocfs2_mark_lockres_freeing()
-+		 *                 ... blocks waiting for OCFS2_LOCK_QUEUED
-+		 *                 since we are the downconvert thread which
-+		 *                 should clear the flag.
-+		 */
-+		spin_unlock_irqrestore(&lockres->l_lock, flags);
-+		spin_lock_irqsave(&osb->dc_task_lock, flags2);
-+		list_del_init(&lockres->l_blocked_list);
-+		osb->blocked_lock_count--;
-+		spin_unlock_irqrestore(&osb->dc_task_lock, flags2);
-+		/*
-+		 * Warn if we recurse into another post_unlock call.  Strictly
-+		 * speaking it isn't a problem but we need to be careful if
-+		 * that happens (stack overflow, deadlocks, ...) so warn if
-+		 * ocfs2 grows a path for which this can happen.
-+		 */
-+		WARN_ON_ONCE(lockres->l_ops->post_unlock);
-+		/* Since the lock is freeing we don't do much in the fn below */
-+		ocfs2_process_blocked_lock(osb, lockres);
-+		return;
-+	}
- 	while (lockres->l_flags & OCFS2_LOCK_QUEUED) {
- 		lockres_add_mask_waiter(lockres, &mw, OCFS2_LOCK_QUEUED, 0);
- 		spin_unlock_irqrestore(&lockres->l_lock, flags);
-@@ -3180,7 +3218,7 @@ void ocfs2_simple_drop_lockres(struct oc
- {
- 	int ret;
+@@ -576,6 +577,9 @@ static int __ocfs2_mknod_locked(struct i
+ 			mlog_errno(status);
+ 	}
  
--	ocfs2_mark_lockres_freeing(lockres);
-+	ocfs2_mark_lockres_freeing(osb, lockres);
- 	ret = ocfs2_drop_lock(osb, lockres);
- 	if (ret)
- 		mlog_errno(ret);
-diff -puN fs/ocfs2/dlmglue.h~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread fs/ocfs2/dlmglue.h
---- a/fs/ocfs2/dlmglue.h~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread
-+++ a/fs/ocfs2/dlmglue.h
-@@ -157,7 +157,8 @@ int ocfs2_refcount_lock(struct ocfs2_ref
- void ocfs2_refcount_unlock(struct ocfs2_refcount_tree *ref_tree, int ex);
++	oi->i_sync_tid = handle->h_transaction->t_tid;
++	oi->i_datasync_tid = handle->h_transaction->t_tid;
++
+ 	status = 0; /* error in ocfs2_create_new_inode_locks is not
+ 		     * critical */
  
+diff -puN fs/ocfs2/super.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-improve-fsync-efficiency-and-fix-deadlock-between-aio_write-and-sync_file
++++ a/fs/ocfs2/super.c
+@@ -561,6 +561,9 @@ static struct inode *ocfs2_alloc_inode(s
+ 	if (!oi)
+ 		return NULL;
  
--void ocfs2_mark_lockres_freeing(struct ocfs2_lock_res *lockres);
-+void ocfs2_mark_lockres_freeing(struct ocfs2_super *osb,
-+				struct ocfs2_lock_res *lockres);
- void ocfs2_simple_drop_lockres(struct ocfs2_super *osb,
- 			       struct ocfs2_lock_res *lockres);
- 
-diff -puN fs/ocfs2/inode.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread fs/ocfs2/inode.c
---- a/fs/ocfs2/inode.c~ocfs2-avoid-blocking-in-ocfs2_mark_lockres_freeing-in-downconvert-thread
-+++ a/fs/ocfs2/inode.c
-@@ -1080,6 +1080,7 @@ static void ocfs2_clear_inode(struct ino
- {
- 	int status;
- 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
-+	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 
- 	clear_inode(inode);
- 	trace_ocfs2_clear_inode((unsigned long long)oi->ip_blkno,
-@@ -1096,9 +1097,9 @@ static void ocfs2_clear_inode(struct ino
- 
- 	/* Do these before all the other work so that we don't bounce
- 	 * the downconvert thread while waiting to destroy the locks. */
--	ocfs2_mark_lockres_freeing(&oi->ip_rw_lockres);
--	ocfs2_mark_lockres_freeing(&oi->ip_inode_lockres);
--	ocfs2_mark_lockres_freeing(&oi->ip_open_lockres);
-+	ocfs2_mark_lockres_freeing(osb, &oi->ip_rw_lockres);
-+	ocfs2_mark_lockres_freeing(osb, &oi->ip_inode_lockres);
-+	ocfs2_mark_lockres_freeing(osb, &oi->ip_open_lockres);
- 
- 	ocfs2_resv_discard(&OCFS2_SB(inode->i_sb)->osb_la_resmap,
- 			   &oi->ip_la_data_resv);
++	oi->i_sync_tid = 0;
++	oi->i_datasync_tid = 0;
++
+ 	jbd2_journal_init_jbd_inode(&oi->ip_jinode, &oi->vfs_inode);
+ 	return &oi->vfs_inode;
+ }
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from darrick.wong@oracle.com are
 
 origin.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 linux-next.patch
-mm-add-strictlimit-knob-v2.patch
 
