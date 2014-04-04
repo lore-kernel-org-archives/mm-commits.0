@@ -1,105 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:31:35 -0700
-Message-ID: <533f0897.+fp4hmzTTp397haC%akpm@linux-foundation.org>
+Subject: [merged] mm-mmapc-mark-function-as-static.patch removed from -mm
+ tree
+Date: Fri, 04 Apr 2014 12:31:42 -0700
+Message-ID: <533f089e.RfXUSZ2+ZxqHF3kJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43031 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43056 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754525AbaDDTbg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:31:36 -0400
+	with ESMTP id S1754374AbaDDTbn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:31:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, iamjoonsoo.kim@lge.com, davidlohr@hp.com, rientjes@google.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, riel@redhat.com, josh@joshtriplett.org, rashika.kheria@gmail.com
 
-Subject: [merged] mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch removed from -mm tree
-To: rientjes@google.com,davidlohr@hp.com,iamjoonsoo.kim@lge.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] mm-mmapc-mark-function-as-static.patch removed from -mm tree
+To: rashika.kheria@gmail.com,josh@joshtriplett.org,riel@redhat.com,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:31:35 -0700
+Date: Fri, 04 Apr 2014 12:31:42 -0700
 
 
 The patch titled
-     Subject: mm, hugetlb: mark some bootstrap functions as __init
+     Subject: mm/mmap.c: mark function as static
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-mark-some-bootstrap-functions-as-__init.patch
+     mm-mmapc-mark-function-as-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, hugetlb: mark some bootstrap functions as __init
+From: Rashika Kheria <rashika.kheria@gmail.com>
+Subject: mm/mmap.c: mark function as static
 
-Both prep_compound_huge_page() and prep_compound_gigantic_page() are only
-called at bootstrap and can be marked as __init.
+Mark function as static in mmap.c because they are not used outside this
+file.
 
-The __SetPageTail(page) in prep_compound_gigantic_page() happening before
-page->first_page is initialized is not concerning since this is bootstrap.
+This eliminates the following warning in mm/mmap.c:
+mm/mmap.c:407:6: warning: no previous prototype for `validate_mm' [-Wmissing-prototypes]
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
+Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-mark-some-bootstrap-functions-as-__init mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-mark-some-bootstrap-functions-as-__init
-+++ a/mm/hugetlb.c
-@@ -689,7 +689,8 @@ static void prep_new_huge_page(struct hs
- 	put_page(page); /* free it into the hugepage allocator */
+diff -puN mm/mmap.c~mm-mmapc-mark-function-as-static mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-mark-function-as-static
++++ a/mm/mmap.c
+@@ -405,7 +405,7 @@ static void validate_mm_rb(struct rb_roo
+ 	}
  }
  
--static void prep_compound_gigantic_page(struct page *page, unsigned long order)
-+static void __init prep_compound_gigantic_page(struct page *page,
-+					       unsigned long order)
+-void validate_mm(struct mm_struct *mm)
++static void validate_mm(struct mm_struct *mm)
  {
- 	int i;
- 	int nr_pages = 1 << order;
-@@ -1319,7 +1320,7 @@ found:
- 	return 1;
- }
- 
--static void prep_compound_huge_page(struct page *page, int order)
-+static void __init prep_compound_huge_page(struct page *page, int order)
- {
- 	if (unlikely(order > (MAX_ORDER - 1)))
- 		prep_compound_gigantic_page(page, order);
+ 	int bug = 0;
+ 	int i = 0;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from rashika.kheria@gmail.com are
 
 origin.patch
-arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch
-mm-slab-slub-use-page-list-consistently-instead-of-page-lru.patch
-mmnuma-reorganize-change_pmd_range.patch
-mmnuma-reorganize-change_pmd_range-fix.patch
-move-mmu-notifier-call-from-change_protection-to-change_pmd_range.patch
-mm-exclude-memory-less-nodes-from-zone_reclaim.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch
-mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
-exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
-fork-collapse-copy_flags-into-copy_process.patch
-mm-mempolicy-rename-slab_node-for-clarity.patch
-mm-mempolicy-remove-per-process-flag.patch
-res_counter-remove-interface-for-locked-charging-and-uncharging.patch
-mm-compaction-determine-isolation-mode-only-once.patch
-mm-try_to_unmap_cluster-should-lock_page-before-mlocking.patch
-mm-utilc-add-kstrimdup.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
 linux-next.patch
-memcg-slab-never-try-to-merge-memcg-caches.patch
-memcg-slab-cleanup-memcg-cache-creation.patch
-memcg-slab-separate-memcg-vs-root-cache-creation-paths.patch
-memcg-slab-unregister-cache-from-memcg-before-starting-to-destroy-it.patch
-memcg-slab-do-not-destroy-children-caches-if-parent-has-aliases.patch
-slub-adjust-memcg-caches-when-creating-cache-alias.patch
-slub-rework-sysfs-layout-for-memcg-caches.patch
 
