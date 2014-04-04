@@ -1,69 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:32:26 -0700
-Message-ID: <533f08ca.Stl+WtoMEDQRAzjQ%akpm@linux-foundation.org>
+Subject: [merged] fs-kernel-permit-disabling-the-uselib-syscall.patch
+ removed from -mm tree
+Date: Fri, 04 Apr 2014 12:32:24 -0700
+Message-ID: <533f08c8.QIcgXms5KZNmzhqL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43161 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43157 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909AbaDDTc1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:27 -0400
+	with ESMTP id S1754273AbaDDTcY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rob@landley.net, rdunlap@infradead.org, bp@suse.de, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, josh@joshtriplett.org
 
-Subject: [merged] submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch removed from -mm tree
-To: josh@joshtriplett.org,bp@suse.de,rdunlap@infradead.org,rob@landley.net,mm-commits@vger.kernel.org
+Subject: [merged] fs-kernel-permit-disabling-the-uselib-syscall.patch removed from -mm tree
+To: josh@joshtriplett.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:26 -0700
+Date: Fri, 04 Apr 2014 12:32:24 -0700
 
 
 The patch titled
-     Subject: SubmittingPatches: add style recommendation to use imperative descriptions
+     Subject: fs, kernel: permit disabling the uselib syscall
 has been removed from the -mm tree.  Its filename was
-     submittingpatches-add-style-recommendation-to-use-imperative-descriptions.patch
+     fs-kernel-permit-disabling-the-uselib-syscall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Josh Triplett <josh@joshtriplett.org>
-Subject: SubmittingPatches: add style recommendation to use imperative descriptions
+Subject: fs, kernel: permit disabling the uselib syscall
 
-Most commit messages use this style, and the recommendation frequently
-comes up in discussions (especially in response to patches that don't use
-it), but that recommendation doesn't actually appear anywhere in
-Documentation.  Add this style guideline to SubmittingPatches, using the
-description from git's SubmittingPatches.
+uselib hasn't been used since libc5; glibc does not use it.  Support
+turning it off.
+
+When disabled, also omit the load_elf_library implementation from
+binfmt_elf.c, which only uselib invokes.
+
+bloat-o-meter:
+add/remove: 0/4 grow/shrink: 0/1 up/down: 0/-785 (-785)
+function                                     old     new   delta
+padzero                                       39      36      -3
+uselib_flags                                  20       -     -20
+sys_uselib                                   168       -    -168
+SyS_uselib                                   168       -    -168
+load_elf_library                             426       -    -426
+
+The new CONFIG_USELIB defaults to `y'.
 
 Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Acked-by: Borislav Petkov <bp@suse.de>
-Cc: Rob Landley <rob@landley.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/binfmt_elf.c |    9 ++++++++-
+ fs/exec.c       |    2 ++
+ init/Kconfig    |   10 ++++++++++
+ kernel/sys_ni.c |    1 +
+ 4 files changed, 21 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/SubmittingPatches~submittingpatches-add-style-recommendation-to-use-imperative-descriptions Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~submittingpatches-add-style-recommendation-to-use-imperative-descriptions
-+++ a/Documentation/SubmittingPatches
-@@ -106,6 +106,11 @@ I.e., the patch (series) and its descrip
- This benefits both the patch merger(s) and reviewers.  Some reviewers
- probably didn't even receive earlier versions of the patch.
+diff -puN fs/binfmt_elf.c~fs-kernel-permit-disabling-the-uselib-syscall fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fs-kernel-permit-disabling-the-uselib-syscall
++++ a/fs/binfmt_elf.c
+@@ -46,10 +46,15 @@
+ #endif
  
-+Describe your changes in imperative mood, e.g. "make xyzzy do frotz"
-+instead of "[This patch] makes xyzzy do frotz" or "[I] changed xyzzy
-+to do frotz", as if you are giving orders to the codebase to change
-+its behaviour.
+ static int load_elf_binary(struct linux_binprm *bprm);
+-static int load_elf_library(struct file *);
+ static unsigned long elf_map(struct file *, unsigned long, struct elf_phdr *,
+ 				int, int, unsigned long);
+ 
++#ifdef CONFIG_USELIB
++static int load_elf_library(struct file *);
++#else
++#define load_elf_library NULL
++#endif
 +
- If the patch fixes a logged bug entry, refer to that bug entry by
- number and URL.
+ /*
+  * If we don't support core dumping, then supply a NULL so we
+  * don't even try.
+@@ -1005,6 +1010,7 @@ out_free_ph:
+ 	goto out;
+ }
  
++#ifdef CONFIG_USELIB
+ /* This is really simpleminded and specialized - we are loading an
+    a.out library that is given an ELF header. */
+ static int load_elf_library(struct file *file)
+@@ -1083,6 +1089,7 @@ out_free_ph:
+ out:
+ 	return error;
+ }
++#endif /* #ifdef CONFIG_USELIB */
+ 
+ #ifdef CONFIG_ELF_CORE
+ /*
+diff -puN fs/exec.c~fs-kernel-permit-disabling-the-uselib-syscall fs/exec.c
+--- a/fs/exec.c~fs-kernel-permit-disabling-the-uselib-syscall
++++ a/fs/exec.c
+@@ -97,6 +97,7 @@ static inline void put_binfmt(struct lin
+ 	module_put(fmt->module);
+ }
+ 
++#ifdef CONFIG_USELIB
+ /*
+  * Note that a shared library must be both readable and executable due to
+  * security reasons.
+@@ -156,6 +157,7 @@ exit:
+ out:
+   	return error;
+ }
++#endif /* #ifdef CONFIG_USELIB */
+ 
+ #ifdef CONFIG_MMU
+ /*
+diff -puN init/Kconfig~fs-kernel-permit-disabling-the-uselib-syscall init/Kconfig
+--- a/init/Kconfig~fs-kernel-permit-disabling-the-uselib-syscall
++++ a/init/Kconfig
+@@ -273,6 +273,16 @@ config FHANDLE
+ 	  get renamed. Enables open_by_handle_at(2) and name_to_handle_at(2)
+ 	  syscalls.
+ 
++config USELIB
++	bool "uselib syscall"
++	default y
++	help
++	  This option enables the uselib syscall, a system call used in the
++	  dynamic linker from libc5 and earlier.  glibc does not use this
++	  system call.  If you intend to run programs built on libc5 or
++	  earlier, you may need to enable this syscall.  Current systems
++	  running glibc can safely disable this.
++
+ config AUDIT
+ 	bool "Auditing support"
+ 	depends on NET
+diff -puN kernel/sys_ni.c~fs-kernel-permit-disabling-the-uselib-syscall kernel/sys_ni.c
+--- a/kernel/sys_ni.c~fs-kernel-permit-disabling-the-uselib-syscall
++++ a/kernel/sys_ni.c
+@@ -152,6 +152,7 @@ cond_syscall(sys_process_vm_readv);
+ cond_syscall(sys_process_vm_writev);
+ cond_syscall(compat_sys_process_vm_readv);
+ cond_syscall(compat_sys_process_vm_writev);
++cond_syscall(sys_uselib);
+ 
+ /* arch-specific weak syscall entries */
+ cond_syscall(sys_pciconfig_read);
 _
 
 Patches currently in -mm which might be from josh@joshtriplett.org are
