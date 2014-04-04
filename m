@@ -1,133 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] submittingpatches-document-the-use-of-git.patch removed
- from -mm tree
-Date: Fri, 04 Apr 2014 12:32:30 -0700
-Message-ID: <533f08ce.0LhgUErMvwM2vwxP%akpm@linux-foundation.org>
+Subject: [merged] errh-use-bool-for-is_err-and-is_err_or_null.patch
+ removed from -mm tree
+Date: Fri, 04 Apr 2014 12:32:32 -0700
+Message-ID: <533f08d0.xCdwK1gx586cGmYr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43171 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43174 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273AbaDDTca (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:30 -0400
+	with ESMTP id S1754583AbaDDTcc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:32:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rob@landley.net, rdunlap@infradead.org, bp@suse.de, josh@joshtriplett.org
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] submittingpatches-document-the-use-of-git.patch removed from -mm tree
-To: josh@joshtriplett.org,bp@suse.de,rdunlap@infradead.org,rob@landley.net,mm-commits@vger.kernel.org
+Subject: [merged] errh-use-bool-for-is_err-and-is_err_or_null.patch removed from -mm tree
+To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:32:30 -0700
+Date: Fri, 04 Apr 2014 12:32:32 -0700
 
 
 The patch titled
-     Subject: SubmittingPatches: document the use of git
+     Subject: err.h: use bool for IS_ERR and IS_ERR_OR_NULL
 has been removed from the -mm tree.  Its filename was
-     submittingpatches-document-the-use-of-git.patch
+     errh-use-bool-for-is_err-and-is_err_or_null.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: SubmittingPatches: document the use of git
+From: Joe Perches <joe@perches.com>
+Subject: err.h: use bool for IS_ERR and IS_ERR_OR_NULL
 
-Most of the mechanical portions of SubmittingPatches exist to help patch
-submitters replicate the output of git.  Mention this explicitly, both as
-a reminder that git will help with this process, and as signposting to let
-git users know what they can safely skip.
+Use the more natural return of bool for these tests.
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Acked-by: Borislav Petkov <bp@suse.de>
-Cc: Rob Landley <rob@landley.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+No difference observed in .o files produced by gcc for x86.
+
+Remove the dentry description of kernel pointers left over from the 90's
+and 2002's cleanup move of parts of fs.h to err.h.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches |   33 +++++++++++++++---------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ include/linux/err.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/SubmittingPatches~submittingpatches-document-the-use-of-git Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~submittingpatches-document-the-use-of-git
-+++ a/Documentation/SubmittingPatches
-@@ -14,7 +14,10 @@ Read Documentation/SubmitChecklist for a
- before submitting code.  If you are submitting a driver, also read
- Documentation/SubmittingDrivers.
+diff -puN include/linux/err.h~errh-use-bool-for-is_err-and-is_err_or_null include/linux/err.h
+--- a/include/linux/err.h~errh-use-bool-for-is_err-and-is_err_or_null
++++ a/include/linux/err.h
+@@ -2,12 +2,13 @@
+ #define _LINUX_ERR_H
  
--
-+Many of these steps describe the default behavior of the git version
-+control system; if you use git to prepare your patches, you'll find much
-+of the mechanical work done for you, though you'll still need to prepare
-+and document a sensible set of patches.
+ #include <linux/compiler.h>
++#include <linux/types.h>
  
- --------------------------------------------
- SECTION 1 - CREATING AND SENDING YOUR CHANGE
-@@ -25,7 +28,9 @@ SECTION 1 - CREATING AND SENDING YOUR CH
- 1) "diff -up"
- ------------
+ #include <asm/errno.h>
  
--Use "diff -up" or "diff -uprN" to create patches.
-+Use "diff -up" or "diff -uprN" to create patches.  git generates patches
-+in this form by default; if you're using git, you can skip this section
-+entirely.
+ /*
+  * Kernel pointers have redundant information, so we can use a
+- * scheme where we can return either an error code or a dentry
++ * scheme where we can return either an error code or a normal
+  * pointer with the same return value.
+  *
+  * This should be a per-architecture thing, to allow different
+@@ -29,12 +30,12 @@ static inline long __must_check PTR_ERR(
+ 	return (long) ptr;
+ }
  
- All changes to the Linux kernel occur in the form of patches, as
- generated by diff(1).  When creating your patch, make sure to create it
-@@ -66,19 +71,14 @@ Make sure your patch does not include an
- belong in a patch submission.  Make sure to review your patch -after-
- generated it with diff(1), to ensure accuracy.
+-static inline long __must_check IS_ERR(__force const void *ptr)
++static inline bool __must_check IS_ERR(__force const void *ptr)
+ {
+ 	return IS_ERR_VALUE((unsigned long)ptr);
+ }
  
--If your changes produce a lot of deltas, you may want to look into
--splitting them into individual patches which modify things in
--logical stages.  This will facilitate easier reviewing by other
--kernel developers, very important if you want your patch accepted.
--There are a number of scripts which can aid in this:
--
--Quilt:
--http://savannah.nongnu.org/projects/quilt
--
--Andrew Morton's patch scripts:
--http://userweb.kernel.org/~akpm/stuff/patch-scripts.tar.gz
--Instead of these scripts, quilt is the recommended patch management
--tool (see above).
-+If your changes produce a lot of deltas, you need to split them into
-+individual patches which modify things in logical stages; see section
-+#3.  This will facilitate easier reviewing by other kernel developers,
-+very important if you want your patch accepted.
-+
-+If you're using git, "git rebase -i" can help you with this process.  If
-+you're not using git, quilt <http://savannah.nongnu.org/projects/quilt>
-+is another popular alternative.
- 
- 
- 
-@@ -607,7 +607,8 @@ patch.
- If you are going to include a diffstat after the "---" marker, please
- use diffstat options "-p 1 -w 70" so that filenames are listed from
- the top of the kernel source tree and don't use too much horizontal
--space (easily fit in 80 columns, maybe with some indentation).
-+space (easily fit in 80 columns, maybe with some indentation).  (git
-+generates appropriate diffstats by default.)
- 
- See more details on the proper patch format in the following
- references.
+-static inline long __must_check IS_ERR_OR_NULL(__force const void *ptr)
++static inline bool __must_check IS_ERR_OR_NULL(__force const void *ptr)
+ {
+ 	return !ptr || IS_ERR_VALUE((unsigned long)ptr);
+ }
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-cris-make-etrax_arch_v10-select-tty-for-use-in-debugport.patch
-ia64-select-config_tty-for-use-of-tty_write_message-in-unaligned.patch
-ppc-make-ppc_book3s_64-select-irq_work.patch
-kconfig-make-allnoconfig-disable-options-behind-embedded-and-expert.patch
-bug-when-config_bug-simplify-warn_on_once-and-family.patch
-include-asm-generic-bugh-style-fix-s-while0-while-0.patch
-bug-when-config_bug-make-warn-call-no_printk-to-check-format-and-args.patch
-bug-make-bug-always-stop-the-machine.patch
-x86-always-define-bug-and-have_arch_bug-even-with-config_bug.patch
+ntfs-logging-clean-up.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
 linux-next.patch
-lglock-map-to-spinlock-when-config_smp.patch
 
