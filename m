@@ -1,64 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- arch-sh-boards-board-sh7757lcrc-fixup-sdhi-register-size.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:29:51 -0700
-Message-ID: <533f082f.+RleG1WTUbt1OPv0%akpm@linux-foundation.org>
+Subject: [merged] sh-sh7757-switch-rspi-clock-to-dev-id-match.patch
+ removed from -mm tree
+Date: Fri, 04 Apr 2014 12:29:53 -0700
+Message-ID: <533f0831.9DpxAWWvDVZRP6VN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42683 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42690 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754378AbaDDT3w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:29:52 -0400
+	with ESMTP id S1754374AbaDDT3x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:29:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, kuninori.morimoto.gx@renesas.com, horms@verge.net.au, geert@linux-m68k.org, kuninori.morimoto.gx@gmail.com
+To: mm-commits@vger.kernel.org, yoshihiro.shimoda.uh@renesas.com, geert+renesas@linux-m68k.org
 
-Subject: [merged] arch-sh-boards-board-sh7757lcrc-fixup-sdhi-register-size.patch removed from -mm tree
-To: kuninori.morimoto.gx@gmail.com,geert@linux-m68k.org,horms@verge.net.au,kuninori.morimoto.gx@renesas.com,mm-commits@vger.kernel.org
+Subject: [merged] sh-sh7757-switch-rspi-clock-to-dev-id-match.patch removed from -mm tree
+To: geert+renesas@linux-m68k.org,yoshihiro.shimoda.uh@renesas.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:29:51 -0700
+Date: Fri, 04 Apr 2014 12:29:53 -0700
 
 
 The patch titled
-     Subject: arch/sh/boards/board-sh7757lcr.c: fixup SDHI register size
+     Subject: sh: sh7757: switch RSPI clock to dev ID match
 has been removed from the -mm tree.  Its filename was
-     arch-sh-boards-board-sh7757lcrc-fixup-sdhi-register-size.patch
+     sh-sh7757-switch-rspi-clock-to-dev-id-match.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kuninori Morimoto <kuninori.morimoto.gx@gmail.com>
-Subject: arch/sh/boards/board-sh7757lcr.c: fixup SDHI register size
+From: Geert Uytterhoeven <geert+renesas@linux-m68k.org>
+Subject: sh: sh7757: switch RSPI clock to dev ID match
 
-sh7757lcr SDHI register size is 0x100
+Switch the RSPI MSTP clock on SH7757 from a con ID match to a dev ID
+match, so we can start looking it up using clk_get() with a NULL ID.
 
-Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Geert Uytterhoeven <geert+renesas@linux-m68k.org>
+Tested-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boards/board-sh7757lcr.c |    2 +-
+ arch/sh/kernel/cpu/sh4a/clock-sh7757.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sh/boards/board-sh7757lcr.c~arch-sh-boards-board-sh7757lcrc-fixup-sdhi-register-size arch/sh/boards/board-sh7757lcr.c
---- a/arch/sh/boards/board-sh7757lcr.c~arch-sh-boards-board-sh7757lcrc-fixup-sdhi-register-size
-+++ a/arch/sh/boards/board-sh7757lcr.c
-@@ -252,7 +252,7 @@ static struct sh_mobile_sdhi_info sdhi_i
- static struct resource sdhi_resources[] = {
- 	[0] = {
- 		.start  = 0xffe50000,
--		.end    = 0xffe501ff,
-+		.end    = 0xffe500ff,
- 		.flags  = IORESOURCE_MEM,
- 	},
- 	[1] = {
+diff -puN arch/sh/kernel/cpu/sh4a/clock-sh7757.c~sh-sh7757-switch-rspi-clock-to-dev-id-match arch/sh/kernel/cpu/sh4a/clock-sh7757.c
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c~sh-sh7757-switch-rspi-clock-to-dev-id-match
++++ a/arch/sh/kernel/cpu/sh4a/clock-sh7757.c
+@@ -132,7 +132,7 @@ static struct clk_lookup lookups[] = {
+ 	CLKDEV_CON_ID("usb_fck", &mstp_clks[MSTP103]),
+ 	CLKDEV_DEV_ID("renesas_usbhs.0", &mstp_clks[MSTP102]),
+ 	CLKDEV_CON_ID("mmc0", &mstp_clks[MSTP220]),
+-	CLKDEV_CON_ID("rspi2", &mstp_clks[MSTP127]),
++	CLKDEV_DEV_ID("rspi.2", &mstp_clks[MSTP127]),
+ };
+ 
+ int __init arch_clk_init(void)
 _
 
-Patches currently in -mm which might be from kuninori.morimoto.gx@gmail.com are
+Patches currently in -mm which might be from geert+renesas@linux-m68k.org are
 
 origin.patch
+linux-next.patch
 
