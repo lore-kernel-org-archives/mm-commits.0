@@ -1,87 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-decompress_inflatec-include-appropriate-header-file.patch removed from
- -mm tree
-Date: Fri, 04 Apr 2014 12:33:48 -0700
-Message-ID: <533f091c.wr/29i7sDvfmWo0E%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-avoid-sscanf-test-duplicated-messages.patch
+ removed from -mm tree
+Date: Fri, 04 Apr 2014 12:34:00 -0700
+Message-ID: <533f0928.o4FRJb4/Zxv2e7kJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43330 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753885AbaDDTdt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:49 -0400
+	with ESMTP id S1753882AbaDDTeA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, josh@joshtriplett.org, rashika.kheria@gmail.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] lib-decompress_inflatec-include-appropriate-header-file.patch removed from -mm tree
-To: rashika.kheria@gmail.com,josh@joshtriplett.org,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-avoid-sscanf-test-duplicated-messages.patch removed from -mm tree
+To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:33:48 -0700
+Date: Fri, 04 Apr 2014 12:34:00 -0700
 
 
 The patch titled
-     Subject: lib/decompress_inflate.c: include appropriate header file
+     Subject: checkpatch: avoid sscanf test duplicated messages
 has been removed from the -mm tree.  Its filename was
-     lib-decompress_inflatec-include-appropriate-header-file.patch
+     checkpatch-avoid-sscanf-test-duplicated-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rashika Kheria <rashika.kheria@gmail.com>
-Subject: lib/decompress_inflate.c: include appropriate header file
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: avoid sscanf test duplicated messages
 
-Include appropriate header file include/linux/decompress/inflate.h in
-lib/decompress_inflate.c because it has prototype declaration of function
-defined in lib/decompress_inflate.c.
+Change a test of $dstat to $line to avoid possibly emitting the sscanf
+warning multiple times.
 
-Also, fix the guard around the header file
-include/linux/decompress/inflate.h to use a more unique guard symbol. 
-This avoids conflict with the INFLATE_H defined by zlib_inflate/inflate.h.
-
-This eliminates the following warning in lib/decompress_inflate.c:
-lib/decompress_inflate.c:35:17: warning: no previous prototype for `gunzip' [-Wmissing-prototypes]
-
-Signed-off-by: Rashika Kheria <rashika.kheria@gmail.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/decompress/inflate.h |    4 ++--
- lib/decompress_inflate.c           |    1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/decompress/inflate.h~lib-decompress_inflatec-include-appropriate-header-file include/linux/decompress/inflate.h
---- a/include/linux/decompress/inflate.h~lib-decompress_inflatec-include-appropriate-header-file
-+++ a/include/linux/decompress/inflate.h
-@@ -1,5 +1,5 @@
--#ifndef INFLATE_H
--#define INFLATE_H
-+#ifndef LINUX_DECOMPRESS_INFLATE_H
-+#define LINUX_DECOMPRESS_INFLATE_H
- 
- int gunzip(unsigned char *inbuf, int len,
- 	   int(*fill)(void*, unsigned int),
-diff -puN lib/decompress_inflate.c~lib-decompress_inflatec-include-appropriate-header-file lib/decompress_inflate.c
---- a/lib/decompress_inflate.c~lib-decompress_inflatec-include-appropriate-header-file
-+++ a/lib/decompress_inflate.c
-@@ -19,6 +19,7 @@
- #include "zlib_inflate/inflate.h"
- 
- #include "zlib_inflate/infutil.h"
-+#include <linux/decompress/inflate.h>
- 
- #endif /* STATIC */
- 
+diff -puN scripts/checkpatch.pl~checkpatch-avoid-sscanf-test-duplicated-messages scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-avoid-sscanf-test-duplicated-messages
++++ a/scripts/checkpatch.pl
+@@ -4188,7 +4188,7 @@ sub process {
+ # check for naked sscanf
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    defined $stat &&
+-		    $stat =~ /\bsscanf\b/ &&
++		    $line =~ /\bsscanf\b/ &&
+ 		    ($stat !~ /$Ident\s*=\s*sscanf\s*$balanced_parens/ &&
+ 		     $stat !~ /\bsscanf\s*$balanced_parens\s*(?:$Compare)/ &&
+ 		     $stat !~ /(?:$Compare)\s*\bsscanf\s*$balanced_parens/)) {
 _
 
-Patches currently in -mm which might be from rashika.kheria@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+ntfs-logging-clean-up.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+ncpfs-convert-pprintk-to-ncp_vdbg.patch
+ncpfs-remove-now-unused-printk-macro.patch
+ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
 linux-next.patch
 
