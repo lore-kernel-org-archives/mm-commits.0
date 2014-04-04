@@ -1,91 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-test-for-long-udelay.patch removed from
- -mm tree
-Date: Fri, 04 Apr 2014 12:33:50 -0700
-Message-ID: <533f091e.e/aWtNfRC7tDnBSv%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-fix-jiffies-comparison-and-others.patch
+ removed from -mm tree
+Date: Fri, 04 Apr 2014 12:34:02 -0700
+Message-ID: <533f092a.QdYQD+n+xe5p4zlL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43315 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43332 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754216AbaDDTdv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:51 -0400
+	with ESMTP id S1754240AbaDDTeD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sujith@msujith.org, linville@tuxdriver.com, holgerschurig@gmail.com, joe@perches.com
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: [merged] checkpatch-add-test-for-long-udelay.patch removed from -mm tree
-To: joe@perches.com,holgerschurig@gmail.com,linville@tuxdriver.com,sujith@msujith.org,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-fix-jiffies-comparison-and-others.patch removed from -mm tree
+To: joe@perches.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:33:50 -0700
+Date: Fri, 04 Apr 2014 12:34:02 -0700
 
 
 The patch titled
-     Subject: checkpatch: add test for long udelay
+     Subject: checkpatch: fix jiffies comparison and others
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-test-for-long-udelay.patch
+     checkpatch-fix-jiffies-comparison-and-others.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add test for long udelay
+Subject: checkpatch: fix jiffies comparison and others
 
-Holger reported:
+checkpatch could not distinguish between a variable in a struct named
+jiffies and the normal jiffies.
 
-: The macro udelay cannot handle large values because of loss-of-precision.
-:
-: IMHO udelay on ARM is broken, because it also cannot work with fast
-: ARM processors (where bogomips >= 3355, which is in sight now). It's
-: just not broken enough that someone did something against it ...   so
-: the current kludge is good enough.
+	foo->jiffies
 
-Until then, warn on long udelay uses.
+would emit a "Comparing jiffies" arning.
 
-Also fix uses of $line that should have been $herecurr.
+Update the $Compare variable to do a negative look-behind for "-" when
+finding a ">" so that a pointer dereference like -> isn't a comparison.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Holger Schurig <holgerschurig@gmail.com>
-Cc: Sujith Manoharan <sujith@msujith.org>
-Cc: John Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-long-udelay scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-test-for-long-udelay
+diff -puN scripts/checkpatch.pl~checkpatch-fix-jiffies-comparison-and-others scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-jiffies-comparison-and-others
 +++ a/scripts/checkpatch.pl
-@@ -3912,10 +3912,15 @@ sub process {
- 
- # prefer usleep_range over udelay
- 		if ($line =~ /\budelay\s*\(\s*(\d+)\s*\)/) {
-+			my $delay = $1;
- 			# ignore udelay's < 10, however
--			if (! ($1 < 10) ) {
-+			if (! ($delay < 10) ) {
- 				CHK("USLEEP_RANGE",
--				    "usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt\n" . $line);
-+				    "usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt\n" . $herecurr);
-+			}
-+			if ($delay > 2000) {
-+				WARN("LONG_UDELAY",
-+				     "long udelay - prefer mdelay; see arch/arm/include/asm/delay.h\n" . $herecurr);
- 			}
- 		}
- 
-@@ -3923,7 +3928,7 @@ sub process {
- 		if ($line =~ /\bmsleep\s*\((\d+)\);/) {
- 			if ($1 < 20) {
- 				WARN("MSLEEP",
--				     "msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt\n" . $line);
-+				     "msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt\n" . $herecurr);
- 			}
- 		}
- 
+@@ -296,7 +296,7 @@ our $Float_int	= qr{(?i)[0-9]+e-?[0-9]+[
+ our $Float	= qr{$Float_hex|$Float_dec|$Float_int};
+ our $Constant	= qr{$Float|$Binary|$Octal|$Hex|$Int};
+ our $Assignment	= qr{\*\=|/=|%=|\+=|-=|<<=|>>=|&=|\^=|\|=|=};
+-our $Compare    = qr{<=|>=|==|!=|<|>};
++our $Compare    = qr{<=|>=|==|!=|<|(?<!-)>};
+ our $Arithmetic = qr{\+|-|\*|\/|%};
+ our $Operators	= qr{
+ 			<=|>=|==|!=|
 _
 
 Patches currently in -mm which might be from joe@perches.com are
