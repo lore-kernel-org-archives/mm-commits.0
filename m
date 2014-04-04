@@ -1,108 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kmemleak-free-internal-objects-only-if-therere-no-leaks-to-be-reported.patch removed from -mm tree
-Date: Fri, 04 Apr 2014 12:29:24 -0700
-Message-ID: <533f0814.f0W14GkZ9YgNUpre%akpm@linux-foundation.org>
+Subject: [merged] kthread-ensure-locality-of-task_struct-allocations.patch removed from -mm tree
+Date: Fri, 04 Apr 2014 12:29:22 -0700
+Message-ID: <533f0812.jQ2It+txczOqubcN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42630 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42623 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882AbaDDT3Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:29:25 -0400
+	with ESMTP id S1754202AbaDDT3X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:29:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, catalin.marinas@arm.com, lizefan@huawei.com
+To: mm-commits@vger.kernel.org, tj@kernel.org, tglx@linutronix.de, rientjes@google.com, penguin-kernel@I-love.SAKURA.ne.jp, oleg@redhat.com, liwanp@linux.vnet.ibm.com, jack@suse.cz, iamjoonsoo.kim@lge.com, cl@linux.com, benh@kernel.crashing.org, anton@samba.org, nacc@linux.vnet.ibm.com
 
-Subject: [merged] kmemleak-free-internal-objects-only-if-therere-no-leaks-to-be-reported.patch removed from -mm tree
-To: lizefan@huawei.com,catalin.marinas@arm.com,mm-commits@vger.kernel.org
+Subject: [merged] kthread-ensure-locality-of-task_struct-allocations.patch removed from -mm tree
+To: nacc@linux.vnet.ibm.com,anton@samba.org,benh@kernel.crashing.org,cl@linux.com,iamjoonsoo.kim@lge.com,jack@suse.cz,liwanp@linux.vnet.ibm.com,oleg@redhat.com,penguin-kernel@I-love.SAKURA.ne.jp,rientjes@google.com,tglx@linutronix.de,tj@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:29:24 -0700
+Date: Fri, 04 Apr 2014 12:29:22 -0700
 
 
 The patch titled
-     Subject: kmemleak: free internal objects only if there're no leaks to be reported
+     Subject: kthread: ensure locality of task_struct allocations
 has been removed from the -mm tree.  Its filename was
-     kmemleak-free-internal-objects-only-if-therere-no-leaks-to-be-reported.patch
+     kthread-ensure-locality-of-task_struct-allocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Li Zefan <lizefan@huawei.com>
-Subject: kmemleak: free internal objects only if there're no leaks to be reported
+From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Subject: kthread: ensure locality of task_struct allocations
 
-Currently if you stop kmemleak thread before disabling kmemleak, kmemleak
-objects will be freed and so you won't be able to check previously
-reported leaks.
+In the presence of memoryless nodes, numa_node_id() will return the
+current CPU's NUMA node, but that may not be where we expect to allocate
+from memory from.  Instead, we should rely on the fallback code in the
+memory allocator itself, by using NUMA_NO_NODE.  Also, when calling
+kthread_create_on_node(), use the nearest node with memory to the cpu in
+question, rather than the node it is running on.
 
-With this patch, kmemleak objects won't be freed if there're leaks that
-can be reported.
-
-Signed-off-by: Li Zefan <lizefan@huawei.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Ben Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ kernel/kthread.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/kmemleak.c~kmemleak-free-internal-objects-only-if-therere-no-leaks-to-be-reported mm/kmemleak.c
---- a/mm/kmemleak.c~kmemleak-free-internal-objects-only-if-therere-no-leaks-to-be-reported
-+++ a/mm/kmemleak.c
-@@ -218,7 +218,8 @@ static int kmemleak_stack_scan = 1;
- static DEFINE_MUTEX(scan_mutex);
- /* setting kmemleak=on, will set this var, skipping the disable */
- static int kmemleak_skip_disable;
--
-+/* If there are leaks that can be reported */
-+static bool kmemleak_found_leaks;
- 
- /*
-  * Early object allocation/freeing logging. Kmemleak is initialized after the
-@@ -1382,9 +1383,12 @@ static void kmemleak_scan(void)
- 	}
- 	rcu_read_unlock();
- 
--	if (new_leaks)
-+	if (new_leaks) {
-+		kmemleak_found_leaks = true;
-+
- 		pr_info("%d new suspected memory leaks (see "
- 			"/sys/kernel/debug/kmemleak)\n", new_leaks);
-+	}
- 
+diff -puN kernel/kthread.c~kthread-ensure-locality-of-task_struct-allocations kernel/kthread.c
+--- a/kernel/kthread.c~kthread-ensure-locality-of-task_struct-allocations
++++ a/kernel/kthread.c
+@@ -217,7 +217,7 @@ int tsk_fork_get_node(struct task_struct
+ 	if (tsk == kthreadd_task)
+ 		return tsk->pref_node_fork;
+ #endif
+-	return numa_node_id();
++	return NUMA_NO_NODE;
  }
  
-@@ -1592,6 +1596,8 @@ static void kmemleak_clear(void)
- 		spin_unlock_irqrestore(&object->lock, flags);
- 	}
- 	rcu_read_unlock();
-+
-+	kmemleak_found_leaks = false;
- }
- 
- /*
-@@ -1685,12 +1691,11 @@ static const struct file_operations kmem
- static void kmemleak_do_cleanup(struct work_struct *work)
+ static void create_kthread(struct kthread_create_info *create)
+@@ -369,7 +369,7 @@ struct task_struct *kthread_create_on_cp
  {
- 	struct kmemleak_object *object;
--	bool cleanup = scan_thread == NULL;
+ 	struct task_struct *p;
  
- 	mutex_lock(&scan_mutex);
- 	stop_scan_thread();
- 
--	if (cleanup) {
-+	if (!kmemleak_found_leaks) {
- 		rcu_read_lock();
- 		list_for_each_entry_rcu(object, &object_list, object_list)
- 			delete_object_full(object->pointer);
+-	p = kthread_create_on_node(threadfn, data, cpu_to_node(cpu), namefmt,
++	p = kthread_create_on_node(threadfn, data, cpu_to_mem(cpu), namefmt,
+ 				   cpu);
+ 	if (IS_ERR(p))
+ 		return p;
 _
 
-Patches currently in -mm which might be from lizefan@huawei.com are
+Patches currently in -mm which might be from nacc@linux.vnet.ibm.com are
 
 origin.patch
-kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator.patch
-linux-next.patch
+mm-exclude-memory-less-nodes-from-zone_reclaim.patch
 
