@@ -1,84 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-jz4740-use-devm_ioremap_resource.patch removed
+Subject: [merged] rtc-rtc-davinci-use-devm_ioremap_resource.patch removed
  from -mm tree
-Date: Fri, 04 Apr 2014 12:35:10 -0700
-Message-ID: <533f096e.uqPPCOUi20MRn/aS%akpm@linux-foundation.org>
+Date: Fri, 04 Apr 2014 12:35:06 -0700
+Message-ID: <533f096a.xphvFze6NAMl1vlJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43509 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754530AbaDDTfK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:35:10 -0400
+	with ESMTP id S1754462AbaDDTfG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:35:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, lars@metafoo.de, jg1.han@samsung.com
+To: mm-commits@vger.kernel.org, khilman@linaro.org, jg1.han@samsung.com
 
-Subject: [merged] rtc-rtc-jz4740-use-devm_ioremap_resource.patch removed from -mm tree
-To: jg1.han@samsung.com,lars@metafoo.de,mm-commits@vger.kernel.org
+Subject: [merged] rtc-rtc-davinci-use-devm_ioremap_resource.patch removed from -mm tree
+To: jg1.han@samsung.com,khilman@linaro.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:35:10 -0700
+Date: Fri, 04 Apr 2014 12:35:06 -0700
 
 
 The patch titled
-     Subject: rtc: rtc-jz4740: use devm_ioremap_resource()
+     Subject: rtc: rtc-davinci: use devm_ioremap_resource()
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-jz4740-use-devm_ioremap_resource.patch
+     rtc-rtc-davinci-use-devm_ioremap_resource.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: rtc: rtc-jz4740: use devm_ioremap_resource()
+Subject: rtc: rtc-davinci: use devm_ioremap_resource()
 
-Use devm_ioremap_resource() in order to make the code simpler, and move
-'struct resource *mem' from 'struct jz4740_rtc' to jz4740_rtc_probe()
-because the 'mem' variable is used only in jz4740_rtc_probe().  Also the
-redundant return value check of platform_get_resource() is removed,
-because the value is checked by devm_ioremap_resource().
+Use devm_ioremap_resource() in order to make the code simpler, and remove
+redundant return value check of platform_get_resource() because the value
+is checked by devm_ioremap_resource().
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Kevin Hilman <khilman@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-jz4740.c |   25 +++++--------------------
- 1 file changed, 5 insertions(+), 20 deletions(-)
+ drivers/rtc/rtc-davinci.c |   29 ++++-------------------------
+ 1 file changed, 4 insertions(+), 25 deletions(-)
 
-diff -puN drivers/rtc/rtc-jz4740.c~rtc-rtc-jz4740-use-devm_ioremap_resource drivers/rtc/rtc-jz4740.c
---- a/drivers/rtc/rtc-jz4740.c~rtc-rtc-jz4740-use-devm_ioremap_resource
-+++ a/drivers/rtc/rtc-jz4740.c
-@@ -38,7 +38,6 @@
- #define JZ_RTC_CTRL_ENABLE	BIT(0)
+diff -puN drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-devm_ioremap_resource drivers/rtc/rtc-davinci.c
+--- a/drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-devm_ioremap_resource
++++ a/drivers/rtc/rtc-davinci.c
+@@ -119,8 +119,6 @@ static DEFINE_SPINLOCK(davinci_rtc_lock)
+ struct davinci_rtc {
+ 	struct rtc_device		*rtc;
+ 	void __iomem			*base;
+-	resource_size_t			pbase;
+-	size_t				base_size;
+ 	int				irq;
+ };
  
- struct jz4740_rtc {
--	struct resource *mem;
- 	void __iomem *base;
+@@ -482,7 +480,7 @@ static int __init davinci_rtc_probe(stru
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct davinci_rtc *davinci_rtc;
+-	struct resource *res, *mem;
++	struct resource *res;
+ 	int ret = 0;
  
- 	struct rtc_device *rtc;
-@@ -216,6 +215,7 @@ static int jz4740_rtc_probe(struct platf
- 	int ret;
- 	struct jz4740_rtc *rtc;
- 	uint32_t scratchpad;
-+	struct resource *mem;
- 
- 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
- 	if (!rtc)
-@@ -227,25 +227,10 @@ static int jz4740_rtc_probe(struct platf
- 		return -ENOENT;
+ 	davinci_rtc = devm_kzalloc(&pdev->dev, sizeof(struct davinci_rtc), GFP_KERNEL);
+@@ -496,28 +494,9 @@ static int __init davinci_rtc_probe(stru
  	}
  
--	rtc->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!rtc->mem) {
--		dev_err(&pdev->dev, "Failed to get platform mmio memory\n");
--		return -ENOENT;
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		dev_err(dev, "no mem resource\n");
+-		return -EINVAL;
 -	}
 -
--	rtc->mem = devm_request_mem_region(&pdev->dev, rtc->mem->start,
--					resource_size(rtc->mem), pdev->name);
--	if (!rtc->mem) {
--		dev_err(&pdev->dev, "Failed to request mmio memory region\n");
+-	davinci_rtc->pbase = res->start;
+-	davinci_rtc->base_size = resource_size(res);
+-
+-	mem = devm_request_mem_region(dev, davinci_rtc->pbase,
+-				davinci_rtc->base_size, pdev->name);
+-	if (!mem) {
+-		dev_err(dev, "RTC registers at %08x are not free\n",
+-			davinci_rtc->pbase);
 -		return -EBUSY;
 -	}
