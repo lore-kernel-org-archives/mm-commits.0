@@ -1,65 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-update-octal-permissions-warning.patch
- removed from -mm tree
-Date: Fri, 04 Apr 2014 12:33:56 -0700
-Message-ID: <533f0924.egwuvQcR/OnHBIja%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-add-test-for-long-udelay.patch removed from
+ -mm tree
+Date: Fri, 04 Apr 2014 12:33:50 -0700
+Message-ID: <533f091e.e/aWtNfRC7tDnBSv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43324 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43315 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882AbaDDTd5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:57 -0400
+	with ESMTP id S1754216AbaDDTdv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, sujith@msujith.org, linville@tuxdriver.com, holgerschurig@gmail.com, joe@perches.com
 
-Subject: [merged] checkpatch-update-octal-permissions-warning.patch removed from -mm tree
-To: joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-add-test-for-long-udelay.patch removed from -mm tree
+To: joe@perches.com,holgerschurig@gmail.com,linville@tuxdriver.com,sujith@msujith.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:33:56 -0700
+Date: Fri, 04 Apr 2014 12:33:50 -0700
 
 
 The patch titled
-     Subject: checkpatch: update octal permissions warning
+     Subject: checkpatch: add test for long udelay
 has been removed from the -mm tree.  Its filename was
-     checkpatch-update-octal-permissions-warning.patch
+     checkpatch-add-test-for-long-udelay.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: update octal permissions warning
+Subject: checkpatch: add test for long udelay
 
-When checking permissions, make sure 4 octal digits are used, but allow a
-single 0 too.
+Holger reported:
+
+: The macro udelay cannot handle large values because of loss-of-precision.
+:
+: IMHO udelay on ARM is broken, because it also cannot work with fast
+: ARM processors (where bogomips >= 3355, which is in sight now). It's
+: just not broken enough that someone did something against it ...   so
+: the current kludge is good enough.
+
+Until then, warn on long udelay uses.
+
+Also fix uses of $line that should have been $herecurr.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Holger Schurig <holgerschurig@gmail.com>
+Cc: Sujith Manoharan <sujith@msujith.org>
+Cc: John Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-update-octal-permissions-warning scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-update-octal-permissions-warning
+diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-long-udelay scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-test-for-long-udelay
 +++ a/scripts/checkpatch.pl
-@@ -4512,9 +4512,11 @@ sub process {
- 				my $val = $1;
- 				$val = $6 if ($skip_args ne "");
+@@ -3912,10 +3912,15 @@ sub process {
  
--				if ($val =~ /^$Int$/ && $val !~ /^$Octal$/) {
-+				if ($val !~ /^0$/ &&
-+				    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
-+				     length($val) ne 4)) {
- 					ERROR("NON_OCTAL_PERMISSIONS",
--					      "Use octal not decimal permissions\n" . $herecurr);
-+					      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
- 				}
+ # prefer usleep_range over udelay
+ 		if ($line =~ /\budelay\s*\(\s*(\d+)\s*\)/) {
++			my $delay = $1;
+ 			# ignore udelay's < 10, however
+-			if (! ($1 < 10) ) {
++			if (! ($delay < 10) ) {
+ 				CHK("USLEEP_RANGE",
+-				    "usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt\n" . $line);
++				    "usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt\n" . $herecurr);
++			}
++			if ($delay > 2000) {
++				WARN("LONG_UDELAY",
++				     "long udelay - prefer mdelay; see arch/arm/include/asm/delay.h\n" . $herecurr);
  			}
  		}
+ 
+@@ -3923,7 +3928,7 @@ sub process {
+ 		if ($line =~ /\bmsleep\s*\((\d+)\);/) {
+ 			if ($1 < 20) {
+ 				WARN("MSLEEP",
+-				     "msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt\n" . $line);
++				     "msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt\n" . $herecurr);
+ 			}
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
