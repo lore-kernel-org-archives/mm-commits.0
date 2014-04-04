@@ -1,137 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-improve-octal-permissions-test-speed.patch
- removed from -mm tree
-Date: Fri, 04 Apr 2014 12:34:14 -0700
-Message-ID: <533f0936.PqOvTy70kYP8t8dF%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-fix-spurious-vendor-compatible-warnings.patch removed from -mm tree
+Date: Fri, 04 Apr 2014 12:34:18 -0700
+Message-ID: <533f093a.iN06lNvF1q++SQ4o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43358 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754193AbaDDTeO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:14 -0400
+	with ESMTP id S1754313AbaDDTeS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:34:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, robh@kernel.org, joe@perches.com, florian.vaussard@epfl.ch
 
-Subject: [merged] checkpatch-improve-octal-permissions-test-speed.patch removed from -mm tree
-To: joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-fix-spurious-vendor-compatible-warnings.patch removed from -mm tree
+To: florian.vaussard@epfl.ch,joe@perches.com,robh@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:34:14 -0700
+Date: Fri, 04 Apr 2014 12:34:18 -0700
 
 
 The patch titled
-     Subject: checkpatch: improve octal permissions test speed
+     Subject: checkpatch: fix spurious vendor compatible warnings
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-octal-permissions-test-speed.patch
+     checkpatch-fix-spurious-vendor-compatible-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve octal permissions test speed
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: checkpatch: fix spurious vendor compatible warnings
 
-The current octal permissions test is very slow.
+With a compatible string like
 
-When 3fc9249967 ("checkpatch: add checks for constant non-octal
-permissions") was added, processing time approximately tripled.
+compatible = "foo";
 
-Regain almost all of the performance by not looping through all the
-possible functions unless the line contains one of the functions.
+checkpatch will currently try to find "foo" in  vendor-prefixes.txt,
+which is wrong since the vendor prefix is empty in this specific case.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Skip the vendor test if the compatible is not like
+
+compatible = "vendor,something";
+
+Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Joe Perches <joe@perches.com>
+Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   51 ++++++++++++++++++++++++----------------
- 1 file changed, 31 insertions(+), 20 deletions(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-octal-permissions-test-speed scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-octal-permissions-test-speed
+diff -puN scripts/checkpatch.pl~checkpatch-fix-spurious-vendor-compatible-warnings scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-spurious-vendor-compatible-warnings
 +++ a/scripts/checkpatch.pl
-@@ -388,6 +388,13 @@ our @mode_permission_funcs = (
- 	["(?:CLASS|DEVICE|SENSOR)_ATTR", 2],
- );
- 
-+#Create a search pattern for all these functions to speed up a loop below
-+our $mode_perms_search = "";
-+foreach my $entry (@mode_permission_funcs) {
-+	$mode_perms_search .= '|' if ($mode_perms_search ne "");
-+	$mode_perms_search .= $entry->[0];
-+}
-+
- our $allowed_asm_includes = qr{(?x:
- 	irq|
- 	memory
-@@ -4524,26 +4531,30 @@ sub process {
- 			     "Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
- 		}
- 
--		foreach my $entry (@mode_permission_funcs) {
--			my $func = $entry->[0];
--			my $arg_pos = $entry->[1];
--
--			my $skip_args = "";
--			if ($arg_pos > 1) {
--				$arg_pos--;
--				$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
--			}
--			my $test = "\\b$func\\s*\\(${skip_args}([\\d]+)\\s*[,\\)]";
--			if ($^V && $^V ge 5.10.0 &&
--			    $line =~ /$test/) {
--				my $val = $1;
--				$val = $6 if ($skip_args ne "");
--
--				if ($val !~ /^0$/ &&
--				    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
--				     length($val) ne 4)) {
--					ERROR("NON_OCTAL_PERMISSIONS",
--					      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
-+# Mode permission misuses where it seems decimal should be octal
-+# This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $line =~ /$mode_perms_search/) {
-+			foreach my $entry (@mode_permission_funcs) {
-+				my $func = $entry->[0];
-+				my $arg_pos = $entry->[1];
-+
-+				my $skip_args = "";
-+				if ($arg_pos > 1) {
-+					$arg_pos--;
-+					$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
-+				}
-+				my $test = "\\b$func\\s*\\(${skip_args}([\\d]+)\\s*[,\\)]";
-+				if ($line =~ /$test/) {
-+					my $val = $1;
-+					$val = $6 if ($skip_args ne "");
-+
-+					if ($val !~ /^0$/ &&
-+					    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
-+					     length($val) ne 4)) {
-+						ERROR("NON_OCTAL_PERMISSIONS",
-+						      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
-+					}
+@@ -2088,10 +2088,10 @@ sub process {
+ 					     "DT compatible string \"$compat\" appears un-documented -- check $dt_path\n" . $herecurr);
  				}
- 			}
- 		}
+ 
+-				my $vendor = $compat;
+ 				my $vendor_path = $dt_path . "vendor-prefixes.txt";
+ 				next if (! -f $vendor_path);
+-				$vendor =~ s/^([a-zA-Z0-9\-]+)\,.*/$1/;
++				next if $compat !~ /^([a-zA-Z0-9\-]+)\,/;
++				my $vendor = $1;
+ 				`grep -Eq "$vendor" $vendor_path`;
+ 				if ( $? >> 8 ) {
+ 					WARN("UNDOCUMENTED_DT_STRING",
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from florian.vaussard@epfl.ch are
 
 origin.patch
-ntfs-logging-clean-up.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
-checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
-checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
-ncpfs-add-pr_fmt-and-convert-printks-to-pr_level.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-ncpfs-convert-pprintk-to-ncp_vdbg.patch
-ncpfs-remove-now-unused-printk-macro.patch
-ncpfs-inode-fix-mismatch-printk-formats-and-arguments.patch
 linux-next.patch
 
