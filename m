@@ -1,201 +1,251 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-improve-cleanup-resv_map-parameters.patch
- removed from -mm tree
-Date: Fri, 04 Apr 2014 12:31:02 -0700
-Message-ID: <533f0876.igxwI4kPBElZDBi7%akpm@linux-foundation.org>
+Subject: [merged] mm-hugetlb-improve-page-fault-scalability.patch removed
+ from -mm tree
+Date: Fri, 04 Apr 2014 12:31:10 -0700
+Message-ID: <533f087e.WaBdwYnvf6vN/igO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42862 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42888 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754224AbaDDTbD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:31:03 -0400
+	with ESMTP id S1754240AbaDDTbL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:31:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, davidlohr@hp.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com
+To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, iamjoonsoo.kim@lge.com, david@gibson.dropbear.id.au, aneesh.kumar@linux.vnet.ibm.com, davidlohr@hp.com
 
-Subject: [merged] mm-hugetlb-improve-cleanup-resv_map-parameters.patch removed from -mm tree
-To: iamjoonsoo.kim@lge.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,davidlohr@hp.com,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-hugetlb-improve-page-fault-scalability.patch removed from -mm tree
+To: davidlohr@hp.com,aneesh.kumar@linux.vnet.ibm.com,david@gibson.dropbear.id.au,iamjoonsoo.kim@lge.com,n-horiguchi@ah.jp.nec.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:31:02 -0700
+Date: Fri, 04 Apr 2014 12:31:10 -0700
 
 
 The patch titled
-     Subject: mm, hugetlb: improve, cleanup resv_map parameters
+     Subject: mm, hugetlb: improve page-fault scalability
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-improve-cleanup-resv_map-parameters.patch
+     mm-hugetlb-improve-page-fault-scalability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm, hugetlb: improve, cleanup resv_map parameters
+From: Davidlohr Bueso <davidlohr@hp.com>
+Subject: mm, hugetlb: improve page-fault scalability
 
-To change a protection method for region tracking to find grained one, we
-pass the resv_map, instead of list_head, to region manipulation functions.
- This doesn't introduce any functional change, and it is just for
-preparing a next step.
+The kernel can currently only handle a single hugetlb page fault at a
+time.  This is due to a single mutex that serializes the entire path. 
+This lock protects from spurious OOM errors under conditions of low
+availability of free hugepages.  This problem is specific to hugepages,
+because it is normal to want to use every single hugepage in the system -
+with normal pages we simply assume there will always be a few spare pages
+which can be used temporarily until the race is resolved.
 
-[davidlohr@hp.com: update changelog]
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Address this problem by using a table of mutexes, allowing a better chance
+of parallelization, where each hugepage is individually serialized.  The
+hash key is selected depending on the mapping type.  For shared ones it
+consists of the address space and file offset being faulted; while for
+private ones the mm and virtual address are used.  The size of the table
+is selected based on a compromise of collisions and memory footprint of a
+series of database workloads.
+
+Large database workloads that make heavy use of hugepages can be
+particularly exposed to this issue, causing start-up times to be painfully
+slow.  This patch reduces the startup time of a 10 Gb Oracle DB (with
+~5000 faults) from 37.5 secs to 25.7 secs.  Larger workloads will
+naturally benefit even more.
+
+NOTE:
+The only downside to this patch, detected by Joonsoo Kim, is that a small race
+is possible in private mappings: A child process (with its own mm, after cow)
+can instantiate a page that is already being handled by the parent in a cow
+fault. When low on pages, can trigger spurious OOMs. I have not been able to
+think of a efficient way of handling this... but do we really care about such
+a tiny window? We already maintain another theoretical race with normal pages.
+If not, one possible way to is to maintain the single hash for private mappings
+-- any workloads that *really* suffer from this scaling problem should already
+use shared mappings.
+
+[akpm@linux-foundation.org: remove stray + characters, go BUG if hugetlb_init() kmalloc fails]
 Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ mm/hugetlb.c |   84 +++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 71 insertions(+), 13 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-improve-cleanup-resv_map-parameters mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-improve-cleanup-resv_map-parameters
+diff -puN mm/hugetlb.c~mm-hugetlb-improve-page-fault-scalability mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-improve-page-fault-scalability
 +++ a/mm/hugetlb.c
-@@ -151,8 +151,9 @@ struct file_region {
- 	long to;
- };
+@@ -22,6 +22,7 @@
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
+ #include <linux/page-isolation.h>
++#include <linux/jhash.h>
  
--static long region_add(struct list_head *head, long f, long t)
-+static long region_add(struct resv_map *resv, long f, long t)
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+@@ -53,6 +54,13 @@ static unsigned long __initdata default_
+  */
+ DEFINE_SPINLOCK(hugetlb_lock);
+ 
++/*
++ * Serializes faults on the same logical page.  This is used to
++ * prevent spurious OOMs when the hugepage pool is fully utilized.
++ */
++static int num_fault_mutexes;
++static struct mutex *htlb_fault_mutex_table ____cacheline_aligned_in_smp;
++
+ static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
  {
-+	struct list_head *head = &resv->regions;
- 	struct file_region *rg, *nrg, *trg;
- 
- 	/* Locate the region we are either in or before. */
-@@ -187,8 +188,9 @@ static long region_add(struct list_head
- 	return 0;
- }
- 
--static long region_chg(struct list_head *head, long f, long t)
-+static long region_chg(struct resv_map *resv, long f, long t)
- {
-+	struct list_head *head = &resv->regions;
- 	struct file_region *rg, *nrg;
- 	long chg = 0;
- 
-@@ -236,8 +238,9 @@ static long region_chg(struct list_head
- 	return chg;
- }
- 
--static long region_truncate(struct list_head *head, long end)
-+static long region_truncate(struct resv_map *resv, long end)
- {
-+	struct list_head *head = &resv->regions;
- 	struct file_region *rg, *trg;
- 	long chg = 0;
- 
-@@ -266,8 +269,9 @@ static long region_truncate(struct list_
- 	return chg;
- }
- 
--static long region_count(struct list_head *head, long f, long t)
-+static long region_count(struct resv_map *resv, long f, long t)
- {
-+	struct list_head *head = &resv->regions;
- 	struct file_region *rg;
- 	long chg = 0;
- 
-@@ -393,7 +397,7 @@ void resv_map_release(struct kref *ref)
- 	struct resv_map *resv_map = container_of(ref, struct resv_map, refs);
- 
- 	/* Clear out any active regions before we release the map. */
--	region_truncate(&resv_map->regions, 0);
-+	region_truncate(resv_map, 0);
- 	kfree(resv_map);
- }
- 
-@@ -1152,7 +1156,7 @@ static long vma_needs_reservation(struct
- 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		struct resv_map *resv = inode->i_mapping->private_data;
- 
--		return region_chg(&resv->regions, idx, idx + 1);
-+		return region_chg(resv, idx, idx + 1);
- 
- 	} else if (!is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
- 		return 1;
-@@ -1162,7 +1166,7 @@ static long vma_needs_reservation(struct
- 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		struct resv_map *resv = vma_resv_map(vma);
- 
--		err = region_chg(&resv->regions, idx, idx + 1);
-+		err = region_chg(resv, idx, idx + 1);
- 		if (err < 0)
- 			return err;
- 		return 0;
-@@ -1178,14 +1182,14 @@ static void vma_commit_reservation(struc
- 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		struct resv_map *resv = inode->i_mapping->private_data;
- 
--		region_add(&resv->regions, idx, idx + 1);
-+		region_add(resv, idx, idx + 1);
- 
- 	} else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
- 		pgoff_t idx = vma_hugecache_offset(h, vma, addr);
- 		struct resv_map *resv = vma_resv_map(vma);
- 
- 		/* Mark this page used in the map. */
--		region_add(&resv->regions, idx, idx + 1);
-+		region_add(resv, idx, idx + 1);
+ 	bool free = (spool->count == 0) && (spool->used_hpages == 0);
+@@ -1961,11 +1969,14 @@ static void __exit hugetlb_exit(void)
  	}
+ 
+ 	kobject_put(hugepages_kobj);
++	kfree(htlb_fault_mutex_table);
+ }
+ module_exit(hugetlb_exit);
+ 
+ static int __init hugetlb_init(void)
+ {
++	int i;
++
+ 	/* Some platform decide whether they support huge pages at boot
+ 	 * time. On these, such as powerpc, HPAGE_SHIFT is set to 0 when
+ 	 * there is no such support
+@@ -1990,6 +2001,17 @@ static int __init hugetlb_init(void)
+ 	hugetlb_register_all_nodes();
+ 	hugetlb_cgroup_file_init();
+ 
++#ifdef CONFIG_SMP
++	num_fault_mutexes = roundup_pow_of_two(8 * num_possible_cpus());
++#else
++	num_fault_mutexes = 1;
++#endif
++	htlb_fault_mutex_table =
++		kmalloc(sizeof(struct mutex) * num_fault_mutexes, GFP_KERNEL);
++	BUG_ON(!htlb_fault_mutex_table);
++
++	for (i = 0; i < num_fault_mutexes; i++)
++		mutex_init(&htlb_fault_mutex_table[i]);
+ 	return 0;
+ }
+ module_init(hugetlb_init);
+@@ -2767,15 +2789,14 @@ static bool hugetlbfs_pagecache_present(
  }
  
-@@ -2276,7 +2280,7 @@ static void hugetlb_vm_op_close(struct v
- 		end = vma_hugecache_offset(h, vma, vma->vm_end);
+ static int hugetlb_no_page(struct mm_struct *mm, struct vm_area_struct *vma,
+-			unsigned long address, pte_t *ptep, unsigned int flags)
++			   struct address_space *mapping, pgoff_t idx,
++			   unsigned long address, pte_t *ptep, unsigned int flags)
+ {
+ 	struct hstate *h = hstate_vma(vma);
+ 	int ret = VM_FAULT_SIGBUS;
+ 	int anon_rmap = 0;
+-	pgoff_t idx;
+ 	unsigned long size;
+ 	struct page *page;
+-	struct address_space *mapping;
+ 	pte_t new_pte;
+ 	spinlock_t *ptl;
  
- 		reserve = (end - start) -
--			region_count(&resv->regions, start, end);
-+			region_count(resv, start, end);
+@@ -2790,9 +2811,6 @@ static int hugetlb_no_page(struct mm_str
+ 		return ret;
+ 	}
  
- 		resv_map_put(vma);
+-	mapping = vma->vm_file->f_mapping;
+-	idx = vma_hugecache_offset(h, vma, address);
+-
+ 	/*
+ 	 * Use page lock to guard against racing truncation
+ 	 * before we get page_table_lock.
+@@ -2902,17 +2920,53 @@ backout_unlocked:
+ 	goto out;
+ }
  
-@@ -3178,7 +3182,7 @@ int hugetlb_reserve_pages(struct inode *
- 	if (!vma || vma->vm_flags & VM_MAYSHARE) {
- 		resv_map = inode->i_mapping->private_data;
++#ifdef CONFIG_SMP
++static u32 fault_mutex_hash(struct hstate *h, struct mm_struct *mm,
++			    struct vm_area_struct *vma,
++			    struct address_space *mapping,
++			    pgoff_t idx, unsigned long address)
++{
++	unsigned long key[2];
++	u32 hash;
++
++	if (vma->vm_flags & VM_SHARED) {
++		key[0] = (unsigned long) mapping;
++		key[1] = idx;
++	} else {
++		key[0] = (unsigned long) mm;
++		key[1] = address >> huge_page_shift(h);
++	}
++
++	hash = jhash2((u32 *)&key, sizeof(key)/sizeof(u32), 0);
++
++	return hash & (num_fault_mutexes - 1);
++}
++#else
++/*
++ * For uniprocesor systems we always use a single mutex, so just
++ * return 0 and avoid the hashing overhead.
++ */
++static u32 fault_mutex_hash(struct hstate *h, struct mm_struct *mm,
++			    struct vm_area_struct *vma,
++			    struct address_space *mapping,
++			    pgoff_t idx, unsigned long address)
++{
++	return 0;
++}
++#endif
++
+ int hugetlb_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, unsigned int flags)
+ {
+-	pte_t *ptep;
+-	pte_t entry;
++	pte_t *ptep, entry;
+ 	spinlock_t *ptl;
+ 	int ret;
++	u32 hash;
++	pgoff_t idx;
+ 	struct page *page = NULL;
+ 	struct page *pagecache_page = NULL;
+-	static DEFINE_MUTEX(hugetlb_instantiation_mutex);
+ 	struct hstate *h = hstate_vma(vma);
++	struct address_space *mapping;
  
--		chg = region_chg(&resv_map->regions, from, to);
-+		chg = region_chg(resv_map, from, to);
+ 	address &= huge_page_mask(h);
  
- 	} else {
- 		resv_map = resv_map_alloc();
-@@ -3224,7 +3228,7 @@ int hugetlb_reserve_pages(struct inode *
- 	 * else has to be done for private mappings here
+@@ -2931,15 +2985,20 @@ int hugetlb_fault(struct mm_struct *mm,
+ 	if (!ptep)
+ 		return VM_FAULT_OOM;
+ 
++	mapping = vma->vm_file->f_mapping;
++	idx = vma_hugecache_offset(h, vma, address);
++
+ 	/*
+ 	 * Serialize hugepage allocation and instantiation, so that we don't
+ 	 * get spurious allocation failures if two CPUs race to instantiate
+ 	 * the same page in the page cache.
  	 */
- 	if (!vma || vma->vm_flags & VM_MAYSHARE)
--		region_add(&resv_map->regions, from, to);
-+		region_add(resv_map, from, to);
- 	return 0;
- out_err:
- 	if (vma)
-@@ -3240,7 +3244,7 @@ void hugetlb_unreserve_pages(struct inod
- 	struct hugepage_subpool *spool = subpool_inode(inode);
+-	mutex_lock(&hugetlb_instantiation_mutex);
++	hash = fault_mutex_hash(h, mm, vma, mapping, idx, address);
++	mutex_lock(&htlb_fault_mutex_table[hash]);
++
+ 	entry = huge_ptep_get(ptep);
+ 	if (huge_pte_none(entry)) {
+-		ret = hugetlb_no_page(mm, vma, address, ptep, flags);
++		ret = hugetlb_no_page(mm, vma, mapping, idx, address, ptep, flags);
+ 		goto out_mutex;
+ 	}
  
- 	if (resv_map)
--		chg = region_truncate(&resv_map->regions, offset);
-+		chg = region_truncate(resv_map, offset);
- 	spin_lock(&inode->i_lock);
- 	inode->i_blocks -= (blocks_per_huge_page(h) * freed);
- 	spin_unlock(&inode->i_lock);
-_
-
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
-
-origin.patch
-mm-compaction-disallow-high-order-page-for-migration-target.patch
-mm-compaction-do-not-call-suitable_migration_target-on-every-page.patch
-mm-compaction-change-the-timing-to-check-to-drop-the-spinlock.patch
-mm-compaction-check-pageblock-suitability-once-per-pageblock.patch
-mm-compaction-clean-up-code-on-success-of-ballon-isolation.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-mm-compaction-determine-isolation-mode-only-once.patch
-mm-vmallocc-enhance-vm_map_ram-comment.patch
-mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
-mm-try_to_unmap_cluster-should-lock_page-before-mlocking.patch
-mm-hugetlb-fix-softlockup-when-a-large-number-of-hugepages-are-freed.patch
-zram-support-req_discard.patch
-zram-support-req_discard-v4.patch
-zram-support-req_discard-v4-fix.patch
-linux-next.patch
-page-owners-correct-page-order-when-to-free-page.patch
-
+@@ -3008,8 +3067,7 @@ out_ptl:
+ 	put_page(page);
+ 
+ out_mutex:
+-	mutex_unlock(&hugetlb_instantiation_mutex);
