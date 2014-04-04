@@ -1,114 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-dont-warn-on-some-function-pointer-return-styles.patch removed
- from -mm tree
-Date: Fri, 04 Apr 2014 12:33:52 -0700
-Message-ID: <533f0920.Q6WFRu30zu+uF1jl%akpm@linux-foundation.org>
+ checkpatch-warn-on-uses-of-__constant_foo-functions.patch removed from -mm
+ tree
+Date: Fri, 04 Apr 2014 12:33:58 -0700
+Message-ID: <533f0926.oAG9HjsRRcdwsbqx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43320 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43327 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882AbaDDTdw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:52 -0400
+	with ESMTP id S1753882AbaDDTd7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 15:33:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, joe@perches.com
+To: mm-commits@vger.kernel.org, sw@simonwunderlich.de, apw@canonical.com, joe@perches.com
 
-Subject: [merged] checkpatch-dont-warn-on-some-function-pointer-return-styles.patch removed from -mm tree
-To: joe@perches.com,mm-commits@vger.kernel.org
+Subject: [merged] checkpatch-warn-on-uses-of-__constant_foo-functions.patch removed from -mm tree
+To: joe@perches.com,apw@canonical.com,sw@simonwunderlich.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 12:33:52 -0700
+Date: Fri, 04 Apr 2014 12:33:58 -0700
 
 
 The patch titled
-     Subject: checkpatch: don't warn on some function pointer return styles
+     Subject: checkpatch: warn on uses of __constant_<foo> functions
 has been removed from the -mm tree.  Its filename was
-     checkpatch-dont-warn-on-some-function-pointer-return-styles.patch
+     checkpatch-warn-on-uses-of-__constant_foo-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: don't warn on some function pointer return styles
+Subject: checkpatch: warn on uses of __constant_<foo> functions
 
-Checks for some function pointer return styles are too strict.  Fix them.
+Emit a warning when using any of these __constant_<foo> forms:
 
-Multiple spaces after function pointer return types are allowed.
-	int  (*foo)(int bar)
+	__constant_cpu_to_be[x]
+	__constant_cpu_to_le[x]
+	__constant_be[x]_to_cpu
+	__constant_le[x]_to_cpu
+	__constant_htons
+	__constant_ntohs
 
-Spaces after function pointer returns of pointer types are not required.
-	int *(*foo)(int bar)
+Using any of these outside of include/uapi/ isn't preferred as using the
+function without __constant_ is identical when the argument is a constant.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Simon Wunderlich <sw@simonwunderlich.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   31 +++++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 10 deletions(-)
+ scripts/checkpatch.pl |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-warn-on-some-function-pointer-return-styles scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-warn-on-some-function-pointer-return-styles
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-uses-of-__constant_foo-functions scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-uses-of-__constant_foo-functions
 +++ a/scripts/checkpatch.pl
-@@ -2848,10 +2848,7 @@ sub process {
- # Function pointer declarations
- # check spacing between type, funcptr, and args
- # canonical declaration is "type (*funcptr)(args...)"
--#
--# the $Declare variable will capture all spaces after the type
--# so check it for trailing missing spaces or multiple spaces
--		if ($line =~ /^.\s*($Declare)\((\s*)\*(\s*)$Ident(\s*)\)(\s*)\(/) {
-+		if ($line =~ /^.\s*($Declare)\((\s*)\*(\s*)($Ident)(\s*)\)(\s*)\(/) {
- 			my $declare = $1;
- 			my $pre_pointer_space = $2;
- 			my $post_pointer_space = $3;
-@@ -2859,16 +2856,30 @@ sub process {
- 			my $post_funcname_space = $5;
- 			my $pre_args_space = $6;
- 
--			if ($declare !~ /\s$/) {
-+# the $Declare variable will capture all spaces after the type
-+# so check it for a missing trailing missing space but pointer return types
-+# don't need a space so don't warn for those.
-+			my $post_declare_space = "";
-+			if ($declare =~ /(\s+)$/) {
-+				$post_declare_space = $1;
-+				$declare = rtrim($declare);
-+			}
-+			if ($declare !~ /\*$/ && $post_declare_space =~ /^$/) {
- 				WARN("SPACING",
- 				     "missing space after return type\n" . $herecurr);
-+				$post_declare_space = " ";
- 			}
- 
- # unnecessary space "type  (*funcptr)(args...)"
--			elsif ($declare =~ /\s{2,}$/) {
--				WARN("SPACING",
--				     "Multiple spaces after return type\n" . $herecurr);
--			}
-+# This test is not currently implemented because these declarations are
-+# equivalent to
-+#	int  foo(int bar, ...)
-+# and this is form shouldn't/doesn't generate a checkpatch warning.
-+#
-+#			elsif ($declare =~ /\s{2,}$/) {
-+#				WARN("SPACING",
-+#				     "Multiple spaces after return type\n" . $herecurr);
-+#			}
- 
- # unnecessary space "type ( *funcptr)(args...)"
- 			if (defined $pre_pointer_space &&
-@@ -2900,7 +2911,7 @@ sub process {
- 
- 			if (show_type("SPACING") && $fix) {
- 				$fixed[$linenr - 1] =~
--				    s/^(.\s*$Declare)\(\s*\*\s*($Ident)\s*\)\s*\(/rtrim($1) . " " . "\(\*$2\)\("/ex;
-+				    s/^(.\s*)$Declare\s*\(\s*\*\s*$Ident\s*\)\s*\(/$1 . $declare . $post_declare_space . '(*' . $funcname . ')('/ex;
+@@ -3931,6 +3931,19 @@ sub process {
  			}
  		}
  
++# don't use __constant_<foo> functions outside of include/uapi/
++		if ($realfile !~ m@^include/uapi/@ &&
++		    $line =~ /(__constant_(?:htons|ntohs|[bl]e(?:16|32|64)_to_cpu|cpu_to_[bl]e(?:16|32|64)))\s*\(/) {
++			my $constant_func = $1;
++			my $func = $constant_func;
++			$func =~ s/^__constant_//;
++			if (WARN("CONSTANT_CONVERSION",
++				 "$constant_func should be $func\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$linenr - 1] =~ s/\b$constant_func\b/$func/g;
++			}
++		}
++
+ # prefer usleep_range over udelay
+ 		if ($line =~ /\budelay\s*\(\s*(\d+)\s*\)/) {
+ 			my $delay = $1;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
