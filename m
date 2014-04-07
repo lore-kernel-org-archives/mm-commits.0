@@ -1,84 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix.patch removed from -mm tree
-Date: Mon, 07 Apr 2014 15:19:48 -0700
-Message-ID: <53432484.RAHLoFYF7lej+AtD%akpm@linux-foundation.org>
+ percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch removed from -mm
+ tree
+Date: Mon, 07 Apr 2014 15:20:10 -0700
+Message-ID: <5343249a.SNKCl1Z3X+nXuI55%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40101 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40105 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755932AbaDGWTt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:19:49 -0400
+	with ESMTP id S1755780AbaDGWUP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:20:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, dchinner@redhat.com, cl@linux.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, grygorii.strashko@ti.com, cl@linux.com
 
-Subject: [folded-merged] vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,cl@linux.com,dchinner@redhat.com,sergey.senozhatsky@gmail.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch removed from -mm tree
+To: cl@linux.com,grygorii.strashko@ti.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 07 Apr 2014 15:19:48 -0700
+Date: Mon, 07 Apr 2014 15:20:10 -0700
 
 
 The patch titled
-     Subject: vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix
+     Subject: preemption_checks: avoid snprintf before checking error conditions
 has been removed from the -mm tree.  Its filename was
-     vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix.patch
+     percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch
 
-This patch was dropped because it was folded into vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks.patch
+This patch was dropped because it was folded into percpu-add-preemption-checks-to-__this_cpu-ops.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix
+From: Christoph Lameter <cl@linux.com>
+Subject: preemption_checks: avoid snprintf before checking error conditions
 
-Add comment.  Again.
+snprintf can cause hangs.  Move the string processing into the function so
+that the string operations only occur when necessary after the conditions
+have been checked.
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Tested-by: Grygorii Strashko <grygorii.strashko@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ lib/smp_processor_id.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/vmstat.h~vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix include/linux/vmstat.h
---- a/include/linux/vmstat.h~vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix
-+++ a/include/linux/vmstat.h
-@@ -27,6 +27,10 @@ struct vm_event_state {
+diff -puN lib/smp_processor_id.c~percpu-add-preemption-checks-to-__this_cpu-ops-fix lib/smp_processor_id.c
+--- a/lib/smp_processor_id.c~percpu-add-preemption-checks-to-__this_cpu-ops-fix
++++ a/lib/smp_processor_id.c
+@@ -7,7 +7,8 @@
+ #include <linux/kallsyms.h>
+ #include <linux/sched.h>
  
- DECLARE_PER_CPU(struct vm_event_state, vm_event_states);
- 
-+/*
-+ * vm counters are allowed to be racy. Use raw_cpu_ops to avoid the
-+ * local_irq_disable overhead.
-+ */
- static inline void __count_vm_event(enum vm_event_item item)
+-notrace static unsigned int check_preemption_disabled(char *what)
++notrace static unsigned int check_preemption_disabled(const char *what1,
++							const char *what2)
  {
- 	raw_cpu_inc(vm_event_states.event[item]);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-mmnuma-reorganize-change_pmd_range.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order.patch
-mm-per-thread-vma-caching.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__.patch
-mm-vmallocc-enhance-vm_map_ram-comment.patch
-mm-readaheadc-inline-ra_submit.patch
-zram-use-zcomp-compressing-backends.patch
-zram-return-error-valued-pointer-from-zcomp_create.patch
-zram-propagate-error-to-user.patch
-zram-support-req_discard.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
-kernel-panicc-display-reason-at-end-pr_emerg.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts.patch
-initramfs-debug-detected-compression-method.patch
-slub-use-raw_cpu_inc-for-incrementing-statistics.patch
-vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks.patch
-percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
-
+ 	int this_cpu = raw_smp_processor_id();
+ 
+@@ -38,8 +39,8 @@ notrace static unsigned int check_preemp
+ 	if (!printk_ratelimit())
+ 		goto out_enable;
+ 
+-	printk(KERN_ERR "BUG: using %s in preemptible [%08x] code: %s/%d\n",
+-		what, preempt_count() - 1, current->comm, current->pid);
++	printk(KERN_ERR "BUG: using %s%s() in preemptible [%08x] code: %s/%d\n",
++		what1, what2, preempt_count() - 1, current->comm, current->pid);
+ 
+ 	print_symbol("caller is %s\n", (long)__builtin_return_address(0));
+ 	dump_stack();
+@@ -52,15 +53,12 @@ out:
+ 
+ notrace unsigned int debug_smp_processor_id(void)
+ {
+-	return check_preemption_disabled("smp_processor_id()");
++	return check_preemption_disabled("smp_processor_id","");
+ }
+ EXPORT_SYMBOL(debug_smp_processor_id);
+ 
+ notrace void __this_cpu_preempt_check(const char *op)
+ {
+-	char text[40];
