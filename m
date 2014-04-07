@@ -1,46 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 04 Apr 2014 16:01:26 -0700
-Message-ID: <533f39c6.l/FHSGT+RJZy+ffL%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 07 Apr 2014 11:07:50 -0700
+Message-ID: <5342e976.dXwYYZGCrtqZPVzP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44537 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38465 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751879AbaDDXB1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2014 19:01:27 -0400
+	with ESMTP id S1753190AbaDGSHw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 14:07:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: + linux-next-git-rejects.patch added to -mm tree
-To: akpm@linux-foundation.org
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Fri, 04 Apr 2014 16:01:26 -0700
+Date: Mon, 07 Apr 2014 11:07:50 -0700
 
 
 The patch titled
      Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -59,9 +45,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/seccomp.c                                 |    4 
  net/bluetooth/hci_conn.c                         |   23 --
  net/bluetooth/hci_event.c                        |   73 ------
- net/bluetooth/mgmt.c                             |   18 -
+ net/bluetooth/mgmt.c                             |   16 -
  net/core/flow.c                                  |   12 -
- 12 files changed, 4 insertions(+), 307 deletions(-)
+ 12 files changed, 3 insertions(+), 306 deletions(-)
 
 diff -puN Documentation/devicetree/bindings/net/stmmac.txt~linux-next-git-rejects Documentation/devicetree/bindings/net/stmmac.txt
 --- a/Documentation/devicetree/bindings/net/stmmac.txt~linux-next-git-rejects
@@ -676,15 +662,6 @@ diff -puN net/bluetooth/hci_event.c~linux-next-git-rejects net/bluetooth/hci_eve
 diff -puN net/bluetooth/mgmt.c~linux-next-git-rejects net/bluetooth/mgmt.c
 --- a/net/bluetooth/mgmt.c~linux-next-git-rejects
 +++ a/net/bluetooth/mgmt.c
-@@ -2681,7 +2681,7 @@ static int pin_code_reply(struct sock *s
- 		goto failed;
- 	}
- 
--	conn = hci_conn_hash_lookup_ba(hdev, ACL_LINK, &cp->addr.bdaddr);
-+	conn = hci_conn_hash_lookup_ba(hdev, ACL_LINK, &cp->addr.bdaddr);q
- 	if (!conn) {
- 		err = cmd_status(sk, hdev->id, MGMT_OP_PIN_CODE_REPLY,
- 				 MGMT_STATUS_NOT_CONNECTED);
 @@ -5648,37 +5648,21 @@ void mgmt_read_local_oob_data_complete(s
  			memcpy(rp.hash192, hash192, sizeof(rp.hash192));
  			memcpy(rp.randomizer192, randomizer192,
@@ -814,5 +791,4 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-linux-next-git-rejects.patch
 
