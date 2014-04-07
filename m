@@ -1,108 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch added to -mm tree
-Date: Mon, 07 Apr 2014 12:35:15 -0700
-Message-ID: <5342fdf3.oLdPBQhuNW66I8Ya%akpm@linux-foundation.org>
+Subject: [folded-merged] mmnuma-reorganize-change_pmd_range-fix.patch
+ removed from -mm tree
+Date: Mon, 07 Apr 2014 14:56:59 -0700
+Message-ID: <53431f2b.jXsSbGqlA+f1msMe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38915 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39849 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755523AbaDGTfQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 15:35:16 -0400
+	with ESMTP id S1755202AbaDGV5B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 17:57:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, lersek@redhat.com, axboe@kernel.dk, axboe@fb.com
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, rientjes@google.com, riel@redhat.com, akpm@linux-foundation.org
 
-Subject: + lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch added to -mm tree
-To: axboe@fb.com,axboe@kernel.dk,lersek@redhat.com,stable@vger.kernel.org
+Subject: [folded-merged] mmnuma-reorganize-change_pmd_range-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,riel@redhat.com,rientjes@google.com,sasha.levin@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 07 Apr 2014 12:35:15 -0700
+Date: Mon, 07 Apr 2014 14:56:59 -0700
 
 
 The patch titled
-     Subject: lib/percpu_counter.c: fix bad percpu counter state during suspend
-has been added to the -mm tree.  Its filename is
-     lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch
+     Subject: mmnuma-reorganize-change_pmd_range-fix
+has been removed from the -mm tree.  Its filename was
+     mmnuma-reorganize-change_pmd_range-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mmnuma-reorganize-change_pmd_range.patch
 
 ------------------------------------------------------
-From: Jens Axboe <axboe@fb.com>
-Subject: lib/percpu_counter.c: fix bad percpu counter state during suspend
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmnuma-reorganize-change_pmd_range-fix
 
-I got a bug report yesterday from Laszlo Ersek in which he states that his
-kvm instance fails to suspend.  Laszlo bisected it down to this commit:
+fix indenting, per David
 
-commit 1cf7e9c68fe84248174e998922b39e508375e7c1
-  Author: Jens Axboe <axboe@kernel.dk>
-  Date:   Fri Nov 1 10:52:52 2013 -0600
-
-      virtio_blk: blk-mq support
-
-where virtio-blk is converted to use the blk-mq infrastructure.  After
-digging a bit, it became clear that the issue was with the queue drain. 
-blk-mq tracks queue usage in a percpu counter, which is incremented on
-request alloc and decremented when the request is freed.  The initial hunt
-was for an inconsistency in blk-mq, but everything seemed fine.  In fact,
-the counter only returned crazy values when suspend was in progress.  When
-a CPU is unplugged, the percpu counters merges that CPU state with the
-general state.  blk-mq takes care to register a hotcpu notifier with the
-appropriate priority, so we know it runs after the percpu counter
-notifier.  However, the percpu counter notifier only merges the state when
-the CPU is fully gone.  This leaves a state transition where the CPU going
-away is no longer in the online mask, yet it still holds private values. 
-This means that in this state, percpu_counter_sum() returns invalid
-results, and the suspend then hangs waiting for abs(dead-cpu-value)
-requests to complete which of course will never happen.
-
-Fix this by clearing the state earlier, so we never have a case where the
-CPU isn't in online mask but still holds private state.  This bug has been
-there since forever, I guess we don't have a lot of users where percpu
-counters needs to be reliable during the suspend cycle.
-
-Signed-off-by: Jens Axboe <axboe@fb.com>
-Reported-by: Laszlo Ersek <lersek@redhat.com>
-Tested-by: Laszlo Ersek <lersek@redhat.com>
-Cc: <stable@vger.kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_counter.c |    2 +-
+ mm/mprotect.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/percpu_counter.c~lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend lib/percpu_counter.c
---- a/lib/percpu_counter.c~lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend
-+++ a/lib/percpu_counter.c
-@@ -169,7 +169,7 @@ static int percpu_counter_hotcpu_callbac
- 	struct percpu_counter *fbc;
+diff -puN mm/mprotect.c~mmnuma-reorganize-change_pmd_range-fix mm/mprotect.c
+--- a/mm/mprotect.c~mmnuma-reorganize-change_pmd_range-fix
++++ a/mm/mprotect.c
+@@ -119,7 +119,7 @@ static inline unsigned long change_pmd_r
  
- 	compute_batch_value();
--	if (action != CPU_DEAD)
-+	if (action != CPU_DEAD && action != CPU_DEAD_FROZEN)
- 		return NOTIFY_OK;
- 
- 	cpu = (unsigned long)hcpu;
+ 		next = pmd_addr_end(addr, end);
+ 		if (!pmd_trans_huge(*pmd) && pmd_none_or_clear_bad(pmd))
+-				continue;
++			continue;
+ 		if (pmd_trans_huge(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE)
+ 				split_huge_page_pmd(vma, addr, pmd);
 _
 
-Patches currently in -mm which might be from axboe@fb.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch
+mmnuma-reorganize-change_pmd_range.patch
+drivers-lguest-page_tablesc-rename-do_set_pte.patch
+mm-add-debugfs-tunable-for-fault_around_order-checkpatch-fixes.patch
+mm-per-thread-vma-caching.patch
+mm-per-thread-vma-caching-fix-3.patch
+mm-per-thread-vma-caching-fix-5.patch
+mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
+mm-per-thread-vma-caching-fix-6-fix.patch
+mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
+mm-readaheadc-inline-ra_submit.patch
+zram-use-zcomp-compressing-backends-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix.patch
+zram-return-error-valued-pointer-from-zcomp_create-fix-2.patch
+zram-propagate-error-to-user-fix.patch
+zram-support-req_discard-v4-fix.patch
+include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+initramfs-debug-detected-compression-method-fix.patch
+slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
+vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix.patch
+percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
 
