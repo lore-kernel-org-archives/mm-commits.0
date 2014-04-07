@@ -1,98 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- zram-return-error-valued-pointer-from-zcomp_create-fix.patch removed from
- -mm tree
-Date: Mon, 07 Apr 2014 15:14:20 -0700
-Message-ID: <5343233c.O/p1K+JNjUxyFl45%akpm@linux-foundation.org>
+Subject: [folded-merged] zram-propagate-error-to-user-fix.patch removed
+ from -mm tree
+Date: Mon, 07 Apr 2014 15:15:04 -0700
+Message-ID: <53432368.HElCdjeEA92ZlV8r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40045 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40054 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755727AbaDGWOV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:14:21 -0400
+	with ESMTP id S1755174AbaDGWPF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:15:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, ngupta@vflare.org, minchan@kernel.org, jmarchan@redhat.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] zram-return-error-valued-pointer-from-zcomp_create-fix.patch removed from -mm tree
+Subject: [folded-merged] zram-propagate-error-to-user-fix.patch removed from -mm tree
 To: akpm@linux-foundation.org,jmarchan@redhat.com,minchan@kernel.org,ngupta@vflare.org,sergey.senozhatsky@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 07 Apr 2014 15:14:20 -0700
+Date: Mon, 07 Apr 2014 15:15:04 -0700
 
 
 The patch titled
-     Subject: zram-return-error-valued-pointer-from-zcomp_create-fix
+     Subject: zram-propagate-error-to-user-fix
 has been removed from the -mm tree.  Its filename was
-     zram-return-error-valued-pointer-from-zcomp_create-fix.patch
+     zram-propagate-error-to-user-fix.patch
 
-This patch was dropped because it was folded into zram-return-error-valued-pointer-from-zcomp_create.patch
+This patch was dropped because it was folded into zram-propagate-error-to-user.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zram-return-error-valued-pointer-from-zcomp_create-fix
+Subject: zram-propagate-error-to-user-fix
 
-clean up error recovery flow
+don't return with the lock held, per Sergey
 
 Cc: Jerome Marchand <jmarchan@redhat.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/block/zram/zram_drv.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-return-error-valued-pointer-from-zcomp_create-fix drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-return-error-valued-pointer-from-zcomp_create-fix
+diff -puN drivers/block/zram/zram_drv.c~zram-propagate-error-to-user-fix drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-propagate-error-to-user-fix
 +++ a/drivers/block/zram/zram_drv.c
-@@ -583,7 +583,7 @@ static ssize_t disksize_store(struct dev
- 	struct zcomp *comp;
- 	struct zram_meta *meta;
+@@ -126,26 +126,28 @@ static ssize_t max_comp_streams_store(st
+ {
+ 	int num;
  	struct zram *zram = dev_to_zram(dev);
--	int err = -EBUSY;
-+	int err;
++	int ret;
  
- 	disksize = memparse(buf, NULL);
- 	if (!disksize)
-@@ -599,14 +599,14 @@ static ssize_t disksize_store(struct dev
- 		pr_info("Cannot initialise %s compressing backend\n",
- 				zram->compressor);
- 		err = PTR_ERR(comp);
--		goto out_cleanup;
-+		goto out_free_meta;
- 	}
+-	if (kstrtoint(buf, 0, &num))
+-		goto out;
++	ret = kstrtoint(buf, 0, &num);
++	if (ret < 0)
++		return ret;
+ 	if (num < 1)
+-		goto out;
++		return -EINVAL;
  
  	down_write(&zram->init_lock);
  	if (init_done(zram)) {
--		up_write(&zram->init_lock);
- 		pr_info("Cannot change disksize for initialized device\n");
--		goto out_cleanup;
-+		err = -EBUSY;
-+		goto out_destroy_comp;
+ 		if (!zcomp_set_max_streams(zram->comp, num)) {
+ 			pr_info("Cannot change max compression streams\n");
+-			goto out_unlock;
++			ret = -EINVAL;
++			goto out;
+ 		}
  	}
  
- 	zram->meta = meta;
-@@ -614,12 +614,12 @@ static ssize_t disksize_store(struct dev
- 	zram->disksize = disksize;
- 	set_capacity(zram->disk, zram->disksize >> SECTOR_SHIFT);
- 	up_write(&zram->init_lock);
--
- 	return len;
- 
--out_cleanup:
--	if (!IS_ERR(comp))
--		zcomp_destroy(comp);
-+out_destroy_comp:
+ 	zram->max_comp_streams = num;
+-	return len;
+-out_unlock:
+-	up_write(&zram->init_lock);
++	ret = len;
+ out:
+-	return -EINVAL;
 +	up_write(&zram->init_lock);
-+	zcomp_destroy(comp);
-+out_free_meta:
- 	zram_meta_free(meta);
- 	return err;
++	return ret;
  }
+ 
+ static ssize_t comp_algorithm_show(struct device *dev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,8 +99,7 @@ mm-vmallocc-enhance-vm_map_ram-comment.patch
 mm-readaheadc-inline-ra_submit.patch
 zram-use-zcomp-compressing-backends.patch
 zram-return-error-valued-pointer-from-zcomp_create.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix-2.patch
-zram-propagate-error-to-user-fix.patch
+zram-propagate-error-to-user.patch
 zram-support-req_discard-v4-fix.patch
 include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
 kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
