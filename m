@@ -1,80 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
- removed from -mm tree
-Date: Mon, 07 Apr 2014 15:20:13 -0700
-Message-ID: <5343249d.nZOGixpibqSRs7FG%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Mon, 07 Apr 2014 15:48:36 -0700
+Message-ID: <53432b44.AeQHcDKRQoPGmdzL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40109 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40210 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755727AbaDGWUO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:20:14 -0400
+	with ESMTP id S1754044AbaDGWsh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:48:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, cl@linux.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,cl@linux.com,mm-commits@vger.kernel.org
+Subject: + linux-next-rejects.patch added to -mm tree
+To: akpm@linux-foundation.org
 From: akpm@linux-foundation.org
-Date: Mon, 07 Apr 2014 15:20:13 -0700
+Date: Mon, 07 Apr 2014 15:48:36 -0700
 
 
 The patch titled
-     Subject: percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
+     Subject: linux-next-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-rejects.patch
 
-This patch was dropped because it was folded into percpu-add-preemption-checks-to-__this_cpu-ops.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes
+Subject: linux-next-rejects
 
-WARNING: storage class should be at the beginning of the declaration
-#25: FILE: lib/smp_processor_id.c:10:
-+notrace static unsigned int check_preemption_disabled(const char *what1,
-
-WARNING: Prefer [subsystem eg: netdev]_err([subsystem]dev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#36: FILE: lib/smp_processor_id.c:42:
-+	printk(KERN_ERR "BUG: using %s%s() in preemptible [%08x] code: %s/%d\n",
-
-ERROR: space required after that ',' (ctx:VxV)
-#46: FILE: lib/smp_processor_id.c:56:
-+	return check_preemption_disabled("smp_processor_id","");
- 	                                                   ^
-
-total: 1 errors, 2 warnings, 36 lines checked
-
-./patches/percpu-add-preemption-checks-to-__this_cpu-ops-fix.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/smp_processor_id.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/kernel/head.S |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN lib/smp_processor_id.c~percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes lib/smp_processor_id.c
---- a/lib/smp_processor_id.c~percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes
-+++ a/lib/smp_processor_id.c
-@@ -53,7 +53,7 @@ out:
- 
- notrace unsigned int debug_smp_processor_id(void)
- {
--	return check_preemption_disabled("smp_processor_id","");
-+	return check_preemption_disabled("smp_processor_id", "");
- }
- EXPORT_SYMBOL(debug_smp_processor_id);
- 
+diff -puN arch/arm64/kernel/head.S~linux-next-rejects arch/arm64/kernel/head.S
+--- a/arch/arm64/kernel/head.S~linux-next-rejects
++++ a/arch/arm64/kernel/head.S
+@@ -482,6 +482,17 @@ __create_page_tables:
+ 	ldr	x5, =FIXADDR_TOP		// Fixed mapping virtual address
+ 	add	x0, x26, #2 * PAGE_SIZE		// section table address
+ 	create_pgd_entry x26, x0, x5, x6, x7
++
++	/*
++	 * Since the page tables have been populated with non-cacheable
++	 * accesses (MMU disabled), invalidate the idmap and swapper page
++	 * tables again to remove any speculatively loaded cache lines.
++	 */
++	mov	x0, x25
++	add	x1, x26, #SWAPPER_DIR_SIZE
++	bl	__inval_cache_range
++
++	mov	lr, x27
+ 	ret
+ ENDPROC(__create_page_tables)
+ 	.ltorg
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,4 +96,32 @@ initramfs-debug-detected-compression-method.patch
 slub-use-raw_cpu_inc-for-incrementing-statistics.patch
 vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks.patch
 percpu-add-preemption-checks-to-__this_cpu-ops.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
+ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
+kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
