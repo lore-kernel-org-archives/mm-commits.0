@@ -1,82 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch removed from -mm
- tree
-Date: Mon, 07 Apr 2014 15:04:46 -0700
-Message-ID: <534320fe.oEfKEHom4Q/lRAAn%akpm@linux-foundation.org>
+ mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch removed
+ from -mm tree
+Date: Mon, 07 Apr 2014 15:07:39 -0700
+Message-ID: <534321ab.Z6kjDdG2TtEAMKm2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39928 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39940 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755819AbaDGWEr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:04:47 -0400
+	with ESMTP id S1754637AbaDGWHk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:07:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, gidisrael@gmail.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch removed from -mm tree
-To: akpm@linux-foundation.org,hughd@google.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,gidisrael@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 07 Apr 2014 15:04:46 -0700
+Date: Mon, 07 Apr 2014 15:07:39 -0700
 
 
 The patch titled
-     Subject: mm-per-thread-vma-caching-fix-6-checkpatch-fixes
+     Subject: mm-use-macros-from-compilerh-instead-of-__attribute__-fix
 has been removed from the -mm tree.  Its filename was
-     mm-per-thread-vma-caching-fix-6-checkpatch-fixes.patch
+     mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
 
-This patch was dropped because it was folded into mm-per-thread-vma-caching.patch
+This patch was dropped because it was folded into mm-use-macros-from-compilerh-instead-of-__attribute__.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-per-thread-vma-caching-fix-6-checkpatch-fixes
+Subject: mm-use-macros-from-compilerh-instead-of-__attribute__-fix
 
-ERROR: code indent should use tabs where possible
-#53: FILE: mm/vmacache.c:56:
-+ ^I^Ireturn false;$
+while-we're-there consistency tweaks
 
-WARNING: please, no space before tabs
-#53: FILE: mm/vmacache.c:56:
-+ ^I^Ireturn false;$
-
-WARNING: please, no spaces at the start of a line
-#53: FILE: mm/vmacache.c:56:
-+ ^I^Ireturn false;$
-
-total: 1 errors, 2 warnings, 35 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-per-thread-vma-caching-fix-6.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Gideon Israel Dsouza <gidisrael@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmacache.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    2 +-
+ mm/nommu.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmacache.c~mm-per-thread-vma-caching-fix-6-checkpatch-fixes mm/vmacache.c
---- a/mm/vmacache.c~mm-per-thread-vma-caching-fix-6-checkpatch-fixes
-+++ a/mm/vmacache.c
-@@ -53,7 +53,7 @@ static bool vmacache_valid(struct mm_str
- 	 * nothing we can do here.
- 	 */
- 	if (!vmacache_valid_mm(mm))
-- 		return false;
-+		return false;
+diff -puN mm/hugetlb.c~mm-use-macros-from-compilerh-instead-of-__attribute__-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-use-macros-from-compilerh-instead-of-__attribute__-fix
++++ a/mm/hugetlb.c
+@@ -3522,7 +3522,7 @@ follow_huge_pud(struct mm_struct *mm, un
+ #else /* !CONFIG_ARCH_WANT_GENERAL_HUGETLB */
  
- 	curr = current;
- 	if (mm->vmacache_seqnum != curr->vmacache_seqnum) {
+ /* Can be overriden by architectures */
+-__weak struct page *
++struct page * __weak
+ follow_huge_pud(struct mm_struct *mm, unsigned long address,
+ 	       pud_t *pud, int write)
+ {
+diff -puN mm/nommu.c~mm-use-macros-from-compilerh-instead-of-__attribute__-fix mm/nommu.c
+--- a/mm/nommu.c~mm-use-macros-from-compilerh-instead-of-__attribute__-fix
++++ a/mm/nommu.c
+@@ -461,7 +461,7 @@ EXPORT_SYMBOL_GPL(vm_unmap_aliases);
+  * Implement a stub for vmalloc_sync_all() if the architecture chose not to
+  * have one.
+  */
+-void  __weak vmalloc_sync_all(void)
++void __weak vmalloc_sync_all(void)
+ {
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,8 +77,7 @@ mmnuma-reorganize-change_pmd_range.patch
 drivers-lguest-page_tablesc-rename-do_set_pte.patch
 mm-add-debugfs-tunable-for-fault_around_order.patch
 mm-per-thread-vma-caching.patch
-mm-per-thread-vma-caching-fix-6-fix.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__-fix.patch
+mm-use-macros-from-compilerh-instead-of-__attribute__.patch
 mm-vmallocc-enhance-vm_map_ram-comment-fix.patch
 mm-readaheadc-inline-ra_submit.patch
 zram-use-zcomp-compressing-backends-fix.patch
