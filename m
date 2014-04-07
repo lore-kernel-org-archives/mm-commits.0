@@ -1,70 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch removed
- from -mm tree
-Date: Mon, 07 Apr 2014 15:16:24 -0700
-Message-ID: <534323b8.wPtn8gV6zm/8wRDo%akpm@linux-foundation.org>
+ kernel-panicc-display-reason-at-end-pr_emerg-fix.patch removed from -mm
+ tree
+Date: Mon, 07 Apr 2014 15:16:50 -0700
+Message-ID: <534323d2.21mgFW6BAGRSh2LE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40082 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40086 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755174AbaDGWQ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:16:26 -0400
+	with ESMTP id S1755174AbaDGWQv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:16:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rashika.kheria@gmail.com, josh@joshtriplett.org, benh@kernel.crashing.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, fabf@skynet.be, akpm@linux-foundation.org
 
-Subject: [folded-merged] include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,benh@kernel.crashing.org,josh@joshtriplett.org,rashika.kheria@gmail.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] kernel-panicc-display-reason-at-end-pr_emerg-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,fabf@skynet.be,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 07 Apr 2014 15:16:24 -0700
+Date: Mon, 07 Apr 2014 15:16:50 -0700
 
 
 The patch titled
-     Subject: include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix
+     Subject: kernel-panicc-display-reason-at-end-pr_emerg-fix
 has been removed from the -mm tree.  Its filename was
-     include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
+     kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
 
-This patch was dropped because it was folded into include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
+This patch was dropped because it was folded into kernel-panicc-display-reason-at-end-pr_emerg.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix
+Subject: kernel-panicc-display-reason-at-end-pr_emerg-fix
 
-clean up powerpc, remove unneeded EXPORT_SYMBOL
+missed a couple of pr_ conversions
 
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Rashika Kheria <rashika.kheria@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/fadump.h |    1 -
- fs/proc/vmcore.c                  |    1 -
- 2 files changed, 2 deletions(-)
+ kernel/panic.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/include/asm/fadump.h~include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix arch/powerpc/include/asm/fadump.h
---- a/arch/powerpc/include/asm/fadump.h~include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix
-+++ a/arch/powerpc/include/asm/fadump.h
-@@ -210,7 +210,6 @@ extern int is_fadump_active(void);
- extern void crash_fadump(struct pt_regs *, const char *);
- extern void fadump_cleanup(void);
+diff -puN kernel/panic.c~kernel-panicc-display-reason-at-end-pr_emerg-fix kernel/panic.c
+--- a/kernel/panic.c~kernel-panicc-display-reason-at-end-pr_emerg-fix
++++ a/kernel/panic.c
+@@ -275,8 +275,7 @@ unsigned long get_taint(void)
+ void add_taint(unsigned flag, enum lockdep_ok lockdep_ok)
+ {
+ 	if (lockdep_ok == LOCKDEP_NOW_UNRELIABLE && __debug_locks_off())
+-		printk(KERN_WARNING
+-		       "Disabling lock debugging due to kernel taint\n");
++		pr_warn("Disabling lock debugging due to kernel taint\n");
  
--extern void vmcore_cleanup(void);
- #else	/* CONFIG_FA_DUMP */
- static inline int is_fadump_active(void) { return 0; }
- static inline void crash_fadump(struct pt_regs *regs, const char *str) { }
-diff -puN fs/proc/vmcore.c~include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix
-+++ a/fs/proc/vmcore.c
-@@ -1118,4 +1118,3 @@ void vmcore_cleanup(void)
- 	}
- 	free_elfcorebuf();
+ 	set_bit(flag, &tainted_mask);
  }
--EXPORT_SYMBOL_GPL(vmcore_cleanup);
+@@ -381,8 +380,7 @@ late_initcall(init_oops_id);
+ void print_oops_end_marker(void)
+ {
+ 	init_oops_id();
+-	printk(KERN_WARNING "---[ end trace %016llx ]---\n",
+-		(unsigned long long)oops_id);
++	pr_warn("---[ end trace %016llx ]---\n", (unsigned long long)oops_id);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +83,7 @@ zram-return-error-valued-pointer-from-zcomp_create.patch
 zram-propagate-error-to-user.patch
 zram-support-req_discard.patch
 include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+kernel-panicc-display-reason-at-end-pr_emerg.patch
 fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
 initramfs-debug-detected-compression-method-fix.patch
 slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
