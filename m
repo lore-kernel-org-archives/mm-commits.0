@@ -1,71 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kernel-panicc-display-reason-at-end-pr_emerg-fix.patch removed from -mm
- tree
-Date: Mon, 07 Apr 2014 15:16:50 -0700
-Message-ID: <534323d2.21mgFW6BAGRSh2LE%akpm@linux-foundation.org>
+ fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch removed from -mm tree
+Date: Mon, 07 Apr 2014 15:17:16 -0700
+Message-ID: <534323ec.inJT6VImBwtk60OB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40089 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755174AbaDGWQv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:16:51 -0400
+	with ESMTP id S1755174AbaDGWRR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:17:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, rientjes@google.com, davej@redhat.com, davej@fedoraproject.org, akinobu.mita@gmail.com, akpm@linux-foundation.org
 
-Subject: [folded-merged] kernel-panicc-display-reason-at-end-pr_emerg-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,fabf@skynet.be,mm-commits@vger.kernel.org
+Subject: [folded-merged] fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch removed from -mm tree
+To: akpm@linux-foundation.org,akinobu.mita@gmail.com,davej@fedoraproject.org,davej@redhat.com,rientjes@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 07 Apr 2014 15:16:50 -0700
+Date: Mon, 07 Apr 2014 15:17:16 -0700
 
 
 The patch titled
-     Subject: kernel-panicc-display-reason-at-end-pr_emerg-fix
+     Subject: fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
+     fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
 
-This patch was dropped because it was folded into kernel-panicc-display-reason-at-end-pr_emerg.patch
+This patch was dropped because it was folded into fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-panicc-display-reason-at-end-pr_emerg-fix
+Subject: fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix
 
-missed a couple of pr_ conversions
+don't make make_it_fail unsigned
 
-Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Dave Jones <davej@fedoraproject.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/proc/base.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/panic.c~kernel-panicc-display-reason-at-end-pr_emerg-fix kernel/panic.c
---- a/kernel/panic.c~kernel-panicc-display-reason-at-end-pr_emerg-fix
-+++ a/kernel/panic.c
-@@ -275,8 +275,7 @@ unsigned long get_taint(void)
- void add_taint(unsigned flag, enum lockdep_ok lockdep_ok)
- {
- 	if (lockdep_ok == LOCKDEP_NOW_UNRELIABLE && __debug_locks_off())
--		printk(KERN_WARNING
--		       "Disabling lock debugging due to kernel taint\n");
-+		pr_warn("Disabling lock debugging due to kernel taint\n");
+diff -puN fs/proc/base.c~fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix fs/proc/base.c
+--- a/fs/proc/base.c~fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix
++++ a/fs/proc/base.c
+@@ -1207,7 +1207,7 @@ static ssize_t proc_fault_inject_read(st
+ 	struct task_struct *task = get_proc_task(file_inode(file));
+ 	char buffer[PROC_NUMBUF];
+ 	size_t len;
+-	unsigned int make_it_fail;
++	int make_it_fail;
  
- 	set_bit(flag, &tainted_mask);
- }
-@@ -381,8 +380,7 @@ late_initcall(init_oops_id);
- void print_oops_end_marker(void)
+ 	if (!task)
+ 		return -ESRCH;
+@@ -1224,7 +1224,7 @@ static ssize_t proc_fault_inject_write(s
  {
- 	init_oops_id();
--	printk(KERN_WARNING "---[ end trace %016llx ]---\n",
--		(unsigned long long)oops_id);
-+	pr_warn("---[ end trace %016llx ]---\n", (unsigned long long)oops_id);
- }
+ 	struct task_struct *task;
+ 	char buffer[PROC_NUMBUF], *end;
+-	unsigned int make_it_fail;
++	int make_it_fail;
  
- /*
+ 	if (!capable(CAP_SYS_RESOURCE))
+ 		return -EPERM;
+@@ -1236,7 +1236,7 @@ static ssize_t proc_fault_inject_write(s
+ 	make_it_fail = simple_strtol(strstrip(buffer), &end, 0);
+ 	if (*end)
+ 		return -EINVAL;
+-	if (make_it_fail > 1)
++	if (make_it_fail < 0 || make_it_fail > 1)
+ 		return -EINVAL;
+ 
+ 	task = get_proc_task(file_inode(file));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +93,7 @@ zram-propagate-error-to-user.patch
 zram-support-req_discard.patch
 include-linux-crash_dumph-add-vmcore_cleanup-prototype.patch
 kernel-panicc-display-reason-at-end-pr_emerg.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
+fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts.patch
 initramfs-debug-detected-compression-method-fix.patch
 slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
 vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix.patch
