@@ -1,95 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch removed from -mm tree
-Date: Mon, 07 Apr 2014 14:58:08 -0700
-Message-ID: <53431f70.NG3HPVtyzQJD9IUQ%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-introduce-vm_ops-map_pages-fix.patch removed
+ from -mm tree
+Date: Mon, 07 Apr 2014 15:03:13 -0700
+Message-ID: <534320a1.zFjiL95HDk4JIXcw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39861 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39902 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755194AbaDGV6J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 17:58:09 -0400
+	with ESMTP id S1755051AbaDGWDO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:03:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, schwidefsky@de.ibm.com, rientjes@google.com, riel@redhat.com, peterz@infradead.org, pbonzini@redhat.com, oleg@redhat.com, mingo@kernel.org, mgorman@suse.de, kirill.shutemov@linux.intel.com, heiko.carstens@de.ibm.com, gerald.schaefer@de.ibm.com, ebiederm@xmission.com, borntraeger@de.ibm.com, aarcange@redhat.com, athorlton@sgi.com
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, kirill@shutemov.name
 
-Subject: [folded-merged] mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch removed from -mm tree
-To: athorlton@sgi.com,aarcange@redhat.com,borntraeger@de.ibm.com,ebiederm@xmission.com,gerald.schaefer@de.ibm.com,heiko.carstens@de.ibm.com,kirill.shutemov@linux.intel.com,mgorman@suse.de,mingo@kernel.org,oleg@redhat.com,pbonzini@redhat.com,peterz@infradead.org,riel@redhat.com,rientjes@google.com,schwidefsky@de.ibm.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [folded-merged] mm-introduce-vm_ops-map_pages-fix.patch removed from -mm tree
+To: kirill@shutemov.name,kirill.shutemov@linux.intel.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 07 Apr 2014 14:58:08 -0700
+Date: Mon, 07 Apr 2014 15:03:13 -0700
 
 
 The patch titled
-     Subject: mm, s390: ignore MADV_HUGEPAGE on s390 to prevent SIGSEGV in qemu
+     Subject: mm: documentaton for do_set_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu.patch
+     mm-introduce-vm_ops-map_pages-fix.patch
 
-This patch was dropped because it was folded into mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
+This patch was dropped because it was folded into mm-introduce-vm_ops-map_pages.patch
 
 ------------------------------------------------------
-From: Alex Thorlton <athorlton@sgi.com>
-Subject: mm, s390: ignore MADV_HUGEPAGE on s390 to prevent SIGSEGV in qemu
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: mm: documentaton for do_set_pte()
 
-As Christian pointed out, the recent 'Revert "thp: make MADV_HUGEPAGE
-check for mm->def_flags"' breaks qemu, it does QEMU_MADV_HUGEPAGE for all
-kvm pages but this doesn't work after s390_enable_sie/thp_split_mm.
+do_set_pte() now exported to other compilation unit. Let's document
+interface.
 
-Paolo suggested that instead of failing on the call to madvise, we simply
-ignore the call (return 0).
-
-Reported-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Suggested-by: Paolo Bonzini <pbonzini@redhat.com>
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Signed-off-by: Alex Thorlton <athorlton@sgi.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Tested-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: David Rientjes <rientjes@google.com>
-Acked-by: Paolo Bonzini <pbonzini@redhat.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/memory.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu mm/huge_memory.c
---- a/mm/huge_memory.c~mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags-ignore-madv_hugepage-on-s390-to-prevent-sigsegv-in-qemu
-+++ a/mm/huge_memory.c
-@@ -1893,6 +1893,15 @@ int hugepage_madvise(struct vm_area_stru
+diff -puN mm/memory.c~mm-introduce-vm_ops-map_pages-fix mm/memory.c
+--- a/mm/memory.c~mm-introduce-vm_ops-map_pages-fix
++++ a/mm/memory.c
+@@ -3318,7 +3318,21 @@ static int __do_fault(struct vm_area_str
+ 	return ret;
+ }
+ 
+-
++/**
++ * do_set_pte - setup new PTE entry for given page and add reverse page mapping.
++ *
++ * @vma: virtual memory area
++ * @address: user virtual address
++ * @page: page to map
++ * @pte: pointer to target page table entry
++ * @write: true, if new entry is writable
++ * @anon: true, if it's anonymous page
++ *
++ * Caller must hold page table lock relevant for @pte.
++ *
++ * Target users are page handler itself and implementations of
++ * vm_ops->map_pages.
++ */
+ void do_set_pte(struct vm_area_struct *vma, unsigned long address,
+ 		struct page *page, pte_t *pte, bool write, bool anon)
  {
- 	switch (advice) {
- 	case MADV_HUGEPAGE:
-+#ifdef CONFIG_S390
-+		/*
-+		 * qemu blindly sets MADV_HUGEPAGE on all allocations, but s390
-+		 * can't handle this properly after s390_enable_sie, so we simply
-+		 * ignore the madvise to prevent qemu from causing a SIGSEGV.
-+		 */
-+		if (mm_has_pgste(vma->vm_mm))
-+			return 0;
-+#endif
- 		/*
- 		 * Be somewhat over-protective like KSM for now!
- 		 */
 _
 
-Patches currently in -mm which might be from athorlton@sgi.com are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-mm-revert-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-mm-thp-add-vm_init_def_mask-and-prctl_thp_disable.patch
-exec-kill-the-unnecessary-mm-def_flags-setting-in-load_elf_binary.patch
+mm-introduce-vm_ops-map_pages.patch
+mm-implement-map_pages-for-shmem-tmpfs.patch
 
