@@ -1,118 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] zram-use-zcomp-compressing-backends-fix.patch
- removed from -mm tree
-Date: Mon, 07 Apr 2014 15:13:53 -0700
-Message-ID: <53432321.BFjE2KBjC6sJVX/M%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ zram-return-error-valued-pointer-from-zcomp_create-fix-2.patch removed from -mm tree
+Date: Mon, 07 Apr 2014 15:14:22 -0700
+Message-ID: <5343233e.VS9uhrKVMNaIOntf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40041 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40049 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755727AbaDGWNy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:13:54 -0400
+	with ESMTP id S1755936AbaDGWOX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2014 18:14:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, ngupta@vflare.org, minchan@kernel.org, jmarchan@redhat.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, arnd@arndb.de, sergey.senozhatsky@gmail.com
 
-Subject: [folded-merged] zram-use-zcomp-compressing-backends-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,jmarchan@redhat.com,minchan@kernel.org,ngupta@vflare.org,sergey.senozhatsky@gmail.com,mm-commits@vger.kernel.org
+Subject: [folded-merged] zram-return-error-valued-pointer-from-zcomp_create-fix-2.patch removed from -mm tree
+To: sergey.senozhatsky@gmail.com,arnd@arndb.de,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 07 Apr 2014 15:13:53 -0700
+Date: Mon, 07 Apr 2014 15:14:22 -0700
 
 
 The patch titled
-     Subject: zram-use-zcomp-compressing-backends-fix
+     Subject: zram: include err.h
 has been removed from the -mm tree.  Its filename was
-     zram-use-zcomp-compressing-backends-fix.patch
+     zram-return-error-valued-pointer-from-zcomp_create-fix-2.patch
 
-This patch was dropped because it was folded into zram-use-zcomp-compressing-backends.patch
+This patch was dropped because it was folded into zram-return-error-valued-pointer-from-zcomp_create.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zram-use-zcomp-compressing-backends-fix
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: include err.h
 
-resolve conflicts with zram-delete-zram_init_device-fix.patch
-
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+[akpm@linux-foundation.org: fix zcomp.h as well]
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/block/zram/zcomp.c    |    1 +
+ drivers/block/zram/zram_drv.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-use-zcomp-compressing-backends-fix drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-use-zcomp-compressing-backends-fix
+diff -puN drivers/block/zram/zram_drv.c~zram-return-error-valued-pointer-from-zcomp_create-fix-2 drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-return-error-valued-pointer-from-zcomp_create-fix-2
 +++ a/drivers/block/zram/zram_drv.c
-@@ -519,6 +519,7 @@ static ssize_t disksize_store(struct dev
- 	u64 disksize;
- 	struct zram_meta *meta;
- 	struct zram *zram = dev_to_zram(dev);
-+	int err;
+@@ -31,6 +31,7 @@
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/vmalloc.h>
++#include <linux/err.h>
  
- 	disksize = memparse(buf, NULL);
- 	if (!disksize)
-@@ -531,18 +532,17 @@ static ssize_t disksize_store(struct dev
+ #include "zram_drv.h"
  
- 	down_write(&zram->init_lock);
- 	if (init_done(zram)) {
--		zram_meta_free(meta);
--		up_write(&zram->init_lock);
- 		pr_info("Cannot change disksize for initialized device\n");
--		return -EBUSY;
-+		err = -EBUSY;
-+		goto out_free_meta;
- 	}
+diff -puN drivers/block/zram/zcomp.c~zram-return-error-valued-pointer-from-zcomp_create-fix-2 drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-return-error-valued-pointer-from-zcomp_create-fix-2
++++ a/drivers/block/zram/zcomp.c
+@@ -9,6 +9,7 @@
  
- 	zram->comp = zcomp_create(default_compressor);
- 	if (!zram->comp) {
--		up_write(&zram->init_lock);
- 		pr_info("Cannot initialise %s compressing backend\n",
- 				default_compressor);
--		return -EINVAL;
-+		err = -EINVAL;
-+		goto out_free_meta;
- 	}
- 
- 	zram->meta = meta;
-@@ -551,6 +551,11 @@ static ssize_t disksize_store(struct dev
- 	up_write(&zram->init_lock);
- 
- 	return len;
-+
-+out_free_meta:
-+	up_write(&zram->init_lock);
-+	zram_meta_free(meta);
-+	return err;
- }
- 
- static ssize_t reset_store(struct device *dev,
+ #include <linux/kernel.h>
+ #include <linux/string.h>
++#include <linux/err.h>
+ #include <linux/slab.h>
+ #include <linux/wait.h>
+ #include <linux/sched.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
 origin.patch
-mmnuma-reorganize-change_pmd_range.patch
-drivers-lguest-page_tablesc-rename-do_set_pte.patch
-mm-add-debugfs-tunable-for-fault_around_order.patch
-mm-per-thread-vma-caching.patch
-mm-use-macros-from-compilerh-instead-of-__attribute__.patch
-mm-vmallocc-enhance-vm_map_ram-comment.patch
-mm-readaheadc-inline-ra_submit.patch
+zram-drop-init_done-struct-zram-member.patch
+zram-do-not-pass-rw-argument-to-__zram_make_request.patch
+zram-remove-good-and-bad-compress-stats.patch
+zram-use-atomic64_t-for-all-zram-stats.patch
+zram-remove-zram-stats-code-duplication.patch
+zram-report-failed-read-and-write-stats.patch
+zram-drop-not-used-table-count-member.patch
+zram-move-zram-size-warning-to-documentation.patch
+zram-document-failed_reads-failed_writes-stats.patch
+zram-delete-zram_init_device.patch
+zram-introduce-compressing-backend-abstraction.patch
 zram-use-zcomp-compressing-backends.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix.patch
-zram-return-error-valued-pointer-from-zcomp_create-fix-2.patch
+zram-factor-out-single-stream-compression.patch
+zram-add-multi-stream-functionality.patch
+zram-add-set_max_streams-knob.patch
+zram-make-compression-algorithm-selection-possible.patch
+zram-add-lz4-algorithm-backend.patch
+zram-move-comp-allocation-out-of-init_lock.patch
+zram-return-error-valued-pointer-from-zcomp_create.patch
+zram-propagate-error-to-user.patch
 zram-propagate-error-to-user-fix.patch
+zram-use-scnprintf-in-attrs-show-methods.patch
+zram-support-req_discard.patch
+zram-support-req_discard-v4.patch
 zram-support-req_discard-v4-fix.patch
-include-linux-crash_dumph-add-vmcore_cleanup-prototype-fix.patch
-kernel-panicc-display-reason-at-end-pr_emerg-fix.patch
-fault-injection-set-bounds-on-what-proc-self-make-it-fail-accepts-fix.patch
-initramfs-debug-detected-compression-method-fix.patch
-slub-use-raw_cpu_inc-for-incrementing-statistics-fix.patch
+vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks.patch
 vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks-fix.patch
-percpu-add-preemption-checks-to-__this_cpu-ops-fix-checkpatch-fixes.patch
 
