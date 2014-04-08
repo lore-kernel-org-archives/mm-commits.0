@@ -1,250 +1,260 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-rename-high-level-charging-functions.patch removed from -mm tree
-Date: Tue, 08 Apr 2014 13:54:22 -0700
-Message-ID: <534461fe.AnZwnUepHSdwVAAa%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd.patch removed from -mm tree
+Date: Tue, 08 Apr 2014 13:54:54 -0700
+Message-ID: <5344621e.tWTCU+sba5r67SKJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56552 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756199AbaDHUyW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:54:22 -0400
+	with ESMTP id S1756199AbaDHUyz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:54:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, mhocko@suse.cz
+To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mgorman@suse.de, hannes@cmpxchg.org
 
-Subject: [merged] memcg-rename-high-level-charging-functions.patch removed from -mm tree
-To: mhocko@suse.cz,hannes@cmpxchg.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd.patch removed from -mm tree
+To: hannes@cmpxchg.org,mgorman@suse.de,riel@redhat.com,stable@kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 13:54:22 -0700
+Date: Tue, 08 Apr 2014 13:54:54 -0700
 
 
 The patch titled
-     Subject: memcg: rename high level charging functions
+     Subject: mm: page_alloc: spill to remote nodes before waking kswapd
 has been removed from the -mm tree.  Its filename was
-     memcg-rename-high-level-charging-functions.patch
+     mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: rename high level charging functions
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: spill to remote nodes before waking kswapd
 
-mem_cgroup_newpage_charge is used only for charging anonymous memory so it
-is better to rename it to mem_cgroup_charge_anon.
+On NUMA systems, a node may start thrashing cache or even swap anonymous
+pages while there are still free pages on remote nodes.
 
-mem_cgroup_cache_charge is used for file backed memory so rename it to
-mem_cgroup_charge_file.
+This is a result of 81c0a2bb515f ("mm: page_alloc: fair zone allocator
+policy") and fff4068cba48 ("mm: page_alloc: revert NUMA aspect of fair
+allocation policy").  Before those changes, the allocator would first try
+all allowed zones, including those on remote nodes, before waking any
+kswapds.  But now, the allocator fastpath doubles as the fairness pass,
+which in turn can only consider the local node to prevent remote spilling
+based on exhausted fairness batches alone.  Remote nodes are only
+considered in the slowpath, after the kswapds are woken up.  But if remote
+nodes still have free memory, kswapd should not be woken to rebalance the
+local node or it may thrash cash or swap prematurely.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Fix this by adding one more unfair pass over the zonelist that is allowed
+to spill to remote nodes after the local fairness pass fails but before
+entering the slowpath and waking the kswapds.
+
+This also gets rid of the GFP_THISNODE exemption from the fairness
+protocol because the unfair pass is no longer tied to kswapd, which
+GFP_THISNODE is not allowed to wake up.
+
+However, because remote spills can be more frequent now - we prefer them
+over local kswapd reclaim - the allocation batches on remote nodes could
+underflow more heavily.  When resetting the batches, use
+atomic_long_read() directly instead of zone_page_state() to calculate the
+delta as the latter filters negative counter values.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: <stable@kernel.org>		[3.12+]
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memcg_test.txt |    4 ++--
- include/linux/memcontrol.h           |    8 ++++----
- mm/filemap.c                         |    2 +-
- mm/huge_memory.c                     |    8 ++++----
- mm/memcontrol.c                      |    4 ++--
- mm/memory.c                          |    6 +++---
- mm/shmem.c                           |    6 +++---
- 7 files changed, 19 insertions(+), 19 deletions(-)
+ mm/internal.h   |    1 
+ mm/page_alloc.c |   89 +++++++++++++++++++++++-----------------------
+ 2 files changed, 46 insertions(+), 44 deletions(-)
 
-diff -puN Documentation/cgroups/memcg_test.txt~memcg-rename-high-level-charging-functions Documentation/cgroups/memcg_test.txt
---- a/Documentation/cgroups/memcg_test.txt~memcg-rename-high-level-charging-functions
-+++ a/Documentation/cgroups/memcg_test.txt
-@@ -24,7 +24,7 @@ Please note that implementation details
+diff -puN mm/internal.h~mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd mm/internal.h
+--- a/mm/internal.h~mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd
++++ a/mm/internal.h
+@@ -370,5 +370,6 @@ unsigned long reclaim_clean_pages_from_l
+ #define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
+ #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
+ #define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
++#define ALLOC_FAIR		0x100 /* fair zone allocation */
  
-    a page/swp_entry may be charged (usage += PAGE_SIZE) at
+ #endif	/* __MM_INTERNAL_H */
+diff -puN mm/page_alloc.c~mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd
++++ a/mm/page_alloc.c
+@@ -1239,15 +1239,6 @@ void drain_zone_pages(struct zone *zone,
+ 	}
+ 	local_irq_restore(flags);
+ }
+-static bool gfp_thisnode_allocation(gfp_t gfp_mask)
+-{
+-	return (gfp_mask & GFP_THISNODE) == GFP_THISNODE;
+-}
+-#else
+-static bool gfp_thisnode_allocation(gfp_t gfp_mask)
+-{
+-	return false;
+-}
+ #endif
  
--	mem_cgroup_newpage_charge()
-+	mem_cgroup_charge_anon()
- 	  Called at new page fault and Copy-On-Write.
+ /*
+@@ -1584,12 +1575,7 @@ again:
+ 					  get_pageblock_migratetype(page));
+ 	}
  
- 	mem_cgroup_try_charge_swapin()
-@@ -32,7 +32,7 @@ Please note that implementation details
- 	  Followed by charge-commit-cancel protocol. (With swap accounting)
- 	  At commit, a charge recorded in swap_cgroup is removed.
+-	/*
+-	 * NOTE: GFP_THISNODE allocations do not partake in the kswapd
+-	 * aging protocol, so they can't be fair.
+-	 */
+-	if (!gfp_thisnode_allocation(gfp_flags))
+-		__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
++	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
  
--	mem_cgroup_cache_charge()
-+	mem_cgroup_charge_file()
- 	  Called at add_to_page_cache()
- 
- 	mem_cgroup_cache_charge_swapin()
-diff -puN include/linux/memcontrol.h~memcg-rename-high-level-charging-functions include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-rename-high-level-charging-functions
-+++ a/include/linux/memcontrol.h
-@@ -65,7 +65,7 @@ struct mem_cgroup_reclaim_cookie {
-  * (Of course, if memcg does memory allocation in future, GFP_KERNEL is sane.)
-  */
- 
--extern int mem_cgroup_newpage_charge(struct page *page, struct mm_struct *mm,
-+extern int mem_cgroup_charge_anon(struct page *page, struct mm_struct *mm,
- 				gfp_t gfp_mask);
- /* for swap handling */
- extern int mem_cgroup_try_charge_swapin(struct mm_struct *mm,
-@@ -74,7 +74,7 @@ extern void mem_cgroup_commit_charge_swa
- 					struct mem_cgroup *memcg);
- extern void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *memcg);
- 
--extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
-+extern int mem_cgroup_charge_file(struct page *page, struct mm_struct *mm,
- 					gfp_t gfp_mask);
- 
- struct lruvec *mem_cgroup_zone_lruvec(struct zone *, struct mem_cgroup *);
-@@ -233,13 +233,13 @@ void mem_cgroup_print_bad_page(struct pa
- #else /* CONFIG_MEMCG */
- struct mem_cgroup;
- 
--static inline int mem_cgroup_newpage_charge(struct page *page,
-+static inline int mem_cgroup_charge_anon(struct page *page,
- 					struct mm_struct *mm, gfp_t gfp_mask)
- {
- 	return 0;
+ 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
+ 	zone_statistics(preferred_zone, zone, gfp_flags);
+@@ -1955,23 +1941,12 @@ zonelist_scan:
+ 		 * zone size to ensure fair page aging.  The zone a
+ 		 * page was allocated in should have no effect on the
+ 		 * time the page has in memory before being reclaimed.
+-		 *
+-		 * Try to stay in local zones in the fastpath.  If
+-		 * that fails, the slowpath is entered, which will do
+-		 * another pass starting with the local zones, but
+-		 * ultimately fall back to remote zones that do not
+-		 * partake in the fairness round-robin cycle of this
+-		 * zonelist.
+-		 *
+-		 * NOTE: GFP_THISNODE allocations do not partake in
+-		 * the kswapd aging protocol, so they can't be fair.
+ 		 */
+-		if ((alloc_flags & ALLOC_WMARK_LOW) &&
+-		    !gfp_thisnode_allocation(gfp_mask)) {
+-			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
+-				continue;
++		if (alloc_flags & ALLOC_FAIR) {
+ 			if (!zone_local(preferred_zone, zone))
+ 				continue;
++			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
++				continue;
+ 		}
+ 		/*
+ 		 * When allocating a page cache page for writing, we
+@@ -2409,32 +2384,40 @@ __alloc_pages_high_priority(gfp_t gfp_ma
+ 	return page;
  }
  
--static inline int mem_cgroup_cache_charge(struct page *page,
-+static inline int mem_cgroup_charge_file(struct page *page,
- 					struct mm_struct *mm, gfp_t gfp_mask)
+-static void prepare_slowpath(gfp_t gfp_mask, unsigned int order,
+-			     struct zonelist *zonelist,
+-			     enum zone_type high_zoneidx,
+-			     struct zone *preferred_zone)
++static void reset_alloc_batches(struct zonelist *zonelist,
++				enum zone_type high_zoneidx,
++				struct zone *preferred_zone)
  {
- 	return 0;
-diff -puN mm/filemap.c~memcg-rename-high-level-charging-functions mm/filemap.c
---- a/mm/filemap.c~memcg-rename-high-level-charging-functions
-+++ a/mm/filemap.c
-@@ -563,7 +563,7 @@ static int __add_to_page_cache_locked(st
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageSwapBacked(page), page);
+ 	struct zoneref *z;
+ 	struct zone *zone;
  
--	error = mem_cgroup_cache_charge(page, current->mm,
-+	error = mem_cgroup_charge_file(page, current->mm,
- 					gfp_mask & GFP_RECLAIM_MASK);
- 	if (error)
- 		return error;
-diff -puN mm/huge_memory.c~memcg-rename-high-level-charging-functions mm/huge_memory.c
---- a/mm/huge_memory.c~memcg-rename-high-level-charging-functions
-+++ a/mm/huge_memory.c
-@@ -827,7 +827,7 @@ int do_huge_pmd_anonymous_page(struct mm
- 		count_vm_event(THP_FAULT_FALLBACK);
- 		return VM_FAULT_FALLBACK;
+ 	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
+-		if (!(gfp_mask & __GFP_NO_KSWAPD))
+-			wakeup_kswapd(zone, order, zone_idx(preferred_zone));
+ 		/*
+ 		 * Only reset the batches of zones that were actually
+-		 * considered in the fast path, we don't want to
+-		 * thrash fairness information for zones that are not
++		 * considered in the fairness pass, we don't want to
++		 * trash fairness information for zones that are not
+ 		 * actually part of this zonelist's round-robin cycle.
+ 		 */
+ 		if (!zone_local(preferred_zone, zone))
+ 			continue;
+ 		mod_zone_page_state(zone, NR_ALLOC_BATCH,
+-				    high_wmark_pages(zone) -
+-				    low_wmark_pages(zone) -
+-				    zone_page_state(zone, NR_ALLOC_BATCH));
++			high_wmark_pages(zone) - low_wmark_pages(zone) -
++			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
  	}
--	if (unlikely(mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))) {
-+	if (unlikely(mem_cgroup_charge_anon(page, mm, GFP_KERNEL))) {
- 		put_page(page);
- 		count_vm_event(THP_FAULT_FALLBACK);
- 		return VM_FAULT_FALLBACK;
-@@ -968,7 +968,7 @@ static int do_huge_pmd_wp_page_fallback(
- 					       __GFP_OTHER_NODE,
- 					       vma, address, page_to_nid(page));
- 		if (unlikely(!pages[i] ||
--			     mem_cgroup_newpage_charge(pages[i], mm,
-+			     mem_cgroup_charge_anon(pages[i], mm,
- 						       GFP_KERNEL))) {
- 			if (pages[i])
- 				put_page(pages[i]);
-@@ -1101,7 +1101,7 @@ alloc:
- 		goto out;
- 	}
+ }
  
--	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))) {
-+	if (unlikely(mem_cgroup_charge_anon(new_page, mm, GFP_KERNEL))) {
- 		put_page(new_page);
- 		if (page) {
- 			split_huge_page(page);
-@@ -2359,7 +2359,7 @@ static void collapse_huge_page(struct mm
- 	if (!new_page)
- 		return;
++static void wake_all_kswapds(unsigned int order,
++			     struct zonelist *zonelist,
++			     enum zone_type high_zoneidx,
++			     struct zone *preferred_zone)
++{
++	struct zoneref *z;
++	struct zone *zone;
++
++	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx)
++		wakeup_kswapd(zone, order, zone_idx(preferred_zone));
++}
++
+ static inline int
+ gfp_to_alloc_flags(gfp_t gfp_mask)
+ {
+@@ -2523,12 +2506,13 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	 * allowed per node queues are empty and that nodes are
+ 	 * over allocated.
+ 	 */
+-	if (gfp_thisnode_allocation(gfp_mask))
++	if (IS_ENABLED(CONFIG_NUMA) &&
++	    (gfp_mask & GFP_THISNODE) == GFP_THISNODE)
+ 		goto nopage;
  
--	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL)))
-+	if (unlikely(mem_cgroup_charge_anon(new_page, mm, GFP_KERNEL)))
- 		return;
+ restart:
+-	prepare_slowpath(gfp_mask, order, zonelist,
+-			 high_zoneidx, preferred_zone);
++	if (!(gfp_mask & __GFP_NO_KSWAPD))
++		wake_all_kswapds(order, zonelist, high_zoneidx, preferred_zone);
  
  	/*
-diff -puN mm/memcontrol.c~memcg-rename-high-level-charging-functions mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-rename-high-level-charging-functions
-+++ a/mm/memcontrol.c
-@@ -3818,7 +3818,7 @@ out:
- 	return ret;
- }
+ 	 * OK, we're below the kswapd watermark and have kicked background
+@@ -2708,7 +2692,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	struct page *page = NULL;
+ 	int migratetype = allocflags_to_migratetype(gfp_mask);
+ 	unsigned int cpuset_mems_cookie;
+-	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET;
++	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET|ALLOC_FAIR;
+ 	struct mem_cgroup *memcg = NULL;
  
--int mem_cgroup_newpage_charge(struct page *page,
-+int mem_cgroup_charge_anon(struct page *page,
- 			      struct mm_struct *mm, gfp_t gfp_mask)
- {
- 	unsigned int nr_pages = 1;
-@@ -3954,7 +3954,7 @@ void mem_cgroup_commit_charge_swapin(str
- 					  MEM_CGROUP_CHARGE_TYPE_ANON);
- }
- 
--int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
-+int mem_cgroup_charge_file(struct page *page, struct mm_struct *mm,
- 				gfp_t gfp_mask)
- {
- 	enum charge_type type = MEM_CGROUP_CHARGE_TYPE_CACHE;
-diff -puN mm/memory.c~memcg-rename-high-level-charging-functions mm/memory.c
---- a/mm/memory.c~memcg-rename-high-level-charging-functions
-+++ a/mm/memory.c
-@@ -2828,7 +2828,7 @@ gotten:
- 	}
- 	__SetPageUptodate(new_page);
- 
--	if (mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))
-+	if (mem_cgroup_charge_anon(new_page, mm, GFP_KERNEL))
- 		goto oom_free_new;
- 
- 	mmun_start  = address & PAGE_MASK;
-@@ -3281,7 +3281,7 @@ static int do_anonymous_page(struct mm_s
- 	 */
- 	__SetPageUptodate(page);
- 
--	if (mem_cgroup_newpage_charge(page, mm, GFP_KERNEL))
-+	if (mem_cgroup_charge_anon(page, mm, GFP_KERNEL))
- 		goto oom_free_page;
- 
- 	entry = mk_pte(page, vma->vm_page_prot);
-@@ -3537,7 +3537,7 @@ static int do_cow_fault(struct mm_struct
- 	if (!new_page)
- 		return VM_FAULT_OOM;
- 
--	if (mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL)) {
-+	if (mem_cgroup_charge_anon(new_page, mm, GFP_KERNEL)) {
- 		page_cache_release(new_page);
- 		return VM_FAULT_OOM;
- 	}
-diff -puN mm/shmem.c~memcg-rename-high-level-charging-functions mm/shmem.c
---- a/mm/shmem.c~memcg-rename-high-level-charging-functions
-+++ a/mm/shmem.c
-@@ -683,7 +683,7 @@ int shmem_unuse(swp_entry_t swap, struct
- 	 * the shmem_swaplist_mutex which might hold up shmem_writepage().
- 	 * Charged back to the user (not to caller) when swap account is used.
- 	 */
--	error = mem_cgroup_cache_charge(page, current->mm, GFP_KERNEL);
-+	error = mem_cgroup_charge_file(page, current->mm, GFP_KERNEL);
- 	if (error)
- 		goto out;
- 	/* No radix_tree_preload: swap entry keeps a place for page in tree */
-@@ -1080,7 +1080,7 @@ repeat:
- 				goto failed;
- 		}
- 
--		error = mem_cgroup_cache_charge(page, current->mm,
-+		error = mem_cgroup_charge_file(page, current->mm,
- 						gfp & GFP_RECLAIM_MASK);
- 		if (!error) {
- 			error = shmem_add_to_page_cache(page, mapping, index,
-@@ -1134,7 +1134,7 @@ repeat:
- 
- 		SetPageSwapBacked(page);
- 		__set_page_locked(page);
--		error = mem_cgroup_cache_charge(page, current->mm,
-+		error = mem_cgroup_charge_file(page, current->mm,
- 						gfp & GFP_RECLAIM_MASK);
- 		if (error)
- 			goto decused;
+ 	gfp_mask &= gfp_allowed_mask;
+@@ -2749,12 +2733,29 @@ retry_cpuset:
+ 	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+ 		alloc_flags |= ALLOC_CMA;
+ #endif
++retry:
+ 	/* First allocation attempt */
+ 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
+ 			zonelist, high_zoneidx, alloc_flags,
+ 			preferred_zone, migratetype);
+ 	if (unlikely(!page)) {
+ 		/*
++		 * The first pass makes sure allocations are spread
++		 * fairly within the local node.  However, the local
++		 * node might have free pages left after the fairness
++		 * batches are exhausted, and remote zones haven't
++		 * even been considered yet.  Try once more without
++		 * fairness, and include remote zones now, before
++		 * entering the slowpath and waking kswapd: prefer
++		 * spilling to a remote zone over swapping locally.
++		 */
++		if (alloc_flags & ALLOC_FAIR) {
++			reset_alloc_batches(zonelist, high_zoneidx,
++					    preferred_zone);
++			alloc_flags &= ~ALLOC_FAIR;
++			goto retry;
++		}
++		/*
+ 		 * Runtime PM, block IO and its error handling path
+ 		 * can deadlock because I/O on the device might not
+ 		 * complete.
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
+mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch
 
