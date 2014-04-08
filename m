@@ -1,168 +1,167 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-numa-recheck-for-transhuge-pages-under-lock-during-protection-changes.patch removed from -mm tree
-Date: Tue, 08 Apr 2014 13:32:11 -0700
-Message-ID: <53445ccb.Rh8FPIzrF/hndgZN%akpm@linux-foundation.org>
+ move-mmu-notifier-call-from-change_protection-to-change_pmd_range.patch
+ removed from -mm tree
+Date: Tue, 08 Apr 2014 13:32:43 -0700
+Message-ID: <53445ceb.+sc3D13T2zT1LKIn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56089 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756586AbaDHUcM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:32:12 -0400
+	with ESMTP id S1756207AbaDHUco (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:32:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, riel@redhat.com, mgorman@suse.de
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, rientjes@google.com, peterz@infradead.org, gang.xing@hp.com, chegu_vinod@hp.com, aarcange@redhat.com, riel@redhat.com
 
-Subject: [merged] mm-numa-recheck-for-transhuge-pages-under-lock-during-protection-changes.patch removed from -mm tree
-To: mgorman@suse.de,riel@redhat.com,sasha.levin@oracle.com,mm-commits@vger.kernel.org
+Subject: [merged] move-mmu-notifier-call-from-change_protection-to-change_pmd_range.patch removed from -mm tree
+To: riel@redhat.com,aarcange@redhat.com,chegu_vinod@hp.com,gang.xing@hp.com,peterz@infradead.org,rientjes@google.com,sasha.levin@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 13:32:11 -0700
+Date: Tue, 08 Apr 2014 13:32:43 -0700
 
 
 The patch titled
-     Subject: mm: numa: recheck for transhuge pages under lock during protection changes
+     Subject: mm: move mmu notifier call from change_protection to change_pmd_range
 has been removed from the -mm tree.  Its filename was
-     mm-numa-recheck-for-transhuge-pages-under-lock-during-protection-changes.patch
+     move-mmu-notifier-call-from-change_protection-to-change_pmd_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: recheck for transhuge pages under lock during protection changes
+From: Rik van Riel <riel@redhat.com>
+Subject: mm: move mmu notifier call from change_protection to change_pmd_range
 
-Sasha reported the following bug using trinity
+The NUMA scanning code can end up iterating over many gigabytes of
+unpopulated memory, especially in the case of a freshly started KVM guest
+with lots of memory.
 
-[  886.745765] kernel BUG at mm/mprotect.c:149!
-[  886.746831] invalid opcode: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-[  886.748511] Dumping ftrace buffer:
-[  886.749998]    (ftrace buffer empty)
-[  886.750110] Modules linked in:
-[  886.751396] CPU: 20 PID: 26219 Comm: trinity-c216 Tainted: G        W    3.14.0-rc5-next-20140305-sasha-00011-ge06f5f3-dirty #105
-[  886.751396] task: ffff8800b6c80000 ti: ffff880228436000 task.ti: ffff880228436000
-[  886.751396] RIP: 0010:[<ffffffff812aab33>]  [<ffffffff812aab33>] change_protection_range+0x3b3/0x500
-[  886.751396] RSP: 0000:ffff880228437da8  EFLAGS: 00010282
-[  886.751396] RAX: 8000000527c008e5 RBX: 00007f647916e000 RCX: 0000000000000000
-[  886.751396] RDX: ffff8802ef488e40 RSI: 00007f6479000000 RDI: 8000000527c008e5
-[  886.751396] RBP: ffff880228437e78 R08: 0000000000000000 R09: 0000000000000000
-[  886.751396] R10: 0000000000000001 R11: 0000000000000000 R12: ffff8802ef488e40
-[  886.751396] R13: 00007f6479000000 R14: 00007f647916e000 R15: 00007f646e34e000
-[  886.751396] FS:  00007f64b28d4700(0000) GS:ffff88052ba00000(0000) knlGS:0000000000000000
-[  886.751396] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[  886.751396] CR2: 00007f64aed83af8 CR3: 0000000206e52000 CR4: 00000000000006a0
-[  886.751396] Stack:
-[  886.751396]  ffff880200000001 ffffffff8447f152 ffff880228437dd8 ffff880228af3000
-[  886.769142]  00007f646e34e000 00007f647916dfff 0000000000000000 00007f647916e000
-[  886.769142]  ffff880206e527f0 00007f647916dfff 0000000000000000 0000000000000000
-[  886.769142] Call Trace:
-[  886.769142]  [<ffffffff8447f152>] ? preempt_count_sub+0xe2/0x120
-[  886.769142]  [<ffffffff812aaca5>] change_protection+0x25/0x30
-[  886.769142]  [<ffffffff812c3eeb>] change_prot_numa+0x1b/0x30
-[  886.769142]  [<ffffffff8118df49>] task_numa_work+0x279/0x360
-[  886.769142]  [<ffffffff8116c57e>] task_work_run+0xae/0xf0
-[  886.769142]  [<ffffffff8106ffbe>] do_notify_resume+0x8e/0xe0
-[  886.769142]  [<ffffffff8447a93b>] retint_signal+0x4d/0x92
-[  886.769142] Code: 49 8b 3c 24 48 83 3d fc 2e ba 04 00 75 12 0f 0b 0f 1f 84 00 00 00 00 00 eb fe 66 0f 1f 44 00 00 48 89 f8 66 66 66 90 84 c0 79 0d <0f> 0b 0f 1f 00 eb fe 66 0f 1f 44 00 00 8b 4d 9c 44 8b 4d 98
-+89
-[  886.769142] RIP  [<ffffffff812aab33>] change_protection_range+0x3b3/0x500
-[  886.769142]  RSP <ffff880228437da8>
+This results in the mmu notifier code being called even when there are no
+mapped pages in a virtual address range.  The amount of time wasted can be
+enough to trigger soft lockup warnings with very large KVM guests.
 
-The VM_BUG_ON was added by the patch "mm,numa: reorganize
-change_pmd_range". The race existed without the patch but was just harder
-to hit.
+This patch moves the mmu notifier call to the pmd level, which represents
+1GB areas of memory on x86-64.  Furthermore, the mmu notifier code is only
+called from the address in the PMD where present mappings are first
+encountered.
 
-The problem is that a transhuge check is made without holding the PTL. 
-It's possible at the time of the check that a parallel fault clears the
-pmd and inserts a new one which then triggers the VM_BUG_ON check.  This
-patch removes the VM_BUG_ON but fixes the race by rechecking transhuge
-under the PTL when marking page tables for NUMA hinting and bailing if a
-race occurred.  It is not a problem for calls to mprotect() as they hold
-mmap_sem for write.
+The hugetlbfs code is left alone for now; hugetlb mappings are not
+relocatable, and as such are left alone by the NUMA code, and should never
+trigger this problem to begin with.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Xing Gang <gang.xing@hp.com>
+Tested-by: Chegu Vinod <chegu_vinod@hp.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   36 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
+ mm/hugetlb.c  |    2 ++
+ mm/mprotect.c |   15 ++++++++++++---
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN mm/mprotect.c~mm-numa-recheck-for-transhuge-pages-under-lock-during-protection-changes mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-recheck-for-transhuge-pages-under-lock-during-protection-changes
-+++ a/mm/mprotect.c
-@@ -36,6 +36,34 @@ static inline pgprot_t pgprot_modify(pgp
+diff -puN mm/hugetlb.c~move-mmu-notifier-call-from-change_protection-to-change_pmd_range mm/hugetlb.c
+--- a/mm/hugetlb.c~move-mmu-notifier-call-from-change_protection-to-change_pmd_range
++++ a/mm/hugetlb.c
+@@ -3186,6 +3186,7 @@ unsigned long hugetlb_change_protection(
+ 	BUG_ON(address >= end);
+ 	flush_cache_range(vma, address, end);
+ 
++	mmu_notifier_invalidate_range_start(mm, start, end);
+ 	mutex_lock(&vma->vm_file->f_mapping->i_mmap_mutex);
+ 	for (; address < end; address += huge_page_size(h)) {
+ 		spinlock_t *ptl;
+@@ -3215,6 +3216,7 @@ unsigned long hugetlb_change_protection(
+ 	 */
+ 	flush_tlb_range(vma, start, end);
+ 	mutex_unlock(&vma->vm_file->f_mapping->i_mmap_mutex);
++	mmu_notifier_invalidate_range_end(mm, start, end);
+ 
+ 	return pages << h->order;
  }
- #endif
- 
-+/*
-+ * For a prot_numa update we only hold mmap_sem for read so there is a
-+ * potential race with faulting where a pmd was temporarily none. This
-+ * function checks for a transhuge pmd under the appropriate lock. It
-+ * returns a pte if it was successfully locked or NULL if it raced with
-+ * a transhuge insertion.
-+ */
-+static pte_t *lock_pte_protection(struct vm_area_struct *vma, pmd_t *pmd,
-+			unsigned long addr, int prot_numa, spinlock_t **ptl)
-+{
-+	pte_t *pte;
-+	spinlock_t *pmdl;
-+
-+	/* !prot_numa is protected by mmap_sem held for write */
-+	if (!prot_numa)
-+		return pte_offset_map_lock(vma->vm_mm, pmd, addr, ptl);
-+
-+	pmdl = pmd_lock(vma->vm_mm, pmd);
-+	if (unlikely(pmd_trans_huge(*pmd) || pmd_none(*pmd))) {
-+		spin_unlock(pmdl);
-+		return NULL;
-+	}
-+
-+	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, ptl);
-+	spin_unlock(pmdl);
-+	return pte;
-+}
-+
- static unsigned long change_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, unsigned long end, pgprot_t newprot,
- 		int dirty_accountable, int prot_numa)
-@@ -45,7 +73,10 @@ static unsigned long change_pte_range(st
- 	spinlock_t *ptl;
+diff -puN mm/mprotect.c~move-mmu-notifier-call-from-change_protection-to-change_pmd_range mm/mprotect.c
+--- a/mm/mprotect.c~move-mmu-notifier-call-from-change_protection-to-change_pmd_range
++++ a/mm/mprotect.c
+@@ -140,9 +140,11 @@ static inline unsigned long change_pmd_r
+ 		pgprot_t newprot, int dirty_accountable, int prot_numa)
+ {
+ 	pmd_t *pmd;
++	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long next;
  	unsigned long pages = 0;
+ 	unsigned long nr_huge_updates = 0;
++	unsigned long mni_start = 0;
  
--	pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+	pte = lock_pte_protection(vma, pmd, addr, prot_numa, &ptl);
-+	if (!pte)
-+		return 0;
-+
- 	arch_enter_lazy_mmu_mode();
+ 	pmd = pmd_offset(pud, addr);
  	do {
- 		oldpte = *pte;
-@@ -132,12 +163,13 @@ static inline unsigned long change_pmd_r
- 						pages += HPAGE_PMD_NR;
- 						nr_huge_updates++;
- 					}
+@@ -151,6 +153,13 @@ static inline unsigned long change_pmd_r
+ 		next = pmd_addr_end(addr, end);
+ 		if (!pmd_trans_huge(*pmd) && pmd_none_or_clear_bad(pmd))
+ 			continue;
 +
-+					/* huge pmd was handled */
- 					continue;
- 				}
- 			}
- 			/* fall through, the trans huge pmd just split */
- 		}
--		VM_BUG_ON(pmd_trans_huge(*pmd));
- 		this_pages = change_pte_range(vma, pmd, addr, next, newprot,
- 				 dirty_accountable, prot_numa);
++		/* invoke the mmu notifier if the pmd is populated */
++		if (!mni_start) {
++			mni_start = addr;
++			mmu_notifier_invalidate_range_start(mm, mni_start, end);
++		}
++
+ 		if (pmd_trans_huge(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE)
+ 				split_huge_page_pmd(vma, addr, pmd);
+@@ -175,6 +184,9 @@ static inline unsigned long change_pmd_r
  		pages += this_pages;
+ 	} while (pmd++, addr = next, addr != end);
+ 
++	if (mni_start)
++		mmu_notifier_invalidate_range_end(mm, mni_start, end);
++
+ 	if (nr_huge_updates)
+ 		count_vm_numa_events(NUMA_HUGE_PTE_UPDATES, nr_huge_updates);
+ 	return pages;
+@@ -234,15 +246,12 @@ unsigned long change_protection(struct v
+ 		       unsigned long end, pgprot_t newprot,
+ 		       int dirty_accountable, int prot_numa)
+ {
+-	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long pages;
+ 
+-	mmu_notifier_invalidate_range_start(mm, start, end);
+ 	if (is_vm_hugetlb_page(vma))
+ 		pages = hugetlb_change_protection(vma, start, end, newprot);
+ 	else
+ 		pages = change_protection_range(vma, start, end, newprot, dirty_accountable, prot_numa);
+-	mmu_notifier_invalidate_range_end(mm, start, end);
+ 
+ 	return pages;
+ }
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from riel@redhat.com are
 
 origin.patch
 mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-rmap-dont-try-to-add-an-unevictable-page-to-lru-list.patch
 mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 
