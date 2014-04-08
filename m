@@ -1,108 +1,355 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-lguest-page_tablesc-rename-do_set_pte.patch
- removed from -mm tree
-Date: Tue, 08 Apr 2014 13:40:43 -0700
-Message-ID: <53445ecb.leHYPW/h4l7UPgmv%akpm@linux-foundation.org>
+Subject: [merged] mm-introduce-vm_ops-map_pages.patch removed from -mm
+ tree
+Date: Tue, 08 Apr 2014 13:41:15 -0700
+Message-ID: <53445eeb.EmHnhMWYZ+gB2s2/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56384 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56389 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756207AbaDHUko (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:40:44 -0400
+	with ESMTP id S932171AbaDHUlQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:41:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rusty@rustcorp.com.au, kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, torvalds@linux-foundation.org, riel@redhat.com, quning@gmail.com, mgorman@suse.de, matthew.r.wilcox@intel.com, david@fromorbit.com, dave.hansen@linux.intel.com, ak@linux.intel.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] drivers-lguest-page_tablesc-rename-do_set_pte.patch removed from -mm tree
-To: akpm@linux-foundation.org,kirill.shutemov@linux.intel.com,rusty@rustcorp.com.au,mm-commits@vger.kernel.org
+Subject: [merged] mm-introduce-vm_ops-map_pages.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,dave.hansen@linux.intel.com,david@fromorbit.com,matthew.r.wilcox@intel.com,mgorman@suse.de,quning@gmail.com,riel@redhat.com,torvalds@linux-foundation.org,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 13:40:43 -0700
+Date: Tue, 08 Apr 2014 13:41:15 -0700
 
 
 The patch titled
-     Subject: drivers/lguest/page_tables.c: rename do_set_pte()
+     Subject: mm: introduce vm_ops->map_pages()
 has been removed from the -mm tree.  Its filename was
-     drivers-lguest-page_tablesc-rename-do_set_pte.patch
+     mm-introduce-vm_ops-map_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/lguest/page_tables.c: rename do_set_pte()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: introduce vm_ops->map_pages()
 
-"mm: introduce vm_ops->map_pages()" wants to export a do_set_pte() from core
-kernel.  Rename lguest's do_set_pte() to something more lguest-specific.
+Here's new version of faultaround patchset.  It took a while to tune it
+and collect performance data.
 
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+First patch adds new callback ->map_pages to vm_operations_struct.
+
+->map_pages() is called when VM asks to map easy accessible pages. 
+Filesystem should find and map pages associated with offsets from "pgoff"
+till "max_pgoff".  ->map_pages() is called with page table locked and must
+not block.  If it's not possible to reach a page without blocking,
+filesystem should skip it.  Filesystem should use do_set_pte() to setup
+page table entry.  Pointer to entry associated with offset "pgoff" is
+passed in "pte" field in vm_fault structure.  Pointers to entries for
+other offsets should be calculated relative to "pte".
+
+Currently VM use ->map_pages only on read page fault path.  We try to map
+FAULT_AROUND_PAGES a time.  FAULT_AROUND_PAGES is 16 for now.  Performance
+data for different FAULT_AROUND_ORDER is below.
+
+TODO:
+ - implement ->map_pages() for shmem/tmpfs;
+ - modify get_user_pages() to be able to use ->map_pages() and implement
+   mmap(MAP_POPULATE|MAP_NONBLOCK) on top.
+
+=========================================================================
+Tested on 4-socket machine (120 threads) with 128GiB of RAM.
+
+Few real-world workloads. The sweet spot for FAULT_AROUND_ORDER here is
+somewhere between 3 and 5. Let's say 4 :)
+
+Linux build (make -j60)
+FAULT_AROUND_ORDER		Baseline	1		3		4		5		7		9
+	minor-faults		283,301,572	247,151,987	212,215,789	204,772,882	199,568,944	194,703,779	193,381,485
+	time, seconds		151.227629483	153.920996480	151.356125472	150.863792049	150.879207877	151.150764954	151.450962358
+Linux rebuild (make -j60)
+FAULT_AROUND_ORDER		Baseline	1		3		4		5		7		9
+	minor-faults		5,396,854	4,148,444	2,855,286	2,577,282	2,361,957	2,169,573	2,112,643
+	time, seconds		27.404543757	27.559725591	27.030057426	26.855045126	26.678618635	26.974523490	26.761320095
+Git test suite (make -j60 test)
+FAULT_AROUND_ORDER		Baseline	1		3		4		5		7		9
+	minor-faults		129,591,823	99,200,751	66,106,718	57,606,410	51,510,808	45,776,813	44,085,515
+	time, seconds		66.087215026	64.784546905	64.401156567	65.282708668	66.034016829	66.793780811	67.237810413
+
+Two synthetic tests: access every word in file in sequential/random order.
+It doesn't improve much after FAULT_AROUND_ORDER == 4.
+
+Sequential access 16GiB file
+FAULT_AROUND_ORDER		Baseline	1		3		4		5		7		9
+ 1 thread
+	minor-faults		4,195,437	2,098,275	525,068		262,251		131,170		32,856		8,282
+	time, seconds		7.250461742	6.461711074	5.493859139	5.488488147	5.707213983	5.898510832	5.109232856
+ 8 threads
+	minor-faults		33,557,540	16,892,728	4,515,848	2,366,999	1,423,382	442,732		142,339
+	time, seconds		16.649304881	9.312555263	6.612490639	6.394316732	6.669827501	6.75078944	6.371900528
+ 32 threads
+	minor-faults		134,228,222	67,526,810	17,725,386	9,716,537	4,763,731	1,668,921	537,200
+	time, seconds		49.164430543	29.712060103	12.938649729	10.175151004	11.840094583	9.594081325	9.928461797
+ 60 threads
+	minor-faults		251,687,988	126,146,952	32,919,406	18,208,804	10,458,947	2,733,907	928,217
+	time, seconds		86.260656897	49.626551828	22.335007632	17.608243696	16.523119035	16.339489186	16.326390902
+ 120 threads
+	minor-faults		503,352,863	252,939,677	67,039,168	35,191,827	19,170,091	4,688,357	1,471,862
+	time, seconds		124.589206333	79.757867787	39.508707872	32.167281632	29.972989292	28.729834575	28.042251622
+Random access 1GiB file
+ 1 thread
+	minor-faults		262,636		132,743		34,369		17,299		8,527		3,451		1,222
+	time, seconds		15.351890914	16.613802482	16.569227308	15.179220992	16.557356122	16.578247824	15.365266994
+ 8 threads
+	minor-faults		2,098,948	1,061,871	273,690		154,501		87,110		25,663		7,384
+	time, seconds		15.040026343	15.096933500	14.474757288	14.289129964	14.411537468	14.296316837	14.395635804
+ 32 threads
+	minor-faults		8,390,734	4,231,023	1,054,432	528,847		269,242		97,746		26,881
+	time, seconds		20.430433109	21.585235358	22.115062928	14.872878951	14.880856305	14.883370649	14.821261690
+ 60 threads
+	minor-faults		15,733,258	7,892,809	1,973,393	988,266		594,789		164,994		51,691
+	time, seconds		26.577302548	25.692397770	18.728863715	20.153026398	21.619101933	17.745086260	17.613215273
+ 120 threads
+	minor-faults		31,471,111	15,816,616	3,959,209	1,978,685	1,008,299	264,635		96,010
+	time, seconds		41.835322703	40.459786095	36.085306105	35.313894834	35.814445675	36.552633793	34.289210594
+
+
+Touch only one page in page table in 16GiB file
+FAULT_AROUND_ORDER		Baseline	1		3		4		5		7		9
+ 1 thread
+	minor-faults		8,372		8,324		8,270		8,260		8,249		8,239		8,237
+	time, seconds		0.039892712	0.045369149	0.051846126	0.063681685	0.079095975	0.17652406	0.541213386
+ 8 threads
+	minor-faults		65,731		65,681		65,628		65,620		65,608		65,599		65,596
+	time, seconds		0.124159196	0.488600638	0.156854426	0.191901957	0.242631486	0.543569456	1.677303984
+ 32 threads
+	minor-faults		262,388		262,341		262,285		262,276		262,266		262,257		263,183
+	time, seconds		0.452421421	0.488600638	0.565020946	0.648229739	0.789850823	1.651584361	5.000361559
+ 60 threads
+	minor-faults		491,822		491,792		491,723		491,711		491,701		491,691		491,825
+	time, seconds		0.763288616	0.869620515	0.980727360	1.161732354	1.466915814	3.04041448	9.308612938
+ 120 threads
+	minor-faults		983,466		983,655		983,366		983,372		983,363		984,083		984,164
+	time, seconds		1.595846553	1.667902182	2.008959376	2.425380942	2.941368804	5.977807890	18.401846125
+
+
+
+This patch (of 2):
+
+Introduce new vm_ops callback ->map_pages() and uses it for mapping easy
+accessible pages around fault address.
+
+On read page fault, if filesystem provides ->map_pages(), we try to map up
+to FAULT_AROUND_PAGES pages around page fault address in hope to reduce
+number of minor page faults.
+
+We call ->map_pages first and use ->fault() as fallback if page by the
+offset is not ready to be mapped (cold page cache or something).
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Ning Qu <quning@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/page_tables.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/filesystems/Locking |   10 +++
+ include/linux/mm.h                |    8 ++
+ mm/memory.c                       |   81 ++++++++++++++++++++++++++--
+ 3 files changed, 96 insertions(+), 3 deletions(-)
 
-diff -puN drivers/lguest/page_tables.c~drivers-lguest-page_tablesc-rename-do_set_pte drivers/lguest/page_tables.c
---- a/drivers/lguest/page_tables.c~drivers-lguest-page_tablesc-rename-do_set_pte
-+++ a/drivers/lguest/page_tables.c
-@@ -887,7 +887,7 @@ void guest_new_pagetable(struct lg_cpu *
-  * _PAGE_ACCESSED then we can put a read-only PTE entry in immediately, and if
-  * they set _PAGE_DIRTY then we can put a writable PTE entry in immediately.
-  */
--static void do_set_pte(struct lg_cpu *cpu, int idx,
-+static void __guest_set_pte(struct lg_cpu *cpu, int idx,
- 		       unsigned long vaddr, pte_t gpte)
+diff -puN Documentation/filesystems/Locking~mm-introduce-vm_ops-map_pages Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~mm-introduce-vm_ops-map_pages
++++ a/Documentation/filesystems/Locking
+@@ -529,6 +529,7 @@ locking rules:
+ open:		yes
+ close:		yes
+ fault:		yes		can return with page locked
++map_pages:	yes
+ page_mkwrite:	yes		can return with page locked
+ access:		yes
+ 
+@@ -540,6 +541,15 @@ the page, then ensure it is not already
+ subsequent truncate), and then return with VM_FAULT_LOCKED, and the page
+ locked. The VM will unlock the page.
+ 
++	->map_pages() is called when VM asks to map easy accessible pages.
++Filesystem should find and map pages associated with offsets from "pgoff"
++till "max_pgoff". ->map_pages() is called with page table locked and must
++not block.  If it's not possible to reach a page without blocking,
++filesystem should skip it. Filesystem should use do_set_pte() to setup
++page table entry. Pointer to entry associated with offset "pgoff" is
++passed in "pte" field in vm_fault structure. Pointers to entries for other
++offsets should be calculated relative to "pte".
++
+ 	->page_mkwrite() is called when a previously read-only pte is
+ about to become writeable. The filesystem again must ensure that there are
+ no truncate/invalidate races, and then return with the page locked. If
+diff -puN include/linux/mm.h~mm-introduce-vm_ops-map_pages include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-vm_ops-map_pages
++++ a/include/linux/mm.h
+@@ -213,6 +213,10 @@ struct vm_fault {
+ 					 * is set (which is also implied by
+ 					 * VM_FAULT_ERROR).
+ 					 */
++	/* for ->map_pages() only */
++	pgoff_t max_pgoff;		/* map pages for offset from pgoff till
++					 * max_pgoff inclusive */
++	pte_t *pte;			/* pte entry associated with ->pgoff */
+ };
+ 
+ /*
+@@ -224,6 +228,7 @@ struct vm_operations_struct {
+ 	void (*open)(struct vm_area_struct * area);
+ 	void (*close)(struct vm_area_struct * area);
+ 	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
++	void (*map_pages)(struct vm_area_struct *vma, struct vm_fault *vmf);
+ 
+ 	/* notification that a previously read-only page is about to become
+ 	 * writable, if an error is returned it will cause a SIGBUS */
+@@ -584,6 +589,9 @@ static inline pte_t maybe_mkwrite(pte_t
+ 		pte = pte_mkwrite(pte);
+ 	return pte;
+ }
++
++void do_set_pte(struct vm_area_struct *vma, unsigned long address,
++		struct page *page, pte_t *pte, bool write, bool anon);
+ #endif
+ 
+ /*
+diff -puN mm/memory.c~mm-introduce-vm_ops-map_pages mm/memory.c
+--- a/mm/memory.c~mm-introduce-vm_ops-map_pages
++++ a/mm/memory.c
+@@ -3342,7 +3342,22 @@ static int __do_fault(struct vm_area_str
+ 	return ret;
+ }
+ 
+-static void do_set_pte(struct vm_area_struct *vma, unsigned long address,
++/**
++ * do_set_pte - setup new PTE entry for given page and add reverse page mapping.
++ *
++ * @vma: virtual memory area
++ * @address: user virtual address
++ * @page: page to map
++ * @pte: pointer to target page table entry
++ * @write: true, if new entry is writable
++ * @anon: true, if it's anonymous page
++ *
++ * Caller must hold page table lock relevant for @pte.
++ *
++ * Target users are page handler itself and implementations of
++ * vm_ops->map_pages.
++ */
++void do_set_pte(struct vm_area_struct *vma, unsigned long address,
+ 		struct page *page, pte_t *pte, bool write, bool anon)
  {
- 	/* Look up the matching shadow page directory entry. */
-@@ -960,13 +960,13 @@ void guest_set_pte(struct lg_cpu *cpu,
- 		unsigned int i;
- 		for (i = 0; i < ARRAY_SIZE(cpu->lg->pgdirs); i++)
- 			if (cpu->lg->pgdirs[i].pgdir)
--				do_set_pte(cpu, i, vaddr, gpte);
-+				__guest_set_pte(cpu, i, vaddr, gpte);
- 	} else {
- 		/* Is this page table one we have a shadow for? */
- 		int pgdir = find_pgdir(cpu->lg, gpgdir);
- 		if (pgdir != ARRAY_SIZE(cpu->lg->pgdirs))
- 			/* If so, do the update. */
--			do_set_pte(cpu, pgdir, vaddr, gpte);
-+			__guest_set_pte(cpu, pgdir, vaddr, gpte);
+ 	pte_t entry;
+@@ -3366,6 +3381,52 @@ static void do_set_pte(struct vm_area_st
+ 	update_mmu_cache(vma, address, pte);
+ }
+ 
++#define FAULT_AROUND_ORDER 4
++#define FAULT_AROUND_PAGES (1UL << FAULT_AROUND_ORDER)
++#define FAULT_AROUND_MASK ~((1UL << (PAGE_SHIFT + FAULT_AROUND_ORDER)) - 1)
++
++static void do_fault_around(struct vm_area_struct *vma, unsigned long address,
++		pte_t *pte, pgoff_t pgoff, unsigned int flags)
++{
++	unsigned long start_addr;
++	pgoff_t max_pgoff;
++	struct vm_fault vmf;
++	int off;
++
++	BUILD_BUG_ON(FAULT_AROUND_PAGES > PTRS_PER_PTE);
++
++	start_addr = max(address & FAULT_AROUND_MASK, vma->vm_start);
++	off = ((address - start_addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
++	pte -= off;
++	pgoff -= off;
++
++	/*
++	 *  max_pgoff is either end of page table or end of vma
++	 *  or FAULT_AROUND_PAGES from pgoff, depending what is neast.
++	 */
++	max_pgoff = pgoff - ((start_addr >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
++		PTRS_PER_PTE - 1;
++	max_pgoff = min3(max_pgoff, vma_pages(vma) + vma->vm_pgoff - 1,
++			pgoff + FAULT_AROUND_PAGES - 1);
++
++	/* Check if it makes any sense to call ->map_pages */
++	while (!pte_none(*pte)) {
++		if (++pgoff > max_pgoff)
++			return;
++		start_addr += PAGE_SIZE;
++		if (start_addr >= vma->vm_end)
++			return;
++		pte++;
++	}
++
++	vmf.virtual_address = (void __user *) start_addr;
++	vmf.pte = pte;
++	vmf.pgoff = pgoff;
++	vmf.max_pgoff = max_pgoff;
++	vmf.flags = flags;
++	vma->vm_ops->map_pages(vma, &vmf);
++}
++
+ static int do_read_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pmd_t *pmd,
+ 		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)
+@@ -3373,7 +3434,20 @@ static int do_read_fault(struct mm_struc
+ 	struct page *fault_page;
+ 	spinlock_t *ptl;
+ 	pte_t *pte;
+-	int ret;
++	int ret = 0;
++
++	/*
++	 * Let's call ->map_pages() first and use ->fault() as fallback
++	 * if page by the offset is not ready to be mapped (cold cache or
++	 * something).
++	 */
++	if (vma->vm_ops->map_pages) {
++		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
++		do_fault_around(vma, address, pte, pgoff, flags);
++		if (!pte_same(*pte, orig_pte))
++			goto unlock_out;
++		pte_unmap_unlock(pte, ptl);
++	}
+ 
+ 	ret = __do_fault(vma, address, pgoff, flags, &fault_page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+@@ -3387,8 +3461,9 @@ static int do_read_fault(struct mm_struc
+ 		return ret;
  	}
+ 	do_set_pte(vma, address, fault_page, pte, false, false);
+-	pte_unmap_unlock(pte, ptl);
+ 	unlock_page(fault_page);
++unlock_out:
++	pte_unmap_unlock(pte, ptl);
+ 	return ret;
  }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix.patch
-ncpfs-convert-dprintk-ddprintk-to-ncp_dbg-fix-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-fix.patch
-kmod-run-usermodehelpers-only-on-cpus-allowed-for-kthreadd-v2-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
