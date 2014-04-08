@@ -1,73 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] asm-systemh-clean-asm-systemh-from-docs.patch removed
- from -mm tree
-Date: Tue, 08 Apr 2014 14:40:17 -0700
-Message-ID: <53446cc1.Hr+3niQtvY7Nk85/%akpm@linux-foundation.org>
+Subject: [merged] asm-systemh-um-arch_align_stack-moved-to-asm-exech.patch removed from -mm tree
+Date: Tue, 08 Apr 2014 14:40:49 -0700
+Message-ID: <53446ce1.rtmtUUK3jt+YbB9U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57170 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57174 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756174AbaDHVkS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:40:18 -0400
+	with ESMTP id S1756174AbaDHVku (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:40:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mingo@redhat.com, arnd@arndb.de, dhowells@redhat.com
+To: mm-commits@vger.kernel.org, richard@nod.at, jdike@addtoit.com, arnd@arndb.de, dhowells@redhat.com
 
-Subject: [merged] asm-systemh-clean-asm-systemh-from-docs.patch removed from -mm tree
-To: dhowells@redhat.com,arnd@arndb.de,mingo@redhat.com,mm-commits@vger.kernel.org
+Subject: [merged] asm-systemh-um-arch_align_stack-moved-to-asm-exech.patch removed from -mm tree
+To: dhowells@redhat.com,arnd@arndb.de,jdike@addtoit.com,richard@nod.at,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 14:40:17 -0700
+Date: Tue, 08 Apr 2014 14:40:49 -0700
 
 
 The patch titled
-     Subject: asm/system.h: clean asm/system.h from docs
+     Subject: asm/system.h: um: arch_align_stack() moved to asm/exec.h
 has been removed from the -mm tree.  Its filename was
-     asm-systemh-clean-asm-systemh-from-docs.patch
+     asm-systemh-um-arch_align_stack-moved-to-asm-exech.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Howells <dhowells@redhat.com>
-Subject: asm/system.h: clean asm/system.h from docs
+Subject: asm/system.h: um: arch_align_stack() moved to asm/exec.h
 
-Clean asm/system.h from docs as nothing should refer to that header anymore.
+arch_align_stack() moved to asm/exec.h, so change the comment referring to
+asm/system.h which no longer exists.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-hacking.tmpl |    2 +-
- Documentation/irqflags-tracing.txt        |    7 -------
- Documentation/scheduler/sched-arch.txt    |    2 +-
- 3 files changed, 2 insertions(+), 9 deletions(-)
+ arch/um/kernel/process.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/kernel-hacking.tmpl~asm-systemh-clean-asm-systemh-from-docs Documentation/DocBook/kernel-hacking.tmpl
---- a/Documentation/DocBook/kernel-hacking.tmpl~asm-systemh-clean-asm-systemh-from-docs
-+++ a/Documentation/DocBook/kernel-hacking.tmpl
-@@ -671,7 +671,7 @@ printk(KERN_INFO "my ip: %pI4\n", &amp;i
- 
-   <sect1 id="routines-local-irqs">
-    <title><function>local_irq_save()</function>/<function>local_irq_restore()</function>
--    <filename class="headerfile">include/asm/system.h</filename>
-+    <filename class="headerfile">include/linux/irqflags.h</filename>
-    </title>
- 
-    <para>
-diff -puN Documentation/irqflags-tracing.txt~asm-systemh-clean-asm-systemh-from-docs Documentation/irqflags-tracing.txt
---- a/Documentation/irqflags-tracing.txt~asm-systemh-clean-asm-systemh-from-docs
-+++ a/Documentation/irqflags-tracing.txt
-@@ -22,13 +22,6 @@ rather straightforward and risk-free man
- Architectures that want to support this need to do a couple of
- code-organizational changes first:
- 
--- move their irq-flags manipulation code from their asm/system.h header
--  to asm/irqflags.h
--
--- rename local_irq_disable()/etc to raw_local_irq_disable()/etc. so that
--  the linux/irqflags.h code can inject callbacks and can construct the
--  real local_irq_disable()/etc APIs.
+diff -puN arch/um/kernel/process.c~asm-systemh-um-arch_align_stack-moved-to-asm-exech arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~asm-systemh-um-arch_align_stack-moved-to-asm-exech
++++ a/arch/um/kernel/process.c
+@@ -359,7 +359,7 @@ int singlestepping(void * t)
+ /*
+  * Only x86 and x86_64 have an arch_align_stack().
+  * All other arches have "#define arch_align_stack(x) (x)"
+- * in their asm/system.h
++ * in their asm/exec.h
+  * As this is included in UML from asm-um/system-generic.h,
+  * we can use it to behave as the subarch does.
+  */
+_
+
+Patches currently in -mm which might be from dhowells@redhat.com are
+
+origin.patch
+
