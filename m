@@ -1,45 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-implement-map_pages-for-page-cache.patch removed from -mm tree
-Date: Tue, 08 Apr 2014 13:41:47 -0700
-Message-ID: <53445f0b.oEbGmUjp/i3ULx/G%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch removed from -mm tree
+Date: Tue, 08 Apr 2014 13:42:19 -0700
+Message-ID: <53445f2b.fEv/YEZvZjjyN7r5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56403 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56416 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932171AbaDHUls (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:41:48 -0400
+	with ESMTP id S1756639AbaDHUmU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, torvalds@linux-foundation.org, riel@redhat.com, quning@gmail.com, mgorman@suse.de, matthew.r.wilcox@intel.com, hughd@google.com, david@fromorbit.com, dave.hansen@linux.intel.com, ak@linux.intel.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, torvalds@linux-foundation.org, riel@redhat.com, quning@gmail.com, mgorman@suse.de, matthew.r.wilcox@intel.com, david@fromorbit.com, dave.hansen@linux.intel.com, ak@linux.intel.com, kirill.shutemov@linux.intel.com
 
-Subject: [merged] mm-implement-map_pages-for-page-cache.patch removed from -mm tree
-To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,dave.hansen@linux.intel.com,david@fromorbit.com,hughd@google.com,matthew.r.wilcox@intel.com,mgorman@suse.de,quning@gmail.com,riel@redhat.com,torvalds@linux-foundation.org,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch removed from -mm tree
+To: kirill.shutemov@linux.intel.com,ak@linux.intel.com,dave.hansen@linux.intel.com,david@fromorbit.com,matthew.r.wilcox@intel.com,mgorman@suse.de,quning@gmail.com,riel@redhat.com,torvalds@linux-foundation.org,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 13:41:47 -0700
+Date: Tue, 08 Apr 2014 13:42:19 -0700
 
 
 The patch titled
-     Subject: mm: implement ->map_pages for page cache
+     Subject: mm: cleanup size checks in filemap_fault() and filemap_map_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-implement-map_pages-for-page-cache.patch
+     mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: implement ->map_pages for page cache
+Subject: mm: cleanup size checks in filemap_fault() and filemap_map_pages()
 
-filemap_map_pages() is generic implementation of ->map_pages() for
-filesystems who uses page cache.
-
-It should be safe to use filemap_map_pages() for ->map_pages() if
-filesystem use filemap_fault() for ->fault().
+Minor cleanups:
+ - 'size' variable is now in bytes, not pages;
+ - use round_up(): it should be easier to read.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Andi Kleen <ak@linux.intel.com>
@@ -48,280 +47,52 @@ Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Ning Qu <quning@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/vfs_file.c   |    2 +
- fs/btrfs/file.c    |    1 
- fs/cifs/file.c     |    1 
- fs/ext4/file.c     |    1 
- fs/f2fs/file.c     |    1 
- fs/fuse/file.c     |    1 
- fs/gfs2/file.c     |    1 
- fs/nfs/file.c      |    1 
- fs/nilfs2/file.c   |    1 
- fs/ubifs/file.c    |    1 
- fs/xfs/xfs_file.c  |    1 
- include/linux/mm.h |    1 
- mm/filemap.c       |   74 +++++++++++++++++++++++++++++++++++++++++++
- mm/nommu.c         |    6 +++
- 14 files changed, 93 insertions(+)
+ mm/filemap.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/9p/vfs_file.c~mm-implement-map_pages-for-page-cache fs/9p/vfs_file.c
---- a/fs/9p/vfs_file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/9p/vfs_file.c
-@@ -832,6 +832,7 @@ static void v9fs_mmap_vm_close(struct vm
- 
- static const struct vm_operations_struct v9fs_file_vm_ops = {
- 	.fault = filemap_fault,
-+	.map_pages = filemap_map_pages,
- 	.page_mkwrite = v9fs_vm_page_mkwrite,
- 	.remap_pages = generic_file_remap_pages,
- };
-@@ -839,6 +840,7 @@ static const struct vm_operations_struct
- static const struct vm_operations_struct v9fs_mmap_file_vm_ops = {
- 	.close = v9fs_mmap_vm_close,
- 	.fault = filemap_fault,
-+	.map_pages = filemap_map_pages,
- 	.page_mkwrite = v9fs_vm_page_mkwrite,
- 	.remap_pages = generic_file_remap_pages,
- };
-diff -puN fs/btrfs/file.c~mm-implement-map_pages-for-page-cache fs/btrfs/file.c
---- a/fs/btrfs/file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/btrfs/file.c
-@@ -2025,6 +2025,7 @@ out:
- 
- static const struct vm_operations_struct btrfs_file_vm_ops = {
- 	.fault		= filemap_fault,
-+	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= btrfs_page_mkwrite,
- 	.remap_pages	= generic_file_remap_pages,
- };
-diff -puN fs/cifs/file.c~mm-implement-map_pages-for-page-cache fs/cifs/file.c
---- a/fs/cifs/file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/cifs/file.c
-@@ -3113,6 +3113,7 @@ cifs_page_mkwrite(struct vm_area_struct
- 
- static struct vm_operations_struct cifs_file_vm_ops = {
- 	.fault = filemap_fault,
-+	.map_pages = filemap_map_pages,
- 	.page_mkwrite = cifs_page_mkwrite,
- 	.remap_pages = generic_file_remap_pages,
- };
-diff -puN fs/ext4/file.c~mm-implement-map_pages-for-page-cache fs/ext4/file.c
---- a/fs/ext4/file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/ext4/file.c
-@@ -200,6 +200,7 @@ ext4_file_write(struct kiocb *iocb, cons
- 
- static const struct vm_operations_struct ext4_file_vm_ops = {
- 	.fault		= filemap_fault,
-+	.map_pages	= filemap_map_pages,
- 	.page_mkwrite   = ext4_page_mkwrite,
- 	.remap_pages	= generic_file_remap_pages,
- };
-diff -puN fs/f2fs/file.c~mm-implement-map_pages-for-page-cache fs/f2fs/file.c
---- a/fs/f2fs/file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/f2fs/file.c
-@@ -84,6 +84,7 @@ out:
- 
- static const struct vm_operations_struct f2fs_file_vm_ops = {
- 	.fault		= filemap_fault,
-+	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= f2fs_vm_page_mkwrite,
- 	.remap_pages	= generic_file_remap_pages,
- };
-diff -puN fs/fuse/file.c~mm-implement-map_pages-for-page-cache fs/fuse/file.c
---- a/fs/fuse/file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/fuse/file.c
-@@ -2117,6 +2117,7 @@ static int fuse_page_mkwrite(struct vm_a
- static const struct vm_operations_struct fuse_file_vm_ops = {
- 	.close		= fuse_vma_close,
- 	.fault		= filemap_fault,
-+	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= fuse_page_mkwrite,
- 	.remap_pages	= generic_file_remap_pages,
- };
-diff -puN fs/gfs2/file.c~mm-implement-map_pages-for-page-cache fs/gfs2/file.c
---- a/fs/gfs2/file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/gfs2/file.c
-@@ -494,6 +494,7 @@ out:
- 
- static const struct vm_operations_struct gfs2_vm_ops = {
- 	.fault = filemap_fault,
-+	.map_pages = filemap_map_pages,
- 	.page_mkwrite = gfs2_page_mkwrite,
- 	.remap_pages = generic_file_remap_pages,
- };
-diff -puN fs/nfs/file.c~mm-implement-map_pages-for-page-cache fs/nfs/file.c
---- a/fs/nfs/file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/nfs/file.c
-@@ -617,6 +617,7 @@ out:
- 
- static const struct vm_operations_struct nfs_file_vm_ops = {
- 	.fault = filemap_fault,
-+	.map_pages = filemap_map_pages,
- 	.page_mkwrite = nfs_vm_page_mkwrite,
- 	.remap_pages = generic_file_remap_pages,
- };
-diff -puN fs/nilfs2/file.c~mm-implement-map_pages-for-page-cache fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/nilfs2/file.c
-@@ -134,6 +134,7 @@ static int nilfs_page_mkwrite(struct vm_
- 
- static const struct vm_operations_struct nilfs_file_vm_ops = {
- 	.fault		= filemap_fault,
-+	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= nilfs_page_mkwrite,
- 	.remap_pages	= generic_file_remap_pages,
- };
-diff -puN fs/ubifs/file.c~mm-implement-map_pages-for-page-cache fs/ubifs/file.c
---- a/fs/ubifs/file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/ubifs/file.c
-@@ -1538,6 +1538,7 @@ out_unlock:
- 
- static const struct vm_operations_struct ubifs_file_vm_ops = {
- 	.fault        = filemap_fault,
-+	.map_pages = filemap_map_pages,
- 	.page_mkwrite = ubifs_vm_page_mkwrite,
- 	.remap_pages = generic_file_remap_pages,
- };
-diff -puN fs/xfs/xfs_file.c~mm-implement-map_pages-for-page-cache fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~mm-implement-map_pages-for-page-cache
-+++ a/fs/xfs/xfs_file.c
-@@ -1483,6 +1483,7 @@ const struct file_operations xfs_dir_fil
- 
- static const struct vm_operations_struct xfs_file_vm_ops = {
- 	.fault		= filemap_fault,
-+	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= xfs_vm_page_mkwrite,
- 	.remap_pages	= generic_file_remap_pages,
- };
-diff -puN include/linux/mm.h~mm-implement-map_pages-for-page-cache include/linux/mm.h
---- a/include/linux/mm.h~mm-implement-map_pages-for-page-cache
-+++ a/include/linux/mm.h
-@@ -1847,6 +1847,7 @@ extern void truncate_inode_pages_final(s
- 
- /* generic vm_area_ops exported for stackable file systems */
- extern int filemap_fault(struct vm_area_struct *, struct vm_fault *);
-+extern void filemap_map_pages(struct vm_area_struct *vma, struct vm_fault *vmf);
- extern int filemap_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf);
- 
- /* mm/page-writeback.c */
-diff -puN mm/filemap.c~mm-implement-map_pages-for-page-cache mm/filemap.c
---- a/mm/filemap.c~mm-implement-map_pages-for-page-cache
+diff -puN mm/filemap.c~mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages mm/filemap.c
+--- a/mm/filemap.c~mm-cleanup-size-checks-in-filemap_fault-and-filemap_map_pages
 +++ a/mm/filemap.c
-@@ -33,6 +33,7 @@
- #include <linux/hardirq.h> /* for BUG_ON(!in_atomic()) only */
- #include <linux/memcontrol.h>
- #include <linux/cleancache.h>
-+#include <linux/rmap.h>
- #include "internal.h"
- 
- #define CREATE_TRACE_POINTS
-@@ -2064,6 +2065,78 @@ page_not_uptodate:
- }
- EXPORT_SYMBOL(filemap_fault);
- 
-+void filemap_map_pages(struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	struct radix_tree_iter iter;
-+	void **slot;
-+	struct file *file = vma->vm_file;
-+	struct address_space *mapping = file->f_mapping;
+@@ -1953,11 +1953,11 @@ int filemap_fault(struct vm_area_struct
+ 	struct inode *inode = mapping->host;
+ 	pgoff_t offset = vmf->pgoff;
+ 	struct page *page;
+-	pgoff_t size;
 +	loff_t size;
-+	struct page *page;
-+	unsigned long address = (unsigned long) vmf->virtual_address;
-+	unsigned long addr;
-+	pte_t *pte;
-+
-+	rcu_read_lock();
-+	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, vmf->pgoff) {
-+		if (iter.index > vmf->max_pgoff)
-+			break;
-+repeat:
-+		page = radix_tree_deref_slot(slot);
-+		if (unlikely(!page))
-+			goto next;
-+		if (radix_tree_exception(page)) {
-+			if (radix_tree_deref_retry(page))
-+				break;
-+			else
-+				goto next;
-+		}
-+
-+		if (!page_cache_get_speculative(page))
-+			goto repeat;
-+
-+		/* Has the page moved? */
-+		if (unlikely(page != *slot)) {
-+			page_cache_release(page);
-+			goto repeat;
-+		}
-+
-+		if (!PageUptodate(page) ||
-+				PageReadahead(page) ||
-+				PageHWPoison(page))
-+			goto skip;
-+		if (!trylock_page(page))
-+			goto skip;
-+
-+		if (page->mapping != mapping || !PageUptodate(page))
-+			goto unlock;
-+
-+		size = i_size_read(mapping->host) + PAGE_CACHE_SIZE - 1;
-+		if (page->index >= size	>> PAGE_CACHE_SHIFT)
-+			goto unlock;
-+
-+		pte = vmf->pte + page->index - vmf->pgoff;
-+		if (!pte_none(*pte))
-+			goto unlock;
-+
-+		if (file->f_ra.mmap_miss > 0)
-+			file->f_ra.mmap_miss--;
-+		addr = address + (page->index - vmf->pgoff) * PAGE_SIZE;
-+		do_set_pte(vma, addr, page, pte, false, false);
-+		unlock_page(page);
-+		goto next;
-+unlock:
-+		unlock_page(page);
-+skip:
-+		page_cache_release(page);
-+next:
-+		if (iter.index == vmf->max_pgoff)
-+			break;
-+	}
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL(filemap_map_pages);
-+
- int filemap_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct page *page = vmf->page;
-@@ -2093,6 +2166,7 @@ EXPORT_SYMBOL(filemap_page_mkwrite);
+ 	int ret = 0;
  
- const struct vm_operations_struct generic_file_vm_ops = {
- 	.fault		= filemap_fault,
-+	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= filemap_page_mkwrite,
- 	.remap_pages	= generic_file_remap_pages,
- };
-diff -puN mm/nommu.c~mm-implement-map_pages-for-page-cache mm/nommu.c
---- a/mm/nommu.c~mm-implement-map_pages-for-page-cache
-+++ a/mm/nommu.c
-@@ -1985,6 +1985,12 @@ int filemap_fault(struct vm_area_struct
- }
- EXPORT_SYMBOL(filemap_fault);
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (offset >= size)
++	size = round_up(i_size_read(inode), PAGE_CACHE_SIZE);
++	if (offset >= size >> PAGE_CACHE_SHIFT)
+ 		return VM_FAULT_SIGBUS;
  
-+void filemap_map_pages(struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	BUG();
-+}
-+EXPORT_SYMBOL(filemap_map_pages);
-+
- int generic_file_remap_pages(struct vm_area_struct *vma, unsigned long addr,
- 			     unsigned long size, pgoff_t pgoff)
- {
+ 	/*
+@@ -2006,8 +2006,8 @@ retry_find:
+ 	 * Found the page and have a reference on it.
+ 	 * We must recheck i_size under page lock.
+ 	 */
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	if (unlikely(offset >= size)) {
++	size = round_up(i_size_read(inode), PAGE_CACHE_SIZE);
++	if (unlikely(offset >= size >> PAGE_CACHE_SHIFT)) {
+ 		unlock_page(page);
+ 		page_cache_release(page);
+ 		return VM_FAULT_SIGBUS;
+@@ -2111,8 +2111,8 @@ repeat:
+ 		if (page->mapping != mapping || !PageUptodate(page))
+ 			goto unlock;
+ 
+-		size = i_size_read(mapping->host) + PAGE_CACHE_SIZE - 1;
+-		if (page->index >= size	>> PAGE_CACHE_SHIFT)
++		size = round_up(i_size_read(mapping->host), PAGE_CACHE_SIZE);
++		if (page->index >= size >> PAGE_CACHE_SHIFT)
+ 			goto unlock;
+ 
+ 		pte = vmf->pte + page->index - vmf->pgoff;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
