@@ -1,123 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlb-fix-softlockup-when-a-large-number-of-hugepages-are-freed.patch
- removed from -mm tree
-Date: Tue, 08 Apr 2014 13:58:05 -0700
-Message-ID: <534462dd./BWAtkVlKQGnheFN%akpm@linux-foundation.org>
+Subject: [merged] mm-readaheadc-inline-ra_submit.patch removed from -mm
+ tree
+Date: Tue, 08 Apr 2014 13:58:37 -0700
+Message-ID: <534462fd.rlkJadgazGag3Nf6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56610 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56616 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756121AbaDHU6G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:58:06 -0400
+	with ESMTP id S1756121AbaDHU6h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:58:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, n-horiguchi@ah.jp.nec.com, mhocko@suse.cz, liwanp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, m.mizuma@jp.fujitsu.com
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org, fabf@skynet.be
 
-Subject: [merged] mm-hugetlb-fix-softlockup-when-a-large-number-of-hugepages-are-freed.patch removed from -mm tree
-To: m.mizuma@jp.fujitsu.com,aneesh.kumar@linux.vnet.ibm.com,iamjoonsoo.kim@lge.com,kosaki.motohiro@jp.fujitsu.com,liwanp@linux.vnet.ibm.com,mhocko@suse.cz,n-horiguchi@ah.jp.nec.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-readaheadc-inline-ra_submit.patch removed from -mm tree
+To: fabf@skynet.be,akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 13:58:05 -0700
+Date: Tue, 08 Apr 2014 13:58:37 -0700
 
 
 The patch titled
-     Subject: mm: hugetlb: fix softlockup when a large number of hugepages are freed.
+     Subject: mm/readahead.c: inline ra_submit
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-softlockup-when-a-large-number-of-hugepages-are-freed.patch
+     mm-readaheadc-inline-ra_submit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Mizuma, Masayoshi" <m.mizuma@jp.fujitsu.com>
-Subject: mm: hugetlb: fix softlockup when a large number of hugepages are freed.
+From: Fabian Frederick <fabf@skynet.be>
+Subject: mm/readahead.c: inline ra_submit
 
-When I decrease the value of nr_hugepage in procfs a lot, softlockup
-happens.  It is because there is no chance of context switch during this
-process.
+f9acc8c7b35a ("readahead: sanify file_ra_state names") left ra_submit with
+a single function call.
 
-On the other hand, when I allocate a large number of hugepages, there is
-some chance of context switch.  Hence softlockup doesn't happen during
-this process.  So it's necessary to add the context switch in the freeing
-process as same as allocating process to avoid softlockup.
+Move ra_submit to internal.h and inline it to save some stack.  Thanks to
+Andrew Morton for commenting different versions.
 
-When I freed 12 TB hugapages with kernel-2.6.32-358.el6, the freeing
-process occupied a CPU over 150 seconds and following softlockup message
-appeared twice or more.
-
-
-$ echo 6000000 > /proc/sys/vm/nr_hugepages
-$ cat /proc/sys/vm/nr_hugepages
-6000000
-$ grep ^Huge /proc/meminfo
-HugePages_Total:   6000000
-HugePages_Free:    6000000
-HugePages_Rsvd:        0
-HugePages_Surp:        0
-Hugepagesize:       2048 kB
-$ echo 0 > /proc/sys/vm/nr_hugepages
-
-BUG: soft lockup - CPU#16 stuck for 67s! [sh:12883] ...
-Pid: 12883, comm: sh Not tainted 2.6.32-358.el6.x86_64 #1
-Call Trace:
- [<ffffffff8115a438>] ? free_pool_huge_page+0xb8/0xd0
- [<ffffffff8115a578>] ? set_max_huge_pages+0x128/0x190
- [<ffffffff8115c663>] ? hugetlb_sysctl_handler_common+0x113/0x140
- [<ffffffff8115c6de>] ? hugetlb_sysctl_handler+0x1e/0x20
- [<ffffffff811f3097>] ? proc_sys_call_handler+0x97/0xd0
- [<ffffffff811f30e4>] ? proc_sys_write+0x14/0x20
- [<ffffffff81180f98>] ? vfs_write+0xb8/0x1a0
- [<ffffffff81181891>] ? sys_write+0x51/0x90
- [<ffffffff810dc565>] ? __audit_syscall_exit+0x265/0x290
- [<ffffffff8100b072>] ? system_call_fastpath+0x16/0x1b
-
-I have not confirmed this problem with upstream kernels because I am not
-able to prepare the machine equipped with 12TB memory now.  However I
-confirmed that the amount of decreasing hugepages was directly
-proportional to the amount of required time.
-
-I measured required times on a smaller machine.  It showed 130-145
-hugepages decreased in a millisecond.
-
-Amount of decreasing     Required time      Decreasing rate
-hugepages                     (msec)         (pages/msec)
-------------------------------------------------------------
-10,000 pages == 20GB         70 -  74          135-142
-30,000 pages == 60GB        208 - 229          131-144
-
-It means decrement of 6TB hugepages will trigger softlockup with the
-default threshold 20sec, in this decreasing rate.
-
-Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mm.h |    3 ---
+ mm/internal.h      |   15 +++++++++++++++
+ mm/readahead.c     |   21 +++------------------
+ 3 files changed, 18 insertions(+), 21 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-softlockup-when-a-large-number-of-hugepages-are-freed mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-softlockup-when-a-large-number-of-hugepages-are-freed
-+++ a/mm/hugetlb.c
-@@ -1536,6 +1536,7 @@ static unsigned long set_max_huge_pages(
- 	while (min_count < persistent_huge_pages(h)) {
- 		if (!free_pool_huge_page(h, nodes_allowed, 0))
- 			break;
-+		cond_resched_lock(&hugetlb_lock);
- 	}
- 	while (count < persistent_huge_pages(h)) {
- 		if (!adjust_pool_surplus(h, nodes_allowed, 1))
-_
-
-Patches currently in -mm which might be from m.mizuma@jp.fujitsu.com are
-
-origin.patch
-
+diff -puN include/linux/mm.h~mm-readaheadc-inline-ra_submit include/linux/mm.h
+--- a/include/linux/mm.h~mm-readaheadc-inline-ra_submit
++++ a/include/linux/mm.h
+@@ -1875,9 +1875,6 @@ void page_cache_async_readahead(struct a
+ 				unsigned long size);
+ 
+ unsigned long max_sane_readahead(unsigned long nr);
+-unsigned long ra_submit(struct file_ra_state *ra,
+-			struct address_space *mapping,
+-			struct file *filp);
+ 
+ /* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
+ extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
+diff -puN mm/internal.h~mm-readaheadc-inline-ra_submit mm/internal.h
+--- a/mm/internal.h~mm-readaheadc-inline-ra_submit
++++ a/mm/internal.h
+@@ -11,6 +11,7 @@
+ #ifndef __MM_INTERNAL_H
+ #define __MM_INTERNAL_H
+ 
++#include <linux/fs.h>
+ #include <linux/mm.h>
+ 
+ void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
+@@ -21,6 +22,20 @@ static inline void set_page_count(struct
+ 	atomic_set(&page->_count, v);
+ }
+ 
++extern int __do_page_cache_readahead(struct address_space *mapping,
++		struct file *filp, pgoff_t offset, unsigned long nr_to_read,
++		unsigned long lookahead_size);
++
++/*
++ * Submit IO for the read-ahead request in file_ra_state.
++ */
++static inline unsigned long ra_submit(struct file_ra_state *ra,
++		struct address_space *mapping, struct file *filp)
++{
++	return __do_page_cache_readahead(mapping, filp,
++					ra->start, ra->size, ra->async_size);
++}
++
+ /*
+  * Turn a non-refcounted page (->_count == 0) into refcounted with
+  * a count of one.
+diff -puN mm/readahead.c~mm-readaheadc-inline-ra_submit mm/readahead.c
+--- a/mm/readahead.c~mm-readaheadc-inline-ra_submit
++++ a/mm/readahead.c
+@@ -8,9 +8,7 @@
+  */
+ 
+ #include <linux/kernel.h>
+-#include <linux/fs.h>
+ #include <linux/gfp.h>
+-#include <linux/mm.h>
+ #include <linux/export.h>
+ #include <linux/blkdev.h>
+ #include <linux/backing-dev.h>
+@@ -20,6 +18,8 @@
+ #include <linux/syscalls.h>
+ #include <linux/file.h>
+ 
++#include "internal.h"
++
+ /*
+  * Initialise a struct file's readahead state.  Assumes that the caller has
+  * memset *ra to zero.
+@@ -149,8 +149,7 @@ out:
+  *
+  * Returns the number of pages requested, or the maximum amount of I/O allowed.
+  */
+-static int
+-__do_page_cache_readahead(struct address_space *mapping, struct file *filp,
++int __do_page_cache_readahead(struct address_space *mapping, struct file *filp,
+ 			pgoff_t offset, unsigned long nr_to_read,
+ 			unsigned long lookahead_size)
+ {
+@@ -244,20 +243,6 @@ unsigned long max_sane_readahead(unsigne
+ }
+ 
+ /*
+- * Submit IO for the read-ahead request in file_ra_state.
+- */
+-unsigned long ra_submit(struct file_ra_state *ra,
+-		       struct address_space *mapping, struct file *filp)
+-{
+-	int actual;
+-
+-	actual = __do_page_cache_readahead(mapping, filp,
+-					ra->start, ra->size, ra->async_size);
+-
+-	return actual;
+-}
