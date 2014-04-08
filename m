@@ -1,116 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-get_mem_cgroup_from_mm.patch removed from -mm tree
-Date: Tue, 08 Apr 2014 13:52:41 -0700
-Message-ID: <53446199.D9jDLqFecVDvAYOg%akpm@linux-foundation.org>
+Subject: [merged]
+ memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge.patch removed from -mm tree
+Date: Tue, 08 Apr 2014 13:53:13 -0700
+Message-ID: <534461b9.0cTsWSsejSIpCqL4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56533 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757264AbaDHUwl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:52:41 -0400
+	with ESMTP id S1756739AbaDHUxN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:53:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhocko@suse.cz, fengguang.wu@intel.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, hannes@cmpxchg.org, mhocko@suse.cz
 
-Subject: [merged] memcg-get_mem_cgroup_from_mm.patch removed from -mm tree
-To: hannes@cmpxchg.org,fengguang.wu@intel.com,mhocko@suse.cz,mm-commits@vger.kernel.org
+Subject: [merged] memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge.patch removed from -mm tree
+To: mhocko@suse.cz,hannes@cmpxchg.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 13:52:41 -0700
+Date: Tue, 08 Apr 2014 13:53:13 -0700
 
 
 The patch titled
-     Subject: memcg: get_mem_cgroup_from_mm()
+     Subject: memcg: do not replicate get_mem_cgroup_from_mm in __mem_cgroup_try_charge
 has been removed from the -mm tree.  Its filename was
-     memcg-get_mem_cgroup_from_mm.patch
+     memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: memcg: get_mem_cgroup_from_mm()
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: do not replicate get_mem_cgroup_from_mm in __mem_cgroup_try_charge
 
-Instead of returning NULL from try_get_mem_cgroup_from_mm() when the mm
-owner is exiting, just return root_mem_cgroup.  This makes sense for all
-callsites and gets rid of some of them having to fallback manually.
+__mem_cgroup_try_charge duplicates get_mem_cgroup_from_mm for charges
+which came without a memcg.  The only reason seems to be a tiny
+optimization when css_tryget is not called if the charge can be consumed
+from the stock.  Nevertheless css_tryget is very cheap since it has been
+reworked to use per-cpu counting so this optimization doesn't give us
+anything these days.
 
-[fengguang.wu@intel.com: fix warnings]
+So let's drop the code duplication so that the code is more readable.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 ------
- mm/memcontrol.c            |   18 ++++--------------
- 2 files changed, 4 insertions(+), 20 deletions(-)
+ mm/memcontrol.c |   50 +++++-----------------------------------------
+ 1 file changed, 6 insertions(+), 44 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-get_mem_cgroup_from_mm include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-get_mem_cgroup_from_mm
-+++ a/include/linux/memcontrol.h
-@@ -94,7 +94,6 @@ bool task_in_mem_cgroup(struct task_stru
- 
- extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
- extern struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
--extern struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm);
- 
- extern struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg);
- extern struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *css);
-@@ -293,11 +292,6 @@ static inline struct mem_cgroup *try_get
- {
- 	return NULL;
- }
--
--static inline struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
--{
--	return NULL;
--}
- 
- static inline bool mm_match_cgroup(struct mm_struct *mm,
- 		struct mem_cgroup *memcg)
-diff -puN mm/memcontrol.c~memcg-get_mem_cgroup_from_mm mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-get_mem_cgroup_from_mm
+diff -puN mm/memcontrol.c~memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-do-not-replicate-get_mem_cgroup_from_mm-in-__mem_cgroup_try_charge
 +++ a/mm/memcontrol.c
-@@ -1071,7 +1071,7 @@ struct mem_cgroup *mem_cgroup_from_task(
- 	return mem_cgroup_from_css(task_css(p, memory_cgrp_id));
- }
- 
--struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
-+static struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm)
- {
- 	struct mem_cgroup *memcg = NULL;
- 
-@@ -1079,7 +1079,7 @@ struct mem_cgroup *try_get_mem_cgroup_fr
- 	do {
- 		memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
- 		if (unlikely(!memcg))
--			break;
-+			memcg = root_mem_cgroup;
- 	} while (!css_tryget(&memcg->css));
- 	rcu_read_unlock();
- 	return memcg;
-@@ -1475,7 +1475,7 @@ bool task_in_mem_cgroup(struct task_stru
- 
- 	p = find_lock_task_mm(task);
- 	if (p) {
--		curr = try_get_mem_cgroup_from_mm(p->mm);
-+		curr = get_mem_cgroup_from_mm(p->mm);
- 		task_unlock(p);
+@@ -2697,52 +2697,14 @@ static int __mem_cgroup_try_charge(struc
+ again:
+ 	if (*ptr) { /* css should be a valid one */
+ 		memcg = *ptr;
+-		if (mem_cgroup_is_root(memcg))
+-			goto done;
+-		if (consume_stock(memcg, nr_pages))
+-			goto done;
+ 		css_get(&memcg->css);
  	} else {
- 		/*
-@@ -1489,8 +1489,6 @@ bool task_in_mem_cgroup(struct task_stru
- 			css_get(&curr->css);
- 		rcu_read_unlock();
+-		struct task_struct *p;
+-
+-		rcu_read_lock();
+-		p = rcu_dereference(mm->owner);
+-		/*
+-		 * Because we don't have task_lock(), "p" can exit.
+-		 * In that case, "memcg" can point to root or p can be NULL with
+-		 * race with swapoff. Then, we have small risk of mis-accouning.
+-		 * But such kind of mis-account by race always happens because
+-		 * we don't have cgroup_mutex(). It's overkill and we allo that
+-		 * small race, here.
+-		 * (*) swapoff at el will charge against mm-struct not against
+-		 * task-struct. So, mm->owner can be NULL.
+-		 */
+-		memcg = mem_cgroup_from_task(p);
+-		if (!memcg)
+-			memcg = root_mem_cgroup;
+-		if (mem_cgroup_is_root(memcg)) {
+-			rcu_read_unlock();
+-			goto done;
+-		}
+-		if (consume_stock(memcg, nr_pages)) {
+-			/*
+-			 * It seems dagerous to access memcg without css_get().
+-			 * But considering how consume_stok works, it's not
+-			 * necessary. If consume_stock success, some charges
+-			 * from this memcg are cached on this cpu. So, we
+-			 * don't need to call css_get()/css_tryget() before
+-			 * calling consume_stock().
+-			 */
+-			rcu_read_unlock();
+-			goto done;
+-		}
+-		/* after here, we may be blocked. we need to get refcnt */
+-		if (!css_tryget(&memcg->css)) {
+-			rcu_read_unlock();
+-			goto again;
+-		}
+-		rcu_read_unlock();
++		memcg = get_mem_cgroup_from_mm(mm);
  	}
--	if (!curr)
--		return false;
- 	/*
- 	 * We should check use_hierarchy of "memcg" not "curr". Because checking
- 	 * use_hierarchy of "curr" here make this function true if hierarchy is
-@@ -3617,15 +3615,7 @@ __memcg_kmem_newpage_charge(gfp_t gfp, s
- 	if (!current->mm || current->memcg_kmem_skip_account)
- 		return true;
++	if (mem_cgroup_is_root(memcg))
++		goto done;
++	if (consume_stock(memcg, nr_pages))
++		goto done;
  
--	memcg = try_get_mem_cgroup_from_mm(current->mm);
+ 	do {
+ 		bool invoke_oom = oom && !nr_oom_retries;
+@@ -2778,8 +2740,8 @@ again:
+ 
+ 	if (batch > nr_pages)
+ 		refill_stock(memcg, batch - nr_pages);
+-	css_put(&memcg->css);
+ done:
++	css_put(&memcg->css);
+ 	*ptr = memcg;
+ 	return 0;
+ nomem:
+_
+
+Patches currently in -mm which might be from mhocko@suse.cz are
+
+origin.patch
+
