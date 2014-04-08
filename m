@@ -1,72 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-use-raw_cpu_inc-for-incrementing-statistics.patch
+Subject: [merged]
+ vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks.patch
  removed from -mm tree
-Date: Tue, 08 Apr 2014 14:47:45 -0700
-Message-ID: <53446e81.rki6bYIlAAzXG6xs%akpm@linux-foundation.org>
+Date: Tue, 08 Apr 2014 14:48:17 -0700
+Message-ID: <53446ea1.CpqxSr5H+RWnj5QF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57290 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757796AbaDHVrq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:47:46 -0400
+	with ESMTP id S1757796AbaDHVsS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:48:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, fengguang.wu@intel.com, cl@linux.com
+To: mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, dchinner@redhat.com, cl@linux.com
 
-Subject: [merged] slub-use-raw_cpu_inc-for-incrementing-statistics.patch removed from -mm tree
-To: cl@linux.com,fengguang.wu@intel.com,penberg@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks.patch removed from -mm tree
+To: cl@linux.com,dchinner@redhat.com,sergey.senozhatsky@gmail.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 14:47:45 -0700
+Date: Tue, 08 Apr 2014 14:48:17 -0700
 
 
 The patch titled
-     Subject: slub: use raw_cpu_inc for incrementing statistics
+     Subject: vmstat: use raw_cpu_ops to avoid false positives on preemption checks
 has been removed from the -mm tree.  Its filename was
-     slub-use-raw_cpu_inc-for-incrementing-statistics.patch
+     vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: slub: use raw_cpu_inc for incrementing statistics
+Subject: vmstat: use raw_cpu_ops to avoid false positives on preemption checks
 
-Statistics are not critical to the operation of the allocation
-but should also not cause too much overhead.
+vm counters are allowed to be racy.  Use raw_cpu_ops to avoid the
+local_irq_disable overhead and to avoid preemption checks which will be
+added to the __this_cpu operations.
 
-When __this_cpu_inc is altered to check if preemption is disabled this
-triggers.  Use raw_cpu_inc to avoid the checks.  Using this_cpu_ops may
-cause interrupt disable/enable sequences on various arches which may
-significantly impact allocator performance.
-
-[akpm@linux-foundation.org: add comment]
+[akpm@linux-foundation.org: Add comment.  Again.]
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/vmstat.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-use-raw_cpu_inc-for-incrementing-statistics mm/slub.c
---- a/mm/slub.c~slub-use-raw_cpu_inc-for-incrementing-statistics
-+++ a/mm/slub.c
-@@ -224,7 +224,11 @@ static inline void memcg_propagate_slab_
- static inline void stat(const struct kmem_cache *s, enum stat_item si)
+diff -puN include/linux/vmstat.h~vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks include/linux/vmstat.h
+--- a/include/linux/vmstat.h~vmstat-use-raw_cpu_ops-to-avoid-false-positives-on-preemption-checks
++++ a/include/linux/vmstat.h
+@@ -27,9 +27,13 @@ struct vm_event_state {
+ 
+ DECLARE_PER_CPU(struct vm_event_state, vm_event_states);
+ 
++/*
++ * vm counters are allowed to be racy. Use raw_cpu_ops to avoid the
++ * local_irq_disable overhead.
++ */
+ static inline void __count_vm_event(enum vm_event_item item)
  {
- #ifdef CONFIG_SLUB_STATS
--	__this_cpu_inc(s->cpu_slab->stat[si]);
-+	/*
-+	 * The rmw is racy on a preemptible kernel but this is acceptable, so
-+	 * avoid this_cpu_add()'s irq-disable overhead.
-+	 */
-+	raw_cpu_inc(s->cpu_slab->stat[si]);
- #endif
+-	__this_cpu_inc(vm_event_states.event[item]);
++	raw_cpu_inc(vm_event_states.event[item]);
  }
  
+ static inline void count_vm_event(enum vm_event_item item)
+@@ -39,7 +43,7 @@ static inline void count_vm_event(enum v
+ 
+ static inline void __count_vm_events(enum vm_event_item item, long delta)
+ {
+-	__this_cpu_add(vm_event_states.event[item], delta);
++	raw_cpu_add(vm_event_states.event[item], delta);
+ }
+ 
+ static inline void count_vm_events(enum vm_event_item item, long delta)
 _
 
 Patches currently in -mm which might be from cl@linux.com are
