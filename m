@@ -1,748 +1,358 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kconfig-rename-has_ioport-to-has_ioport_map.patch
- removed from -mm tree
-Date: Tue, 08 Apr 2014 14:39:13 -0700
-Message-ID: <53446c81.nx9KM3Sf3dGPQfmm%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-used-macros-from-compilerh-instead-of-__attribute__.patch removed
+ from -mm tree
+Date: Tue, 08 Apr 2014 14:39:45 -0700
+Message-ID: <53446ca1.JjhcDVu1r8PoYkoX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57163 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57165 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757898AbaDHVjN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:39:13 -0400
+	with ESMTP id S1757898AbaDHVjq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:39:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, arnd@arndb.de, u.kleine-koenig@pengutronix.de
+To: mm-commits@vger.kernel.org, rjw@sisk.pl, mingo@elte.hu, gidisrael@gmail.com
 
-Subject: [merged] kconfig-rename-has_ioport-to-has_ioport_map.patch removed from -mm tree
-To: u.kleine-koenig@pengutronix.de,arnd@arndb.de,mm-commits@vger.kernel.org
+Subject: [merged] kernel-used-macros-from-compilerh-instead-of-__attribute__.patch removed from -mm tree
+To: gidisrael@gmail.com,mingo@elte.hu,rjw@sisk.pl,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 14:39:13 -0700
+Date: Tue, 08 Apr 2014 14:39:45 -0700
 
 
 The patch titled
-     Subject: Kconfig: rename HAS_IOPORT to HAS_IOPORT_MAP
+     Subject: kernel: use macros from compiler.h instead of __attribute__((...))
 has been removed from the -mm tree.  Its filename was
-     kconfig-rename-has_ioport-to-has_ioport_map.patch
+     kernel-used-macros-from-compilerh-instead-of-__attribute__.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Subject: Kconfig: rename HAS_IOPORT to HAS_IOPORT_MAP
+From: Gideon Israel Dsouza <gidisrael@gmail.com>
+Subject: kernel: use macros from compiler.h instead of __attribute__((...))
 
-If the renamed symbol is defined lib/iomap.c implements ioport_map and
-ioport_unmap and currently (nearly) all platforms define the port accessor
-functions outb/inb and friend unconditionally.  So HAS_IOPORT_MAP is the
-better name for this.  Consequently NO_IOPORT is renamed to NO_IOPORT_MAP.
+To increase compiler portability there is <linux/compiler.h> which
+provides convenience macros for various gcc constructs.  Eg: __weak for
+__attribute__((weak)).  I've replaced all instances of gcc attributes with
+the right macro in the kernel subsystem.
 
-The motivation for this change is to reintroduce a symbol HAS_IOPORT that
-signals if outb/int et al are available.  I will address that at least one
-merge window later though to keep surprises to a minimum and catch new
-introductions of (HAS|NO)_IOPORT.
-
-The changes in this commit were done using:
-
-	$ git grep -l -E '(NO|HAS)_IOPORT' | xargs perl -p -i -e 's/\b((?:CONFIG_)?(?:NO|HAS)_IOPORT)\b/$1_MAP/'
-
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Gideon Israel Dsouza <gidisrael@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/Kconfig                    |    2 +-
- arch/arm/Kconfig                    |   12 ++++++------
- arch/arm/mach-picoxcell/Kconfig     |    2 +-
- arch/arm/mach-prima2/Kconfig        |    2 +-
- arch/arm/mach-s3c24xx/Kconfig       |    2 +-
- arch/arm/mach-shmobile/Kconfig      |    2 +-
- arch/arm/mach-vexpress/Kconfig      |    2 +-
- arch/arm/plat-samsung/Kconfig       |    4 ++--
- arch/arm64/Kconfig                  |    2 +-
- arch/cris/Kconfig                   |    2 +-
- arch/hexagon/Kconfig                |    2 +-
- arch/m32r/Kconfig                   |    2 +-
- arch/m68k/Kconfig                   |    2 +-
- arch/metag/Kconfig                  |    2 +-
- arch/mips/Kconfig                   |    4 ++--
- arch/openrisc/Kconfig               |    2 +-
- arch/s390/Kconfig                   |    2 +-
- arch/sh/Kconfig                     |    4 ++--
- arch/sh/boards/Kconfig              |    8 ++++----
- arch/sh/include/asm/io.h            |    4 ++--
- arch/sh/include/asm/io_trapped.h    |    2 +-
- arch/sh/include/asm/machvec.h       |    2 +-
- arch/sh/kernel/Makefile             |    2 +-
- arch/sh/kernel/io_trapped.c         |    4 ++--
- arch/tile/Kconfig                   |    2 +-
- arch/unicore32/Kconfig              |    2 +-
- arch/xtensa/Kconfig                 |    4 ++--
- arch/xtensa/configs/iss_defconfig   |    2 +-
- arch/xtensa/configs/s6105_defconfig |    2 +-
- drivers/char/tpm/Kconfig            |    2 +-
- drivers/i2c/busses/Kconfig          |    2 +-
- drivers/net/can/sja1000/Kconfig     |    2 +-
- drivers/net/ethernet/3com/Kconfig   |    2 +-
- include/asm-generic/io.h            |    4 ++--
- include/asm-generic/iomap.h         |    2 +-
- include/linux/io.h                  |    2 +-
- lib/Kconfig                         |    4 ++--
- lib/devres.c                        |    4 ++--
- lib/iomap.c                         |    4 ++--
- sound/isa/Kconfig                   |    2 +-
- sound/pci/Kconfig                   |    2 +-
- 41 files changed, 59 insertions(+), 59 deletions(-)
+ kernel/fork.c             |    3 ++-
+ kernel/kallsyms.c         |   11 ++++++-----
+ kernel/kexec.c            |    5 +++--
+ kernel/ksysfs.c           |    5 +++--
+ kernel/power/power.h      |    3 ++-
+ kernel/power/snapshot.c   |    3 ++-
+ kernel/power/suspend.c    |    5 +++--
+ kernel/power/swap.c       |    2 +-
+ kernel/sched/clock.c      |    3 ++-
+ kernel/sched/core.c       |    3 ++-
+ kernel/signal.c           |    4 +++-
+ kernel/time/timekeeping.c |    5 +++--
+ kernel/trace/trace.h      |    3 ++-
+ 13 files changed, 34 insertions(+), 21 deletions(-)
 
-diff -puN arch/arc/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/arc/Kconfig
---- a/arch/arc/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/arc/Kconfig
-@@ -57,7 +57,7 @@ config ARCH_FLATMEM_ENABLE
- config MMU
- 	def_bool y
+diff -puN kernel/fork.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/fork.c
+--- a/kernel/fork.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/fork.c
+@@ -73,6 +73,7 @@
+ #include <linux/signalfd.h>
+ #include <linux/uprobes.h>
+ #include <linux/aio.h>
++#include <linux/compiler.h>
  
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool y
- 
- config GENERIC_CALIBRATE_DELAY
-diff -puN arch/arm/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/arm/Kconfig
---- a/arch/arm/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/arm/Kconfig
-@@ -126,7 +126,7 @@ config HAVE_TCM
- config HAVE_PROC_CPU
- 	bool
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	bool
- 
- config EISA
-@@ -410,7 +410,7 @@ config ARCH_EBSA110
- 	select ISA
- 	select NEED_MACH_IO_H
- 	select NEED_MACH_MEMORY_H
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	help
- 	  This is an evaluation board for the StrongARM processor available
- 	  from Digital. It has limited hardware on-board, including an
-@@ -428,7 +428,7 @@ config ARCH_EFM32
- 	select CPU_V7M
- 	select GENERIC_CLOCKEVENTS
- 	select NO_DMA
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select SPARSE_IRQ
- 	select USE_OF
- 	help
-@@ -677,7 +677,7 @@ config ARCH_SHMOBILE_LEGACY
- 	select HAVE_SMP
- 	select MIGHT_HAVE_CACHE_L2X0
- 	select MULTI_IRQ_HANDLER
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select PINCTRL
- 	select PM_GENERIC_DOMAINS if PM
- 	select SPARSE_IRQ
-@@ -699,7 +699,7 @@ config ARCH_RPC
- 	select ISA_DMA_API
- 	select NEED_MACH_IO_H
- 	select NEED_MACH_MEMORY_H
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select VIRT_TO_BUS
- 	help
- 	  On the Acorn Risc-PC, Linux can support the internal IDE disk and
-@@ -760,7 +760,7 @@ config ARCH_S3C64XX
- 	select HAVE_S3C2410_I2C if I2C
- 	select HAVE_S3C2410_WATCHDOG if WATCHDOG
- 	select HAVE_TCM
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select PLAT_SAMSUNG
- 	select PM_GENERIC_DOMAINS if PM
- 	select S3C_DEV_NAND
-diff -puN arch/arm/mach-picoxcell/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/arm/mach-picoxcell/Kconfig
---- a/arch/arm/mach-picoxcell/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/arm/mach-picoxcell/Kconfig
-@@ -4,4 +4,4 @@ config ARCH_PICOXCELL
- 	select ARM_VIC
- 	select DW_APB_TIMER_OF
- 	select HAVE_TCM
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
-diff -puN arch/arm/mach-prima2/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/arm/mach-prima2/Kconfig
---- a/arch/arm/mach-prima2/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/arm/mach-prima2/Kconfig
-@@ -3,7 +3,7 @@ config ARCH_SIRF
- 	select ARCH_HAS_RESET_CONTROLLER
- 	select ARCH_REQUIRE_GPIOLIB
- 	select GENERIC_IRQ_CHIP
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select PINCTRL
- 	select PINCTRL_SIRF
- 	help
-diff -puN arch/arm/mach-s3c24xx/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/arm/mach-s3c24xx/Kconfig
---- a/arch/arm/mach-s3c24xx/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/arm/mach-s3c24xx/Kconfig
-@@ -12,7 +12,7 @@ if ARCH_S3C24XX
- config PLAT_S3C24XX
- 	def_bool y
- 	select ARCH_REQUIRE_GPIOLIB
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select S3C_DEV_NAND
- 	select IRQ_DOMAIN
- 	help
-diff -puN arch/arm/mach-shmobile/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/arm/mach-shmobile/Kconfig
---- a/arch/arm/mach-shmobile/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/arm/mach-shmobile/Kconfig
-@@ -10,7 +10,7 @@ config ARCH_SHMOBILE_MULTI
- 	select ARM_GIC
- 	select MIGHT_HAVE_PCI
- 	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select PINCTRL
- 	select ARCH_REQUIRE_GPIOLIB
- 
-diff -puN arch/arm/mach-vexpress/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/arm/mach-vexpress/Kconfig
---- a/arch/arm/mach-vexpress/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/arm/mach-vexpress/Kconfig
-@@ -10,7 +10,7 @@ config ARCH_VEXPRESS
- 	select HAVE_ARM_TWD if SMP
- 	select HAVE_PATA_PLATFORM
- 	select ICST
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select PLAT_VERSATILE
- 	select PLAT_VERSATILE_CLCD
- 	select POWER_RESET
-diff -puN arch/arm/plat-samsung/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/arm/plat-samsung/Kconfig
---- a/arch/arm/plat-samsung/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/arm/plat-samsung/Kconfig
-@@ -9,7 +9,7 @@ config PLAT_SAMSUNG
- 	depends on PLAT_S3C24XX || ARCH_S3C64XX || PLAT_S5P || ARCH_EXYNOS
- 	default y
- 	select GENERIC_IRQ_CHIP
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	help
- 	  Base platform code for all Samsung SoC based systems
- 
-@@ -19,7 +19,7 @@ config PLAT_S5P
- 	default y
- 	select ARCH_REQUIRE_GPIOLIB
- 	select ARM_VIC
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select PLAT_SAMSUNG
- 	select S3C_GPIO_TRACK
- 	select S5P_GPIO_DRVSTR
-diff -puN arch/arm64/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/arm64/Kconfig
-@@ -66,7 +66,7 @@ config ARCH_PHYS_ADDR_T_64BIT
- config MMU
- 	def_bool y
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool y
- 
- config STACKTRACE_SUPPORT
-diff -puN arch/cris/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/cris/Kconfig
---- a/arch/cris/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/cris/Kconfig
-@@ -29,7 +29,7 @@ config GENERIC_CALIBRATE_DELAY
- 	bool
- 	default y
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool y
- 
- config FORCE_MAX_ZONEORDER
-diff -puN arch/hexagon/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/hexagon/Kconfig
---- a/arch/hexagon/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/hexagon/Kconfig
-@@ -19,7 +19,7 @@ config HEXAGON
- 	select GENERIC_IRQ_SHOW
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_TRACEHOOK
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select GENERIC_IOMAP
- 	select GENERIC_SMP_IDLE_THREAD
- 	select STACKTRACE_SUPPORT
-diff -puN arch/m32r/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/m32r/Kconfig
-@@ -28,7 +28,7 @@ config ZONE_DMA
- 	bool
- 	default y
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool y
- 
- config NO_DMA
-diff -puN arch/m68k/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/m68k/Kconfig
-@@ -52,7 +52,7 @@ config TIME_LOW_RES
- 	bool
- 	default y
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool y
- 
- config NO_DMA
-diff -puN arch/metag/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/metag/Kconfig
---- a/arch/metag/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/metag/Kconfig
-@@ -52,7 +52,7 @@ config GENERIC_HWEIGHT
- config GENERIC_CALIBRATE_DELAY
- 	def_bool y
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool y
- 
- source "init/Kconfig"
-diff -puN arch/mips/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/mips/Kconfig
---- a/arch/mips/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/mips/Kconfig
-@@ -175,7 +175,7 @@ config MACH_DECSTATION
- 	select CPU_R4000_WORKAROUNDS if 64BIT
- 	select CPU_R4400_WORKAROUNDS if 64BIT
- 	select DMA_NONCOHERENT
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select IRQ_CPU
- 	select SYS_HAS_CPU_R3000
- 	select SYS_HAS_CPU_R4X00
-@@ -947,7 +947,7 @@ config SYNC_R4K
- config MIPS_MACHINE
- 	def_bool n
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool n
- 
- config GENERIC_ISA_DMA
-diff -puN arch/openrisc/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/openrisc/Kconfig
---- a/arch/openrisc/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/openrisc/Kconfig
-@@ -41,7 +41,7 @@ config RWSEM_XCHGADD_ALGORITHM
- config GENERIC_HWEIGHT
- 	def_bool y
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool y
- 
- config TRACE_IRQFLAGS_SUPPORT
-diff -puN arch/s390/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/s390/Kconfig
---- a/arch/s390/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/s390/Kconfig
-@@ -52,7 +52,7 @@ config KEXEC
- config AUDIT_ARCH
- 	def_bool y
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool y
- 
- config PCI_QUIRKS
-diff -puN arch/sh/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/sh/Kconfig
---- a/arch/sh/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/sh/Kconfig
-@@ -3,7 +3,7 @@ config SUPERH
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select EXPERT
- 	select CLKDEV_LOOKUP
--	select HAVE_IDE if HAS_IOPORT
-+	select HAVE_IDE if HAS_IOPORT_MAP
- 	select HAVE_MEMBLOCK
- 	select HAVE_MEMBLOCK_NODE_MAP
- 	select ARCH_DISCARD_MEMBLOCK
-@@ -138,7 +138,7 @@ config ARCH_HAS_ILOG2_U32
- config ARCH_HAS_ILOG2_U64
- 	def_bool n
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool !PCI
- 	depends on !SH_CAYMAN && !SH_SH4202_MICRODEV && !SH_SHMIN && \
- 		   !SH_HP6XX && !SH_SOLUTION_ENGINE
-diff -puN arch/sh/boards/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/sh/boards/Kconfig
---- a/arch/sh/boards/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/sh/boards/Kconfig
-@@ -158,7 +158,7 @@ config SH_SDK7786
- 	bool "SDK7786"
- 	depends on CPU_SUBTYPE_SH7786
- 	select SYS_SUPPORTS_PCI
--	select NO_IOPORT if !PCI
-+	select NO_IOPORT_MAP if !PCI
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select HAVE_SRAM_POOL
- 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
-@@ -204,7 +204,7 @@ config SH_URQUELL
- 	depends on CPU_SUBTYPE_SH7786
- 	select ARCH_REQUIRE_GPIOLIB
- 	select SYS_SUPPORTS_PCI
--	select NO_IOPORT if !PCI
-+	select NO_IOPORT_MAP if !PCI
- 
- config SH_MIGOR
- 	bool "Migo-R"
-@@ -306,7 +306,7 @@ config SH_LBOX_RE2
- config SH_X3PROTO
- 	bool "SH-X3 Prototype board"
- 	depends on CPU_SUBTYPE_SHX3
--	select NO_IOPORT if !PCI
-+	select NO_IOPORT_MAP if !PCI
- 	select IRQ_DOMAIN
- 
- config SH_MAGIC_PANEL_R2
-@@ -333,7 +333,7 @@ config SH_POLARIS
- 
- config SH_SH2007
- 	bool "SH-2007 board"
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
- 	depends on CPU_SUBTYPE_SH7780
- 	help
-diff -puN arch/sh/include/asm/io.h~kconfig-rename-has_ioport-to-has_ioport_map arch/sh/include/asm/io.h
---- a/arch/sh/include/asm/io.h~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/sh/include/asm/io.h
-@@ -122,7 +122,7 @@ __BUILD_MEMORY_STRING(__raw_, l, u32)
- 
- __BUILD_MEMORY_STRING(__raw_, q, u64)
- 
--#ifdef CONFIG_HAS_IOPORT
-+#ifdef CONFIG_HAS_IOPORT_MAP
- 
- /*
-  * Slowdown I/O port space accesses for antique hardware.
-@@ -218,7 +218,7 @@ __BUILD_IOPORT_STRING(w, u16)
- __BUILD_IOPORT_STRING(l, u32)
- __BUILD_IOPORT_STRING(q, u64)
- 
--#else /* !CONFIG_HAS_IOPORT */
-+#else /* !CONFIG_HAS_IOPORT_MAP */
- 
- #include <asm/io_noioport.h>
- 
-diff -puN arch/sh/include/asm/io_trapped.h~kconfig-rename-has_ioport-to-has_ioport_map arch/sh/include/asm/io_trapped.h
---- a/arch/sh/include/asm/io_trapped.h~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/sh/include/asm/io_trapped.h
-@@ -36,7 +36,7 @@ __ioremap_trapped(unsigned long offset,
- #define __ioremap_trapped(offset, size) NULL
- #endif
- 
--#ifdef CONFIG_HAS_IOPORT
-+#ifdef CONFIG_HAS_IOPORT_MAP
- extern struct list_head trapped_io;
- 
- static inline void __iomem *
-diff -puN arch/sh/include/asm/machvec.h~kconfig-rename-has_ioport-to-has_ioport_map arch/sh/include/asm/machvec.h
---- a/arch/sh/include/asm/machvec.h~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/sh/include/asm/machvec.h
-@@ -21,7 +21,7 @@ struct sh_machine_vector {
- 	int (*mv_irq_demux)(int irq);
- 	void (*mv_init_irq)(void);
- 
--#ifdef CONFIG_HAS_IOPORT
-+#ifdef CONFIG_HAS_IOPORT_MAP
- 	void __iomem *(*mv_ioport_map)(unsigned long port, unsigned int size);
- 	void (*mv_ioport_unmap)(void __iomem *);
- #endif
-diff -puN arch/sh/kernel/Makefile~kconfig-rename-has_ioport-to-has_ioport_map arch/sh/kernel/Makefile
---- a/arch/sh/kernel/Makefile~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/sh/kernel/Makefile
-@@ -22,7 +22,7 @@ obj-y	:= debugtraps.o dma-nommu.o dumpst
- 
- ifndef CONFIG_GENERIC_IOMAP
- obj-y				+= iomap.o
--obj-$(CONFIG_HAS_IOPORT)	+= ioport.o
-+obj-$(CONFIG_HAS_IOPORT_MAP)	+= ioport.o
- endif
- 
- obj-$(CONFIG_SUPERH32)		+= sys_sh32.o
-diff -puN arch/sh/kernel/io_trapped.c~kconfig-rename-has_ioport-to-has_ioport_map arch/sh/kernel/io_trapped.c
---- a/arch/sh/kernel/io_trapped.c~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/sh/kernel/io_trapped.c
-@@ -22,7 +22,7 @@
- 
- #define TRAPPED_PAGES_MAX 16
- 
--#ifdef CONFIG_HAS_IOPORT
-+#ifdef CONFIG_HAS_IOPORT_MAP
- LIST_HEAD(trapped_io);
- EXPORT_SYMBOL_GPL(trapped_io);
- #endif
-@@ -90,7 +90,7 @@ int register_trapped_io(struct trapped_i
- 	tiop->magic = IO_TRAPPED_MAGIC;
- 	INIT_LIST_HEAD(&tiop->list);
- 	spin_lock_irq(&trapped_lock);
--#ifdef CONFIG_HAS_IOPORT
-+#ifdef CONFIG_HAS_IOPORT_MAP
- 	if (flags & IORESOURCE_IO)
- 		list_add(&tiop->list, &trapped_io);
- #endif
-diff -puN arch/tile/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/tile/Kconfig
---- a/arch/tile/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/tile/Kconfig
-@@ -411,7 +411,7 @@ config PCI_DOMAINS
- config NO_IOMEM
- 	def_bool !PCI
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool !PCI
- 
- config TILE_PCI_IO
-diff -puN arch/unicore32/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/unicore32/Kconfig
---- a/arch/unicore32/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/unicore32/Kconfig
-@@ -27,7 +27,7 @@ config UNICORE32
- config GENERIC_CSUM
- 	def_bool y
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	bool
- 
- config STACKTRACE_SUPPORT
-diff -puN arch/xtensa/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/xtensa/Kconfig
-@@ -41,7 +41,7 @@ config ARCH_HAS_ILOG2_U32
- config ARCH_HAS_ILOG2_U64
- 	def_bool n
- 
--config NO_IOPORT
-+config NO_IOPORT_MAP
- 	def_bool n
- 
- config HZ
-@@ -239,7 +239,7 @@ config XTENSA_PLATFORM_XT2000
- config XTENSA_PLATFORM_S6105
- 	bool "S6105"
- 	select SERIAL_CONSOLE
--	select NO_IOPORT
-+	select NO_IOPORT_MAP
- 
- config XTENSA_PLATFORM_XTFPGA
- 	bool "XTFPGA"
-diff -puN arch/xtensa/configs/iss_defconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/xtensa/configs/iss_defconfig
---- a/arch/xtensa/configs/iss_defconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/xtensa/configs/iss_defconfig
-@@ -11,7 +11,7 @@ CONFIG_GENERIC_FIND_NEXT_BIT=y
- CONFIG_GENERIC_HWEIGHT=y
- # CONFIG_ARCH_HAS_ILOG2_U32 is not set
- # CONFIG_ARCH_HAS_ILOG2_U64 is not set
--CONFIG_NO_IOPORT=y
-+CONFIG_NO_IOPORT_MAP=y
- CONFIG_HZ=100
- CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
- CONFIG_CONSTRUCTORS=y
-diff -puN arch/xtensa/configs/s6105_defconfig~kconfig-rename-has_ioport-to-has_ioport_map arch/xtensa/configs/s6105_defconfig
---- a/arch/xtensa/configs/s6105_defconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/arch/xtensa/configs/s6105_defconfig
-@@ -11,7 +11,7 @@ CONFIG_GENERIC_FIND_NEXT_BIT=y
- CONFIG_GENERIC_HWEIGHT=y
- # CONFIG_ARCH_HAS_ILOG2_U32 is not set
- # CONFIG_ARCH_HAS_ILOG2_U64 is not set
--CONFIG_NO_IOPORT=y
-+CONFIG_NO_IOPORT_MAP=y
- CONFIG_HZ=100
- CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
- 
-diff -puN drivers/char/tpm/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map drivers/char/tpm/Kconfig
---- a/drivers/char/tpm/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/drivers/char/tpm/Kconfig
-@@ -74,7 +74,7 @@ config TCG_NSC
- 
- config TCG_ATMEL
- 	tristate "Atmel TPM Interface"
--	depends on PPC64 || HAS_IOPORT
-+	depends on PPC64 || HAS_IOPORT_MAP
- 	---help---
- 	  If you have a TPM security chip from Atmel say Yes and it 
- 	  will be accessible from within Linux.  To compile this driver 
-diff -puN drivers/i2c/busses/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map drivers/i2c/busses/Kconfig
---- a/drivers/i2c/busses/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/drivers/i2c/busses/Kconfig
-@@ -936,7 +936,7 @@ config I2C_ACORN
- 
- config I2C_ELEKTOR
- 	tristate "Elektor ISA card"
--	depends on ISA && HAS_IOPORT && BROKEN_ON_SMP
-+	depends on ISA && HAS_IOPORT_MAP && BROKEN_ON_SMP
- 	select I2C_ALGOPCF
- 	help
- 	  This supports the PCF8584 ISA bus I2C adapter.  Say Y if you own
-diff -puN drivers/net/can/sja1000/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map drivers/net/can/sja1000/Kconfig
---- a/drivers/net/can/sja1000/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/drivers/net/can/sja1000/Kconfig
-@@ -39,7 +39,7 @@ config CAN_EMS_PCI
- config CAN_PEAK_PCMCIA
- 	tristate "PEAK PCAN-PC Card"
- 	depends on PCMCIA
--	depends on HAS_IOPORT
-+	depends on HAS_IOPORT_MAP
- 	---help---
- 	  This driver is for the PCAN-PC Card PCMCIA adapter (1 or 2 channels)
- 	  from PEAK-System (http://www.peak-system.com). To compile this
-diff -puN drivers/net/ethernet/3com/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map drivers/net/ethernet/3com/Kconfig
---- a/drivers/net/ethernet/3com/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/drivers/net/ethernet/3com/Kconfig
-@@ -66,7 +66,7 @@ config PCMCIA_3C589
- 
- config VORTEX
- 	tristate "3c590/3c900 series (592/595/597) \"Vortex/Boomerang\" support"
--	depends on (PCI || EISA) && HAS_IOPORT
-+	depends on (PCI || EISA) && HAS_IOPORT_MAP
- 	select MII
- 	---help---
- 	  This option enables driver support for a large number of 10Mbps and
-diff -puN include/asm-generic/io.h~kconfig-rename-has_ioport-to-has_ioport_map include/asm-generic/io.h
---- a/include/asm-generic/io.h~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/include/asm-generic/io.h
-@@ -327,7 +327,7 @@ static inline void iounmap(void __iomem
+ #include <asm/pgtable.h>
+ #include <asm/pgalloc.h>
+@@ -286,7 +287,7 @@ void __init fork_init(unsigned long memp
+ 		init_task.signal->rlim[RLIMIT_NPROC];
  }
- #endif /* CONFIG_MMU */
  
--#ifdef CONFIG_HAS_IOPORT
-+#ifdef CONFIG_HAS_IOPORT_MAP
- #ifndef CONFIG_GENERIC_IOMAP
- static inline void __iomem *ioport_map(unsigned long port, unsigned int nr)
+-int __attribute__((weak)) arch_dup_task_struct(struct task_struct *dst,
++int __weak arch_dup_task_struct(struct task_struct *dst,
+ 					       struct task_struct *src)
  {
-@@ -341,7 +341,7 @@ static inline void ioport_unmap(void __i
- extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
- extern void ioport_unmap(void __iomem *p);
- #endif /* CONFIG_GENERIC_IOMAP */
--#endif /* CONFIG_HAS_IOPORT */
-+#endif /* CONFIG_HAS_IOPORT_MAP */
+ 	*dst = *src;
+diff -puN kernel/kallsyms.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/kallsyms.c
+--- a/kernel/kallsyms.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/kallsyms.c
+@@ -23,6 +23,7 @@
+ #include <linux/mm.h>
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
++#include <linux/compiler.h>
  
- #ifndef xlate_dev_kmem_ptr
- #define xlate_dev_kmem_ptr(p)	p
-diff -puN include/asm-generic/iomap.h~kconfig-rename-has_ioport-to-has_ioport_map include/asm-generic/iomap.h
---- a/include/asm-generic/iomap.h~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/include/asm-generic/iomap.h
-@@ -56,7 +56,7 @@ extern void iowrite8_rep(void __iomem *p
- extern void iowrite16_rep(void __iomem *port, const void *buf, unsigned long count);
- extern void iowrite32_rep(void __iomem *port, const void *buf, unsigned long count);
+ #include <asm/sections.h>
  
--#ifdef CONFIG_HAS_IOPORT
-+#ifdef CONFIG_HAS_IOPORT_MAP
- /* Create a virtual mapping cookie for an IO port range */
- extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
- extern void ioport_unmap(void __iomem *);
-diff -puN include/linux/io.h~kconfig-rename-has_ioport-to-has_ioport_map include/linux/io.h
---- a/include/linux/io.h~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/include/linux/io.h
-@@ -41,7 +41,7 @@ static inline int ioremap_page_range(uns
- /*
-  * Managed iomap interface
+@@ -36,8 +37,8 @@
+  * These will be re-linked against their real values
+  * during the second link stage.
   */
--#ifdef CONFIG_HAS_IOPORT
-+#ifdef CONFIG_HAS_IOPORT_MAP
- void __iomem * devm_ioport_map(struct device *dev, unsigned long port,
- 			       unsigned int nr);
- void devm_ioport_unmap(struct device *dev, void __iomem *addr);
-diff -puN lib/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map lib/Kconfig
---- a/lib/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/lib/Kconfig
-@@ -342,9 +342,9 @@ config HAS_IOMEM
- 	select GENERIC_IO
- 	default y
+-extern const unsigned long kallsyms_addresses[] __attribute__((weak));
+-extern const u8 kallsyms_names[] __attribute__((weak));
++extern const unsigned long kallsyms_addresses[] __weak;
++extern const u8 kallsyms_names[] __weak;
  
--config HAS_IOPORT
-+config HAS_IOPORT_MAP
- 	boolean
--	depends on HAS_IOMEM && !NO_IOPORT
-+	depends on HAS_IOMEM && !NO_IOPORT_MAP
- 	default y
- 
- config HAS_DMA
-diff -puN lib/devres.c~kconfig-rename-has_ioport-to-has_ioport_map lib/devres.c
---- a/lib/devres.c~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/lib/devres.c
-@@ -170,7 +170,7 @@ void __iomem *devm_request_and_ioremap(s
- }
- EXPORT_SYMBOL(devm_request_and_ioremap);
- 
--#ifdef CONFIG_HAS_IOPORT
-+#ifdef CONFIG_HAS_IOPORT_MAP
  /*
-  * Generic iomap devres
-  */
-@@ -229,7 +229,7 @@ void devm_ioport_unmap(struct device *de
- 			       devm_ioport_map_match, (__force void *)addr));
- }
- EXPORT_SYMBOL(devm_ioport_unmap);
--#endif /* CONFIG_HAS_IOPORT */
-+#endif /* CONFIG_HAS_IOPORT_MAP */
+  * Tell the compiler that the count isn't in the small data section if the arch
+@@ -46,10 +47,10 @@ extern const u8 kallsyms_names[] __attri
+ extern const unsigned long kallsyms_num_syms
+ __attribute__((weak, section(".rodata")));
  
- #ifdef CONFIG_PCI
- /*
-diff -puN lib/iomap.c~kconfig-rename-has_ioport-to-has_ioport_map lib/iomap.c
---- a/lib/iomap.c~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/lib/iomap.c
-@@ -224,7 +224,7 @@ EXPORT_SYMBOL(iowrite8_rep);
- EXPORT_SYMBOL(iowrite16_rep);
- EXPORT_SYMBOL(iowrite32_rep);
+-extern const u8 kallsyms_token_table[] __attribute__((weak));
+-extern const u16 kallsyms_token_index[] __attribute__((weak));
++extern const u8 kallsyms_token_table[] __weak;
++extern const u16 kallsyms_token_index[] __weak;
  
--#ifdef CONFIG_HAS_IOPORT
-+#ifdef CONFIG_HAS_IOPORT_MAP
- /* Create a virtual mapping cookie for an IO port range */
- void __iomem *ioport_map(unsigned long port, unsigned int nr)
+-extern const unsigned long kallsyms_markers[] __attribute__((weak));
++extern const unsigned long kallsyms_markers[] __weak;
+ 
+ static inline int is_kernel_inittext(unsigned long addr)
  {
-@@ -239,7 +239,7 @@ void ioport_unmap(void __iomem *addr)
+diff -puN kernel/kexec.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/kexec.c
+--- a/kernel/kexec.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/kexec.c
+@@ -32,6 +32,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/swap.h>
+ #include <linux/syscore_ops.h>
++#include <linux/compiler.h>
+ 
+ #include <asm/page.h>
+ #include <asm/uaccess.h>
+@@ -1551,10 +1552,10 @@ void vmcoreinfo_append_str(const char *f
+  * provide an empty default implementation here -- architecture
+  * code may override this
+  */
+-void __attribute__ ((weak)) arch_crash_save_vmcoreinfo(void)
++void __weak arch_crash_save_vmcoreinfo(void)
+ {}
+ 
+-unsigned long __attribute__ ((weak)) paddr_vmcoreinfo_note(void)
++unsigned long __weak paddr_vmcoreinfo_note(void)
+ {
+ 	return __pa((unsigned long)(char *)&vmcoreinfo_note);
  }
- EXPORT_SYMBOL(ioport_map);
- EXPORT_SYMBOL(ioport_unmap);
--#endif /* CONFIG_HAS_IOPORT */
-+#endif /* CONFIG_HAS_IOPORT_MAP */
+diff -puN kernel/ksysfs.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/ksysfs.c
+@@ -18,6 +18,7 @@
+ #include <linux/stat.h>
+ #include <linux/sched.h>
+ #include <linux/capability.h>
++#include <linux/compiler.h>
  
- #ifdef CONFIG_PCI
- /* Hide the details if this is a MMIO or PIO address space and just do what
-diff -puN sound/isa/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map sound/isa/Kconfig
---- a/sound/isa/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/sound/isa/Kconfig
-@@ -191,7 +191,7 @@ config SND_ES18XX
+ #include <linux/rcupdate.h>	/* rcu_expedited */
  
- config SND_SC6000
- 	tristate "Gallant SC-6000/6600/7000 and Audio Excel DSP 16"
--	depends on HAS_IOPORT
-+	depends on HAS_IOPORT_MAP
- 	select SND_WSS_LIB
- 	select SND_OPL3_LIB
- 	select SND_MPU401_UART
-diff -puN sound/pci/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map sound/pci/Kconfig
---- a/sound/pci/Kconfig~kconfig-rename-has_ioport-to-has_ioport_map
-+++ a/sound/pci/Kconfig
-@@ -688,7 +688,7 @@ config SND_LOLA
+@@ -162,8 +163,8 @@ KERNEL_ATTR_RW(rcu_expedited);
+ /*
+  * Make /sys/kernel/notes give the raw contents of our kernel .notes section.
+  */
+-extern const void __start_notes __attribute__((weak));
+-extern const void __stop_notes __attribute__((weak));
++extern const void __start_notes __weak;
++extern const void __stop_notes __weak;
+ #define	notes_size (&__stop_notes - &__start_notes)
  
- config SND_LX6464ES
- 	tristate "Digigram LX6464ES"
--	depends on HAS_IOPORT
-+	depends on HAS_IOPORT_MAP
- 	select SND_PCM
- 	help
- 	  Say Y here to include support for Digigram LX6464ES boards.
+ static ssize_t notes_read(struct file *filp, struct kobject *kobj,
+diff -puN kernel/power/power.h~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/power/power.h
+--- a/kernel/power/power.h~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/power/power.h
+@@ -2,6 +2,7 @@
+ #include <linux/suspend_ioctls.h>
+ #include <linux/utsname.h>
+ #include <linux/freezer.h>
++#include <linux/compiler.h>
+ 
+ struct swsusp_info {
+ 	struct new_utsname	uts;
+@@ -11,7 +12,7 @@ struct swsusp_info {
+ 	unsigned long		image_pages;
+ 	unsigned long		pages;
+ 	unsigned long		size;
+-} __attribute__((aligned(PAGE_SIZE)));
++} __aligned(PAGE_SIZE);
+ 
+ #ifdef CONFIG_HIBERNATION
+ /* kernel/power/snapshot.c */
+diff -puN kernel/power/snapshot.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/power/snapshot.c
+@@ -27,6 +27,7 @@
+ #include <linux/highmem.h>
+ #include <linux/list.h>
+ #include <linux/slab.h>
++#include <linux/compiler.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/mmu_context.h>
+@@ -155,7 +156,7 @@ static inline void free_image_page(void
+ struct linked_page {
+ 	struct linked_page *next;
+ 	char data[LINKED_PAGE_DATA_SIZE];
+-} __attribute__((packed));
++} __packed;
+ 
+ static inline void
+ free_list_of_pages(struct linked_page *list, int clear_page_nosave)
+diff -puN kernel/power/suspend.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/power/suspend.c
+--- a/kernel/power/suspend.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/power/suspend.c
+@@ -26,6 +26,7 @@
+ #include <linux/syscore_ops.h>
+ #include <linux/ftrace.h>
+ #include <trace/events/power.h>
++#include <linux/compiler.h>
+ 
+ #include "power.h"
+ 
+@@ -156,13 +157,13 @@ static int suspend_prepare(suspend_state
+ }
+ 
+ /* default implementation */
+-void __attribute__ ((weak)) arch_suspend_disable_irqs(void)
++void __weak arch_suspend_disable_irqs(void)
+ {
+ 	local_irq_disable();
+ }
+ 
+ /* default implementation */
+-void __attribute__ ((weak)) arch_suspend_enable_irqs(void)
++void __weak arch_suspend_enable_irqs(void)
+ {
+ 	local_irq_enable();
+ }
+diff -puN kernel/power/swap.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/power/swap.c
+--- a/kernel/power/swap.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/power/swap.c
+@@ -101,7 +101,7 @@ struct swsusp_header {
+ 	unsigned int flags;	/* Flags to pass to the "boot" kernel */
+ 	char	orig_sig[10];
+ 	char	sig[10];
+-} __attribute__((packed));
++} __packed;
+ 
+ static struct swsusp_header *swsusp_header;
+ 
+diff -puN kernel/sched/clock.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/sched/clock.c
+--- a/kernel/sched/clock.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/sched/clock.c
+@@ -60,13 +60,14 @@
+ #include <linux/sched.h>
+ #include <linux/static_key.h>
+ #include <linux/workqueue.h>
++#include <linux/compiler.h>
+ 
+ /*
+  * Scheduler clock - returns current time in nanosec units.
+  * This is default implementation.
+  * Architectures and sub-architectures can override this.
+  */
+-unsigned long long __attribute__((weak)) sched_clock(void)
++unsigned long long __weak sched_clock(void)
+ {
+ 	return (unsigned long long)(jiffies - INITIAL_JIFFIES)
+ 					* (NSEC_PER_SEC / HZ);
+diff -puN kernel/sched/core.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/sched/core.c
+--- a/kernel/sched/core.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/sched/core.c
+@@ -73,6 +73,7 @@
+ #include <linux/init_task.h>
+ #include <linux/binfmts.h>
+ #include <linux/context_tracking.h>
++#include <linux/compiler.h>
+ 
+ #include <asm/switch_to.h>
+ #include <asm/tlb.h>
+@@ -6498,7 +6499,7 @@ static cpumask_var_t fallback_doms;
+  * cpu core maps. It is supposed to return 1 if the topology changed
+  * or 0 if it stayed the same.
+  */
+-int __attribute__((weak)) arch_update_cpu_topology(void)
++int __weak arch_update_cpu_topology(void)
+ {
+ 	return 0;
+ }
+diff -puN kernel/signal.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/signal.c
+--- a/kernel/signal.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/signal.c
+@@ -33,6 +33,8 @@
+ #include <linux/uprobes.h>
+ #include <linux/compat.h>
+ #include <linux/cn_proc.h>
++#include <linux/compiler.h>
++
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/signal.h>
+ 
+@@ -3618,7 +3620,7 @@ SYSCALL_DEFINE3(sigsuspend, int, unused1
+ }
+ #endif
+ 
+-__attribute__((weak)) const char *arch_vma_name(struct vm_area_struct *vma)
++__weak const char *arch_vma_name(struct vm_area_struct *vma)
+ {
+ 	return NULL;
+ }
+diff -puN kernel/time/timekeeping.c~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/time/timekeeping.c
+@@ -22,6 +22,7 @@
+ #include <linux/tick.h>
+ #include <linux/stop_machine.h>
+ #include <linux/pvclock_gtod.h>
++#include <linux/compiler.h>
+ 
+ #include "tick-internal.h"
+ #include "ntp_internal.h"
+@@ -760,7 +761,7 @@ u64 timekeeping_max_deferment(void)
+  *
+  *  XXX - Do be sure to remove it once all arches implement it.
+  */
+-void __attribute__((weak)) read_persistent_clock(struct timespec *ts)
++void __weak read_persistent_clock(struct timespec *ts)
+ {
+ 	ts->tv_sec = 0;
+ 	ts->tv_nsec = 0;
+@@ -775,7 +776,7 @@ void __attribute__((weak)) read_persiste
+  *
+  *  XXX - Do be sure to remove it once all arches implement it.
+  */
+-void __attribute__((weak)) read_boot_clock(struct timespec *ts)
++void __weak read_boot_clock(struct timespec *ts)
+ {
+ 	ts->tv_sec = 0;
+ 	ts->tv_nsec = 0;
+diff -puN kernel/trace/trace.h~kernel-used-macros-from-compilerh-instead-of-__attribute__ kernel/trace/trace.h
+--- a/kernel/trace/trace.h~kernel-used-macros-from-compilerh-instead-of-__attribute__
++++ a/kernel/trace/trace.h
+@@ -13,6 +13,7 @@
+ #include <linux/hw_breakpoint.h>
+ #include <linux/trace_seq.h>
+ #include <linux/ftrace_event.h>
++#include <linux/compiler.h>
+ 
+ #ifdef CONFIG_FTRACE_SYSCALLS
+ #include <asm/unistd.h>		/* For NR_SYSCALLS	     */
+@@ -1279,7 +1280,7 @@ int set_tracer_flag(struct trace_array *
+ #undef FTRACE_ENTRY
+ #define FTRACE_ENTRY(call, struct_name, id, tstruct, print, filter)	\
+ 	extern struct ftrace_event_call					\
+-	__attribute__((__aligned__(4))) event_##call;
++	__aligned(4) event_##call;
+ #undef FTRACE_ENTRY_DUP
+ #define FTRACE_ENTRY_DUP(call, struct_name, id, tstruct, print, filter)	\
+ 	FTRACE_ENTRY(call, struct_name, id, PARAMS(tstruct), PARAMS(print), \
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutronix.de are
+Patches currently in -mm which might be from gidisrael@gmail.com are
 
 origin.patch
 
