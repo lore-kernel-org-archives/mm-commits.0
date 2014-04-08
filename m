@@ -1,260 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd.patch removed from -mm tree
-Date: Tue, 08 Apr 2014 13:54:54 -0700
-Message-ID: <5344621e.tWTCU+sba5r67SKJ%akpm@linux-foundation.org>
+ kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator.patch removed from -mm tree
+Date: Tue, 08 Apr 2014 13:55:26 -0700
+Message-ID: <5344623e.lDjWjL7+74BuXUcL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56552 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56554 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756199AbaDHUyz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:54:55 -0400
+	with ESMTP id S1756753AbaDHUz1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:55:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@kernel.org, riel@redhat.com, mgorman@suse.de, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, vegard.nossum@oracle.com, penberg@kernel.org, lizefan@huawei.com, qiuxishi@huawei.com
 
-Subject: [merged] mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd.patch removed from -mm tree
-To: hannes@cmpxchg.org,mgorman@suse.de,riel@redhat.com,stable@kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator.patch removed from -mm tree
+To: qiuxishi@huawei.com,lizefan@huawei.com,penberg@kernel.org,vegard.nossum@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 13:54:54 -0700
+Date: Tue, 08 Apr 2014 13:55:26 -0700
 
 
 The patch titled
-     Subject: mm: page_alloc: spill to remote nodes before waking kswapd
+     Subject: kmemcheck: move hook into __alloc_pages_nodemask() for the page allocator
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd.patch
+     kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: spill to remote nodes before waking kswapd
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: kmemcheck: move hook into __alloc_pages_nodemask() for the page allocator
 
-On NUMA systems, a node may start thrashing cache or even swap anonymous
-pages while there are still free pages on remote nodes.
+Now kmemcheck_pagealloc_alloc() is only called by __alloc_pages_slowpath().
+__alloc_pages_nodemask()
+	__alloc_pages_slowpath()
+		kmemcheck_pagealloc_alloc()
 
-This is a result of 81c0a2bb515f ("mm: page_alloc: fair zone allocator
-policy") and fff4068cba48 ("mm: page_alloc: revert NUMA aspect of fair
-allocation policy").  Before those changes, the allocator would first try
-all allowed zones, including those on remote nodes, before waking any
-kswapds.  But now, the allocator fastpath doubles as the fairness pass,
-which in turn can only consider the local node to prevent remote spilling
-based on exhausted fairness batches alone.  Remote nodes are only
-considered in the slowpath, after the kswapds are woken up.  But if remote
-nodes still have free memory, kswapd should not be woken to rebalance the
-local node or it may thrash cash or swap prematurely.
+And the page will not be tracked by kmemcheck in the following path.
+__alloc_pages_nodemask()
+	get_page_from_freelist()
 
-Fix this by adding one more unfair pass over the zonelist that is allowed
-to spill to remote nodes after the local fairness pass fails but before
-entering the slowpath and waking the kswapds.
+So move kmemcheck_pagealloc_alloc() into __alloc_pages_nodemask(),
+like this:
+__alloc_pages_nodemask()
+	...
+	get_page_from_freelist()
+	if (!page)
+		__alloc_pages_slowpath()
+	kmemcheck_pagealloc_alloc()
+	...
 
-This also gets rid of the GFP_THISNODE exemption from the fairness
-protocol because the unfair pass is no longer tied to kswapd, which
-GFP_THISNODE is not allowed to wake up.
-
-However, because remote spills can be more frequent now - we prefer them
-over local kswapd reclaim - the allocation batches on remote nodes could
-underflow more heavily.  When resetting the batches, use
-atomic_long_read() directly instead of zone_page_state() to calculate the
-delta as the latter filters negative counter values.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: <stable@kernel.org>		[3.12+]
-
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Li Zefan <lizefan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    1 
- mm/page_alloc.c |   89 +++++++++++++++++++++++-----------------------
- 2 files changed, 46 insertions(+), 44 deletions(-)
+ mm/page_alloc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/internal.h~mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd mm/internal.h
---- a/mm/internal.h~mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd
-+++ a/mm/internal.h
-@@ -370,5 +370,6 @@ unsigned long reclaim_clean_pages_from_l
- #define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
- #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
- #define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
-+#define ALLOC_FAIR		0x100 /* fair zone allocation */
- 
- #endif	/* __MM_INTERNAL_H */
-diff -puN mm/page_alloc.c~mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-spill-to-remote-nodes-before-waking-kswapd
+diff -puN mm/page_alloc.c~kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator mm/page_alloc.c
+--- a/mm/page_alloc.c~kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator
 +++ a/mm/page_alloc.c
-@@ -1239,15 +1239,6 @@ void drain_zone_pages(struct zone *zone,
- 	}
- 	local_irq_restore(flags);
- }
--static bool gfp_thisnode_allocation(gfp_t gfp_mask)
--{
--	return (gfp_mask & GFP_THISNODE) == GFP_THISNODE;
--}
--#else
--static bool gfp_thisnode_allocation(gfp_t gfp_mask)
--{
--	return false;
--}
- #endif
+@@ -2692,11 +2692,7 @@ rebalance:
  
- /*
-@@ -1584,12 +1575,7 @@ again:
- 					  get_pageblock_migratetype(page));
- 	}
- 
--	/*
--	 * NOTE: GFP_THISNODE allocations do not partake in the kswapd
--	 * aging protocol, so they can't be fair.
--	 */
--	if (!gfp_thisnode_allocation(gfp_flags))
--		__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
-+	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
- 
- 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
- 	zone_statistics(preferred_zone, zone, gfp_flags);
-@@ -1955,23 +1941,12 @@ zonelist_scan:
- 		 * zone size to ensure fair page aging.  The zone a
- 		 * page was allocated in should have no effect on the
- 		 * time the page has in memory before being reclaimed.
--		 *
--		 * Try to stay in local zones in the fastpath.  If
--		 * that fails, the slowpath is entered, which will do
--		 * another pass starting with the local zones, but
--		 * ultimately fall back to remote zones that do not
--		 * partake in the fairness round-robin cycle of this
--		 * zonelist.
--		 *
--		 * NOTE: GFP_THISNODE allocations do not partake in
--		 * the kswapd aging protocol, so they can't be fair.
- 		 */
--		if ((alloc_flags & ALLOC_WMARK_LOW) &&
--		    !gfp_thisnode_allocation(gfp_mask)) {
--			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
--				continue;
-+		if (alloc_flags & ALLOC_FAIR) {
- 			if (!zone_local(preferred_zone, zone))
- 				continue;
-+			if (zone_page_state(zone, NR_ALLOC_BATCH) <= 0)
-+				continue;
- 		}
- 		/*
- 		 * When allocating a page cache page for writing, we
-@@ -2409,32 +2384,40 @@ __alloc_pages_high_priority(gfp_t gfp_ma
- 	return page;
- }
- 
--static void prepare_slowpath(gfp_t gfp_mask, unsigned int order,
--			     struct zonelist *zonelist,
--			     enum zone_type high_zoneidx,
--			     struct zone *preferred_zone)
-+static void reset_alloc_batches(struct zonelist *zonelist,
-+				enum zone_type high_zoneidx,
-+				struct zone *preferred_zone)
- {
- 	struct zoneref *z;
- 	struct zone *zone;
- 
- 	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
--		if (!(gfp_mask & __GFP_NO_KSWAPD))
--			wakeup_kswapd(zone, order, zone_idx(preferred_zone));
- 		/*
- 		 * Only reset the batches of zones that were actually
--		 * considered in the fast path, we don't want to
--		 * thrash fairness information for zones that are not
-+		 * considered in the fairness pass, we don't want to
-+		 * trash fairness information for zones that are not
- 		 * actually part of this zonelist's round-robin cycle.
- 		 */
- 		if (!zone_local(preferred_zone, zone))
- 			continue;
- 		mod_zone_page_state(zone, NR_ALLOC_BATCH,
--				    high_wmark_pages(zone) -
--				    low_wmark_pages(zone) -
--				    zone_page_state(zone, NR_ALLOC_BATCH));
-+			high_wmark_pages(zone) - low_wmark_pages(zone) -
-+			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
- 	}
- }
- 
-+static void wake_all_kswapds(unsigned int order,
-+			     struct zonelist *zonelist,
-+			     enum zone_type high_zoneidx,
-+			     struct zone *preferred_zone)
-+{
-+	struct zoneref *z;
-+	struct zone *zone;
-+
-+	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx)
-+		wakeup_kswapd(zone, order, zone_idx(preferred_zone));
-+}
-+
- static inline int
- gfp_to_alloc_flags(gfp_t gfp_mask)
- {
-@@ -2523,12 +2506,13 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	 * allowed per node queues are empty and that nodes are
- 	 * over allocated.
- 	 */
--	if (gfp_thisnode_allocation(gfp_mask))
-+	if (IS_ENABLED(CONFIG_NUMA) &&
-+	    (gfp_mask & GFP_THISNODE) == GFP_THISNODE)
- 		goto nopage;
- 
- restart:
--	prepare_slowpath(gfp_mask, order, zonelist,
--			 high_zoneidx, preferred_zone);
-+	if (!(gfp_mask & __GFP_NO_KSWAPD))
-+		wake_all_kswapds(order, zonelist, high_zoneidx, preferred_zone);
- 
- 	/*
- 	 * OK, we're below the kswapd watermark and have kicked background
-@@ -2708,7 +2692,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	struct page *page = NULL;
- 	int migratetype = allocflags_to_migratetype(gfp_mask);
- 	unsigned int cpuset_mems_cookie;
--	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET;
-+	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET|ALLOC_FAIR;
- 	struct mem_cgroup *memcg = NULL;
- 
- 	gfp_mask &= gfp_allowed_mask;
-@@ -2749,12 +2733,29 @@ retry_cpuset:
- 	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
- 		alloc_flags |= ALLOC_CMA;
- #endif
-+retry:
- 	/* First allocation attempt */
- 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
- 			zonelist, high_zoneidx, alloc_flags,
- 			preferred_zone, migratetype);
- 	if (unlikely(!page)) {
- 		/*
-+		 * The first pass makes sure allocations are spread
-+		 * fairly within the local node.  However, the local
-+		 * node might have free pages left after the fairness
-+		 * batches are exhausted, and remote zones haven't
-+		 * even been considered yet.  Try once more without
-+		 * fairness, and include remote zones now, before
-+		 * entering the slowpath and waking kswapd: prefer
-+		 * spilling to a remote zone over swapping locally.
-+		 */
-+		if (alloc_flags & ALLOC_FAIR) {
-+			reset_alloc_batches(zonelist, high_zoneidx,
-+					    preferred_zone);
-+			alloc_flags &= ~ALLOC_FAIR;
-+			goto retry;
-+		}
-+		/*
- 		 * Runtime PM, block IO and its error handling path
- 		 * can deadlock because I/O on the device might not
- 		 * complete.
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-origin.patch
-mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch
-
+ nopage:
+ 	warn_alloc_failed(gfp_mask, order, NULL);
+-	return page;
+ got_pg:
+-	if (kmemcheck_enabled)
+-		kmemcheck_pagealloc_alloc(page, order, gfp_mask);
