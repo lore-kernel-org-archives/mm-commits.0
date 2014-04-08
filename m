@@ -1,123 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-inline-mem_cgroup_charge_common.patch removed
+Subject: [merged]
+ mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch removed
  from -mm tree
-Date: Tue, 08 Apr 2014 13:50:51 -0700
-Message-ID: <5344612b.2JuCseQUL1YOtrp0%akpm@linux-foundation.org>
+Date: Tue, 08 Apr 2014 13:51:28 -0700
+Message-ID: <53446150.JI13O/mHunRptnlt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56523 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56527 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756174AbaDHUuw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:50:52 -0400
+	with ESMTP id S1757070AbaDHUva (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:51:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, mhocko@suse.cz, hannes@cmpxchg.org
 
-Subject: [merged] mm-memcg-inline-mem_cgroup_charge_common.patch removed from -mm tree
+Subject: [merged] mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch removed from -mm tree
 To: hannes@cmpxchg.org,mhocko@suse.cz,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 13:50:51 -0700
+Date: Tue, 08 Apr 2014 13:51:28 -0700
 
 
 The patch titled
-     Subject: mm: memcg: inline mem_cgroup_charge_common()
+     Subject: mm: memcg: push !mm handling out to page cache charge function
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-inline-mem_cgroup_charge_common.patch
+     mm-memcg-push-mm-handling-out-to-page-cache-charge-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: inline mem_cgroup_charge_common()
+Subject: mm: memcg: push !mm handling out to page cache charge function
 
-mem_cgroup_charge_common() is used by both cache and anon pages, but most
-of its body only applies to anon pages and the remainder is not worth
-having in a separate function.
+Only page cache charges can happen without an mm context, so push this
+special case out of the inner core and into the cache charge function.
+
+An ancient comment explains that the mm can also be NULL in case the task
+is currently being migrated, but that is not actually true with the
+current case, so just remove it.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   40 ++++++++++++++++------------------------
- 1 file changed, 16 insertions(+), 24 deletions(-)
+ mm/memcontrol.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-inline-mem_cgroup_charge_common mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-inline-mem_cgroup_charge_common
+diff -puN mm/memcontrol.c~mm-memcg-push-mm-handling-out-to-page-cache-charge-function mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-push-mm-handling-out-to-page-cache-charge-function
 +++ a/mm/memcontrol.c
-@@ -3887,20 +3887,21 @@ out:
- 	return ret;
- }
+@@ -2703,15 +2703,6 @@ static int __mem_cgroup_try_charge(struc
  
--/*
-- * Charge the memory controller for page usage.
-- * Return
-- * 0 if the charge was successful
-- * < 0 if the cgroup is over its limit
-- */
--static int mem_cgroup_charge_common(struct page *page, struct mm_struct *mm,
--				gfp_t gfp_mask, enum charge_type ctype)
-+int mem_cgroup_newpage_charge(struct page *page,
-+			      struct mm_struct *mm, gfp_t gfp_mask)
- {
- 	struct mem_cgroup *memcg = NULL;
- 	unsigned int nr_pages = 1;
- 	bool oom = true;
- 	int ret;
- 
-+	if (mem_cgroup_disabled())
-+		return 0;
-+
-+	VM_BUG_ON_PAGE(page_mapped(page), page);
-+	VM_BUG_ON_PAGE(page->mapping && !PageAnon(page), page);
-+	VM_BUG_ON(!mm);
-+
- 	if (PageTransHuge(page)) {
- 		nr_pages <<= compound_order(page);
- 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
-@@ -3914,22 +3915,11 @@ static int mem_cgroup_charge_common(stru
- 	ret = __mem_cgroup_try_charge(mm, gfp_mask, nr_pages, &memcg, oom);
- 	if (ret == -ENOMEM)
- 		return ret;
--	__mem_cgroup_commit_charge(memcg, page, nr_pages, ctype, false);
-+	__mem_cgroup_commit_charge(memcg, page, nr_pages,
-+				   MEM_CGROUP_CHARGE_TYPE_ANON, false);
- 	return 0;
- }
- 
--int mem_cgroup_newpage_charge(struct page *page,
--			      struct mm_struct *mm, gfp_t gfp_mask)
--{
--	if (mem_cgroup_disabled())
--		return 0;
--	VM_BUG_ON_PAGE(page_mapped(page), page);
--	VM_BUG_ON_PAGE(page->mapping && !PageAnon(page), page);
--	VM_BUG_ON(!mm);
--	return mem_cgroup_charge_common(page, mm, gfp_mask,
--					MEM_CGROUP_CHARGE_TYPE_ANON);
--}
+ 	if (gfp_mask & __GFP_NOFAIL)
+ 		oom = false;
 -
- /*
-  * While swap-in, try_charge -> commit or cancel, the page is locked.
-  * And when try_charge() successfully returns, one refcnt to memcg without
-@@ -4047,9 +4037,11 @@ int mem_cgroup_cache_charge(struct page
- 	if (PageCompound(page))
+-	/*
+-	 * We always charge the cgroup the mm_struct belongs to.
+-	 * The mm_struct's mem_cgroup changes on task migration if the
+-	 * thread group leader migrates. It's possible that mm is not
+-	 * set, if so charge the root memcg (happens for pagecache usage).
+-	 */
+-	if (!*ptr && !mm)
+-		*ptr = root_mem_cgroup;
+ again:
+ 	if (*ptr) { /* css should be a valid one */
+ 		memcg = *ptr;
+@@ -4038,6 +4029,12 @@ int mem_cgroup_cache_charge(struct page
  		return 0;
  
--	if (!PageSwapCache(page))
--		ret = mem_cgroup_charge_common(page, mm, gfp_mask, type);
--	else { /* page is swapcache/shmem */
-+	if (!PageSwapCache(page)) {
-+		ret = __mem_cgroup_try_charge(mm, gfp_mask, 1, &memcg, true);
-+		if (ret != -ENOMEM)
-+			__mem_cgroup_commit_charge(memcg, page, 1, type, false);
-+	} else { /* page is swapcache/shmem */
- 		ret = __mem_cgroup_try_charge_swapin(mm, page,
- 						     gfp_mask, &memcg);
- 		if (!ret)
+ 	if (!PageSwapCache(page)) {
++		/*
++		 * Page cache insertions can happen without an actual
++		 * task context, e.g. during disk probing on boot.
++		 */
++		if (!mm)
++			memcg = root_mem_cgroup;
+ 		ret = __mem_cgroup_try_charge(mm, gfp_mask, 1, &memcg, true);
+ 		if (ret != -ENOMEM)
+ 			__mem_cgroup_commit_charge(memcg, page, 1, type, false);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
