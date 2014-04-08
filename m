@@ -1,141 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- numa-use-last_cpupid_shift-to-calculate-last_cpupid_mask.patch removed from -mm tree
-Date: Tue, 08 Apr 2014 13:59:41 -0700
-Message-ID: <5344633d.YpbOQc/Ykgy9xH8s%akpm@linux-foundation.org>
+ mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch removed from -mm tree
+Date: Tue, 08 Apr 2014 14:00:13 -0700
+Message-ID: <5344635d.ESIMMuqGkDUte0q1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56621 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56629 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756121AbaDHU7m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:59:42 -0400
+	with ESMTP id S1756121AbaDHVAO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:00:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pingfank@linux.vnet.ibm.com, peterz@infradead.org, paulus@samba.org, mel@csn.ul.ie, benh@kernel.crashing.org, aneesh.kumar@linux.vnet.ibm.com, srikar@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, sasha.levin@oracle.com, jwboyer@redhat.com, jhubbard@nvidia.com
 
-Subject: [merged] numa-use-last_cpupid_shift-to-calculate-last_cpupid_mask.patch removed from -mm tree
-To: srikar@linux.vnet.ibm.com,aneesh.kumar@linux.vnet.ibm.com,benh@kernel.crashing.org,mel@csn.ul.ie,paulus@samba.org,peterz@infradead.org,pingfank@linux.vnet.ibm.com,mm-commits@vger.kernel.org
+Subject: [merged] mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch removed from -mm tree
+To: jhubbard@nvidia.com,jwboyer@redhat.com,sasha.levin@oracle.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 13:59:41 -0700
+Date: Tue, 08 Apr 2014 14:00:13 -0700
 
 
 The patch titled
-     Subject: numa: use LAST_CPUPID_SHIFT to calculate LAST_CPUPID_MASK
+     Subject: mm/page_alloc.c: change mm debug routines back to EXPORT_SYMBOL
 has been removed from the -mm tree.  Its filename was
-     numa-use-last_cpupid_shift-to-calculate-last_cpupid_mask.patch
+     mm-page_allocc-change-mm-debug-routines-back-to-export_symbol.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Subject: numa: use LAST_CPUPID_SHIFT to calculate LAST_CPUPID_MASK
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/page_alloc.c: change mm debug routines back to EXPORT_SYMBOL
 
-LAST_CPUPID_MASK is calculated using LAST_CPUPID_WIDTH.  However
-LAST_CPUPID_WIDTH itself can be 0.  (when LAST_CPUPID_NOT_IN_PAGE_FLAGS is
-set).  In such a case LAST_CPUPID_MASK turns out to be 0.
+A new dump_page() routine was recently added, and marked
+EXPORT_SYMBOL_GPL.  dump_page() was also added to the VM_BUG_ON_PAGE()
+macro, and so the end result is that non-GPL code can no longer call
+get_page() and a few other routines.
 
-But with recent commit 1ae71d0319: (mm: numa: bugfix for
-LAST_CPUPID_NOT_IN_PAGE_FLAGS) if LAST_CPUPID_MASK is 0,
-page_cpupid_xchg_last() and page_cpupid_reset_last() causes
-page->_last_cpupid to be set to 0.
+This only happens if the kernel was compiled with CONFIG_DEBUG_VM.
 
-This causes performance regression. Its almost as if numa_balancing is
-off.
+Change dump_page() to be EXPORT_SYMBOL.
 
-Fix LAST_CPUPID_MASK by using LAST_CPUPID_SHIFT instead of
-LAST_CPUPID_WIDTH.
+Longer explanation:
 
+Prior to 309381feaee564 ("mm: dump page when hitting a VM_BUG_ON using
+VM_BUG_ON_PAGE") , it was possible to build MIT-licensed (non-GPL) drivers
+on Fedora.  Fedora is semi-unique, in that it sets CONFIG_VM_DEBUG.
 
+Because Fedora sets CONFIG_VM_DEBUG, they end up pulling in dump_page(),
+via VM_BUG_ON_PAGE, via get_page().  As one of the authors of NVIDIA's
+new, open source, "UVM-Lite" kernel module, I originally choose to use the
+kernel's get_page() routine from within nvidia_uvm_page_cache.c, because
+get_page() has always seemed to be very clearly intended for use by
+non-GPL, driver code.
 
-Some performance numbers and perf stats with and without the fix.
+So I'm hoping that making get_page() widely accessible again will not be
+too controversial.  We did check with Fedora first, and they responded
+(https://bugzilla.redhat.com/show_bug.cgi?id=1074710#c3) that we should
+try to get upstream changed, before asking Fedora to change.  Their
+reasoning seems beneficial to Linux: leaving CONFIG_DEBUG_VM set allows
+Fedora to help catch mm bugs.
 
-(3.14-rc6)
-----------
-numa01
-
- Performance counter stats for '/usr/bin/time -f %e %S %U %c %w -o start_bench.out -a ./numa01':
-
-         12,27,462 cs                                                           [100.00%]
-          2,41,957 migrations                                                   [100.00%]
-       1,68,01,713 faults                                                       [100.00%]
-    7,99,35,29,041 cache-misses
-            98,808 migrate:mm_migrate_pages                                     [100.00%]
-
-    1407.690148814 seconds time elapsed
-
-numa02
-
- Performance counter stats for '/usr/bin/time -f %e %S %U %c %w -o start_bench.out -a ./numa02':
-
-            63,065 cs                                                           [100.00%]
-            14,364 migrations                                                   [100.00%]
-          2,08,118 faults                                                       [100.00%]
-      25,32,59,404 cache-misses
-                12 migrate:mm_migrate_pages                                     [100.00%]
-
-      63.840827219 seconds time elapsed
-
-
-(3.14-rc6 with fix)
--------------------
-numa01
-
- Performance counter stats for '/usr/bin/time -f %e %S %U %c %w -o start_bench.out -a ./numa01':
-
-          9,68,911 cs                                                           [100.00%]
-          1,01,414 migrations                                                   [100.00%]
-         88,38,697 faults                                                       [100.00%]
-    4,42,92,51,042 cache-misses
-          4,25,060 migrate:mm_migrate_pages                                     [100.00%]
-
-     685.965331189 seconds time elapsed
-
-numa02
-
- Performance counter stats for '/usr/bin/time -f %e %S %U %c %w -o start_bench.out -a ./numa02':
-
-            17,543 cs                                                           [100.00%]
-             2,962 migrations                                                   [100.00%]
-          1,17,843 faults                                                       [100.00%]
-      11,80,61,644 cache-misses
-            12,358 migrate:mm_migrate_pages                                     [100.00%]
-
-      20.380132343 seconds time elapsed
-
-
-
-Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Cc: Liu Ping Fan <pingfank@linux.vnet.ibm.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Josh Boyer <jwboyer@redhat.com>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~numa-use-last_cpupid_shift-to-calculate-last_cpupid_mask include/linux/mm.h
---- a/include/linux/mm.h~numa-use-last_cpupid_shift-to-calculate-last_cpupid_mask
-+++ a/include/linux/mm.h
-@@ -695,7 +695,7 @@ void do_set_pte(struct vm_area_struct *v
- #define ZONES_MASK		((1UL << ZONES_WIDTH) - 1)
- #define NODES_MASK		((1UL << NODES_WIDTH) - 1)
- #define SECTIONS_MASK		((1UL << SECTIONS_WIDTH) - 1)
--#define LAST_CPUPID_MASK	((1UL << LAST_CPUPID_WIDTH) - 1)
-+#define LAST_CPUPID_MASK	((1UL << LAST_CPUPID_SHIFT) - 1)
- #define ZONEID_MASK		((1UL << ZONEID_SHIFT) - 1)
- 
- static inline enum zone_type page_zonenum(const struct page *page)
+diff -puN mm/page_alloc.c~mm-page_allocc-change-mm-debug-routines-back-to-export_symbol mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-change-mm-debug-routines-back-to-export_symbol
++++ a/mm/page_alloc.c
+@@ -6566,4 +6566,4 @@ void dump_page(struct page *page, const
+ {
+ 	dump_page_badflags(page, reason, 0);
+ }
+-EXPORT_SYMBOL_GPL(dump_page);
++EXPORT_SYMBOL(dump_page);
 _
 
-Patches currently in -mm which might be from srikar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
 origin.patch
 
