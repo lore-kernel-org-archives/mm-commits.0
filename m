@@ -1,83 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] procfs-make-proc-pagemap-0400.patch removed from -mm
- tree
-Date: Tue, 08 Apr 2014 14:18:29 -0700
-Message-ID: <534467a5.Rlfj+PoLMlJf4tzT%akpm@linux-foundation.org>
+Subject: [merged] exec-kill-bprm-tcomm-simplify-the-basename-logic.patch
+ removed from -mm tree
+Date: Tue, 08 Apr 2014 14:19:01 -0700
+Message-ID: <534467c5.vKQg0/A6tYUpTfcj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56914 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756232AbaDHVSa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:18:30 -0400
+	with ESMTP id S1757287AbaDHVTC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:19:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, oleg@redhat.com, mingo@kernel.org, luto@amacapital.net, keescook@chromium.org, ebiederm@xmission.com, tixxdz@opendz.org
+To: mm-commits@vger.kernel.org, rostedt@goodmis.org, heiko.carstens@de.ibm.com, oleg@redhat.com
 
-Subject: [merged] procfs-make-proc-pagemap-0400.patch removed from -mm tree
-To: tixxdz@opendz.org,ebiederm@xmission.com,keescook@chromium.org,luto@amacapital.net,mingo@kernel.org,oleg@redhat.com,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] exec-kill-bprm-tcomm-simplify-the-basename-logic.patch removed from -mm tree
+To: oleg@redhat.com,heiko.carstens@de.ibm.com,rostedt@goodmis.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 14:18:29 -0700
+Date: Tue, 08 Apr 2014 14:19:01 -0700
 
 
 The patch titled
-     Subject: procfs: make /proc/*/pagemap 0400
+     Subject: exec: kill bprm->tcomm[], simplify the "basename" logic
 has been removed from the -mm tree.  Its filename was
-     procfs-make-proc-pagemap-0400.patch
+     exec-kill-bprm-tcomm-simplify-the-basename-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Djalal Harouni <tixxdz@opendz.org>
-Subject: procfs: make /proc/*/pagemap 0400
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exec: kill bprm->tcomm[], simplify the "basename" logic
 
-The /proc/*/pagemap contain sensitive information and currently its mode
-is 0444.  Change this to 0400, so the VFS will prevent unprivileged
-processes from getting file descriptors on arbitrary privileged
-/proc/*/pagemap files.
+Starting from c4ad8f98bef7 ("execve: use 'struct filename *' for
+executable name passing") bprm->filename can not go away after
+flush_old_exec(), so we do not need to save the binary name in
+bprm->tcomm[] added by 96e02d158678 ("exec: fix use-after-free bug in
+setup_new_exec()").
 
-This reduces the scope of address space leaking and bypasses by protecting
-already running processes.
+And there was never need for filename_to_taskname-like code, we can simply
+do set_task_comm(kbasename(filename).
 
-Signed-off-by: Djalal Harouni <tixxdz@opendz.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Andy Lutomirski <luto@amacapital.net>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+This patch has to change set_task_comm() and trace_task_rename() to accept
+"const char *", but I think this change is also good.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/exec.c                   |   21 ++-------------------
+ include/linux/binfmts.h     |    1 -
+ include/linux/sched.h       |    2 +-
+ include/trace/events/task.h |    2 +-
+ 4 files changed, 4 insertions(+), 22 deletions(-)
 
-diff -puN fs/proc/base.c~procfs-make-proc-pagemap-0400 fs/proc/base.c
---- a/fs/proc/base.c~procfs-make-proc-pagemap-0400
-+++ a/fs/proc/base.c
-@@ -2617,7 +2617,7 @@ static const struct pid_entry tgid_base_
- #ifdef CONFIG_PROC_PAGE_MONITOR
- 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
- 	REG("smaps",      S_IRUGO, proc_pid_smaps_operations),
--	REG("pagemap",    S_IRUGO, proc_pagemap_operations),
-+	REG("pagemap",    S_IRUSR, proc_pagemap_operations),
- #endif
- #ifdef CONFIG_SECURITY
- 	DIR("attr",       S_IRUGO|S_IXUGO, proc_attr_dir_inode_operations, proc_attr_dir_operations),
-@@ -2955,7 +2955,7 @@ static const struct pid_entry tid_base_s
- #ifdef CONFIG_PROC_PAGE_MONITOR
- 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
- 	REG("smaps",     S_IRUGO, proc_tid_smaps_operations),
--	REG("pagemap",    S_IRUGO, proc_pagemap_operations),
-+	REG("pagemap",    S_IRUSR, proc_pagemap_operations),
- #endif
- #ifdef CONFIG_SECURITY
- 	DIR("attr",      S_IRUGO|S_IXUGO, proc_attr_dir_inode_operations, proc_attr_dir_operations),
+diff -puN fs/exec.c~exec-kill-bprm-tcomm-simplify-the-basename-logic fs/exec.c
+--- a/fs/exec.c~exec-kill-bprm-tcomm-simplify-the-basename-logic
++++ a/fs/exec.c
+@@ -1046,7 +1046,7 @@ EXPORT_SYMBOL_GPL(get_task_comm);
+  * so that a new one can be started
+  */
+ 
+-void set_task_comm(struct task_struct *tsk, char *buf)
++void set_task_comm(struct task_struct *tsk, const char *buf)
+ {
+ 	task_lock(tsk);
+ 	trace_task_rename(tsk, buf);
+@@ -1055,21 +1055,6 @@ void set_task_comm(struct task_struct *t
+ 	perf_event_comm(tsk);
+ }
+ 
+-static void filename_to_taskname(char *tcomm, const char *fn, unsigned int len)
+-{
+-	int i, ch;
+-
+-	/* Copies the binary name from after last slash */
+-	for (i = 0; (ch = *(fn++)) != '\0';) {
+-		if (ch == '/')
+-			i = 0; /* overwrite what we wrote */
+-		else
+-			if (i < len - 1)
+-				tcomm[i++] = ch;
+-	}
+-	tcomm[i] = '\0';
+-}
+-
+ int flush_old_exec(struct linux_binprm * bprm)
+ {
+ 	int retval;
+@@ -1083,8 +1068,6 @@ int flush_old_exec(struct linux_binprm *
+ 		goto out;
+ 
+ 	set_mm_exe_file(bprm->mm, bprm->file);
+-
+-	filename_to_taskname(bprm->tcomm, bprm->filename, sizeof(bprm->tcomm));
+ 	/*
+ 	 * Release all of the old mmap stuff
+ 	 */
+@@ -1127,7 +1110,7 @@ void setup_new_exec(struct linux_binprm
+ 	else
+ 		set_dumpable(current->mm, suid_dumpable);
+ 
+-	set_task_comm(current, bprm->tcomm);
++	set_task_comm(current, kbasename(bprm->filename));
+ 
+ 	/* Set the new mm task size. We have to do that late because it may
+ 	 * depend on TIF_32BIT which is only updated in flush_thread() on
+diff -puN include/linux/binfmts.h~exec-kill-bprm-tcomm-simplify-the-basename-logic include/linux/binfmts.h
+--- a/include/linux/binfmts.h~exec-kill-bprm-tcomm-simplify-the-basename-logic
++++ a/include/linux/binfmts.h
+@@ -44,7 +44,6 @@ struct linux_binprm {
+ 	unsigned interp_flags;
+ 	unsigned interp_data;
+ 	unsigned long loader, exec;
+-	char tcomm[TASK_COMM_LEN];
+ };
+ 
+ #define BINPRM_FLAGS_ENFORCE_NONDUMP_BIT 0
+diff -puN include/linux/sched.h~exec-kill-bprm-tcomm-simplify-the-basename-logic include/linux/sched.h
+--- a/include/linux/sched.h~exec-kill-bprm-tcomm-simplify-the-basename-logic
++++ a/include/linux/sched.h
+@@ -2357,7 +2357,7 @@ extern long do_fork(unsigned long, unsig
+ struct task_struct *fork_idle(int);
+ extern pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags);
+ 
+-extern void set_task_comm(struct task_struct *tsk, char *from);
++extern void set_task_comm(struct task_struct *tsk, const char *from);
+ extern char *get_task_comm(char *to, struct task_struct *tsk);
+ 
+ #ifdef CONFIG_SMP
+diff -puN include/trace/events/task.h~exec-kill-bprm-tcomm-simplify-the-basename-logic include/trace/events/task.h
+--- a/include/trace/events/task.h~exec-kill-bprm-tcomm-simplify-the-basename-logic
++++ a/include/trace/events/task.h
+@@ -32,7 +32,7 @@ TRACE_EVENT(task_newtask,
+ 
+ TRACE_EVENT(task_rename,
+ 
+-	TP_PROTO(struct task_struct *task, char *comm),
++	TP_PROTO(struct task_struct *task, const char *comm),
+ 
+ 	TP_ARGS(task, comm),
+ 
 _
 
-Patches currently in -mm which might be from tixxdz@opendz.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 
