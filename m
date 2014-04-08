@@ -1,121 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-fix-error-do-not-initialise-globals-to-0-or-null-and-coding-style.patch
- removed from -mm tree
-Date: Tue, 08 Apr 2014 13:48:11 -0700
-Message-ID: <5344608b.b2Xce1WnaxxDBFFE%akpm@linux-foundation.org>
+Subject: [merged] mm-vmallocc-enhance-vm_map_ram-comment.patch removed
+ from -mm tree
+Date: Tue, 08 Apr 2014 13:48:43 -0700
+Message-ID: <534460ab.Aluz51ell21eZup/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56505 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56509 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756121AbaDHUsM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:48:12 -0400
+	with ESMTP id S1756121AbaDHUso (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 16:48:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yong@gnoy.org
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, minchan@kernel.org, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, gioh.kim@lge.com
 
-Subject: [merged] mm-fix-error-do-not-initialise-globals-to-0-or-null-and-coding-style.patch removed from -mm tree
-To: yong@gnoy.org,mm-commits@vger.kernel.org
+Subject: [merged] mm-vmallocc-enhance-vm_map_ram-comment.patch removed from -mm tree
+To: gioh.kim@lge.com,hannes@cmpxchg.org,iamjoonsoo.kim@lge.com,minchan@kernel.org,zhangyanfei@cn.fujitsu.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 13:48:11 -0700
+Date: Tue, 08 Apr 2014 13:48:43 -0700
 
 
 The patch titled
-     Subject: mm: fix 'ERROR: do not initialise globals to 0 or NULL' and coding style
+     Subject: mm/vmalloc.c: enhance vm_map_ram() comment
 has been removed from the -mm tree.  Its filename was
-     mm-fix-error-do-not-initialise-globals-to-0-or-null-and-coding-style.patch
+     mm-vmallocc-enhance-vm_map_ram-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Choi Gi-yong <yong@gnoy.org>
-Subject: mm: fix 'ERROR: do not initialise globals to 0 or NULL' and coding style
+From: "Gioh Kim" <gioh.kim@lge.com>
+Subject: mm/vmalloc.c: enhance vm_map_ram() comment
 
-Signed-off-by: Choi Gi-yong <yong@gnoy.org>
+vm_map_ram() has a fragmentation problem when it cannot purge a chunk(ie,
+4M address space) if there is a pinning object in that addresss space.  So
+it could consume all VMALLOC address space easily.
+
+We can fix the fragmentation problem by using vmap instead of vm_map_ram()
+but vmap() is known to be slow compared to vm_map_ram().  Minchan said
+vm_map_ram is 5 times faster than vmap in his tests.  So I thought we
+should fix fragment problem of vm_map_ram because our proprietary GPU
+driver has used it heavily.
+
+On second thought, it's not an easy because we should reuse freed space
+for solving the problem and it could make more IPI and bitmap operation
+for searching hole.  It could mitigate API's goal which is very fast
+mapping.  And even fragmentation problem wouldn't show in 64 bit machine.
+
+Another option is that the user should separate long-life and short-life
+object and use vmap for long-life but vm_map_ram for short-life.  If we
+inform the user about the characteristic of vm_map_ram the user can choose
+one according to the page lifetime.
+
+Let's add some notice messages to user.
+
+[akpm@linux-foundation.org: tweak comment text]
+Signed-off-by: Gioh Kim <gioh.kim@lge.com>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +--
- mm/nommu.c   |   16 ++++++----------
- 2 files changed, 7 insertions(+), 12 deletions(-)
+ mm/vmalloc.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-fix-error-do-not-initialise-globals-to-0-or-null-and-coding-style mm/hugetlb.c
---- a/mm/hugetlb.c~mm-fix-error-do-not-initialise-globals-to-0-or-null-and-coding-style
-+++ a/mm/hugetlb.c
-@@ -2898,8 +2898,7 @@ retry:
- 	if (anon_rmap) {
- 		ClearPagePrivate(page);
- 		hugepage_add_new_anon_rmap(page, vma, address);
--	}
--	else
-+	} else
- 		page_dup_rmap(page);
- 	new_pte = make_huge_pte(vma, page, ((vma->vm_flags & VM_WRITE)
- 				&& (vma->vm_flags & VM_SHARED)));
-diff -puN mm/nommu.c~mm-fix-error-do-not-initialise-globals-to-0-or-null-and-coding-style mm/nommu.c
---- a/mm/nommu.c~mm-fix-error-do-not-initialise-globals-to-0-or-null-and-coding-style
-+++ a/mm/nommu.c
-@@ -298,7 +298,7 @@ long vwrite(char *buf, char *addr, unsig
- 		count = -(unsigned long) addr;
- 
- 	memcpy(addr, buf, count);
--	return(count);
-+	return count;
- }
- 
- /*
-@@ -1012,8 +1012,7 @@ static int validate_mmap_request(struct
- 
- 			/* we mustn't privatise shared mappings */
- 			capabilities &= ~BDI_CAP_MAP_COPY;
--		}
--		else {
-+		} else {
- 			/* we're going to read the file into private memory we
- 			 * allocate */
- 			if (!(capabilities & BDI_CAP_MAP_COPY))
-@@ -1044,23 +1043,20 @@ static int validate_mmap_request(struct
- 		if (file->f_path.mnt->mnt_flags & MNT_NOEXEC) {
- 			if (prot & PROT_EXEC)
- 				return -EPERM;
--		}
--		else if ((prot & PROT_READ) && !(prot & PROT_EXEC)) {
-+		} else if ((prot & PROT_READ) && !(prot & PROT_EXEC)) {
- 			/* handle implication of PROT_EXEC by PROT_READ */
- 			if (current->personality & READ_IMPLIES_EXEC) {
- 				if (capabilities & BDI_CAP_EXEC_MAP)
- 					prot |= PROT_EXEC;
- 			}
--		}
--		else if ((prot & PROT_READ) &&
-+		} else if ((prot & PROT_READ) &&
- 			 (prot & PROT_EXEC) &&
- 			 !(capabilities & BDI_CAP_EXEC_MAP)
- 			 ) {
- 			/* backing file is not executable, try to copy */
- 			capabilities &= ~BDI_CAP_MAP_DIRECT;
- 		}
--	}
--	else {
-+	} else {
- 		/* anonymous mappings are always memory backed and can be
- 		 * privately mapped
- 		 */
-@@ -1668,7 +1664,7 @@ int do_munmap(struct mm_struct *mm, unsi
- 	/* find the first potentially overlapping VMA */
- 	vma = find_vma(mm, start);
- 	if (!vma) {
--		static int limit = 0;
-+		static int limit;
- 		if (limit < 5) {
- 			printk(KERN_WARNING
- 			       "munmap of memory not mmapped by process %d"
+diff -puN mm/vmalloc.c~mm-vmallocc-enhance-vm_map_ram-comment mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-enhance-vm_map_ram-comment
++++ a/mm/vmalloc.c
+@@ -1085,6 +1085,12 @@ EXPORT_SYMBOL(vm_unmap_ram);
+  * @node: prefer to allocate data structures on this node
+  * @prot: memory protection to use. PAGE_KERNEL for regular RAM
+  *
++ * If you use this function for less than VMAP_MAX_ALLOC pages, it could be
++ * faster than vmap so it's good.  But if you mix long-life and short-life
++ * objects with vm_map_ram(), it could consume lots of address space through
++ * fragmentation (especially on a 32bit machine).  You could see failures in
++ * the end.  Please use this function for short-lived objects.
++ *
+  * Returns: a pointer to the address that has been mapped, or %NULL on failure
+  */
+ void *vm_map_ram(struct page **pages, unsigned int count, int node, pgprot_t prot)
 _
 
-Patches currently in -mm which might be from yong@gnoy.org are
+Patches currently in -mm which might be from gioh.kim@lge.com are
 
 origin.patch
 
