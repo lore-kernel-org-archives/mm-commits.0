@@ -1,129 +1,293 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch removed from
- -mm tree
-Date: Tue, 08 Apr 2014 14:28:05 -0700
-Message-ID: <534469e5.a5NLfzFpSxa6M+gp%akpm@linux-foundation.org>
+Subject: [merged] affs-mount-option-to-avoid-filename-truncates.patch
+ removed from -mm tree
+Date: Tue, 08 Apr 2014 14:28:37 -0700
+Message-ID: <53446a05.1C3AInjzGbzCdz/Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57008 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757918AbaDHV2F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:28:05 -0400
+	with ESMTP id S1756982AbaDHV2i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:28:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, fabf@skynet.be
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: [merged] fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch removed from -mm tree
-To: fabf@skynet.be,viro@zeniv.linux.org.uk,mm-commits@vger.kernel.org
+Subject: [merged] affs-mount-option-to-avoid-filename-truncates.patch removed from -mm tree
+To: fabf@skynet.be,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 14:28:05 -0700
+Date: Tue, 08 Apr 2014 14:28:37 -0700
 
 
 The patch titled
-     Subject: fs/affs/dir.c: unlock/brelse dir on failure + code clean-up
+     Subject: affs: add mount option to avoid filename truncates
 has been removed from the -mm tree.  Its filename was
-     fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up.patch
+     affs-mount-option-to-avoid-filename-truncates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/dir.c: unlock/brelse dir on failure + code clean-up
+Subject: affs: add mount option to avoid filename truncates
 
-0edf977d2ae32b ("[readdir] convert affs") returns directly -EIO without
-unlocking dir inode and releasing dir bh when second affs_bread sequence
-fails.  This patch restores initial behaviour.It also fixes pr_debug and
-affs_error to fit in 80 columns + removes reference to filldir (replaced
-by dir_emit in the commit above).
+Normal behavior for filenames exceeding specific filesystem limits is to
+refuse operation.
+
+AFFS standard name length being only 30 characters against 255 for usual
+Linux filesystems, original implementation does filename truncate by
+default with a define value AFFS_NO_TRUNCATE which can be enabled but
+needs module compilation.
+
+This patch adds 'nofilenametruncate' mount option so that user can easily
+activate that feature and avoid a lot of problems (eg overwrite files ...)
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/dir.c |   28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ Documentation/filesystems/affs.txt |    9 +++++--
+ fs/affs/affs.h                     |   20 ++++++----------
+ fs/affs/amigaffs.c                 |   23 ++++++++++++-------
+ fs/affs/namei.c                    |   32 +++++++++++++++++++--------
+ fs/affs/super.c                    |    6 ++++-
+ 5 files changed, 57 insertions(+), 33 deletions(-)
 
-diff -puN fs/affs/dir.c~fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up fs/affs/dir.c
---- a/fs/affs/dir.c~fs-affs-dirc-unlock-brelse-dir-on-failure-code-clean-up
-+++ a/fs/affs/dir.c
-@@ -52,8 +52,10 @@ affs_readdir(struct file *file, struct d
- 	int			 hash_pos;
- 	int			 chain_pos;
- 	u32			 ino;
-+	int			 error = 0;
+diff -puN Documentation/filesystems/affs.txt~affs-mount-option-to-avoid-filename-truncates Documentation/filesystems/affs.txt
+--- a/Documentation/filesystems/affs.txt~affs-mount-option-to-avoid-filename-truncates
++++ a/Documentation/filesystems/affs.txt
+@@ -49,6 +49,10 @@ mode=mode	Sets the mode flags to the giv
+ 		This is useful since most of the plain AmigaOS files
+ 		will map to 600.
  
--	pr_debug("AFFS: readdir(ino=%lu,f_pos=%lx)\n",inode->i_ino,(unsigned long)ctx->pos);
-+	pr_debug("AFFS: readdir(ino=%lu,f_pos=%lx)\n",
-+		 inode->i_ino, (unsigned long)ctx->pos);
- 
- 	if (ctx->pos < 2) {
- 		file->private_data = (void *)0;
-@@ -72,7 +74,7 @@ affs_readdir(struct file *file, struct d
- 	}
- 	dir_bh = affs_bread(sb, inode->i_ino);
- 	if (!dir_bh)
--		goto readdir_out;
-+		goto out_unlock_dir;
- 
- 	/* If the directory hasn't changed since the last call to readdir(),
- 	 * we can jump directly to where we left off.
-@@ -88,7 +90,8 @@ affs_readdir(struct file *file, struct d
- 		fh_bh = affs_bread(sb, ino);
- 		if (!fh_bh) {
- 			affs_error(sb, "readdir","Cannot read block %d", i);
--			return -EIO;
-+			error = -EIO;
-+			goto out_brelse_dir;
- 		}
- 		ino = be32_to_cpu(AFFS_TAIL(sb, fh_bh)->hash_chain);
- 		affs_brelse(fh_bh);
-@@ -107,29 +110,34 @@ inside:
- 		do {
- 			fh_bh = affs_bread(sb, ino);
- 			if (!fh_bh) {
--				affs_error(sb, "readdir","Cannot read block %d", ino);
-+				affs_error(sb, "readdir",
-+					   "Cannot read block %d", ino);
- 				break;
- 			}
- 
- 			namelen = min(AFFS_TAIL(sb, fh_bh)->name[0], (u8)30);
- 			name = AFFS_TAIL(sb, fh_bh)->name + 1;
--			pr_debug("AFFS: readdir(): filldir(\"%.*s\", ino=%u), hash=%d, f_pos=%x\n",
-+			pr_debug("AFFS: readdir(): dir_emit(\"%.*s\", "
-+				 "ino=%u), hash=%d, f_pos=%x\n",
- 				 namelen, name, ino, hash_pos, (u32)ctx->pos);
++nofilenametruncate
++		The file system will return an error when filename exceeds
++		standard maximum filename length (30 characters).
 +
- 			if (!dir_emit(ctx, name, namelen, ino, DT_UNKNOWN))
--				goto readdir_done;
-+				goto done;
- 			ctx->pos++;
- 			ino = be32_to_cpu(AFFS_TAIL(sb, fh_bh)->hash_chain);
- 			affs_brelse(fh_bh);
- 			fh_bh = NULL;
- 		} while (ino);
- 	}
--readdir_done:
-+done:
- 	file->f_version = inode->i_version;
- 	file->private_data = (void *)(long)ino;
-+	affs_brelse(fh_bh);
+ reserved=num	Sets the number of reserved blocks at the start of the
+ 		partition to num. You should never need this option.
+ 		Default is 2.
+@@ -181,9 +185,8 @@ tested, though several hundred MB have b
+ this fs. For a most up-to-date list of bugs please consult
+ fs/affs/Changes.
  
--readdir_out:
-+out_brelse_dir:
- 	affs_brelse(dir_bh);
--	affs_brelse(fh_bh);
-+
-+out_unlock_dir:
- 	affs_unlock_dir(inode);
--	return 0;
-+	return error;
+-Filenames are truncated to 30 characters without warning (this
+-can be changed by setting the compile-time option AFFS_NO_TRUNCATE
+-in include/linux/amigaffs.h).
++By default, filenames are truncated to 30 characters without warning.
++'nofilenametruncate' mount option can change that behavior.
+ 
+ Case is ignored by the affs in filename matching, but Linux shells
+ do care about the case. Example (with /wb being an affs mounted fs):
+diff -puN fs/affs/affs.h~affs-mount-option-to-avoid-filename-truncates fs/affs/affs.h
+--- a/fs/affs/affs.h~affs-mount-option-to-avoid-filename-truncates
++++ a/fs/affs/affs.h
+@@ -5,14 +5,6 @@
+ #include <linux/mutex.h>
+ #include <linux/workqueue.h>
+ 
+-/* AmigaOS allows file names with up to 30 characters length.
+- * Names longer than that will be silently truncated. If you
+- * want to disallow this, comment out the following #define.
+- * Creating filesystem objects with longer names will then
+- * result in an error (ENAMETOOLONG).
+- */
+-/*#define AFFS_NO_TRUNCATE */
+-
+ /* Ugly macros make the code more pretty. */
+ 
+ #define GET_END_PTR(st,p,sz)		 ((st *)((char *)(p)+((sz)-sizeof(st))))
+@@ -28,7 +20,6 @@
+ 
+ #define AFFS_CACHE_SIZE		PAGE_SIZE
+ 
+-#define AFFS_MAX_PREALLOC	32
+ #define AFFS_LC_SIZE		(AFFS_CACHE_SIZE/sizeof(u32)/2)
+ #define AFFS_AC_SIZE		(AFFS_CACHE_SIZE/sizeof(struct affs_ext_key)/2)
+ #define AFFS_AC_MASK		(AFFS_AC_SIZE-1)
+@@ -118,6 +109,7 @@ struct affs_sb_info {
+ #define SF_OFS		0x0200		/* Old filesystem */
+ #define SF_PREFIX	0x0400		/* Buffer for prefix is allocated */
+ #define SF_VERBOSE	0x0800		/* Talk about fs when mounting */
++#define SF_NO_TRUNCATE	0x1000		/* Don't truncate filenames */
+ 
+ /* short cut to get to the affs specific sb data */
+ static inline struct affs_sb_info *AFFS_SB(struct super_block *sb)
+@@ -137,9 +129,13 @@ extern void	affs_fix_checksum(struct sup
+ extern void	secs_to_datestamp(time_t secs, struct affs_date *ds);
+ extern umode_t	prot_to_mode(u32 prot);
+ extern void	mode_to_prot(struct inode *inode);
+-extern void	affs_error(struct super_block *sb, const char *function, const char *fmt, ...);
+-extern void	affs_warning(struct super_block *sb, const char *function, const char *fmt, ...);
+-extern int	affs_check_name(const unsigned char *name, int len);
++extern void	affs_error(struct super_block *sb, const char *function,
++			   const char *fmt, ...);
++extern void	affs_warning(struct super_block *sb, const char *function,
++			     const char *fmt, ...);
++extern bool	affs_nofilenametruncate(const struct dentry *dentry);
++extern int	affs_check_name(const unsigned char *name, int len,
++				bool notruncate);
+ extern int	affs_copy_name(unsigned char *bstr, struct dentry *dentry);
+ 
+ /* bitmap. c */
+diff -puN fs/affs/amigaffs.c~affs-mount-option-to-avoid-filename-truncates fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~affs-mount-option-to-avoid-filename-truncates
++++ a/fs/affs/amigaffs.c
+@@ -471,20 +471,27 @@ affs_warning(struct super_block *sb, con
+ 		function,ErrorBuffer);
  }
+ 
++bool
++affs_nofilenametruncate(const struct dentry *dentry)
++{
++	struct inode *inode = dentry->d_inode;
++	return AFFS_SB(inode->i_sb)->s_flags & SF_NO_TRUNCATE;
++
++}
++
+ /* Check if the name is valid for a affs object. */
+ 
+ int
+-affs_check_name(const unsigned char *name, int len)
++affs_check_name(const unsigned char *name, int len, bool notruncate)
+ {
+ 	int	 i;
+ 
+-	if (len > 30)
+-#ifdef AFFS_NO_TRUNCATE
+-		return -ENAMETOOLONG;
+-#else
+-		len = 30;
+-#endif
+-
++	if (len > 30) {
++		if (notruncate)
++			return -ENAMETOOLONG;
++		else
++			len = 30;
++	}
+ 	for (i = 0; i < len; i++) {
+ 		if (name[i] < ' ' || name[i] == ':'
+ 		    || (name[i] > 0x7e && name[i] < 0xa0))
+diff -puN fs/affs/namei.c~affs-mount-option-to-avoid-filename-truncates fs/affs/namei.c
+--- a/fs/affs/namei.c~affs-mount-option-to-avoid-filename-truncates
++++ a/fs/affs/namei.c
+@@ -60,13 +60,13 @@ affs_get_toupper(struct super_block *sb)
+  * Note: the dentry argument is the parent dentry.
+  */
+ static inline int
+-__affs_hash_dentry(struct qstr *qstr, toupper_t toupper)
++__affs_hash_dentry(struct qstr *qstr, toupper_t toupper, bool notruncate)
+ {
+ 	const u8 *name = qstr->name;
+ 	unsigned long hash;
+ 	int i;
+ 
+-	i = affs_check_name(qstr->name, qstr->len);
++	i = affs_check_name(qstr->name, qstr->len, notruncate);
+ 	if (i)
+ 		return i;
+ 
+@@ -82,16 +82,22 @@ __affs_hash_dentry(struct qstr *qstr, to
+ static int
+ affs_hash_dentry(const struct dentry *dentry, struct qstr *qstr)
+ {
+-	return __affs_hash_dentry(qstr, affs_toupper);
++	return __affs_hash_dentry(qstr, affs_toupper,
++				  affs_nofilenametruncate(dentry));
++
+ }
++
+ static int
+ affs_intl_hash_dentry(const struct dentry *dentry, struct qstr *qstr)
+ {
+-	return __affs_hash_dentry(qstr, affs_intl_toupper);
++	return __affs_hash_dentry(qstr, affs_intl_toupper,
++				  affs_nofilenametruncate(dentry));
++
+ }
+ 
+ static inline int __affs_compare_dentry(unsigned int len,
+-		const char *str, const struct qstr *name, toupper_t toupper)
++		const char *str, const struct qstr *name, toupper_t toupper,
++		bool notruncate)
+ {
+ 	const u8 *aname = str;
+ 	const u8 *bname = name->name;
+@@ -101,7 +107,7 @@ static inline int __affs_compare_dentry(
+ 	 * must be valid. 'name' must be validated first.
+ 	 */
+ 
+-	if (affs_check_name(name->name, name->len))
++	if (affs_check_name(name->name, name->len, notruncate))
+ 		return 1;
+ 
+ 	/*
+@@ -126,13 +132,18 @@ static int
+ affs_compare_dentry(const struct dentry *parent, const struct dentry *dentry,
+ 		unsigned int len, const char *str, const struct qstr *name)
+ {
+-	return __affs_compare_dentry(len, str, name, affs_toupper);
++
++	return __affs_compare_dentry(len, str, name, affs_toupper,
++				     affs_nofilenametruncate(parent));
+ }
++
+ static int
+ affs_intl_compare_dentry(const struct dentry *parent, const struct dentry *dentry,
+ 		unsigned int len, const char *str, const struct qstr *name)
+ {
+-	return __affs_compare_dentry(len, str, name, affs_intl_toupper);
++	return __affs_compare_dentry(len, str, name, affs_intl_toupper,
++				     affs_nofilenametruncate(parent));
++
+ }
+ 
+ /*
+@@ -411,7 +422,10 @@ affs_rename(struct inode *old_dir, struc
+ 		 (u32)old_dir->i_ino, (int)old_dentry->d_name.len, old_dentry->d_name.name,
+ 		 (u32)new_dir->i_ino, (int)new_dentry->d_name.len, new_dentry->d_name.name);
+ 
+-	retval = affs_check_name(new_dentry->d_name.name,new_dentry->d_name.len);
++	retval = affs_check_name(new_dentry->d_name.name,
++				 new_dentry->d_name.len,
++				 affs_nofilenametruncate(old_dentry));
++
+ 	if (retval)
+ 		return retval;
+ 
+diff -puN fs/affs/super.c~affs-mount-option-to-avoid-filename-truncates fs/affs/super.c
+--- a/fs/affs/super.c~affs-mount-option-to-avoid-filename-truncates
++++ a/fs/affs/super.c
+@@ -163,7 +163,7 @@ static const struct super_operations aff
+ };
+ 
+ enum {
+-	Opt_bs, Opt_mode, Opt_mufs, Opt_prefix, Opt_protect,
++	Opt_bs, Opt_mode, Opt_mufs, Opt_notruncate, Opt_prefix, Opt_protect,
+ 	Opt_reserved, Opt_root, Opt_setgid, Opt_setuid,
+ 	Opt_verbose, Opt_volume, Opt_ignore, Opt_err,
+ };
+@@ -172,6 +172,7 @@ static const match_table_t tokens = {
+ 	{Opt_bs, "bs=%u"},
+ 	{Opt_mode, "mode=%o"},
+ 	{Opt_mufs, "mufs"},
++	{Opt_notruncate, "nofilenametruncate"},
+ 	{Opt_prefix, "prefix=%s"},
+ 	{Opt_protect, "protect"},
+ 	{Opt_reserved, "reserved=%u"},
+@@ -233,6 +234,9 @@ parse_options(char *options, kuid_t *uid
+ 		case Opt_mufs:
+ 			*mount_opts |= SF_MUFS;
+ 			break;
++		case Opt_notruncate:
++			*mount_opts |= SF_NO_TRUNCATE;
++			break;
+ 		case Opt_prefix:
+ 			*prefix = match_strdup(&args[0]);
+ 			if (!*prefix)
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
