@@ -1,92 +1,141 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- wait-swap-exit_zombie-and-exit_dead-to-hide-exit_trace-from-user-space.patch removed from -mm tree
-Date: Tue, 08 Apr 2014 14:21:41 -0700
-Message-ID: <53446865.LsQ3L7IkI+h+DK0T%akpm@linux-foundation.org>
+ wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent.patch removed from -mm tree
+Date: Tue, 08 Apr 2014 14:22:13 -0700
+Message-ID: <53446885.IOH57lbG15Lkulfi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56951 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756753AbaDHVVm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:21:42 -0400
+	with ESMTP id S1756753AbaDHVWO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:22:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tj@kernel.org, roland@hack.frob.com, mschmidt@redhat.com, lpoetter@redhat.com, jan.kratochvil@redhat.com, oleg@redhat.com
 
-Subject: [merged] wait-swap-exit_zombie-and-exit_dead-to-hide-exit_trace-from-user-space.patch removed from -mm tree
+Subject: [merged] wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent.patch removed from -mm tree
 To: oleg@redhat.com,jan.kratochvil@redhat.com,lpoetter@redhat.com,mschmidt@redhat.com,roland@hack.frob.com,tj@kernel.org,viro@ZenIV.linux.org.uk,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 14:21:41 -0700
+Date: Tue, 08 Apr 2014 14:22:13 -0700
 
 
 The patch titled
-     Subject: wait: swap EXIT_ZOMBIE and EXIT_DEAD to hide EXIT_TRACE from user-space
+     Subject: wait: WSTOPPED|WCONTINUED hangs if a zombie child is traced by real_parent
 has been removed from the -mm tree.  Its filename was
-     wait-swap-exit_zombie-and-exit_dead-to-hide-exit_trace-from-user-space.patch
+     wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: wait: swap EXIT_ZOMBIE and EXIT_DEAD to hide EXIT_TRACE from user-space
+Subject: wait: WSTOPPED|WCONTINUED hangs if a zombie child is traced by real_parent
 
-get_task_state() uses the most significant bit to report the state to
-user-space, this means that EXIT_ZOMBIE->EXIT_TRACE->EXIT_DEAD transition
-can be noticed via /proc as Z -> X -> Z change.  Note that this was
-possible even before EXIT_TRACE was introduced.
+"A zombie is only visible to its ptracer" logic in wait_consider_task()
+is very wrong. Trivial test-case:
 
-This is not really bad but imho it make sense to hide EXIT_TRACE from
-user-space completely.  So the patch simply swaps EXIT_ZOMBIE and
-EXIT_DEAD, this way EXIT_TRACE will be seen as EXIT_ZOMBIE by user-space.
+	#include <unistd.h>
+	#include <sys/ptrace.h>
+	#include <sys/wait.h>
+	#include <assert.h>
+
+	int main(void)
+	{
+		int child = fork();
+
+		if (!child) {
+			assert(ptrace(PTRACE_TRACEME, 0,0,0) == 0);
+			return 0x23;
+		}
+
+		assert(waitid(P_ALL, child, NULL, WEXITED | WNOWAIT) == 0);
+		assert(waitid(P_ALL, 0, NULL, WSTOPPED) == -1);
+		return 0;
+	}
+
+it hangs in waitpid(WSTOPPED) despite the fact it has a single zombie
+child.  This is because wait_consider_task(ptrace => 0) sees p->ptrace and
+cleares ->notask_error assuming that the debugger should detach and notify
+us.
+
+Change wait_consider_task(ptrace => 0) to pretend that ptrace == T if the
+child is traced by us.  This really simplifies the logic and allows us to
+do more fixes, see the next changes.  This also hides the unwanted group
+stop state automatically, we can remove another ptrace_reparented() check.
+
+Unfortunately, this adds the following behavioural changes:
+
+	1. Before this patch wait(WEXITED | __WNOTHREAD) does not reap
+	   a natural child if it is traced by the caller's sub-thread.
+
+	   Hopefully nobody will ever notice this change, and I think
+	   that nobody should rely on this behaviour anyway.
+
+	2. SIGNAL_STOP_CONTINUED is no longer hidden from debugger if
+	   it is real parent.
+
+	   While this change comes as a side effect, I think it is good
+	   by itself. The group continued state can not be consumed by
+	   another process in this case, it doesn't depend on ptrace,
+	   it doesn't make sense to hide it from real parent.
+
+	   Perhaps we should add the thread_group_leader() check before
+	   wait_task_continued()? May be, but this shouldn't depend on
+	   ptrace_reparented().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: Michal Schmidt <mschmidt@redhat.com>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
 Cc: Lennart Poettering <lpoetter@redhat.com>
+Cc: Michal Schmidt <mschmidt@redhat.com>
 Cc: Roland McGrath <roland@hack.frob.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c       |    4 ++--
- include/linux/sched.h |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/exit.c |   29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
-diff -puN fs/proc/array.c~wait-swap-exit_zombie-and-exit_dead-to-hide-exit_trace-from-user-space fs/proc/array.c
---- a/fs/proc/array.c~wait-swap-exit_zombie-and-exit_dead-to-hide-exit_trace-from-user-space
-+++ a/fs/proc/array.c
-@@ -138,8 +138,8 @@ static const char * const task_state_arr
- 	"D (disk sleep)",	/*   2 */
- 	"T (stopped)",		/*   4 */
- 	"t (tracing stop)",	/*   8 */
--	"Z (zombie)",		/*  16 */
--	"X (dead)",		/*  32 */
-+	"X (dead)",		/*  16 */
-+	"Z (zombie)",		/*  32 */
- };
+diff -puN kernel/exit.c~wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent kernel/exit.c
+--- a/kernel/exit.c~wait-wstoppedwcontinued-hangs-if-a-zombie-child-is-traced-by-real_parent
++++ a/kernel/exit.c
+@@ -1362,6 +1362,22 @@ static int wait_consider_task(struct wai
+ 		return 0;
+ 	}
  
- static inline const char *get_task_state(struct task_struct *tsk)
-diff -puN include/linux/sched.h~wait-swap-exit_zombie-and-exit_dead-to-hide-exit_trace-from-user-space include/linux/sched.h
---- a/include/linux/sched.h~wait-swap-exit_zombie-and-exit_dead-to-hide-exit_trace-from-user-space
-+++ a/include/linux/sched.h
-@@ -210,8 +210,8 @@ print_cfs_rq(struct seq_file *m, int cpu
- #define __TASK_STOPPED		4
- #define __TASK_TRACED		8
- /* in tsk->exit_state */
--#define EXIT_ZOMBIE		16
--#define EXIT_DEAD		32
-+#define EXIT_DEAD		16
-+#define EXIT_ZOMBIE		32
- #define EXIT_TRACE		(EXIT_ZOMBIE | EXIT_DEAD)
- /* in tsk->state again */
- #define TASK_DEAD		64
-_
-
-Patches currently in -mm which might be from oleg@redhat.com are
-
-origin.patch
-
++	if (likely(!ptrace) && unlikely(p->ptrace)) {
++		/*
++		 * If it is traced by its real parent's group, just pretend
++		 * the caller is ptrace_do_wait() and reap this child if it
++		 * is zombie.
++		 *
++		 * This also hides group stop state from real parent; otherwise
++		 * a single stop can be reported twice as group and ptrace stop.
++		 * If a ptracer wants to distinguish these two events for its
++		 * own children it should create a separate process which takes
++		 * the role of real parent.
++		 */
++		if (!ptrace_reparented(p))
++			ptrace = 1;
++	}
++
+ 	/* slay zombie? */
+ 	if (p->exit_state == EXIT_ZOMBIE) {
+ 		/*
+@@ -1403,19 +1419,6 @@ static int wait_consider_task(struct wai
+ 			wo->notask_error = 0;
+ 	} else {
+ 		/*
+-		 * If @p is ptraced by a task in its real parent's group,
+-		 * hide group stop/continued state when looking at @p as
+-		 * the real parent; otherwise, a single stop can be
+-		 * reported twice as group and ptrace stops.
+-		 *
+-		 * If a ptracer wants to distinguish the two events for its
+-		 * own children, it should create a separate process which
+-		 * takes the role of real parent.
+-		 */
+-		if (likely(!ptrace) && p->ptrace && !ptrace_reparented(p))
+-			return 0;
