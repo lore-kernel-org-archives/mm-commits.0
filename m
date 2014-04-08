@@ -1,158 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-show-mnt_id-in-proc-pid-fdinfo.patch removed from
- -mm tree
-Date: Tue, 08 Apr 2014 14:16:48 -0700
-Message-ID: <53446740.sXHUN/gRLkIrlW0b%akpm@linux-foundation.org>
+Subject: [merged] fs-proc-inodec-use-rcu_init_pointerx-null.patch removed
+ from -mm tree
+Date: Tue, 08 Apr 2014 14:17:20 -0700
+Message-ID: <53446760.V3kI/fICiGnUdYvJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56890 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56894 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756627AbaDHVQt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:16:49 -0400
+	with ESMTP id S1757200AbaDHVRV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:17:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xemul@parallels.com, viro@zeniv.linux.org.uk, rob@landley.net, oleg@redhat.com, gorcunov@openvz.org, ebiederm@xmission.com, avagin@openvz.org
+To: mm-commits@vger.kernel.org, paulmck@us.ibm.com, monamagarwal123@gmail.com
 
-Subject: [merged] proc-show-mnt_id-in-proc-pid-fdinfo.patch removed from -mm tree
-To: avagin@openvz.org,ebiederm@xmission.com,gorcunov@openvz.org,oleg@redhat.com,rob@landley.net,viro@zeniv.linux.org.uk,xemul@parallels.com,mm-commits@vger.kernel.org
+Subject: [merged] fs-proc-inodec-use-rcu_init_pointerx-null.patch removed from -mm tree
+To: monamagarwal123@gmail.com,paulmck@us.ibm.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 14:16:48 -0700
+Date: Tue, 08 Apr 2014 14:17:20 -0700
 
 
 The patch titled
-     Subject: proc: show mnt_id in /proc/pid/fdinfo
+     Subject: fs/proc/inode.c: use RCU_INIT_POINTER(x, NULL)
 has been removed from the -mm tree.  Its filename was
-     proc-show-mnt_id-in-proc-pid-fdinfo.patch
+     fs-proc-inodec-use-rcu_init_pointerx-null.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Vagin <avagin@openvz.org>
-Subject: proc: show mnt_id in /proc/pid/fdinfo
+From: Monam Agarwal <monamagarwal123@gmail.com>
+Subject: fs/proc/inode.c: use RCU_INIT_POINTER(x, NULL)
 
-Currently we don't have a way how to determing from which mount point file
-has been opened.  This information is required for proper dumping and
-restoring file descriptos due to presence of mount namespaces.  It's
-possible, that two file descriptors are opened using the same paths, but
-one fd references mount point from one namespace while the other fd --
-from other namespace.
+Replace rcu_assign_pointer(x, NULL) with RCU_INIT_POINTER(x, NULL)
 
-$ ls -l /proc/1/fd/1
-lrwx------ 1 root root 64 Mar 19 23:54 /proc/1/fd/1 -> /dev/null
+The rcu_assign_pointer() ensures that the initialization of a structure is
+carried out before storing a pointer to that structure.  And in the case
+of the NULL pointer, there is no structure to initialize.  So,
+rcu_assign_pointer(p, NULL) can be safely converted to RCU_INIT_POINTER(p,
+NULL)
 
-$ cat /proc/1/fdinfo/1
-pos:	0
-flags:	0100002
-mnt_id:	16
-
-$ cat /proc/1/mountinfo | grep ^16
-16 32 0:4 / /dev rw,nosuid shared:2 - devtmpfs devtmpfs rw,size=1013356k,nr_inodes=253339,mode=755
-
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
-Acked-by: Pavel Emelyanov <xemul@parallels.com>
-Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Monam Agarwal <monamagarwal123@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   17 ++++++++++++-----
- fs/proc/fd.c                       |    6 ++++--
- 2 files changed, 16 insertions(+), 7 deletions(-)
+ fs/proc/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-show-mnt_id-in-proc-pid-fdinfo Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-show-mnt_id-in-proc-pid-fdinfo
-+++ a/Documentation/filesystems/proc.txt
-@@ -1648,18 +1648,21 @@ pids, so one need to either stop or free
- if precise results are needed.
- 
- 
--3.7	/proc/<pid>/fdinfo/<fd> - Information about opened file
-+3.8	/proc/<pid>/fdinfo/<fd> - Information about opened file
- ---------------------------------------------------------------
- This file provides information associated with an opened file. The regular
--files have at least two fields -- 'pos' and 'flags'. The 'pos' represents
--the current offset of the opened file in decimal form [see lseek(2) for
--details] and 'flags' denotes the octal O_xxx mask the file has been
--created with [see open(2) for details].
-+files have at least three fields -- 'pos', 'flags' and mnt_id. The 'pos'
-+represents the current offset of the opened file in decimal form [see lseek(2)
-+for details], 'flags' denotes the octal O_xxx mask the file has been
-+created with [see open(2) for details] and 'mnt_id' represents mount ID of
-+the file system containing the opened file [see 3.5 /proc/<pid>/mountinfo
-+for details].
- 
- A typical output is
- 
- 	pos:	0
- 	flags:	0100002
-+	mnt_id:	19
- 
- The files such as eventfd, fsnotify, signalfd, epoll among the regular pos/flags
- pair provide additional information particular to the objects they represent.
-@@ -1668,6 +1671,7 @@ pair provide additional information part
- 	~~~~~~~~~~~~~
- 	pos:	0
- 	flags:	04002
-+	mnt_id:	9
- 	eventfd-count:	5a
- 
- 	where 'eventfd-count' is hex value of a counter.
-@@ -1676,6 +1680,7 @@ pair provide additional information part
- 	~~~~~~~~~~~~~~
- 	pos:	0
- 	flags:	04002
-+	mnt_id:	9
- 	sigmask:	0000000000000200
- 
- 	where 'sigmask' is hex value of the signal mask associated
-@@ -1685,6 +1690,7 @@ pair provide additional information part
- 	~~~~~~~~~~~
- 	pos:	0
- 	flags:	02
-+	mnt_id:	9
- 	tfd:        5 events:       1d data: ffffffffffffffff
- 
- 	where 'tfd' is a target file descriptor number in decimal form,
-@@ -1718,6 +1724,7 @@ pair provide additional information part
- 
- 	pos:	0
- 	flags:	02
-+	mnt_id:	9
- 	fanotify flags:10 event-flags:0
- 	fanotify mnt_id:12 mflags:40 mask:38 ignored_mask:40000003
- 	fanotify ino:4f969 sdev:800013 mflags:0 mask:3b ignored_mask:40000000 fhandle-bytes:8 fhandle-type:1 f_handle:69f90400c275b5b4
-diff -puN fs/proc/fd.c~proc-show-mnt_id-in-proc-pid-fdinfo fs/proc/fd.c
---- a/fs/proc/fd.c~proc-show-mnt_id-in-proc-pid-fdinfo
-+++ a/fs/proc/fd.c
-@@ -11,6 +11,7 @@
- 
- #include <linux/proc_fs.h>
- 
-+#include "../mount.h"
- #include "internal.h"
- #include "fd.h"
- 
-@@ -48,8 +49,9 @@ static int seq_show(struct seq_file *m,
+diff -puN fs/proc/inode.c~fs-proc-inodec-use-rcu_init_pointerx-null fs/proc/inode.c
+--- a/fs/proc/inode.c~fs-proc-inodec-use-rcu_init_pointerx-null
++++ a/fs/proc/inode.c
+@@ -47,7 +47,7 @@ static void proc_evict_inode(struct inod
+ 		pde_put(de);
+ 	head = PROC_I(inode)->sysctl;
+ 	if (head) {
+-		rcu_assign_pointer(PROC_I(inode)->sysctl, NULL);
++		RCU_INIT_POINTER(PROC_I(inode)->sysctl, NULL);
+ 		sysctl_head_put(head);
  	}
- 
- 	if (!ret) {
--                seq_printf(m, "pos:\t%lli\nflags:\t0%o\n",
--			   (long long)file->f_pos, f_flags);
-+		seq_printf(m, "pos:\t%lli\nflags:\t0%o\nmnt_id:\t%i\n",
-+			   (long long)file->f_pos, f_flags,
-+			   real_mount(file->f_path.mnt)->mnt_id);
- 		if (file->f_op->show_fdinfo)
- 			ret = file->f_op->show_fdinfo(m, file);
- 		fput(file);
+ 	/* Release any associated namespace */
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from monamagarwal123@gmail.com are
 
 origin.patch
 
