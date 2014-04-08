@@ -1,182 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-propagate-error-to-user.patch removed from -mm tree
-Date: Tue, 08 Apr 2014 14:10:53 -0700
-Message-ID: <534465dd.Fwnb/pnrFy7fIU3c%akpm@linux-foundation.org>
+Subject: [merged] zram-use-scnprintf-in-attrs-show-methods.patch removed
+ from -mm tree
+Date: Tue, 08 Apr 2014 14:11:25 -0700
+Message-ID: <534465fd.M9TGhyhFYyqnXBtQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56830 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56836 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757253AbaDHVKy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:10:54 -0400
+	with ESMTP id S1756713AbaDHVLZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 17:11:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, sergey.senozhatsky@gmail.com, ngupta@vflare.org, jmarchan@redhat.com, fengguang.wu@intel.com, minchan@kernel.org
+To: mm-commits@vger.kernel.org, ngupta@vflare.org, minchan@kernel.org, jmarchan@redhat.com, sergey.senozhatsky@gmail.com
 
-Subject: [merged] zram-propagate-error-to-user.patch removed from -mm tree
-To: minchan@kernel.org,fengguang.wu@intel.com,jmarchan@redhat.com,ngupta@vflare.org,sergey.senozhatsky@gmail.com,sfr@canb.auug.org.au,mm-commits@vger.kernel.org
+Subject: [merged] zram-use-scnprintf-in-attrs-show-methods.patch removed from -mm tree
+To: sergey.senozhatsky@gmail.com,jmarchan@redhat.com,minchan@kernel.org,ngupta@vflare.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 14:10:53 -0700
+Date: Tue, 08 Apr 2014 14:11:25 -0700
 
 
 The patch titled
-     Subject: zram: propagate error to user
+     Subject: zram: use scnprintf() in attrs show() methods
 has been removed from the -mm tree.  Its filename was
-     zram-propagate-error-to-user.patch
+     zram-use-scnprintf-in-attrs-show-methods.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: propagate error to user
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: use scnprintf() in attrs show() methods
 
-When we initialized zcomp with single, we couldn't change max_comp_streams
-without zram reset but current interface doesn't show any error to user
-and even it changes max_comp_streams's value without any effect so it
-would make user very confusing.
+sysfs.txt documentation lists the following requirements:
 
-This patch prevents max_comp_streams's change when zcomp was initialized
-as single zcomp and emit the error to user(ex, echo).
+ - The buffer will always be PAGE_SIZE bytes in length. On i386, this
+   is 4096.
 
-[akpm@linux-foundation.org: don't return with the lock held, per Sergey]
-[fengguang.wu@intel.com: fix coccinelle warnings]
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+ - show() methods should return the number of bytes printed into the
+   buffer. This is the return value of scnprintf().
+
+ - show() should always use scnprintf().
+
+Use scnprintf() in show() functions.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/blockdev/zram.txt |    9 +++++----
- drivers/block/zram/zcomp.c      |   10 +++++-----
- drivers/block/zram/zcomp.h      |    4 ++--
- drivers/block/zram/zram_drv.c   |   17 +++++++++++++----
- 4 files changed, 25 insertions(+), 15 deletions(-)
+ drivers/block/zram/zcomp.c    |    8 +++++---
+ drivers/block/zram/zram_drv.c |   12 ++++++------
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/blockdev/zram.txt~zram-propagate-error-to-user Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-propagate-error-to-user
-+++ a/Documentation/blockdev/zram.txt
-@@ -37,10 +37,11 @@ Note:
- In order to enable compression backend's multi stream support max_comp_streams
- must be initially set to desired concurrency level before ZRAM device
- initialisation. Once the device initialised as a single stream compression
--backend (max_comp_streams equals to 0) changing the value of max_comp_streams
--will not take any effect, because single stream compression backend implemented
--as a special case and does not support dynamic max_comp_streams. Only multi
--stream backend supports dynamic max_comp_streams adjustment.
-+backend (max_comp_streams equals to 1), you will see error if you try to change
-+the value of max_comp_streams because single stream compression backend
-+implemented as a special case by lock overhead issue and does not support
-+dynamic max_comp_streams. Only multi stream backend supports dynamic
-+max_comp_streams adjustment.
- 
- 3) Select compression algorithm
- 	Using comp_algorithm device attribute one can see available and
-diff -puN drivers/block/zram/zcomp.c~zram-propagate-error-to-user drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-propagate-error-to-user
+diff -puN drivers/block/zram/zcomp.c~zram-use-scnprintf-in-attrs-show-methods drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-use-scnprintf-in-attrs-show-methods
 +++ a/drivers/block/zram/zcomp.c
-@@ -153,7 +153,7 @@ static void zcomp_strm_multi_release(str
- }
+@@ -275,12 +275,14 @@ ssize_t zcomp_available_show(const char
  
- /* change max_strm limit */
--static int zcomp_strm_multi_set_max_streams(struct zcomp *comp, int num_strm)
-+static bool zcomp_strm_multi_set_max_streams(struct zcomp *comp, int num_strm)
- {
- 	struct zcomp_strm_multi *zs = comp->stream;
- 	struct zcomp_strm *zstrm;
-@@ -172,7 +172,7 @@ static int zcomp_strm_multi_set_max_stre
- 		zs->avail_strm--;
+ 	while (backends[i]) {
+ 		if (sysfs_streq(comp, backends[i]->name))
+-			sz += sprintf(buf + sz, "[%s] ", backends[i]->name);
++			sz += scnprintf(buf + sz, PAGE_SIZE - sz - 2,
++					"[%s] ", backends[i]->name);
+ 		else
+-			sz += sprintf(buf + sz, "%s ", backends[i]->name);
++			sz += scnprintf(buf + sz, PAGE_SIZE - sz - 2,
++					"%s ", backends[i]->name);
+ 		i++;
  	}
- 	spin_unlock(&zs->strm_lock);
--	return 0;
-+	return true;
- }
- 
- static void zcomp_strm_multi_destroy(struct zcomp *comp)
-@@ -232,10 +232,10 @@ static void zcomp_strm_single_release(st
- 	mutex_unlock(&zs->strm_lock);
- }
- 
--static int zcomp_strm_single_set_max_streams(struct zcomp *comp, int num_strm)
-+static bool zcomp_strm_single_set_max_streams(struct zcomp *comp, int num_strm)
- {
- 	/* zcomp_strm_single support only max_comp_streams == 1 */
--	return -ENOTSUPP;
-+	return false;
- }
- 
- static void zcomp_strm_single_destroy(struct zcomp *comp)
-@@ -284,7 +284,7 @@ ssize_t zcomp_available_show(const char
+-	sz += sprintf(buf + sz, "\n");
++	sz += scnprintf(buf + sz, PAGE_SIZE - sz, "\n");
  	return sz;
  }
  
--int zcomp_set_max_streams(struct zcomp *comp, int num_strm)
-+bool zcomp_set_max_streams(struct zcomp *comp, int num_strm)
- {
- 	return comp->set_max_streams(comp, num_strm);
- }
-diff -puN drivers/block/zram/zcomp.h~zram-propagate-error-to-user drivers/block/zram/zcomp.h
---- a/drivers/block/zram/zcomp.h~zram-propagate-error-to-user
-+++ a/drivers/block/zram/zcomp.h
-@@ -46,7 +46,7 @@ struct zcomp {
- 
- 	struct zcomp_strm *(*strm_find)(struct zcomp *comp);
- 	void (*strm_release)(struct zcomp *comp, struct zcomp_strm *zstrm);
--	int (*set_max_streams)(struct zcomp *comp, int num_strm);
-+	bool (*set_max_streams)(struct zcomp *comp, int num_strm);
- 	void (*destroy)(struct zcomp *comp);
- };
- 
-@@ -64,5 +64,5 @@ int zcomp_compress(struct zcomp *comp, s
- int zcomp_decompress(struct zcomp *comp, const unsigned char *src,
- 		size_t src_len, unsigned char *dst);
- 
--int zcomp_set_max_streams(struct zcomp *comp, int num_strm);
-+bool zcomp_set_max_streams(struct zcomp *comp, int num_strm);
- #endif /* _ZCOMP_H_ */
-diff -puN drivers/block/zram/zram_drv.c~zram-propagate-error-to-user drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-propagate-error-to-user
+diff -puN drivers/block/zram/zram_drv.c~zram-use-scnprintf-in-attrs-show-methods drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-use-scnprintf-in-attrs-show-methods
 +++ a/drivers/block/zram/zram_drv.c
-@@ -127,19 +127,28 @@ static ssize_t max_comp_streams_store(st
+@@ -48,7 +48,7 @@ static ssize_t zram_attr_##name##_show(s
+ 				struct device_attribute *attr, char *b)	\
+ {									\
+ 	struct zram *zram = dev_to_zram(d);				\
+-	return sprintf(b, "%llu\n",					\
++	return scnprintf(b, PAGE_SIZE, "%llu\n",			\
+ 		(u64)atomic64_read(&zram->stats.name));			\
+ }									\
+ static struct device_attribute dev_attr_##name =			\
+@@ -69,7 +69,7 @@ static ssize_t disksize_show(struct devi
  {
- 	int num;
  	struct zram *zram = dev_to_zram(dev);
-+	int ret;
  
--	if (kstrtoint(buf, 0, &num))
--		return -EINVAL;
-+	ret = kstrtoint(buf, 0, &num);
-+	if (ret < 0)
-+		return ret;
- 	if (num < 1)
- 		return -EINVAL;
-+
- 	down_write(&zram->init_lock);
- 	if (init_done(zram)) {
--		if (zcomp_set_max_streams(zram->comp, num))
-+		if (!zcomp_set_max_streams(zram->comp, num)) {
- 			pr_info("Cannot change max compression streams\n");
-+			ret = -EINVAL;
-+			goto out;
-+		}
- 	}
-+
- 	zram->max_comp_streams = num;
-+	ret = len;
-+out:
- 	up_write(&zram->init_lock);
--	return len;
-+	return ret;
+-	return sprintf(buf, "%llu\n", zram->disksize);
++	return scnprintf(buf, PAGE_SIZE, "%llu\n", zram->disksize);
  }
  
- static ssize_t comp_algorithm_show(struct device *dev,
+ static ssize_t initstate_show(struct device *dev,
+@@ -82,7 +82,7 @@ static ssize_t initstate_show(struct dev
+ 	val = init_done(zram);
+ 	up_read(&zram->init_lock);
+ 
+-	return sprintf(buf, "%u\n", val);
++	return scnprintf(buf, PAGE_SIZE, "%u\n", val);
+ }
+ 
+ static ssize_t orig_data_size_show(struct device *dev,
+@@ -90,7 +90,7 @@ static ssize_t orig_data_size_show(struc
+ {
+ 	struct zram *zram = dev_to_zram(dev);
+ 
+-	return sprintf(buf, "%llu\n",
++	return scnprintf(buf, PAGE_SIZE, "%llu\n",
+ 		(u64)(atomic64_read(&zram->stats.pages_stored)) << PAGE_SHIFT);
+ }
+ 
+@@ -106,7 +106,7 @@ static ssize_t mem_used_total_show(struc
+ 		val = zs_get_total_size_bytes(meta->mem_pool);
+ 	up_read(&zram->init_lock);
+ 
+-	return sprintf(buf, "%llu\n", val);
++	return scnprintf(buf, PAGE_SIZE, "%llu\n", val);
+ }
+ 
+ static ssize_t max_comp_streams_show(struct device *dev,
+@@ -119,7 +119,7 @@ static ssize_t max_comp_streams_show(str
+ 	val = zram->max_comp_streams;
+ 	up_read(&zram->init_lock);
+ 
+-	return sprintf(buf, "%d\n", val);
++	return scnprintf(buf, PAGE_SIZE, "%d\n", val);
+ }
+ 
+ static ssize_t max_comp_streams_store(struct device *dev,
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
 origin.patch
 
