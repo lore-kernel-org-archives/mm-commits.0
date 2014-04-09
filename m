@@ -1,81 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs4-check-dev-ioctl-size-before-allocating.patch
- removed from -mm tree
-Date: Wed, 09 Apr 2014 10:55:31 -0700
-Message-ID: <53458993.X1oJ8P69/58Otutw%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch removed from -mm tree
+Date: Wed, 09 Apr 2014 10:55:29 -0700
+Message-ID: <53458991.jtKAqAoVkr3vHCKc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36936 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36931 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933291AbaDIRzc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 13:55:32 -0400
+	with ESMTP id S933291AbaDIRza (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 13:55:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, raven@themaw.net, sasha.levin@oracle.com
+To: mm-commits@vger.kernel.org, suleiman@google.com, stable@kernel.org, riel@redhat.com, mgorman@suse.de, hughd@google.com, aquini@redhat.com, hannes@cmpxchg.org
 
-Subject: [merged] autofs4-check-dev-ioctl-size-before-allocating.patch removed from -mm tree
-To: sasha.levin@oracle.com,raven@themaw.net,mm-commits@vger.kernel.org
+Subject: [merged] mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch removed from -mm tree
+To: hannes@cmpxchg.org,aquini@redhat.com,hughd@google.com,mgorman@suse.de,riel@redhat.com,stable@kernel.org,suleiman@google.com,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 09 Apr 2014 10:55:31 -0700
+Date: Wed, 09 Apr 2014 10:55:29 -0700
 
 
 The patch titled
-     Subject: autofs4: check dev ioctl size before allocating
+     Subject: mm: vmscan: do not swap anon pages just because free+file is low
 has been removed from the -mm tree.  Its filename was
-     autofs4-check-dev-ioctl-size-before-allocating.patch
+     mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: autofs4: check dev ioctl size before allocating
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: do not swap anon pages just because free+file is low
 
-There wasn't any check of the size passed from userspace before
-trying to allocate the memory required.
+Page reclaim force-scans / swaps anonymous pages when file cache drops
+below the high watermark of a zone in order to prevent what little cache
+remains from thrashing.
 
-This meant that userspace might request more space than allowed,
-triggering an OOM.
+However, on bigger machines the high watermark value can be quite large
+and when the workload is dominated by a static anonymous/shmem set, the
+file set might just be a small window of used-once cache.  In such
+situations, the VM starts swapping heavily when instead it should be
+recycling the no longer used cache.
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+This is a longer-standing problem, but it's more likely to trigger after
+81c0a2bb515f ("mm: page_alloc: fair zone allocator policy") because file
+pages can no longer accumulate in a single zone and are dispersed into
+smaller fractions among the available zones.
+
+To resolve this, do not force scan anon when file pages are low but
+instead rely on the scan/rotation ratios to make the right prediction.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Rafael Aquini <aquini@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: <stable@kernel.org>		[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/vmscan.c |   16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs4-check-dev-ioctl-size-before-allocating fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs4-check-dev-ioctl-size-before-allocating
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -103,6 +103,9 @@ static struct autofs_dev_ioctl *copy_dev
- 	if (tmp.size < sizeof(tmp))
- 		return ERR_PTR(-EINVAL);
+diff -puN mm/vmscan.c~mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low
++++ a/mm/vmscan.c
+@@ -1862,7 +1862,7 @@ static void get_scan_count(struct lruvec
+ 	struct zone *zone = lruvec_zone(lruvec);
+ 	unsigned long anon_prio, file_prio;
+ 	enum scan_balance scan_balance;
+-	unsigned long anon, file, free;
++	unsigned long anon, file;
+ 	bool force_scan = false;
+ 	unsigned long ap, fp;
+ 	enum lru_list lru;
+@@ -1916,20 +1916,6 @@ static void get_scan_count(struct lruvec
+ 		get_lru_size(lruvec, LRU_INACTIVE_FILE);
  
-+	if (tmp.size > (PATH_MAX + sizeof(tmp)))
-+		return ERR_PTR(-ENAMETOOLONG);
-+
- 	return memdup_user(in, tmp.size);
- }
- 
-_
-
-Patches currently in -mm which might be from sasha.levin@oracle.com are
-
-origin.patch
-watchdog-trigger-all-cpu-backtrace-when-locked-up-and-going-to-panic.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v2.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-mm-add-pte_present-check-on-existing-hugetlb_entry-callbacks.patch
-mm-pagewalkc-move-pte-null-check.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-rmap-dont-try-to-add-an-unevictable-page-to-lru-list.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-linux-next.patch
-
+ 	/*
+-	 * If it's foreseeable that reclaiming the file cache won't be
+-	 * enough to get the zone back into a desirable shape, we have
+-	 * to swap.  Better start now and leave the - probably heavily
+-	 * thrashing - remaining file pages alone.
+-	 */
+-	if (global_reclaim(sc)) {
+-		free = zone_page_state(zone, NR_FREE_PAGES);
+-		if (unlikely(file + free <= high_wmark_pages(zone))) {
+-			scan_balance = SCAN_ANON;
+-			goto out;
+-		}
+-	}
