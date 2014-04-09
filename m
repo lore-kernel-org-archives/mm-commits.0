@@ -1,95 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch
+ arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch
  removed from -mm tree
-Date: Wed, 09 Apr 2014 10:55:33 -0700
-Message-ID: <53458995.6F6kwQ2W99AyDIct%akpm@linux-foundation.org>
+Date: Wed, 09 Apr 2014 10:55:35 -0700
+Message-ID: <53458997.Akq2Ka8LPe7voarP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36939 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36943 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934009AbaDIRze (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 13:55:34 -0400
+	with ESMTP id S933291AbaDIRzg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 13:55:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, lersek@redhat.com, axboe@kernel.dk, axboe@fb.com
+To: mm-commits@vger.kernel.org, vegardno@ifi.uio.no, penberg@kernel.org, rientjes@google.com
 
-Subject: [merged] lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch removed from -mm tree
-To: axboe@fb.com,axboe@kernel.dk,lersek@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
+Subject: [merged] arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch removed from -mm tree
+To: rientjes@google.com,penberg@kernel.org,vegardno@ifi.uio.no,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 09 Apr 2014 10:55:33 -0700
+Date: Wed, 09 Apr 2014 10:55:35 -0700
 
 
 The patch titled
-     Subject: lib/percpu_counter.c: fix bad percpu counter state during suspend
+     Subject: arch/x86/mm/kmemcheck/kmemcheck.c: use kstrtoint() instead of sscanf()
 has been removed from the -mm tree.  Its filename was
-     lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch
+     arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jens Axboe <axboe@fb.com>
-Subject: lib/percpu_counter.c: fix bad percpu counter state during suspend
+From: David Rientjes <rientjes@google.com>
+Subject: arch/x86/mm/kmemcheck/kmemcheck.c: use kstrtoint() instead of sscanf()
 
-I got a bug report yesterday from Laszlo Ersek in which he states that his
-kvm instance fails to suspend.  Laszlo bisected it down to this commit:
+Kmemcheck should use the preferred interface for parsing command line
+arguments, kstrto*(), rather than sscanf() itself.  Use it appropriately.
 
-commit 1cf7e9c68fe84248174e998922b39e508375e7c1
-  Author: Jens Axboe <axboe@kernel.dk>
-  Date:   Fri Nov 1 10:52:52 2013 -0600
-
-      virtio_blk: blk-mq support
-
-where virtio-blk is converted to use the blk-mq infrastructure.  After
-digging a bit, it became clear that the issue was with the queue drain. 
-blk-mq tracks queue usage in a percpu counter, which is incremented on
-request alloc and decremented when the request is freed.  The initial hunt
-was for an inconsistency in blk-mq, but everything seemed fine.  In fact,
-the counter only returned crazy values when suspend was in progress.  When
-a CPU is unplugged, the percpu counters merges that CPU state with the
-general state.  blk-mq takes care to register a hotcpu notifier with the
-appropriate priority, so we know it runs after the percpu counter
-notifier.  However, the percpu counter notifier only merges the state when
-the CPU is fully gone.  This leaves a state transition where the CPU going
-away is no longer in the online mask, yet it still holds private values. 
-This means that in this state, percpu_counter_sum() returns invalid
-results, and the suspend then hangs waiting for abs(dead-cpu-value)
-requests to complete which of course will never happen.
-
-Fix this by clearing the state earlier, so we never have a case where the
-CPU isn't in online mask but still holds private state.  This bug has been
-there since forever, I guess we don't have a lot of users where percpu
-counters needs to be reliable during the suspend cycle.
-
-Signed-off-by: Jens Axboe <axboe@fb.com>
-Reported-by: Laszlo Ersek <lersek@redhat.com>
-Tested-by: Laszlo Ersek <lersek@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Vegard Nossum <vegardno@ifi.uio.no>
+Acked-by: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_counter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/kmemcheck/kmemcheck.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN lib/percpu_counter.c~lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend lib/percpu_counter.c
---- a/lib/percpu_counter.c~lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend
-+++ a/lib/percpu_counter.c
-@@ -169,7 +169,7 @@ static int percpu_counter_hotcpu_callbac
- 	struct percpu_counter *fbc;
+diff -puN arch/x86/mm/kmemcheck/kmemcheck.c~arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf arch/x86/mm/kmemcheck/kmemcheck.c
+--- a/arch/x86/mm/kmemcheck/kmemcheck.c~arch-x86-mm-kmemcheck-kmemcheckc-use-kstrtoint-instead-of-sscanf
++++ a/arch/x86/mm/kmemcheck/kmemcheck.c
+@@ -78,10 +78,16 @@ early_initcall(kmemcheck_init);
+  */
+ static int __init param_kmemcheck(char *str)
+ {
++	int val;
++	int ret;
++
+ 	if (!str)
+ 		return -EINVAL;
  
- 	compute_batch_value();
--	if (action != CPU_DEAD)
-+	if (action != CPU_DEAD && action != CPU_DEAD_FROZEN)
- 		return NOTIFY_OK;
+-	sscanf(str, "%d", &kmemcheck_enabled);
++	ret = kstrtoint(str, 0, &val);
++	if (ret)
++		return ret;
++	kmemcheck_enabled = val;
+ 	return 0;
+ }
  
- 	cpu = (unsigned long)hcpu;
 _
 
-Patches currently in -mm which might be from axboe@fb.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
+mm-slab-slub-use-page-list-consistently-instead-of-page-lru.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
 
