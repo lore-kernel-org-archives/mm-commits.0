@@ -1,82 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch removed from -mm tree
-Date: Tue, 08 Apr 2014 16:00:50 -0700
-Message-ID: <53447fa2.k/Xr2hLephn0wdui%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Wed, 09 Apr 2014 10:53:56 -0700
+Message-ID: <53458934.h6lu9tUDD7hCRiQ8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57761 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36909 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757892AbaDHXAv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2014 19:00:51 -0400
+	with ESMTP id S933323AbaDIRx5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 13:53:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jet.chen@intel.com, fengguang.wu@intel.com, fabf@skynet.be, dushistov@mail.ru, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: [folded-merged] ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch removed from -mm tree
-To: akpm@linux-foundation.org,dushistov@mail.ru,fabf@skynet.be,fengguang.wu@intel.com,jet.chen@intel.com,mm-commits@vger.kernel.org
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Tue, 08 Apr 2014 16:00:50 -0700
+Date: Wed, 09 Apr 2014 10:53:56 -0700
 
 
 The patch titled
-     Subject: ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix
+     Subject: linux-next-rejects
 has been removed from the -mm tree.  Its filename was
-     ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix.patch
+     linux-next-rejects.patch
 
-This patch was dropped because it was folded into ufs-sb-mutex-merge-mutex_destroy.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix
+Subject: linux-next-rejects
 
-avoid ifdefs, return -EROFS not -EINVAL.
-
-Cc: "Chen, Jet" <jet.chen@intel.com>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ arch/arm64/kernel/head.S |    3 ---
+ arch/arm64/mm/mmu.c      |   30 ------------------------------
+ 2 files changed, 33 deletions(-)
 
-diff -puN fs/ufs/super.c~ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix fs/ufs/super.c
---- a/fs/ufs/super.c~ufs-sb-mutex-merge-mutex_destroy-fix-v2-fix
-+++ a/fs/ufs/super.c
-@@ -785,6 +785,14 @@ static int ufs_fill_super(struct super_b
- 	flags = 0;
- 	
- 	UFSD("ENTER\n");
-+
-+#ifndef CONFIG_UFS_FS_WRITE
-+	if (!(sb->s_flags & MS_RDONLY)) {
-+		printk("ufs was compiled with read-only support, "
-+		       "can't be mounted as read-write\n");
-+		return -EROFS;
-+	}
-+#endif
- 		
- 	sbi = kzalloc(sizeof(struct ufs_sb_info), GFP_KERNEL);
- 	if (!sbi)
-@@ -794,13 +802,6 @@ static int ufs_fill_super(struct super_b
+diff -puN arch/arm64/kernel/head.S~linux-next-rejects arch/arm64/kernel/head.S
+--- a/arch/arm64/kernel/head.S~linux-next-rejects
++++ a/arch/arm64/kernel/head.S
+@@ -482,8 +482,6 @@ __create_page_tables:
+ 	ldr	x5, =FIXADDR_TOP		// Fixed mapping virtual address
+ 	add	x0, x26, #2 * PAGE_SIZE		// section table address
+ 	create_pgd_entry x26, x0, x5, x6, x7
+-<<<<<<< HEAD
+-=======
+ #endif
  
- 	UFSD("flag %u\n", (int)(sb->s_flags & MS_RDONLY));
- 	
--#ifndef CONFIG_UFS_FS_WRITE
--	if (!(sb->s_flags & MS_RDONLY)) {
--		printk("ufs was compiled with read-only support, "
--		"can't be mounted as read-write\n");
--		goto failed_noreadwrite;
--	}
+ 	/*
+@@ -496,7 +494,6 @@ __create_page_tables:
+ 	bl	__inval_cache_range
+ 
+ 	mov	lr, x27
+->>>>>>> linux-next/akpm-base
+ 	ret
+ ENDPROC(__create_page_tables)
+ 	.ltorg
+diff -puN arch/arm64/mm/mmu.c~linux-next-rejects arch/arm64/mm/mmu.c
+--- a/arch/arm64/mm/mmu.c~linux-next-rejects
++++ a/arch/arm64/mm/mmu.c
+@@ -117,36 +117,6 @@ static int __init early_cachepolicy(char
+ }
+ early_param("cachepolicy", early_cachepolicy);
+ 
+-<<<<<<< HEAD
+-/*
+- * Adjust the PMD section entries according to the CPU in use.
+- */
+-void __init init_mem_pgprot(void)
+-{
+-	pteval_t default_pgprot;
+-	int i;
+-
+-	default_pgprot = PTE_ATTRINDX(MT_NORMAL);
+-	prot_sect_kernel = PMD_TYPE_SECT | PMD_SECT_AF | PMD_ATTRINDX(MT_NORMAL);
+-
+-#ifdef CONFIG_SMP
+-	/*
+-	 * Mark memory with the "shared" attribute for SMP systems
+-	 */
+-	default_pgprot |= PTE_SHARED;
+-	prot_sect_kernel |= PMD_SECT_S;
 -#endif
- 	mutex_init(&sbi->mutex);
- 	spin_lock_init(&sbi->work_lock);
- 	INIT_DELAYED_WORK(&sbi->sync_work, delayed_sync_fs);
-@@ -1256,10 +1257,6 @@ magic_found:
- 
- failed:
- 	mutex_destroy(&sbi->mutex);
+-
+-	for (i = 0; i < 16; i++) {
+-		unsigned long v = pgprot_val(protection_map[i]);
+-		protection_map[i] = __pgprot(v | default_pgprot);
+-	}
+-
+-	pgprot_default = __pgprot(PTE_TYPE_PAGE | PTE_AF | default_pgprot);
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+ 			      unsigned long size, pgprot_t vma_prot)
+ {
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
