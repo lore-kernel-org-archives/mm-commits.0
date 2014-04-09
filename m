@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + initramfs-remove-compression-mode-choice.patch added to -mm
- tree
-Date: Wed, 09 Apr 2014 14:35:41 -0700
-Message-ID: <5345bd2d.Nz5pX0A3a7f2jD/p%akpm@linux-foundation.org>
+Subject: + documentation-submittingpatches-describe-the-fixes-tag.patch
+ added to -mm tree
+Date: Wed, 09 Apr 2014 14:51:58 -0700
+Message-ID: <5345c0fe.N3rcHIrncMtlUgLM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38286 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933717AbaDIVfm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 17:35:42 -0400
+	with ESMTP id S933908AbaDIVv7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 17:51:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ppandit@redhat.com, pebolle@tiscali.nl
+To: mm-commits@vger.kernel.org, rdunlap@infradead.org, jeffrey.t.kirsher@intel.com, aaron.f.brown@intel.com, jacob.e.keller@intel.com
 
-Subject: + initramfs-remove-compression-mode-choice.patch added to -mm tree
-To: pebolle@tiscali.nl,ppandit@redhat.com
+Subject: + documentation-submittingpatches-describe-the-fixes-tag.patch added to -mm tree
+To: jacob.e.keller@intel.com,aaron.f.brown@intel.com,jeffrey.t.kirsher@intel.com,rdunlap@infradead.org
 From: akpm@linux-foundation.org
-Date: Wed, 09 Apr 2014 14:35:41 -0700
+Date: Wed, 09 Apr 2014 14:51:58 -0700
 
 
 The patch titled
-     Subject: initramfs: remove "compression mode" choice
+     Subject: Documentation/SubmittingPatches: describe the Fixes: tag
 has been added to the -mm tree.  Its filename is
-     initramfs-remove-compression-mode-choice.patch
+     documentation-submittingpatches-describe-the-fixes-tag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/initramfs-remove-compression-mode-choice.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-submittingpatches-describe-the-fixes-tag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/initramfs-remove-compression-mode-choice.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-submittingpatches-describe-the-fixes-tag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,102 +44,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: initramfs: remove "compression mode" choice
+From: Jacob Keller <jacob.e.keller@intel.com>
+Subject: Documentation/SubmittingPatches: describe the Fixes: tag
 
-9ba4bcb64589 ("initramfs: read CONFIG_RD_ variables for initramfs
-compression") removed the users of the various INITRAMFS_COMPRESSION_*
-Kconfig symbols.  So since v3.13 the entire "Built-in initramfs
-compression mode" choice is a set of knobs connected to nothing.  The
-entire choice can safely be removed.
+Update the SubmittingPatches process to include howto about the new
+'Fixed' tag to be used when a patch fixes an issue in a previous commit
+(found by git-bisect for example).
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-Cc: P J P <ppandit@redhat.com>
+Signed-off-by: Jacob Keller <jacob.e.keller@intel.com>
+Tested-by: Aaron Brown <aaron.f.brown@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Kconfig |   77 --------------------------------------------------
- 1 file changed, 77 deletions(-)
+ Documentation/SubmittingPatches |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-diff -puN usr/Kconfig~initramfs-remove-compression-mode-choice usr/Kconfig
---- a/usr/Kconfig~initramfs-remove-compression-mode-choice
-+++ a/usr/Kconfig
-@@ -98,80 +98,3 @@ config RD_LZ4
- 	help
- 	  Support loading of a LZ4 encoded initial ramdisk or cpio buffer
- 	  If unsure, say N.
--
--choice
--	prompt "Built-in initramfs compression mode" if INITRAMFS_SOURCE!=""
--	help
--	  This option decides by which algorithm the builtin initramfs
--	  will be compressed.  Several compression algorithms are
--	  available, which differ in efficiency, compression and
--	  decompression speed.  Compression speed is only relevant
--	  when building a kernel.  Decompression speed is relevant at
--	  each boot.
--
--	  If you have any problems with bzip2 or LZMA compressed
--	  initramfs, mail me (Alain Knaff) <alain@knaff.lu>.
--
--	  High compression options are mostly useful for users who are
--	  low on RAM, since it reduces the memory consumption during
--	  boot.
--
--	  If in doubt, select 'gzip'
--
--config INITRAMFS_COMPRESSION_NONE
--	bool "None"
--	help
--	  Do not compress the built-in initramfs at all. This may
--	  sound wasteful in space, but, you should be aware that the
--	  built-in initramfs will be compressed at a later stage
--	  anyways along with the rest of the kernel, on those
--	  architectures that support this.
--	  However, not compressing the initramfs may lead to slightly
--	  higher memory consumption during a short time at boot, while
--	  both the cpio image and the unpacked filesystem image will
--	  be present in memory simultaneously
--
--config INITRAMFS_COMPRESSION_GZIP
--	bool "Gzip"
--	depends on RD_GZIP
--	help
--	  The old and tried gzip compression. It provides a good balance
--	  between compression ratio and decompression speed.
--
--config INITRAMFS_COMPRESSION_BZIP2
--	bool "Bzip2"
--	depends on RD_BZIP2
--	help
--	  Its compression ratio and speed is intermediate.
--	  Decompression speed is slowest among the choices.  The initramfs
--	  size is about 10% smaller with bzip2, in comparison to gzip.
--	  Bzip2 uses a large amount of memory. For modern kernels you
--	  will need at least 8MB RAM or more for booting.
--
--config INITRAMFS_COMPRESSION_LZMA
--	bool "LZMA"
--	depends on RD_LZMA
--	help
--	  This algorithm's compression ratio is best.
--	  Decompression speed is between the other choices.
--	  Compression is slowest. The initramfs size is about 33%
--	  smaller with LZMA in comparison to gzip.
--
--config INITRAMFS_COMPRESSION_XZ
--	bool "XZ"
--	depends on RD_XZ
--	help
--	  XZ uses the LZMA2 algorithm. The initramfs size is about 30%
--	  smaller with XZ in comparison to gzip. Decompression speed
--	  is better than that of bzip2 but worse than gzip and LZO.
--	  Compression is slow.
--
--config INITRAMFS_COMPRESSION_LZO
--	bool "LZO"
--	depends on RD_LZO
--	help
--	  Its compression ratio is the poorest among the choices. The kernel
--	  size is about 10% bigger than gzip; however its speed
--	  (both compression and decompression) is the fastest.
+diff -puN Documentation/SubmittingPatches~documentation-submittingpatches-describe-the-fixes-tag Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~documentation-submittingpatches-describe-the-fixes-tag
++++ a/Documentation/SubmittingPatches
+@@ -132,6 +132,20 @@ Example:
+ 	platform_set_drvdata(), but left the variable "dev" unused,
+ 	delete it.
+ 
++If your patch fixes a bug in a specific commit, e.g. you found an issue using
++git-bisect, please use the 'Fixes:' tag with the first 12 characters of the
++SHA-1 ID, and the one line summary.
++Example:
++
++	Fixes: e21d2170f366 ("video: remove unnecessary platform_set_drvdata()")
++
++The following git-config settings can be used to add a pretty format for
++outputting the above style in the git log or git show commands
++
++	[core]
++		abbrev = 12
++	[pretty]
++		fixes = Fixes: %h (\"%s\")
+ 
+ 3) Separate your changes.
+ 
+@@ -443,7 +457,7 @@ person it names.  This tag documents tha
+ have been included in the discussion
+ 
+ 
+-14) Using Reported-by:, Tested-by:, Reviewed-by: and Suggested-by:
++14) Using Reported-by:, Tested-by:, Reviewed-by:, Suggested-by: and Fixes:
+ 
+ If this patch fixes a problem reported by somebody else, consider adding a
+ Reported-by: tag to credit the reporter for their contribution.  Please
+@@ -498,6 +512,12 @@ idea was not posted in a public forum. T
+ idea reporters, they will, hopefully, be inspired to help us again in the
+ future.
+ 
++A Fixes: tag indicates that the patch fixes an issue in a previous commit. It
++is used to make it easy to determine where a bug originated, which can help
++review a bug fix. This tag also assists the stable kernel team in determining
++which stable kernel versions should receive your fix. This is the preferred
++method for indicating a bug fixed by the patch. See #2 above for more details.
++
+ 
+ 15) The canonical patch format
+ 
+_
+
+Patches currently in -mm which might be from jacob.e.keller@intel.com are
+
+origin.patch
+documentation-submittingpatches-describe-the-fixes-tag.patch
+
