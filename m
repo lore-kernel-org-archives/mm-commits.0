@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
- added to -mm tree
-Date: Wed, 09 Apr 2014 13:54:06 -0700
-Message-ID: <5345b36e.kXd6r2d5yaN5Th/F%akpm@linux-foundation.org>
+Subject: + fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch added to -mm tree
+Date: Wed, 09 Apr 2014 13:59:23 -0700
+Message-ID: <5345b4ab.MPWHINiugrwWHftD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38011 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38017 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933885AbaDIUyH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 16:54:07 -0400
+	with ESMTP id S932847AbaDIU7X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 16:59:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, fabf@skynet.be
 
-Subject: + fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch added to -mm tree
-To: fabf@skynet.be,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch added to -mm tree
+To: fabf@skynet.be
 From: akpm@linux-foundation.org
-Date: Wed, 09 Apr 2014 13:54:06 -0700
+Date: Wed, 09 Apr 2014 13:59:23 -0700
 
 
 The patch titled
-     Subject: fs/ocfs2/super.c: use OCFS2_MAX_VOL_LABEL_LEN and strlcpy
+     Subject: fs/befs/linuxvfs.c: replace strncpy by strlcpy
 has been added to the -mm tree.  Its filename is
-     fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+     fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,33 +44,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/ocfs2/super.c: use OCFS2_MAX_VOL_LABEL_LEN and strlcpy
+Subject: fs/befs/linuxvfs.c: replace strncpy by strlcpy
 
-Replace strncpy(size 63) by defined value.
+strncpy + end of string assignment replaced by strlcpy
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/befs/linuxvfs.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/super.c~fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy
-+++ a/fs/ocfs2/super.c
-@@ -2292,8 +2292,8 @@ static int ocfs2_initialize_super(struct
- 		goto bail;
- 	}
+diff -puN fs/befs/linuxvfs.c~fs-befs-linuxvfsc-replace-strncpy-by-strlcpy fs/befs/linuxvfs.c
+--- a/fs/befs/linuxvfs.c~fs-befs-linuxvfsc-replace-strncpy-by-strlcpy
++++ a/fs/befs/linuxvfs.c
+@@ -396,9 +396,8 @@ static struct inode *befs_iget(struct su
+ 	if (S_ISLNK(inode->i_mode) && !(befs_ino->i_flags & BEFS_LONG_SYMLINK)){
+ 		inode->i_size = 0;
+ 		inode->i_blocks = befs_sb->block_size / VFS_BLOCK_SIZE;
+-		strncpy(befs_ino->i_data.symlink, raw_inode->data.symlink,
+-			BEFS_SYMLINK_LEN - 1);
+-		befs_ino->i_data.symlink[BEFS_SYMLINK_LEN - 1] = '\0';
++		strlcpy(befs_ino->i_data.symlink, raw_inode->data.symlink,
++			BEFS_SYMLINK_LEN);
+ 	} else {
+ 		int num_blks;
  
--	strncpy(osb->vol_label, di->id2.i_super.s_label, 63);
--	osb->vol_label[63] = '\0';
-+	strlcpy(osb->vol_label, di->id2.i_super.s_label,
-+		OCFS2_MAX_VOL_LABEL_LEN);
- 	osb->root_blkno = le64_to_cpu(di->id2.i_super.s_root_blkno);
- 	osb->system_dir_blkno = le64_to_cpu(di->id2.i_super.s_system_dir_blkno);
- 	osb->first_cluster_group_blkno =
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
@@ -80,6 +78,7 @@ origin.patch
 ntfs-remove-null-value-assignments.patch
 ocfs2-remove-null-assignments-on-static.patch
 fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
+fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
 linux-next.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
 
