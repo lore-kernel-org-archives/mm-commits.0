@@ -1,94 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch removed from -mm tree
-Date: Wed, 09 Apr 2014 10:55:29 -0700
-Message-ID: <53458991.jtKAqAoVkr3vHCKc%akpm@linux-foundation.org>
+ lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch
+ removed from -mm tree
+Date: Wed, 09 Apr 2014 10:55:33 -0700
+Message-ID: <53458995.6F6kwQ2W99AyDIct%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36931 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36939 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933291AbaDIRza (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 13:55:30 -0400
+	with ESMTP id S934009AbaDIRze (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2014 13:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, suleiman@google.com, stable@kernel.org, riel@redhat.com, mgorman@suse.de, hughd@google.com, aquini@redhat.com, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, lersek@redhat.com, axboe@kernel.dk, axboe@fb.com
 
-Subject: [merged] mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch removed from -mm tree
-To: hannes@cmpxchg.org,aquini@redhat.com,hughd@google.com,mgorman@suse.de,riel@redhat.com,stable@kernel.org,suleiman@google.com,mm-commits@vger.kernel.org
+Subject: [merged] lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch removed from -mm tree
+To: axboe@fb.com,axboe@kernel.dk,lersek@redhat.com,stable@vger.kernel.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Wed, 09 Apr 2014 10:55:29 -0700
+Date: Wed, 09 Apr 2014 10:55:33 -0700
 
 
 The patch titled
-     Subject: mm: vmscan: do not swap anon pages just because free+file is low
+     Subject: lib/percpu_counter.c: fix bad percpu counter state during suspend
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low.patch
+     lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: do not swap anon pages just because free+file is low
+From: Jens Axboe <axboe@fb.com>
+Subject: lib/percpu_counter.c: fix bad percpu counter state during suspend
 
-Page reclaim force-scans / swaps anonymous pages when file cache drops
-below the high watermark of a zone in order to prevent what little cache
-remains from thrashing.
+I got a bug report yesterday from Laszlo Ersek in which he states that his
+kvm instance fails to suspend.  Laszlo bisected it down to this commit:
 
-However, on bigger machines the high watermark value can be quite large
-and when the workload is dominated by a static anonymous/shmem set, the
-file set might just be a small window of used-once cache.  In such
-situations, the VM starts swapping heavily when instead it should be
-recycling the no longer used cache.
+commit 1cf7e9c68fe84248174e998922b39e508375e7c1
+  Author: Jens Axboe <axboe@kernel.dk>
+  Date:   Fri Nov 1 10:52:52 2013 -0600
 
-This is a longer-standing problem, but it's more likely to trigger after
-81c0a2bb515f ("mm: page_alloc: fair zone allocator policy") because file
-pages can no longer accumulate in a single zone and are dispersed into
-smaller fractions among the available zones.
+      virtio_blk: blk-mq support
 
-To resolve this, do not force scan anon when file pages are low but
-instead rely on the scan/rotation ratios to make the right prediction.
+where virtio-blk is converted to use the blk-mq infrastructure.  After
+digging a bit, it became clear that the issue was with the queue drain. 
+blk-mq tracks queue usage in a percpu counter, which is incremented on
+request alloc and decremented when the request is freed.  The initial hunt
+was for an inconsistency in blk-mq, but everything seemed fine.  In fact,
+the counter only returned crazy values when suspend was in progress.  When
+a CPU is unplugged, the percpu counters merges that CPU state with the
+general state.  blk-mq takes care to register a hotcpu notifier with the
+appropriate priority, so we know it runs after the percpu counter
+notifier.  However, the percpu counter notifier only merges the state when
+the CPU is fully gone.  This leaves a state transition where the CPU going
+away is no longer in the online mask, yet it still holds private values. 
+This means that in this state, percpu_counter_sum() returns invalid
+results, and the suspend then hangs waiting for abs(dead-cpu-value)
+requests to complete which of course will never happen.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Rafael Aquini <aquini@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: <stable@kernel.org>		[3.12+]
+Fix this by clearing the state earlier, so we never have a case where the
+CPU isn't in online mask but still holds private state.  This bug has been
+there since forever, I guess we don't have a lot of users where percpu
+counters needs to be reliable during the suspend cycle.
+
+Signed-off-by: Jens Axboe <axboe@fb.com>
+Reported-by: Laszlo Ersek <lersek@redhat.com>
+Tested-by: Laszlo Ersek <lersek@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+ lib/percpu_counter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-swap-anon-pages-just-because-freefile-is-low
-+++ a/mm/vmscan.c
-@@ -1862,7 +1862,7 @@ static void get_scan_count(struct lruvec
- 	struct zone *zone = lruvec_zone(lruvec);
- 	unsigned long anon_prio, file_prio;
- 	enum scan_balance scan_balance;
--	unsigned long anon, file, free;
-+	unsigned long anon, file;
- 	bool force_scan = false;
- 	unsigned long ap, fp;
- 	enum lru_list lru;
-@@ -1916,20 +1916,6 @@ static void get_scan_count(struct lruvec
- 		get_lru_size(lruvec, LRU_INACTIVE_FILE);
+diff -puN lib/percpu_counter.c~lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend lib/percpu_counter.c
+--- a/lib/percpu_counter.c~lib-percpu_counterc-fix-bad-percpu-counter-state-during-suspend
++++ a/lib/percpu_counter.c
+@@ -169,7 +169,7 @@ static int percpu_counter_hotcpu_callbac
+ 	struct percpu_counter *fbc;
  
- 	/*
--	 * If it's foreseeable that reclaiming the file cache won't be
--	 * enough to get the zone back into a desirable shape, we have
--	 * to swap.  Better start now and leave the - probably heavily
--	 * thrashing - remaining file pages alone.
--	 */
--	if (global_reclaim(sc)) {
--		free = zone_page_state(zone, NR_FREE_PAGES);
--		if (unlikely(file + free <= high_wmark_pages(zone))) {
--			scan_balance = SCAN_ANON;
--			goto out;
--		}
--	}
+ 	compute_batch_value();
+-	if (action != CPU_DEAD)
++	if (action != CPU_DEAD && action != CPU_DEAD_FROZEN)
+ 		return NOTIFY_OK;
+ 
+ 	cpu = (unsigned long)hcpu;
+_
+
+Patches currently in -mm which might be from axboe@fb.com are
+
+origin.patch
+linux-next.patch
+
