@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + init-mainc-dont-use-pr_debug.patch added to -mm tree
-Date: Thu, 10 Apr 2014 15:02:28 -0700
-Message-ID: <534714f4.TpfiwyhaF4/QfhMv%akpm@linux-foundation.org>
+Subject: +
+ documentation-devicetree-bindings-add-documentation-for-the-apm-x-gene-soc-rtc-dts-binding.patch added to -mm tree
+Date: Thu, 10 Apr 2014 16:24:52 -0700
+Message-ID: <53472844.7BwZbh39ept8yVAx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49309 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49922 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753845AbaDJWC3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Apr 2014 18:02:29 -0400
+	with ESMTP id S1759268AbaDJXYx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Apr 2014 19:24:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rmk@arm.linux.org.uk, joe@perches.com, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, will.deacon@arm.com, rsahu@apm.com, jcm@redhat.com, catalin.marinas@arm.com, a.zummo@towertech.it, lho@apm.com
 
-Subject: + init-mainc-dont-use-pr_debug.patch added to -mm tree
-To: akpm@linux-foundation.org,joe@perches.com,rmk@arm.linux.org.uk,stable@vger.kernel.org
+Subject: + documentation-devicetree-bindings-add-documentation-for-the-apm-x-gene-soc-rtc-dts-binding.patch added to -mm tree
+To: lho@apm.com,a.zummo@towertech.it,catalin.marinas@arm.com,jcm@redhat.com,rsahu@apm.com,will.deacon@arm.com
 From: akpm@linux-foundation.org
-Date: Thu, 10 Apr 2014 15:02:28 -0700
+Date: Thu, 10 Apr 2014 16:24:52 -0700
 
 
 The patch titled
-     Subject: init/main.c: don't use pr_debug()
+     Subject: Documentation/devicetree/bindings: add documentation for the APM X-Gene SoC RTC DTS binding
 has been added to the -mm tree.  Its filename is
-     init-mainc-dont-use-pr_debug.patch
+     documentation-devicetree-bindings-add-documentation-for-the-apm-x-gene-soc-rtc-dts-binding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-mainc-dont-use-pr_debug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-devicetree-bindings-add-documentation-for-the-apm-x-gene-soc-rtc-dts-binding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-dont-use-pr_debug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-devicetree-bindings-add-documentation-for-the-apm-x-gene-soc-rtc-dts-binding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,74 +44,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: init/main.c: don't use pr_debug()
+From: Loc Ho <lho@apm.com>
+Subject: Documentation/devicetree/bindings: add documentation for the APM X-Gene SoC RTC DTS binding
 
-Pertially revert ea676e846a8171b8 ("init/main.c: convert to pr_foo()").
-
-Unbeknownst to me, pr_debug() is different from the other pr_foo() levels:
-pr_debug() is a no-op when DEBUG is not defined.  Consequently
-initcall_debug does not work when init/main.c was compiled without
--DDEBUG.
-
-Reported-by: Russell King <rmk@arm.linux.org.uk>
-Cc: Joe Perches <joe@perches.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Rameshwar Prasad Sahu <rsahu@apm.com>
+Signed-off-by: Loc Ho <lho@apm.com>
+Cc: Jon Masters <jcm@redhat.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/rtc/xgene-rtc.txt |   28 ++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff -puN init/main.c~init-mainc-dont-use-pr_debug init/main.c
---- a/init/main.c~init-mainc-dont-use-pr_debug
-+++ a/init/main.c
-@@ -672,13 +672,13 @@ static int __init_or_module do_one_initc
- 	unsigned long long duration;
- 	int ret;
- 
--	pr_debug("calling  %pF @ %i\n", fn, task_pid_nr(current));
-+	printk(KERN_DEBUG "calling  %pF @ %i\n", fn, task_pid_nr(current));
- 	calltime = ktime_get();
- 	ret = fn();
- 	rettime = ktime_get();
- 	delta = ktime_sub(rettime, calltime);
- 	duration = (unsigned long long) ktime_to_ns(delta) >> 10;
--	pr_debug("initcall %pF returned %d after %lld usecs\n",
-+	printk(KERN_DEBUG "initcall %pF returned %d after %lld usecs\n",
- 		 fn, ret, duration);
- 
- 	return ret;
+diff -puN /dev/null Documentation/devicetree/bindings/rtc/xgene-rtc.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/rtc/xgene-rtc.txt
+@@ -0,0 +1,28 @@
++* APM X-Gene Real Time Clock
++
++RTC controller for the APM X-Gene Real Time Clock
++
++Required properties:
++- compatible : Should be "apm,xgene-rtc"
++- reg: physical base address of the controller and length of memory mapped
++  region.
++- interrupts: IRQ line for the RTC.
++- #clock-cells: Should be 1.
++- clocks: Reference to the clock entry.
++
++Example:
++
++rtcclk: rtcclk {
++	compatible = "fixed-clock";
++	#clock-cells = <1>;
++	clock-frequency = <100000000>;
++	clock-output-names = "rtcclk";
++};
++
++rtc: rtc@10510000 {
++	compatible = "apm,xgene-rtc";
++	reg = <0x0 0x10510000 0x0 0x400>;
++	interrupts = <0x0 0x46 0x4>;
++	#clock-cells = <1>;
++	clocks = <&rtcclk 0>;
++};
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lho@apm.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-init-mainc-dont-use-pr_debug.patch
-wait-explain-the-shadowing-and-type-inconsistencies.patch
-mips-export-flush_icache_range-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+documentation-devicetree-bindings-add-documentation-for-the-apm-x-gene-soc-rtc-dts-binding.patch
+drivers-rtc-add-apm-x-gene-soc-rtc-driver.patch
+arm64-add-apm-x-gene-soc-rtc-dts-entry.patch
 linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
