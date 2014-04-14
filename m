@@ -1,60 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Mon, 14 Apr 2014 13:07:03 -0700
-Message-ID: <534c3fe7.1L0WgszIizpRl1RV%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 14 Apr 2014 13:07:15 -0700
+Message-ID: <534c3ff3.Eyh5mKBBuCVUs7Zp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49336 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49337 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750769AbaDNUHF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Apr 2014 16:07:05 -0400
+	with ESMTP id S1750769AbaDNUHQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Apr 2014 16:07:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
 To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
 From: akpm@linux-foundation.org
-Date: Mon, 14 Apr 2014 13:07:03 -0700
+Date: Mon, 14 Apr 2014 13:07:15 -0700
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     linux-next-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/platform/x86/alienware-wmi.c |   23 -----------------------
+ 1 file changed, 23 deletions(-)
 
-diff -puN mm/slub.c~linux-next-rejects mm/slub.c
---- a/mm/slub.c~linux-next-rejects
-+++ a/mm/slub.c
-@@ -1361,11 +1361,12 @@ static struct page *allocate_slab(struct
- 	page = alloc_slab_page(s, alloc_gfp, node, oo);
- 	if (unlikely(!page)) {
- 		oo = s->min;
-+		alloc_gfp = flags;
- 		/*
- 		 * Allocation may have failed due to fragmentation.
- 		 * Try a lower order alloc if possible
- 		 */
--		page = alloc_slab_page(s, flags, node, oo);
-+		page = alloc_slab_page(s, alloc_gfp, node, oo);
+diff -puN arch/powerpc/Makefile~linux-next-git-rejects arch/powerpc/Makefile
+diff -puN drivers/platform/x86/alienware-wmi.c~linux-next-git-rejects drivers/platform/x86/alienware-wmi.c
+--- a/drivers/platform/x86/alienware-wmi.c~linux-next-git-rejects
++++ a/drivers/platform/x86/alienware-wmi.c
+@@ -368,29 +368,12 @@ static int alienware_zone_init(struct pl
+ 	zone_dev_attrs =
+ 	    kzalloc(sizeof(struct device_attribute) * (quirks->num_zones + 1),
+ 		    GFP_KERNEL);
+-<<<<<<< HEAD
+-	if (!zone_dev_attrs)
+-		return -ENOMEM;
+-
+ 	zone_attrs =
+ 	    kzalloc(sizeof(struct attribute *) * (quirks->num_zones + 2),
+ 		    GFP_KERNEL);
+-	if (!zone_attrs)
+-		return -ENOMEM;
+-
+ 	zone_data =
+ 	    kzalloc(sizeof(struct platform_zone) * (quirks->num_zones),
+ 		    GFP_KERNEL);
+-	if (!zone_data)
+-		return -ENOMEM;
+-=======
+-	zone_attrs =
+-	    kzalloc(sizeof(struct attribute *) * (quirks->num_zones + 2),
+-		    GFP_KERNEL);
+-	zone_data =
+-	    kzalloc(sizeof(struct platform_zone) * (quirks->num_zones),
+-		    GFP_KERNEL);
+->>>>>>> linux-next/akpm-base
  
- 		if (page)
- 			stat(s, ORDER_FALLBACK);
+ 	for (i = 0; i < quirks->num_zones; i++) {
+ 		sprintf(buffer, "zone%02X", i);
+@@ -563,15 +546,9 @@ module_init(alienware_wmi_init);
+ 
+ static void __exit alienware_wmi_exit(void)
+ {
+-<<<<<<< HEAD
+-	if (platform_device) {
+-		alienware_zone_exit(platform_device);
+-		remove_hdmi(platform_device);
+-=======
+ 	alienware_zone_exit(platform_device);
+ 	remove_hdmi(platform_device);
+ 	if (platform_device) {
+->>>>>>> linux-next/akpm-base
+ 		platform_device_unregister(platform_device);
+ 		platform_driver_unregister(&platform_driver);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +108,6 @@ mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 mm-compactionc-isolate_freepages_block-small-tuneup.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 init-mainc-dont-use-pr_debug.patch
-linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
 debugging-keep-track-of-page-owners.patch
