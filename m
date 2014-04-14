@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-stringc-strlcpy-might-read-too-far.patch added to -mm tree
-Date: Mon, 14 Apr 2014 14:47:03 -0700
-Message-ID: <534c5757.VydWMxxcqkXGiwNa%akpm@linux-foundation.org>
+Subject: + lib-stringc-use-the-name-c-string-in-comments.patch added to
+ -mm tree
+Date: Mon, 14 Apr 2014 14:47:02 -0700
+Message-ID: <534c5756.Yt3Z8/sd4Aw7p/SY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52122 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754345AbaDNVrE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Apr 2014 17:47:04 -0400
+	with ESMTP id S1754300AbaDNVrD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Apr 2014 17:47:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vegard.nossum@gmail.com, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com
 
-Subject: + lib-stringc-strlcpy-might-read-too-far.patch added to -mm tree
-To: dan.carpenter@oracle.com,vegard.nossum@gmail.com
+Subject: + lib-stringc-use-the-name-c-string-in-comments.patch added to -mm tree
+To: dan.carpenter@oracle.com
 From: akpm@linux-foundation.org
-Date: Mon, 14 Apr 2014 14:47:03 -0700
+Date: Mon, 14 Apr 2014 14:47:02 -0700
 
 
 The patch titled
-     Subject: lib/string.c: strlcpy() might read too far
+     Subject: lib/string.c: use the name "C-string" in comments
 has been added to the -mm tree.  Its filename is
-     lib-stringc-strlcpy-might-read-too-far.patch
+     lib-stringc-use-the-name-c-string-in-comments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-stringc-strlcpy-might-read-too-far.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-stringc-use-the-name-c-string-in-comments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-stringc-strlcpy-might-read-too-far.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-stringc-use-the-name-c-string-in-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,44 +45,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: lib/string.c: strlcpy() might read too far
+Subject: lib/string.c: use the name "C-string" in comments
 
-Imagine you have a user controlled variable at the end of a struct which
-is allocated at the end of a page.  The strlen() could read beyond the
-mapped memory and cause an oops.
+For strncpy() and friends the source string may or may not have an actual
+NUL character at the end.  The documentation is confusing in this because
+it specifically mentions that you are passing a "NUL-terminated" string. 
+Wikipedia says that "C-string" is an alternative name we can use instead.
 
-Probably there are two reasons why we have never hit this condition in
-real life.  First you would have to be really unlucky for all the
-variables to line up so the oops can happen.  Second we don't do a lot of
-fuzzing with invalid strings.
-
-The strnlen() call is obviously a little bit slower than strlen() but I
-have tested it and I think it's probably ok.
+http://en.wikipedia.org/wiki/Null-terminated_string
 
 Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reported-by: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/string.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/string.c~lib-stringc-strlcpy-might-read-too-far lib/string.c
---- a/lib/string.c~lib-stringc-strlcpy-might-read-too-far
+diff -puN lib/string.c~lib-stringc-use-the-name-c-string-in-comments lib/string.c
+--- a/lib/string.c~lib-stringc-use-the-name-c-string-in-comments
 +++ a/lib/string.c
-@@ -148,10 +148,10 @@ EXPORT_SYMBOL(strncpy);
-  */
- size_t strlcpy(char *dest, const char *src, size_t size)
- {
--	size_t ret = strlen(src);
-+	size_t ret = strnlen(src, size);
+@@ -107,7 +107,7 @@ EXPORT_SYMBOL(strcpy);
  
- 	if (size) {
--		size_t len = (ret >= size) ? size - 1 : ret;
-+		size_t len = (ret < size) ? ret : ret - 1;
- 		memcpy(dest, src, len);
- 		dest[len] = '\0';
- 	}
+ #ifndef __HAVE_ARCH_STRNCPY
+ /**
+- * strncpy - Copy a length-limited, %NUL-terminated string
++ * strncpy - Copy a length-limited, C-string
+  * @dest: Where to copy the string to
+  * @src: Where to copy the string from
+  * @count: The maximum number of bytes to copy
+@@ -136,7 +136,7 @@ EXPORT_SYMBOL(strncpy);
+ 
+ #ifndef __HAVE_ARCH_STRLCPY
+ /**
+- * strlcpy - Copy a %NUL terminated string into a sized buffer
++ * strlcpy - Copy a C-string into a sized buffer
+  * @dest: Where to copy the string to
+  * @src: Where to copy the string from
+  * @size: size of destination buffer
+@@ -182,7 +182,7 @@ EXPORT_SYMBOL(strcat);
+ 
+ #ifndef __HAVE_ARCH_STRNCAT
+ /**
+- * strncat - Append a length-limited, %NUL-terminated string to another
++ * strncat - Append a length-limited, C-string to another
+  * @dest: The string to be appended to
+  * @src: The string to append to it
+  * @count: The maximum numbers of bytes to copy
+@@ -211,7 +211,7 @@ EXPORT_SYMBOL(strncat);
+ 
+ #ifndef __HAVE_ARCH_STRLCAT
+ /**
+- * strlcat - Append a length-limited, %NUL-terminated string to another
++ * strlcat - Append a length-limited, C-string to another
+  * @dest: The string to be appended to
+  * @src: The string to append to it
+  * @count: The size of the destination buffer.
 _
 
 Patches currently in -mm which might be from dan.carpenter@oracle.com are
