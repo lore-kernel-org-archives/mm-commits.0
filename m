@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + lib-stringc-use-the-name-c-string-in-comments.patch added to
- -mm tree
-Date: Mon, 14 Apr 2014 14:47:02 -0700
-Message-ID: <534c5756.Yt3Z8/sd4Aw7p/SY%akpm@linux-foundation.org>
+Subject: +
+ mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally.patch added to -mm tree
+Date: Mon, 14 Apr 2014 15:28:33 -0700
+Message-ID: <534c6111.D35wCZGdy5bI330B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52122 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52677 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754300AbaDNVrD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Apr 2014 17:47:03 -0400
+	with ESMTP id S1755333AbaDNW2e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Apr 2014 18:28:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, dan.carpenter@oracle.com
+To: mm-commits@vger.kernel.org, xemul@parallels.com, hughd@google.com, gorcunov@openvz.org
 
-Subject: + lib-stringc-use-the-name-c-string-in-comments.patch added to -mm tree
-To: dan.carpenter@oracle.com
+Subject: + mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally.patch added to -mm tree
+To: gorcunov@openvz.org,hughd@google.com,xemul@parallels.com
 From: akpm@linux-foundation.org
-Date: Mon, 14 Apr 2014 14:47:02 -0700
+Date: Mon, 14 Apr 2014 15:28:33 -0700
 
 
 The patch titled
-     Subject: lib/string.c: use the name "C-string" in comments
+     Subject: mm: softdirty: make freshly remapped file pages being softdirty unconditionally
 has been added to the -mm tree.  Its filename is
-     lib-stringc-use-the-name-c-string-in-comments.patch
+     mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-stringc-use-the-name-c-string-in-comments.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-stringc-use-the-name-c-string-in-comments.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,67 +44,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: lib/string.c: use the name "C-string" in comments
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: mm: softdirty: make freshly remapped file pages being softdirty unconditionally
 
-For strncpy() and friends the source string may or may not have an actual
-NUL character at the end.  The documentation is confusing in this because
-it specifically mentions that you are passing a "NUL-terminated" string. 
-Wikipedia says that "C-string" is an alternative name we can use instead.
+Hugh reported:
 
-http://en.wikipedia.org/wiki/Null-terminated_string
+ | I noticed your soft_dirty work in install_file_pte(): which looked
+ | good at first, until I realized that it's propagating the soft_dirty
+ | of a pte it's about to zap completely, to the unrelated entry it's
+ | about to insert in its place.  Which seems very odd to me.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Indeed this code ends up being nop in result -- pte_file_mksoft_dirty()
+operates with pte_t argument and returns new pte_t which were never used
+after.  After looking more I think what we need is to soft-dirtify all
+newely remapped file pages because it should look like a new mapping for
+memory tracker.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Reported-by: Hugh Dickins <hughd@google.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/fremap.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN lib/string.c~lib-stringc-use-the-name-c-string-in-comments lib/string.c
---- a/lib/string.c~lib-stringc-use-the-name-c-string-in-comments
-+++ a/lib/string.c
-@@ -107,7 +107,7 @@ EXPORT_SYMBOL(strcpy);
+diff -puN mm/fremap.c~mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally mm/fremap.c
+--- a/mm/fremap.c~mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally
++++ a/mm/fremap.c
+@@ -82,13 +82,10 @@ static int install_file_pte(struct mm_st
  
- #ifndef __HAVE_ARCH_STRNCPY
- /**
-- * strncpy - Copy a length-limited, %NUL-terminated string
-+ * strncpy - Copy a length-limited, C-string
-  * @dest: Where to copy the string to
-  * @src: Where to copy the string from
-  * @count: The maximum number of bytes to copy
-@@ -136,7 +136,7 @@ EXPORT_SYMBOL(strncpy);
+ 	ptfile = pgoff_to_pte(pgoff);
  
- #ifndef __HAVE_ARCH_STRLCPY
- /**
-- * strlcpy - Copy a %NUL terminated string into a sized buffer
-+ * strlcpy - Copy a C-string into a sized buffer
-  * @dest: Where to copy the string to
-  * @src: Where to copy the string from
-  * @size: size of destination buffer
-@@ -182,7 +182,7 @@ EXPORT_SYMBOL(strcat);
+-	if (!pte_none(*pte)) {
+-		if (pte_present(*pte) && pte_soft_dirty(*pte))
+-			pte_file_mksoft_dirty(ptfile);
++	if (!pte_none(*pte))
+ 		zap_pte(mm, vma, addr, pte);
+-	}
  
- #ifndef __HAVE_ARCH_STRNCAT
- /**
-- * strncat - Append a length-limited, %NUL-terminated string to another
-+ * strncat - Append a length-limited, C-string to another
-  * @dest: The string to be appended to
-  * @src: The string to append to it
-  * @count: The maximum numbers of bytes to copy
-@@ -211,7 +211,7 @@ EXPORT_SYMBOL(strncat);
- 
- #ifndef __HAVE_ARCH_STRLCAT
- /**
-- * strlcat - Append a length-limited, %NUL-terminated string to another
-+ * strlcat - Append a length-limited, C-string to another
-  * @dest: The string to be appended to
-  * @src: The string to append to it
-  * @count: The size of the destination buffer.
+-	set_pte_at(mm, addr, pte, ptfile);
++	set_pte_at(mm, addr, pte, pte_file_mksoft_dirty(ptfile));
+ 	/*
+ 	 * We don't need to run update_mmu_cache() here because the "file pte"
+ 	 * being installed by install_file_pte() is not a real pte - it's a
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
-lib-stringc-use-the-name-c-string-in-comments.patch
-lib-stringc-strlcpy-might-read-too-far.patch
-linux-next.patch
+mm-softdirty-make-freshly-remapped-file-pages-being-softdirty-unconditionally.patch
+mm-softdirty-dont-forget-to-save-file-map-softdiry-bit-on-unmap.patch
+mm-softdirty-clear-vm_softdirty-flag-inside-clear_refs_write-instead-of-clear_soft_dirty.patch
 
