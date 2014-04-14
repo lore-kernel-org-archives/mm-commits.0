@@ -1,120 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 14 Apr 2014 13:07:15 -0700
-Message-ID: <534c3ff3.Eyh5mKBBuCVUs7Zp%akpm@linux-foundation.org>
+Subject: + lib-stringc-strlcpy-might-read-too-far.patch added to -mm tree
+Date: Mon, 14 Apr 2014 14:47:03 -0700
+Message-ID: <534c5757.VydWMxxcqkXGiwNa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49337 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750769AbaDNUHQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Apr 2014 16:07:16 -0400
+	with ESMTP id S1754345AbaDNVrE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Apr 2014 17:47:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org, vegard.nossum@gmail.com, dan.carpenter@oracle.com
 
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-To: akpm@linux-foundation.org,mm-commits@vger.kernel.org
+Subject: + lib-stringc-strlcpy-might-read-too-far.patch added to -mm tree
+To: dan.carpenter@oracle.com,vegard.nossum@gmail.com
 From: akpm@linux-foundation.org
-Date: Mon, 14 Apr 2014 13:07:15 -0700
+Date: Mon, 14 Apr 2014 14:47:03 -0700
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: lib/string.c: strlcpy() might read too far
+has been added to the -mm tree.  Its filename is
+     lib-stringc-strlcpy-might-read-too-far.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-stringc-strlcpy-might-read-too-far.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-stringc-strlcpy-might-read-too-far.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: lib/string.c: strlcpy() might read too far
 
+Imagine you have a user controlled variable at the end of a struct which
+is allocated at the end of a page.  The strlen() could read beyond the
+mapped memory and cause an oops.
+
+Probably there are two reasons why we have never hit this condition in
+real life.  First you would have to be really unlucky for all the
+variables to line up so the oops can happen.  Second we don't do a lot of
+fuzzing with invalid strings.
+
+The strnlen() call is obviously a little bit slower than strlen() but I
+have tested it and I think it's probably ok.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reported-by: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/alienware-wmi.c |   23 -----------------------
- 1 file changed, 23 deletions(-)
+ lib/string.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/Makefile~linux-next-git-rejects arch/powerpc/Makefile
-diff -puN drivers/platform/x86/alienware-wmi.c~linux-next-git-rejects drivers/platform/x86/alienware-wmi.c
---- a/drivers/platform/x86/alienware-wmi.c~linux-next-git-rejects
-+++ a/drivers/platform/x86/alienware-wmi.c
-@@ -368,29 +368,12 @@ static int alienware_zone_init(struct pl
- 	zone_dev_attrs =
- 	    kzalloc(sizeof(struct device_attribute) * (quirks->num_zones + 1),
- 		    GFP_KERNEL);
--<<<<<<< HEAD
--	if (!zone_dev_attrs)
--		return -ENOMEM;
--
- 	zone_attrs =
- 	    kzalloc(sizeof(struct attribute *) * (quirks->num_zones + 2),
- 		    GFP_KERNEL);
--	if (!zone_attrs)
--		return -ENOMEM;
--
- 	zone_data =
- 	    kzalloc(sizeof(struct platform_zone) * (quirks->num_zones),
- 		    GFP_KERNEL);
--	if (!zone_data)
--		return -ENOMEM;
--=======
--	zone_attrs =
--	    kzalloc(sizeof(struct attribute *) * (quirks->num_zones + 2),
--		    GFP_KERNEL);
--	zone_data =
--	    kzalloc(sizeof(struct platform_zone) * (quirks->num_zones),
--		    GFP_KERNEL);
-->>>>>>> linux-next/akpm-base
- 
- 	for (i = 0; i < quirks->num_zones; i++) {
- 		sprintf(buffer, "zone%02X", i);
-@@ -563,15 +546,9 @@ module_init(alienware_wmi_init);
- 
- static void __exit alienware_wmi_exit(void)
+diff -puN lib/string.c~lib-stringc-strlcpy-might-read-too-far lib/string.c
+--- a/lib/string.c~lib-stringc-strlcpy-might-read-too-far
++++ a/lib/string.c
+@@ -148,10 +148,10 @@ EXPORT_SYMBOL(strncpy);
+  */
+ size_t strlcpy(char *dest, const char *src, size_t size)
  {
--<<<<<<< HEAD
--	if (platform_device) {
--		alienware_zone_exit(platform_device);
--		remove_hdmi(platform_device);
--=======
- 	alienware_zone_exit(platform_device);
- 	remove_hdmi(platform_device);
- 	if (platform_device) {
-->>>>>>> linux-next/akpm-base
- 		platform_device_unregister(platform_device);
- 		platform_driver_unregister(&platform_driver);
+-	size_t ret = strlen(src);
++	size_t ret = strnlen(src, size);
+ 
+ 	if (size) {
+-		size_t len = (ret >= size) ? size - 1 : ret;
++		size_t len = (ret < size) ? ret : ret - 1;
+ 		memcpy(dest, src, len);
+ 		dest[len] = '\0';
  	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-akpm-maintenance.patch
-wait-explain-the-shadowing-and-type-inconsistencies.patch
-mips-export-flush_icache_range-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
-mm.patch
-mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
-pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
-pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-compactionc-isolate_freepages_block-small-tuneup.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-init-mainc-dont-use-pr_debug.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
-debugging-keep-track-of-page-owners.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+lib-stringc-use-the-name-c-string-in-comments.patch
+lib-stringc-strlcpy-might-read-too-far.patch
+linux-next.patch
 
