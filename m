@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
- added to -mm tree
-Date: Tue, 15 Apr 2014 12:28:49 -0700
-Message-ID: <534d8871.UUjScsVY5S/ryK53%akpm@linux-foundation.org>
+Subject: +
+ signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch added to -mm tree
+Date: Tue, 15 Apr 2014 12:28:46 -0700
+Message-ID: <534d886e.NYcy/vaK3Nu9+5fO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33789 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33769 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753581AbaDOT2u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Apr 2014 15:28:50 -0400
+	with ESMTP id S1751152AbaDOT2s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Apr 2014 15:28:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tj@kernel.org, rostedt@goodmis.org, richard@nod.at, peterz@infradead.org, mingo@kernel.org, mathieu.desnoyers@efficios.com, geert@linux-m68k.org, fweisbec@gmail.com, dwmw2@infradead.org, oleg@redhat.com
 
-Subject: + signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch added to -mm tree
+Subject: + signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch added to -mm tree
 To: oleg@redhat.com,dwmw2@infradead.org,fweisbec@gmail.com,geert@linux-m68k.org,mathieu.desnoyers@efficios.com,mingo@kernel.org,peterz@infradead.org,richard@nod.at,rostedt@goodmis.org,tj@kernel.org,viro@ZenIV.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 15 Apr 2014 12:28:49 -0700
+Date: Tue, 15 Apr 2014 12:28:46 -0700
 
 
 The patch titled
-     Subject: signals: cleanup the usage of t/current in do_sigaction()
+     Subject: signals: kill rm_from_queue(), change prepare_signal() to use for_each_thread()
 has been added to the -mm tree.  Its filename is
-     signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
+     signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,14 +45,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: signals: cleanup the usage of t/current in do_sigaction()
+Subject: signals: kill rm_from_queue(), change prepare_signal() to use for_each_thread()
 
-The usage of "task_struct *t" and "current" in do_sigaction() looks really
-annoying and chaotic.  Initially "t" is used as a cached value of current
-but not consistently, then it is reused as a loop variable and we have to
-use "current" again.
+rm_from_queue() doesn't make sense.  The only caller, prepare_signal(),
+can use rm_from_queue_full() with the same effect.
 
-Clean up this mess and also convert the code to use for_each_thread().
+While at it, change prepare_signal() to use for_each_thread() instead of
+do/while_each_thread.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -68,54 +67,86 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ kernel/signal.c |   43 ++++++++++---------------------------------
+ 1 file changed, 10 insertions(+), 33 deletions(-)
 
-diff -puN kernel/signal.c~signals-cleanup-the-usage-of-t-current-in-do_sigaction kernel/signal.c
---- a/kernel/signal.c~signals-cleanup-the-usage-of-t-current-in-do_sigaction
+diff -puN kernel/signal.c~signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread kernel/signal.c
+--- a/kernel/signal.c~signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread
 +++ a/kernel/signal.c
-@@ -3067,16 +3067,16 @@ COMPAT_SYSCALL_DEFINE4(rt_tgsigqueueinfo
- 
- int do_sigaction(int sig, struct k_sigaction *act, struct k_sigaction *oact)
- {
--	struct task_struct *t = current;
-+	struct task_struct *p = current, *t;
- 	struct k_sigaction *k;
- 	sigset_t mask;
- 
- 	if (!valid_signal(sig) || sig < 1 || (act && sig_kernel_only(sig)))
- 		return -EINVAL;
- 
--	k = &t->sighand->action[sig-1];
-+	k = &p->sighand->action[sig-1];
- 
--	spin_lock_irq(&current->sighand->siglock);
-+	spin_lock_irq(&p->sighand->siglock);
- 	if (oact)
- 		*oact = *k;
- 
-@@ -3095,17 +3095,16 @@ int do_sigaction(int sig, struct k_sigac
- 		 *   (for example, SIGCHLD), shall cause the pending signal to
- 		 *   be discarded, whether or not it is blocked"
- 		 */
--		if (sig_handler_ignored(sig_handler(t, sig), sig)) {
-+		if (sig_handler_ignored(sig_handler(p, sig), sig)) {
- 			sigemptyset(&mask);
- 			sigaddset(&mask, sig);
--			flush_sigqueue_mask(&mask, &t->signal->shared_pending);
--			do {
-+			flush_sigqueue_mask(&mask, &p->signal->shared_pending);
-+			for_each_thread(p, t)
- 				flush_sigqueue_mask(&mask, &t->pending);
--			} while_each_thread(current, t);
- 		}
+@@ -727,29 +727,6 @@ static int rm_from_queue_full(sigset_t *
  	}
- 
--	spin_unlock_irq(&current->sighand->siglock);
-+	spin_unlock_irq(&p->sighand->siglock);
- 	return 0;
+ 	return 1;
  }
+-/*
+- * Remove signals in mask from the pending set and queue.
+- * Returns 1 if any signals were found.
+- *
+- * All callers must be holding the siglock.
+- */
+-static int rm_from_queue(unsigned long mask, struct sigpending *s)
+-{
+-	struct sigqueue *q, *n;
+-
+-	if (!sigtestsetmask(&s->signal, mask))
+-		return 0;
+-
+-	sigdelsetmask(&s->signal, mask);
+-	list_for_each_entry_safe(q, n, &s->list, list) {
+-		if (q->info.si_signo < SIGRTMIN &&
+-		    (mask & sigmask(q->info.si_signo))) {
+-			list_del_init(&q->list);
+-			__sigqueue_free(q);
+-		}
+-	}
+-	return 1;
+-}
  
+ static inline int is_si_special(const struct siginfo *info)
+ {
+@@ -861,6 +838,7 @@ static bool prepare_signal(int sig, stru
+ {
+ 	struct signal_struct *signal = p->signal;
+ 	struct task_struct *t;
++	sigset_t flush;
+ 
+ 	if (signal->flags & (SIGNAL_GROUP_EXIT | SIGNAL_GROUP_COREDUMP)) {
+ 		if (signal->flags & SIGNAL_GROUP_COREDUMP)
+@@ -872,26 +850,25 @@ static bool prepare_signal(int sig, stru
+ 		/*
+ 		 * This is a stop signal.  Remove SIGCONT from all queues.
+ 		 */
+-		rm_from_queue(sigmask(SIGCONT), &signal->shared_pending);
+-		t = p;
+-		do {
+-			rm_from_queue(sigmask(SIGCONT), &t->pending);
+-		} while_each_thread(p, t);
++		siginitset(&flush, sigmask(SIGCONT));
++		rm_from_queue_full(&flush, &signal->shared_pending);
++		for_each_thread(p, t)
++			rm_from_queue_full(&flush, &t->pending);
+ 	} else if (sig == SIGCONT) {
+ 		unsigned int why;
+ 		/*
+ 		 * Remove all stop signals from all queues, wake all threads.
+ 		 */
+-		rm_from_queue(SIG_KERNEL_STOP_MASK, &signal->shared_pending);
+-		t = p;
+-		do {
++		siginitset(&flush, SIG_KERNEL_STOP_MASK);
++		rm_from_queue_full(&flush, &signal->shared_pending);
++		for_each_thread(p, t) {
++			rm_from_queue_full(&flush, &t->pending);
+ 			task_clear_jobctl_pending(t, JOBCTL_STOP_PENDING);
+-			rm_from_queue(SIG_KERNEL_STOP_MASK, &t->pending);
+ 			if (likely(!(t->ptrace & PT_SEIZED)))
+ 				wake_up_state(t, __TASK_STOPPED);
+ 			else
+ 				ptrace_trap_notify(t);
+-		} while_each_thread(p, t);
++		}
+ 
+ 		/*
+ 		 * Notify the parent with CLD_CONTINUED if we were stopped.
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
