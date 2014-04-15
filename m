@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+Subject: + signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
  added to -mm tree
-Date: Tue, 15 Apr 2014 12:28:48 -0700
-Message-ID: <534d8870.yke+Qmmsw8J/auuf%akpm@linux-foundation.org>
+Date: Tue, 15 Apr 2014 12:28:51 -0700
+Message-ID: <534d8873.may0YsDwhr0ygaYP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33779 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33793 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752997AbaDOT2t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Apr 2014 15:28:49 -0400
+	with ESMTP id S1751152AbaDOT2w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Apr 2014 15:28:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@ZenIV.linux.org.uk, tj@kernel.org, rostedt@goodmis.org, richard@nod.at, peterz@infradead.org, mingo@kernel.org, mathieu.desnoyers@efficios.com, geert@linux-m68k.org, fweisbec@gmail.com, dwmw2@infradead.org, oleg@redhat.com
 
-Subject: + signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch added to -mm tree
+Subject: + signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch added to -mm tree
 To: oleg@redhat.com,dwmw2@infradead.org,fweisbec@gmail.com,geert@linux-m68k.org,mathieu.desnoyers@efficios.com,mingo@kernel.org,peterz@infradead.org,richard@nod.at,rostedt@goodmis.org,tj@kernel.org,viro@ZenIV.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Tue, 15 Apr 2014 12:28:48 -0700
+Date: Tue, 15 Apr 2014 12:28:51 -0700
 
 
 The patch titled
-     Subject: signals: rename rm_from_queue_full() to flush_sigqueue_mask()
+     Subject: signals: mv {dis,}allow_signal() from sched.h/exit.c to signal.[ch]
 has been added to the -mm tree.  Its filename is
-     signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+     signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,14 +45,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: signals: rename rm_from_queue_full() to flush_sigqueue_mask()
+Subject: signals: mv {dis,}allow_signal() from sched.h/exit.c to signal.[ch]
 
-"rm_from_queue_full" looks ugly and misleading, especially now that
-rm_from_queue() has gone away.  Rename it to flush_sigqueue_mask(), this
-matches flush_sigqueue() we already have.
+Move the declaration/definition of allow_signal/disallow_signal to
+signal.h/signal.c.  The new place is more logical and allows to use the
+static helpers in signal.c (see the next changes).
 
-Also remove the obsolete comment which explains the difference with
-rm_from_queue() we already killed.
+While at it, make them return void and remove the valid_signal() check. 
+Nobody checks the returned value, and in-kernel users must not pass the
+wrong signal number.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -68,69 +69,125 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ include/linux/sched.h  |    3 ---
+ include/linux/signal.h |    2 ++
+ kernel/exit.c          |   39 ---------------------------------------
+ kernel/signal.c        |   29 +++++++++++++++++++++++++++++
+ 4 files changed, 31 insertions(+), 42 deletions(-)
 
-diff -puN kernel/signal.c~signals-rename-rm_from_queue_full-to-flush_sigqueue_mask kernel/signal.c
---- a/kernel/signal.c~signals-rename-rm_from_queue_full-to-flush_sigqueue_mask
-+++ a/kernel/signal.c
-@@ -705,11 +705,8 @@ void signal_wake_up_state(struct task_st
-  * Returns 1 if any signals were found.
-  *
-  * All callers must be holding the siglock.
-- *
-- * This version takes a sigset mask and looks at all signals,
-- * not just those in the first mask word.
-  */
--static int rm_from_queue_full(sigset_t *mask, struct sigpending *s)
-+static int flush_sigqueue_mask(sigset_t *mask, struct sigpending *s)
- {
- 	struct sigqueue *q, *n;
- 	sigset_t m;
-@@ -851,18 +848,18 @@ static bool prepare_signal(int sig, stru
- 		 * This is a stop signal.  Remove SIGCONT from all queues.
- 		 */
- 		siginitset(&flush, sigmask(SIGCONT));
--		rm_from_queue_full(&flush, &signal->shared_pending);
-+		flush_sigqueue_mask(&flush, &signal->shared_pending);
- 		for_each_thread(p, t)
--			rm_from_queue_full(&flush, &t->pending);
-+			flush_sigqueue_mask(&flush, &t->pending);
- 	} else if (sig == SIGCONT) {
- 		unsigned int why;
- 		/*
- 		 * Remove all stop signals from all queues, wake all threads.
- 		 */
- 		siginitset(&flush, SIG_KERNEL_STOP_MASK);
--		rm_from_queue_full(&flush, &signal->shared_pending);
-+		flush_sigqueue_mask(&flush, &signal->shared_pending);
- 		for_each_thread(p, t) {
--			rm_from_queue_full(&flush, &t->pending);
-+			flush_sigqueue_mask(&flush, &t->pending);
- 			task_clear_jobctl_pending(t, JOBCTL_STOP_PENDING);
- 			if (likely(!(t->ptrace & PT_SEIZED)))
- 				wake_up_state(t, __TASK_STOPPED);
-@@ -3101,9 +3098,9 @@ int do_sigaction(int sig, struct k_sigac
- 		if (sig_handler_ignored(sig_handler(t, sig), sig)) {
- 			sigemptyset(&mask);
- 			sigaddset(&mask, sig);
--			rm_from_queue_full(&mask, &t->signal->shared_pending);
-+			flush_sigqueue_mask(&mask, &t->signal->shared_pending);
- 			do {
--				rm_from_queue_full(&mask, &t->pending);
-+				flush_sigqueue_mask(&mask, &t->pending);
- 			} while_each_thread(current, t);
- 		}
+diff -puN include/linux/sched.h~signals-mv-disallow_signal-from-schedh-exitc-to-signal include/linux/sched.h
+--- a/include/linux/sched.h~signals-mv-disallow_signal-from-schedh-exitc-to-signal
++++ a/include/linux/sched.h
+@@ -2366,9 +2366,6 @@ extern void flush_itimer_signals(void);
+ 
+ extern void do_group_exit(int);
+ 
+-extern int allow_signal(int);
+-extern int disallow_signal(int);
+-
+ extern int do_execve(struct filename *,
+ 		     const char __user * const __user *,
+ 		     const char __user * const __user *);
+diff -puN include/linux/signal.h~signals-mv-disallow_signal-from-schedh-exitc-to-signal include/linux/signal.h
+--- a/include/linux/signal.h~signals-mv-disallow_signal-from-schedh-exitc-to-signal
++++ a/include/linux/signal.h
+@@ -284,6 +284,8 @@ extern int get_signal_to_deliver(siginfo
+ extern void signal_setup_done(int failed, struct ksignal *ksig, int stepping);
+ extern void signal_delivered(int sig, siginfo_t *info, struct k_sigaction *ka, struct pt_regs *regs, int stepping);
+ extern void exit_signals(struct task_struct *tsk);
++extern void allow_signal(int);
++extern void disallow_signal(int);
+ 
+ /*
+  * Eventually that'll replace get_signal_to_deliver(); macro for now,
+diff -puN kernel/exit.c~signals-mv-disallow_signal-from-schedh-exitc-to-signal kernel/exit.c
+--- a/kernel/exit.c~signals-mv-disallow_signal-from-schedh-exitc-to-signal
++++ a/kernel/exit.c
+@@ -313,45 +313,6 @@ kill_orphaned_pgrp(struct task_struct *t
  	}
-@@ -3112,7 +3109,7 @@ int do_sigaction(int sig, struct k_sigac
- 	return 0;
  }
  
--static int 
-+static int
- do_sigaltstack (const stack_t __user *uss, stack_t __user *uoss, unsigned long sp)
+-/*
+- * Let kernel threads use this to say that they allow a certain signal.
+- * Must not be used if kthread was cloned with CLONE_SIGHAND.
+- */
+-int allow_signal(int sig)
+-{
+-	if (!valid_signal(sig) || sig < 1)
+-		return -EINVAL;
+-
+-	spin_lock_irq(&current->sighand->siglock);
+-	/* This is only needed for daemonize()'ed kthreads */
+-	sigdelset(&current->blocked, sig);
+-	/*
+-	 * Kernel threads handle their own signals. Let the signal code
+-	 * know it'll be handled, so that they don't get converted to
+-	 * SIGKILL or just silently dropped.
+-	 */
+-	current->sighand->action[(sig)-1].sa.sa_handler = (void __user *)2;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(allow_signal);
+-
+-int disallow_signal(int sig)
+-{
+-	if (!valid_signal(sig) || sig < 1)
+-		return -EINVAL;
+-
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->sighand->action[(sig)-1].sa.sa_handler = SIG_IGN;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(disallow_signal);
+-
+ #ifdef CONFIG_MM_OWNER
+ /*
+  * A task is exiting.   If it owned this mm, find a new owner for the mm.
+diff -puN kernel/signal.c~signals-mv-disallow_signal-from-schedh-exitc-to-signal kernel/signal.c
+--- a/kernel/signal.c~signals-mv-disallow_signal-from-schedh-exitc-to-signal
++++ a/kernel/signal.c
+@@ -3065,6 +3065,35 @@ COMPAT_SYSCALL_DEFINE4(rt_tgsigqueueinfo
+ }
+ #endif
+ 
++/*
++ * Let kernel threads use this to say that they allow a certain signal.
++ * Must not be used if kthread was cloned with CLONE_SIGHAND.
++ */
++void allow_signal(int sig)
++{
++	spin_lock_irq(&current->sighand->siglock);
++	/* This is only needed for daemonize()'ed kthreads */
++	sigdelset(&current->blocked, sig);
++	/*
++	 * Kernel threads handle their own signals. Let the signal code
++	 * know it'll be handled, so that they don't get converted to
++	 * SIGKILL or just silently dropped.
++	 */
++	current->sighand->action[(sig)-1].sa.sa_handler = (void __user *)2;
++	recalc_sigpending();
++	spin_unlock_irq(&current->sighand->siglock);
++}
++EXPORT_SYMBOL(allow_signal);
++
++void disallow_signal(int sig)
++{
++	spin_lock_irq(&current->sighand->siglock);
++	current->sighand->action[(sig)-1].sa.sa_handler = SIG_IGN;
++	recalc_sigpending();
++	spin_unlock_irq(&current->sighand->siglock);
++}
++EXPORT_SYMBOL(disallow_signal);
++
+ int do_sigaction(int sig, struct k_sigaction *act, struct k_sigaction *oact)
  {
- 	stack_t oss;
+ 	struct task_struct *p = current, *t;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
