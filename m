@@ -1,122 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] pps-add-non-blocking-option-to-pps_fetch-ioctl.patch
- removed from -mm tree
-Date: Wed, 16 Apr 2014 13:27:39 -0700
-Message-ID: <534ee7bb.bo+jhUZWYy6yq9N4%akpm@linux-foundation.org>
+Subject: + thp-consolidate-assert-checks-in-__split_huge_page.patch added
+ to -mm tree
+Date: Wed, 16 Apr 2014 13:59:13 -0700
+Message-ID: <534eef21.Xl80pA6l+CXd0BFL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46048 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46212 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461AbaDPU1k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 16:27:40 -0400
+	with ESMTP id S1756454AbaDPU7O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 16:59:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paul.chavent@onera.fr, giometti@enneenne.com, agordeev@redhat.com, Paul.Chavent@onera.fr
+To: mm-commits@vger.kernel.org, aarcange@redhat.com, kirill.shutemov@linux.intel.com
 
-Subject: [withdrawn] pps-add-non-blocking-option-to-pps_fetch-ioctl.patch removed from -mm tree
-To: Paul.Chavent@onera.fr,agordeev@redhat.com,giometti@enneenne.com,paul.chavent@onera.fr,mm-commits@vger.kernel.org
+Subject: + thp-consolidate-assert-checks-in-__split_huge_page.patch added to -mm tree
+To: kirill.shutemov@linux.intel.com,aarcange@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 16 Apr 2014 13:27:39 -0700
+Date: Wed, 16 Apr 2014 13:59:13 -0700
 
 
 The patch titled
-     Subject: pps : add non blocking option to PPS_FETCH ioctl.
-has been removed from the -mm tree.  Its filename was
-     pps-add-non-blocking-option-to-pps_fetch-ioctl.patch
+     Subject: thp: consolidate assert checks in __split_huge_page()
+has been added to the -mm tree.  Its filename is
+     thp-consolidate-assert-checks-in-__split_huge_page.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-consolidate-assert-checks-in-__split_huge_page.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-consolidate-assert-checks-in-__split_huge_page.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Chavent <Paul.Chavent@onera.fr>
-Subject: pps : add non blocking option to PPS_FETCH ioctl.
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: consolidate assert checks in __split_huge_page()
 
-The PPS_FETCH ioctl is blocking still the reception of a PPS event.  But,
-in some case, one may immediately need the last event date.  This patch
-allow to get the result of PPS_FETCH if the device has the O_NONBLOCK flag
-set.
+It doesn't make sense to have two assert checks for each invariant: one
+for printing and one for BUG().
 
-Signed-off-by: Paul Chavent <paul.chavent@onera.fr>
-Acked-by: Rodolfo Giometti <giometti@enneenne.com>
-Cc: Alexander Gordeev <agordeev@redhat.com>
+Let's trigger BUG() if we print error message.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/pps.c |   55 +++++++++++++++++++++++---------------------
- 1 file changed, 29 insertions(+), 26 deletions(-)
+ mm/huge_memory.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pps/pps.c~pps-add-non-blocking-option-to-pps_fetch-ioctl drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-add-non-blocking-option-to-pps_fetch-ioctl
-+++ a/drivers/pps/pps.c
-@@ -152,35 +152,38 @@ static long pps_cdev_ioctl(struct file *
- 		if (err)
- 			return -EFAULT;
+diff -puN mm/huge_memory.c~thp-consolidate-assert-checks-in-__split_huge_page mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-consolidate-assert-checks-in-__split_huge_page
++++ a/mm/huge_memory.c
+@@ -1830,10 +1830,11 @@ static void __split_huge_page(struct pag
+ 	 * the newly established pmd of the child later during the
+ 	 * walk, to be able to set it as pmd_trans_splitting too.
+ 	 */
+-	if (mapcount != page_mapcount(page))
++	if (mapcount != page_mapcount(page)) {
+ 		printk(KERN_ERR "mapcount %d page_mapcount %d\n",
+ 		       mapcount, page_mapcount(page));
+-	BUG_ON(mapcount != page_mapcount(page));
++		BUG();
++	}
  
--		ev = pps->last_ev;
-+		if (!(file->f_flags & O_NONBLOCK)) {
-+			ev = pps->last_ev;
+ 	__split_huge_page_refcount(page, list);
  
--		/* Manage the timeout */
--		if (fdata.timeout.flags & PPS_TIME_INVALID)
--			err = wait_event_interruptible(pps->queue,
--					ev != pps->last_ev);
--		else {
--			unsigned long ticks;
--
--			dev_dbg(pps->dev, "timeout %lld.%09d\n",
--					(long long) fdata.timeout.sec,
--					fdata.timeout.nsec);
--			ticks = fdata.timeout.sec * HZ;
--			ticks += fdata.timeout.nsec / (NSEC_PER_SEC / HZ);
--
--			if (ticks != 0) {
--				err = wait_event_interruptible_timeout(
--						pps->queue,
--						ev != pps->last_ev,
--						ticks);
--				if (err == 0)
--					return -ETIMEDOUT;
-+			/* Manage the timeout */
-+			if (fdata.timeout.flags & PPS_TIME_INVALID)
-+				err = wait_event_interruptible(pps->queue,
-+						ev != pps->last_ev);
-+			else {
-+				unsigned long ticks;
-+
-+				dev_dbg(pps->dev, "timeout %lld.%09d\n",
-+						(long long) fdata.timeout.sec,
-+						fdata.timeout.nsec);
-+				ticks = fdata.timeout.sec * HZ;
-+				ticks += fdata.timeout.nsec /
-+					(NSEC_PER_SEC / HZ);
-+
-+				if (ticks != 0) {
-+					err = wait_event_interruptible_timeout(
-+							pps->queue,
-+							ev != pps->last_ev,
-+							ticks);
-+					if (err == 0)
-+						return -ETIMEDOUT;
-+				}
- 			}
--		}
+@@ -1844,10 +1845,11 @@ static void __split_huge_page(struct pag
+ 		BUG_ON(is_vma_temporary_stack(vma));
+ 		mapcount2 += __split_huge_page_map(page, vma, addr);
+ 	}
+-	if (mapcount != mapcount2)
++	if (mapcount != mapcount2) {
+ 		printk(KERN_ERR "mapcount %d mapcount2 %d page_mapcount %d\n",
+ 		       mapcount, mapcount2, page_mapcount(page));
+-	BUG_ON(mapcount != mapcount2);
++		BUG();
++	}
+ }
  
--		/* Check for pending signals */
--		if (err == -ERESTARTSYS) {
--			dev_dbg(pps->dev, "pending signal caught\n");
--			return -EINTR;
-+			/* Check for pending signals */
-+			if (err == -ERESTARTSYS) {
-+				dev_dbg(pps->dev, "pending signal caught\n");
-+				return -EINTR;
-+			}
- 		}
- 
- 		/* Return the fetched timestamp */
+ /*
 _
 
-Patches currently in -mm which might be from Paul.Chavent@onera.fr are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+thp-close-race-between-split-and-zap-huge-pages.patch
+pagewalk-update-page-table-walker-core.patch
+pagewalk-add-walk_page_vma.patch
+smaps-redefine-callback-functions-for-page-table-walker.patch
+clear_refs-redefine-callback-functions-for-page-table-walker.patch
+pagemap-redefine-callback-functions-for-page-table-walker.patch
+numa_maps-redefine-callback-functions-for-page-table-walker.patch
+memcg-redefine-callback-functions-for-page-table-walker.patch
+arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+thp-consolidate-assert-checks-in-__split_huge_page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
