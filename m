@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-reiserfs-bitmapc-coding-style-fixes.patch added to -mm tree
-Date: Wed, 16 Apr 2014 15:13:45 -0700
-Message-ID: <534f0099.mV9RbYur7kdyM7nC%akpm@linux-foundation.org>
+Subject: +
+ kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch added to -mm tree
+Date: Wed, 16 Apr 2014 15:30:02 -0700
+Message-ID: <534f046a.NvM6ewPxNtW90j1K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46765 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919AbaDPWNq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:13:46 -0400
+	with ESMTP id S1750919AbaDPWaD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:30:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jeffm@suse.com, fabf@skynet.be
+To: mm-commits@vger.kernel.org, rostedt@goodmis.org, peterz@infradead.org, mingo@kernel.org, mathieu.desnoyers@efficios.com, fweisbec@gmail.com, oleg@redhat.com
 
-Subject: + fs-reiserfs-bitmapc-coding-style-fixes.patch added to -mm tree
-To: fabf@skynet.be,jeffm@suse.com
+Subject: + kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch added to -mm tree
+To: oleg@redhat.com,fweisbec@gmail.com,mathieu.desnoyers@efficios.com,mingo@kernel.org,peterz@infradead.org,rostedt@goodmis.org
 From: akpm@linux-foundation.org
-Date: Wed, 16 Apr 2014 15:13:45 -0700
+Date: Wed, 16 Apr 2014 15:30:02 -0700
 
 
 The patch titled
-     Subject: fs/reiserfs/bitmap.c: coding style fixes
+     Subject: kthreads: kill CLONE_KERNEL, change kernel_thread(kernel_init) to avoid CLONE_SIGHAND
 has been added to the -mm tree.  Its filename is
-     fs-reiserfs-bitmapc-coding-style-fixes.patch
+     kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-reiserfs-bitmapc-coding-style-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-reiserfs-bitmapc-coding-style-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,117 +44,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/reiserfs/bitmap.c: coding style fixes
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: kthreads: kill CLONE_KERNEL, change kernel_thread(kernel_init) to avoid CLONE_SIGHAND
 
--Trivial code clean-up
--Fix endif }; (coccinelle warning)
+1. Remove CLONE_KERNEL, it has no users and it is dangerous.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Jeff Mahoney <jeffm@suse.com>
+   The (old) comment says "List of flags we want to share for kernel
+   threads" but this is not true, we do not want to share ->sighand by
+   default. This flag can only be used if the caller is sure that both
+   parent/child will never play with signals (say, allow_signal/etc).
+
+2. Change rest_init() to clone kernel_init() without CLONE_SIGHAND.
+
+   In this case CLONE_SIGHAND does not really hurt, and it looks like
+   optimization because copy_sighand() can avoid kmem_cache_alloc().
+
+   But in fact this only adds the minor pessimization. kernel_init()
+   is going to exec the init process, and de_thread() will need to
+   unshare ->sighand and do kmem_cache_alloc(sighand_cachep) anyway,
+   but it needs to do more work and take tasklist_lock and siglock.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Peter Zijlstra <peterz@infradead.org>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ include/linux/sched.h |    6 ------
+ init/main.c           |    2 +-
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN fs/reiserfs/bitmap.c~fs-reiserfs-bitmapc-coding-style-fixes fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~fs-reiserfs-bitmapc-coding-style-fixes
-+++ a/fs/reiserfs/bitmap.c
-@@ -142,7 +142,6 @@ static int scan_bitmap_block(struct reis
- 	int org = *beg;
+diff -puN include/linux/sched.h~kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand include/linux/sched.h
+--- a/include/linux/sched.h~kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand
++++ a/include/linux/sched.h
+@@ -137,12 +137,6 @@ struct filename;
+ #define VMACACHE_MASK (VMACACHE_SIZE - 1)
  
- 	BUG_ON(!th->t_trans_id);
+ /*
+- * List of flags we want to share for kernel threads,
+- * if only because they are not used by them anyway.
+- */
+-#define CLONE_KERNEL	(CLONE_FS | CLONE_FILES | CLONE_SIGHAND)
 -
- 	RFALSE(bmap_n >= reiserfs_bmap_count(s), "Bitmap %u is out of "
- 	       "range (0..%u)", bmap_n, reiserfs_bmap_count(s) - 1);
- 	PROC_INFO_INC(s, scan_bitmap.bmap);
-@@ -321,7 +320,6 @@ static int scan_bitmap(struct reiserfs_t
- 	unsigned int off_max = s->s_blocksize << 3;
- 
- 	BUG_ON(!th->t_trans_id);
--
- 	PROC_INFO_INC(s, scan_bitmap.call);
- 	if (SB_FREE_BLOCKS(s) <= 0)
- 		return 0;	// No point in looking for more free blocks
-@@ -388,9 +386,7 @@ static void _reiserfs_free_block(struct
- 	unsigned int nr, offset;
- 
- 	BUG_ON(!th->t_trans_id);
--
- 	PROC_INFO_INC(s, free_block);
--
- 	rs = SB_DISK_SUPER_BLOCK(s);
- 	sbh = SB_BUFFER_WITH_SB(s);
- 	apbi = SB_AP_BITMAP(s);
-@@ -435,8 +431,8 @@ void reiserfs_free_block(struct reiserfs
- 			 int for_unformatted)
- {
- 	struct super_block *s = th->t_super;
--	BUG_ON(!th->t_trans_id);
- 
-+	BUG_ON(!th->t_trans_id);
- 	RFALSE(!s, "vs-4061: trying to free block on nonexistent device");
- 	if (!is_reusable(s, block, 1))
- 		return;
-@@ -471,6 +467,7 @@ static void __discard_prealloc(struct re
- 	unsigned long save = ei->i_prealloc_block;
- 	int dirty = 0;
- 	struct inode *inode = &ei->vfs_inode;
-+
- 	BUG_ON(!th->t_trans_id);
- #ifdef CONFIG_REISERFS_CHECK
- 	if (ei->i_prealloc_count < 0)
-@@ -494,6 +491,7 @@ void reiserfs_discard_prealloc(struct re
- 			       struct inode *inode)
- {
- 	struct reiserfs_inode_info *ei = REISERFS_I(inode);
-+
- 	BUG_ON(!th->t_trans_id);
- 	if (ei->i_prealloc_count)
- 		__discard_prealloc(th, ei);
-@@ -504,7 +502,6 @@ void reiserfs_discard_all_prealloc(struc
- 	struct list_head *plist = &SB_JOURNAL(th->t_super)->j_prealloc_list;
- 
- 	BUG_ON(!th->t_trans_id);
--
- 	while (!list_empty(plist)) {
- 		struct reiserfs_inode_info *ei;
- 		ei = list_entry(plist->next, struct reiserfs_inode_info,
-@@ -562,7 +559,7 @@ int reiserfs_parse_alloc_options(struct
- 		if (!strcmp(this_char, "displacing_new_packing_localities")) {
- 			SET_OPTION(displacing_new_packing_localities);
- 			continue;
--		};
-+		}
- 
- 		if (!strcmp(this_char, "old_hashed_relocation")) {
- 			SET_OPTION(old_hashed_relocation);
-@@ -729,6 +726,7 @@ void show_alloc_options(struct seq_file
- static inline void new_hashed_relocation(reiserfs_blocknr_hint_t * hint)
- {
- 	char *hash_in;
-+
- 	if (hint->formatted_node) {
- 		hash_in = (char *)&hint->key.k_dir_id;
- 	} else {
-@@ -757,6 +755,7 @@ static void dirid_groups(reiserfs_blockn
- 	__u32 dirid = 0;
- 	int bm = 0;
- 	struct super_block *sb = hint->th->t_super;
-+
- 	if (hint->inode)
- 		dirid = le32_to_cpu(INODE_PKEY(hint->inode)->k_dir_id);
- 	else if (hint->formatted_node)
+-/*
+  * These are the constant used to fake the fixed-point load-average
+  * counting. Some notes:
+  *  - 11 bit fractions expand to 22 bits by the multiplies: this gives
+diff -puN init/main.c~kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand init/main.c
+--- a/init/main.c~kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand
++++ a/init/main.c
+@@ -380,7 +380,7 @@ static noinline void __init_refok rest_i
+ 	 * the init task will end up wanting to create kthreads, which, if
+ 	 * we schedule it before we create kthreadd, will OOPS.
+ 	 */
+-	kernel_thread(kernel_init, NULL, CLONE_FS | CLONE_SIGHAND);
++	kernel_thread(kernel_init, NULL, CLONE_FS);
+ 	numa_default_policy();
+ 	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
+ 	rcu_read_lock();
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-ntfs-remove-null-value-assignments.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-linux-next.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+mmvmacache-optimize-overflow-system-wide-flushing.patch
+kthreads-kill-clone_kernel-change-kernel_threadkernel_init-to-avoid-clone_sighand.patch
+signals-kill-sigfindinword.patch
+signals-s-siginitset-sigemptyset-in-do_sigtimedwait.patch
+signals-kill-rm_from_queue-change-prepare_signal-to-use-for_each_thread.patch
+signals-rename-rm_from_queue_full-to-flush_sigqueue_mask.patch
+signals-cleanup-the-usage-of-t-current-in-do_sigaction.patch
+signals-mv-disallow_signal-from-schedh-exitc-to-signal.patch
+signals-jffs2-fix-the-wrong-usage-of-disallow_signal.patch
+signals-kill-the-obsolete-sigdelset-and-recalc_sigpending-in-allow_signal.patch
+signals-disallow_signal-should-flush-the-potentially-pending-signal.patch
+signals-introduce-kernel_sigaction.patch
+signals-change-wait_for_helper-to-use-kernel_sigaction.patch
 
