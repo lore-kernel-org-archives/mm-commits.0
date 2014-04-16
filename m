@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
-Date: Wed, 16 Apr 2014 15:08:52 -0700
-Message-ID: <534eff74.26A/ZKWmVUuP0NXS%akpm@linux-foundation.org>
+Subject: +
+ fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
+Date: Wed, 16 Apr 2014 15:08:53 -0700
+Message-ID: <534eff75.D3pC1b5q1f/2oTbd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46706 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46708 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756807AbaDPWIx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:08:53 -0400
+	with ESMTP id S1756810AbaDPWIy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:08:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
+Subject: + fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 16 Apr 2014 15:08:52 -0700
+Date: Wed, 16 Apr 2014 15:08:53 -0700
 
 
 The patch titled
-     Subject: coda: convert use of typedef ctl_table to struct ctl_table
+     Subject: fscache: convert use of typedef ctl_table to struct ctl_table
 has been added to the -mm tree.  Its filename is
-     coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+     fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: coda: convert use of typedef ctl_table to struct ctl_table
+Subject: fscache: convert use of typedef ctl_table to struct ctl_table
 
 This typedef is unnecessary and should just be removed.
 
@@ -52,29 +53,29 @@ Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/sysctl.c |    4 ++--
+ fs/fscache/main.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/coda/sysctl.c~coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/coda/sysctl.c
---- a/fs/coda/sysctl.c~coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/fs/coda/sysctl.c
-@@ -14,7 +14,7 @@
- #ifdef CONFIG_SYSCTL
- static struct ctl_table_header *fs_table_header;
+diff -puN fs/fscache/main.c~fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/fscache/main.c
+--- a/fs/fscache/main.c~fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/fs/fscache/main.c
+@@ -67,7 +67,7 @@ static int fscache_max_active_sysctl(str
+ 	return ret;
+ }
  
--static ctl_table coda_table[] = {
-+static struct ctl_table coda_table[] = {
+-ctl_table fscache_sysctls[] = {
++struct ctl_table fscache_sysctls[] = {
  	{
- 		.procname	= "timeout",
- 		.data		= &coda_timeout,
-@@ -39,7 +39,7 @@ static ctl_table coda_table[] = {
+ 		.procname	= "object_max_active",
+ 		.data		= &fscache_object_max_active,
+@@ -87,7 +87,7 @@ ctl_table fscache_sysctls[] = {
  	{}
  };
  
--static ctl_table fs_table[] = {
-+static struct ctl_table fs_table[] = {
+-ctl_table fscache_sysctls_root[] = {
++struct ctl_table fscache_sysctls_root[] = {
  	{
- 		.procname	= "coda",
+ 		.procname	= "fscache",
  		.mode		= 0555,
 _
 
