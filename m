@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + thp-consolidate-assert-checks-in-__split_huge_page.patch added
- to -mm tree
-Date: Wed, 16 Apr 2014 13:59:13 -0700
-Message-ID: <534eef21.Xl80pA6l+CXd0BFL%akpm@linux-foundation.org>
+Subject: + mm-huge_memoryc-complete-conversion-to-pr_foo.patch added to
+ -mm tree
+Date: Wed, 16 Apr 2014 14:03:37 -0700
+Message-ID: <534ef029.KZLQn7Gumyacx5Me%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46322 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756454AbaDPU7O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 16:59:14 -0400
+	with ESMTP id S1751357AbaDPVDi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 17:03:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, aarcange@redhat.com, kirill.shutemov@linux.intel.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, mgorman@suse.de, kirill.shutemov@linux.intel.com, akpm@linux-foundation.org
 
-Subject: + thp-consolidate-assert-checks-in-__split_huge_page.patch added to -mm tree
-To: kirill.shutemov@linux.intel.com,aarcange@redhat.com
+Subject: + mm-huge_memoryc-complete-conversion-to-pr_foo.patch added to -mm tree
+To: akpm@linux-foundation.org,kirill.shutemov@linux.intel.com,mgorman@suse.de,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Wed, 16 Apr 2014 13:59:13 -0700
+Date: Wed, 16 Apr 2014 14:03:37 -0700
 
 
 The patch titled
-     Subject: thp: consolidate assert checks in __split_huge_page()
+     Subject: mm/huge_memory.c: complete conversion to pr_foo()
 has been added to the -mm tree.  Its filename is
-     thp-consolidate-assert-checks-in-__split_huge_page.patch
+     mm-huge_memoryc-complete-conversion-to-pr_foo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-consolidate-assert-checks-in-__split_huge_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-complete-conversion-to-pr_foo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-consolidate-assert-checks-in-__split_huge_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-complete-conversion-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,69 +44,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: consolidate assert checks in __split_huge_page()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/huge_memory.c: complete conversion to pr_foo()
 
-It doesn't make sense to have two assert checks for each invariant: one
-for printing and one for BUG().
+It was using a mix of pr_foo() and printk(KERN_ERR ...).
 
-Let's trigger BUG() if we print error message.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-consolidate-assert-checks-in-__split_huge_page mm/huge_memory.c
---- a/mm/huge_memory.c~thp-consolidate-assert-checks-in-__split_huge_page
+diff -puN mm/huge_memory.c~mm-huge_memoryc-complete-conversion-to-pr_foo mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-huge_memoryc-complete-conversion-to-pr_foo
 +++ a/mm/huge_memory.c
-@@ -1830,10 +1830,11 @@ static void __split_huge_page(struct pag
- 	 * the newly established pmd of the child later during the
+@@ -5,6 +5,8 @@
+  *  the COPYING file in the top-level directory.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+ #include <linux/highmem.h>
+@@ -151,8 +153,7 @@ static int start_khugepaged(void)
+ 			khugepaged_thread = kthread_run(khugepaged, NULL,
+ 							"khugepaged");
+ 		if (unlikely(IS_ERR(khugepaged_thread))) {
+-			printk(KERN_ERR
+-			       "khugepaged: kthread_run(khugepaged) failed\n");
++			pr_err("khugepaged: kthread_run(khugepaged) failed\n");
+ 			err = PTR_ERR(khugepaged_thread);
+ 			khugepaged_thread = NULL;
+ 		}
+@@ -584,19 +585,19 @@ static int __init hugepage_init_sysfs(st
+ 
+ 	*hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
+ 	if (unlikely(!*hugepage_kobj)) {
+-		printk(KERN_ERR "hugepage: failed to create transparent hugepage kobject\n");
++		pr_err("failed to create transparent hugepage kobject\n");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	err = sysfs_create_group(*hugepage_kobj, &hugepage_attr_group);
+ 	if (err) {
+-		printk(KERN_ERR "hugepage: failed to register transparent hugepage group\n");
++		pr_err("failed to register transparent hugepage group\n");
+ 		goto delete_obj;
+ 	}
+ 
+ 	err = sysfs_create_group(*hugepage_kobj, &khugepaged_attr_group);
+ 	if (err) {
+-		printk(KERN_ERR "hugepage: failed to register transparent hugepage group\n");
++		pr_err("failed to register transparent hugepage group\n");
+ 		goto remove_hp_group;
+ 	}
+ 
+@@ -689,8 +690,7 @@ static int __init setup_transparent_huge
+ 	}
+ out:
+ 	if (!ret)
+-		printk(KERN_WARNING
+-		       "transparent_hugepage= cannot parse, ignored\n");
++		pr_warn("transparent_hugepage= cannot parse, ignored\n");
+ 	return ret;
+ }
+ __setup("transparent_hugepage=", setup_transparent_hugepage);
+@@ -1831,8 +1831,8 @@ static void __split_huge_page(struct pag
  	 * walk, to be able to set it as pmd_trans_splitting too.
  	 */
--	if (mapcount != page_mapcount(page))
-+	if (mapcount != page_mapcount(page)) {
- 		printk(KERN_ERR "mapcount %d page_mapcount %d\n",
- 		       mapcount, page_mapcount(page));
--	BUG_ON(mapcount != page_mapcount(page));
-+		BUG();
-+	}
+ 	if (mapcount != page_mapcount(page)) {
+-		printk(KERN_ERR "mapcount %d page_mapcount %d\n",
+-		       mapcount, page_mapcount(page));
++		pr_err("mapcount %d page_mapcount %d\n",
++			mapcount, page_mapcount(page));
+ 		BUG();
+ 	}
  
- 	__split_huge_page_refcount(page, list);
- 
-@@ -1844,10 +1845,11 @@ static void __split_huge_page(struct pag
- 		BUG_ON(is_vma_temporary_stack(vma));
+@@ -1846,8 +1846,8 @@ static void __split_huge_page(struct pag
  		mapcount2 += __split_huge_page_map(page, vma, addr);
  	}
--	if (mapcount != mapcount2)
-+	if (mapcount != mapcount2) {
- 		printk(KERN_ERR "mapcount %d mapcount2 %d page_mapcount %d\n",
- 		       mapcount, mapcount2, page_mapcount(page));
--	BUG_ON(mapcount != mapcount2);
-+		BUG();
-+	}
+ 	if (mapcount != mapcount2) {
+-		printk(KERN_ERR "mapcount %d mapcount2 %d page_mapcount %d\n",
+-		       mapcount, mapcount2, page_mapcount(page));
++		pr_err("mapcount %d mapcount2 %d page_mapcount %d\n",
++			mapcount, mapcount2, page_mapcount(page));
+ 		BUG();
+ 	}
  }
- 
- /*
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-thp-close-race-between-split-and-zap-huge-pages.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write.patch
+wait-explain-the-shadowing-and-type-inconsistencies.patch
+mips-export-flush_icache_range-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-thp-consolidate-assert-checks-in-__split_huge_page.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
