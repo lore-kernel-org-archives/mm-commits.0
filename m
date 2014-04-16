@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
- added to -mm tree
-Date: Wed, 16 Apr 2014 15:08:58 -0700
-Message-ID: <534eff7a.4HxBPXrONe1IZy0g%akpm@linux-foundation.org>
+Subject: +
+ sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to
+ -mm tree
+Date: Wed, 16 Apr 2014 15:09:01 -0700
+Message-ID: <534eff7d.20O84/JEPRmfW0W7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46718 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46723 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756859AbaDPWI7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:08:59 -0400
+	with ESMTP id S1756641AbaDPWJC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:09:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
+Subject: + sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 16 Apr 2014 15:08:58 -0700
+Date: Wed, 16 Apr 2014 15:09:01 -0700
 
 
 The patch titled
-     Subject: fs: convert use of typedef ctl_table to struct ctl_table
+     Subject: sysctl: convert use of typedef ctl_table to struct ctl_table
 has been added to the -mm tree.  Its filename is
-     fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+     sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +46,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: fs: convert use of typedef ctl_table to struct ctl_table
+Subject: sysctl: convert use of typedef ctl_table to struct ctl_table
 
 This typedef is unnecessary and should just be removed.
 
@@ -53,81 +54,52 @@ Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c      |    2 +-
- fs/drop_caches.c |    2 +-
- fs/eventpoll.c   |    2 +-
- fs/file_table.c  |    4 ++--
- fs/inode.c       |    2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ kernel/sysctl.c         |    2 +-
+ kernel/utsname_sysctl.c |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/dcache.c~fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/dcache.c
---- a/fs/dcache.c~fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/fs/dcache.c
-@@ -150,7 +150,7 @@ static long get_nr_dentry_unused(void)
- 	return sum < 0 ? 0 : sum;
+diff -puN kernel/sysctl.c~sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/kernel/sysctl.c
+@@ -195,7 +195,7 @@ static int proc_dostring_coredump(struct
+ /* Note: sysrq code uses it's own private copy */
+ static int __sysrq_enabled = CONFIG_MAGIC_SYSRQ_DEFAULT_ENABLE;
+ 
+-static int sysrq_sysctl_handler(ctl_table *table, int write,
++static int sysrq_sysctl_handler(struct ctl_table *table, int write,
+ 				void __user *buffer, size_t *lenp,
+ 				loff_t *ppos)
+ {
+diff -puN kernel/utsname_sysctl.c~sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table kernel/utsname_sysctl.c
+--- a/kernel/utsname_sysctl.c~sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/kernel/utsname_sysctl.c
+@@ -17,7 +17,7 @@
+ 
+ #ifdef CONFIG_PROC_SYSCTL
+ 
+-static void *get_uts(ctl_table *table, int write)
++static void *get_uts(struct ctl_table *table, int write)
+ {
+ 	char *which = table->data;
+ 	struct uts_namespace *uts_ns;
+@@ -32,7 +32,7 @@ static void *get_uts(ctl_table *table, i
+ 	return which;
  }
  
--int proc_nr_dentry(ctl_table *table, int write, void __user *buffer,
-+int proc_nr_dentry(struct ctl_table *table, int write, void __user *buffer,
- 		   size_t *lenp, loff_t *ppos)
+-static void put_uts(ctl_table *table, int write, void *which)
++static void put_uts(struct ctl_table *table, int write, void *which)
  {
- 	dentry_stat.nr_dentry = get_nr_dentry();
-diff -puN fs/drop_caches.c~fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/drop_caches.c
---- a/fs/drop_caches.c~fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/fs/drop_caches.c
-@@ -50,7 +50,7 @@ static void drop_slab(void)
- 	} while (nr_objects > 10);
- }
- 
--int drop_caches_sysctl_handler(ctl_table *table, int write,
-+int drop_caches_sysctl_handler(struct ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
- {
- 	int ret;
-diff -puN fs/eventpoll.c~fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/eventpoll.c
---- a/fs/eventpoll.c~fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/fs/eventpoll.c
-@@ -293,7 +293,7 @@ static LIST_HEAD(tfile_check_list);
- static long zero;
- static long long_max = LONG_MAX;
- 
--ctl_table epoll_table[] = {
-+struct ctl_table epoll_table[] = {
- 	{
- 		.procname	= "max_user_watches",
- 		.data		= &max_user_watches,
-diff -puN fs/file_table.c~fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/file_table.c
---- a/fs/file_table.c~fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/fs/file_table.c
-@@ -76,14 +76,14 @@ EXPORT_SYMBOL_GPL(get_max_files);
-  * Handle nr_files sysctl
+ 	if (!write)
+ 		up_read(&uts_sem);
+@@ -44,7 +44,7 @@ static void put_uts(ctl_table *table, in
+  *	Special case of dostring for the UTS structure. This has locks
+  *	to observe. Should this be in kernel/sys.c ????
   */
- #if defined(CONFIG_SYSCTL) && defined(CONFIG_PROC_FS)
--int proc_nr_files(ctl_table *table, int write,
-+int proc_nr_files(struct ctl_table *table, int write,
-                      void __user *buffer, size_t *lenp, loff_t *ppos)
+-static int proc_do_uts_string(ctl_table *table, int write,
++static int proc_do_uts_string(struct ctl_table *table, int write,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos)
  {
- 	files_stat.nr_files = get_nr_files();
- 	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
- }
- #else
--int proc_nr_files(ctl_table *table, int write,
-+int proc_nr_files(struct ctl_table *table, int write,
-                      void __user *buffer, size_t *lenp, loff_t *ppos)
- {
- 	return -ENOSYS;
-diff -puN fs/inode.c~fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/inode.c
---- a/fs/inode.c~fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/fs/inode.c
-@@ -105,7 +105,7 @@ long get_nr_dirty_inodes(void)
-  * Handle nr_inode sysctl
-  */
- #ifdef CONFIG_SYSCTL
--int proc_nr_inodes(ctl_table *table, int write,
-+int proc_nr_inodes(struct ctl_table *table, int write,
- 		   void __user *buffer, size_t *lenp, loff_t *ppos)
- {
- 	inodes_stat.nr_inodes = get_nr_inodes();
+ 	struct ctl_table uts_table;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
