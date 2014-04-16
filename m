@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + fs-binfmt_elfc-fix-bool-assignements.patch added to -mm tree
-Date: Wed, 16 Apr 2014 15:55:06 -0700
-Message-ID: <534f0a4a.Fc/Wu7yu53UQ4DSI%akpm@linux-foundation.org>
+Subject: + mm-pass-vm_bug_on-reason-to-dump_page-fix.patch added to -mm
+ tree
+Date: Wed, 16 Apr 2014 16:07:50 -0700
+Message-ID: <534f0d46.EfYFwjEk9JLPhSAn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46979 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751664AbaDPWzH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:55:07 -0400
+	with ESMTP id S1161397AbaDPXHv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 19:07:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com, davidlohr@hp.com, dave.hansen@linux.intel.com, akpm@linux-foundation.org
 
-Subject: + fs-binfmt_elfc-fix-bool-assignements.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + mm-pass-vm_bug_on-reason-to-dump_page-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,dave.hansen@linux.intel.com,davidlohr@hp.com,kirill.shutemov@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Wed, 16 Apr 2014 15:55:06 -0700
+Date: Wed, 16 Apr 2014 16:07:50 -0700
 
 
 The patch titled
-     Subject: fs/binfmt_elf.c: fix bool assignements
+     Subject: mm-pass-vm_bug_on-reason-to-dump_page-fix
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_elfc-fix-bool-assignements.patch
+     mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elfc-fix-bool-assignements.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elfc-fix-bool-assignements.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,49 +44,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/binfmt_elf.c: fix bool assignements
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-pass-vm_bug_on-reason-to-dump_page-fix
 
-Fix coccinelle warnings.
+include stringify.h
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mmdebug.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-fix-bool-assignements fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmt_elfc-fix-bool-assignements
-+++ a/fs/binfmt_elf.c
-@@ -1705,7 +1705,7 @@ static size_t get_note_info_size(struct
- static int write_note_info(struct elf_note_info *info,
- 			   struct coredump_params *cprm)
- {
--	bool first = 1;
-+	bool first = true;
- 	struct elf_thread_core_info *t = info->thread;
+diff -puN include/linux/mmdebug.h~mm-pass-vm_bug_on-reason-to-dump_page-fix include/linux/mmdebug.h
+--- a/include/linux/mmdebug.h~mm-pass-vm_bug_on-reason-to-dump_page-fix
++++ a/include/linux/mmdebug.h
+@@ -1,6 +1,8 @@
+ #ifndef LINUX_MM_DEBUG_H
+ #define LINUX_MM_DEBUG_H 1
  
- 	do {
-@@ -1729,7 +1729,7 @@ static int write_note_info(struct elf_no
- 			    !writenote(&t->notes[i], cprm))
- 				return 0;
++#include <linux/stringify.h>
++
+ struct page;
  
--		first = 0;
-+		first = false;
- 		t = t->next;
- 	} while (t);
- 
+ extern void dump_page(struct page *page, const char *reason);
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ntfs-remove-null-value-assignments.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write.patch
+wait-explain-the-shadowing-and-type-inconsistencies.patch
+mips-export-flush_icache_range-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
 ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
