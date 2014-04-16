@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch added to -mm tree
-Date: Wed, 16 Apr 2014 14:34:35 -0700
-Message-ID: <534ef76b.tmQqdEcV4Qz9Q8dE%akpm@linux-foundation.org>
+Subject: + arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ added to -mm tree
+Date: Wed, 16 Apr 2014 15:08:45 -0700
+Message-ID: <534eff6d.jOmr9rsRgtdMa0Yk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46567 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46693 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756643AbaDPVeg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 17:34:36 -0400
+	with ESMTP id S1756596AbaDPWIq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:08:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tj@kernel.org, rientjes@google.com, mhocko@suse.cz, hannes@cmpxchg.org
+To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch added to -mm tree
-To: hannes@cmpxchg.org,mhocko@suse.cz,rientjes@google.com,tj@kernel.org
+Subject: + arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
+To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 16 Apr 2014 14:34:35 -0700
+Date: Wed, 16 Apr 2014 15:08:45 -0700
 
 
 The patch titled
-     Subject: mm: memcontrol: remove hierarchy restrictions for swappiness and oom_control
+     Subject: arm: convert use of typedef ctl_table to struct ctl_table
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
+     arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,108 +44,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: remove hierarchy restrictions for swappiness and oom_control
+From: Joe Perches <joe@perches.com>
+Subject: arm: convert use of typedef ctl_table to struct ctl_table
 
-Per-memcg swappiness and oom killing can currently not be tweaked on a
-memcg that is part of a hierarchy, but not the root of that hierarchy. 
-Users have complained that they can't configure this when they turned on
-hierarchy mode.  In fact, with hierarchy mode becoming the default, this
-restriction disables the tunables entirely.
+This typedef is unnecessary and should just be removed.
 
-But there is no good reason for this restriction.  The settings for
-swappiness and OOM killing are taken from whatever memcg whose limit
-triggered reclaim and OOM invocation, regardless of its position in the
-hierarchy tree.
-
-Allow setting swappiness on any group.  The knob on the root memcg already
-reads the global VM swappiness, make it writable as well.
-
-Allow disabling the OOM killer on any non-root memcg.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   29 +++++++----------------------
- 1 file changed, 7 insertions(+), 22 deletions(-)
+ arch/arm/kernel/isa.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control
-+++ a/mm/memcontrol.c
-@@ -5443,22 +5443,14 @@ static int mem_cgroup_swappiness_write(s
- 				       struct cftype *cft, u64 val)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
--	struct mem_cgroup *parent = mem_cgroup_from_css(css_parent(&memcg->css));
+diff -puN arch/arm/kernel/isa.c~arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table arch/arm/kernel/isa.c
+--- a/arch/arm/kernel/isa.c~arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/arch/arm/kernel/isa.c
+@@ -20,7 +20,7 @@
  
--	if (val > 100 || !parent)
-+	if (val > 100)
- 		return -EINVAL;
+ static unsigned int isa_membase, isa_portbase, isa_portshift;
  
--	mutex_lock(&memcg_create_mutex);
--
--	/* If under hierarchy, only empty-root can set this value */
--	if ((parent->use_hierarchy) || memcg_has_children(memcg)) {
--		mutex_unlock(&memcg_create_mutex);
--		return -EINVAL;
--	}
--
--	memcg->swappiness = val;
--
--	mutex_unlock(&memcg_create_mutex);
-+	if (css_parent(css))
-+		memcg->swappiness = val;
-+	else
-+		vm_swappiness = val;
+-static ctl_table ctl_isa_vars[4] = {
++static struct ctl_table ctl_isa_vars[4] = {
+ 	{
+ 		.procname	= "membase",
+ 		.data		= &isa_membase, 
+@@ -44,7 +44,7 @@ static ctl_table ctl_isa_vars[4] = {
  
- 	return 0;
- }
-@@ -5790,22 +5782,15 @@ static int mem_cgroup_oom_control_write(
- 	struct cftype *cft, u64 val)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
--	struct mem_cgroup *parent = mem_cgroup_from_css(css_parent(&memcg->css));
+ static struct ctl_table_header *isa_sysctl_header;
  
- 	/* cannot set to root cgroup and only 0 and 1 are allowed */
--	if (!parent || !((val == 0) || (val == 1)))
-+	if (!css_parent(css) || !((val == 0) || (val == 1)))
- 		return -EINVAL;
+-static ctl_table ctl_isa[2] = {
++static struct ctl_table ctl_isa[2] = {
+ 	{
+ 		.procname	= "isa",
+ 		.mode		= 0555,
+@@ -52,7 +52,7 @@ static ctl_table ctl_isa[2] = {
+ 	}, {}
+ };
  
--	mutex_lock(&memcg_create_mutex);
--	/* oom-kill-disable is a flag for subhierarchy. */
--	if ((parent->use_hierarchy) || memcg_has_children(memcg)) {
--		mutex_unlock(&memcg_create_mutex);
--		return -EINVAL;
--	}
- 	memcg->oom_kill_disable = val;
- 	if (!val)
- 		memcg_oom_recover(memcg);
--	mutex_unlock(&memcg_create_mutex);
-+
- 	return 0;
- }
- 
+-static ctl_table ctl_bus[2] = {
++static struct ctl_table ctl_bus[2] = {
+ 	{
+ 		.procname	= "bus",
+ 		.mode		= 0555,
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-slb-charge-slabs-to-kmemcg-explicitly.patch
-mm-get-rid-of-__gfp_kmemcg.patch
-pagewalk-update-page-table-walker-core.patch
-pagewalk-add-walk_page_vma.patch
-smaps-redefine-callback-functions-for-page-table-walker.patch
-clear_refs-redefine-callback-functions-for-page-table-walker.patch
-pagemap-redefine-callback-functions-for-page-table-walker.patch
-numa_maps-redefine-callback-functions-for-page-table-walker.patch
-memcg-redefine-callback-functions-for-page-table-walker.patch
-arch-powerpc-mm-subpage-protc-use-walk_page_vma-instead-of-walk_page_range.patch
-pagewalk-remove-argument-hmask-from-hugetlb_entry.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-memcontrol-remove-hierarchy-restrictions-for-swappiness-and-oom_control.patch
+arm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+tile-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+cdrom-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+parport-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+scsi-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+coda-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fscache-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ntfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+fs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ipc-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+sysctl-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+mm-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+security-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-always-warn-on-missing-blank-line-after-variable-declaration-block.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test.patch
+checkpatch-reduce-false-positives-for-missing-blank-line-after-declarations-test-fix.patch
+init-mainc-dont-use-pr_debug.patch
 linux-next.patch
-debugging-keep-track-of-page-owners.patch
 
