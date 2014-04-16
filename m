@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
-Date: Wed, 16 Apr 2014 15:08:46 -0700
-Message-ID: <534eff6e.L5nmmGIt/cXk2yCW%akpm@linux-foundation.org>
+Subject: +
+ random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to
+ -mm tree
+Date: Wed, 16 Apr 2014 15:08:49 -0700
+Message-ID: <534eff71.Y8c2YyVYpbLjO4gk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46702 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756596AbaDPWIr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:08:47 -0400
+	with ESMTP id S1756596AbaDPWIu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:08:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
+Subject: + random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 16 Apr 2014 15:08:46 -0700
+Date: Wed, 16 Apr 2014 15:08:49 -0700
 
 
 The patch titled
-     Subject: ia64: convert use of typedef ctl_table to struct ctl_table
+     Subject: random: convert use of typedef ctl_table to struct ctl_table
 has been added to the -mm tree.  Its filename is
-     ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+     random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/random-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,7 +46,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: ia64: convert use of typedef ctl_table to struct ctl_table
+Subject: random: convert use of typedef ctl_table to struct ctl_table
 
 This typedef is unnecessary and should just be removed.
 
@@ -52,61 +54,25 @@ Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/crash.c   |    4 ++--
- arch/ia64/kernel/perfmon.c |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/char/random.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/kernel/crash.c~ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table arch/ia64/kernel/crash.c
---- a/arch/ia64/kernel/crash.c~ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/arch/ia64/kernel/crash.c
-@@ -237,7 +237,7 @@ kdump_init_notifier(struct notifier_bloc
- }
+diff -puN drivers/char/random.c~random-convert-use-of-typedef-ctl_table-to-struct-ctl_table drivers/char/random.c
+--- a/drivers/char/random.c~random-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/drivers/char/random.c
+@@ -1578,10 +1578,10 @@ static int proc_do_uuid(struct ctl_table
+ /*
+  * Return entropy available scaled to integral bits
+  */
+-static int proc_do_entropy(ctl_table *table, int write,
++static int proc_do_entropy(struct ctl_table *table, int write,
+ 			   void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+-	ctl_table fake_table;
++	struct ctl_table fake_table;
+ 	int entropy_count;
  
- #ifdef CONFIG_SYSCTL
--static ctl_table kdump_ctl_table[] = {
-+static struct ctl_table kdump_ctl_table[] = {
- 	{
- 		.procname = "kdump_on_init",
- 		.data = &kdump_on_init,
-@@ -255,7 +255,7 @@ static ctl_table kdump_ctl_table[] = {
- 	{ }
- };
- 
--static ctl_table sys_table[] = {
-+static struct ctl_table sys_table[] = {
- 	{
- 	  .procname = "kernel",
- 	  .mode = 0555,
-diff -puN arch/ia64/kernel/perfmon.c~ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~ia64-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -521,7 +521,7 @@ static pmu_config_t		*pmu_conf;
- pfm_sysctl_t pfm_sysctl;
- EXPORT_SYMBOL(pfm_sysctl);
- 
--static ctl_table pfm_ctl_table[]={
-+static struct ctl_table pfm_ctl_table[] = {
- 	{
- 		.procname	= "debug",
- 		.data		= &pfm_sysctl.debug,
-@@ -552,7 +552,7 @@ static ctl_table pfm_ctl_table[]={
- 	},
- 	{}
- };
--static ctl_table pfm_sysctl_dir[] = {
-+static struct ctl_table pfm_sysctl_dir[] = {
- 	{
- 		.procname	= "perfmon",
- 		.mode		= 0555,
-@@ -560,7 +560,7 @@ static ctl_table pfm_sysctl_dir[] = {
- 	},
-  	{}
- };
--static ctl_table pfm_sysctl_root[] = {
-+static struct ctl_table pfm_sysctl_root[] = {
- 	{
- 		.procname	= "kernel",
- 		.mode		= 0555,
+ 	entropy_count = *(int *)table->data >> ENTROPY_SHIFT;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
