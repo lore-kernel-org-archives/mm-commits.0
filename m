@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
- added to -mm tree
-Date: Wed, 16 Apr 2014 15:08:59 -0700
-Message-ID: <534eff7b.5oQtuXPyROLA6TjQ%akpm@linux-foundation.org>
+Subject: +
+ inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
+Date: Wed, 16 Apr 2014 15:08:56 -0700
+Message-ID: <534eff78.LXCmIgHeIEGh9UdV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46714 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756863AbaDPWJA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:09:00 -0400
+	with ESMTP id S1756859AbaDPWI5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:08:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
+Subject: + inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 16 Apr 2014 15:08:59 -0700
+Date: Wed, 16 Apr 2014 15:08:56 -0700
 
 
 The patch titled
-     Subject: key: convert use of typedef ctl_table to struct ctl_table
+     Subject: inotify: convert use of typedef ctl_table to struct ctl_table
 has been added to the -mm tree.  Its filename is
-     key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+     inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/key-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: key: convert use of typedef ctl_table to struct ctl_table
+Subject: inotify: convert use of typedef ctl_table to struct ctl_table
 
 This typedef is unnecessary and should just be removed.
 
@@ -53,21 +53,21 @@ Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/key.h |    2 +-
+ fs/notify/inotify/inotify_user.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/key.h~key-convert-use-of-typedef-ctl_table-to-struct-ctl_table include/linux/key.h
---- a/include/linux/key.h~key-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/include/linux/key.h
-@@ -332,7 +332,7 @@ do {									\
- } while (0)
+diff -puN fs/notify/inotify/inotify_user.c~inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/notify/inotify/inotify_user.c
+--- a/fs/notify/inotify/inotify_user.c~inotify-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/fs/notify/inotify/inotify_user.c
+@@ -57,7 +57,7 @@ static struct kmem_cache *inotify_inode_
  
- #ifdef CONFIG_SYSCTL
--extern ctl_table key_sysctls[];
-+extern struct ctl_table key_sysctls[];
- #endif
- /*
-  * the userspace interface
+ static int zero;
+ 
+-ctl_table inotify_table[] = {
++struct ctl_table inotify_table[] = {
+ 	{
+ 		.procname	= "max_user_instances",
+ 		.data		= &inotify_max_user_instances,
 _
 
 Patches currently in -mm which might be from joe@perches.com are
