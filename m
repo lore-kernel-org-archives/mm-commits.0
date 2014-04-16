@@ -1,37 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: +
- lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to
- -mm tree
-Date: Wed, 16 Apr 2014 15:08:54 -0700
-Message-ID: <534eff76.Xb7Jiw0N8bBbhvD4%akpm@linux-foundation.org>
+Subject: + nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+ added to -mm tree
+Date: Wed, 16 Apr 2014 15:08:55 -0700
+Message-ID: <534eff77.8IsBpUDdfLDQLdZS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46710 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46712 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756807AbaDPWIz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:08:55 -0400
+	with ESMTP id S1756807AbaDPWI4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Apr 2014 18:08:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, joe@perches.com
 
-Subject: + lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
+Subject: + nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch added to -mm tree
 To: joe@perches.com
 From: akpm@linux-foundation.org
-Date: Wed, 16 Apr 2014 15:08:54 -0700
+Date: Wed, 16 Apr 2014 15:08:55 -0700
 
 
 The patch titled
-     Subject: lockd: convert use of typedef ctl_table to struct ctl_table
+     Subject: nfs: convert use of typedef ctl_table to struct ctl_table
 has been added to the -mm tree.  Its filename is
-     lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+     nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,7 +45,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: lockd: convert use of typedef ctl_table to struct ctl_table
+Subject: nfs: convert use of typedef ctl_table to struct ctl_table
 
 This typedef is unnecessary and should just be removed.
 
@@ -54,39 +53,70 @@ Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/nfs/nfs4sysctl.c |    6 +++---
+ fs/nfs/sysctl.c     |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/lockd/svc.c~lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/lockd/svc.c
---- a/fs/lockd/svc.c~lockd-convert-use-of-typedef-ctl_table-to-struct-ctl_table
-+++ a/fs/lockd/svc.c
-@@ -436,7 +436,7 @@ EXPORT_SYMBOL_GPL(lockd_down);
-  * Sysctl parameters (same as module parameters, different interface).
-  */
+diff -puN fs/nfs/nfs4sysctl.c~nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/nfs/nfs4sysctl.c
+--- a/fs/nfs/nfs4sysctl.c~nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/fs/nfs/nfs4sysctl.c
+@@ -16,7 +16,7 @@ static const int nfs_set_port_min = 0;
+ static const int nfs_set_port_max = 65535;
+ static struct ctl_table_header *nfs4_callback_sysctl_table;
  
--static ctl_table nlm_sysctls[] = {
-+static struct ctl_table nlm_sysctls[] = {
+-static ctl_table nfs4_cb_sysctls[] = {
++static struct ctl_table nfs4_cb_sysctls[] = {
  	{
- 		.procname	= "nlm_grace_period",
- 		.data		= &nlm_grace_period,
-@@ -490,7 +490,7 @@ static ctl_table nlm_sysctls[] = {
+ 		.procname = "nfs_callback_tcpport",
+ 		.data = &nfs_callback_set_tcpport,
+@@ -36,7 +36,7 @@ static ctl_table nfs4_cb_sysctls[] = {
  	{ }
  };
  
--static ctl_table nlm_sysctl_dir[] = {
-+static struct ctl_table nlm_sysctl_dir[] = {
+-static ctl_table nfs4_cb_sysctl_dir[] = {
++static struct ctl_table nfs4_cb_sysctl_dir[] = {
  	{
- 		.procname	= "nfs",
- 		.mode		= 0555,
-@@ -499,7 +499,7 @@ static ctl_table nlm_sysctl_dir[] = {
+ 		.procname = "nfs",
+ 		.mode = 0555,
+@@ -45,7 +45,7 @@ static ctl_table nfs4_cb_sysctl_dir[] =
  	{ }
  };
  
--static ctl_table nlm_sysctl_root[] = {
-+static struct ctl_table nlm_sysctl_root[] = {
+-static ctl_table nfs4_cb_sysctl_root[] = {
++static struct ctl_table nfs4_cb_sysctl_root[] = {
  	{
- 		.procname	= "fs",
- 		.mode		= 0555,
+ 		.procname = "fs",
+ 		.mode = 0555,
+diff -puN fs/nfs/sysctl.c~nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table fs/nfs/sysctl.c
+--- a/fs/nfs/sysctl.c~nfs-convert-use-of-typedef-ctl_table-to-struct-ctl_table
++++ a/fs/nfs/sysctl.c
+@@ -13,7 +13,7 @@
+ 
+ static struct ctl_table_header *nfs_callback_sysctl_table;
+ 
+-static ctl_table nfs_cb_sysctls[] = {
++static struct ctl_table nfs_cb_sysctls[] = {
+ 	{
+ 		.procname	= "nfs_mountpoint_timeout",
+ 		.data		= &nfs_mountpoint_expiry_timeout,
+@@ -31,7 +31,7 @@ static ctl_table nfs_cb_sysctls[] = {
+ 	{ }
+ };
+ 
+-static ctl_table nfs_cb_sysctl_dir[] = {
++static struct ctl_table nfs_cb_sysctl_dir[] = {
+ 	{
+ 		.procname = "nfs",
+ 		.mode = 0555,
+@@ -40,7 +40,7 @@ static ctl_table nfs_cb_sysctl_dir[] = {
+ 	{ }
+ };
+ 
+-static ctl_table nfs_cb_sysctl_root[] = {
++static struct ctl_table nfs_cb_sysctl_root[] = {
+ 	{
+ 		.procname = "fs",
+ 		.mode = 0555,
 _
 
 Patches currently in -mm which might be from joe@perches.com are
