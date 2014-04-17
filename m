@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch added to -mm tree
-Date: Thu, 17 Apr 2014 13:15:51 -0700
-Message-ID: <53503677.jnz3QKQBGt+yPPhR%akpm@linux-foundation.org>
+ hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch added to -mm tree
+Date: Thu, 17 Apr 2014 13:15:50 -0700
+Message-ID: <53503676.gVcjoRHkfht+7jvq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59965 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59958 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983AbaDQUPw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 16:15:52 -0400
+	with ESMTP id S1750928AbaDQUPv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 16:15:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, sougata@tuxera.com, slava@dubeyko.com, hch@infradead.org, anton@tuxera.com, htl10@users.sourceforge.net
 
-Subject: + hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch added to -mm tree
+Subject: + hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch added to -mm tree
 To: htl10@users.sourceforge.net,anton@tuxera.com,hch@infradead.org,slava@dubeyko.com,sougata@tuxera.com,viro@zeniv.linux.org.uk
 From: akpm@linux-foundation.org
-Date: Thu, 17 Apr 2014 13:15:51 -0700
+Date: Thu, 17 Apr 2014 13:15:50 -0700
 
 
 The patch titled
-     Subject: hfsplus: correct usage of HFSPLUS_ATTR_MAX_STRLEN for non-English attributes
+     Subject: hfsplus: fix worst-case unicode to char conversion of file names and attributes
 has been added to the -mm tree.  Its filename is
-     hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch
+     hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,99 +45,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hin-Tak Leung <htl10@users.sourceforge.net>
-Subject: hfsplus: correct usage of HFSPLUS_ATTR_MAX_STRLEN for non-English attributes
+Subject: hfsplus: fix worst-case unicode to char conversion of file names and attributes
 
-HFSPLUS_ATTR_MAX_STRLEN (=127) is the limit of attribute names for the
-number of unicode character (UTF-16BE) storable in the HFS+ file system. 
-Almost all the current usage of it is wrong, in relation to NLS to on-disk
-conversion.
+This is a series of 3 patches which corrects issues in HFS+ concerning the
+use of non-english file names and attributes.  Names and attributes are
+stored internally as UTF-16 units up to a fixed maximum size, and convert
+to and from user-representation by NLS.  The code incorrectly assume that
+NLS string lengths are equal to unicode lengths, which is only true for
+English ascii usage.
 
-Except for one use calling hfsplus_asc2uni (which should stay the same)
-and its uses in calling hfsplus_uni2asc (which was corrected in the
-earlier patch in this series concerning usage of hfsplus_uni2asc), all the
-other uses are of the forms:
 
-- char buffer[size]
+This patch (of 3):
 
-- bound check: "if (namespace_adjusted_input_length > size) return failure;"
+The HFS Plus Volume Format specification (TN1150) states that file names
+are stored internally as a maximum of 255 unicode characters, as defined
+by The Unicode Standard, Version 2.0 [Unicode, Inc.  ISBN 0-201-48345-9]. 
+File names are converted by the NLS system on Linux before presented to
+the user.
 
-Conversion between on-disk unicode representation and NLS char strings (in
-whichever direction) always needs to accommodate the worst-case NLS
-conversion, so all char buffers of that size need to have a
-NLS_MAX_CHARSET_SIZE x .
+255 CJK characters converts to UTF-8 with 1 unicode character to up to 3
+bytes, and to GB18030 with 1 unicode character to up to 4 bytes.  Thus,
+trying in a UTF-8 locale to list files with names of more than 85 CJK
+characters results in:
 
-The bound checks are all wrong, since they compare nls_length derived from
-strlen() to a unicode length limit.
+    $ ls /mnt
+    ls: reading directory /mnt: File name too long
 
-It turns out that all the bound-checks do is to protect hfsplus_asc2uni(),
-which can fail if the input is too large.  There is only one usage of it
-as far as attributes are concerned, in hfsplus_attr_build_key().  It is in
-turn used by hfsplus_find_attr(), hfsplus_create_attr(),
-hfsplus_delete_attr().  Thus making sure that errors from
-hfsplus_asc2uni() is caught in hfsplus_attr_build_key() and propagated is
-sufficient to replace all the bound checks.
+The receiving buffer to hfsplus_uni2asc() needs to be 255 x
+NLS_MAX_CHARSET_SIZE bytes, not 255 bytes as the code has always been.
 
-Unpropagated errors from hfsplus_asc2uni() in the file catalog code was
-addressed recently in an independent patch "hfsplus: fix longname handling"
-by Sougata Santra.
+Similar consideration applies to attributes, which are stored internally
+as a maximum of 127 UTF-16BE units.  See XNU source for an up-to-date
+reference on attributes.
 
-Before this patch, trying to set a 55 CJK character (in a UTF-8
-locale, > 127/3=42) attribute plus user prefix fails with:
+Strictly speaking, the maximum value of NLS_MAX_CHARSET_SIZE = 6 is not
+attainable in the case of conversion to UTF-8, as going beyond 3 bytes
+requires the use of surrogate pairs, i.e.  consuming two input units.
 
-    $ setfattr -n user.`cat testing-string` -v `cat testing-string` \
-        testing-string
-    setfattr: testing-string: Operation not supported
+Thanks Anton Altaparmakov for reviewing an earlier version of this change.
 
-and retrieving a stored long attributes is particular ugly(!):
-
-    find /mnt/* -type f -exec getfattr -d {} \;
-    getfattr: /mnt/testing-string: Input/output error
-
-with console log:
-    [268008.389781] hfsplus: unicode conversion failed
-
-After the patch, both of the above works.
-
-FYI, the test attribute string is prepared with:
-
-echo -e -n \
-"\xe9\x80\x99\xe6\x98\xaf\xe4\xb8\x80\xe5\x80\x8b\xe9\x9d\x9e\xe5" \
-"\xb8\xb8\xe6\xbc\xab\xe9\x95\xb7\xe8\x80\x8c\xe6\xa5\xb5\xe5\x85" \
-"\xb6\xe4\xb9\x8f\xe5\x91\xb3\xe5\x92\x8c\xe7\x9b\xb8\xe7\x95\xb6" \
-"\xe7\x84\xa1\xe8\xb6\xa3\xe3\x80\x81\xe4\xbb\xa5\xe5\x8f\x8a\xe7" \
-"\x84\xa1\xe7\x94\xa8\xe7\x9a\x84\xe3\x80\x81\xe5\x86\x8d\xe5\x8a" \
-"\xa0\xe4\xb8\x8a\xe6\xaf\xab\xe7\x84\xa1\xe6\x84\x8f\xe7\xbe\xa9" \
-"\xe7\x9a\x84\xe6\x93\xb4\xe5\xb1\x95\xe5\xb1\xac\xe6\x80\xa7\xef" \
-"\xbc\x8c\xe8\x80\x8c\xe5\x85\xb6\xe5\x94\xaf\xe4\xb8\x80\xe5\x89" \
-"\xb5\xe5\xbb\xba\xe7\x9b\xae\xe7\x9a\x84\xe5\x83\x85\xe6\x98\xaf" \
-"\xe7\x82\xba\xe4\xba\x86\xe6\xb8\xac\xe8\xa9\xa6\xe4\xbd\x9c\xe7" \
-"\x94\xa8\xe3\x80\x82" | tr -d ' '
-
-(= "pointlessly long attribute for testing", elaborate Chinese in
-UTF-8 enoding).
-
-However, it is not possible to set double the size (110 + 5 is still
-under 127) in a UTF-8 locale:
-
-    $setfattr -n user.`cat testing-string testing-string` -v \
-        `cat testing-string testing-string` testing-string
-    setfattr: testing-string: Numerical result out of range
-
-110 CJK char in UTF-8 is 330 bytes - the generic get/set attribute system
-call code in linux/fs/xattr.c imposes a 255 byte limit.  One can use a
-combination of iconv to encode content, changing terminal locale for
-viewing, and an nls=cp932/cp936/cp949/cp950 mount option to fully use
-127-unicode attribute in a double-byte locale.
-
-Also, as an additional information, it is possible to (mis-)use unicode
-half-width/full-width forms (U+FFxx) to write attributes which looks like
-english but not actually ascii.
-
-Thanks Anton Altaparmakov for reviewing the earlier ideas behind this
-change.
+This patch fixes all callers of hfsplus_uni2asc(), and also enables the
+use of long non-English file names in HFS+.  The getting and setting, and
+general usage of long non-English attributes requires further forthcoming
+work, in the following patches of this series.
 
 Signed-off-by: Hin-Tak Leung <htl10@users.sourceforge.net>
-Cc: Anton Altaparmakov <anton@tuxera.com>
+Reviewed-by: Anton Altaparmakov <anton@tuxera.com>
 Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -145,309 +98,116 @@ Cc: Sougata Santra <sougata@tuxera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/attributes.c     |   11 ++-----
- fs/hfsplus/xattr.c          |   40 +++++++++++++++++-----------
- fs/hfsplus/xattr_security.c |   47 ++++++++++++++++++----------------
- fs/hfsplus/xattr_trusted.c  |   30 +++++++++++++--------
- fs/hfsplus/xattr_user.c     |   30 +++++++++++++--------
- 5 files changed, 90 insertions(+), 68 deletions(-)
+ fs/hfsplus/dir.c   |   11 +++++++++--
+ fs/hfsplus/xattr.c |   14 +++++++++++---
+ 2 files changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN fs/hfsplus/attributes.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes fs/hfsplus/attributes.c
---- a/fs/hfsplus/attributes.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes
-+++ a/fs/hfsplus/attributes.c
-@@ -54,14 +54,11 @@ int hfsplus_attr_build_key(struct super_
- 	memset(key, 0, sizeof(struct hfsplus_attr_key));
- 	key->attr.cnid = cpu_to_be32(cnid);
- 	if (name) {
--		len = strlen(name);
--		if (len > HFSPLUS_ATTR_MAX_STRLEN) {
--			pr_err("invalid xattr name's length\n");
--			return -EINVAL;
--		}
--		hfsplus_asc2uni(sb,
-+		int res = hfsplus_asc2uni(sb,
- 				(struct hfsplus_unistr *)&key->attr.key_name,
--				HFSPLUS_ATTR_MAX_STRLEN, name, len);
-+				HFSPLUS_ATTR_MAX_STRLEN, name, strlen(name));
-+		if (res)
-+			return res;
- 		len = be16_to_cpu(key->attr.key_name.length);
- 	} else {
- 		key->attr.key_name.length = 0;
-diff -puN fs/hfsplus/xattr.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes fs/hfsplus/xattr.c
---- a/fs/hfsplus/xattr.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes
-+++ a/fs/hfsplus/xattr.c
-@@ -805,47 +805,55 @@ end_removexattr:
- static int hfsplus_osx_getxattr(struct dentry *dentry, const char *name,
- 					void *buffer, size_t size, int type)
- {
--	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN +
--				XATTR_MAC_OSX_PREFIX_LEN + 1] = {0};
--	size_t len = strlen(name);
-+	char *xattr_name;
-+	int res;
+diff -puN fs/hfsplus/dir.c~hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes fs/hfsplus/dir.c
+--- a/fs/hfsplus/dir.c~hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes
++++ a/fs/hfsplus/dir.c
+@@ -12,6 +12,7 @@
+ #include <linux/fs.h>
+ #include <linux/slab.h>
+ #include <linux/random.h>
++#include <linux/nls.h>
  
- 	if (!strcmp(name, ""))
- 		return -EINVAL;
- 
--	if (len > HFSPLUS_ATTR_MAX_STRLEN)
--		return -EOPNOTSUPP;
--
- 	/*
- 	 * Don't allow retrieving properly prefixed attributes
- 	 * by prepending them with "osx."
- 	 */
- 	if (is_known_namespace(name))
- 		return -EOPNOTSUPP;
--
--	return hfsplus_getxattr(dentry, xattr_name, buffer, size);
-+	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN
-+		+ XATTR_MAC_OSX_PREFIX_LEN + 1, GFP_KERNEL);
-+	if (!xattr_name)
-+		return -ENOMEM;
-+	strcpy(xattr_name, XATTR_MAC_OSX_PREFIX);
-+	strcpy(xattr_name + XATTR_MAC_OSX_PREFIX_LEN, name);
-+
-+	res = hfsplus_getxattr(dentry, xattr_name, buffer, size);
-+	kfree(xattr_name);
-+	return res;
- }
- 
- static int hfsplus_osx_setxattr(struct dentry *dentry, const char *name,
- 		const void *buffer, size_t size, int flags, int type)
- {
--	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN +
--				XATTR_MAC_OSX_PREFIX_LEN + 1] = {0};
--	size_t len = strlen(name);
-+	char *xattr_name;
-+	int res;
- 
- 	if (!strcmp(name, ""))
- 		return -EINVAL;
- 
--	if (len > HFSPLUS_ATTR_MAX_STRLEN)
--		return -EOPNOTSUPP;
--
- 	/*
- 	 * Don't allow setting properly prefixed attributes
- 	 * by prepending them with "osx."
- 	 */
- 	if (is_known_namespace(name))
- 		return -EOPNOTSUPP;
--
--	return hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
-+	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN
-+		+ XATTR_MAC_OSX_PREFIX_LEN + 1, GFP_KERNEL);
-+	if (!xattr_name)
-+		return -ENOMEM;
-+	strcpy(xattr_name, XATTR_MAC_OSX_PREFIX);
-+	strcpy(xattr_name + XATTR_MAC_OSX_PREFIX_LEN, name);
-+
-+	res = hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
-+	kfree(xattr_name);
-+	return res;
- }
- 
- static size_t hfsplus_osx_listxattr(struct dentry *dentry, char *list,
-diff -puN fs/hfsplus/xattr_security.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes fs/hfsplus/xattr_security.c
---- a/fs/hfsplus/xattr_security.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes
-+++ a/fs/hfsplus/xattr_security.c
-@@ -14,37 +14,43 @@
- static int hfsplus_security_getxattr(struct dentry *dentry, const char *name,
- 					void *buffer, size_t size, int type)
- {
--	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
--	size_t len = strlen(name);
-+	char *xattr_name;
-+	int res;
- 
- 	if (!strcmp(name, ""))
- 		return -EINVAL;
- 
--	if (len + XATTR_SECURITY_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
--		return -EOPNOTSUPP;
--
-+	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN + 1,
-+		GFP_KERNEL);
-+	if (!xattr_name)
-+		return -ENOMEM;
- 	strcpy(xattr_name, XATTR_SECURITY_PREFIX);
- 	strcpy(xattr_name + XATTR_SECURITY_PREFIX_LEN, name);
- 
--	return hfsplus_getxattr(dentry, xattr_name, buffer, size);
-+	res = hfsplus_getxattr(dentry, xattr_name, buffer, size);
-+	kfree(xattr_name);
-+	return res;
- }
- 
- static int hfsplus_security_setxattr(struct dentry *dentry, const char *name,
- 		const void *buffer, size_t size, int flags, int type)
- {
--	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
--	size_t len = strlen(name);
-+	char *xattr_name;
-+	int res;
- 
- 	if (!strcmp(name, ""))
- 		return -EINVAL;
- 
--	if (len + XATTR_SECURITY_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
--		return -EOPNOTSUPP;
--
-+	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN + 1,
-+		GFP_KERNEL);
-+	if (!xattr_name)
-+		return -ENOMEM;
- 	strcpy(xattr_name, XATTR_SECURITY_PREFIX);
- 	strcpy(xattr_name + XATTR_SECURITY_PREFIX_LEN, name);
- 
--	return hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
-+	res = hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
-+	kfree(xattr_name);
-+	return res;
- }
- 
- static size_t hfsplus_security_listxattr(struct dentry *dentry, char *list,
-@@ -62,31 +68,30 @@ static int hfsplus_initxattrs(struct ino
- 				void *fs_info)
- {
- 	const struct xattr *xattr;
--	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
--	size_t xattr_name_len;
-+	char *xattr_name;
- 	int err = 0;
- 
-+	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN + 1,
-+		GFP_KERNEL);
-+	if (!xattr_name)
-+		return -ENOMEM;
- 	for (xattr = xattr_array; xattr->name != NULL; xattr++) {
--		xattr_name_len = strlen(xattr->name);
- 
--		if (xattr_name_len == 0)
-+		if (!strcmp(xattr->name, ""))
- 			continue;
- 
--		if (xattr_name_len + XATTR_SECURITY_PREFIX_LEN >
--				HFSPLUS_ATTR_MAX_STRLEN)
--			return -EOPNOTSUPP;
--
- 		strcpy(xattr_name, XATTR_SECURITY_PREFIX);
- 		strcpy(xattr_name +
- 			XATTR_SECURITY_PREFIX_LEN, xattr->name);
- 		memset(xattr_name +
--			XATTR_SECURITY_PREFIX_LEN + xattr_name_len, 0, 1);
-+			XATTR_SECURITY_PREFIX_LEN + strlen(xattr->name), 0, 1);
- 
- 		err = __hfsplus_setxattr(inode, xattr_name,
- 					xattr->value, xattr->value_len, 0);
+ #include "hfsplus_fs.h"
+ #include "hfsplus_raw.h"
+@@ -127,7 +128,7 @@ static int hfsplus_readdir(struct file *
+ 	struct inode *inode = file_inode(file);
+ 	struct super_block *sb = inode->i_sb;
+ 	int len, err;
+-	char strbuf[HFSPLUS_MAX_STRLEN + 1];
++	char *strbuf;
+ 	hfsplus_cat_entry entry;
+ 	struct hfs_find_data fd;
+ 	struct hfsplus_readdir_data *rd;
+@@ -139,6 +140,11 @@ static int hfsplus_readdir(struct file *
+ 	err = hfs_find_init(HFSPLUS_SB(sb)->cat_tree, &fd);
+ 	if (err)
+ 		return err;
++	strbuf = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_MAX_STRLEN + 1, GFP_KERNEL);
++	if (!strbuf) {
++		err = -ENOMEM;
++		goto out;
++	}
+ 	hfsplus_cat_build_key(sb, fd.search_key, inode->i_ino, NULL);
+ 	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
+ 	if (err)
+@@ -193,7 +199,7 @@ static int hfsplus_readdir(struct file *
+ 		hfs_bnode_read(fd.bnode, &entry, fd.entryoffset,
+ 			fd.entrylength);
+ 		type = be16_to_cpu(entry.type);
+-		len = HFSPLUS_MAX_STRLEN;
++		len = NLS_MAX_CHARSET_SIZE * HFSPLUS_MAX_STRLEN;
+ 		err = hfsplus_uni2asc(sb, &fd.key->cat.name, strbuf, &len);
  		if (err)
- 			break;
+ 			goto out;
+@@ -246,6 +252,7 @@ next:
  	}
-+	kfree(xattr_name);
+ 	memcpy(&rd->key, fd.key, sizeof(struct hfsplus_cat_key));
+ out:
++	kfree(strbuf);
+ 	hfs_find_exit(&fd);
  	return err;
  }
+diff -puN fs/hfsplus/xattr.c~hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes fs/hfsplus/xattr.c
+--- a/fs/hfsplus/xattr.c~hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes
++++ a/fs/hfsplus/xattr.c
+@@ -8,6 +8,7 @@
  
-diff -puN fs/hfsplus/xattr_trusted.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes fs/hfsplus/xattr_trusted.c
---- a/fs/hfsplus/xattr_trusted.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes
-+++ a/fs/hfsplus/xattr_trusted.c
-@@ -12,37 +12,43 @@
- static int hfsplus_trusted_getxattr(struct dentry *dentry, const char *name,
- 					void *buffer, size_t size, int type)
- {
--	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
--	size_t len = strlen(name);
-+	char *xattr_name;
-+	int res;
+ #include "hfsplus_fs.h"
+ #include <linux/posix_acl_xattr.h>
++#include <linux/nls.h>
+ #include "xattr.h"
+ #include "acl.h"
  
- 	if (!strcmp(name, ""))
- 		return -EINVAL;
+@@ -645,8 +646,7 @@ ssize_t hfsplus_listxattr(struct dentry
+ 	struct hfs_find_data fd;
+ 	u16 key_len = 0;
+ 	struct hfsplus_attr_key attr_key;
+-	char strbuf[HFSPLUS_ATTR_MAX_STRLEN +
+-			XATTR_MAC_OSX_PREFIX_LEN + 1] = {0};
++	char *strbuf;
+ 	int xattr_name_len;
  
--	if (len + XATTR_TRUSTED_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
--		return -EOPNOTSUPP;
--
-+	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN + 1,
-+		GFP_KERNEL);
-+	if (!xattr_name)
-+		return -ENOMEM;
- 	strcpy(xattr_name, XATTR_TRUSTED_PREFIX);
- 	strcpy(xattr_name + XATTR_TRUSTED_PREFIX_LEN, name);
+ 	if ((!S_ISREG(inode->i_mode) &&
+@@ -666,6 +666,13 @@ ssize_t hfsplus_listxattr(struct dentry
+ 		return err;
+ 	}
  
--	return hfsplus_getxattr(dentry, xattr_name, buffer, size);
-+	res = hfsplus_getxattr(dentry, xattr_name, buffer, size);
-+	kfree(xattr_name);
-+	return res;
++	strbuf = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN +
++			XATTR_MAC_OSX_PREFIX_LEN + 1, GFP_KERNEL);
++	if (!strbuf) {
++		res = -ENOMEM;
++		goto out;
++	}
++
+ 	err = hfsplus_find_attr(inode->i_sb, inode->i_ino, NULL, &fd);
+ 	if (err) {
+ 		if (err == -ENOENT) {
+@@ -692,7 +699,7 @@ ssize_t hfsplus_listxattr(struct dentry
+ 		if (be32_to_cpu(attr_key.cnid) != inode->i_ino)
+ 			goto end_listxattr;
+ 
+-		xattr_name_len = HFSPLUS_ATTR_MAX_STRLEN;
++		xattr_name_len = NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN;
+ 		if (hfsplus_uni2asc(inode->i_sb,
+ 			(const struct hfsplus_unistr *)&fd.key->attr.key_name,
+ 					strbuf, &xattr_name_len)) {
+@@ -718,6 +725,7 @@ ssize_t hfsplus_listxattr(struct dentry
+ 	}
+ 
+ end_listxattr:
++	kfree(strbuf);
+ 	hfs_find_exit(&fd);
+ 	return res;
  }
- 
- static int hfsplus_trusted_setxattr(struct dentry *dentry, const char *name,
- 		const void *buffer, size_t size, int flags, int type)
- {
--	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
--	size_t len = strlen(name);
-+	char *xattr_name;
-+	int res;
- 
- 	if (!strcmp(name, ""))
- 		return -EINVAL;
- 
--	if (len + XATTR_TRUSTED_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
--		return -EOPNOTSUPP;
--
-+	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN + 1,
-+		GFP_KERNEL);
-+	if (!xattr_name)
-+		return -ENOMEM;
- 	strcpy(xattr_name, XATTR_TRUSTED_PREFIX);
- 	strcpy(xattr_name + XATTR_TRUSTED_PREFIX_LEN, name);
- 
--	return hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
-+	res = hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
-+	kfree(xattr_name);
-+	return res;
- }
- 
- static size_t hfsplus_trusted_listxattr(struct dentry *dentry, char *list,
-diff -puN fs/hfsplus/xattr_user.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes fs/hfsplus/xattr_user.c
---- a/fs/hfsplus/xattr_user.c~hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes
-+++ a/fs/hfsplus/xattr_user.c
-@@ -12,37 +12,43 @@
- static int hfsplus_user_getxattr(struct dentry *dentry, const char *name,
- 					void *buffer, size_t size, int type)
- {
--	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
--	size_t len = strlen(name);
-+	char *xattr_name;
-+	int res;
- 
- 	if (!strcmp(name, ""))
- 		return -EINVAL;
- 
--	if (len + XATTR_USER_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
--		return -EOPNOTSUPP;
--
-+	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN + 1,
-+		GFP_KERNEL);
-+	if (!xattr_name)
-+		return -ENOMEM;
- 	strcpy(xattr_name, XATTR_USER_PREFIX);
- 	strcpy(xattr_name + XATTR_USER_PREFIX_LEN, name);
- 
--	return hfsplus_getxattr(dentry, xattr_name, buffer, size);
-+	res = hfsplus_getxattr(dentry, xattr_name, buffer, size);
-+	kfree(xattr_name);
-+	return res;
- }
- 
- static int hfsplus_user_setxattr(struct dentry *dentry, const char *name,
- 		const void *buffer, size_t size, int flags, int type)
- {
--	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
--	size_t len = strlen(name);
-+	char *xattr_name;
-+	int res;
- 
- 	if (!strcmp(name, ""))
- 		return -EINVAL;
- 
--	if (len + XATTR_USER_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
--		return -EOPNOTSUPP;
+_
+
+Patches currently in -mm which might be from htl10@users.sourceforge.net are
+
+hfsplus-fixes-worst-case-unicode-to-char-conversion-of-file-names-and-attributes.patch
+hfsplus-correct-usage-of-hfsplus_attr_max_strlen-for-non-english-attributes.patch
+hfsplus-remove-unused-routine-hfsplus_attr_build_key_uni.patch
+
