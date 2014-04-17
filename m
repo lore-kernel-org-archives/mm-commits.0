@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
- added to -mm tree
-Date: Thu, 17 Apr 2014 16:01:25 -0700
-Message-ID: <53505d45.FwBBxtsD/t6ZX9pj%akpm@linux-foundation.org>
+Subject: +
+ hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 17 Apr 2014 16:02:08 -0700
+Message-ID: <53505d70.8H1xzAxHY2Iko44A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33306 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33329 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751396AbaDQXB0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 19:01:26 -0400
+	with ESMTP id S1751520AbaDQXCJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 19:02:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, rientjes@google.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mtosatti@redhat.com, kirill.shutemov@linux.intel.com, isimatu.yasuaki@jp.fujitsu.com, davidlohr@hp.com, aarcange@redhat.com, lcapitulino@redhat.com
+To: mm-commits@vger.kernel.org, lcapitulino@redhat.com, akpm@linux-foundation.org
 
-Subject: + hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch added to -mm tree
-To: lcapitulino@redhat.com,aarcange@redhat.com,davidlohr@hp.com,isimatu.yasuaki@jp.fujitsu.com,kirill.shutemov@linux.intel.com,mtosatti@redhat.com,n-horiguchi@ah.jp.nec.com,riel@redhat.com,rientjes@google.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com
+Subject: + hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch added to -mm tree
+To: akpm@linux-foundation.org,lcapitulino@redhat.com
 From: akpm@linux-foundation.org
-Date: Thu, 17 Apr 2014 16:01:25 -0700
+Date: Thu, 17 Apr 2014 16:02:08 -0700
 
 
 The patch titled
-     Subject: hugetlb: update_and_free_page(): don't clear PG_reserved bit
+     Subject: hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
+     hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,52 +44,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Luiz Capitulino <lcapitulino@redhat.com>
-Subject: hugetlb: update_and_free_page(): don't clear PG_reserved bit
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes
 
-Hugepages pages never get the PG_reserved bit set, so don't clear it.
+WARNING: braces {} are not necessary for any arm of this statement
+#282: FILE: mm/hugetlb.c:1650:
++		if (hstate_is_gigantic(h)) {
+[...]
++		} else {
+[...]
 
-However, note that if the bit gets mistakenly set free_pages_check() will
-catch it.
+total: 0 errors, 1 warnings, 219 lines checked
 
-Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
-Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+./patches/hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-update_and_free_page-dont-clear-pg_reserved-bit mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-update_and_free_page-dont-clear-pg_reserved-bit
+diff -puN mm/hugetlb.c~hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes
 +++ a/mm/hugetlb.c
-@@ -619,8 +619,8 @@ static void update_and_free_page(struct
- 	for (i = 0; i < pages_per_huge_page(h); i++) {
- 		page[i].flags &= ~(1 << PG_locked | 1 << PG_error |
- 				1 << PG_referenced | 1 << PG_dirty |
--				1 << PG_active | 1 << PG_reserved |
--				1 << PG_private | 1 << PG_writeback);
-+				1 << PG_active | 1 << PG_private |
-+				1 << PG_writeback);
- 	}
- 	VM_BUG_ON_PAGE(hugetlb_cgroup_from_page(page), page);
- 	set_compound_page_dtor(page, NULL);
+@@ -1647,11 +1647,10 @@ static unsigned long set_max_huge_pages(
+ 		 * and reducing the surplus.
+ 		 */
+ 		spin_unlock(&hugetlb_lock);
+-		if (hstate_is_gigantic(h)) {
++		if (hstate_is_gigantic(h))
+ 			ret = alloc_fresh_gigantic_page(h, nodes_allowed);
+-		} else {
++		else
+ 			ret = alloc_fresh_huge_page(h, nodes_allowed);
+-		}
+ 		spin_lock(&hugetlb_lock);
+ 		if (!ret)
+ 			goto out;
 _
 
-Patches currently in -mm which might be from lcapitulino@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
-hugetlb-add-hstate_is_gigantic.patch
-hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
-hugetlb-move-helpers-up-in-the-file.patch
-hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write.patch
+wait-explain-the-shadowing-and-type-inconsistencies.patch
+mips-export-flush_icache_range-fix.patch
+drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
