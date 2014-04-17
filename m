@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + slab-document-kmalloc_order.patch added to -mm tree
-Date: Thu, 17 Apr 2014 14:21:54 -0700
-Message-ID: <535045f2.ZnRTJxb374z+UyFB%akpm@linux-foundation.org>
+Subject: + mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero.patch
+ added to -mm tree
+Date: Thu, 17 Apr 2014 14:22:44 -0700
+Message-ID: <53504624.tsX0lrfF9EC1Ii37%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60392 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60397 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbaDQVVz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 17:21:55 -0400
+	with ESMTP id S1751082AbaDQVWo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 17:22:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, penberg@kernel.org, cl@linux.com, vdavydov@parallels.com
+To: mm-commits@vger.kernel.org, riel@redhat.com, duanj.fnst@cn.fujitsu.com
 
-Subject: + slab-document-kmalloc_order.patch added to -mm tree
-To: vdavydov@parallels.com,cl@linux.com,penberg@kernel.org
+Subject: + mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero.patch added to -mm tree
+To: duanj.fnst@cn.fujitsu.com,riel@redhat.com
 From: akpm@linux-foundation.org
-Date: Thu, 17 Apr 2014 14:21:54 -0700
+Date: Thu, 17 Apr 2014 14:22:44 -0700
 
 
 The patch titled
-     Subject: slab: document kmalloc_order
+     Subject: mm/mmap.c: replace IS_ERR and PTR_ERR with PTR_ERR_OR_ZERO
 has been added to the -mm tree.  Its filename is
-     slab-document-kmalloc_order.patch
+     mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-document-kmalloc_order.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-document-kmalloc_order.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,39 +44,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slab: document kmalloc_order
+From: Duan Jiong <duanj.fnst@cn.fujitsu.com>
+Subject: mm/mmap.c: replace IS_ERR and PTR_ERR with PTR_ERR_OR_ZERO
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Fix a coccinelle error regarding usage of IS_ERR and PTR_ERR instead of
+PTR_ERR_OR_ZERO.
+
+Signed-off-by: Duan Jiong <duanj.fnst@cn.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/mmap.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/slab_common.c~slab-document-kmalloc_order mm/slab_common.c
---- a/mm/slab_common.c~slab-document-kmalloc_order
-+++ a/mm/slab_common.c
-@@ -573,6 +573,11 @@ void __init create_kmalloc_caches(unsign
- }
- #endif /* !CONFIG_SLOB */
+diff -puN mm/mmap.c~mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero
++++ a/mm/mmap.c
+@@ -2968,9 +2968,7 @@ int install_special_mapping(struct mm_st
+ 	struct vm_area_struct *vma = _install_special_mapping(mm,
+ 			    addr, len, vm_flags, pages);
  
-+/*
-+ * To avoid unnecessary overhead, we pass through large allocation requests
-+ * directly to the page allocator. We use __GFP_COMP, because we will need to
-+ * know the allocation order to free the pages properly in kfree.
-+ */
- void *kmalloc_order(size_t size, gfp_t flags, unsigned int order)
- {
- 	void *ret;
+-	if (IS_ERR(vma))
+-		return PTR_ERR(vma);
+-	return 0;
++	return PTR_ERR_OR_ZERO(vma);
+ }
+ 
+ static DEFINE_MUTEX(mm_all_locks_mutex);
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from duanj.fnst@cn.fujitsu.com are
 
-slb-charge-slabs-to-kmemcg-explicitly.patch
-mm-get-rid-of-__gfp_kmemcg.patch
-mm-get-rid-of-__gfp_kmemcg-fix.patch
-slab-document-kmalloc_order.patch
+origin.patch
+mm-mmapc-replace-is_err-and-ptr_err-with-ptr_err_or_zero.patch
+linux-next.patch
 
