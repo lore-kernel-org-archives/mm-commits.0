@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename.patch added to -mm tree
-Date: Thu, 17 Apr 2014 13:18:46 -0700
-Message-ID: <53503726.zBEOyu+x0dtlVQJN%akpm@linux-foundation.org>
+ fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch added to -mm tree
+Date: Thu, 17 Apr 2014 13:36:30 -0700
+Message-ID: <53503b4e.D8mtilW1aFKufLB4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60096 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbaDQUSr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 16:18:47 -0400
+	with ESMTP id S1750969AbaDQUgb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 16:36:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mfasheh@suse.com, jlbec@evilplan.org, alex.chen@huawei.com
+To: mm-commits@vger.kernel.org, tvrtko.ursulin@onelan.co.uk, jack@suse.cz, eparis@redhat.com, xypron.glpk@gmx.de
 
-Subject: + ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename.patch added to -mm tree
-To: alex.chen@huawei.com,jlbec@evilplan.org,mfasheh@suse.com
+Subject: + fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch added to -mm tree
+To: xypron.glpk@gmx.de,eparis@redhat.com,jack@suse.cz,tvrtko.ursulin@onelan.co.uk
 From: akpm@linux-foundation.org
-Date: Thu, 17 Apr 2014 13:18:46 -0700
+Date: Thu, 17 Apr 2014 13:36:30 -0700
 
 
 The patch titled
-     Subject: ocfs2: should add inode into orphan dir after updating entry in ocfs2_rename()
+     Subject: fanotify: FAN_MARK_FLUSH: avoid having to provide a fake/invalid fd and path
 has been added to the -mm tree.  Its filename is
-     ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename.patch
+     fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,115 +44,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2: should add inode into orphan dir after updating entry in ocfs2_rename()
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: fanotify: FAN_MARK_FLUSH: avoid having to provide a fake/invalid fd and path
 
-There are two files a and b in dir /mnt/ocfs2.
-    node A                           node B
-mv a b
-In ocfs2_rename(), after calling
-ocfs2_orphan_add(), the inode of
-file b will be added into orphan
-dir.
+Originally from Tvrtko Ursulin (https://lkml.org/lkml/2011/1/12/112)
 
-If ocfs2_update_entry() fails,
-ocfs2_rename return error and mv
-operation fails. But file b still
-exists in the parent dir.
+Avoid having to provide a fake/invalid fd and path when flushing marks
 
-ocfs2_queue_orphan_scan
--> ocfs2_queue_recovery_completion
--> ocfs2_complete_recovery
--> ocfs2_recover_orphans
-The inode of the file b will be
-put with iput().
+Currently for a group to flush marks it has set it needs to provide a fake
+or invalid (but resolvable) file descriptor and path when calling
+fanotify_mark.  This patch pulls the flush handling a bit up so file
+descriptor and path are completely ignored when flushing.
 
-ocfs2_evict_inode
--> ocfs2_delete_inode
--> ocfs2_wipe_inode
--> ocfs2_remove_inode
-OCFS2_VALID_FL in the inode
-i_flags will be cleared.
+I reworked the patch to be applicable again (the signature of fanotify_mark
+has changed since Tvrtko's work).
 
-                                   The file b still can be accessed
-                                   on node B.
-                                   ls /mnt/ocfs2
-                                   When first read the file b with
-                                   ocfs2_read_inode_block(). It will
-                                   validate the inode using
-                                   ocfs2_validate_inode_block().
-                                   Because OCFS2_VALID_FL not set in
-                                   the inode i_flags, so the file
-                                   system will be readonly.
-
-So we should add inode into orphan dir after updating entry in
-ocfs2_rename().
-
-Signed-off-by: alex.chen <alex.chen@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ fs/notify/fanotify/fanotify_user.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename
-+++ a/fs/ocfs2/namei.c
-@@ -1098,6 +1098,7 @@ static int ocfs2_rename(struct inode *ol
- 	struct ocfs2_dir_lookup_result old_entry_lookup = { NULL, };
- 	struct ocfs2_dir_lookup_result orphan_insert = { NULL, };
- 	struct ocfs2_dir_lookup_result target_insert = { NULL, };
-+	bool should_add_orphan = false;
+diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -811,6 +811,15 @@ SYSCALL_DEFINE5(fanotify_mark, int, fano
+ 	    group->priority == FS_PRIO_0)
+ 		goto fput_and_out;
  
- 	/* At some point it might be nice to break this function up a
- 	 * bit. */
-@@ -1304,6 +1305,7 @@ static int ocfs2_rename(struct inode *ol
- 				mlog_errno(status);
- 				goto bail;
- 			}
-+			should_add_orphan = true;
- 		}
- 	} else {
- 		BUG_ON(new_dentry->d_parent->d_inode != new_dir);
-@@ -1348,17 +1350,6 @@ static int ocfs2_rename(struct inode *ol
- 			goto bail;
- 		}
++	if (flags & FAN_MARK_FLUSH) {
++		ret = 0;
++		if (flags & FAN_MARK_MOUNT)
++			fsnotify_clear_vfsmount_marks_by_group(group);
++		else
++			fsnotify_clear_inode_marks_by_group(group);
++		goto fput_and_out;
++	}
++
+ 	ret = fanotify_find_path(dfd, pathname, &path, flags);
+ 	if (ret)
+ 		goto fput_and_out;
+@@ -822,7 +831,7 @@ SYSCALL_DEFINE5(fanotify_mark, int, fano
+ 		mnt = path.mnt;
  
--		if (S_ISDIR(new_inode->i_mode) ||
--		    (ocfs2_read_links_count(newfe) == 1)) {
--			status = ocfs2_orphan_add(osb, handle, new_inode,
--						  newfe_bh, orphan_name,
--						  &orphan_insert, orphan_dir);
--			if (status < 0) {
--				mlog_errno(status);
--				goto bail;
--			}
--		}
--
- 		/* change the dirent to point to the correct inode */
- 		status = ocfs2_update_entry(new_dir, handle, &target_lookup_res,
- 					    old_inode);
-@@ -1373,6 +1364,15 @@ static int ocfs2_rename(struct inode *ol
+ 	/* create/update an inode mark */
+-	switch (flags & (FAN_MARK_ADD | FAN_MARK_REMOVE | FAN_MARK_FLUSH)) {
++	switch (flags & (FAN_MARK_ADD | FAN_MARK_REMOVE)) {
+ 	case FAN_MARK_ADD:
+ 		if (flags & FAN_MARK_MOUNT)
+ 			ret = fanotify_add_vfsmount_mark(group, mnt, mask, flags);
+@@ -835,12 +844,6 @@ SYSCALL_DEFINE5(fanotify_mark, int, fano
  		else
- 			ocfs2_add_links_count(newfe, -1);
- 		ocfs2_journal_dirty(handle, newfe_bh);
-+		if (should_add_orphan) {
-+			status = ocfs2_orphan_add(osb, handle, new_inode,
-+					newfe_bh, orphan_name,
-+					&orphan_insert, orphan_dir);
-+			if (status < 0) {
-+				mlog_errno(status);
-+				goto bail;
-+			}
-+		}
- 	} else {
- 		/* if the name was not found in new_dir, add it now */
- 		status = ocfs2_add_entry(handle, new_dentry, old_inode,
+ 			ret = fanotify_remove_inode_mark(group, inode, mask, flags);
+ 		break;
+-	case FAN_MARK_FLUSH:
+-		if (flags & FAN_MARK_MOUNT)
+-			fsnotify_clear_vfsmount_marks_by_group(group);
+-		else
+-			fsnotify_clear_inode_marks_by_group(group);
+-		break;
+ 	default:
+ 		ret = -EINVAL;
+ 	}
 _
 
-Patches currently in -mm which might be from alex.chen@huawei.com are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
-ocfs2-should-add-inode-into-orphan-dir-after-updating-entry-in-ocfs2_rename.patch
+fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
 
