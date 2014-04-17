@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-kernel-clear-whitespace.patch added to -mm tree
-Date: Thu, 17 Apr 2014 14:53:02 -0700
-Message-ID: <53504d3e.uBTsGiqLZmdX+xiv%akpm@linux-foundation.org>
+Subject: + hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
+ added to -mm tree
+Date: Thu, 17 Apr 2014 16:01:22 -0700
+Message-ID: <53505d42.F6ywZiNu0uxcutrH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33286 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751262AbaDQVxD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 17:53:03 -0400
+	with ESMTP id S1750852AbaDQXBX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 19:01:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, paulmcquad@gmail.com
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, yinghai@kernel.org, rientjes@google.com, riel@redhat.com, n-horiguchi@ah.jp.nec.com, mtosatti@redhat.com, kirill.shutemov@linux.intel.com, isimatu.yasuaki@jp.fujitsu.com, davidlohr@hp.com, aarcange@redhat.com, lcapitulino@redhat.com
 
-Subject: + ipc-kernel-clear-whitespace.patch added to -mm tree
-To: paulmcquad@gmail.com
+Subject: + hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch added to -mm tree
+To: lcapitulino@redhat.com,aarcange@redhat.com,davidlohr@hp.com,isimatu.yasuaki@jp.fujitsu.com,kirill.shutemov@linux.intel.com,mtosatti@redhat.com,n-horiguchi@ah.jp.nec.com,riel@redhat.com,rientjes@google.com,yinghai@kernel.org,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Thu, 17 Apr 2014 14:53:02 -0700
+Date: Thu, 17 Apr 2014 16:01:22 -0700
 
 
 The patch titled
-     Subject: ipc, kernel: clear whitespace
+     Subject: hugetlb: prep_compound_gigantic_page(): drop __init marker
 has been added to the -mm tree.  Its filename is
-     ipc-kernel-clear-whitespace.patch
+     hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-kernel-clear-whitespace.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-kernel-clear-whitespace.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,197 +44,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul McQuade <paulmcquad@gmail.com>
-Subject: ipc, kernel: clear whitespace
+From: Luiz Capitulino <lcapitulino@redhat.com>
+Subject: hugetlb: prep_compound_gigantic_page(): drop __init marker
 
-trailing whitespace
+The HugeTLB subsystem uses the buddy allocator to allocate hugepages
+during runtime.  This means that hugepages allocation during runtime is
+limited to MAX_ORDER order.  For archs supporting gigantic pages (that is,
+page sizes greater than MAX_ORDER), this in turn means that those pages
+can't be allocated at runtime.
 
-Signed-off-by: Paul McQuade <paulmcquad@gmail.com>
+HugeTLB supports gigantic page allocation during boottime, via the boot
+allocator.  To this end the kernel provides the command-line options
+hugepagesz= and hugepages=, which can be used to instruct the kernel to
+allocate N gigantic pages during boot.
+
+For example, x86_64 supports 2M and 1G hugepages, but only 2M hugepages
+can be allocated and freed at runtime.  If one wants to allocate 1G
+gigantic pages, this has to be done at boot via the hugepagesz= and
+hugepages= command-line options.
+
+Now, gigantic page allocation at boottime has two serious problems:
+
+ 1. Boottime allocation is not NUMA aware. On a NUMA machine the kernel
+    evenly distributes boottime allocated hugepages among nodes.
+
+    For example, suppose you have a four-node NUMA machine and want
+    to allocate four 1G gigantic pages at boottime. The kernel will
+    allocate one gigantic page per node.
+
+    On the other hand, we do have users who want to be able to specify
+    which NUMA node gigantic pages should allocated from. So that they
+    can place virtual machines on a specific NUMA node.
+
+ 2. Gigantic pages allocated at boottime can't be freed
+
+At this point it's important to observe that regular hugepages allocated
+at runtime don't have those problems.  This is so because HugeTLB
+interface for runtime allocation in sysfs supports NUMA and runtime
+allocated pages can be freed just fine via the buddy allocator.
+
+This series adds support for allocating gigantic pages at runtime.  It
+does so by allocating gigantic pages via CMA instead of the buddy
+allocator.  Releasing gigantic pages is also supported via CMA.  As this
+series builds on top of the existing HugeTLB interface, it makes gigantic
+page allocation and releasing just like regular sized hugepages.  This
+also means that NUMA support just works.
+
+For example, to allocate two 1G gigantic pages on node 1, one can do:
+
+ # echo 2 > \
+   /sys/devices/system/node/node1/hugepages/hugepages-1048576kB/nr_hugepages
+
+And, to release all gigantic pages on the same node:
+
+ # echo 0 > \
+   /sys/devices/system/node/node1/hugepages/hugepages-1048576kB/nr_hugepages
+
+Please, refer to patch 5/5 for full technical details.
+
+Finally, please note that this series is a follow up for a previous series
+that tried to extend the command-line options set to be NUMA aware:
+
+ http://marc.info/?l=linux-mm&m=139593335312191&w=2
+
+During the discussion of that series it was agreed that having runtime
+allocation support for gigantic pages was a better solution.
+
+
+
+This patch (of 5):
+
+This function is going to be used by non-init code in a future
+commit.
+
+Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
+Reviewed-by: Davidlohr Bueso <davidlohr@hp.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c     |   31 +++++++++++++++----------------
- ipc/sem.c     |   10 +++++-----
- ipc/shm.c     |    2 +-
- ipc/util.c    |    4 ++--
- ipc/util.h    |    8 ++++----
- kernel/acct.c |    4 ++--
- 6 files changed, 29 insertions(+), 30 deletions(-)
+ mm/hugetlb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN ipc/msg.c~ipc-kernel-clear-whitespace ipc/msg.c
---- a/ipc/msg.c~ipc-kernel-clear-whitespace
-+++ a/ipc/msg.c
-@@ -611,23 +611,22 @@ SYSCALL_DEFINE3(msgctl, int, msqid, int,
- 
- static int testmsg(struct msg_msg *msg, long type, int mode)
- {
--	switch (mode)
--	{
--		case SEARCH_ANY:
--		case SEARCH_NUMBER:
-+	switch (mode) {
-+	case SEARCH_ANY:
-+	case SEARCH_NUMBER:
-+		return 1;
-+	case SEARCH_LESSEQUAL:
-+		if (msg->m_type <= type)
- 			return 1;
--		case SEARCH_LESSEQUAL:
--			if (msg->m_type <= type)
--				return 1;
--			break;
--		case SEARCH_EQUAL:
--			if (msg->m_type == type)
--				return 1;
--			break;
--		case SEARCH_NOTEQUAL:
--			if (msg->m_type != type)
--				return 1;
--			break;
-+		break;
-+	case SEARCH_EQUAL:
-+		if (msg->m_type == type)
-+			return 1;
-+		break;
-+	case SEARCH_NOTEQUAL:
-+		if (msg->m_type != type)
-+			return 1;
-+		break;
- 	}
- 	return 0;
+diff -puN mm/hugetlb.c~hugetlb-prep_compound_gigantic_page-drop-__init-marker mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-prep_compound_gigantic_page-drop-__init-marker
++++ a/mm/hugetlb.c
+@@ -691,8 +691,7 @@ static void prep_new_huge_page(struct hs
+ 	put_page(page); /* free it into the hugepage allocator */
  }
-diff -puN ipc/sem.c~ipc-kernel-clear-whitespace ipc/sem.c
---- a/ipc/sem.c~ipc-kernel-clear-whitespace
-+++ a/ipc/sem.c
-@@ -160,7 +160,7 @@ static int sysvipc_sem_proc_show(struct
-  *	sem_array.pending{_alter,_cont},
-  *	sem_array.sem_undo: global sem_lock() for read/write
-  *	sem_undo.proc_next: only "current" is allowed to read/write that field.
-- *	
-+ *
-  *	sem_array.sem_base[i].pending_{const,alter}:
-  *		global or semaphore sem_lock() for read/write
-  */
-@@ -1161,7 +1161,7 @@ static int semctl_nolock(struct ipc_name
- 		err = security_sem_semctl(NULL, cmd);
- 		if (err)
- 			return err;
--		
-+
- 		memset(&seminfo, 0, sizeof(seminfo));
- 		seminfo.semmni = ns->sc_semmni;
- 		seminfo.semmns = ns->sc_semmns;
-@@ -1181,7 +1181,7 @@ static int semctl_nolock(struct ipc_name
- 		}
- 		max_id = ipc_get_maxid(&sem_ids(ns));
- 		up_read(&sem_ids(ns).rwsem);
--		if (copy_to_user(p, &seminfo, sizeof(struct seminfo))) 
-+		if (copy_to_user(p, &seminfo, sizeof(struct seminfo)))
- 			return -EFAULT;
- 		return (max_id < 0) ? 0 : max_id;
- 	}
-@@ -1883,7 +1883,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
- 	/* We need to sleep on this operation, so we put the current
- 	 * task into the pending queue and go to sleep.
- 	 */
--		
-+
- 	queue.sops = sops;
- 	queue.nsops = nsops;
- 	queue.undo = un;
-@@ -2016,7 +2016,7 @@ int copy_semundo(unsigned long clone_fla
- 			return error;
- 		atomic_inc(&undo_list->refcnt);
- 		tsk->sysvsem.undo_list = undo_list;
--	} else 
-+	} else
- 		tsk->sysvsem.undo_list = NULL;
  
- 	return 0;
-diff -puN ipc/shm.c~ipc-kernel-clear-whitespace ipc/shm.c
---- a/ipc/shm.c~ipc-kernel-clear-whitespace
-+++ a/ipc/shm.c
-@@ -694,7 +694,7 @@ static inline unsigned long copy_shminfo
- 		out.shmmin	= in->shmmin;
- 		out.shmmni	= in->shmmni;
- 		out.shmseg	= in->shmseg;
--		out.shmall	= in->shmall; 
-+		out.shmall	= in->shmall;
- 
- 		return copy_to_user(buf, &out, sizeof(out));
- 	    }
-diff -puN ipc/util.c~ipc-kernel-clear-whitespace ipc/util.c
---- a/ipc/util.c~ipc-kernel-clear-whitespace
-+++ a/ipc/util.c
-@@ -183,7 +183,7 @@ void __init ipc_init_proc_interface(cons
-  * ipc_findkey	- find a key in an ipc identifier set
-  * @ids: ipc identifier set
-  * @key: key to find
-- *	
-+ *
-  * Returns the locked pointer to the ipc structure if found or NULL
-  * otherwise. If key is found ipc points to the owning ipc structure
-  *
-@@ -538,7 +538,7 @@ int ipcperms(struct ipc_namespace *ns, s
- 	else if (in_group_p(ipcp->cgid) || in_group_p(ipcp->gid))
- 		granted_mode >>= 3;
- 	/* is there some bit set in requested_mode but not in granted_mode? */
--	if ((requested_mode & ~granted_mode & 0007) && 
-+	if ((requested_mode & ~granted_mode & 0007) &&
- 	    !ns_capable(ns->user_ns, CAP_IPC_OWNER))
- 		return -1;
- 
-diff -puN ipc/util.h~ipc-kernel-clear-whitespace ipc/util.h
---- a/ipc/util.h~ipc-kernel-clear-whitespace
-+++ a/ipc/util.h
-@@ -78,9 +78,9 @@ struct ipc_params {
-  *      . routine to call for an extra check if needed
-  */
- struct ipc_ops {
--	int (*getnew) (struct ipc_namespace *, struct ipc_params *);
--	int (*associate) (struct kern_ipc_perm *, int);
--	int (*more_checks) (struct kern_ipc_perm *, struct ipc_params *);
-+	int (*getnew)(struct ipc_namespace *, struct ipc_params *);
-+	int (*associate)(struct kern_ipc_perm *, int);
-+	int (*more_checks)(struct kern_ipc_perm *, struct ipc_params *);
- };
- 
- struct seq_file;
-@@ -142,7 +142,7 @@ struct kern_ipc_perm *ipcctl_pre_down_no
- 					     struct ipc64_perm *perm, int extra_perm);
- 
- #ifndef CONFIG_ARCH_WANT_IPC_PARSE_VERSION
--  /* On IA-64, we always use the "64-bit version" of the IPC structures.  */ 
-+/* On IA-64, we always use the "64-bit version" of the IPC structures.  */
- # define ipc_parse_version(cmd)	IPC_64
- #else
- int ipc_parse_version(int *cmd);
-diff -puN kernel/acct.c~ipc-kernel-clear-whitespace kernel/acct.c
---- a/kernel/acct.c~ipc-kernel-clear-whitespace
-+++ a/kernel/acct.c
-@@ -134,7 +134,7 @@ static int check_free_space(struct bsd_a
- 	spin_lock(&acct_lock);
- 	if (file != acct->file) {
- 		if (act)
--			res = act>0;
-+			res = act > 0;
- 		goto out;
- 	}
- 
-@@ -262,7 +262,7 @@ SYSCALL_DEFINE1(acct, const char __user
- 	if (name) {
- 		struct filename *tmp = getname(name);
- 		if (IS_ERR(tmp))
--			return (PTR_ERR(tmp));
-+			return PTR_ERR(tmp);
- 		error = acct_on(tmp);
- 		putname(tmp);
- 	} else {
+-static void __init prep_compound_gigantic_page(struct page *page,
+-					       unsigned long order)
++static void prep_compound_gigantic_page(struct page *page, unsigned long order)
+ {
+ 	int i;
+ 	int nr_pages = 1 << order;
 _
 
-Patches currently in -mm which might be from paulmcquad@gmail.com are
+Patches currently in -mm which might be from lcapitulino@redhat.com are
 
-ipc-kernel-use-linux-headers.patch
-ipc-kernel-clear-whitespace.patch
-linux-next.patch
+hugetlb-prep_compound_gigantic_page-drop-__init-marker.patch
+hugetlb-add-hstate_is_gigantic.patch
+hugetlb-update_and_free_page-dont-clear-pg_reserved-bit.patch
+hugetlb-move-helpers-up-in-the-file.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime.patch
 
