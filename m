@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch added
- to -mm tree
-Date: Thu, 17 Apr 2014 13:38:59 -0700
-Message-ID: <53503be3.znJY/uZfEwYGHfc4%akpm@linux-foundation.org>
+Subject: + fanotify-create-fan_access-event-for-readdir.patch added to -mm tree
+Date: Thu, 17 Apr 2014 13:39:58 -0700
+Message-ID: <53503c1e.3Z3QStNxG8NIO1xO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60107 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60112 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750999AbaDQUjA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 16:39:00 -0400
+	with ESMTP id S1750969AbaDQUj6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Apr 2014 16:39:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, jack@suse.cz, eparis@redhat.com, xypron.glpk@gmx.de
 
-Subject: + fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + fanotify-create-fan_access-event-for-readdir.patch added to -mm tree
+To: xypron.glpk@gmx.de,eparis@redhat.com,jack@suse.cz
 From: akpm@linux-foundation.org
-Date: Thu, 17 Apr 2014 13:38:59 -0700
+Date: Thu, 17 Apr 2014 13:39:58 -0700
 
 
 The patch titled
-     Subject: fs/befs/btree.c: Replace strncpy by strlcpy + coding style fixing
+     Subject: fanotify: create FAN_ACCESS event for readdir
 has been added to the -mm tree.  Its filename is
-     fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+     fanotify-create-fan_access-event-for-readdir.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fanotify-create-fan_access-event-for-readdir.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fanotify-create-fan_access-event-for-readdir.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,58 +43,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/befs/btree.c: Replace strncpy by strlcpy + coding style fixing
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: fanotify: create FAN_ACCESS event for readdir
 
--strncpy + end of string assignement replaced by strlcpy
--Fix endif };
--Fix typo
+Before the patch,
+read creates FAN_ACCESS_PERM and FAN_ACCESS events,
+readdir creates only FAN_ACCESS_PERM events.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+This is inconsistent.
+
+After the patch,
+readdir creates FAN_ACCESS_PERM and FAN_ACCESS events.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/btree.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/readdir.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/befs/btree.c~fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing fs/befs/btree.c
---- a/fs/befs/btree.c~fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing
-+++ a/fs/befs/btree.c
-@@ -405,7 +405,7 @@ befs_find_key(struct super_block *sb, be
-  * Heres how it works: Key_no is the index of the key/value pair to 
-  * return in keybuf/value.
-  * Bufsize is the size of keybuf (BEFS_NAME_LEN+1 is a good size). Keysize is 
-- * the number of charecters in the key (just a convenience).
-+ * the number of characters in the key (just a convenience).
-  *
-  * Algorithm:
-  *   Get the first leafnode of the tree. See if the requested key is in that
-@@ -502,12 +502,11 @@ befs_btree_read(struct super_block *sb,
- 			   "for key of size %d", __func__, bufsize, keylen);
- 		brelse(this_node->bh);
- 		goto error_alloc;
--	};
-+	}
- 
--	strncpy(keybuf, keystart, keylen);
-+	strlcpy(keybuf, keystart, keylen + 1);
- 	*value = fs64_to_cpu(sb, valarray[cur_key]);
- 	*keysize = keylen;
--	keybuf[keylen] = '\0';
- 
- 	befs_debug(sb, "Read [%llu,%d]: Key \"%.*s\", Value %llu", node_off,
- 		   cur_key, keylen, keybuf, *value);
+diff -puN fs/readdir.c~fanotify-create-fan_access-event-for-readdir fs/readdir.c
+--- a/fs/readdir.c~fanotify-create-fan_access-event-for-readdir
++++ a/fs/readdir.c
+@@ -13,6 +13,7 @@
+ #include <linux/stat.h>
+ #include <linux/file.h>
+ #include <linux/fs.h>
++#include <linux/fsnotify.h>
+ #include <linux/dirent.h>
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+@@ -40,6 +41,7 @@ int iterate_dir(struct file *file, struc
+ 		ctx->pos = file->f_pos;
+ 		res = file->f_op->iterate(file, ctx);
+ 		file->f_pos = ctx->pos;
++		fsnotify_access(file);
+ 		file_accessed(file);
+ 	}
+ 	mutex_unlock(&inode->i_mutex);
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
-ntfs-remove-null-value-assignments.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-linux-next.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
+fanotify-fan_mark_flush-avoid-having-to-provide-a-fake-invalid-fd-and-path.patch
+fanotify-create-fan_access-event-for-readdir.patch
 
