@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + mm-extract-in_gate_area-case-from-__get_user_pages.patch added
- to -mm tree
-Date: Fri, 18 Apr 2014 15:15:59 -0700
-Message-ID: <5351a41f.9x06RvXT9/JLzS7T%akpm@linux-foundation.org>
+Subject: + mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch
+ added to -mm tree
+Date: Fri, 18 Apr 2014 15:16:01 -0700
+Message-ID: <5351a421.x480r5NXtXT1LnXa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43264 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43268 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752798AbaDRWQA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 18:16:00 -0400
+	with ESMTP id S1754445AbaDRWQC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 18:16:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com
 
-Subject: + mm-extract-in_gate_area-case-from-__get_user_pages.patch added to -mm tree
+Subject: + mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch added to -mm tree
 To: kirill.shutemov@linux.intel.com
 From: akpm@linux-foundation.org
-Date: Fri, 18 Apr 2014 15:15:59 -0700
+Date: Fri, 18 Apr 2014 15:16:01 -0700
 
 
 The patch titled
-     Subject: mm: extract in_gate_area() case from __get_user_pages()
+     Subject: mm: extract code to fault in a page from __get_user_pages()
 has been added to the -mm tree.  Its filename is
-     mm-extract-in_gate_area-case-from-__get_user_pages.patch
+     mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-extract-in_gate_area-case-from-__get_user_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-extract-in_gate_area-case-from-__get_user_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-extract-code-to-fault-in-a-page-from-__get_user_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,130 +45,167 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: extract in_gate_area() case from __get_user_pages()
+Subject: mm: extract code to fault in a page from __get_user_pages()
 
-The case is special and disturb from reading main __get_user_pages()
-code path. Let's move it to separate function.
+Nesting level in __get_user_pages() is just insane. Let's try to fix it
+a bit.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   95 +++++++++++++++++++++++++++++------------------------
- 1 file changed, 52 insertions(+), 43 deletions(-)
+ mm/gup.c |  130 ++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 69 insertions(+), 61 deletions(-)
 
-diff -puN mm/gup.c~mm-extract-in_gate_area-case-from-__get_user_pages mm/gup.c
---- a/mm/gup.c~mm-extract-in_gate_area-case-from-__get_user_pages
+diff -puN mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages mm/gup.c
+--- a/mm/gup.c~mm-extract-code-to-fault-in-a-page-from-__get_user_pages
 +++ a/mm/gup.c
-@@ -207,6 +207,53 @@ static inline int stack_guard_page(struc
- 	       stack_guard_page_end(vma, addr+PAGE_SIZE);
+@@ -261,6 +261,61 @@ out:
+ 	return 0;
  }
  
-+static int get_gate_page(struct mm_struct *mm, unsigned long address,
-+		unsigned int gup_flags, struct vm_area_struct **vma,
-+		struct page **page)
++static int faultin_page(struct task_struct *tsk, struct vm_area_struct *vma,
++		unsigned long address, unsigned int *flags, int *nonblocking)
 +{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+	int ret = 0;
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned int fault_flags = 0;
++	int ret;
 +
-+	/* user gate pages are read-only */
-+	if (gup_flags & FOLL_WRITE)
-+		return -EFAULT;
-+	if (address > TASK_SIZE)
-+		pgd = pgd_offset_k(address);
-+	else
-+		pgd = pgd_offset_gate(mm, address);
-+	BUG_ON(pgd_none(*pgd));
-+	pud = pud_offset(pgd, address);
-+	BUG_ON(pud_none(*pud));
-+	pmd = pmd_offset(pud, address);
-+	if (pmd_none(*pmd))
-+		return -EFAULT;
-+	VM_BUG_ON(pmd_trans_huge(*pmd));
-+	pte = pte_offset_map(pmd, address);
-+	if (pte_none(*pte)) {
-+		ret = -EFAULT;
-+		goto out;
++	/* For mlock, just skip the stack guard page. */
++	if ((*flags & FOLL_MLOCK) && stack_guard_page(vma, address))
++		return -ENOENT;
++	if (*flags & FOLL_WRITE)
++		fault_flags |= FAULT_FLAG_WRITE;
++	if (nonblocking)
++		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
++	if (*flags & FOLL_NOWAIT)
++		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_RETRY_NOWAIT;
++
++	ret = handle_mm_fault(mm, vma, address, fault_flags);
++	if (ret & VM_FAULT_ERROR) {
++		if (ret & VM_FAULT_OOM)
++			return -ENOMEM;
++		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
++			return *flags & FOLL_HWPOISON ? -EHWPOISON : -EFAULT;
++		if (ret & VM_FAULT_SIGBUS)
++			return -EFAULT;
++		BUG();
 +	}
-+	*vma = get_gate_vma(mm);
-+	if (!page)
-+		goto out;
-+	*page = vm_normal_page(*vma, address, *pte);
-+	if (!*page)
-+		goto out;
-+	if ((gup_flags & FOLL_DUMP) || !is_zero_pfn(pte_pfn(*pte))) {
-+		*page = NULL;
-+		ret = -EFAULT;
-+		goto out;
++
++	if (tsk) {
++		if (ret & VM_FAULT_MAJOR)
++			tsk->maj_flt++;
++		else
++			tsk->min_flt++;
 +	}
-+	*page = pte_page(*pte);
-+	get_page(*page);
-+out:
-+	pte_unmap(pte);
++
++	if (ret & VM_FAULT_RETRY) {
++		if (nonblocking)
++			*nonblocking = 0;
++		return -EBUSY;
++	}
++
++	/*
++	 * The VM_FAULT_WRITE bit tells us that do_wp_page has broken COW when
++	 * necessary, even if maybe_mkwrite decided not to set pte_write. We
++	 * can thus safely do subsequent page lookups as if they were reads.
++	 * But only do so when looping for pte_write is futile: in some cases
++	 * userspace may also be wanting to write to the gotten user page,
++	 * which a read fault here might prevent (a readonly page might get
++	 * reCOWed by userspace write).
++	 */
++	if ((ret & VM_FAULT_WRITE) && !(vma->vm_flags & VM_WRITE))
++		*flags &= ~FOLL_WRITE;
 +	return 0;
 +}
 +
  /**
   * __get_user_pages() - pin user pages in memory
   * @tsk:	task_struct of target task
-@@ -294,49 +341,11 @@ long __get_user_pages(struct task_struct
- 
- 		vma = find_extend_vma(mm, start);
- 		if (!vma && in_gate_area(mm, start)) {
--			unsigned long pg = start & PAGE_MASK;
--			pgd_t *pgd;
--			pud_t *pud;
--			pmd_t *pmd;
--			pte_t *pte;
+@@ -384,69 +439,22 @@ long __get_user_pages(struct task_struct
+ 			while (!(page = follow_page_mask(vma, start,
+ 						foll_flags, &page_mask))) {
+ 				int ret;
+-				unsigned int fault_flags = 0;
 -
--			/* user gate pages are read-only */
--			if (gup_flags & FOLL_WRITE)
--				return i ? : -EFAULT;
--			if (pg > TASK_SIZE)
--				pgd = pgd_offset_k(pg);
--			else
--				pgd = pgd_offset_gate(mm, pg);
--			BUG_ON(pgd_none(*pgd));
--			pud = pud_offset(pgd, pg);
--			BUG_ON(pud_none(*pud));
--			pmd = pmd_offset(pud, pg);
--			if (pmd_none(*pmd))
--				return i ? : -EFAULT;
--			VM_BUG_ON(pmd_trans_huge(*pmd));
--			pte = pte_offset_map(pmd, pg);
--			if (pte_none(*pte)) {
--				pte_unmap(pte);
--				return i ? : -EFAULT;
--			}
--			vma = get_gate_vma(mm);
--			if (pages) {
--				struct page *page;
--
--				page = vm_normal_page(vma, start, *pte);
--				if (!page) {
--					if (!(gup_flags & FOLL_DUMP) &&
--					     is_zero_pfn(pte_pfn(*pte)))
--						page = pte_page(*pte);
--					else {
--						pte_unmap(pte);
--						return i ? : -EFAULT;
--					}
+-				/* For mlock, just skip the stack guard page. */
+-				if (foll_flags & FOLL_MLOCK) {
+-					if (stack_guard_page(vma, start))
+-						goto next_page;
 -				}
--				pages[i] = page;
--				get_page(page);
--			}
--			pte_unmap(pte);
-+			int ret;
-+			ret = get_gate_page(mm, start & PAGE_MASK, gup_flags,
-+					&vma, pages ? &pages[i] : NULL);
-+			if (ret)
-+				return i ? : ret;
- 			page_mask = 0;
- 			goto next_page;
- 		}
+-				if (foll_flags & FOLL_WRITE)
+-					fault_flags |= FAULT_FLAG_WRITE;
+-				if (nonblocking)
+-					fault_flags |= FAULT_FLAG_ALLOW_RETRY;
+-				if (foll_flags & FOLL_NOWAIT)
+-					fault_flags |= (FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_RETRY_NOWAIT);
+-
+-				ret = handle_mm_fault(mm, vma, start,
+-							fault_flags);
+-
+-				if (ret & VM_FAULT_ERROR) {
+-					if (ret & VM_FAULT_OOM)
+-						return i ? i : -ENOMEM;
+-					if (ret & (VM_FAULT_HWPOISON |
+-						   VM_FAULT_HWPOISON_LARGE)) {
+-						if (i)
+-							return i;
+-						else if (gup_flags & FOLL_HWPOISON)
+-							return -EHWPOISON;
+-						else
+-							return -EFAULT;
+-					}
+-					if (ret & VM_FAULT_SIGBUS)
+-						return i ? i : -EFAULT;
+-					BUG();
+-				}
+-
+-				if (tsk) {
+-					if (ret & VM_FAULT_MAJOR)
+-						tsk->maj_flt++;
+-					else
+-						tsk->min_flt++;
+-				}
+-
+-				if (ret & VM_FAULT_RETRY) {
+-					if (nonblocking)
+-						*nonblocking = 0;
++				ret = faultin_page(tsk, vma, start, &foll_flags,
++						nonblocking);
++				switch (ret) {
++				case 0:
++					break;
++				case -EFAULT:
++				case -ENOMEM:
++				case -EHWPOISON:
++					return i ? i : ret;
++				case -EBUSY:
+ 					return i;
++				case -ENOENT:
++					goto next_page;
++				default:
++					BUILD_BUG();
+ 				}
+-
+-				/*
+-				 * The VM_FAULT_WRITE bit tells us that
+-				 * do_wp_page has broken COW when necessary,
+-				 * even if maybe_mkwrite decided not to set
+-				 * pte_write. We can thus safely do subsequent
+-				 * page lookups as if they were reads. But only
+-				 * do so when looping for pte_write is futile:
+-				 * in some cases userspace may also be wanting
+-				 * to write to the gotten user page, which a
+-				 * read fault here might prevent (a readonly
+-				 * page might get reCOWed by userspace write).
+-				 */
+-				if ((ret & VM_FAULT_WRITE) &&
+-				    !(vma->vm_flags & VM_WRITE))
+-					foll_flags &= ~FOLL_WRITE;
+-
+ 				cond_resched();
+ 			}
+ 			if (IS_ERR(page))
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
