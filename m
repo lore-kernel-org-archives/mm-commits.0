@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + shiraz-has-moved.patch added to -mm tree
-Date: Fri, 18 Apr 2014 13:33:09 -0700
-Message-ID: <53518c05.jmGHifX2Irr1C//v%akpm@linux-foundation.org>
+Subject: +
+ hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch added to -mm tree
+Date: Fri, 18 Apr 2014 13:38:44 -0700
+Message-ID: <53518d54.F+HoxL6jHoKfCWpY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42395 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42487 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753308AbaDRUdK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 16:33:10 -0400
+	with ESMTP id S1752482AbaDRUip (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 16:38:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shiraz.linux.kernel@gmail.com, viresh.kumar@linaro.org
+To: mm-commits@vger.kernel.org, nacc@linux.vnet.ibm.com, mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, akpm@linux-foundation.org
 
-Subject: + shiraz-has-moved.patch added to -mm tree
-To: viresh.kumar@linaro.org,shiraz.linux.kernel@gmail.com
+Subject: + hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch added to -mm tree
+To: akpm@linux-foundation.org,aneesh.kumar@linux.vnet.ibm.com,mgorman@suse.de,nacc@linux.vnet.ibm.com
 From: akpm@linux-foundation.org
-Date: Fri, 18 Apr 2014 13:33:09 -0700
+Date: Fri, 18 Apr 2014 13:38:44 -0700
 
 
 The patch titled
-     Subject: Shiraz has moved
+     Subject: hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix
 has been added to the -mm tree.  Its filename is
-     shiraz-has-moved.patch
+     hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shiraz-has-moved.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shiraz-has-moved.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,190 +44,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Shiraz has moved
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix
 
-shiraz.hashim@st.com email-id doesn't exist anymore as he has left the
-company.  Replace ST's id with shiraz.linux.kernel@gmail.com.
+use pr_info(), per Mel
 
-It also updates .mailmap file to fix address for 'git shortlog'.
-
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap                           |    1 +
- MAINTAINERS                        |    2 +-
- arch/arm/boot/dts/spear320-hmi.dts |    2 +-
- arch/arm/mach-spear/headsmp.S      |    2 +-
- arch/arm/mach-spear/platsmp.c      |    2 +-
- arch/arm/mach-spear/time.c         |    2 +-
- drivers/gpio/gpio-spear-spics.c    |    4 ++--
- drivers/irqchip/spear-shirq.c      |    2 +-
- drivers/mtd/devices/spear_smi.c    |    4 ++--
- drivers/pwm/pwm-spear.c            |    4 ++--
- include/linux/mtd/spear_smi.h      |    2 +-
- 11 files changed, 14 insertions(+), 13 deletions(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN .mailmap~shiraz-has-moved .mailmap
---- a/.mailmap~shiraz-has-moved
-+++ a/.mailmap
-@@ -99,6 +99,7 @@ Sachin P Sant <ssant@in.ibm.com>
- Sam Ravnborg <sam@mars.ravnborg.org>
- Sascha Hauer <s.hauer@pengutronix.de>
- S.Çağlar Onur <caglar@pardus.org.tr>
-+Shiraz Hashim <shiraz.linux.kernel@gmail.com> <shiraz.hashim@st.com>
- Simon Kelley <simon@thekelleys.org.uk>
- Stéphane Witzmann <stephane.witzmann@ubpmes.univ-bpclermont.fr>
- Stephen Hemminger <shemminger@osdl.org>
-diff -puN MAINTAINERS~shiraz-has-moved MAINTAINERS
---- a/MAINTAINERS~shiraz-has-moved
-+++ a/MAINTAINERS
-@@ -8314,7 +8314,7 @@ F:	include/linux/compiler.h
+diff -puN fs/hugetlbfs/inode.c~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix
++++ a/fs/hugetlbfs/inode.c
+@@ -1031,7 +1031,7 @@ static int __init init_hugetlbfs_fs(void
+ 	int i;
  
- SPEAR PLATFORM SUPPORT
- M:	Viresh Kumar <viresh.linux@gmail.com>
--M:	Shiraz Hashim <shiraz.hashim@st.com>
-+M:	Shiraz Hashim <shiraz.linux.kernel@gmail.com>
- L:	spear-devel@list.st.com
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.st.com/spear
-diff -puN arch/arm/boot/dts/spear320-hmi.dts~shiraz-has-moved arch/arm/boot/dts/spear320-hmi.dts
---- a/arch/arm/boot/dts/spear320-hmi.dts~shiraz-has-moved
-+++ a/arch/arm/boot/dts/spear320-hmi.dts
-@@ -1,7 +1,7 @@
- /*
-  * DTS file for SPEAr320 Evaluation Baord
-  *
-- * Copyright 2012 Shiraz Hashim <shiraz.hashim@st.com>
-+ * Copyright 2012 Shiraz Hashim <shiraz.linux.kernel@gmail.com>
-  *
-  * The code contained herein is licensed under the GNU General Public
-  * License. You may obtain a copy of the GNU General Public License
-diff -puN arch/arm/mach-spear/headsmp.S~shiraz-has-moved arch/arm/mach-spear/headsmp.S
---- a/arch/arm/mach-spear/headsmp.S~shiraz-has-moved
-+++ a/arch/arm/mach-spear/headsmp.S
-@@ -3,7 +3,7 @@
-  *
-  * Picked from realview
-  * Copyright (c) 2012 ST Microelectronics Limited
-- * Shiraz Hashim <shiraz.hashim@st.com>
-+ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-diff -puN arch/arm/mach-spear/platsmp.c~shiraz-has-moved arch/arm/mach-spear/platsmp.c
---- a/arch/arm/mach-spear/platsmp.c~shiraz-has-moved
-+++ a/arch/arm/mach-spear/platsmp.c
-@@ -4,7 +4,7 @@
-  * based upon linux/arch/arm/mach-realview/platsmp.c
-  *
-  * Copyright (C) 2012 ST Microelectronics Ltd.
-- * Shiraz Hashim <shiraz.hashim@st.com>
-+ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-diff -puN arch/arm/mach-spear/time.c~shiraz-has-moved arch/arm/mach-spear/time.c
---- a/arch/arm/mach-spear/time.c~shiraz-has-moved
-+++ a/arch/arm/mach-spear/time.c
-@@ -2,7 +2,7 @@
-  * arch/arm/plat-spear/time.c
-  *
-  * Copyright (C) 2010 ST Microelectronics
-- * Shiraz Hashim<shiraz.hashim@st.com>
-+ * Shiraz Hashim<shiraz.linux.kernel@gmail.com>
-  *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
-diff -puN drivers/gpio/gpio-spear-spics.c~shiraz-has-moved drivers/gpio/gpio-spear-spics.c
---- a/drivers/gpio/gpio-spear-spics.c~shiraz-has-moved
-+++ a/drivers/gpio/gpio-spear-spics.c
-@@ -2,7 +2,7 @@
-  * SPEAr platform SPI chipselect abstraction over gpiolib
-  *
-  * Copyright (C) 2012 ST Microelectronics
-- * Shiraz Hashim <shiraz.hashim@st.com>
-+ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
-  *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
-@@ -205,6 +205,6 @@ static int __init spics_gpio_init(void)
- }
- subsys_initcall(spics_gpio_init);
+ 	if (!hugepages_supported()) {
+-		printk(KERN_ERR "hugetlbfs: Disabling because there are no supported hugepage sizes\n");
++		pr_info("hugetlbfs: disabling because there are no supported hugepage sizes\n");
+ 		return -ENOTSUPP;
+ 	}
  
--MODULE_AUTHOR("Shiraz Hashim <shiraz.hashim@st.com>");
-+MODULE_AUTHOR("Shiraz Hashim <shiraz.linux.kernel@gmail.com>");
- MODULE_DESCRIPTION("ST Microlectronics SPEAr SPI Chip Select Abstraction");
- MODULE_LICENSE("GPL");
-diff -puN drivers/irqchip/spear-shirq.c~shiraz-has-moved drivers/irqchip/spear-shirq.c
---- a/drivers/irqchip/spear-shirq.c~shiraz-has-moved
-+++ a/drivers/irqchip/spear-shirq.c
-@@ -5,7 +5,7 @@
-  * Viresh Kumar <viresh.linux@gmail.com>
-  *
-  * Copyright (C) 2012 ST Microelectronics
-- * Shiraz Hashim <shiraz.hashim@st.com>
-+ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
-  *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
-diff -puN drivers/mtd/devices/spear_smi.c~shiraz-has-moved drivers/mtd/devices/spear_smi.c
---- a/drivers/mtd/devices/spear_smi.c~shiraz-has-moved
-+++ a/drivers/mtd/devices/spear_smi.c
-@@ -6,7 +6,7 @@
-  *
-  * Copyright © 2010 STMicroelectronics.
-  * Ashish Priyadarshi
-- * Shiraz Hashim <shiraz.hashim@st.com>
-+ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
-  *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
-@@ -1089,5 +1089,5 @@ static struct platform_driver spear_smi_
- module_platform_driver(spear_smi_driver);
- 
- MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Ashish Priyadarshi, Shiraz Hashim <shiraz.hashim@st.com>");
-+MODULE_AUTHOR("Ashish Priyadarshi, Shiraz Hashim <shiraz.linux.kernel@gmail.com>");
- MODULE_DESCRIPTION("MTD SMI driver for serial nor flash chips");
-diff -puN drivers/pwm/pwm-spear.c~shiraz-has-moved drivers/pwm/pwm-spear.c
---- a/drivers/pwm/pwm-spear.c~shiraz-has-moved
-+++ a/drivers/pwm/pwm-spear.c
-@@ -2,7 +2,7 @@
-  * ST Microelectronics SPEAr Pulse Width Modulator driver
-  *
-  * Copyright (C) 2012 ST Microelectronics
-- * Shiraz Hashim <shiraz.hashim@st.com>
-+ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
-  *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
-@@ -264,6 +264,6 @@ static struct platform_driver spear_pwm_
- module_platform_driver(spear_pwm_driver);
- 
- MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Shiraz Hashim <shiraz.hashim@st.com>");
-+MODULE_AUTHOR("Shiraz Hashim <shiraz.linux.kernel@gmail.com>");
- MODULE_AUTHOR("Viresh Kumar <viresh.kumar@linaro.com>");
- MODULE_ALIAS("platform:spear-pwm");
-diff -puN include/linux/mtd/spear_smi.h~shiraz-has-moved include/linux/mtd/spear_smi.h
---- a/include/linux/mtd/spear_smi.h~shiraz-has-moved
-+++ a/include/linux/mtd/spear_smi.h
-@@ -1,6 +1,6 @@
- /*
-  * Copyright © 2010 ST Microelectronics
-- * Shiraz Hashim <shiraz.hashim@st.com>
-+ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
-  *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
 _
 
-Patches currently in -mm which might be from viresh.kumar@linaro.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-shiraz-has-moved.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-akpm-maintenance.patch
+kernel-watchdogc-touch_softlockup_watchdog-use-raw_cpu_write.patch
+wait-explain-the-shadowing-and-type-inconsistencies.patch
+mips-export-flush_icache_range-fix.patch
+drm-nouveau-bios-fix-a-bit-shift-error-introduced-by-457e77b-fix.patch
+hugetlb-ensure-hugepage-access-is-denied-if-hugepages-are-not-supported-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+ocfs2-do-not-return-dlm_migrate_response_mastery_ref-to-avoid-endlessloop-during-umount.patch
+mm.patch
+mm-hugetlbfs-fix-rmapping-for-anonymous-hugepages-with-page_pgoff-v3-fix.patch
+pagewalk-update-page-table-walker-core-fix-end-address-calculation-in-walk_page_range-fix.patch
+pagemap-redefine-callback-functions-for-page-table-walker-fix.patch
+pagewalk-remove-argument-hmask-from-hugetlb_entry-fix-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+include-linux-mmdebugh-add-vm_warn_on-and-vm_warn_on_once.patch
+mm-mempool-warn-about-__gfp_zero-usage-fix.patch
+mm-pass-vm_bug_on-reason-to-dump_page-fix.patch
+hugetlb-add-support-for-gigantic-page-allocation-at-runtime-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+init-mainc-dont-use-pr_debug.patch
+init-mainc-add-initcall_blacklist-kernel-parameter-fix.patch
 linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+ufs-sb-mutex-merge-mutex_destroy.patch
+debugging-keep-track-of-page-owners.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
