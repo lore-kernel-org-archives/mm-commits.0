@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + mm-disable-zone_reclaim_mode-by-default.patch added to -mm tree
-Date: Fri, 18 Apr 2014 13:06:37 -0700
-Message-ID: <535185cd./jfAC9DnY3vEWVmh%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-do-not-cache-reclaim-distances.patch added to -mm tree
+Date: Fri, 18 Apr 2014 13:06:38 -0700
+Message-ID: <535185ce.+shpjTaPUTpb3Ija%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42222 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42229 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754172AbaDRUGi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 16:06:38 -0400
+	with ESMTP id S1754564AbaDRUGj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 16:06:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mhocko@suse.cz, hannes@cmpxchg.org, mgorman@suse.de
 
-Subject: + mm-disable-zone_reclaim_mode-by-default.patch added to -mm tree
+Subject: + mm-page_alloc-do-not-cache-reclaim-distances.patch added to -mm tree
 To: mgorman@suse.de,hannes@cmpxchg.org,mhocko@suse.cz,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Fri, 18 Apr 2014 13:06:37 -0700
+Date: Fri, 18 Apr 2014 13:06:38 -0700
 
 
 The patch titled
-     Subject: mm: disable zone_reclaim_mode by default
+     Subject: mm: page_alloc: do not cache reclaim distances
 has been added to the -mm tree.  Its filename is
-     mm-disable-zone_reclaim_mode-by-default.patch
+     mm-page_alloc-do-not-cache-reclaim-distances.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-disable-zone_reclaim_mode-by-default.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-do-not-cache-reclaim-distances.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-disable-zone_reclaim_mode-by-default.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-do-not-cache-reclaim-distances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,30 +44,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: disable zone_reclaim_mode by default
+Subject: mm: page_alloc: do not cache reclaim distances
 
-When it was introduced, zone_reclaim_mode made sense as NUMA distances
-punished and workloads were generally partitioned to fit into a NUMA node.
- NUMA machines are now common but few of the workloads are NUMA-aware and
-it's routine to see major performance due to zone_reclaim_mode being
-enabled but relatively few can identify the problem.
-
-Those that require zone_reclaim_mode are likely to be able to detect when
-it needs to be enabled and tune appropriately so lets have a sensible
-default for the bulk of users.
-
-
-
-This patch (of 2):
-
-zone_reclaim_mode causes processes to prefer reclaiming memory from local
-node instead of spilling over to other nodes. This made sense initially when
-NUMA machines were almost exclusively HPC and the workload was partitioned
-into nodes. The NUMA penalties were sufficiently high to justify reclaiming
-the memory. On current machines and workloads it is often the case that
-zone_reclaim_mode destroys performance but not all users know how to detect
-this. Favour the common case and disable it by default. Users that are
-sophisticated enough to know they need zone_reclaim_mode will detect it.
+pgdat->reclaim_nodes tracks if a remote node is allowed to be reclaimed by
+zone_reclaim due to its distance. As it is expected that zone_reclaim_mode
+will be rarely enabled it is unreasonable for all machines to take a penalty.
+Fortunately, the zone_reclaim_mode() path is already slow and it is the path
+that takes the hit.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -76,98 +59,53 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt         |   17 +++++++++--------
- arch/ia64/include/asm/topology.h    |    3 ++-
- arch/powerpc/include/asm/topology.h |    8 ++------
- include/linux/topology.h            |    3 ++-
- mm/page_alloc.c                     |    2 --
- 5 files changed, 15 insertions(+), 18 deletions(-)
+ include/linux/mmzone.h |    1 -
+ mm/page_alloc.c        |   15 ++-------------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-disable-zone_reclaim_mode-by-default Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-disable-zone_reclaim_mode-by-default
-+++ a/Documentation/sysctl/vm.txt
-@@ -772,16 +772,17 @@ This is value ORed together of
- 2	= Zone reclaim writes dirty pages out
- 4	= Zone reclaim swaps pages
- 
--zone_reclaim_mode is set during bootup to 1 if it is determined that pages
--from remote zones will cause a measurable performance reduction. The
--page allocator will then reclaim easily reusable pages (those page
--cache pages that are currently not used) before allocating off node pages.
--
--It may be beneficial to switch off zone reclaim if the system is
--used for a file server and all of memory should be used for caching files
--from disk. In that case the caching effect is more important than
-+zone_reclaim_mode is disabled by default.  For file servers or workloads
-+that benefit from having their data cached, zone_reclaim_mode should be
-+left disabled as the caching effect is likely to be more important than
- data locality.
- 
-+zone_reclaim may be enabled if it's known that the workload is partitioned
-+such that each partition fits within a NUMA node and that accessing remote
-+memory would cause a measurable performance reduction.  The page allocator
-+will then reclaim easily reusable pages (those page cache pages that are
-+currently not used) before allocating off node pages.
-+
- Allowing zone reclaim to write out pages stops processes that are
- writing large amounts of data from dirtying pages on other nodes. Zone
- reclaim will write out dirty pages if a zone fills up and so effectively
-diff -puN arch/ia64/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default arch/ia64/include/asm/topology.h
---- a/arch/ia64/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default
-+++ a/arch/ia64/include/asm/topology.h
-@@ -21,7 +21,8 @@
- #define PENALTY_FOR_NODE_WITH_CPUS 255
- 
- /*
-- * Distance above which we begin to use zone reclaim
-+ * Nodes within this distance are eligible for reclaim by zone_reclaim() when
-+ * zone_reclaim_mode is enabled.
-  */
- #define RECLAIM_DISTANCE 15
- 
-diff -puN arch/powerpc/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default arch/powerpc/include/asm/topology.h
---- a/arch/powerpc/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default
-+++ a/arch/powerpc/include/asm/topology.h
-@@ -9,12 +9,8 @@ struct device_node;
- #ifdef CONFIG_NUMA
- 
- /*
-- * Before going off node we want the VM to try and reclaim from the local
-- * node. It does this if the remote distance is larger than RECLAIM_DISTANCE.
-- * With the default REMOTE_DISTANCE of 20 and the default RECLAIM_DISTANCE of
-- * 20, we never reclaim and go off node straight away.
-- *
-- * To fix this we choose a smaller value of RECLAIM_DISTANCE.
-+ * If zone_reclaim_mode is enabled, a RECLAIM_DISTANCE of 10 will mean that
-+ * all zones on all nodes will be eligible for zone_reclaim().
-  */
- #define RECLAIM_DISTANCE 10
- 
-diff -puN include/linux/topology.h~mm-disable-zone_reclaim_mode-by-default include/linux/topology.h
---- a/include/linux/topology.h~mm-disable-zone_reclaim_mode-by-default
-+++ a/include/linux/topology.h
-@@ -58,7 +58,8 @@ int arch_update_cpu_topology(void);
- /*
-  * If the distance between nodes in a system is larger than RECLAIM_DISTANCE
-  * (in whatever arch specific measurement units returned by node_distance())
-- * then switch on zone reclaim on boot.
-+ * and zone_reclaim_mode is enabled then the VM will only call zone_reclaim()
-+ * on nodes within this distance.
-  */
- #define RECLAIM_DISTANCE 30
- #endif
-diff -puN mm/page_alloc.c~mm-disable-zone_reclaim_mode-by-default mm/page_alloc.c
---- a/mm/page_alloc.c~mm-disable-zone_reclaim_mode-by-default
+diff -puN include/linux/mmzone.h~mm-page_alloc-do-not-cache-reclaim-distances include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-do-not-cache-reclaim-distances
++++ a/include/linux/mmzone.h
+@@ -763,7 +763,6 @@ typedef struct pglist_data {
+ 	unsigned long node_spanned_pages; /* total size of physical page
+ 					     range, including holes */
+ 	int node_id;
+-	nodemask_t reclaim_nodes;	/* Nodes allowed to reclaim from */
+ 	wait_queue_head_t kswapd_wait;
+ 	wait_queue_head_t pfmemalloc_wait;
+ 	struct task_struct *kswapd;	/* Protected by lock_memory_hotplug() */
+diff -puN mm/page_alloc.c~mm-page_alloc-do-not-cache-reclaim-distances mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-cache-reclaim-distances
 +++ a/mm/page_alloc.c
-@@ -1860,8 +1860,6 @@ static void __paginginit init_zone_allow
- 	for_each_node_state(i, N_MEMORY)
- 		if (node_distance(nid, i) <= RECLAIM_DISTANCE)
- 			node_set(i, NODE_DATA(nid)->reclaim_nodes);
--		else
--			zone_reclaim_mode = 1;
+@@ -1850,16 +1850,8 @@ static bool zone_local(struct zone *loca
+ 
+ static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
+ {
+-	return node_isset(local_zone->node, zone->zone_pgdat->reclaim_nodes);
+-}
+-
+-static void __paginginit init_zone_allows_reclaim(int nid)
+-{
+-	int i;
+-
+-	for_each_node_state(i, N_MEMORY)
+-		if (node_distance(nid, i) <= RECLAIM_DISTANCE)
+-			node_set(i, NODE_DATA(nid)->reclaim_nodes);
++	return node_distance(zone_to_nid(local_zone), zone_to_nid(zone)) <
++				RECLAIM_DISTANCE;
  }
  
  #else	/* CONFIG_NUMA */
+@@ -1893,9 +1885,6 @@ static bool zone_allows_reclaim(struct z
+ 	return true;
+ }
+ 
+-static inline void init_zone_allows_reclaim(int nid)
+-{
+-}
+ #endif	/* CONFIG_NUMA */
+ 
+ /*
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
