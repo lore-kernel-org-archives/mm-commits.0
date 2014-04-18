@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-xz-add-comments-for-the-intentionally-missing-break-statements.patch
- added to -mm tree
-Date: Fri, 18 Apr 2014 12:58:10 -0700
-Message-ID: <535183d2.sOJCyoyPHxGQxb9S%akpm@linux-foundation.org>
+Subject: + mm-disable-zone_reclaim_mode-by-default.patch added to -mm tree
+Date: Fri, 18 Apr 2014 13:06:37 -0700
+Message-ID: <535185cd./jfAC9DnY3vEWVmh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42197 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42222 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754008AbaDRT6K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 15:58:10 -0400
+	with ESMTP id S1754172AbaDRUGi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 16:06:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, lasse.collin@tukaani.org
+To: mm-commits@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mhocko@suse.cz, hannes@cmpxchg.org, mgorman@suse.de
 
-Subject: + lib-xz-add-comments-for-the-intentionally-missing-break-statements.patch added to -mm tree
-To: lasse.collin@tukaani.org
+Subject: + mm-disable-zone_reclaim_mode-by-default.patch added to -mm tree
+To: mgorman@suse.de,hannes@cmpxchg.org,mhocko@suse.cz,zhangyanfei@cn.fujitsu.com
 From: akpm@linux-foundation.org
-Date: Fri, 18 Apr 2014 12:58:10 -0700
+Date: Fri, 18 Apr 2014 13:06:37 -0700
 
 
 The patch titled
-     Subject: lib/xz: add comments for the intentionally missing break statements
+     Subject: mm: disable zone_reclaim_mode by default
 has been added to the -mm tree.  Its filename is
-     lib-xz-add-comments-for-the-intentionally-missing-break-statements.patch
+     mm-disable-zone_reclaim_mode-by-default.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-xz-add-comments-for-the-intentionally-missing-break-statements.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-disable-zone_reclaim_mode-by-default.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-xz-add-comments-for-the-intentionally-missing-break-statements.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-disable-zone_reclaim_mode-by-default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,41 +43,146 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lasse Collin <lasse.collin@tukaani.org>
-Subject: lib/xz: add comments for the intentionally missing break statements
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: disable zone_reclaim_mode by default
 
-Signed-off-by: Lasse Collin <lasse.collin@tukaani.org>
+When it was introduced, zone_reclaim_mode made sense as NUMA distances
+punished and workloads were generally partitioned to fit into a NUMA node.
+ NUMA machines are now common but few of the workloads are NUMA-aware and
+it's routine to see major performance due to zone_reclaim_mode being
+enabled but relatively few can identify the problem.
+
+Those that require zone_reclaim_mode are likely to be able to detect when
+it needs to be enabled and tune appropriately so lets have a sensible
+default for the bulk of users.
+
+
+
+This patch (of 2):
+
+zone_reclaim_mode causes processes to prefer reclaiming memory from local
+node instead of spilling over to other nodes. This made sense initially when
+NUMA machines were almost exclusively HPC and the workload was partitioned
+into nodes. The NUMA penalties were sufficiently high to justify reclaiming
+the memory. On current machines and workloads it is often the case that
+zone_reclaim_mode destroys performance but not all users know how to detect
+this. Favour the common case and disable it by default. Users that are
+sophisticated enough to know they need zone_reclaim_mode will detect it.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/xz/xz_dec_lzma2.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/sysctl/vm.txt         |   17 +++++++++--------
+ arch/ia64/include/asm/topology.h    |    3 ++-
+ arch/powerpc/include/asm/topology.h |    8 ++------
+ include/linux/topology.h            |    3 ++-
+ mm/page_alloc.c                     |    2 --
+ 5 files changed, 15 insertions(+), 18 deletions(-)
 
-diff -puN lib/xz/xz_dec_lzma2.c~lib-xz-add-comments-for-the-intentionally-missing-break-statements lib/xz/xz_dec_lzma2.c
---- a/lib/xz/xz_dec_lzma2.c~lib-xz-add-comments-for-the-intentionally-missing-break-statements
-+++ a/lib/xz/xz_dec_lzma2.c
-@@ -1043,6 +1043,8 @@ XZ_EXTERN enum xz_ret xz_dec_lzma2_run(s
+diff -puN Documentation/sysctl/vm.txt~mm-disable-zone_reclaim_mode-by-default Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-disable-zone_reclaim_mode-by-default
++++ a/Documentation/sysctl/vm.txt
+@@ -772,16 +772,17 @@ This is value ORed together of
+ 2	= Zone reclaim writes dirty pages out
+ 4	= Zone reclaim swaps pages
  
- 			s->lzma2.sequence = SEQ_LZMA_PREPARE;
+-zone_reclaim_mode is set during bootup to 1 if it is determined that pages
+-from remote zones will cause a measurable performance reduction. The
+-page allocator will then reclaim easily reusable pages (those page
+-cache pages that are currently not used) before allocating off node pages.
+-
+-It may be beneficial to switch off zone reclaim if the system is
+-used for a file server and all of memory should be used for caching files
+-from disk. In that case the caching effect is more important than
++zone_reclaim_mode is disabled by default.  For file servers or workloads
++that benefit from having their data cached, zone_reclaim_mode should be
++left disabled as the caching effect is likely to be more important than
+ data locality.
  
-+		/* Fall through */
++zone_reclaim may be enabled if it's known that the workload is partitioned
++such that each partition fits within a NUMA node and that accessing remote
++memory would cause a measurable performance reduction.  The page allocator
++will then reclaim easily reusable pages (those page cache pages that are
++currently not used) before allocating off node pages.
 +
- 		case SEQ_LZMA_PREPARE:
- 			if (s->lzma2.compressed < RC_INIT_BYTES)
- 				return XZ_DATA_ERROR;
-@@ -1053,6 +1055,8 @@ XZ_EXTERN enum xz_ret xz_dec_lzma2_run(s
- 			s->lzma2.compressed -= RC_INIT_BYTES;
- 			s->lzma2.sequence = SEQ_LZMA_RUN;
+ Allowing zone reclaim to write out pages stops processes that are
+ writing large amounts of data from dirtying pages on other nodes. Zone
+ reclaim will write out dirty pages if a zone fills up and so effectively
+diff -puN arch/ia64/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default arch/ia64/include/asm/topology.h
+--- a/arch/ia64/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default
++++ a/arch/ia64/include/asm/topology.h
+@@ -21,7 +21,8 @@
+ #define PENALTY_FOR_NODE_WITH_CPUS 255
  
-+		/* Fall through */
-+
- 		case SEQ_LZMA_RUN:
- 			/*
- 			 * Set dictionary limit to indicate how much we want
+ /*
+- * Distance above which we begin to use zone reclaim
++ * Nodes within this distance are eligible for reclaim by zone_reclaim() when
++ * zone_reclaim_mode is enabled.
+  */
+ #define RECLAIM_DISTANCE 15
+ 
+diff -puN arch/powerpc/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default arch/powerpc/include/asm/topology.h
+--- a/arch/powerpc/include/asm/topology.h~mm-disable-zone_reclaim_mode-by-default
++++ a/arch/powerpc/include/asm/topology.h
+@@ -9,12 +9,8 @@ struct device_node;
+ #ifdef CONFIG_NUMA
+ 
+ /*
+- * Before going off node we want the VM to try and reclaim from the local
+- * node. It does this if the remote distance is larger than RECLAIM_DISTANCE.
+- * With the default REMOTE_DISTANCE of 20 and the default RECLAIM_DISTANCE of
+- * 20, we never reclaim and go off node straight away.
+- *
+- * To fix this we choose a smaller value of RECLAIM_DISTANCE.
++ * If zone_reclaim_mode is enabled, a RECLAIM_DISTANCE of 10 will mean that
++ * all zones on all nodes will be eligible for zone_reclaim().
+  */
+ #define RECLAIM_DISTANCE 10
+ 
+diff -puN include/linux/topology.h~mm-disable-zone_reclaim_mode-by-default include/linux/topology.h
+--- a/include/linux/topology.h~mm-disable-zone_reclaim_mode-by-default
++++ a/include/linux/topology.h
+@@ -58,7 +58,8 @@ int arch_update_cpu_topology(void);
+ /*
+  * If the distance between nodes in a system is larger than RECLAIM_DISTANCE
+  * (in whatever arch specific measurement units returned by node_distance())
+- * then switch on zone reclaim on boot.
++ * and zone_reclaim_mode is enabled then the VM will only call zone_reclaim()
++ * on nodes within this distance.
+  */
+ #define RECLAIM_DISTANCE 30
+ #endif
+diff -puN mm/page_alloc.c~mm-disable-zone_reclaim_mode-by-default mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-disable-zone_reclaim_mode-by-default
++++ a/mm/page_alloc.c
+@@ -1860,8 +1860,6 @@ static void __paginginit init_zone_allow
+ 	for_each_node_state(i, N_MEMORY)
+ 		if (node_distance(nid, i) <= RECLAIM_DISTANCE)
+ 			node_set(i, NODE_DATA(nid)->reclaim_nodes);
+-		else
+-			zone_reclaim_mode = 1;
+ }
+ 
+ #else	/* CONFIG_NUMA */
 _
 
-Patches currently in -mm which might be from lasse.collin@tukaani.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-lib-xz-add-comments-for-the-intentionally-missing-break-statements.patch
-lib-xz-enable-all-filters-by-default-in-kconfig.patch
+mm-use-paravirt-friendly-ops-for-numa-hinting-ptes.patch
+thp-close-race-between-split-and-zap-huge-pages.patch
+x86-require-x86-64-for-automatic-numa-balancing.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels.patch
+x86-define-_page_numa-by-reusing-software-bits-on-the-pmd-and-pte-levels-fix-2.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-compactionc-isolate_freepages_block-small-tuneup.patch
+mm-only-force-scan-in-reclaim-when-none-of-the-lrus-are-big-enough.patch
+mm-huge_memoryc-complete-conversion-to-pr_foo.patch
+mm-disable-zone_reclaim_mode-by-default.patch
+mm-page_alloc-do-not-cache-reclaim-distances.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
 
