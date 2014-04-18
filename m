@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-filec-remove-unnecessary-function-parameters.patch
- added to -mm tree
-Date: Fri, 18 Apr 2014 13:19:43 -0700
-Message-ID: <535188df.FrPQF5lh19QcR4xy%akpm@linux-foundation.org>
+Subject: + shiraz-has-moved.patch added to -mm tree
+Date: Fri, 18 Apr 2014 13:33:09 -0700
+Message-ID: <53518c05.jmGHifX2Irr1C//v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42395 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197AbaDRUTn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 16:19:43 -0400
+	with ESMTP id S1753308AbaDRUdK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Apr 2014 16:33:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, fabf@skynet.be
+To: mm-commits@vger.kernel.org, shiraz.linux.kernel@gmail.com, viresh.kumar@linaro.org
 
-Subject: + fs-affs-filec-remove-unnecessary-function-parameters.patch added to -mm tree
-To: fabf@skynet.be
+Subject: + shiraz-has-moved.patch added to -mm tree
+To: viresh.kumar@linaro.org,shiraz.linux.kernel@gmail.com
 From: akpm@linux-foundation.org
-Date: Fri, 18 Apr 2014 13:19:43 -0700
+Date: Fri, 18 Apr 2014 13:33:09 -0700
 
 
 The patch titled
-     Subject: fs/affs/file.c: remove unnecessary function parameters
+     Subject: Shiraz has moved
 has been added to the -mm tree.  Its filename is
-     fs-affs-filec-remove-unnecessary-function-parameters.patch
+     shiraz-has-moved.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-filec-remove-unnecessary-function-parameters.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/shiraz-has-moved.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-filec-remove-unnecessary-function-parameters.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/shiraz-has-moved.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,101 +43,190 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/file.c: remove unnecessary function parameters
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Shiraz has moved
 
-- affs_do_readpage_ofs is always called with from = 0 ie reading from
-  page->index
+shiraz.hashim@st.com email-id doesn't exist anymore as he has left the
+company.  Replace ST's id with shiraz.linux.kernel@gmail.com.
 
-- File parameter is never used
+It also updates .mailmap file to fix address for 'git shortlog'.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Shiraz Hashim <shiraz.linux.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ .mailmap                           |    1 +
+ MAINTAINERS                        |    2 +-
+ arch/arm/boot/dts/spear320-hmi.dts |    2 +-
+ arch/arm/mach-spear/headsmp.S      |    2 +-
+ arch/arm/mach-spear/platsmp.c      |    2 +-
+ arch/arm/mach-spear/time.c         |    2 +-
+ drivers/gpio/gpio-spear-spics.c    |    4 ++--
+ drivers/irqchip/spear-shirq.c      |    2 +-
+ drivers/mtd/devices/spear_smi.c    |    4 ++--
+ drivers/pwm/pwm-spear.c            |    4 ++--
+ include/linux/mtd/spear_smi.h      |    2 +-
+ 11 files changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN fs/affs/file.c~fs-affs-filec-remove-unnecessary-function-parameters fs/affs/file.c
---- a/fs/affs/file.c~fs-affs-filec-remove-unnecessary-function-parameters
-+++ a/fs/affs/file.c
-@@ -498,34 +498,36 @@ affs_getemptyblk_ino(struct inode *inode
+diff -puN .mailmap~shiraz-has-moved .mailmap
+--- a/.mailmap~shiraz-has-moved
++++ a/.mailmap
+@@ -99,6 +99,7 @@ Sachin P Sant <ssant@in.ibm.com>
+ Sam Ravnborg <sam@mars.ravnborg.org>
+ Sascha Hauer <s.hauer@pengutronix.de>
+ S.Çağlar Onur <caglar@pardus.org.tr>
++Shiraz Hashim <shiraz.linux.kernel@gmail.com> <shiraz.hashim@st.com>
+ Simon Kelley <simon@thekelleys.org.uk>
+ Stéphane Witzmann <stephane.witzmann@ubpmes.univ-bpclermont.fr>
+ Stephen Hemminger <shemminger@osdl.org>
+diff -puN MAINTAINERS~shiraz-has-moved MAINTAINERS
+--- a/MAINTAINERS~shiraz-has-moved
++++ a/MAINTAINERS
+@@ -8314,7 +8314,7 @@ F:	include/linux/compiler.h
+ 
+ SPEAR PLATFORM SUPPORT
+ M:	Viresh Kumar <viresh.linux@gmail.com>
+-M:	Shiraz Hashim <shiraz.hashim@st.com>
++M:	Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+ L:	spear-devel@list.st.com
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://www.st.com/spear
+diff -puN arch/arm/boot/dts/spear320-hmi.dts~shiraz-has-moved arch/arm/boot/dts/spear320-hmi.dts
+--- a/arch/arm/boot/dts/spear320-hmi.dts~shiraz-has-moved
++++ a/arch/arm/boot/dts/spear320-hmi.dts
+@@ -1,7 +1,7 @@
+ /*
+  * DTS file for SPEAr320 Evaluation Baord
+  *
+- * Copyright 2012 Shiraz Hashim <shiraz.hashim@st.com>
++ * Copyright 2012 Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+  *
+  * The code contained herein is licensed under the GNU General Public
+  * License. You may obtain a copy of the GNU General Public License
+diff -puN arch/arm/mach-spear/headsmp.S~shiraz-has-moved arch/arm/mach-spear/headsmp.S
+--- a/arch/arm/mach-spear/headsmp.S~shiraz-has-moved
++++ a/arch/arm/mach-spear/headsmp.S
+@@ -3,7 +3,7 @@
+  *
+  * Picked from realview
+  * Copyright (c) 2012 ST Microelectronics Limited
+- * Shiraz Hashim <shiraz.hashim@st.com>
++ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+diff -puN arch/arm/mach-spear/platsmp.c~shiraz-has-moved arch/arm/mach-spear/platsmp.c
+--- a/arch/arm/mach-spear/platsmp.c~shiraz-has-moved
++++ a/arch/arm/mach-spear/platsmp.c
+@@ -4,7 +4,7 @@
+  * based upon linux/arch/arm/mach-realview/platsmp.c
+  *
+  * Copyright (C) 2012 ST Microelectronics Ltd.
+- * Shiraz Hashim <shiraz.hashim@st.com>
++ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+diff -puN arch/arm/mach-spear/time.c~shiraz-has-moved arch/arm/mach-spear/time.c
+--- a/arch/arm/mach-spear/time.c~shiraz-has-moved
++++ a/arch/arm/mach-spear/time.c
+@@ -2,7 +2,7 @@
+  * arch/arm/plat-spear/time.c
+  *
+  * Copyright (C) 2010 ST Microelectronics
+- * Shiraz Hashim<shiraz.hashim@st.com>
++ * Shiraz Hashim<shiraz.linux.kernel@gmail.com>
+  *
+  * This file is licensed under the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
+diff -puN drivers/gpio/gpio-spear-spics.c~shiraz-has-moved drivers/gpio/gpio-spear-spics.c
+--- a/drivers/gpio/gpio-spear-spics.c~shiraz-has-moved
++++ a/drivers/gpio/gpio-spear-spics.c
+@@ -2,7 +2,7 @@
+  * SPEAr platform SPI chipselect abstraction over gpiolib
+  *
+  * Copyright (C) 2012 ST Microelectronics
+- * Shiraz Hashim <shiraz.hashim@st.com>
++ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+  *
+  * This file is licensed under the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
+@@ -205,6 +205,6 @@ static int __init spics_gpio_init(void)
  }
+ subsys_initcall(spics_gpio_init);
  
- static int
--affs_do_readpage_ofs(struct file *file, struct page *page, unsigned from, unsigned to)
-+affs_do_readpage_ofs(struct page *page, unsigned to)
- {
- 	struct inode *inode = page->mapping->host;
- 	struct super_block *sb = inode->i_sb;
- 	struct buffer_head *bh;
- 	char *data;
-+	unsigned pos = 0;
- 	u32 bidx, boff, bsize;
- 	u32 tmp;
+-MODULE_AUTHOR("Shiraz Hashim <shiraz.hashim@st.com>");
++MODULE_AUTHOR("Shiraz Hashim <shiraz.linux.kernel@gmail.com>");
+ MODULE_DESCRIPTION("ST Microlectronics SPEAr SPI Chip Select Abstraction");
+ MODULE_LICENSE("GPL");
+diff -puN drivers/irqchip/spear-shirq.c~shiraz-has-moved drivers/irqchip/spear-shirq.c
+--- a/drivers/irqchip/spear-shirq.c~shiraz-has-moved
++++ a/drivers/irqchip/spear-shirq.c
+@@ -5,7 +5,7 @@
+  * Viresh Kumar <viresh.linux@gmail.com>
+  *
+  * Copyright (C) 2012 ST Microelectronics
+- * Shiraz Hashim <shiraz.hashim@st.com>
++ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+  *
+  * This file is licensed under the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
+diff -puN drivers/mtd/devices/spear_smi.c~shiraz-has-moved drivers/mtd/devices/spear_smi.c
+--- a/drivers/mtd/devices/spear_smi.c~shiraz-has-moved
++++ a/drivers/mtd/devices/spear_smi.c
+@@ -6,7 +6,7 @@
+  *
+  * Copyright © 2010 STMicroelectronics.
+  * Ashish Priyadarshi
+- * Shiraz Hashim <shiraz.hashim@st.com>
++ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+  *
+  * This file is licensed under the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
+@@ -1089,5 +1089,5 @@ static struct platform_driver spear_smi_
+ module_platform_driver(spear_smi_driver);
  
--	pr_debug("AFFS: read_page(%u, %ld, %d, %d)\n", (u32)inode->i_ino, page->index, from, to);
--	BUG_ON(from > to || to > PAGE_CACHE_SIZE);
-+	pr_debug("AFFS: read_page(%u, %ld, 0, %d)\n", (u32)inode->i_ino,
-+		 page->index, to);
-+	BUG_ON(to > PAGE_CACHE_SIZE);
- 	kmap(page);
- 	data = page_address(page);
- 	bsize = AFFS_SB(sb)->s_data_blksize;
--	tmp = (page->index << PAGE_CACHE_SHIFT) + from;
-+	tmp = page->index << PAGE_CACHE_SHIFT;
- 	bidx = tmp / bsize;
- 	boff = tmp % bsize;
+ MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Ashish Priyadarshi, Shiraz Hashim <shiraz.hashim@st.com>");
++MODULE_AUTHOR("Ashish Priyadarshi, Shiraz Hashim <shiraz.linux.kernel@gmail.com>");
+ MODULE_DESCRIPTION("MTD SMI driver for serial nor flash chips");
+diff -puN drivers/pwm/pwm-spear.c~shiraz-has-moved drivers/pwm/pwm-spear.c
+--- a/drivers/pwm/pwm-spear.c~shiraz-has-moved
++++ a/drivers/pwm/pwm-spear.c
+@@ -2,7 +2,7 @@
+  * ST Microelectronics SPEAr Pulse Width Modulator driver
+  *
+  * Copyright (C) 2012 ST Microelectronics
+- * Shiraz Hashim <shiraz.hashim@st.com>
++ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+  *
+  * This file is licensed under the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
+@@ -264,6 +264,6 @@ static struct platform_driver spear_pwm_
+ module_platform_driver(spear_pwm_driver);
  
--	while (from < to) {
-+	while (pos < to) {
- 		bh = affs_bread_ino(inode, bidx, 0);
- 		if (IS_ERR(bh))
- 			return PTR_ERR(bh);
--		tmp = min(bsize - boff, to - from);
--		BUG_ON(from + tmp > to || tmp > bsize);
--		memcpy(data + from, AFFS_DATA(bh) + boff, tmp);
-+		tmp = min(bsize - boff, to - pos);
-+		BUG_ON(pos + tmp > to || tmp > bsize);
-+		memcpy(data + pos, AFFS_DATA(bh) + boff, tmp);
- 		affs_brelse(bh);
- 		bidx++;
--		from += tmp;
-+		pos += tmp;
- 		boff = 0;
- 	}
- 	flush_dcache_page(page);
-@@ -615,7 +617,7 @@ affs_readpage_ofs(struct file *file, str
- 		memset(page_address(page) + to, 0, PAGE_CACHE_SIZE - to);
- 	}
- 
--	err = affs_do_readpage_ofs(file, page, 0, to);
-+	err = affs_do_readpage_ofs(page, to);
- 	if (!err)
- 		SetPageUptodate(page);
- 	unlock_page(page);
-@@ -651,7 +653,7 @@ static int affs_write_begin_ofs(struct f
- 		return 0;
- 
- 	/* XXX: inefficient but safe in the face of short writes */
--	err = affs_do_readpage_ofs(file, page, 0, PAGE_CACHE_SIZE);
-+	err = affs_do_readpage_ofs(page, PAGE_CACHE_SIZE);
- 	if (err) {
- 		unlock_page(page);
- 		page_cache_release(page);
+ MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Shiraz Hashim <shiraz.hashim@st.com>");
++MODULE_AUTHOR("Shiraz Hashim <shiraz.linux.kernel@gmail.com>");
+ MODULE_AUTHOR("Viresh Kumar <viresh.kumar@linaro.com>");
+ MODULE_ALIAS("platform:spear-pwm");
+diff -puN include/linux/mtd/spear_smi.h~shiraz-has-moved include/linux/mtd/spear_smi.h
+--- a/include/linux/mtd/spear_smi.h~shiraz-has-moved
++++ a/include/linux/mtd/spear_smi.h
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright © 2010 ST Microelectronics
+- * Shiraz Hashim <shiraz.hashim@st.com>
++ * Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+  *
+  * This file is licensed under the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from viresh.kumar@linaro.org are
 
-ntfs-remove-null-value-assignments.patch
-ocfs2-remove-null-assignments-on-static.patch
-fs-ocfs2-superc-use-ocfs2_max_vol_label_len-and-strlcpy.patch
-sys_sgetmask-sys_ssetmask-add-config_sgetmask_syscall.patch
-fs-binfmt_elfc-fix-bool-assignements.patch
-fs-befs-linuxvfsc-replace-strncpy-by-strlcpy.patch
-fs-befs-btreec-replace-strncpy-by-strlcpy-coding-style-fixing.patch
-fs-reiserfs-bitmapc-coding-style-fixes.patch
-fs-affs-filec-remove-unnecessary-function-parameters.patch
+origin.patch
+shiraz-has-moved.patch
 linux-next.patch
-ufs-sb-mutex-merge-mutex_destroy.patch
 
